@@ -1,0 +1,76 @@
+.custom-calendar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    width: 400px; /* Adjust width as needed */
+  }
+  
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .calendar-header button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    width: 100%;
+  }
+  
+  .calendar-day {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    position: relative;
+    cursor: pointer;
+  }
+  
+  .calendar-day.header {
+    background-color: #f0f0f0;
+    font-weight: bold;
+  }
+  
+  .calendar-day.red {
+    background-color: rgba(255, 0, 0, 0.3);
+  }
+  
+  .calendar-day.blue {
+    background-color: rgba(0, 0, 255, 0.3);
+  }
+  
+  .calendar-day.green {
+    background-color: rgba(0, 255, 0, 0.3);
+  }
+  
+  .calendar-day.orange {
+    background-color: rgba(255, 165, 0, 0.3);
+  }
+  
+  .calendar-day.purple {
+    background-color: rgba(128, 0, 128, 0.3);
+  }
+  
+  .calendar-day.gold {
+    background-color: rgba(255, 215, 0, 0.3);
+  }
+  
+  .calendar-day.empty {
+    background-color: transparent;
+  }

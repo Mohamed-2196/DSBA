@@ -1,0 +1,171 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.subject-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-top: 50px;
+}
+
+.subject-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+}
+
+.subject-card-content {
+  padding: 2rem;
+}
+
+.subject-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.subject-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a237e;
+  margin-bottom: 1rem;
+}
+
+.subject-description {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.subject-sections {
+  margin-bottom: 1.5rem;
+}
+
+.subject-sections h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  color: #1a237e;
+  margin-bottom: 0.5rem;
+}
+
+.subject-sections a,
+.subject-link {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.9rem;
+  color: #1a237e;
+  text-decoration: none;
+}
+
+.subject-sections a:hover,
+.subject-link:hover {
+    color: #0e1442;
+    text-decoration: underline;
+}
+
+css
+.chapter-list {
+    padding-left: 0; /* Remove left padding */
+    margin-top: .5rem; /* Add some top margin */
+}
+
+.chapter-list li {
+    margin-bottom: .5rem; /* Space between chapters */
+    border-bottom: .5px solid #e0e0e0; /* Add a subtle border */
+    padding-bottom: .5rem; /* Space below each chapter */
+        color: #1a237e;
+
+}
+
+.chapter-list li:last-child {
+  border-bottom: none; /* Remove border for the last item */
+}
+
+.chapter-list button {
+    font-family: 'Roboto', sans-serif;
+    font-size: .9rem; /* Font size for chapter buttons */
+    color: #1a237e; /* Chapter button text color */
+    background-color: transparent; /* Transparent background */
+    border: none; /* No border */
+    cursor: pointer; /* Pointer cursor on hover */
+    padding-left:.5rem; /* Add some left padding for better spacing */
+    text-align:left; /* Align text to the left */
+    transition: color .3s ease, background-color .3s ease; /* Transition for hover effects */
+}
+
+.chapter-list button:hover {
+    color:#0e1442; /* Change text color on hover */
+    background-color:#f5f5f5; /* Light background on hover for better visibility */
+    border-radius:.25rem; /* Slightly rounded corners on hover */
+}
+
+.chapter-content {
+    margin-top:.5rem; /* Space above chapter content */
+    margin-bottom:.75rem; /* Space below chapter content */
+    padding:.75rem; /* Padding around chapter content for better spacing */
+    background-color:#f9f9f9; /* Light background for chapter content */
+    border-left:.25rem solid #1a237e; /* Left border to highlight chapter content */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.subject-button {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #1a237e;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.25rem;
+  text-decoration: none;
+  transition: 0.3s ease all;
+  display: inline-block;
+}
+
+.subject-button:hover {
+  background-color: #0e1442;
+}
+
+.video-responsive {
+  overflow: hidden;
+  padding-bottom: 56.25%;
+  position: relative;
+  height: 0;
+  margin-bottom: 1rem;
+}
+
+.video-responsive iframe {
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+}
+
+.video-responsive iframe {
+   left :0 ; 
+   top :0 ; 
+   height :100%; 
+   width :100%; 
+   position:absolute
+}
+
+audio {
+   width :100%; 
+   margin-bottom :1 rem
+}
+
+@media (max-width :768px) {
+   .subject-grid { grid-template-columns :1fr }
+}
