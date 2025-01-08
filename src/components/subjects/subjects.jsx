@@ -1,5 +1,4 @@
 import './SubjectCards.css';
-import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 
@@ -73,18 +72,26 @@ const SubjectCard = ({ name, description, code, chapters }) => {
     mathematics: [
     ],
     statistics: [
+      { name: 'Nasser', link: 'https://drive.google.com/drive/folders/1qcIgZ8MzS_2IyIICyCY6JChfHJj4OsCi' },
+      { name: 'Product and Sigma Notaion', link: 'https://drive.google.com/drive/folders/1bl81qDEuqa34zs4UzZoBvGT0OrvjHPnm' },
+
     ],
     Business: [
-      { name: 'Feras', link: 'https://drive.google.com/drive/folders/1sdgPqSOOzDOtaGqUAu_1M3MNd4R7Slqc' },
-      { name: 'Dunno who', link: 'https://drive.google.com/drive/folders/1TENUe107415KrFFvtpCnyF7vlxUEHnfY' },
+      { name: 'Feras Mock one full revision and questions', link: 'https://drive.google.com/drive/folders/1CpKdORL_n9hiYnGdHawiGEsLCG8MMCy7' },
+      { name: '𓇼🧽🍍 Patrick: Business Edition', link: 'https://drive.google.com/drive/folders/1TENUe107415KrFFvtpCnyF7vlxUEHnfY' },
     ],
     economics: [
+      { name: 'Mahdi', link: 'https://drive.google.com/drive/folders/1YkMc0eGzvphYu1i3wGeo1w7d4B2F_I1_' },
+      { name: 'Mohamed Hasan', link: 'https://drive.google.com/drive/folders/14skhlfQ72aXUaQEyKk5VefBlPou5mfuY'},
+
     ],
   };
 
   const subjectExerciseLinks = {
     Business: 'https://drive.google.com/drive/folders/1t0xlM6_JO7eDfLx4n8kwj5MxKahCBJmx',
     economics: 'https://drive.google.com/drive/folders/1vLikzvO93XaI7vsBxOMRUcGNfkju_sCI',
+    mathematics: 'https://drive.google.com/drive/folders/13n0MsLtWx7b8jhtll4B6spZwtVenGWbk?sort=13&direction=a',
+
   };
 
   const vleLinks = {
@@ -134,22 +141,43 @@ const SubjectCard = ({ name, description, code, chapters }) => {
               </li>
             ))}
           </ul>
-
           <h4>Exercises</h4>
-          {code === 'mathematics' ? (
-            <p>Dr. Mahmood's chapters have everything covered.</p>
-          ) : code === 'statistics' ? (
-            <p>Dr. Yasser's exercise sets cover long questions, and unfortunately, you have to go to the VLE for MCQ. 🗿</p>
-          ) : (
-            <a
-              href={subjectExerciseLinks[code]}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="subject-link"
-            >
-              Access Exercises
-            </a>
-          )}
+{code === 'mathematics' ? (
+  <p>
+    Dr. Mahmood's chapters have everything covered. 
+    <br />
+    <a 
+      href={subjectExerciseLinks['mathematics']} 
+      target="_blank" 
+      rel="noopener noreferrer" 
+      className="subject-link"
+    >
+      Access More Exercises
+    </a>
+  </p>
+) : code === 'statistics' ? (
+  <p>
+    Dr. Yasser's exercise sets cover long questions, and unfortunately, you have to go to the VLE for MCQ. 🗿
+    <br />
+    <a 
+      href={subjectExerciseLinks['statistics']} 
+      target="_blank" 
+      rel="noopener noreferrer" 
+      className="subject-link"
+    >
+      Access More Exercises
+    </a>
+  </p>
+) : (
+  <a
+    href={subjectExerciseLinks[code]}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="subject-link"
+  >
+    Access Exercises
+  </a>
+)}
 
           <h4>Previous Exams</h4>
           <div>
@@ -231,7 +259,10 @@ const SubjectCardGrid = () => {
         { title: 'Pure Monopoly', videoIds: ['E07bl-TUmmY','D7vYXago3-A'] },
         { title: 'Market structure and Imperfect Competition', videoIds: ['AoCVu3Tr2tk','ECMD9OAsBmQ','idFuhMRzr0Y'] },
         { title: 'The Labour Market', videoIds: ['_2Xi866KB8A'] },
-        { title: 'Welfare Economics', videoIds: ['PC3qooaF5Xs'] },
+        { title: 'Welfare Economics', videoIds: ['PC3qooaF5Xs','osvoVuESEKY'] },
+        { title: 'Introduction to Macroeconomics', videoIds: ['qtNZSbzRP3A','ZdGnhusKnRU','iNfNZ1mIGRE'] },
+        { title: 'Supply-side economics and economic growth', videoIds: ['PvfdPfEd-gk','ldszxyaFcHk','E3Niu4E1kbI','EUOcBo-gzdE','7yeWBFzGHS4','SAgt0oAv2FI','mHP8q-em1wo'] },
+
 
       ]
     } ,{
@@ -245,7 +276,7 @@ const SubjectCardGrid = () => {
         { title: 'International Trade and Investment', videoIds: ['KROTqSzz4BQ'] },
         { title: 'Multilateral organisations and regional integration', videoIds: ['CkhdBMXcu0k'] },
         { title: 'Exchange Rates', videoIds: ['NQXwvmRgIf0'] },
-        { title: 'Overview of Strategy and the Enterprise in International Context', videoIds: [] },
+        { title: 'Overview of Strategy and the Enterprise in International Context', videoIds: ['ldGfvoeq0IA'] },
 
       ]
     },
@@ -260,7 +291,8 @@ const SubjectCardGrid = () => {
         { title: 'The Art of Integration', videoIds: ['o75AqTInKDU', 'SVrn1tRtZmg', 'aiBD9aI69C8','t3rzxSgvZZk','zNU8iK8sGD0','2I-_SV8cwsw','KJGp0pyPoVo','qijx9zx3HNQ','UjTTx2eYrx8','DcfYmzt4jnY'] },
         { title: 'Functions of Several Variables', videoIds: ['nIJQPX5kxp4', 'acdX4YamDtU', 'CBgn0z0huW8','IXuu7szVnN8','EkZGBdY0vlg','tXryaM-mTpY','OBELQIPH5xY','J08-L2buigM','fZhHJdPjtYc'] },
         { title: 'Multivariate Optimisation', videoIds: ['kPL28zgEFk8','_Ffcr98c7EE','nUfYR5FBGZc','Ob56YXIV3rM'] },
-        { title: 'Matrices and Linear Equations', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/a5043fc46d3971f08c145ede6437f67fdeb24b60-1676264200087','https://vc.bibf.com/playback/presentation/2.3/4c7c05fd956e4e26aef314c126f07178e416dabe-1676350815340','WTLl03D4TNA'] },
+        { title: 'Matrices and Linear Equations', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/a5043fc46d3971f08c145ede6437f67fdeb24b60-1676264200087','https://vc.bibf.com/playback/presentation/2.3/4c7c05fd956e4e26aef314c126f07178e416dabe-1676350815340','TQvxWaQnrqI','WTLl03D4TNA'] },
+        { title: 'differential equations', videoIds: ['EWVSxND_iWA','5LkQEOPwqfk','HjioXdmwze0','_4Bq6I68Yn4','WfX20b-peDw','ZWXG3c7A_9s','kATxKuVSc9I','fpQoL5u5ihs','UFWAu8Ptth0','UyCwAFQt4v0','hbJ2o9EUmJ0','jJyRrIZ595c','vAepSNDLZRM'] },
 
       ]
     },
@@ -273,7 +305,10 @@ const SubjectCardGrid = () => {
         { title: 'Random Variables', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/1ab1ae7381a6fcc1e3d8ea709204fd7e31a085ac-1727778272013','https://vc.bibf.com/playback/presentation/2.3/21023752c3eab8780f489dd8c5298e006878f34b-1727946137711','https://vc.bibf.com/playback/presentation/2.3/9d3bac605dea955b6533fde9301faa8e480d0fb8-1728210609891' ,'https://vc.bibf.com/playback/presentation/2.3/b3d7809b66aef56d8ab4594f897be4403ff86e17-1728383138486', 'https://vc.bibf.com/playback/presentation/2.3/d1d0f95143107da7ad7b1e95dd9cec11103f40e0-1728550959309', 'https://vc.bibf.com/playback/presentation/2.3/d26b5547690da25c7c95c9b6f9d883b8f02989db-1728815259448', ]},
         { title: 'Common Distributions of Random Variables', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/0754a89ffc88893c6ad0cc4fe7b4439154f7111e-1728988079422','https://vc.bibf.com/playback/presentation/2.3/cc8c86ebe35fbbb9b38217614313e2841dcdb44a-1729155587247','https://vc.bibf.com/playback/presentation/2.3/b4e5534d626065c284710f5249839e6f12d8b62f-1729420169390' ,'https://vc.bibf.com/playback/presentation/2.3/94ffd40d5ebaa19edef4b22db42c07c279b70fe6-1729592969374', 'https://vc.bibf.com/playback/presentation/2.3/54bb14a2f0aa8f2233027114100b4f7e99153ed7-1729760497898', 'https://vc.bibf.com/playback/presentation/2.3/35aa8fdc99ebc6c514900e0d10d6475efc1e6f0c-1730024840073', ]},
         { title: 'Multivariate Random Variables', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/0df66cc7e53dc62870d4381584838ba7b21d05c8-1730197717513','https://vc.bibf.com/playback/presentation/2.3/846144916551f3653e99f908903680fad1583c41-1730365402967','https://vc.bibf.com/playback/presentation/2.3/11e2dacc0511c1e020eeef6a222173b7f334b39c-1730630127389' ,'https://vc.bibf.com/playback/presentation/2.3/6d39771c4b9fdbcc3c08e75f027352da6009b3f6-1730802627532', 'https://vc.bibf.com/playback/presentation/2.3/16337a65f47375ab28ccb54ad0bdeff14b4b5fa8-1730969965689', 'https://vc.bibf.com/playback/presentation/2.3/0ed04dc535441cd50b10300abd8d4e0afba73d1d-1731234443655', ]},
-        { title: 'Sampling Distributions of Statistics', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/64bddc04337fece09731382d9f340e0219e56235-1731407439809','https://vc.bibf.com/playback/presentation/2.3/7c6f164ecef9064640826013840f2d036d13902d-1731574681618',  'https://vc.bibf.com/playback/presentation/2.3/3838daca2e90dfd6281ded175bc56cdd1260bd42-1731839386070','https://vc.bibf.com/playback/presentation/2.3/1c87689f2c56832f0c2b4a1744c80c563a3aedc7-1732012416076']},
+        { title: 'Sampling Distributions of Statistics', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/64bddc04337fece09731382d9f340e0219e56235-1731407439809','https://vc.bibf.com/playback/presentation/2.3/7c6f164ecef9064640826013840f2d036d13902d-1731574681618',  'https://vc.bibf.com/playback/presentation/2.3/3838daca2e90dfd6281ded175bc56cdd1260bd42-1731839386070','https://vc.bibf.com/playback/presentation/2.3/1c87689f2c56832f0c2b4a1744c80c563a3aedc7-1732012416076','80ffqpZdKiA','UetYS3PaHIo','G_RDxAZJ-ug','https://vc.bibf.com/playback/presentation/2.3/39b3715d9e88d5df9c391827aadcfa9844b7a264-1732444516154']},
+        { title: 'Point Estimation', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/39b3715d9e88d5df9c391827aadcfa9844b7a264-1732444516154','https://vc.bibf.com/playback/presentation/2.3/faf83674afb98c2c185125de50da28a934eb321e-1732616975026','https://vc.bibf.com/playback/presentation/2.3/bb09f31166f480a627ecc2a0db1da942d98077ec-1733048490844','https://vc.bibf.com/playback/presentation/2.3/d1369d3c0416edd63fad598b935d1073b1304e8f-1733221687080','D1hgiAla3KI']},
+        { title: 'Interval Estimation', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/c035537d6d80583264e9a051ea5a34c5d28654af-1733653795927','https://vc.bibf.com/playback/presentation/2.3/f62fa560cba372898a14413bade50ab996365917-1733826609321']},
+        { title: 'Hypothesis Tests', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/cfd64087a22d227928487362fe4d6c10b7daee0a-1736245614039']},
 
       ]
     }, 

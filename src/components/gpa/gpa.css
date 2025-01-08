@@ -1,0 +1,209 @@
+/* Fixed GPA Button */
+.fixed-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #1a237e;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  z-index: 1000;
+}
+
+.fixed-button:hover {
+  background-color: #0e1442;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.popup-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 800px;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #1a237e;
+}
+
+.close-button:hover {
+  color: #0e1442;
+}
+
+.gpa-calculator {
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: 'Roboto', sans-serif;
+  padding: 20px;
+}
+
+.grading-system,
+.grade-range-table,
+.subject-table,
+.gpa-conversion {
+  width: 100%;
+  margin-bottom: 20px;
+  border-collapse: collapse;
+}
+
+.grading-system th,
+.grading-system td,
+.grade-range-table th,
+.grade-range-table td,
+.subject-table th,
+.subject-table td,
+.gpa-conversion th,
+.gpa-conversion td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.grading-system th,
+.grade-range-table th,
+.subject-table th,
+.gpa-conversion th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.grading-system tr:nth-child(even),
+.grade-range-table tr:nth-child(even),
+.gpa-conversion tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.subject-table input {
+  width: 80px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.subject-table input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+.subject-row:hover {
+  background-color: #f5f5f5;
+}
+
+.grade-description {
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.grade-description[data-grade="Distinction"] { color: #27ae60; }
+.grade-description[data-grade="Merit"] { color: #2980b9; }
+.grade-description[data-grade="Pass"] { color: #f39c12; }
+.grade-description[data-grade="Borderline Pass"] { color: #e67e22; }
+.grade-description[data-grade="Fail"] { color: #c0392b; }
+
+.average-row {
+  font-weight: bold;
+  text-align: left;
+}
+
+.core-average {
+  background-color: #e8f6f3;
+}
+
+.advanced-average {
+  background-color: #e8f0f9;
+}
+
+.counted-as-one {
+  font-style: italic;
+  font-weight: normal;
+  color: #7f8c8d;
+}
+
+.core-subject {
+  background-color: #f2faf8;
+}
+
+.advanced-subject {
+  background-color: #f2f6fa;
+}
+
+.honors-class {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #3498db;
+}
+
+@media (max-width: 600px) {
+  .subject-table,
+  .subject-table thead,
+  .subject-table tbody,
+  .subject-table th,
+  .subject-table td,
+  .subject-table tr {
+    display: block;
+  }
+  
+  .subject-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  .subject-table tr {
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+  }
+  
+  .subject-table td {
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 50%;
+  }
+  
+  .subject-table td:before {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    content: attr(data-label);
+    font-weight: bold;
+  }
+}

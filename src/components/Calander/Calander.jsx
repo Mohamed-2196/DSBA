@@ -2,12 +2,19 @@ import { useState } from 'react';
 import './CustomCalendar.css';
 
 const events = [
+  { date: '2024-12-04', title: 'First Day of Stats MCQ on VLE', color: 'gold' },
   { date: '2024-12-05', title: 'Business Mock Exam', color: 'red' },
   { date: '2024-12-07', title: 'Statistics Mock Exam', color: 'red' },
-  { date: '2024-12-12', title: 'Economics Mock Exam', color: 'red' },
+  { date: '2024-12-12', title: 'Economics & Arabic Exams', color: 'red' },
   { date: '2024-12-14', title: 'Math Mock Exam', color: 'red' },
   { date: '2024-12-16', title: 'Mid Year Break', color: 'green' },
   { date: '2025-01-05', title: 'Classes Resume', color: 'blue' },
+  { date: '2025-02-15', title: 'Last Day of Stats MCQ on VLE', color: 'gold' },
+  { date: '2025-04-30', title: 'Economics Final Test', color: 'red' },
+  { date: '2025-05-08', title: 'Mathmatical Methods Final Test', color: 'red' },
+  { date: '2025-05-09', title: 'Business Final Test', color: 'red' },
+  { date: '2025-05-13', title: 'Statistics Final Test', color: 'red' },
+
 ];
 
 const CustomCalendar = () => {
@@ -44,6 +51,7 @@ const CustomCalendar = () => {
           key={date}
           className={`calendar-day ${event ? event.color : ''}`}
           onClick={() => handleDayClick(event)}
+          onMouseOver ={() => handleDayClick(event)}
         >
           {i}
           {event && <div className="event-indicator"></div>}
