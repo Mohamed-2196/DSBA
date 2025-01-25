@@ -1,8 +1,18 @@
-# React + Vite
+# Data Science and Business Analytics (DSBA) Learning Resources
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 🌐 [Access the Resource Hub](https://mohamed-2196.github.io/DSBA/)
 
-Currently, two official plugins are available:
+This resource hub is hosted at: https://mohamed-2196.github.io/DSBA/
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Welcome to my curated collection of Data Science and Business Analytics learning resources! This repository is designed to support students and professionals in their DSBA learning journey.
+
+## 📚 About This Project
+
+This website serves as a comprehensive resource hub for Data Science and Business Analytics. It's created to help peers access quality learning materials, tutorials, and tools to enhance their understanding and skills in the DSBA program of UoL.
+
+## 📅 Regular Updates
+
+This repository is regularly updated to ensure the resources remain relevant and valuable. Check back often for new additions!
+
+
+Happy learning!
