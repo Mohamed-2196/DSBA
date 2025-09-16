@@ -9,20 +9,26 @@ const subjectIcons = {
   economics: '📈'
 };
 
-const YouTubeEmbed = ({ embedId }) => (
-  <div className="video-responsive">
-    <iframe
-      width="853"
-      height="480"
-      src={`https://www.youtube.com/embed/${embedId}`}
-      frameBorder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowFullScreen
-      title="Embedded youtube"
-    />
-  </div>
-);
-
+const YouTubeEmbed = ({ embedId }) => {
+  const isPlaylist = embedId.length > 20;
+  return (
+    <div className="video-responsive">
+      <iframe
+        width="853"
+        height="480"
+        src={
+          isPlaylist
+            ? `https://www.youtube.com/embed/videoseries?list=${embedId}`
+            : `https://www.youtube.com/embed/${embedId}`
+        }
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        title={isPlaylist ? "Embedded YouTube Playlist" : "Embedded YouTube Video"}
+      />
+    </div>
+  );
+};
 YouTubeEmbed.propTypes = {
   embedId: PropTypes.string.isRequired
 };
@@ -48,9 +54,9 @@ BigBlueButtonEmbed.propTypes = {
 const SubjectCard = ({ name, description, code, chapters }) => {
   const [expandedChapter, setExpandedChapter] = useState(null);
 
-  const toggleChapter = (index) => {
-    setExpandedChapter(expandedChapter === index ? null : index);
-  };
+const toggleChapter = (index) => {
+  setExpandedChapter(expandedChapter === index ? null : index);
+};
 
   const renderVideoEmbed = (videoId) => {
     if (videoId.includes('youtube.com') || videoId.includes('youtu.be')) {
@@ -77,7 +83,7 @@ const SubjectCard = ({ name, description, code, chapters }) => {
 
     ],
     Business: [
-      { name: 'Feras Mock one full revision and questions', link: 'https://drive.google.com/drive/folders/1CpKdORL_n9hiYnGdHawiGEsLCG8MMCy7' },
+      { name: 'Feras full revision', link: 'https://drive.google.com/file/d/1H37pHRqBIbPuqN5e17KRmvChuPF2iHbP/view' },
       { name: '𓇼🧽🍍 Patrick: Business Edition', link: 'https://drive.google.com/drive/folders/1TENUe107415KrFFvtpCnyF7vlxUEHnfY' },
     ],
     economics: [
@@ -204,7 +210,7 @@ const SubjectCard = ({ name, description, code, chapters }) => {
           <h4>Module Chapters</h4>
           <ol className="chapter-list">
             {chapters.map((chapter, index) => (
-              <li key={index}>
+<li key={index} >
                 <button onClick={() => toggleChapter(index)}>
                   {chapter.title}
                 </button>
@@ -262,7 +268,14 @@ const SubjectCardGrid = () => {
         { title: 'Welfare Economics', videoIds: ['PC3qooaF5Xs','osvoVuESEKY'] },
         { title: 'Introduction to Macroeconomics', videoIds: ['qtNZSbzRP3A','ZdGnhusKnRU','iNfNZ1mIGRE'] },
         { title: 'Supply-side economics and economic growth', videoIds: ['PvfdPfEd-gk','ldszxyaFcHk','E3Niu4E1kbI','EUOcBo-gzdE','7yeWBFzGHS4','SAgt0oAv2FI','mHP8q-em1wo'] },
-
+        { title: 'Output and aggregate demand (Playlist) skip to go to the next', videoIds: ['PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y'] },
+        { title: 'Money and banking; interest rates and monetary transmission', videoIds: ['5dTvjezJz6s'] },
+        { title: 'Monetary and fiscal policy', videoIds: ['FOzxImnSIAw','m6xo8gxMaCs','Kf8CTCFEldY','1xI0dDf58XM','0-pksf2Xfl4','P6JQI0Ki6Tk','V2bj1c2KYkQ','1nWhiVNXudk'] },
+        { title: 'Aggregate demand and Aggregate supply', videoIds: ['xXNrloLHOzI','H2rtsMNbkIs','knRHiexdKe8','efQjQuqzDzM'] },
+        { title: 'Inflation', videoIds: ['dOn2ey5_EYQ','eF2Xn7Ww2_M','dE0wIcaCVGE','ABOGxIHVHO4','uNpezr7XFcw','_TBxupIhsro','522lWzrot1c'] },
+        { title: 'Unemployment', videoIds: ['J-Id_7of0GU','SfL3jefilPo'] },
+        { title: 'Exchange rates and the balance of payments', videoIds: ['EiXYP93hvGQ','1Gs1KrTBIBM','zcyMQ_zuF1w','nGvv08etNDI',"DGRknAQNWIk","TuyPLN8VR1M","j2-q3Abvrzs","IUwB3xDgmFU","cg17YTtsk2U"] },
+        { title: 'Open Economy Macroeconomics', videoIds: ["HSd7ybLJUuw"] },
 
       ]
     } ,{
@@ -277,11 +290,20 @@ const SubjectCardGrid = () => {
         { title: 'Multilateral organisations and regional integration', videoIds: ['CkhdBMXcu0k'] },
         { title: 'Exchange Rates', videoIds: ['NQXwvmRgIf0'] },
         { title: 'Overview of Strategy and the Enterprise in International Context', videoIds: ['ldGfvoeq0IA'] },
+        { title: 'Competitive Strategy for International Business', videoIds: ['c0XJDVKBBwc'] },
+        { title: 'International Business Strategies: Market Entry and Growth', videoIds: ['SNjn9h3QVUk'] },
+        { title: 'International Marketing and R&D Strategy', videoIds: ['nG2fesHT0Ss'] },
+        { title: 'Global-Sourcing-Production', videoIds: ['u1pS_hwYkkc'] },
+        { title: 'Global information systems management', videoIds: ['ADEyI7AvEcI'] },
+        { title: 'International-Project-Management', videoIds: ['ngiDb1ugbnM'] },
+        { title: 'International-Human-Resource-Man', videoIds: ['mubdwgK6Ss'] },
+        { title: 'International Project Management', videoIds: ['AQwveBtsuyI'] },
+        { title: 'Global Digital Management', videoIds: ['uJSwD5Vzbhk'] },
 
       ]
     },
     {
-      name: 'Advanced Mathematical Methods',
+      name: 'Mathematical Methods',
       description: 'Delve into sophisticated mathematical theories and their real-world applications',
       code: 'mathematics',
       chapters: [
@@ -292,12 +314,13 @@ const SubjectCardGrid = () => {
         { title: 'Functions of Several Variables', videoIds: ['nIJQPX5kxp4', 'acdX4YamDtU', 'CBgn0z0huW8','IXuu7szVnN8','EkZGBdY0vlg','tXryaM-mTpY','OBELQIPH5xY','J08-L2buigM','fZhHJdPjtYc'] },
         { title: 'Multivariate Optimisation', videoIds: ['kPL28zgEFk8','_Ffcr98c7EE','nUfYR5FBGZc','Ob56YXIV3rM'] },
         { title: 'Matrices and Linear Equations', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/a5043fc46d3971f08c145ede6437f67fdeb24b60-1676264200087','https://vc.bibf.com/playback/presentation/2.3/4c7c05fd956e4e26aef314c126f07178e416dabe-1676350815340','TQvxWaQnrqI','WTLl03D4TNA'] },
-        { title: 'differential equations', videoIds: ['EWVSxND_iWA','5LkQEOPwqfk','HjioXdmwze0','_4Bq6I68Yn4','WfX20b-peDw','ZWXG3c7A_9s','kATxKuVSc9I','fpQoL5u5ihs','UFWAu8Ptth0','UyCwAFQt4v0','hbJ2o9EUmJ0','jJyRrIZ595c','vAepSNDLZRM'] },
+        { title: 'differential equations', videoIds: ['EWVSxND_iWA','5LkQEOPwqfk','HjioXdmwze0','_4Bq6I68Yn4','WfX20b-peDw','ZWXG3c7A_9s','kATxKuVSc9I','fpQoL5u5ihs','UFWAu8Ptth0', "SPVqgkOZMAc",'UyCwAFQt4v0', "3uO_uPb9H8w", "6xEO4BeawzA","jJyRrIZ595c","rGaM6pwqhB0","NW9JfMvIsxw","znE4Nq9NJCQ", 'hbJ2o9EUmJ0', "I3vIAzMcm4Y",'vAepSNDLZRM',"YavFKipIeio",'yvFr5D7UAMQ'] },
+        { title: 'difference equations', videoIds: ["YIoukM31_nI","Hk8Q0pd5G1s","yYbmY9N4SNs"] },
 
       ]
     },
     {
-      name: 'Statistical Analysis and Inference',
+      name: 'Introduction to Mathematical Statistics',
       description: 'Master the art of data interpretation and predictive modeling',
       code: 'statistics',
       chapters: [
@@ -305,10 +328,12 @@ const SubjectCardGrid = () => {
         { title: 'Random Variables', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/1ab1ae7381a6fcc1e3d8ea709204fd7e31a085ac-1727778272013','https://vc.bibf.com/playback/presentation/2.3/21023752c3eab8780f489dd8c5298e006878f34b-1727946137711','https://vc.bibf.com/playback/presentation/2.3/9d3bac605dea955b6533fde9301faa8e480d0fb8-1728210609891' ,'https://vc.bibf.com/playback/presentation/2.3/b3d7809b66aef56d8ab4594f897be4403ff86e17-1728383138486', 'https://vc.bibf.com/playback/presentation/2.3/d1d0f95143107da7ad7b1e95dd9cec11103f40e0-1728550959309', 'https://vc.bibf.com/playback/presentation/2.3/d26b5547690da25c7c95c9b6f9d883b8f02989db-1728815259448', ]},
         { title: 'Common Distributions of Random Variables', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/0754a89ffc88893c6ad0cc4fe7b4439154f7111e-1728988079422','https://vc.bibf.com/playback/presentation/2.3/cc8c86ebe35fbbb9b38217614313e2841dcdb44a-1729155587247','https://vc.bibf.com/playback/presentation/2.3/b4e5534d626065c284710f5249839e6f12d8b62f-1729420169390' ,'https://vc.bibf.com/playback/presentation/2.3/94ffd40d5ebaa19edef4b22db42c07c279b70fe6-1729592969374', 'https://vc.bibf.com/playback/presentation/2.3/54bb14a2f0aa8f2233027114100b4f7e99153ed7-1729760497898', 'https://vc.bibf.com/playback/presentation/2.3/35aa8fdc99ebc6c514900e0d10d6475efc1e6f0c-1730024840073', ]},
         { title: 'Multivariate Random Variables', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/0df66cc7e53dc62870d4381584838ba7b21d05c8-1730197717513','https://vc.bibf.com/playback/presentation/2.3/846144916551f3653e99f908903680fad1583c41-1730365402967','https://vc.bibf.com/playback/presentation/2.3/11e2dacc0511c1e020eeef6a222173b7f334b39c-1730630127389' ,'https://vc.bibf.com/playback/presentation/2.3/6d39771c4b9fdbcc3c08e75f027352da6009b3f6-1730802627532', 'https://vc.bibf.com/playback/presentation/2.3/16337a65f47375ab28ccb54ad0bdeff14b4b5fa8-1730969965689', 'https://vc.bibf.com/playback/presentation/2.3/0ed04dc535441cd50b10300abd8d4e0afba73d1d-1731234443655', ]},
-        { title: 'Sampling Distributions of Statistics', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/64bddc04337fece09731382d9f340e0219e56235-1731407439809','https://vc.bibf.com/playback/presentation/2.3/7c6f164ecef9064640826013840f2d036d13902d-1731574681618',  'https://vc.bibf.com/playback/presentation/2.3/3838daca2e90dfd6281ded175bc56cdd1260bd42-1731839386070','https://vc.bibf.com/playback/presentation/2.3/1c87689f2c56832f0c2b4a1744c80c563a3aedc7-1732012416076','80ffqpZdKiA','UetYS3PaHIo','G_RDxAZJ-ug','https://vc.bibf.com/playback/presentation/2.3/39b3715d9e88d5df9c391827aadcfa9844b7a264-1732444516154']},
+        { title: 'Sampling Distributions of Statistics', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/64bddc04337fece09731382d9f340e0219e56235-1731407439809','https://vc.bibf.com/playback/presentation/2.3/7c6f164ecef9064640826013840f2d036d13902d-1731574681618',  'https://vc.bibf.com/playback/presentation/2.3/3838daca2e90dfd6281ded175bc56cdd1260bd42-1731839386070','https://vc.bibf.com/playback/presentation/2.3/1c87689f2c56832f0c2b4a1744c80c563a3aedc7-1732012416076','80ffqpZdKiA','UetYS3PaHIo','G_RDxAZJ-ug','https://vc.bibf.com/playback/presentation/2.3/39b3715d9e88d5df9c391827aadcfa9844b7a264-1732444516154',"https://vc.bibf.com/playback/presentation/2.3/c0b7acbeb8c3b0ffc38afd3f83b9fc61da015210-1737628152762"]},
         { title: 'Point Estimation', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/39b3715d9e88d5df9c391827aadcfa9844b7a264-1732444516154','https://vc.bibf.com/playback/presentation/2.3/faf83674afb98c2c185125de50da28a934eb321e-1732616975026','https://vc.bibf.com/playback/presentation/2.3/bb09f31166f480a627ecc2a0db1da942d98077ec-1733048490844','https://vc.bibf.com/playback/presentation/2.3/d1369d3c0416edd63fad598b935d1073b1304e8f-1733221687080','D1hgiAla3KI']},
         { title: 'Interval Estimation', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/c035537d6d80583264e9a051ea5a34c5d28654af-1733653795927','https://vc.bibf.com/playback/presentation/2.3/f62fa560cba372898a14413bade50ab996365917-1733826609321']},
-        { title: 'Hypothesis Tests', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/cfd64087a22d227928487362fe4d6c10b7daee0a-1736245614039']},
+        { title: 'Hypothesis Tests', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/cfd64087a22d227928487362fe4d6c10b7daee0a-1736245614039','https://vc.bibf.com/playback/presentation/2.3/b334e6e8f6f1416bba7f4233c8c9f028b443ffbd-1736677681258','https://vc.bibf.com/playback/presentation/2.3/6be55e03b52ca232ecf424cf8623d8b56e440e42-1736850586218','https://vc.bibf.com/playback/presentation/2.3/c05682f13539e48f8d5130b486e0c3ee5e1155ed-1737282756347','https://vc.bibf.com/playback/presentation/2.3/9a088976eef7fd2ab095f05e71d29deeb4cbb0cc-1737455532609','https://vc.bibf.com/playback/presentation/2.3/c0b7acbeb8c3b0ffc38afd3f83b9fc61da015210-1737628152762']},
+        { title: 'Anova', videoIds: ["https://vc.bibf.com/playback/presentation/2.3/fffbdb6876b5d7f107ac568dee4d11cad53d656d-1738665051066","https://vc.bibf.com/playback/presentation/2.3/6e912f7d532e2fbc50da2e22068e401a7bb0e69d-1738837727859"]},
+        { title: 'Linear Regression', videoIds: ["https://vc.bibf.com/playback/presentation/2.3/ba0835a6894106f047020819044cce905bb76a34-1739096839644",'https://vc.bibf.com/playback/presentation/2.3/c40967d7c7dea42181a6906aaa922d49f8a4b2be-1739269923481','https://vc.bibf.com/playback/presentation/2.3/ad6cd478b20127be9ab7e58609ae43f7dae284c7-1739442771751','https://vc.bibf.com/playback/presentation/2.3/427f00e2db559c264111024083de8ff57c262e5e-1739701688696','https://vc.bibf.com/playback/presentation/2.3/71c3d17d81d8b494e1b4964ba47faeff9d12b2df-1740306319710','https://vc.bibf.com/playback/presentation/2.3/de69448ae26c52ed01d9b99dcab3e38fb0a9e14c-1740479374347']},
 
       ]
     }, 

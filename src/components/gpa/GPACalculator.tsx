@@ -7,87 +7,103 @@ const GPACalculator = () => {
     'Advanced Statistics: Statistical Inference', 'Advanced Statistics: Distribution Theory', 'Business Analytics: Applied Modelling and Prediction', 'Programming for Data Science',
     'Abstract Mathematics/Information Systems/Econometrics', 'Statistical Methods for Market Research', 'Machine Learning', 'Elective1', 'Elective2'
   ];
+
   const [grades, setGrades] = useState(Array(subjects.length).fill(''));
-  const [topThreeAverage, setTopThreeAverage] = useState(null);
-  const [twoSubjectsAverage, setTwoSubjectsAverage] = useState(null);
   const [honorsClass, setHonorsClass] = useState('');
-const [aggregate,setaggregate]  = useState(0)
-const handleGradeChange = (index, value) => {
+  const [classificationMarksBreakdown, setClassificationMarksBreakdown] = useState({
+    firstClass: 0,
+    upperSecondClass: 0,
+    lowerSecondClass: 0,
+    thirdClass: 0,
+  });
+  const [averageClassificationMark, setAverageClassificationMark] = useState(0);
+
+  const handleGradeChange = (index, value) => {
     const newGrades = [...grades];
     newGrades[index] = value;
     setGrades(newGrades);
   };
 
   const getGradeDescription = (grade) => {
-    if (grade >= 70) return 'Distinction';
-    if (grade >= 60) return 'Merit';
-    if (grade >= 50) return 'Pass';
-    if (grade >= 40) return 'Borderline Pass';
+    if (grade >= 70) return 'First Class';
+    if (grade >= 60) return 'Upper Second Class';
+    if (grade >= 50) return 'Lower Second Class';
+    if (grade >= 40) return 'Third Class';
     return 'Fail';
   };
 
   useEffect(() => {
-    const firstFourGrades = grades.slice(0, 4).map(Number).filter(g => !isNaN(g));
-    if (firstFourGrades.length >= 3) {
-      const sortedGrades = [...firstFourGrades].sort((a, b) => b - a);
-      const topThree = sortedGrades.slice(0, 3);
-      const average = topThree.reduce((sum, grade) => sum + grade, 0) / 3;
-      setTopThreeAverage(average);
-    } else {
-      setTopThreeAverage(null);
+    // Calculate classification marks
+    const classificationMarks = [];
+
+    // Year 1 subjects (first 4): Each contributes 2 marks
+    const yearOneGrades = grades.slice(0, 4).map(Number).filter(g => !isNaN(g));
+    if (yearOneGrades.length > 0) {
+      const yearOneAverage = yearOneGrades.reduce((sum, grade) => sum + grade, 0) / yearOneGrades.length;
+      classificationMarks.push(...Array(2).fill(yearOneAverage)); // Counted as 2 marks
     }
 
-    const twoSubjectsGrades = grades.slice(4, 6).map(Number).filter(g => !isNaN(g));
-    if (twoSubjectsGrades.length === 2) {
-      const average = (twoSubjectsGrades[0] + twoSubjectsGrades[1]) / 2;
-      setTwoSubjectsAverage(average);
-    } else {
-      setTwoSubjectsAverage(null);
-    }
+    // Advanced Statistics (subjects 5 and 6): Each contributes 1 mark
+    const advancedStatsGrades = grades.slice(4, 6).map(Number).filter(g => !isNaN(g));
+    classificationMarks.push(...advancedStatsGrades); // Counted as 1 mark each
 
-    // Calculate honors class
-    const gradesForHonors = [
-      topThreeAverage,
-      twoSubjectsAverage,
-      ...grades.slice(6).map(Number).filter(g => !isNaN(g))
-    ].filter(g => g !== null);
+    // Remaining subjects (subjects 7 to 13): Each contributes 2 marks
+    const remainingGrades = grades.slice(6).map(Number).filter(g => !isNaN(g));
+    remainingGrades.forEach(grade => {
+      classificationMarks.push(...Array(2).fill(grade)); // Counted as 2 marks each
+    });
 
-    const hasFailedSubject = gradesForHonors.some(g => g < 40);
-
+    // Check for failed subjects
+    const hasFailedSubject = classificationMarks.some(g => g < 40);
     if (hasFailedSubject) {
       setHonorsClass('Resit required for failed subjects to pass the degree');
-    } else {
-      const distinctionCount = gradesForHonors.filter(g => g >= 70).length;
-      const meritCount = gradesForHonors.filter(g => g >= 60 && g < 70).length;
-      const passCount = gradesForHonors.filter(g => g >= 50 && g < 60).length;
-      const borderlinePassCount = gradesForHonors.filter(g => g >= 40 && g < 50).length;
-      setaggregate(gradesForHonors.reduce((sum, grade) => sum + grade, 0));
+      return;
+    }
 
-      if (distinctionCount >= 5 || (distinctionCount >= 4 && aggregate >= 590)) {
-        setHonorsClass('First Class Honours');
-      } else if (meritCount + distinctionCount>= 5 || (meritCount + distinctionCount>= 4 && aggregate >= 515)) {
-        setHonorsClass('Upper Second Class Honours');
-      } else if (passCount + meritCount + distinctionCount>= 5 || (passCount + meritCount + distinctionCount>= 4 && aggregate >= 440)) {
-        setHonorsClass('Lower Second Class Honours');
-      } else if (borderlinePassCount+passCount + meritCount + distinctionCount >= 5) {
-        setHonorsClass('Third Class Honours');
-      } else {
-        setHonorsClass('Not Classified');
-      }
+    // Count classification marks
+    const firstClassCount = classificationMarks.filter(g => g >= 70).length;
+    const upperSecondClassCount = classificationMarks.filter(g => g >= 60 && g < 70).length;
+    const lowerSecondClassCount = classificationMarks.filter(g => g >= 50 && g < 60).length;
+    const thirdClassCount = classificationMarks.filter(g => g >= 40 && g < 50).length;
+
+    // Update classification marks breakdown
+    setClassificationMarksBreakdown({
+      firstClass: firstClassCount,
+      upperSecondClass: upperSecondClassCount,
+      lowerSecondClass: lowerSecondClassCount,
+      thirdClass: thirdClassCount,
+    });
+
+    // Calculate average classification mark
+    const avgClassificationMark = classificationMarks.length > 0
+      ? classificationMarks.reduce((sum, grade) => sum + grade, 0) / classificationMarks.length
+      : 0;
+    setAverageClassificationMark(avgClassificationMark);
+
+    // Determine honors class
+    if (firstClassCount >= 10 || (firstClassCount >= 8 && avgClassificationMark >= 65)) {
+      setHonorsClass('First Class Honours');
+    } else if (upperSecondClassCount + firstClassCount >= 10 || (upperSecondClassCount + firstClassCount >= 8 && avgClassificationMark >= 56)) {
+      setHonorsClass('Upper Second Class Honours');
+    } else if (lowerSecondClassCount + upperSecondClassCount + firstClassCount >= 10 || (lowerSecondClassCount + upperSecondClassCount + firstClassCount >= 8 && avgClassificationMark >= 47)) {
+      setHonorsClass('Lower Second Class Honours');
+    } else if (thirdClassCount + lowerSecondClassCount + upperSecondClassCount + firstClassCount >= 10) {
+      setHonorsClass('Third Class Honours');
+    } else {
+      setHonorsClass('Not Classified');
     }
   }, [grades]);
 
   return (
     <div className="gpa-calculator">
- <h2>Grade Calculator</h2>
-  <div className="calculator-intro">
-    <p>Your degree comprises 13 subjects, but your final classification is based on 9 key assessments:</p>
-    <ul>
-      <li>Year One: Top 3 grades from 4 subjects (counted as one)</li>
-      <li>Advanced Statistics: 2 subjects (counted as one)</li>
-      <li>7 individual subjects</li>
-    </ul>
-  </div>
+      <h2>Grade Calculator</h2>
+      <div className="calculator-intro">
+        <ul>
+          <li>Year One: Average of all subjects (counted as 2 marks)</li>
+          <li>Advanced Statistics: (each module counted as 1 mark)</li>
+          <li>Remaining subjects: Each counted as 2 marks</li>
+        </ul>
+      </div>
       <table className="grading-system">
         <thead>
           <tr>
@@ -98,23 +114,22 @@ const handleGradeChange = (index, value) => {
         <tbody>
           <tr>
             <td>First Class Honours</td>
-            <td>Five distinctions OR Four distinctions and an aggregate of 590</td>
+            <td>Ten first-class marks OR Eight first-class marks and an average classification mark of at least 65</td>
           </tr>
           <tr>
             <td>Upper Second Class Honours</td>
-            <td>Five merit class marks OR Four merit second class marks and an aggregate of 515</td>
+            <td>Ten upper second-class marks OR Eight upper second-class marks and an average classification mark of at least 56</td>
           </tr>
           <tr>
             <td>Lower Second Class Honours</td>
-            <td>Five pass marks OR Four pass marks and an aggregate of 440</td>
+            <td>Ten lower second-class marks OR Eight lower second-class marks and an average classification mark of at least 47</td>
           </tr>
           <tr>
             <td>Third Class Honours</td>
-            <td>Five Borderline Pass marks</td>
+            <td>Passed at least 330 credits and attempted 360 credits</td>
           </tr>
         </tbody>
       </table>
-
       <table className="grade-range-table">
         <thead>
           <tr>
@@ -125,19 +140,19 @@ const handleGradeChange = (index, value) => {
         <tbody>
           <tr>
             <td>70-100%</td>
-            <td>Distinction</td>
+            <td>First Class</td>
           </tr>
           <tr>
             <td>60-69%</td>
-            <td>Merit</td>
+            <td>Upper Second Class</td>
           </tr>
           <tr>
             <td>50-59%</td>
-            <td>Pass</td>
+            <td>Lower Second Class</td>
           </tr>
           <tr>
             <td>40-49%</td>
-            <td>Borderline Pass</td>
+            <td>Third Class</td>
           </tr>
           <tr>
             <td>0-39%</td>
@@ -145,7 +160,6 @@ const handleGradeChange = (index, value) => {
           </tr>
         </tbody>
       </table>
-
       <table className="subject-table">
         <thead>
           <tr>
@@ -173,34 +187,20 @@ const handleGradeChange = (index, value) => {
                   {grades[index] !== '' ? getGradeDescription(Number(grades[index])) : ''}
                 </td>
               </tr>
-              {index === 3 && (
-                <tr className="average-row core-average">
-                  <td colSpan="3">
-                    Your Highest 3 Average (Year 1 only): {topThreeAverage !== null ? `${topThreeAverage.toFixed(2)} - ${getGradeDescription(topThreeAverage)}` : 'N/A'}
-                    <span className="counted-as-one"> (Counted as one)</span>
-                  </td>
-                </tr>
-              )}
-              {index === 5 && (
-                <tr className="average-row advanced-average">
-                  <td colSpan="3">
-                    Average (Advanced Statistics): {twoSubjectsAverage !== null ? `${twoSubjectsAverage.toFixed(2)} - ${getGradeDescription(twoSubjectsAverage)}` : 'N/A'}
-                    <span className="counted-as-one"> (Counted as one)</span>
-                  </td>
-                </tr>
-              )}
             </React.Fragment>
           ))}
         </tbody>
       </table>
-
       <div className="honors-class">
-  <h4>Honours Classification: {honorsClass}</h4>
-  <h4>Aggregate: {aggregate}</h4>
-</div>
-
-
-      <table className="gpa-conversion">
+        <h2>Your Classification: {honorsClass}</h2>
+        <h4>Average Mark: {averageClassificationMark.toFixed(2)}</h4>
+        <h2>Your Classification Marks Breakdown:</h2>
+          <h4>First Class Marks: {classificationMarksBreakdown.firstClass} </h4>
+          <h4>Upper Second Class Marks: {classificationMarksBreakdown.upperSecondClass} </h4>
+          <h4>Lower Second Class Marks: {classificationMarksBreakdown.lowerSecondClass} </h4>
+          <h4>Third Class Marks: {classificationMarksBreakdown.thirdClass} </h4>
+      </div>
+       <table className="gpa-conversion">
         <thead>
           <tr>
             <th>UK Degree Classification</th>
@@ -231,6 +231,7 @@ const handleGradeChange = (index, value) => {
           </tr>
         </tbody>
       </table>
+
     </div>
   );
 };
