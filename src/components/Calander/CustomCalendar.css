@@ -15,6 +15,24 @@
     justify-content: space-between;
     width: 100%;
   }
+
+  .calendar-title {
+    text-align: center;
+    flex: 1;
+  }
+
+  .calendar-title h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #1a237e;
+  }
+
+  .year-indicator {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.2rem;
+    font-style: italic;
+  }
   
   .calendar-header button {
     background: none;

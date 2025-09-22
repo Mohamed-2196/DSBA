@@ -6,7 +6,13 @@ const subjectIcons = {
   mathematics: '📐',
   statistics: '📊',
   Business: '💼',
-  economics: '📈'
+  economics: '📈',
+  advanced_stats_distribution: '📊',
+  advanced_stats_inferential: '📈',
+  programming_data_science: '💻',
+  business_analytics: '📊',
+  econometrics: '📈',
+  information_systems: '💾'
 };
 
 const YouTubeEmbed = ({ embedId }) => {
@@ -72,6 +78,12 @@ const toggleChapter = (index) => {
     statistics: 'https://drive.google.com/drive/folders/1EQX5mEJUOd6mlqrS4FkRNuZ1ofxum8ez',
     Business: 'https://drive.google.com/drive/folders/1IUDX2mKk4WfB0Ai8KM5skSWszQ0wwvGB',
     economics: 'https://drive.google.com/drive/folders/10-bmpUWIF6OjWW7IRmTieHvOLatgXK1s',
+    advanced_stats_distribution: 'https://drive.google.com/drive/folders/1tQdHFpyDt8PECkNB5iK_PIVZf-oCC_fR',
+    advanced_stats_inferential: 'https://drive.google.com/drive/folders/1lAEhLnaBz5t7JaRtRhb27FLFePgmZaIm',
+    programming_data_science: 'https://drive.google.com/drive/folders/1D4RrwCClsxrIRrV0CnhTGTpZI5DFAHDi',
+    business_analytics: 'https://drive.google.com/drive/folders/1OFKhC9jh_Ax-cIP8ZmTLOJet4zNsqHgg',
+    econometrics: 'https://drive.google.com/drive/folders/18mjbHAtmreWKvop-yx_HQlAm7wwclowI',
+    information_systems: 'https://drive.google.com/drive/folders/14Ljj9Xyc7MT2Ri4fP_oI46ILhN1JIlOJ',
   };
 
   const studentsNotesLinks = {
@@ -91,13 +103,26 @@ const toggleChapter = (index) => {
       { name: 'Mohamed Hasan', link: 'https://drive.google.com/drive/folders/14skhlfQ72aXUaQEyKk5VefBlPou5mfuY'},
 
     ],
+    advanced_stats_distribution: [      { name: 'Product and Sigma Notaion', link: 'https://drive.google.com/drive/folders/1bl81qDEuqa34zs4UzZoBvGT0OrvjHPnm' },
+],
+    advanced_stats_inferential: [      { name: 'Product and Sigma Notaion', link: 'https://drive.google.com/drive/folders/1bl81qDEuqa34zs4UzZoBvGT0OrvjHPnm' },
+],
+    programming_data_science: [],
+    business_analytics: [],
+    econometrics: [],
+    information_systems: [],
   };
 
   const subjectExerciseLinks = {
     Business: 'https://drive.google.com/drive/folders/1t0xlM6_JO7eDfLx4n8kwj5MxKahCBJmx',
     economics: 'https://drive.google.com/drive/folders/1vLikzvO93XaI7vsBxOMRUcGNfkju_sCI',
     mathematics: 'https://drive.google.com/drive/folders/13n0MsLtWx7b8jhtll4B6spZwtVenGWbk?sort=13&direction=a',
-
+    advanced_stats_distribution: '#',
+    advanced_stats_inferential: '#',
+    programming_data_science: '#',
+    business_analytics: '#',
+    econometrics: '#',
+    information_systems: '#',
   };
 
   const vleLinks = {
@@ -105,6 +130,12 @@ const toggleChapter = (index) => {
     statistics: 'https://drive.google.com/drive/folders/1lYRiewf-MEFf-ITppq7dAtuJCej-yK1-',
     Business: 'https://drive.google.com/drive/folders/1eKSlpErYGEbhWXRYCR5EJc_LR38v_BrA',
     economics: 'https://drive.google.com/drive/folders/1zgPXPdSL7xRub_KJMoCspk5oVRVZekQw',
+    advanced_stats_distribution: 'https://drive.google.com/drive/folders/1uFBOfH-M7bZEDlN4qz6flxG7szMciGnk?usp',
+    advanced_stats_inferential: 'https://drive.google.com/drive/folders/1-P9meuAI_tHZJdFt2n_jzq8x6Had_8_T?usp',
+    programming_data_science: 'https://drive.google.com/drive/folders/1GB4iV2VE6zc4uBjygkQhaIpPBe6MnlFr?usp',
+    business_analytics: 'https://drive.google.com/drive/folders/1TJ6rBkb7rrXbUMfPEuhWtBN2ZLAbCZYT?usp',
+    econometrics: 'https://drive.google.com/drive/folders/1jMpqxGHOG20U7MwMS-5o9WSdSZPUMkFZ?usp',
+    information_systems: 'https://drive.google.com/drive/folders/1RWlgsFWuWi1gX0iCZyNmdbcVfbzKyuEk?usp',
   };
 
   const paidExamsLinks = {
@@ -112,6 +143,12 @@ const toggleChapter = (index) => {
     statistics: 'https://drive.google.com/drive/folders/1RYnn5Uuolc8JLQ2TVdA07vAkNNStuvsC',
     Business: 'https://drive.google.com/drive/folders/14KD14Hxf8WAgv_LcfoRXUcVGhyDc8oO9',
     economics: 'https://drive.google.com/drive/folders/1BKhfzdhDl_yER6F-jrKdwbnFOEmmH1bk',
+    advanced_stats_distribution: 'https://drive.google.com/drive/folders/1uFBOfH-M7bZEDlN4qz6flxG7szMciGnk?usp',
+    advanced_stats_inferential: 'https://drive.google.com/drive/folders/1-P9meuAI_tHZJdFt2n_jzq8x6Had_8_T?usp',
+    programming_data_science: 'https://drive.google.com/drive/folders/1GB4iV2VE6zc4uBjygkQhaIpPBe6MnlFr?usp',
+    business_analytics: 'https://drive.google.com/drive/folders/1TJ6rBkb7rrXbUMfPEuhWtBN2ZLAbCZYT?usp',
+    econometrics: 'https://drive.google.com/drive/folders/1jMpqxGHOG20U7MwMS-5o9WSdSZPUMkFZ?usp',
+    information_systems: 'https://drive.google.com/drive/folders/1RWlgsFWuWi1gX0iCZyNmdbcVfbzKyuEk?usp',
   };
 
   return (
@@ -174,7 +211,7 @@ const toggleChapter = (index) => {
       Access More Exercises
     </a>
   </p>
-) : (
+) :subjectExerciseLinks[code] =="#"?(<></>): (
   <a
     href={subjectExerciseLinks[code]}
     target="_blank"
@@ -249,12 +286,13 @@ SubjectCard.propTypes = {
 };
 
 
-const SubjectCardGrid = () => {
-  const subjects = [
+const SubjectCardGrid = ({ selectedYear = 1 }) => {
+  const year1Subjects = [
     {
       name: 'Introduction to Economics',
       description: 'Explore fundamental economic concepts and their impact on everyday life and decision-making',
       code: 'economics',
+      year: 1,
       chapters: [
         { title: 'The Economic Problem', videoIds: ['W9IjktFC9Tg','IzccVWouIxM','YboSszwySzU','HneRNVtahYw','AebGGq5n3Ec','YtX6SGw7E3c','R4Pf1OQQTPY'] },
         { title: 'Supply and Demand', videoIds: ['b1QL1BZ7jJM','JcN4dBoerwc','r1Xq9FcxDB8','aKpsUBbD8jM','ROF15eoLkrg'] },
@@ -276,12 +314,13 @@ const SubjectCardGrid = () => {
         { title: 'Unemployment', videoIds: ['J-Id_7of0GU','SfL3jefilPo'] },
         { title: 'Exchange rates and the balance of payments', videoIds: ['EiXYP93hvGQ','1Gs1KrTBIBM','zcyMQ_zuF1w','nGvv08etNDI',"DGRknAQNWIk","TuyPLN8VR1M","j2-q3Abvrzs","IUwB3xDgmFU","cg17YTtsk2U"] },
         { title: 'Open Economy Macroeconomics', videoIds: ["HSd7ybLJUuw"] },
-
       ]
-    } ,{
+    },
+    {
       name: 'Business and Management',
       description: 'Examine key principles of business and managements.',
       code: 'Business',
+      year: 1,
       chapters: [
         { title: 'Globalisation', videoIds: ['aguTvH4Tc-c'] },
         { title: 'Political, econmoic and legal evnvironments', videoIds: ['k1wbj3aXPsQ'] },
@@ -299,13 +338,13 @@ const SubjectCardGrid = () => {
         { title: 'International-Human-Resource-Man', videoIds: ['mubdwgK6Ss'] },
         { title: 'International Project Management', videoIds: ['AQwveBtsuyI'] },
         { title: 'Global Digital Management', videoIds: ['uJSwD5Vzbhk'] },
-
       ]
     },
     {
       name: 'Mathematical Methods',
       description: 'Delve into sophisticated mathematical theories and their real-world applications',
       code: 'mathematics',
+      year: 1,
       chapters: [
         { title: 'Functions', videoIds: ['1EGFSefe5II', 'KyOQhC8ctxc', 'f-_UsIP5jyA', 'GsIo3B46yjU','ih01YszlraY','bowrJ31ojOg','m1OitPmkydY','JEIH5HeneXc'] },
         { title: 'Differentiation', videoIds: ['962lLfW-8Jo', 'EY6FHX6asU0', 'AvCQQ3X4Nuc', 'qr1WXiq3S3k' ,'RJJSiNz5oto','8dr1dZjfhmc','s7rd9YPJrNc','zmnh448y_ZU','FIbpibkywmk','2g8zJzMViXU','itkoiNNxNa4','fml0-ELYLaE']},
@@ -316,13 +355,13 @@ const SubjectCardGrid = () => {
         { title: 'Matrices and Linear Equations', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/a5043fc46d3971f08c145ede6437f67fdeb24b60-1676264200087','https://vc.bibf.com/playback/presentation/2.3/4c7c05fd956e4e26aef314c126f07178e416dabe-1676350815340','TQvxWaQnrqI','WTLl03D4TNA'] },
         { title: 'differential equations', videoIds: ['EWVSxND_iWA','5LkQEOPwqfk','HjioXdmwze0','_4Bq6I68Yn4','WfX20b-peDw','ZWXG3c7A_9s','kATxKuVSc9I','fpQoL5u5ihs','UFWAu8Ptth0', "SPVqgkOZMAc",'UyCwAFQt4v0', "3uO_uPb9H8w", "6xEO4BeawzA","jJyRrIZ595c","rGaM6pwqhB0","NW9JfMvIsxw","znE4Nq9NJCQ", 'hbJ2o9EUmJ0', "I3vIAzMcm4Y",'vAepSNDLZRM',"YavFKipIeio",'yvFr5D7UAMQ'] },
         { title: 'difference equations', videoIds: ["YIoukM31_nI","Hk8Q0pd5G1s","yYbmY9N4SNs"] },
-
       ]
     },
     {
       name: 'Introduction to Mathematical Statistics',
       description: 'Master the art of data interpretation and predictive modeling',
       code: 'statistics',
+      year: 1,
       chapters: [
         { title: 'Probability Theory', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/985fd6c54dbe7e139c1c86a60304c7b18c82f606-1726548801542', 'https://vc.bibf.com/playback/presentation/2.3/7b9eb7f7dba2c8737fe8c658c07f0cc83d6b9176-1726736271504', 'https://vc.bibf.com/playback/presentation/2.3/f23f058bda0a399f33ed962e9406ad9a2ff955ba-1726981115673', 'https://vc.bibf.com/playback/presentation/2.3/97d19cc5cfa22d422046f8c33277c38d567c111e-1727153828299', 'https://vc.bibf.com/playback/presentation/2.3/4ea00ab33d08eb7103035f77dd958d783a742395-1727341013389','https://vc.bibf.com/playback/presentation/2.3/1e139c2089d0b1ba102b6ca80ee7a9b21ef67ab4-1727605984348'] },
         { title: 'Random Variables', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/1ab1ae7381a6fcc1e3d8ea709204fd7e31a085ac-1727778272013','https://vc.bibf.com/playback/presentation/2.3/21023752c3eab8780f489dd8c5298e006878f34b-1727946137711','https://vc.bibf.com/playback/presentation/2.3/9d3bac605dea955b6533fde9301faa8e480d0fb8-1728210609891' ,'https://vc.bibf.com/playback/presentation/2.3/b3d7809b66aef56d8ab4594f897be4403ff86e17-1728383138486', 'https://vc.bibf.com/playback/presentation/2.3/d1d0f95143107da7ad7b1e95dd9cec11103f40e0-1728550959309', 'https://vc.bibf.com/playback/presentation/2.3/d26b5547690da25c7c95c9b6f9d883b8f02989db-1728815259448', ]},
@@ -334,10 +373,68 @@ const SubjectCardGrid = () => {
         { title: 'Hypothesis Tests', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/cfd64087a22d227928487362fe4d6c10b7daee0a-1736245614039','https://vc.bibf.com/playback/presentation/2.3/b334e6e8f6f1416bba7f4233c8c9f028b443ffbd-1736677681258','https://vc.bibf.com/playback/presentation/2.3/6be55e03b52ca232ecf424cf8623d8b56e440e42-1736850586218','https://vc.bibf.com/playback/presentation/2.3/c05682f13539e48f8d5130b486e0c3ee5e1155ed-1737282756347','https://vc.bibf.com/playback/presentation/2.3/9a088976eef7fd2ab095f05e71d29deeb4cbb0cc-1737455532609','https://vc.bibf.com/playback/presentation/2.3/c0b7acbeb8c3b0ffc38afd3f83b9fc61da015210-1737628152762']},
         { title: 'Anova', videoIds: ["https://vc.bibf.com/playback/presentation/2.3/fffbdb6876b5d7f107ac568dee4d11cad53d656d-1738665051066","https://vc.bibf.com/playback/presentation/2.3/6e912f7d532e2fbc50da2e22068e401a7bb0e69d-1738837727859"]},
         { title: 'Linear Regression', videoIds: ["https://vc.bibf.com/playback/presentation/2.3/ba0835a6894106f047020819044cce905bb76a34-1739096839644",'https://vc.bibf.com/playback/presentation/2.3/c40967d7c7dea42181a6906aaa922d49f8a4b2be-1739269923481','https://vc.bibf.com/playback/presentation/2.3/ad6cd478b20127be9ab7e58609ae43f7dae284c7-1739442771751','https://vc.bibf.com/playback/presentation/2.3/427f00e2db559c264111024083de8ff57c262e5e-1739701688696','https://vc.bibf.com/playback/presentation/2.3/71c3d17d81d8b494e1b4964ba47faeff9d12b2df-1740306319710','https://vc.bibf.com/playback/presentation/2.3/de69448ae26c52ed01d9b99dcab3e38fb0a9e14c-1740479374347']},
+      ]
+    },
+  ];
+
+  const year2Subjects = [
+    {
+      name: 'Advanced Statistics Distribution Theory',
+      description: 'Deep dive into advanced statistical distribution theories and their applications',
+      code: 'advanced_stats_distribution',
+      year: 2,
+      chapters: [
+        { title: 'Probability Space (Press watch on Youtube if it does not work)', videoIds: ["wgV0rjJqpqI","u5IouBwYji4","xZ69KEg7ccU","z5m6HXKx0Wo","7O7qPrNIt7w","nPK62LCNVcQ","3lmEqp8VhAU","XJnIdRXUi7A","N_QU1BiW6sI",'https://vc.bibf.com/playback/presentation/2.3/1e139c2089d0b1ba102b6ca80ee7a9b21ef67ab4-1727605984348'  ] },
+      ]
+    },
+    {
+      name: 'Advanced Statistics Inferential Statistics',
+      description: 'Master advanced statistical inference techniques and hypothesis testing',
+      code: 'advanced_stats_inferential',
+      year: 2,
+      chapters: [
+      ]
+    },
+    {
+      name: 'Programming for Data Science',
+      description: 'Learn programming languages and tools essential for data science applications',
+      code: 'programming_data_science',
+      year: 2,
+      chapters: [
+        { title: 'R for Data Science', videoIds: ["_V8eKsto3Ug"] },
+        { title: 'Python for Data Science', videoIds: ["wUSDVGivd-8"] },
+        { title: 'Git', videoIds: ["8JJ101D3knE&t=2170s"] },
+        { title: 'Sql', videoIds: ["7mz73uXD9DA"] },
 
       ]
-    }, 
+    },
+    {
+      name: 'Business Analytics',
+      description: 'Apply analytical methods to solve complex business problems and drive decision-making',
+      code: 'business_analytics',
+      year: 2,
+      chapters: [
+      ]
+    },
+    {
+      name: 'Econometrics',
+      description: 'Study economic relationships using statistical methods and mathematical models',
+      code: 'econometrics',
+      year: 2,
+      chapters: [
+      ]
+    },
+    {
+      name: 'Information System',
+      description: 'Understand information systems design, implementation, and management in organizations',
+      code: 'information_systems',
+      year: 2,
+      chapters: [
+      ]
+    },
   ];
+
+  const subjects = selectedYear === 1 ? year1Subjects : year2Subjects;
 
   return (
     <div className="subject-grid">

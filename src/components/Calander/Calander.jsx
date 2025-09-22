@@ -28,7 +28,7 @@ const events = [
   { date: '2025-05-13', title: 'Statistics Final Test', color: 'red' },
 ];
 
-const CustomCalendar = () => {
+const CustomCalendar = ({ selectedYear = 1 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState(null);
 
@@ -62,7 +62,6 @@ const CustomCalendar = () => {
           key={date}
           className={`calendar-day ${event ? event.color : ''}`}
           onClick={() => handleDayClick(event)}
-          onMouseOver ={() => handleDayClick(event)}
         >
           {i}
           {event && <div className="event-indicator"></div>}
@@ -77,7 +76,10 @@ const CustomCalendar = () => {
     <div className="custom-calendar">
       <div className="calendar-header">
         <button onClick={handlePrevMonth}>&lt;</button>
-        <h3>{currentMonth.toLocaleString('default', { month: 'long' })} {currentMonth.getFullYear()}</h3>
+        <div className="calendar-title">
+          <h3>{currentMonth.toLocaleString('default', { month: 'long' })} {currentMonth.getFullYear()}</h3>
+          <div className="year-indicator">Viewing: Year {selectedYear}</div>
+        </div>
         <button onClick={handleNextMonth}>&gt;</button>
       </div>
       <div className="calendar-grid">
