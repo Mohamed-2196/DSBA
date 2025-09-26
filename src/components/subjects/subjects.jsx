@@ -403,7 +403,7 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       chapters: [
         { title: 'R for Data Science', videoIds: ["_V8eKsto3Ug"] },
         { title: 'Python for Data Science', videoIds: ["wUSDVGivd-8"] },
-        { title: 'Git', videoIds: ["8JJ101D3knE&t=2170s"] },
+        { title: 'Git', videoIds: ["8JJ101D3knE"] },
         { title: 'Sql', videoIds: ["7mz73uXD9DA"] },
 
       ]
@@ -421,7 +421,7 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       description: 'Study economic relationships using statistical methods and mathematical models',
       code: 'econometrics',
       year: 2,
-      chapters: [
+      chapters: ["5lcQN-zbeGE","WHas2yaIlcs","17nWWWUrUcg","S72V6trrwKY","nORu6KPc7o4","DMzBRYqAHrE","sCG56xczmc","EhvPfZYJCkE","GsL3OZTIcfo"
       ]
     },
     {
