@@ -385,6 +385,8 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       year: 2,
       chapters: [
         { title: 'Probability Space (Press watch on Youtube if it does not work)', videoIds: ["wgV0rjJqpqI","u5IouBwYji4","xZ69KEg7ccU","z5m6HXKx0Wo","7O7qPrNIt7w","nPK62LCNVcQ","3lmEqp8VhAU","XJnIdRXUi7A","N_QU1BiW6sI",'https://vc.bibf.com/playback/presentation/2.3/1e139c2089d0b1ba102b6ca80ee7a9b21ef67ab4-1727605984348'  ] },
+        { title: 'Random variables and univariate distributions', videoIds: ["https://vc.bibf.com/playback/presentation/2.3/a483453053d6ac20957265a823ac89ab9c8edb3c-1759227993474","https://vc.bibf.com/playback/presentation/2.3/cc3841f28bb22e8ffc2d104a9bf39c246b544574-1759660148886","https://vc.bibf.com/playback/presentation/2.3/1648368bdc0f24bc6f61bf36007c7430543edde0-1759833227778" , "mlelI1LA9o4","GDJFLfmyb20", "https://vc.bibf.com/playback/presentation/2.3/ba54c40854762ead925585c9db0735e2f7445a40-1760437616715","https://vc.bibf.com/playback/presentation/2.3/2683716e07fff456fd0f0dd290bc7c4b8b1c76be-1760869720756","https://vc.bibf.com/playback/presentation/2.3/05767f27ec5c70fa230a2d832f9fe14ea4fb48bb-1761474470137"] },
+
       ]
     },
     {
@@ -393,6 +395,9 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'advanced_stats_inferential',
       year: 2,
       chapters: [
+        { title: 'Fundamentals of statistical inference', videoIds: ["https://vc.bibf.com/playback/presentation/2.3/6579700419d6e7d39b414c4f1762334cd3738a01-1758094343105","https://vc.bibf.com/playback/presentation/2.3/16ec2cdc92be0638e03a663e700d908ad8d76b3d-1758526170930","https://vc.bibf.com/playback/presentation/2.3/095b8e0f5e048b23c31e85ab77fbeedea701e8fe-1758699112579","https://vc.bibf.com/playback/presentation/2.3/1a23bbe21797a4032ab352def11541e8829d4728-1759130706621","https://myclass.bibf.com/mod/bigbluebuttonbn/view.php?id=215542","https://vc.bibf.com/playback/presentation/2.3/699b293e1c1a500fbbfdb86c91d5bf23100f063a-1759736056977","https://myclass.bibf.com/mod/bigbluebuttonbn/view.php?id=216717"] },
+              { title: 'Point Estimation', videoIds: ["XqWfeND04vs",] },
+
       ]
     },
     {
@@ -414,6 +419,9 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'business_analytics',
       year: 2,
       chapters: [
+        { title: 'good Excel course', videoIds: ["kghcAk7l6eA"] },
+        { title: 'good tableau course', videoIds: ["dahrmqT5GD4"] },
+
       ]
     },
     {
@@ -421,7 +429,15 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       description: 'Study economic relationships using statistical methods and mathematical models',
       code: 'econometrics',
       year: 2,
-      chapters: ["5lcQN-zbeGE","WHas2yaIlcs","17nWWWUrUcg","S72V6trrwKY","nORu6KPc7o4","DMzBRYqAHrE","sCG56xczmc","EhvPfZYJCkE","GsL3OZTIcfo"
+      chapters: [
+        {title: 'Nature of Econometrics and Economic Data', videoIds: ["5lcQN-zbeGE"]},
+        {title: 'The Simple Regression Model', videoIds: ["WHas2yaIlcs"]},
+        {title: 'Multiple Regression Analysis: Estimation', videoIds: ["17nWWWUrUcg"]},
+        {title: 'Inference', videoIds: ["S72V6trrwKY"]},
+        {title: 'OLS Asymptotics', videoIds: ["nORu6KPc7o4"]},
+        {title: 'Heteroskedasticity', videoIds: ["DMzBRYqAHrE"]},
+        {title: 'Time series', videoIds: ["EhvPfZYJCkE" ]},
+        {title: 'Instrumental variables estimation', videoIds: ["GsL3OZTIcfo"]}
       ]
     },
     {

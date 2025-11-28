@@ -26,6 +26,12 @@ const events = [
   { date: '2025-05-08', title: 'Mathmatical Methods Final Test', color: 'red' },
   { date: '2025-05-09', title: 'Business Final Test', color: 'red' },
   { date: '2025-05-13', title: 'Statistics Final Test', color: 'red' },
+  { date: '2025-11-01', title: 'UOL application deadline', color: 'red' },
+  { date: '2025-12-16', title: 'Mid Year Break', color: 'green' },
+  { date: '2026-01-04', title: 'Classes resume', color: 'gold' },
+
+
+
 ];
 
 const CustomCalendar = ({ selectedYear = 1 }) => {
