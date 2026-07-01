@@ -29,7 +29,16 @@ const events = [
   { date: '2025-11-01', title: 'UOL application deadline', color: 'red' },
   { date: '2025-12-16', title: 'Mid Year Break', color: 'green' },
   { date: '2026-01-04', title: 'Classes resume', color: 'gold' },
-
+  { date: '2026-05-08', title: 'Economics Final Test', color: 'red' },
+  { date: '2026-05-12', title: 'Mathmatical Methods Final Test', color: 'red' },
+  { date: '2026-05-11', title: 'Business and management Final Test', color: 'red' },
+  { date: '2026-05-06', title: 'Introduction to mathematical Statistics Final Test', color: 'red' },
+  { date: '2026-05-05', title: 'Business Analytics Final Test', color: 'blue' },
+  { date: '2026-05-14', title: 'Distribution theory Final Test', color: 'blue' },
+  { date: '2026-05-18', title: 'Econometrics Final Test', color: 'blue' },
+  { date: '2026-05-21', title: 'Information System Final Test', color: 'blue' },
+  { date: '2026-05-22', title: 'Programming Final Test', color: 'blue' },
+  { date: '2026-06-10', title: 'Statistical Inference Final Test', color: 'blue' },
 
 
 ];

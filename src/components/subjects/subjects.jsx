@@ -1,6 +1,75 @@
 import './SubjectCards.css';
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const YEAR2_ANNOUNCEMENT_KEY = 'year2_new_notes_announcement_v1';
+
+const Year2AnnouncementPopup = ({ onClose }) => {
+  const overlayStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+    padding: '16px',
+  };
+  const modalStyle = {
+    backgroundColor: '#fff',
+    color: '#222',
+    borderRadius: '12px',
+    padding: '24px 28px',
+    maxWidth: '480px',
+    width: '100%',
+    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+    fontFamily: 'inherit',
+    position: 'relative',
+  };
+  const closeBtnStyle = {
+    position: 'absolute',
+    top: '10px',
+    right: '14px',
+    background: 'transparent',
+    border: 'none',
+    fontSize: '22px',
+    cursor: 'pointer',
+    color: '#666',
+    lineHeight: 1,
+  };
+  return (
+    <div style={overlayStyle} onClick={onClose}>
+      <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+        <button style={closeBtnStyle} onClick={onClose} aria-label="Close">×</button>
+        <h2 style={{ marginTop: 0, marginBottom: '12px' }}>📢 New Year 2 Study Notes</h2>
+        <p style={{ marginBottom: '12px' }}>New student notes have been added:</p>
+        <ul style={{ paddingLeft: '20px', marginBottom: '16px', lineHeight: 1.6 }}>
+        </ul>
+        <button
+          onClick={onClose}
+          style={{
+            backgroundColor: '#1a73e8',
+            color: '#fff',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '15px',
+            fontWeight: 600,
+          }}
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+};
+Year2AnnouncementPopup.propTypes = {
+  onClose: PropTypes.func.isRequired,
+};
 
 const subjectIcons = {
   mathematics: '📐',
@@ -91,6 +160,7 @@ const toggleChapter = (index) => {
     ],
     statistics: [
       { name: 'Nasser', link: 'https://drive.google.com/drive/folders/1qcIgZ8MzS_2IyIICyCY6JChfHJj4OsCi' },
+      { name: 'Mariam Nasser', link: 'https://drive.google.com/drive/folders/1dvdGf86_7AyhMuxNzzd7ORnG4QIH_BmV' },
       { name: 'Product and Sigma Notaion', link: 'https://drive.google.com/drive/folders/1bl81qDEuqa34zs4UzZoBvGT0OrvjHPnm' },
 
     ],
@@ -103,14 +173,17 @@ const toggleChapter = (index) => {
       { name: 'Mohamed Hasan', link: 'https://drive.google.com/drive/folders/14skhlfQ72aXUaQEyKk5VefBlPou5mfuY'},
 
     ],
-    advanced_stats_distribution: [      { name: 'Product and Sigma Notaion', link: 'https://drive.google.com/drive/folders/1bl81qDEuqa34zs4UzZoBvGT0OrvjHPnm' },
+    advanced_stats_distribution: [      { name: 'Mohamed study guide', link: 'https://drive.google.com/file/d/1T0enLYVk9CZhcnYOhsXRwpP2IU9V45mG/view?usp=drive_link' },
 ],
     advanced_stats_inferential: [      { name: 'Product and Sigma Notaion', link: 'https://drive.google.com/drive/folders/1bl81qDEuqa34zs4UzZoBvGT0OrvjHPnm' },
 ],
     programming_data_science: [],
-    business_analytics: [],
+    business_analytics: [{ name: 'Mohamed', link: 'https://drive.google.com/file/d/1hq0iMegUQ1zq-zAkSuZyCt06g9Vrf68y/view?usp=drive_link' }],
     econometrics: [],
-    information_systems: [],
+    information_systems: [
+            { name: 'Mahdi', link: 'https://drive.google.com/drive/folders/1HbOmDlowIBqImfoWlN7ss2EOImXtMxxM' },
+
+    ],
   };
 
   const subjectExerciseLinks = {
@@ -136,6 +209,10 @@ const toggleChapter = (index) => {
     business_analytics: 'https://drive.google.com/drive/folders/1TJ6rBkb7rrXbUMfPEuhWtBN2ZLAbCZYT?usp',
     econometrics: 'https://drive.google.com/drive/folders/1jMpqxGHOG20U7MwMS-5o9WSdSZPUMkFZ?usp',
     information_systems: 'https://drive.google.com/drive/folders/1RWlgsFWuWi1gX0iCZyNmdbcVfbzKyuEk?usp',
+  };
+
+  const cheatSheetLinks = {
+    programming_data_science: 'https://docs.google.com/document/d/1fiO4uLqivuYNF_SPDIYxiXClRDWwlI9U/edit?usp=drive_link&ouid=114257845455063086777&rtpof=true&sd=true',
   };
 
   const paidExamsLinks = {
@@ -243,6 +320,19 @@ const toggleChapter = (index) => {
               Access Older Exams
             </a>
           </div>
+          {cheatSheetLinks[code] && (
+            <div>
+              <h4>Cheat Sheet</h4>
+              <a
+                href={cheatSheetLinks[code]}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="subject-link"
+              >
+                Access Cheat Sheet
+              </a>
+            </div>
+          )}
 
           <h4>Module Chapters</h4>
           <ol className="chapter-list">
@@ -384,9 +474,10 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'advanced_stats_distribution',
       year: 2,
       chapters: [
-        { title: 'Probability Space (Press watch on Youtube if it does not work)', videoIds: ["wgV0rjJqpqI","u5IouBwYji4","xZ69KEg7ccU","z5m6HXKx0Wo","7O7qPrNIt7w","nPK62LCNVcQ","3lmEqp8VhAU","XJnIdRXUi7A","N_QU1BiW6sI",'https://vc.bibf.com/playback/presentation/2.3/1e139c2089d0b1ba102b6ca80ee7a9b21ef67ab4-1727605984348'  ] },
-        { title: 'Random variables and univariate distributions', videoIds: ["https://vc.bibf.com/playback/presentation/2.3/a483453053d6ac20957265a823ac89ab9c8edb3c-1759227993474","https://vc.bibf.com/playback/presentation/2.3/cc3841f28bb22e8ffc2d104a9bf39c246b544574-1759660148886","https://vc.bibf.com/playback/presentation/2.3/1648368bdc0f24bc6f61bf36007c7430543edde0-1759833227778" , "mlelI1LA9o4","GDJFLfmyb20", "https://vc.bibf.com/playback/presentation/2.3/ba54c40854762ead925585c9db0735e2f7445a40-1760437616715","https://vc.bibf.com/playback/presentation/2.3/2683716e07fff456fd0f0dd290bc7c4b8b1c76be-1760869720756","https://vc.bibf.com/playback/presentation/2.3/05767f27ec5c70fa230a2d832f9fe14ea4fb48bb-1761474470137"] },
-
+        { title: 'Probability Space', videoIds: ["swa1VRYms3Q","lsHr3Y9-PCA","V3pnr5gmJC8","DqGUwoz4d4M", "ptVgsHPAZ-4","nPK62LCNVcQ","3lmEqp8VhAU","XJnIdRXUi7A","N_QU1BiW6sI",'https://vc.bibf.com/playback/presentation/2.3/1e139c2089d0b1ba102b6ca80ee7a9b21ef67ab4-1727605984348'  ] },
+        { title: 'Random variables and univariate distributions', videoIds: ["https://vc.bibf.com/playback/presentation/2.3/a483453053d6ac20957265a823ac89ab9c8edb3c-1759227993474","https://vc.bibf.com/playback/presentation/2.3/cc3841f28bb22e8ffc2d104a9bf39c246b544574-1759660148886","https://vc.bibf.com/playback/presentation/2.3/1648368bdc0f24bc6f61bf36007c7430543edde0-1759833227778" , "mlelI1LA9o4","GDJFLfmyb20", "https://vc.bibf.com/playback/presentation/2.3/ba54c40854762ead925585c9db0735e2f7445a40-1760437616715","https://vc.bibf.com/playback/presentation/2.3/2683716e07fff456fd0f0dd290bc7c4b8b1c76be-1760869720756","https://vc.bibf.com/playback/presentation/2.3/05767f27ec5c70fa230a2d832f9fe14ea4fb48bb-1761474470137","Uks98M-dxqM","bT1p5tJwn_0","qIzC1-9PwQo","L2KMttDm3aY","zq9Oz82iHf0","jmqZG6roVqU","BPlmjp2ymxw","J3KSjZFVbis","gIsoceE4vhg","juF3r12nM5A","TwvXhX3bJJM","https://vc.bibf.com/playback/presentation/2.3/8061cbb90479322d62103f4b3f064c2fab667d9a-1761647247144"] },
+{title:"Multivariate distributions", videoIds:["https://vc.bibf.com/playback/presentation/2.3/b9dc1bf2f965a205a2f3c0027821f0f5bd9123ed-1762079605275","https://vc.bibf.com/playback/presentation/2.3/2a17a22c8021239d5aed4937458daeed0906dbad-1762251569245","https://vc.bibf.com/playback/presentation/2.3/0132baadaa5fbeee693dedb0b299d7abd7d77b8c-1762684057421","https://vc.bibf.com/playback/presentation/2.3/c2751689f4b9bc00460cc20cc140ce383b8783a4-1763461367633","https://vc.bibf.com/playback/presentation/2.3/1cee7a984c7b538fe042ddd6dd1d1ff9937051ea-1763893590458","https://vc.bibf.com/playback/presentation/2.3/34f195b7d7e32e99201a175642f59b97af93f66e-1764066564543","https://vc.bibf.com/playback/presentation/2.3/0f456d30b127e87c64e74649ca14200360538049-1764498735170"]},
+{title:"Conditional distributions",videoIds:["https://vc.bibf.com/playback/presentation/2.3/f87a30882a2600ff31603708bc681d827a3a68a7-1767522306390","https://vc.bibf.com/playback/presentation/2.3/4a69cd645c75a79f239a9edb4e4a26d1c6392965-1767684346156","https://vc.bibf.com/playback/presentation/2.3/a35983e5b39031697a130d79170343bd55274c6c-1768127579403","https://vc.bibf.com/playback/presentation/2.3/f5434da4d6eace6365c97e795ed6d8395f0c0455-1768299800348","https://vc.bibf.com/playback/presentation/2.3/5425af1bea909572f159ffee4d1f767fc38b5c3c-1768732612510","https://vc.bibf.com/playback/presentation/2.3/8ed57c5fb6c2242f5900c636c888db5986ee90ac-1768905017112"]}
       ]
     },
     {
@@ -395,8 +486,10 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'advanced_stats_inferential',
       year: 2,
       chapters: [
-        { title: 'Fundamentals of statistical inference', videoIds: ["https://vc.bibf.com/playback/presentation/2.3/6579700419d6e7d39b414c4f1762334cd3738a01-1758094343105","https://vc.bibf.com/playback/presentation/2.3/16ec2cdc92be0638e03a663e700d908ad8d76b3d-1758526170930","https://vc.bibf.com/playback/presentation/2.3/095b8e0f5e048b23c31e85ab77fbeedea701e8fe-1758699112579","https://vc.bibf.com/playback/presentation/2.3/1a23bbe21797a4032ab352def11541e8829d4728-1759130706621","https://myclass.bibf.com/mod/bigbluebuttonbn/view.php?id=215542","https://vc.bibf.com/playback/presentation/2.3/699b293e1c1a500fbbfdb86c91d5bf23100f063a-1759736056977","https://myclass.bibf.com/mod/bigbluebuttonbn/view.php?id=216717"] },
-              { title: 'Point Estimation', videoIds: ["XqWfeND04vs",] },
+        { title: 'Fundamentals of statistical inference', videoIds: ["https://vc.bibf.com/playback/presentation/2.3/6579700419d6e7d39b414c4f1762334cd3738a01-1758094343105","https://vc.bibf.com/playback/presentation/2.3/16ec2cdc92be0638e03a663e700d908ad8d76b3d-1758526170930","https://vc.bibf.com/playback/presentation/2.3/095b8e0f5e048b23c31e85ab77fbeedea701e8fe-1758699112579","https://vc.bibf.com/playback/presentation/2.3/1a23bbe21797a4032ab352def11541e8829d4728-1759130706621","https://vc.bibf.com/playback/presentation/2.3/18b5402899f3967fd72278cc95d6e1b0027015f7-1759304024223","https://vc.bibf.com/playback/presentation/2.3/699b293e1c1a500fbbfdb86c91d5bf23100f063a-1759736056977"] },
+              { title: 'Point Estimation', videoIds: ["https://vc.bibf.com/playback/presentation/2.3/51aae53f12067eb44852f58375fd01ec5dc46fc2-1759909188256","https://vc.bibf.com/playback/presentation/2.3/060ed9d0cf13577ba5566bebcff29902a4e7185b-1760944736931","https://vc.bibf.com/playback/presentation/2.3/060ed9d0cf13577ba5566bebcff29902a4e7185b-1760947701536","https://vc.bibf.com/playback/presentation/2.3/6e0b0b3a5757cc41580d5d820cb5ad70abd600db-1761118213727","https://vc.bibf.com/playback/presentation/2.3/1f7bb9165cfc8e0ee75f74cf443b84f0d43d0bdf-1761550504858","https://vc.bibf.com/playback/presentation/2.3/3299e5d95c1aa9792c4ece751c2f74bbc65b84c2-1762155484211","https://vc.bibf.com/playback/presentation/2.3/7326516e1c782f645f52cd45aab58320646a970e-1762327320486","https://vc.bibf.com/playback/presentation/2.3/baab33192d4cc53f1f1c868b7122d224ac88462b-1762770506135","https://vc.bibf.com/playback/presentation/2.3/09492f91a29e36efdbbb4a7e6572b5e96fefb908-1762932320507","https://vc.bibf.com/playback/presentation/2.3/79272bdd636fb2ffe16599a9785394f4ccd01d94-1763537702123"] },
+              {title:"Confidence Intervals", videoIds:["https://vc.bibf.com/playback/presentation/2.3/b5aa0c3c9aaa507c45bde3592a7278432179cb85-1764671550379","https://vc.bibf.com/playback/presentation/2.3/ef972e1f6348e4ee78c314475527732643432844-1764747169559","https://vc.bibf.com/playback/presentation/2.3/3987a2b6b738ed2a8c413f50673a5ca2c9a6216e-1765103562492","https://vc.bibf.com/playback/presentation/2.3/3005c2a91dc59624098fa22bf94ca6d652552350-1765276091322","https://vc.bibf.com/playback/presentation/2.3/7a2653d01888da74397572feacff1a096d7e864f-1768202749567","https://vc.bibf.com/playback/presentation/2.3/a84424d20169f5cf2d30dc182f272858abf8b5f3-1768375593767","https://vc.bibf.com/playback/presentation/2.3/5de074e14018931cba4aae308ade2587d5670bb0-1768807464374","https://vc.bibf.com/playback/presentation/2.3/15ca3aed8cf879048be5d18669f728138aee94bf-1768980618414","https://vc.bibf.com/playback/presentation/2.3/68d6464642431bc61749b8c81a5df5f3ea48e643-1769412459138","https://vc.bibf.com/playback/presentation/2.3/0dc6d98edeb745d624887f1cc4a77fe434fb64fa-1769585468937"]},
+              {title:"Hypothesis Testing", videoIds:["https://vc.bibf.com/playback/presentation/2.3/324829eb5f32555a0ca7aed9512ab9824b95b0a6-1767597309113"]}
 
       ]
     },
@@ -406,11 +499,61 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'programming_data_science',
       year: 2,
       chapters: [
-        { title: 'R for Data Science', videoIds: ["_V8eKsto3Ug"] },
-        { title: 'Python for Data Science', videoIds: ["wUSDVGivd-8"] },
-        { title: 'Git', videoIds: ["8JJ101D3knE"] },
-        { title: 'Sql', videoIds: ["7mz73uXD9DA"] },
-
+        { title: 'R for Data Science (full course)', videoIds: ["_V8eKsto3Ug"] },
+        { title: 'Python for Data Science (full course)', videoIds: ["wUSDVGivd-8"] },
+        { title: 'Git (full course)', videoIds: ["8JJ101D3knE"] },
+        { title: 'SQL (full course)', videoIds: ["7mz73uXD9DA"] },
+        { title: 'Block 1: Intro to Data Science, R, Python & Git', videoIds: [
+          "K418swtFnik",
+          "DNS7i2m4sB0",
+        ] },
+        { title: 'Block 2: Data Types, Structures & File Formats (R & Python)', videoIds: [
+          "k0zLwDAQ6Uw",
+          "lLRBYKwP8GQ",
+          "vmEHCJofslg",
+          "q5uM4VKywbA",
+        ] },
+        { title: 'Block 3: SQL and Databases (SQLite, R, Python)', videoIds: [
+          "h0nxCDiD-zg",
+          "m1KcNV-Zhmc",
+          "ZfliyOawJFk",
+          "pd-0G0MigUA",
+        ] },
+        { title: 'Block 4: Programming Concepts in R (Control Flow & Functions)', videoIds: [
+          "66AkNi2C5tw",
+          "9lP0uSRnih0",
+          "Xza0pUVHRS4",
+        ] },
+        { title: 'Block 5: Variables, Mutability, Aliasing & OOP (Python)', videoIds: [
+          "RvRKT-jXvko",
+          "5qQQ3yzbKp8",
+          "JeznW_7DlB0",
+        ] },
+        { title: 'Block 6: Data Wrangling (R & Python)', videoIds: [
+          "oXImkptBpqc",
+          "sV5lwAJ7vnQ",
+          "bDhvCp3_lYw",
+        ] },
+        { title: 'Block 7-8: Data Visualisation & Web/APIs', videoIds: [
+          "HPJn1CMvtmI",
+          "oVQBwHQXXhc",
+          "v3w24XfD5m8",
+          "XqIfWkVI3UA",
+        ] },
+        { title: 'Block 9: Machine Learning Frameworks', videoIds: [
+          "IpGxLWOIZy4",
+          "BR9h47Jtqyw",
+          "fSytzGwwBVw",
+          "gJo0uNL-5Qw",
+          "SIEaLBXr0rk",
+          "oXLxQVyvEa8",
+        ] },
+        { title: 'Block 10: Software Development & R Packages', videoIds: [
+          "Fi3_BjVzpqk",
+          "8eVXTyIZ1Hs",
+          "79s3z0gIuFU",
+          "DWkIbk_HE9o",
+        ] },
       ]
     },
     {
@@ -420,8 +563,81 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       year: 2,
       chapters: [
         { title: 'good Excel course', videoIds: ["kghcAk7l6eA"] },
-        { title: 'good tableau course', videoIds: ["dahrmqT5GD4"] },
-
+        { title: 'good Tableau course', videoIds: ["dahrmqT5GD4"] },
+        { title: 'Block 1: Decision-Making Under Uncertainty and Modelling', videoIds: [
+          "UgKrQ2ywVfs",
+          "HZGCoVF3YvM",
+          "M-z74nAun40",
+        ] },
+        { title: 'Block 2: Descriptive Statistics', videoIds: [
+          "SplCk-t1BeA",
+          "zjHfAhcU6kE",
+          "U0NZu6f5TMI",
+        ] },
+        { title: 'Block 3: Exploring Relationships Between Variables', videoIds: [
+          "Rwc4-MXl8VI",
+          "D7NKvMG8peo",
+          "IujCYxtpszU",
+        ] },
+        { title: 'Block 5: Probability and Probability Distributions', videoIds: [
+          "94AmzeR9n2w",
+          "OByl4RJxnKA",
+          "-7QG2itL1u4",
+        ] },
+        { title: 'Block 6: Common Probability Distributions', videoIds: [
+          "CjF_yQ2N638",
+          "3PWKQiLK41M",
+          "m0o-585xwW0",
+        ] },
+        { title: 'Block 7: Decision Trees and EMV', videoIds: [
+          "NQ-mYn9fPag",
+          "tbv9E9D2BRQ",
+          "ydvnVw80I_8",
+          "FUY07dvaUuE",
+        ] },
+        { title: 'Block 8: Sampling and Sampling Distributions', videoIds: [
+          "pTuj57uXWlk",
+          "7S7j75d3GM4",
+          "YAlJCEDH2uY",
+        ] },
+        { title: 'Block 9: Confidence Interval Estimation', videoIds: [
+          "6r5IZCjvIHI",
+          "dLEtlteLVJU",
+          "hlM7zdf7zwU",
+        ] },
+        { title: 'Block 10: Hypothesis Testing', videoIds: [
+          "VK-rnA3-41c",
+          "0oc49DyA3hU",
+          "UcZwyzwWU7o",
+        ] },
+        { title: 'Block 11: Simple Linear Regression', videoIds: [
+          "owI7zxCqNY0",
+          "aq8VU5KLmkY",
+          "P8hT5nDai6A",
+        ] },
+        { title: 'Block 12: Multiple Regression Analysis', videoIds: [
+          "EkAQAi3a4js",
+          "G1WX5GiFSWQ",
+          "S66FZa16RZc",
+          "Cba9LJ9lS8s",
+        ] },
+        { title: 'Block 13: Time Series Analysis and Forecasting', videoIds: [
+          "GE3JOFwTWVM",
+          "Wo5YWXDRXv8",
+          "k_HN0wOKDd0",
+          "C5J_QSR7ST0",
+        ] },
+        { title: 'Block 14: Optimisation Models', videoIds: [
+          "soTnusib1l8",
+          "FzY333RdrBM",
+          "J52iRkbrG1k",
+          "uaxOfTIC_pI",
+        ] },
+        { title: 'Block 15: Monte Carlo Simulation', videoIds: [
+          "7TqhmX92P6U",
+          "-Mp4CdDaoUE",
+          "Eb4jPVdaITg",
+        ] },
       ]
     },
     {
@@ -452,10 +668,26 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
 
   const subjects = selectedYear === 1 ? year1Subjects : year2Subjects;
 
+  const [showYear2Popup, setShowYear2Popup] = useState(false);
+
+  useEffect(() => {
+    setShowYear2Popup(false);
+  }, [selectedYear]);
+
+  const dismissYear2Popup = () => {
+    try {
+      localStorage.setItem(YEAR2_ANNOUNCEMENT_KEY, '1');
+    } catch (e) {
+      // ignore
+    }
+    setShowYear2Popup(false);
+  };
+
   return (
     <div className="subject-grid">
+      {showYear2Popup && <Year2AnnouncementPopup onClose={dismissYear2Popup} />}
       {subjects.map((subject, index) => (
-        <SubjectCard 
+        <SubjectCard
           key={index}
           name={subject.name}
           description={subject.description}
