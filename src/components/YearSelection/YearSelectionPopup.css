@@ -24,6 +24,19 @@
   animation: popupSlideIn 0.3s ease-out;
 }
 
+[data-theme='dark'] .year-popup-content {
+  background-color: var(--card-bg);
+}
+
+[data-theme='dark'] .year-option-button {
+  background-color: #26263a;
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .year-option-button:hover {
+  border-color: #5c6bc0;
+}
+
 @keyframes popupSlideIn {
   from {
     opacity: 0;

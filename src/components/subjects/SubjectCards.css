@@ -169,3 +169,46 @@ audio {
 @media (max-width :768px) {
    .subject-grid { grid-template-columns :1fr }
 }
+
+[data-theme='dark'] .subject-card {
+  background-color: var(--card-bg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='dark'] .subject-title,
+[data-theme='dark'] .subject-sections h4 {
+  color: #8c9eff;
+}
+
+[data-theme='dark'] .subject-description {
+  color: var(--muted-text);
+}
+
+[data-theme='dark'] .subject-sections a,
+[data-theme='dark'] .subject-link {
+  color: #8c9eff;
+}
+
+[data-theme='dark'] .subject-sections a:hover,
+[data-theme='dark'] .subject-link:hover {
+  color: #b3c0ff;
+}
+
+[data-theme='dark'] .chapter-list li,
+[data-theme='dark'] .chapter-list button {
+  color: #8c9eff;
+}
+
+[data-theme='dark'] .chapter-list li {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme='dark'] .chapter-list button:hover {
+  background-color: #2a2a3e;
+  color: #b3c0ff;
+}
+
+[data-theme='dark'] .chapter-content {
+  background-color: #26263a;
+  border-left-color: #5c6bc0;
+}

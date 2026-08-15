@@ -1,13 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
 
 .navbar {
-  background-color: #ffffff;
+  background-color: var(--navbar-bg, #ffffff);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 1rem 0;
   position: fixed;
   width: 100%;
   top: 0;
   z-index: 1000;
+  transition: background-color 0.3s ease;
+}
+
+.navbar-right-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.theme-toggle {
+  background: none;
+  border: 2px solid #1a237e;
+  border-radius: 8px;
+  min-width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background-color: #1a237e;
+  transform: translateY(-2px);
+}
+
+[data-theme='dark'] .navbar-logo,
+[data-theme='dark'] .navbar-logo:hover {
+  color: #e8e8e8;
+}
+
+[data-theme='dark'] .calendar-tooltip,
+[data-theme='dark'] .year-dropdown {
+  background-color: var(--card-bg);
+  border-color: #3949ab;
+}
+
+[data-theme='dark'] .year-option {
+  color: #e8e8e8;
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme='dark'] .year-option:hover {
+  background-color: #2a2a3e;
 }
 
 .navbar-container {

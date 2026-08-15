@@ -46,6 +46,55 @@
   overflow-y: auto;
 }
 
+[data-theme='dark'] .popup-content {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+
+[data-theme='dark'] .results-section,
+[data-theme='dark'] .getting-started-section,
+[data-theme='dark'] .grade-breakdown-section,
+[data-theme='dark'] .classification-result,
+[data-theme='dark'] .breakdown-item,
+[data-theme='dark'] .progress-info,
+[data-theme='dark'] .grade-item,
+[data-theme='dark'] .getting-started-content .tip {
+  background-color: #26263a;
+  color: var(--text-color);
+}
+
+[data-theme='dark'] .grading-system th,
+[data-theme='dark'] .grade-range-table th,
+[data-theme='dark'] .subject-table th,
+[data-theme='dark'] .gpa-conversion th {
+  background-color: #2a2a3e;
+  color: var(--text-color);
+}
+
+[data-theme='dark'] .grading-system tr:nth-child(even),
+[data-theme='dark'] .grade-range-table tr:nth-child(even),
+[data-theme='dark'] .gpa-conversion tr:nth-child(even) {
+  background-color: #232335;
+}
+
+[data-theme='dark'] .subject-row:hover {
+  background-color: #2a2a3e;
+}
+
+[data-theme='dark'] .core-subject {
+  background-color: #232a3a;
+}
+
+[data-theme='dark'] .advanced-subject {
+  background-color: #262a3a;
+}
+
+[data-theme='dark'] .breakdown-section h3,
+[data-theme='dark'] .getting-started-content h3,
+[data-theme='dark'] .grade-breakdown-section h3 {
+  color: #8c9eff;
+}
+
 .close-button {
   position: absolute;
   top: 10px;
@@ -499,4 +548,33 @@
     content: attr(data-label);
     font-weight: bold;
   }
+}
+
+[data-theme='dark'] .grade-item.first-class,
+[data-theme='dark'] .grade-item.upper-second-class,
+[data-theme='dark'] .grade-item.lower-second-class,
+[data-theme='dark'] .grade-item.third-class {
+  background-color: #26263a;
+}
+
+[data-theme='dark'] .breakdown-label,
+[data-theme='dark'] .grade-label {
+  color: var(--text-color);
+}
+
+[data-theme='dark'] .classification-result h2 {
+  color: #8c9eff;
+}
+
+[data-theme='dark'] .classification-result h3,
+[data-theme='dark'] .progress-info p {
+  color: var(--muted-text);
+}
+
+[data-theme='dark'] .progress-tip {
+  color: var(--muted-text) !important;
+}
+
+[data-theme='dark'] .no-grades-message {
+  color: var(--muted-text);
 }

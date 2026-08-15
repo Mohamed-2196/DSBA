@@ -5,8 +5,22 @@ import './Navbar.css';
 const Navbar = ({ selectedYear, onYearChange }) => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const calendarRef = useRef(null);
   const yearDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('theme') || 'light';
+    setIsDarkMode(storedTheme === 'dark');
+    document.documentElement.setAttribute('data-theme', storedTheme);
+  }, []);
+
+  const handleThemeToggle = () => {
+    const nextTheme = isDarkMode ? 'light' : 'dark';
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    localStorage.setItem('theme', nextTheme);
+  };
 
   const handleYearSelect = (year) => {
     onYearChange(year);
@@ -79,10 +93,19 @@ const Navbar = ({ selectedYear, onYearChange }) => {
             )}
           </div>
         </div>
-        {/* {https://my.london.ac.uk/group/student} */}
-        <a href="https://my.london.ac.uk/group/student" className="navbar-right">
-          <img src="University_of_London.svg.png" alt="University of London" width={"60px"} />
-        </a>
+        <div className="navbar-right-group">
+          <button
+            className="theme-toggle"
+            title="Toggle Dark Mode"
+            onClick={handleThemeToggle}
+          >
+            {isDarkMode ? '☀️' : '🌙'}
+          </button>
+          {/* {https://my.london.ac.uk/group/student} */}
+          <a href="https://my.london.ac.uk/group/student" className="navbar-right">
+            <img src="University_of_London.svg.png" alt="University of London" width={"60px"} />
+          </a>
+        </div>
       </div>
     </nav>
   );

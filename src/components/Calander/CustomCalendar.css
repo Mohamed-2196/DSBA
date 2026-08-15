@@ -92,3 +92,28 @@
   .calendar-day.empty {
     background-color: transparent;
   }
+
+  [data-theme='dark'] .custom-calendar {
+    background: var(--card-bg);
+  }
+
+  [data-theme='dark'] .calendar-title h3 {
+    color: #8c9eff;
+  }
+
+  [data-theme='dark'] .year-indicator {
+    color: var(--muted-text);
+  }
+
+  [data-theme='dark'] .calendar-header button {
+    color: var(--text-color);
+  }
+
+  [data-theme='dark'] .calendar-day {
+    border-color: var(--border-color);
+    color: var(--text-color);
+  }
+
+  [data-theme='dark'] .calendar-day.header {
+    background-color: #2a2a3e;
+  }
