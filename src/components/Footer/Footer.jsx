@@ -7,11 +7,24 @@ const contributors = [
   {
     name: 'Mohamed Alnooh',
     role: 'Creator & maintainer',
-    login: 'Mohamed-2196',
+    url: 'https://github.com/Mohamed-2196',
   },
   {
     name: 'Feras Alsadadi',
     role: 'Historical past exams',
+  },
+  {
+    name: 'BIBF',
+    role: 'Course recordings and materials',
+    url: 'https://myclass.bibf.com',
+  },
+  {
+    name: 'Yaser Alghsara',
+    role: 'BIBF faculty — lecture recordings',
+  },
+  {
+    name: 'Dr. Sayed Hasan Kadhem',
+    role: 'BIBF faculty — lecture recordings',
   },
 ];
 
@@ -28,13 +41,12 @@ const Footer = () => {
           <ul className="contributor-list">
             {contributors.map((contributor) => (
               <li key={contributor.name} className="contributor">
-                {contributor.login ? (
+                {contributor.url ? (
                   <a
                     className="contributor-name contributor-link"
-                    href={`https://github.com/${contributor.login}`}
+                    href={contributor.url}
                     target="_blank"
                     rel="noreferrer"
-                    title={`@${contributor.login} on GitHub`}
                   >
                     {contributor.name}
                   </a>
