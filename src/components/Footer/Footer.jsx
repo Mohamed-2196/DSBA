@@ -23,17 +23,6 @@ const Footer = () => {
   return (
     <footer className="site-footer">
       <div className="footer-container">
-        <div className="footer-brand">
-          <h3 className="footer-title">DSBA Resource Hub</h3>
-          <p className="footer-tagline">
-            A curated collection of Data Science and Business Analytics learning
-            resources for University of London students.
-          </p>
-          <a className="footer-repo-link" href={REPO_URL} target="_blank" rel="noreferrer">
-            View on GitHub
-          </a>
-        </div>
-
         <div className="footer-contributors">
           <h4 className="footer-heading">Contributors</h4>
           <ul className="contributor-list">
@@ -55,9 +44,6 @@ const Footer = () => {
                 <span className="contributor-role">{contributor.role}</span>
               </li>
             ))}
-            <li className="contributor contributor-thanks">
-              And everyone who shared their notes with the community — thank you.
-            </li>
           </ul>
           <a
             className="footer-contribute"
