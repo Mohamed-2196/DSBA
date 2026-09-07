@@ -176,3 +176,51 @@
   position: relative;
 }
 
+
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+
+  .navbar-center {
+    position: static;
+    transform: none;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .navbar-logo {
+    font-size: 1.2rem;
+    white-space: nowrap;
+  }
+
+  .calendar-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+  }
+
+  .calendar-button {
+    background-color: var(--navbar-bg, #ffffff);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    min-width: 44px;
+    height: 44px;
+  }
+
+  .calendar-tooltip {
+    top: auto;
+    bottom: 100%;
+    left: 0;
+    transform: none;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    width: calc(100vw - 40px);
+    max-width: 400px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 0.5rem;
+    box-sizing: border-box;
+  }
+}

@@ -117,3 +117,16 @@
   [data-theme='dark'] .calendar-day.header {
     background-color: #2a2a3e;
   }
+@media (max-width: 768px) {
+  .custom-calendar {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.75rem;
+  }
+
+  .calendar-day {
+    width: auto;
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+}

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import './Footer.css';
 
 const REPO_URL = 'https://github.com/Mohamed-2196/DSBA';
@@ -9,20 +8,14 @@ const contributors = [
     name: 'Mohamed Alnooh',
     role: 'Creator & maintainer',
     login: 'Mohamed-2196',
-    avatar: 'https://avatars.githubusercontent.com/u/145868671?v=4',
+  },
+  {
+    name: 'Feras Alsadadi',
+    role: 'Historical past exams',
   },
 ];
 
-const getInitials = (name) =>
-  name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
 const Footer = () => {
-  const [failedAvatars, setFailedAvatars] = useState([]);
   const currentYear = new Date().getFullYear();
   const yearRange =
     currentYear > LAUNCH_YEAR ? `${LAUNCH_YEAR}–${currentYear}` : `${LAUNCH_YEAR}`;
@@ -45,38 +38,26 @@ const Footer = () => {
           <h4 className="footer-heading">Contributors</h4>
           <ul className="contributor-list">
             {contributors.map((contributor) => (
-              <li key={contributor.login} className="contributor">
-                <a
-                  className="contributor-link"
-                  href={`https://github.com/${contributor.login}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={`@${contributor.login} on GitHub`}
-                >
-                  {failedAvatars.includes(contributor.login) ? (
-                    <span className="contributor-avatar contributor-initials" aria-hidden="true">
-                      {getInitials(contributor.name)}
-                    </span>
-                  ) : (
-                    <img
-                      className="contributor-avatar"
-                      src={contributor.avatar}
-                      alt={contributor.name}
-                      width="40"
-                      height="40"
-                      loading="lazy"
-                      onError={() =>
-                        setFailedAvatars((failed) => [...failed, contributor.login])
-                      }
-                    />
-                  )}
-                  <span className="contributor-details">
-                    <span className="contributor-name">{contributor.name}</span>
-                    <span className="contributor-role">{contributor.role}</span>
-                  </span>
-                </a>
+              <li key={contributor.name} className="contributor">
+                {contributor.login ? (
+                  <a
+                    className="contributor-name contributor-link"
+                    href={`https://github.com/${contributor.login}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={`@${contributor.login} on GitHub`}
+                  >
+                    {contributor.name}
+                  </a>
+                ) : (
+                  <span className="contributor-name">{contributor.name}</span>
+                )}
+                <span className="contributor-role">{contributor.role}</span>
               </li>
             ))}
+            <li className="contributor contributor-thanks">
+              And everyone who shared their notes with the community — thank you.
+            </li>
           </ul>
           <a
             className="footer-contribute"
