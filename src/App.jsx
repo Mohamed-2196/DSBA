@@ -3,6 +3,7 @@ import Navbar from './components/Navbar/Navbar';
 import SubjectCardGrid from './components/subjects/subjects';
 import Button from './components/gpa/button'
 import YearSelectionPopup from './components/YearSelection/YearSelectionPopup';
+import Footer from './components/Footer/Footer';
 import { useState, useEffect } from 'react';
 // Import other components as needed
 
@@ -47,6 +48,7 @@ function App() {
           onClose={() => setShowYearSelection(false)}
         />
       )}
+      <Footer />
     </div>
     </Router>
   );
