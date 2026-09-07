@@ -14,12 +14,6 @@ const contributors = [
     role: 'Historical past exams',
   },
   {
-    name: 'BIBF',
-    role: 'Course recordings and materials',
-    url: 'https://myclass.bibf.com',
-    logo: 'BIBF_logo.png',
-  },
-  {
     name: 'Yaser Alghsara',
     role: 'BIBF faculty — lecture recordings',
   },
@@ -40,36 +34,34 @@ const Footer = () => {
         <div className="footer-contributors">
           <h4 className="footer-heading">Contributors</h4>
           <ul className="contributor-list">
-            {contributors.map((contributor) => {
-              const label = contributor.logo ? (
-                <img
-                  className="contributor-logo"
-                  src={contributor.logo}
-                  alt={contributor.name}
-                />
-              ) : (
-                contributor.name
-              );
-
-              return (
-                <li key={contributor.name} className="contributor">
-                  {contributor.url ? (
-                    <a
-                      className="contributor-name contributor-link"
-                      href={contributor.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {label}
-                    </a>
-                  ) : (
-                    <span className="contributor-name">{label}</span>
-                  )}
-                  <span className="contributor-role">{contributor.role}</span>
-                </li>
-              );
-            })}
+            {contributors.map((contributor) => (
+              <li key={contributor.name} className="contributor">
+                {contributor.url ? (
+                  <a
+                    className="contributor-name contributor-link"
+                    href={contributor.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {contributor.name}
+                  </a>
+                ) : (
+                  <span className="contributor-name">{contributor.name}</span>
+                )}
+                <span className="contributor-role">{contributor.role}</span>
+              </li>
+            ))}
           </ul>
+
+          <a
+            className="footer-org"
+            href="https://myclass.bibf.com"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <img className="footer-org-logo" src="BIBF_logo.png" alt="BIBF" />
+          </a>
+
           <a
             className="footer-contribute"
             href={`${REPO_URL}/issues/new`}

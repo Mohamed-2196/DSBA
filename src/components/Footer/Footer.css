@@ -21,6 +21,7 @@
 }
 
 .footer-contribute {
+  display: inline-block;
   font-family: 'Roboto', sans-serif;
   font-size: 0.9rem;
   font-weight: 700;
@@ -54,9 +55,6 @@
   font-size: 0.95rem;
   font-weight: 700;
   color: #1a237e;
-  display: flex;
-  align-items: center;
-  min-height: 26px;
 }
 
 .contributor-link {
@@ -70,17 +68,32 @@
   text-decoration: underline;
 }
 
-.contributor-logo {
-  display: block;
-  height: 26px;
-  width: auto;
-  box-sizing: border-box;
-}
-
 .contributor-role {
   font-family: 'Roboto', sans-serif;
   font-size: 0.8rem;
   color: var(--muted-text, #666666);
+}
+
+.footer-org {
+  display: block;
+  width: fit-content;
+  margin: 0.25rem 0 1.75rem;
+  padding: 0.85rem 1.15rem;
+  border-radius: 10px;
+  background-color: #f5f5f7;
+  border: 1px solid var(--border-color, #e0e0e0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.footer-org:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(26, 35, 126, 0.18);
+}
+
+.footer-org-logo {
+  display: block;
+  height: 44px;
+  width: auto;
 }
 
 .footer-bottom {
@@ -126,8 +139,7 @@
   color: #b3c0ff;
 }
 
-[data-theme='dark'] .contributor-logo {
+[data-theme='dark'] .footer-org {
   background-color: #ffffff;
-  border-radius: 6px;
-  padding: 4px 6px;
+  border-color: transparent;
 }
