@@ -47,6 +47,21 @@ const YearSelectionPopup = ({ onYearSelect, onClose }) => {
               Information System
             </div>
           </button>
+
+          <button
+            className="year-option-button"
+            onClick={() => handleYearSelect(3)}
+          >
+            <div className="year-number">Year 3</div>
+            <div className="year-subjects">
+              Machine Learning<br/>
+              Statistical Methods for Market Research<br/>
+              Microeconomics<br/>
+              Principles of Asset Pricing<br/>
+              Marketing Management<br/>
+              Further Mathematics for Economists
+            </div>
+          </button>
         </div>
 
         <div className="year-popup-footer">

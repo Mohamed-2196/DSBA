@@ -75,6 +75,12 @@ const Navbar = ({ selectedYear, onYearChange }) => {
                 >
                   Year 2
                 </div>
+                <div
+                  className={`year-option ${selectedYear === 3 ? 'selected' : ''}`}
+                  onClick={() => handleYearSelect(3)}
+                >
+                  Year 3
+                </div>
               </div>
             )}
           </div>

@@ -212,3 +212,14 @@ audio {
   background-color: #26263a;
   border-left-color: #5c6bc0;
 }
+.subject-empty {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.95rem;
+  font-style: italic;
+  color: #666;
+  margin: 0.5rem 0 0;
+}
+
+[data-theme='dark'] .subject-empty {
+  color: var(--muted-text);
+}

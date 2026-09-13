@@ -81,7 +81,13 @@ const subjectIcons = {
   programming_data_science: '💻',
   business_analytics: '📊',
   econometrics: '📈',
-  information_systems: '💾'
+  information_systems: '💾',
+  machine_learning: '🤖',
+  market_research: '🔍',
+  microeconomics: '📉',
+  asset_pricing: '💰',
+  marketing_management: '📣',
+  further_maths_economists: '🧮'
 };
 
 const YouTubeEmbed = ({ embedId }) => {
@@ -228,6 +234,23 @@ const toggleChapter = (index) => {
     information_systems: 'https://drive.google.com/drive/folders/1RWlgsFWuWi1gX0iCZyNmdbcVfbzKyuEk?usp',
   };
 
+  const materialsLink = subjectMaterialsLinks[code];
+  const notes = studentsNotesLinks[code] || [];
+  const exerciseLink = subjectExerciseLinks[code];
+  const vleLink = vleLinks[code];
+  const olderExamsLink = paidExamsLinks[code];
+  const cheatSheet = cheatSheetLinks[code];
+  const hasExercises =
+    code === 'mathematics' || code === 'statistics' || (exerciseLink && exerciseLink !== '#');
+  const hasResources =
+    Boolean(materialsLink) ||
+    notes.length > 0 ||
+    Boolean(hasExercises) ||
+    Boolean(vleLink) ||
+    Boolean(olderExamsLink) ||
+    Boolean(cheatSheet) ||
+    chapters.length > 0;
+
   return (
     <div className="subject-card">
       <div className="subject-card-content">
@@ -238,30 +261,38 @@ const toggleChapter = (index) => {
         <p className="subject-description">{description}</p>
 
         <div className="subject-sections">
-          <h4>Books and Study Guide</h4>
-          <a
-            href={subjectMaterialsLinks[code]}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Access Materials
-          </a>
+          {materialsLink && (
+            <>
+              <h4>Books and Study Guide</h4>
+              <a
+                href={materialsLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Access Materials
+              </a>
+            </>
+          )}
 
-          <h4>Students Notes</h4>
-          <ul>
-            {studentsNotesLinks[code].map((student, index) => (
-              <li key={index}>
-                <a
-                  href={student.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {student.name}
-                </a>
-              </li>
-            ))}
-          </ul>
-          <h4>Exercises</h4>
+          {notes.length > 0 && (
+            <>
+              <h4>Students Notes</h4>
+              <ul>
+                {notes.map((student, index) => (
+                  <li key={index}>
+                    <a
+                      href={student.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {student.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {hasExercises && <h4>Exercises</h4>}
 {code === 'mathematics' ? (
   <p>
     Dr. Mahmood's chapters have everything covered. 
@@ -288,9 +319,9 @@ const toggleChapter = (index) => {
       Access More Exercises
     </a>
   </p>
-) :subjectExerciseLinks[code] =="#"?(<></>): (
+) : !hasExercises ? (<></>) : (
   <a
-    href={subjectExerciseLinks[code]}
+    href={exerciseLink}
     target="_blank"
     rel="noopener noreferrer"
     className="subject-link"
@@ -299,32 +330,36 @@ const toggleChapter = (index) => {
   </a>
 )}
 
-          <h4>Previous Exams</h4>
-          <div>
-            <a
-              href={vleLinks[code]}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="subject-link"
-            >
-              Access VLE Exams
-            </a>
-          </div>
-          <div>
-            <a
-              href={paidExamsLinks[code]}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="subject-link"
-            >
-              Access Older Exams
-            </a>
-          </div>
-          {cheatSheetLinks[code] && (
+          {(vleLink || olderExamsLink) && <h4>Previous Exams</h4>}
+          {vleLink && (
+            <div>
+              <a
+                href={vleLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="subject-link"
+              >
+                Access VLE Exams
+              </a>
+            </div>
+          )}
+          {olderExamsLink && (
+            <div>
+              <a
+                href={olderExamsLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="subject-link"
+              >
+                Access Older Exams
+              </a>
+            </div>
+          )}
+          {cheatSheet && (
             <div>
               <h4>Cheat Sheet</h4>
               <a
-                href={cheatSheetLinks[code]}
+                href={cheatSheet}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="subject-link"
@@ -334,7 +369,13 @@ const toggleChapter = (index) => {
             </div>
           )}
 
-          <h4>Module Chapters</h4>
+          {!hasResources && (
+            <p className="subject-empty">
+              Resources for this module are being added. Check back soon.
+            </p>
+          )}
+
+          {chapters.length > 0 && <h4>Module Chapters</h4>}
           <ol className="chapter-list">
             {chapters.map((chapter, index) => (
 <li key={index} >
@@ -666,7 +707,57 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
     },
   ];
 
-  const subjects = selectedYear === 1 ? year1Subjects : year2Subjects;
+  const year3Subjects = [
+    {
+      name: 'Machine Learning',
+      description: 'Study supervised and unsupervised learning methods, and how models are trained and evaluated',
+      code: 'machine_learning',
+      year: 3,
+      chapters: []
+    },
+    {
+      name: 'Statistical Methods for Market Research',
+      description: 'Apply statistical techniques to survey data and consumer research problems',
+      code: 'market_research',
+      year: 3,
+      chapters: []
+    },
+    {
+      name: 'Microeconomics',
+      description: 'Analyse consumer and firm behaviour, market structures, and welfare in depth',
+      code: 'microeconomics',
+      year: 3,
+      chapters: []
+    },
+    {
+      name: 'Principles of Asset Pricing',
+      description: 'Examine how financial assets are valued and how risk and return are related',
+      code: 'asset_pricing',
+      year: 3,
+      chapters: []
+    },
+    {
+      name: 'Marketing Management',
+      description: 'Plan and evaluate marketing strategy, from segmentation through to the marketing mix',
+      code: 'marketing_management',
+      year: 3,
+      chapters: []
+    },
+    {
+      name: 'Further Mathematics for Economists',
+      description: 'Build the advanced mathematical tools used in economic analysis and optimisation',
+      code: 'further_maths_economists',
+      year: 3,
+      chapters: []
+    },
+  ];
+
+  const subjectsByYear = {
+    1: year1Subjects,
+    2: year2Subjects,
+    3: year3Subjects,
+  };
+  const subjects = subjectsByYear[selectedYear] || year1Subjects;
 
   const [showYear2Popup, setShowYear2Popup] = useState(false);
 
