@@ -159,6 +159,12 @@ const toggleChapter = (index) => {
     business_analytics: 'https://drive.google.com/drive/folders/1OFKhC9jh_Ax-cIP8ZmTLOJet4zNsqHgg',
     econometrics: 'https://drive.google.com/drive/folders/18mjbHAtmreWKvop-yx_HQlAm7wwclowI',
     information_systems: 'https://drive.google.com/drive/folders/14Ljj9Xyc7MT2Ri4fP_oI46ILhN1JIlOJ',
+    machine_learning: 'https://drive.google.com/drive/folders/1L-t8lQegkEzglFVPEX3NybaWvI0faVX9',
+    market_research: 'https://drive.google.com/drive/folders/1qkJhwLxi-lQpJEh55xiIEOOpLT10XP89',
+    microeconomics: 'https://drive.google.com/drive/folders/1yT9qq6krw9r2WhAt_3ihW3jxrU_MdFWc',
+    asset_pricing: 'https://drive.google.com/drive/folders/10WkXNxJG7nWL9DICHgdVAj5xi9bS1WtN',
+    marketing_management: 'https://drive.google.com/drive/folders/1P3iHqYSe4qPwVRW6baj475Rsi_mpbP2h',
+    further_maths_economists: 'https://drive.google.com/drive/folders/1a6lakhRK3st9DRRGlGKPiCKNaTGoczIR',
   };
 
   const studentsNotesLinks = {
