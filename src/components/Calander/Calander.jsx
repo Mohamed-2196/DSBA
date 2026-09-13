@@ -40,7 +40,17 @@ const events = [
   { date: '2026-05-22', title: 'Programming Final Test', color: 'blue' },
   { date: '2026-06-10', title: 'Statistical Inference Final Test', color: 'blue' },
 
-
+  // October 2026 exam session
+  { date: '2026-10-19', title: 'EC1002 Introduction to Economics (October exam)', color: 'red' },
+  { date: '2026-10-22', title: 'MT1186 Mathematical Methods (October exam)', color: 'red' },
+  { date: '2026-10-23', title: 'ST2134 Advanced Statistics: Statistical Inference (October exam)', color: 'blue' },
+  { date: '2026-10-26', title: 'ST1215 Introduction to Mathematical Statistics (October exam)', color: 'red' },
+  { date: '2026-10-27', title: 'ST2187 Business Analytics, Applied Modelling and Prediction (October exam)', color: 'blue' },
+  { date: '2026-10-30', title: 'ST2133 Advanced Statistics: Distribution Theory (October exam)', color: 'blue' },
+  { date: '2026-11-02', title: 'MN1178 Business and Management in a Global Context (October exam)', color: 'red' },
+  { date: '2026-11-03', title: 'EC2020 Elements of Econometrics (October exam)', color: 'blue' },
+  { date: '2026-11-05', title: 'IS2184 Information Systems Management (October exam)', color: 'blue' },
+  { date: '2026-11-06', title: 'ST2195 Programming for Data Science (October exam)', color: 'blue' },
 ];
 
 const CustomCalendar = ({ selectedYear = 1 }) => {
