@@ -221,6 +221,12 @@ const toggleChapter = (index) => {
     business_analytics: 'https://drive.google.com/drive/folders/1TJ6rBkb7rrXbUMfPEuhWtBN2ZLAbCZYT?usp',
     econometrics: 'https://drive.google.com/drive/folders/1jMpqxGHOG20U7MwMS-5o9WSdSZPUMkFZ?usp',
     information_systems: 'https://drive.google.com/drive/folders/1RWlgsFWuWi1gX0iCZyNmdbcVfbzKyuEk?usp',
+    machine_learning: 'https://drive.google.com/drive/folders/1003IX08HxK09WOpjTV5dQC38ccR7ROt2',
+    market_research: 'https://drive.google.com/drive/folders/13HgN5BskOB3nuB6TNDpHjkX4h7ccMRk7',
+    microeconomics: 'https://drive.google.com/drive/folders/1oCLFiXjm8tVq_TTatSn6zFq0EfNCOAf6',
+    asset_pricing: 'https://drive.google.com/drive/folders/1pyaBciV2CtsBHuPUTKa8u_TKSQgCDWwa',
+    marketing_management: 'https://drive.google.com/drive/folders/1w3pG9SwQu4URKUkNU7Igf8ym56BqVbGl',
+    further_maths_economists: 'https://drive.google.com/drive/folders/1WwhnK5Z_lUdtWWDGo1DllnAzfPVs4hrF',
   };
 
   const cheatSheetLinks = {
