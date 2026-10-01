@@ -2,6 +2,7 @@
 // deterministic per-lesson pulse trace drawn on posters.
 import { ChalkboardTeacher, Playlist, YoutubeLogo } from '@phosphor-icons/react';
 import { VIDEO_KIND_LABEL, videoEmbedUrl } from '../../data/modules.js';
+import { videoTitle } from '../../data/videoTitles.js';
 import { formatDate } from '../../ui';
 import { getNextExamForModule } from '../calendar/public.js';
 
@@ -14,9 +15,10 @@ export function kindLabel(video) {
   return VIDEO_KIND_LABEL[video?.kind] || 'Video';
 }
 
-/** 'Video 3' — or 'Playlist' for a YouTube playlist (it holds many videos). */
+/** The lesson's real title when we know it, else 'Video 3' — or 'Playlist' for a YouTube playlist. */
 export function lessonLabel(video, v) {
-  return video?.kind === 'youtube-playlist' ? 'Playlist' : `Video ${v + 1}`;
+  if (video?.kind === 'youtube-playlist') return 'Playlist';
+  return videoTitle(video) || `Video ${v + 1}`;
 }
 
 /** 'Video 3 of 9' / 'Playlist' / null when the chapter is a single video (nothing to count). */

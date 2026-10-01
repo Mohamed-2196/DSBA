@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { CONTRIBUTORS, CONTRIBUTE_URL, COPYRIGHT_HOLDER, DISCLAIMER, LAUNCH_YEAR, MYCLASS_URL, UOL_PORTAL_URL } from '../data/people.js';
-import { PulseMark } from '../ui';
+import { ProgrammeLockup, PulseMark } from '../ui';
 import './SiteFooter.css';
 
 /** Footer inside the content column: v1 contributors, links, disclaimer, copyright. */
@@ -22,6 +22,9 @@ export function SiteFooter() {
             <a href={UOL_PORTAL_URL} target="_blank" rel="noopener noreferrer">UoL student portal</a>
           </nav>
         </div>
+        <ProgrammeLockup className="shell-footer__affil">
+          Made by DSBA students at BIBF, studying for a University of London degree.
+        </ProgrammeLockup>
         <ul role="list" className="shell-footer__people" aria-label="Contributors">
           {CONTRIBUTORS.map((c) => (
             <li key={c.id}>

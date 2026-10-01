@@ -13,8 +13,8 @@ export const NAV = [
 ];
 
 export const EXTERNAL_LINKS = [
-  { id: 'myclass', label: 'MyClass', href: MYCLASS_URL, icon: GraduationCap },
-  { id: 'uol', label: 'UoL portal', href: UOL_PORTAL_URL, icon: Bank },
+  { id: 'myclass', label: 'MyClass', href: MYCLASS_URL, icon: GraduationCap, logo: 'myclass', logoHeight: 38 },
+  { id: 'uol', label: 'UoL portal', href: UOL_PORTAL_URL, icon: Bank, logo: 'uol', logoHeight: 40 },
 ];
 
 /** Mobile bottom tabs (+ "More"). */

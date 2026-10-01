@@ -11,6 +11,7 @@
 .shell-footer__links { display: flex; flex-wrap: wrap; gap: var(--sp-8) var(--sp-24); }
 .shell-footer__links a { color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-medium); text-decoration: none; }
 .shell-footer__links a:hover { color: var(--cobalt); text-decoration: underline; }
+.shell-footer__affil { padding: var(--sp-16) 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .shell-footer__people { display: flex; flex-wrap: wrap; gap: var(--sp-16) var(--sp-32); }
 .shell-footer__people li { display: grid; gap: 2px; }
 .shell-footer__name { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); text-decoration: none; }

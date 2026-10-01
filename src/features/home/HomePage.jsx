@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useYear } from '../../state';
 import { CURRENT_USER } from '../../data/people.js';
-import { Button, CohortBadge, ErrorBoundary, Page, PageSection, SectionHeader } from '../../ui';
+import { Button, CohortBadge, ErrorBoundary, Page, PageSection, ProgrammeLockup, SectionHeader } from '../../ui';
 import { ContinueLearning } from '../modules/public.js';
 import { UpcomingEvents } from '../calendar/public.js';
 import { HotThreads } from '../forum/public.js';
@@ -63,6 +63,7 @@ export default function HomePage() {
         <h1 className="home-greeting__title">
           {greetingFor(now)}, {firstName}
         </h1>
+        <ProgrammeLockup className="home-greeting__affil" />
       </header>
 
       <ExamPulse session={session} year={activeYear} intro={intro && !onboarding} today={today} />

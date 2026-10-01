@@ -1,7 +1,9 @@
 /* Home — greeting, body grid, "Your modules" and "New in the library". Hero lives in ExamPulse.css. */
 
 /* ── Greeting ──────────────────────────────────────────────────────── */
-.home-greeting { margin-bottom: var(--sp-24); }
+.home-greeting { position: relative; margin-bottom: var(--sp-24); }
+.home-greeting__affil { position: absolute; right: 0; bottom: 4px; }
+@media (max-width: 899px) { .home-greeting__affil { display: none; } }
 .home-greeting__meta {
   display: flex;
   align-items: center;

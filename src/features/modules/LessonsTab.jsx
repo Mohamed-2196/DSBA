@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowSquareOut, CaretLeft, CaretRight, CheckCircle, Circle, Headphones, WifiSlash } from '@phosphor-icons/react';
 import { lessonKey, videoSourceUrl, videoThumbnailUrl } from '../../data/modules.js';
+import { videoTitle } from '../../data/videoTitles.js';
 import { useToast } from '../../state';
 import { Button, PulseMark, cx } from '../../ui';
 import { flatLessons } from './progress.js';
@@ -177,7 +178,7 @@ export function LessonsTab({ module: m, selection, progress, onSelect }) {
                   {chapterPosition(c, video, v, chapter.videos.length)}
                   <span className="mod-lesson__kind">{kindLabel(video)}</span>
                 </p>
-                <h2 className="mod-lesson__title">{chapter.title}</h2>
+                <h2 className="mod-lesson__title">{videoTitle(video) || chapter.title}</h2>
               </div>
               <Button
                 className={cx('mod-watch', watched && 'is-on')}

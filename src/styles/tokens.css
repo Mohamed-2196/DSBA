@@ -139,6 +139,8 @@
   --tile-stroke: transparent;          /* hairline around the navy logo tile (visible in dark) */
   --scrim: rgba(14, 21, 66, .42);
   --focus-color: var(--cobalt);
+  --show-on-light: block;              /* theme-conditional display (BrandLogo) */
+  --show-on-dark: none;
 }
 
 /* ── Colour: dark ────────────────────────────────────────────────────── */
@@ -187,4 +189,6 @@
   --tile-stroke: rgba(255, 255, 255, .14);
   --scrim: rgba(3, 5, 18, .62);
   --focus-color: var(--cobalt);
+  --show-on-light: none;
+  --show-on-dark: block;
 }

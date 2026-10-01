@@ -24,5 +24,6 @@ export { Panel } from './Panel.jsx';
 export { Page, PageHeader, PageSection } from './Page.jsx';
 export { SegmentedControl } from './SegmentedControl.jsx';
 export { ModuleIcon } from './ModuleIcon.jsx';
+export { BrandLogo, ProgrammeLockup } from './BrandLogo.jsx';
 export { ErrorBoundary } from './ErrorBoundary.jsx';
 export { cx, initials, modKeyLabel, timeAgo, formatDate } from './utils.js';

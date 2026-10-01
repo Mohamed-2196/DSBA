@@ -2,7 +2,7 @@ import { createElement } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { ArrowUpRight } from '@phosphor-icons/react';
 import { BREAKPOINTS, useMediaQuery } from '../state';
-import { Badge, PulseMark, Tooltip, cx } from '../ui';
+import { Badge, BrandLogo, PulseMark, Tooltip, cx } from '../ui';
 import { EXTERNAL_LINKS, NAV } from './nav.js';
 import { YearSwitcher } from './YearSwitcher.jsx';
 import { ThemeToggle } from './ThemeToggle.jsx';
@@ -45,14 +45,16 @@ function NavItem({ item, collapsed }) {
 }
 
 function ExternalItem({ item, collapsed }) {
+  // Partner sites are shown by their own marks: a small logo tile that opens the site.
   const a = (
-    <a href={item.href} target="_blank" rel="noopener noreferrer" className="shell-nav__item shell-nav__item--ext" aria-label={collapsed ? `${item.label} (opens in a new tab)` : undefined}>
-      <span className="shell-nav__icon">{createElement(item.icon, { 'aria-hidden': true })}</span>
-      <span className="shell-nav__label">
-        {item.label}
-        <span className="visually-hidden"> (opens in a new tab)</span>
+    <a href={item.href} target="_blank" rel="noopener noreferrer" className="shell-ext" aria-label={`${item.label} (opens in a new tab)`}>
+      <span className="shell-ext__logo">
+        <BrandLogo name={item.logo} height={collapsed ? 26 : item.logoHeight} decorative />
       </span>
-      <ArrowUpRight className="shell-nav__ext" aria-hidden="true" weight="bold" />
+      <span className="shell-ext__label">
+        {item.label}
+        <ArrowUpRight className="shell-ext__arrow" aria-hidden="true" weight="bold" />
+      </span>
     </a>
   );
   return collapsed ? (

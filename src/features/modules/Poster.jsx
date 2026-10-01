@@ -6,6 +6,7 @@
 import { useMemo } from 'react';
 import { Play } from '@phosphor-icons/react';
 import { lessonKey, videoThumbnailUrl } from '../../data/modules.js';
+import { videoTitle } from '../../data/videoTitles.js';
 import { cx } from '../../ui';
 import { KIND_ICON, KIND_SOURCE, kindLabel, lessonPosition, pulseTrace } from './lessons.js';
 import { useThumbnail } from './thumbs.js';
@@ -78,8 +79,8 @@ export function LessonPoster({ module: m, c, v, isWatched, onPlay }) {
       </span>
 
       <span className="mod-poster__body" aria-hidden="true">
-        <span className="mod-poster__chapter">Chapter {c + 1}</span>
-        <span className="mod-poster__title">{chapter.title}</span>
+        <span className="mod-poster__chapter">{videoTitle(video) ? `Chapter ${c + 1}: ${chapter.title}` : `Chapter ${c + 1}`}</span>
+        <span className="mod-poster__title">{videoTitle(video) || chapter.title}</span>
         {position ? <span className="mod-poster__pos">{position}</span> : null}
       </span>
 
