@@ -6,7 +6,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
   // src/legacy holds the untouched v1 code as reference only (never imported).
-  { ignores: ['dist', 'src/legacy/**'] },
+  { ignores: ['dist', 'src/legacy/**', 'launch-film/**'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {

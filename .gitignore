@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Launch film build outputs
+launch-film/out
+launch-film/assets
+launch-film/node_modules
+__pycache__

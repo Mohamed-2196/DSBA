@@ -1,0 +1,45 @@
+{
+  "_note": "Everything personal lives here. Swap placeholders, then re-render. Never commit this project to the public DSBA repo.",
+  "product": {
+    "name": "DSBA Pulse",
+    "newsletter": "The Pulse",
+    "forum": "Pulse Forum",
+    "tagline": "The newsletter + forum for all of DSBA."
+  },
+  "admin": {
+    "display": "Cool Admin",
+    "birthday_line": "HAPPY BIRTHDAY, COOL ADMIN!",
+    "syllables": [
+      "Cool",
+      "Admin"
+    ]
+  },
+  "program": {
+    "cohorts": 3,
+    "tutors": 17,
+    "students": "~160",
+    "group_chats": 47,
+    "institution": "BIBF",
+    "event_date": "6 October 2026",
+    "teachers_day": "5 October"
+  },
+  "tutors": [
+    "Tutor Name 01",
+    "Tutor Name 02",
+    "Tutor Name 03",
+    "Tutor Name 04",
+    "Tutor Name 05",
+    "Tutor Name 06",
+    "Tutor Name 07",
+    "Tutor Name 08",
+    "Tutor Name 09",
+    "Tutor Name 10",
+    "Tutor Name 11",
+    "Tutor Name 12",
+    "Tutor Name 13",
+    "Tutor Name 14",
+    "Tutor Name 15",
+    "Tutor Name 16",
+    "Tutor Name 17"
+  ]
+}
