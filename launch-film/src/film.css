@@ -158,10 +158,10 @@ img { display: block; }
 .karaoke span.now { color: #ff3d8b; }
 
 /* ── g2 terminal ───────────────────────────────────────────────── */
-.term { position: absolute; inset: 0; background: #04060a; visibility: hidden; padding: 250px 0 0 250px; font: 500 54px/1.62 var(--mono); color: #39ff88; }
-.term__head { position: absolute; left: 250px; top: 150px; font-size: 30px; color: #1f9c57; }
+.term { position: absolute; inset: 0; background: #04060a; visibility: hidden; padding: 236px 0 0 200px; font: 500 64px/1.6 var(--mono); color: #39ff88; }
+.term__head { position: absolute; left: 200px; top: 140px; font-size: 30px; color: #1f9c57; }
 .term p { white-space: pre; min-height: 1.62em; }
-.term p.warn { color: #ffe14a; }
+.term p.warn { color: #ffe14a; font-weight: 700; }
 .term p.bad { color: #ff5470; }
 .term .caret { margin-left: 4px; }
 

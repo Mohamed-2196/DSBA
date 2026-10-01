@@ -146,8 +146,8 @@ G2 = {
     "start": 80.5, "end": 86.5,
     "segments": [
         {"t0": 80.50, "t1": 81.50, "kind": "warp",       "i0": 0.30, "i1": 0.70},
-        {"t0": 81.50, "t1": 83.50, "kind": "terminal",   "i0": 0.18, "i1": 0.30},
-        {"t0": 83.50, "t1": 84.80, "kind": "crescendo",  "i0": 0.40, "i1": 1.00},
+        {"t0": 81.50, "t1": 83.95, "kind": "terminal",   "i0": 0.16, "i1": 0.24},
+        {"t0": 83.95, "t1": 84.80, "kind": "crescendo",  "i0": 0.45, "i1": 1.00},
         {"t0": 84.80, "t1": 85.00, "kind": "flash",      "i0": 1.00, "i1": 1.00},
         {"t0": 85.00, "t1": 86.50, "kind": "black",      "i0": 0.00, "i1": 0.00},
     ],
@@ -239,7 +239,7 @@ for t_ in G2["hits"][:-1]:
     add(t_, "glitch_hit")
 for t_ in terminal_typing:
     add(t_, "term_key")
-add(83.5, "crescendo_noise", dur=1.3)
+add(83.95, "crescendo_noise", dur=0.85)
 add(84.8, "flash_impact")
 for t_ in letter_typing:
     add(t_, "type_soft")

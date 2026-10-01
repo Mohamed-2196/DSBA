@@ -294,16 +294,14 @@ function s05({ tl, cues, stage, manifest: M }) {
     tl.from(card, { x: 260, opacity: 0, scale: 0.8, duration: 0.42, ease: 'back.out(1.8)' }, T.replies[i]);
     tl.to(card, { x: 180, opacity: 0, duration: 0.22, ease: 'power2.in' }, EGG.start + 0.5 + i * 0.12);
   });
-  // +1s rising from the vote during the count
-  for (let i = 0; i < 14; i += 1) {
-    const p = el('div', 'plus', '+1');
-    const r = mulberry(900 + i);
-    p.style.left = `${M.postedEggCount.x - 6 + (r() - 0.5) * 34}px`;
-    p.style.top = `${M.postedEggCount.y - 30}px`;
-    bw.content.appendChild(p);
-    tl.fromTo(p, { y: 0, opacity: 0 }, { y: -46 - r() * 30, opacity: 1, duration: 0.2, ease: 'power2.out' }, EGG.start + 0.05 + i * 0.105);
-    tl.to(p, { opacity: 0, y: '-=22', duration: 0.25 }, EGG.start + 0.25 + i * 0.105);
-  }
+  // the vote widget pulses while the count runs up
+  [0.05, 0.5, 0.95, 1.4].forEach((d) => {
+    const ring = el('div', 'ring');
+    ring.style.left = `${M.postedEggCount.x + M.postedEggCount.w / 2}px`;
+    ring.style.top = `${M.postedEggCount.y - 6}px`;
+    bw.content.appendChild(ring);
+    tl.fromTo(ring, { scale: 0.4, opacity: 0.9 }, { scale: 1.5, opacity: 0, duration: 0.45, ease: 'power2.out' }, EGG.start + d);
+  });
   tl.to(bw.el, { opacity: 0, x: -140, rotationY: -22, duration: 0.3, ease: 'power3.in' }, 45.68);
   tl.to(title, { opacity: 0, duration: 0.25 }, 45.7);
 }
