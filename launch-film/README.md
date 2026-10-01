@@ -27,5 +27,15 @@ Edit `config.json` (admin's name and the 17 tutors), then rebuild. Nothing else 
 - `tools/audio/build_audio.py` synthesises the soundtrack and sound effects from the same cues.
 - `tools/build.sh` runs all of it.
 
-The scripts use absolute paths from the machine they were written on (`/home/claude/...`); adjust them
-if you rebuild elsewhere. Build outputs (`out/`, `assets/ui/`) are not committed.
+## Rebuild from a fresh checkout
+The scripts use absolute paths from the machine they were written on: the repo at `/home/claude/dsba`,
+this folder copied to `/home/claude/launch-video`, both served from `/home/claude`.
+```
+cp -r /home/claude/dsba/launch-film /home/claude/launch-video && cd /home/claude/launch-video && npm install
+(cd /home/claude/dsba && npm ci && npx vite --port 5173 --host 127.0.0.1 &)     # the app, for UI captures
+(cd /home/claude && python3 -m http.server 5180 --bind 127.0.0.1 &)             # serves the film page
+tools/build.sh                                                                   # about 45 minutes on 2 CPUs
+```
+Needs Node 22, Playwright with Chromium, Python 3 with numpy, scipy, OpenCV and Pillow, and ffmpeg.
+Build outputs (`out/`, `assets/ui/`) are not committed. The chat-sized copy was made with a two-pass
+x264 encode at 1740 kbit/s video + 192 kbit/s AAC (just under 30 MB).
