@@ -1,0 +1,40 @@
+.about { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sp-48); align-items: start; }
+.about__main { min-width: 0; }
+.about__prose { display: grid; gap: var(--sp-16); max-width: 68ch; color: var(--ink); font-size: var(--fs-16); }
+
+.about__people { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-8) var(--sp-24); }
+.about__person { display: flex; align-items: center; gap: var(--sp-12); padding: var(--sp-12) 0; border-bottom: 1px solid var(--line); }
+.about__name { font-weight: var(--fw-semibold); color: var(--ink); text-decoration: none; }
+a.about__name:hover { color: var(--cobalt); text-decoration: underline; }
+.about__role { color: var(--ink-2); font-size: var(--fs-14); }
+
+.about__notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--sp-24); }
+.about__note { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-14); }
+.about__note-name { font-weight: var(--fw-semibold); }
+.about__note-mods { margin-left: auto; color: var(--ink-2); text-align: right; }
+
+.about__disclaimer { max-width: 68ch; color: var(--ink-2); }
+
+.about__aside { display: grid; gap: var(--sp-16); position: sticky; top: calc(var(--topbar-h) + var(--sp-16)); }
+.about__aside-title { font-size: var(--fs-16); font-weight: var(--fw-bold); letter-spacing: -0.01em; }
+.about__aside-title--pad { padding: var(--sp-16) var(--sp-16) var(--sp-8); }
+.about__aside-body { margin: 6px 0 var(--sp-16); color: var(--ink-2); font-size: var(--fs-14); }
+.about__links { display: grid; padding: 0 var(--sp-8) var(--sp-8); }
+.about__link { display: flex; align-items: center; gap: var(--sp-12); padding: 10px 8px; border-radius: var(--r-control); color: var(--ink); text-decoration: none; }
+.about__link:hover { background: var(--surface-2); }
+.about__link-icon { font-size: 20px; color: var(--ink-2); }
+.about__link-text { flex: 1 1 auto; display: grid; min-width: 0; }
+.about__link-label { font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.about__link-note { font-size: var(--fs-12); color: var(--ink-2); }
+.about__link-ext { font-size: 14px; color: var(--ink-3); }
+.about__link:hover .about__link-ext { color: var(--cobalt); }
+.about__bibf { justify-self: start; padding: var(--sp-8) var(--sp-12); border-radius: var(--r-control); background: #fff; border: 1px solid var(--line); }
+.about__bibf img { height: auto; }
+
+@media (max-width: 1279px) {
+  .about { grid-template-columns: minmax(0, 1fr); gap: var(--sp-32); }
+  .about__aside { position: static; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+}
+@media (max-width: 699px) {
+  .about__people, .about__notes { grid-template-columns: minmax(0, 1fr); }
+}

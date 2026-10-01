@@ -1,0 +1,12 @@
+.ui-panel { border: 1px solid var(--line); border-radius: var(--r-panel); background: var(--surface); min-width: 0; }
+.ui-panel--feature { border-radius: var(--r-feature); }
+.ui-panel--inset { background: var(--surface-2); border-color: transparent; }
+.ui-panel--float { box-shadow: var(--shadow-float); }
+.ui-panel--pad-none { padding: 0; }
+.ui-panel--pad-sm { padding: var(--sp-16); }
+.ui-panel--pad-md { padding: var(--sp-24); }
+.ui-panel--pad-lg { padding: var(--sp-32); }
+@media (max-width: 699px) {
+  .ui-panel--pad-md { padding: var(--sp-16); }
+  .ui-panel--pad-lg { padding: var(--sp-24); }
+}

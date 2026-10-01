@@ -1,0 +1,6 @@
+.ui-section-header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-16); margin-bottom: var(--sp-16); }
+.ui-section-header__text { min-width: 0; }
+.ui-section-header__title { font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: var(--lh-heading); }
+h3.ui-section-header__title { font-size: var(--fs-16); }
+.ui-section-header__desc { margin-top: 4px; color: var(--ink-2); font-size: var(--fs-14); }
+.ui-section-header__action { flex: 0 0 auto; display: flex; gap: var(--sp-8); align-items: center; }

@@ -1,0 +1,6 @@
+.ui-ring { position: relative; display: inline-grid; place-items: center; flex: 0 0 auto; }
+.ui-ring svg { position: absolute; inset: 0; }
+.ui-ring__track { fill: none; stroke: var(--surface-2); }
+.ui-ring__bar { fill: none; stroke-linecap: round; transition: stroke-dashoffset var(--dur-slow) var(--ease); }
+.ui-ring__value { position: relative; font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: var(--ink); line-height: 1; }
+.ui-ring__value small { font-size: 0.7em; font-weight: var(--fw-semibold); color: var(--ink-2); margin-left: 1px; }

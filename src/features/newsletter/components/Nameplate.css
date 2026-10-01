@@ -1,0 +1,40 @@
+.nl-plate { display: block; width: 100%; height: auto; overflow: visible; }
+.nl-plate__text {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-variation-settings: 'opsz' 72;
+  fill: var(--ink);
+}
+/* Skip-ink: a halo in the ground colour, painted under the letters, breaks the trace at descenders. */
+.nl-plate__text--skip {
+  stroke: var(--paper);
+  stroke-width: 12px;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+  vector-effect: non-scaling-stroke;
+}
+.nl-plate--inverse .nl-plate__text--skip { stroke: var(--navy); }
+
+/* Strokes keep their on-screen width at every scale (the words scale, the line stays a line). */
+.nl-plate__trace,
+.nl-plate__ring,
+.nl-plate__dot {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.nl-plate__trace { stroke: var(--cobalt); stroke-width: 3px; }
+.nl-plate__ring { stroke: var(--ink); stroke-width: 17px; }
+.nl-plate__dot { stroke: var(--highlight); stroke-width: 12px; }
+
+/* On navy (special edition): white words and trace, highlighter dot ringed in navy */
+.nl-plate--inverse .nl-plate__text { fill: #fff; }
+.nl-plate--inverse .nl-plate__trace { stroke: #fff; }
+.nl-plate--inverse .nl-plate__ring { stroke: var(--navy); }
+
+@media (max-width: 699px) {
+  .nl-plate__trace { stroke-width: 2.25px; }
+  .nl-plate__ring { stroke-width: 12px; }
+  .nl-plate__dot { stroke-width: 8px; }
+}

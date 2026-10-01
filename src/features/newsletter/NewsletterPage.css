@@ -1,0 +1,151 @@
+/* /newsletter: nameplate, latest issue, archive shelf + subscribe. */
+
+/* ── Masthead ─────────────────────────────────────────────────────────── */
+.nl-masthead { margin-bottom: var(--sp-48); }
+.nl-masthead__title { margin: 0; line-height: 0; }
+.nl-masthead__folio {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-16) var(--sp-48);
+  margin-top: var(--sp-16);
+}
+.nl-masthead__tagline {
+  max-width: 44ch;
+  font-family: var(--font-serif);
+  font-size: var(--fs-20);
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+.nl-masthead__facts { display: flex; gap: var(--sp-32); margin: 0; flex: 0 0 auto; }
+.nl-masthead__fact { display: grid; gap: 2px; }
+.nl-masthead__fact dt { font-size: var(--fs-12); font-weight: var(--fw-medium); color: var(--ink-2); }
+.nl-masthead__fact dd { margin: 0; font-size: var(--fs-16); font-weight: var(--fw-semibold); color: var(--ink); white-space: nowrap; }
+
+/* ── Latest issue ─────────────────────────────────────────────────────── */
+.nl-feature {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  gap: var(--sp-64);
+  align-items: start;
+}
+.nl-feature__cover { display: block; border-radius: var(--r-page); }
+.nl-feature__body { min-width: 0; padding-top: var(--sp-8); }
+.nl-feature__kicker { display: flex; align-items: center; gap: 12px; font-size: var(--fs-14); font-weight: var(--fw-medium); color: var(--ink-2); }
+.nl-feature__title {
+  margin-top: var(--sp-16);
+  font-family: var(--font-serif);
+  font-size: clamp(var(--fs-49), 5.2vw, var(--fs-76));
+  font-weight: 600;
+  font-variation-settings: 'opsz' 72;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.nl-feature__title a { color: inherit; text-decoration: none; }
+.nl-feature__title a:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 0.12em; }
+.nl-feature__dek {
+  margin-top: var(--sp-16);
+  max-width: 36ch;
+  font-family: var(--font-serif);
+  font-size: var(--fs-25);
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.nl-feature__summary { margin-top: var(--sp-16); max-width: 60ch; color: var(--ink-2); font-size: var(--fs-16); }
+
+.nl-feature__contents { margin-top: var(--sp-32); padding-top: var(--sp-16); border-top: 1px solid var(--line); }
+.nl-feature__contents-title { font-size: var(--fs-14); font-weight: var(--fw-semibold); color: var(--ink-2); letter-spacing: 0; }
+.nl-feature__contents ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-8) var(--sp-24);
+  margin-top: var(--sp-12);
+}
+.nl-feature__contents a {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: var(--fs-20);
+  line-height: 1.35;
+  color: var(--ink);
+  text-decoration: none;
+}
+.nl-feature__contents a:hover { color: var(--cobalt); text-decoration: underline; text-decoration-thickness: 1px; }
+
+.nl-feature__actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-24); margin-top: var(--sp-32); }
+.nl-feature__time, .nl-shelf__time { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-medium); }
+.nl-feature__time svg { font-size: 18px; }
+
+/* ── Archive ──────────────────────────────────────────────────────────── */
+.nl-archive { margin-top: var(--sp-96); }
+.nl-archive__head { margin-bottom: var(--sp-24); }
+.nl-archive__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-39);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+.nl-archive__desc { margin-top: var(--sp-8); color: var(--ink-2); }
+.nl-archive__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: var(--sp-48);
+  align-items: start;
+}
+.nl-shelf { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-32); }
+.nl-shelf__link { display: grid; gap: 4px; color: inherit; text-decoration: none; border-radius: var(--r-page); }
+.nl-shelf__link .nl-cover { margin-bottom: var(--sp-12); }
+.nl-shelf__no { font-size: var(--fs-14); font-weight: var(--fw-semibold); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.nl-shelf__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-25);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+.nl-shelf__link:hover .nl-shelf__title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.14em; }
+.nl-shelf__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--sp-16); color: var(--ink-2); font-size: var(--fs-14); }
+.nl-shelf__time svg { font-size: 16px; }
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 1299px) {
+  .nl-archive__layout { grid-template-columns: minmax(0, 1fr); }
+  .nl-archive__subscribe { max-width: 640px; }
+}
+@media (max-width: 1099px) {
+  .nl-feature { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-32); }
+  .nl-feature__contents ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 799px) {
+  .nl-masthead__folio { flex-direction: column; align-items: flex-start; }
+  .nl-feature { grid-template-columns: minmax(0, 1fr); }
+  .nl-feature__cover { max-width: 300px; }
+}
+@media (max-width: 699px) {
+  .nl-masthead { margin-bottom: var(--sp-32); }
+  .nl-masthead__tagline { font-size: var(--fs-16); }
+  .nl-masthead__facts { gap: var(--sp-24); }
+  .nl-feature__cover { max-width: 240px; }
+  .nl-feature__dek { font-size: var(--fs-20); }
+  .nl-feature__contents a { font-size: var(--fs-16); }
+  .nl-feature__actions { gap: var(--sp-16); }
+  .nl-archive { margin-top: var(--sp-64); }
+  .nl-archive__title { font-size: var(--fs-31); }
+  /* covers become a swipeable shelf */
+  .nl-shelf {
+    display: flex;
+    gap: var(--sp-16);
+    margin-inline: calc(-1 * var(--content-pad));
+    padding: 0 var(--content-pad) var(--sp-8);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--content-pad);
+    scrollbar-width: none;
+  }
+  .nl-shelf::-webkit-scrollbar { display: none; }
+  .nl-shelf__item { flex: 0 0 62%; scroll-snap-align: start; }
+  .nl-shelf__title { font-size: var(--fs-20); }
+}

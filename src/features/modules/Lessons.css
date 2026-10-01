@@ -1,0 +1,217 @@
+/* Lessons tab: player + details, beside the chapter list. */
+
+.mod-lessons__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-24); }
+.mod-lessons__main { min-width: 0; }
+@container mod-panels (min-width: 880px) {
+  .mod-lessons__grid { grid-template-columns: minmax(0, 1fr) 22rem; gap: var(--sp-32); }
+  /* The list takes exactly the height of the player column and scrolls inside. */
+  .mod-lessons__aside { position: relative; min-height: 520px; }
+  .mod-lessons__aside > .mod-chapters { position: absolute; inset: 0; }
+}
+
+.mod-player { scroll-margin-top: calc(var(--topbar-h) + var(--sp-16)); }
+
+/* Loaded player */
+.mod-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--r-panel);
+  background: color-mix(in oklab, var(--mc) 14%, var(--paper));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 9%, transparent);
+  color: var(--ink);
+}
+.mod-frame__iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+.mod-frame__iframe.is-loaded { opacity: 1; }
+.mod-frame__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.mod-frame__loading .ui-pulse { color: var(--mc); }
+
+/* YouTube unreachable */
+.mod-frame--blocked { display: grid; place-items: center; }
+.mod-blocked { display: flex; flex-direction: column; align-items: center; max-width: 30rem; padding: var(--sp-24); text-align: center; }
+.mod-blocked__icon { color: var(--mc); font-size: 44px; }
+.mod-blocked__title { margin-top: var(--sp-12); color: var(--ink); font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; }
+.mod-blocked__body { margin-top: 6px; color: var(--ink-2); font-size: var(--fs-14); }
+.mod-blocked__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-8); margin-top: var(--sp-16); }
+
+/* Lesson details under the player */
+.mod-lesson { display: grid; gap: var(--sp-16); margin-top: 20px; }
+.mod-lesson__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-16); }
+.mod-lesson__text { min-width: 0; }
+.mod-lesson__pos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.mod-lesson__kind {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+}
+.mod-lesson__title {
+  margin-top: 4px;
+  font-size: var(--fs-25);
+  font-weight: var(--fw-heavy);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.mod-watch { flex: 0 0 auto; }
+.mod-watch .ui-button__icon { font-size: 19px; }
+.mod-watch.is-on { background: var(--signal-soft); border-color: transparent; color: var(--signal-strong); }
+.mod-watch.is-on:hover { background: color-mix(in srgb, var(--signal) 22%, var(--surface)); }
+
+.mod-lesson__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-12) var(--sp-16);
+  padding-top: var(--sp-16);
+  border-top: 1px solid var(--line);
+}
+.mod-lesson__steps { display: flex; gap: var(--sp-8); }
+.mod-lesson__upnext {
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.mod-lesson__orig { margin-left: auto; }
+
+.mod-audio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-12);
+  padding: 12px var(--sp-16);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+}
+.mod-audio__label { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.mod-audio__label svg { color: var(--mc); font-size: 20px; }
+.mod-audio__player { flex: 1 1 16rem; min-width: 0; height: 40px; }
+
+/* ── Chapter list ──────────────────────────────────────────────────────── */
+.mod-chapters {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+}
+.mod-chapters__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-12); padding: 16px 12px 12px 20px; }
+.mod-chapters__title { font-size: var(--fs-16); font-weight: var(--fw-bold); letter-spacing: -0.01em; }
+.mod-chapters__sum { margin-top: 2px; color: var(--ink-2); font-size: var(--fs-14); }
+.mod-chapters__sum b { color: var(--ink); }
+.mod-chapters__bar { height: 4px; margin: 0 20px 8px; overflow: hidden; border-radius: var(--r-pill); background: var(--surface-2); }
+.mod-chapters__bar > span { display: block; height: 100%; border-radius: inherit; transition: width var(--dur-slow) var(--ease); }
+.mod-chapters__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 8px 12px;
+  scrollbar-gutter: stable;
+}
+
+.mod-ch__head {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 10px 10px 12px;
+  border-radius: var(--r-control);
+  text-align: left;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.mod-ch__head:hover { background: var(--surface-2); }
+.mod-ch__head:focus-visible { outline-offset: -2px; }
+.mod-ch__ring { display: inline-grid; line-height: 0; }
+.mod-ch__num { color: var(--ink); font-size: var(--fs-12); font-weight: var(--fw-bold); line-height: 1; }
+.mod-ch__ring svg.mod-ch__check { position: relative; inset: auto; color: var(--signal-strong); font-size: 15px; }
+.mod-ch__text { min-width: 0; }
+.mod-ch__title { display: block; font-size: var(--fs-14); font-weight: var(--fw-semibold); line-height: 1.35; }
+.mod-ch__meta { display: block; margin-top: 2px; color: var(--ink-2); font-size: var(--fs-12); }
+.mod-ch__caret { color: var(--ink-3); font-size: 13px; transition: transform var(--dur) var(--ease); }
+.mod-ch.is-open .mod-ch__caret { transform: rotate(180deg); }
+
+.mod-ch__videos {
+  display: grid;
+  gap: 2px;
+  padding: 2px 0 10px 46px;
+  animation: mod-reveal var(--dur) var(--ease);
+}
+@keyframes mod-reveal { from { opacity: 0; transform: translateY(-4px); } }
+
+.mod-vid {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 6px 10px;
+  border-radius: var(--r-control);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.mod-vid:hover { background: var(--surface-2); color: var(--ink); }
+.mod-vid:focus-visible { outline-offset: -2px; }
+.mod-vid__status { flex: 0 0 auto; color: var(--ink-3); font-size: 18px; }
+.mod-vid.is-watched .mod-vid__status { color: var(--signal); }
+.mod-vid__label { flex: 1 1 auto; min-width: 0; white-space: nowrap; }
+.mod-vid__kind { display: inline-flex; align-items: center; gap: 4px; color: var(--ink-2); font-size: var(--fs-12); white-space: nowrap; }
+.mod-vid__kind svg { font-size: 14px; }
+.mod-vid__now { color: var(--mc); font-size: var(--fs-12); font-weight: var(--fw-bold); white-space: nowrap; }
+.mod-vid.is-current {
+  background: color-mix(in srgb, var(--mcb) 11%, var(--surface));
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+}
+.mod-vid.is-current:not(.is-watched) .mod-vid__status { color: var(--mcb); }
+
+/* Stacked (narrow): the list follows the player at its natural height. */
+@container mod-panels (max-width: 879px) {
+  .mod-chapters__list { overflow: visible; }
+}
+@media (max-width: 699px) {
+  .mod-lesson__head { flex-direction: column; align-items: stretch; }
+  .mod-watch { align-self: flex-start; }
+  .mod-lesson__title { font-size: var(--fs-20); }
+  .mod-lesson__steps { flex: 1 1 100%; }
+  .mod-lesson__steps > .ui-button { flex: 1 1 0; }
+  .mod-lesson__upnext { white-space: normal; }
+  .mod-lesson__orig { margin-left: -12px; }
+}

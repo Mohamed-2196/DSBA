@@ -1,0 +1,27 @@
+.ui-highlight {
+  --hl-size: 100% 82%;
+  background-color: transparent;
+  background-image: var(--highlight-shape);
+  background-repeat: no-repeat;
+  background-size: var(--hl-size);
+  background-position: 0 64%;
+  color: var(--highlight-ink);
+  padding: 0 0.2em;
+  margin: 0 -0.08em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.ui-highlight--animate {
+  background-size: 0% 82%;
+  color: inherit;
+  animation: ui-hl-swipe 700ms var(--ease) var(--hl-delay, 0ms) forwards;
+}
+@keyframes ui-hl-swipe {
+  0% { background-size: 0% 82%; color: var(--ink); }
+  100% { background-size: var(--hl-size); color: var(--highlight-ink); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-highlight--animate { animation: none; background-size: var(--hl-size); color: var(--highlight-ink); }
+}

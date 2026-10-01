@@ -1,0 +1,23 @@
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.ui-chip--sm { height: 28px; padding: 0 11px; font-size: var(--fs-12); }
+.ui-chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.ui-chip__icon { font-size: 16px; }
+.ui-chip__dot { width: 8px; height: 8px; border-radius: var(--r-pill); }
+.ui-chip__count { color: var(--ink-3); font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); }
+.ui-chip.is-selected { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.ui-chip.is-selected .ui-chip__count { color: color-mix(in srgb, var(--paper) 70%, transparent); }

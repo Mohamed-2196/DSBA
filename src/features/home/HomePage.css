@@ -1,0 +1,203 @@
+/* Home — greeting, body grid, "Your modules" and "New in the library". Hero lives in ExamPulse.css. */
+
+/* ── Greeting ──────────────────────────────────────────────────────── */
+.home-greeting { margin-bottom: var(--sp-24); }
+.home-greeting__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-12);
+  color: var(--ink-2);
+  font-size: var(--fs-16);
+  font-weight: var(--fw-medium);
+}
+.home-greeting__title {
+  margin-top: var(--sp-8);
+  font-size: var(--fs-39);
+  font-weight: var(--fw-heavy);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+/* ── Body: main column + aside (container query, the rail width varies) ── */
+.home-body { margin-top: var(--sp-48); container: home / inline-size; }
+.home-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-48) var(--sp-32); }
+.home-main, .home-aside { display: contents; }
+/* PageSection's own 48px rhythm is replaced by the grid/flex gaps here. */
+.home-grid .ui-page-section + .ui-page-section { margin-top: 0; }
+.home-sec { min-width: 0; }
+/* Same header height with or without an action, so the two columns line up. */
+.home-sec > .ui-section-header { min-height: 32px; align-items: center; }
+.home-sec--continue { order: 1; }
+.home-sec--modules { order: 2; }
+.home-sec--upcoming { order: 3; }
+.home-sec--threads { order: 4; }
+.home-sec--library { order: 5; }
+.home-sec--pulse { order: 6; }
+
+@container home (min-width: 640px) {
+  .home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .home-sec--continue, .home-sec--threads, .home-sec--library, .home-sec--pulse { grid-column: 1 / -1; }
+}
+@container home (min-width: 900px) {
+  .home-grid { grid-template-columns: minmax(0, 1fr) minmax(320px, 372px); gap: var(--sp-48); align-items: start; }
+  .home-main, .home-aside { display: flex; flex-direction: column; gap: var(--sp-48); min-width: 0; }
+  .home-main { grid-column: 1; }
+  .home-aside { grid-column: 2; }
+  .home-sec--continue, .home-sec--threads, .home-sec--library, .home-sec--pulse { grid-column: auto; }
+}
+
+/* ── Your modules ──────────────────────────────────────────────────── */
+.home-mods {
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  overflow: hidden;
+}
+.home-mods--y1 { --mod-c: var(--y1); --mod-strong: var(--y1-strong); }
+.home-mods--y2 { --mod-c: var(--y2); --mod-strong: var(--y2-strong); }
+.home-mods--y3 { --mod-c: var(--y3); --mod-strong: var(--y3-strong); }
+.home-mods li + li { border-top: 1px solid var(--line); }
+.home-mods__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  min-height: 60px;
+  padding: 10px var(--sp-16);
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.home-mods__row:hover { background: var(--surface-2); }
+.home-mods__row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus-color); }
+.home-mods__code {
+  flex: 0 0 64px;
+  font-size: var(--fs-16);
+  line-height: 1;
+  color: var(--mod-strong);
+}
+.home-mods__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-right: 4px;
+  border-radius: var(--r-control);
+  background: color-mix(in srgb, var(--mod-c) 14%, var(--surface));
+  color: var(--mod-strong);
+  font-size: 18px;
+}
+.home-mods__text { flex: 1 1 auto; min-width: 0; display: grid; gap: 1px; }
+.home-mods__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.home-mods__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+}
+.home-mods__exam {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.home-mods__examdot { width: 7px; height: 7px; border-radius: var(--r-pill); background: var(--alert); }
+.home-mods__bar {
+  position: absolute;
+  left: var(--sp-16);
+  right: var(--sp-16);
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(var(--mod-c), var(--mod-c)) 0 0 / var(--pct) 100% no-repeat;
+}
+
+/* ── New in the library ────────────────────────────────────────────── */
+.home-files { overflow: hidden; }
+.home-files li + li { border-top: 1px solid var(--line); }
+.home-files__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-16);
+  padding: 12px var(--sp-16);
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.home-files__row:hover { background: var(--surface-2); }
+.home-files__row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus-color); }
+.home-files__text { flex: 1 1 auto; min-width: 0; display: grid; gap: 2px; }
+.home-files__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.home-files__meta { display: flex; align-items: baseline; gap: var(--sp-8); min-width: 0; color: var(--ink-2); font-size: var(--fs-12); }
+.home-files__code { color: var(--ink); font-size: var(--fs-12); }
+.home-files__side { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-12); }
+.home-files__when { color: var(--ink-2); font-size: var(--fs-12); white-space: nowrap; }
+
+/* Document glyph: a small page (4px radius, as document pages) with a folded corner. */
+.home-doc {
+  position: relative;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-page);
+  background: var(--surface);
+  overflow: hidden;
+}
+.home-doc::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 9px;
+  height: 9px;
+  background: linear-gradient(225deg, var(--paper) 50%, var(--line-strong) 50%);
+}
+.home-doc__lines {
+  position: absolute;
+  left: 5px;
+  right: 9px;
+  top: 8px;
+  height: 11px;
+  background: repeating-linear-gradient(var(--line-strong) 0 1.5px, transparent 1.5px 4px);
+}
+.home-doc__fmt {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1px 0;
+  background: var(--navy);
+  color: #fff;
+  font-size: 8px;
+  font-weight: var(--fw-bold);
+  line-height: 10px;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 699px) {
+  .home-greeting { margin-bottom: var(--sp-16); }
+  .home-greeting__title { font-size: var(--fs-31); }
+  .home-body { margin-top: var(--sp-32); }
+  .home-grid { row-gap: var(--sp-32); }
+  .home-files__when { display: none; }
+}

@@ -1,0 +1,43 @@
+.nl-latest-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-16);
+  padding: var(--sp-16);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  min-width: 0;
+  transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
+}
+.nl-latest-card:hover { border-color: var(--line-strong); background: var(--surface-2); }
+.nl-latest-card__cover { flex: 0 0 auto; width: 104px; }
+.nl-latest-card__body { display: grid; gap: 6px; min-width: 0; padding-top: 2px; }
+.nl-latest-card__kicker { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: var(--fs-12); font-weight: var(--fw-medium); color: var(--ink-2); }
+.nl-latest-card__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-31);
+  font-weight: 600;
+  font-variation-settings: 'opsz' 60;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+.nl-latest-card:hover .nl-latest-card__title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.12em; }
+.nl-latest-card__summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: var(--fs-16);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.nl-latest-card__meta { display: inline-flex; align-items: center; gap: 5px; margin-top: 2px; font-size: var(--fs-12); font-weight: var(--fw-semibold); color: var(--ink-2); }
+.nl-latest-card__meta svg { font-size: 15px; }
+
+@media (max-width: 699px) {
+  .nl-latest-card__cover { width: 84px; }
+  .nl-latest-card__title { font-size: var(--fs-25); }
+}

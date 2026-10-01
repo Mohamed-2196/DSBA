@@ -1,0 +1,8 @@
+.ui-skeleton {
+  display: block;
+  border-radius: var(--r-xs);
+  background: var(--surface-2);
+  animation: ui-skeleton 1.6s ease-in-out infinite;
+}
+.ui-skeleton-lines { display: grid; gap: 10px; }
+@keyframes ui-skeleton { 50% { opacity: .55; } }

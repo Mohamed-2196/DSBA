@@ -1,0 +1,43 @@
+.ui-seg {
+  position: relative;
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  isolation: isolate;
+}
+.ui-seg--full { display: flex; width: 100%; }
+.ui-seg--full .ui-seg__item { flex: 1 1 0; }
+.ui-seg__thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  z-index: -1;
+  border-radius: 8px;
+  background: var(--thumb-bg);
+  box-shadow: var(--thumb-shadow);
+  transition: transform var(--dur) var(--ease), width var(--dur) var(--ease), background-color var(--dur) var(--ease);
+}
+.ui-seg__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  min-width: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+  transition: color var(--dur) var(--ease);
+}
+.ui-seg--sm .ui-seg__item { height: 28px; min-width: 28px; padding: 0 10px; font-size: var(--fs-12); }
+.ui-seg__item:hover { color: var(--ink); }
+.ui-seg__item.is-checked { color: var(--ink); }
+.ui-seg__thumb.has-color { box-shadow: none; }
+.ui-seg__icon { font-size: 17px; }
+.ui-seg__item:focus-visible { outline-offset: 0; }

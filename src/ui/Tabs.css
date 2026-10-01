@@ -1,0 +1,61 @@
+.ui-tabs { position: relative; display: flex; align-items: stretch; gap: var(--sp-4); overflow-x: auto; scrollbar-width: none; isolation: isolate; }
+.ui-tabs::-webkit-scrollbar { display: none; }
+.ui-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
+}
+.ui-tab:hover { color: var(--ink); }
+.ui-tab.is-selected { color: var(--ink); }
+.ui-tab:disabled { opacity: .45; }
+.ui-tab__icon { font-size: 18px; }
+.ui-tab__count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums;
+}
+.ui-tab.is-selected .ui-tab__count { background: var(--cobalt-soft); color: var(--cobalt); }
+
+/* underline */
+.ui-tabs--underline { box-shadow: inset 0 -1px 0 var(--line); gap: var(--sp-24); }
+.ui-tabs--underline .ui-tab { height: 44px; padding: 0 2px; }
+.ui-tabs--underline .ui-tab:focus-visible { outline-offset: -2px; border-radius: var(--r-xs); }
+.ui-tabs__ink {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--cobalt);
+  transition: transform var(--dur) var(--ease), width var(--dur) var(--ease);
+}
+
+/* pill */
+.ui-tabs--pill { padding: 3px; border-radius: var(--r-control); background: var(--surface-2); display: inline-flex; max-width: 100%; gap: 2px; }
+.ui-tabs--pill .ui-tab { height: 34px; padding: 0 14px; border-radius: 8px; }
+.ui-tabs__pill {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  z-index: -1;
+  border-radius: 8px;
+  background: var(--thumb-bg);
+  box-shadow: var(--thumb-shadow);
+  transition: transform var(--dur) var(--ease), width var(--dur) var(--ease);
+}
+
+.ui-tabpanel:focus-visible { outline-offset: 4px; border-radius: var(--r-xs); }

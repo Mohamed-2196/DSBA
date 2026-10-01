@@ -1,0 +1,201 @@
+/* /modules — a contents page with a spine of big unit codes. */
+
+.mod-index__fact {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  white-space: pre-wrap;
+}
+.mod-index__fact b { color: var(--ink); font-weight: var(--fw-bold); }
+.mod-index__fact + .mod-index__fact::before {
+  content: '';
+  width: 1px;
+  height: 14px;
+  margin-right: 6px;
+  background: var(--line-strong);
+}
+.mod-index__fact--exam svg { margin-right: 6px; color: var(--alert); font-size: 15px; }
+
+.mod-peek {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8) var(--sp-16);
+  margin: calc(var(--sp-8) * -1) 0 var(--sp-24);
+  padding: 10px 10px 10px 16px;
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.mod-peek__actions { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+
+/* ── The contents list ─────────────────────────────────────────────────── */
+.mod-toc-wrap { container: mod-toc / inline-size; }
+.mod-toc {
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.mod-toc__item { border-bottom: 1px solid var(--line); }
+
+.mod-row {
+  --mc: var(--ink);
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr) 10rem 5.5rem;
+  grid-template-areas: 'anchor main exam prog';
+  align-items: center;
+  column-gap: var(--sp-32);
+  padding: 20px var(--sp-16);
+  margin-inline: calc(var(--sp-16) * -1);
+  border-radius: var(--r-panel);
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.mod-row--y1 { --mc: var(--y1-strong); }
+.mod-row--y2 { --mc: var(--y2-strong); }
+.mod-row--y3 { --mc: var(--y3-strong); }
+.mod-row:hover { background: var(--surface); }
+.mod-row:focus-visible { outline-offset: -2px; }
+
+.mod-row__anchor { grid-area: anchor; align-self: start; min-width: 0; }
+.mod-row__code {
+  display: block;
+  color: var(--mc);
+  font-size: var(--fs-49);
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+  transform: translateY(2px);
+}
+.mod-row__plate {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--r-panel);
+  background: color-mix(in srgb, var(--mc) 11%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mc) 22%, transparent);
+  color: var(--mc);
+}
+.mod-row__icon { font-size: 38px; }
+.mod-row__go {
+  grid-area: prog;
+  justify-self: end;
+  color: var(--ink-3);
+  font-size: 20px;
+  transition: transform var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.mod-row:hover .mod-row__go { color: var(--ink); transform: translateX(2px); }
+
+.mod-row__main { grid-area: main; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.mod-row__name {
+  font-size: var(--fs-20);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.015em;
+  line-height: var(--lh-heading);
+  text-wrap: balance;
+}
+.mod-row__desc {
+  max-width: 62ch;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+.mod-row__counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 6px;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.mod-row__counts b { color: var(--ink); font-weight: var(--fw-bold); }
+
+.mod-row__exam { grid-area: exam; display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-14); }
+.mod-row__exam-when {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+.mod-row__exam-dot { width: 8px; height: 8px; border-radius: var(--r-pill); background: var(--alert); flex: 0 0 auto; }
+.mod-row__exam-date { padding-left: 16px; color: var(--ink-2); white-space: nowrap; }
+.mod-row__exam.is-soon .mod-row__exam-when { color: var(--alert-strong); }
+.mod-row__exam.is-none .mod-row__exam-when { color: var(--ink-2); font-weight: var(--fw-regular); }
+
+.mod-row__prog {
+  grid-area: prog;
+  justify-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.mod-row__watched { color: var(--ink-2); font-size: var(--fs-12); white-space: nowrap; }
+.mod-row__noprog { color: var(--ink-2); font-size: var(--fs-12); text-align: center; line-height: 1.3; }
+
+/* Year-wide gaps: no exam dates / no videos for anyone in the year → drop the column. */
+.mod-row--no-exam { grid-template-columns: 12rem minmax(0, 1fr) 5.5rem; grid-template-areas: 'anchor main prog'; }
+.mod-row--no-exam.mod-row--no-prog { grid-template-columns: 72px minmax(0, 1fr) 2rem; column-gap: var(--sp-24); }
+
+/* A year without codes, dates or videos (Year 3 in v1) sets as a two-column index on wide screens. */
+@container mod-toc (min-width: 900px) {
+  .mod-toc:has(.mod-row--no-exam.mod-row--no-prog) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--sp-48);
+    border-top: 0;
+  }
+  .mod-toc:has(.mod-row--no-exam.mod-row--no-prog) .mod-toc__item { border-top: 1px solid var(--line); border-bottom: 0; }
+  .mod-toc:has(.mod-row--no-exam.mod-row--no-prog) .mod-toc__item:nth-last-child(-n + 2) { border-bottom: 1px solid var(--line); }
+  .mod-row--no-exam.mod-row--no-prog { align-items: start; }
+}
+.mod-row--no-prog .mod-row__anchor { align-self: center; }
+
+/* Medium: exam drops under the description. */
+@container mod-toc (max-width: 899px) {
+  .mod-row {
+    grid-template-columns: 10rem minmax(0, 1fr) 5rem;
+    grid-template-areas:
+      'anchor main prog'
+      'anchor exam prog';
+    row-gap: var(--sp-12);
+    column-gap: var(--sp-24);
+  }
+  .mod-row--no-exam { grid-template-areas: 'anchor main prog'; }
+  .mod-row--no-exam.mod-row--no-prog { grid-template-columns: 5.5rem minmax(0, 1fr) 2rem; }
+  .mod-row__code { font-size: var(--fs-39); }
+  .mod-row__exam { flex-direction: row; flex-wrap: wrap; gap: 4px 10px; }
+  .mod-row__exam-date { padding-left: 0; }
+}
+
+/* Small (phones): code and ring on top, text below. */
+@container mod-toc (max-width: 559px) {
+  .mod-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'anchor prog'
+      'main main'
+      'exam exam';
+    row-gap: var(--sp-12);
+    padding: var(--sp-16) var(--sp-12);
+    margin-inline: calc(var(--sp-12) * -1);
+  }
+  .mod-row--no-exam.mod-row--no-prog {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'anchor main prog';
+    align-items: start;
+  }
+  .mod-row__anchor { align-self: center; }
+  .mod-row__code { font-size: var(--fs-31); transform: none; }
+  .mod-row__plate { width: 48px; height: 48px; border-radius: var(--r-control); }
+  .mod-row__icon { font-size: 26px; }
+  .mod-row__prog { flex-direction: row-reverse; gap: 10px; }
+  .mod-row__name { font-size: var(--fs-16); }
+}

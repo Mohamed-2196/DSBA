@@ -1,0 +1,53 @@
+.ui-iconbutton {
+  --ib: 40px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: var(--ib);
+  height: var(--ib);
+  flex: 0 0 auto;
+  border: 1px solid transparent;
+  border-radius: var(--r-control);
+  color: var(--ink-2);
+  font-size: 20px;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.ui-iconbutton--sm { --ib: 32px; font-size: 18px; }
+.ui-iconbutton--lg { --ib: 48px; font-size: 22px; }
+
+.ui-iconbutton--ghost:hover, .ui-iconbutton--ghost.is-active { background: var(--surface-2); color: var(--ink); }
+.ui-iconbutton--secondary { background: var(--surface); border-color: var(--line-strong); color: var(--ink); }
+.ui-iconbutton--secondary:hover, .ui-iconbutton--secondary.is-active { background: var(--surface-2); }
+.ui-iconbutton--primary { background: var(--cobalt); color: var(--cobalt-ink); }
+.ui-iconbutton--primary:hover { background: var(--cobalt-hover); }
+.ui-iconbutton:disabled { opacity: .45; cursor: not-allowed; }
+
+.ui-iconbutton__badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--alert);
+  box-shadow: 0 0 0 2px var(--paper);
+}
+.ui-iconbutton__badge--count {
+  top: 3px;
+  right: 2px;
+  width: auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  background: var(--alert-strong);
+  color: var(--alert-ink);
+  font-size: 11px;
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}

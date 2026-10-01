@@ -1,0 +1,50 @@
+/* Document thumbnails: the real first page at a fixed scale (--s). Frames are A4-portrait sized so
+   rows line up; landscape pages (slides, sheets) stand on the frame's baseline. */
+.lib-thumb {
+  --s: 0.25;
+  --k: var(--s);
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  justify-content: flex-start;
+  width: calc(794px * var(--s));
+  height: calc(1123px * var(--s));
+}
+.lib-thumb.is-landscape { --k: calc(var(--s) * 0.70703); }
+.lib-thumb--strip { --s: 0.19; }
+.lib-thumb--rail { --s: 0.16; }
+.lib-thumb--related { --s: 0.07; }
+.lib-thumb--list { --s: 0.058; }
+.lib-thumb--mini { --s: 0.05; }
+
+.lib-thumb__paper { position: relative; display: block; }
+.lib-thumb__sheet {
+  position: relative;
+  display: block;
+  width: calc(var(--pw) * var(--k) * 1px);
+  height: calc(var(--ph) * var(--k) * 1px);
+  overflow: hidden;
+  border-radius: var(--r-page);
+  box-shadow: 0 0 0 1px var(--line);
+  transition: box-shadow var(--dur-fast) var(--ease);
+}
+.lib-thumb__sheet > .lib-doc { transform: scale(var(--k)); transform-origin: 0 0; pointer-events: none; }
+
+/* Small thumbnails: pages are tiny, so a firmer edge reads better. */
+.lib-thumb--list .lib-thumb__sheet, .lib-thumb--mini .lib-thumb__sheet, .lib-thumb--related .lib-thumb__sheet { border-radius: 2px; box-shadow: 0 0 0 1px var(--line-strong); }
+
+/* A deck: two more slides peeking out behind the first. */
+.lib-thumb.is-deck .lib-thumb__sheet {
+  box-shadow:
+    0 0 0 1px var(--line),
+    6px -6px 0 -1px var(--surface),
+    6px -6px 0 0 var(--line-strong),
+    12px -12px 0 -1px var(--surface),
+    12px -12px 0 0 var(--line);
+}
+.lib-thumb--list.is-deck .lib-thumb__sheet, .lib-thumb--mini.is-deck .lib-thumb__sheet, .lib-thumb--related.is-deck .lib-thumb__sheet {
+  box-shadow: 0 0 0 1px var(--line-strong), 3px -3px 0 -1px var(--surface), 3px -3px 0 0 var(--line-strong);
+}
+
+.lib-thumb__new { position: absolute; top: -7px; left: -7px; z-index: 1; }

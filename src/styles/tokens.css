@@ -1,0 +1,190 @@
+/* DSBA Pulse — design tokens (spec §1).
+   Colours: light on `:root, [data-theme='light']`, dark on `[data-theme='dark']` (both can be nested,
+   e.g. <div data-theme="dark"> renders a dark island inside a light page — the style guide uses this).
+   Spec tokens are exact. Derived tokens (marked "derived") exist for AA-contrast text on fills, tints
+   and theme-dependent details; use them instead of inventing colours or [data-theme] overrides in
+   feature CSS. Everything that is not a colour lives on :root only. */
+
+/* ── Non-colour tokens ───────────────────────────────────────────────── */
+:root {
+  /* Type */
+  --font-sans: 'Schibsted Grotesk Variable', 'Schibsted Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Newsreader Variable', 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* major third, 16px base */
+  --fs-12: 0.75rem;
+  --fs-14: 0.875rem;
+  --fs-16: 1rem;
+  --fs-20: 1.25rem;
+  --fs-25: 1.5625rem;
+  --fs-31: 1.9375rem;
+  --fs-39: 2.4375rem;
+  --fs-49: 3.0625rem;
+  --fs-61: 3.8125rem;
+  --fs-76: 4.75rem;
+  --lh-display: 1.05;     /* 49+ */
+  --lh-heading: 1.2;      /* 20–39 */
+  --lh-sans: 1.55;        /* sans body */
+  --lh-serif: 1.65;       /* serif body */
+  --tracking-head: -0.02em;
+  --tracking-display: -0.03em;
+  --measure: 72ch;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-heavy: 800;
+
+  /* Space (4/8/12/16/24/32/48/64/96) */
+  --sp-4: 4px;
+  --sp-8: 8px;
+  --sp-12: 12px;
+  --sp-16: 16px;
+  --sp-24: 24px;
+  --sp-32: 32px;
+  --sp-48: 48px;
+  --sp-64: 64px;
+  --sp-96: 96px;
+
+  /* Radii by hierarchy */
+  --r-pill: 999px;     /* chips, pills, badges */
+  --r-control: 10px;   /* inputs, buttons */
+  --r-panel: 16px;     /* panels, menus, toasts */
+  --r-feature: 24px;   /* large feature panels, modals, drawers */
+  --r-page: 4px;       /* document pages */
+  --r-xs: 6px;         /* kbd, tiny swatches, tooltips */
+
+  /* Motion: 150–250ms, one easing */
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --dur-fast: 150ms;
+  --dur: 200ms;
+  --dur-slow: 250ms;
+
+  /* Focus: 2px cobalt ring, 2px offset (--focus-color is set per theme below) */
+  --focus-width: 2px;
+  --focus-offset: 2px;
+
+  /* Layout */
+  --rail-w: 264px;
+  --rail-w-collapsed: 72px;
+  --topbar-h: 64px;
+  --tabbar-h: 64px;
+  --content-max: 1180px;
+  --content-max-wide: 1440px;
+  --content-max-narrow: 760px;
+  --content-pad: 40px;
+
+  /* Layers */
+  --z-sticky: 20;
+  --z-rail: 30;
+  --z-dropdown: 50;
+  --z-overlay: 60;
+  --z-toast: 80;
+  --z-tooltip: 90;
+
+  /* Highlighter shape (rough-edged marker swipe), used by <Highlight> and Badge tone="highlight". */
+  --highlight-shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 40' preserveAspectRatio='none'%3E%3Cpath fill='%23FFE14A' d='M4.5 7.2C38 4.6 74 6.1 112 4.2c30-1.4 58 .6 84.6-1.1l2.2 7.1-2.4 9.2 2.6 11.6c-28.9 3.1-61.4 1.4-94.2 2.9-34.4 1.6-66.1-.6-101.2 2.3L.8 27.5l2.9-9.6L1.9 9.4z'/%3E%3Cpath fill='%23F5C400' fill-opacity='.22' d='M4 30.6c34-2.2 66-.5 98-2.1 32-1.5 64-.1 95.8-1.9l.9 4.6c-28.9 3.1-61.4 1.4-94.2 2.9-34.4 1.6-66.1-.6-101.2 2.3l-.4-3.1z'/%3E%3C/svg%3E");
+}
+
+@media (max-width: 1099px) {
+  :root { --content-pad: 32px; }
+}
+@media (max-width: 699px) {
+  :root { --content-pad: 16px; }
+}
+
+/* ── Colour: light ───────────────────────────────────────────────────── */
+:root, [data-theme='light'] {
+  color-scheme: light;
+
+  /* Spec */
+  --paper: #F6F7FB;        /* app background (cool, never cream) */
+  --surface: #FFFFFF;      /* panels, cards */
+  --surface-2: #EEF0F8;    /* inset areas, hovers, table stripes */
+  --ink: #0E1542;          /* primary text & headings */
+  --ink-2: #4A5175;        /* secondary text (AA on paper/surface) */
+  --ink-3: #7C83A6;        /* tertiary: icons, placeholders, large meta — NOT AA for small text in light */
+  --line: #E2E5F0;         /* borders/dividers */
+  --cobalt: #2E3BFF;       /* primary actions, links, focus, pulse */
+  --cobalt-ink: #FFFFFF;   /* text on cobalt */
+  --navy: #1A237E;         /* v1 brand navy (logo lockup, deep accents) */
+  --highlight: #FFE14A;    /* highlighter marks only — never a text colour */
+  --signal: #12B886;       /* live, answered, success, watched */
+  --alert: #F03E5E;        /* exams, errors, destructive */
+  --y1: #0FA3B1;           /* Year 1 (lagoon) */
+  --y2: #7048E8;           /* Year 2 (iris) */
+  --y3: #F08C00;           /* Year 3 (amber) */
+  --shadow-float: 0 18px 40px -18px rgba(14, 21, 66, .35), 0 2px 6px rgba(14, 21, 66, .06);
+
+  /* Derived */
+  --line-strong: #CDD2E3;              /* input/chip borders, scrollbar thumb */
+  --highlight-ink: #0E1542;            /* text sitting on a highlighter mark (both themes) */
+  --alert-strong: #C81E43;             /* alert as small text / danger fill (AA) */
+  --alert-ink: #FFFFFF;                /* text on an --alert-strong fill */
+  --alert-hover: #A9183A;              /* danger button hover */
+  --signal-strong: #0A7D5B;            /* success as small text (AA) */
+  --y1-strong: #0B7C87;                /* cohort colour as small text (AA) */
+  --y2-strong: #7048E8;
+  --y3-strong: #A35E00;
+  --on-y1: #0E1542;                    /* text on a solid cohort fill (AA) */
+  --on-y2: #FFFFFF;
+  --on-y3: #0E1542;
+  --cobalt-hover: #1F2BE0;
+  --cobalt-soft: #EBECFF;              /* cobalt tint (selected rows, info) */
+  --alert-soft: #FEECEF;
+  --signal-soft: #E3F6F0;
+  --highlight-soft: #FFF7CC;
+  --thumb-bg: #FFFFFF;                 /* sliding thumb of segmented controls / pill tabs */
+  --thumb-shadow: 0 1px 2px rgba(14, 21, 66, .10), 0 0 0 1px var(--line);
+  --tile-stroke: transparent;          /* hairline around the navy logo tile (visible in dark) */
+  --scrim: rgba(14, 21, 66, .42);
+  --focus-color: var(--cobalt);
+}
+
+/* ── Colour: dark ────────────────────────────────────────────────────── */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Spec */
+  --paper: #0A0F2C;
+  --surface: #11183D;
+  --surface-2: #18214F;
+  --ink: #EEF0FF;
+  --ink-2: #A9B0D6;
+  --ink-3: #7880AE;
+  --line: #263063;
+  --cobalt: #7B86FF;
+  --cobalt-ink: #0A0F2C;
+  --navy: #1A237E;
+  --highlight: #FFE14A;
+  --signal: #38D9A9;
+  --alert: #FF6B81;
+  --y1: #3BC9DB;
+  --y2: #9775FA;
+  --y3: #FFA94D;
+  --shadow-float: 0 18px 40px -18px rgba(0, 0, 0, .6), 0 2px 6px rgba(0, 0, 0, .28);
+
+  /* Derived */
+  --line-strong: #34407A;
+  --highlight-ink: #0E1542;
+  --alert-strong: #FF6B81;
+  --alert-ink: #0A0F2C;
+  --alert-hover: #FF8A9C;
+  --signal-strong: #38D9A9;
+  --y1-strong: #3BC9DB;
+  --y2-strong: #9775FA;
+  --y3-strong: #FFA94D;
+  --on-y1: #0A0F2C;
+  --on-y2: #0A0F2C;
+  --on-y3: #0A0F2C;
+  --cobalt-hover: #9AA3FF;
+  --cobalt-soft: #222B6B;
+  --alert-soft: #3A1F45;
+  --signal-soft: #133E4A;
+  --highlight-soft: #3A3A3F;
+  --thumb-bg: #263063;
+  --thumb-shadow: none;
+  --tile-stroke: rgba(255, 255, 255, .14);
+  --scrim: rgba(3, 5, 18, .62);
+  --focus-color: var(--cobalt);
+}

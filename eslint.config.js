@@ -5,7 +5,8 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist'] },
+  // src/legacy holds the untouched v1 code as reference only (never imported).
+  { ignores: ['dist', 'src/legacy/**'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
@@ -29,6 +30,8 @@ export default [
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
       'react/jsx-no-target-blank': 'off',
+      // v2 does not use PropTypes; props are documented on /styleguide and in JSDoc.
+      'react/prop-types': 'off',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

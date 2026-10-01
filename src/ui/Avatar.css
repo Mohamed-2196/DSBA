@@ -1,0 +1,19 @@
+.ui-avatar {
+  --c: var(--cobalt);
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--c) 18%, var(--surface));
+  color: color-mix(in srgb, var(--c) 62%, var(--ink));
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.01em;
+  line-height: 1;
+  user-select: none;
+}
+.ui-avatar--y1 { --c: var(--y1); }
+.ui-avatar--y2 { --c: var(--y2); }
+.ui-avatar--y3 { --c: var(--y3); }
+.ui-avatar--cobalt { --c: var(--cobalt); }
+.ui-avatar--signal { --c: var(--signal); }
+.ui-avatar--alert { --c: var(--alert); }

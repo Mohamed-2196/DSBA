@@ -1,0 +1,28 @@
+.nl-reactions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); }
+.nl-reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.nl-reaction:hover { background: var(--surface-2); color: var(--ink); }
+.nl-reaction__icon { font-size: 18px; }
+.nl-reaction.is-on { border-color: var(--cobalt); background: var(--cobalt-soft); color: var(--cobalt); }
+.nl-reaction--love.is-on .nl-reaction__icon { color: var(--alert); }
+.nl-reaction.is-popping .nl-reaction__icon { animation: nl-react-pop 240ms var(--ease); }
+@keyframes nl-react-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.32) rotate(-8deg); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nl-reaction.is-popping .nl-reaction__icon { animation: none; }
+}

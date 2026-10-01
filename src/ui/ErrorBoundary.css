@@ -1,0 +1,13 @@
+.ui-boundary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-control);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.ui-boundary__icon { font-size: 18px; color: var(--alert); }
+.ui-boundary__retry { color: var(--cobalt); font-weight: var(--fw-semibold); text-decoration: underline; text-underline-offset: 0.18em; }

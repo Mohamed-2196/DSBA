@@ -1,0 +1,193 @@
+/* Lesson posters. Both render as dark islands (data-theme="dark"), so tokens inside are the dark set;
+   --mc is the module's cohort colour, --mc-on the text colour on it. */
+
+.mod-poster {
+  container: mod-poster / inline-size;
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--r-panel);
+  background: color-mix(in oklab, var(--mc) 15%, var(--paper));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 9%, transparent);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.mod-poster:focus-visible { outline: 3px solid var(--focus-color); outline-offset: -3px; }
+
+.mod-poster__plot { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.mod-poster__grid { fill: none; stroke: var(--ink); stroke-opacity: 0.055; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.mod-poster__axis { fill: none; stroke: var(--ink); stroke-opacity: 0.16; stroke-width: 1; stroke-dasharray: 2 5; vector-effect: non-scaling-stroke; }
+.mod-poster__trace {
+  fill: none;
+  stroke: var(--mc);
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Thumbnail (only when it really loaded): a framed preview under the play button. */
+.mod-poster__thumb {
+  position: absolute;
+  left: 76.5%;
+  top: 45%;
+  width: 38%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--r-xs);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent), 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+  animation: mod-poster-fade var(--dur-slow) var(--ease);
+}
+.mod-poster__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.mod-poster__thumb::after { content: ''; position: absolute; inset: 0; background: color-mix(in srgb, var(--paper) 28%, transparent); }
+@keyframes mod-poster-fade { from { opacity: 0; } }
+
+.mod-poster__top {
+  position: absolute;
+  inset: 3.4cqi 3.4cqi auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-12);
+}
+.mod-poster__module { display: inline-flex; align-items: baseline; gap: 10px; min-width: 0; color: var(--ink-2); font-size: clamp(12px, 1.75cqi, 16px); font-weight: var(--fw-semibold); }
+.mod-poster__code { color: var(--ink); font-size: clamp(14px, 2.15cqi, 20px); font-weight: var(--fw-heavy); font-variant-numeric: tabular-nums lining-nums; letter-spacing: -0.01em; }
+.mod-poster__short { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mod-poster__kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent);
+  color: var(--ink);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+}
+.mod-poster__kind svg { font-size: 15px; }
+
+.mod-poster__body {
+  position: absolute;
+  left: 3.4cqi;
+  top: 45%;
+  width: 54%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9cqi;
+  transform: translateY(-50%);
+}
+.mod-poster__chapter { color: var(--mc); font-size: clamp(12px, 1.8cqi, 16px); font-weight: var(--fw-bold); }
+.mod-poster__title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  font-size: clamp(19px, 4.2cqi, 40px);
+  font-weight: var(--fw-heavy);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.mod-poster__pos { margin-top: 0.4cqi; color: var(--ink-2); font-size: clamp(12px, 1.85cqi, 17px); font-weight: var(--fw-semibold); }
+
+.mod-poster__play {
+  position: absolute;
+  left: 76.5%;
+  top: 45%;
+  display: grid;
+  place-items: center;
+  width: clamp(48px, 10.5cqi, 92px);
+  aspect-ratio: 1;
+  border-radius: var(--r-pill);
+  background: var(--mc);
+  color: var(--mc-on);
+  font-size: clamp(20px, 3.7cqi, 34px);
+  box-shadow: 0 0 0 clamp(6px, 1.3cqi, 12px) color-mix(in srgb, var(--mc) 20%, transparent);
+  transform: translate(-50%, -50%);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.mod-poster__play svg { margin-left: 9%; }
+.mod-poster:hover .mod-poster__play,
+.mod-poster:focus-visible .mod-poster__play {
+  transform: translate(-50%, -50%) scale(1.06);
+  box-shadow: 0 0 0 clamp(8px, 1.7cqi, 16px) color-mix(in srgb, var(--mc) 26%, transparent);
+}
+.mod-poster:active .mod-poster__play { transform: translate(-50%, -50%) scale(0.98); }
+
+.mod-poster__foot {
+  position: absolute;
+  inset: auto 3.4cqi 3cqi;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-16);
+}
+.mod-poster__ticks { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 3px; max-width: 46%; }
+.mod-poster__tick { width: 5px; height: 12px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 24%, transparent); }
+.mod-poster__tick.is-watched { background: var(--signal); }
+.mod-poster__tick.is-current { height: 20px; background: var(--mc); }
+.mod-poster__source { color: var(--ink-2); font-size: var(--fs-12); text-align: right; }
+
+@container mod-poster (max-width: 560px) {
+  .mod-poster__body { width: 60%; top: 52%; gap: 4px; }
+  .mod-poster__title { font-size: clamp(16px, 4.6cqi, 22px); -webkit-line-clamp: 3; }
+  .mod-poster__pos { display: none; }
+  .mod-poster__source { display: none; }
+  .mod-poster__kind { height: 24px; padding: 0 9px; }
+  .mod-poster__play { left: 80%; top: 50%; }
+  .mod-poster__thumb { display: none; }
+  .mod-poster__short { display: none; }
+}
+
+/* ── Mini poster (Continue learning, Pick up where you left off) ───────── */
+.mod-mini {
+  container: mod-mini / inline-size;
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--r-control);
+  background: color-mix(in oklab, var(--mc) 15%, var(--paper));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 9%, transparent);
+  color: var(--ink);
+}
+.mod-mini--sm { width: 96px; border-radius: 8px; }
+.mod-mini--md { width: 136px; }
+.mod-mini--lg { width: 100%; border-radius: 12px; }
+.mod-mini__plot { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; }
+.mod-mini__grid { fill: none; stroke: var(--ink); stroke-opacity: 0.07; vector-effect: non-scaling-stroke; }
+.mod-mini__trace { fill: none; stroke: var(--mc); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.mod-mini__code {
+  position: absolute;
+  left: 8cqi;
+  top: 7cqi;
+  font-size: clamp(11px, 9cqi, 28px);
+  font-weight: var(--fw-heavy);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.mod-mini__play {
+  position: absolute;
+  right: 7cqi;
+  top: 7cqi;
+  display: grid;
+  place-items: center;
+  width: clamp(18px, 15cqi, 44px);
+  aspect-ratio: 1;
+  border-radius: var(--r-pill);
+  background: var(--mc);
+  color: var(--mc-on);
+  font-size: clamp(9px, 6.5cqi, 18px);
+}
+.mod-mini__play svg { margin-left: 9%; }

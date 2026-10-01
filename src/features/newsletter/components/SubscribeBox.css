@@ -1,0 +1,50 @@
+.nl-subscribe {
+  display: grid;
+  gap: var(--sp-24);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  padding: var(--sp-24);
+  min-width: 0;
+}
+.nl-subscribe__text { min-width: 0; }
+.nl-subscribe__icon { display: block; font-size: 32px; color: var(--cobalt); margin-bottom: var(--sp-12); }
+.nl-subscribe__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-31);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.nl-subscribe__body { margin-top: var(--sp-8); color: var(--ink-2); font-size: var(--fs-16); line-height: var(--lh-sans); max-width: 52ch; }
+.nl-subscribe__form { display: grid; gap: var(--sp-16); align-items: start; }
+.nl-subscribe__submit { width: 100%; }
+.nl-subscribe__done { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); flex-wrap: wrap; }
+.nl-subscribe__status { display: inline-flex; align-items: center; gap: 8px; font-weight: var(--fw-semibold); color: var(--signal-strong); }
+.nl-subscribe__status svg { font-size: 20px; color: var(--signal); }
+
+/* Band: a wide strip at the end of an issue (text left, form right) */
+.nl-subscribe--band {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: var(--sp-32) var(--sp-48);
+  padding: var(--sp-32) var(--sp-48) var(--sp-32) var(--sp-32);
+  border-radius: var(--r-feature);
+}
+.nl-subscribe--band .nl-subscribe__title { font-size: var(--fs-39); }
+.nl-subscribe--band .nl-subscribe__form { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; align-items: end; gap: var(--sp-12); }
+.nl-subscribe--band .nl-subscribe__submit { width: auto; }
+/* keep the button on the field row even when the email field shows an error under it */
+.nl-subscribe--band .nl-subscribe__form .ui-field { align-self: start; }
+.nl-subscribe--band .nl-subscribe__form .nl-subscribe__submit { align-self: start; margin-top: 27px; }
+
+@media (max-width: 1099px) {
+  .nl-subscribe--band { grid-template-columns: minmax(0, 1fr); padding: var(--sp-32); }
+}
+@media (max-width: 699px) {
+  .nl-subscribe { padding: var(--sp-16); gap: var(--sp-16); }
+  .nl-subscribe__title, .nl-subscribe--band .nl-subscribe__title { font-size: var(--fs-25); }
+  .nl-subscribe--band { padding: var(--sp-24) var(--sp-16); border-radius: var(--r-panel); }
+  .nl-subscribe--band .nl-subscribe__form { grid-template-columns: minmax(0, 1fr); }
+  .nl-subscribe--band .nl-subscribe__form .nl-subscribe__submit { width: 100%; margin-top: 0; }
+}

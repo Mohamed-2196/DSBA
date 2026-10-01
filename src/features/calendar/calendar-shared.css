@@ -1,0 +1,18 @@
+/* Calendar: event-type dots, shared by the calendar page and <UpcomingEvents/> (Home, forum sidebar).
+   Colours come from EVENT_TYPES tokens. The deadline yellow (--highlight) is too faint on white, so its
+   dot carries a 1px ink ring. */
+.cal-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: var(--r-pill);
+  background: var(--ink-3);
+}
+.cal-dot--exam { background: var(--alert); }
+.cal-dot--mock { background: var(--cobalt); }
+.cal-dot--revision { background: var(--signal); }
+.cal-dot--deadline { background: var(--highlight); box-shadow: 0 0 0 1px var(--ink); }
+.cal-dot--break { background: var(--ink-3); }
+.cal-dot--term { background: var(--ink-2); }
+.cal-dot--thanks { background: var(--highlight); box-shadow: 0 0 0 1px var(--ink); }

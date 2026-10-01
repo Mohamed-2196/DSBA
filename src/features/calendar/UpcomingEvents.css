@@ -1,0 +1,91 @@
+/* <UpcomingEvents/> — Home and forum sidebar. Sizes itself to its container (container queries),
+   so the same component works in a 560px column and a 280px sidebar. */
+.cal-upcoming {
+  container-type: inline-size;
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  overflow: hidden;
+}
+.cal-upcoming__list { display: flex; flex-direction: column; }
+.cal-upcoming__list > li + li { border-top: 1px solid var(--line); }
+
+.cal-upcoming__row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-12) var(--sp-16);
+  padding: 12px var(--sp-16) 12px var(--sp-16);
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.cal-upcoming__row:hover { background: var(--surface-2); }
+.cal-upcoming__row:focus-visible { outline-offset: -2px; border-radius: var(--r-panel); }
+
+.cal-upcoming__date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 46px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  line-height: 1;
+}
+.cal-upcoming__month { color: var(--ink-2); font-size: 11px; font-weight: var(--fw-semibold); }
+.cal-upcoming__day {
+  margin-top: 3px;
+  font-size: var(--fs-20);
+  font-weight: var(--fw-heavy);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.cal-upcoming__row--exam .cal-upcoming__date { border-color: color-mix(in srgb, var(--alert) 45%, var(--line)); }
+
+.cal-upcoming__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cal-upcoming__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  line-height: 1.35;
+}
+.cal-upcoming__code {
+  margin-right: 6px;
+  font-weight: var(--fw-heavy);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.005em;
+}
+.cal-upcoming__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+}
+.cal-upcoming__all { margin-left: 4px; padding-left: 8px; border-left: 1px solid var(--line-strong); line-height: 1; }
+
+.cal-upcoming__count {
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cal-upcoming__count.is-soon.is-exam { color: var(--alert-strong); }
+
+/* Narrow containers (forum sidebar): the title gets the full width, the countdown shares the meta line. */
+@container (max-width: 340px) {
+  .cal-upcoming__row { grid-template-columns: 40px minmax(0, 1fr) auto; row-gap: 4px; column-gap: 12px; padding: 12px 14px; }
+  .cal-upcoming__date { grid-row: 1 / span 2; width: 40px; height: 44px; }
+  .cal-upcoming__body { display: contents; }
+  .cal-upcoming__title { grid-column: 2 / span 2; grid-row: 1; align-self: end; }
+  .cal-upcoming__meta { grid-column: 2; grid-row: 2; align-self: start; }
+  .cal-upcoming__count { grid-column: 3; grid-row: 2; align-self: start; color: var(--ink-2); font-size: var(--fs-12); }
+}
