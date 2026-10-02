@@ -55,6 +55,20 @@ export function getExamSession(exam, { year, gapDays = 21 } = {}) {
   return exams.slice(a, b + 1);
 }
 
+/**
+ * What the exam countdown needs, for a year (null → every year): the next exam, the exams of its
+ * session that are still to come (the next one first) and whether that session has already started.
+ * null when no exam is ahead.
+ */
+export function getExamOutlook({ year, from = new Date() } = {}) {
+  const next = getNextExam({ year, from });
+  if (!next) return null;
+  const t = fromTime(from);
+  const session = getExamSession(next, { year });
+  const ahead = session.filter((e) => eventDate(e).getTime() >= t);
+  return { next, ahead, started: ahead.length < session.length };
+}
+
 /** Events that apply to a cohort (year null → all) and, optionally, a set of types. */
 export function filterEvents({ year, types } = {}) {
   return EVENTS.filter((e) => appliesTo(e, year) && (!types || types.size === 0 || types.has(e.type)));

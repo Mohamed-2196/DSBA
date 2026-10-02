@@ -1,8 +1,9 @@
-/* Calendar page (cal-). The top card answers "what day, and how far": the next exam's date with its
-   weekday, the road to it drawn to scale, then the session's exams as date leaves. Below it the
-   month, hairline and quiet. */
+/* Calendar page (cal-). The top card answers "what is next, on which day, how far away", for every
+   kind of event: the next date with its weekday as the headline, the coming weeks day by day with
+   every type in its colour, then the next dates as leaves. Below it the month, hairline and quiet.
+   Type colours come from the .cal-tone--<type> classes in calendar-shared.css. */
 
-/* ── Next exam ──────────────────────────────────────────────────────────────────────────────── */
+/* ── Next up ────────────────────────────────────────────────────────────────────────────────── */
 .cal-next {
   padding: 28px var(--sp-32) var(--sp-32);
   border: 1px solid var(--line);
@@ -22,89 +23,88 @@
 }
 .cal-next__of { padding-left: 10px; border-left: 1px solid var(--line-strong); font-weight: var(--fw-medium); line-height: 1.2; }
 .cal-next__actions { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
-/* The headline is the date, weekday first. */
+/* The headline is the date, weekday first, with how far away it is next to it. */
 .cal-next__date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 28px;
   margin-top: var(--sp-8);
   color: var(--ink);
   font-size: var(--fs-76);
   font-weight: var(--fw-heavy);
   line-height: 1;
   letter-spacing: -0.045em;
-  text-wrap: balance;
 }
-.cal-next__module {
+.cal-next__when { font-size: var(--fs-49); line-height: 1.1; letter-spacing: -0.035em; white-space: nowrap; }
+/* A taller swipe than the default, reaching under the baseline, so heavy display glyphs and their
+   descenders ("Today") never poke out of the mark (in dark the part outside it would vanish). */
+.cal-next__when .ui-highlight { --hl-size: 100% 100%; background-position: 0 50%; padding: 0.02em 0.22em 0.2em; }
+.cal-next__what {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 12px;
-  margin-top: var(--sp-12);
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 14px;
   font-size: var(--fs-25);
   font-weight: var(--fw-bold);
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
 .cal-next__code { letter-spacing: -0.025em; }
-
-/* ── The road: measured spans, a ruler of days, the codes under their days ─────────────────────── */
-.cal-track { margin: var(--sp-16) 0 0; min-width: 0; }
-.cal-track__plot { position: relative; width: 100%; }
-.cal-track__dims { position: relative; }
-.cal-track__svg { position: absolute; left: 0; top: 0; overflow: visible; }
-.cal-track__dim { fill: none; stroke: var(--ink-2); stroke-width: 1.25; }
-.cal-track__dim--session { stroke: var(--ink-3); }
-.cal-track__drop { fill: none; stroke: var(--line-strong); stroke-width: 1; }
-.cal-track__count {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  padding: 0 18px;
-  background: var(--surface);
-  font-size: var(--fs-49);
-  font-weight: var(--fw-heavy);
-  line-height: 1.1;
-  letter-spacing: -0.035em;
-  white-space: nowrap;
-}
-/* A taller swipe than the default so heavy display glyphs never poke out of the mark (matters in dark). */
-.cal-track__count .ui-highlight,
-.cal-track__lede-count .ui-highlight { --hl-size: 100% 100%; background-position: 0 50%; padding: 0 0.22em; }
-.cal-track__units {
-  position: absolute;
-  transform: translateX(-50%);
-  padding: 0 8px;
-  background: var(--surface);
-  color: var(--ink-2);
+.cal-next__detail { color: var(--ink-2); font-size: var(--fs-16); font-weight: var(--fw-medium); letter-spacing: 0; }
+/* The type, said out loud: a filled label in the type's colour. */
+.cal-type {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--tone);
+  color: var(--tone-on);
   font-size: var(--fs-16);
-  font-weight: var(--fw-medium);
-  line-height: 1.3;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0;
+  line-height: 1;
   white-space: nowrap;
 }
-.cal-track__session {
+
+/* ── The coming weeks: the exam measure, a ruler of days, a word under every marked day ───────── */
+.cal-strip { margin: 22px 0 0; min-width: 0; }
+.cal-strip__plot { position: relative; width: 100%; }
+.cal-strip__dims { position: relative; }
+.cal-strip__svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.cal-strip__dim { fill: none; stroke: var(--ink-2); stroke-width: 1.25; }
+.cal-strip__dim--session { stroke: var(--ink-3); }
+.cal-strip__drop { fill: none; stroke: var(--line-strong); stroke-width: 1; }
+.cal-strip__measure {
   position: absolute;
   transform: translate(-50%, -50%);
   padding: 0 12px;
   background: var(--surface);
-  color: var(--ink);
+  color: var(--ink-2);
   font-size: var(--fs-16);
-  font-weight: var(--fw-bold);
-  letter-spacing: -0.01em;
+  font-weight: var(--fw-medium);
   line-height: 1.3;
+  letter-spacing: -0.01em;
   white-space: nowrap;
 }
+.cal-strip__measure b, .cal-strip__measure--session { color: var(--ink); font-weight: var(--fw-bold); }
 /* The same facts as text, when the span is too short (or the screen too narrow) to write on. */
-.cal-track__lede {
+.cal-strip__lede {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 2px 14px;
-  margin-bottom: var(--sp-12);
+  gap: 2px 16px;
+  margin-bottom: var(--sp-8);
   color: var(--ink-2);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
 }
-.cal-track__lede-count { flex: 0 0 100%; margin-bottom: 4px; color: var(--ink); font-size: var(--fs-39); font-weight: var(--fw-heavy); line-height: 1.1; letter-spacing: -0.035em; }
+.cal-strip__lede b { color: var(--ink); font-weight: var(--fw-bold); }
 
-.cal-track__marks { position: relative; height: 18px; }
-.cal-track__mark {
+.cal-strip__marks { position: relative; height: 18px; }
+.cal-strip__mark {
   position: absolute;
   top: 0;
   color: var(--ink-2);
@@ -113,15 +113,15 @@
   line-height: 16px;
   white-space: nowrap;
 }
-.cal-track__ruler {
+.cal-strip__ruler {
   position: relative;
   display: flex;
-  height: 48px;
+  height: 50px;
   border-radius: 12px;
   background: var(--surface);
   overflow: hidden;
 }
-.cal-track__ruler::after {
+.cal-strip__ruler::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -129,58 +129,85 @@
   border-radius: inherit;
   pointer-events: none;
 }
-.cal-track__cell {
+/* A day is a small date leaf: the weekday on a band, the day number under it. */
+.cal-strip__cell {
   flex: 1 1 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
+  align-items: stretch;
   line-height: 1;
+  text-align: center;
 }
-.cal-track__cell.is-weekend { background: var(--surface-2); }
-.cal-track__cell.is-weekstart { box-shadow: inset 1px 0 0 var(--line-strong); }
-.cal-track__wd { color: var(--ink-2); font-size: 11px; font-weight: var(--fw-semibold); }
-.cal-track__num { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
-.cal-track__cell.is-weekend .cal-track__num { color: var(--ink-2); }
-.cal-track__cell.is-today { background: var(--cobalt); }
-.cal-track__cell.is-today .cal-track__wd, .cal-track__cell.is-today .cal-track__num { color: var(--cobalt-ink); }
-.cal-track__cell.is-exam { background: var(--alert-strong); box-shadow: none; }
-.cal-track__cell.is-exam .cal-track__wd, .cal-track__cell.is-exam .cal-track__num { color: var(--alert-ink); }
-.cal-track--one .cal-track__wd { font-size: 10px; }
-.cal-track--one .cal-track__num { font-size: var(--fs-12); }
-.cal-track--ticks .cal-track__ruler { height: 22px; border-radius: 8px; }
+.cal-strip__cell.is-weekend { background: var(--surface-2); }
+.cal-strip__cell.is-weekstart { box-shadow: inset 1px 0 0 var(--line-strong); }
+.cal-strip__wd { flex: 0 0 21px; padding-top: 6px; color: var(--ink-2); font-size: 11px; font-weight: var(--fw-semibold); }
+.cal-strip__num { padding-top: 5px; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
+.cal-strip__cell.is-weekend .cal-strip__num { color: var(--ink-2); }
+/* Something on that day: the band takes the type's colour, the day a tint of it. */
+.cal-strip__cell.has-event { background: var(--tone-soft); box-shadow: none; }
+.cal-strip__cell.has-event .cal-strip__wd { background: var(--tone); color: var(--tone-on); font-weight: var(--fw-bold); }
+.cal-strip__cell.has-event .cal-strip__num { color: var(--ink); }
+/* Exams matter most: the whole day is filled. */
+.cal-strip__cell.is-exam { background: var(--tone); }
+.cal-strip__cell.is-exam .cal-strip__num { color: var(--tone-on); }
+/* Today: the day itself in cobalt (its band still says what is on today). */
+.cal-strip__cell.is-today { background: var(--cobalt); }
+.cal-strip__cell.is-today .cal-strip__num { color: var(--cobalt-ink); }
+.cal-strip__cell.is-today:not(.has-event) .cal-strip__wd { color: var(--cobalt-ink); }
+.cal-strip--one .cal-strip__wd { font-size: 10px; }
+.cal-strip--one .cal-strip__num { font-size: var(--fs-12); }
+.cal-strip--ticks .cal-strip__ruler { height: 22px; border-radius: 8px; }
+.cal-strip--ticks .cal-strip__cell.has-event { background: var(--tone); }
+.cal-strip--ticks .cal-strip__cell.is-today { background: var(--cobalt); }
+.cal-strip--ticks .cal-strip__cell.is-today.has-event { background: linear-gradient(var(--tone) 0 42%, var(--cobalt) 42%); }
 
-.cal-track__flags { position: relative; }
-.cal-track__lead { fill: none; stroke: var(--ink-3); stroke-width: 1; }
-.cal-track__today {
+.cal-strip__flags { position: relative; }
+.cal-strip__lead { fill: none; stroke: var(--ink-3); stroke-width: 1; }
+.cal-strip__today {
   position: absolute;
   left: 0;
+  display: flex;
+  align-items: center;
   color: var(--ink-2);
   font-size: var(--fs-12);
   font-weight: var(--fw-medium);
   line-height: 20px;
   white-space: nowrap;
 }
-.cal-track__today b { color: var(--cobalt); font-weight: var(--fw-bold); }
-.cal-track__flag {
+.cal-strip__today b { color: var(--cobalt); font-weight: var(--fw-bold); }
+.cal-strip__todays { display: inline-flex; align-items: center; gap: 5px; margin-left: 9px; font-weight: var(--fw-semibold); }
+.cal-strip__flag {
   position: absolute;
   transform: translateX(-50%);
   overflow: hidden;
   color: var(--ink-2);
   font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
   line-height: 20px;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.cal-track__flag.is-next { color: var(--ink); }
+.cal-strip__flag.is-exam, .cal-strip__flag.is-next { color: var(--ink); }
+.cal-strip__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  line-height: 16px;
+}
+.cal-strip__legend li { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 
-/* ── The session's exams: date leaves, in order ────────────────────────────────────────────────── */
+/* ── What is next: date leaves, in order, whatever the type ─────────────────────────────────── */
 .cal-board { display: grid; min-width: 0; margin-top: var(--sp-8); }
-.cal-exam { position: relative; display: flex; min-width: 0; }
-.cal-exam__open {
+.cal-up { position: relative; display: flex; min-width: 0; }
+.cal-up__open {
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
@@ -188,38 +215,48 @@
   text-align: left;
   transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
 }
-.cal-exam__wd { background: var(--alert-soft); color: var(--alert-strong); font-weight: var(--fw-bold); line-height: 1; }
-.cal-exam.is-next .cal-exam__wd { background: var(--alert-strong); color: var(--alert-ink); }
-.cal-exam__day { font-weight: var(--fw-heavy); line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums lining-nums; }
-.cal-exam__mon { color: var(--ink-2); font-weight: var(--fw-bold); line-height: 1; }
-.cal-exam__body { display: flex; flex-direction: column; min-width: 0; }
-.cal-exam__code { font-size: var(--fs-16); line-height: 1.25; }
-.cal-exam__name { overflow: hidden; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
-.cal-exam__when { margin-top: auto; padding-top: 6px; font-size: var(--fs-14); font-weight: var(--fw-bold); line-height: 1.3; }
-.cal-exam.is-past .cal-exam__open { opacity: 0.6; }
-.cal-exam.is-past .cal-exam__wd { background: var(--surface-2); color: var(--ink-2); }
-.cal-exam__gap > span { position: relative; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); line-height: 1; white-space: nowrap; }
-.cal-exam__gap.is-tight > span { color: var(--alert-strong); font-weight: var(--fw-bold); }
+.cal-up__wd { background: var(--tone); color: var(--tone-on); font-weight: var(--fw-bold); line-height: 1; }
+.cal-up__day { font-weight: var(--fw-heavy); line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums lining-nums; }
+.cal-up__mon { color: var(--ink-2); font-weight: var(--fw-bold); line-height: 1; }
+.cal-up__body { display: flex; flex-direction: column; min-width: 0; }
+.cal-up__type { display: inline-flex; align-items: center; gap: 6px; color: var(--tone-text); font-size: var(--fs-14); font-weight: var(--fw-bold); line-height: 1.3; }
+.cal-up__code { margin-top: 3px; font-size: var(--fs-16); line-height: 1.25; }
+.cal-up__name {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.3;
+}
+.cal-up__name.is-title { -webkit-line-clamp: 3; margin-top: 3px; color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-bold); line-height: 1.25; letter-spacing: -0.01em; }
+.cal-up__for { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.3; }
+.cal-up__when { margin-top: auto; padding-top: 8px; font-size: var(--fs-16); font-weight: var(--fw-heavy); line-height: 1.3; letter-spacing: -0.01em; }
+.cal-up__gap > span { position: relative; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); line-height: 1; white-space: nowrap; }
+.cal-up__gap.is-tight > span { color: var(--alert-strong); font-weight: var(--fw-bold); }
 
-/* One row: a card per exam, the gaps measured between their centres. */
+/* One row: a card per date, the gaps measured between their centres. */
 .cal-board--row { grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 12px; padding-top: 30px; }
-.cal-board--row .cal-exam__open {
+.cal-board--row .cal-up__open {
   flex-direction: column;
   border: 1px solid var(--line-strong);
   border-radius: 14px;
   background: var(--surface);
   overflow: hidden;
 }
-.cal-board--row .cal-exam__open:hover { border-color: var(--ink-3); background: color-mix(in srgb, var(--surface-2) 45%, var(--surface)); }
-.cal-board--row .cal-exam.is-next .cal-exam__open { border-color: var(--alert-strong); }
-.cal-board--row .cal-exam__leaf { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; column-gap: 7px; }
-.cal-board--row .cal-exam__wd { grid-column: 1 / -1; padding: 8px 14px 7px; font-size: var(--fs-20); letter-spacing: -0.015em; }
-.cal-board--row .cal-exam__wd-short { display: none; }
-.cal-board--row .cal-exam__day { padding: 12px 0 0 14px; font-size: var(--fs-49); }
-.cal-board--row .cal-exam__mon { font-size: var(--fs-20); letter-spacing: -0.01em; }
-.cal-board--row .cal-exam__body { flex: 1 1 auto; padding: 8px 14px 12px; }
-.cal-board--row .cal-exam__add { position: absolute; top: 44px; right: 8px; }
-.cal-board--row .cal-exam__gap {
+.cal-board--row .cal-up__open:hover { border-color: var(--ink-3); background: color-mix(in srgb, var(--surface-2) 45%, var(--surface)); }
+/* What is next is the card the headline talks about; exams keep their red edge. */
+.cal-board--row .cal-up.is-next .cal-up__open { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.cal-board--row .cal-up.is-exam:not(.is-next) .cal-up__open { border-color: color-mix(in srgb, var(--alert) 55%, var(--line-strong)); }
+.cal-board--row .cal-up__leaf { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; column-gap: 7px; }
+.cal-board--row .cal-up__wd { grid-column: 1 / -1; padding: 8px 14px 7px; font-size: var(--fs-20); letter-spacing: -0.015em; }
+.cal-board--row .cal-up__wd-short { display: none; }
+.cal-board--row .cal-up__day { padding: 12px 0 0 14px; font-size: var(--fs-49); }
+.cal-board--row .cal-up__mon { font-size: var(--fs-20); letter-spacing: -0.01em; }
+.cal-board--row .cal-up__body { flex: 1 1 auto; padding: 10px 14px 12px; }
+.cal-board--row .cal-up__add { position: absolute; top: 44px; right: 8px; }
+.cal-board--row .cal-up__gap {
   position: absolute;
   left: calc(-50% - 12px);
   top: -30px;
@@ -229,44 +266,33 @@
   width: calc(100% + 12px);
   height: 30px;
 }
-.cal-board--row .cal-exam__gap::before { content: ''; position: absolute; left: 0; right: 0; top: 12px; height: 18px; border: solid var(--line-strong); border-width: 1px 1px 0; }
-.cal-board--row .cal-exam__gap > span { top: -3px; padding: 0 8px; background: var(--surface); }
+.cal-board--row .cal-up__gap::before { content: ''; position: absolute; left: 0; right: 0; top: 12px; height: 18px; border: solid var(--line-strong); border-width: 1px 1px 0; }
+.cal-board--row .cal-up__gap > span { top: -3px; padding: 0 8px; background: var(--surface); }
 
-/* Tighter cards when the row is short of room (small laptops, long sessions). */
-.cal-board--compact .cal-exam__wd { padding: 7px 10px 6px; font-size: var(--fs-16); }
-.cal-board--compact .cal-exam__day { padding: 10px 0 0 10px; font-size: var(--fs-39); }
-.cal-board--compact .cal-exam__mon { font-size: var(--fs-16); }
-.cal-board--compact .cal-exam__body { padding: 6px 10px 10px; }
-.cal-board--compact .cal-exam__code { font-size: var(--fs-14); }
-.cal-board--compact .cal-exam__name, .cal-board--compact .cal-exam__when { font-size: var(--fs-12); }
-.cal-board--compact .cal-exam__name { white-space: normal; }
-.cal-board--compact .cal-exam__add { top: 36px; right: 2px; }
-
-/* A list: phones, and sessions with more exams than fit in a row. */
+/* A list: phones, and anything too narrow for three cards. */
 .cal-board--list { grid-template-columns: minmax(0, 1fr); margin-top: var(--sp-16); }
-.cal-board--list .cal-exam { align-items: center; gap: var(--sp-8); }
-.cal-board--list .cal-exam + .cal-exam { margin-top: 30px; }
-.cal-board--list .cal-exam__open { align-items: center; gap: 14px; margin: -4px; padding: 4px; border-radius: 14px; }
-.cal-board--list .cal-exam__open:hover { background: var(--surface-2); }
-.cal-board--list .cal-exam__leaf {
+.cal-board--list .cal-up { align-items: center; gap: var(--sp-8); }
+.cal-board--list .cal-up + .cal-up { margin-top: 30px; }
+.cal-board--list .cal-up__open { align-items: center; gap: 14px; margin: -4px; padding: 4px; border-radius: 14px; }
+.cal-board--list .cal-up__open:hover { background: var(--surface-2); }
+.cal-board--list .cal-up__leaf {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
   width: 64px;
-  border: 1px solid color-mix(in srgb, var(--alert) 38%, var(--line));
+  border: 1px solid color-mix(in srgb, var(--tone) 45%, var(--line-strong));
   border-radius: 12px;
   background: var(--surface);
   overflow: hidden;
   text-align: center;
 }
-.cal-board--list .cal-exam.is-next .cal-exam__leaf { border-color: var(--alert-strong); }
-.cal-board--list .cal-exam.is-past .cal-exam__leaf { border-color: var(--line-strong); }
-.cal-board--list .cal-exam__wd { padding: 5px 0 4px; font-size: var(--fs-14); }
-.cal-board--list .cal-exam__wd-long { display: none; }
-.cal-board--list .cal-exam__day { padding-top: 6px; font-size: var(--fs-25); }
-.cal-board--list .cal-exam__mon { padding: 2px 0 6px; font-size: var(--fs-12); }
-.cal-board--list .cal-exam__when { margin-top: 0; padding-top: 3px; }
-.cal-board--list .cal-exam__gap {
+.cal-board--list .cal-up.is-next .cal-up__leaf { border-color: var(--ink); }
+.cal-board--list .cal-up__wd { padding: 5px 0 4px; font-size: var(--fs-14); }
+.cal-board--list .cal-up__wd-long { display: none; }
+.cal-board--list .cal-up__day { padding-top: 6px; font-size: var(--fs-25); }
+.cal-board--list .cal-up__mon { padding: 2px 0 6px; font-size: var(--fs-12); }
+.cal-board--list .cal-up__when { margin-top: 0; padding-top: 3px; }
+.cal-board--list .cal-up__gap {
   position: absolute;
   left: 31px;
   top: -26px;
@@ -309,6 +335,13 @@
 }
 .cal-layout--agenda { grid-template-columns: minmax(0, 1fr); }
 .cal-layout__grid { min-width: 0; }
+/* Next to a long agenda the weeks grow (up to 150px each) so the grid keeps it company instead of
+   leaving a blank block under itself. --rows is the number of weeks shown (set by MonthGrid). */
+@media (min-width: 1100px) {
+  .cal-layout__grid { align-self: stretch; display: flex; }
+  .cal-layout__grid .cal-grid { flex: 1 1 auto; display: flex; flex-direction: column; max-height: calc(38px + var(--rows, 6) * 150px); }
+  .cal-layout__grid .cal-grid__row:not(.cal-grid__row--head) { flex: 1 1 0; }
+}
 
 .cal-grid {
   border: 1px solid var(--line);
@@ -378,6 +411,7 @@
 .cal-chip--mock { --chip-bg: var(--cobalt-soft); }
 .cal-chip--revision { --chip-bg: var(--signal-soft); }
 .cal-chip--deadline { --chip-bg: var(--highlight-soft); }
+.cal-chip--event { --chip-bg: color-mix(in srgb, var(--y3) 15%, var(--surface)); }
 .cal-chip:hover { box-shadow: inset 0 0 0 1px var(--line-strong); }
 .cal-chip.is-selected { box-shadow: inset 0 0 0 2px var(--ink); }
 .cal-chip.is-past { opacity: 0.6; }
@@ -466,10 +500,12 @@
 .cal-agenda__type--exam { color: var(--alert-strong); }
 .cal-agenda__type--mock { color: var(--cobalt); }
 .cal-agenda__type--revision { color: var(--signal-strong); }
+.cal-agenda__type--event { color: var(--y3-strong); }
 .cal-agenda__type--deadline, .cal-agenda__type--thanks { color: var(--ink); }
 .cal-agenda__when { margin-left: auto; font-weight: var(--fw-medium); white-space: nowrap; }
 .cal-agenda__name { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); line-height: 1.35; }
 .cal-agenda__name .u-code { font-weight: var(--fw-heavy); }
+.cal-agenda__where { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-medium); line-height: 1.3; }
 .cal-agenda__now {
   display: flex;
   align-items: center;
@@ -502,6 +538,7 @@
 /* ── Drawer ────────────────────────────────────────────────────────────────────────────────── */
 .cal-drawer__content { display: flex; flex-direction: column; gap: var(--sp-24); }
 .cal-drawer__badges { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+.cal-drawer__badges .cal-badge--event { background: color-mix(in srgb, var(--y3) 15%, var(--surface)); color: var(--y3-strong); }
 .cal-drawer__when {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -527,6 +564,9 @@
 }
 .cal-drawer__countdown.is-soon { background: var(--alert-soft); color: var(--alert-strong); }
 .cal-drawer__countdown.is-past { color: var(--ink-2); font-weight: var(--fw-semibold); }
+.cal-drawer__where { margin-top: calc(-1 * var(--sp-12)); padding: 0 var(--sp-24); color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); }
+.cal-drawer__sample { padding: var(--sp-12) var(--sp-16); border-radius: var(--r-control); background: var(--surface-2); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.cal-drawer__sample b { color: var(--ink); font-weight: var(--fw-bold); }
 .cal-drawer__h { margin-bottom: var(--sp-8); color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-semibold); letter-spacing: 0; }
 .cal-drawer__module { display: flex; align-items: center; gap: var(--sp-12); }
 .cal-drawer__module-icon {
@@ -574,19 +614,22 @@
 @media (max-width: 1099px) {
   .cal-layout { grid-template-columns: minmax(0, 1fr); }
   .cal-next__date { font-size: var(--fs-61); }
+  .cal-next__when { font-size: var(--fs-39); }
 }
 @media (max-width: 699px) {
   .cal-next { padding: var(--sp-24) var(--sp-16) var(--sp-16); border-radius: var(--r-panel); }
   .cal-next__top { display: contents; }
-  .cal-next__date { margin-top: var(--sp-12); font-size: var(--fs-39); letter-spacing: -0.035em; line-height: 1.05; }
-  .cal-next__module { margin-top: var(--sp-8); font-size: var(--fs-20); }
+  .cal-next__date { gap: 6px 16px; margin-top: var(--sp-12); font-size: var(--fs-39); letter-spacing: -0.035em; line-height: 1.05; }
+  .cal-next__when { font-size: var(--fs-31); }
+  .cal-next__what { margin-top: var(--sp-12); font-size: var(--fs-20); }
+  .cal-type { height: 26px; padding: 0 10px; font-size: var(--fs-14); }
   .cal-next__actions { margin-top: var(--sp-16); }
   .cal-next__actions .ui-button { flex: 1 1 auto; }
   .cal-next { display: flex; flex-direction: column; }
   .cal-next__kicker { order: 0; }
   .cal-next__date { order: 1; }
-  .cal-next__module { order: 2; }
-  .cal-track { order: 3; margin-top: var(--sp-24); }
+  .cal-next__what { order: 2; }
+  .cal-strip { order: 3; margin-top: var(--sp-24); }
   .cal-board { order: 4; }
   .cal-next__actions { order: 5; }
   .cal-toolbar__title { font-size: var(--fs-25); }

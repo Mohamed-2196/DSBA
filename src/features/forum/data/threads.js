@@ -293,7 +293,6 @@ export const SEED_THREADS = [
     `,
     replies: [
       { id: 'a', author: 'nasser', ago: m(28), votes: 36, body: "You're cooked if you don't know integration by parts. Just apply it and you'll get the answer." },
-      { id: 'b', author: 'zainab-k', ago: m(22), votes: 34, body: 'True.' },
       { id: 'c', author: 'ahmed-j', ago: m(14), votes: 31, body: "Dr Hamad Alrayes' advisory session saved my life on exactly this. Go to the next one." },
     ],
   },

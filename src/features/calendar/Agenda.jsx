@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 import { CohortBadge, cx } from '../../ui';
 import { DateLeaf } from './DateLeaf.jsx';
 import { countdownLabel, daysUntil, formatLong, formatShort, monthName, parseKey, toKey } from './dates.js';
-import { splitTitle, typeLabel } from './eventMeta.js';
+import { splitTitle, timeAndPlace, typeLabel } from './eventMeta.js';
 
 /**
  * The month as a list: one row per day with events, a "today" rule between past and upcoming.
@@ -38,6 +38,7 @@ export function Agenda({ month, events, today, selectedId, showCohort, onOpen, e
                   {day.events.map((e) => {
                     const { code, rest } = splitTitle(e);
                     const d = daysUntil(day.date, today);
+                    const where = timeAndPlace(e);
                     return (
                       <li key={e.id}>
                         <button
@@ -60,6 +61,7 @@ export function Agenda({ month, events, today, selectedId, showCohort, onOpen, e
                             {code ? <span className="u-code">{code} </span> : null}
                             {rest}
                           </span>
+                          {where ? <span className="cal-agenda__where">{where}</span> : null}
                         </button>
                       </li>
                     );

@@ -1,7 +1,21 @@
-/* Calendar: event-type dots and the date leaf, shared by the calendar page and <UpcomingEvents/>
-   (Home, forum sidebar).
+/* Calendar: the type colours, event-type dots and the date leaf, shared by the calendar page and
+   <UpcomingEvents/> (Home, forum sidebar).
    Colours come from EVENT_TYPES tokens. The deadline yellow (--highlight) is too faint on white, so its
    dot carries a 1px ink ring. */
+
+/* One class per event type sets the four colours a type is drawn with, in both themes:
+   --tone the solid fill, --tone-on text on that fill (AA), --tone-soft a tint, --tone-text the type
+   as small text on a surface (AA). Yellow, green, amber and the break grey are bright in both themes,
+   so they take the same dark text everywhere (--highlight-ink). */
+.cal-type, .cal-up, .cal-strip__cell { --tone: var(--ink-3); --tone-on: var(--highlight-ink); --tone-soft: var(--surface-2); --tone-text: var(--ink-2); } /* a type this file has not met yet */
+.cal-tone--exam { --tone: var(--alert-strong); --tone-on: var(--alert-ink); --tone-soft: var(--alert-soft); --tone-text: var(--alert-strong); }
+.cal-tone--mock { --tone: var(--cobalt); --tone-on: var(--cobalt-ink); --tone-soft: var(--cobalt-soft); --tone-text: var(--cobalt); }
+.cal-tone--revision { --tone: var(--signal); --tone-on: var(--highlight-ink); --tone-soft: var(--signal-soft); --tone-text: var(--signal-strong); }
+.cal-tone--deadline { --tone: var(--highlight); --tone-on: var(--highlight-ink); --tone-soft: var(--highlight-soft); --tone-text: var(--ink); }
+.cal-tone--event { --tone: var(--y3); --tone-on: var(--on-y3); --tone-soft: color-mix(in srgb, var(--y3) 15%, var(--surface)); --tone-text: var(--y3-strong); }
+.cal-tone--break { --tone: var(--ink-3); --tone-on: var(--highlight-ink); --tone-soft: var(--surface-2); --tone-text: var(--ink-2); }
+.cal-tone--term { --tone: var(--ink-2); --tone-on: var(--surface); --tone-soft: var(--surface-2); --tone-text: var(--ink-2); }
+
 .cal-dot {
   display: inline-block;
   width: 8px;
@@ -14,6 +28,7 @@
 .cal-dot--mock { background: var(--cobalt); }
 .cal-dot--revision { background: var(--signal); }
 .cal-dot--deadline { background: var(--highlight); box-shadow: 0 0 0 1px var(--ink); }
+.cal-dot--event { background: var(--y3); }
 .cal-dot--break { background: var(--ink-3); }
 .cal-dot--term { background: var(--ink-2); }
 .cal-dot--thanks { background: var(--highlight); box-shadow: 0 0 0 1px var(--ink); }
@@ -48,5 +63,6 @@
 .cal-leaf--exam.is-solid { --leaf-band: var(--alert-strong); --leaf-band-ink: var(--alert-ink); --leaf-edge: var(--alert-strong); }
 .cal-leaf--mock { --leaf-band: var(--cobalt-soft); --leaf-band-ink: var(--cobalt); --leaf-edge: color-mix(in srgb, var(--cobalt) 32%, var(--line)); }
 .cal-leaf--revision { --leaf-band: var(--signal-soft); --leaf-band-ink: var(--signal-strong); --leaf-edge: color-mix(in srgb, var(--signal) 38%, var(--line)); }
+.cal-leaf--event { --leaf-band: color-mix(in srgb, var(--y3) 15%, var(--surface)); --leaf-band-ink: var(--y3-strong); --leaf-edge: color-mix(in srgb, var(--y3) 42%, var(--line)); }
 .cal-leaf--deadline, .cal-leaf--thanks { --leaf-band: var(--highlight-soft); --leaf-band-ink: var(--ink); --leaf-edge: color-mix(in srgb, var(--highlight) 60%, var(--line-strong)); }
 .cal-leaf--today.is-solid { --leaf-band: var(--cobalt); --leaf-band-ink: var(--cobalt-ink); --leaf-edge: var(--cobalt); }

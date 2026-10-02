@@ -92,7 +92,7 @@ export function ForumSidebar({ threads, counts, cohort, onPickCategory }) {
 
       <section className="forum-side__block" aria-labelledby="forum-side-dates">
         <div className="forum-side__head">
-          <h2 id="forum-side-dates" className="forum-side__title">Upcoming deadlines</h2>
+          <h2 id="forum-side-dates" className="forum-side__title">Coming up</h2>
           <Link to="/calendar" className="forum-side__link">Calendar</Link>
         </div>
         <ErrorBoundary name="UpcomingEvents">

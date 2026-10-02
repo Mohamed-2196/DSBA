@@ -14,6 +14,9 @@ const EXAM_TYPES = new Set(['exam', 'mock']);
 export function getExamSession(year, now = new Date(), { horizon = 120, maxGap = 21 } = {}) {
   const today = startOfDay(now);
   const upcoming = getEventsForYear(year)
+    // Home counts down to confirmed dates only: the calendar's sample entries (placeholders modelled on
+    // last year's pattern, `sample: true`) and programme events stay on the Calendar page.
+    .filter((e) => !e.sample && e.type !== 'event')
     .map((e) => ({ ...e, days: daysBetween(today, eventDate(e)), module: getModule(e.moduleId), when: eventDate(e) }))
     .filter((e) => e.days >= 0 && e.days <= horizon);
   const exams = upcoming.filter((e) => EXAM_TYPES.has(e.type));

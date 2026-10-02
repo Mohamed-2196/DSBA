@@ -9,7 +9,7 @@ import { EventDrawer } from './EventDrawer.jsx';
 import { THANKS_EVENT, TYPE_ORDER, typeLabel } from './eventMeta.js';
 import { buildIcs, downloadIcs, eventUrl, icsFileName } from './ics.js';
 import { MonthGrid } from './MonthGrid.jsx';
-import { NextExam } from './NextExam.jsx';
+import { NextUp } from './NextUp.jsx';
 import { filterEvents, getEvent, getUpcomingExams } from './queries.js';
 import './calendar-shared.css';
 import './CalendarPage.css';
@@ -68,9 +68,9 @@ export default function CalendarPage() {
 
   const goMonth = useCallback((m) => setMonthParam(monthKey(m), { replace: true }), [setMonthParam]);
   const isCurrentMonth = sameMonth(month, monthOfDate(today));
-  // Events opened from the grid, agenda or timeline keep the month in view. An event opened any other
-  // way (a ?event= link from search or a notification while this page is open, or another date in the
-  // drawer) brings its month into view.
+  // Events opened from the grid, the agenda or the cards at the top keep the month in view. An event
+  // opened any other way (a ?event= link from search or a notification while this page is open, or
+  // another date in the drawer) brings its month into view.
   const openedHere = useRef(null);
   const handledEvent = useRef(eventId);
   const open = useCallback(
@@ -182,11 +182,12 @@ export default function CalendarPage() {
     </div>
   );
 
+  const nextMonthCount = nextWithEvents ? visible.filter((e) => sameMonth(monthOfEvent(e), monthOfEvent(nextWithEvents))).length : 0;
   const agendaFooter =
     monthEvents.length && nextWithEvents && !sameMonth(monthOfEvent(nextWithEvents), month) ? (
       <button type="button" className="cal-agenda__next" onClick={() => goMonth(monthOfEvent(nextWithEvents))}>
         <span>Continues in {monthName(monthOfEvent(nextWithEvents))}</span>
-        <span className="cal-agenda__next-sub">{visible.filter((e) => sameMonth(monthOfEvent(e), monthOfEvent(nextWithEvents))).length} events</span>
+        <span className="cal-agenda__next-sub">{nextMonthCount} {nextMonthCount === 1 ? 'event' : 'events'}</span>
         <CaretRight aria-hidden="true" weight="bold" />
       </button>
     ) : null;
@@ -195,7 +196,7 @@ export default function CalendarPage() {
     <Page className="cal-page">
       <PageHeader
         title="Calendar"
-        description={`Exams, mocks, revision and term dates${year ? ` for ${cohortLabel(year)}` : ''}. Add any to your own calendar.`}
+        description={`Keeps track of everything for ${year ? cohortLabel(year) : 'all three years'}: exams, mocks, revision, deadlines, events and term dates. Add any of them to your own calendar.`}
         actions={
           upcomingExams.length ? (
             <Button leadingIcon={DownloadSimple} onClick={downloadAll}>
@@ -205,8 +206,8 @@ export default function CalendarPage() {
         }
       />
 
-      <PageSection aria-label="Next exam">
-        <NextExam year={year} now={now} onOpen={open} onDownload={downloadOne} onShowAllYears={showAllYears} />
+      <PageSection aria-label="Next up">
+        <NextUp year={year} now={now} onOpen={open} onDownload={downloadOne} onShowAllYears={showAllYears} />
       </PageSection>
 
       <PageSection className="cal-main" aria-labelledby="cal-month-title">

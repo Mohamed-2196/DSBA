@@ -3,11 +3,11 @@ import { Badge, Button, CohortBadge, cx, Drawer, Highlight, IconButton, ModuleIc
 import { BREAKPOINTS, cohortLabel, useMediaQuery } from '../../state';
 import { getEventsForModule, EVENTS } from '../../data/calendar.js';
 import { countdownLabel, daysUntil, formatLong, formatMonthYear, formatShort, formatShortYear, parseKey, WEEKDAYS } from './dates.js';
-import { eventModule, splitTitle, TYPE_BADGE_TONE, typeLabel } from './eventMeta.js';
+import { eventModule, splitTitle, timeAndPlace, TYPE_BADGE_TONE, typeLabel } from './eventMeta.js';
 
 /**
- * Event details: date, type, cohort, linked module, countdown, .ics downloads.
- * Opened from the grid, the agenda, the session timeline or a ?event=<id> link.
+ * Event details: date, type, cohort, time and place when published, linked module, countdown, .ics
+ * downloads. Opened from the grid, the agenda, the cards at the top or a ?event=<id> link.
  */
 export function EventDrawer({ event, today, year, examCount, onClose, onOpen, onDownload, onDownloadAll, onCopyLink }) {
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
@@ -49,11 +49,12 @@ function DrawerContent({ event, today, onOpen }) {
   const { code } = splitTitle(event);
   const sameDay = event.type === 'thanks' ? [] : EVENTS.filter((e) => e.date === event.date && e.id !== event.id);
   const related = module ? getEventsForModule(module.id) : [];
+  const where = timeAndPlace(event);
 
   return (
     <div className="cal-drawer__content">
       <div className="cal-drawer__badges">
-        <Badge tone={TYPE_BADGE_TONE[event.type]}>{typeLabel(event.type)}</Badge>
+        <Badge tone={TYPE_BADGE_TONE[event.type]} className={event.type === 'event' ? 'cal-badge--event' : undefined}>{typeLabel(event.type)}</Badge>
         <CohortBadge year={event.year} />
       </div>
 
@@ -68,6 +69,13 @@ function DrawerContent({ event, today, onOpen }) {
         </span>
         <span className="visually-hidden">{formatLong(date)}</span>
       </div>
+
+      {where ? (
+        <p className="cal-drawer__where">
+          <span className="visually-hidden">Time and place: </span>
+          {where}
+        </p>
+      ) : null}
 
       {event.type === 'thanks' ? (
         <section className="cal-drawer__thanks" aria-label="A note from DSBA students">
@@ -135,8 +143,14 @@ function DrawerContent({ event, today, onOpen }) {
         </section>
       ) : null}
 
+      {event.sample ? (
+        <p className="cal-drawer__sample">
+          <b>Sample date.</b> It follows last year’s pattern and is not confirmed: check with the programme office before you plan around it.
+        </p>
+      ) : null}
+
       {event.type === 'thanks' ? null : <p className="cal-drawer__note">
-        {event.type === 'exam' ? 'Added as an all-day event. Exam times and venues are not on this calendar.' : 'Added as an all-day event.'}
+        {event.type === 'exam' ? 'Added as an all-day event. Exam times and venues are not on this calendar.' : where ? 'Added as an all-day event, with the time and place in its notes.' : 'Added as an all-day event.'}
         {event.type === 'exam' || event.type === 'deadline' ? ' The .ics file includes a reminder at 9:00 the day before.' : ''}
       </p>}
     </div>

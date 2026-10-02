@@ -55,6 +55,12 @@ export function countdownLabel(days) {
   return days > 1 ? `In ${days} days` : `${-days} days ago`;
 }
 
+/** The same inside a sentence: 'today', 'tomorrow', 'in 17 days' (for days that are today or later). */
+export function inDays(days) {
+  if (days <= 0) return 'today';
+  return days === 1 ? 'tomorrow' : `in ${days} days`;
+}
+
 /** Compact form for tight lists: 'Today' · 'Tomorrow' · '17 days' · 'Past'. */
 export function countdownShort(days) {
   if (days === 0) return 'Today';
@@ -167,9 +173,12 @@ export function breakdownLabel({ days, weekdays, weekendDays, weekends }) {
   return parts.join(' and ');
 }
 
-/** The gap between two exams, `days` apart: 'Same day' · 'Back to back' · '4 days later'. */
-export function gapLabel(days) {
+/**
+ * The gap between two things on the calendar, `days` apart: 'Same day' · 'Next day' · '4 days later'.
+ * Two exams on consecutive days are 'Back to back' (pass `exams`).
+ */
+export function gapLabel(days, { exams = false } = {}) {
   if (days <= 0) return 'Same day';
-  if (days === 1) return 'Back to back';
+  if (days === 1) return exams ? 'Back to back' : 'Next day';
   return `${days} days later`;
 }

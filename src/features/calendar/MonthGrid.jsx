@@ -73,7 +73,7 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
   };
 
   return (
-    <div ref={gridRef} role="grid" aria-labelledby={labelledBy} className="cal-grid" data-hub="calendar-grid">
+    <div ref={gridRef} role="grid" aria-labelledby={labelledBy} className="cal-grid" data-hub="calendar-grid" style={{ '--rows': weeks.length }}>
       <div role="row" className="cal-grid__row cal-grid__row--head">
         {WEEKDAYS.map((w, i) => (
           <div key={w.short} role="columnheader" className={cx('cal-grid__wd', (i === 5 || i === 6) && 'is-weekend')}>

@@ -1,21 +1,32 @@
-// DSBA Hub — academic calendar, extracted from v1 src/legacy/components/Calander/Calander.jsx.
-// GENERATED once by /home/claude/v2-spec/gen-data.mjs and verified by verify-data.mjs.
-// All 46 v1 events, sorted by date, typed. Cleaned titles keep the v1 original (v1Title);
-// v1Color is the v1 dot colour (red/blue/green/gold), kept for traceability only.
+// DSBA Hub — academic calendar.
+// Three blocks, merged and sorted by date into EVENTS (under the last block):
+//   V1_EVENTS      the 46 events of the old site (v1 src/legacy/components/Calander/Calander.jsx), GENERATED once by
+//                  /home/claude/v2-spec/gen-data.mjs. Cleaned titles keep the v1 original (v1Title); v1Color is the
+//                  v1 dot colour (red/blue/green/gold), kept for traceability only. Do not run the generator
+//                  again: it rewrites this whole file from v1 and would drop the two blocks below.
+//   HUB_EVENTS     real programme events added since (not in v1).
+//   SAMPLE_EVENTS  PLACEHOLDERS for the 2026–27 academic year (sample: true). See the warning on that block.
+// verify-data.mjs checks all three: v1 unchanged, the real additions exactly as listed, everything else flagged sample.
 //
-// CalendarEvent: { id, date: 'YYYY-MM-DD', title, type, year: 1|2|3|null, moduleId|null, unitCode|null }
-//   year null = applies to everyone (breaks, term dates, UoL deadlines).
+// CalendarEvent: { id, date: 'YYYY-MM-DD', title, type, year: 1|2|3|null, moduleId|null, unitCode|null,
+//                  time?, place?, sample? }
+//   year null = applies to everyone (events, breaks, term dates, UoL deadlines).
+//   time / place: only when the organiser published them (free text, shown as written).
+//   sample: true = a placeholder date, not a confirmed one.
 
 export const EVENT_TYPES = {
   exam: { label: 'Exam', token: '--alert', color: 'var(--alert)' },
   mock: { label: 'Mock exam', token: '--cobalt', color: 'var(--cobalt)' },
   revision: { label: 'Revision', token: '--signal', color: 'var(--signal)' },
   deadline: { label: 'Deadline', token: '--highlight', color: 'var(--highlight)' },
+  // Programme events (Speech Day, launches, socials). Amber is the one warm token the other types leave free; it is
+  // also Year 3's cohort colour, so it never appears without the word "Event".
+  event: { label: 'Event', token: '--y3', color: 'var(--y3)' },
   break: { label: 'Break', token: '--ink-3', color: 'var(--ink-3)' },
   term: { label: 'Term dates', token: '--ink-2', color: 'var(--ink-2)' },
 };
 
-export const EVENTS = [
+const V1_EVENTS = [
   { id: '2024-12-04-statistics-deadline', date: '2024-12-04', title: 'First day of Stats MCQ on VLE', type: 'deadline', year: 1, moduleId: 'statistics', unitCode: 'ST1215', v1Color: 'gold', v1Title: 'First Day of Stats MCQ on VLE' },
   { id: '2024-12-05-business-mock', date: '2024-12-05', title: 'Business mock exam', type: 'mock', year: 1, moduleId: 'business', unitCode: 'MN1178', v1Color: 'red', v1Title: 'Business Mock Exam' },
   { id: '2024-12-07-statistics-mock', date: '2024-12-07', title: 'Statistics mock exam', type: 'mock', year: 1, moduleId: 'statistics', unitCode: 'ST1215', v1Color: 'red', v1Title: 'Statistics Mock Exam' },
@@ -63,6 +74,54 @@ export const EVENTS = [
   { id: '2026-11-05-information-systems-exam', date: '2026-11-05', title: 'IS2184 Information Systems Management (October exam)', type: 'exam', year: 2, moduleId: 'information-systems', unitCode: 'IS2184', v1Color: 'blue' },
   { id: '2026-11-06-programming-data-science-exam', date: '2026-11-06', title: 'ST2195 Programming for Data Science (October exam)', type: 'exam', year: 2, moduleId: 'programming-data-science', unitCode: 'ST2195', v1Color: 'blue' },
 ];
+
+// Real events added since v1.
+const HUB_EVENTS = [
+  // From BIBF's own Speech Day poster: winners announcement, 12:30 PM, Auditorium.
+  { id: '2026-10-05-speech-day-event', date: '2026-10-05', title: 'Speech Day: winners announcement', type: 'event', year: null, moduleId: null, unitCode: null, time: '12:30 PM', place: 'Auditorium' },
+  // The day the Hub opens to all three cohorts.
+  { id: '2026-10-06-hub-launch-event', date: '2026-10-06', title: 'DSBA Hub launch', type: 'event', year: null, moduleId: null, unitCode: null },
+];
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+// SAMPLE DATES — PLACEHOLDERS, NOT CONFIRMED. REPLACE BEFORE THE HUB IS USED FOR REAL.
+// The programme office had not published the 2026–27 dates when this was written. These entries are modelled on
+// last year's pattern in V1_EVENTS above (a revision session and a mock before the exams, the UoL application
+// deadline on 1 November, an MCQ window on the VLE, mocks in early December, the mid-year break from 16 December,
+// classes back on the first Sunday of January) so that every cohort's calendar shows what it will look like.
+// None of them is a real date. Replace the whole block with the programme office's dates and delete `sample: true`
+// (the event drawer and the .ics export tell students a sample date is a placeholder for as long as the flag is there).
+// Wording stays generic on purpose: no rooms, no times, no names. No sample is attached to Economics, Econometrics or
+// Microeconomics: the launch film types "econometrics" into search, and a placeholder must not turn up there.
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+const SAMPLE_EVENTS = [
+  // Year 2, before and after the October exams
+  { id: '2026-10-11-advanced-stats-inferential-revision', date: '2026-10-11', title: 'Statistical Inference revision session', type: 'revision', year: 2, moduleId: 'advanced-stats-inferential', unitCode: 'ST2134', sample: true },
+  { id: '2026-10-15-advanced-stats-inferential-mock', date: '2026-10-15', title: 'Statistical Inference mock exam', type: 'mock', year: 2, moduleId: 'advanced-stats-inferential', unitCode: 'ST2134', sample: true },
+  { id: '2026-10-20-business-analytics-deadline', date: '2026-10-20', title: 'Last day of Business Analytics MCQ on VLE', type: 'deadline', year: 2, moduleId: 'business-analytics', unitCode: 'ST2187', sample: true },
+  { id: '2026-12-03-advanced-stats-distribution-mock', date: '2026-12-03', title: 'Distribution Theory mock exam', type: 'mock', year: 2, moduleId: 'advanced-stats-distribution', unitCode: 'ST2133', sample: true },
+  { id: '2026-12-10-programming-data-science-mock', date: '2026-12-10', title: 'Programming mock exam', type: 'mock', year: 2, moduleId: 'programming-data-science', unitCode: 'ST2195', sample: true },
+  // Year 1, same pattern (the December dates fall on the same weekdays as in 2024)
+  { id: '2026-10-12-mathematics-revision', date: '2026-10-12', title: 'Mathematical Methods revision session', type: 'revision', year: 1, moduleId: 'mathematics', unitCode: 'MT1186', sample: true },
+  { id: '2026-10-14-mathematics-mock', date: '2026-10-14', title: 'Math mock exam', type: 'mock', year: 1, moduleId: 'mathematics', unitCode: 'MT1186', sample: true },
+  { id: '2026-12-02-statistics-deadline', date: '2026-12-02', title: 'First day of Stats MCQ on VLE', type: 'deadline', year: 1, moduleId: 'statistics', unitCode: 'ST1215', sample: true },
+  { id: '2026-12-03-business-mock', date: '2026-12-03', title: 'Business mock exam', type: 'mock', year: 1, moduleId: 'business', unitCode: 'MN1178', sample: true },
+  { id: '2026-12-05-statistics-mock', date: '2026-12-05', title: 'Statistics mock exam', type: 'mock', year: 1, moduleId: 'statistics', unitCode: 'ST1215', sample: true },
+  { id: '2027-02-13-statistics-deadline', date: '2027-02-13', title: 'Last day of Stats MCQ on VLE', type: 'deadline', year: 1, moduleId: 'statistics', unitCode: 'ST1215', sample: true },
+  // Year 3 (no exam dates yet)
+  { id: '2026-10-18-machine-learning-deadline', date: '2026-10-18', title: 'First day of Machine Learning MCQ on VLE', type: 'deadline', year: 3, moduleId: 'machine-learning', unitCode: null, sample: true },
+  { id: '2026-11-12-machine-learning-deadline', date: '2026-11-12', title: 'Last day of Machine Learning MCQ on VLE', type: 'deadline', year: 3, moduleId: 'machine-learning', unitCode: null, sample: true },
+  { id: '2026-12-01-machine-learning-mock', date: '2026-12-01', title: 'Machine Learning mock exam', type: 'mock', year: 3, moduleId: 'machine-learning', unitCode: null, sample: true },
+  { id: '2026-12-08-asset-pricing-mock', date: '2026-12-08', title: 'Asset Pricing mock exam', type: 'mock', year: 3, moduleId: 'asset-pricing', unitCode: null, sample: true },
+  // Everyone. 1 November repeats the UoL application deadline of the old data; it is not confirmed for 2026.
+  { id: '2026-11-01-deadline', date: '2026-11-01', title: 'UoL application deadline', type: 'deadline', year: null, moduleId: null, unitCode: null, sample: true },
+  { id: '2026-12-16-break', date: '2026-12-16', title: 'Mid-year break', type: 'break', year: null, moduleId: null, unitCode: null, sample: true },
+  { id: '2027-01-03-term', date: '2027-01-03', title: 'Classes resume', type: 'term', year: null, moduleId: null, unitCode: null, sample: true },
+];
+// ═══════════════════════════════════════════ end of sample dates ════════════════════════════════════════════════
+
+/** Every event, oldest first (same-day events keep the order v1, real additions, samples). */
+export const EVENTS = [...V1_EVENTS, ...HUB_EVENTS, ...SAMPLE_EVENTS].sort((a, b) => a.date.localeCompare(b.date));
 
 /** Local-midnight Date for an event (dates are calendar days, no time zone). */
 export function eventDate(e) {

@@ -1,5 +1,6 @@
 // iCalendar (RFC 5545) files built in the browser: all-day events, CRLF line endings, 75-octet line
-// folding, escaped text. Exams and deadlines carry a reminder at 09:00 the day before.
+// folding, escaped text. Exams and deadlines carry a reminder at 09:00 the day before. A published time
+// or place goes into the notes (and LOCATION); a sample date says so in its notes.
 import { getModule } from '../../data/modules.js';
 import { EVENT_TYPES } from '../../data/calendar.js';
 import { cohortLabel } from '../../state';
@@ -55,7 +56,9 @@ function describe(event) {
   const module = getModule(event.moduleId);
   const lines = [`${type} for ${event.year ? cohortLabel(event.year) : 'all years'}, ${formatLong(parseKey(event.date))}.`];
   if (module) lines.push(`Module: ${module.unitCode ? `${module.unitCode} ` : ''}${module.name}.`);
-  lines.push('From the DSBA Hub calendar (all-day event; exam times and venues are not included).');
+  if (event.time || event.place) lines.push(`${[event.time, event.place].filter(Boolean).join(', ')}.`);
+  if (event.sample) lines.push('Sample date: it follows last year’s pattern and is not confirmed. Check with the programme office.');
+  lines.push(event.time || event.place ? 'From the DSBA Hub calendar (all-day event).' : 'From the DSBA Hub calendar (all-day event; exam times and venues are not included).');
   return lines.join('\n');
 }
 
@@ -71,6 +74,7 @@ function vevent(event, now) {
     `DTEND;VALUE=DATE:${dateValue(end)}`,
     `SUMMARY:${escapeText(event.title)}`,
     `DESCRIPTION:${escapeText(describe(event))}`,
+    ...(event.place ? [`LOCATION:${escapeText(event.place)}`] : []),
     `CATEGORIES:${escapeText(EVENT_TYPES[event.type]?.label || 'Event')}`,
     `TRANSP:${event.type === 'exam' ? 'OPAQUE' : 'TRANSPARENT'}`,
   ];

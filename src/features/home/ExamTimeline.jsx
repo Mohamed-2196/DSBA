@@ -41,6 +41,15 @@ function examName(e) {
   return e.module ? e.module.name : e.title;
 }
 
+/** What follows the next exam or mock: 'five more exams', 'six exams', 'one more mock', 'one mock and six exams'. */
+function restPhrase(next, rest) {
+  const count = (type, one, many) => {
+    const n = rest.filter((e) => e.type === type).length;
+    return n ? `${numberWord(n)} ${next.type === type ? 'more ' : ''}${n === 1 ? one : many}` : null;
+  };
+  return [count('mock', 'mock', 'mocks'), count('exam', 'exam', 'exams')].filter(Boolean).join(' and ');
+}
+
 /** The trace: HubMark (now) → one spike per exam, annotated with unit codes. */
 function Trace({ session, intro, today }) {
   const ref = useRef(null);
@@ -51,6 +60,13 @@ function Trace({ session, intro, today }) {
   const y0 = empty ? 40 : compact ? 84 : 112;
   const spike = compact ? 46 : 62;
   const exams = session ? session.exams : NONE;
+  // A mock for a module whose exam is on the same trace is labelled "Mock": two identical codes read as a mistake.
+  const labelOf = useMemo(() => {
+    const examLabels = new Set(exams.filter((e) => e.type === 'exam').map(traceLabel));
+    return (e) => (e.type === 'mock' && examLabels.has(traceLabel(e)) ? 'Mock' : traceLabel(e));
+  }, [exams]);
+  // Room a label needs: a unit code fits in 66px, a module name (Year 3 has no unit codes) needs more.
+  const labelW = useMemo(() => Math.max(66, ...exams.map((e) => labelOf(e).length * 8.4 + 14)), [exams, labelOf]);
   const last = exams.length ? exams[exams.length - 1].days : 0;
   const span = Math.max(21, last + Math.max(3, Math.ceil(last * 0.1)));
 
@@ -63,12 +79,12 @@ function Trace({ session, intro, today }) {
       spike,
       span,
       exams,
-      labelW: 66,
+      labelW,
       compress: compact ? 0.34 : 0.42,
       secondaryLabels: !compact,
       wiggle: compact ? 1.8 : 2.2,
     });
-  }, [width, y0, spike, span, exams, compact]);
+  }, [width, y0, spike, span, exams, compact, labelW]);
 
   // Week ticks: Sundays (the Bahraini week starts on Sunday), away from the "Today" label. Every
   // tick is labelled with its weekday; narrow traces label every second (or third…) week.
@@ -126,7 +142,7 @@ function Trace({ session, intro, today }) {
             const e = b.exam;
             const lift = b.level > 0 ? 34 : 10;
             const delay = b.isNext ? arrive - 120 : arrive + Math.round((b.x - trace.headEnd) / SPEED);
-            const label = traceLabel(e);
+            const label = labelOf(e);
             const to = e.moduleId ? `/modules/${e.moduleId}` : '/calendar';
             return (
               <Link
@@ -184,8 +200,8 @@ export function ExamTimeline({ session, year, intro, today }) {
     );
     detail =
       more > 0
-        ? `${longDay(next.when)}, then ${numberWord(more)} more ${more === 1 ? 'exam' : 'exams'} by ${longDay(lastExam.when)}.`
-        : `${longDay(next.when)}. It's the only exam on your calendar for now.`;
+        ? `${longDay(next.when)}, then ${restPhrase(next, session.exams.slice(1))} by ${longDay(lastExam.when)}.`
+        : `${longDay(next.when)}. It's the only ${next.type === 'mock' ? 'mock' : 'exam'} on your calendar for now.`;
   } else {
     title = (
       <>
@@ -222,7 +238,7 @@ export function ExamTimeline({ session, year, intro, today }) {
             </Button>
           ) : null}
           <Button variant={modulePath ? 'ghost' : 'secondary'} to="/calendar" leadingIcon={CalendarDots}>
-            {isExam ? 'Exam timetable' : 'Open calendar'}
+            Open calendar
           </Button>
         </div>
       </div>
