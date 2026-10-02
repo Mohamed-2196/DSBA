@@ -1,5 +1,5 @@
 import { HeartStraight } from '@phosphor-icons/react';
-import { Avatar, HubMark, cx } from '../../../ui';
+import { Avatar, HubLogo, cx } from '../../../ui';
 
 const SIZES = { xs: 20, sm: 24, md: 32, lg: 40 };
 
@@ -10,7 +10,7 @@ const SIZES = { xs: 20, sm: 24, md: 32, lg: 40 };
 export function AuthorAvatar({ author, size = 'sm', className }) {
   const px = typeof size === 'number' ? size : SIZES[size] || 24;
   if (author?.kind === 'team') {
-    return <HubMark tile size={px} className={cx('forum-avatar', className)} />;
+    return <HubLogo variant="tile" size={px} decorative className={cx('forum-avatar', className)} />;
   }
   if (author?.kind === 'everyone') {
     return (

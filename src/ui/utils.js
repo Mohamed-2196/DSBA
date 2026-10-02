@@ -1,7 +1,7 @@
 // Small helpers for feature code. (Component files only export components.)
 export { cx } from './internal.js';
 
-/** 'Sayed Ali M.' → 'SA', 'Maryam S.' → 'MS', 'Dr. Sayed Hasan Kadhem' → 'SH'. */
+/** 'Sayed Ali M.' → 'SA', 'Mohamed Alnooh' → 'MA', 'Dr. Sayed Hasan Kadhem' → 'SH'. */
 export function initials(name = '') {
   const words = String(name).replace(/^(dr|prof|mr|mrs|ms)\.?\s+/i, '').split(/\s+/).filter(Boolean);
   return ((words[0]?.[0] || '') + (words[1]?.[0] || '')).toUpperCase() || '?';

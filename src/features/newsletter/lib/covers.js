@@ -1,49 +1,72 @@
-// Geometry for the generated issue covers (SVG, viewBox 300 × 400). Every cover is a chart or a
-// diagram of its issue: the pilot is a small-sample scatter on graph paper, the launch is the logo
-// idea (three nodes joined at a hub) drawn large. Deterministic: identical on every render.
-import { r1 } from './seed.js';
+// The cover system of The DSBA Newsletter: one grid, two states.
+//
+//   art state    the issue has an illustration (cover.art). It fills the cover; the nameplate sits on its
+//                top quarter and the cover line plus three story lines on its bottom fifth.
+//   type state   no illustration: the cover is built from type alone. Nameplate, a very large issue
+//                numeral, the cover line and an index of the issue's stories between rules.
+//
+// A cover is drawn in a 300 x 400 box and scaled as one piece, so a thumbnail is the same cover, smaller.
+// This file is the geometry and the copy fitting (pure functions); the drawing is components/IssueCover.jsx.
+import { issueNo, longDate } from './text.js';
 
 export const COVER_W = 300;
 export const COVER_H = 400;
+export const MARGIN = 20;
+export const MEASURE = COVER_W - 2 * MARGIN;
 
-/** One path drawing a grid of vertical + horizontal lines every `step` units inside a box. */
-export function gridPath({ x0 = 0, y0 = 0, x1 = COVER_W, y1 = COVER_H, step }) {
-  let d = '';
-  for (let x = x0 + step; x < x1; x += step) d += `M${x} ${y0}V${y1}`;
-  for (let y = y0 + step; y < y1; y += step) d += `M${x0} ${y}H${x1}`;
-  return d;
-}
-
-// ── Launch: three nodes joined at a hub (ui/HubMark's tile, without the tile) ──────
-// In the logo the three nodes sit 9.1 units from the hub, at −90°, 30° and 150°. Here the same
-// arrangement is enlarged: radius 78 around the hub, with two quiet rings behind it.
-const HUB = { x: 150, y: 218 };
-const RADIUS = 78;
-const polar = (deg, r) => ({ x: r1(HUB.x + r * Math.cos((deg * Math.PI) / 180)), y: r1(HUB.y + r * Math.sin((deg * Math.PI) / 180)) });
-export const LAUNCH = {
-  hub: HUB,
-  nodes: [-90, 30, 150].map((deg) => polar(deg, RADIUS)),
-  rings: [RADIUS, 112],
-};
-LAUNCH.spokes = LAUNCH.nodes.map((n) => `M${HUB.x} ${HUB.y}L${n.x} ${n.y}`).join('');
-
-// ── Pilot: n = 7, a least-squares line and its residuals ───────────────────
-const PILOT_POINTS = [
-  [70, 258], [96, 236], [121, 247], [149, 207], [176, 219], [205, 180], [236, 172],
+// Newsreader's display figures (weight 400): every digit is 0.6em wide and 0.725em tall. FIGURE_INK[d] is
+// where the ink of digit d starts and ends inside its 0.6em, measured from the font.
+const FIGURE_ADVANCE = 0.6;
+const FIGURE_INK = [
+  [0.039, 0.561], [0.082, 0.541], [0.042, 0.555], [0.068, 0.523], [0.001, 0.591],
+  [0.062, 0.531], [0.062, 0.555], [0.068, 0.556], [0.048, 0.551], [0.044, 0.539],
 ];
-function leastSquares(points) {
-  const n = points.length;
-  const mx = points.reduce((s, p) => s + p[0], 0) / n;
-  const my = points.reduce((s, p) => s + p[1], 0) / n;
-  const sxy = points.reduce((s, p) => s + (p[0] - mx) * (p[1] - my), 0);
-  const sxx = points.reduce((s, p) => s + (p[0] - mx) ** 2, 0);
-  const b = sxy / sxx;
-  return { a: my - b * mx, b };
+export const FIGURE_HEIGHT = 0.725;
+const round1 = (n) => Math.round(n * 10) / 10;
+
+/**
+ * Font size and x of an issue numeral whose ink runs from the left margin to the right one ("01" and "00"
+ * do), or as far as it gets before the figures grow taller than `maxHeight` (narrow pairs like "11").
+ */
+export function numeralBox(text, maxHeight) {
+  const first = FIGURE_INK[text[0]] || FIGURE_INK[0];
+  const last = FIGURE_INK[text[text.length - 1]] || FIGURE_INK[0];
+  const ink = FIGURE_ADVANCE * (text.length - 1) + last[1] - first[0];
+  const size = round1(Math.min(MEASURE / ink, maxHeight / FIGURE_HEIGHT));
+  return { size, x: round1(MARGIN - first[0] * size) };
 }
-const FIT = leastSquares(PILOT_POINTS);
-const fitY = (x) => r1(FIT.a + FIT.b * x);
-export const PILOT = {
-  points: PILOT_POINTS,
-  fit: { x1: 54, y1: fitY(54), x2: 256, y2: fitY(256) },
-  residuals: PILOT_POINTS.map(([x, y]) => ({ x, y1: y, y2: fitY(x) })),
-};
+
+// Average advance of a character, in em: the story labels are tracked capitals in the sans, the story lines
+// are the text serif. Slightly generous, so an estimate never under-reports a width.
+const LABEL_EM = 0.77;
+const LINE_EM = 0.48;
+
+/** The font size (<= size) at which `text` fits in `width`, estimated from its length. */
+export function fitSize(text, size, width, em) {
+  const need = String(text).length * em * size;
+  return need <= width ? size : Math.floor((size * width * 10) / need) / 10;
+}
+export const fitLabel = (text, size, width) => fitSize(text, size, width, LABEL_EM);
+export const fitLine = (text, size, width) => fitSize(text, size, width, LINE_EM);
+
+/**
+ * What a cover says, from the issue's data.
+ * `issue.cover` is { tone, art?, lines? }: `lines` are [{ section, text }] in story order, where `text` is the
+ * story's own headline cut down to a cover line. An issue without `lines` lists its first sections by name.
+ * -> { tone, art, number, date, title, rows: [{ id, label, text }] }
+ */
+export function coverOf(issue) {
+  const cover = issue.cover && typeof issue.cover === 'object' ? issue.cover : {};
+  const byId = new Map(issue.sections.map((s) => [s.id, s]));
+  const rows = cover.lines?.length
+    ? cover.lines.filter((l) => byId.has(l.section)).map((l) => ({ id: l.section, label: byId.get(l.section).label, text: l.text }))
+    : issue.sections.slice(0, 5).map((s) => ({ id: s.id, label: s.label, text: '' }));
+  return {
+    tone: cover.tone === 'paper' ? 'paper' : 'navy',
+    art: cover.art || null,
+    number: issueNo(issue.number),
+    date: longDate(issue.date),
+    title: issue.title,
+    rows,
+  };
+}

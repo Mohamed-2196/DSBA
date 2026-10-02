@@ -27,6 +27,19 @@ export function PlaceBadge({ thread, size = 'sm' }) {
   return <CohortBadge year={thread.year} variant="dot" size={size} className="forum-place" />;
 }
 
+/**
+ * An author's flair (a joke label, or 'Student rep' for the signed-in student rep) as a small neutral pill.
+ * It goes where a year badge would go, and replaces the year. Renders nothing for an author without one.
+ */
+export function AuthorFlair({ author, size = 'sm', className }) {
+  if (!author?.flair) return null;
+  return (
+    <Badge tone="neutral" size={size} className={cx('forum-flair', className)}>
+      {author.flair}
+    </Badge>
+  );
+}
+
 export function TagBadges({ tags = [], max = 3 }) {
   return tags.slice(0, max).map((id) => (
     <Badge key={id} tone="outline" size="sm" className="forum-tag">
@@ -52,9 +65,12 @@ export function ReplyCount({ count, answered = false, className }) {
 
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+// Arabic letters join: a highlight that ends inside a word cuts the join, so a match inside an Arabic word marks the whole word.
+const ARABIC_REST = '[\\p{Script=Arabic}\\p{M}]*';
+
 /** Text with search terms marked by the highlighter. */
 export function HighlightedText({ text, terms }) {
   if (!terms?.length) return text;
-  const re = new RegExp(`(${terms.map(escapeRe).join('|')})`, 'gi');
+  const re = new RegExp(`(${ARABIC_REST}(?:${terms.map(escapeRe).join('|')})${ARABIC_REST})`, 'giu');
   return text.split(re).map((part, i) => (i % 2 ? <Highlight key={i}>{part}</Highlight> : part));
 }

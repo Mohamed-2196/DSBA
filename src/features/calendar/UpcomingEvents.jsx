@@ -3,16 +3,16 @@ import { Link } from 'react-router-dom';
 import { CalendarBlank } from '@phosphor-icons/react';
 import { cohortLabel, useYear } from '../../state';
 import { Button, cx, EmptyState } from '../../ui';
+import { DateLeaf } from './DateLeaf.jsx';
 import { countdownShort, daysUntil, formatLong, parseKey } from './dates.js';
 import { eventModule, splitTitle, typeLabel } from './eventMeta.js';
 import { getUpcomingEvents } from './queries.js';
 import './calendar-shared.css';
 import './UpcomingEvents.css';
 
-const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 /**
- * Compact "coming up" list for Home and the forum sidebar: date, type dot, title, countdown.
+ * Compact "coming up" list for Home and the forum sidebar: date leaf (weekday, day, month), type
+ * dot, title, countdown.
  * Each row opens the event on the calendar (?event=<id>); hosts add their own "Open calendar" link.
  * Adapts to its container's width (container queries).
  * data-hub="upcoming-events".
@@ -52,10 +52,7 @@ export function UpcomingEvents({ n = 5 }) {
                 className={cx('cal-upcoming__row', `cal-upcoming__row--${e.type}`)}
                 data-event-id={e.id}
               >
-                <span className="cal-upcoming__date" aria-hidden="true">
-                  <span className="cal-upcoming__month">{MONTHS_SHORT[date.getMonth()]}</span>
-                  <span className="cal-upcoming__day">{date.getDate()}</span>
-                </span>
+                <DateLeaf date={date} tone={e.type} className="cal-upcoming__date" />
                 <span className="cal-upcoming__body">
                   <span className="cal-upcoming__title">
                     {code ? <span className="cal-upcoming__code">{code}</span> : null}

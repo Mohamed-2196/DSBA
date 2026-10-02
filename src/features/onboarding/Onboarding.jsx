@@ -6,7 +6,7 @@ import { ArrowFatUp, ArrowSquareOut, ChatsCircle, MagnifyingGlass } from '@phosp
 import { COHORTS, YEARS, useYear } from '../../state';
 import { getModule, getModulesForYear } from '../../data/modules.js';
 import { EVENTS, eventDate } from '../../data/calendar.js';
-import { Button, Highlight, Kbd, Modal, ModuleIcon, HubMark, cx, modKeyLabel } from '../../ui';
+import { Button, Highlight, Kbd, Modal, ModuleIcon, HubLogo, cx, modKeyLabel } from '../../ui';
 import './Onboarding.css';
 
 /** First upcoming exam for a year (for the cohort cards). */
@@ -212,7 +212,7 @@ export function Onboarding() {
       {!tour ? (
         <div className="onb-step onb-step--year" key="year">
           <header className="onb-head">
-            <HubMark tile size={44} className="onb-head__mark" />
+            <HubLogo variant="tile" size={44} optional decorative className="onb-head__mark" />
             <h2 className="onb-head__title">Welcome to DSBA Hub</h2>
             <p className="onb-head__desc">The DSBA resource hub, rebuilt. Choose your year and we’ll put your modules, exams and classmates first.</p>
           </header>

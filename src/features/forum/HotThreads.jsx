@@ -48,7 +48,7 @@ function HotThreadsList({ n }) {
               <span className="u-tabular">{t.votes}</span>
             </span>
             <div className="forum-hot__main">
-              <Link to={`/forum/${t.id}`} className="forum-hot__link">
+              <Link to={`/forum/${t.id}`} className="forum-hot__link" dir="auto">
                 {t.title}
               </Link>
               <div className="forum-hot__meta">

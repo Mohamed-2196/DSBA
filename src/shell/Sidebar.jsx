@@ -2,7 +2,7 @@ import { createElement } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { ArrowUpRight } from '@phosphor-icons/react';
 import { BREAKPOINTS, useMediaQuery } from '../state';
-import { Badge, BrandLogo, HubMark, Tooltip, cx } from '../ui';
+import { Badge, BrandLogo, HubLogo, HubMark, Tooltip, cx } from '../ui';
 import { EXTERNAL_LINKS, NAV } from './nav.js';
 import { YearSwitcher } from './YearSwitcher.jsx';
 import { ThemeToggle } from './ThemeToggle.jsx';
@@ -75,8 +75,7 @@ export function Sidebar() {
       <aside className={cx('shell-rail', collapsed && 'is-collapsed')} data-hub="sidebar" aria-label="Sidebar">
         <div className="shell-rail__brand">
           <Link to="/" className="shell-brand" aria-label="DSBA Hub home" data-hub="brand">
-            <HubMark tile size={32} />
-            <span className="shell-brand__name">DSBA Hub</span>
+            <HubLogo variant={collapsed ? 'tile' : 'lockup'} size={32} textInset={6} decorative />
           </Link>
         </div>
 

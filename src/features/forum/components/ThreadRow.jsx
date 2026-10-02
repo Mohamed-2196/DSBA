@@ -5,16 +5,18 @@ import { authorLabel, getAuthor } from '../data/authors.js';
 import { imageUrl } from '../lib/images.js';
 import { AuthorAvatar } from './AuthorAvatar.jsx';
 import { VoteButton } from './VoteButton.jsx';
-import { HighlightedText, ModuleTag, PlaceBadge, ReplyCount, TagBadges } from './ThreadBits.jsx';
+import { AuthorFlair, HighlightedText, ModuleTag, PlaceBadge, ReplyCount, TagBadges } from './ThreadBits.jsx';
 
 /**
  * One dense thread row: vote gutter, title + excerpt + meta, a thumbnail when the post has a picture, reply count + time.
  * The whole row is clickable (stretched title link); the vote button sits above it.
+ * Titles and excerpts are dir="auto": an Arabic title sits right-aligned, an English one stays left-aligned
+ * (the vote, author, badges and counts around them stay left-to-right).
  * @param fresh  just posted by the student: slides in and the title gets a highlighter swipe
  * @param terms  search terms to mark in the title
  */
 export function ThreadRow({ thread, onVote, fresh = false, terms, showModule = true, headingLevel = 3 }) {
-  const author = getAuthor(thread.authorId, thread.authorYear);
+  const author = getAuthor(thread.authorId);
   const Heading = `h${headingLevel}`;
   return (
     <li
@@ -26,7 +28,7 @@ export function ThreadRow({ thread, onVote, fresh = false, terms, showModule = t
         <VoteButton count={thread.votes} voted={thread.voted} onToggle={() => onVote?.(thread.id)} />
       </div>
       <div className="forum-row__main">
-        <Heading className="forum-row__title">
+        <Heading className="forum-row__title" dir="auto">
           {thread.pinned ? <PushPin weight="fill" className="forum-row__pin" aria-hidden="true" /> : null}
           <Link to={`/forum/${thread.id}`} className="forum-row__link">
             {fresh ? (
@@ -39,7 +41,7 @@ export function ThreadRow({ thread, onVote, fresh = false, terms, showModule = t
           {thread.isNew && !thread.pinned ? <Badge tone="highlight" size="sm">New</Badge> : null}
         </Heading>
         {thread.excerpt ? (
-          <p className="forum-row__excerpt">
+          <p className="forum-row__excerpt" dir="auto">
             <HighlightedText text={thread.excerpt} terms={terms} />
           </p>
         ) : null}
@@ -47,6 +49,7 @@ export function ThreadRow({ thread, onVote, fresh = false, terms, showModule = t
           <span className="forum-row__author">
             <AuthorAvatar author={author} size="xs" />
             {authorLabel(author)}
+            <AuthorFlair author={author} />
           </span>
           <PlaceBadge thread={thread} />
           {showModule ? <ModuleTag module={thread.module} /> : null}

@@ -1,6 +1,17 @@
 /* Forum — shared pieces: thread rows, vote button, counts, module tags, prose, typing.
    Classes are prefixed forum-. Tokens only. */
 
+/* ── Emoji in colour ──
+   Students put emoji in titles and replies. Chromium on Linux draws the faces of the Emoticons block (😭 😂) in a
+   monochrome font (DejaVu Sans) before it ever reaches the colour emoji font, so the colour fonts are named first,
+   for emoji code points only (the rest of the text keeps the usual stack). */
+@font-face {
+  font-family: 'Hub Emoji';
+  src: local('Apple Color Emoji'), local('Segoe UI Emoji'), local('Noto Color Emoji');
+  unicode-range: U+1F000-1FAFF;
+}
+.forum-page, .forum-hot, .forum-modthreads { font-family: 'Hub Emoji', var(--font-sans); }
+
 /* ── Breadcrumb (thread page, composer) ── */
 .forum-crumbs { display: flex; align-items: center; gap: 8px; margin-bottom: var(--sp-12); color: var(--ink-2); font-size: var(--fs-14); }
 .forum-crumbs a { color: var(--ink-2); font-weight: var(--fw-medium); text-decoration: none; }
@@ -69,11 +80,11 @@
   color: var(--ink);
   text-decoration: none;
 }
-.forum-row__title > .ui-badge { margin-left: 8px; vertical-align: 2px; }
+.forum-row__title > .ui-badge { margin-inline-start: 8px; vertical-align: 2px; }
 .forum-row__link::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
 .forum-row__link:focus-visible { outline: none; }
 .forum-row__link .ui-highlight { padding: 0 0.12em; margin: 0 -0.04em; }
-.forum-row__pin { display: inline-block; margin-right: 6px; color: var(--cobalt); font-size: 15px; vertical-align: -2px; }
+.forum-row__pin { display: inline-block; margin-inline-end: 6px; color: var(--cobalt); font-size: 15px; vertical-align: -2px; }
 
 .forum-row__excerpt {
   margin-top: 4px;
@@ -217,6 +228,9 @@
 .forum-place.ui-cohort--dot { color: var(--ink-2); font-weight: var(--fw-semibold); }
 .forum-place.ui-badge--neutral .ui-badge__icon { font-size: 12px; }
 
+/* An author's flair (a joke label, or 'Student rep'): a small neutral pill where a year badge would go. */
+.forum-flair { flex: 0 0 auto; font-weight: var(--fw-semibold); }
+
 /* ── Avatars ─────────────────────────────────────────────────────────────────── */
 .forum-avatar { flex: 0 0 auto; }
 .forum-avatar--everyone {
@@ -236,13 +250,13 @@
   overflow-wrap: break-word;
 }
 .forum-prose > * + * { margin-top: 12px; }
-.forum-prose ul, .forum-prose ol { padding-left: 1.35em; }
+.forum-prose ul, .forum-prose ol { padding-inline-start: 1.35em; }
 .forum-prose ul { list-style: disc; }
 .forum-prose ol { list-style: decimal; }
 .forum-prose li + li { margin-top: 4px; }
 .forum-prose li::marker { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .forum-prose code { font-size: 0.86em; padding: 0.12em 0.38em; white-space: break-spaces; }
-.forum-prose blockquote { padding-left: 14px; border-left: 3px solid var(--line-strong); color: var(--ink-2); }
+.forum-prose blockquote { padding-inline-start: 14px; border-inline-start: 3px solid var(--line-strong); color: var(--ink-2); }
 .forum-prose a { font-weight: var(--fw-medium); }
 /* A picture in a post (markdown ![alt](/demo/…)): rounded and bordered on a neutral surface, never taller than 420px. */
 .forum-figure {
@@ -275,6 +289,19 @@
   font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
 }
+
+/* ── Right-to-left text ──────────────────────────────────────────────────────── */
+/* Titles, excerpts, post bodies and replies are dir="auto": the first strong letter of each block decides, so an
+   Arabic thread sits right-aligned inside the same left-to-right layout, and English is unchanged. The vote gutter,
+   author line, badges and counts around it stay left-to-right. Arabic letters join, and any tracking (headings and
+   titles are set tight) cuts the joins and switches ligatures off, so right-to-left text gets none. */
+.forum-row__title, .forum-row__excerpt, .forum-hot__link, .forum-related__link, .forum-thread__title,
+.forum-prose, .forum-prose > * { text-align: start; }
+/* A post with Arabic in it uses the full width of its card, so the text ends on the card's right edge like the actions
+   and labels around it do (the measure is a line length for English). */
+.forum-prose:has(> :dir(rtl)) { max-width: none; }
+.forum-row__title:dir(rtl), .forum-hot__link:dir(rtl), .forum-related__link:dir(rtl), .forum-thread__title:dir(rtl),
+.forum-prose :dir(rtl), .forum-editor__input:dir(rtl) { letter-spacing: 0; }
 
 /* ── Markdown editor ─────────────────────────────────────────────────────────── */
 .forum-editor {
@@ -316,6 +343,8 @@
   resize: vertical;
   outline: none;
   field-sizing: content;
+  text-align: start;
+  unicode-bidi: plaintext;
 }
 .forum-editor__input:focus-visible { outline: none; }
 .forum-editor__input::placeholder { color: var(--ink-3); }

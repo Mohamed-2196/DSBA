@@ -1,22 +1,23 @@
-/* Ask a senior (career-). Four profile cards; the grid fills the row, and the ask button sits on the card's floor. */
+/* Ask a senior (career-). One panel, four rows: who, what they can help with and a link that starts the thread. */
 
-.career-seniors__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: var(--sp-16); list-style: none; }
+.career-after__grid > .career-seniors { display: flex; flex-direction: column; padding: var(--sp-24); container: career-seniors / inline-size; }
+.career-seniors__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-8) var(--sp-16); }
+.career-seniors__titles { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8) var(--sp-12); }
+.career-seniors__title { font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: var(--lh-heading); }
+.career-seniors__desc { margin-top: var(--sp-8); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.career-seniors__list { margin-top: var(--sp-8); list-style: none; }
 
-.career-seniors__grid > .career-senior { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-12); padding: var(--sp-24); }
-.career-senior__who { display: flex; align-items: center; gap: var(--sp-12); width: 100%; }
-.career-senior__id { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-4); min-width: 0; }
-.career-senior__name { font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: var(--lh-heading); }
-.career-senior__headline { color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); line-height: 1.35; }
-.career-senior__helps { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
-.career-senior__label { display: block; margin-bottom: 2px; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
-.career-senior__topics { display: flex; flex-wrap: wrap; gap: var(--sp-8); list-style: none; }
-.career-senior__ask { margin-top: auto; }
+.career-senior { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--sp-4) var(--sp-12); padding: var(--sp-12) 0; border-top: 1px solid var(--line); }
+.career-senior:first-child { border-top: 0; }
+.career-senior__who { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-8); }
+.career-senior__name { font-size: var(--fs-16); font-weight: var(--fw-semibold); line-height: 1.35; }
+.career-senior__helps { margin-top: 2px; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.career-senior__ask { grid-column: 2; justify-self: start; margin-left: calc(var(--sp-12) * -1); }
 
-@media (max-width: 699px) {
-  .career-seniors__grid > .career-senior { padding: var(--sp-16); }
+@container career-seniors (min-width: 560px) {
+  .career-senior { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; }
+  .career-senior__ask { grid-column: auto; justify-self: end; margin-left: 0; }
 }
-
-/* The section header keeps its button beside the text on a wide page and drops it below on a phone. */
 @media (max-width: 699px) {
-  .career-seniors .ui-section-header { flex-direction: column; align-items: flex-start; }
+  .career-after__grid > .career-seniors { padding: var(--sp-16); }
 }

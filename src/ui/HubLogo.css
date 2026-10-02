@@ -1,0 +1,64 @@
+/* The DSBA Hub logo slot (see HubLogo.jsx). No symbol is drawn here: the artwork is a file. */
+.ui-hublogo { flex: 0 0 auto; }
+
+/* The artwork: a square picture with the corners of an app tile. */
+.ui-hublogo__img {
+  display: block;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 24%;
+}
+
+/* ── Lockup: [logo] DSBA Hub ──────────────────────────────────────────── */
+.ui-hublogo--lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--hublogo-size, 32px) * 0.34);
+  color: var(--ink);
+}
+.ui-hublogo--lockup .ui-hublogo__img { width: var(--hublogo-size, 32px); height: var(--hublogo-size, 32px); }
+.ui-hublogo__name {
+  font-family: var(--font-sans);
+  font-size: calc(var(--hublogo-size, 32px) * 0.6);
+  font-weight: var(--fw-heavy);
+  font-style: normal;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
+  color: inherit;
+}
+/* No logo yet: the name carries the header by itself, so it is set a size up. */
+.ui-hublogo--text .ui-hublogo__name { font-size: calc(var(--hublogo-size, 32px) * 0.69); letter-spacing: -0.035em; }
+
+/* ── Tile: the logo alone in a square slot ────────────────────────────── */
+.ui-hublogo--tile { display: inline-block; vertical-align: middle; }
+img.ui-hublogo--tile { display: block; }
+/* Until there is a logo: a neutral tile with the initials, in the type of the initials avatars
+   (ui/Avatar.css). A rounded square, so it reads as the hub's account rather than a person.
+   Centred with line-height, so it survives a placement that changes its display. */
+.ui-hublogo--initials {
+  border-radius: 28%;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--ink-2);
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.01em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── Lockup with the supplied wordmark: [DSBA artwork] Hub ────────────── */
+.ui-hublogo--wordmark { gap: calc(var(--hublogo-size, 32px) * 0.2); align-items: center; }
+.ui-hublogo--wordmark .ui-hublogo__name {
+  /* cap height of Schibsted ≈ 0.72 em: sit just under the artwork's letter height (0.68 × size) */
+  font-size: calc(var(--hublogo-size, 32px) * 0.84);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.035em;
+  color: var(--ink);
+  /* optical: the caps sit a hair low next to the artwork */
+  transform: translateY(-0.02em);
+}

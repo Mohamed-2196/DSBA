@@ -4,7 +4,7 @@ import { CalendarDots } from '@phosphor-icons/react';
 import { cohortLabel } from '../../state';
 import { Button, Highlight, ModuleIcon, HubMark, cx } from '../../ui';
 import { buildTrace, traceLabel } from './session.js';
-import { inDays, longDay, numberWord, shortDay } from './time.js';
+import { inDays, longDay, numberWord } from './time.js';
 import './ExamTimeline.css';
 
 // The DSBA NewsletterMark sits at the start of the trace; its end dot is "today".
@@ -30,6 +30,12 @@ function useWidth(ref) {
   }, [ref]);
   return w;
 }
+
+// Week ticks carry their weekday ('Sun 11 Oct'), built by hand so no locale adds a comma or 'Sept'.
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const weekLabel = (date) => `${WEEKDAYS[date.getDay()]} ${date.getDate()} ${MONTHS[date.getMonth()]}`;
+const WEEK_LABEL_W = 72; // room one 'Sun 11 Oct' needs
 
 function examName(e) {
   return e.module ? e.module.name : e.title;
@@ -64,16 +70,18 @@ function Trace({ session, intro, today }) {
     });
   }, [width, y0, spike, span, exams, compact]);
 
-  // Week ticks: Mondays, away from the "Today" label.
+  // Week ticks: Sundays (the Bahraini week starts on Sunday), away from the "Today" label. Every
+  // tick is labelled with its weekday; narrow traces label every second (or third…) week.
   const weeks = useMemo(() => {
     if (!trace) return [];
     const out = [];
+    const every = Math.max(1, Math.ceil(WEEK_LABEL_W / (7 * trace.dayW)));
     for (let d = 1; d <= span; d++) {
       const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + d);
-      if (date.getDay() !== 1) continue;
+      if (date.getDay() !== 0) continue;
       const x = trace.dayX(d);
-      if (x < DOT_X + 44 || x > trace.right - 20) continue;
-      out.push({ d, x, label: shortDay(date) });
+      if (x < DOT_X + 60 || x > trace.right - 32) continue;
+      out.push({ d, x, label: out.length % every === 0 ? weekLabel(date) : null });
     }
     return out;
   }, [trace, span, today]);
@@ -106,11 +114,13 @@ function Trace({ session, intro, today }) {
           <HubMark size={MARK} animate={intro ? 'draw' : false} className="home-trace__mark" style={{ top: y0 - DOT_Y }} />
           <span className="home-trace__now" style={{ left: DOT_X, top: y0 }} aria-hidden="true" />
           <span className="home-trace__today" style={{ left: DOT_X, top: y0 + 16 }}>Today</span>
-          {weeks.map((w) => (
-            <span key={w.d} className="home-trace__date u-tabular" style={{ left: w.x, bottom: 0 }}>
-              {w.label}
-            </span>
-          ))}
+          {weeks.map((w) =>
+            w.label ? (
+              <span key={w.d} className="home-trace__date u-tabular" style={{ left: w.x, bottom: 0 }}>
+                {w.label}
+              </span>
+            ) : null,
+          )}
           {trace.beats.map((b) => {
             if (!b.showLabel) return null;
             const e = b.exam;

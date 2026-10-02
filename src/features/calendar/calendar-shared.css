@@ -1,4 +1,5 @@
-/* Calendar: event-type dots, shared by the calendar page and <UpcomingEvents/> (Home, forum sidebar).
+/* Calendar: event-type dots and the date leaf, shared by the calendar page and <UpcomingEvents/>
+   (Home, forum sidebar).
    Colours come from EVENT_TYPES tokens. The deadline yellow (--highlight) is too faint on white, so its
    dot carries a 1px ink ring. */
 .cal-dot {
@@ -16,3 +17,36 @@
 .cal-dot--break { background: var(--ink-3); }
 .cal-dot--term { background: var(--ink-2); }
 .cal-dot--thanks { background: var(--highlight); box-shadow: 0 0 0 1px var(--ink); }
+
+/* The date leaf: weekday on the band, day number, month. The band takes the event type's colour. */
+.cal-leaf {
+  --leaf-band: var(--surface-2);
+  --leaf-band-ink: var(--ink-2);
+  --leaf-edge: var(--line-strong);
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  width: 48px;
+  border: 1px solid var(--leaf-edge);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  overflow: hidden;
+  color: var(--ink);
+  line-height: 1;
+  text-align: center;
+}
+.cal-leaf__wd { padding: 4px 0 3px; background: var(--leaf-band); color: var(--leaf-band-ink); font-size: var(--fs-12); font-weight: var(--fw-bold); }
+.cal-leaf__day {
+  padding-top: 5px;
+  font-size: var(--fs-20);
+  font-weight: var(--fw-heavy);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.cal-leaf__mon { padding: 2px 0 5px; color: var(--ink-2); font-size: 11px; font-weight: var(--fw-semibold); }
+.cal-leaf--exam { --leaf-band: var(--alert-soft); --leaf-band-ink: var(--alert-strong); --leaf-edge: color-mix(in srgb, var(--alert) 38%, var(--line)); }
+.cal-leaf--exam.is-solid { --leaf-band: var(--alert-strong); --leaf-band-ink: var(--alert-ink); --leaf-edge: var(--alert-strong); }
+.cal-leaf--mock { --leaf-band: var(--cobalt-soft); --leaf-band-ink: var(--cobalt); --leaf-edge: color-mix(in srgb, var(--cobalt) 32%, var(--line)); }
+.cal-leaf--revision { --leaf-band: var(--signal-soft); --leaf-band-ink: var(--signal-strong); --leaf-edge: color-mix(in srgb, var(--signal) 38%, var(--line)); }
+.cal-leaf--deadline, .cal-leaf--thanks { --leaf-band: var(--highlight-soft); --leaf-band-ink: var(--ink); --leaf-edge: color-mix(in srgb, var(--highlight) 60%, var(--line-strong)); }
+.cal-leaf--today.is-solid { --leaf-band: var(--cobalt); --leaf-band-ink: var(--cobalt-ink); --leaf-edge: var(--cobalt); }

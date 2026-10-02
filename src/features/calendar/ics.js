@@ -3,7 +3,7 @@
 import { getModule } from '../../data/modules.js';
 import { EVENT_TYPES } from '../../data/calendar.js';
 import { cohortLabel } from '../../state';
-import { addDays, parseKey, toKey } from './dates.js';
+import { addDays, formatLong, parseKey, toKey } from './dates.js';
 
 const CRLF = '\r\n';
 const encoder = typeof TextEncoder !== 'undefined' ? new TextEncoder() : null;
@@ -53,7 +53,7 @@ export function eventUrl(event) {
 function describe(event) {
   const type = EVENT_TYPES[event.type]?.label || 'Event';
   const module = getModule(event.moduleId);
-  const lines = [`${type} for ${event.year ? cohortLabel(event.year) : 'all years'}.`];
+  const lines = [`${type} for ${event.year ? cohortLabel(event.year) : 'all years'}, ${formatLong(parseKey(event.date))}.`];
   if (module) lines.push(`Module: ${module.unitCode ? `${module.unitCode} ` : ''}${module.name}.`);
   lines.push('From the DSBA Hub calendar (all-day event; exam times and venues are not included).');
   return lines.join('\n');

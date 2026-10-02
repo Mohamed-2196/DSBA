@@ -326,6 +326,7 @@ export function CommandPalette() {
         <input
           ref={inputRef}
           className="cmdk-input"
+          dir="auto"
           type="text"
           role="combobox"
           aria-expanded="true"
@@ -398,11 +399,11 @@ export function CommandPalette() {
                 >
                   <Leading item={item} />
                   <span className="cmdk-item__text">
-                    <span className="cmdk-item__title">
+                    <span className="cmdk-item__title" dir="auto">
                       <Marked text={item.title} tokens={item.kind === 'fallback' ? NO_TOKENS : tokens} />
                     </span>
                     {item.subtitle ? (
-                      <span className="cmdk-item__sub">
+                      <span className="cmdk-item__sub" dir="auto">
                         <Marked text={item.subtitle} tokens={tokens} className="cmdk-mark cmdk-mark--sub" />
                       </span>
                     ) : null}

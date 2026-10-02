@@ -30,6 +30,7 @@
 .forum-composer__count { color: var(--ink-2); font-size: var(--fs-12); font-variant-numeric: tabular-nums; }
 .forum-composer__count.is-near { color: var(--alert-strong); font-weight: var(--fw-semibold); }
 .forum-composer .ui-control--lg .ui-control__input { font-size: var(--fs-20); font-weight: var(--fw-semibold); letter-spacing: -0.012em; }
+.forum-composer .ui-control--lg .ui-control__input:dir(rtl) { letter-spacing: 0; } /* Arabic letters join: no tracking */
 .forum-composer__row { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); align-items: start; gap: var(--sp-16); }
 
 .forum-composer__tags { margin: 0; padding: 0; border: 0; min-width: 0; }

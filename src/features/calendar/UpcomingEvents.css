@@ -12,7 +12,7 @@
 
 .cal-upcoming__row {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--sp-12) var(--sp-16);
   padding: 12px var(--sp-16) 12px var(--sp-16);
@@ -22,28 +22,6 @@
 }
 .cal-upcoming__row:hover { background: var(--surface-2); }
 .cal-upcoming__row:focus-visible { outline-offset: -2px; border-radius: var(--r-panel); }
-
-.cal-upcoming__date {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 46px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
-  background: var(--surface);
-  line-height: 1;
-}
-.cal-upcoming__month { color: var(--ink-2); font-size: 11px; font-weight: var(--fw-semibold); }
-.cal-upcoming__day {
-  margin-top: 3px;
-  font-size: var(--fs-20);
-  font-weight: var(--fw-heavy);
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-.cal-upcoming__row--exam .cal-upcoming__date { border-color: color-mix(in srgb, var(--alert) 45%, var(--line)); }
 
 .cal-upcoming__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .cal-upcoming__title {
@@ -82,8 +60,8 @@
 
 /* Narrow containers (forum sidebar): the title gets the full width, the countdown shares the meta line. */
 @container (max-width: 340px) {
-  .cal-upcoming__row { grid-template-columns: 40px minmax(0, 1fr) auto; row-gap: 4px; column-gap: 12px; padding: 12px 14px; }
-  .cal-upcoming__date { grid-row: 1 / span 2; width: 40px; height: 44px; }
+  .cal-upcoming__row { grid-template-columns: 44px minmax(0, 1fr) auto; row-gap: 4px; column-gap: 12px; padding: 12px 14px; }
+  .cal-upcoming__date { grid-row: 1 / span 2; width: 44px; }
   .cal-upcoming__body { display: contents; }
   .cal-upcoming__title { grid-column: 2 / span 2; grid-row: 1; align-self: end; }
   .cal-upcoming__meta { grid-column: 2; grid-row: 2; align-self: start; }

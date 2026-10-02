@@ -71,6 +71,8 @@ export const NOTE_CONTRIBUTORS = (() => {
  * Seeded dummy students (spec: common Bahraini first names + initial). Use these for
  * forum authors, library uploaders, newsletter bylines etc. so names stay consistent.
  * `year` is the cohort they are in. The signed-in prototype user is CURRENT_USER (not in this list).
+ * Any person object may also carry a `flair` string (a small label shown next to the name where a year
+ * would go): the forum renders it as a neutral pill (see features/forum/data/authors.js).
  */
 export const DUMMY_STUDENTS = [
   { id: 'ali-h', name: 'Ali H.', year: 2 },
@@ -84,8 +86,12 @@ export const DUMMY_STUDENTS = [
   { id: 'yusuf-b', name: 'Yusuf B.', year: 2 },
 ];
 
-/** The signed-in prototype user. Their year is whatever useYear() says. Render as "You" in bylines. */
-export const CURRENT_USER = { id: 'me', name: 'Maryam S.' };
+/**
+ * The signed-in prototype user: the student representative. We do not know which cohort he is in, so the UI never
+ * prints a year next to him (the year switcher only chooses which cohort's content you browse): wherever a year
+ * would go it shows `role` instead. In the forum he is also the author of his own posts (id 'me').
+ */
+export const CURRENT_USER = { id: 'me', name: 'Mohamed Alnooh', role: 'Student rep' };
 
 export function getStudent(id) {
   if (id === CURRENT_USER.id) return CURRENT_USER;

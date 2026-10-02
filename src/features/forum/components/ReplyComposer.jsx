@@ -16,9 +16,9 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
   const { year } = useYear();
   const [body, setBody] = useState(mention ? `@${mention} ` : '');
   const [error, setError] = useState(null);
-  const me = getAuthor(ME_ID, year);
+  const me = getAuthor(ME_ID);
   const inline = Boolean(parent);
-  const parentName = parent ? authorLabel(getAuthor(parent.authorId, parent.authorYear)) : null;
+  const parentName = parent ? authorLabel(getAuthor(parent.authorId)) : null;
 
   const submit = (e) => {
     e?.preventDefault();
@@ -58,7 +58,7 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
           onSubmit={submit}
           textareaRef={textareaRef}
           autoFocus={autoFocus}
-          textareaProps={inline ? undefined : { 'data-hub': 'reply-input' }}
+          textareaProps={inline ? { dir: 'auto' } : { 'data-hub': 'reply-input', dir: 'auto' }}
         />
         <div className="forum-composer-reply__actions">
           <span className="forum-composer-reply__hint" aria-hidden="true">

@@ -128,6 +128,7 @@ function ForumList() {
           }}
           placeholder={scope ? `Search ${scope}` : 'Search threads'}
           label="Search threads"
+          dir="auto"
         />
         <div className="forum-filters__chips" role="group" aria-label="Filter threads" ref={chipsRef}>
           <Chip

@@ -1,60 +1,50 @@
 import { useMemo } from 'react';
 import { ChatsCircle } from '@phosphor-icons/react';
-import { Avatar, Badge, Button, CohortBadge, PageSection, Panel, SectionHeader } from '../../ui';
+import { Avatar, Badge, Button, CohortBadge, Panel } from '../../ui';
 import { getSeniors } from './data/seniors.js';
 import { askLink } from './lib/links.js';
 import './Seniors.css';
 
 function Senior({ s }) {
   return (
-    <Panel as="li" padding="none" className="career-senior" data-hub="career-senior" data-senior-id={s.id}>
-      <div className="career-senior__who">
-        <Avatar name={s.name} size="xl" decorative />
-        <div className="career-senior__id">
-          <h3 className="career-senior__name">{s.name}</h3>
+    <li className="career-senior" data-hub="career-senior" data-senior-id={s.id}>
+      <Avatar name={s.name} size="lg" decorative />
+      <div className="career-senior__body">
+        <p className="career-senior__who">
+          <span className="career-senior__name">{s.name}</span>
           {s.year ? <CohortBadge year={s.year} /> : <Badge tone="neutral">{s.badge}</Badge>}
-        </div>
+        </p>
+        <p className="career-senior__helps">{s.helps}</p>
       </div>
-      <p className="career-senior__headline">{s.headline}</p>
-      <p className="career-senior__helps">
-        <span className="career-senior__label">Can help with</span>
-        {s.helps}
-      </p>
-      <ul role="list" className="career-senior__topics" aria-label="Topics">
-        {s.topics.map((t) => (
-          <li key={t}>
-            <Badge tone="outline">{t}</Badge>
-          </li>
-        ))}
-      </ul>
-      <Button variant="secondary" size="sm" leadingIcon={ChatsCircle} to={askLink(s.ask)} className="career-senior__ask">
-        {`Ask ${s.short} in the forum`}
+      <Button variant="ghost" size="sm" leadingIcon={ChatsCircle} to={askLink(s.ask)} className="career-senior__ask">
+        {`Ask ${s.short}`}
       </Button>
-    </Panel>
+    </li>
   );
 }
 
-/** Cross-cohort mentors: Year 3 students and recent graduates. Sample profiles, never staff. */
+/** Cross-cohort mentors: Year 3 students and recent graduates. Sample profiles (marked as such), never staff. */
 export function Seniors() {
   const seniors = useMemo(() => getSeniors(), []);
   return (
-    <PageSection id="career-seniors" aria-labelledby="career-seniors-title" data-hub="career-seniors">
-      <SectionHeader
-        id="career-seniors-title"
-        title="Ask a senior"
-        description="Year 3 students and recent graduates who have already made the choices you are about to make."
-        action={
-          <Button variant="primary" leadingIcon={ChatsCircle} to="/forum/new">
-            Ask in the forum
-          </Button>
-        }
-      />
-      <ul role="list" className="career-seniors__grid">
+    <Panel as="section" padding="none" id="career-seniors" className="career-seniors" aria-labelledby="career-seniors-title" data-hub="career-seniors">
+      <div className="career-seniors__head">
+        <div className="career-seniors__titles">
+          <h3 id="career-seniors-title" className="career-seniors__title">
+            Ask a senior
+          </h3>
+          <Badge tone="outline">Sample profiles</Badge>
+        </div>
+        <Button variant="primary" size="sm" leadingIcon={ChatsCircle} to="/forum/new">
+          Ask in the forum
+        </Button>
+      </div>
+      <p className="career-seniors__desc">Year 3 students and recent graduates will opt in to answer questions here. These four show how it will look.</p>
+      <ul role="list" className="career-seniors__list">
         {seniors.map((s) => (
           <Senior key={s.id} s={s} />
         ))}
       </ul>
-      <p className="career-note">Sample profiles. Seniors will opt in to answer questions here.</p>
-    </PageSection>
+    </Panel>
   );
 }

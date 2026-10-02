@@ -16,7 +16,8 @@ function withBreaks(text, key) {
 
 function renderInline(text) {
   return parseInline(text).map((t, i) => {
-    if (t.type === 'code') return <code key={i}>{t.text}</code>;
+    // Code keeps its own left-to-right order inside an Arabic sentence.
+    if (t.type === 'code') return <code key={i} dir="ltr">{t.text}</code>;
     if (t.type === 'strong') return <strong key={i}>{t.text}</strong>;
     if (t.type === 'em') return <em key={i}>{t.text}</em>;
     if (t.type === 'link') {
@@ -30,11 +31,13 @@ function renderInline(text) {
   });
 }
 
+// Every text block has dir="auto": it takes the direction of its first strong letter, so students can write in
+// Arabic (right-aligned) or English (left-aligned), paragraph by paragraph, and a mixed line keeps its word order.
 function Block({ block }) {
   switch (block.type) {
     case 'code':
       return (
-        <pre className="forum-code" data-lang={block.lang || undefined}>
+        <pre className="forum-code" dir="ltr" data-lang={block.lang || undefined}>
           {block.lang ? <span className="forum-code__lang">{block.lang === 'r' ? 'R' : block.lang}</span> : null}
           <code>{block.text}</code>
         </pre>
@@ -43,7 +46,7 @@ function Block({ block }) {
     case 'ol': {
       const List = block.type;
       return (
-        <List>
+        <List dir="auto">
           {block.items.map((item, i) => (
             <li key={i}>{renderInline(item)}</li>
           ))}
@@ -51,7 +54,7 @@ function Block({ block }) {
       );
     }
     case 'quote':
-      return <blockquote>{renderInline(block.text)}</blockquote>;
+      return <blockquote dir="auto">{renderInline(block.text)}</blockquote>;
     case 'image':
       return (
         <figure className="forum-figure" data-hub="forum-image">
@@ -59,7 +62,7 @@ function Block({ block }) {
         </figure>
       );
     default:
-      return <p>{renderInline(block.text)}</p>;
+      return <p dir="auto">{renderInline(block.text)}</p>;
   }
 }
 

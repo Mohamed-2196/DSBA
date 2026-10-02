@@ -5,10 +5,18 @@
 // Bodies use the forum's small markdown: **bold**, *italic*, `code`, ``` blocks, - and 1. lists, > quotes, [links](/path),
 // and a picture on a line of its own: ![what it shows](/demo/forum/file.jpg) (files in public/demo/forum).
 // Content rules: only module codes that exist in src/data, exam dates from src/data/calendar.js,
-// authors are dummy students, never real tutors or staff. ONE mention of a real lecturer is approved by the
-// student rep: reply 'b' of 'what-is-this-am-i-cooked' thanks Dr Hamad Alrayes' advisory session (a student's
+// authors are dummy students (and Nasser, an inside joke with a flair, see data/authors.js; 'me' is the signed-in
+// student rep), never real tutors or staff. ONE mention of a real lecturer is approved by the
+// student rep: reply 'c' of 'what-is-this-am-i-cooked' thanks Dr Hamad Alrayes' advisory session (a student's
 // thanks in the student's own words, not a quote from him, and still posted by a dummy student). Add no others.
+// Students write in Arabic too: two threads are in Arabic (copy their strings exactly, never "correct" them). Nobody
+// states a University of London rule in them or anywhere else: the exam-rules question has no answer that quotes one.
 // A student-rep film hook can hide seed threads by id: see HIDDEN_SEEDS_KEY in ../lib/model.js.
+//
+// Order in the default list (All, Hot): the pinned post, then threads by hot score (hotScore in ../lib/model.js).
+// The votes, reply counts and times are tuned so that the first five rows are the pinned post, 'what-is-this-am-i-cooked',
+// the two Arabic threads and the easter-egg thread (with the cooked thread hidden by the film hook, the next hottest thread
+// takes its place). The easter-egg thread's own numbers are left alone. Change a number and re-check the order on /forum.
 
 const m = (n) => n;
 const h = (n) => n * 60;
@@ -69,7 +77,7 @@ export const SEED_THREADS = [
     moduleId: 'advanced-stats-distribution',
     title: 'How do I find the MGF of a Gamma(α, λ) distribution?',
     author: 'ebrahim-d',
-    ago: m(130),
+    ago: m(240),
     votes: 24,
     tags: ['exam-prep'],
     accepted: 'a',
@@ -266,13 +274,14 @@ export const SEED_THREADS = [
 
   // ── Year 1 ────────────────────────────────────────────────────────────────────────────────
   {
-    // The student rep's thread (it is in the launch film too): a photo of a problem-set question, a real answer,
-    // and one approved thank-you to a lecturer's advisory session (see the note at the top of this file).
+    // The student rep's own thread (it is in the launch film too): a photo of a problem-set question, a blunt answer from
+    // Nasser that he accepted, a one-word agreement, and one approved thank-you to a lecturer's advisory session (see the
+    // note at the top of this file). Year 1, MT1186 Mathematical Methods. The film hides this seed and posts the same thread live.
     id: 'what-is-this-am-i-cooked',
     category: 'year-1',
     moduleId: 'mathematics',
-    title: 'What is this, am I cooked 💀',
-    author: 'layla-f',
+    title: 'What is this, am I cooked? 💀',
+    author: 'me',
     ago: m(35),
     votes: 40,
     tags: ['exam-prep'],
@@ -283,27 +292,9 @@ export const SEED_THREADS = [
       Question 3(a) on the problem set. I've been staring at it for an hour.
     `,
     replies: [
-      {
-        id: 'a', author: 'sara-m', ago: m(24), votes: 18,
-        body: md`
-          Not cooked, it's a standard reduction formula. Write cosⁿθ = cosⁿ⁻¹θ · cosθ and integrate by parts with u = cosⁿ⁻¹θ and dv = cosθ dθ, so du = −(n−1)cosⁿ⁻²θ sinθ dθ and v = sinθ.
-
-          1. The boundary term cosⁿ⁻¹θ sinθ is 0 at both ends (cos(π/2) = 0 at the top, sin 0 = 0 at the bottom).
-          2. What is left is Iₙ = (n−1) ∫ cosⁿ⁻²θ sin²θ dθ. Swap sin²θ for 1 − cos²θ.
-          3. That gives Iₙ = (n−1)(Iₙ₋₂ − Iₙ). Collect the Iₙ terms: n·Iₙ = (n−1)·Iₙ₋₂, so **Iₙ = ((n−1)/n) Iₙ₋₂**.
-
-          For the values, go back to the integral: I₀ = π/2 and I₁ = 1. Then I₂ = ½ · I₀ = **π/4** and I₃ = ⅔ · I₁ = **2/3**.
-
-          To deduce Iₙ, keep applying the formula until you land on I₀ or I₁:
-
-          - n even: Iₙ = (n−1)/n · (n−3)/(n−2) · … · 3/4 · 1/2 · π/2
-          - n odd: Iₙ = (n−1)/n · (n−3)/(n−2) · … · 4/5 · 2/3
-
-          Quick check: I₄ = 3π/16 and I₅ = 8/15. You're not cooked. Medium rare at most.
-        `,
-      },
-      { id: 'b', author: 'ahmed-j', ago: m(17), votes: 31, body: "Dr Hamad Alrayes' advisory session saved my life on exactly this. Go to the next one." },
-      { id: 'c', author: 'layla-f', ago: m(9), votes: 6, body: 'ok, slightly less cooked. thank you 🙏' },
+      { id: 'a', author: 'nasser', ago: m(28), votes: 36, body: "You're cooked if you don't know integration by parts. Just apply it and you'll get the answer." },
+      { id: 'b', author: 'zainab-k', ago: m(22), votes: 34, body: 'True.' },
+      { id: 'c', author: 'ahmed-j', ago: m(14), votes: 31, body: "Dr Hamad Alrayes' advisory session saved my life on exactly this. Go to the next one." },
     ],
   },
   {
@@ -425,6 +416,22 @@ export const SEED_THREADS = [
         `,
       },
       { id: 'b', author: 'ahmed-j', ago: h(16), votes: 4, body: "Use the company's name in every paragraph. It forces you to apply the theory instead of just describing it." },
+    ],
+  },
+  {
+    // In Arabic (Gulf dialect), about MN1178 (Business and Management in a Global Context). Copy the strings exactly.
+    id: 'how-do-you-study-business',
+    category: 'year-1',
+    moduleId: 'business',
+    title: 'شلون تدرسون بزنس 😭😭😭',
+    author: 'fatima-a',
+    ago: m(125),
+    votes: 33,
+    tags: [],
+    body: 'المادة كلها قراءة، من وين أبدأ؟ 😭',
+    replies: [
+      { id: 'a', author: 'hussain-m', ago: m(104), votes: 21, body: 'Past papers وبس 😂' },
+      { id: 'b', author: 'zainab-k', ago: m(88), votes: 12, body: 'أنا أبدأ بالـ subject guide، بعدين الباقي يصير أسهل.' },
     ],
   },
 
@@ -562,7 +569,7 @@ export const SEED_THREADS = [
     moduleId: 'econometrics',
     title: 'Econometrics study group this Saturday at the library',
     author: 'ali-h',
-    ago: m(150),
+    ago: m(245),
     votes: 26,
     tags: [],
     body: md`
@@ -654,6 +661,23 @@ export const SEED_THREADS = [
         replies: [{ id: 'c1', author: 'sayed-ali-m', ago: h(21), votes: 8, body: "I wouldn't count on it. Ask the exams office this week so you have time to buy one." }],
       },
       { id: 'd', author: 'ahmed-j', ago: h(15), votes: 2, body: 'Thanks for asking this, I had the same question.' },
+    ],
+  },
+  {
+    // In Arabic, an exam-rules question. Nobody answers with a rule (nobody here may invent University of London
+    // regulations): the replies only say it is a good question and who to ask. Copy the strings exactly.
+    id: 'fail-then-distinction-on-the-transcript',
+    category: 'general',
+    moduleId: null,
+    title: 'لو رسبنا وبعدين جبنا Distinction، شنو يطلع في الترانسكربت؟',
+    author: 'khalid-n',
+    ago: m(150),
+    votes: 31,
+    tags: ['exams'],
+    body: 'تطلع الدرجة الجديدة بس، ولا الثنتين؟ أحد يعرف؟',
+    replies: [
+      { id: 'a', author: 'sara-m', ago: m(131), votes: 17, body: 'سؤال مهم 👀 الأفضل نسأل الإدارة عشان الجواب يكون رسمي.' },
+      { id: 'b', author: 'ahmed-j', ago: m(118), votes: 9, body: 'نفس السؤال 😭' },
     ],
   },
   {

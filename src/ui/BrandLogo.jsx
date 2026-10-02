@@ -7,11 +7,13 @@ const LOGOS = {
   bibf: { light: 'brand/bibf.png', dark: 'brand/bibf-white.png', ratio: 515 / 160, alt: 'BIBF' },
   myclass: { light: 'brand/myclass.png', dark: 'brand/myclass-white.png', ratio: 292 / 240, alt: 'BIBF MyClass' },
   uol: { light: 'brand/uol.png', dark: null, ratio: 307 / 400, alt: 'University of London' },
+  // the hub's own wordmark (supplied by the student rep; see data/brand.js)
+  dsba: { light: 'brand/dsba-logo.png', dark: 'brand/dsba-logo-white.png', ratio: 2095 / 521, alt: 'DSBA' },
 };
 
 /**
  * A partner logo that follows the theme (also inside nested data-theme islands).
- * @param {'bibf'|'myclass'|'uol'} name
+ * @param {'bibf'|'myclass'|'uol'|'dsba'} name
  * @param {number} height  px; width follows the artwork
  * @param {boolean} decorative  hide from assistive tech (when a text label sits next to it)
  */

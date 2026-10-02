@@ -19,7 +19,7 @@ import {
   Student,
   UsersThree,
 } from '@phosphor-icons/react';
-import { Button, EmptyState, ErrorBoundary, Page, Panel, HubMark, cx } from '../../ui';
+import { Button, EmptyState, ErrorBoundary, Page, Panel, HubLogo, HubMark, cx } from '../../ui';
 import { useDocumentTitle, useMediaQuery, useQueryParam } from '../../state';
 import { getStudent } from '../../data/people.js';
 import { IssueCover } from './components/IssueCover.jsx';
@@ -307,7 +307,7 @@ function IssueReader({ issue }) {
             <IssueSection key={s.id} issue={issue} section={s} live={live[s.id]} />
           ))}
           <footer className="nl-issue__end">
-            <HubMark tile size={22} className="nl-issue__end-mark" />
+            <HubLogo variant="tile" size={22} optional decorative className="nl-issue__end-mark" />
             <p>
               That’s the end of issue {no}. Spotted a mistake, or have a story we should tell?{' '}
               <Link to="/forum/new">Tell us in the forum</Link>.

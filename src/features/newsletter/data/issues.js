@@ -6,6 +6,15 @@
 // data/modules.js and data/calendar.js and are a snapshot as of each issue's date.
 //
 // Issue: { slug, number, title, date, cover, dek, summary, editors[], sections[] }
+//   cover   { tone, art?, lines[] }: see lib/covers.js.
+//           tone   'navy' | 'paper': the stock the typographic cover is printed on. With an illustration it is
+//                  the colour of the type's ground: 'navy' sets white type on a dark picture, 'paper' navy type
+//                  on a light one.
+//           art    an illustration that fills the cover (a path under public/, portrait 3:4, no text in it, its
+//                  top quarter and bottom fifth plain). Without one the cover is typographic.
+//           lines  the cover lines, in story order (five at most): { section: <section id>, text }. `text` is
+//                  that story's own headline cut down to a cover line, 35 characters at most; the section's label
+//                  (22 characters at most) is printed beside it. A cover with an illustration shows the first three.
 // Section: { id, label, icon, title, kind?, figure?, blocks[], aside?, after?, reactions{useful,love,laugh}, estWords? }
 //   figure  an image shown beside the copy on wide screens and above it on narrow ones:
 //           { src: 'demo/news/x.jpg' (relative to public/), width, height, alt, caption }
@@ -14,6 +23,7 @@
 // Live sections (kind 'deadlines' | 'forum' | 'library') render data from other features at read time.
 //
 // The special edition is NOT in this file on purpose: it lives in ../special/ and must never be listed.
+import { NEWSLETTER_COVER_ART } from '../../../data/brand.js';
 import { MODULES, getModuleStats } from '../../../data/modules.js';
 import { MYCLASS_URL, UOL_PORTAL_URL } from '../../../data/people.js';
 
@@ -33,7 +43,15 @@ const PILOT = {
   number: 0,
   title: 'The pilot',
   date: '2026-09-29',
-  cover: 'pilot',
+  cover: {
+    tone: 'paper',
+    lines: [
+      { section: 'editors-note', text: 'Testing, testing' },
+      { section: 'what-to-expect', text: 'What an issue can hold' },
+      { section: 'october', text: 'October session on the calendar' },
+      { section: 'feedback', text: 'Tell us what you want to read' },
+    ],
+  },
   dek: 'A short test run before the real thing: what The DSBA Newsletter will be, and one favour to ask.',
   summary: 'The test issue: what goes into The DSBA Newsletter, a first look at the October session and a request for your ideas.',
   editors: EDITORS,
@@ -113,7 +131,17 @@ const LAUNCH = {
   number: 1,
   title: 'Launch edition',
   date: '2026-10-06',
-  cover: 'launch',
+  cover: {
+    tone: 'navy',
+    art: NEWSLETTER_COVER_ART, // null until the illustration arrives (data/brand.js)
+    lines: [
+      { section: 'cfa', text: 'BIBF is taking participants' },
+      { section: 'student-council', text: 'DSBA students among the nominees' },
+      { section: 'speech-day', text: '“An amazing performance”' },
+      { section: 'launch', text: 'Launches today' },
+      { section: 'deadlines', text: 'The October session, paper by paper' },
+    ],
+  },
   dek: 'The CFA Research Challenge, our Student Council nominees, Speech Day, and a new home for everything DSBA.',
   summary:
     'BIBF is taking participants for the CFA Institute Research Challenge 2027. Several of our own are nominees for Student Council 2026/27, and they gave an amazing performance at Speech Day. DSBA Hub launches today.',

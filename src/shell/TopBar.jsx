@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GithubLogo, MagnifyingGlass } from '@phosphor-icons/react';
-import { Button, ErrorBoundary, IconButton, HubMark, SearchField, cx } from '../ui';
+import { Button, ErrorBoundary, IconButton, HubLogo, SearchField, cx } from '../ui';
 import { CONTRIBUTE_URL } from '../data/people.js';
 import { openCommandPalette } from '../features/search/public.js';
 import { NotificationsMenu } from '../features/notifications/public.js';
@@ -26,8 +26,7 @@ export function TopBar() {
     <header className={cx('shell-topbar', scrolled && 'is-scrolled')} data-hub="topbar">
       <div className="shell-topbar__inner">
         <Link to="/" className="shell-brand shell-topbar__brand" aria-label="DSBA Hub home">
-          <HubMark tile size={28} />
-          <span className="shell-brand__name">DSBA Hub</span>
+          <HubLogo variant="lockup" size={28} decorative />
         </Link>
         <SearchField
           asButton

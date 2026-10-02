@@ -3,14 +3,17 @@ import { Badge, Button, CohortBadge, cx, timeAgo } from '../../../ui';
 import { authorLabel, getAuthor } from '../data/authors.js';
 import { AuthorAvatar } from './AuthorAvatar.jsx';
 import { Prose } from './Prose.jsx';
+import { AuthorFlair } from './ThreadBits.jsx';
 import { VoteButton } from './VoteButton.jsx';
 
 /**
  * One reply: byline, body, vote / reply / accept actions. Top-level replies render their
  * nested replies (one level) and the inline composer as `children`.
+ * The byline shows the author's flair (a pill) instead of a year when they have one. The body is right-to-left
+ * or left-to-right per paragraph (see Prose), so an Arabic reply sits right-aligned.
  */
 export function ReplyItem({ reply, thread, fresh = false, nested = false, onVote, onReply, canAccept = false, onAccept, children }) {
-  const author = getAuthor(reply.authorId, reply.authorYear);
+  const author = getAuthor(reply.authorId);
   const accepted = reply.id === thread.acceptedId;
   const isOp = reply.authorId === thread.authorId;
   return (
@@ -24,7 +27,11 @@ export function ReplyItem({ reply, thread, fresh = false, nested = false, onVote
       <div className="forum-reply__main">
         <header className="forum-reply__head">
           <span className="forum-reply__name">{authorLabel(author)}</span>
-          {author.year ? <CohortBadge year={author.year} variant="dot" size="sm" className="forum-reply__cohort" /> : null}
+          {author.flair ? (
+            <AuthorFlair author={author} className="forum-reply__flair" />
+          ) : author.year ? (
+            <CohortBadge year={author.year} variant="dot" size="sm" className="forum-reply__cohort" />
+          ) : null}
           {isOp ? <Badge tone="outline" size="sm">Author</Badge> : null}
           <time className="forum-reply__time" dateTime={new Date(reply.createdAt).toISOString()}>
             {timeAgo(reply.createdAt)}

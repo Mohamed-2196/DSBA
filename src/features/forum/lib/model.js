@@ -202,7 +202,8 @@ const STOP = new Set(
 );
 
 export function tokenize(query) {
-  return [...new Set(String(query || '').toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w && !STOP.has(w) && (w.length > 1 || /\d/.test(w))))];
+  // \p{M}: combining marks stay inside a word (Arabic vowel marks, accents).
+  return [...new Set(String(query || '').toLowerCase().split(/[^\p{L}\p{M}\p{N}]+/u).filter((w) => w && !STOP.has(w) && (w.length > 1 || /\d/.test(w))))];
 }
 
 function scoreThread(t, terms) {
@@ -274,7 +275,7 @@ export function topContributors(threads, now = Date.now(), n = 5) {
     }
   }
   return [...map.values()]
-    .map((e) => ({ ...e, author: getAuthor(e.authorId, e.authorYear), score: e.votes + e.accepted * 10 }))
+    .map((e) => ({ ...e, author: getAuthor(e.authorId), score: e.votes + e.accepted * 10 }))
     .sort((a, b) => b.score - a.score || b.replies - a.replies)
     .slice(0, n);
 }
@@ -306,8 +307,8 @@ export function toPublicThread(t) {
     replies: t.replyCount,
     year: t.year,
     moduleId: t.moduleId,
-    // The person's name ('Maryam S.' for the signed-in student); the forum's own UI says "You".
-    author: getAuthor(t.authorId, t.authorYear).name,
+    // The person's name ('Mohamed Alnooh' for the signed-in student rep).
+    author: getAuthor(t.authorId).name,
     createdAt: new Date(t.createdAt).toISOString(),
     // extras (additive, safe to ignore)
     authorId: t.authorId,

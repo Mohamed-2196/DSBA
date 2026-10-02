@@ -4,7 +4,7 @@ import { EVENT_TYPES } from '../../data/calendar.js';
 import { BREAKPOINTS, cohortColor, cohortLabel, cohortOnColor, useMediaQuery, useQueryParam, useToast, useYear } from '../../state';
 import { Button, Chip, cx, EmptyState, IconButton, Page, PageHeader, PageSection, SegmentedControl } from '../../ui';
 import { Agenda } from './Agenda.jsx';
-import { addMonths, formatDayMonthLong, monthKey, monthName, monthOfDate, monthTitle, parseKey, parseMonthKey, sameMonth, startOfDay } from './dates.js';
+import { addMonths, formatLong, formatLongDay, formatShort, monthKey, monthName, monthOfDate, monthTitle, parseKey, parseMonthKey, sameMonth, startOfDay } from './dates.js';
 import { EventDrawer } from './EventDrawer.jsx';
 import { THANKS_EVENT, TYPE_ORDER, typeLabel } from './eventMeta.js';
 import { buildIcs, downloadIcs, eventUrl, icsFileName } from './ics.js';
@@ -106,7 +106,7 @@ export default function CalendarPage() {
     const ok = downloadIcs(name, buildIcs([e], { name: 'DSBA Hub', now }));
     push(
       ok
-        ? { tone: 'success', title: `Downloaded ${name}`, body: 'Open the file to add it to your calendar.' }
+        ? { tone: 'success', title: `Downloaded ${name}`, body: `${formatLong(parseKey(e.date))}. Open the file to add it to your calendar.` }
         : { tone: 'alert', title: 'The download didn’t start', body: 'Your browser blocked it. Try again, or use another browser.' },
     );
   };
@@ -119,9 +119,15 @@ export default function CalendarPage() {
     const name = year ? `dsba-year-${year}-exams.ics` : 'dsba-exams.ics';
     const ok = downloadIcs(name, buildIcs(upcomingExams, { name: `DSBA ${who} exams`, now }));
     const n = upcomingExams.length;
+    const first = formatShort(parseKey(upcomingExams[0].date));
+    const last = formatShort(parseKey(upcomingExams[n - 1].date));
     push(
       ok
-        ? { tone: 'success', title: `Downloaded ${n} ${n === 1 ? 'exam' : 'exams'}`, body: `${name} adds every upcoming ${who} exam to your calendar.` }
+        ? {
+            tone: 'success',
+            title: `Downloaded ${n} ${n === 1 ? 'exam' : 'exams'}`,
+            body: `${name} adds every upcoming ${who} exam to your calendar${n === 1 ? ` (${first})` : `, ${first} to ${last}`}.`,
+          }
         : { tone: 'alert', title: 'The download didn’t start', body: 'Your browser blocked it. Try again, or use another browser.' },
     );
   };
@@ -154,7 +160,7 @@ export default function CalendarPage() {
         title={`Nothing on the calendar in ${monthName(month)}`}
         body={
           nextWithEvents
-            ? `Next up: ${nextWithEvents.title}, ${formatDayMonthLong(parseKey(nextWithEvents.date))}.`
+            ? `Next up: ${nextWithEvents.title}, ${formatLongDay(parseKey(nextWithEvents.date))}.`
             : types.size
               ? 'No events of the selected types. Show every type to see more.'
               : cohortYear
@@ -189,7 +195,7 @@ export default function CalendarPage() {
     <Page className="cal-page">
       <PageHeader
         title="Calendar"
-        description={`Exams, mocks, revision sessions and term dates${year ? ` for ${cohortLabel(year)}` : ''}. Add any of them to your own calendar.`}
+        description={`Exams, mocks, revision and term dates${year ? ` for ${cohortLabel(year)}` : ''}. Add any to your own calendar.`}
         actions={
           upcomingExams.length ? (
             <Button leadingIcon={DownloadSimple} onClick={downloadAll}>

@@ -16,6 +16,7 @@ export { Skeleton } from './Skeleton.jsx';
 export { ProgressRing } from './ProgressRing.jsx';
 export { Sparkline } from './Sparkline.jsx';
 export { HubMark } from './HubMark.jsx';
+export { HubLogo } from './HubLogo.jsx';
 export { Highlight } from './Highlight.jsx';
 export { Kbd } from './Kbd.jsx';
 export { SectionHeader } from './SectionHeader.jsx';

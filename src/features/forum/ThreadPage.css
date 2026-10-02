@@ -3,6 +3,13 @@
 
 .forum-thread__header { margin-bottom: var(--sp-24); }
 .forum-thread__header .ui-page-header__title { max-width: 30em; font-size: var(--fs-31); line-height: 1.16; letter-spacing: -0.022em; }
+/* The title is a block so that it can be right-aligned when it is Arabic (see forum.css, Right-to-left text). */
+.forum-thread__title { display: block; }
+/* An Arabic title is right-aligned, so its box ends where the column of posts ends (not at the sidebar, not at 30em). */
+.forum-thread__header .ui-page-header__title:has(> .forum-thread__title:dir(rtl)) { max-width: none; }
+@container forum-page (min-width: 1000px) {
+  .forum-thread__header .ui-page-header__title:has(> .forum-thread__title:dir(rtl)) { max-width: calc(100cqw - 296px - var(--sp-32)); }
+}
 .forum-thread__header .ui-page-header__meta { gap: 8px 12px; margin-top: var(--sp-12); }
 .forum-thread__module { font-size: var(--fs-14); }
 
@@ -25,6 +32,7 @@
 .forum-op__actions { grid-area: actions; }
 .forum-byline { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .forum-byline__text { display: grid; min-width: 0; }
+.forum-byline__who { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 .forum-byline__name { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-bold); line-height: 1.3; }
 .forum-byline__meta { color: var(--ink-2); font-size: var(--fs-12); line-height: 1.4; }
 .forum-op__body { font-size: var(--fs-16); }

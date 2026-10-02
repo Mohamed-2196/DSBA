@@ -1,30 +1,36 @@
-/* Career Navigator page (career-). What every section shares: the three states of a bar, module links, the
-   "find it" flash and spacing. Each section keeps its own styles beside its component. */
+/* Career Navigator page (career-). What every section shares: the header with the featured competition, section
+   rhythm, module links, notes and the "find it" flash. Each section keeps its own styles beside its component. */
 
 .career-page {
-  /* A bar is filled (taught so far), outlined (taught in a later year) or empty. Built from tokens so both themes follow. */
+  /* The unfilled part of a bar or ring. Built from tokens so both themes follow. */
   --career-track: color-mix(in srgb, var(--ink) 11%, var(--surface));
-  --career-ghost-fill: color-mix(in srgb, var(--cobalt) 14%, var(--surface));
-  --career-ghost-ring: color-mix(in srgb, var(--cobalt) 60%, var(--surface));
 }
 
-/* Scroll targets land clear of the sticky top bar. */
-.career-page [id^='career-'] { scroll-margin-top: calc(var(--topbar-h) + var(--sp-16)); }
+/* Scroll targets land clear of the sticky top bar through the page-wide scroll-padding-top in base.css, so
+   nothing is added here (adding a margin as well would drop a section 80px too low). */
 
-/* ── Header ──────────────────────────────────────────────────────────────────────────────────── */
-.career-page > .ui-page-header { margin-bottom: var(--sp-24); }
-.career-page .ui-page-header__meta { gap: var(--sp-12); margin-top: var(--sp-12); }
-.career-hint { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.4; }
+/* ── Header: title on the left, the competition on the right. They stack when there is no room for both. ── */
+.career-page > .ui-page-header { flex-wrap: wrap; align-items: center; gap: var(--sp-16) var(--sp-32); margin-bottom: var(--sp-24); }
+.career-page > .ui-page-header > .ui-page-header__main { flex: 1 1 360px; }
+.career-page > .ui-page-header > .ui-page-header__actions { flex: 1 1 560px; max-width: 730px; }
+.career-page > .ui-page-header .career-featured { flex: 1 1 auto; }
+@media (max-width: 699px) {
+  .career-page > .ui-page-header { flex-direction: column; align-items: stretch; }
+  .career-page > .ui-page-header > .ui-page-header__main,
+  .career-page > .ui-page-header > .ui-page-header__actions { flex: 0 0 auto; max-width: none; }
+}
 
+/* ── Sections: more air between them than the default, and titles that read from the back of a room. ── */
 @media (min-width: 700px) {
   .career-page .ui-page-section + .ui-page-section { margin-top: var(--sp-64); }
 }
-
-/* ── Three-step bar ──────────────────────────────────────────────────────────────────────────── */
-.career-meter { display: inline-grid; grid-template-columns: repeat(3, 22px); gap: 3px; flex: none; }
-.career-meter__seg { height: 8px; border-radius: var(--r-pill); background: var(--career-track); }
-.career-meter__seg.is-solid { background: var(--cobalt); }
-.career-meter__seg.is-ghost { background: var(--career-ghost-fill); box-shadow: inset 0 0 0 1.5px var(--career-ghost-ring); }
+.career-page .ui-page-section > .ui-section-header { margin-bottom: 20px; }
+.career-page .ui-page-section > .ui-section-header .ui-section-header__title { font-size: var(--fs-25); font-weight: var(--fw-heavy); letter-spacing: var(--tracking-head); }
+.career-page .ui-page-section > .ui-section-header .ui-section-header__desc { margin-top: 6px; max-width: 96ch; font-size: var(--fs-16); }
+@media (max-width: 699px) {
+  .career-page .ui-page-section > .ui-section-header .ui-section-header__title { font-size: var(--fs-20); }
+  .career-page .ui-page-section > .ui-section-header .ui-section-header__desc { font-size: var(--fs-14); }
+}
 
 /* ── A module as a small link ────────────────────────────────────────────────────────────────── */
 .career-mod {
@@ -55,7 +61,7 @@
 }
 
 /* ── Notes under a block ─────────────────────────────────────────────────────────────────────── */
-.career-note { margin-top: var(--sp-12); max-width: 120ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.career-note { margin-top: var(--sp-16); max-width: 118ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
 
 /* ── "Look here": a ring on the card a button just scrolled to. It stays put for reduced motion and fades otherwise.
    (jumpTo removes the class after 1.8s.) ──────────────────────────────────────────────────────────── */

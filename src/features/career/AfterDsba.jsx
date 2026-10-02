@@ -1,53 +1,15 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Briefcase, Certificate, GraduationCap } from '@phosphor-icons/react';
+import { ArrowRight, GraduationCap } from '@phosphor-icons/react';
 import { useLocalStorage } from '../../state';
 import { Badge, Button, PageSection, Panel, SectionHeader } from '../../ui';
-import { CHECKLIST, CHECKLIST_KEY, PATHS } from './data/afterDsba.js';
+import { CHECKLIST, CHECKLIST_KEY, FURTHER_STUDY } from './data/afterDsba.js';
 import { jumpTo } from './lib/jump.js';
 import { lessonLink } from './lib/links.js';
+import { Seniors } from './Seniors.jsx';
 import './AfterDsba.css';
 
-const PATH_ICONS = { work: Briefcase, study: GraduationCap, exams: Certificate };
-
-function PathAction({ action }) {
-  if (action.kind === 'link') {
-    return (
-      <Button variant="secondary" size="sm" to={action.to} trailingIcon={ArrowRight}>
-        {action.label}
-      </Button>
-    );
-  }
-  const target = action.kind === 'certs' ? 'career-certificates' : 'career-role-fit';
-  return (
-    <Button variant="secondary" size="sm" trailingIcon={ArrowRight} onClick={() => jumpTo(target)}>
-      {action.label}
-    </Button>
-  );
-}
-
-function Path({ path }) {
-  const Icon = PATH_ICONS[path.id];
-  return (
-    <Panel as="li" padding="none" className="career-path" data-hub="career-path" data-path-id={path.id}>
-      <span className="career-path__icon" aria-hidden="true">
-        {Icon ? <Icon weight="duotone" /> : null}
-      </span>
-      <h3 className="career-path__title">{path.title}</h3>
-      <p className="career-path__lede">{path.lede}</p>
-      <ol className="career-path__steps">
-        {path.steps.map((s) => (
-          <li key={s}>{s}</li>
-        ))}
-      </ol>
-      <div className="career-path__action">
-        <PathAction action={path.action} />
-      </div>
-    </Panel>
-  );
-}
-
-/** The small link at the end of a checklist row: a lesson, a card further down the page or the forum. */
+/** The small link at the end of a checklist row: a lesson, a card further up the page or the forum. */
 function RowLink({ link }) {
   if (!link) return null;
   const body = (
@@ -113,25 +75,26 @@ function Checklist() {
   );
 }
 
+/** What to have ready, who to ask, and one line for those heading to further study instead. */
 export function AfterDsba() {
+  const study = FURTHER_STUDY;
   return (
     <PageSection id="career-after" aria-labelledby="career-after-title" data-hub="career-after">
-      <SectionHeader
-        id="career-after-title"
-        title="After DSBA"
-        description="Three ways forward, and a checklist to be ready for whichever you pick."
-      />
+      <SectionHeader id="career-after-title" title="Before you apply" description="Five things to have ready, and people who can tell you how it went for them." />
       <div className="career-after">
         <div className="career-after__grid">
-          <div className="career-paths-wrap">
-            <ul role="list" className="career-paths">
-              {PATHS.map((p) => (
-                <Path key={p.id} path={p} />
-              ))}
-            </ul>
-          </div>
           <Checklist />
+          <Seniors />
         </div>
+        <Panel tone="inset" padding="none" className="career-study" data-hub="career-study">
+          <GraduationCap className="career-study__icon" weight="duotone" aria-hidden="true" />
+          <p className="career-study__text">
+            <strong>{study.title}</strong> {study.body}
+          </p>
+          <Button variant="secondary" size="sm" to={study.action.to} trailingIcon={ArrowRight}>
+            {study.action.label}
+          </Button>
+        </Panel>
       </div>
     </PageSection>
   );

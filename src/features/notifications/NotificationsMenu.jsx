@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Alarm, Bell, Check, Checks, ChatsCircle, NotePencil } from '@phosphor-icons/react';
 import { useLocalStorage, useYear } from '../../state';
 import { CURRENT_USER } from '../../data/people.js';
-import { Button, IconButton, Menu, HubMark, Tooltip, cx, timeAgo } from '../../ui';
+import { Button, IconButton, Menu, HubLogo, Tooltip, cx, timeAgo } from '../../ui';
 import { V1_ANNOUNCEMENT_KEY, buildNotifications } from './seed.js';
 import './NotificationsMenu.css';
 
@@ -43,7 +43,7 @@ function loadExtras() {
 }
 
 function KindIcon({ n }) {
-  if (n.kind === 'welcome') return <HubMark tile size={36} className="notif-icon notif-icon--tile" />;
+  if (n.kind === 'welcome') return <HubLogo variant="tile" size={36} decorative className="notif-icon notif-icon--tile" />;
   if (n.kind === 'newsletter') {
     return (
       <span className="notif-icon notif-icon--newsletter" aria-hidden="true">
@@ -134,7 +134,7 @@ export function NotificationsMenu() {
                         {n.title}
                         {isUnread ? <span className="visually-hidden">, unread</span> : null}
                       </span>
-                      <span className="notif-item__body">{n.body}</span>
+                      <span className="notif-item__body" dir="auto">{n.body}</span>
                     </span>
                     <time className="notif-item__time" dateTime={new Date(n.at).toISOString()}>
                       {timeAgo(n.at, now)}

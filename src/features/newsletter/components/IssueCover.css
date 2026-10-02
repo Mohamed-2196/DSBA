@@ -1,5 +1,6 @@
-/* Generated issue covers. A cover is a printed object: it keeps its light-theme colours in dark mode
-   (the element is a data-theme="light" island), with a document-page radius and a hairline edge. */
+/* Issue covers (components/IssueCover.jsx, lib/covers.js). A cover is a printed object: the sheet keeps its
+   own colours in dark mode (it is a data-theme="light" island), has a document-page radius and scales as one
+   piece (everything on it is drawn in a 300 x 400 box). Sizes below are in that box's units. */
 .nl-cover {
   position: relative;
   display: block;
@@ -7,82 +8,119 @@
   aspect-ratio: 3 / 4;
   border-radius: var(--r-page);
   overflow: hidden;
-  background: var(--surface);
   isolation: isolate;
 }
+.nl-cover__sheet {
+  /* The stock and the inks. `navy` (the default) is the deepest navy of the palette, the ink colour, with
+     type in white; `paper` is the same cover printed the other way round. The numeral is always brand blue. */
+  --cover-ground: var(--ink);
+  --cover-ink: var(--surface);
+  --cover-soft: color-mix(in srgb, var(--surface) 70%, var(--ink));
+  --cover-figure: var(--cobalt);
+  --cover-scrim: var(--ink);
+  position: absolute;
+  inset: 0;
+  background: var(--cover-ground);
+}
+.nl-cover--paper .nl-cover__sheet {
+  --cover-ground: var(--surface);
+  --cover-ink: var(--ink);
+  --cover-soft: var(--ink-2);
+  --cover-scrim: var(--surface);
+}
+/* A hairline edge in the colours of the page around the cover (this pseudo-element is outside the sheet's
+   light island): it holds a paper cover on a light page and a navy cover on a dark one. */
 .nl-cover::after {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 3;
   border-radius: inherit;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent);
   pointer-events: none;
 }
-.nl-cover__svg { display: block; width: 100%; height: 100%; }
+.nl-cover--navy::after { box-shadow: inset 0 0 0 1px var(--tile-stroke); }
+/* geometricPrecision: no hinting and fractional advances, so the letterspacing survives at thumbnail size */
+.nl-cover__svg { position: relative; z-index: 2; display: block; width: 100%; height: 100%; text-rendering: geometricPrecision; }
 
-/* Type on every cover */
+/* ── Type on every cover ───────────────────────────────────────────────── */
 .nl-cover__nameplate {
   font-family: var(--font-serif);
-  font-size: 29px;
   font-weight: 600;
   font-variation-settings: 'opsz' 72;
   letter-spacing: -0.03em;
-  fill: var(--ink);
+  fill: var(--cover-ink);
 }
-/* "DSBA" sits on the highlighter swipe, in the ink that is legible on it in every theme */
+/* "DSBA" sits on the highlighter swipe, in the ink that is legible on it on any stock */
 .nl-cover .nl-cover__dsba { fill: var(--highlight-ink); }
 .nl-cover__swipe { fill: var(--highlight); }
 .nl-cover__swipe .nl-cover__swipe-low { fill: #f5c400; fill-opacity: 0.22; }
-.nl-cover__no {
+
+.nl-cover__folio {
   font-family: var(--font-sans);
-  font-size: 25px;
-  font-weight: var(--fw-heavy);
-  font-variant-numeric: tabular-nums lining-nums;
-  letter-spacing: -0.01em;
-  fill: var(--ink);
+  font-size: 5.7px;
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0.14em;
+  fill: var(--cover-soft);
 }
-.nl-cover__rule { stroke: var(--ink); stroke-opacity: .28; stroke-width: 1; fill: none; }
 .nl-cover__title {
   font-family: var(--font-serif);
-  font-size: 34px;
-  font-weight: 600;
-  font-variation-settings: 'opsz' 60;
-  letter-spacing: -0.02em;
-  fill: var(--ink);
+  font-style: italic;
+  font-weight: 500;
+  font-variation-settings: 'opsz' 72;
+  letter-spacing: -0.022em;
+  fill: var(--cover-ink);
 }
-.nl-cover__date {
+.nl-cover__label {
   font-family: var(--font-sans);
-  font-size: 12.5px;
-  font-weight: var(--fw-medium);
-  fill: var(--ink-2);
-}
-
-/* Launch: the logo idea drawn large (three nodes joined at a hub), navy ground */
-.nl-cover--launch { background: var(--navy); }
-.nl-cover--launch .nl-cover__ground { fill: var(--navy); }
-.nl-cover--launch .nl-cover__ring { stroke: #fff; stroke-opacity: .16; stroke-width: 1; fill: none; }
-.nl-cover--launch .nl-cover__spokes { stroke: #fff; stroke-width: 6; stroke-linecap: round; fill: none; }
-.nl-cover--launch .nl-cover__node { fill: #fff; }
-.nl-cover--launch .nl-cover__hub { fill: var(--highlight); stroke: var(--navy); stroke-width: 4; }
-.nl-cover--launch .nl-cover__nameplate,
-.nl-cover--launch .nl-cover__no,
-.nl-cover--launch .nl-cover__title { fill: #fff; }
-.nl-cover--launch .nl-cover__dsba { fill: var(--highlight-ink); }
-.nl-cover--launch .nl-cover__date { fill: #fff; fill-opacity: .74; }
-.nl-cover--launch .nl-cover__rule { stroke: #fff; stroke-opacity: .32; }
-.nl-cover--launch::after { box-shadow: none; }
-
-/* Pilot: a small sample on graph paper */
-.nl-cover--pilot .nl-cover__ground { fill: var(--surface); }
-.nl-cover--pilot .nl-cover__grid-minor { stroke: var(--cobalt); stroke-opacity: .09; stroke-width: .7; fill: none; }
-.nl-cover--pilot .nl-cover__grid-major { stroke: var(--cobalt); stroke-opacity: .18; stroke-width: 1; fill: none; }
-.nl-cover--pilot .nl-cover__axis { stroke: var(--ink); stroke-width: 1.6; fill: none; stroke-linecap: round; }
-.nl-cover--pilot .nl-cover__residual { stroke: var(--ink); stroke-opacity: .4; stroke-width: 1.2; }
-.nl-cover--pilot .nl-cover__fit { stroke: var(--cobalt); stroke-width: 3.5; stroke-linecap: round; }
-.nl-cover--pilot .nl-cover__point { fill: var(--ink); stroke: var(--surface); stroke-width: 2.5; }
-.nl-cover__note {
-  font-family: var(--font-sans);
-  font-size: 14px;
   font-weight: var(--fw-bold);
-  fill: var(--highlight-ink);
+  letter-spacing: 0.13em;
+  fill: var(--cover-soft);
 }
+.nl-cover__line {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-variation-settings: 'opsz' 16;
+  letter-spacing: -0.005em;
+  fill: var(--cover-ink);
+}
+
+/* ── The typographic cover ─────────────────────────────────────────────── */
+.nl-cover__rule { stroke: var(--cover-ink); stroke-width: 0.6; fill: none; }
+.nl-cover__rule--heavy { stroke-width: 2.4; }
+.nl-cover__hair { stroke: var(--cover-ink); stroke-opacity: .24; stroke-width: 0.5; fill: none; }
+.nl-cover__numeral {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-variation-settings: 'opsz' 72;
+  font-variant-numeric: lining-nums;
+  letter-spacing: 0;
+  fill: var(--cover-figure);
+}
+
+/* ── The cover with an illustration ────────────────────────────────────── */
+.nl-cover__art { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; }
+/* Only as much scrim as the type needs: it fades out before the middle of the picture. */
+.nl-cover--art .nl-cover__sheet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--cover-scrim) 58%, transparent) 0%,
+      color-mix(in srgb, var(--cover-scrim) 46%, transparent) 10%,
+      color-mix(in srgb, var(--cover-scrim) 24%, transparent) 20%,
+      color-mix(in srgb, var(--cover-scrim) 8%, transparent) 27%,
+      transparent 33%),
+    linear-gradient(to top,
+      color-mix(in srgb, var(--cover-scrim) 74%, transparent) 0%,
+      color-mix(in srgb, var(--cover-scrim) 62%, transparent) 9%,
+      color-mix(in srgb, var(--cover-scrim) 36%, transparent) 19%,
+      color-mix(in srgb, var(--cover-scrim) 12%, transparent) 27%,
+      transparent 34%);
+  pointer-events: none;
+}
+/* on a picture the small type is nearly as strong as the rest */
+.nl-cover--art .nl-cover__sheet { --cover-soft: color-mix(in srgb, var(--cover-ink) 86%, transparent); }

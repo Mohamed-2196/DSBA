@@ -12,7 +12,7 @@ import { useForum } from './state/context.js';
 import { AuthorAvatar } from './components/AuthorAvatar.jsx';
 import { Prose } from './components/Prose.jsx';
 import { VoteButton } from './components/VoteButton.jsx';
-import { ModuleTag, PlaceBadge, TagBadges } from './components/ThreadBits.jsx';
+import { AuthorFlair, ModuleTag, PlaceBadge, TagBadges } from './components/ThreadBits.jsx';
 import { ReplyItem } from './components/ReplyItem.jsx';
 import { ReplyComposer } from './components/ReplyComposer.jsx';
 import { TypingIndicator } from './components/TypingIndicator.jsx';
@@ -91,8 +91,10 @@ function ThreadView({ threadId }) {
     );
   }
 
-  const author = getAuthor(thread.authorId, thread.authorYear);
+  const author = getAuthor(thread.authorId);
   const category = getCategory(thread.category);
+  // What stands before 'posted' in the byline: a flair (shown as a pill next to the name) replaces the year.
+  const byline = author.kind === 'team' ? 'Student team' : author.flair ? null : author.year ? `Year ${author.year}` : 'Student';
   const replies = nestReplies(thread, order);
   const typing = forum.typing[thread.id] || [];
   const isFresh = (id) => !seen.current?.has(id);
@@ -101,8 +103,8 @@ function ThreadView({ threadId }) {
   const startReply = (reply) => {
     // One level of nesting: replying to a nested reply attaches to its parent and mentions the person.
     const parent = reply.parentId ? thread.replies.find((r) => r.id === reply.parentId) || reply : reply;
-    const mention = reply.parentId ? authorLabel(getAuthor(reply.authorId, reply.authorYear)) : null;
-    setReplyingTo({ parent, mention: mention === 'You' ? null : mention, key: `${reply.id}-${Date.now()}` });
+    const who = reply.parentId ? getAuthor(reply.authorId) : null;
+    setReplyingTo({ parent, mention: who && who.kind !== 'me' ? authorLabel(who) : null, key: `${reply.id}-${Date.now()}` });
   };
   const focusComposer = () => {
     const el = composerInput.current;
@@ -135,7 +137,8 @@ function ThreadView({ threadId }) {
 
       <PageHeader
         className="forum-thread__header"
-        title={thread.title}
+        // dir="auto" on a block of its own: an Arabic title sits right-aligned, an English one left-aligned.
+        title={<span className="forum-thread__title" dir="auto">{thread.title}</span>}
         meta={
           <>
             {thread.answered ? (
@@ -161,9 +164,12 @@ function ThreadView({ threadId }) {
               <header className="forum-byline">
                 <AuthorAvatar author={author} size="md" />
                 <span className="forum-byline__text">
-                  <span className="forum-byline__name">{authorLabel(author)}</span>
+                  <span className="forum-byline__who">
+                    <span className="forum-byline__name">{authorLabel(author)}</span>
+                    <AuthorFlair author={author} />
+                  </span>
                   <span className="forum-byline__meta">
-                    {author.kind === 'team' ? 'Student team' : author.year ? `Year ${author.year}` : 'Student'}, posted{' '}
+                    {byline ? `${byline}, posted` : 'Posted'}{' '}
                     <time dateTime={new Date(thread.createdAt).toISOString()}>{timeAgo(thread.createdAt)}</time>
                   </span>
                 </span>

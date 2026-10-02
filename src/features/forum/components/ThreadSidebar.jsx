@@ -81,10 +81,7 @@ function CategoryCard({ category }) {
 /** Margin of the thread page: the module (with its next exam), who's here, related threads. */
 export function ThreadSidebar({ thread, threads }) {
   const related = useMemo(() => relatedThreads(threads, thread), [threads, thread]);
-  const people = thread.participants.map((id) => {
-    const r = id === thread.authorId ? { authorYear: thread.authorYear } : thread.replies.find((x) => x.authorId === id);
-    return getAuthor(id, r?.authorYear);
-  });
+  const people = thread.participants.map((id) => getAuthor(id));
   const category = getCategory(thread.category);
   const last = thread.replies.length ? thread.replies[thread.replies.length - 1] : null;
 
@@ -120,7 +117,7 @@ export function ThreadSidebar({ thread, threads }) {
           <ul role="list" className="forum-related">
             {related.map((t) => (
               <li key={t.id} className="forum-related__item">
-                <Link to={`/forum/${t.id}`} className="forum-related__link">
+                <Link to={`/forum/${t.id}`} className="forum-related__link" dir="auto">
                   {t.title}
                 </Link>
                 <span className="forum-related__meta">

@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { CohortBadge, cx } from '../../ui';
-import { countdownLabel, daysUntil, formatLong, formatShort, formatWeekday, monthName, parseKey, toKey } from './dates.js';
+import { DateLeaf } from './DateLeaf.jsx';
+import { countdownLabel, daysUntil, formatLong, formatShort, monthName, parseKey, toKey } from './dates.js';
 import { splitTitle, typeLabel } from './eventMeta.js';
 
 /**
@@ -32,10 +33,7 @@ export function Agenda({ month, events, today, selectedId, showCohort, onOpen, e
             <Fragment key={day.key}>
               {i === ruleAt ? <TodayRule today={today} /> : null}
               <li className={cx('cal-agenda__day', day.date < today && 'is-past', day.key === todayKey && 'is-today')}>
-                <div className="cal-agenda__date" aria-hidden="true">
-                  <span className="cal-agenda__num">{day.date.getDate()}</span>
-                  <span className="cal-agenda__wd">{formatWeekday(day.date)}</span>
-                </div>
+                <DateLeaf date={day.date} tone={day.key === todayKey ? 'today' : day.events.every((e) => e.type === day.events[0].type) ? day.events[0].type : 'neutral'} solid={day.key === todayKey} className="cal-agenda__date" />
                 <ul role="list" className="cal-agenda__events">
                   {day.events.map((e) => {
                     const { code, rest } = splitTitle(e);
@@ -51,8 +49,10 @@ export function Agenda({ month, events, today, selectedId, showCohort, onOpen, e
                         >
                           <span className="visually-hidden">{formatLong(day.date)}: </span>
                           <span className="cal-agenda__meta">
-                            <span className={cx('cal-dot', `cal-dot--${e.type}`)} aria-hidden="true" />
-                            <span className="cal-agenda__type">{typeLabel(e.type)}</span>
+                            <span className={cx('cal-agenda__type', `cal-agenda__type--${e.type}`)}>
+                              <span className={cx('cal-dot', `cal-dot--${e.type}`)} aria-hidden="true" />
+                              {typeLabel(e.type)}
+                            </span>
                             {showCohort ? <CohortBadge year={e.year} variant="dot" size="sm" short /> : null}
                             <span className="cal-agenda__when">{countdownLabel(d)}</span>
                           </span>

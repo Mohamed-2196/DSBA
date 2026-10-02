@@ -1,82 +1,119 @@
-/* Opportunities (career-). One panel, one list: a column header on wide screens, rows that regroup themselves
-   by the panel's own width. Colour comes from tokens, so the dark theme needs nothing extra. */
+/* Where to apply (career-). The employer wall is the first thing on the page: filter chips, then a grid of cards
+   that each lead with a logo slot. Columns come from the available width, so four across on a wide screen and one
+   on a phone. Colour comes from tokens, so the dark theme needs nothing extra (the logo tile stays white on purpose). */
 
-.career-opps__filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-12) var(--sp-24); margin-bottom: var(--sp-16); }
-.career-opps__types, .career-opps__toggles { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
-
-.career-opps__panel { container: career-opps / inline-size; overflow: hidden; }
-.career-opps__head { display: none; }
-.career-opps__list { list-style: none; }
-
-/* Narrow: save star beside everything, then one line each for the deadline, who it suits and the forum link. */
-.career-opp {
+/* ── The competition, featured beside the page title ─────────────────────────────────────────── */
+.career-featured {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
-  grid-template-areas:
-    'save main'
-    '. due'
-    '. suits'
-    '. ask';
-  align-items: start;
-  gap: var(--sp-8) var(--sp-12);
-  padding: var(--sp-16);
-  border-top: 1px solid var(--line);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-16);
+  padding: 14px var(--sp-16);
+  border: 1px solid color-mix(in srgb, var(--signal) 34%, var(--line));
+  border-radius: var(--r-panel);
+  background: color-mix(in srgb, var(--signal-soft) 60%, var(--surface));
 }
-.career-opps__list > .career-opp:first-child { border-top: 0; }
-.career-opp.is-real { background: color-mix(in srgb, var(--signal-soft) 55%, var(--surface)); }
-.career-opp.career-flash { outline-offset: -3px; } /* rows sit inside a clipped panel, so the "look here" ring goes inside */
+.career-featured__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-12); }
+.career-featured__title { font-size: var(--fs-16); font-weight: var(--fw-bold); letter-spacing: -0.01em; line-height: 1.3; }
+.career-featured__link { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; }
+.career-featured__link:hover { color: var(--cobalt); }
+.career-featured__go { font-size: 13px; color: var(--ink-2); transition: transform var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+.career-featured__link:hover .career-featured__go { color: var(--cobalt); transform: translate(1px, -1px); }
+.career-featured__blurb { margin-top: 3px; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.career-featured__kind { color: var(--ink); font-weight: var(--fw-semibold); }
+.career-featured__blurb strong { color: var(--ink); font-weight: var(--fw-semibold); }
+.career-featured.career-flash { outline-offset: 2px; }
 
-.career-opp__save { grid-area: save; }
-.career-opp__main { grid-area: main; min-width: 0; }
-.career-opp__suits { grid-area: suits; min-width: 0; }
-.career-opp__due { grid-area: due; display: flex; align-items: center; gap: var(--sp-8); }
-.career-opp__ask { grid-area: ask; margin-left: calc(var(--sp-12) * -1); }
+/* ── Filters ─────────────────────────────────────────────────────────────────────────────────── */
+.career-opps__filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-12) var(--sp-24); margin-bottom: var(--sp-16); }
+.career-opps__tracks, .career-opps__types { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+.career-opps__filters .ui-chip { height: 34px; padding: 0 14px; }
 
-.career-opp__star.ui-iconbutton--ghost.is-active { background: var(--cobalt-soft); color: var(--cobalt); }
-
-.career-opp__titleline { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-8); }
-.career-opp__title { font-size: var(--fs-16); font-weight: var(--fw-bold); letter-spacing: -0.01em; line-height: 1.3; }
-.career-opp__about { margin-top: 2px; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
-.career-opp__org { color: var(--ink); font-weight: var(--fw-semibold); }
-.career-opp__note { margin-top: 2px; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-medium); line-height: 1.45; }
-
-.career-opp__suits-text { display: inline-flex; align-items: center; gap: var(--sp-8); color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-medium); line-height: 1.3; }
-.career-dots { display: inline-flex; gap: 3px; }
-.career-dots__dot { width: 8px; height: 8px; border-radius: var(--r-pill); }
-
-.career-due.ui-badge { height: 28px; padding: 0 var(--sp-12); font-size: var(--fs-14); }
-.career-due .ui-badge__icon { font-size: 15px; }
-.career-opp__rel { color: var(--ink-2); font-size: var(--fs-14); }
-
-/* "Example" reads as a placeholder: dashed outline instead of a filled tag. */
-.career-example.ui-badge--outline { box-shadow: none; border: 1px dashed var(--ink-3); }
-
-/* Medium: deadline top right, who it suits and the forum link share the second line. */
-@container career-opps (min-width: 620px) {
-  .career-opp {
-    grid-template-columns: 32px minmax(0, 1fr) auto;
-    grid-template-areas:
-      'save main due'
-      'save suits ask';
-    row-gap: var(--sp-8);
-  }
-  .career-opp__due { flex-direction: column; align-items: flex-end; gap: var(--sp-4); }
-  .career-opp__ask { margin-left: 0; justify-self: end; }
+/* What a track means, and the modules nearest to it. Appears once a track is picked. */
+.career-opps__about {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8) var(--sp-24);
+  margin: calc(var(--sp-4) * -1) 0 var(--sp-16);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  line-height: 1.45;
 }
+.career-opps__about-mods { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-16); }
+.career-opps__about-label { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
 
-/* Wide: a table. */
-@container career-opps (min-width: 980px) {
-  .career-opps__head, .career-opp { grid-template-columns: 32px minmax(0, 1fr) 168px 168px 236px; column-gap: var(--sp-16); padding-inline: var(--sp-24); }
-  .career-opps__head {
-    display: grid;
-    padding-block: var(--sp-8);
-    border-bottom: 1px solid var(--line);
-    background: var(--surface-2);
-    color: var(--ink-2);
-    font-size: var(--fs-12);
-    font-weight: var(--fw-semibold);
+/* ── The wall ────────────────────────────────────────────────────────────────────────────────── */
+.career-emps { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: var(--sp-16); list-style: none; }
+.career-emps.is-swapped { animation: career-fade var(--dur) var(--ease); }
+@keyframes career-fade { from { opacity: 0; transform: translateY(4px); } }
+
+/* Panel padding is set here (not by Panel's "none") so it survives any stylesheet order. */
+.career-emps > .career-emp {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 20px var(--sp-16);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.career-emps > .career-emp:hover { border-color: var(--line-strong); }
+
+.career-emp__top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-12); }
+/* On a narrow card the tile gives way before the badge does, so nothing spills over the edge. */
+.career-emp__top > .career-logo { flex: 0 1 var(--logo-w); width: auto; min-width: 88px; }
+.career-emp__types { display: flex; flex: none; flex-direction: column; align-items: flex-end; gap: var(--sp-4); list-style: none; }
+
+.career-emp__name { font-size: 1.0625rem; font-weight: var(--fw-bold); letter-spacing: -0.012em; line-height: 1.25; }
+.career-emp__sector { display: flex; align-items: center; gap: 6px; margin-top: 3px; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.3; }
+.career-emp__sector-icon { flex: none; font-size: 15px; color: var(--ink-3); }
+
+.career-emp__programme { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); line-height: 1.35; text-wrap: balance; }
+.career-emp__why { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.career-emp__programme + .career-emp__why { margin-top: var(--sp-4); }
+
+/* Tracks and the button sit on the card's floor, so they line up across a row whatever the text above does. */
+.career-emp__tracks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: var(--sp-4); list-style: none; }
+.career-track {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  white-space: nowrap;
+}
+.career-track.is-active { background: var(--cobalt-soft); color: var(--cobalt); }
+
+.career-emp__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); padding-top: var(--sp-12); border-top: 1px solid var(--line); }
+.career-emp__cta.ui-button--secondary { border-color: transparent; background: var(--cobalt-soft); color: var(--cobalt); }
+.career-emp__cta.ui-button--secondary:hover { background: var(--cobalt); color: var(--cobalt-ink); }
+.career-emp__host { min-width: 0; overflow: hidden; color: var(--ink-2); font-size: var(--fs-12); text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Under the wall ──────────────────────────────────────────────────────────────────────────── */
+.career-opps__more { display: flex; justify-content: center; margin-top: var(--sp-24); }
+.career-opps__empty .ui-empty { padding-block: var(--sp-48); }
+.career-opps__note { margin-top: var(--sp-16); }
+.career-opps__more + .career-opps__note { margin-top: var(--sp-24); }
+
+@media (max-width: 699px) {
+  .career-featured { grid-template-columns: minmax(0, 1fr); gap: var(--sp-12); }
+  /* On a phone the tracks are one row you swipe, so the first employer is not pushed off the screen. */
+  .career-opps__tracks {
+    flex: none;
+    flex-wrap: nowrap;
+    width: calc(100% + 2 * var(--content-pad));
+    margin-inline: calc(var(--content-pad) * -1);
+    padding-inline: var(--content-pad);
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--content-pad);
   }
-  .career-opp { grid-template-areas: 'save main suits due ask'; align-items: center; padding-block: var(--sp-12); }
-  .career-opp__due { flex-direction: column; align-items: flex-start; }
-  .career-opp__ask { justify-self: end; }
+  .career-opps__tracks::-webkit-scrollbar { display: none; }
+  .career-opps__tracks .ui-chip { flex: none; scroll-snap-align: start; }
+  .career-emps > .career-emp { padding: var(--sp-16); }
 }

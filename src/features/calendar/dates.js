@@ -6,13 +6,13 @@ export const DAY_MS = 86400000;
 
 /** Weekday headers, Sunday first (the Bahraini week; v1 also started on Sunday). */
 export const WEEKDAYS = [
-  { short: 'Sun', long: 'Sunday' },
-  { short: 'Mon', long: 'Monday' },
-  { short: 'Tue', long: 'Tuesday' },
-  { short: 'Wed', long: 'Wednesday' },
-  { short: 'Thu', long: 'Thursday' },
-  { short: 'Fri', long: 'Friday' },
-  { short: 'Sat', long: 'Saturday' },
+  { short: 'Sun', long: 'Sunday', two: 'Su', one: 'S' },
+  { short: 'Mon', long: 'Monday', two: 'Mo', one: 'M' },
+  { short: 'Tue', long: 'Tuesday', two: 'Tu', one: 'T' },
+  { short: 'Wed', long: 'Wednesday', two: 'We', one: 'W' },
+  { short: 'Thu', long: 'Thursday', two: 'Th', one: 'T' },
+  { short: 'Fri', long: 'Friday', two: 'Fr', one: 'F' },
+  { short: 'Sat', long: 'Saturday', two: 'Sa', one: 'S' },
 ];
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -106,16 +106,70 @@ export function monthMatrix({ y, m }) {
 export const addDays = (date, n) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
 
 // ── Formatting (en-GB order, built by hand so no locale adds commas or 'Sept') ──────────────────
+// Every format a student sees carries the weekday: a date without its day of the week is not allowed
+// out of this file (the only exceptions are month titles and the bare day number of a date block,
+// which always sits under its weekday).
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /** 'Friday 23 October 2026' */
 export const formatLong = (date) => `${WEEKDAYS[date.getDay()].long} ${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+/** 'Friday 23 October' */
+export const formatLongDay = (date) => `${WEEKDAYS[date.getDay()].long} ${date.getDate()} ${MONTHS[date.getMonth()]}`;
 /** 'Fri 23 Oct' */
 export const formatShort = (date) => `${WEEKDAYS[date.getDay()].short} ${date.getDate()} ${MONTHS_SHORT[date.getMonth()]}`;
-/** '23 Oct' */
-export const formatDayMonth = (date) => `${date.getDate()} ${MONTHS_SHORT[date.getMonth()]}`;
-/** '23 October' */
-export const formatDayMonthLong = (date) => `${date.getDate()} ${MONTHS[date.getMonth()]}`;
-/** 'Fri' */
-export const formatWeekday = (date) => WEEKDAYS[date.getDay()].short;
+/** 'Fri 23 Oct 2026' */
+export const formatShortYear = (date) => `${formatShort(date)} ${date.getFullYear()}`;
+/** 'Oct' */
+export const formatMonthShort = (date) => MONTHS_SHORT[date.getMonth()];
+/** 'October' */
+export const formatMonthLong = (date) => MONTHS[date.getMonth()];
 /** 'October 2026' */
 export const formatMonthYear = (date) => `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+
+// ── Distances ───────────────────────────────────────────────────────────────────────────────────
+const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+/** A day count in weeks: 17 → '2 weeks and 3 days', 14 → '2 weeks'. Under a week → null (nothing to add). */
+export function weeksAndDays(days) {
+  if (days < 7) return null;
+  const w = Math.floor(days / 7);
+  const d = days % 7;
+  return d ? `${plural(w, 'week')} and ${plural(d, 'day')}` : plural(w, 'week');
+}
+
+/**
+ * The days from `from` (included) up to `to` (not included), split the Bahraini way: Sunday to
+ * Thursday are weekdays, Friday and Saturday the weekend. `weekends` counts whole weekends only.
+ * 6 Oct → 23 Oct 2026: { days: 17, weekdays: 13, weekendDays: 4, weekends: 2 }.
+ */
+export function daysBreakdown(from, to) {
+  const start = startOfDay(from);
+  const days = Math.max(0, daysUntil(to, start));
+  let weekdays = 0;
+  let weekendDays = 0;
+  let weekends = 0;
+  for (let i = 0; i < days; i += 1) {
+    const d = addDays(start, i);
+    if (!isWeekend(d)) weekdays += 1;
+    else {
+      weekendDays += 1;
+      if (d.getDay() === 6 && i > 0) weekends += 1; // a Saturday whose Friday is counted too
+    }
+  }
+  return { days, weekdays, weekendDays, weekends };
+}
+
+/** '13 weekdays and 2 weekends' (a split weekend is counted in days: '4 weekdays and 1 weekend day'). */
+export function breakdownLabel({ days, weekdays, weekendDays, weekends }) {
+  if (days < 2) return null;
+  const parts = [];
+  if (weekdays) parts.push(plural(weekdays, 'weekday'));
+  if (weekendDays) parts.push(weekendDays === weekends * 2 ? plural(weekends, 'weekend') : plural(weekendDays, 'weekend day'));
+  return parts.join(' and ');
+}
+
+/** The gap between two exams, `days` apart: 'Same day' · 'Back to back' · '4 days later'. */
+export function gapLabel(days) {
+  if (days <= 0) return 'Same day';
+  if (days === 1) return 'Back to back';
+  return `${days} days later`;
+}

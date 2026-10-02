@@ -11,7 +11,7 @@ import { CURRENT_USER, DUMMY_STUDENTS } from '../../data/people.js';
 import { cohortColor, useToast } from '../../state';
 import {
   Avatar, Badge, Button, Chip, CohortBadge, Divider, Drawer, EmptyState, Highlight, IconButton, Kbd, Menu, Modal,
-  ModuleIcon, Page, PageHeader, Panel, ProgressRing, HubMark, SearchField, SectionHeader, SegmentedControl, Select,
+  ModuleIcon, Page, PageHeader, Panel, ProgressRing, HubLogo, HubMark, SearchField, SectionHeader, SegmentedControl, Select,
   Skeleton, Sparkline, TabPanel, Tabs, TextArea, TextField, Tooltip, cx,
 } from '../../ui';
 import './StyleGuidePage.css';
@@ -85,7 +85,7 @@ const TYPE_SCALE = [
   [31, '--fs-31', 'Page title on mobile', 'Hypothesis tests', 'heading'],
   [25, '--fs-25', 'Section title (h2)', 'Coming up this week', 'heading'],
   [20, '--fs-20', 'Subsection, section header (h3)', 'Students’ notes', 'heading'],
-  [16, '--fs-16', 'Body', 'Notes for chapter 2 were added by Maryam S. and checked against the guide.', 'body'],
+  [16, '--fs-16', 'Body', 'Notes for chapter 2 were added by Mohamed A. and checked against the guide.', 'body'],
   [14, '--fs-14', 'UI text, secondary text', 'Updated 2h ago by Ali H.', 'body'],
   [12, '--fs-12', 'Meta and captions', '22 lessons, 2 chapters', 'body'],
 ];
@@ -347,12 +347,12 @@ export default function StyleGuidePage() {
           </Panel>
 
           {/* ── Brand ─────────────────────────────────────────────────── */}
-          <Section id="brand" title="Brand" description="The trace is the logo, the active-nav mark and the loader. The highlighter marks what is new or important.">
+          <Section id="brand" title="Brand" description="The trace marks the active page and is the loader. The logo is a file (data/brand.js): until it arrives, HubLogo sets the name as text. The highlighter marks what is new or important.">
             <div className="sg-grid sg-grid--2">
               <Specimen
                 title="HubMark"
-                note="size, animate, tone, tile, dot"
-                code={`<HubMark size={24} />\n<HubMark tile size={32} />\n<HubMark size={40} animate="draw" />   // once\n<HubMark size={22} animate="loop" />   // loader`}
+                note="size, animate, tone, dot"
+                code={`<HubMark size={24} />\n<HubMark size={40} animate="draw" />   // once\n<HubMark size={22} animate="loop" />   // loader\n<HubLogo variant="tile" size={32} />   // the logo slot`}
                 stageClassName="sg-stage--brand"
               >
                 <div className="sg-mark-row">
@@ -363,10 +363,10 @@ export default function StyleGuidePage() {
                   <span className="sg-mark-inverse"><HubMark size={24} tone="inverse" /></span>
                 </div>
                 <div className="sg-mark-row">
-                  <HubMark tile size={20} />
-                  <HubMark tile size={28} />
-                  <HubMark tile size={40} />
-                  <HubMark tile size={64} title="DSBA Hub" />
+                  <HubLogo variant="tile" size={20} decorative />
+                  <HubLogo variant="tile" size={28} decorative />
+                  <HubLogo variant="tile" size={40} decorative />
+                  <HubLogo variant="tile" size={64} />
                 </div>
                 <div className="sg-mark-row">
                   <HubMark key={drawKey} size={40} animate="draw" />
@@ -397,18 +397,11 @@ export default function StyleGuidePage() {
               </Specimen>
             </div>
 
-            <Specimen title="Lockup" note="Tile plus wordmark, Schibsted 800 at −0.025em" stageClassName="sg-stage--lockups">
-              <span className="sg-lockup sg-lockup--lg">
-                <HubMark tile size={48} />
-                <span>DSBA Hub</span>
-              </span>
-              <span className="sg-lockup">
-                <HubMark tile size={32} />
-                <span>DSBA Hub</span>
-              </span>
-              <span className="sg-lockup sg-lockup--navy">
-                <HubMark size={18} tone="inverse" />
-                <span>DSBA Hub</span>
+            <Specimen title="Lockup" note="HubLogo: the logo (data/brand.js) plus the name in Schibsted 800. Until the logo arrives, the name alone." stageClassName="sg-stage--lockups">
+              <HubLogo variant="lockup" size={48} />
+              <HubLogo variant="lockup" size={32} />
+              <span className="sg-lockup sg-lockup--navy" data-theme="dark">
+                <HubLogo variant="lockup" size={24} />
               </span>
             </Specimen>
           </Section>

@@ -102,13 +102,22 @@ export function toPlainText(src, { codeAs = null, imageAlt = false } = {}) {
     .trim();
 }
 
-/** First ~`max` characters of the plain text, cut at a word boundary. */
+const SEGMENTER = typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function' ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
+
+/** The text as user-perceived characters: an emoji, or an Arabic letter with its marks, is one unit and is never cut in half. */
+function graphemes(text) {
+  return SEGMENTER ? Array.from(SEGMENTER.segment(text), (s) => s.segment) : Array.from(text);
+}
+
+/** First ~`max` characters of the plain text, cut at a word boundary (and never inside an emoji or a letter's marks). */
 export function excerpt(src, max = 180) {
   const plain = toPlainText(src, { codeAs: '…' }).replace(/:\s*…\s*/g, ': … ');
-  if (plain.length <= max) return plain;
-  const cut = plain.slice(0, max);
+  const units = graphemes(plain);
+  if (units.length <= max) return plain;
+  const cut = units.slice(0, max).join('');
   const space = cut.lastIndexOf(' ');
-  return `${cut.slice(0, space > max * 0.6 ? space : max).replace(/[\s,.;:!?(–-]+$/, '')}…`;
+  // Trailing punctuation goes before the ellipsis: Latin and Arabic (، ؛ ؟) alike.
+  return `${(space > cut.length * 0.6 ? cut.slice(0, space) : cut).replace(/[\s,.;:!?(–\-،؛؟]+$/, '')}…`;
 }
 
 /** The first image in a post: { src, alt } or null. Thread rows show it as a small thumbnail. */

@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CaretRight, CheckCircle, ImageSquare, PaperPlaneRight, X } from '@phosphor-icons/react';
-import { YEARS, getModule, getModulesForYear, moduleLabel } from '../../data/modules.js';
+import { YEARS, getModule, getModuleByUnitCode, getModulesForYear, moduleLabel } from '../../data/modules.js';
 import { Button, Chip, IconButton, Kbd, Page, PageHeader, Select, TextField, cx, modKeyLabel } from '../../ui';
 import { useLocalStorage, useToast, useYear } from '../../state';
 import { CATEGORIES, MAX_TAGS, TAGS, categoryForYear, getCategory } from './data/taxonomy.js';
@@ -19,10 +19,18 @@ import './components/forum.css';
 import './ForumPage.css';
 import './NewThreadPage.css';
 
+/**
+ * Start a thread: #/forum/new. Presets in the URL (all optional, they can be combined):
+ *   ?category=year-1       where to post it (a category id: year-1, year-2, year-3, study-groups, general)
+ *   ?module=mathematics    the module, by id (or by unit code: ?module=MT1186); a year category that disagrees with the
+ *                          module's year follows the module
+ *   ?title=...             the title
+ *   ?attach=reduction-formula   the attached picture (see data/attachments.js)
+ */
 export default function NewThreadPage() {
   const [params] = useSearchParams();
-  // A new preset (?module= / ?title= / ?attach=) on the same route starts a fresh composer.
-  const presetKey = `${params.get('module') || ''}|${params.get('title') || ''}|${params.get('attach') || ''}`;
+  // A new preset on the same route starts a fresh composer.
+  const presetKey = ['category', 'module', 'title', 'attach'].map((k) => params.get(k) || '').join('|');
   return (
     <ForumProvider>
       <Composer key={presetKey} />
@@ -40,16 +48,26 @@ const TIPS = [
   'Use `backticks` for formulas and code.',
 ];
 
+/** The module for ?module=: an id ('mathematics') or a unit code ('MT1186', any case). */
+function presetModuleFor(value) {
+  if (!value) return null;
+  return getModule(value) || getModuleByUnitCode(String(value).toUpperCase());
+}
+
 /** `attachment` is the id of the attached picture (see data/attachments.js) or null. */
-function initialForm({ presetModule, presetTitle, presetAttach, draft, year }) {
-  const mod = getModule(presetModule);
+function initialForm({ presetCategory, presetModule, presetTitle, presetAttach, draft, year }) {
+  const mod = presetModuleFor(presetModule);
+  const cat = getCategory(presetCategory);
   const attached = getAttachment(presetAttach);
-  if (mod || presetTitle || attached) {
+  if (cat || mod || presetTitle || attached) {
+    // The category you asked for, unless it is a year that disagrees with the module (the module is the more specific
+    // choice, so the category follows its year). Without one: the module's year, then the year you are browsing.
+    const category = cat && !(cat.year && mod && cat.year !== mod.year) ? cat.id : categoryForYear(mod?.year ?? year) || 'general';
     return {
       title: presetTitle || '',
       body: '',
       moduleId: mod ? mod.id : '',
-      category: categoryForYear(mod?.year ?? year) || 'general',
+      category,
       tags: [],
       attachment: attached ? attached.id : null,
     };
@@ -73,7 +91,7 @@ function SimilarList({ threads }) {
     <ul role="list" className="forum-related">
       {threads.map((t) => (
         <li key={t.id} className="forum-related__item forum-new__match">
-          <Link to={`/forum/${t.id}`} className="forum-related__link">
+          <Link to={`/forum/${t.id}`} className="forum-related__link" dir="auto">
             {t.title}
           </Link>
           <span className="forum-related__meta">
@@ -95,7 +113,14 @@ function Composer() {
   const [params] = useSearchParams();
   const [draft, setDraft] = useLocalStorage(DRAFT_KEY, null);
   const [form, setForm] = useState(() =>
-    initialForm({ presetModule: params.get('module'), presetTitle: params.get('title'), presetAttach: params.get('attach'), draft, year }),
+    initialForm({
+      presetCategory: params.get('category'),
+      presetModule: params.get('module'),
+      presetTitle: params.get('title'),
+      presetAttach: params.get('attach'),
+      draft,
+      year,
+    }),
   );
   const [errors, setErrors] = useState({});
   const [restored, setRestored] = useState(Boolean(form.restored));
@@ -184,7 +209,7 @@ function Composer() {
     navigate('/forum');
   };
 
-  const me = getAuthor(ME_ID, year);
+  const me = getAuthor(ME_ID);
   const tagLimit = form.tags.length >= MAX_TAGS;
 
   return (
@@ -226,6 +251,7 @@ function Composer() {
             hint="One clear question. Mention the module code if there is one."
             error={errors.title}
             autoFocus
+            dir="auto"
             onChange={(e) => set({ title: e.target.value })}
             onKeyDown={(e) => {
               if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') submit(e);
@@ -254,8 +280,9 @@ function Composer() {
               error={errors.category}
               onChange={(e) => onCategory(e.target.value)}
               options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))}
+              data-hub="composer-category"
             />
-            <Select label="Module" value={form.moduleId} onChange={(e) => onModule(e.target.value)} hint="Optional">
+            <Select label="Module" value={form.moduleId} onChange={(e) => onModule(e.target.value)} hint="Optional" data-hub="composer-module">
               <option value="">No specific module</option>
               {YEARS.map((y) => (
                 <optgroup key={y} label={`Year ${y}`}>
@@ -293,7 +320,7 @@ function Composer() {
             placeholder="What have you tried so far? Where exactly do you get stuck?"
             rows={9}
             onSubmit={submit}
-            textareaProps={{ 'data-hub': 'composer-body' }}
+            textareaProps={{ 'data-hub': 'composer-body', dir: 'auto' }}
           />
 
           <div className="forum-composer__attach">
@@ -324,7 +351,7 @@ function Composer() {
               <AuthorAvatar author={me} size="sm" />
               <span>
                 Posting as <strong>{me.name}</strong>
-                {year ? `, Year ${year}` : ''}
+                {me.flair ? `, ${me.flair}` : ''}
               </span>
             </span>
             <span className="forum-composer__kbd" aria-hidden="true">

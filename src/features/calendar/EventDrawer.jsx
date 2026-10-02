@@ -2,7 +2,7 @@ import { CalendarPlus, DownloadSimple, LinkSimple } from '@phosphor-icons/react'
 import { Badge, Button, CohortBadge, cx, Drawer, Highlight, IconButton, ModuleIcon } from '../../ui';
 import { BREAKPOINTS, cohortLabel, useMediaQuery } from '../../state';
 import { getEventsForModule, EVENTS } from '../../data/calendar.js';
-import { countdownLabel, daysUntil, formatDayMonth, formatLong, formatMonthYear, parseKey, WEEKDAYS } from './dates.js';
+import { countdownLabel, daysUntil, formatLong, formatMonthYear, formatShort, formatShortYear, parseKey, WEEKDAYS } from './dates.js';
 import { eventModule, splitTitle, TYPE_BADGE_TONE, typeLabel } from './eventMeta.js';
 
 /**
@@ -124,7 +124,7 @@ function DrawerContent({ event, today, onOpen }) {
               return (
                 <li key={e.id} className={cx(current && 'is-current', d < today && 'is-past')}>
                   <button type="button" className="cal-drawer__row" onClick={() => onOpen(e)} aria-current={current ? 'true' : undefined} disabled={current}>
-                    <span className="cal-drawer__row-date u-tabular">{formatDayMonth(d)} {d.getFullYear()}</span>
+                    <span className="cal-drawer__row-date u-tabular">{d.getFullYear() === today.getFullYear() ? formatShort(d) : formatShortYear(d)}</span>
                     <span className={cx('cal-dot', `cal-dot--${e.type}`)} aria-hidden="true" />
                     <span className="cal-drawer__row-title">{splitTitle(e).rest}</span>
                   </button>

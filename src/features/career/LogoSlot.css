@@ -1,0 +1,56 @@
+/* Logo slot (career-logo). One fixed box for every mark, so wide wordmarks and square badges line up.
+   With a file: a white tile in both themes (logos are drawn for white paper), image contained and padded.
+   Without one: a quiet tinted tile with the organisation's initials, set like the unit codes elsewhere in the app. */
+
+.career-logo {
+  --logo-w: 176px;
+  --logo-h: 80px;
+  /* The one literal colour on this page: a logo tile stays white in the dark theme too. */
+  --logo-paper: #fff;
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--logo-w);
+  height: var(--logo-h);
+  border-radius: 12px;
+  background: var(--logo-paper);
+  box-shadow: inset 0 0 0 1px var(--line);
+  overflow: hidden;
+  user-select: none;
+}
+.career-logo--sm { --logo-w: 104px; --logo-h: 48px; border-radius: 10px; }
+
+.career-logo__img {
+  /* Out of the grid's flow: as a grid item a tall mark stretches the auto row past the tile and gets cut off. */
+  position: absolute;
+  inset: 0;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px;
+  object-fit: contain;
+  object-position: center;
+}
+.career-logo--sm .career-logo__img { padding: 7px 10px; }
+/* Nothing shows until the file has loaded, so there is never a broken-image icon. */
+.career-logo.is-loading .career-logo__img { opacity: 0; }
+
+/* The fallback: initials on a tint of the page's own ink. */
+.career-logo.is-missing {
+  background: color-mix(in srgb, var(--cobalt) 7%, var(--surface-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cobalt) 12%, var(--line));
+}
+.career-logo__mono {
+  color: var(--ink);
+  font-size: 1.375rem;
+  font-weight: var(--fw-heavy);
+  font-variant-numeric: lining-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.career-logo__mono[data-length='3'] { font-size: 1.25rem; letter-spacing: -0.01em; }
+.career-logo__mono[data-length='4'] { font-size: 1.125rem; letter-spacing: 0; }
+.career-logo--sm .career-logo__mono { font-size: 1.125rem; }
+.career-logo--sm .career-logo__mono[data-length='4'] { font-size: 1rem; }

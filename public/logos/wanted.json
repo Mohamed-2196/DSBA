@@ -1,0 +1,200 @@
+[
+  {
+    "kind": "employer",
+    "id": "nbb",
+    "name": "National Bank of Bahrain",
+    "file": "employers/nbb.png"
+  },
+  {
+    "kind": "employer",
+    "id": "citi",
+    "name": "Citi",
+    "file": "employers/citi.png"
+  },
+  {
+    "kind": "employer",
+    "id": "investcorp",
+    "name": "Investcorp",
+    "file": "employers/investcorp.png"
+  },
+  {
+    "kind": "employer",
+    "id": "cbb",
+    "name": "Central Bank of Bahrain",
+    "file": "employers/cbb.png"
+  },
+  {
+    "kind": "employer",
+    "id": "pwc",
+    "name": "PwC Middle East",
+    "file": "employers/pwc.png"
+  },
+  {
+    "kind": "employer",
+    "id": "stc-bahrain",
+    "name": "stc Bahrain",
+    "file": "employers/stc-bahrain.png"
+  },
+  {
+    "kind": "employer",
+    "id": "mumtalakat",
+    "name": "Mumtalakat",
+    "file": "employers/mumtalakat.png"
+  },
+  {
+    "kind": "employer",
+    "id": "bapco-energies",
+    "name": "Bapco Energies",
+    "file": "employers/bapco-energies.png"
+  },
+  {
+    "kind": "employer",
+    "id": "sico",
+    "name": "SICO",
+    "file": "employers/sico.png"
+  },
+  {
+    "kind": "employer",
+    "id": "kpmg",
+    "name": "KPMG in Bahrain",
+    "file": "employers/kpmg.png"
+  },
+  {
+    "kind": "employer",
+    "id": "bahrain-bourse",
+    "name": "Bahrain Bourse",
+    "file": "employers/bahrain-bourse.png"
+  },
+  {
+    "kind": "employer",
+    "id": "benefit",
+    "name": "BENEFIT",
+    "file": "employers/benefit.png"
+  },
+  {
+    "kind": "employer",
+    "id": "gib",
+    "name": "Gulf International Bank",
+    "file": "employers/gib.png"
+  },
+  {
+    "kind": "employer",
+    "id": "deloitte",
+    "name": "Deloitte Middle East",
+    "file": "employers/deloitte.png"
+  },
+  {
+    "kind": "employer",
+    "id": "bahrain-edb",
+    "name": "Bahrain EDB",
+    "file": "employers/bahrain-edb.png"
+  },
+  {
+    "kind": "employer",
+    "id": "batelco",
+    "name": "Batelco",
+    "file": "employers/batelco.png"
+  },
+  {
+    "kind": "employer",
+    "id": "ey",
+    "name": "EY",
+    "file": "employers/ey.png"
+  },
+  {
+    "kind": "employer",
+    "id": "mckinsey",
+    "name": "McKinsey & Company",
+    "file": "employers/mckinsey.png"
+  },
+  {
+    "kind": "employer",
+    "id": "aws",
+    "name": "Amazon Web Services",
+    "file": "employers/aws.png"
+  },
+  {
+    "kind": "employer",
+    "id": "zain-bahrain",
+    "name": "Zain Bahrain",
+    "file": "employers/zain-bahrain.png"
+  },
+  {
+    "kind": "employer",
+    "id": "al-salam-bank",
+    "name": "Al Salam Bank",
+    "file": "employers/al-salam-bank.png"
+  },
+  {
+    "kind": "employer",
+    "id": "kfh-bahrain",
+    "name": "Kuwait Finance House Bahrain",
+    "file": "employers/kfh-bahrain.png"
+  },
+  {
+    "kind": "employer",
+    "id": "bisb",
+    "name": "Bahrain Islamic Bank",
+    "file": "employers/bisb.png"
+  },
+  {
+    "kind": "employer",
+    "id": "bank-abc",
+    "name": "Bank ABC",
+    "file": "employers/bank-abc.png"
+  },
+  {
+    "kind": "employer",
+    "id": "bbk",
+    "name": "BBK",
+    "file": "employers/bbk.png"
+  },
+  {
+    "kind": "employer",
+    "id": "alba",
+    "name": "Alba",
+    "file": "employers/alba.png"
+  },
+  {
+    "kind": "cert",
+    "id": "cfa",
+    "name": "CFA Institute: CFA Program, Level I",
+    "file": "certs/cfa.png"
+  },
+  {
+    "kind": "cert",
+    "id": "frm",
+    "name": "GARP: FRM (Financial Risk Manager)",
+    "file": "certs/frm.png"
+  },
+  {
+    "kind": "cert",
+    "id": "pl300",
+    "name": "Microsoft: Power BI Data Analyst (PL-300)",
+    "file": "certs/pl300.png"
+  },
+  {
+    "kind": "cert",
+    "id": "aws-ccp",
+    "name": "Amazon Web Services: AWS Certified Cloud Practitioner",
+    "file": "certs/aws-ccp.png"
+  },
+  {
+    "kind": "cert",
+    "id": "google-da",
+    "name": "Google: Google Data Analytics Certificate",
+    "file": "certs/google-da.png"
+  },
+  {
+    "kind": "cert",
+    "id": "tableau",
+    "name": "Tableau, part of Salesforce: Tableau certification",
+    "file": "certs/tableau.png"
+  },
+  {
+    "kind": "cert",
+    "id": "bmc",
+    "name": "Bloomberg: Bloomberg Market Concepts (BMC)",
+    "file": "certs/bmc.png"
+  }
+]
