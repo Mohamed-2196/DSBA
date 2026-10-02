@@ -55,11 +55,11 @@ BDAY_PHRASES = [round(BDAY_PICKUP + b * bday_beat, 4) for b in (0, 6, 12, 18)]
 # ------------------------------------------------------------------ scenes
 SCENES = [
     # id, start, end, act, short description
-    ("s02_chaos",       0.0,  10.0, 1, "Opens on notifications piling up (Outlook, Gmail, SMS, WhatsApp, LSE, MyClass, UoL): it is overwhelming. Freeze at 8.0, implode 9.1-10."),
+    ("s02_chaos",       0.0,  10.0, 1, "Opens on a browser with three portal tabs (MyClass, LSE VLE, UoL); then emails (from UoL, LSE, BIBF), BIBF texts and WhatsApp groups pile up on top: it is overwhelming. Freeze at 8.0, implode 9.1-10."),
     ("s03_logo",       10.0,  18.0, 1, "DROP. DSBA Hub: 'Here to help you through it.' + subline + 5 pills."),
     ("s04_newsletter", 18.0,  28.0, 1, "Feature 1 - the newsletter in a 3D browser frame: CFA Research Challenge, Student Council, Speech Day, the launch."),
-    ("s05_forum",      28.0,  40.0, 1, "Feature 2 - Forum: the list (with Arabic threads); 'What is this, am I cooked?' is typed and posted in Year 1 Mathematical Methods; Nasser replies; easter egg."),
-    ("s06_everything", 40.0,  58.0, 1, "Montage: library, lessons, Career Navigator (scrolls), calendar, grades, search; cohorts network; 'Built by students.'"),
+    ("s05_forum",      28.0,  40.0, 1, "Feature 2 - Forum: the list; 'What is this, am I cooked?' is typed and posted in Year 1 Mathematical Methods; Nasser replies; easter egg."),
+    ("s06_everything", 40.0,  58.0, 1, "Montage: library, lessons, Career Navigator (scrolls), the calendar that keeps track of everything, grades, search; cohorts network; 'Built by students.'"),
     ("s07_launch",     58.0,  64.0, 1, "'Launching today' + LAUNCH button + 3/2/1 countdown + click at 63.85."),
     ("g1_glitch",      64.0,  68.0, 2, "Glitch #1: freeze, corruption, error windows, static, black."),
     ("s08_birthday",   68.0,  84.5, 2, "4.4 s of darkness: a collar bell, two eyes, blinks. Lights on: Noor's cat in a party hat, 'Happy Birthday, Noor'."),
@@ -73,13 +73,21 @@ SCENES = [
 S = {s[0].split("_")[0]: (s[1], s[2]) for s in SCENES}
 
 # ------------------------------------------------------------ act 1 details
-# The seven places the notifications come from, in this order (pops[].src indexes this list).
-SOURCES = ["Outlook", "Gmail", "SMS", "LSE VLE", "MyClass", "UoL portal", "WhatsApp"]
+# The film opens on a browser with three portals open in tabs (the student's own MyClass, LSE VLE and
+# UoL portal); `t` is when each tab is clicked. Then the notifications arrive on top.
+TABS = [
+    {"id": "myclass", "title": "MyClass", "t": 0.0},
+    {"id": "lse-vle", "title": "LSE VLE", "t": 1.3},
+    {"id": "uol", "title": "UoL portal", "t": 2.3},
+]
+# Where the notifications come from, in this order (pops[].src indexes this list). Emails come from
+# UoL, LSE and BIBF (never from students); SMS is BIBF only; WhatsApp is a mix of BIBF and students.
+SOURCES = ["Outlook", "Gmail", "SMS", "WhatsApp"]
 
-# Notification pops, accelerating from 0.3 to the freeze at 8.0 (each gets an SFX ping).
+# Notification pops, accelerating from 2.9 to the freeze at 8.0 (each gets an SFX ping).
 rng = random.Random(2026)
 pops = []
-t, dt = 0.3, 0.5
+t, dt = 2.9, 0.42
 while t < 7.95:
     pops.append({
         "t": round(t, 3),
@@ -89,20 +97,20 @@ while t < 7.95:
         "y": round(rng.uniform(0.06, 0.86), 3),  # (fraction of H, top edge)
         "rot": round(rng.uniform(-7, 7), 1),
     })
-    dt = max(0.075, dt * 0.88)
+    dt = max(0.062, dt * 0.87)
     t += dt
 # which place each pop comes from (WhatsApp is the noisiest)
 rng_src = random.Random(7)
-SRC_WEIGHTS = [3, 2, 2, 2, 2, 2, 7]
+SRC_WEIGHTS = [4, 3, 2, 6]
 for i, p in enumerate(pops):
-    p["src"] = i if i < 7 else rng_src.choices(range(7), weights=SRC_WEIGHTS)[0]
+    p["src"] = i if i < len(SOURCES) else rng_src.choices(range(len(SOURCES)), weights=SRC_WEIGHTS)[0]
 
 CHAOS_CAPTIONS = [
-    (2.8, "Another email."),
-    (4.3, "Another group chat."),
-    (5.6, "Another portal."),
-    (6.8, "And another."),
+    (TABS[1]["t"], "Another portal."),
+    (3.0, "Another email."),          # the first email card lands at 2.9
+    (5.2, "Another group chat."),
 ]
+CHAOS_CAPTIONS_END = 6.8     # the last second before the freeze has no caption: just the pile
 CHAOS_FREEZE = 8.0
 CHAOS_CALM = "It’s overwhelming."
 CHAOS_IMPLODE = [9.1, 10.0]
@@ -133,11 +141,10 @@ for i in range(1, 161):
 FORUM = {
     "start": a5, "threads_in": a5 + 1.0, "composer_open": a5 + 4.6,
     "typed_text": FORUM_TYPED_TEXT, "typing": forum_typing,
-    "post_click": a5 + 7.2, "post_appears": a5 + 7.3, "replies": [a5 + 7.8, a5 + 10.0],   # Nasser's long reply gets ~4 s alone
+    "post_click": a5 + 7.2, "post_appears": a5 + 7.3, "replies": [a5 + 7.8],   # only Nasser replies; his card holds ~4 s
     "reply_cards": [
         {"name": "Nasser", "flair": "not Student Council President",
          "text": "You’re cooked if you don’t know integration by parts. Just apply it and you’ll get the answer."},
-        {"name": "Zainab K.", "year": 2, "text": "True."},
     ],
     "easter_egg": {"start": EGG_T0, "end": EGG_T1, "votes": 160, "ticks": upvote_ticks},
 }
@@ -148,7 +155,7 @@ MONTAGE = [
     {"t": a6 + 0.0,  "id": "library",  "caption": "Every file, inside the app."},
     {"t": a6 + 2.0,  "id": "lessons",  "caption": "Every lecture, one click away."},
     {"t": a6 + 4.0,  "id": "career",   "caption": "Plan what comes next."},
-    {"t": a6 + 8.0,  "id": "calendar", "caption": "Every exam, to the day."},
+    {"t": a6 + 8.0,  "id": "calendar", "caption": "Keep track of everything."},
     {"t": a6 + 10.0, "id": "grades",   "caption": "Your classification, live."},
     {"t": a6 + 11.5, "id": "search",   "caption": "Find anything."},
     {"t": a6 + 13.0, "id": "network",  "caption": "Three cohorts, finally connected."},
@@ -290,6 +297,8 @@ for p in pops:
     add(p["t"], "notif_ping", tone=p["tone"], pan=p["pan"])
 for t_, _ in CHAOS_CAPTIONS:
     add(t_, "soft_tick")
+for tab in TABS[1:]:
+    add(tab["t"], "ui_click")              # switching to the next portal tab
 add(CHAOS_FREEZE, "hard_stop")              # music + everything cuts (tape-stop 0.25s)
 add(CHAOS_IMPLODE[0], "reverse_riser", dur=round(CHAOS_IMPLODE[1] - CHAOS_IMPLODE[0], 3))  # sucks into the drop
 add(ACT1_DROP, "impact_drop")
@@ -370,7 +379,8 @@ cues = {
                     "climax": NETWORK["formed"], "final_chord": f0 + 4.0, "end": DURATION},
     },
     "scenes": [{"id": s[0], "start": s[1], "end": s[2], "act": s[3], "desc": s[4]} for s in SCENES],
-    "chaos": {"sources": SOURCES, "pops": pops, "captions": [{"t": a, "text": b} for a, b in CHAOS_CAPTIONS],
+    "chaos": {"tabs": TABS, "sources": SOURCES, "pops": pops, "captions": [{"t": a, "text": b} for a, b in CHAOS_CAPTIONS],
+              "captions_end": CHAOS_CAPTIONS_END,
               "freeze": CHAOS_FREEZE, "calm": CHAOS_CALM, "implode": CHAOS_IMPLODE},
     "logo": {"intro": ACT1_DROP, "drop": ACT1_DROP, "tagline": ACT1_DROP + 2.0, "subline": ACT1_DROP + 3.1,
              "pills": ACT1_DROP + 4.0, "pill_step": 0.42,

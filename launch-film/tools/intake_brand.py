@@ -96,3 +96,22 @@ for name in ('outlook', 'gmail', 'lse', 'whatsapp'):
     im = fit(trim(Image.open(SRC[name])), 512)
     im.save(FILM / 'logos' / f'{name}.png', optimize=True)
     print(name, im.size)
+
+# ── 4. Mohamed's own portal screenshots for the opening's three browser tabs (MyClass, LSE VLE, UoL).
+#       Teachers' names and photos on the MyClass course cards and his student number on the UoL
+#       portal are blurred: the film names no individual teacher and shows no ID numbers.
+from PIL import ImageFilter
+
+PORTALS = {
+    'myclass': (UP / '961c59a7-image.jpg', [(172, 708, 524, 752), (568, 708, 904, 752), (172, 1196, 524, 1240), (568, 1196, 904, 1240)]),
+    'lse-vle': (UP / 'c11362a2-image.jpg', []),
+    'uol': (UP / 'a4247b92-image.jpg', [(736, 40, 858, 76)]),
+}
+(FILM / 'portals').mkdir(parents=True, exist_ok=True)
+for name, (src, boxes) in PORTALS.items():
+    im = Image.open(src).convert('RGB')
+    for box in boxes:
+        patch = im.crop(box).filter(ImageFilter.GaussianBlur(9))
+        im.paste(patch, box[:2])
+    im.save(FILM / 'portals' / f'{name}.png', optimize=True)
+    print('portal', name, im.size, len(boxes), 'blurred regions')

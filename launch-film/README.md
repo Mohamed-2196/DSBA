@@ -6,8 +6,8 @@ cat, then crashes again into the real reason for the event: Teacher's Day.
 
 | time | what happens |
 |---|---|
-| 0:00–0:10 | Notifications pile up (Outlook, Gmail, SMS, WhatsApp, LSE VLE, MyClass, UoL portal): "It's overwhelming." |
-| 0:10–1:04 | DSBA Hub, "Here to help you through it."; newsletter, forum (the "am I cooked?" thread, Nasser's reply, the Arabic threads), library, lessons, Career Navigator, calendar, grades, search, the cohort network, 3-2-1 |
+| 0:00–0:10 | A browser with three portals open in tabs (MyClass, LSE VLE, UoL portal); then emails from UoL, LSE and BIBF, BIBF texts and WhatsApp groups pile up on top: "It's overwhelming." |
+| 0:10–1:04 | DSBA Hub, "Here to help you through it."; newsletter, forum (the "am I cooked?" thread and Nasser's reply), library, lessons, Career Navigator, the calendar that keeps track of everything, grades, search, the cohort network, 3-2-1 |
 | 1:04–1:08 | Glitch 1: the launch crashes, error windows |
 | 1:08–1:24 | 4.4 s of darkness, a collar bell, two eyes that look around and blink; lights on: Noor's cat in a party hat, "Happy Birthday, Noor" |
 | 1:24–1:31 | Glitch 2: the song is cut on the last "you"; terminal: expected Noor's birthday, found Teacher's Day; 1.5 s of silence |
@@ -16,8 +16,9 @@ cat, then crashes again into the real reason for the event: Teacher's Day.
 
 ## Supplied artwork
 `tools/intake_brand.py` places what the student rep supplied: his DSBA wordmark (blue and white twins plus a
-square tile cut from its "D"), the newsletter cover illustration, and the official Outlook, Gmail, LSE and
-WhatsApp logos for the opening (`assets/logos/`). The film never draws or imitates a third-party logo: without
+square tile cut from its "D"), the newsletter cover illustration, the official Outlook, Gmail, LSE and
+WhatsApp logos for the opening (`assets/logos/`), and his own screenshots of the three portals for the
+opening's browser tabs (`assets/portals/`; teachers' names and his student number are blurred there). The film never draws or imitates a third-party logo: without
 a file, a notification falls back to a neutral glyph (SMS has no file on purpose).
 The Career Navigator's employer and certificate logos live in the app (`public/logos/`, see its README).
 

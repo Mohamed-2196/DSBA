@@ -10,65 +10,132 @@ const NEWS = '/dsba/public/demo/news';
 const LOGOS = new URL('../assets/logos/', import.meta.url).href;
 
 // ───────────────────────────────────────────────────────── s02 the pile-up (the film opens here)
-// One entry per cues.chaos.sources item, in the same order (pops[].src indexes both); the app name
-// on the card is the cue's source name.
-//   logo  a file the student rep supplies in assets/logos/. It is shown as the app icon when it is
-//         there. Third-party logos are never drawn, recreated or approximated in this film.
-//   img   a logo file we already hold
+// The film opens on a browser with the three portals a student keeps open, one per tab
+// (cues.chaos.tabs: the cursor clicks through them). Then the notifications land on top of it:
+// email, texts and WhatsApp.
+//
+// The pages are 1080 px wide captures of the student rep's own portals (already blurred where they
+// need to be): assets/portals/<tab id>.png, shown 1:1 from the top. The tab icons are supplied
+// files too; `file` ones live in assets/logos/ and a tab simply has no icon while its file is not
+// there. Third-party logos are never drawn, recreated or approximated in this film.
+const PORTALS = '../assets/portals';
+const TAB_LOGO = { myclass: { src: `${BRAND}/myclass.png` }, 'lse-vle': { file: 'lse.png' }, uol: { src: `${BRAND}/uol.png` } };
+
+// The notifications. One entry per cues.chaos.sources item, in the same order (pops[].src indexes
+// both); the app name on the card is the cue's source name.
+//   logo  the app icon: a file the student rep supplies in assets/logos/, shown when it is there
 //   ic, col  the neutral stand-in while no file exists: an emoji on a plain tile, in colours that
 //         are deliberately not the brand's own
-//   who   the sender in bold; a message can name its own as [who, text]; WhatsApp uses GROUPS
+//   msgs  [sender in bold, message], used in order and then round again; `pick` computes the nth
+// Email only ever comes from the three institutions and texts only from BIBF. WhatsApp is a mix.
+const UOL = 'University of London';
+const LSE = 'LSE';
+const BIBF = 'BIBF';
+// every third WhatsApp card is the group BIBF runs; the others are the students' own groups
+const WA_BIBF = { group: 'DSBA Announcement', msgs: ['BIBF: Please check your email', 'BIBF: Tomorrow’s class is cancelled', 'BIBF: Timetable updated, see MyClass'] };
+const WA_GROUPS = ['DSBA Year 3', 'DSBA Men', 'The Boys', 'ST2133 · Group B', 'DSBA Year 2', 'EC2020 study group', 'DSBA Year 1', 'MN1178 · Group 4', 'Stats revision'];
+const WA_CHAT = ['which email was it in??', 'link expired, resend pls', 'is it on the VLE or MyClass?', 'who has the past papers 🙏', 'scroll up, it was answered', 'check the other group', 'wrong group, sorry', 'did anyone get the email?', 'anyone have the notes?', 'forwarded many times', 'what chapter are we on', 'is class cancelled?', '+1', 'same question'];
+const whatsapp = (n) => {
+  if (n % 3 === 0) return [WA_BIBF.group, WA_BIBF.msgs[(n / 3) % WA_BIBF.msgs.length]];
+  const k = n - Math.floor(n / 3) - 1;          // 0, 1, 2 … over the student cards
+  return [WA_GROUPS[k % WA_GROUPS.length], WA_CHAT[k % WA_CHAT.length]];
+};
 const SRC = [
-  { logo: 'outlook.png', ic: '✉️', col: '#e8590c', who: 'BIBF email',
-    msgs: ['Timetable update (v3)', 'Room change for Thursday', 'Reminder: registration closes soon', 'Fwd: Fwd: exam arrangements', 'Advisory session this week'] },
-  { logo: 'gmail.png', ic: '✉️', col: '#5b6f94', who: 'A classmate',
-    msgs: ['Shared with you: Notes_FINAL(2).pdf', 'Fwd: Timetable update (v3)', 'Fwd: notes from last year', ['BIBF', 'Your fee receipt']] },
-  { logo: 'sms.png', ic: '💬', col: '#7048e8', who: 'BIBF',
-    msgs: ['Today’s 4:00 PM class has moved to Room 204', 'Reminder: registration closes tomorrow', 'Tomorrow’s class is cancelled', 'Your attendance has been updated'] },
-  { logo: 'lse.png', ic: '🎓', col: '#0c8599', who: 'LSE',
-    msgs: [['Statistical inference', 'New announcement in ST2134'], ['Distribution theory', 'Assignment brief uploaded'], ['Elements of econometrics', 'Past examination papers updated'], ['Business analytics', 'New forum post: mock solutions']] },
-  { img: `${BRAND}/myclass.png`, who: 'BIBF',
-    msgs: ['New material in Statistics', 'Session recording available', 'Attendance updated'] },
-  { img: `${BRAND}/uol.png`, who: 'University of London',
-    msgs: ['Exam entry is now open', 'Action needed: confirm your modules', 'Please sign in again'] },
-  { logo: 'whatsapp.png', ic: '💬', col: '#1558f0',
-    msgs: ['which email was it in??', 'link expired, resend pls', 'is it on the VLE or MyClass?', 'who has the past papers 🙏', 'scroll up, it was answered', 'check the other group', 'wrong group, sorry', 'did anyone get the email?', 'anyone have the notes?', 'forwarded many times', 'what chapter are we on', 'is class cancelled?', '+1', 'same question'] },
+  { logo: 'outlook.png', ic: '✉️', col: '#e8590c',
+    msgs: [[UOL, 'Exam entry is now open'], [BIBF, 'Timetable update (v3)'], [LSE, 'Assignment brief uploaded'], [BIBF, 'Room change for Thursday'], [UOL, 'Action needed: confirm your modules'], [LSE, 'Past examination papers updated'], [BIBF, 'Reminder: registration closes soon'], [UOL, 'Your assessment timetable is available'], [BIBF, 'Advisory session this week'], [LSE, 'New announcement in ST2134'], [UOL, 'Registration reminder'], [BIBF, 'Your fee receipt'], [LSE, 'VLE: new forum post in ST2133']] },
+  { logo: 'gmail.png', ic: '✉️', col: '#5b6f94',
+    msgs: [[LSE, 'New announcement in ST2134'], [UOL, 'Your assessment timetable is available'], [BIBF, 'Advisory session this week'], [LSE, 'Past examination papers updated'], [BIBF, 'Timetable update (v3)'], [UOL, 'Registration reminder'], [LSE, 'VLE: new forum post in ST2133'], [BIBF, 'Your fee receipt'], [UOL, 'Exam entry is now open'], [LSE, 'Assignment brief uploaded'], [BIBF, 'Room change for Thursday'], [UOL, 'Action needed: confirm your modules'], [BIBF, 'Reminder: registration closes soon']] },
+  { logo: 'sms.png', ic: '💬', col: '#7048e8',
+    msgs: [[BIBF, 'Today’s 4:00 PM class has moved to Room 204'], [BIBF, 'Reminder: registration closes tomorrow'], [BIBF, 'Tomorrow’s class is cancelled'], [BIBF, 'Your attendance has been updated']] },
+  { logo: 'whatsapp.png', ic: '💬', col: '#1558f0', pick: whatsapp },
 ];
-const GROUPS = ['DSBA Year 3', 'DSBA Men', 'The Boys', 'DSBA Announcement', 'ST2133 · Group B', 'DSBA Year 2', 'EC2020 study group', 'DSBA Year 1', 'MN1178 · Group 4', 'Stats revision'];
-const LOGO_FILES = SRC.map((s) => s.logo).filter(Boolean);
+const LOGO_FILES = [...SRC.map((s) => s.logo), ...Object.values(TAB_LOGO).map((l) => l.file)].filter(Boolean);
 
-// The first seven notifications (one per source) open the film, so they are placed by hand: large,
-// fully inside the frame, and clear of the middle strip where the captions land. left/top in px,
-// k = size relative to the 400 px cards of the pile. Every later pop uses cues.chaos.pops[].x/y/rot.
+// The first four notifications (one per source: Outlook from University of London, Gmail from LSE,
+// a text from BIBF, WhatsApp from the BIBF group) are placed by hand: large, fully inside the frame,
+// over the left and right edges of the browser (not its middle) and clear of the caption strip.
+// left/top in px, k = size relative to the 400 px cards of the pile. Every later pop uses
+// cues.chaos.pops[].x/y/rot.
 const HERO = [
-  { left: 630, top: 104, k: 1.64, rot: -1.2 },   // Outlook: top centre, like a banner dropping in
-  { left: 104, top: 704, k: 1.5, rot: 1.8 },     // Gmail
-  { left: 1216, top: 688, k: 1.5, rot: -1.6 },   // SMS
-  { left: 96, top: 158, k: 1.3, rot: -2.4 },     // LSE VLE
-  { left: 720, top: 660, k: 1.2, rot: 1.4 },     // MyClass
-  { left: 726, top: 826, k: 1.2, rot: -1.4 },    // UoL portal
-  { left: 1296, top: 172, k: 1.3, rot: 2.0 },    // WhatsApp (a corner: the pile reaches the corners last)
+  { left: 96, top: 150, k: 1.56, rot: -1.6 },    // Outlook
+  { left: 1216, top: 470, k: 1.5, rot: 1.6 },    // Gmail
+  { left: 110, top: 560, k: 1.5, rot: 1.8 },     // SMS
+  { left: 1250, top: 172, k: 1.4, rot: -2.0 },   // WhatsApp (under the unread count)
 ];
 const BUB_W = 400;       // .bub is 400 px wide at k = 1 (film.css sizes the card in em)
 const BUB_FONT = 22;
 
 function s02({ tl, cues, stage, S, logos }) {
   const { start, end } = S('s02');
-  const { pops, sources, captions, freeze, implode } = cues.chaos;
+  const { tabs, pops, sources, captions, freeze, implode } = cues.chaos;
+  const capsEnd = cues.chaos.captions_end ?? freeze;      // the last caption leaves here
+  const tPile = pops[0].t;                                 // the first notification lands
   const root = scene(stage, 's02', start, end);
-  root.innerHTML = `<div class="bg-grid"></div><div class="bubs"></div><div class="band"></div><div class="unread"><i></i><span></span></div><div class="vignette"></div><div class="dot"></div>`;
+  root.innerHTML = `<div class="bg-grid"></div>
+    <div class="bw bw--tabs"><div class="bw__tabbar"><div class="bw__dots"><i></i><i></i><i></i></div></div><div class="bw__pages"></div><div class="bw__dim"></div></div>
+    <div class="bubs"></div><div class="band"></div><div class="unread"><i></i><span></span></div><div class="vignette"></div><div class="dot"></div>`;
+
+  // the browser: three window dots, a tab per portal (no address bar), the page of the active tab
+  const win = root.querySelector('.bw--tabs');
+  const bar = win.querySelector('.bw__tabbar');
+  const view = win.querySelector('.bw__pages');
+  const dim = win.querySelector('.bw__dim');
+  const tabEls = [];
+  const pages = [];
+  tabs.forEach((tab) => {
+    const logo = TAB_LOGO[tab.id] || {};
+    const src = logo.src || (logos.includes(logo.file) ? LOGOS + logo.file : null);
+    const te = el('div', 'tab', `${src ? `<span class="tab__ic"><img decoding="sync" alt="" src="${src}"></span>` : ''}<b>${tab.title}</b>`);
+    bar.appendChild(te);
+    tabEls.push(te);
+    const page = el('img', 'bw__page');
+    page.decoding = 'sync';
+    page.alt = '';
+    page.src = `${PORTALS}/${tab.id}.png`;
+    view.appendChild(page);
+    pages.push(page);
+  });
+  onFrame((t) => {
+    if (t < start || t >= end) return;
+    let k = 0;
+    tabs.forEach((tab, i) => { if (t >= tab.t) k = i; });
+    // switching tabs is a hard swap: the new page starts a few pixels high and settles within three frames
+    const lift = k ? Math.round(12 * (1 - ease.out5(prog(t, tabs[k].t, tabs[k].t + 0.2)))) : 0;
+    tabEls.forEach((te, i) => te.classList.toggle('is-on', i === k));
+    pages.forEach((pg, i) => {
+      pg.style.visibility = i === k ? 'inherit' : 'hidden';
+      pg.style.transform = i === k && lift ? `translateY(${-lift}px)` : 'none';
+    });
+    // at the freeze the browser drains of colour with the pile
+    win.style.filter = t >= freeze ? `grayscale(${ease.out3(prog(t, freeze, freeze + 0.16)).toFixed(3)})` : 'none';
+  });
+  // the cursor clicks through the tabs at their cue times (window pixels; the arrow's tip is at 4, 2)
+  const cur = cursor(win);
+  gsap.set(cur.el, { x: 596, y: 452, autoAlpha: 1 });
+  tabs.slice(1).forEach((tab, i) => {
+    const te = tabEls[i + 1];
+    // it lands on the tab past its title, so the arrow never covers the name
+    cur.move(tl, te.offsetLeft + te.offsetWidth * 0.86 - 4, te.offsetTop + te.offsetHeight * 0.56 - 2, tab.t - 0.62, 0.5);
+    cur.click(tl, tab.t);
+  });
+  cur.move(tl, 664, 318, tabs[tabs.length - 1].t + 0.14, 0.42);
+  // From the first notification the browser recedes (smaller, dimmed) so the cards and the captions
+  // read on top of it; it stays under the pile, greys at the freeze and goes into the dot with the cards.
+  tl.to(win, { scale: 0.92, duration: 0.6, ease: 'power3.out' }, tPile - 0.04);
+  tl.to(dim, { opacity: 0.66, duration: 0.5, ease: 'power2.out' }, tPile - 0.04);
+  tl.to(dim, { opacity: 0.78, duration: 0.16, ease: 'power2.out' }, freeze);
+  tl.to(win, { x: 960 - (win.offsetLeft + win.offsetWidth / 2), y: 540 - (win.offsetTop + win.offsetHeight / 2), scale: 0, rotation: -7, duration: 0.64, ease: 'power3.in' }, implode[0] + 0.03);
+
   const layer = root.querySelector('.bubs');
-  const tile = (s) => {
-    const src = s.img || (logos.includes(s.logo) ? LOGOS + s.logo : null);
-    return src ? `<div class="bub__ic bub__ic--logo"><img decoding="sync" alt="" src="${src}"></div>` : `<div class="bub__ic" style="background:${s.col}"><b>${s.ic}</b></div>`;
-  };
+  const tile = (s) => (logos.includes(s.logo)
+    ? `<div class="bub__ic bub__ic--logo"><img decoding="sync" alt="" src="${LOGOS + s.logo}"></div>`
+    : `<div class="bub__ic" style="background:${s.col}"><b>${s.ic}</b></div>`);
   const used = SRC.map(() => 0);
   pops.forEach((p, i) => {
     const s = SRC[p.src];
     const n = used[p.src];
     used[p.src] += 1;
-    const m = s.msgs[n % s.msgs.length];
-    const [who, text] = Array.isArray(m) ? m : [s.who || GROUPS[n % GROUPS.length], m];
+    const [who, text] = s.pick ? s.pick(n) : s.msgs[n % s.msgs.length];
     const hero = HERO[i];
     const k = hero ? hero.k : 1;
     const left = hero ? hero.left : Math.round(p.x * W - 60);
@@ -97,13 +164,19 @@ function s02({ tl, cues, stage, S, logos }) {
     const count = Math.max(n, Math.round(1284 * (Math.max(0, n - 1) / (pops.length - 1)) ** 1.6));
     unreadN.textContent = `${count.toLocaleString('en-US')} unread`;
   });
+  // Captions: one place for the whole scene, the lower third, under the browser. Each stays until the
+  // next; the last one leaves at captions_end, so the pile is alone at its densest before the freeze.
+  // The dark strip behind them is only there while cards can land under a line of type.
   const band = root.querySelector('.band');
-  tl.from(band, { opacity: 0, duration: 0.3 }, captions[0].t - 0.1);
+  gsap.set(band, { opacity: 0 });
+  tl.to(band, { opacity: 1, duration: 0.4 }, tPile);
+  tl.to(band, { opacity: 0, duration: 0.24 }, capsEnd - 0.16);
+  tl.to(band, { opacity: 1, duration: 0.36 }, freeze + 0.14);
   tl.to(band, { opacity: 0, duration: 0.3 }, implode[0] - 0.05);
   captions.forEach((c, i) => {
     const cap = el('div', 'cap', c.text);
     root.insertBefore(cap, unread);
-    const stop = i < captions.length - 1 ? captions[i + 1].t : freeze;
+    const stop = i < captions.length - 1 ? captions[i + 1].t : capsEnd;
     tl.from(cap, { y: 46, opacity: 0, scale: 0.96, duration: 0.26, ease: 'power3.out' }, c.t);
     tl.to(cap, { y: -34, opacity: 0, duration: 0.16, ease: 'power2.in' }, stop - 0.16);
   });
@@ -282,10 +355,7 @@ function s05({ tl, cues, config, stage, manifest: M, S }) {
   const cam = track([
     { t: T.threads_in + 0.2, v: { fx: 960, fy: 540, z: 1 } },
     { t: T.threads_in + 1.3, v: { fx: 940, fy: 590, z: 1.5 } },
-    { t: T.threads_in + 2.2, v: { fx: 940, fy: 592, z: 1.52 }, e: lin },
-    // lean in on the threads written in Arabic (rows two and three)
-    { t: T.threads_in + 2.75, v: { fx: 965, fy: 565, z: 1.74 } },
-    { t: tOpen - 0.55, v: { fx: 965, fy: 568, z: 1.78 }, e: lin },
+    { t: tOpen - 0.55, v: { fx: 940, fy: 600, z: 1.56 } },
     { t: tOpen - 0.15, v: { fx: 1180, fy: 420, z: 1.16 } },
     { t: tOpen + 0.06, v: { fx: 930, fy: 520, z: 1.3 }, cut: true },
     { t: tTyped + 0.1, v: { fx: 930, fy: 690, z: 1.18 }, e: lin },
@@ -329,7 +399,7 @@ function s05({ tl, cues, config, stage, manifest: M, S }) {
   });
   const caps = [
     ['Upvote what', 'helped.', T.threads_in + 1.05, T.threads_in + 2.2],
-    ['Ask in', 'any language.', T.threads_in + 2.2, tOpen - 0.1],
+    ['Answers you can', 'trust.', T.threads_in + 2.2, tOpen - 0.1],
     ['Stuck? Ask', 'every cohort.', tOpen + 0.3, tOpen + 2.2],
   ];
   caps.forEach(([a, b, t0, t1]) => {
@@ -353,20 +423,22 @@ function s05({ tl, cues, config, stage, manifest: M, S }) {
   cur.move(tl, px, py, tFinal + 0.02, Math.max(0.15, T.post_click - tFinal - 0.06), 'power2.out');
   cur.click(tl, T.post_click);
   tl.to(cur.el, { autoAlpha: 0, duration: 0.1 }, tPost);
-  // replies pop in over the frame, on the right, clear of the row the camera lands on. The first
-  // one is long: it stays until the scene leaves so it can be read.
+  // The reply pops in over the frame, top right, clear of the thread it answers and of the row the
+  // camera lands on. It is long, so it stays until the scene leaves. The cue sheet holds one card
+  // (cues.forum.reply_cards with its time in cues.forum.replies); any further one would stack below it.
   const tint = ['#c5f6fa', '#d0e2ff', '#ffe8cc'];
-  const spots = [{ right: 96, top: 214, r: 1.4 }, { right: 150, top: 716, r: -2 }];
+  const spot = { right: 96, top: 214, step: 250 };
   T.reply_cards.forEach((r, i) => {
+    const at = T.replies[i] ?? T.replies[T.replies.length - 1] + 0.5 * (i - T.replies.length + 1);
     const bg = r.year ? tint[r.year - 1] : '#e7edfb';
     const tags = `${r.flair ? `<em class="reply__flair">${r.flair}</em>` : ''}${r.year ? `<em style="background:${bg}">Year ${r.year}</em>` : ''}`;
     const card = el('div', 'reply', `<div class="reply__av" style="background:${bg}">${r.name.split(' ').map((w) => w[0]).join('')}</div>
       <div class="reply__b"><div class="reply__n">${r.name}${tags}</div><div class="reply__m">${r.text}</div></div>`);
-    card.style.right = `${spots[i].right}px`;
-    card.style.top = `${spots[i].top}px`;
+    card.style.right = `${spot.right}px`;
+    card.style.top = `${spot.top + i * spot.step}px`;
     root.insertBefore(card, title);
-    gsap.set(card, { rotation: spots[i].r });
-    tl.from(card, { x: 260, opacity: 0, scale: 0.8, duration: 0.36, ease: 'back.out(1.8)' }, T.replies[i]);
+    gsap.set(card, { rotation: i % 2 ? -1.4 : 1.4 });
+    tl.from(card, { x: 260, opacity: 0, scale: 0.8, duration: 0.36, ease: 'back.out(1.8)' }, at);
     tl.to(card, { x: 180, opacity: 0, duration: 0.22, ease: 'power2.in' }, end - 0.34 + i * 0.03);
   });
   // the vote widget pulses while the count runs up
