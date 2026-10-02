@@ -194,3 +194,59 @@ export function logoTile(size = 150) {
   t.innerHTML = hubMarkSvg();
   return t;
 }
+
+/**
+ * Which of `names` exist in the folder at URL `dir` (must end in '/')? Resolves to the names found.
+ * The static server's directory listing is read first (python http.server), so files that are simply
+ * not supplied yet do not put a 404 in the console; any other server gets one HEAD request per file.
+ */
+export async function filesPresent(dir, names, { listing = true } = {}) {
+  if (listing) {
+    try {
+      const res = await fetch(dir, { cache: 'no-store' });
+      if (res.status === 404) return [];                      // no such folder: nothing supplied
+      const html = res.ok ? await res.text() : '';
+      if (/<title>Directory listing for/i.test(html)) {
+        const have = new Set([...html.matchAll(/href="([^"]+)"/g)].map((m) => decodeURIComponent(m[1])));
+        return names.filter((n) => have.has(n));
+      }
+    } catch { /* fall through to HEAD */ }
+  }
+  const ok = await Promise.all(names.map((n) => fetch(dir + n, { method: 'HEAD', cache: 'no-store' }).then((r) => r.ok, () => false)));
+  return names.filter((_, i) => ok[i]);
+}
+
+/** Folder for the Hub's own brand files, and the one file the film looks for there. */
+export const BRAND_DIR = new URL('../assets/brand/', import.meta.url).href;
+// Mohamed's DSBA wordmark, white on transparent, for the film's dark scenes (tools/intake_brand.py makes
+// it from the file he supplied). It already reads "DSBA", so scenes set only "Hub" next to it.
+export const HUB_LOGO_FILE = 'dsba-logo-white.png';
+export const HUB_LOGO_RATIO = 2095 / 521;
+let brandReady = null;
+let hubLogoUrl = null;
+
+/**
+ * Looks for the DSBA wordmark in assets/brand/. Await it once at build time, before the first hubLogo()
+ * call; safe to call from every act. Resolves to true when the file is there.
+ */
+export function loadBrand() {
+  brandReady = brandReady || filesPresent(BRAND_DIR, [HUB_LOGO_FILE]).then((found) => {
+    hubLogoUrl = found.length ? BRAND_DIR + HUB_LOGO_FILE : null;
+    return hubLogoUrl != null;
+  });
+  return brandReady;
+}
+
+/**
+ * The DSBA wordmark as an <img class="hub-logo"> `h` px tall (its width follows the artwork), or null
+ * while no logo file exists, so a scene must look complete without it: `const l = hubLogo(64); if (l) …`.
+ */
+export function hubLogo(h = 150) {
+  if (!hubLogoUrl) return null;
+  const img = el('img', 'hub-logo');
+  img.decoding = 'sync';
+  img.alt = '';
+  Object.assign(img.style, { height: `${h}px`, width: `${Math.round(h * HUB_LOGO_RATIO)}px`, flex: '0 0 auto', display: 'block' });
+  img.src = hubLogoUrl;
+  return img;
+}

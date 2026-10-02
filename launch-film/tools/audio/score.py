@@ -1,9 +1,10 @@
 """score.py - the composition. Every time comes from cues.json (scenes, tempo maps, card and
 network cues); only musical subdivisions (beats, 16ths) are derived from the cue tempo.
 
-  act1(...)     product-launch electro-pop in the key of cues.tempo.act1 (Am-F-C-G): cold open,
-                chaos build + hard stop, drop, feature grooves, montage, launch build, and the
-                drop that never comes (it is only heard through the G1 crash)
+  act1(...)     product-launch electro-pop in the key of cues.tempo.act1 (Am-F-C-G): the
+                opening build under the notification pile-up (the film starts on it) + hard
+                stop, drop, feature grooves, montage, launch build, and the drop that never
+                comes (it is only heard through the G1 crash)
   birthday(...) "Happy Birthday" as a small jazz waltz (felt piano, upright bass, brushes,
                 string bed, celesta), cut on the final "you" and sabotaged by G2
   act3(...)     felt piano under the letter -> anthem drop (title) -> playful "numbers" bed
@@ -80,6 +81,10 @@ def ch1(name):
     return dict(bass=28 + (r - 4) % 12, pad=v, stab=[m + 12 for m in v[1:]], arp=[m + 12 for m in v])
 
 
+FREEZE_TAPE = 0.25      # s: at the freeze the music (and the launch-film SFX bed) tape-stops this fast
+PAD_ALONE = 1.25        # pad level while it is the only musical bed (a scene before the pile-up)
+PAD_OPENING = 0.8       # pad level in the bar that opens the film (then 0.9 once the pulse is in)
+
 # lead hook: (16th step, midi, length in 16ths) - a 3-3-2 / 3-3-2 "tresillo" rhythm
 MOTIF = {
     "Am":    [(0, 76, 3), (3, 76, 3), (6, 74, 2), (8, 76, 3), (11, 79, 3), (14, 76, 2)],
@@ -124,6 +129,7 @@ def act1(cues):
     loop = T["chords"]
     drop = T["drop"]
     a1_end = T["end"]
+    film0 = T.get("first_beat", 0.0)            # the bar grid starts here, and so does the film
     chaos0, _ = scene(cues, "s02_chaos")
     freeze = cues["chaos"]["freeze"]
     imp0, imp1 = cues["chaos"]["implode"]
@@ -136,22 +142,33 @@ def act1(cues):
     cuts = [c["t"] for c in cues["montage"]["cuts"]]
     countdown = cues["launch"]["countdown"]
 
-    mx = Mixer("act1", 0.0, g1["end"], act1_reverbs())
+    mx = Mixer("act1", min(0.0, film0), g1["end"], act1_reverbs())
     mx.chords = []
+
+    # The build towards the freeze. When the notification pile-up opens the film (no scene
+    # before it), the first bar belongs to the drone (SFX), the pad swelling in and the first
+    # pings alone; the pulse (the kick behind a wall, the arp, the ticking hats) enters on
+    # the second bar and everything opens up to the freeze. With a scene before the pile-up
+    # the pulse starts with it, over a pad that is already there.
+    opens_film = chaos0 - film0 < bar - 1e-6
+    pulse0 = chaos0 + bar if (opens_film and freeze - chaos0 >= 3 * bar - 1e-6) else chaos0
+    pad_lp0 = 700.0 if opens_film else 2200.0   # the opening starts darker and opens further
 
     def pad_lp(t):
         fc = np.full_like(t, 6500.0)
-        m = t < chaos0
-        fc[m] = 260.0 * (2200.0 / 260.0) ** np.clip(t[m] / chaos0, 0, 1) ** 1.2
+        if chaos0 > film0:
+            m = t < chaos0
+            fc[m] = 260.0 * (2200.0 / 260.0) ** np.clip((t[m] - film0) / (chaos0 - film0), 0, 1) ** 1.2
         m = (t >= chaos0) & (t < drop)
-        fc[m] = 2200.0 * (7500.0 / 2200.0) ** np.clip((t[m] - chaos0) / (freeze - chaos0), 0, 1)
+        u = np.clip((t[m] - chaos0) / (freeze - chaos0), 0, 1)
+        fc[m] = pad_lp0 * (7500.0 / pad_lp0) ** (u ** 0.7 if opens_film else u)
         m = t >= launch[0]
         u = np.clip((t[m] - launch[0]) / (a1_end - launch[0]), 0, 1)
         fc[m] = 3000.0 * (11000.0 / 3000.0) ** u
         return fc
 
-    def prekick_lp(t):      # the kick "behind a wall" opens up through the chaos
-        return 130.0 * (650.0 / 130.0) ** np.clip((t - chaos0) / (freeze - chaos0), 0, 1)
+    def prekick_lp(t):      # the kick "behind a wall" opens up from its entry to the freeze
+        return 130.0 * (650.0 / 130.0) ** np.clip((t - pulse0) / (freeze - pulse0), 0, 1)
 
     def build_hp(t):
         fc = np.full_like(t, 18.0)
@@ -206,42 +223,52 @@ def act1(cues):
             else:
                 B["drums"].add(t, SNARE, v * 0.75)
 
-    # ------------------------------------------------------------- 0 .. freeze
-    intro = section_chords(0.0, freeze + bar, bar, loop, turnaround=False)   # + the stopped bar
+    # ----------------------------------------------------------- film start .. freeze
+    intro = section_chords(film0, freeze + bar, bar, loop, turnaround=False)   # + the stopped bar
     mx.chords += [c for c in intro if c[0] < freeze]
     for (t, ch, d) in intro:
-        att = 1.6 if t == 0 else 0.06
+        # the very first chord of the film swells in (no abrupt start); the others are legato
+        att = 1.6 if abs(t - film0) < 1e-6 else 0.06
         sig = ins.supersaw(ch1(ch)["pad"], d + 0.05, rng_for("a1pad", t), voices=7, detune=17,
                            attack=att, decay=1.0, sustain=1.0, release=0.9, drift=3.0)
-        # the cold open's bed is only this pad now (no pulse under it): it sits a little higher
-        B["pad"].add(t, sig, 1.25 if t < chaos0 - 1e-6 else 0.9)
-    # The cold open has no pulse any more (the nodes, the seven "places" ticks and the punch
-    # line are SFX over the pad). From the chaos scene on, the launch track's own kick is
-    # heard as if through a wall, opening up until the freeze.
-    for t in grid(chaos0, freeze, beat):
-        u = (t - chaos0) / (freeze - chaos0)
-        B["prekick"].add(t, KICK, 0.42 + 0.5 * u)
-    # quiet ticking 16th hats (fade in)
-    for i, t in enumerate(grid(beat, freeze, s16)):
-        u = min(1.0, t / chaos0)
+        # Before the pile-up the pad is the only bed and sits a little higher. In the bar
+        # that opens the film it sits lower instead: the build starts from little.
+        alone = PAD_OPENING if opens_film else PAD_ALONE
+        B["pad"].add(t, sig, alone if t < pulse0 - 1e-6 else 0.9)
+    # The launch track's own kick, heard as if through a wall, opening up until the freeze.
+    k0 = 0.30 if opens_film else 0.42           # it enters softer when it is the film's first pulse
+    for t in grid(pulse0, freeze, beat):
+        u = (t - pulse0) / (freeze - pulse0)
+        B["prekick"].add(t, KICK, k0 + (0.92 - k0) * u)
+    # quiet ticking 16th hats, fading in: with the pulse (up to the last bar before the
+    # freeze) when the pile-up opens the film, otherwise through the scene before it
+    h0, h1 = (pulse0, max(pulse0, freeze - bar)) if opens_film else (film0 + beat, chaos0)
+    for i, t in enumerate(grid(h0, freeze, s16)):
+        u = 1.0 if h1 <= h0 else min(1.0, (t - h0) / (h1 - h0))
         acc = (0.55, 0.22, 0.75, 0.3)[i % 4]
-        B["hats"].add(t, TICK[i % 4], 0.5 * acc * (0.25 + 0.75 * u), pan=0.12 * ((i % 2) * 2 - 1))
-    # tension: plucky 16th arp with a rising filter, sub notes
+        lvl = (0.12 + 0.88 * u ** 1.5) if opens_film else (0.25 + 0.75 * u)
+        B["hats"].add(t, TICK[i % 4], 0.5 * acc * lvl, pan=0.12 * ((i % 2) * 2 - 1))
+    # tension: plucky 16th arp with a rising filter (from the pulse on), sub notes
     ARP_PAT = [0, 3, 2, 3, 1, 3, 2, 3, 0, 3, 2, 3, 1, 3, 2, 3]
+    v0 = 0.42 if opens_film else 0.6            # the arp comes in quieter when it opens the film
     for (t, ch, d) in intro:
-        if t < chaos0:
+        if t < chaos0 - 1e-6:
             continue
         tones = ch1(ch)["arp"]
         for k in range(int(round(d / s16))):
             tt = t + k * s16
-            u = (tt - chaos0) / (freeze - chaos0)
+            if tt < pulse0 - 1e-6:
+                continue
+            u = (tt - pulse0) / (freeze - pulse0)
             bright = round(min(1.0, 0.15 + 0.85 * u ** 1.3) * 20) / 20.0
-            vel = (0.95 if k % 4 == 0 else 0.7) * (0.6 + 0.4 * u)
+            vel = (0.95 if k % 4 == 0 else 0.7) * (v0 + (1.0 - v0) * u)
             B["arp"].add(tt, ins.pluck(tones[ARP_PAT[k % 16]], round(vel, 2), dur=0.1, bright=bright),
                          1.0, pan=0.18 * np.sin(k * 0.9))
         if t < freeze:
+            # the very first note of the film swells in instead of being struck
+            first = opens_film and abs(t - film0) < 1e-6
             B["bass"].add(t, ins.bass_note(ch1(ch)["bass"] + 12, d - 0.05, 0.35, cutoff=300, drive=1.0,
-                                           mid=0.25, attack=0.05), 1.0)
+                                           mid=0.25, attack=0.7 if first else 0.05), 1.0)
     # snare build over the last bar before the freeze
     tb = freeze - bar
     roll = list(grid(tb, freeze - bar / 2, beat / 2)) + list(grid(freeze - bar / 2, freeze - bar / 4, s16)) \
@@ -493,9 +520,9 @@ def act1(cues):
     n0 = mx.n0
     seg_a, seg_b = s2n(freeze - 0.5) - n0, s2n(drop) - n0
     sub = mix[:, seg_a:seg_b].copy()
-    tape_stop(sub, n0 + seg_a, freeze, freeze + 0.25, power=1.3, amp_pow=0.4, kill_after=True)
+    tape_stop(sub, n0 + seg_a, freeze, freeze + FREEZE_TAPE, power=1.3, amp_pow=0.4, kill_after=True)
     F = s2n(0.012)
-    k = s2n(freeze + 0.25) - (n0 + seg_a)
+    k = s2n(freeze + FREEZE_TAPE) - (n0 + seg_a)
     sub[:, k - F:k] *= rc_ramp(F, up=False)
     mix[:, seg_a:seg_b] = sub
     # reverse swell into the drop (reverse reverb of the first drop chord + crash)
@@ -648,7 +675,9 @@ class PianoPart:
 
 def birthday(cues):
     tb = cues["tempo"]["birthday"]
-    beat = tb["beat_seconds"]
+    # exact beat from the tempo: cues.beat_seconds is rounded (0.1 ms), which would put the
+    # last downbeat 1 ms after the cut it has to land on
+    beat = 60.0 / tb["bpm"] if tb.get("bpm") else tb["beat_seconds"]
     pickup = tb["pickup"]
     cut = tb["cut"]
     phrases = tb["phrases"]

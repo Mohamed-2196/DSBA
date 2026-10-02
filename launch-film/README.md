@@ -1,17 +1,25 @@
 # DSBA Hub launch film
 
-A 2 min 20 s film for the DSBA event on Tuesday 6 October 2026. It opens as a product-launch film
+A 2 min 21 s film for the DSBA event on Tuesday 6 October 2026. It opens as a product-launch film
 for the new DSBA Hub, "crashes" into a surprise birthday for Noor (the programme admin) starring her
 cat, then crashes again into the real reason for the event: Teacher's Day.
 
 | time | what happens |
 |---|---|
-| 0:00–1:08 | Launch film: seven places to check, the logo, newsletter, forum, library, lessons, Career Navigator, calendar, grades, search, the cohort network, 3-2-1 |
-| 1:08–1:12 | Glitch 1: the launch crashes, error windows |
-| 1:12–1:25 | Darkness, a collar bell, two eyes; lights on: Noor's cat in a party hat, "Happy Birthday, Noor" |
-| 1:25–1:31 | Glitch 2: the song is cut on the last "you"; terminal: expected Noor, found everyone who taught us; 1.5 s of silence |
-| 1:31–1:40 | A letter to the teachers, typed line by line |
-| 1:40–2:20 | Happy Teacher's Day; "we ran the numbers" (four statistics jokes); the network becomes THANK YOU; sign-off and the cat's P.S. |
+| 0:00–0:10 | Notifications pile up (Outlook, Gmail, SMS, WhatsApp, LSE VLE, MyClass, UoL portal): "It's overwhelming." |
+| 0:10–1:04 | DSBA Hub, "Here to help you through it."; newsletter, forum (the "am I cooked?" thread, Nasser's reply, the Arabic threads), library, lessons, Career Navigator, calendar, grades, search, the cohort network, 3-2-1 |
+| 1:04–1:08 | Glitch 1: the launch crashes, error windows |
+| 1:08–1:24 | 4.4 s of darkness, a collar bell, two eyes that look around and blink; lights on: Noor's cat in a party hat, "Happy Birthday, Noor" |
+| 1:24–1:31 | Glitch 2: the song is cut on the last "you"; terminal: expected Noor's birthday, found Teacher's Day; 1.5 s of silence |
+| 1:31–1:39 | A letter to the teachers, typed line by line |
+| 1:39–2:21 | Happy Teacher's Day; "we ran the numbers" (four statistics jokes); the network becomes THANK YOU; sign-off; the cat says "Meow." |
+
+## Supplied artwork
+`tools/intake_brand.py` places what the student rep supplied: his DSBA wordmark (blue and white twins plus a
+square tile cut from its "D"), the newsletter cover illustration, and the official Outlook, Gmail, LSE and
+WhatsApp logos for the opening (`assets/logos/`). The film never draws or imitates a third-party logo: without
+a file, a notification falls back to a neutral glyph (SMS has no file on purpose).
+The Career Navigator's employer and certificate logos live in the app (`public/logos/`, see its README).
 
 ## Change names and copy
 - `config.json`: the admin's name and the cat's title.
@@ -25,7 +33,7 @@ cat, then crashes again into the real reason for the event: Teacher's Day.
   Open `src/index.html?play` to watch it live; `?only=2` builds a single act. See `ENGINE_GUIDE.md`.
 - `tools/capture-ui.mjs` screenshots the real app (clock frozen at the event date) into `assets/ui/`.
 - `tools/cat/` cuts the cat out of the photo and composites the party hat (`assets/cat/`).
-- `tools/frames.mjs` renders 4200 PNG frames with headless Chromium.
+- `tools/frames.mjs` renders the PNG frames (4230 in this cut) with headless Chromium.
 - `tools/glitch_post.py` adds the video-signal corruption to the two glitch windows and encodes H.264.
   It keeps large flashes to at most 3 per second (photosensitivity guard).
 - `tools/audio/build_audio.py` synthesises the soundtrack and sound effects from the same cues.

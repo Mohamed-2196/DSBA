@@ -1,9 +1,13 @@
-// Act 2 — the fake birthday for Noor (72–85.5) and the DOM side of glitch #2 (85.5–90).
+// Act 2 — the fake birthday for Noor (scene s08) and the DOM side of glitch #2 (g2). Every time comes from
+// cues.birthday / cues.g2 / cues.tempo.birthday: there are no film times in this file.
 //
-// A surprise party photographed at night. Darkness, a collar bell, two eyes; the lights come up on Noor's cat
-// in a party hat (a real photograph, see tools/cat/), gold foil confetti with depth of field, golden bokeh,
-// a slow push-in with parallax, and the greeting set in gold and cream on the side the cat is looking at.
-// One insert: a closer shot of the cat on the long note that ends the second phrase.
+// A surprise party photographed at night. First the dark beat: a collar bell, two eyes that open, look left,
+// right and back, blink slowly, hear the bell again, blink twice and go wide. Then the lights come up on Noor's
+// cat in a party hat (a real photograph, see tools/cat/), gold foil confetti with depth of field, golden bokeh,
+// and the greeting set in gold and cream on the side the cat is looking at.
+// The song is ONE locked-off framing from lights-on to the cut: no push-in, no closer shot. The life is inside
+// the frame: the cat sways with the waltz and blinks, her hat bobbles on the beat, a soft puff of confetti and a
+// glint on the foil mark each phrase.
 // At cues.g2.start the party freezes, the greeting breaks, and a terminal takes the screen.
 //
 // Everything is a pure function of the film time: no tweens, no state carried between frames.
@@ -68,9 +72,10 @@ export async function buildAct2({ cues, config, stage, S }) {
   const PH = B.phrases;
   const notesOf = (i) => B.melody.filter((n) => n.t >= PH[i] - 1e-3 && (i === PH.length - 1 || n.t < PH[i + 1] - 1e-3));
   const last = (a) => a[a.length - 1];
-  const CLOSE_IN = last(notesOf(1)).t;       // the long "you" that ends phrase two: cut to the closer shot
-  const CLOSE_OUT = notesOf(2)[2].t;         // back to the wide on the downbeat of phrase three ("birth-")
   const NAME_T = (notesOf(2)[5] || notesOf(2)[4]).t;   // "... dear NOOR": the name's moment
+  const BEAT = (PH[1] - PH[0]) / 6;          // a phrase is two bars of three: a waltz
+  const BAR = 3 * BEAT;
+  const DOWN = PH[0] + BEAT;                 // the first downbeat ("BIRTH-day"); "Hap-py" is the pickup
   const T0 = B.title_in;
   const T3 = B.lower_third;
 
@@ -96,26 +101,43 @@ export async function buildAct2({ cues, config, stage, S }) {
   const catPt = (u, v) => ({ x: CAT_X + u * CAT_S, y: CAT_Y + v * CAT_S });
   const [eyeA, eyeB] = meta.eyes;
   // what is seen before the lights come on (the bell, the two eyes) is painted on a small canvas in cat pixels
-  const DARK = { x0: 280, y0: 620, w: 520, h: 1160 };
+  const DARK = { x0: 240, y0: 580, w: 660, h: 1200 };
   const cDark = offscreen(DARK.w, DARK.h).getContext('2d');
   const EYE_TINT = { amber: '255, 176, 64', blue: '120, 170, 255' };
+  // Per eye: where its pupil sits in the photograph (off the centre of the outline, more so in the far eye, which
+  // is seen from the side), how far the pupil travels in a glance (cat pixels), how much of the head's move the
+  // eye takes (the far eye a little less: the head turns), and how its lids close.
+  // `iris` is the part of the eye that travels: an ellipse about the pupil (in outline radii) that takes in the
+  // pupil, its catchlight and the inner iris, but not the bright rim of the eye, which stays where it is.
+  // The far eye is seen almost edge-on and its pupil fills it, so there the pupil barely travels; instead the eye
+  // itself narrows as the head turns away and opens as it turns back towards us (`turn`).
+  const EYE_ACT = {
+    amber: { px: 452, py: 748, look: [4, 3], follow: 0.85, drop: 0, iris: [0.9, 0.86], turn: 0.2 },
+    blue: { px: 652, py: 862, look: [14, 9], follow: 1, drop: 0.34, iris: [0.94, 0.94], turn: 0 },
+  };
+  const EYES = [eyeA, eyeB].map((e) => {
+    const half = Math.ceil(Math.max(e.rx, e.ry) * 1.3) + 24;     // the square of the photograph this eye is taken from
+    const o = { ...e, ...(EYE_ACT[e.id] || { px: e.cx, py: e.cy, look: [10, 6], follow: 1, drop: 0, iris: [0.9, 0.9], turn: 0 }), a: (e.angle * Math.PI) / 180,
+      sx: Math.round(e.cx) - half, sy: Math.round(e.cy) - half, sw: half * 2, tint: EYE_TINT[e.id] || '255, 220, 160' };
+    // the travelling part, cut out once through a soft elliptical mask
+    o.pupil = offscreen(o.sw, o.sw);
+    const c = o.pupil.getContext('2d');
+    c.drawImage(eyesImg, o.sx, o.sy, o.sw, o.sw, 0, 0, o.sw, o.sw);
+    c.globalCompositeOperation = 'destination-in';
+    c.translate(o.px - o.sx, o.py - o.sy); c.rotate(o.a); c.scale(e.rx * o.iris[0], e.ry * o.iris[1]);
+    const m = c.createRadialGradient(0, 0, 0, 0, 0, 1);
+    m.addColorStop(0, 'rgba(0,0,0,1)'); m.addColorStop(0.86, 'rgba(0,0,0,1)'); m.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = m;
+    c.fillRect(-2, -2, 4, 4);
+    return o;
+  });
+  const cEye = offscreen(Math.max(...EYES.map((e) => e.sw)), Math.max(...EYES.map((e) => e.sw))).getContext('2d');
 
-  // ── camera ──────────────────────────────────────────────────────────────────────────────────
-  // A slow dolly towards the cat's face (E) from lights-on to the cut; layers at parallax k grow by (z-1)*k.
-  // The closer shot is the same world through a longer lens: every layer is magnified L times about F.
-  const E = catPt((eyeA.cx + eyeB.cx) / 2 - 60, (eyeA.cy + eyeB.cy) / 2 - 40);
-  const F = { x: W + 6, y: 34 };
-  const camAt = (tf) => {
-    const z = 1 + 0.070 * prog(tf, LIGHTS, CUT) ** 0.92
-      + 0.006 * ease.inOut3(prog(tf, PH[2], PH[2] + 1.6)) + 0.009 * ease.inOut3(prog(tf, PH[3], PH[3] + 1.8));
-    const close = tf >= CLOSE_IN && tf < CLOSE_OUT;
-    return { z, close, L: close ? 1.40 * (1 + 0.024 * prog(tf, CLOSE_IN, CLOSE_OUT)) : 1 };
-  };
-  const layer = (k, c) => {
-    const a = 1 + (c.z - 1) * k;
-    return { s: a * c.L, x: F.x * (1 - c.L) + E.x * c.L * (1 - a), y: F.y * (1 - c.L) + E.y * c.L * (1 - a) };
-  };
-  const K = { bg: 0.2, bokeh: 0.42, far: 0.72, cat: 1, mid: 1.3, near: 2.0, type: 0.38 };
+  // ── camera: locked off ──────────────────────────────────────────────────────────────────────
+  // One steady framing from lights-on to the cut. (Cut 2 pushed in slowly and cut to a closer shot on the long
+  // note of phrase two; in the room that read as a random zoom, so both are gone.) Every layer of the world is
+  // therefore drawn through the same identity transform; the depth is in the focus and the overlap, not in a move.
+  const FIXED = { s: 1, x: 0, y: 0 };
 
   // ── bokeh: golden out-of-focus lights hanging in the dark ───────────────────────────────────
   const discP = (r) => (0.60 + 0.16 * ss(0.62, 0.94, r)) * (1 - ss(0.90, 1.0, r));      // a lens disc: even, a touch brighter at the rim
@@ -157,6 +179,7 @@ export async function buildAct2({ cues, config, stage, S }) {
     ['#d9a441', '#7c5413', '#ffe6a3'], ['#f3e2b8', '#a8905c', '#fff8e6'],
   ];
   const POP = LIGHTS + 0.08;                 // the party popper (sfx at lights_on + 0.08)
+  const PUFF = 0.56;                         // launch speed of the phrase puffs, as a share of the popper's
   const makeLayer = (seed, spec) => {
     const r = mulberry(seed);
     const out = [];
@@ -188,14 +211,22 @@ export async function buildAct2({ cues, config, stage, S }) {
         piece({ b: tp - 0.55 - r() * 0.5, x0: fallX(-100, W + 100), y0: -50 - r() * 60, vx: (r() - 0.5) * (spec.clear ? 50 : 120), vy: 420 + r() * 520, vt: (120 + r() * 150) * spec.speed });
       }
     });
+    // ... and a soft puff as each later phrase starts: the popper again, at about half its strength
+    PH.slice(1).forEach((tp) => {
+      for (let i = 0; i < (spec.puff || 0); i += 1) {
+        const an = p.angle + (r() - 0.5) * p.fan;
+        const v = (p.v0 + r() ** 0.8 * (p.v1 - p.v0)) * PUFF;
+        piece({ b: tp + r() * 0.12, x0: p.x + (r() - 0.5) * p.dx, y0: p.y + (r() - 0.5) * p.dy, vx: Math.cos(an) * v, vy: Math.sin(an) * v, vt: (120 + r() * 150) * spec.speed });
+      }
+    });
     return out;
   };
   const behind = catPt(720, 1260);           // the far layer bursts from behind the cat's shoulders ...
-  const far = makeLayer(7301, { burst: 170, drift: 260, flutter: 28, size: [5, 11], alpha: [0.55, 0.9], sway: 16, speed: 0.78,
+  const far = makeLayer(7301, { burst: 170, drift: 260, flutter: 28, puff: 52, size: [5, 11], alpha: [0.55, 0.9], sway: 16, speed: 0.78,
     pop: { x: behind.x, y: behind.y, dx: 160, dy: 120, angle: -Math.PI / 2 - 0.5, fan: 2.0, v0: 420, v1: 1600 } });
   // ... the nearer layers come up from under the frame, between the cat and the lens, and lean away from the face
   const FACE = [catPt(250, 0).x, catPt(1080, 0).x - 30];
-  const mid = makeLayer(7302, { burst: 64, drift: 100, flutter: 13, size: [12, 22], alpha: [0.8, 1], sway: 28, speed: 1, clear: FACE,
+  const mid = makeLayer(7302, { burst: 64, drift: 100, flutter: 13, puff: 16, size: [12, 22], alpha: [0.8, 1], sway: 28, speed: 1, clear: FACE,
     pop: { x: 1150, y: H + 70, dx: 460, dy: 60, angle: -Math.PI / 2 - 0.46, fan: 0.76, v0: 1100, v1: 2700 } });
   const near = makeLayer(7303, { burst: 9, drift: 16, flutter: 3, size: [44, 84], alpha: [0.5, 0.78], sway: 46, speed: 1.5, clear: [FACE[0] - 60, W + 200],
     pop: { x: 800, y: H + 160, dx: 900, dy: 80, angle: -Math.PI / 2 - 0.32, fan: 0.5, v0: 1500, v1: 3200 } });
@@ -302,7 +333,6 @@ export async function buildAct2({ cues, config, stage, S }) {
   if (fit < 1) { FONT.name = `800 ${Math.floor(404 * fit)}px 'Playfair'`; SPACING.name *= fit; }
   setFont(tc, 'name');
   const NAME_W = tc.measureText(NAME).width - SPACING.name;
-  const PIVOT = { x: X0, y: 580 };           // the type grows from its left edge
   // the glow behind the name: the name itself, blurred once
   const GP = 120;
   const glow = offscreen(NAME_W + 28 + GP * 2, LAY.name.boxH + GP * 2);
@@ -313,7 +343,9 @@ export async function buildAct2({ cues, config, stage, S }) {
     g.fillStyle = '#f1b955';
     g.fillText(NAME, GP + 14, GP + LAY.name.base - LAY.name.boxY);
   }
-  const SHIMMERS = [[T0 + 1.05, 1.5], [NAME_T - 0.05, 1.25]];   // the foil catches the light as it lands, and again on "dear Noor"
+  // the foil catches the light once in every phrase: as it lands, on the long "you" of phrase two (where the
+  // closer shot used to be), on "dear Noor", and on the last "birth-" before the cut
+  const SHIMMERS = [[T0 + 1.05, 1.5], [last(notesOf(1)).t - 0.1, 1.3], [NAME_T - 0.05, 1.25], [notesOf(3)[2].t - 0.05, 1.2]];
 
   /** Everything the type depends on at time t (tf = t clamped to the cut). */
   const typeState = (t, tf) => {
@@ -450,21 +482,96 @@ export async function buildAct2({ cues, config, stage, S }) {
   const term = root.querySelector('.term');
   const lines = term.querySelectorAll('p');
   G.terminal_lines.forEach((ln, i) => typeText(lines[i], ln.text, ln.t, G.terminal_cps, { caret: '▊' }));
+  // The copy and its timing come from the cues, so they are checked here rather than trusted.
+  // Width: the longest line plus its caret must end inside the safe area (JBMono advances 0.6 em per character;
+  // act2.css sets 64 px from x = 200, lines never wrap). A longer line makes the whole terminal smaller.
+  const TERM = { x: 200, size: 64, safe: 96 };
+  const widest = Math.max(...G.terminal_lines.map((ln) => ln.text.length)) + 2;
+  const fitSize = Math.floor((W - TERM.x - TERM.safe) / (0.6 * widest));
+  if (fitSize < TERM.size) term.style.fontSize = `${fitSize}px`;
+  // Time: a line is fully typed before the next one starts, and the last two can be read for half a second.
+  G.terminal_lines.forEach((ln, i, all) => {
+    const typed = ln.t + ln.text.length / G.terminal_cps;
+    const until = i + 1 < all.length ? all[i + 1].t : G.flash;
+    if (typed > until) console.error(`[act2] terminal line ${i + 1} is still being typed when the next thing happens (${typed.toFixed(2)} > ${until.toFixed(2)})`);
+    if (i >= all.length - 2 && G.flash - typed < 0.5) console.error(`[act2] terminal line ${i + 1} is on screen for only ${(G.flash - typed).toFixed(2)} s before the flash`);
+  });
   const pb = term.querySelector('.pb');
   const TERM_IN = G.terminal_lines[0].t - 0.1;
 
+  // ── the dark beat ───────────────────────────────────────────────────────────────────────────
+  // bells[0]: heard on a black screen · eyes_in: two eyes open · looks: left, right, back to centre · blinks[0]: one
+  // slow blink · bells[1]: the bell again; this time it catches a glint under the eyes and she glances down at it ·
+  // blinks[1..]: a quick double blink · widen: pupils dilate, eyes a touch bigger, held dead still · lights_on.
+  const BELLS = B.bells || [B.bell];
+  // Which rings are SEEN (the collar bell catches a little light) as well as heard. The first is sound only, on
+  // black; cut 2 showed it too ([true, true] brings that back, [false, false] keeps the dark to the eyes alone).
+  const BELL_GLINT = [false, true];
+  const BELL_SEEN = BELLS.filter((tb, i) => BELL_GLINT[i]);
+  const [SLOW_BLINK, ...QUICK_BLINKS] = B.blinks;
+  const BLINK = { slow: [0.20, 0.05, 0.28], quick: [0.09, 0.02, 0.12] };   // seconds down, shut, up
+  const SACCADE = 0.15;                      // the eyes get there first ...
+  const FOLLOW = [0.05, 0.42];               // ... and the head follows a little, later and slower
+  const HEAD = [14, 5];                      // how far it follows, in cat pixels
+  /** 0 = open, 1 = shut. The lids are fully shut AT `at` (where the blink sound is), for `hold` seconds. */
+  const lidAt = (t, at, [down, hold, up]) => {
+    const u = t - at;
+    return u <= -down || u >= hold + up ? 0 : u < 0 ? smooth(1 + u / down) : u <= hold ? 1 : 1 - smooth((u - hold) / up);
+  };
+  /** What the eyes are doing at time t, before the lights. */
+  const eyesAt = (t) => {
+    const gx = B.looks.reduce((x, k) => lerp(x, k.x, ease.inOut3(prog(t, k.t, k.t + SACCADE))), 0);
+    const fx = B.looks.reduce((x, k) => lerp(x, k.x, smooth(prog(t, k.t + FOLLOW[0], k.t + FOLLOW[1]))), 0);
+    // the second bell is on her own collar: she glances down at it, and the first quick blink takes the glance back
+    const gy = BELLS.length > 1 && QUICK_BLINKS.length
+      ? smooth(prog(t, BELLS[1] + 0.1, BELLS[1] + 0.24)) * (1 - smooth(prog(t, QUICK_BLINKS[0] - BLINK.quick[0], QUICK_BLINKS[0]))) : 0;
+    const shut = Math.max(lidAt(t, SLOW_BLINK, BLINK.slow), ...QUICK_BLINKS.map((q) => lidAt(t, q, BLINK.quick)));
+    const wide = t < B.widen ? 0 : ease.outBack(prog(t, B.widen, B.widen + 0.18));     // a snap, a hair too far, and held
+    const still = 1 - smooth(prog(t, B.widen - 0.3, B.widen));                       // she freezes before she stares
+    const u = t - B.eyes_in;
+    return {
+      gx, gy, fx, wide,
+      open: (0.06 + 0.94 * ease.out3(prog(t, B.eyes_in, B.eyes_in + 0.24))) * (1 - shut) * (1 - 0.2 * gy),
+      // the head: follows the glances, and is never quite still (a slow drift, computed from t)
+      hx: HEAD[0] * fx + still * (2.4 * Math.sin(0.83 * u + 0.4) + 1.1 * Math.sin(1.9 * u + 2.0)),
+      hy: HEAD[1] * gy + still * (1.7 * Math.sin(1.13 * u + 1.3) + 0.8 * Math.sin(2.3 * u)),
+      breathe: 0.94 + 0.06 * Math.sin(t * 5.2),
+      spark: prog(t, LIGHTS - 0.15, LIGHTS) ** 2,   // they catch the first of the light a moment before the room does
+    };
+  };
+  /** One eye of the photograph on cEye: the eyeball turned by (dx, dy) cat pixels inside its outline, its pupil `ps` times as large. */
+  const paintEyeball = (e, dx, dy, ps) => {
+    cEye.setTransform(1, 0, 0, 1, 0, 0);
+    cEye.globalAlpha = 1;
+    cEye.globalCompositeOperation = 'source-over';
+    cEye.clearRect(0, 0, cEye.canvas.width, cEye.canvas.height);
+    cEye.drawImage(eyesImg, e.sx, e.sy, e.sw, e.sw, 0, 0, e.sw, e.sw);
+    if (dx || dy || ps !== 1) {
+      // The pupil, its catchlight and the inner iris again, moved and enlarged about the pupil and painted only
+      // where the eye already is ('source-atop'): the outline, its soft edge and its bright rim stay put, and the
+      // iris ring closes up on the side she looks to. Only the photograph's own pixels are used.
+      const ox = e.px - e.sx;
+      const oy = e.py - e.sy;
+      cEye.globalCompositeOperation = 'source-atop';
+      cEye.setTransform(ps, 0, 0, ps, ox + dx - ox * ps, oy + dy - oy * ps);
+      cEye.drawImage(e.pupil, 0, 0);
+      cEye.setTransform(1, 0, 0, 1, 0, 0);
+      cEye.globalCompositeOperation = 'source-over';
+    }
+  };
   /** Bell and eyes in the dark, painted in cat pixels on the small canvas. Returns false when there is nothing to show. */
   const paintDark = (t, dark) => {
     cDark.setTransform(1, 0, 0, 1, 0, 0);
     cDark.clearRect(0, 0, DARK.w, DARK.h);
-    if (dark <= 0 || t < B.bell - 0.02) return false;
+    if (dark <= 0 || t < Math.min(BELLS[0], B.eyes_in) - 0.02) return false;
     cDark.setTransform(1, 0, 0, 1, -DARK.x0, -DARK.y0);
-    // the collar bell catches a little light as it rings (twice) and stays barely visible afterwards
-    const ring = [0, 0.19].reduce((s, o) => { const u = t - B.bell - o; return u > 0 ? s + Math.min(1, u / 0.03) * Math.exp(-u / 0.2) : s; }, 0);
-    const ba = Math.min(0.85, ring * 0.62 + 0.16 * prog(t, B.bell, B.bell + 0.3)) * dark;
+    // the collar bell catches a little light when it rings (a double strike) and stays barely visible afterwards
+    const since = BELL_SEEN.filter((tb) => t >= tb).map((tb) => t - tb);
+    const ring = since.reduce((s, u0) => s + [0, 0.19].reduce((q, o) => (u0 > o ? q + Math.min(1, (u0 - o) / 0.03) * Math.exp(-(u0 - o) / 0.2) : q), 0), 0);
+    const ba = since.length ? Math.min(0.85, ring * 0.62 + 0.16 * prog(t, BELL_SEEN[0], BELL_SEEN[0] + 0.3)) * dark : 0;
     if (ba > 0.004) {
       const { cx, cy, r } = meta.bell;
-      const sw = 0.11 * Math.sin((t - B.bell) * TAU * 3.4) * Math.exp(-(t - B.bell) / 0.33);   // it swings on its ring
+      const sw = since.reduce((s, u0) => s + 0.11 * Math.sin(u0 * TAU * 3.4) * Math.exp(-u0 / 0.33), 0);   // it swings on its ring
       cDark.save();
       cDark.translate(cx + 14, cy - 150); cDark.rotate(sw); cDark.translate(-(cx + 14), -(cy - 150));
       cDark.globalAlpha = ba;
@@ -480,32 +587,38 @@ export async function buildAct2({ cues, config, stage, S }) {
       gl.addColorStop(0, `rgba(255, 236, 170, ${0.75 * Math.min(1, ring) * dark})`); gl.addColorStop(1, 'rgba(255, 220, 140, 0)');
       cDark.fillStyle = gl; cDark.fillRect(cx - 50, cy - 56, 80, 80);
     }
-    // two eyes, one amber, one blue: the photograph's own, through soft masks. They open, hold, blink once, and
-    // catch the first of the light a moment before the room does.
+    // two eyes, one amber, one blue: the photograph's own, through soft masks
     const ea = smooth(prog(t, B.eyes_in, B.eyes_in + 0.3)) * dark;
     if (ea > 0.003) {
-      const u = t - (B.eyes_in + 0.54);
-      const blink = u < 0 ? 0 : u < 0.07 ? smooth(u / 0.07) : u < 0.12 ? 1 : u < 0.26 ? 1 - smooth((u - 0.12) / 0.14) : 0;
-      const open = (0.06 + 0.94 * ease.out3(prog(t, B.eyes_in, B.eyes_in + 0.24))) * (1 - blink);
-      const breathe = 0.94 + 0.06 * Math.sin(t * 5.2);
-      const spark = prog(t, LIGHTS - 0.15, LIGHTS) ** 2;
-      for (const e of [eyeA, eyeB]) {
-        const tint = EYE_TINT[e.id] || '255, 220, 160';
-        const halo = cDark.createRadialGradient(e.cx, e.cy, e.r * 0.5, e.cx, e.cy, e.r * 2.3);
-        halo.addColorStop(0, `rgba(${tint}, ${(0.20 + 0.25 * spark) * ea * open})`); halo.addColorStop(1, `rgba(${tint}, 0)`);
+      const k = eyesAt(t);
+      const grow = 1 + 0.12 * k.wide;        // "eyes a touch bigger"
+      for (const e of EYES) {
+        if (k.open < 0.02) continue;         // shut: nothing of the eye is left in the dark
+        const cx = e.cx + k.hx * e.follow;
+        const cy = e.cy + k.hy * e.follow;
+        const hr = e.r * 2.3 * (1 + 0.16 * k.wide);
+        const halo = cDark.createRadialGradient(cx, cy, e.r * 0.5, cx, cy, hr);
+        halo.addColorStop(0, `rgba(${e.tint}, ${Math.min(1, 0.20 + 0.25 * k.spark + 0.09 * k.wide) * ea * k.open})`); halo.addColorStop(1, `rgba(${e.tint}, 0)`);
         cDark.globalAlpha = 1; cDark.fillStyle = halo;
-        cDark.fillRect(e.cx - e.r * 2.4, e.cy - e.r * 2.4, e.r * 4.8, e.r * 4.8);
+        cDark.fillRect(cx - hr - 2, cy - hr - 2, hr * 2 + 4, hr * 2 + 4);
+        paintEyeball(e, e.look[0] * k.gx, e.look[1] * k.gy, 1 + 0.2 * k.wide);
         cDark.save();
+        cDark.translate(cx, cy); cDark.scale(grow, grow);
+        if (e.turn) { cDark.rotate(e.a); cDark.scale(1, 1 + e.turn * k.fx); cDark.rotate(-e.a); }
+        cDark.translate(-e.cx, -e.cy);        // the eye's own cat pixels from here on
+        // the lids: the upper one comes down further than the lower one comes up
+        const lx = -Math.sin(e.a) * e.ry * e.drop * (1 - k.open);
+        const ly = Math.cos(e.a) * e.ry * e.drop * (1 - k.open);
         cDark.beginPath();
-        cDark.ellipse(e.cx, e.cy, e.rx * 1.3, Math.max(0.01, e.ry * 1.3 * open), (e.angle * Math.PI) / 180, 0, TAU);
+        cDark.ellipse(e.cx + lx, e.cy + ly, e.rx * 1.3, Math.max(0.01, e.ry * 1.3 * k.open), e.a, 0, TAU);
         cDark.clip();
-        cDark.globalAlpha = ea * breathe;
-        cDark.drawImage(eyesImg, DARK.x0, DARK.y0, DARK.w, 340, DARK.x0, DARK.y0, DARK.w, 340);
-        if (spark > 0) {
+        cDark.globalAlpha = ea * k.breathe;
+        cDark.drawImage(cEye.canvas, 0, 0, e.sw, e.sw, e.sx, e.sy, e.sw, e.sw);
+        if (k.spark > 0) {
           const gx = e.cx - e.rx * 0.30;
           const gy = e.cy - e.ry * 0.34;
-          const gg = cDark.createRadialGradient(gx, gy, 0, gx, gy, e.r * (0.16 + 0.30 * spark));
-          gg.addColorStop(0, `rgba(255, 250, 235, ${0.95 * spark})`); gg.addColorStop(1, 'rgba(255, 244, 220, 0)');
+          const gg = cDark.createRadialGradient(gx, gy, 0, gx, gy, e.r * (0.16 + 0.30 * k.spark));
+          gg.addColorStop(0, `rgba(255, 250, 235, ${0.95 * k.spark})`); gg.addColorStop(1, 'rgba(255, 244, 220, 0)');
           cDark.globalAlpha = ea; cDark.fillStyle = gg;
           cDark.fillRect(gx - e.r, gy - e.r, e.r * 2, e.r * 2);
         }
@@ -514,6 +627,126 @@ export async function buildAct2({ cues, config, stage, S }) {
       cDark.globalAlpha = 1;
     }
     return true;
+  };
+
+  // ── life inside the locked frame: the cat during the song ──────────────────────────────────
+  // She sways with the waltz: a lean that goes out and back every two bars, and a small rise on each bar. The lean
+  // turns about the bottom right corner of the photograph and only ever tips it OUT of the frame, so the two
+  // cropped edges of the photo (right, bottom) stay hidden.
+  const SWAY = (0.55 * Math.PI) / 180;
+  const BOB = 2.6;                           // frame pixels
+  const SWAY_AT = catPt(meta.canvas.w, meta.scene.h);
+  const swayIn = (tf) => smooth(prog(tf, LIGHTS + 0.5, LIGHTS + 2.4));
+  // Her hat bobbles on the beat: every beat gives it a nudge (the downbeat a bigger one, the popper the first), and
+  // it rocks on its brim and settles. The hat is lifted off the photograph once, here: the cat without the top of
+  // its hat, and the hat as a piece of its own (outline in cat pixels; straight sides, it is a cone).
+  const HAT = { pivot: [785, 628], box: [650, 140, 350, 550], deg: 1.5, hz: 2.7, decay: 0.24 };
+  const hatPath = new Path2D();
+  hatPath.moveTo(667, 581); hatPath.lineTo(708, 526); hatPath.lineTo(888, 262);
+  hatPath.arc(936, 221, 63, 2.435, 0.7 + TAU);
+  hatPath.lineTo(934, 290); hatPath.lineTo(912, 600); hatPath.lineTo(908, 667);
+  [[890, 668], [870, 669], [850, 669], [830, 667], [810, 665], [790, 658], [770, 652], [750, 642], [730, 632], [710, 620], [690, 606], [672, 588]]
+    .forEach(([x, y]) => hatPath.lineTo(x, y));
+  hatPath.closePath();
+  const hatTop = new Path2D();               // what is taken off the cat: the hat above a line just over its brim
+  hatTop.moveTo(718, 512); hatTop.lineTo(884, 258);
+  hatTop.arc(936, 221, 67, 2.5, 0.75 + TAU);
+  hatTop.lineTo(942, 292); hatTop.lineTo(918, 600);
+  hatTop.closePath();
+  const catBody = offscreen(catImg.naturalWidth, catImg.naturalHeight);
+  {
+    const c = catBody.getContext('2d');
+    c.drawImage(catImg, 0, 0);
+    c.globalCompositeOperation = 'destination-out';
+    c.fill(hatTop);
+  }
+  const hatCv = offscreen(HAT.box[2], HAT.box[3]);
+  {
+    const c = hatCv.getContext('2d');
+    c.drawImage(catImg, HAT.box[0], HAT.box[1], HAT.box[2], HAT.box[3], 0, 0, HAT.box[2], HAT.box[3]);
+    c.globalCompositeOperation = 'destination-in';
+    c.translate(-HAT.box[0], -HAT.box[1]);
+    c.fill(hatPath);
+  }
+  const NUDGES = [[POP, 1.15]];
+  for (let i = -1; DOWN + i * BEAT < CUT - 0.05; i += 1) if (DOWN + i * BEAT > POP + 0.2) NUDGES.push([DOWN + i * BEAT, ((i % 3) + 3) % 3 === 0 ? 1 : 0.5]);
+  const hatAt = (tf) => NUDGES.reduce((s, [tb, w], i) => {
+    const u = tf - tb;
+    return u > 0 ? s + (i % 2 ? -1 : 1) * w * Math.exp(-u / HAT.decay) * Math.sin(TAU * HAT.hz * u) : s;
+  }, 0) * ((HAT.deg * Math.PI) / 180);
+  // She blinks now and then: at the end of the long "you" of phrase one, twice (the double blink again) on the long
+  // "you" of phrase two, and once, slowly, after her person's name. Lids are painted in cat pixels over the photo's
+  // eyes, in the colours of the fur around each eye (sampled from the photograph, so they follow its grade).
+  const onFrameTime = (v) => Math.round(v * cues.fps) / cues.fps;   // so that a frame shows the lids fully shut
+  const LIT_BLINKS = [
+    [last(notesOf(0)).t + 0.62, BLINK.quick],
+    [last(notesOf(1)).t + 0.5, BLINK.quick], [last(notesOf(1)).t + 0.8, BLINK.quick],
+    [last(notesOf(2)).t + 0.3, BLINK.slow],
+  ].map(([at, b]) => [onFrameTime(at), b]).filter(([at, [, hold, up]]) => at + hold + up < CUT - 0.1);
+  const litShut = (tf) => Math.max(0, ...LIT_BLINKS.map(([at, b]) => lidAt(tf, at, b)));
+  const probe = offscreen(12, 12).getContext('2d', { willReadFrequently: true });
+  const furAt = (u, v) => {
+    probe.clearRect(0, 0, 12, 12);
+    probe.drawImage(catImg, Math.round(u) - 6, Math.round(v) - 6, 12, 12, 0, 0, 12, 12);
+    const d = probe.getImageData(0, 0, 12, 12).data;
+    let r = 0; let g = 0; let b = 0; let a = 0;
+    for (let i = 0; i < d.length; i += 4) { r += d[i] * d[i + 3]; g += d[i + 1] * d[i + 3]; b += d[i + 2] * d[i + 3]; a += d[i + 3]; }
+    return a > 255 * 20 ? [r / a, g / a, b / a] : [226, 214, 198];
+  };
+  const rgb = (c, k = 1) => `rgb(${Math.round(c[0] * k)}, ${Math.round(c[1] * k)}, ${Math.round(c[2] * k)})`;
+  const mix = (p, q, k) => p.map((v, i) => lerp(v, q[i], k));
+  // A lid is a soft patch of fur over the eye and its dark rim, feathered into the photograph and kept inside the
+  // cat's own outline (the far eye sits on her profile); the open part is cut out of it frame by frame.
+  const LIDS = EYES.map((e) => {
+    const far = e.id !== 'blue';
+    const at = (k, l) => furAt(e.cx - Math.sin(e.a) * k * e.ry + Math.cos(e.a) * l * e.rx, e.cy + Math.cos(e.a) * k * e.ry + Math.sin(e.a) * l * e.rx);
+    const cheek = far ? at(1.9, 0) : mix(at(1.5, 0), at(0, 1.45), 0.5);     // the lit fur next to the eye
+    const brow = far ? mix(cheek, at(1.9, 1.2), 0.5) : mix(cheek, at(-1.6, 0), 0.6);
+    const cv = offscreen(e.sw, e.sw);
+    const c = cv.getContext('2d');
+    c.translate(e.cx - e.sx, e.cy - e.sy); c.rotate(e.a);
+    const g = c.createLinearGradient(0, -e.ry * 1.2, 0, e.ry * 1.2);
+    g.addColorStop(0, rgb(brow)); g.addColorStop(0.6, rgb(cheek)); g.addColorStop(1, rgb(cheek));
+    c.fillStyle = g; c.fillRect(-e.sw, -e.sw, e.sw * 2, e.sw * 2);
+    c.globalCompositeOperation = 'destination-in';
+    c.save();
+    c.scale(e.rx * (far ? 1.3 : 1.42), e.ry * (far ? 1.42 : 1.42));     // wide enough to take in the dark rim of the eye
+    const m = c.createRadialGradient(0, 0, 0, 0, 0, 1);
+    m.addColorStop(0, 'rgba(0,0,0,1)'); m.addColorStop(0.8, 'rgba(0,0,0,1)'); m.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = m; c.fillRect(-2, -2, 4, 4);
+    c.restore();
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.drawImage(catImg, e.sx, e.sy, e.sw, e.sw, 0, 0, e.sw, e.sw);
+    return { e, cv, meet: far ? 0.08 : 0.46, lash: rgb(mix(cheek, [58, 40, 34], 0.86)) };   // meet: where the lids close, in short radii below the middle
+  });
+  const cLid = offscreen(cEye.canvas.width, cEye.canvas.height).getContext('2d');
+  const paintLids = (c, shut) => {
+    for (const { e, cv, meet, lash } of LIDS) {
+      cLid.setTransform(1, 0, 0, 1, 0, 0);
+      cLid.globalAlpha = 1; cLid.globalCompositeOperation = 'source-over'; cLid.filter = 'none';
+      cLid.clearRect(0, 0, cLid.canvas.width, cLid.canvas.height);
+      cLid.drawImage(cv, 0, 0);
+      cLid.translate(e.cx - e.sx, e.cy - e.sy); cLid.rotate(e.a);
+      const R = e.rx * 1.02;
+      const up = lerp(-e.ry, e.ry * meet, shut);         // the edge of the upper lid, as the short radius of an arc
+      const lo = lerp(e.ry, e.ry * meet, shut);          // and of the lower lid, which comes up less
+      const edge = () => { if (up < 0) cLid.ellipse(0, 0, R, -up, 0, Math.PI, TAU); else cLid.ellipse(0, 0, R, Math.max(0.01, up), 0, Math.PI, 0, true); };
+      if (shut < 1) {                        // the part of the eye that still shows
+        cLid.globalCompositeOperation = 'destination-out'; cLid.filter = 'blur(1.2px)';
+        cLid.beginPath(); edge(); cLid.ellipse(0, 0, R, lo, 0, 0, Math.PI); cLid.closePath(); cLid.fill();
+        cLid.globalCompositeOperation = 'source-over';
+      }
+      // the lash line: a soft shadow and a fine dark edge
+      cLid.strokeStyle = lash; cLid.lineCap = 'round';
+      cLid.filter = 'blur(3px)'; cLid.globalAlpha = 0.3 * Math.min(1, shut * 2); cLid.lineWidth = 10;
+      cLid.beginPath(); edge(); cLid.stroke();
+      cLid.filter = 'blur(0.8px)'; cLid.globalAlpha = 0.82 * Math.min(1, shut * 2.5); cLid.lineWidth = 2.8;
+      cLid.beginPath(); edge(); cLid.stroke();
+      cLid.filter = 'none'; cLid.globalAlpha = 1;
+      c.globalAlpha = Math.min(1, shut * 2.5);           // the lids come in over the rim of the eye, they do not pop on
+      c.drawImage(cLid.canvas, 0, 0, e.sw, e.sw, e.sx, e.sy, e.sw, e.sw);
+      c.globalAlpha = 1;
+    }
   };
 
   onFrame((t) => {
@@ -527,7 +760,6 @@ export async function buildAct2({ cues, config, stage, S }) {
     }
     term.style.visibility = t >= TERM_IN ? 'inherit' : 'hidden';
     const tf = Math.min(t, CUT);             // the party freezes dead when the song is cut
-    const cam = camAt(tf);
     const lights = ease.out3(prog(tf, LIGHTS, LIGHTS + 0.26));
     const lit = tf >= LIGHTS;
 
@@ -541,13 +773,9 @@ export async function buildAct2({ cues, config, stage, S }) {
     const turn = turnAt(tf);
     if (lit && !TYPE_ONLY) {
       // the room
-      const Tb = layer(K.bg, cam);
-      ctx.setTransform(Tb.s, 0, 0, Tb.s, Tb.x, Tb.y);
       ctx.globalAlpha = lights;
       ctx.drawImage(bgImg, -200, -150);
       // its lights
-      const Tk = layer(K.bokeh, cam);
-      ctx.setTransform(Tk.s, 0, 0, Tk.s, Tk.x, Tk.y);
       ctx.globalCompositeOperation = 'lighter';
       for (const d of bokeh) {
         const s = tf - d.on;
@@ -560,20 +788,36 @@ export async function buildAct2({ cues, config, stage, S }) {
         ctx.drawImage(d.img, x - d.r, y - d.r, d.r * 2, d.r * 2);
       }
       ctx.globalCompositeOperation = 'source-over';
-      drawConfetti(ctx, far, tf, layer(K.far, cam), gust * 0.5, turn, W, H);
+      drawConfetti(ctx, far, tf, FIXED, gust * 0.5, turn, W, H);
       // the room falls away into the corners; the cat and its hat keep their own light (see tools/cat/05_grade.py)
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.globalAlpha = 1;
       ctx.drawImage(vigImg, 0, 0);
     }
-    // the cat (and, before the lights, only its bell and eyes)
-    const Tc = layer(K.cat, cam);
-    const cs = Tc.s * CAT_S;
-    ctx.setTransform(cs, 0, 0, cs, Tc.x + Tc.s * CAT_X, Tc.y + Tc.s * CAT_Y);
+    // the cat (and, before the lights, only its bell and eyes), swaying with the waltz once the song is going
+    const sway = swayIn(tf);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (sway > 0) {
+      const bar = (tf - DOWN) / BAR;
+      ctx.translate(SWAY_AT.x, SWAY_AT.y - BOB * sway * (0.5 - 0.5 * Math.cos(TAU * bar)));
+      ctx.rotate(SWAY * sway * (0.5 - 0.5 * Math.cos(Math.PI * bar)));
+      ctx.translate(-SWAY_AT.x, -SWAY_AT.y);
+    }
+    ctx.transform(CAT_S, 0, 0, CAT_S, CAT_X, CAT_Y);     // cat pixels from here on
     if (lit && !TYPE_ONLY) {
-      ctx.globalAlpha = ease.out3(prog(tf, LIGHTS, LIGHTS + 0.2));
+      const ca = ease.out3(prog(tf, LIGHTS, LIGHTS + 0.2));
+      ctx.globalAlpha = ca;
       ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(catImg, 0, 0);
+      if (ca < 1) ctx.drawImage(catImg, 0, 0);           // while she fades up: the photograph in one piece
+      else {
+        ctx.drawImage(catBody, 0, 0);
+        const m = ctx.getTransform();
+        ctx.translate(HAT.pivot[0], HAT.pivot[1]); ctx.rotate(hatAt(tf)); ctx.translate(-HAT.pivot[0], -HAT.pivot[1]);
+        ctx.drawImage(hatCv, HAT.box[0], HAT.box[1]);
+        ctx.setTransform(m);
+        const shut = litShut(tf);
+        if (shut > 0) paintLids(ctx, shut);
+      }
       ctx.imageSmoothingQuality = 'low';
     }
     ctx.globalAlpha = 1;
@@ -582,9 +826,9 @@ export async function buildAct2({ cues, config, stage, S }) {
     if (!lit) return;
 
     if (!TYPE_ONLY) {
-      drawConfetti(ctx, mid, tf, layer(K.mid, cam), gust, turn, W, H);
+      drawConfetti(ctx, mid, tf, FIXED, gust, turn, W, H);
       // out-of-focus foreground pieces
-      const Tn = layer(K.near, cam);
+      const Tn = FIXED;
       nearA.setTransform(1, 0, 0, 1, 0, 0);
       nearA.clearRect(0, 0, nearA.canvas.width, nearA.canvas.height);
       drawConfetti(nearA, near, tf, { s: Tn.s * Q, x: Tn.x * Q + PAD, y: Tn.y * Q + PAD }, gust * 1.5, turn, nearA.canvas.width, nearA.canvas.height);
@@ -597,13 +841,11 @@ export async function buildAct2({ cues, config, stage, S }) {
       ctx.globalAlpha = 1;
     }
 
-    // ── type (not in the closer shot) ─────────────────────────────────────────────────────────
-    if (!cam.close && tf >= T0) {
+    // ── type ──────────────────────────────────────────────────────────────────────────────────
+    if (tf >= T0) {
       const st = typeState(t, tf);
       const key = JSON.stringify(st);
       if (key !== painted) { paintType(st); painted = key; }
-      const ts = 1 + (cam.z - 1) * K.type;
-      ctx.setTransform(ts, 0, 0, ts, PIVOT.x * (1 - ts), PIVOT.y * (1 - ts));
       const moment = smooth(prog(tf, NAME_T - 0.1, NAME_T + 0.55)) * (1 - 0.45 * smooth(prog(tf, NAME_T + 0.7, NAME_T + 2.2)));
       const ga = (0.30 * smooth(prog(tf, T0 + 0.9, T0 + 2.1)) + 0.34 * moment) * (t > CUT + 0.02 ? 0.4 : 1);
       if (ga > 0.004) {

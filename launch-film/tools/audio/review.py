@@ -287,11 +287,26 @@ def edge_report(x, edges):
     """Hard edges must be click-free. For a cut INTO silence at t: peak |x| in the last
     0.5 ms before t relative to the RMS 10-30 ms before t. For a start FROM silence at t:
     peak |x| in the first 0.25 ms after t relative to the RMS 5-25 ms after t. A step
-    discontinuity (click) would read about 0 dB or more; a proper micro-fade reads far below."""
+    discontinuity (click) would read about 0 dB or more; a proper micro-fade reads far below.
+
+    kind "attack": a percussive sound (a bell, a pop) starting from silence exactly at t. Its
+    own attack is as sharp as a click, so the test is different: nothing may sound in the
+    3 ms before t (a gate opening late or a tail cut off would), and the very first sample
+    must be far below the peak of the first 3 ms (a waveform starting on a step would not
+    be). Row: (t, kind, label, first sample rel. to that peak dB, first sample dBFS,
+    peak of the 3 ms before dBFS, click)."""
     mono = x.mean(axis=0) if x.ndim == 2 else x
     rows = []
     for (t, kind, lab) in edges:
         i = s2n(t)
+        if kind == "attack":
+            pre = float(np.max(np.abs(mono[max(0, i - s2n(0.003)):i]))) if i > 0 else 0.0
+            first = float(abs(mono[i]))
+            top = float(np.max(np.abs(mono[i:i + s2n(0.003)]))) + 1e-12
+            click = pre > 10 ** (-70 / 20) or first > 0.25 * top
+            rows.append((t, kind, lab, 20 * np.log10(first / top + 1e-12), 20 * np.log10(first + 1e-12),
+                         20 * np.log10(pre + 1e-12), click))
+            continue
         if kind == "cut":
             edge = np.max(np.abs(mono[max(0, i - s2n(0.0005)):i])) if i > 0 else 0.0
             ref = mono[max(0, i - s2n(0.03)):max(0, i - s2n(0.01))]

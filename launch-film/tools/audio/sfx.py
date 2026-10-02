@@ -2,9 +2,13 @@
 where offset_s says where the sound starts relative to its cue time (risers that must END
 on a cue start early). All randomness comes from rng_for(kind, t, ...).
 
-Every kind in cues.sfx needs an entry in DESIGNS and in LEVELS: render_sfx() refuses to
-build otherwise. Pitched effects take their notes from the music under them (ctx["key1"],
-ctx["key"], ctx["chord"], ctx["tick_chord"]), so nothing rings against the score."""
+Every kind in cues.sfx needs an entry in DESIGNS and in LEVELS: check_kinds() / render_sfx()
+refuse to build otherwise. Pitched effects take their notes from the music under them
+(ctx["key1"], ctx["key"], ctx["chord"], ctx["tick_chord"]), so nothing rings against the score.
+
+Nothing here knows a time of the film: lengths and contexts that depend on the edit (how long
+the opening drone lasts, which pop is the cat's speech bubble, which typing cues sound, where
+the dark room tone lies) are derived from the cue sheet in render_sfx()."""
 from __future__ import annotations
 
 import numpy as np
@@ -81,10 +85,14 @@ def _whoosh(dur, peak_frac, rng, f_lo=250.0, f_hi=3500.0, q=0.9, pan_from=-0.7, 
 
 # ================================================================ designs
 def drone_in(ev, rng, ctx):
-    dur = 7.6
+    """The low drone the film opens on (the tonic of the launch track, two octaves down, with
+    a breath of air on top). It comes in within the first second - a swell, never a hit -
+    holds, and hands over to the build: it has faded out `dur` seconds after its cue
+    (cue "dur", else ctx["drone_dur"]: up to the last bar before the freeze)."""
+    dur = float(ev.get("dur") or ctx.get("drone_dur") or 7.6)
     n = s2n(dur)
     t = tarr(n)
-    f = 55.0
+    f = float(mtof(33 + (chord_pcs(ctx["key1"])[0] - 9) % 12))       # A1 = 55 Hz in A minor
     x = (np.sin(TWO_PI * f * t) + 0.45 * np.sin(TWO_PI * 2 * f * t + 0.4 * np.sin(TWO_PI * 0.23 * t))
          + 0.14 * osc("tri", 3 * f * cents(4), n) + 0.08 * osc("saw", 4 * f * cents(-5), n))
     x = butter(x, "lowpass", 900.0, 2)
@@ -92,7 +100,9 @@ def drone_in(ev, rng, ctx):
                     block=256, stages=2)
     air /= np.std(air) + 1e-9
     y = np.stack([x, x]) + 0.22 * air
-    env = smoothstep(t / 3.2) * (1 - smoothstep((t - 4.6) / (dur - 4.6)))
+    rise = min(0.6, 0.25 * dur)                # audible before the first ping, still a swell
+    hold = max(rise, 0.35 * dur)
+    env = smoothstep(t / rise) * (1 - smoothstep((t - hold) / (dur - hold)))
     y *= env
     fade_edges(y, 0.01, 0.01)
     return 0.0, _norm(y)
@@ -313,14 +323,14 @@ def ui_click(ev, rng, ctx):
     return 0.0, _norm(_st(x, 0.05))
 
 
-def _pop(rng, f_a, f_b, glide=0.028, tau=0.055, n_s=0.25):
+def _pop(rng, f_a, f_b, glide=0.028, tau=0.055, n_s=0.25, click=0.2, attack=0.002):
     n = s2n(n_s)
     t = tarr(n)
     f = f_b + (f_a - f_b) * np.exp(-t / glide)
-    x = np.sin(TWO_PI * phase_of(f, n)) * _env(n, 0.002, tau)
-    x += 0.15 * np.sin(TWO_PI * phase_of(2 * f, n)) * _env(n, 0.002, tau * 0.5)
+    x = np.sin(TWO_PI * phase_of(f, n)) * _env(n, attack, tau)
+    x += 0.15 * np.sin(TWO_PI * phase_of(2 * f, n)) * _env(n, attack, tau * 0.5)
     clk = butter(rng.standard_normal(n), "highpass", 2500.0, 2) * _env(n, 0.0003, 0.0015)
-    x += 0.2 * clk / (np.max(np.abs(clk)) + 1e-9)
+    x += click * clk / (np.max(np.abs(clk)) + 1e-9)
     fade_edges(x, 0.0, 0.01)
     return _norm(x)
 
@@ -329,8 +339,21 @@ def post_pop(ev, rng, ctx):
     return 0.0, _st(_pop(rng, 330.0, 980.0, 0.03, 0.07, 0.3), 0.0)
 
 
+BUBBLE_POP_DB = -5.0    # the cat's speech bubble, relative to a forum reply pop
+
+
 def reply_pop(ev, rng, ctx):
-    i = ctx["index"]
+    if ctx.get("bubble"):
+        # The cat's "Meow." speech bubble: a gentle, round pop that lands on the ringing
+        # final chord. It glides up an octave onto the tonic of the reveal (so it sits inside
+        # the chord), has a soft attack and almost no click, and is much quieter than a
+        # forum reply.
+        f = float(mtof(84 + (chord_pcs(ctx["key"])[0] % 12)))       # D6 in D major
+        if f > 1500.0:
+            f /= 2.0
+        x = _pop(rng, f / 2.0, f, glide=0.03, tau=0.065, n_s=0.32, click=0.03, attack=0.004)
+        return 0.0, _st(x, 0.1) * 10 ** (BUBBLE_POP_DB / 20)
+    i = ctx.get("reply_index", ctx["index"])
     return 0.0, _st(_pop(rng, 480.0 + 120 * i, 1250.0 + 250 * i, 0.022, 0.05), -0.2 + 0.4 * i)
 
 
@@ -572,6 +595,37 @@ def bell_jingle(ev, rng, ctx):
     return 0.0, _norm(y)
 
 
+BLINK_F = (980.0, 1130.0, 1160.0)     # Hz: a slow blink; the first and the later ticks of a quick double
+BLINK_QUICK = 0.45                    # s: blinks closer together than this are one quick double (or more)
+
+
+def blink_tick(ev, rng, ctx):
+    """The cat's eyes blinking in the dark: a tiny muted wood block, a soft "tk". One woody
+    resonance around 1 kHz that is damped within ~15 ms, an inharmonic overtone (x2.71) that
+    is gone in 5 ms, a hollow octave below, and a breath of band-passed contact noise (the
+    "t"); the attack is rounded (1.5 ms) and nothing reaches above ~4 kHz - so it is neither
+    a UI click (a bright noise burst) nor a glitch (a buzz), and it leaves the top of the
+    spectrum to the collar bell. A blink on its own sits a little lower and rings a little
+    longer than the ticks of a quick double (ctx["blink_group"]); the pitches are a fraction
+    of a tone apart, not an interval ("nothing musical until the lights")."""
+    k = int(ctx.get("blink_group", 0))            # 0 = a blink on its own, 1, 2, ... = inside a quick group
+    f0 = BLINK_F[min(k, len(BLINK_F) - 1)] * cents(rng.uniform(-12, 12))
+    slow = k == 0
+    n = s2n(0.14)
+    t = tarr(n)
+    f = f0 * (1.0 + 0.035 * np.exp(-t / 0.0035))                 # the block "gives" a little: tok, not tick
+    ph = phase_of(f, n)
+    att = 0.5 - 0.5 * np.cos(np.pi * np.clip(t / 0.0015, 0.0, 1.0))
+    body = np.sin(TWO_PI * ph) * np.exp(-t / (0.016 if slow else 0.012))
+    over = 0.36 * np.sin(TWO_PI * 2.71 * ph + 0.7) * np.exp(-t / 0.005)
+    low = 0.30 * np.sin(TWO_PI * 0.5 * ph) * np.exp(-t / 0.010)   # a little hollow body under it
+    nz = butter(rng.standard_normal(n), "bandpass", (700.0, 2600.0), 2) * np.exp(-t / 0.003)
+    x = (body + over + low) * att + 0.20 * att * nz / (np.max(np.abs(nz)) + 1e-9)
+    x = butter(x, "lowpass", 4200.0, 2)
+    fade_edges(x, 0.0, 0.03)
+    return 0.0, _st(_norm(x) * (1.0 if slow else rng.uniform(0.82, 0.92)), 0.0)
+
+
 def lights_on(ev, rng, ctx):
     """A wall switch (lever click, then the contact snapping over 18 ms later) and a short
     warm bloom as the room lights up: a low dominant chord of the song's key, soft-attacked,
@@ -672,7 +726,8 @@ def type_soft(ev, rng, ctx):
     x /= np.max(np.abs(x)) + 1e-9
     x += 0.6 * np.sin(TWO_PI * rng.uniform(150, 230) * t) * _env(n, 0.001, 0.014)
     x *= rng.uniform(0.6, 1.0)
-    return 0.0, _st(_norm(x) * rng.uniform(0.7, 1.0), rng.uniform(-0.12, 0.12))
+    # ctx["vel"]: how hard this key is struck (see typing_plan; 1.0 = a line's first key)
+    return 0.0, _st(_norm(x) * rng.uniform(0.7, 1.0) * float(ctx.get("vel", 1.0)), rng.uniform(-0.12, 0.12))
 
 
 def riser(ev, rng, ctx):
@@ -908,7 +963,8 @@ DESIGNS = {
     "ui_click": ui_click, "post_pop": post_pop, "reply_pop": reply_pop, "upvote_tick": upvote_tick,
     "counter_ding": counter_ding, "swish_small": swish_small, "countdown_hit": countdown_hit,
     "ui_click_big": ui_click_big, "glitch_hit": glitch_hit, "error_beep": error_beep, "static_rise": static_rise,
-    "bell_jingle": bell_jingle, "lights_on": lights_on, "party_popper": party_popper, "term_key": term_key,
+    "bell_jingle": bell_jingle, "blink_tick": blink_tick, "lights_on": lights_on, "party_popper": party_popper,
+    "term_key": term_key,
     "crescendo_noise": crescendo_noise, "flash_impact": flash_impact, "type_soft": type_soft,
     "riser": riser, "impact_drop_big": impact_drop_big, "chart_build": chart_build, "punch_ding": punch_ding,
     "stamp": stamp, "node_swarm": node_swarm, "gather_swell": gather_swell, "chime_big": chime_big,
@@ -916,16 +972,17 @@ DESIGNS = {
 }
 
 # (bus, gain dB). Buses: ui (dry-ish), notif, big (hall), air, glitch (dry), bell (plate+hall),
-# tiny (small room: the collar bell)
+# tiny (small room: the collar bell), wood (the same small room, full range: the blink ticks),
+# bed (dry: the room tone of the dark)
 LEVELS = {
-    "drone_in": ("air", -19), "node_blip": ("bell", -15), "text_hit": ("big", -11), "count_tick": ("ui", -11),
+    "drone_in": ("air", -18.5), "node_blip": ("bell", -15), "text_hit": ("big", -11), "count_tick": ("ui", -11),
     "comic_ding": ("bell", -15),
     "notif_ping": ("notif", -12.5), "soft_tick": ("ui", -21), "hard_stop": ("big", -9), "reverse_riser": ("air", -12),
     "impact_drop": ("big", -5), "whoosh": ("air", -5), "key_click": ("ui", -9), "ui_click": ("ui", -4),
     "post_pop": ("ui", -7), "reply_pop": ("ui", -8), "upvote_tick": ("ui", -15), "counter_ding": ("bell", -9),
     "swish_small": ("air", -5), "countdown_hit": ("big", -5), "ui_click_big": ("ui", -2),
     "glitch_hit": ("glitch", -10), "error_beep": ("glitch", -15), "static_rise": ("glitch", -1),
-    "bell_jingle": ("tiny", -12), "lights_on": ("air", -9), "party_popper": ("big", -9), "term_key": ("ui", -26),
+    "bell_jingle": ("tiny", -12), "blink_tick": ("wood", -22), "lights_on": ("air", -9), "party_popper": ("big", -9), "term_key": ("ui", -26),
     "crescendo_noise": ("glitch", -1), "flash_impact": ("big", -5), "type_soft": ("ui", -15),
     "riser": ("air", -11), "impact_drop_big": ("big", -6.5), "chart_build": ("notif", -13.5),
     "punch_ding": ("bell", -8.5), "stamp": ("ui", -3), "node_swarm": ("bell", -9), "gather_swell": ("air", -5),
@@ -942,6 +999,9 @@ def sfx_reverbs():
     }
 
 
+SFX_BUSES = ("ui", "notif", "big", "air", "glitch", "bell", "tiny", "wood", "bed")
+
+
 def _mixer(name, t0, t1):
     mx = Mixer(name, t0, t1, sfx_reverbs())
     mx.bus("ui", gain_db=0.0, sends={"room": 0.15})
@@ -951,19 +1011,137 @@ def _mixer(name, t0, t1):
     mx.bus("glitch", gain_db=0.0, sends={"room": 0.06})
     mx.bus("bell", gain_db=0.0, sends={"plate": 0.22, "hall": 0.18}, width=1.2)
     mx.bus("tiny", gain_db=0.0, hp=1500, sends={"room": 0.10, "plate": 0.10}, width=1.1)
+    mx.bus("wood", gain_db=0.0, hp=300, lp=6000, sends={"room": 0.12, "plate": 0.05})
+    mx.bus("bed", gain_db=0.0)
+    assert set(mx.buses) == set(SFX_BUSES), "SFX_BUSES must list the buses of _mixer()"
     return mx
 
 
 def check_kinds(cues):
-    """Fail loudly if the cue sheet asks for an SFX kind that cannot be rendered."""
+    """Fail loudly if the cue sheet asks for an SFX kind that cannot be rendered (no design,
+    no level, or a level on a bus that does not exist) or if a cue is malformed."""
+    bad = [e for e in cues["sfx"] if not isinstance(e, dict) or "kind" not in e
+           or not isinstance(e.get("t"), (int, float))]
+    if bad:
+        raise ValueError(f"cues.sfx has {len(bad)} malformed cue(s) (each needs a 'kind' and a numeric 't'), "
+                         f"e.g. {bad[0]!r}")
     kinds = sorted({e["kind"] for e in cues["sfx"]})
     missing = [k for k in kinds if k not in DESIGNS]
     unlevelled = [k for k in kinds if k in DESIGNS and k not in LEVELS]
-    if missing or unlevelled:
+    nobus = [k for k in kinds if k in LEVELS and LEVELS[k][0] not in SFX_BUSES]
+    if missing or unlevelled or nobus:
+        n = {k: sum(1 for e in cues["sfx"] if e["kind"] == k) for k in missing + unlevelled + nobus}
         raise KeyError("cues.sfx uses SFX kinds that sfx.py cannot render - "
-                       f"no design: {missing or 'none'}; no level/bus: {unlevelled or 'none'}. "
+                       f"no design: {missing or 'none'}; no level/bus: {unlevelled or 'none'}; "
+                       f"unknown bus: {nobus or 'none'} (cue counts: {n}). "
                        "Add them to DESIGNS and LEVELS in tools/audio/sfx.py.")
     return kinds
+
+
+def unused_kinds(cues):
+    """Designs that exist but are not cued in this cut (information for the build log)."""
+    used = {e["kind"] for e in cues["sfx"]}
+    return sorted(k for k in DESIGNS if k not in used)
+
+
+# ----------------------------------------------------------------- soft typing
+TYPE_MIN_GAP = 0.070     # s: two keystrokes are never closer than this ...
+TYPE_MAX_GAP = 0.150     # ... and inside a run of text never further apart than this
+TYPE_P = 0.6             # chance that a key sounds once TYPE_MIN_GAP has passed
+TYPE_JITTER = 0.009      # s: sounding keys are nudged by up to +-9 ms (a quarter of a frame), so
+                         # they do not sit on the character grid; a line's first key is not moved
+
+
+def typing_plan(cues):
+    """{cue time: velocity} for the `type_soft` cues; velocity 0 = the key makes no sound.
+
+    The letter appears one character per cue, far faster than anyone types (26 per second in
+    this cut). One click per character at that rate is a buzz at the character rate - a
+    machine gun. So when cues come faster than TYPE_MIN_GAP apart only some of them sound:
+    never two closer than TYPE_MIN_GAP, never a gap above TYPE_MAX_GAP inside a run, spaces
+    are silent (the words keep their rhythm), each line starts on a sounding key, and every
+    key is struck a little differently. Text slower than TYPE_MIN_GAP per character sounds on
+    every (non-space) character. The choice is seeded: the same cues give the same typing."""
+    ts = sorted(e["t"] for e in cues["sfx"] if e["kind"] == "type_soft")
+    L = cues.get("letter") or {}
+    cps = float(L.get("cps") or 0.0)
+    chars = []                                    # (time, character, starts a line, starts a word)
+    if cps > 0:
+        for line in L.get("lines", []):
+            for i, c in enumerate(line["text"]):
+                chars.append((line["t"] + i / cps, c, i == 0, i > 0 and line["text"][i - 1].isspace()))
+    ct = np.array([c[0] for c in chars])
+    rng = rng_for("typing_plan")
+    plan, last, prev = {}, -1e9, -1e9
+    for t in ts:
+        j = int(np.argmin(np.abs(ct - t))) if len(ct) else -1
+        _, c, line_start, word_start = chars[j] if j >= 0 and abs(ct[j] - t) < 2e-3 else (t, "x", False, False)
+        gap = t - last
+        dense = (t - prev) < TYPE_MIN_GAP - 1e-6          # the cues themselves come too fast
+        prev = t
+        draw = float(rng.random())
+        if c.isspace():
+            v = 0.0
+        elif line_start or gap >= TYPE_MAX_GAP - 1e-6:
+            v = 1.0 if line_start else float(rng.uniform(0.62, 0.9))
+        elif gap < TYPE_MIN_GAP - 1e-6:
+            v = 0.0
+        else:
+            v = float(rng.uniform(0.5, 0.88)) if (not dense or draw < TYPE_P) else 0.0
+        if v and word_start:
+            v = min(1.0, v * 1.12)                         # a word's first letter leans in a little
+        if v:
+            last = t
+        plan[t] = v
+    return plan
+
+
+def typing_jitter(cues):
+    """{cue time: offset in s} for the sounding keys of typing_plan (0 for the first key of a
+    line and whenever the cues are slow enough to sound one by one)."""
+    plan = typing_plan(cues)
+    ts = sorted(plan)
+    rng = rng_for("typing_jitter")
+    out, prev = {}, -1e9
+    for i, t in enumerate(ts):
+        nxt = ts[i + 1] if i + 1 < len(ts) else 1e9
+        dense = min(t - prev, nxt - t) < TYPE_MIN_GAP - 1e-6
+        j = float(rng.uniform(-TYPE_JITTER, TYPE_JITTER))
+        out[t] = j if (dense and plan[t] < 1.0) else 0.0
+        prev = t
+    return out
+
+
+# -------------------------------------------------------- the room tone of the dark
+DARK_ROOM_TONE_DB = -58.0      # RMS (dBFS) at the master input; None = no room tone at all
+
+
+def dark_room_tone(cues, rng):
+    """-> (t0, stereo) or None. An extremely quiet, dark room tone under the long dark beat
+    before the birthday (so seconds of darkness are not dead digital air on headphones): noise
+    below ~300 Hz with a hint of air, ~45 dB below the collar bell's peak. It fades in with the first sound of the darkness
+    (the bell; up to it the film stays digitally silent after the G1 crash) and is gone
+    again by the time the lights come on. Nothing musical."""
+    if DARK_ROOM_TONE_DB is None:
+        return None
+    b = cues.get("birthday") or {}
+    if "start" not in b or "lights_on" not in b:
+        return None
+    lights = b["lights_on"]
+    inside = [e["t"] for e in cues["sfx"] if b["start"] - 1e-9 <= e["t"] < lights]
+    if not inside or lights - min(inside) < 1.0:
+        return None                                   # no dark beat worth a room tone
+    t0 = min(inside)
+    n = s2n(lights - t0)
+    t = tarr(n)
+    y = butter(rng.standard_normal((2, n + SR)), "lowpass", 320.0, 2)[:, SR:]     # (filter settled)
+    y = butter(y, "highpass", 45.0, 2)
+    y /= np.sqrt(np.mean(y ** 2)) + 1e-12
+    air = butter(rng.standard_normal((2, n)), "bandpass", (700.0, 2200.0), 1)     # a hint of air, 26 dB down
+    y += 0.05 * air / (np.sqrt(np.mean(air ** 2)) + 1e-12)
+    y *= 10 ** (DARK_ROOM_TONE_DB / 20) / (np.sqrt(np.mean(y ** 2)) + 1e-12)
+    y *= smoothstep(t / 0.7) * (1.0 - smoothstep((t - (n / SR - 0.25)) / 0.25))
+    return t0, y
 
 
 def render_sfx(cues, epochs):
@@ -990,6 +1168,16 @@ def render_sfx(cues, epochs):
                 "key1": T1["chords"][0],
                 "tick_chord": tick_chord,
                 "bday_key": cues["tempo"]["birthday"].get("key", "C major").split()[0]}
+    # how long the opening drone lasts when its cue has no "dur": it hands over to the build
+    # and is gone before the last bar in front of the freeze
+    drones = [e["t"] for e in ev_all if e["kind"] == "drone_in"]
+    if drones and "chaos" in cues:
+        ctx_base["drone_dur"] = max(3.0, cues["chaos"]["freeze"] - T1["bar_seconds"] - min(drones))
+    # the reply pop that is the cat's speech bubble in the finale (gentle), not a forum reply
+    bubble_t = (cues.get("finale") or {}).get("meow")
+    typing = typing_plan(cues)
+    jitter = typing_jitter(cues)
+    blink_ts = [e["t"] for e in ev_all if e["kind"] == "blink_tick"]
     counts, seen = {}, {}
     for e in ev_all:
         counts[e["kind"]] = counts.get(e["kind"], 0) + 1
@@ -1013,8 +1201,23 @@ def render_sfx(cues, epochs):
         if kind in ("chart_build", "punch_ding", "stamp"):
             # the chord the band accents on this card's punch (a build ends on its punch)
             ctx["chord"] = reveal_punch_chord(cues, e["t"] + float(e.get("dur", 0.0)))
+        if kind == "reply_pop":
+            if bubble_t is not None and abs(e["t"] - bubble_t) < 1e-3:
+                ctx["bubble"] = True
+            else:                                   # forum replies count on their own
+                ctx["reply_index"] = seen_reply = seen.get("reply_pop:forum", 0)
+                seen["reply_pop:forum"] = seen_reply + 1
+        if kind == "blink_tick":
+            near = [t for t in blink_ts if abs(t - e["t"]) <= BLINK_QUICK + 1e-9]       # its quick group
+            ctx["blink_group"] = 0 if len(near) == 1 else 1 + sum(1 for t in near if t < e["t"] - 1e-9)
+        if kind == "type_soft":
+            ctx["vel"] = typing[e["t"]]
+            if ctx["vel"] <= 0.0:
+                continue                            # this key makes no sound (see typing_plan)
         rng = rng_for("sfx", kind, e["t"], idx)
         off, sig = DESIGNS[kind](e, rng, ctx)
+        if kind == "type_soft":
+            off += jitter[e["t"]]
         bus, gdb = LEVELS[kind]
         g = 10 ** (gdb / 20)
         if kind == "notif_ping":
@@ -1028,5 +1231,10 @@ def render_sfx(cues, epochs):
                 raise ValueError(f"SFX cue {kind!r} at {e['t']} s lies inside a black/silence span of the cue sheet")
             target = home[0]
         target.buses[bus].add(e["t"] + off, sig, g)
+    tone = dark_room_tone(cues, rng_for("sfx", "dark_room_tone"))
+    if tone is not None:
+        home = [mx for mx, (a, b) in zip(posts, epochs) if a - 1e-9 <= tone[0] < b]
+        if home:
+            home[0].buses["bed"].add(tone[0], tone[1], 1.0)
     pre_mix = pre.render()
     return pre, pre_mix, [(mx, mx.render()) for mx in posts]

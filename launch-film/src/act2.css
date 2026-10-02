@@ -1,6 +1,10 @@
-/* Act 2 — the fake birthday for Noor (72–85.5) and the DOM side of glitch #2 (terminal, 85.5–90).
+/* Act 2 — the fake birthday for Noor (scene s08) and the DOM side of glitch #2 (the terminal). No times here:
+   act2.js reads them all from cues.json.
    The party is painted on one canvas by act2.js (photograph, lights, confetti and type: see the notes at the top
-   of that file); this sheet only places the canvas and styles the terminal that takes the screen after the cut. */
+   of that file); this sheet only places the canvas and styles the terminal that takes the screen after the cut.
+   Terminal: 64 px JBMono from x = 200, one line per <p>, never wrapped (white-space: pre). The longest line in the
+   cues is 36 characters = 1382 px, so it ends at x = 1582, inside the 96 px safe area; act2.js lowers the font
+   size on .term if a longer line ever arrives. */
 
 .bday { background: #000; }
 .bd-world { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }

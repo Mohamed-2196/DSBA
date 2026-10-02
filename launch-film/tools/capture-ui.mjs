@@ -1,6 +1,6 @@
 // Captures every UI asset the film needs from the running DSBA Hub app (clock frozen at the
 // event time). Writes PNGs to assets/ui/ and rectangles to assets/ui/manifest.json.
-//   node tools/capture-ui.mjs [only-group ...]     groups: stills seq-composer seq-cmdk elements dark
+//   node tools/capture-ui.mjs [only-group ...]     groups: stills seq-composer seq-cmdk seq-career elements dark
 import fs from 'fs';
 import path from 'path';
 import { chromium } from '/home/claude/.npm-global/lib/node_modules/playwright/index.mjs';
@@ -43,8 +43,7 @@ if (want('stills')) {
     ['viewer-fine', '/library/st2187-business-analytics-cover', 2600],
     ['viewer-table', '/library/st2133-common-continuous-distributions', 2600],
     ['lessons', LESSON, 2200],
-    ['career', '/career', 2200],
-    ['career-ds', '/career?role=data-scientist', 2200],
+    ['career', '/career', 2600],
     ['modules', '/modules', 1500],
     ['calendar', '/calendar', 2500],
   ];
@@ -54,10 +53,6 @@ if (want('stills')) {
     if (name === 'lessons') {
       manifest.lessonsPlay = await rect(page, '.mod-poster__play');
       manifest.lessonsPoster = await rect(page, '[data-hub=lesson-poster]');
-    }
-    if (name === 'career') {
-      manifest.careerChip = await rect(page, '[data-hub=career-role][data-role-id=data-scientist]');
-      manifest.careerFit = await rect(page, '[data-hub=career-fit]');
     }
     await ctx.close();
   }
@@ -118,12 +113,15 @@ if (want('elements')) {
 if (want('seq-composer')) {
   console.log('composer typing (1x)');
   const text = Array.from(TYPED.forum.typed_text);   // code points: the skull is one keystroke
-  const { ctx, page } = await openPage(browser, { hash: '/forum/new?attach=reduction-formula', scale: 1, wait: 1800, ls: HIDE });
+  // posted in Year 1 → MT1186 Mathematical Methods (the composer reads both from the URL)
+  const { ctx, page } = await openPage(browser, { hash: '/forum/new?attach=reduction-formula&category=year-1&module=mathematics', scale: 1, wait: 1800, ls: HIDE });
   // Film-only: a shorter details box, so the attached question is on screen while the title is typed.
   await page.addStyleTag({ content: '[data-hub=composer-body]{min-height:0!important;height:84px!important}' });
   await page.waitForTimeout(300);
   manifest.composer = await rect(page, '[data-hub=composer]');
   manifest.composerTitle = await rect(page, '[data-hub=composer-title]');
+  manifest.composerCategory = await rect(page, '[data-hub=composer-category]');
+  manifest.composerModule = await rect(page, '[data-hub=composer-module]');
   manifest.composerAttachment = await rect(page, '[data-hub=composer-attachment]');
   const title = page.locator('[data-hub=composer-title]');
   await title.click();
@@ -153,6 +151,35 @@ if (want('seq-composer')) {
   manifest.postedEggCount = await rect(page, `[data-thread-id="${EGG}"] .forum-vote__count`);
   await hideEggCount(page);
   await shot(page, 'forum-posted');
+  await ctx.close();
+}
+
+if (want('seq-career')) {
+  // Career Navigator scrolls from the employers down to the certificates: one frame per film frame,
+  // at the eased scroll positions the film plays back in order.
+  console.log('career scroll (1.5x)');
+  const [t0, t1] = TYPED.montage.career_scroll;
+  const N = Math.round((t1 - t0) * TYPED.fps);
+  const { ctx, page } = await openPage(browser, { hash: '/career', scale: 1.5, wait: 2600 });
+  const target = await page.evaluate(() => {
+    const el = document.querySelector('[data-hub=career-certs]');
+    return Math.round(el.getBoundingClientRect().top + window.scrollY - 80);
+  });
+  // visit the bottom once so anything lazy has loaded, then go back to the top
+  await page.evaluate((y) => window.scrollTo(0, y), target);
+  await page.waitForTimeout(900);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(500);
+  const ease = (p) => (p < 0.5 ? 4 * p * p * p : 1 - ((-2 * p + 2) ** 3) / 2);
+  for (let k = 0; k <= N; k += 1) {
+    await page.evaluate((y) => window.scrollTo(0, y), Math.round(target * ease(k / N)));
+    await page.waitForTimeout(k === 0 || k === N ? 500 : 140);
+    await shot(page, `career-${String(k).padStart(2, '0')}`);
+  }
+  manifest.careerFrames = N + 1;
+  manifest.careerScroll = target;
+  manifest.careerLogos = await page.evaluate(() => [...document.querySelectorAll('[data-hub=career-logo]')].map((e) => e.getAttribute('data-logo-state')).reduce((a, s) => { a[s] = (a[s] || 0) + 1; return a; }, {}));
+  console.log('   frames', N + 1, 'scroll', target, 'logos', JSON.stringify(manifest.careerLogos));
   await ctx.close();
 }
 

@@ -1,7 +1,9 @@
-// Act 3 — the letter (91.5–100) and Teacher's Day: the title (100–106), "we ran the numbers" (106–124),
-// the network that becomes THANK YOU (124–132) and the finale (132–140).
+// Act 3 — the letter (s09) and Teacher's Day: the title (s10), "we ran the numbers" (s11),
+// the network that becomes THANK YOU (s12) and the finale (s13).
+// Every time and every line of copy comes from cues.json (cues.scenes, cues.letter, cues.teachers_day,
+// cues.numbers, cues.network, cues.finale); times that are not in the cue sheet are offsets from one that is.
 // Every frame is a pure function of the film time: styles and canvases are recomputed from t on each seek.
-import { W, H, el, chars, onFrame, scene, mulberry, clamp, lerp, prog, ease, logoTile } from './lib.js';
+import { W, H, el, chars, onFrame, scene, mulberry, clamp, lerp, prog, ease } from './lib.js';
 import { COHORTS, cohortNodes, crossLinks } from './net.js';
 
 const BRAND = '/dsba/public/brand';
@@ -53,6 +55,18 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 /** Subscript digits (H₀) are not in the film's fonts: set them as real subscripts. */
 const rich = (s) => esc(s).replace(/[₀-₉]/g, (c) => `<sub>${c.charCodeAt(0) - 0x2080}</sub>`);
 const fmt = (v) => Math.round(v).toLocaleString('en-US');
+/** Emoji keep their own upright, full-colour glyph inside italic copy. */
+const EMOJI = /\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic}\uFE0F?)*/gu;
+const emo = (s) => esc(s).replace(EMOJI, '<span class="emo">$&</span>');
+/** One smooth hump, 0 → 1 → 0 over d seconds. */
+const hump = (x, d) => (x <= 0 || x >= d ? 0 : Math.sin((Math.PI * x) / d) ** 2);
+/** Width of `s` set in `font`. Only call it from a frame: the fonts are in before the first frame, not while the scenes are built. */
+const measure = (() => {
+  let m = null;
+  return (font, s) => { m = m || document.createElement('canvas').getContext('2d'); m.font = font; return m.measureText(s).width; };
+})();
+/** A handwriting wipe, left to right: w = 0 nothing written yet, 1 all of it. */
+const written = (w) => (w >= 1 ? 'none' : `linear-gradient(90deg, #000 ${(w * 112 - 12).toFixed(2)}%, rgba(0,0,0,0) ${(w * 112).toFixed(2)}%)`);
 
 /** Split a node's text into inline-block words. */
 function words(node) {
@@ -537,7 +551,7 @@ function drawInfinity(ctx, inf, cx, cy, scale, alpha, run) {
   ctx.restore();
 }
 
-// ───────────────────────── figure 1: bars that outgrow every axis
+// ───────────────────────── figure 1: bars that outgrow every axis, and one that has only just started
 function figExam(card, ui) {
   vis(ui.punch, false);
   vis(ui.stamp, false);
@@ -549,7 +563,30 @@ function figExam(card, ui) {
   const cols = COHORTS.map((c) => hex(c.hex));
   const bx = cols.map((_, i) => P.x0 + (PW * (i + 0.5)) / cols.length);
   const BW = 170;
-  const ratio = [0.68, 1, 0.5];
+  // The newest cohort (the first one: Year 1) joined a few weeks ago. Its count is an honest handful and stays
+  // one: the bar never leaves the chart, and however far the axis runs away it stays tall enough to be seen.
+  const NEW = 0;
+  const FEW = Number.isFinite(card.year1_count) ? card.year1_count : 4;     // the cue sheet may name the count; a handful otherwise
+  const STUB = 36;
+  const ratio = [0, 1, 0.5];
+  const PX = 1510;                       // the punchline's column, right of the chart
+  // the note on the short bar: handwriting, one sentence to a line, and an arrow down to the bar
+  const HAND = { size: 48, w: 338 };
+  let hand = null;
+  if (card.year1_note) {
+    const lines = (String(card.year1_note).match(/[^.!?…]+[.!?…]*/g) || []).map((s) => s.trim()).filter(Boolean);
+    const tip = [bx[NEW] + BW / 2 + 20, P.y1 - STUB + 7];
+    const c2 = [tip[0] + 74, tip[1] - 34];
+    const dir = Math.atan2(c2[1] - tip[1], c2[0] - tip[0]);          // back along the shaft, from the tip
+    const barb = (da) => `${(tip[0] + 25 * Math.cos(dir + da)).toFixed(1)} ${(tip[1] + 25 * Math.sin(dir + da)).toFixed(1)}`;
+    const box = el('div', 'fig-y1', lines.map((s) => `<span class="y1-ln"><b>${esc(s)}</b></span>`).join(''));
+    const svg = el('div', 'fig-y1-arrow', `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+      <path pathLength="1" d="M${tip[0] + 50} ${tip[1] - 126} C ${tip[0] + 88} ${tip[1] - 102}, ${c2[0]} ${c2[1]}, ${tip[0]} ${tip[1]}"/>
+      <path pathLength="1" d="M${barb(-0.56)} L${tip[0]} ${tip[1]} L${barb(0.5)}"/></svg>`);
+    ui.box.append(box, svg);
+    const [shaft, head] = svg.querySelectorAll('path');
+    hand = { box, lines, spans: [...box.querySelectorAll('b')], shaft, head, fitted: false };
+  }
   // the choreography, in fractions of build → punch: grow to the top, the axis rescales, grow again, faster each time
   const M = [20, 100, 1000, 10000];
   const RS = [[0.28, 0.4], [0.58, 0.68], [0.8, 0.86]];
@@ -601,8 +638,10 @@ function figExam(card, ui) {
     const ent = at(a, 0.42, 0.46, E.out3);
     const vm = tau <= 0 ? V[0][1] * ent : vmax(tau);
     cols.forEach((c, i) => {
-      const v = p >= 0 ? Infinity : vm * ratio[i % ratio.length] * (1 + (tau > 0 ? 0.09 * Math.sin(tau * 7 + i * 2.1) : 0));
-      const yt = v === Infinity ? -80 : Math.max(-80, P.y1 - (v / Mcur) * PH);
+      const few = i === NEW;
+      const v = few ? FEW * ent : p >= 0 ? Infinity : vm * ratio[i % ratio.length] * (1 + (tau > 0 ? 0.09 * Math.sin(tau * 7 + i * 2.1) : 0));
+      let yt = v === Infinity ? -80 : Math.max(-80, P.y1 - (v / Mcur) * PH);
+      if (few) yt = Math.min(yt, P.y1 - STUB * ent);
       const hgt = P.y1 - yt;
       if (hgt < 1) return;
       const x = bx[i] - BW / 2;
@@ -640,7 +679,41 @@ function figExam(card, ui) {
     // baseline and categories
     seg(ctx, P.x0, P.y1, lerp(P.x0, P.x1, at(a, 0.1, 0.55, E.out3)), P.y1, { w: 2.5 });
     COHORTS.forEach((c, i) => label(ctx, c.label, bx[i], P.y1 + 52, { fill: INK.text, a: at(a, 0.3 + i * 0.07, 0.4) }));
-    if (p > -0.07) drawInfinity(ctx, big, 1510, 546, 0.5 + 0.5 * E.back(2.4)(prog(p, -0.07, 0.3)), clamp((p + 0.07) / 0.1), p);
+    if (p > -0.07) drawInfinity(ctx, big, PX, 546, 0.5 + 0.5 * E.back(2.4)(prog(p, -0.07, 0.3)), clamp((p + 0.07) / 0.1), p);
+    // whose number that is: a key with the cohorts that went through the roof, and only those
+    const lq = at(p, 0.03, 0.36, E.out3);
+    if (lq > 0) {
+      ctx.font = FONT.val;
+      const key = COHORTS.map((c, i) => ({ i, s: c.label, w: ctx.measureText(c.label).width })).filter((k2) => k2.i !== NEW);
+      const SQ = 24;
+      let x = PX - (key.reduce((s, k2) => s + SQ + 14 + k2.w, 0) + 54 * (key.length - 1)) / 2;
+      const y = 392 + (1 - lq) * 14;
+      for (const k2 of key) {
+        ctx.globalAlpha = lq;
+        ctx.fillStyle = rgb(cols[k2.i]);
+        ctx.beginPath();
+        ctx.roundRect(x, y - SQ / 2, SQ, SQ, 6);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        label(ctx, k2.s, x + SQ + 14, y + 2, { font: FONT.val, fill: INK.text, align: 'left', base: 'middle', a: lq });
+        x += SQ + 14 + k2.w + 54;
+      }
+    }
+    // the note on the short bar is written while the other two run away, and is finished as they go through the roof
+    if (hand) {
+      if (!hand.fitted) {
+        hand.fitted = true;
+        const widest = Math.max(...hand.lines.map((s) => measure(`700 ${HAND.size}px Caveat`, s)));
+        if (widest > HAND.w) hand.box.style.fontSize = `${((HAND.size * HAND.w) / widest).toFixed(2)}px`;
+      }
+      const w0 = card.punch_t - 0.62;
+      const each = 0.6 / hand.spans.length;
+      hand.spans.forEach((b, i) => css(b, { webkitMaskImage: written(prog(t, w0 + i * each, w0 + (i + 1.15) * each)) }));
+      const sh = E.io2(prog(p, -0.02, 0.22));
+      css(hand.shaft, { visibility: sh > 0 ? 'inherit' : 'hidden', strokeDashoffset: (1 - sh).toFixed(4) });
+      const hd = E.out2(prog(p, 0.2, 0.32));
+      css(hand.head, { visibility: hd > 0 ? 'inherit' : 'hidden', strokeDashoffset: (1 - hd).toFixed(4) });
+    }
     return null;
   };
 }
@@ -1131,9 +1204,9 @@ function figure(root, card, tOut) {
   const box = el('div', `fig fig--${card.id}`, `<canvas width="${W}" height="${H}"></canvas>
     <div class="fig-kicker"><span>${esc(card.kicker)}</span><i></i></div><div class="fig-title">${rich(card.title)}</div>
     <div class="fig-punch"><span class="pv pv--dim"></span><span class="pv pv--foil"></span></div>
-    <div class="stamp"><b>${esc(card.punch)}</b></div><div class="fig-note">${esc(card.note)}</div>`);
+    <div class="stamp"><b>${esc(card.punch)}</b></div><div class="fig-note">${emo(card.note)}</div>`);
   root.appendChild(box);
-  const ui = { ctx: box.querySelector('canvas').getContext('2d'), rule: box.querySelector('.fig-kicker i'), punch: box.querySelector('.fig-punch'), dim: box.querySelector('.pv--dim'), foil: box.querySelector('.pv--foil'), stamp: box.querySelector('.stamp'), stampB: box.querySelector('.stamp b'), note: box.querySelector('.fig-note') };
+  const ui = { box, ctx: box.querySelector('canvas').getContext('2d'), rule: box.querySelector('.fig-kicker i'), punch: box.querySelector('.fig-punch'), dim: box.querySelector('.pv--dim'), foil: box.querySelector('.pv--foil'), stamp: box.querySelector('.stamp'), stampB: box.querySelector('.stamp b'), note: box.querySelector('.fig-note') };
   ui.dim.textContent = ui.foil.textContent = card.punch;
   /** A read-out that is faint while it counts and locks, in gold, on the punch. */
   ui.lock = (t, from) => {
@@ -1145,6 +1218,7 @@ function figure(root, card, tOut) {
   };
   const paint = (FIGS[card.id] || figPlain)(card, ui);
   const tIn = card.t - 0.04;
+  const long = [...card.note].length > 30;
   return (t) => {
     const on = t >= tIn && t < tOut + 0.22;
     vis(box, on);
@@ -1154,7 +1228,7 @@ function figure(root, card, tOut) {
     const pout = at(t, tOut, 0.22, E.in2);
     css(box, { opacity: (at(t, tIn, 0.26, E.out2) * (1 - pout)).toFixed(3), transform: `translate(${((1 - pin) * 150 - pout * 150 + shake[0]).toFixed(2)}px, ${shake[1].toFixed(2)}px)` });
     css(ui.rule, { transform: `scaleX(${at(t, tIn + 0.08, 0.9, E.out5).toFixed(4)})` });
-    const nq = at(t, card.punch_t + (card.note.length > 30 ? 0.25 : 0.4), 0.4, E.out3);   // a long note needs its reading time
+    const nq = long ? at(t, card.punch_t + 0.1, 0.32, E.out3) : at(t, card.punch_t + 0.4, 0.4, E.out3);   // a long note needs all the reading time the card has left
     css(ui.note, { opacity: nq.toFixed(3), transform: `translateY(${((1 - nq) * 16).toFixed(2)}px)` });
   };
 }
@@ -1274,10 +1348,13 @@ function buildNetwork({ cues, stage, S }) {
     root.appendChild(d);
     return d;
   });
-  const caps = NW.lines.map((ln, i) => {
-    const d = el('div', `nt-cap nt-cap--${Math.min(i, 1)}`);
+  // the caption (one line in this cut; more would stack) sits centred in the band under the network
+  const capBox = el('div', 'nt-caps');
+  root.appendChild(capBox);
+  const caps = NW.lines.map((ln) => {
+    const d = el('div', 'nt-cap');
     d.textContent = ln.text;
-    root.appendChild(d);
+    capBox.appendChild(d);
     return { t: ln.t, el: d, w: words(d) };
   });
   const small = el('div', 'nt-small');
@@ -1299,7 +1376,9 @@ function buildNetwork({ cues, stage, S }) {
       const an = rnd() * TAU;
       dot[s.i] = {
         s: [p.x, p.y], c: g.c, col: hex(p.hex), g: word.dots[Bc[j].i],
-        born: NW.nodes_in + 0.5 * (Math.hypot((p.x - g.c[0]) / 1.25, (p.y - g.c[1]) / 0.8) / 190) + 0.1 * rnd(),
+        // each cluster opens from its centre, right on the cue and at an even rate (radius squared = share of the dots):
+        // with one caption, and that one later, the dots are what the scene opens on
+        born: NW.nodes_in + 0.42 * (Math.hypot((p.x - g.c[0]) / 1.25, (p.y - g.c[1]) / 0.8) / 190) ** 2 + 0.06 * rnd(),
         d: 0.1 + 0.36 * ((c + j) / N) + 0.04 * rnd(), th: 1.1 + 0.9 * rnd(),
         dx: Math.cos(an), dy: Math.sin(an), up: 5 + rnd() * 17, ds: 1.1 + rnd() ** 2 * 2.2, da: 0.22 + rnd() * 0.4, tw: 0.8 + rnd() * 1.8, ph: rnd() * TAU, fq: 0.3 + rnd() * 0.6,
       };
@@ -1321,7 +1400,9 @@ function buildNetwork({ cues, stage, S }) {
     const oy = (sy - d.g[1]) * (1 - e);
     return [d.g[0] + ox * Math.cos(ang) - oy * Math.sin(ang), d.g[1] + ox * Math.sin(ang) + oy * Math.cos(ang), e, q];
   };
-  const pulseOn = NW.lines[1] ? NW.lines[1].t : NW.links_in + 1;
+  // the connections light up as the caption about them arrives
+  const pulseOn = caps.length ? caps[caps.length - 1].t : NW.links_in + 1;
+  const drawn = (k, t) => at(t, NW.links_in + (k / links.length) * 0.9, 0.5, E.out2);
   onFrame((t) => {
     if (t < start || t >= END) return;
     ctx.clearRect(0, 0, W, H);
@@ -1333,7 +1414,7 @@ function buildNetwork({ cues, stage, S }) {
       ctx.lineCap = 'butt';
       const la = (0.5 + 0.24 * warm) * lo;
       links.forEach(([i, j], k) => {
-        const q = at(t, NW.links_in + (k / links.length) * 0.9, 0.5, E.out2);
+        const q = drawn(k, t);
         if (q <= 0) return;
         const a = where(dot[i], t);
         const b = where(dot[j], t);
@@ -1352,9 +1433,11 @@ function buildNetwork({ cues, stage, S }) {
         links.forEach(([i, j], k) => {
           if (k % 3) return;
           const u = ((((t - pulseOn) / (1.3 + (k % 7) * 0.16) + k * 0.37) % 1) + 1) % 1;
+          const there = clamp((drawn(k, t) - u) * 8);             // only along the part of the link that is already drawn
+          if (there <= 0) return;
           const a = dot[i].s;
           const b = dot[j].s;
-          glow(ctx, SP_GLINT, lerp(a[0], b[0], u), lerp(a[1], b[1], u), 3.2, Math.sin(Math.PI * u) * 0.85 * warm * lo);
+          glow(ctx, SP_GLINT, lerp(a[0], b[0], u), lerp(a[1], b[1], u), 3.2, Math.sin(Math.PI * u) * 0.85 * warm * lo * there);
         });
         ctx.globalCompositeOperation = 'source-over';
       }
@@ -1424,42 +1507,83 @@ function buildNetwork({ cues, stage, S }) {
     }
     ctx.globalAlpha = 1;
     // labels and captions
-    labs.forEach((d, i) => css(d, { opacity: (at(t, NW.nodes_in + 0.3 + i * 0.1, 0.4, E.out2) * (1 - at(t, G0 - 0.1, 0.3, E.in2))).toFixed(3) }));
-    caps.forEach((c, i) => {
-      const on = t < G0 + 0.25;
-      vis(c.el, on);
-      if (!on) return;
-      rise(c.w, t, c.t, { stag: 0.05, dur: 0.55, dy: 30 });
-      const dimmed = i === 0 && caps[1] ? 1 - 0.22 * at(t, caps[1].t - 0.1, 0.5, E.io2) : 1;
-      css(c.el, { opacity: ((1 - at(t, G0 - 0.2, 0.32, E.in2)) * dimmed).toFixed(3) });
-    });
+    labs.forEach((d, i) => css(d, { opacity: (at(t, NW.nodes_in + 0.06 + i * 0.08, 0.36, E.out2) * (1 - at(t, G0 - 0.1, 0.3, E.in2))).toFixed(3) }));
+    const capsOn = t < G0 + 0.25;
+    vis(capBox, capsOn);
+    if (capsOn) {
+      caps.forEach((c) => rise(c.w, t, c.t, { stag: 0.05, dur: 0.55, dy: 30 }));
+      css(capBox, { opacity: (1 - at(t, G0 - 0.2, 0.32, E.in2)).toFixed(3) });
+    }
     const sq = at(t, NW.formed + 0.55, 0.6, E.out3);
     css(small, { opacity: (sq * (1 - at(t, FN.start - 0.3, 0.35, E.in2))).toFixed(3), transform: `translateY(${((1 - sq) * 14).toFixed(2)}px)` });
   });
 }
 
 // ───────────────────────────────────────────────────────── s13 finale
-function buildFinale({ cues, config, stage, S }) {
+/**
+ * A speech bubble drawn by hand, as two SVG paths in the bubble's own box: an uneven, soft-cornered blob and a
+ * tail that reaches `tip`. The paths overlap; painted stroke first and fill on top, they read as one outline.
+ */
+function bubblePaths({ cx, cy, rx, ry, tip, seed }) {
+  const rnd = mulberry(seed);
+  const n = 18;
+  const e = 2.5;                                         // between an ellipse (2) and a rounded box
+  const on = (ang, k = 1) => {
+    const c = Math.cos(ang);
+    const s = Math.sin(ang);
+    const r = (Math.abs(c) ** e + Math.abs(s) ** e) ** (-1 / e);
+    return [cx + c * r * rx * k, cy + s * r * ry * k];
+  };
+  const f = (q) => `${q[0].toFixed(1)} ${q[1].toFixed(1)}`;
+  const pts = Array.from({ length: n }, (_, i) => on((i / n) * TAU + (rnd() - 0.5) * 0.08, 1 + (rnd() - 0.5) * 0.07));
+  let body = `M${f(pts[0])}`;                           // a closed Catmull-Rom spline through the points
+  for (let i = 0; i < n; i += 1) {
+    const p0 = pts[(i + n - 1) % n];
+    const p1 = pts[i];
+    const p2 = pts[(i + 1) % n];
+    const p3 = pts[(i + 2) % n];
+    body += ` C${f([p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6])}, ${f([p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6])}, ${f(p2)}`;
+  }
+  body += 'Z';
+  const ta = Math.atan2((tip[1] - cy) / ry, (tip[0] - cx) / rx);
+  const b1 = on(ta - 0.3, 0.84);
+  const b2 = on(ta + 0.36, 0.84);
+  const bend = (a, b, k) => [(a[0] + b[0]) / 2 - (b[1] - a[1]) * k, (a[1] + b[1]) / 2 + (b[0] - a[0]) * k];
+  const tail = `M${f(b1)} Q${f(bend(b1, tip, 0.1))}, ${f(tip)} Q${f(bend(tip, b2, 0.12))}, ${f(b2)}Z`;
+  return { body, tail };
+}
+
+function buildFinale({ cues, stage, S }) {
   const F = cues.finale;
   const { start } = S('s13');
   const END = cues.duration + 0.1;
   const root = scene(stage, 's13', start, END, 'a3 a3-fin');
+  // the closing row: the hashtag on the centre line, an institution on either side of it
   root.innerHTML = `<div class="fn-col"><div class="fn-title"><span class="td-foil">${esc(F.title_text)}</span></div><i class="fn-rule"></i>
     <div class="fn-sign">${esc(F.signoff_text)}</div>
-    <div class="fn-logos"><div class="fn-mini"></div><div class="fn-tag">${esc(F.hashtag)}</div><img src="${BRAND}/bibf-white.png" decoding="sync"><img class="crest" src="${BRAND}/uol.png" decoding="sync"></div></div>
-    <div class="fn-ps"><span>${esc(F.ps_text)}</span></div>`;
-  root.querySelector('.fn-mini').append(logoTile(56), document.createTextNode(config.product.name));
+    <div class="fn-logos"><span class="fn-logo fn-logo--l"><img src="${BRAND}/bibf-white.png" decoding="sync"></span><div class="fn-tag">${esc(F.hashtag)}</div><span class="fn-logo fn-logo--r"><img class="crest" src="${BRAND}/uol.png" decoding="sync"></span></div></div>`;
   const title = root.querySelector('.fn-title');
   const rule = root.querySelector('.fn-rule');
   const sign = words(root.querySelector('.fn-sign'));
   const logos = [...root.querySelector('.fn-logos').children];
-  const ps = root.querySelector('.fn-ps span');
-  // the cat (the artwork may arrive later: without it the P.S. simply stands alone)
+  // the cat peeks in, and says so
   const cat = el('img', 'fn-cat');
   cat.decoding = 'sync';
-  cat.addEventListener('error', () => { cat.style.display = 'none'; root.classList.add('no-cat'); });
+  const BB = { w: 600, h: 320, cx: 250, cy: 142, rx: 222, ry: 108, tip: [522, 266], seed: 31, size: 144 };
+  const { body, tail } = bubblePaths(BB);
+  const pen = bubblePaths({ ...BB, rx: BB.rx - 11, ry: BB.ry - 10, seed: 58 }).body;      // a second, looser line inside the edge, as a pen would leave
+  const both = `<path d="${body}"/><path d="${tail}"/>`;
+  const bub = el('div', 'fn-meow', `<svg width="${BB.w}" height="${BB.h}" viewBox="0 0 ${BB.w} ${BB.h}"><g class="bb-shadow" transform="translate(9 11)">${both}</g><g class="bb-ink">${both}</g><g class="bb-fill">${both}</g><path class="bb-pen" d="${pen}"/></svg>
+    <span class="fn-meow-tx" style="left:${BB.cx}px;top:${BB.cy}px">${esc(F.meow_text)}</span>`);
+  bub.style.width = `${BB.w}px`;
+  bub.style.height = `${BB.h}px`;
+  bub.style.transformOrigin = `${BB.tip[0]}px ${BB.tip[1]}px`;
+  const said = bub.querySelector('.fn-meow-tx');
+  let fitted = false;
+  // (should the cat artwork be missing, nobody is there to say it)
+  cat.addEventListener('error', () => { cat.style.display = 'none'; bub.style.display = 'none'; });
   cat.src = CAT_SRC;
-  root.appendChild(cat);
+  root.append(cat, bub);
   onFrame((t) => {
     if (t < start || t >= END) return;
     const tq = at(t, F.title, 1.1, E.out3);
@@ -1467,11 +1591,25 @@ function buildFinale({ cues, config, stage, S }) {
     css(rule, { opacity: at(t, F.signoff - 0.3, 0.5, E.out2).toFixed(3), transform: `scaleX(${at(t, F.signoff - 0.3, 0.9, E.out5).toFixed(4)})` });
     rise(sign, t, F.signoff, { stag: 0.04, dur: 0.6, dy: 24 });
     rise(logos, t, F.logos, { stag: 0.09, dur: 0.6, dy: 26 });
-    const w = prog(t, F.ps + 0.3, F.ps + 1.35);
-    css(ps, { webkitMaskImage: w >= 1 ? 'none' : `linear-gradient(90deg, #000 ${(w * 108 - 8).toFixed(2)}%, rgba(0,0,0,0) ${(w * 108).toFixed(2)}%)` });
-    const up = at(t, F.ps, 0.85, E.back(1.3));
-    const idle = Math.sin((t - F.ps) * 1.2) * 3 * prog(t, F.ps + 0.85, F.ps + 1.8);
-    css(cat, { transform: `translateY(${(-CAT_RISE * up + idle).toFixed(2)}px) rotate(${(-5 - 6 * (1 - at(t, F.ps, 1.2, E.out3))).toFixed(2)}deg)` });
+    const up = at(t, F.cat, 0.85, E.back(1.3));
+    const idle = Math.sin((t - F.cat) * 1.2) * 3 * prog(t, F.cat + 0.85, F.cat + 1.8);
+    const say = hump(t - F.meow + 0.07, 0.4);                  // a small lift of the chin on the word
+    css(cat, { transform: `translateY(${(-CAT_RISE * up + idle - 10 * say).toFixed(2)}px) rotate(${(-5 - 6 * (1 - at(t, F.cat, 1.2, E.out3)) + 1.3 * say).toFixed(2)}deg)` });
+    // her speech bubble pops out of her, tail first: a little too far, then it settles and floats
+    const m = t - F.meow;
+    vis(bub, m >= 0);
+    if (m < 0) return;
+    if (!fitted) {
+      fitted = true;
+      const wide = measure(`700 ${BB.size}px Caveat`, F.meow_text);
+      said.style.fontSize = `${Math.min(BB.size, (BB.size * BB.rx * 1.42) / wide).toFixed(2)}px`;
+    }
+    const pop = 1 - Math.exp(-13 * m) * Math.cos(17 * m);
+    const drift = prog(m, 0.5, 1.5);
+    css(bub, {
+      opacity: clamp(m / 0.05).toFixed(3),
+      transform: `translate(${(Math.cos(m * 1.1) * 2 * drift).toFixed(2)}px, ${(idle * 0.7 + Math.sin(m * 1.9) * 3 * drift).toFixed(2)}px) rotate(${(8 * (1 - pop) + Math.sin(m * 1.4) * 0.7 * drift).toFixed(2)}deg) scale(${pop.toFixed(4)})`,
+    });
   });
 }
 

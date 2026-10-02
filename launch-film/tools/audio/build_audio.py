@@ -18,7 +18,14 @@ look-ahead limiter -> silence gates -> TPDF dither. Deterministic (fixed seeds).
 
 Silence: every `black` segment of g1/g2 and g2.silence is exact digital silence, and what
 sounded before such a span is gone after it (no reverb tail crosses it). The darkness that
-follows G1 stays digitally silent until the first cue after it (the collar bell).
+follows G1 stays digitally silent until the first cue after it (the collar bell); from there
+to the lights the dark beat holds only the bells, the blink ticks and an extremely quiet room
+tone (sfx.DARK_ROOM_TONE_DB; None switches it off).
+
+Nothing in tools/audio knows a time of the film: scene starts, tempo maps and every event come
+from cues.json, so a re-cut only needs make_cues.py and a rebuild. The film may open on any
+scene: the first START_FADE seconds are a fade-in (no step at t = 0) and the last END_SILENCE
+seconds are digital silence. An SFX kind without a design in sfx.py stops the build.
 """
 from __future__ import annotations
 
@@ -43,6 +50,7 @@ from dsp import SR, s2n, butter, rng_for, rc_ramp, tape_stop  # noqa: E402
 TARGET_LUFS = -14.0
 CEILING_DBTP = -1.3     # limiter ceiling (true peak); verified <= -1.0 dBTP after dither
 GATE_FADE = 0.004       # raised-cosine fade into / out of every digital silence
+START_FADE = 0.03       # the film fades in over its first 30 ms: whatever opens it, no click at t = 0
 END_SILENCE = 0.2       # the film's last 0.2 s are digital silence (the picture is black)
 
 
@@ -158,6 +166,9 @@ def main():
         log.append(line)
 
     kinds = sfxmod.check_kinds(cues)          # fail before rendering anything if a cue has no design
+    spare = sfxmod.unused_kinds(cues)
+    if spare:
+        stamp("SFX designs not cued in this cut (kept for re-cuts): " + ", ".join(spare))
     eps = epochs(cues)
 
     # ------------------------------------------------------------------ music
@@ -180,14 +191,14 @@ def main():
 
     # -------------------------------------------------------------------- sfx
     pre, pre_mix, posts = sfxmod.render_sfx(cues, eps)
-    # "everything cuts" at the freeze: the launch-film SFX bed gets the same 0.25 s tape stop
+    # "everything cuts" at the freeze: the launch-film SFX bed gets the same tape stop as the music
     freeze = cues["chaos"]["freeze"]
     imp0 = cues["chaos"]["implode"][0]
     a, b = s2n(freeze - 0.5), s2n(imp0)
     sub = pre_mix[:, a:b].copy()
-    tape_stop(sub, a, freeze, freeze + 0.25, power=1.3, amp_pow=0.4, kill_after=True)
+    tape_stop(sub, a, freeze, freeze + score.FREEZE_TAPE, power=1.3, amp_pow=0.4, kill_after=True)
     F = s2n(0.012)
-    k = s2n(freeze + 0.25) - a
+    k = s2n(freeze + score.FREEZE_TAPE) - a
     sub[:, k - F:k] *= rc_ramp(F, up=False)
     pre_mix[:, a:b] = sub
     # ... and the same G1 crash (stutters / tape stop / crush) as the music
@@ -207,6 +218,8 @@ def main():
     # rendered per epoch (their buffers end where the silence starts); the gate below also
     # keeps the darkness after G1 at digital zero until the collar bell.
     gate = mixing.gate_curve(N, 0, gated_spans(cues), fade=GATE_FADE)
+    nf = s2n(START_FADE)
+    gate[:nf] *= rc_ramp(nf)                  # the film never starts on a step
     f0, f1 = outro_fade(cues)
     ia, ib = s2n(f0), s2n(f1)
     gate[ia:ib] *= rc_ramp(ib - ia, up=False) ** 1.5
@@ -238,6 +251,9 @@ def main():
     # files differ byte-wise from run to run although the audio is identical)
     wavfile.write(out / "music.wav", SR, np.ascontiguousarray(music_st.T))
     wavfile.write(out / "sfx.wav", SR, np.ascontiguousarray(sfx_st.T))
+    for name, x in (("mix", mix16), ("sfx_only_mix", so16), ("music", music_st), ("sfx", sfx_st)):
+        if x.shape != (2, N) or not np.all(np.isfinite(x)):
+            raise RuntimeError(f"{name}: shape {x.shape} (expected {(2, N)} = {cues['duration']} s) or NaN/Inf")
     sf.write(out / "mix.wav", mix16.T, SR, subtype="PCM_16")
     sf.write(out / "sfx_only_mix.wav", so16.T, SR, subtype="PCM_16")
     render_s = time.time() - T0
@@ -317,27 +333,85 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
         w(f"  {a:7.3f}-{b:7.3f} s ({why:28s}): mix {vals[0]}, sfx_only {vals[1]}, music {vals[2]:.1e}, "
           f"sfx {vals[3]:.1e} -> " + ("OK" if max(vals) == 0 else "FAIL"))
 
+    # ------------------------------------------------- the opening and the hard stop
+    pops = [p_["t"] for p_ in cues["chaos"]["pops"]]
+    fz = cues["chaos"]["freeze"]
+    im0, im1 = cues["chaos"]["implode"]
+    a1drop = T["act1"]["drop"]
+
+    def _pk_db(x, t0, t1):
+        seg = x[:, s2n(t0):s2n(t1)]
+        return float(_db(np.max(np.abs(seg)))) if seg.size else -240.0
+
+    w("")
+    w(f"THE OPENING (the film starts on {cues['scenes'][0]['id']}; fade-in {START_FADE * 1000:.0f} ms; "
+      f"first ping {pops[0]:.2f} s; hard stop {fz:.2f} s; drop {a1drop:.2f} s)")
+    w("  mix peak dBFS in 0-1 | 1-5 | 5-30 | 30-100 | 100-300 ms: "
+      + " | ".join(f"{_pk_db(mix, a, b):6.1f}" for a, b in ((0, .001), (.001, .005), (.005, .03), (.03, .1), (.1, .3)))
+      + "  (a click at t = 0 would show as a jump in the first columns)")
+    w("  the build, mix RMS dBFS per 0.5 s up to the freeze: "
+      + " ".join(f"{_rms_db(mix, t, t + 0.5):.0f}" for t in np.arange(0.0, fz - 1e-6, 0.5)))
+    for p_ in pops[:2]:
+        w(f"  ping at {p_:.3f} s: 1-6 kHz RMS {_band_rms_db(mix, p_ - 0.07, p_ - 0.01, (1000.0, 6000.0)):6.1f} dBFS in the 60 ms before "
+          f"-> {_band_rms_db(mix, p_, p_ + 0.06, (1000.0, 6000.0)):6.1f} dBFS in its first 60 ms; peak {_pk_db(mix, p_, p_ + 0.1):6.1f} dBFS "
+          f"over a bed at {_rms_db(mix, max(0.0, p_ - 0.15), p_ - 0.01):6.1f} dBFS rms")
+    w(f"  hard stop: mix RMS {fz - 0.5:.2f}-{fz:.2f} {_rms_db(mix, fz - 0.5, fz):6.1f} | tape stop {fz:.2f}-{fz + score.FREEZE_TAPE:.2f} "
+      f"{_rms_db(mix, fz, fz + score.FREEZE_TAPE):6.1f} | the held breath {fz + 0.3:.2f}-{im0:.2f} {_rms_db(mix, fz + 0.3, im0):6.1f} "
+      f"(>2 kHz: {_band_rms_db(mix, fz + 0.3, im0, (2000.0, None)):6.1f}) | implode {_rms_db(mix, im0, im1):6.1f} | "
+      f"drop {a1drop:.2f}-{a1drop + 0.5:.2f} {_rms_db(mix, a1drop, a1drop + 0.5):6.1f} dBFS")
+    # after the tape stop the music is gone (what remains below 100 Hz is the master's 20 Hz
+    # high-pass settling after the big downbeat: subsonic, about -50 dBFS, gone in 0.2 s)
+    h0_ = fz + score.FREEZE_TAPE
+    held = _band_rms_db(music, h0_ + 0.01, im0, (100.0, None)) if im0 > h0_ + 0.1 else -240.0
+    late = [e for e in cues["sfx"] if fz < e["t"] < im0 - 1e-9]
+    w(f"  music stem {h0_:.2f}-{im0:.2f} (everything cuts): {held:6.1f} dBFS rms above 100 Hz, {_rms_db(music, h0_ + 0.01, im0):6.1f} dBFS "
+      f"full band -> {'OK' if held < -70.0 else 'CHECK'}; SFX cues between the stop and the implode: "
+      f"{[(e['kind'], e['t']) for e in late] or 'none (only the tail of the hard stop)'}")
+
     # ------------------------------------------------- the darkness before the birthday
     b0 = [s for s in cues["scenes"] if s["id"].startswith("s08")][0]["start"]
     bell_t = [e["t"] for e in cues["sfx"] if e["kind"] == "bell_jingle"]
     lights = bday["lights_on"]
     pickup = T["birthday"]["pickup"]
+    dark_bells = [t for t in bell_t if b0 - 1e-9 <= t < lights]
+    fin_bells = [t for t in bell_t if t >= lights]
+    blinks = [e["t"] for e in cues["sfx"] if e["kind"] == "blink_tick"]
+    dark_ev = [e for e in cues["sfx"] if b0 - 1e-9 <= e["t"] < lights]
     w("")
-    w(f"THE DARK ({b0:.2f} -> lights on {lights:.2f}): nothing but the collar bell, then the switch")
-    w(f"  music stem {b0:.2f}-{pickup:.3f}: max |sample| {float(np.max(np.abs(music[:, s2n(b0):s2n(pickup) - 1]))):.1e} "
-      f"(must be 0: the song starts with its pickup at {pickup})")
-    allowed = ("bell_jingle", "lights_on")
-    others = [e for e in cues["sfx"] if b0 <= e["t"] < lights and e["kind"] not in allowed]
-    w(f"  SFX cues in the dark: {[(e['kind'], e['t']) for e in cues['sfx'] if b0 <= e['t'] < lights]}"
+    w(f"THE DARK ({b0:.2f} -> lights on {lights:.2f}, {lights - b0:.1f} s): the collar bell, the blink ticks, "
+      "an extremely quiet room tone; nothing musical until the switch")
+    w(f"  music stem {b0:.2f}-{min(lights, pickup):.3f}: max |sample| "
+      f"{float(np.max(np.abs(music[:, s2n(b0):s2n(min(lights, pickup)) - 1]))):.1e} "
+      f"(must be 0: the lights come on at {lights}, the song starts with its pickup at {pickup})")
+    allowed = ("bell_jingle", "blink_tick", "lights_on")
+    others = [e for e in dark_ev if e["kind"] not in allowed]
+    w(f"  SFX cues in the dark: {[(e['kind'], e['t']) for e in dark_ev]}"
       f" -> {'OK' if not others else 'UNEXPECTED: ' + str(others)}")
-    if bell_t:
-        bt = bell_t[0]
-        w(f"  mix RMS: {b0:.2f}-{bt - 0.02:.2f} {_rms_db(mix, b0, bt - 0.02):7.1f} dBFS (silence) | bell {bt:.2f}-{bt + 0.5:.2f} "
-          f"{_rms_db(mix, bt, bt + 0.5):6.1f} dBFS, peak {float(_db(np.max(np.abs(mix[:, s2n(bt):s2n(bt + 0.5)])))):6.1f} dBFS | "
-          f"its tail {lights - 0.3:.2f}-{lights - 0.01:.2f} {_rms_db(mix, lights - 0.3, lights - 0.01):6.1f} dBFS")
-        w(f"  bell spectrum (mix, {bt:.2f}-{bt + 0.5:.2f}): <2 kHz {_band_rms_db(mix, bt, bt + 0.5, (None, 2000.0)):6.1f} | "
-          f"2.5-7 kHz {_band_rms_db(mix, bt, bt + 0.5, (2500.0, 7000.0)):6.1f} | >7 kHz "
-          f"{_band_rms_db(mix, bt, bt + 0.5, (7000.0, None)):6.1f} dBFS")
+    # the floor of the dark beat: everything outside the bells and the ticks
+    tails = {"bell_jingle": 1.3, "blink_tick": 0.45}
+    keep = np.ones(s2n(lights) - s2n(b0), bool)
+    for e in dark_ev:
+        a = s2n(e["t"] - 0.01) - s2n(b0)
+        keep[max(a, 0):a + s2n(tails.get(e["kind"], 0.5))] = False
+    rest = mix[:, s2n(b0):s2n(lights)][:, keep]
+    fl_r = float(_db(np.sqrt(np.mean(rest ** 2)))) if rest.size else -240.0
+    fl_p = float(_db(np.max(np.abs(rest)))) if rest.size else -240.0
+    tone = sfxmod.DARK_ROOM_TONE_DB
+    w(f"  floor outside the bells and ticks ({keep.sum() / SR:.2f} s of {lights - b0:.1f} s): rms {fl_r:6.1f} dBFS, peak {fl_p:6.1f} dBFS "
+      f"(room tone: {'off' if tone is None else f'{tone:.0f} dBFS at the master input'}) -> "
+      f"{'OK (really quiet)' if fl_r < -50.0 else 'CHECK'}")
+    lv = {}
+    for e in dark_ev:
+        t = e["t"]
+        lv.setdefault(e["kind"], []).append((_pk_db(mix, t, t + 0.3), _rms_db(mix, t, t + 0.1)))
+        w(f"  {e['kind']:11s} {t:7.2f}: peak {lv[e['kind']][-1][0]:6.1f} dBFS, rms(100 ms) {lv[e['kind']][-1][1]:6.1f} dBFS | "
+          f"<2 kHz {_band_rms_db(mix, t, t + 0.1, (None, 2000.0)):6.1f} | 2.5-7 kHz {_band_rms_db(mix, t, t + 0.1, (2500.0, 7000.0)):6.1f} | "
+          f">7 kHz {_band_rms_db(mix, t, t + 0.1, (7000.0, None)):6.1f} dBFS")
+    if "bell_jingle" in lv and "blink_tick" in lv:
+        dp = max(p_ for p_, _ in lv["blink_tick"]) - min(p_ for p_, _ in lv["bell_jingle"])
+        dr = max(r_ for _, r_ in lv["blink_tick"]) - min(r_ for _, r_ in lv["bell_jingle"])
+        w(f"  loudest blink tick vs quietest bell: peak {dp:+.1f} dB, rms(100 ms) {dr:+.1f} dB -> "
+          f"{'OK (clearly quieter)' if dp <= -8.0 and dr <= -8.0 else 'CHECK'}")
 
     secs = sections(cues)
     w("")
@@ -411,6 +485,8 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
             w(f"  [{gname:10s}] {lab:24s} cue {t:8.4f} onset {to:8.4f} {dms:+6.1f} ms  (rise {strength:5.1f} dB)"
               f"  {verdict}{note}")
 
+    show("mix", rv.onset_report(mix, [("first ping", pops[0])], band=(1000.0, 6000.0)))
+    show("sfx stem", rv.onset_report(sfx, [("hard stop", fz)], band=(1500.0, None)))
     show("mix", rv.onset_report(mix, [("act1 drop", T["act1"]["drop"]), ("act3 drop", R["drop"])]))
     show("mix", rv.onset_report(mix, [(f"countdown {i}", t) for i, t in enumerate(cues["launch"]["countdown"])]))
     st1 = []
@@ -427,8 +503,12 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
     box_full = np.zeros((2, music.shape[1]))
     mb = mxb.levels["melody"].astype(np.float64)
     place(box_full, mb, mxb.n0)
-    show("sfx stem", rv.onset_report(sfx, [("bell_jingle (dark)", bell_t[0])] if bell_t else [], band=(2500.0, None)))
+    show("sfx stem", rv.onset_report(sfx, [(f"bell_jingle (dark {i + 1})", t) for i, t in enumerate(dark_bells)],
+                                     band=(2500.0, None)))
+    show("sfx stem", rv.onset_report(sfx, [(f"blink_tick {i + 1}", t) for i, t in enumerate(blinks)],
+                                     band=(500.0, 4000.0)))
     show("sfx stem", rv.onset_report(sfx, [("lights_on click", lights)], band=(1500.0, None)))
+    show("mix", rv.onset_report(mix, [("lights on (mix)", lights)], band=(1500.0, None)))
     # (in the mix the party popper sits 20 ms before the pickup, so the pickup is checked on the stem)
     show("music stem", rv.onset_report(music, [("birthday pickup", pickup)], band=(300.0, 3000.0)))
     mel = bday["melody"]
@@ -458,12 +538,15 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
     chb = [e["t"] for e in cues["sfx"] if e["kind"] == "chime_big"]
     show("sfx stem", rv.onset_report(sfx, [("chime_big", t) for t in chb], band=(300.0, None), search=0.03))
     show("music stem", rv.onset_report(music, [("final chord", R["final_chord"])], band=(200.0, 3000.0), search=0.03))
-    show("sfx stem", rv.onset_report(sfx, [("bell_jingle (finale)", t) for t in bell_t[1:]], band=(2500.0, None)))
+    show("sfx stem", rv.onset_report(sfx, [("bell_jingle (finale)", t) for t in fin_bells], band=(2500.0, None)))
+    meow = (cues.get("finale") or {}).get("meow")
+    if meow is not None:
+        show("sfx stem", rv.onset_report(sfx, [("meow bubble pop", meow)], band=(500.0, 4000.0)))
     w(f"  -> {len(fails)} checked onsets outside tolerance" + (f": {fails}" if fails else ""))
 
     # ------------------------------------------------- the bell over the final chord
-    if len(bell_t) > 1:
-        bt = bell_t[-1]
+    if fin_bells:
+        bt = fin_bells[-1]
         bs = _band_rms_db(sfx, bt, bt + 0.45, (2500.0, 9000.0))
         bm = _band_rms_db(music, bt, bt + 0.45, (2500.0, 9000.0))
         w("")
@@ -473,6 +556,33 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
         w(f"  full band: bell {_rms_db(sfx, bt, bt + 0.45):.1f} dBFS, music {_rms_db(music, bt, bt + 0.45):.1f} dBFS; "
           f"end of film: mix RMS {f1 - 0.5:.1f}-{f1:.1f} s {_rms_db(mix, f1 - 0.5, f1):.1f} dBFS, "
           f"{f1:.1f}-{dur:.1f} s {_rms_db(mix, f1, dur):.1f} dBFS")
+    if meow is not None:
+        ps_, pm_ = _pk_db(sfx, meow, meow + 0.15), _rms_db(music, meow, meow + 0.15)
+        forum_pops = [t for t in cues["forum"]["replies"]]
+        pf_ = max(_pk_db(sfx, t, t + 0.15) for t in forum_pops) if forum_pops else float("nan")
+        w(f"THE CAT'S 'MEOW' BUBBLE ({meow:.2f} s): pop peak {ps_:.1f} dBFS (a forum reply pop: {pf_:.1f}) over the final chord "
+          f"at {pm_:.1f} dBFS rms; 0.7-4 kHz: pop {_band_rms_db(sfx, meow, meow + 0.08, (700.0, 4000.0)):.1f} vs music "
+          f"{_band_rms_db(music, meow, meow + 0.08, (700.0, 4000.0)):.1f} dBFS -> "
+          f"{'OK (gentle)' if ps_ <= pf_ - 5.0 else 'CHECK'}")
+    w("  the ending, mix RMS dBFS per 0.25 s from the final chord: "
+      + " ".join(f"{_rms_db(mix, t, t + 0.25):.0f}" for t in np.arange(R["final_chord"], dur - 1e-6, 0.25)))
+
+    # ------------------------------------------------- the letter's typing
+    plan = sfxmod.typing_plan(cues)
+    if plan:
+        on = [t for t in sorted(plan) if plan[t] > 0]
+        L_ = cues["letter"]
+        t_typ = sum(len(l["text"]) for l in L_["lines"]) / L_["cps"]
+        gaps = np.diff(on)
+        gaps = gaps[gaps < 0.3]
+        w("")
+        w(f"THE LETTER'S TYPING: {len(plan)} type_soft cues at {L_['cps']:.0f} per second -> {len(on)} keys sound "
+          f"({len(on) / t_typ:.1f} per second of typing; gaps {gaps.min() * 1000:.0f}-{gaps.max() * 1000:.0f} ms, "
+          f"median {np.median(gaps) * 1000:.0f} ms) -> {'OK (no machine gun)' if len(on) / t_typ <= 14.0 else 'CHECK'}")
+        for l in L_["lines"]:
+            t0_, t1_ = l["t"], l["t"] + len(l["text"]) / L_["cps"]
+            w(f"  {t0_:6.2f}-{t1_:6.2f} '{l['text'][:24]}': sfx stem rms {_rms_db(sfx, t0_, t1_):6.1f} dBFS, peak {_pk_db(sfx, t0_, t1_):6.1f}; "
+              f"music stem rms {_rms_db(music, t0_, t1_):6.1f} dBFS")
 
     w("")
     w("STUTTER LOOP LOCK (each repeat correlated with its cue source slice; lag 0.0 ms = sample-exact)")
@@ -498,21 +608,26 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
       "G2 loops detune more each time)")
 
     w("")
-    w("HARD EDGES (click check: a click = >2 kHz burst at the edge above -70 dBFS and >6 dB over the sounding side)")
+    w("HARD EDGES (click check: a click = >2 kHz burst at the edge above -70 dBFS and >6 dB over the sounding side;")
+    w("            'attack' = a percussive sound from silence: silent before it, no step on its first sample)")
     ts = g1["tape_stop"]
     blk = [s_ for s_ in g1["segments"] if s_["kind"] == "black"]
     sil = g2["silence"]
     edges_mix = [(blk[0]["t0"], "cut", "G1 static -> black") if blk else None,
-                 (bell_t[0], "start", "darkness -> collar bell") if bell_t else None,
+                 (dark_bells[0], "attack", "darkness -> collar bell") if dark_bells else None,
                  (sil["t0"], "cut", "G2 flash -> digital silence"),
                  (ext[-1][1], "start", "silence -> letter (gate up)"),
                  (f1, "cut", "end of the final fade"), (0.0, "start", "start of film")]
-    edges_mus = [(cues["chaos"]["freeze"] + 0.25, "cut", "music tape stop -> silence"),
+    edges_mus = [(cues["chaos"]["freeze"] + score.FREEZE_TAPE, "cut", "music tape stop -> silence"),
                  (ts["t1"], "cut", "G1 tape stop -> hum"), (pickup, "start", "birthday pickup"),
                  (g2["note_warp"]["t1"], "cut", "song dies -> silence"),
                  (R["piano_start"], "start", "piano in")]
     for name, x, edges in (("mix", mix, edges_mix), ("music stem", music, edges_mus)):
         for (t, kind, lab, rel, pk, hf, click) in rv.edge_report(x, [e for e in edges if e]):
+            if kind == "attack":     # a percussive start: silent before it, no step on its first sample
+                w(f"  [{name:10s}] {lab:28s} t={t:7.3f} (attack): first sample {pk:7.1f} dBFS ({rel:+6.1f} dB vs the peak of its "
+                  f"first 3 ms), the 3 ms before it {hf:7.1f} dBFS  {'CLICK?' if click else 'OK (no click)'}")
+                continue
             rs = f"{rel:+6.1f} dB rel" if rel is not None else "  (silent ref)"
             w(f"  [{name:10s}] {lab:28s} t={t:7.3f} ({kind:5s}): level at edge {pk:7.1f} dBFS ({rs}), "
               f">2kHz burst at edge {hf:7.1f} dBFS  {'CLICK?' if click else 'OK (no click)'}")
@@ -529,9 +644,11 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
     build = (cues["launch"]["start"], T["act1"]["end"])
     waltz = (pickup, T["birthday"]["cut"])
     line = []
+    half = {round(a, 3) for (a, b, _) in bars if b - a < 0.75 * T["act1"]["bar_seconds"]}
     for (t0, name, top, ok) in rows:
         note = "" if ok else (" (build: risers sweep all pitches)" if build[0] <= t0 < build[1]
-                              else " (jazz voicing: see chart)" if waltz[0] <= t0 < waltz[1] else " ??")
+                              else " (jazz voicing: see chart)" if waltz[0] <= t0 < waltz[1]
+                              else " (half-bar push: the bar before it still rings)" if round(t0, 3) in half else " ??")
         line.append(f"{t0:6.2f} {name:5s} [{' '.join(top)}]{note}")
     for i in range(0, len(line), 3):
         w("  " + " | ".join(line[i:i + 3]))
@@ -585,7 +702,7 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
     marks += [(h, "hit", "#e74c3c") for h in g1["hits"]]
     marks += [(g1["tape_stop"]["t0"], "tape0", "#9b59b6"), (g1["tape_stop"]["t1"], "tape1", "#9b59b6")]
     marks += [(s_["t0"], s_["kind"], "#2ecc71") for s_ in g1["segments"]]
-    marks += [(t, "bell", "#16a085") for t in bell_t[:1]]
+    marks += [(t, "bell", "#16a085") for t in dark_bells[:1]]
     z0, z1 = cd[0] - 3.0, g1["end"] + 1.0
     rv.plot_zoom(out / "review" / "zoom_launch_g1.png", mix, z0, z1, marks,
                  f"{z0:.0f}-{z1:.0f} s: build, countdown, LAUNCH click, G1 crash (stutters, tape stop), black, the bell",
@@ -622,12 +739,21 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
     # the dark, the bell, lights on, the first phrases of the song
     marks = [(n["t"], n["syl"], "#3498db") for n in mel]
     marks += [(e["t"], e["kind"], "#16a085") for e in cues["sfx"]
-              if e["kind"] in ("bell_jingle", "lights_on", "party_popper")]
+              if e["kind"] in ("bell_jingle", "blink_tick", "lights_on", "party_popper")]
     marks += [(s_["t0"], s_["kind"], "#2ecc71") for s_ in g1["segments"]]
-    z0, z1 = g1["segments"][-1]["t0"] - 1.0, T["birthday"]["phrases"][min(2, len(T["birthday"]["phrases"]) - 1)]
+    z0, z1 = g1["segments"][-1]["t0"] - 1.0, T["birthday"]["phrases"][min(1, len(T["birthday"]["phrases"]) - 1)]
     rv.plot_zoom(out / "review" / "zoom_dark_bell_song.png", mix, z0, z1, marks,
-                 f"{z0:.1f}-{z1:.1f} s: static, black, the collar bell alone, lights on, 'Happy Birthday' (jazz waltz)",
-                 extra=sfx, extra_label="sfx stem")
+                 f"{z0:.1f}-{z1:.1f} s: static, black, the dark beat (collar bell, blink ticks), lights on, "
+                 "'Happy Birthday' (jazz waltz)", extra=sfx, extra_label="sfx stem")
+    # the dark beat alone, 40 dB up: the bells, the ticks and the room tone are far too quiet to
+    # show at full scale
+    da, db_ = s2n(b0 - 0.3), s2n(lights + 0.3)
+    boost = np.clip(mix[:, da:db_] * 100.0, -1.0, 1.0)
+    pad_ = np.zeros_like(mix)
+    pad_[:, da:db_] = boost
+    rv.plot_zoom(out / "review" / "zoom_dark_beat_x100.png", pad_, b0 - 0.3, lights + 0.3,
+                 [(e["t"], e["kind"], "#16a085") for e in dark_ev] + [(lights, "lights_on", "#e74c3c")],
+                 f"the dark beat {b0:.1f}-{lights:.1f} s, waveform and spectrogram of the mix amplified by 40 dB (clipped at +-1)")
     marks = [(n["t"], n["syl"], "#3498db") for n in mel if n["t"] > g2["start"] - 2.6]
     marks += [(t, l.split()[-1], "#e67e22") for (l, t) in st2]
     marks += [(h, "hit", "#e74c3c") for h in g2["hits"]]
@@ -638,18 +764,18 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
                  f"{z0:.1f}-{z1:.1f} s: end of the song, sabotaged 'you', terminal, crescendo, flash, digital silence",
                  extra=music, extra_label="music stem")
     fz, im = cues["chaos"]["freeze"], cues["chaos"]["implode"]
-    marks = [(fz, "freeze/hard stop", "#e74c3c"), (fz + 0.25, "tape end", "#9b59b6"), (im[0], "rev riser", "#2ecc71"),
+    marks = [(fz, "freeze/hard stop", "#e74c3c"), (fz + score.FREEZE_TAPE, "tape end", "#9b59b6"), (im[0], "rev riser", "#2ecc71"),
              (im[1], "DROP", "#e74c3c")] + [(c["t"], "caption", "#16a085") for c in cues["chaos"]["captions"]]
     rv.plot_zoom(out / "review" / "zoom_chaos_stop_drop.png", mix, fz - 3.0, im[1] + 2.0, marks,
                  f"{fz - 3:.0f}-{im[1] + 2:.0f} s: notification wall + snare build, hard stop (tape stop), "
                  "near-silence, reverse riser, drop", extra=sfx, extra_label="sfx stem")
-    co = cues["cold_open"]
-    marks = [(t, f"node{i}", "#3498db") for i, t in enumerate(co["nodes"])]
-    marks += [(l["t"], "line", "#16a085") for l in co["lines"]]
-    marks += [(p["t"], f"{i + 1}", "#e67e22") for i, p in enumerate(co["places"])] + [(co["punch"], "punch", "#e74c3c")]
-    c1 = [s for s in cues["scenes"] if s["id"].startswith("s02")][0]["start"]
-    rv.plot_zoom(out / "review" / "zoom_cold_open.png", mix, 0.0, c1 + 2.0, marks,
-                 f"0-{c1 + 2:.0f} s: cold open - three node blips, text hits, seven ticks + punch, into the chaos",
+    # the first seconds of the film: fade-in, drone, the first pings, the pulse coming in
+    z1 = min(fz, pops[0] + 4.0)
+    marks = [(p_, "ping", "#e67e22") for p_ in pops if p_ <= z1]
+    marks += [(c["t"], "caption", "#16a085") for c in cues["chaos"]["captions"]]
+    marks += [(e["t"], e["kind"], "#3498db") for e in cues["sfx"] if e["kind"] == "drone_in"]
+    rv.plot_zoom(out / "review" / "zoom_opening.png", mix, 0.0, z1, marks,
+                 f"0-{z1:.1f} s: the film opens - drone and pad swell in, the first notification pings, the pulse enters",
                  extra=sfx, extra_label="sfx stem")
     marks = [(R["drop"], "DROP", "#e74c3c"), (sec3["title"][1], "numbers", "#2ecc71")]
     marks += [(l["t"], "line", "#16a085") for l in cues["letter"]["lines"]]
@@ -667,9 +793,11 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
     marks = [(net["start"], "network", "#2ecc71"), (net["gather"], "gather", "#3498db"), (R["climax"], "CLIMAX", "#e74c3c"),
              (fin["start"], "finale", "#2ecc71"), (R["final_chord"], "final chord", "#e74c3c"),
              (f0, "fade", "#9b59b6"), (f1, "silent", "#9b59b6")]
-    marks += [(t, "bell", "#16a085") for t in bell_t[1:]]
+    marks += [(t, "bell", "#16a085") for t in fin_bells]
+    if meow is not None:
+        marks += [(meow, "meow", "#16a085")]
     rv.plot_zoom(out / "review" / "zoom_network_finale.png", mix, net["start"] - 1.0, dur, marks,
-                 "network lift, gather swell, the climax chord + chime, finale (piano + pad), bell, final chord, fade",
+                 "network lift, gather swell, the climax chord + chime, finale (piano + pad), bell, final chord, meow, fade",
                  extra=music, extra_label="music stem")
 
 
