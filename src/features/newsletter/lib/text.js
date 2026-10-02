@@ -34,6 +34,8 @@ function blockStrings(b) {
       return b.items.flatMap((s) => [s.title, s.text]);
     case 'qa':
       return b.items.flatMap((x) => [x.q, x.a]);
+    case 'figure':
+      return [b.caption];
     case 'cta':
       return [];
     default:
@@ -44,6 +46,7 @@ function blockStrings(b) {
 function asideStrings(a) {
   if (!a) return [];
   if (a.type === 'note') return [a.title, a.text];
+  if (a.type === 'card') return [a.kicker, a.title, a.text];
   if (a.type === 'quote') return [a.text, a.cite];
   if (a.type === 'stats') return [a.title, ...a.items.map((i) => `${i.value} ${i.label}`), a.foot];
   return [a.title];
@@ -52,6 +55,7 @@ function asideStrings(a) {
 /** Plain text of one section (editorial copy only; live data from other features is not indexed). */
 export function sectionText(section) {
   const parts = [section.label, section.title];
+  if (section.figure) parts.push(section.figure.caption);
   for (const b of section.blocks || []) parts.push(...blockStrings(b));
   for (const c of section.cohorts || []) parts.push(c.title, ...(c.paragraphs || []));
   if (section.chart) parts.push(section.chart.caption, ...section.chart.notes.map((n) => n.text));

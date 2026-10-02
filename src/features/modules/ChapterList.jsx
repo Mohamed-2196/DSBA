@@ -2,12 +2,13 @@
 // Each video is a link (?tab=lessons&chapter=<i>&video=<j>), so lessons can be opened in a new tab.
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowCounterClockwise, CaretDown, Check, CheckCircle, Circle, DotsThree, PlayCircle } from '@phosphor-icons/react';
-import { lessonKey } from '../../data/modules.js';
+import { ArrowCounterClockwise, CaretDown, Check, CheckCircle, DotsThree, Play, Warning } from '@phosphor-icons/react';
+import { lessonKey, videoThumbnailUrl } from '../../data/modules.js';
 import { cohortColor } from '../../state';
 import { IconButton, Menu, ProgressRing, cx } from '../../ui';
 import { computeChapterProgress, computeModuleProgress } from './progress.js';
-import { KIND_ICON, kindLabel, lessonLabel, lessonSearch } from './lessons.js';
+import { KIND_ICON, chapterLessons, lessonSearch } from './lessons.js';
+import { useThumbnail } from './thumbs.js';
 
 /** '9 videos', '6 class recordings', '1 playlist', '4 recordings and 3 videos'. */
 function chapterContents(ch) {
@@ -17,6 +18,28 @@ function chapterContents(ch) {
   if (counts.bbb) parts.push(`${counts.bbb} ${counts.bbb === 1 ? 'class recording' : 'class recordings'}`);
   if (counts['youtube-playlist']) parts.push(`${counts['youtube-playlist']} ${counts['youtube-playlist'] === 1 ? 'playlist' : 'playlists'}`);
   return parts.join(' and ');
+}
+
+/**
+ * The 16:9 tile that starts a lesson row: the real YouTube thumbnail when it loads (same probe as the
+ * poster), otherwise a quiet tile with the kind's icon. Class recordings have no thumbnail, so they
+ * always get the tile. Watched / playing are marked on it.
+ */
+function RowThumb({ video, current, seen }) {
+  const src = videoThumbnailUrl(video);
+  const loaded = useThumbnail(src) === 'ok';
+  const KindIcon = KIND_ICON[video.kind];
+  return (
+    <span className={cx('mod-vid__thumb', loaded && 'has-img')} aria-hidden="true">
+      {loaded ? <img src={src} alt="" decoding="async" /> : KindIcon ? <KindIcon className="mod-vid__ticon" weight="duotone" /> : null}
+      {current ? (
+        <span className="mod-vid__playing">
+          <Play weight="fill" />
+        </span>
+      ) : null}
+      {seen ? <CheckCircle className="mod-vid__seen" weight="fill" /> : null}
+    </span>
+  );
 }
 
 /** @param {string} nowLabel  what the current lesson's row says: 'Playing' once loaded, else 'Selected'. */
@@ -33,14 +56,27 @@ export function ChapterList({ module: m, selection, state, nowLabel = 'Selected'
   const p = computeModuleProgress(state, m);
   const color = cohortColor(m.year);
 
-  // Keep the current lesson in view inside the list's own scroll area (never scrolls the page).
+  // Keep the current lesson in view inside the list's own scroll area (never scrolls the page), roughly
+  // centred so the lessons on either side of it show too, and aligned to a row so none is cut off at the top.
   useLayoutEffect(() => {
     const list = listRef.current;
     const el = list?.querySelector('[aria-current="true"]');
     if (!list || !el || list.scrollHeight <= list.clientHeight) return;
     const lr = list.getBoundingClientRect();
     const er = el.getBoundingClientRect();
-    if (er.top < lr.top + 8 || er.bottom > lr.bottom - 8) list.scrollTop += er.top - lr.top - lr.height / 3;
+    if (er.top >= lr.top + 8 && er.bottom <= lr.bottom - 8) return;
+    const topOf = (node) => list.scrollTop + node.getBoundingClientRect().top - lr.top;
+    const centred = topOf(el) - (lr.height - er.height) * 0.58; // a little below the middle: more of what came before shows
+    let target = centred;
+    let best = Infinity;
+    list.querySelectorAll('.mod-ch__head, .mod-vid').forEach((row) => {
+      const t = topOf(row);
+      if (Math.abs(t - centred) < best) {
+        best = Math.abs(t - centred);
+        target = t;
+      }
+    });
+    list.scrollTop = Math.max(0, target - 4);
   }, [selC, selV]);
 
   const toggle = (ci) =>
@@ -76,7 +112,6 @@ export function ChapterList({ module: m, selection, state, nowLabel = 'Selected'
           const cp = computeChapterProgress(state, m, ci);
           const isOpen = open.has(ci);
           const done = cp.total > 0 && cp.watched === cp.total;
-          const mixed = new Set(ch.videos.map((x) => x.kind)).size > 1;
           return (
             <li key={ci} className={cx('mod-ch', isOpen && 'is-open', ci === selC && 'is-current', done && 'is-done')}>
               <button type="button" className="mod-ch__head" aria-expanded={isOpen} aria-controls={`mod-ch-${ci}`} onClick={() => toggle(ci)}>
@@ -99,36 +134,38 @@ export function ChapterList({ module: m, selection, state, nowLabel = 'Selected'
 
               {isOpen ? (
                 <ol id={`mod-ch-${ci}`} className="mod-ch__videos" role="list">
-                  {ch.videos.map((vid, vi) => {
+                  {chapterLessons(ch).map((info, vi) => {
+                    const vid = ch.videos[vi];
                     const current = ci === selC && vi === selV;
                     const seen = Boolean(state.watched[lessonKey(m.id, ci, vi)]);
-                    const KindIcon = KIND_ICON[vid.kind];
-                    let Status = Circle;
-                    if (seen) Status = CheckCircle;
-                    else if (current) Status = PlayCircle;
                     return (
                       <li key={vi}>
                         <Link
                           to={{ search: lessonSearch(ci, vi) }}
                           replace
-                          className={cx('mod-vid', current && 'is-current', seen && 'is-watched')}
+                          className={cx('mod-vid', current && 'is-current', seen && 'is-watched', info.unavailable && 'is-unavailable')}
                           aria-current={current ? 'true' : undefined}
+                          title={info.title.length > 56 ? info.title : undefined}
                           data-hub="lesson-item"
                           data-lesson={`${ci}:${vi}`}
                           onClick={onPick}
                         >
-                          <Status className="mod-vid__status" weight={seen || current ? 'fill' : 'regular'} aria-hidden="true" />
-                          <span className="mod-vid__label">
-                            {lessonLabel(vid, vi)}
-                            {seen ? <span className="visually-hidden"> (watched)</span> : null}
-                          </span>
-                          {mixed ? (
-                            <span className="mod-vid__kind">
-                              {KindIcon ? <KindIcon aria-hidden="true" /> : null}
-                              {kindLabel(vid)}
+                          <RowThumb video={vid} current={current} seen={seen} />
+                          <span className="mod-vid__text">
+                            <span className="mod-vid__title">
+                              {info.title}
+                              {seen ? <span className="visually-hidden"> (watched)</span> : null}
                             </span>
-                          ) : null}
-                          {current ? <span className="mod-vid__now">{nowLabel}</span> : null}
+                            <span className="mod-vid__by">
+                              {current ? <span className="mod-vid__now">{nowLabel}</span> : null}
+                              {info.by ? (
+                                <span className={cx('mod-vid__who', info.byKind === 'unavailable' && 'is-note')}>
+                                  {info.byKind === 'unavailable' ? <Warning aria-hidden="true" /> : null}
+                                  {info.by}
+                                </span>
+                              ) : null}
+                            </span>
+                          </span>
                         </Link>
                       </li>
                     );

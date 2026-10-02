@@ -1,6 +1,7 @@
 import { Fragment, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { cx } from '../../../ui';
+import { imageUrl } from '../lib/images.js';
 import { parseBlocks, parseInline } from '../lib/markdown.js';
 
 function withBreaks(text, key) {
@@ -51,6 +52,12 @@ function Block({ block }) {
     }
     case 'quote':
       return <blockquote>{renderInline(block.text)}</blockquote>;
+    case 'image':
+      return (
+        <figure className="forum-figure" data-hub="forum-image">
+          <img src={imageUrl(block.src)} alt={block.alt} loading="lazy" decoding="async" />
+        </figure>
+      );
     default:
       return <p>{renderInline(block.text)}</p>;
   }

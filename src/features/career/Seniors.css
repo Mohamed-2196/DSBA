@@ -1,0 +1,22 @@
+/* Ask a senior (career-). Four profile cards; the grid fills the row, and the ask button sits on the card's floor. */
+
+.career-seniors__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: var(--sp-16); list-style: none; }
+
+.career-seniors__grid > .career-senior { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-12); padding: var(--sp-24); }
+.career-senior__who { display: flex; align-items: center; gap: var(--sp-12); width: 100%; }
+.career-senior__id { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-4); min-width: 0; }
+.career-senior__name { font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: var(--lh-heading); }
+.career-senior__headline { color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); line-height: 1.35; }
+.career-senior__helps { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.career-senior__label { display: block; margin-bottom: 2px; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+.career-senior__topics { display: flex; flex-wrap: wrap; gap: var(--sp-8); list-style: none; }
+.career-senior__ask { margin-top: auto; }
+
+@media (max-width: 699px) {
+  .career-seniors__grid > .career-senior { padding: var(--sp-16); }
+}
+
+/* The section header keeps its button beside the text on a wide page and drops it below on a phone. */
+@media (max-width: 699px) {
+  .career-seniors .ui-section-header { flex-direction: column; align-items: flex-start; }
+}

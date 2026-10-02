@@ -32,6 +32,19 @@
 .forum-row:hover { background: color-mix(in srgb, var(--surface-2) 42%, var(--surface)); }
 .forum-row:has(.forum-row__link:focus-visible) { box-shadow: inset 0 0 0 2px var(--focus-color); }
 
+/* A post with a picture: its thumbnail sits between the text and the counts. */
+.forum-row.has-image { grid-template-columns: 48px minmax(0, 1fr) auto auto; grid-template-areas: 'vote main thumb stats'; }
+.forum-row__thumb {
+  grid-area: thumb;
+  width: 104px;
+  height: 64px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-xs);
+  background: var(--surface-2);
+}
+.forum-row__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 38% 50%; }
+
 .forum-row__vote { grid-area: vote; position: relative; z-index: 1; }
 .forum-row__main { grid-area: main; min-width: 0; }
 .forum-row__stats {
@@ -109,6 +122,8 @@
   .forum-row__stats { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; margin-top: 10px; padding: 0; min-width: 0; }
   .forum-row .forum-vote { width: 40px; height: 48px; }
   .forum-row .forum-tag:nth-of-type(n + 2) { display: none; }
+  .forum-row.has-image { grid-template-columns: 40px minmax(0, 1fr) 76px; grid-template-areas: 'vote main thumb' 'vote stats thumb'; }
+  .forum-row__thumb { width: 76px; height: 52px; }
 }
 
 /* ── Vote ────────────────────────────────────────────────────────────────────── */
@@ -229,6 +244,15 @@
 .forum-prose code { font-size: 0.86em; padding: 0.12em 0.38em; white-space: break-spaces; }
 .forum-prose blockquote { padding-left: 14px; border-left: 3px solid var(--line-strong); color: var(--ink-2); }
 .forum-prose a { font-weight: var(--fw-medium); }
+/* A picture in a post (markdown ![alt](/demo/…)): rounded and bordered on a neutral surface, never taller than 420px. */
+.forum-figure {
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+}
+.forum-figure img { display: block; width: 100%; height: auto; max-height: 420px; object-fit: contain; }
 .forum-code {
   position: relative;
   max-width: 100%;

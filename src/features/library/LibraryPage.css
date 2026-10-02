@@ -27,10 +27,12 @@
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
   line-height: 1.35;
+  min-height: 2.7em; /* two lines, so codes and tags line up across the shelf */
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 .lib-new__meta { display: flex; gap: var(--sp-8); margin-top: calc(-1 * var(--sp-8)); color: var(--ink-2); font-size: var(--fs-12); white-space: nowrap; }
+.lib-new__fav, .lib-card__fav { justify-self: start; margin-top: calc(-1 * var(--sp-4)); }
 .lib-new__code, .lib-card__code, .lib-row__code { color: var(--ink); font-weight: var(--fw-heavy); font-variant-numeric: tabular-nums lining-nums; }
 .lib-new__link:hover .lib-new__name, .lib-card__link:hover .lib-card__title, .lib-row__link:hover .lib-row__name {
   text-decoration: underline;
@@ -163,9 +165,9 @@
   .lib-sort__label { display: none; }
   .lib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-24) var(--sp-16); }
   .lib-table__type, .lib-table__pages, .lib-table__size, .lib-table__added, .lib-table__downloads, .lib-table thead { display: none; }
-  .lib-table td.lib-table__name { width: auto; }
+  .lib-table td.lib-table__name { width: 100%; } /* with max-width: 0 above: the name takes what the star leaves */
   .lib-table th:first-child, .lib-table td:first-child { padding-left: var(--sp-12); }
-  .lib-row__module { display: none; }
+  .lib-row__module, .lib-row__fav { display: none; }
   .lib-row__mobile-meta { display: inline; overflow: hidden; text-overflow: ellipsis; }
   .lib-row__original { display: none; }
 }

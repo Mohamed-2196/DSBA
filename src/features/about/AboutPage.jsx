@@ -33,12 +33,17 @@ export default function AboutPage() {
             <div className="about__prose">
               <p>
                 DSBA Hub grew out of the DSBA Resource Hub. It keeps everything the hub offered for each module — books and study guides,
-                notes shared by students, exercises, past exams, cheat sheets and recorded lessons — and adds a library you can read without
-                leaving the app, a newsletter, a forum, a full calendar and a degree classification calculator.
+                notes shared by students, exercises, past exams, cheat sheets and recorded lessons — and adds a forum for all three cohorts,
+                a library you can read without leaving the app, lessons that remember where you stopped, Career Navigator, a full calendar,
+                a degree classification calculator and The DSBA Newsletter.
               </p>
               <p>
                 Right now it covers {MODULES.length} modules across three years, with {totals.chapters} chapters, {totals.videos} lessons,{' '}
                 {totals.notes} sets of student notes and {EVENTS.length} calendar dates.
+              </p>
+              <p>
+                It does not replace your email, the VLE, BIBF MyClass, the UoL student portal or your WhatsApp groups. It gives them one
+                place to start.
               </p>
             </div>
           </PageSection>

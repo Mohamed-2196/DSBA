@@ -2,9 +2,13 @@
 // `ago` is minutes before page load, so the film (clock frozen at 2026-10-06 10:00 Bahrain) and
 // any other day read the same: "2h ago", "1d ago"... Reply ids are local to the thread
 // ('a', 'b', nested 'a1') and become '<threadId>:<local>' at runtime. One level of nesting.
-// Bodies use the forum's small markdown: **bold**, *italic*, `code`, ``` blocks, - and 1. lists, > quotes, [links](/path).
+// Bodies use the forum's small markdown: **bold**, *italic*, `code`, ``` blocks, - and 1. lists, > quotes, [links](/path),
+// and a picture on a line of its own: ![what it shows](/demo/forum/file.jpg) (files in public/demo/forum).
 // Content rules: only module codes that exist in src/data, exam dates from src/data/calendar.js,
-// authors are dummy students, never real tutors or staff.
+// authors are dummy students, never real tutors or staff. ONE mention of a real lecturer is approved by the
+// student rep: reply 'b' of 'what-is-this-am-i-cooked' thanks Dr Hamad Alrayes' advisory session (a student's
+// thanks in the student's own words, not a quote from him, and still posted by a dummy student). Add no others.
+// A student-rep film hook can hide seed threads by id: see HIDDEN_SEEDS_KEY in ../lib/model.js.
 
 const m = (n) => n;
 const h = (n) => n * 60;
@@ -261,6 +265,47 @@ export const SEED_THREADS = [
   },
 
   // ── Year 1 ────────────────────────────────────────────────────────────────────────────────
+  {
+    // The student rep's thread (it is in the launch film too): a photo of a problem-set question, a real answer,
+    // and one approved thank-you to a lecturer's advisory session (see the note at the top of this file).
+    id: 'what-is-this-am-i-cooked',
+    category: 'year-1',
+    moduleId: 'mathematics',
+    title: 'What is this, am I cooked 💀',
+    author: 'layla-f',
+    ago: m(35),
+    votes: 40,
+    tags: ['exam-prep'],
+    accepted: 'a',
+    body: md`
+      ![Question 3(a) from the problem set: Iₙ is the integral of cosⁿθ from 0 to π/2. For n ≥ 2, show that Iₙ = ((n−1)/n) Iₙ₋₂, hence find I₂ and I₃, then deduce the value of Iₙ for n ≥ 2.](/demo/forum/reduction-formula.jpg)
+
+      Question 3(a) on the problem set. I've been staring at it for an hour.
+    `,
+    replies: [
+      {
+        id: 'a', author: 'sara-m', ago: m(24), votes: 18,
+        body: md`
+          Not cooked, it's a standard reduction formula. Write cosⁿθ = cosⁿ⁻¹θ · cosθ and integrate by parts with u = cosⁿ⁻¹θ and dv = cosθ dθ, so du = −(n−1)cosⁿ⁻²θ sinθ dθ and v = sinθ.
+
+          1. The boundary term cosⁿ⁻¹θ sinθ is 0 at both ends (cos(π/2) = 0 at the top, sin 0 = 0 at the bottom).
+          2. What is left is Iₙ = (n−1) ∫ cosⁿ⁻²θ sin²θ dθ. Swap sin²θ for 1 − cos²θ.
+          3. That gives Iₙ = (n−1)(Iₙ₋₂ − Iₙ). Collect the Iₙ terms: n·Iₙ = (n−1)·Iₙ₋₂, so **Iₙ = ((n−1)/n) Iₙ₋₂**.
+
+          For the values, go back to the integral: I₀ = π/2 and I₁ = 1. Then I₂ = ½ · I₀ = **π/4** and I₃ = ⅔ · I₁ = **2/3**.
+
+          To deduce Iₙ, keep applying the formula until you land on I₀ or I₁:
+
+          - n even: Iₙ = (n−1)/n · (n−3)/(n−2) · … · 3/4 · 1/2 · π/2
+          - n odd: Iₙ = (n−1)/n · (n−3)/(n−2) · … · 4/5 · 2/3
+
+          Quick check: I₄ = 3π/16 and I₅ = 8/15. You're not cooked. Medium rare at most.
+        `,
+      },
+      { id: 'b', author: 'ahmed-j', ago: m(17), votes: 31, body: "Dr Hamad Alrayes' advisory session saved my life on exactly this. Go to the next one." },
+      { id: 'c', author: 'layla-f', ago: m(9), votes: 6, body: 'ok, slightly less cooked. thank you 🙏' },
+    ],
+  },
   {
     id: 'mt1186-past-paper-solutions',
     category: 'year-1',
@@ -678,7 +723,7 @@ export const REVEAL_REPLY = {
   author: 'everyone',
   votes: 160,
   body: md`
-    Okay, okay. **Happy Teacher's Day** to all 17 of our tutors! 💛
+    Okay, okay. **Happy Teacher's Day** to all of our tutors! 💛
 
     Thank you for the lectures, the office hours, the past papers and all the patience. This launch was for you.
   `,

@@ -2,12 +2,13 @@ import { Link } from 'react-router-dom';
 import { PushPin } from '@phosphor-icons/react';
 import { Badge, Highlight, cx, timeAgo } from '../../../ui';
 import { authorLabel, getAuthor } from '../data/authors.js';
+import { imageUrl } from '../lib/images.js';
 import { AuthorAvatar } from './AuthorAvatar.jsx';
 import { VoteButton } from './VoteButton.jsx';
 import { HighlightedText, ModuleTag, PlaceBadge, ReplyCount, TagBadges } from './ThreadBits.jsx';
 
 /**
- * One dense thread row: vote gutter, title + excerpt + meta, reply count + time.
+ * One dense thread row: vote gutter, title + excerpt + meta, a thumbnail when the post has a picture, reply count + time.
  * The whole row is clickable (stretched title link); the vote button sits above it.
  * @param fresh  just posted by the student: slides in and the title gets a highlighter swipe
  * @param terms  search terms to mark in the title
@@ -17,7 +18,7 @@ export function ThreadRow({ thread, onVote, fresh = false, terms, showModule = t
   const Heading = `h${headingLevel}`;
   return (
     <li
-      className={cx('forum-row', thread.pinned && 'is-pinned', fresh && 'is-fresh')}
+      className={cx('forum-row', thread.pinned && 'is-pinned', fresh && 'is-fresh', thread.image && 'has-image')}
       data-hub="thread-row"
       data-thread-id={thread.id}
     >
@@ -52,6 +53,13 @@ export function ThreadRow({ thread, onVote, fresh = false, terms, showModule = t
           <TagBadges tags={thread.tags} />
         </div>
       </div>
+      {thread.image ? (
+        // The post has a picture (a photo of a question, say): a small thumbnail of it. The stretched title link covers it.
+        <div className="forum-row__thumb" data-hub="thread-thumb">
+          <img src={imageUrl(thread.image.src)} alt="" loading="lazy" decoding="async" />
+          <span className="visually-hidden">Includes an image</span>
+        </div>
+      ) : null}
       <div className="forum-row__stats">
         <ReplyCount count={thread.replyCount} answered={thread.answered} />
         <time className="forum-row__time" dateTime={new Date(thread.createdAt).toISOString()}>

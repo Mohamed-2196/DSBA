@@ -32,7 +32,7 @@ function useWidth(ref) {
   return w;
 }
 
-/** "Chart of the week": one series, days-to-exam (21 → 0) against confidence (0–100%). */
+/** A chart section: one series, days-to-exam (21 → 0) against confidence (0–100%). */
 export function ChartOfTheWeek({ chart }) {
   const wrapRef = useRef(null);
   const width = useWidth(wrapRef);

@@ -25,8 +25,10 @@ function buildDemoSeed(now) {
   const add = (moduleId, c, v, ago) => {
     watched[lessonKey(moduleId, c, v)] = now - ago;
   };
-  // ST2133 Distribution Theory: all of chapter 1 (9 of 22 videos = 41%), one a day.
-  for (let v = 0; v < 9; v++) add('advanced-stats-distribution', 0, v, (10 - v) * DAY + 6 * HOUR);
+  // ST2133 Distribution Theory: all of chapter 1 (9 videos), then the first eight lessons of chapter 2 (its
+  // first class recordings and videos): 17 of 42 = 40%, one a day. The student stopped at lesson 11, the binomial.
+  for (let v = 0; v < 9; v++) add('advanced-stats-distribution', 0, v, (17 - v) * DAY + 6 * HOUR);
+  for (let v = 0; v < 8; v++) add('advanced-stats-distribution', 1, v, (8 - v) * DAY + 5 * HOUR);
   // ST2195 Programming for Data Science: R and Python courses, blocks 1–2, first video of block 3 (9 of 37 = 24%).
   const pds = [[0, 0], [1, 0], [4, 0], [4, 1], [5, 0], [5, 1], [5, 2], [5, 3], [6, 0]];
   pds.forEach(([c, v], i) => add('programming-data-science', c, v, (16 - i) * DAY + 3 * HOUR));
@@ -36,7 +38,7 @@ function buildDemoSeed(now) {
     demo: true,
     watched,
     last: {
-      'advanced-stats-distribution': { c: 1, v: 0, at: now - 2 * HOUR },
+      'advanced-stats-distribution': { c: 1, v: 10, at: now - 2 * HOUR },
       'programming-data-science': { c: 6, v: 1, at: now - 26 * HOUR },
       econometrics: { c: 1, v: 0, at: now - 3 * DAY - 4 * HOUR },
     },

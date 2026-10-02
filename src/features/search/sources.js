@@ -87,6 +87,7 @@ export const PAGE_ENTRIES = [
   { path: '/library', title: 'Library', icon: 'Books', keywords: ['files', 'notes', 'past papers', 'exams', 'study guide', 'documents'] },
   { path: '/newsletter', title: 'The DSBA newsletter', icon: 'Newspaper', keywords: ['newsletter', 'issues', 'news'] },
   { path: '/forum', title: 'Forum', icon: 'ChatsCircle', keywords: ['threads', 'questions', 'discussion', 'ask'] },
+  { path: '/career', title: 'Career Navigator', icon: 'GraduationCap', keywords: ['careers', 'jobs', 'roles', 'skills', 'internships', 'graduate', 'opportunities', 'certificates', 'cfa', 'frm', 'cv', 'mentors', 'seniors'] },
   { path: '/calendar', title: 'Calendar', icon: 'CalendarDots', keywords: ['exams', 'timetable', 'dates', 'deadlines', 'ics'] },
   { path: '/grades', title: 'Grade calculator', icon: 'Calculator', keywords: ['grades', 'gpa', 'classification', 'marks', 'degree'] },
   { path: '/about', title: 'About DSBA Hub', icon: 'Info', keywords: ['contributors', 'disclaimer', 'credits'] },

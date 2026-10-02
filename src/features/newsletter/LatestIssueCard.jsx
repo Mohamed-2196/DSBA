@@ -12,7 +12,7 @@ export function LatestIssueCard() {
   if (!issue) {
     return (
       <Panel padding="none">
-        <EmptyState size="sm" icon={Newspaper} title="The first issue is on its way" body="The DSBA Newsletter, the DSBA newsletter, will show here when it’s out." />
+        <EmptyState size="sm" icon={Newspaper} title="No issues yet" body="The latest issue of The DSBA Newsletter will show here when there is one." />
       </Panel>
     );
   }

@@ -1,15 +1,18 @@
 // The forum's small markdown: paragraphs, **bold**, *italic*, `code`, ``` fenced blocks,
-// "- " and "1. " lists, "> " quotes and [links](/internal or https://…).
+// "- " and "1. " lists, "> " quotes, [links](/internal or https://…) and images on a line of their own:
+// ![what the picture shows](/demo/forum/some-image.jpg). Images can only come from the app's own /demo/
+// folder (the forum is a prototype: nothing is uploaded, and nothing is fetched from other sites).
 // Parsed into a tiny AST that <Prose> renders as React elements (no HTML injection).
 
 const FENCE = /^\s*```/;
 const UL = /^\s*[-*]\s+/;
 const OL = /^\s*\d+[.)]\s+/;
 const QUOTE = /^\s*>\s?/;
+const IMAGE = /^\s*!\[([^\]\n]*)\]\((\/demo\/[^\s)]+)\)\s*$/;
 
-const isBlockStart = (line) => FENCE.test(line) || UL.test(line) || OL.test(line) || QUOTE.test(line);
+const isBlockStart = (line) => FENCE.test(line) || UL.test(line) || OL.test(line) || QUOTE.test(line) || IMAGE.test(line);
 
-/** -> [{ type: 'p'|'ul'|'ol'|'quote'|'code', text?, items?, lang? }] */
+/** -> [{ type: 'p'|'ul'|'ol'|'quote'|'code'|'image', text?, items?, lang?, src?, alt? }] */
 export function parseBlocks(src) {
   const lines = String(src ?? '').replace(/\r\n?/g, '\n').split('\n');
   const blocks = [];
@@ -41,6 +44,12 @@ export function parseBlocks(src) {
       const buf = [];
       while (i < lines.length && QUOTE.test(lines[i])) buf.push(lines[i++].replace(QUOTE, ''));
       blocks.push({ type: 'quote', text: buf.join('\n') });
+      continue;
+    }
+    const image = IMAGE.exec(line);
+    if (image) {
+      blocks.push({ type: 'image', alt: image[1].trim(), src: image[2] });
+      i += 1;
       continue;
     }
     const buf = [line];
@@ -76,11 +85,15 @@ export function parseInline(text) {
   return out;
 }
 
-/** Plain text (markdown stripped), whitespace collapsed. For search; `codeAs` replaces code blocks (excerpts use '…'). */
-export function toPlainText(src, { codeAs = null } = {}) {
+/**
+ * Plain text (markdown stripped), whitespace collapsed. For search; `codeAs` replaces code blocks (excerpts use '…').
+ * Images leave nothing behind, unless `imageAlt` keeps their description (search finds a thread by what its picture shows).
+ */
+export function toPlainText(src, { codeAs = null, imageAlt = false } = {}) {
   return parseBlocks(src)
     .map((b) => {
       if (b.type === 'code') return codeAs ?? b.text;
+      if (b.type === 'image') return imageAlt ? b.alt : '';
       const parts = b.items || [b.text];
       return parts.map((p) => parseInline(p).map((t) => t.text).join('')).join(' ');
     })
@@ -96,4 +109,10 @@ export function excerpt(src, max = 180) {
   const cut = plain.slice(0, max);
   const space = cut.lastIndexOf(' ');
   return `${cut.slice(0, space > max * 0.6 ? space : max).replace(/[\s,.;:!?(–-]+$/, '')}…`;
+}
+
+/** The first image in a post: { src, alt } or null. Thread rows show it as a small thumbnail. */
+export function firstImage(src) {
+  const block = parseBlocks(src).find((b) => b.type === 'image');
+  return block ? { src: block.src, alt: block.alt } : null;
 }

@@ -16,6 +16,7 @@ const ROUTES = [
   { id: 'forum', path: '/forum', title: 'Forum', Page: lazy(() => import('./features/forum/ForumPage.jsx')) },
   { id: 'forum-new', path: '/forum/new', title: 'Start a thread', Page: lazy(() => import('./features/forum/NewThreadPage.jsx')) },
   { id: 'thread', path: '/forum/:threadId', title: 'Forum', Page: lazy(() => import('./features/forum/ThreadPage.jsx')) },
+  { id: 'career', path: '/career', title: 'Career Navigator', Page: lazy(() => import('./features/career/CareerPage.jsx')) },
   { id: 'calendar', path: '/calendar', title: 'Calendar', Page: lazy(() => import('./features/calendar/CalendarPage.jsx')) },
   { id: 'grades', path: '/grades', title: 'Grades', Page: lazy(() => import('./features/grades/GradesPage.jsx')) },
   { id: 'about', path: '/about', title: 'About', Page: lazy(() => import('./features/about/AboutPage.jsx')) },

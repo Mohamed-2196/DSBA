@@ -7,10 +7,13 @@ import {
 import { Badge, Button, EmptyState, IconButton, Menu, Page, Panel, cx } from '../../ui';
 import { BREAKPOINTS, useDocumentTitle, useMediaQuery, useToast } from '../../state';
 import { getModule } from '../../data/modules.js';
+import { assetUrl } from './data/assets.js';
 import { getFile, getRelatedFiles } from './data/catalog.js';
-import { FORMATS, KIND_BY_ID, formatSize, pageNoun, pageSizeFor } from './data/kinds.js';
+import { FORMATS, KIND_BY_ID, formatSize, pageNoun, pageSizeOf } from './data/kinds.js';
+import { thumbSrc } from './data/thumbs.js';
 import { useStarred } from './data/useStarred.js';
 import { DocPage } from './doc/DocPage.jsx';
+import { FavouriteTag } from './components/FavouriteTag.jsx';
 import { StarButton } from './components/StarButton.jsx';
 import { MetaPanel } from './viewer/MetaPanel.jsx';
 import { PageRail } from './viewer/PageRail.jsx';
@@ -91,16 +94,21 @@ function Viewer({ file }) {
   const module = getModule(file.moduleId);
   const kind = KIND_BY_ID[file.kind];
   const related = useMemo(() => getRelatedFiles(file, 5), [file]);
-  const size = pageSizeFor(file.format);
+  const size = pageSizeOf(file);
   const noun = pageNoun(file.format, 1);
   const count = file.pages;
+  // A real document is one picture: it opens whole (never enlarged past its own pixels) and its original is the image.
+  const imageSrc = file.image ? assetUrl(file.image.src) : null;
+  const defaultZoom = imageSrc && count === 1 ? 'page' : 'auto';
+  const maxFit = imageSrc ? 1 : Infinity;
+  const hasRail = count > 1;
 
   // ── Layout and zoom ─────────────────────────────────────────────────
   const canvasRef = useRef(null);
   const pagesRef = useRef(null);
   const [canvas, setCanvas] = useState({ w: 0, h: 0 });
-  const [zoom, setZoom] = useState('auto');
-  const [railOpen, setRailOpen] = useState(true);
+  const [zoom, setZoom] = useState(defaultZoom);
+  const [railOpen, setRailOpen] = useState(hasRail);
   const [metaPref, setMetaPref] = useState(null);
   const metaOpen = isDesktop ? metaPref ?? wide : true;
 
@@ -119,7 +127,7 @@ function Viewer({ file }) {
   const viewH = isDesktop ? canvas.h : (typeof window === 'undefined' ? 800 : window.innerHeight) - 170;
   const fitWidth = Math.max(160, canvas.w - pad * 2) / size.w;
   const fitPage = Math.min(fitWidth, Math.max(160, viewH - pad * 2) / size.h);
-  const raw = zoom === 'auto' ? Math.min(1, fitWidth) : zoom === 'width' ? fitWidth : zoom === 'page' ? fitPage : zoom;
+  const raw = zoom === 'auto' ? Math.min(1, fitWidth) : zoom === 'width' ? Math.min(fitWidth, maxFit) : zoom === 'page' ? Math.min(fitPage, maxFit) : zoom;
   const scale = canvas.w ? Math.max(0.2, Math.min(3, raw)) : 1;
   const pageW = Math.round(size.w * scale);
   const pageH = Math.round(size.h * scale);
@@ -155,6 +163,8 @@ function Viewer({ file }) {
   );
 
   // ── Actions ─────────────────────────────────────────────────────────
+  // An image is a real file: Download saves it (the toast confirms), Open original shows it in a new tab.
+  const downloadLink = imageSrc ? { href: imageSrc, download: file.fileName } : {};
   const download = () => {
     toast.push({
       title: 'Download started',
@@ -203,7 +213,7 @@ function Viewer({ file }) {
           zoomBy(-1);
           break;
         case '0':
-          setZoom('auto');
+          setZoom(defaultZoom);
           break;
         case 'Escape':
           navigate(backTo);
@@ -215,7 +225,7 @@ function Viewer({ file }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [step, goTo, zoomBy, count, navigate, backTo]);
+  }, [step, goTo, zoomBy, count, navigate, backTo, defaultZoom]);
 
   const zoomItems = [
     ...Object.entries(ZOOM_MODES).map(([id, label]) => ({ id, label, icon: zoom === id ? Check : <span className="lib-tb__blank" />, onSelect: () => setZoom(id) })),
@@ -252,13 +262,14 @@ function Viewer({ file }) {
           <span className="lib-viewer__badges">
             <Badge tone="outline">{FORMATS[file.format].ext.toUpperCase()}</Badge>
             {file.isNew ? <Badge tone="highlight">New</Badge> : null}
+            {file.favourite ? <FavouriteTag size="md" /> : null}
           </span>
         </div>
       </header>
 
       <div className="lib-viewer__toolbar" role="toolbar" aria-label="Document" data-hub="file-toolbar">
         <div className="lib-tb__group">
-          {isDesktop ? (
+          {isDesktop && hasRail ? (
             <>
               <IconButton label={railOpen ? 'Hide page thumbnails' : 'Show page thumbnails'} icon={SidebarSimple} toggle active={railOpen} onClick={() => setRailOpen((o) => !o)} tooltip />
               <span className="lib-tb__sep" aria-hidden="true" />
@@ -288,11 +299,11 @@ function Viewer({ file }) {
           <StarButton on={isStarred(file.id)} onToggle={() => toggle(file.id)} title={file.title} size="md" tooltip={isDesktop} />
           <IconButton label="Copy link" icon={LinkSimple} onClick={copyLink} tooltip={isDesktop} className="lib-tb__copy" />
           {isMobile ? (
-            <IconButton label={`Download ${file.fileName}`} icon={DownloadSimple} onClick={download} />
+            <IconButton label={`Download ${file.fileName}`} icon={DownloadSimple} onClick={download} {...downloadLink} />
           ) : (
-            <Button variant="ghost" leadingIcon={DownloadSimple} onClick={download} className="lib-tb__download">Download</Button>
+            <Button variant="ghost" leadingIcon={DownloadSimple} onClick={download} className="lib-tb__download" {...downloadLink}>Download</Button>
           )}
-          <Button variant="secondary" size={isMobile ? 'sm' : 'md'} trailingIcon={ArrowSquareOut} href={file.sourceUrl} className="lib-tb__original">
+          <Button variant="secondary" size={isMobile ? 'sm' : 'md'} trailingIcon={ArrowSquareOut} href={imageSrc || file.sourceUrl} external={imageSrc ? true : undefined} className="lib-tb__original">
             {isMobile ? 'Original' : 'Open original'}
           </Button>
           {isDesktop ? (
@@ -304,8 +315,8 @@ function Viewer({ file }) {
         </div>
       </div>
 
-      <div className={cx('lib-viewer__body', isDesktop && railOpen && 'has-rail', isDesktop && metaOpen && 'has-meta')}>
-        {isDesktop && railOpen ? <PageRail file={file} current={current} onSelect={goTo} /> : null}
+      <div className={cx('lib-viewer__body', isDesktop && hasRail && railOpen && 'has-rail', isDesktop && metaOpen && 'has-meta')}>
+        {isDesktop && hasRail && railOpen ? <PageRail file={file} current={current} onSelect={goTo} /> : null}
         <div
           ref={canvasRef}
           className="lib-viewer__canvas"
@@ -323,7 +334,20 @@ function Viewer({ file }) {
                 data-hub="file-page"
               >
                 <div className="lib-viewer__paper" data-theme="light">
-                  {i >= renderFrom && i <= renderTo ? (
+                  {imageSrc ? (
+                    // The picture itself, sized to the page (not scaled by a transform) so it stays sharp. The small copy
+                    // shows underneath until the full-size file arrives.
+                    <img
+                      className="lib-viewer__image"
+                      src={imageSrc}
+                      alt={file.image.alt}
+                      width={pageW}
+                      height={pageH}
+                      draggable={false}
+                      decoding="sync"
+                      style={{ backgroundImage: `url(${thumbSrc(file.image)})`, backgroundSize: '100% 100%' }}
+                    />
+                  ) : i >= renderFrom && i <= renderTo ? (
                     <div className="lib-viewer__sheet" style={{ transform: `scale(${scale})` }}>
                       <DocPage file={file} index={i} />
                     </div>

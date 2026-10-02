@@ -21,7 +21,7 @@ const INDEX = new Map(
     const fields = [
       f.title, f.fileName, f.moduleCode, f.moduleName, f.moduleShort, kind.label, kind.plural, kind.short,
       f.author, f.addedBy, f.format, f.ext, f.examYear, f.zone ? `zone ${f.zone}` : '', f.unit?.title,
-      `year ${f.year}`, f.isNew ? 'new' : '',
+      `year ${f.year}`, f.isNew ? 'new' : '', f.favourite ? 'student favourite favourites' : '',
     ];
     return [f.id, { words: new Set(tokenize(fields.join(' '))), title: normalize(f.title), titleWords: tokenize(f.title) }];
   }),

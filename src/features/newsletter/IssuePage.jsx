@@ -5,14 +5,16 @@ import {
   CalendarCheck,
   CaretLeft,
   CaretRight,
+  ChartLineUp,
   ChatsCircle,
   Clock,
   Lightbulb,
   ListBullets,
-  LockSimple,
   Megaphone,
+  Microphone,
   Newspaper,
   NotePencil,
+  RocketLaunch,
   Sparkle,
   Student,
   UsersThree,
@@ -21,7 +23,8 @@ import { Button, EmptyState, ErrorBoundary, Page, Panel, HubMark, cx } from '../
 import { useDocumentTitle, useMediaQuery, useQueryParam } from '../../state';
 import { getStudent } from '../../data/people.js';
 import { IssueCover } from './components/IssueCover.jsx';
-import { Aside, Blocks, EditorAvatars, Profile } from './components/Blocks.jsx';
+import { Aside, Blocks, EditorAvatars, Figure, Profile } from './components/Blocks.jsx';
+import { Wordmark } from './components/Nameplate.jsx';
 import { Reactions } from './components/Reactions.jsx';
 import { ShareActions } from './components/ShareActions.jsx';
 import { SubscribeBox } from './components/SubscribeBox.jsx';
@@ -29,16 +32,31 @@ import { CohortCorner } from './components/sections/CohortCorner.jsx';
 import { Deadlines, SessionCalendar } from './components/sections/Deadlines.jsx';
 import { ForumList, LibraryList } from './components/sections/LiveLists.jsx';
 import { ChartOfTheWeek } from './components/sections/ChartOfTheWeek.jsx';
-import { getIssue, getLatest, getNeighbours } from './lib/issues.js';
+import { getIssue, getNeighbours } from './lib/issues.js';
 import { getForumThreads, getLibraryFiles, getSessionExams, getSharedNotes } from './lib/live.js';
-import { daysBetween, issueNo, longDate } from './lib/text.js';
+import { issueNo, longDate } from './lib/text.js';
 import './IssuePage.css';
 
-// Not linked from anywhere: reachable only by typing /newsletter/thank-you-tutors. Loaded as its own chunk.
-const SPECIAL_SLUG = 'thank-you-tutors';
+// Not linked from anywhere: reachable only by typing /newsletter/thank-you-teachers. Loaded as its own chunk.
+// 'thank-you-tutors' was this page's first address: it keeps working for anyone who has the old link.
+const SPECIAL_SLUGS = ['thank-you-teachers', 'thank-you-tutors'];
 const SpecialEdition = lazy(() => import('./special/SpecialEdition.jsx'));
 
-const SECTION_ICONS = { NotePencil, ListBullets, CalendarCheck, Sparkle, Megaphone, UsersThree, Lightbulb, Student, ChatsCircle, Books };
+const SECTION_ICONS = {
+  NotePencil,
+  ListBullets,
+  CalendarCheck,
+  Sparkle,
+  Megaphone,
+  UsersThree,
+  Lightbulb,
+  Student,
+  ChatsCircle,
+  Books,
+  ChartLineUp,
+  Microphone,
+  RocketLaunch,
+};
 const domId = (id) => `nl-sec-${id}`;
 const listNames = (names) => (names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`);
 
@@ -46,8 +64,7 @@ function RunningHead({ issue, share = true }) {
   return (
     <div className="nl-runhead">
       <Link to="/newsletter" className="nl-runhead__name">
-        The DSBA Newsletter
-        <HubMark size={11} className="nl-runhead__mark" />
+        <Wordmark />
       </Link>
       <p className="nl-runhead__meta">
         <span className="u-tabular">Issue {issueNo(issue.number)}</span>
@@ -101,9 +118,14 @@ function IssueSection({ issue, section, live }) {
   // Live sections hide their intro paragraph when they fall back to an invitation.
   const blocks = live?.empty ? [] : section.blocks;
   const exams = live?.exams || [];
-  const aside = section.kind === 'deadlines' ? (exams.length ? <SessionCalendar exams={exams} /> : null) : section.aside ? <Aside aside={section.aside} /> : null;
+  // A picture (or a wide margin note) takes a column beside the copy; on a phone it moves above it.
+  const wide = Boolean(section.figure) || Boolean(section.aside?.wide);
+  let aside = null;
+  if (section.figure) aside = <Figure figure={section.figure} />;
+  else if (section.kind === 'deadlines') aside = exams.length ? <SessionCalendar exams={exams} /> : null;
+  else if (section.aside) aside = <Aside aside={section.aside} />;
   return (
-    <section id={domId(section.id)} className={cx('nl-section', `nl-section--${section.kind || 'copy'}`)} aria-labelledby={headId} data-hub="issue-section">
+    <section id={domId(section.id)} className={cx('nl-section', `nl-section--${section.kind || 'copy'}`, wide && 'has-wide-aside')} aria-labelledby={headId} data-hub="issue-section">
       <header className="nl-section__head">
         <p className="nl-section__label">
           <Icon weight="duotone" aria-hidden="true" />
@@ -155,28 +177,24 @@ function Toc({ issue, active, onGo }) {
 function Pager({ issue }) {
   const { prev, next } = getNeighbours(issue);
   if (!prev && !next) return null;
-  const card = (i, dir) => {
-    const upcoming = i.status !== 'published';
-    return (
-      <Link to={`/newsletter/${i.slug}`} className={cx('nl-pager__card', `nl-pager__card--${dir}`)}>
-        <span className="nl-pager__cover">
-          <IssueCover issue={i} decorative />
+  const card = (i, dir) => (
+    <Link to={`/newsletter/${i.slug}`} className={cx('nl-pager__card', `nl-pager__card--${dir}`)}>
+      <span className="nl-pager__cover">
+        <IssueCover issue={i} decorative />
+      </span>
+      <span className="nl-pager__text">
+        <span className="nl-pager__dir">
+          {dir === 'prev' ? <CaretLeft weight="bold" aria-hidden="true" /> : null}
+          {dir === 'prev' ? 'Older issue' : 'Newer issue'}
+          {dir === 'next' ? <CaretRight weight="bold" aria-hidden="true" /> : null}
         </span>
-        <span className="nl-pager__text">
-          <span className="nl-pager__dir">
-            {dir === 'prev' ? <CaretLeft weight="bold" aria-hidden="true" /> : null}
-            {dir === 'prev' ? 'Previous issue' : 'Next issue'}
-            {dir === 'next' ? <CaretRight weight="bold" aria-hidden="true" /> : null}
-          </span>
-          <span className="nl-pager__title">{i.title}</span>
-          <span className="nl-pager__meta">
-            {upcoming ? <LockSimple weight="bold" aria-hidden="true" /> : null}
-            Issue {issueNo(i.number)}, {upcoming ? `out ${longDate(i.date)}` : longDate(i.date)}
-          </span>
+        <span className="nl-pager__title">{i.title}</span>
+        <span className="nl-pager__meta">
+          Issue {issueNo(i.number)}, {longDate(i.date)}
         </span>
-      </Link>
-    );
-  };
+      </span>
+    </Link>
+  );
   return (
     <nav className="nl-pager" aria-label="More issues">
       {prev ? card(prev, 'prev') : <span />}
@@ -289,9 +307,9 @@ function IssueReader({ issue }) {
             <IssueSection key={s.id} issue={issue} section={s} live={live[s.id]} />
           ))}
           <footer className="nl-issue__end">
-            <HubMark size={14} className="nl-issue__end-mark" />
+            <HubMark tile size={22} className="nl-issue__end-mark" />
             <p>
-              End of issue {no}. Found a mistake or have a story for the next one?{' '}
+              That’s the end of issue {no}. Spotted a mistake, or have a story we should tell?{' '}
               <Link to="/forum/new">Tell us in the forum</Link>.
             </p>
             <ShareActions route={`/newsletter/${issue.slug}`} title={`The DSBA Newsletter ${no}: ${issue.title}`} />
@@ -301,54 +319,6 @@ function IssueReader({ issue }) {
 
       <Pager issue={issue} />
       <SubscribeBox variant="band" className="nl-issue__subscribe" />
-    </Page>
-  );
-}
-
-function LockedIssue({ issue }) {
-  const no = issueNo(issue.number);
-  useDocumentTitle(`${issue.title}, The DSBA Newsletter ${no}`);
-  const latest = getLatest();
-  const days = daysBetween(new Date(Date.now()), issue.date);
-  const when = days > 1 ? `in ${days} days` : days === 1 ? 'tomorrow' : days === 0 ? 'today' : null;
-  return (
-    <Page className="nl-issue nl-issue--locked">
-      <header className="nl-issue__head" data-hub="issue-masthead">
-        <RunningHead issue={issue} share={false} />
-      </header>
-      <div className="nl-locked">
-        <div className="nl-locked__cover">
-          <IssueCover issue={issue} locked />
-        </div>
-        <div className="nl-locked__body">
-          <p className="nl-locked__status">
-            <LockSimple weight="bold" aria-hidden="true" />
-            Coming {longDate(issue.date)}
-            {when ? `, ${when}` : ''}
-          </p>
-          <h1 className="nl-issue__title">{issue.title}</h1>
-          <p className="nl-issue__dek">{issue.dek}</p>
-          <h2 className="nl-locked__subtitle">What we’re writing</h2>
-          <ul className="nl-list nl-locked__plan">
-            {issue.planned.map((p) => (
-              <li key={p}>{p}</li>
-            ))}
-          </ul>
-          {latest ? (
-            <p className="nl-cta">
-              <Button to={`/newsletter/${latest.slug}`} leadingIcon={Newspaper}>
-                Read issue {issueNo(latest.number)} while you wait
-              </Button>
-            </p>
-          ) : null}
-        </div>
-      </div>
-      <SubscribeBox
-        variant="band"
-        className="nl-issue__subscribe"
-        title={`Get issue ${no} in your inbox`}
-        body={`Subscribe and it lands in your inbox on ${longDate(issue.date)}, the day it’s out, with every issue after it.`}
-      />
     </Page>
   );
 }
@@ -372,7 +342,7 @@ function IssueNotFound() {
 
 export default function IssuePage() {
   const { slug } = useParams();
-  if (slug === SPECIAL_SLUG) {
+  if (SPECIAL_SLUGS.includes(slug)) {
     return (
       <Suspense fallback={<div className="nl-loading" aria-busy="true"><HubMark size={22} animate="loop" title="Loading" /></div>}>
         <SpecialEdition />
@@ -381,6 +351,5 @@ export default function IssuePage() {
   }
   const issue = getIssue(slug);
   if (!issue) return <IssueNotFound />;
-  if (issue.status !== 'published') return <LockedIssue key={issue.slug} issue={issue} />;
   return <IssueReader key={issue.slug} issue={issue} />;
 }

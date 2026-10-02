@@ -1,14 +1,15 @@
 // Public API of the forum feature (agent D). Signatures are a contract — do not change them.
 // Threads = seed data (src/features/forum/data) + the student's own posts, votes and replies
 // (localStorage 'dsba.forum.v1'), so Home, the module page and ⌘K see what the forum shows.
-import { buildForum, hotList, searchIn, toPublicThread } from './lib/model.js';
+import { buildForum, hotList, readHiddenSeedsRaw, searchIn, toPublicThread } from './lib/model.js';
 import { FORUM_KEY, normalizeState } from './lib/store.js';
 
 export { HotThreads } from './HotThreads.jsx'; // component for Home ({ n = 5 })
 export { ModuleThreads } from './ModuleThreads.jsx'; // component for the module page Discussion tab ({ moduleId })
 
-// Rebuild only when the stored activity changes (these run during other features' renders).
-let cache = { raw: undefined, threads: [] };
+// Rebuild only when the stored activity changes (these run during other features' renders). The film's
+// list of hidden seed threads ('hub.forum.hidden', see lib/model.js) is part of what the threads depend on.
+let cache = { raw: undefined, hidden: undefined, threads: [] };
 function currentThreads() {
   let raw = null;
   try {
@@ -16,14 +17,15 @@ function currentThreads() {
   } catch {
     raw = null;
   }
-  if (raw !== cache.raw) {
+  const hidden = readHiddenSeedsRaw();
+  if (raw !== cache.raw || hidden !== cache.hidden) {
     let state;
     try {
       state = normalizeState(raw ? JSON.parse(raw) : null);
     } catch {
       state = normalizeState(null);
     }
-    cache = { raw, threads: buildForum(state).threads };
+    cache = { raw, hidden, threads: buildForum(state).threads };
   }
   return cache.threads;
 }

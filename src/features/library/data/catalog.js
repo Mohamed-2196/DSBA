@@ -5,8 +5,11 @@
 //
 // File: { id, moduleId, year, kind, title, format, pages, sizeKB, author, addedAt (ISO), sourceUrl, isNew,
 //         …extras: fileName, ext, url, kindLabel, moduleCode, moduleName, moduleShort, examYear, zone,
-//         unit {no, noun, title}, addedBy, downloads, trend[12], seed }
+//         unit {no, noun, title}, addedBy, downloads, trend[12], seed,
+//         image {src, width, height, alt} | null  (a real document: the picture is the page, see IMAGE_FILES),
+//         favourite (a student favourite) }
 import { MODULES, getModule } from '../../../data/modules.js';
+import { assetUrl } from './assets.js';
 import { FORMATS, KIND_BY_ID, KIND_ORDER } from './kinds.js';
 import { cycle, randInt, rngFor } from './random.js';
 import { unitsFor } from './topics.js';
@@ -26,8 +29,15 @@ const HUB_LAUNCH = utc(2024, 2, 5);
 const OLD_CUTOFF = Math.min(utc(2026, 9, 12), NOW - 10 * DAY);
 const LAST_PAPER_YEAR = 2025;
 
-/** Files that arrived this week, with how many hours ago. Includes the Year 2 notes v1 announced. */
+/**
+ * Files that arrived this week, with how many hours ago. Includes the Year 2 notes v1 announced.
+ * The first four are the real documents (IMAGE_FILES), in the order they lead the "New this week" shelf.
+ */
 const NEW_THIS_WEEK = {
+  'st2187-business-analytics-cover': 1,
+  'st2133-common-continuous-distributions': 2,
+  'st2134-product-and-sigma-notation': 3,
+  'mn1178-chapter-7-strategy-and-enterprise': 4,
   'st2133-study-guide-mohamed': 5,
   'st2133-past-paper-2025-zone-a': 7,
   'is2184-chapter-2-notes-mahdi': 9,
@@ -35,7 +45,6 @@ const NEW_THIS_WEEK = {
   'st2187-revision-notes-mohamed': 22,
   'st1215-chapter-8-notes-mariam-nasser': 30,
   'is2184-chapter-1-notes-mahdi': 33,
-  'st2134-product-and-sigma-notation': 50,
   'ec2020-examiners-report-2025': 74,
   'ec1002-past-paper-2025-zone-a': 97,
   'machine-learning-subject-guide': 118,
@@ -63,9 +72,7 @@ const NOTE_PLAN = {
   'advanced-stats-distribution': {
     'Mohamed study guide': { title: 'Study guide – Mohamed', pages: [44, 52] },
   },
-  'advanced-stats-inferential': {
-    'Product and Sigma Notation': { title: 'Product and sigma notation', pages: [3, 4] },
-  },
+  // ST2134's "Product and Sigma Notation" note is the real handwritten sheet now (see IMAGE_FILES).
   'business-analytics': {
     Mohamed: { title: 'Revision notes – Mohamed', pages: [26, 34] },
   },
@@ -73,6 +80,71 @@ const NOTE_PLAN = {
     Mahdi: { units: ['1', '2'], format: 'DOCX' },
   },
 };
+
+/**
+ * Real documents: pictures students shared, shown as the page itself (files in public/demo/library/).
+ * All four are student favourites that arrived in the last few hours (NEW_THIS_WEEK), so they lead the shelf
+ * for every year. `note` names the v1 note a picture belongs to: that note's Drive link stays its `sourceUrl`
+ * (and `replaces` swaps out the placeholder file the note used to make). With no note, the picture is the original.
+ */
+const IMAGE_FILES = [
+  {
+    id: 'st2187-business-analytics-cover',
+    moduleId: 'business-analytics',
+    kind: 'notes',
+    title: 'ST2187 Business Analytics cover',
+    image: {
+      src: 'demo/library/st2187-business-analytics-cover.png',
+      width: 800,
+      height: 1038,
+      bytes: 188633,
+      alt: 'Cover page titled ST2187 Business Analytics, with the “This is fine” comic: a dog sits calmly at a table in a burning room and says “This is fine.”',
+    },
+  },
+  {
+    id: 'st2133-common-continuous-distributions',
+    moduleId: 'advanced-stats-distribution',
+    kind: 'cheat-sheet',
+    title: 'Common continuous distributions',
+    image: {
+      src: 'demo/library/common-continuous-distributions.png',
+      width: 1129,
+      height: 800,
+      bytes: 155323,
+      alt: 'Hand-annotated table of the uniform, exponential, normal and standard normal distributions, giving the parameters, notation, pdf, mean, variance and mgf of each, with a note that Bin(n, π) is closely approximated by Poisson(λ = nπ) only when n is large and π is small.',
+    },
+  },
+  {
+    id: 'st2134-product-and-sigma-notation',
+    moduleId: 'advanced-stats-inferential',
+    kind: 'notes',
+    title: 'Summation notation',
+    note: 'Product and Sigma Notation',
+    replaces: true,
+    image: {
+      src: 'demo/library/summation-notation.png',
+      width: 800,
+      height: 1033,
+      bytes: 95404,
+      alt: 'Handwritten notes titled Summation Notation: the sums of i and i squared, infinite and finite geometric sums, the binomial theorem and the Taylor expansion of e to the x, plus three properties of sums.',
+    },
+  },
+  {
+    id: 'mn1178-chapter-7-strategy-and-enterprise',
+    moduleId: 'business',
+    kind: 'notes',
+    title: 'Chapter 7 – Strategy and enterprise',
+    note: '𓇼🧽🍍 Patrick: Business Edition',
+    unit: '7',
+    image: {
+      src: 'demo/library/mn1178-chapter-7.png',
+      width: 1077,
+      height: 1390,
+      bytes: 561759,
+      alt: 'Typed notes for MN1178 Chapter 7, Strategy and Enterprise in International Contexts: learning outcomes, strategy and value creation, and a diagram of intended, unrealised and emergent strategy.',
+    },
+  },
+];
 
 /** Study guides from the materials folder. Block modules get walkthrough notebooks, scripts and workbooks. */
 const STUDY_PLAN = {
@@ -145,18 +217,21 @@ function buildCatalog() {
   const ids = new Set();
 
   const add = (m, spec) => {
-    const { kind, title, format = 'PDF', sourceUrl, author, addedAt, addedBy } = spec;
+    const { kind, title, format = 'PDF', sourceUrl, author, addedAt, addedBy, image = null } = spec;
     if (!sourceUrl) return;
     const code = m.unitCode;
-    let id = slugify(code && title.startsWith(code) ? title : title.startsWith(m.name) ? title : `${code || m.id} ${title}`);
+    let id = spec.id || slugify(code && title.startsWith(code) ? title : title.startsWith(m.name) ? title : `${code || m.id} ${title}`);
     let n = 2;
     while (ids.has(id)) id = `${id}-${n++}`;
     ids.add(id);
 
     const rng = rngFor('file', id);
     const rule = (SIZE_RULES[kind] && (SIZE_RULES[kind][format] || Object.values(SIZE_RULES[kind])[0])) || [4, 12, 100, 900];
-    const pages = spec.pages ? randInt(rng, spec.pages[0], spec.pages[1]) : randInt(rng, rule[0], rule[1]);
-    const sizeKB = Math.round(rule[2] + (rule[3] - rule[2]) * (0.25 * rng() + 0.75 * Math.min(1, pages / Math.max(rule[1], 1)) * rng() + 0.1 * rng()));
+    // A real document is one picture: one page, and the size of the file itself.
+    const pages = image ? 1 : spec.pages ? randInt(rng, spec.pages[0], spec.pages[1]) : randInt(rng, rule[0], rule[1]);
+    const sizeKB = image
+      ? Math.max(1, Math.round(image.bytes / 1024))
+      : Math.round(rule[2] + (rule[3] - rule[2]) * (0.25 * rng() + 0.75 * Math.min(1, pages / Math.max(rule[1], 1)) * rng() + 0.1 * rng()));
     const fmt = FORMATS[format];
 
     files.push({
@@ -187,6 +262,8 @@ function buildCatalog() {
       downloads: 0,
       trend: [],
       seed: hashSeed(id),
+      image: image ? { src: image.src, width: image.width, height: image.height, alt: image.alt } : null,
+      favourite: Boolean(spec.favourite),
     });
   };
 
@@ -318,9 +395,11 @@ function buildCatalog() {
       });
     }
 
-    // Students' notes: every v1 note, with its real contributor.
+    // Students' notes: every v1 note, with its real contributor (a note a real document replaces makes no placeholder).
     const plan = NOTE_PLAN[m.id] || {};
+    const replaced = new Set(IMAGE_FILES.filter((s) => s.moduleId === m.id && s.replaces).map((s) => s.note));
     m.notes.forEach((note, i) => {
+      if (replaced.has(note.name)) return;
       const p = plan[note.name] || {};
       const author = note.author || CONTRIBUTORS;
       const isFolder = /\/folders\//.test(note.url);
@@ -343,6 +422,21 @@ function buildCatalog() {
         add(m, { ...base, title: p.title || cleanName(note.name), addedAt: between(rng, utc(2024, 5, 1), utc(2026, 6, 30)) });
       }
     });
+
+    // Real documents: pictures students shared. Dates come from NEW_THIS_WEEK below.
+    for (const spec of IMAGE_FILES) {
+      if (spec.moduleId !== m.id) continue;
+      const note = spec.note ? m.notes.find((n) => n.name === spec.note) : null;
+      add(m, {
+        ...spec,
+        format: 'PNG',
+        sourceUrl: note?.url || assetUrl(spec.image.src),
+        author: CONTRIBUTORS,
+        unit: spec.unit ? findUnit(m.id, spec.unit) : null,
+        favourite: true,
+        addedAt: HUB_LAUNCH,
+      });
+    }
   }
 
   // Dates, "new this week", downloads and a 12-week download trend.
@@ -419,10 +513,10 @@ export function getRecentFiles(n = 6, { year } = {}) {
   return list.sort(byNewest).slice(0, Math.max(0, n));
 }
 
-/** Files added this week, newest first. */
+/** Files added this week, newest first. Student favourites are shared across cohorts, so every year's shelf has them. */
 export function getNewFiles({ year } = {}) {
   const y = Number(year) || null;
-  return FILES.filter((f) => f.isNew && (!y || f.year === y)).sort(byNewest);
+  return FILES.filter((f) => f.isNew && (!y || f.year === y || f.favourite)).sort(byNewest);
 }
 
 /** Files to suggest next to one being read. */

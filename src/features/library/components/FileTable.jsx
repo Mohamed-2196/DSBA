@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowSquareOut } from '@phosphor-icons/react';
 import { Badge, IconButton, cx, timeAgo } from '../../../ui';
+import { assetUrl } from '../data/assets.js';
 import { moduleTag, pagesLabel, sizeLabel } from '../data/display.js';
+import { FavouriteTag } from './FavouriteTag.jsx';
 import { FileThumb } from './FileThumb.jsx';
 import { StarButton } from './StarButton.jsx';
 
@@ -46,6 +48,7 @@ export function FileTable({ files, sort, onSort, isStarred, onToggleStar, linkSt
                         <span className="lib-card__ext">.{f.ext}</span>
                       </span>
                       {f.isNew ? <Badge tone="highlight" size="sm">New</Badge> : null}
+                      {f.favourite ? <FavouriteTag className="lib-row__fav" /> : null}
                     </span>
                     <span className="lib-row__sub">
                       <span className="lib-row__code">{moduleTag(f)}</span>
@@ -63,7 +66,11 @@ export function FileTable({ files, sort, onSort, isStarred, onToggleStar, linkSt
               <td className="lib-table__actions">
                 <span className="lib-row__actions">
                   <StarButton on={isStarred(f.id)} onToggle={() => onToggleStar(f.id)} title={f.title} />
-                  <IconButton label={`Open original of ${f.title} on Google Drive`} icon={ArrowSquareOut} href={f.sourceUrl} size="sm" className="lib-row__original" />
+                  {f.image ? (
+                    <IconButton label={`Open original of ${f.title}`} icon={ArrowSquareOut} href={assetUrl(f.image.src)} target="_blank" rel="noopener noreferrer" size="sm" className="lib-row__original" />
+                  ) : (
+                    <IconButton label={`Open original of ${f.title} on Google Drive`} icon={ArrowSquareOut} href={f.sourceUrl} size="sm" className="lib-row__original" />
+                  )}
                 </span>
               </td>
             </tr>

@@ -27,6 +27,8 @@ export const FORMATS = {
   PPTX: { ext: 'pptx', name: 'PowerPoint deck', page: 'slide' },
   IPYNB: { ext: 'ipynb', name: 'Jupyter notebook', page: 'a4' },
   R: { ext: 'R', name: 'R script', page: 'a4' },
+  // An image is its own page: use pageSizeOf(file), which reads the picture's pixels ('a4' is only the fallback).
+  PNG: { ext: 'png', name: 'PNG image', page: 'a4' },
 };
 
 /** Page sizes: A4 portrait at 96 dpi, a 16:9 slide, and an A4 landscape sheet. */
@@ -38,6 +40,11 @@ export const PAGE_SIZES = {
 
 export function pageSizeFor(format) {
   return PAGE_SIZES[FORMATS[format]?.page || 'a4'];
+}
+
+/** The size one page of a file renders at: its format's geometry, or an image file's own pixels. */
+export function pageSizeOf(file) {
+  return file?.image ? { w: file.image.width, h: file.image.height } : pageSizeFor(file?.format);
 }
 
 /** What a "page" is called for a format. */

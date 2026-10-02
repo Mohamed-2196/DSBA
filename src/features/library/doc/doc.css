@@ -19,6 +19,8 @@
   user-select: text;
 }
 .lib-doc *, .lib-doc *::before, .lib-doc *::after { box-sizing: border-box; }
+.lib-doc--image { background: #fff; }
+.lib-doc__image { display: block; width: 100%; height: 100%; }
 .lib-doc h1, .lib-doc h2, .lib-doc h3 { color: inherit; text-wrap: balance; }
 .lib-doc [data-overflow] { display: none !important; }
 .lib-doc sup, .lib-doc sub { font-size: 0.7em; line-height: 0; }

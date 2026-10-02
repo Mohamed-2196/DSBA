@@ -14,6 +14,7 @@ import { facetCounts, filterFiles } from './data/search.js';
 import { KINDS, KIND_BY_ID } from './data/kinds.js';
 import { moduleTag } from './data/display.js';
 import { useStarred } from './data/useStarred.js';
+import { FavouriteTag } from './components/FavouriteTag.jsx';
 import { FileCard } from './components/FileCard.jsx';
 import { FileTable } from './components/FileTable.jsx';
 import { FileThumb } from './components/FileThumb.jsx';
@@ -57,15 +58,23 @@ function useLibraryParams() {
   return [params, update];
 }
 
-function NewThisWeek({ files, total, yearLabel, linkState }) {
+/** "12 files added for Year 2 in the last 7 days, plus 1 student favourite from other years". */
+function shelfDescription({ total, elsewhere, yearLabel }) {
+  const own = total - elsewhere;
+  const favourites = `${elsewhere} student ${elsewhere === 1 ? 'favourite' : 'favourites'} from other years`;
+  if (!own) return favourites;
+  const base = `${own} ${own === 1 ? 'file' : 'files'} added ${yearLabel ? `for ${yearLabel} ` : ''}in the last 7 days`;
+  return elsewhere ? `${base}, plus ${favourites}` : base;
+}
+
+/** The shelf: what arrived this week, plus the student favourites, which every year's shelf carries. */
+function NewThisWeek({ files, total, elsewhere, yearLabel, linkState }) {
   if (!files.length) return null;
   return (
     <PageSection className="lib-new" aria-labelledby="lib-new-title" data-hub="library-new">
       <div className="lib-new__head">
         <h2 id="lib-new-title" className="lib-new__title">New this week</h2>
-        <p className="lib-new__desc">
-          {total} {total === 1 ? 'file' : 'files'} added {yearLabel ? `for ${yearLabel} ` : ''}in the last 7 days
-        </p>
+        <p className="lib-new__desc">{shelfDescription({ total, elsewhere, yearLabel })}</p>
       </div>
       <ul className="lib-new__list" role="list">
         {files.map((f) => (
@@ -77,6 +86,7 @@ function NewThisWeek({ files, total, yearLabel, linkState }) {
                 <span className="lib-new__code">{moduleTag(f)}</span>
                 <span>{timeAgo(f.addedAt)}</span>
               </span>
+              {f.favourite ? <FavouriteTag className="lib-new__fav" /> : null}
             </Link>
           </li>
         ))}
@@ -116,6 +126,7 @@ export default function LibraryPage() {
   const facets = useMemo(() => facetCounts(filters), [filters]);
   const allNew = useMemo(() => getNewFiles({ year }), [year]);
   const newFiles = allNew.slice(0, 8);
+  const newElsewhere = year ? allNew.filter((f) => f.year !== year).length : 0; // student favourites from other cohorts
   const modules = getModulesForYear(year);
   const linkState = useMemo(() => ({ from: `${location.pathname}${location.search}` }), [location.pathname, location.search]);
 
@@ -178,7 +189,7 @@ export default function LibraryPage() {
         }
       />
 
-      <NewThisWeek files={newFiles} total={allNew.length} yearLabel={yearLabel} linkState={linkState} />
+      <NewThisWeek files={newFiles} total={allNew.length} elsewhere={newElsewhere} yearLabel={yearLabel} linkState={linkState} />
 
       <PageSection aria-label="Browse files" className="lib-browse">
         <div className="lib-filters" data-hub="library-filters">

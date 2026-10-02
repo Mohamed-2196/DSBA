@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { cx } from '../../../ui';
-import { pageSizeFor } from '../data/kinds.js';
+import { pageSizeOf } from '../data/kinds.js';
 import { DocPage } from '../doc/DocPage.jsx';
 
 const THUMB_W = 116;
@@ -9,7 +9,7 @@ const PAD = 12;
 /** Page thumbnails down the left of the viewer. Only thumbnails near the visible range render pages. */
 export function PageRail({ file, current, onSelect }) {
   const ref = useRef(null);
-  const size = pageSizeFor(file.format);
+  const size = pageSizeOf(file);
   const k = THUMB_W / size.w;
   const thumbH = Math.round(size.h * k);
   const itemH = thumbH + 38;

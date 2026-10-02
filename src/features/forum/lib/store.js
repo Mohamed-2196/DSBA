@@ -11,7 +11,7 @@
 import { getModule } from '../../../data/modules.js';
 import { FORUM_STUDENTS, ME_ID } from '../data/authors.js';
 import { categoryForYear, getCategory, MAX_TAGS } from '../data/taxonomy.js';
-import { SEED_IDS } from './model.js';
+import { visibleSeedIds } from './model.js';
 
 export const FORUM_KEY = 'dsba.forum.v1';
 export const DRAFT_KEY = 'dsba.forum.draft.v1';
@@ -86,7 +86,7 @@ export function slugify(s) {
 
 function uniqueThreadId(title, state) {
   const base = slugify(title) || 'thread';
-  const taken = new Set([...SEED_IDS, ...state.threads.map((t) => t.id), 'new']);
+  const taken = new Set([...visibleSeedIds(), ...state.threads.map((t) => t.id), 'new']);
   if (!taken.has(base)) return base;
   for (let i = 2; ; i += 1) if (!taken.has(`${base}-${i}`)) return `${base}-${i}`;
 }

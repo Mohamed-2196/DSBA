@@ -1,0 +1,195 @@
+/* Role fit (career-). The signature element: a row of role chips over one split panel. Left, a tinted scorecard
+   (the ring, what the job is, its tools). Right, the skills table: one row per skill with a three-step bar and the
+   module that teaches it. Layout answers the panel's own width (container queries), not the viewport. */
+
+/* ── Role chips ──────────────────────────────────────────────────────────────────────────────── */
+.career-roles { display: flex; flex-wrap: wrap; gap: var(--sp-8); margin-bottom: var(--sp-12); }
+.career-roles .career-role { height: 40px; padding: 0 var(--sp-16); gap: var(--sp-8); }
+.career-roles .career-role .ui-chip__icon { font-size: 18px; }
+
+/* ── Panel ───────────────────────────────────────────────────────────────────────────────────── */
+.career-fit-wrap { container: career-fit / inline-size; }
+.career-fit { display: grid; grid-template-columns: minmax(0, 1fr); overflow: hidden; }
+
+.career-fit__summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-16);
+  padding: var(--sp-24);
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-2) 70%, var(--surface));
+}
+.career-fit__skills { min-width: 0; padding: var(--sp-24); container: career-skills / inline-size; }
+
+.career-fit__kicker { display: flex; align-items: center; gap: var(--sp-8); color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.career-fit__dot { width: 8px; height: 8px; border-radius: var(--r-pill); }
+.career-fit__role {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  margin-top: calc(var(--sp-8) * -1);
+  font-size: var(--fs-31);
+  font-weight: var(--fw-heavy);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-head);
+}
+.career-fit__role-icon { flex: none; font-size: 34px; color: var(--cobalt); }
+
+/* Score: the ring is the hero figure, the sentence beside it says the same in words. */
+.career-score { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-12) var(--sp-16); padding: var(--sp-8) 0; }
+.career-score .ui-ring__track { stroke: var(--career-track); }
+.career-score__num { position: relative; display: inline-flex; align-items: baseline; font-size: var(--fs-39); font-weight: var(--fw-heavy); line-height: 1; letter-spacing: -0.03em; color: var(--ink); }
+.career-score__num small { margin-left: 2px; color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-semibold); letter-spacing: 0; }
+.career-score__text { flex: 1 1 150px; min-width: 0; }
+.career-score__headline { font-size: var(--fs-20); font-weight: var(--fw-semibold); line-height: 1.2; letter-spacing: var(--tracking-head); text-wrap: balance; }
+.career-score__headline strong { font-weight: var(--fw-heavy); }
+.career-score__sub { margin-top: var(--sp-8); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.career-score__sub span { display: block; }
+
+.career-fit__about { color: var(--ink); font-size: var(--fs-16); line-height: 1.5; }
+
+.career-tools__label { margin-bottom: var(--sp-8); color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+.career-tools__list { display: flex; flex-wrap: wrap; gap: var(--sp-8); list-style: none; }
+.career-tools__list .ui-badge { height: 26px; padding: 0 var(--sp-12); background: var(--surface); color: var(--ink); font-size: var(--fs-12); }
+.career-fitcerts__list { list-style: none; }
+.career-fitcerts__list > li { border-bottom: 1px solid var(--line); }
+.career-fitcerts__list > li:first-child { border-top: 1px solid var(--line); }
+.career-fitcert {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-8);
+  width: 100%;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-14);
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+}
+.career-fitcert__name { font-weight: var(--fw-semibold); }
+.career-fitcert__issuer { flex: 1 1 auto; min-width: 0; color: var(--ink-2); font-size: var(--fs-12); }
+.career-fitcert__go { flex: none; align-self: center; font-size: 12px; color: var(--ink-3); transition: transform var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+.career-fitcert:hover .career-fitcert__name { color: var(--cobalt); }
+.career-fitcert:hover .career-fitcert__go { color: var(--cobalt); transform: translateX(2px); }
+.career-fit__ask { align-self: flex-start; margin-top: auto; }
+
+/* ── Skills table ────────────────────────────────────────────────────────────────────────────── */
+.career-skills__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-8) var(--sp-24); margin-bottom: var(--sp-8); }
+.career-skills__title { font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; }
+.career-legend { display: flex; flex-wrap: wrap; gap: var(--sp-4) var(--sp-16); list-style: none; color: var(--ink-2); font-size: var(--fs-12); }
+.career-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.career-legend__swatch { width: 22px; height: 8px; border-radius: var(--r-pill); background: var(--career-track); }
+.career-legend__swatch.is-solid { background: var(--cobalt); }
+.career-legend__swatch.is-ghost { background: var(--career-ghost-fill); box-shadow: inset 0 0 0 1.5px var(--career-ghost-ring); }
+
+.career-skills__body.is-swapped { animation: career-fade var(--dur) var(--ease); }
+@keyframes career-fade { from { opacity: 0; transform: translateY(4px); } }
+
+.career-group + .career-group { margin-top: var(--sp-4); }
+.career-group__head { display: flex; align-items: center; gap: var(--sp-8); padding: 6px 0 2px; }
+.career-group__mark { width: 18px; height: 8px; border-radius: var(--r-pill); background: var(--career-track); }
+.career-group.is-covered .career-group__mark { background: var(--cobalt); }
+.career-group.is-later .career-group__mark { background: var(--career-ghost-fill); box-shadow: inset 0 0 0 1.5px var(--career-ghost-ring); }
+.career-group__title { font-size: var(--fs-14); font-weight: var(--fw-bold); letter-spacing: 0; }
+.career-group__list { list-style: none; }
+
+.career-skill {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-4) var(--sp-16);
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+.career-skill__name { min-width: 0; font-size: var(--fs-16); font-weight: var(--fw-semibold); line-height: 1.3; letter-spacing: -0.005em; }
+.career-skill__level { display: flex; align-items: center; gap: var(--sp-8); justify-self: end; }
+.career-skill__label { min-width: 4.4em; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); white-space: nowrap; }
+.career-skill__detail { grid-column: 1 / -1; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.4; }
+.career-skill__mods { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-16); }
+.career-skill__gap { grid-column: 1 / -1; min-width: 0; }
+
+/* Middle: name and bar on the left, what teaches it stacked in the last column. */
+@container career-skills (min-width: 640px) {
+  .career-skill { grid-template-columns: 200px 160px minmax(0, 1fr); column-gap: var(--sp-16); }
+  .career-skill__name { grid-column: 1; grid-row: 1 / span 2; }
+  .career-skill__level { grid-column: 2; grid-row: 1 / span 2; justify-self: start; }
+  .career-skill__detail { grid-column: 3; grid-row: 1; }
+  .career-skill__mods { grid-column: 3; grid-row: 2; }
+  .career-skill__gap { grid-column: 3; grid-row: 1 / span 2; }
+}
+
+/* Wide: one line per skill, columns aligned like a table. */
+@container career-skills (min-width: 940px) {
+  .career-skill { grid-template-columns: 224px 160px minmax(0, 1fr) 232px; }
+  .career-skill__name, .career-skill__level { grid-row: auto; }
+  .career-skill__detail { grid-column: 3; grid-row: auto; }
+  .career-skill__mods { grid-column: 4; grid-row: auto; flex-direction: column; align-items: flex-start; flex-wrap: nowrap; gap: var(--sp-4); }
+  /* A gap row spans the last two columns: why it is a gap, then the one thing to do about it. */
+  .career-skill__gap { grid-column: 3 / -1; grid-row: auto; }
+}
+
+/* The one thing to do about a gap. */
+.career-skill__gap .career-skill__detail { grid-column: auto; }
+.career-close {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-8);
+  max-width: 100%;
+  margin-top: var(--sp-4);
+  padding: var(--sp-8) var(--sp-12);
+  border-radius: var(--r-control);
+  background: var(--cobalt-soft);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  line-height: 1.4;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.career-close:hover { background: color-mix(in srgb, var(--cobalt) 16%, var(--surface)); }
+.career-close__icon { flex: none; margin-top: 1px; font-size: 18px; color: var(--cobalt); }
+.career-close__text { min-width: 0; flex: 1 1 auto; }
+.career-close__go { flex: none; margin-top: 3px; font-size: 14px; color: var(--cobalt); transition: transform var(--dur-fast) var(--ease); }
+.career-close:hover .career-close__go { transform: translateX(2px); }
+
+.career-skills__note { margin-top: var(--sp-12); max-width: 130ch; color: var(--ink-2); font-size: var(--fs-12); line-height: 1.5; }
+
+/* ── Split layout once the panel is wide enough for a 380px scorecard and the full table ───────── */
+@container career-fit (min-width: 1284px) {
+  .career-fit { grid-template-columns: 380px minmax(0, 1fr); }
+  .career-fit__summary { padding: var(--sp-32); border-right: 1px solid var(--line); border-bottom: 0; }
+  .career-fit__skills { padding: var(--sp-24) var(--sp-32); }
+}
+
+/* Mid width: the scorecard becomes a band across the top. Ring and words on the left, the job on the right, the
+   matching certificates in two columns underneath. */
+@container career-fit (min-width: 700px) and (max-width: 1283px) {
+  .career-fit__summary {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+    grid-template-areas:
+      'kicker kicker'
+      'role role'
+      'score about'
+      'score tools'
+      'certs certs'
+      'ask ask';
+    column-gap: var(--sp-32);
+    row-gap: var(--sp-12);
+    align-items: start;
+  }
+  .career-fit__kicker { grid-area: kicker; }
+  .career-fit__role { grid-area: role; }
+  .career-score { grid-area: score; }
+  .career-fit__about { grid-area: about; }
+  .career-tools { grid-area: tools; }
+  .career-fitcerts { grid-area: certs; }
+  .career-fit__ask { grid-area: ask; justify-self: start; margin-top: var(--sp-4); }
+  .career-fitcerts__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-24); }
+  .career-fitcerts__list > li:nth-child(2) { border-top: 1px solid var(--line); }
+}

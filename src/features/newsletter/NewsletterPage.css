@@ -1,8 +1,12 @@
 /* /newsletter: nameplate, latest issue, archive shelf + subscribe. */
 
 /* ── Masthead ─────────────────────────────────────────────────────────── */
-.nl-masthead { margin-bottom: var(--sp-48); }
-.nl-masthead__title { margin: 0; line-height: 0; }
+/* The nameplate sizes itself from this container (see components/Nameplate.css). Under it, the
+   newspaper's double rule (a heavy line over a hairline), then the folio line. */
+.nl-masthead { container: nl-masthead / inline-size; margin-bottom: var(--sp-48); }
+.nl-masthead__title { margin: 0; }
+.nl-masthead__rules { margin-top: var(--sp-8); border-top: 4px solid var(--ink); }
+.nl-masthead__rules::after { content: ''; display: block; margin-top: 3px; border-top: 1px solid var(--ink); }
 .nl-masthead__folio {
   display: flex;
   align-items: flex-end;
@@ -11,7 +15,7 @@
   margin-top: var(--sp-16);
 }
 .nl-masthead__tagline {
-  max-width: 44ch;
+  max-width: 54ch;
   font-family: var(--font-serif);
   font-size: var(--fs-20);
   font-style: italic;

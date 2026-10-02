@@ -21,7 +21,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
  * @param {'panel'|'band'} variant  panel: a bordered box (sidebar); band: a wide strip (end of an issue)
  * @param title, body  optional copy overrides
  */
-export function SubscribeBox({ variant = 'panel', title = 'Get The DSBA Newsletter every Monday', body, className }) {
+export function SubscribeBox({ variant = 'panel', title = 'Get the newsletter by email', body, className }) {
   const { year } = useYear();
   const { push } = useToast();
   const [subscription, setSubscription] = useLocalStorage(SUBSCRIPTION_KEY, null);
@@ -46,10 +46,10 @@ export function SubscribeBox({ variant = 'panel', title = 'Get The DSBA Newslett
     setError(null);
     setSubscription({ email: value, cohort: cohort || null });
     setEditing(false);
-    push({ title: 'Subscribed: you’ll get The DSBA Newsletter every Monday', body: `We’ll send it to ${value}.`, tone: 'success' });
+    push({ title: 'Subscribed: new issues will come to your inbox', body: `We’ll send them to ${value} when there’s news.`, tone: 'success' });
   };
 
-  const copy = body ?? 'One short email a week: what changed on the hub, the dates that matter for your cohort and the best of the forum. Unsubscribe from any issue.';
+  const copy = body ?? 'We’ll send a new issue when there’s news worth your time. Unsubscribe from any issue.';
 
   return (
     <section className={cx('nl-subscribe', `nl-subscribe--${variant}`, subscribed && 'is-subscribed', className)} data-hub="subscribe" aria-label="Subscribe to The DSBA Newsletter">
@@ -58,7 +58,7 @@ export function SubscribeBox({ variant = 'panel', title = 'Get The DSBA Newslett
         <h2 className="nl-subscribe__title">{subscribed ? 'You’re on the list' : title}</h2>
         <p className="nl-subscribe__body">
           {subscribed
-            ? `The DSBA Newsletter goes to ${subscription.email}${cohortName(subscription.cohort) ? ` (${cohortName(subscription.cohort)})` : ''} every Monday.`
+            ? `New issues of The DSBA Newsletter go to ${subscription.email}${cohortName(subscription.cohort) ? ` (${cohortName(subscription.cohort)})` : ''} when they’re out.`
             : copy}
         </p>
       </div>

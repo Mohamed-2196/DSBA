@@ -4,7 +4,7 @@ import './HubMark.css';
 // The open mark: a short trace that ends on a dot ("now"). viewBox 48×24. Used as the loader, the
 // active-nav mark and the start of Home's exam timeline (which continues from the end dot, so keep
 // DOT where it is).
-export const MARK_PATH = 'M3.5 17.4 L15.5 8.2 L28.4 16.6 L44.6 12.9';
+const MARK_PATH = 'M3.5 17.4 L15.5 8.2 L28.4 16.6 L44.6 12.9';
 const DOT = { cx: 44.6, cy: 12.9 };
 // The logo tile: three cohorts joined at one hub. 32×32, brand-blue rounded square.
 const HUB = { cx: 16, cy: 16.5 };
@@ -13,7 +13,7 @@ const NODES = [
   { cx: 23.9, cy: 21.05 },
   { cx: 8.1, cy: 21.05 },
 ];
-export const MARK_TILE_PATH = NODES.map((n) => `M${HUB.cx} ${HUB.cy}L${n.cx} ${n.cy}`).join('');
+const MARK_TILE_PATH = NODES.map((n) => `M${HUB.cx} ${HUB.cy}L${n.cx} ${n.cy}`).join('');
 
 /**
  * DSBA Hub brand mark.

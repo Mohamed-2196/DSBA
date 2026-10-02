@@ -2,6 +2,26 @@ import { Avatar, Button, CohortBadge, cx } from '../../../ui';
 import { getStudent } from '../../../data/people.js';
 import { RichText } from './RichText.jsx';
 
+// Files under public/ must go through BASE_URL: the site is served under /DSBA/.
+const assetUrl = (src) => (/^(https?:)?\/\//.test(src) ? src : `${import.meta.env.BASE_URL}${String(src).replace(/^\//, '')}`);
+
+/**
+ * An image block: rounded, a hairline edge, a caption, space reserved from width × height (no layout
+ * shift while it loads), lazy-loaded, never taller than 560px. `alt` describes the picture; `caption` is
+ * the editor's line under it.
+ * @param figure  { src: 'demo/news/x.jpg' (relative to public/), width, height, alt, caption? }
+ */
+export function Figure({ figure, className }) {
+  if (!figure?.src) return null;
+  const { src, width, height, alt, caption } = figure;
+  return (
+    <figure className={cx('nl-figure', height > width ? 'nl-figure--portrait' : 'nl-figure--landscape', className)}>
+      <img src={assetUrl(src)} width={width} height={height} alt={alt || ''} loading="lazy" decoding="async" />
+      {caption ? <figcaption className="nl-figure__caption">{caption}</figcaption> : null}
+    </figure>
+  );
+}
+
 /** The issue's editors as a byline row (avatars + names). */
 export function EditorAvatars({ ids = [], size = 28 }) {
   const people = ids.map(getStudent).filter(Boolean);
@@ -77,19 +97,34 @@ function Block({ block, editors }) {
           </Button>
         </p>
       );
+    case 'figure':
+      return <Figure figure={block} />;
     default:
       return null;
   }
 }
 
-/** Renders a list of standard copy blocks (p, list, steps, qa, signoff, cta). */
+/** Renders a list of standard copy blocks (p, list, steps, qa, signoff, cta, figure). */
 export function Blocks({ blocks = [], editors }) {
   return blocks.map((b, i) => <Block key={`${b.type}-${i}`} block={b} editors={editors} />);
 }
 
-/** A margin note beside a section: note | stats | quote. */
+/** A margin note beside a section: note | stats | quote | card (a typographic panel). */
 export function Aside({ aside }) {
   if (!aside) return null;
+  if (aside.type === 'card') {
+    return (
+      <aside className="nl-aside nl-aside--card" aria-label={aside.kicker}>
+        <p className="nl-card__kicker">{aside.kicker}</p>
+        <p className="nl-card__title">
+          <span className="nl-card__mark">{aside.title}</span>
+        </p>
+        <p className="nl-card__text">
+          <RichText text={aside.text} />
+        </p>
+      </aside>
+    );
+  }
   if (aside.type === 'quote') {
     return (
       <figure className="nl-aside nl-aside--quote">

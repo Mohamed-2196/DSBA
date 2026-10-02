@@ -1,48 +1,38 @@
-// The hidden special edition (/newsletter/thank-you-tutors). NOT linked from anywhere, not in the
-// archive, search or "latest". Loaded as its own chunk. Shared with the tutors after the reveal.
+// The hidden special edition (/newsletter/thank-you-teachers): a Teacher’s Day letter from the three
+// cohorts. NOT linked from anywhere, not in the archive, search or "latest". Loaded as its own chunk.
 import { Link } from 'react-router-dom';
-import { CohortBadge, Page, HubMark } from '../../../ui';
+import { CohortBadge, Page } from '../../../ui';
 import { useDocumentTitle } from '../../../state';
-import { NamePlate } from '../components/Nameplate.jsx';
+import { Wordmark } from '../components/Nameplate.jsx';
 import { ShareActions } from '../components/ShareActions.jsx';
 import { longDate } from '../lib/text.js';
-import { cardLine, getRidgelines } from './ridgeline.js';
-import { SPECIAL, TUTORS } from './tutors.js';
+import { SPECIAL } from './letter.js';
 import './SpecialEdition.css';
 
-function Ridgeline() {
-  const { width, height, lines } = getRidgelines();
+// A quiet drawing of the logo idea: three nodes (the cohorts) joined at one hub, inside two rings.
+const C = 130;
+const NODES = [
+  { deg: -90, color: 'var(--y1)' },
+  { deg: 30, color: 'var(--y2)' },
+  { deg: 150, color: 'var(--y3)' },
+].map((n) => ({ ...n, x: C + 78 * Math.cos((n.deg * Math.PI) / 180), y: C + 78 * Math.sin((n.deg * Math.PI) / 180) }));
+
+function Constellation() {
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="nl-sp-ridge" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMax meet">
-      {lines.map((l, i) => (
-        <g key={i}>
-          <path d={l.fill} className="nl-sp-ridge__fill" />
-          <path d={l.d} className="nl-sp-ridge__line" />
-        </g>
+    <svg viewBox="0 0 260 260" className="nl-sp-art" aria-hidden="true" focusable="false">
+      <circle cx={C} cy={C} r="78" className="nl-sp-art__ring" />
+      <circle cx={C} cy={C} r="120" className="nl-sp-art__ring nl-sp-art__ring--outer" />
+      <path d={NODES.map((n) => `M${C} ${C}L${n.x.toFixed(1)} ${n.y.toFixed(1)}`).join('')} className="nl-sp-art__spokes" />
+      {NODES.map((n) => (
+        <circle key={n.deg} cx={n.x} cy={n.y} r="9" fill={n.color} className="nl-sp-art__node" />
       ))}
+      <circle cx={C} cy={C} r="10" className="nl-sp-art__hub" />
     </svg>
   );
 }
 
-function TutorCard({ tutor, index }) {
-  const line = cardLine(index);
-  return (
-    <li className="nl-sp-card" data-hub="tutor-card">
-      <svg viewBox={line.viewBox} className="nl-sp-card__line" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMax meet">
-        <path d={line.d} />
-      </svg>
-      <h3 className="nl-sp-card__name">{tutor.name}</h3>
-      <p className="nl-sp-card__module">{tutor.module}</p>
-      <blockquote className="nl-sp-card__message">
-        <p>{tutor.message}</p>
-      </blockquote>
-      <p className="nl-sp-card__from">{tutor.from}</p>
-    </li>
-  );
-}
-
 export default function SpecialEdition() {
-  useDocumentTitle('To the 17 people who taught us, The DSBA Newsletter');
+  useDocumentTitle(`${SPECIAL.heading}, The DSBA Newsletter`);
   const { letter } = SPECIAL;
   const route = `/newsletter/${SPECIAL.slug}`;
 
@@ -50,8 +40,7 @@ export default function SpecialEdition() {
     <Page className="nl-sp">
       <div className="nl-runhead">
         <Link to="/newsletter" className="nl-runhead__name">
-          The DSBA Newsletter
-          <HubMark size={11} className="nl-runhead__mark" />
+          <Wordmark />
         </Link>
         <p className="nl-runhead__meta">
           <span>Special edition</span>
@@ -60,20 +49,20 @@ export default function SpecialEdition() {
         <ShareActions route={route} title={SPECIAL.heading} className="nl-runhead__share" />
       </div>
 
-      <header className="nl-sp-hero" data-hub="special-cover">
-        <Ridgeline />
+      <header className="nl-sp-hero" data-theme="dark" data-hub="special-cover">
+        <Constellation />
         <div className="nl-sp-hero__text">
-          <p className="nl-sp-hero__kicker">A special edition</p>
+          <p className="nl-sp-hero__kicker">{SPECIAL.kicker}</p>
           <h1 className="nl-sp-hero__title">{SPECIAL.heading}</h1>
           <p className="nl-sp-hero__dek">{SPECIAL.dek}</p>
         </div>
       </header>
 
-      <article className="nl-sp-letter" aria-label="An open letter" data-hub="special-letter">
+      <article className="nl-sp-letter" aria-label="A letter to our teachers" data-hub="special-letter">
         <p className="nl-sp-letter__salutation">{letter.salutation}</p>
-        {letter.paragraphs.map((p, i) => (
-          <p key={i} className={i === 1 ? 'nl-sp-letter__p nl-sp-letter__p--turn' : 'nl-sp-letter__p'}>
-            {p}
+        {letter.paragraphs.map((p) => (
+          <p key={p.text} className={p.turn ? 'nl-sp-letter__p nl-sp-letter__p--turn' : 'nl-sp-letter__p'}>
+            {p.text}
           </p>
         ))}
         <p className="nl-sp-letter__signoff">{letter.signoff}</p>
@@ -84,25 +73,6 @@ export default function SpecialEdition() {
           <CohortBadge year={3} />
         </p>
       </article>
-
-      <section className="nl-sp-notes" aria-labelledby="nl-sp-notes-title">
-        <div className="nl-sp-notes__head">
-          <h2 id="nl-sp-notes-title" className="nl-sp-notes__title">
-            Seventeen notes
-          </h2>
-          <p className="nl-sp-notes__desc">One for each of you. Every line on the cover is one of these.</p>
-        </div>
-        <ol role="list" className="nl-sp-cards">
-          {TUTORS.map((t, i) => (
-            <TutorCard key={`${t.name}-${i}`} tutor={t} index={i} />
-          ))}
-        </ol>
-      </section>
-
-      <section className="nl-sp-thanks" aria-label="Thank you" data-hub="special-thanks">
-        <NamePlate text="Thank you." fontSize={160} textWidth={810} tone="inverse" skipInk />
-        <p className="nl-sp-thanks__line">Happy Teachers’ Day, from the students of DSBA.</p>
-      </section>
 
       <footer className="nl-sp-foot">
         <p>This edition isn’t listed anywhere on DSBA Hub. If you’re reading it, someone wanted you to.</p>

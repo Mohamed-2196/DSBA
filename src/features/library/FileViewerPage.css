@@ -87,6 +87,7 @@
   box-shadow: 0 0 0 1px var(--line), 0 14px 32px -20px rgba(10, 31, 68, .45);
 }
 .lib-viewer__sheet { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+.lib-viewer__image { display: block; width: 100%; height: 100%; user-select: none; }
 
 /* Details column */
 .lib-meta { display: grid; align-content: start; gap: var(--sp-24); min-width: 0; padding: var(--sp-24); background: var(--surface); font-size: var(--fs-14); }

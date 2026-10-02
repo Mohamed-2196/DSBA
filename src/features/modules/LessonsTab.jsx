@@ -1,13 +1,12 @@
 // Lessons tab: player (click-to-load poster, then the v1 embed) + lesson details and controls, beside
 // the chapter list. Lesson selection lives in the URL (?tab=lessons&chapter=<i>&video=<j>).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowSquareOut, CaretLeft, CaretRight, CheckCircle, Circle, Headphones, WifiSlash } from '@phosphor-icons/react';
+import { ArrowSquareOut, CalendarBlank, CaretLeft, CaretRight, CheckCircle, Circle, Headphones, Warning, WifiSlash } from '@phosphor-icons/react';
 import { lessonKey, videoSourceUrl, videoThumbnailUrl } from '../../data/modules.js';
-import { videoTitle } from '../../data/videoTitles.js';
 import { useToast } from '../../state';
 import { Button, HubMark, cx } from '../../ui';
 import { flatLessons } from './progress.js';
-import { KIND_SOURCE, chapterPosition, embedSrc, kindLabel, lessonPosition, openOriginalLabel } from './lessons.js';
+import { KIND_SOURCE, chapterLessons, chapterPosition, embedSrc, kindLabel, lessonPosition, openOriginalLabel } from './lessons.js';
 import { LessonPoster } from './Poster.jsx';
 import { useThumbnail, youtubeLooksBlocked } from './thumbs.js';
 import { ChapterList } from './ChapterList.jsx';
@@ -116,6 +115,8 @@ export function LessonsTab({ module: m, selection, progress, onSelect }) {
   }
 
   const lessons = useMemo(() => flatLessons(m), [m]);
+  const infos = useMemo(() => chapterLessons(chapter), [chapter]);
+  const info = infos[v];
   const index = lessons.findIndex((l) => l.c === c && l.v === v);
   const prev = index > 0 ? lessons[index - 1] : null;
   const next = index >= 0 && index < lessons.length - 1 ? lessons[index + 1] : null;
@@ -154,10 +155,10 @@ export function LessonsTab({ module: m, selection, progress, onSelect }) {
   let upNext = 'This is the last lesson in the module.';
   if (next) {
     const nch = m.chapters[next.c];
-    upNext =
-      next.c !== c
-        ? `Up next: chapter ${next.c + 1}, ${nch.title}`
-        : `Up next: ${(lessonPosition(next.video, next.v, nch.videos.length) || 'the next video').toLowerCase()}`;
+    const ni = infos[next.v];
+    if (next.c !== c) upNext = `Up next: chapter ${next.c + 1}, ${nch.title}`;
+    else if (ni.real) upNext = `Up next: ${next.video.kind === 'bbb' ? `class recording, ${ni.by}` : ni.title}`;
+    else upNext = `Up next: ${(lessonPosition(next.video, next.v, nch.videos.length) || 'the next video').toLowerCase()}`;
   }
 
   return (
@@ -176,9 +177,16 @@ export function LessonsTab({ module: m, selection, progress, onSelect }) {
               <div className="mod-lesson__text">
                 <p className="mod-lesson__pos">
                   {chapterPosition(c, video, v, chapter.videos.length)}
-                  <span className="mod-lesson__kind">{kindLabel(video)}</span>
+                  {video.kind === 'bbb' ? null : <span className="mod-lesson__kind">{kindLabel(video)}</span>}
                 </p>
-                <h2 className="mod-lesson__title">{videoTitle(video) || chapter.title}</h2>
+                <h2 className="mod-lesson__title">{info.real ? info.title : chapter.title}</h2>
+                {info.by ? (
+                  <p className={cx('mod-lesson__by', info.byKind === 'unavailable' && 'is-note')}>
+                    {info.byKind === 'date' ? <CalendarBlank aria-hidden="true" /> : null}
+                    {info.byKind === 'unavailable' ? <Warning aria-hidden="true" /> : null}
+                    {info.by}
+                  </p>
+                ) : null}
               </div>
               <Button
                 className={cx('mod-watch', watched && 'is-on')}

@@ -146,7 +146,7 @@ const TOUR = [
   {
     id: 'forum',
     title: 'Ask your cohort',
-    body: 'The new forum is for questions, answers and study groups, and The DSBA Newsletter brings the program’s news to you every issue.',
+    body: 'The new forum is for questions, answers and study groups. When there is news from the programme, you will find it in The DSBA Newsletter.',
     Art: ForumArt,
   },
 ];

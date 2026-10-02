@@ -2,7 +2,7 @@
 // deterministic per-lesson trace drawn on posters.
 import { ChalkboardTeacher, Playlist, YoutubeLogo } from '@phosphor-icons/react';
 import { VIDEO_KIND_LABEL, videoEmbedUrl } from '../../data/modules.js';
-import { videoTitle } from '../../data/videoTitles.js';
+import { UNAVAILABLE_VIDEOS, videoChannel, videoTitle } from '../../data/videoTitles.js';
 import { formatDate } from '../../ui';
 import { getNextExamForModule } from '../calendar/public.js';
 
@@ -19,6 +19,73 @@ export function kindLabel(video) {
 export function lessonLabel(video, v) {
   if (video?.kind === 'youtube-playlist') return 'Playlist';
   return videoTitle(video) || `Video ${v + 1}`;
+}
+
+// ── What a lesson says about itself ───────────────────────────────────────
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const BAHRAIN_OFFSET = 3 * 3600 * 1000; // where the classes were held: UTC+3, no daylight saving
+const two = (n) => String(n).padStart(2, '0');
+
+/** When a class recording was made, read from the 13-digit millisecond timestamp its URL ends with. */
+export function recordingDate(video) {
+  const m = video?.kind === 'bbb' ? /-(\d{13})$/.exec(String(video.url || '')) : null;
+  return m ? new Date(Number(m[1])) : null;
+}
+
+/**
+ * '30 Sep 2025' (or '20 Oct 2025, 10:18' with `time`) in Bahrain time, whatever the viewer's time zone is.
+ * Built by hand rather than with Intl so the month is always 'Sep' (en-GB says 'Sept') and never shifts.
+ */
+export function recordingDateLabel(video, { time = false } = {}) {
+  const date = recordingDate(video);
+  if (!date || Number.isNaN(date.getTime())) return null;
+  const t = new Date(date.getTime() + BAHRAIN_OFFSET);
+  const day = `${t.getUTCDate()} ${MONTHS[t.getUTCMonth()]} ${t.getUTCFullYear()}`;
+  return time ? `${day}, ${two(t.getUTCHours())}:${two(t.getUTCMinutes())}` : day;
+}
+
+/**
+ * What a lesson is called and what to say beneath it.
+ *   YouTube video     the real title, and its channel          'An Introduction to the Binomial Distribution' · 'jbstatistics'
+ *   class recording   'Class recording', and the day it ran     '30 Sep 2025'
+ *   YouTube playlist  'Playlist'                                  'Several videos on YouTube'
+ *   anything else     'Video 3' (a title we could not fetch)
+ * `unavailable` is true for videos YouTube had removed or made private when the titles were fetched:
+ * they keep their place in the list with a quiet note, and can still be tried.
+ * `real` says the title is the lesson's own (so headings and posters can use it instead of the chapter's).
+ * @returns {{ title: string, real: boolean, by: string|null, byKind: 'channel'|'date'|'source'|'unavailable'|null, unavailable: boolean }}
+ */
+export function lessonInfo(video, v, { time = false } = {}) {
+  if (video?.kind === 'bbb') {
+    const when = recordingDateLabel(video, { time });
+    return { title: 'Class recording', real: true, by: when, byKind: when ? 'date' : null, unavailable: false };
+  }
+  if (video?.kind === 'youtube-playlist') {
+    return { title: 'Playlist', real: false, by: 'Several videos on YouTube', byKind: 'source', unavailable: false };
+  }
+  const unavailable = video?.kind === 'youtube' && UNAVAILABLE_VIDEOS.includes(video.id);
+  const real = videoTitle(video);
+  const channel = videoChannel(video);
+  return {
+    title: real || lessonLabel(video, v),
+    real: Boolean(real),
+    by: unavailable ? 'Unavailable on YouTube' : channel,
+    byKind: unavailable ? 'unavailable' : channel ? 'channel' : null,
+    unavailable,
+  };
+}
+
+/**
+ * lessonInfo() for every video of a chapter. Two class recordings on the same day (it happens: a
+ * morning and a catch-up session) show the time as well, so the list never has two identical rows.
+ */
+export function chapterLessons(chapter) {
+  const perDay = {};
+  chapter.videos.forEach((vid) => {
+    const day = recordingDateLabel(vid);
+    if (day) perDay[day] = (perDay[day] || 0) + 1;
+  });
+  return chapter.videos.map((vid, v) => lessonInfo(vid, v, { time: (perDay[recordingDateLabel(vid)] || 0) > 1 }));
 }
 
 /** 'Video 3 of 9' / 'Playlist' / null when the chapter is a single video (nothing to count). */

@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { ArrowSquareOut, GoogleDriveLogo } from '@phosphor-icons/react';
+import { ArrowSquareOut, GoogleDriveLogo, Heart } from '@phosphor-icons/react';
 import { Button, CohortBadge, Kbd, Sparkline, cx, timeAgo } from '../../../ui';
 import { cohortTextColor } from '../../../state';
 import { getModule } from '../../../data/modules.js';
+import { assetUrl } from '../data/assets.js';
 import { FORMATS, formatSize, pageNoun } from '../data/kinds.js';
 import { pagesLabel } from '../data/display.js';
 import { FileThumb } from '../components/FileThumb.jsx';
@@ -16,7 +17,7 @@ function Row({ label, children }) {
   );
 }
 
-/** The viewer's details column: module, file facts, the original on Drive, related files. */
+/** The viewer's details column: module, file facts, the original (on Drive, or the picture itself), related files. */
 export function MetaPanel({ file, related, linkState, className, id }) {
   const m = getModule(file.moduleId);
   const nounPlural = pageNoun(file.format, 2);
@@ -42,6 +43,7 @@ export function MetaPanel({ file, related, linkState, className, id }) {
           <span className="lib-meta__sub">by {file.addedBy}</span>
         </Row>
         <Row label="Format">{FORMATS[file.format].name}</Row>
+        {file.image ? <Row label="Dimensions"><span className="u-tabular">{file.image.width} × {file.image.height} px</span></Row> : null}
         <Row label="Size">{formatSize(file.sizeKB)}</Row>
         <Row label={nounPlural[0].toUpperCase() + nounPlural.slice(1)}>{file.pages}</Row>
         <Row label="Downloads">
@@ -52,14 +54,25 @@ export function MetaPanel({ file, related, linkState, className, id }) {
         </Row>
       </dl>
 
-      <section className="lib-meta__source" aria-labelledby="lib-meta-source">
-        <h2 id="lib-meta-source" className="lib-meta__h">
-          <GoogleDriveLogo aria-hidden="true" weight="duotone" />
-          Original on Google Drive
-        </h2>
-        <p>The file stays in its course folder on Drive, exactly as it was linked before.</p>
-        <Button href={file.sourceUrl} trailingIcon={ArrowSquareOut} fullWidth>Open original</Button>
-      </section>
+      {file.image ? (
+        <section className="lib-meta__source" aria-labelledby="lib-meta-source">
+          <h2 id="lib-meta-source" className="lib-meta__h">
+            <Heart aria-hidden="true" weight="duotone" />
+            Student favourite
+          </h2>
+          <p>Students keep coming back to this one, so it stays on the New this week shelf for every year.</p>
+          <Button href={assetUrl(file.image.src)} external trailingIcon={ArrowSquareOut} fullWidth>Open original</Button>
+        </section>
+      ) : (
+        <section className="lib-meta__source" aria-labelledby="lib-meta-source">
+          <h2 id="lib-meta-source" className="lib-meta__h">
+            <GoogleDriveLogo aria-hidden="true" weight="duotone" />
+            Original on Google Drive
+          </h2>
+          <p>The file stays in its course folder on Drive, exactly as it was linked before.</p>
+          <Button href={file.sourceUrl} trailingIcon={ArrowSquareOut} fullWidth>Open original</Button>
+        </section>
+      )}
 
       {related.length ? (
         <section className="lib-meta__related" aria-labelledby="lib-meta-related">

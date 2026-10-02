@@ -1,8 +1,9 @@
-// One page of a mock document, rendered at its natural size (A4 794×1123, slide 1123×632,
-// sheet 1123×794). Callers scale it (thumbnails, the viewer). Pages are always light paper:
+// One page of a document, rendered at its natural size (A4 794×1123, slide 1123×632, sheet 1123×794;
+// a real document is its picture's own pixels). Callers scale it (thumbnails, the viewer). Pages are always light paper:
 // data-theme="light" re-maps the colour tokens inside, so documents look like documents in dark mode.
 import { memo } from 'react';
 import { cx } from '../../../ui';
+import { assetUrl } from '../data/assets.js';
 import { pageSizeFor } from '../data/kinds.js';
 import { getLayout } from './plan.js';
 import { ExercisePage, PaperPage, ReportPage } from './PaperPages.jsx';
@@ -35,8 +36,18 @@ function componentFor(type) {
   return BlankPage;
 }
 
+/** A real document: the picture is the page, at its own pixel size. */
+function ImagePage({ image, className }) {
+  return (
+    <div className={cx('lib-doc', 'lib-doc--image', className)} data-theme="light" style={{ width: image.width, height: image.height }}>
+      <img className="lib-doc__image" src={assetUrl(image.src)} alt={image.alt} width={image.width} height={image.height} draggable={false} decoding="async" />
+    </div>
+  );
+}
+
 /** Page `index` (0-based) of `file`, unscaled. */
 export const DocPage = memo(function DocPage({ file, index = 0, className }) {
+  if (file.image) return <ImagePage image={file.image} className={className} />;
   const { ctx, pages } = getLayout(file);
   const i = Math.max(0, Math.min(index, pages.length - 1));
   const spec = pages[i];

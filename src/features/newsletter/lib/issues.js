@@ -3,38 +3,31 @@
 import { ISSUES } from '../data/issues.js';
 import { plainText, readMinutes, sectionText, snippetAround } from './text.js';
 
-const withMeta = (issue) => ({ ...issue, readMinutes: issue.status === 'published' ? readMinutes(issue) : null });
-const ALL = ISSUES.map(withMeta);
+const withMeta = (issue) => ({ ...issue, readMinutes: readMinutes(issue) });
 
-/** Published issues, newest first. */
-export const PUBLISHED = ALL.filter((i) => i.status === 'published').sort((a, b) => b.number - a.number);
+/** Every issue, newest first. */
+export const PUBLISHED = ISSUES.map(withMeta).sort((a, b) => b.number - a.number);
 
-/** Every public issue (published + upcoming), newest first: the archive order. */
-export const ARCHIVE = [...ALL].sort((a, b) => b.number - a.number);
+/** The archive order (the same list: every issue so far, newest first). */
+export const ARCHIVE = PUBLISHED;
 
 /** The issue for a slug (public issues only), or null. */
 export function getIssue(slug) {
-  return ALL.find((i) => i.slug === slug) || null;
+  return PUBLISHED.find((i) => i.slug === slug) || null;
 }
 
 export function getLatest() {
   return PUBLISHED[0] || null;
 }
 
-/** The next issue still to come (status 'upcoming'), or null. */
-export function getUpcoming() {
-  return ALL.filter((i) => i.status === 'upcoming').sort((a, b) => a.number - b.number)[0] || null;
-}
-
-/** { prev, next } around an issue by number. `next` may be an upcoming (locked) issue. */
+/** { prev, next } around an issue: `prev` is the one before it, `next` the one after (either may be null). */
 export function getNeighbours(issue) {
-  const sorted = [...ALL].sort((a, b) => a.number - b.number);
-  const i = sorted.findIndex((x) => x.slug === issue.slug);
-  return { prev: i > 0 ? sorted[i - 1] : null, next: i >= 0 && i < sorted.length - 1 ? sorted[i + 1] : null };
+  const i = PUBLISHED.findIndex((x) => x.slug === issue.slug);
+  return { prev: i >= 0 ? PUBLISHED[i + 1] || null : null, next: i > 0 ? PUBLISHED[i - 1] : null };
 }
 
 // ── Search ────────────────────────────────────────────────────────────────
-// One plain-text document per published issue: title + dek + summary + every section.
+// One plain-text document per issue: title + dek + summary + every section.
 const INDEX = PUBLISHED.map((issue) => {
   const sections = issue.sections.map((s) => ({ id: s.id, text: sectionText(s) }));
   const head = plainText(`${issue.title}. ${issue.dek} ${issue.summary}`);
@@ -42,7 +35,7 @@ const INDEX = PUBLISHED.map((issue) => {
 });
 
 /**
- * Full-text search over published issues. Every word of the query must appear somewhere in the issue.
+ * Full-text search over the issues. Every word of the query must appear somewhere in the issue.
  * -> [{ slug, title, number, snippet }] (newest first; snippet shows the first match in context)
  */
 export function searchIssueIndex(query) {

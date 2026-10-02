@@ -5,7 +5,7 @@ import { getModule } from '../../../data/modules.js';
 import { SEED_THREADS } from '../data/threads.js';
 import { getCategory, getTag } from '../data/taxonomy.js';
 import { getAuthor, ME_ID } from '../data/authors.js';
-import { excerpt, toPlainText } from './markdown.js';
+import { excerpt, firstImage, toPlainText } from './markdown.js';
 
 export const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -53,6 +53,39 @@ function materializeSeed(now) {
 const SEED = materializeSeed(SEED_NOW);
 export const SEED_IDS = new Set(SEED.map((t) => t.id));
 
+// ── Film hook: seed threads the launch film wants out of the forum ──────────────────────────
+// localStorage['hub.forum.hidden'] = JSON array of seed thread ids, e.g. '["what-is-this-am-i-cooked"]'.
+// Those threads are left out of EVERYTHING built from the forum (the list, its counts and tabs, hot threads on
+// Home and in the newsletter, ⌘K search, related threads, the module Discussion tab), and a hidden id is
+// free again, so the thread the film posts itself ('What is this, am I cooked') can take it. Not a feature:
+// there is no UI for it, and a missing, empty or malformed value hides nothing.
+export const HIDDEN_SEEDS_KEY = 'hub.forum.hidden';
+
+/** The raw stored value (public.js uses it to know when to rebuild). */
+export function readHiddenSeedsRaw() {
+  try {
+    return typeof window === 'undefined' ? null : window.localStorage.getItem(HIDDEN_SEEDS_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Ids of the seed threads currently hidden: a Set (empty when nothing valid is stored). */
+export function hiddenSeedIds() {
+  try {
+    const list = JSON.parse(readHiddenSeedsRaw() || 'null');
+    return new Set(Array.isArray(list) ? list.filter((id) => typeof id === 'string') : []);
+  } catch {
+    return new Set();
+  }
+}
+
+/** Ids of the seed threads that exist right now (a hidden one does not reserve its id). */
+export function visibleSeedIds() {
+  const hidden = hiddenSeedIds();
+  return [...SEED_IDS].filter((id) => !hidden.has(id));
+}
+
 /** Hot = engagement over age (HN-style gravity). */
 export function hotScore(votes, replies, ageMs) {
   const hours = Math.max(0, ageMs) / HOUR;
@@ -71,7 +104,11 @@ function userThreadBase(t) {
 export function buildForum(state, now = Date.now()) {
   const votes = state.votes || {};
   const extraReplies = state.replies || {};
-  const base = [...(state.threads || []).map(userThreadBase), ...SEED];
+  const mine = state.threads || [];
+  // A seed thread is left out when the film hides it, or when one of the student's own threads has its id.
+  const hidden = hiddenSeedIds();
+  const taken = new Set(mine.map((t) => t.id));
+  const base = [...mine.map(userThreadBase), ...SEED.filter((t) => !hidden.has(t.id) && !taken.has(t.id))];
 
   const threads = base.map((t) => {
     const replies = [...t.replies, ...(extraReplies[t.id] || [])]
@@ -88,7 +125,7 @@ export function buildForum(state, now = Date.now()) {
     const mod = t.moduleId ? getModule(t.moduleId) : null;
     const lastActivityAt = replies.length ? Math.max(t.createdAt, replies[replies.length - 1].createdAt) : t.createdAt;
     const participants = [...new Set([t.authorId, ...replies.map((r) => r.authorId)])];
-    const plainBody = toPlainText(t.body);
+    const plainBody = toPlainText(t.body, { imageAlt: true });
     const tagLabels = t.tags.map((id) => getTag(id)?.label || id);
     return {
       ...t,
@@ -104,6 +141,7 @@ export function buildForum(state, now = Date.now()) {
       lastActivityAt,
       participants,
       excerpt: excerpt(t.body, 200),
+      image: firstImage(t.body), // { src, alt } of the picture in the post, or null: rows show it as a thumbnail
       isMine: t.authorId === ME_ID,
       isNew: now - t.createdAt < NEW_FOR_MS,
       hot: hotScore(tVotes, replies.length, now - t.createdAt),

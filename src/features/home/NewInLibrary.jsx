@@ -53,7 +53,7 @@ export function NewInLibrary({ year, n = 5 }) {
         <EmptyState
           size="sm"
           icon={Books}
-          title="Nothing new in the library this week"
+          title="Nothing new in the library yet"
           body="Notes, past papers and study guides your classmates add will show here first."
           action={<Button to="/library" size="sm">Open the library</Button>}
         />

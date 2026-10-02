@@ -96,7 +96,7 @@
   letter-spacing: -0.025em;
   text-wrap: balance;
 }
-.mod-poster__pos { margin-top: 0.4cqi; color: var(--ink-2); font-size: clamp(12px, 1.85cqi, 17px); font-weight: var(--fw-semibold); }
+.mod-poster__pos { margin-top: 0.4cqi; overflow: hidden; color: var(--ink-2); font-size: clamp(12px, 1.85cqi, 17px); font-weight: var(--fw-semibold); text-overflow: ellipsis; white-space: nowrap; }
 
 .mod-poster__play {
   position: absolute;

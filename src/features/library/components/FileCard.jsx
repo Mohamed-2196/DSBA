@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { cardMeta, moduleTag, titleHasModule } from '../data/display.js';
+import { FavouriteTag } from './FavouriteTag.jsx';
 import { FileThumb } from './FileThumb.jsx';
 import { StarButton } from './StarButton.jsx';
 
@@ -13,6 +14,7 @@ export function FileCard({ file, sort = 'newest', starred = false, onToggleStar,
           {file.title}
           <span className="lib-card__ext">.{file.ext}</span>
         </span>
+        {file.favourite ? <FavouriteTag className="lib-card__fav" /> : null}
       </Link>
       <div className="lib-card__foot">
         <span className="lib-card__meta">

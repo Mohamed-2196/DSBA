@@ -31,6 +31,15 @@
 }
 .lib-thumb__sheet > .lib-doc { transform: scale(var(--k)); transform-origin: 0 0; pointer-events: none; }
 
+/* A real document: the picture is the page. It fills the frame's width at its own proportions, so a
+   cover or a handwritten sheet is a touch shorter than an A4 page and a landscape table stands on the baseline. */
+.lib-thumb.is-image .lib-thumb__sheet {
+  width: calc(794px * var(--s));
+  height: calc(794px * var(--s) * var(--ph) / var(--pw));
+  background: #fff;
+}
+.lib-thumb__img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; }
+
 /* Small thumbnails: pages are tiny, so a firmer edge reads better. */
 .lib-thumb--list .lib-thumb__sheet, .lib-thumb--mini .lib-thumb__sheet, .lib-thumb--related .lib-thumb__sheet { border-radius: 2px; box-shadow: 0 0 0 1px var(--line-strong); }
 

@@ -6,9 +6,8 @@
 import { useMemo } from 'react';
 import { Play } from '@phosphor-icons/react';
 import { lessonKey, videoThumbnailUrl } from '../../data/modules.js';
-import { videoTitle } from '../../data/videoTitles.js';
 import { cx } from '../../ui';
-import { KIND_ICON, KIND_SOURCE, kindLabel, lessonPosition, lessonTrace } from './lessons.js';
+import { KIND_ICON, KIND_SOURCE, chapterLessons, kindLabel, lessonPosition, lessonTrace } from './lessons.js';
 import { useThumbnail } from './thumbs.js';
 import './Poster.css';
 
@@ -42,6 +41,9 @@ export function LessonPoster({ module: m, c, v, isWatched, onPlay }) {
   const KindIcon = KIND_ICON[video.kind];
   const position = lessonPosition(video, v, count);
   const source = KIND_SOURCE[video.kind] || 'the original site';
+  const info = useMemo(() => chapterLessons(chapter)[v], [chapter, v]);
+  const title = info.real ? info.title : chapter.title;
+  const subline = [position, info.by].filter(Boolean).join(' · ');
 
   return (
     <button
@@ -51,7 +53,7 @@ export function LessonPoster({ module: m, c, v, isWatched, onPlay }) {
       data-hub="lesson-poster"
       style={{ '--mc': `var(--y${m.year})`, '--mc-on': `var(--on-y${m.year})` }}
       onClick={onPlay}
-      aria-label={`Play chapter ${c + 1}${position ? `, ${position.toLowerCase()}` : ''}: ${chapter.title}. Loads from ${source}.`}
+      aria-label={`Play chapter ${c + 1}${position ? `, ${position.toLowerCase()}` : ''}: ${title}. Loads from ${source}.`}
     >
       <svg className="mod-poster__plot" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
         <path className="mod-poster__grid" d={GRID_PATH} />
@@ -79,9 +81,9 @@ export function LessonPoster({ module: m, c, v, isWatched, onPlay }) {
       </span>
 
       <span className="mod-poster__body" aria-hidden="true">
-        <span className="mod-poster__chapter">{videoTitle(video) ? `Chapter ${c + 1}: ${chapter.title}` : `Chapter ${c + 1}`}</span>
-        <span className="mod-poster__title">{videoTitle(video) || chapter.title}</span>
-        {position ? <span className="mod-poster__pos">{position}</span> : null}
+        <span className="mod-poster__chapter">{info.real ? `Chapter ${c + 1}: ${chapter.title}` : `Chapter ${c + 1}`}</span>
+        <span className="mod-poster__title">{title}</span>
+        {subline ? <span className="mod-poster__pos">{subline}</span> : null}
       </span>
 
       <span className="mod-poster__play" aria-hidden="true">

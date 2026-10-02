@@ -1,5 +1,5 @@
 // Navigation config for the shell (rail, mobile tab bar, More drawer).
-import { Books, Calculator, CalendarDots, ChatsCircle, GraduationCap, House, Newspaper, SquaresFour, Bank } from '@phosphor-icons/react';
+import { Books, Calculator, CalendarDots, ChatsCircle, Compass, GraduationCap, House, Newspaper, SquaresFour, Bank } from '@phosphor-icons/react';
 import { MYCLASS_URL, UOL_PORTAL_URL } from '../data/people.js';
 
 export const NAV = [
@@ -8,6 +8,8 @@ export const NAV = [
   { id: 'library', label: 'Library', to: '/library', icon: Books },
   { id: 'newsletter', label: 'Newsletter', to: '/newsletter', icon: Newspaper },
   { id: 'forum', label: 'Forum', to: '/forum', icon: ChatsCircle, isNew: true },
+  // No isNew: "Career Navigator" + the New badge + the active mark is 266px in the 232px rail, which widens the whole nav grid.
+  { id: 'career', label: 'Career Navigator', to: '/career', icon: Compass },
   { id: 'calendar', label: 'Calendar', to: '/calendar', icon: CalendarDots },
   { id: 'grades', label: 'Grades', to: '/grades', icon: Calculator },
 ];
@@ -20,4 +22,4 @@ export const EXTERNAL_LINKS = [
 /** Mobile bottom tabs (+ "More"). */
 export const MOBILE_TAB_IDS = ['home', 'modules', 'library', 'forum'];
 /** Routes that live under "More" on mobile. */
-export const MORE_IDS = ['newsletter', 'calendar', 'grades'];
+export const MORE_IDS = ['newsletter', 'career', 'calendar', 'grades'];

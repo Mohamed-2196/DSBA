@@ -1,40 +1,46 @@
-.nl-plate { display: block; width: 100%; height: auto; overflow: visible; }
-.nl-plate__text {
+/* The wordmark: Newsreader display, tight, with a highlighter swipe behind "DSBA".
+   The swipe is the product's rough marker shape (the --highlight-shape token) with the climb taken out
+   (sheared level), so it covers the capitals end to end: "DSBA" is navy, so any part of a letter that stuck
+   out of the yellow would vanish on a dark ground. It runs from 0.83em above the baseline to 0.11em below it
+   (caps are 0.72em), is painted behind all of the wordmark's text, and is the same in both themes. */
+:root {
+  --nl-swipe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 32.9' preserveAspectRatio='none'%3E%3Cpath fill='%23FFE14A' d='M4.5 1.8C38 0 74 2.4 112 1.4C142 0.7 170 3.4 196.6 2.3L198.8 9.5L196.4 18.6L199 30.3C170.1 32.7 137.6 30.2 104.8 30.9C70.4 31.7 38.7 28.7 3.6 30.8L0.8 22L3.7 12.5L1.9 3.9Z'/%3E%3Cpath fill='%23F5C400' fill-opacity='.22' d='M4 25.2C38 23.8 70 26.3 102 25.4C134 24.7 166 26.9 197.8 25.8L198.7 30.5C169.8 32.9 137.3 30.4 104.5 31.1C70.1 31.9 38.4 28.9 3.3 31L2.9 27.9Z'/%3E%3C/svg%3E");
+}
+.nl-wordmark {
   font-family: var(--font-serif);
   font-weight: 600;
   font-variation-settings: 'opsz' 72;
-  fill: var(--ink);
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  isolation: isolate; /* the swipe's z-index:-1 stays inside the wordmark, behind every line of it */
 }
-/* Skip-ink: a halo in the ground colour, painted under the letters, breaks the trace at descenders. */
-.nl-plate__text--skip {
-  stroke: var(--paper);
-  stroke-width: 12px;
-  stroke-linejoin: round;
-  paint-order: stroke fill;
-  vector-effect: non-scaling-stroke;
+.nl-wordmark__mark {
+  position: relative;
+  padding-inline: 0.08em;
+  margin-inline: -0.02em;
+  color: var(--highlight-ink);
 }
-.nl-plate--inverse .nl-plate__text--skip { stroke: var(--navy); }
-
-/* Strokes keep their on-screen width at every scale (the words scale, the line stays a line). */
-.nl-plate__trace,
-.nl-plate__ring,
-.nl-plate__dot {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
+.nl-wordmark__mark::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -0.092em -0.03em 0.152em -0.03em;
+  background: var(--nl-swipe) 0 0 / 100% 100% no-repeat;
 }
-.nl-plate__trace { stroke: var(--cobalt); stroke-width: 3px; }
-.nl-plate__ring { stroke: var(--ink); stroke-width: 17px; }
-.nl-plate__dot { stroke: var(--highlight); stroke-width: 12px; }
 
-/* On navy (special edition): white words and trace, highlighter dot ringed in navy */
-.nl-plate--inverse .nl-plate__text { fill: #fff; }
-.nl-plate--inverse .nl-plate__trace { stroke: #fff; }
-.nl-plate--inverse .nl-plate__ring { stroke: var(--navy); }
+/* The masthead sizes it from the width of its container: one line, 9.73em wide, fills ~97% of the
+   measure at font-size 10cqi. On a phone it breaks in two (the wider half, "Newsletter", is 4.84em)
+   and grows to fill the width, capped so it never turns into a poster. */
+.nl-plate {
+  display: block;
+  padding-top: 0.1em;
+  font-size: min(19.5cqi, 104px);
+  line-height: 0.8;
+  color: var(--ink);
+}
+.nl-plate .nl-wordmark__line { display: block; }
 
-@media (max-width: 699px) {
-  .nl-plate__trace { stroke-width: 2.25px; }
-  .nl-plate__ring { stroke-width: 12px; }
-  .nl-plate__dot { stroke-width: 8px; }
+@container nl-masthead (min-width: 560px) {
+  .nl-plate { padding-top: 0.06em; font-size: 10cqi; }
+  .nl-plate .nl-wordmark__line { display: inline; }
 }

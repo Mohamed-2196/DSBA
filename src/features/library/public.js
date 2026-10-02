@@ -1,7 +1,8 @@
 // Public API of the library feature (agent B). Signatures are a contract — do not change them.
 // File: { id, moduleId, year, kind, title, format, pages, sizeKB, author, addedAt (ISO), sourceUrl, isNew }
 // Files also carry extras other features may use: url ('/library/<id>', the in-app viewer route),
-// fileName, ext, kindLabel, moduleCode, moduleName, examYear, zone, downloads.
+// fileName, ext, kindLabel, moduleCode, moduleName, examYear, zone, downloads, favourite (a student favourite) and
+// image ({ src, width, height, alt } for a real document: format 'PNG', one page, the picture is the page; else null).
 //
 // The data functions only load the lightweight catalog; ModuleFiles (which renders document
 // thumbnails) is loaded on demand so importing this file stays cheap.

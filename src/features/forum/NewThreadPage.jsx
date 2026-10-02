@@ -1,11 +1,13 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { CaretRight, CheckCircle, PaperPlaneRight } from '@phosphor-icons/react';
+import { CaretRight, CheckCircle, ImageSquare, PaperPlaneRight, X } from '@phosphor-icons/react';
 import { YEARS, getModule, getModulesForYear, moduleLabel } from '../../data/modules.js';
-import { Button, Chip, Kbd, Page, PageHeader, Select, TextField, cx, modKeyLabel } from '../../ui';
+import { Button, Chip, IconButton, Kbd, Page, PageHeader, Select, TextField, cx, modKeyLabel } from '../../ui';
 import { useLocalStorage, useToast, useYear } from '../../state';
 import { CATEGORIES, MAX_TAGS, TAGS, categoryForYear, getCategory } from './data/taxonomy.js';
+import { SAMPLE_ATTACHMENT, attachmentMarkdown, attachmentSize, getAttachment } from './data/attachments.js';
 import { getAuthor, ME_ID } from './data/authors.js';
+import { imageUrl } from './lib/images.js';
 import { searchIn } from './lib/model.js';
 import { DRAFT_KEY } from './lib/store.js';
 import { ForumProvider } from './state/ForumProvider.jsx';
@@ -19,8 +21,8 @@ import './NewThreadPage.css';
 
 export default function NewThreadPage() {
   const [params] = useSearchParams();
-  // A new preset (?module= / ?title=) on the same route starts a fresh composer.
-  const presetKey = `${params.get('module') || ''}|${params.get('title') || ''}`;
+  // A new preset (?module= / ?title= / ?attach=) on the same route starts a fresh composer.
+  const presetKey = `${params.get('module') || ''}|${params.get('title') || ''}|${params.get('attach') || ''}`;
   return (
     <ForumProvider>
       <Composer key={presetKey} />
@@ -38,28 +40,32 @@ const TIPS = [
   'Use `backticks` for formulas and code.',
 ];
 
-function initialForm({ presetModule, presetTitle, draft, year }) {
+/** `attachment` is the id of the attached picture (see data/attachments.js) or null. */
+function initialForm({ presetModule, presetTitle, presetAttach, draft, year }) {
   const mod = getModule(presetModule);
-  if (mod || presetTitle) {
+  const attached = getAttachment(presetAttach);
+  if (mod || presetTitle || attached) {
     return {
       title: presetTitle || '',
       body: '',
       moduleId: mod ? mod.id : '',
       category: categoryForYear(mod?.year ?? year) || 'general',
       tags: [],
+      attachment: attached ? attached.id : null,
     };
   }
-  if (draft && typeof draft === 'object' && (draft.title || draft.body)) {
+  if (draft && typeof draft === 'object' && (draft.title || draft.body || draft.attachment)) {
     return {
       title: String(draft.title || ''),
       body: String(draft.body || ''),
       moduleId: getModule(draft.moduleId) ? draft.moduleId : '',
       category: getCategory(draft.category) ? draft.category : categoryForYear(year) || 'general',
       tags: Array.isArray(draft.tags) ? draft.tags.filter((t) => TAGS.some((x) => x.id === t)).slice(0, MAX_TAGS) : [],
+      attachment: getAttachment(draft.attachment)?.id || null,
       restored: true,
     };
   }
-  return { title: '', body: '', moduleId: '', category: categoryForYear(year) || 'general', tags: [] };
+  return { title: '', body: '', moduleId: '', category: categoryForYear(year) || 'general', tags: [], attachment: null };
 }
 
 function SimilarList({ threads }) {
@@ -89,18 +95,20 @@ function Composer() {
   const [params] = useSearchParams();
   const [draft, setDraft] = useLocalStorage(DRAFT_KEY, null);
   const [form, setForm] = useState(() =>
-    initialForm({ presetModule: params.get('module'), presetTitle: params.get('title'), draft, year }),
+    initialForm({ presetModule: params.get('module'), presetTitle: params.get('title'), presetAttach: params.get('attach'), draft, year }),
   );
   const [errors, setErrors] = useState({});
   const [restored, setRestored] = useState(Boolean(form.restored));
   const titleRef = useRef(null);
+  const attachRef = useRef(null);
+  const removeRef = useRef(null);
   const posted = useRef(false);
 
   // Keep a draft so nothing is lost if you navigate away (cleared on post or discard).
   useEffect(() => {
     if (posted.current) return;
-    const { title, body, moduleId, category, tags } = form;
-    if (title.trim() || body.trim()) setDraft({ title, body, moduleId, category, tags });
+    const { title, body, moduleId, category, tags, attachment } = form;
+    if (title.trim() || body.trim() || attachment) setDraft({ title, body, moduleId, category, tags, attachment });
     else setDraft(undefined);
   }, [form, setDraft]);
 
@@ -126,6 +134,16 @@ function Composer() {
   const toggleTag = (id) => {
     set({ tags: form.tags.includes(id) ? form.tags.filter((t) => t !== id) : [...form.tags, id].slice(0, MAX_TAGS) });
   };
+  // The button swaps for the preview (and back), so keyboard focus goes to whichever control replaces it.
+  const attach = () => {
+    set({ attachment: SAMPLE_ATTACHMENT.id });
+    requestAnimationFrame(() => removeRef.current?.focus());
+  };
+  const detach = () => {
+    set({ attachment: null });
+    requestAnimationFrame(() => attachRef.current?.focus());
+  };
+  const attachment = getAttachment(form.attachment);
 
   const deferredTitle = useDeferredValue(form.title);
   const similar = useMemo(() => {
@@ -146,7 +164,9 @@ function Composer() {
       if (next.title) titleRef.current?.focus();
       return;
     }
-    const thread = forum.postThread({ title, body: form.body, category: form.category, moduleId: form.moduleId || null, tags: form.tags, year });
+    // The picture goes at the top of the post, then whatever the student wrote.
+    const body = [attachment ? attachmentMarkdown(attachment) : '', form.body.trim()].filter(Boolean).join('\n\n');
+    const thread = forum.postThread({ title, body, category: form.category, moduleId: form.moduleId || null, tags: form.tags, year });
     posted.current = true;
     setDraft(undefined);
     navigate('/forum', { state: { posted: thread.id } });
@@ -275,6 +295,29 @@ function Composer() {
             onSubmit={submit}
             textareaProps={{ 'data-hub': 'composer-body' }}
           />
+
+          <div className="forum-composer__attach">
+            {attachment ? (
+              <figure className="forum-attachment" data-hub="composer-attachment">
+                <img className="forum-attachment__img" src={imageUrl(attachment.src)} alt={attachment.alt} />
+                <figcaption className="forum-attachment__bar">
+                  <ImageSquare aria-hidden="true" weight="duotone" className="forum-attachment__icon" />
+                  <span className="forum-attachment__name">{attachment.name}</span>
+                  <span className="forum-attachment__meta u-tabular">
+                    {attachment.width} × {attachment.height} · {attachmentSize(attachment)}
+                  </span>
+                  <IconButton ref={removeRef} size="sm" icon={X} label="Remove image" tooltip tooltipSide="top" onClick={detach} className="forum-attachment__remove" />
+                </figcaption>
+              </figure>
+            ) : (
+              <>
+                <Button ref={attachRef} size="sm" leadingIcon={ImageSquare} onClick={attach} data-hub="attach-image">
+                  Attach image
+                </Button>
+                <span className="forum-composer__attach-note">A photo of the question or your working. It goes at the top of your post.</span>
+              </>
+            )}
+          </div>
 
           <div className="forum-composer__footer">
             <span className="forum-composer__as">

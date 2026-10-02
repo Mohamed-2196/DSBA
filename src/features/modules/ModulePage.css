@@ -1,8 +1,8 @@
 /* /modules/:moduleId — header, tabs, overview. Lessons live in Lessons.css, posters in Poster.css. */
 
-.mod-page--y1 { --mc: var(--y1-strong); --mcb: var(--y1); }
-.mod-page--y2 { --mc: var(--y2-strong); --mcb: var(--y2); }
-.mod-page--y3 { --mc: var(--y3-strong); --mcb: var(--y3); }
+.mod-page--y1 { --mc: var(--y1-strong); --mcb: var(--y1); --mcb-on: var(--on-y1); }
+.mod-page--y2 { --mc: var(--y2-strong); --mcb: var(--y2); --mcb-on: var(--on-y2); }
+.mod-page--y3 { --mc: var(--y3-strong); --mcb: var(--y3); --mcb-on: var(--on-y3); }
 
 /* ── Header ────────────────────────────────────────────────────────────── */
 .mod-head { margin-bottom: var(--sp-32); }

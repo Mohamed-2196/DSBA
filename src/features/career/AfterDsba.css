@@ -1,0 +1,99 @@
+/* After DSBA (career-). Three path cards beside a readiness checklist. The wrapper is the container: wide, the
+   checklist sits to the right; narrower, everything stacks. */
+
+.career-after { container: career-after / inline-size; }
+.career-after__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-16); }
+.career-paths-wrap { container: career-paths / inline-size; min-width: 0; }
+.career-paths { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-16); height: 100%; list-style: none; }
+
+/* ── Paths ───────────────────────────────────────────────────────────────────────────────────── */
+.career-paths > .career-path { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-12); padding: var(--sp-24); }
+.career-path__icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--r-control); background: var(--cobalt-soft); color: var(--cobalt); font-size: 24px; }
+.career-path__title { margin-top: var(--sp-4); font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: var(--lh-heading); }
+.career-path__lede { margin-top: calc(var(--sp-4) * -1); color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-medium); line-height: 1.4; }
+.career-path__steps { display: flex; flex-direction: column; gap: var(--sp-12); list-style: none; counter-reset: career-step; margin-top: var(--sp-4); }
+.career-path__steps > li { counter-increment: career-step; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.career-path__steps > li::before {
+  content: counter(career-step);
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+.career-path__action { margin-top: auto; padding-top: var(--sp-8); }
+
+/* ── Checklist ───────────────────────────────────────────────────────────────────────────────── */
+.career-after__grid > .career-ready { display: flex; flex-direction: column; padding: var(--sp-24); }
+.career-ready__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); }
+.career-ready__title { font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: var(--lh-heading); }
+.career-ready__bar { height: 6px; margin: var(--sp-12) 0 var(--sp-8); border-radius: var(--r-pill); background: var(--career-track); overflow: hidden; }
+.career-ready__fill { display: block; height: 100%; border-radius: var(--r-pill); background: var(--cobalt); transition: width var(--dur) var(--ease); }
+.career-ready__list { list-style: none; }
+.career-ready__row { padding: var(--sp-12) 0; border-top: 1px solid var(--line); }
+.career-ready__row:first-child { border-top: 0; }
+.career-ready__done { margin-top: var(--sp-8); color: var(--signal-strong); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+
+.career-check { display: flex; align-items: flex-start; gap: var(--sp-12); min-width: 0; cursor: pointer; }
+.career-check__box {
+  appearance: none;
+  flex: none;
+  display: grid;
+  place-content: center;
+  width: 22px;
+  height: 22px;
+  margin: 1px 0 0;
+  border: 1.5px solid var(--ink-3);
+  border-radius: 7px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.career-check__box::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  background: var(--cobalt-ink);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  transform: scale(0);
+  transition: transform var(--dur-fast) var(--ease);
+}
+.career-check__box:checked { background: var(--cobalt); border-color: var(--cobalt); }
+.career-check__box:checked::after { transform: scale(1); }
+.career-check:hover .career-check__box:not(:checked) { border-color: var(--ink); }
+.career-check__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.career-check__title { color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); line-height: 1.35; }
+.career-check__hint { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+
+.career-ready__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: var(--sp-4) 0 0 calc(22px + var(--sp-12));
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--cobalt);
+  font: inherit;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  cursor: pointer;
+}
+.career-ready__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.career-ready__link svg { font-size: 12px; }
+
+@container career-paths (min-width: 780px) {
+  .career-paths { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container career-after (min-width: 1100px) {
+  .career-after__grid { grid-template-columns: minmax(0, 1fr) 420px; }
+}
+@media (max-width: 699px) {
+  .career-paths > .career-path, .career-after__grid > .career-ready { padding: var(--sp-16); }
+}

@@ -38,6 +38,36 @@
 .forum-composer__chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .forum-composer__chips .ui-chip:disabled { opacity: .45; cursor: not-allowed; }
 
+/* Attach image: a button, then the attached picture with a bar to remove it. */
+.forum-composer__attach { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: calc(-1 * var(--sp-8)); }
+.forum-composer__attach-note { color: var(--ink-2); font-size: var(--fs-12); }
+.forum-attachment {
+  width: 100%;
+  max-width: 520px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  animation: forum-fade-in var(--dur) var(--ease);
+}
+.forum-attachment__img { display: block; width: 100%; height: auto; max-height: 320px; object-fit: contain; }
+.forum-attachment__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 4px 4px 12px;
+  border-top: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+}
+.forum-attachment__icon { flex: 0 0 auto; color: var(--ink-3); font-size: 18px; }
+.forum-attachment__name { min-width: 0; overflow: hidden; color: var(--ink); font-weight: var(--fw-semibold); text-overflow: ellipsis; white-space: nowrap; }
+.forum-attachment__meta { flex: 1 1 auto; white-space: nowrap; }
+.forum-attachment__remove { flex: 0 0 auto; margin-left: auto; }
+
 .forum-composer__footer {
   display: flex;
   flex-wrap: wrap;
