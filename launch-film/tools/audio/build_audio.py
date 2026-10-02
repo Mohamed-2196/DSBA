@@ -10,11 +10,15 @@ Reads cues.json (the single source of truth for every time) and writes, all exac
     out/audio/music.wav         music stem  (32-bit float, at master-input level)
     out/audio/sfx.wav           SFX stem    (32-bit float, at master-input level)
     out/audio/mix.wav           final master, 16-bit PCM: -14 LUFS integrated, true peak <= -1 dBTP
-    out/audio/sfx_only_mix.wav  SFX + birthday music box (with its sabotage) + glitch processing,
+    out/audio/sfx_only_mix.wav  SFX + the birthday song (with its sabotage) + glitch processing,
                                 no other music; same master gain/chain as mix.wav, 16-bit PCM
     out/audio/report.txt, out/audio/review/*.png
 music.wav + sfx.wav == the master input; the master chain is: glue compressor -> true-peak
 look-ahead limiter -> silence gates -> TPDF dither. Deterministic (fixed seeds).
+
+Silence: every `black` segment of g1/g2 and g2.silence is exact digital silence, and what
+sounded before such a span is gone after it (no reverb tail crosses it). The darkness that
+follows G1 stays digitally silent until the first cue after it (the collar bell).
 """
 from __future__ import annotations
 
@@ -38,6 +42,8 @@ from dsp import SR, s2n, butter, rng_for, rc_ramp, tape_stop  # noqa: E402
 
 TARGET_LUFS = -14.0
 CEILING_DBTP = -1.3     # limiter ceiling (true peak); verified <= -1.0 dBTP after dither
+GATE_FADE = 0.004       # raised-cosine fade into / out of every digital silence
+END_SILENCE = 0.2       # the film's last 0.2 s are digital silence (the picture is black)
 
 
 def place(dst, src, n0):
@@ -48,6 +54,7 @@ def place(dst, src, n0):
 
 
 def silences(cues):
+    """The spans the cue sheet declares silent: g1/g2 `black` segments and g2.silence."""
     out = []
     for g in ("g1", "g2"):
         for s in cues[g]["segments"]:
@@ -59,16 +66,64 @@ def silences(cues):
     return sorted(out)
 
 
+def epochs(cues):
+    """The stretches of sound between the silences: [(t0, t1), ...] covering the film."""
+    out, t = [], 0.0
+    for (a, b) in silences(cues):
+        out.append((t, a))
+        t = b
+    out.append((t, cues["duration"]))
+    return out
+
+
+def first_sound_after(cues, t):
+    """Time of the first thing that is supposed to sound at or after t (SFX cue or music entry)."""
+    starts = [e["t"] for e in cues["sfx"] if e["t"] >= t - 1e-9]
+    starts += [x for x in (cues["tempo"]["birthday"]["pickup"], cues["tempo"]["reveal"]["piano_start"])
+               if x >= t - 1e-9]
+    return min(starts) if starts else cues["duration"]
+
+
+def gated_spans(cues):
+    """Silences, each extended up to just before the first sound that follows it."""
+    out = []
+    for (a, b) in silences(cues):
+        nxt = first_sound_after(cues, b)
+        out.append((a, max(b, nxt - GATE_FADE - 0.002)))
+    return out
+
+
+def outro_fade(cues):
+    """(t0, t1): the final fade follows the picture's fade to black and ends END_SILENCE early."""
+    f0, f1 = cues["outro"]["fade"]
+    return f0, min(f1, cues["duration"]) - END_SILENCE
+
+
 def sections(cues):
     secs = {s["id"]: (s["start"], s["end"]) for s in cues["scenes"]}
     fr = cues["chaos"]["freeze"]
     secs["s02_chaos"] = (secs["s02_chaos"][0], fr)
     secs["  stop+silence"] = (fr, cues["chaos"]["implode"][0])
     secs["  reverse riser"] = tuple(cues["chaos"]["implode"])
+    b0 = secs["s08_birthday"][0]
+    lights = cues["birthday"]["lights_on"]
+    secs["  dark + bell"] = (b0, lights)
+    secs["s08_birthday"] = (lights, secs["s08_birthday"][1])
     sil = cues["g2"]["silence"]
     secs["g2_glitch"] = (cues["g2"]["start"], sil["t0"])
     secs["  g2 silence"] = (sil["t0"], sil["t1"])
     return dict(sorted(secs.items(), key=lambda kv: kv[1][0]))
+
+
+def hp20(x, eps):
+    """20 Hz high-pass, run separately on every epoch: the filter starts from rest after each
+    silence, so not even its (inaudible) ringing crosses one and the stems stay exactly zero
+    until the first sound of the next epoch."""
+    y = np.zeros_like(x)
+    for (a, b) in eps:
+        ia, ib = s2n(a), s2n(b)
+        y[:, ia:ib] = butter(x[:, ia:ib], "highpass", 20.0, 2)
+    return y
 
 
 def master_chain(x, gate):
@@ -102,6 +157,9 @@ def main():
         print(line, flush=True)
         log.append(line)
 
+    kinds = sfxmod.check_kinds(cues)          # fail before rendering anything if a cue has no design
+    eps = epochs(cues)
+
     # ------------------------------------------------------------------ music
     mx1, a1 = score.act1(cues)
     a1_pre = a1.copy() if review else None
@@ -110,9 +168,9 @@ def main():
     mxb, bd = score.birthday(cues)
     bd_pre = bd.copy() if review else None
     bd = score.birthday_glitch(bd, mxb.n0, cues)
-    stamp("birthday rendered (music box + sabotaged final note)")
+    stamp("birthday rendered (jazz waltz + sabotaged final note)")
     mx3, a3 = score.act3(cues)
-    stamp("act 3 rendered (piano + anthem + outro)")
+    stamp("act 3 rendered (letter piano, anthem, numbers bed, network climax, finale)")
     music = np.zeros((2, N))
     place(music, a1, mx1.n0)
     place(music, bd, mxb.n0)
@@ -121,7 +179,7 @@ def main():
     place(box, bd, mxb.n0)
 
     # -------------------------------------------------------------------- sfx
-    pre, pre_mix, post, post_mix = sfxmod.render_sfx(cues)
+    pre, pre_mix, posts = sfxmod.render_sfx(cues, eps)
     # "everything cuts" at the freeze: the launch-film SFX bed gets the same 0.25 s tape stop
     freeze = cues["chaos"]["freeze"]
     imp0 = cues["chaos"]["implode"][0]
@@ -140,14 +198,20 @@ def main():
     pre_mix[:, a:] = sub
     sfx = np.zeros((2, N))
     place(sfx, pre_mix, pre.n0)
-    place(sfx, post_mix, post.n0)
-    stamp("SFX rendered (%d cues)" % len(cues["sfx"]))
+    for (pmx, pmix) in posts:
+        place(sfx, pmix, pmx.n0)
+    stamp("SFX rendered (%d cues, %d kinds)" % (len(cues["sfx"]), len(kinds)))
 
     # ---------------------------------------------------------------- master
-    gate = mixing.gate_curve(N, 0, silences(cues), fade=0.004)
-    music = butter(music, "highpass", 20.0, 2)
-    sfx = butter(sfx, "highpass", 20.0, 2)
-    box = butter(box, "highpass", 20.0, 2)
+    # Nothing that sounded before a silence may come back after it: music and SFX are
+    # rendered per epoch (their buffers end where the silence starts); the gate below also
+    # keeps the darkness after G1 at digital zero until the collar bell.
+    gate = mixing.gate_curve(N, 0, gated_spans(cues), fade=GATE_FADE)
+    f0, f1 = outro_fade(cues)
+    ia, ib = s2n(f0), s2n(f1)
+    gate[ia:ib] *= rc_ramp(ib - ia, up=False) ** 1.5
+    gate[ib:] = 0.0
+    music, sfx, box = (hp20(x, eps) for x in (music, sfx, box))
     pre_in = (music + sfx) * gate
     L0 = mixing.lufs(pre_in)
     # the gain is quantised to 0.01 dB so float noise in the loudness measurement can never
@@ -164,7 +228,6 @@ def main():
     mix = y
     dmask = gate.copy()
     dmask[:s2n(0.003)] = 0.0
-    dmask[s2n(cues["outro"]["fade"][1] - 0.005):] = 0.0
     mix16 = mixing.to_int16(mix, rng_for("dither"), mask=dmask)
     # sfx-only version: same master gain and chain (so levels match the full mix)
     so, _, _ = master_chain((sfx + box) * gate * G, gate)
@@ -179,23 +242,46 @@ def main():
     sf.write(out / "sfx_only_mix.wav", so16.T, SR, subtype="PCM_16")
     render_s = time.time() - T0
     stamp(f"wrote {out}/{{music,sfx,mix,sfx_only_mix}}.wav ({render_s:.1f}s)")
+    (out / "build.log").write_text("\n".join(log) + "\n")
 
     if review:
         write_review(cues, out, dict(music=music_st, sfx=sfx_st, mix16=mix16, so16=so16, box=box * gate * G,
-                                     a1=a1, a1_pre=a1_pre, bd=bd, bd_pre=bd_pre),
+                                     a1=a1, a1_pre=a1_pre, bd=bd, bd_pre=bd_pre, G=G),
                      (mx1, mxb, mx3), g, render_s, log)
     stamp("done")
 
 
 # ===================================================================== review
+def _db(x):
+    return 20 * np.log10(np.maximum(x, 1e-12))
+
+
+def _rms_db(x, t0, t1):
+    seg = x[:, s2n(t0):s2n(t1)]
+    return float(_db(np.sqrt(np.mean(seg ** 2)))) if seg.size else -240.0
+
+
+def _band_rms_db(x, t0, t1, band):
+    import review as rv
+    a, b = max(0, s2n(t0 - 0.05)), min(x.shape[1], s2n(t1 + 0.05))
+    seg = rv._zp_filter(x[:, a:b].mean(axis=0).astype(np.float64), band)
+    seg = seg[s2n(t0) - a:s2n(t1) - a]
+    return float(_db(np.sqrt(np.mean(seg ** 2)))) if seg.size else -240.0
+
+
 def write_review(cues, out, A, mixers, gain_db, render_s, log):
     import review as rv
     mx1, mxb, mx3 = mixers
     music, sfx = A["music"], A["sfx"]
     mix = A["mix16"].astype(np.float64) / 32768.0
     so = A["so16"].astype(np.float64) / 32768.0
-    R = []
-    w = R.append
+    T = cues["tempo"]
+    R = T["reveal"]
+    bday = cues["birthday"]
+    g1, g2 = cues["g1"], cues["g2"]
+    dur = cues["duration"]
+    Rr = []
+    w = Rr.append
     w("DSBA launch film - soundtrack report (tools/audio/build_audio.py)")
     w("=" * 100)
     w(f"render time (audio only, before this review): {render_s:.1f} s")
@@ -210,14 +296,48 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
         dc = np.mean(x, axis=1)
         w(f"{name:17s} {x.shape[1]} smp = {x.shape[1] / SR:.3f} s | integrated {L:6.2f} LUFS | "
           f"true peak {tp:+6.2f} dBTP | sample peak {sp:+6.2f} dBFS | DC L/R {dc[0]:+.1e} / {dc[1]:+.1e}")
+    bal = _db(np.sqrt(np.mean(mix[0] ** 2))) - _db(np.sqrt(np.mean(mix[1] ** 2)))
+    corr = float(np.corrcoef(mix[0], mix[1])[0, 1])
+    w(f"mix.wav: expected {s2n(dur)} smp = {dur:.3f} s -> {'OK' if mix.shape[1] == s2n(dur) else 'FAIL'} | "
+      f"L-R balance {bal:+.2f} dB, L/R correlation {corr:+.2f} | NaN/Inf: "
+      f"{'none' if np.all(np.isfinite(music)) and np.all(np.isfinite(sfx)) else 'FOUND'} | "
+      f"full-scale samples: {int(np.sum(np.abs(A['mix16']) >= 32767))}")
     w("")
     w("digital silence (max |sample| must be exactly 0):")
-    for (a, b) in silences(cues):
+    spans = silences(cues)
+    ext = gated_spans(cues)
+    f0, f1 = outro_fade(cues)
+    rows = [(a, b, "cue sheet") for (a, b) in spans]
+    rows += [(b, e2, "until the first cue after it") for (a, b), (_, e2) in zip(spans, ext) if e2 > b + 1e-6]
+    rows += [(f1, dur, "after the final fade")]
+    for (a, b, why) in sorted(rows):
         ia, ib = s2n(a), s2n(b)
         vals = [int(np.max(np.abs(A["mix16"][:, ia:ib]))), int(np.max(np.abs(A["so16"][:, ia:ib]))),
                 float(np.max(np.abs(music[:, ia:ib]))), float(np.max(np.abs(sfx[:, ia:ib])))]
-        w(f"  {a:6.2f}-{b:6.2f} s: mix {vals[0]}, sfx_only {vals[1]}, music {vals[2]:.1e}, sfx {vals[3]:.1e} -> "
-          + ("OK" if max(vals) == 0 else "FAIL"))
+        w(f"  {a:7.3f}-{b:7.3f} s ({why:28s}): mix {vals[0]}, sfx_only {vals[1]}, music {vals[2]:.1e}, "
+          f"sfx {vals[3]:.1e} -> " + ("OK" if max(vals) == 0 else "FAIL"))
+
+    # ------------------------------------------------- the darkness before the birthday
+    b0 = [s for s in cues["scenes"] if s["id"].startswith("s08")][0]["start"]
+    bell_t = [e["t"] for e in cues["sfx"] if e["kind"] == "bell_jingle"]
+    lights = bday["lights_on"]
+    pickup = T["birthday"]["pickup"]
+    w("")
+    w(f"THE DARK ({b0:.2f} -> lights on {lights:.2f}): nothing but the collar bell, then the switch")
+    w(f"  music stem {b0:.2f}-{pickup:.3f}: max |sample| {float(np.max(np.abs(music[:, s2n(b0):s2n(pickup) - 1]))):.1e} "
+      f"(must be 0: the song starts with its pickup at {pickup})")
+    allowed = ("bell_jingle", "lights_on")
+    others = [e for e in cues["sfx"] if b0 <= e["t"] < lights and e["kind"] not in allowed]
+    w(f"  SFX cues in the dark: {[(e['kind'], e['t']) for e in cues['sfx'] if b0 <= e['t'] < lights]}"
+      f" -> {'OK' if not others else 'UNEXPECTED: ' + str(others)}")
+    if bell_t:
+        bt = bell_t[0]
+        w(f"  mix RMS: {b0:.2f}-{bt - 0.02:.2f} {_rms_db(mix, b0, bt - 0.02):7.1f} dBFS (silence) | bell {bt:.2f}-{bt + 0.5:.2f} "
+          f"{_rms_db(mix, bt, bt + 0.5):6.1f} dBFS, peak {float(_db(np.max(np.abs(mix[:, s2n(bt):s2n(bt + 0.5)])))):6.1f} dBFS | "
+          f"its tail {lights - 0.3:.2f}-{lights - 0.01:.2f} {_rms_db(mix, lights - 0.3, lights - 0.01):6.1f} dBFS")
+        w(f"  bell spectrum (mix, {bt:.2f}-{bt + 0.5:.2f}): <2 kHz {_band_rms_db(mix, bt, bt + 0.5, (None, 2000.0)):6.1f} | "
+          f"2.5-7 kHz {_band_rms_db(mix, bt, bt + 0.5, (2500.0, 7000.0)):6.1f} | >7 kHz "
+          f"{_band_rms_db(mix, bt, bt + 0.5, (7000.0, None)):6.1f} dBFS")
 
     secs = sections(cues)
     w("")
@@ -227,6 +347,42 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
         diff = (Lm - Ls) if np.isfinite(Lm) and np.isfinite(Ls) else float("nan")
         w(f"  {lab:17s} {a:6.1f}-{b:6.1f} | mix {L:6.1f} LUFS {r:6.1f} rms {p:6.1f} pk | music {Lm:6.1f} | "
           f"sfx {Ls:6.1f} | music-sfx {diff:+5.1f} LU")
+
+    # ------------------------------------------------- loudness arc
+    st_t, st_v = mixing.short_term_lufs(mix, 3.0, 0.25)
+    w("")
+    w("SHORT-TERM LOUDNESS of the mix (3 s window centred on t, LUFS), every 2 s:")
+    line = []
+    for t in np.arange(2.0, dur - 1.0, 2.0):
+        i = int(np.argmin(np.abs(st_t - t)))
+        line.append(f"{t:5.0f}:{st_v[i]:6.1f}")
+    for i in range(0, len(line), 10):
+        w("  " + "  ".join(line[i:i + 10]))
+
+    def st_max(t0, t1):
+        m = (st_t >= t0) & (st_t <= t1)
+        i = np.flatnonzero(m)[np.argmax(st_v[m])]
+        return float(st_t[i]), float(st_v[i])
+
+    def st_mean(t0, t1):
+        m = (st_t >= t0 + 1.5) & (st_t <= t1 - 1.5)
+        return float(np.mean(st_v[m])) if np.any(m) else float("nan")
+
+    sec3 = R["sections"]
+    a3_0 = R["piano_start"]
+    tmx, vmx = st_max(a3_0, dur - 1.5)
+    t_ti, v_ti = st_max(*sec3["title"])
+    t_cl, v_cl = st_max(R["climax"] - 0.5, sec3["network"][1])
+    m_num, m_net = st_mean(*sec3["numbers"]), st_mean(*sec3["network"])
+    w(f"  act 3 arc: loudest short-term moment at {tmx:.2f} s ({vmx:.1f} LUFS) -> "
+      f"{'OK (inside the title / drop)' if sec3['title'][0] <= tmx <= sec3['title'][1] + 1.5 else 'CHECK'}")
+    w(f"             title max {v_ti:.1f} | numbers mean {m_num:.1f} | network mean {m_net:.1f} | climax max {v_cl:.1f} "
+      f"(at {t_cl:.2f}) -> numbers {v_ti - m_num:.1f} LU under the title, {m_net - m_num:.1f} LU under the network; "
+      f"climax {v_ti - v_cl:.1f} LU under the drop")
+    cards = cues["numbers"]["cards"]
+    cl = cues["numbers"]["card_len"]
+    w("             cards (mean short-term): " + "  ".join(
+        f"{c['id']} {st_mean(c['t'] - 1.0, c['t'] + cl + 1.0):.1f}" for c in cards))
 
     w("")
     w("SFX vs MUSIC per kind (momentary loudness over 400 ms at the cue, mean of up to 4 cues).")
@@ -241,24 +397,22 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
 
     # ---------------------------------------------------------------- onsets
     w("")
-    w("ONSET CHECKS (zero-phase band filter, steepest rise of log energy; tolerance +-10 ms)")
+    w("ONSET CHECKS (zero-phase band filter, steepest rise of log energy; tolerance +-10 ms unless noted)")
     st = rv.detector_selftest()
     w("  detector self-test on synthetic onsets: " + ", ".join(f"{k} {e:+.1f} ms" for k, e in st))
-    T = cues["tempo"]
     fails = []
 
-    def show(gname, rows, tol=10.0, track=True):
+    def show(gname, rows, tol=10.0, track=True, note=""):
         for (lab, t, to, dms, strength) in rows:
             ok = abs(dms) <= tol
             if track and not ok:
                 fails.append(lab)
-            verdict = ("OK" if ok else "CHECK") if track else "info (chime on a kick)"
+            verdict = ("OK" if ok else "CHECK") if track else "info"
             w(f"  [{gname:10s}] {lab:24s} cue {t:8.4f} onset {to:8.4f} {dms:+6.1f} ms  (rise {strength:5.1f} dB)"
-              f"  {verdict}")
+              f"  {verdict}{note}")
 
-    show("mix", rv.onset_report(mix, [("act1 drop", T["act1"]["drop"]), ("act3 drop", T["reveal"]["drop"])]))
+    show("mix", rv.onset_report(mix, [("act1 drop", T["act1"]["drop"]), ("act3 drop", R["drop"])]))
     show("mix", rv.onset_report(mix, [(f"countdown {i}", t) for i, t in enumerate(cues["launch"]["countdown"])]))
-    g1, g2 = cues["g1"], cues["g2"]
     st1 = []
     for j, s_ in enumerate(g1["stutters"]):
         k = 0
@@ -269,17 +423,56 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
     st1_on = [(l, t) for (l, t, j) in st1 if j < 2]
     # 1-4 kHz: transients of the accents, below the bit-crusher's aliasing fizz
     show("music stem", rv.onset_report(music, st1_on, band=(1000.0, 4000.0), search=0.012))
-    st2 = [("g2 final note", g2["note_warp"]["t0"])]
+    # the birthday song: the pickup in the mix, every melody note on the dry piano-melody bus
+    box_full = np.zeros((2, music.shape[1]))
+    mb = mxb.levels["melody"].astype(np.float64)
+    place(box_full, mb, mxb.n0)
+    show("sfx stem", rv.onset_report(sfx, [("bell_jingle (dark)", bell_t[0])] if bell_t else [], band=(2500.0, None)))
+    show("sfx stem", rv.onset_report(sfx, [("lights_on click", lights)], band=(1500.0, None)))
+    # (in the mix the party popper sits 20 ms before the pickup, so the pickup is checked on the stem)
+    show("music stem", rv.onset_report(music, [("birthday pickup", pickup)], band=(300.0, 3000.0)))
+    mel = bday["melody"]
+    rows = rv.onset_report(box_full, [(f"{n['syl']}", n["t"]) for n in mel], band=(1500.0, None), search=0.03)
+    worst = max(rows, key=lambda r: abs(r[3]))
+    bad = [r for r in rows if abs(r[3]) > 10.0]
+    fails += [f"melody {r[0]} {r[1]:.3f}" for r in bad]
+    w(f"  [melody bus] {len(rows)} birthday melody notes: onset - cue = "
+      + " ".join(f"{r[3]:+.1f}" for r in rows) + " ms")
+    w(f"  [melody bus] -> worst {worst[3]:+.1f} ms ({worst[0]} at {worst[1]:.4f}), {len(rows) - len(bad)}/{len(rows)} within +-10 ms"
+      f"  {'OK' if not bad else 'CHECK'}")
+    st2 = [("g2 final note (the cut)", g2["note_warp"]["t0"])]
     for s_ in g2["stutters"]:
         k = 0
         while s_["start"] + k * s_["len"] < s_["end"] - 1e-9:
             st2.append((f"g2 stutter loop{k}", s_["start"] + k * s_["len"]))
             k += 1
-    show("music stem", rv.onset_report(music, st2, band=(2500.0, None), search=0.012))
-    chimes = [(f"name_chime {i}", t) for i, t in enumerate(cues["names"]["times"])]
-    show("sfx stem", rv.onset_report(sfx, chimes, band=(2500.0, None), search=0.03))
-    show("mix", rv.onset_report(mix, chimes, band=(1500.0, None), search=0.03), track=False)
-    w(f"  -> {len(fails)} checked onsets outside +-10 ms" + (f": {fails}" if fails else ""))
+    show("music stem", rv.onset_report(music, st2, band=(1200.0, None), search=0.012))
+    # act 3: card punches, climax, final chord
+    punches = [(f"punch {c['id']}", c["punch_t"]) for c in cards]
+    show("sfx stem", rv.onset_report(sfx, punches, band=(300.0, None), search=0.03))
+    show("music stem", rv.onset_report(music, punches, band=(300.0, 4000.0), search=0.03))
+    show("mix", rv.onset_report(mix, punches, band=(300.0, None), search=0.03))
+    show("mix", rv.onset_report(mix, [("climax (>1.5 kHz)", R["climax"])], band=(1500.0, None), search=0.03))
+    show("mix", rv.onset_report(mix, [("climax (>150 Hz)", R["climax"])], band=(150.0, None), search=0.03))
+    show("music stem", rv.onset_report(music, [("network climax", R["climax"])], band=(150.0, 4000.0), search=0.03))
+    chb = [e["t"] for e in cues["sfx"] if e["kind"] == "chime_big"]
+    show("sfx stem", rv.onset_report(sfx, [("chime_big", t) for t in chb], band=(300.0, None), search=0.03))
+    show("music stem", rv.onset_report(music, [("final chord", R["final_chord"])], band=(200.0, 3000.0), search=0.03))
+    show("sfx stem", rv.onset_report(sfx, [("bell_jingle (finale)", t) for t in bell_t[1:]], band=(2500.0, None)))
+    w(f"  -> {len(fails)} checked onsets outside tolerance" + (f": {fails}" if fails else ""))
+
+    # ------------------------------------------------- the bell over the final chord
+    if len(bell_t) > 1:
+        bt = bell_t[-1]
+        bs = _band_rms_db(sfx, bt, bt + 0.45, (2500.0, 9000.0))
+        bm = _band_rms_db(music, bt, bt + 0.45, (2500.0, 9000.0))
+        w("")
+        w(f"COLLAR BELL OVER THE FINAL CHORD ({bt:.2f} s, final chord {R['final_chord']:.2f} s): 2.5-9 kHz RMS over 450 ms: "
+          f"bell {bs:.1f} dBFS, music {bm:.1f} dBFS -> bell {bs - bm:+.1f} dB over the music in its band "
+          f"{'OK' if bs - bm >= 10 else 'CHECK'}")
+        w(f"  full band: bell {_rms_db(sfx, bt, bt + 0.45):.1f} dBFS, music {_rms_db(music, bt, bt + 0.45):.1f} dBFS; "
+          f"end of film: mix RMS {f1 - 0.5:.1f}-{f1:.1f} s {_rms_db(mix, f1 - 0.5, f1):.1f} dBFS, "
+          f"{f1:.1f}-{dur:.1f} s {_rms_db(mix, f1, dur):.1f} dBFS")
 
     w("")
     w("STUTTER LOOP LOCK (each repeat correlated with its cue source slice; lag 0.0 ms = sample-exact)")
@@ -301,7 +494,8 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
             worst = max(worst, abs(lag))
         w(f"  g2 stutter (src {s_['src']:.4f}, len {s_['len'] * 1000:.0f} ms, detuning): "
           + " ".join(f"{tl:.4f}:{lag:+.2f}ms/r{r:.2f}" for (k, tl, lag, r) in rows))
-    w(f"  -> worst loop lag {worst:.2f} ms (r = correlation with the source; G1 loops are also bit-crushed)")
+    w(f"  -> worst loop lag {worst:.2f} ms (r = correlation with the source; G1 loops are also bit-crushed, "
+      "G2 loops detune more each time)")
 
     w("")
     w("HARD EDGES (click check: a click = >2 kHz burst at the edge above -70 dBFS and >6 dB over the sounding side)")
@@ -309,12 +503,14 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
     blk = [s_ for s_ in g1["segments"] if s_["kind"] == "black"]
     sil = g2["silence"]
     edges_mix = [(blk[0]["t0"], "cut", "G1 static -> black") if blk else None,
-                 (blk[0]["t1"], "start", "black -> SURPRISE") if blk else None,
-                 (sil["t0"], "cut", "G2 flash -> digital silence"), (sil["t1"], "start", "silence -> letter"),
-                 (cues["duration"], "cut", "end of film"), (0.0, "start", "start of film")]
+                 (bell_t[0], "start", "darkness -> collar bell") if bell_t else None,
+                 (sil["t0"], "cut", "G2 flash -> digital silence"),
+                 (ext[-1][1], "start", "silence -> letter (gate up)"),
+                 (f1, "cut", "end of the final fade"), (0.0, "start", "start of film")]
     edges_mus = [(cues["chaos"]["freeze"] + 0.25, "cut", "music tape stop -> silence"),
-                 (ts["t1"], "cut", "G1 tape stop -> hum"), (g2["note_warp"]["t1"], "cut", "box dies -> silence"),
-                 (cues["tempo"]["reveal"]["piano_start"], "start", "piano in")]
+                 (ts["t1"], "cut", "G1 tape stop -> hum"), (pickup, "start", "birthday pickup"),
+                 (g2["note_warp"]["t1"], "cut", "song dies -> silence"),
+                 (R["piano_start"], "start", "piano in")]
     for name, x, edges in (("mix", mix, edges_mix), ("music stem", music, edges_mus)):
         for (t, kind, lab, rel, pk, hf, click) in rv.edge_report(x, [e for e in edges if e]):
             rs = f"{rel:+6.1f} dB rel" if rel is not None else "  (silent ref)"
@@ -330,17 +526,19 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
             bars.append((t, t + d, ch))
     rows = rv.chord_check(music, bars)
     nok = sum(r[3] for r in rows)
-    build = (cues["launch"]["start"], cues["tempo"]["act1"]["end"])
+    build = (cues["launch"]["start"], T["act1"]["end"])
+    waltz = (pickup, T["birthday"]["cut"])
     line = []
     for (t0, name, top, ok) in rows:
-        note = "" if ok else (" (build: risers sweep all pitches)" if build[0] <= t0 < build[1] else " ??")
+        note = "" if ok else (" (build: risers sweep all pitches)" if build[0] <= t0 < build[1]
+                              else " (jazz voicing: see chart)" if waltz[0] <= t0 < waltz[1] else " ??")
         line.append(f"{t0:6.2f} {name:5s} [{' '.join(top)}]{note}")
     for i in range(0, len(line), 3):
         w("  " + " | ".join(line[i:i + 3]))
     w(f"  -> {nok}/{len(rows)} bars consistent with their chord")
     w("")
-    w("MUSIC BOX PITCH (dry box bus, strongest new fundamental after each cue note)")
-    rows = rv.box_pitch_check(mxb.levels["box"], mxb.n0, cues["birthday"]["melody"])
+    w("BIRTHDAY MELODY PITCH (dry piano-melody bus, strongest new fundamental after each cue note)")
+    rows = rv.box_pitch_check(mxb.levels["melody"], mxb.n0, mel)
     w("  " + " ".join(f"{syl}:{got}{'' if ok else '!=' + str(want)}" for (t, syl, want, got, ok) in rows))
     w(f"  -> {sum(r[4] for r in rows)}/{len(rows)} notes measured at the cue MIDI pitch")
 
@@ -353,12 +551,13 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
                                                          for k, v in row.items()))
     w("")
     w("build log:")
-    R.extend("  " + l for l in log)
-    (out / "report.txt").write_text("\n".join(R) + "\n")
-    print("\n".join(R))
+    Rr.extend("  " + l for l in log)
+    (out / "report.txt").write_text("\n".join(Rr) + "\n")
+    print("\n".join(Rr))
 
     # ------------------------------------------------------------------ plots
-    st_t, st_v = mixing.short_term_lufs(mix, 3.0, 0.25)
+    for old in (out / "review").glob("*.png"):       # no stale pictures of an older cut
+        old.unlink()
     rv.plot_overview(out / "review" / "overview_mix.png", mix, cues, st_t, st_v, "mix.wav - whole film")
     mt, mv = mixing.short_term_lufs(music, 3.0, 0.25)
     stt, stv = mixing.short_term_lufs(sfx, 3.0, 0.25)
@@ -372,20 +571,24 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
     for s_ in cues["scenes"]:
         ax.axvline(s_["start"], color="#2ecc71", lw=0.6)
     ax.set_ylim(-50, -5)
-    ax.set_xlim(0, cues["duration"])
+    ax.set_xlim(0, dur)
     ax.legend(loc="lower left")
     ax.set_title("short-term loudness (3 s window): mix vs stems")
     fig.tight_layout()
     fig.savefig(out / "review" / "loudness_stems.png", dpi=80)
     plt.close(fig)
-    marks = [(t, f"cd{i}", "#e67e22") for i, t in enumerate(cues["launch"]["countdown"])]
+
+    cd = cues["launch"]["countdown"]
+    marks = [(t, f"cd{i}", "#e67e22") for i, t in enumerate(cd)]
     marks += [(cues["launch"]["click"], "click", "#e67e22")]
     marks += [(t, l.split()[-1], "#3498db") for (l, t, j) in st1]
     marks += [(h, "hit", "#e74c3c") for h in g1["hits"]]
     marks += [(g1["tape_stop"]["t0"], "tape0", "#9b59b6"), (g1["tape_stop"]["t1"], "tape1", "#9b59b6")]
     marks += [(s_["t0"], s_["kind"], "#2ecc71") for s_ in g1["segments"]]
-    rv.plot_zoom(out / "review" / "zoom_60-70.png", mix, 60.0, 70.0, marks,
-                 "60-70 s: build, countdown 61/62/63, LAUNCH click, G1 crash (stutters, tape stop), birthday start",
+    marks += [(t, "bell", "#16a085") for t in bell_t[:1]]
+    z0, z1 = cd[0] - 3.0, g1["end"] + 1.0
+    rv.plot_zoom(out / "review" / "zoom_launch_g1.png", mix, z0, z1, marks,
+                 f"{z0:.0f}-{z1:.0f} s: build, countdown, LAUNCH click, G1 crash (stutters, tape stop), black, the bell",
                  extra=music, extra_label="music stem")
     # close-up of the crash: source slices (yellow), loop starts (blue), tape stop (purple)
     t0c, t1c = g1["start"] - 0.4, g1["tape_stop"]["t1"] + 0.1
@@ -415,25 +618,59 @@ def write_review(cues, out, A, mixers, gain_db, render_s, log):
     fig.tight_layout()
     fig.savefig(out / "review" / "zoom_g1_crash_closeup.png", dpi=75)
     plt.close(fig)
-    marks = [(n["t"], n["syl"], "#3498db") for n in cues["birthday"]["melody"] if n["t"] > 78]
+
+    # the dark, the bell, lights on, the first phrases of the song
+    marks = [(n["t"], n["syl"], "#3498db") for n in mel]
+    marks += [(e["t"], e["kind"], "#16a085") for e in cues["sfx"]
+              if e["kind"] in ("bell_jingle", "lights_on", "party_popper")]
+    marks += [(s_["t0"], s_["kind"], "#2ecc71") for s_ in g1["segments"]]
+    z0, z1 = g1["segments"][-1]["t0"] - 1.0, T["birthday"]["phrases"][min(2, len(T["birthday"]["phrases"]) - 1)]
+    rv.plot_zoom(out / "review" / "zoom_dark_bell_song.png", mix, z0, z1, marks,
+                 f"{z0:.1f}-{z1:.1f} s: static, black, the collar bell alone, lights on, 'Happy Birthday' (jazz waltz)",
+                 extra=sfx, extra_label="sfx stem")
+    marks = [(n["t"], n["syl"], "#3498db") for n in mel if n["t"] > g2["start"] - 2.6]
     marks += [(t, l.split()[-1], "#e67e22") for (l, t) in st2]
     marks += [(h, "hit", "#e74c3c") for h in g2["hits"]]
     marks += [(l["t"], "line", "#16a085") for l in g2["terminal_lines"]]
-    marks += [(s_["t0"], s_["kind"], "#2ecc71") for s_ in g2["segments"]] + [(g2["silence"]["t1"], "end", "#2ecc71")]
-    rv.plot_zoom(out / "review" / "zoom_78-88.png", mix, 78.0, 88.0, marks,
-                 "78-88 s: end of the song, sabotaged 'you', terminal, crescendo, flash, 1.5 s digital silence",
+    marks += [(s_["t0"], s_["kind"], "#2ecc71") for s_ in g2["segments"]] + [(sil["t1"], "end", "#2ecc71")]
+    z0, z1 = g2["start"] - 2.5, sil["t1"] + 1.0
+    rv.plot_zoom(out / "review" / "zoom_song_end_g2.png", mix, z0, z1, marks,
+                 f"{z0:.1f}-{z1:.1f} s: end of the song, sabotaged 'you', terminal, crescendo, flash, digital silence",
                  extra=music, extra_label="music stem")
     fz, im = cues["chaos"]["freeze"], cues["chaos"]["implode"]
     marks = [(fz, "freeze/hard stop", "#e74c3c"), (fz + 0.25, "tape end", "#9b59b6"), (im[0], "rev riser", "#2ecc71"),
              (im[1], "DROP", "#e74c3c")] + [(c["t"], "caption", "#16a085") for c in cues["chaos"]["captions"]]
-    rv.plot_zoom(out / "review" / "zoom_13-20.png", mix, 13.0, 20.0, marks,
-                 "13-20 s: notification wall + snare build, hard stop (tape stop), near-silence, reverse riser, drop",
+    rv.plot_zoom(out / "review" / "zoom_chaos_stop_drop.png", mix, fz - 3.0, im[1] + 2.0, marks,
+                 f"{fz - 3:.0f}-{im[1] + 2:.0f} s: notification wall + snare build, hard stop (tape stop), "
+                 "near-silence, reverse riser, drop", extra=sfx, extra_label="sfx stem")
+    co = cues["cold_open"]
+    marks = [(t, f"node{i}", "#3498db") for i, t in enumerate(co["nodes"])]
+    marks += [(l["t"], "line", "#16a085") for l in co["lines"]]
+    marks += [(p["t"], f"{i + 1}", "#e67e22") for i, p in enumerate(co["places"])] + [(co["punch"], "punch", "#e74c3c")]
+    c1 = [s for s in cues["scenes"] if s["id"].startswith("s02")][0]["start"]
+    rv.plot_zoom(out / "review" / "zoom_cold_open.png", mix, 0.0, c1 + 2.0, marks,
+                 f"0-{c1 + 2:.0f} s: cold open - three node blips, text hits, seven ticks + punch, into the chaos",
                  extra=sfx, extra_label="sfx stem")
-    marks = [(cues["tempo"]["reveal"]["drop"], "DROP", "#e74c3c")]
-    marks += [(t, f"n{i}", "#3498db") for i, t in enumerate(cues["names"]["times"])]
-    marks += [(cues["names"]["thank_you"], "thank you", "#16a085")]
-    rv.plot_zoom(out / "review" / "zoom_93-112.png", mix, 93.0, 112.0, marks,
-                 "93-112 s: riser + fill, anthem drop at 95, the 17 name chimes", extra=sfx, extra_label="sfx stem")
+    marks = [(R["drop"], "DROP", "#e74c3c"), (sec3["title"][1], "numbers", "#2ecc71")]
+    marks += [(l["t"], "line", "#16a085") for l in cues["letter"]["lines"]]
+    rv.plot_zoom(out / "review" / "zoom_letter_drop_title.png", mix, R["piano_start"] - 1.0, sec3["title"][1] + 2.5, marks,
+                 "the letter (solo piano), riser + fill, the anthem drop, title, the band drops out into the numbers",
+                 extra=sfx, extra_label="sfx stem")
+    marks = []
+    for c in cards:
+        marks += [(c["t"], c["id"], "#2ecc71"), (c["build"], "build", "#3498db"), (c["punch_t"], "PUNCH", "#e74c3c")]
+    rv.plot_zoom(out / "review" / "zoom_numbers.png", mix, sec3["numbers"][0] - 1.0, sec3["numbers"][1] + 1.0, marks,
+                 "numbers: the light bed, per card: groove - chart build - punch accent - fill",
+                 extra=sfx, extra_label="sfx stem")
+    net = cues["network"]
+    fin = cues["finale"]
+    marks = [(net["start"], "network", "#2ecc71"), (net["gather"], "gather", "#3498db"), (R["climax"], "CLIMAX", "#e74c3c"),
+             (fin["start"], "finale", "#2ecc71"), (R["final_chord"], "final chord", "#e74c3c"),
+             (f0, "fade", "#9b59b6"), (f1, "silent", "#9b59b6")]
+    marks += [(t, "bell", "#16a085") for t in bell_t[1:]]
+    rv.plot_zoom(out / "review" / "zoom_network_finale.png", mix, net["start"] - 1.0, dur, marks,
+                 "network lift, gather swell, the climax chord + chime, finale (piano + pad), bell, final chord, fade",
+                 extra=music, extra_label="music stem")
 
 
 if __name__ == "__main__":

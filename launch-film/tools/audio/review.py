@@ -1,5 +1,5 @@
 """review.py - objective checks of the rendered soundtrack: onsets vs cues, stutter loop
-lock, chord chroma, music-box pitch, loudness/RMS per section, spectrogram/waveform PNGs."""
+lock, chord chroma, birthday-melody pitch, loudness/RMS per section, spectrogram/waveform PNGs."""
 from __future__ import annotations
 
 import numpy as np
@@ -158,8 +158,9 @@ def chord_check(x, bars):
 
 # --------------------------------------------------------------- pitch check
 def box_pitch_check(box, n0, melody):
-    """Dry music-box bus: strongest candidate fundamental (MIDI 55-90) just after each note,
-    minus what was already ringing before it (skipped for repeated pitches)."""
+    """Dry melody bus of the birthday song (the piano's right hand alone): strongest candidate
+    fundamental (MIDI 55-90) just after each note, minus what was already ringing before it
+    (skipped for repeated pitches)."""
     mono = box.mean(axis=0) if box.ndim == 2 else box
     N = 16384
     f = np.fft.rfftfreq(N, 1.0 / SR)
@@ -333,7 +334,8 @@ def sfx_vs_music(music, sfx, cues, skip=()):
     for e in cues["sfx"]:
         kinds.setdefault(e["kind"], []).append(e["t"] + (e.get("dur", 0.0) * 0.6 if e["kind"] in
                                                           ("riser", "whoosh", "whoosh_soft", "reverse_riser",
-                                                           "static_rise", "crescendo_noise") else 0.0))
+                                                           "static_rise", "crescendo_noise", "gather_swell",
+                                                           "chart_build") else 0.0))
     rows = []
     for k, ts in kinds.items():
         sel = [t for t in ts[::max(1, len(ts) // 4)][:4] if not any(a <= t < b for a, b in skip)]

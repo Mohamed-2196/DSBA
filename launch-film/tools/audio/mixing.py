@@ -205,13 +205,18 @@ def glitch1(buf, n0, g1, crush_kinds=("freeze_stutter", "corrupt")):
     buf[:, a:b] = seg * (1 - wet) + cr * wet
 
 
+G2_GRAIN_DECAY_DB = 5.0     # level drop across each stutter grain (see glitch2)
+
+
 def glitch2(buf, n0, g2, fade=0.003):
     """Birthday sabotage, in place: the final note (from note_warp.t0) stutters exactly per
     g2.stutters while detuning more and more; after the stutter it re-attacks once more and
     tape-stops to nothing by note_warp.t1 ("you-you-you-yo-y"). Silence after t1.
 
     Every grain starts exactly on its cue sample (rates < 1 only shorten what each grain
-    reads, never shift it), so audio stays locked to the video repeats.
+    reads, never shift it), so audio stays locked to the video repeats. Each grain also
+    decays by G2_GRAIN_DECAY_DB, so every repeat re-attacks audibly even when the source is
+    a soft, sustained chord (felt piano + strings) rather than a plucked music box.
     """
     nw = g2["note_warp"]
     t0, t1 = nw["t0"], nw["t1"]
@@ -249,12 +254,13 @@ def glitch2(buf, n0, g2, fade=0.003):
         k = I / 0.7
         cents_ = -150.0 * k * u ** 1.25 + 38.0 * k * np.minimum(u * 4, 1) * np.sin(2 * np.pi * 6.3 * (tt - t0))
         rate = 2.0 ** (cents_ / 1200.0)
-        amp = np.ones(L)
+        v = np.clip((tt - ga) / (gb - ga), 0, 1)
         if tail:
-            v = np.clip((tt - ga) / (gb - ga), 0, 1)
             sp = (1.0 - v) ** 1.35
             rate = rate * 0.88 * sp
             amp = sp ** 0.45
+        else:
+            amp = 10.0 ** (-G2_GRAIN_DECAY_DB * v / 20.0)
         s = s2n(src) - n0
         seg = read_cubic(x, s - F + np.concatenate([[0.0], np.cumsum(rate[:-1])])) * amp
         if tail:

@@ -1,4 +1,5 @@
-"""instruments.py - synthesized voices (drums, synths, piano, bells, music box).
+"""instruments.py - synthesized voices (drums, synths, felt piano, bells and mallets, and the
+jazz-waltz trio of the birthday scene: upright bass, brushes).
 
 All voices return float64 arrays: mono (n,) or stereo (2, n). Tonal voices are
 band-limited (wavetables / additive partials kept below dsp.F_LIMIT); every
@@ -9,8 +10,8 @@ from __future__ import annotations
 import numpy as np
 
 from dsp import (SR, TWO_PI, F_LIMIT, s2n, tarr, mtof, cents, osc, phase_of, env_adsr,
-                 env_perc, fade_edges, butter, biquad, tv_filter, softclip, pan_gains,
-                 rng_for, white, onepole_lp)
+                 fade_edges, butter, biquad, tv_filter, softclip, pan_gains,
+                 rng_for, onepole_lp)
 
 
 def _norm(x, peak=1.0):
@@ -127,19 +128,6 @@ def tom(rng, f=120.0, length=0.5, decay=0.2):
     x[:nc] += 0.25 * butter(rng.standard_normal(nc), "lowpass", 2500.0, 2) * np.exp(-tarr(nc) / 0.004)
     x = softclip(x * 1.2, 1.0)
     fade_edges(x, 0.0005, 0.03)
-    return _norm(x)
-
-
-def soft_pulse(rng, f=56.0):
-    """Soft heartbeat-like sub thump for the intro."""
-    n = s2n(0.4)
-    t = tarr(n)
-    ff = f * (1.0 + 0.35 * np.exp(-t / 0.03))
-    x = np.sin(TWO_PI * phase_of(ff, n)) * env_perc(n, 0.006, 0.11)
-    x += 0.15 * np.sin(TWO_PI * phase_of(ff * 2.01, n)) * env_perc(n, 0.004, 0.05)
-    nc = s2n(0.01)
-    x[:nc] += 0.04 * butter(rng.standard_normal(nc), "bandpass", (800.0, 3000.0), 2) * np.hanning(nc)
-    fade_edges(x, 0.001, 0.02)
     return _norm(x)
 
 
@@ -276,24 +264,6 @@ def _additive(f0, partials, n, rng, t=None):
     return x
 
 
-def music_box(midi, vel=1.0, rng=None, ring=None):
-    rng = rng or rng_for("mbox", midi)
-    f0 = float(mtof(midi))
-    tau = float(np.clip(1.5 * (392.0 / f0) ** 0.6, 0.45, 2.2))
-    length = ring if ring is not None else min(4.2 * tau, 4.5)
-    n = s2n(length)
-    t = tarr(n)
-    parts = [(1.0, 1.0, tau), (1.0028, 0.22, tau * 0.9), (2.0, 0.09, tau * 0.45),
-             (5.93, 0.32, tau * 0.13), (13.4, 0.09, 0.035), (3.0, 0.03, tau * 0.3)]
-    x = _additive(f0, parts, n, rng, t)
-    nc = s2n(0.004)
-    click = butter(rng.standard_normal(nc), "highpass", 3000.0, 2) * np.exp(-tarr(nc) / 0.0007)
-    x[:nc] += 0.35 * click
-    x *= 1.0 - np.exp(-t / 0.0004)
-    fade_edges(x, 0.0, 0.006)
-    return x * vel
-
-
 def marimba(midi, vel=1.0, rng=None, length=None):
     rng = rng or rng_for("marimba", midi)
     f0 = float(mtof(midi))
@@ -338,7 +308,8 @@ def fm_bell(midi, vel=1.0, rng=None, ratio=3.5, index=2.0, idx_tau=0.25, tau=2.0
 
 
 def chime(midi, vel=1.0, rng=None, length=3.2):
-    """Name-chime bell: tuned octave partials + a little metal + FM strike shimmer."""
+    """Chime bell (the big chime chord on the network climax): tuned octave partials + a
+    little metal + FM strike shimmer."""
     rng = rng or rng_for("chime", midi)
     f0 = float(mtof(midi))
     n = s2n(length)
@@ -353,19 +324,12 @@ def chime(midi, vel=1.0, rng=None, length=3.2):
     return x * vel
 
 
-def triangle_ting(rng, f=2650.0, length=1.6):
-    n = s2n(length)
-    t = tarr(n)
-    parts = [(1.0, 1.0, 0.9), (2.41, 0.5, 0.6), (3.92, 0.35, 0.4), (5.37, 0.2, 0.25), (1.004, 0.4, 0.8)]
-    x = _additive(f, parts, n, rng, t)
-    x *= 1.0 - np.exp(-t / 0.0003)
-    fade_edges(x, 0.0, 0.02)
-    return _norm(x)
-
-
 # ===================================================================== piano
-def felt_piano(midi, dur, vel=0.5, rng=None, damper=0.09, strings=2, bright=1.0, kmax=16):
-    """Additive felt piano: stiff-string partials, 2-stage decay, soft hammer, damper."""
+def felt_piano(midi, dur, vel=0.5, rng=None, damper=0.09, strings=2, bright=1.0, kmax=16,
+               detune=0.9, hammer=0.025):
+    """Additive felt piano: stiff-string partials, 2-stage decay, soft hammer, damper.
+    `detune` = +-cents between the unison strings (a little more = upright warmth),
+    `hammer` = level of the felt thump."""
     rng = rng or rng_for("piano", midi, dur, vel)
     f0 = float(mtof(midi))
     B = 0.00011 * 2.0 ** ((midi - 48) / 12.0)
@@ -381,18 +345,49 @@ def felt_piano(midi, dur, vel=0.5, rng=None, damper=0.09, strings=2, bright=1.0,
     fk, ak, tk = fk[keep], ak[keep], tk[keep]
     n = s2n(dur + damper * 7 + 0.01)
     t = tarr(n)
-    env_k = 0.55 * np.exp(-t[None, :] / (0.22 * tk[:, None])) + 0.45 * np.exp(-t[None, :] / tk[:, None])
-    x = np.zeros(n)
+    # x(t) = sum over strings and partials of a_k * env_k(t) * sin(2 pi f_k det t + ph), with
+    # env_k = 0.55 exp(-t / 0.22 tau_k) + 0.45 exp(-t / tau_k). Evaluated block by block with
+    # the angle-addition identity (sin(a + b) = sin a cos b + cos a sin b) and factored
+    # exponentials: the same signal as the direct formula, several times faster.
+    M = 4096
+    nb = (n + M - 1) // M
+    tb = np.arange(M) / SR
+    E1 = np.exp(-tb[None, :] / (0.22 * tk[:, None]))
+    E2 = np.exp(-tb[None, :] / tk[:, None])
+    # One hammer strikes all the unison strings: they start (almost) in phase and only drift
+    # apart through their slight detuning. (Independent random phases per string would give
+    # every partial of every note a random level - sometimes no fundamental at all.)
+    ph0 = rng.uniform(0.0, TWO_PI, len(fk))
+    strs = []
     for s in range(strings):
-        det = float(cents(rng.uniform(-0.9, 0.9))) if s else 1.0
-        ph = rng.uniform(0.0, TWO_PI, len(fk))
-        x += np.sum(ak[:, None] * env_k * np.sin(TWO_PI * (fk * det)[:, None] * t[None, :] + ph[:, None]), axis=0)
-    x /= strings
+        det = float(cents(rng.uniform(-detune, detune))) if s else 1.0
+        ph = ph0 + (rng.uniform(-0.25, 0.25, len(fk)) if s else 0.0)
+        ws = TWO_PI * fk * det
+        arg = ws[:, None] * tb[None, :]
+        strs.append((ws, ph, np.cos(arg), np.sin(arg)))
+    x = np.empty(nb * M)
+    acc = np.empty_like(E1)
+    tmp = np.empty_like(E1)
+    for j in range(nb):
+        t0 = j * M / SR
+        acc[:] = 0.0
+        for (ws, ph, Cb, Sb) in strs:
+            th = ws * t0 + ph
+            np.multiply(np.sin(th)[:, None], Cb, out=tmp)
+            acc += tmp
+            np.multiply(np.cos(th)[:, None], Sb, out=tmp)
+            acc += tmp
+        a1 = 0.55 * ak * np.exp(-t0 / (0.22 * tk))
+        a2 = 0.45 * ak * np.exp(-t0 / tk)
+        np.multiply(a1[:, None], E1, out=tmp)
+        tmp += a2[:, None] * E2
+        x[j * M:(j + 1) * M] = np.einsum("km,km->m", tmp, acc)
+    x = x[:n] / strings
     att = 0.002 + 0.004 * (1.0 - vel)
     x *= 0.5 - 0.5 * np.cos(np.pi * np.clip(t / att, 0, 1))
     nc = s2n(0.03)
     th = butter(rng.standard_normal(nc), "lowpass", min(4.0 * f0, 2500.0), 2) * np.exp(-tarr(nc) / 0.006)
-    x[:nc] += 0.025 * th
+    x[:nc] += hammer * th
     g = s2n(dur)
     if g < n:
         x[g:] *= np.exp(-(t[g:] - t[g]) / damper)
@@ -475,17 +470,6 @@ def boom(rng, f0=62.0, f1=31.0, f_tau=0.09, decay=0.9, length=2.2, click=0.25, s
     return _norm(x)
 
 
-def soft_bass(midi, dur, vel=1.0, rng=None):
-    """Round, soft 'oom' bass for the music box waltz (sine + a little 2nd/3rd)."""
-    f0 = float(mtof(midi))
-    n = s2n(dur + 0.25)
-    t = tarr(n)
-    x = (np.sin(TWO_PI * f0 * t) + 0.32 * np.sin(TWO_PI * 2 * f0 * t) * np.exp(-t / 0.25)
-         + 0.08 * np.sin(TWO_PI * 3 * f0 * t) * np.exp(-t / 0.12))
-    x *= env_adsr(n, 0.012, 0.35, 0.35, 0.07, gate=dur)
-    return x * vel
-
-
 def celesta(midi, vel=1.0, rng=None, length=None):
     """Soft celesta/toy-piano chord voice (hammered bar: 1, 4, 10 partials)."""
     rng = rng or rng_for("celesta", midi)
@@ -520,3 +504,94 @@ def reverse_swell(sig, ir, length, power=1.0):
     rev = rev * (u ** power)
     fade_edges(rev, 0.02, 0.003)
     return _norm(rev)
+
+
+# ============================================= jazz-waltz voices (the birthday trio)
+def upright_bass(midi, dur, vel=1.0, rng=None, tau=None, release=0.07):
+    """Round pizzicato double-bass note (mono).
+
+    A plucked string: the pluck point (~1/5 of the string) thins every 5th harmonic, the
+    upper partials die within a few tens of ms while the fundamental rings for about a
+    second; a soft finger thump, a few cents of pitch settle at the attack and the two main
+    body resonances (air ~105 Hz, top plate ~215 Hz) on top."""
+    rng = rng or rng_for("ubass", midi, dur)
+    f0 = float(mtof(midi))
+    n = s2n(dur + release * 6 + 0.02)
+    t = tarr(n)
+    K = int(max(3, min(14, 4200.0 / f0)))
+    k = np.arange(1, K + 1, dtype=float)
+    ak = np.abs(np.sin(np.pi * k * 0.21)) / k ** 1.25
+    ak /= ak[0]
+    tau1 = tau if tau else float(np.clip(1.05 * (65.4 / f0) ** 0.45, 0.45, 1.3))
+    tk = tau1 / (1.0 + 0.45 * (k - 1.0) ** 1.2)
+    fk = k * f0 * np.sqrt(1.0 + 0.00005 * k * k)
+    # the string is stretched by the pluck: starts ~10 cents sharp and settles in ~30 ms
+    warp = np.cumsum(1.0 + (2 ** (10.0 / 1200) - 1) * np.exp(-t / 0.03)) / SR
+    x = np.zeros(n)
+    for a, f, tt in zip(ak, fk, tk):
+        x += a * np.sin(TWO_PI * f * warp + rng.uniform(0.0, 0.5)) * np.exp(-t / tt)
+    x *= 0.5 - 0.5 * np.cos(np.pi * np.clip(t / 0.004, 0, 1))
+    nc = s2n(0.05)
+    tc = tarr(nc)
+    thump = butter(rng.standard_normal(nc), "lowpass", 650.0, 2) * np.exp(-tc / 0.011)
+    snap = butter(rng.standard_normal(nc), "bandpass", (900.0, 2400.0), 2) * np.exp(-tc / 0.004)
+    x[:nc] += 0.10 * thump / (np.max(np.abs(thump)) + 1e-9) + 0.025 * snap / (np.max(np.abs(snap)) + 1e-9)
+    # the body radiates little below ~90 Hz: the low notes speak through harmonics 2-5
+    x = biquad(x, "lowshelf", 85.0, 0.7, -5.0)
+    x = biquad(x, "peak", 105.0, 1.2, 2.0)
+    x = biquad(x, "peak", 215.0, 0.9, 3.0)
+    x = butter(x, "lowpass", 2400.0, 2)
+    g = s2n(dur)
+    if g < n:
+        x[g:] *= np.exp(-(t[g:] - t[g]) / release)
+    fade_edges(x, 0.0, 0.01)
+    return _norm(x) * vel
+
+
+def brush_swish(rng, dur=0.5, peak=0.4, bright=1.0):
+    """Wire brush swept across a coated snare head: a soft hump of scratchy mid/high noise,
+    a little different in each channel, with the bristles' level flutter. (2, n)"""
+    n = s2n(dur)
+    u = np.linspace(0.0, 1.0, n)
+    hump = np.where(u < peak, 0.5 - 0.5 * np.cos(np.pi * u / peak),
+                    0.5 + 0.5 * np.cos(np.pi * (u - peak) / (1.0 - peak))) ** 1.3
+    y = butter(rng.standard_normal((2, n)), "bandpass", (1100.0, min(8500.0 * bright, 14000.0)), 2)
+    y = biquad(y, "peak", 3600.0, 0.9, 4.0)
+    fl = butter(rng.standard_normal(n), "lowpass", 45.0, 2)
+    fl = np.clip(fl / (np.std(fl) + 1e-9), -2.0, 2.0)
+    head = butter(rng.standard_normal(n), "bandpass", (170.0, 260.0), 2)
+    y = y / (np.std(y) + 1e-9) + 0.12 * head / (np.std(head) + 1e-9)
+    y *= hump * (1.0 + 0.22 * fl)
+    fade_edges(y, 0.004, 0.01)
+    return _norm(y)
+
+
+def brush_tap(rng, decay=0.03, tone=200.0):
+    """Brush tap on the snare: the bristles land over a few ms (no stick click), a short
+    burst of head noise, a hint of the drum's tone and of the snare wires. (2, n)"""
+    n = s2n(0.22)
+    t = tarr(n)
+    att = 0.5 - 0.5 * np.cos(np.pi * np.clip(t / 0.004, 0, 1))
+    burst = butter(rng.standard_normal((2, n)), "bandpass", (800.0, 7500.0), 2)
+    burst /= np.std(burst[:, :s2n(0.03)]) + 1e-9
+    y = burst * att * (0.75 * np.exp(-t / decay) + 0.25 * np.exp(-t / (decay * 3.5)))
+    body = np.sin(TWO_PI * phase_of(tone * (1.0 + 0.15 * np.exp(-t / 0.01)), n)) * np.exp(-t / 0.045) * att
+    wires = butter(rng.standard_normal((2, n)), "bandpass", (3500.0, 9000.0), 2)
+    wires /= np.std(wires) + 1e-9
+    y += 0.9 * body + 0.18 * wires * att * np.exp(-t / 0.07)
+    fade_edges(y, 0.0, 0.02)
+    return _norm(y)
+
+
+def rim(rng, f=1720.0, decay=0.016):
+    """Cross-stick / rim click: a short woody knock (three inharmonic tones + a click)."""
+    n = s2n(0.12)
+    t = tarr(n)
+    x = (np.sin(TWO_PI * f * t) * np.exp(-t / decay)
+         + 0.6 * np.sin(TWO_PI * f * 0.42 * t + 0.5) * np.exp(-t / (decay * 1.7))
+         + 0.3 * np.sin(TWO_PI * f * 2.37 * t) * np.exp(-t / (decay * 0.5)))
+    x *= 1.0 - np.exp(-t / 0.0003)
+    nc = s2n(0.006)
+    x[:nc] += 0.45 * butter(rng.standard_normal(nc), "highpass", 2000.0, 2) * np.exp(-tarr(nc) / 0.0012)
+    fade_edges(x, 0.0, 0.01)
+    return _norm(x)

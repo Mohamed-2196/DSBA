@@ -1,4 +1,4 @@
-// Batch screenshots of the DSBA Pulse app with the film's capture conditions:
+// Batch screenshots of the DSBA Hub app with the film's capture conditions:
 // clock frozen at 2026-10-06 10:00 Asia/Bahrain, Mac user agent (shows ⌘K), local fonts.
 //
 //   node tools/snap-batch.mjs spec.json outDir

@@ -1,6 +1,10 @@
 """sfx.py - every SFX kind in cues.json, synthesized. Each design returns (offset_s, stereo)
 where offset_s says where the sound starts relative to its cue time (risers that must END
-on a cue start early). All randomness comes from rng_for(kind, t, ...)."""
+on a cue start early). All randomness comes from rng_for(kind, t, ...).
+
+Every kind in cues.sfx needs an entry in DESIGNS and in LEVELS: render_sfx() refuses to
+build otherwise. Pitched effects take their notes from the music under them (ctx["key1"],
+ctx["key"], ctx["chord"], ctx["tick_chord"]), so nothing rings against the score."""
 from __future__ import annotations
 
 import numpy as np
@@ -10,7 +14,7 @@ from dsp import (SR, TWO_PI, s2n, tarr, mtof, cents, osc, phase_of, butter, biqu
                  fade_edges, rng_for, smoothstep, pan_gains, softclip, bitcrush, make_ir,
                  convolve, rc_ramp)
 from mixing import Mixer
-from score import chord_pcs
+from score import chord_pcs, reveal_punch_chord
 
 
 def _norm(x, peak=1.0):
@@ -94,21 +98,52 @@ def drone_in(ev, rng, ctx):
     return 0.0, _norm(y)
 
 
-def pulse_blip(ev, rng, ctx):
-    n = s2n(0.9)
+def node_blip(ev, rng, ctx):
+    """One of the three cohort nodes lighting up: a soft, round blip. The three rise through
+    the tonic chord of the launch track (root, third, fifth), left -> centre -> right."""
+    i = int(ev.get("index", ctx["index"]))
+    root, pcs = chord_pcs(ctx["key1"])
+    tones = sorted(69 + (p - 9) % 12 for p in pcs[:3])      # voiced upward from around A4
+    m = tones[i % 3] + 12 * (i // 3)
+    f0 = float(mtof(m))
+    n = s2n(0.75)
     t = tarr(n)
-    f = 880.0 * (1 + 0.05 * np.exp(-t / 0.012))
-    base = np.sin(TWO_PI * phase_of(f, n)) * _env(n, 0.002, 0.06) \
-        + 0.25 * np.sin(TWO_PI * phase_of(2 * f, n)) * _env(n, 0.002, 0.025) \
-        + 0.5 * np.sin(TWO_PI * 110.0 * t) * _env(n, 0.003, 0.05)
-    y = np.zeros((2, n))
-    y += _st(base, 0.0)
-    for k, (d, g, p) in enumerate(((0.19, 0.35, -0.6), (0.38, 0.18, 0.6), (0.57, 0.08, -0.4))):
-        sh = s2n(d)
-        e = butter(base[:n - sh], "lowpass", 3500.0 - 800 * k, 2) * g
-        y[:, sh:] += _st(e, p)
-    fade_edges(y, 0.0, 0.01)
+    f = f0 * (1.0 - 0.045 * np.exp(-t / 0.012))            # tiny scoop up into the note
+    ph = phase_of(f, n)
+    x = (np.sin(TWO_PI * ph) * _env(n, 0.004, 0.13)
+         + 0.22 * np.sin(TWO_PI * 2 * ph + 0.4) * _env(n, 0.004, 0.06)
+         + 0.07 * np.sin(TWO_PI * 3 * ph) * _env(n, 0.003, 0.03))
+    pan = (-0.45, 0.0, 0.45)[i % 3]
+    y = _st(x, pan)
+    k = s2n(0.17)                                           # one soft echo from the other side
+    y[:, k:] += _st(butter(x[:n - k], "lowpass", 2500.0, 2) * 0.22, -pan if pan else 0.3)
+    fade_edges(y, 0.0, 0.02)
     return 0.0, _norm(y)
+
+
+def count_tick(ev, rng, ctx):
+    """The seven "places to check" ticking in: seven ticks climbing the pentatonic scale of
+    the chord under them, the last one slightly brighter (the punch-line ding tops the run)."""
+    i = int(ev.get("index", ctx["index"]))
+    N = int(ev.get("of", ctx["count"]))
+    last = i == N - 1
+    root, _ = chord_pcs(ctx["tick_chord"])
+    pent = (0, 2, 4, 7, 9)
+    m = 72 + (root % 12) + pent[i % 5] + 12 * (i // 5)
+    f0 = float(mtof(m))
+    n = s2n(0.16 if last else 0.11)
+    t = tarr(n)
+    x = np.sin(TWO_PI * f0 * t) * _env(n, 0.0008, 0.034 if last else 0.022)
+    x += 0.3 * np.sin(TWO_PI * 2 * f0 * t + 0.3) * _env(n, 0.0006, 0.012)
+    if last:
+        x += 0.22 * np.sin(TWO_PI * 3 * f0 * t) * _env(n, 0.0006, 0.02)
+        x += 0.12 * np.sin(TWO_PI * 4.2 * f0 * t) * _env(n, 0.0005, 0.012)
+    clk = butter(rng.standard_normal(n), "bandpass", (2200.0, 7000.0), 2) * _env(n, 0.0003, 0.0018)
+    x += (0.32 if last else 0.26) * clk / (np.max(np.abs(clk)) + 1e-9)
+    x += 0.2 * np.sin(TWO_PI * 330.0 * t) * _env(n, 0.001, 0.008)     # a little wooden body
+    fade_edges(x, 0.0, 0.01)
+    pan = -0.25 + 0.5 * i / max(N - 1, 1)
+    return 0.0, _norm(_st(x, pan)) * (1.0 if last else 0.82 + 0.03 * i)
 
 
 def text_hit(ev, rng, ctx):
@@ -402,8 +437,8 @@ def glitch_hit(ev, rng, ctx):
     y = _norm(y)
     line = ctx.get("terminal_line")
     if line is not None:
-        # terminal alert beep: square wave, a little higher for each line; the "found: 17
-        # tutors" line (3rd) gets a double beep. The glitch burst sits under it.
+        # terminal alert beep: square wave, a little higher for each line; the "> found: ..."
+        # line (3rd) gets a double beep. The glitch burst sits under it.
         nb = s2n(0.32)
         tb = tarr(nb)
         f = float(mtof(81 + 2 * line))
@@ -460,7 +495,15 @@ def static_rise(ev, rng, ctx):
     y = y / (np.std(y) + 1e-9) + cr + np.stack([hum, hum])
     y *= (0.02 + 0.98 * u ** 2.6)
     fade_edges(y, 0.005, 0.003)
-    return 0.0, _norm(y)
+    # Level by the loudness of the last 150 ms, not by the peak: the crackles are random
+    # spikes, and peak-normalising made the static up to 4 dB louder or quieter depending on
+    # where they happened to fall (i.e. on the cue time that seeds them).
+    e = y[:, -s2n(min(0.15, dur / 2)):]
+    y *= 10 ** (-16.8 / 20) / (np.sqrt(np.mean(e ** 2)) + 1e-9)
+    a = np.abs(y)                     # only the odd crackle above 0.9 is rounded off, below 1.0
+    over = a > 0.9
+    y[over] = np.sign(y[over]) * (0.9 + 0.1 * np.tanh((a[over] - 0.9) / 0.1))
+    return 0.0, y
 
 
 def party_popper(ev, rng, ctx):
@@ -488,22 +531,91 @@ def party_popper(ev, rng, ctx):
     return 0.0, _norm(y)
 
 
-def party_horn(ev, rng, ctx):
-    dur = 0.85
-    n = s2n(dur)
+# shell modes of the collar bell: (Hz, level, decay s). Inharmonic, 3-9 kHz; each mode is a
+# slightly split doublet (no bell is perfectly round), which gives the ring its shimmer.
+JINGLE_MODES = [(3120.0, 1.00, 0.085), (3890.0, 0.80, 0.070), (4610.0, 0.90, 0.060), (5340.0, 0.60, 0.050),
+                (6180.0, 0.50, 0.040), (7450.0, 0.26, 0.030), (8920.0, 0.13, 0.022)]
+JINGLE_SHAKES = [(0.0, 1.0), (0.115, 0.70), (0.225, 0.88)]      # three quick shakes of the collar
+
+
+def bell_jingle(ev, rng, ctx):
+    """A small cat-collar jingle bell: three quick shakes. Each shake is the loose pellet
+    bouncing 2-4 times inside the slotted shell (impacts a few ms apart, each weaker), and
+    every impact rings the same inharmonic shell modes with different weights. No noise bed,
+    nothing below 2.5 kHz: it has to be clean on its own in silence."""
+    n = s2n(0.68)
     t = tarr(n)
-    f = 300.0 + 150.0 * smoothstep(t / 0.12)
-    f *= 1 - 0.13 * smoothstep((t - (dur - 0.2)) / 0.2)
-    f *= 1 + (2 ** (40 / 1200) - 1) * np.sin(TWO_PI * 7.5 * t) * np.clip((t - 0.1) / 0.2, 0, 1)
-    reed = 0.6 * osc("saw", f, n, 0.0) + 0.5 * osc("square", f * 1.004, n, 0.3)
-    form = biquad(reed, "peak", 1000.0, 2.0, 9.0)
-    form = biquad(form, "peak", 2500.0, 3.0, 7.0)
-    form = butter(form, "highpass", 250.0, 2)
-    breath = butter(rng.standard_normal(n), "bandpass", (1500.0, 6000.0), 2) * 0.12
-    env = smoothstep(t / 0.03) * (1 - smoothstep((t - (dur - 0.08)) / 0.08))
-    x = (form / (np.max(np.abs(form)) + 1e-9) + breath) * env
-    fade_edges(x, 0.003, 0.01)
-    return 0.0, _norm(_st(x, 0.2))
+    brng = rng_for("jingle_bell")              # the bell itself is the same object every time
+    split = [f * brng.uniform(0.0012, 0.0035) for f, _, _ in JINGLE_MODES]
+    y = np.zeros((2, n))
+    for (ts, a) in JINGLE_SHAKES:
+        tt = ts + (rng.uniform(0.0, 0.004) if ts else 0.0)   # the first impact sits on the cue
+        for b in range(int(rng.integers(2, 5))):
+            amp = a * 0.6 ** b * rng.uniform(0.8, 1.0)
+            k = s2n(tt)
+            tk = t[:n - k]
+            hit = np.zeros((2, n - k))
+            for (f, lvl, tau), df in zip(JINGLE_MODES, split):
+                w = lvl * rng.uniform(0.45, 1.0)             # the pellet lands somewhere else each time
+                ph = rng.uniform(0.0, TWO_PI, 2)
+                e = np.exp(-tk / (tau * rng.uniform(0.9, 1.1)))
+                lo = np.sin(TWO_PI * (f - df) * tk + ph[0]) * e
+                hi = np.sin(TWO_PI * (f + df) * tk + ph[1]) * e
+                hit[0] += w * (0.62 * lo + 0.38 * hi)
+                hit[1] += w * (0.38 * lo + 0.62 * hi)
+            hit *= 1.0 - np.exp(-tk / 0.00025)
+            y[:, k:] += amp * hit
+            tt += rng.uniform(0.009, 0.022)
+    y = butter(y, "highpass", 2500.0, 2)
+    y = butter(y, "lowpass", 12000.0, 2)
+    fade_edges(y, 0.0, 0.08)
+    return 0.0, _norm(y)
+
+
+def lights_on(ev, rng, ctx):
+    """A wall switch (lever click, then the contact snapping over 18 ms later) and a short
+    warm bloom as the room lights up: a low dominant chord of the song's key, soft-attacked,
+    all of it below the melody's first note, with a breath of air on top."""
+    n = s2n(1.25)
+    t = tarr(n)
+
+    def click(k0, f_res, tau, body):
+        m = n - k0
+        tk = t[:m]
+        nz = butter(rng.standard_normal(m), "bandpass", (1400.0, 6500.0), 2) * _env(m, 0.0002, 0.0016)
+        c = nz / (np.max(np.abs(nz)) + 1e-9)
+        c += 0.55 * np.sin(TWO_PI * f_res * tk) * _env(m, 0.0003, tau)
+        c += body * np.sin(TWO_PI * 410.0 * tk) * _env(m, 0.0005, 0.009)
+        out = np.zeros(n)
+        out[k0:] = c
+        return out
+
+    sw = 0.8 * click(0, 2900.0, 0.0035, 0.5) + 1.0 * click(s2n(0.018), 2300.0, 0.005, 0.8)
+    key = ctx.get("bday_key", "C")
+    dom = (chord_pcs(key)[0] + 7) % 12                       # G for C major
+    base = 36 + dom if dom >= 7 else 48 + dom                # G2
+    chord = [base, base + 7, base + 12, base + 16, base + 19]   # G2 D3 G3 B3 D4
+    k0 = s2n(0.02)
+    m = n - k0
+    tb = t[:m]
+    att = smoothstep(tb / 0.14)
+    dec = np.exp(-np.maximum(tb - 0.14, 0.0) / 0.3)
+    bloom = np.zeros((2, m))
+    for j, mm in enumerate(chord):
+        f = float(mtof(mm))
+        a = (1.0, 0.75, 0.8, 0.6, 0.5)[j]
+        for c in range(2):
+            fc = f * cents((-4, 4)[c] * (1 if j % 2 else -1))
+            bloom[c] += a * (np.sin(TWO_PI * fc * tb + rng.uniform(0, 6.28))
+                             + 0.25 * np.sin(TWO_PI * 2 * fc * tb + rng.uniform(0, 6.28))
+                             + 0.08 * np.sin(TWO_PI * 3 * fc * tb + rng.uniform(0, 6.28)))
+    bloom *= att * dec
+    air = _decorrelated_noise(m, rng, lo=1500.0, hi=5500.0) * smoothstep(tb / 0.1) * np.exp(-tb / 0.16)
+    y = np.zeros((2, n))
+    y += 0.9 * np.stack([sw, sw]) / (np.max(np.abs(sw)) + 1e-9)
+    y[:, k0:] += 0.5 * bloom / (np.max(np.abs(bloom)) + 1e-9) + 0.05 * air / (np.max(np.abs(air)) + 1e-9)
+    fade_edges(y, 0.0, 0.08)
+    return 0.0, _norm(y)
 
 
 def term_key(ev, rng, ctx):
@@ -581,69 +693,244 @@ def riser(ev, rng, ctx):
     return 0.0, _norm(y)
 
 
-def name_chime(ev, rng, ctx):
-    idx = int(ev.get("index", ctx["index"]))
-    m = ctx["chime_notes"][idx % len(ctx["chime_notes"])]
-    f0 = float(mtof(m))
-    n = s2n(2.4)
+def _punch_notes(ctx):
+    """The two notes of a card's ding: fifth -> root of the chord under the punch (octave 6)."""
+    root, _ = chord_pcs(ctx.get("chord", ctx["key"]))
+    r = 84 + root % 12
+    if r > 93:
+        r -= 12
+    return r - 5, r
+
+
+def _soft_tone(f, n, ph0=0.0):
+    """Soft triangle-ish tone for the data sonifications (fundamental + weak odd partials)."""
+    ph = phase_of(f, n, ph0)
+    return np.sin(TWO_PI * ph) + 0.11 * np.sin(TWO_PI * 3 * ph) + 0.03 * np.sin(TWO_PI * 5 * ph)
+
+
+def chart_build(ev, rng, ctx):
+    """A soft, rising data sonification for each "figure" while its chart draws. It ends on
+    the punch and aims at the first note of that card's ding.
+      exam   bars shooting up        an accelerating upward glide, ticking faster and faster
+      h0     the bell curve          a gentle bell-shaped swell, then the statistic slides out
+      heart  the scatter plot        a flurry of soft plucks converging onto one note
+      ci     the confidence band     two tones sweeping smoothly together until they lock
+    """
+    dur = float(ev.get("dur", 1.0))
+    kind = ev.get("id", "exam")
+    n = s2n(dur)
     t = tarr(n)
-    tau = float(np.clip(1.25 * (880.0 / f0) ** 0.35, 0.5, 1.6))
-    x = np.zeros(n)
-    for r, a, tt in ((1.0, 1.0, tau), (1.0027, 0.35, tau * 0.9), (2.0, 0.42, tau * 0.55), (3.0, 0.12, tau * 0.3),
-                     (4.16, 0.10, tau * 0.18), (5.43, 0.06, tau * 0.1)):
-        if f0 * r < 17000:
-            x += a * np.sin(TWO_PI * f0 * r * t + rng.uniform(0, 6.28)) * np.exp(-t / tt)
-    idx = 2.4 * np.exp(-t / 0.012)
-    x += 0.35 * np.sin(TWO_PI * f0 * t + idx * np.sin(TWO_PI * 3.5 * f0 * t)) * np.exp(-t / 0.10)
-    x *= 1 - np.exp(-t / 0.0003)
-    tick = butter(rng.standard_normal(n), "highpass", 3000.0, 2) * _env(n, 0.0002, 0.002)
-    x += 0.12 * tick / (np.max(np.abs(tick)) + 1e-9)
-    fade_edges(x, 0.0, 0.05)
-    x = butter(x, "highpass", 150.0, 2)
-    pan = 0.28 * np.sin(idx * 1.3)
-    return 0.0, _norm(_st(x, pan))
+    u = t / dur
+    lo_m, _ = _punch_notes(ctx)                   # first note of the ding that follows
+    f_end = float(mtof(lo_m))
+    y = np.zeros((2, n))
+    if kind == "h0":
+        g = np.exp(-0.5 * ((u - 0.33) / 0.13) ** 2)                    # the bell curve
+        sl = smoothstep((u - 0.66) / 0.34) ** 1.6                      # then the slide
+        f = (f_end / 4.0) * 2.0 ** (7.0 / 12.0 * g + 2.0 * sl)          # up a fifth and back, then two octaves
+        x = _soft_tone(f, n) * (0.2 + 0.8 * g + 0.75 * sl)
+        y += _st(x, 0.0)
+        y += 0.12 * _st(_soft_tone(f + 1.5, n, 0.3) * (0.8 * g + 0.75 * sl), 0.5)     # a slow, light shimmer
+        y += 0.12 * _st(_soft_tone(f - 1.5, n, 0.6) * (0.8 * g + 0.75 * sl), -0.5)
+    elif kind == "heart":
+        root, _ = chord_pcs(ctx["key"])
+        pent = sorted(m for m in range(48, 100) if (m - root) % 12 in (0, 2, 4, 7, 9))
+        tgt = lo_m - 12
+        N = 24
+        for k in range(N):
+            v = k / (N - 1)
+            tk = dur * 0.93 * v ** 0.85
+            spread = 15.0 * (1.0 - v) ** 1.3
+            want = tgt + rng.uniform(-spread, spread)
+            m = min(pent, key=lambda q: abs(q - want)) if spread > 1.0 else tgt
+            k0 = s2n(tk)
+            mlen = min(n - k0, s2n(0.22))
+            if mlen < 64:
+                continue
+            tp = tarr(mlen)
+            f = float(mtof(m))
+            p = (np.sin(TWO_PI * f * tp) + 0.3 * np.sin(TWO_PI * 2 * f * tp) * np.exp(-tp / 0.02)) * _env(mlen, 0.0015, 0.05)
+            y[:, k0:k0 + mlen] += _st(p, rng.uniform(-0.8, 0.8) * (1.0 - v)) * (0.6 + 0.4 * v)
+    elif kind == "ci":
+        lock = 0.8
+        w = np.clip(u / lock, 0.0, 1.0)
+        e = 1.0 - (1.0 - w) ** 2.4                                      # ease-out: slows into the lock
+        f1 = (f_end / 4.0) * 4.0 ** e                                   # lower bound sweeps up two octaves
+        f2 = (f_end * 1.5) * (1.0 / 1.5) ** e                           # upper bound eases down a fifth
+        a = (0.35 + 0.65 * smoothstep(u / 0.5)) * np.where(u > lock, np.exp(-(u - lock) * dur / 0.07), 1.0)
+        y += _st(_soft_tone(f1, n) * a, -0.3 * (1.0 - w))
+        y += _st(0.55 * _soft_tone(f2, n, 0.25) * a, 0.3 * (1.0 - w))
+        k0 = s2n(dur * lock)                                            # the lock: a tiny double tick
+        for dk, g_ in ((0, 0.5), (s2n(0.045), 0.35)):
+            m = n - k0 - dk
+            if m > 64:
+                c = butter(rng.standard_normal(m), "bandpass", (2500.0, 8000.0), 2) * _env(m, 0.0003, 0.002)
+                y[:, k0 + dk:] += g_ * np.stack([c, c]) / (np.max(np.abs(c)) + 1e-9)
+    else:                                                               # "exam" and any other id
+        e = u ** 2.3                                                    # accelerating
+        f = (f_end / 6.0) * 6.0 ** e
+        x = _soft_tone(f, n) * (0.35 + 0.65 * u)
+        y += _st(x, 0.0) + 0.12 * _st(_soft_tone(f + 1.5, n, 0.4) * (0.35 + 0.65 * u), 0.4) \
+            + 0.12 * _st(_soft_tone(f - 1.5, n, 0.7) * (0.35 + 0.65 * u), -0.4)
+        steps = np.floor(12.0 * np.log2(f / f[0]) / 2.0)               # a tick every whole tone climbed
+        for k0 in np.flatnonzero(np.diff(steps) > 0):
+            m = min(n - k0, s2n(0.02))
+            if m > 64:
+                c = butter(rng.standard_normal(m), "highpass", 3000.0, 2) * _env(m, 0.0003, 0.0015)
+                y[:, k0:k0 + m] += 0.22 * (0.4 + 0.6 * k0 / n) * np.stack([c, c]) / (np.max(np.abs(c)) + 1e-9)
+    y = butter(y, "lowpass", 6500.0, 2)
+    y = _norm(y)
+    # a breath before the punch: the figure lets go in its last 45 ms, so the ding / stamp
+    # lands in a little air instead of on top of it
+    k = min(n, s2n(0.045))
+    g_ = s2n(0.012)
+    y[:, n - k:n - g_] *= rc_ramp(k - g_, up=False)
+    y[:, n - g_:] = 0.0
+    fade_edges(y, 0.012, 0.0)
+    return 0.0, y
+
+
+def punch_ding(ev, rng, ctx):
+    """A bright, satisfying two-note ding on a card's punch: fifth -> root of the chord the
+    band accents there, the second note louder and longer, a little glassy sparkle on top."""
+    lo, hi = _punch_notes(ctx)
+    n = s2n(1.8)
+    t = tarr(n)
+    y = np.zeros(n)
+    for (m, off, a, tau) in ((lo, 0.0, 0.75, 0.45), (hi, 0.085, 1.0, 0.8)):
+        k = s2n(off)
+        f0 = float(mtof(m))
+        tk = t[:n - k]
+        y[k:] += a * ins.fm_bell(m, 1.0, rng, ratio=3.5, index=1.5, idx_tau=0.05, tau=tau, length=(n - k) / SR)
+        y[k:] += a * 0.5 * np.sin(TWO_PI * f0 * tk) * np.exp(-tk / (tau * 1.2)) * (1 - np.exp(-tk / 0.0004))
+        y[k:] += a * 0.16 * np.sin(TWO_PI * 2 * f0 * tk + 0.5) * np.exp(-tk / (tau * 0.5)) * (1 - np.exp(-tk / 0.0004))
+    for j in range(4):
+        k = s2n(0.09 + 0.028 * j)
+        f = rng.uniform(5200, 8200)
+        y[k:] += 0.05 * np.sin(TWO_PI * f * t[:n - k]) * _env(n - k, 0.0005, 0.06)
+    fade_edges(y, 0.0, 0.05)
+    return 0.0, _norm(_st(y, 0.08))
+
+
+def stamp(ev, rng, ctx):
+    """A rubber stamp slammed onto paper on a desk: a low thud, the desk's knock, and the
+    slap of the paper. Short and dry."""
+    n = s2n(0.42)
+    t = tarr(n)
+    f = 52.0 + 95.0 * np.exp(-t / 0.016)
+    thud = np.sin(TWO_PI * phase_of(f, n)) * _env(n, 0.0012, 0.075)
+    knock = butter(rng.standard_normal(n), "bandpass", (130.0, 520.0), 2) * _env(n, 0.001, 0.03)
+    knock /= np.max(np.abs(knock)) + 1e-9
+    slap = _decorrelated_noise(n, rng, lo=1300.0, hi=7500.0) * (_env(n, 0.0006, 0.011) + 0.16 * _env(n, 0.004, 0.05))
+    slap /= np.max(np.abs(slap)) + 1e-9
+    rub = np.sin(TWO_PI * 185.0 * t) * _env(n, 0.002, 0.022)             # the rubber die giving
+    y = np.stack([thud, thud]) + 0.5 * np.stack([knock, knock]) + 0.5 * slap + 0.3 * np.stack([rub, rub])
+    y = softclip(y * 1.25, 1.0)
+    fade_edges(y, 0.0, 0.04)
+    return 0.0, _norm(y)
+
+
+def node_swarm(ev, rng, ctx):
+    """The ~160 student dots appearing: a shimmer of as many tiny plucks, scattered across
+    the stereo field and across three octaves of the key's pentatonic scale."""
+    dur = float(ev.get("dur", 0.8))
+    N = int(ev.get("count", 160))
+    n = s2n(dur + 0.35)
+    root, _ = chord_pcs(ctx["key"])
+    pent = [m for m in range(74, 103) if (m - root) % 12 in (0, 2, 4, 7, 9)]
+    y = np.zeros((2, n))
+    times = np.sort(dur * rng.random(N) ** 0.9)
+    for tk in times:
+        k0 = s2n(tk)
+        m = n - k0
+        L = min(m, s2n(0.16))
+        tp = tarr(L)
+        f = float(mtof(pent[int(rng.integers(0, len(pent)))])) * cents(rng.uniform(-6, 6))
+        p = np.sin(TWO_PI * f * tp + rng.uniform(0, 6.28)) * _env(L, 0.001, rng.uniform(0.02, 0.045))
+        bell = np.sin(np.pi * np.clip(tk / dur, 0, 1)) ** 0.6           # the swarm swells and thins
+        y[:, k0:k0 + L] += _st(p, rng.uniform(-0.9, 0.9)) * rng.uniform(0.35, 1.0) * (0.35 + 0.65 * bell)
+    y = butter(y, "highpass", 900.0, 2)
+    fade_edges(y, 0.002, 0.05)
+    return 0.0, _norm(y)
+
+
+def gather_swell(ev, rng, ctx):
+    """An airy, rising whoosh-swell that peaks exactly `dur` after its cue (the climax):
+    noise through a rising band, plus breathy resonances on the tonic chord fading in."""
+    dur = float(ev.get("dur", 1.4))
+    top = dur - 0.035                 # it crests a breath before the climax chord and gets out of its way
+    n = s2n(dur + 0.08)
+    t = tarr(n)
+    u = np.clip(t / top, 0.0, 1.0)
+    amp = u ** 2.3
+    amp[t > top] = np.exp(-(t[t > top] - top) / 0.014)
+    fc = 450.0 * (6500.0 / 450.0) ** (u ** 1.2)
+    w = tv_filter(rng.standard_normal((2, n)), "bp", fc, q=0.8, block=64, stages=2)
+    w /= np.std(w[:, s2n(dur * 0.8):s2n(dur)]) + 1e-9
+    root, _ = chord_pcs(ctx["key"])
+    r = 74 + (root - 2) % 12                                  # around D5
+    air = np.zeros((2, n))
+    for j, iv in enumerate((0, 7, 12, 16, 19)):
+        f = float(mtof(r + iv)) * 2.0 ** (-0.18 * (1.0 - u) ** 2)       # drifts up into pitch
+        b = tv_filter(rng.standard_normal((2, n)), "bp", f, q=28.0, block=64, stages=1)
+        air += (1.0, 0.8, 0.7, 0.5, 0.45)[j] * b / (np.std(b) + 1e-9)
+    air /= np.std(air[:, s2n(dur * 0.8):s2n(dur)]) + 1e-9
+    y = (0.75 * w + 0.6 * air) * amp
+    y = butter(y, "highpass", 250.0, 2)
+    fade_edges(y, 0.02, 0.05)
+    return 0.0, _norm(y)
+
+
+def chime_big(ev, rng, ctx):
+    """A rich chime chord in the key of the reveal, struck as one gesture (rolled upward in
+    ~90 ms) and left to ring: tonic bell low and wide, fifths, the third and the octave."""
+    root, _ = chord_pcs(ctx["key"])
+    r = 62 + (root - 2) % 12                                  # D4
+    notes = [(r, 0.9, -0.15), (r + 12, 1.0, 0.2), (r + 19, 0.8, -0.35), (r + 24, 0.85, 0.35),
+             (r + 28, 0.6, -0.1), (r + 31, 0.5, 0.45), (r + 36, 0.35, -0.45)]
+    L = 4.2
+    n = s2n(L + 0.2)
+    y = np.zeros((2, n))
+    for i, (m, a, pan) in enumerate(notes):
+        k = s2n(0.014 * i)
+        for dc, g, pp in ((-2.5, 0.6, -0.12), (2.5, 0.6, 0.12)):         # two slightly detuned strikes: chorus
+            c = ins.chime(m + dc / 100.0, a, rng, length=L)
+            y[:, k:k + len(c)] += _st(c * g, float(np.clip(pan + pp, -1, 1)))
+    y = butter(y, "highpass", 180.0, 2)
+    fade_edges(y, 0.0, 0.6)
+    return 0.0, _norm(y)
 
 
 DESIGNS = {
-    "drone_in": drone_in, "pulse_blip": pulse_blip, "text_hit": text_hit, "comic_ding": comic_ding,
-    "notif_ping": notif_ping, "soft_tick": soft_tick, "hard_stop": hard_stop, "reverse_riser": reverse_riser,
-    "impact_drop": impact_drop, "whoosh": whoosh, "key_click": key_click, "ui_click": ui_click,
-    "post_pop": post_pop, "reply_pop": reply_pop, "upvote_tick": upvote_tick, "counter_ding": counter_ding,
-    "swish_small": swish_small, "countdown_hit": countdown_hit, "ui_click_big": ui_click_big,
-    "glitch_hit": glitch_hit, "error_beep": error_beep, "static_rise": static_rise,
-    "party_popper": party_popper, "party_horn": party_horn, "term_key": term_key,
+    "drone_in": drone_in, "node_blip": node_blip, "text_hit": text_hit, "count_tick": count_tick,
+    "comic_ding": comic_ding, "notif_ping": notif_ping, "soft_tick": soft_tick, "hard_stop": hard_stop,
+    "reverse_riser": reverse_riser, "impact_drop": impact_drop, "whoosh": whoosh, "key_click": key_click,
+    "ui_click": ui_click, "post_pop": post_pop, "reply_pop": reply_pop, "upvote_tick": upvote_tick,
+    "counter_ding": counter_ding, "swish_small": swish_small, "countdown_hit": countdown_hit,
+    "ui_click_big": ui_click_big, "glitch_hit": glitch_hit, "error_beep": error_beep, "static_rise": static_rise,
+    "bell_jingle": bell_jingle, "lights_on": lights_on, "party_popper": party_popper, "term_key": term_key,
     "crescendo_noise": crescendo_noise, "flash_impact": flash_impact, "type_soft": type_soft,
-    "riser": riser, "impact_drop_big": impact_drop_big, "name_chime": name_chime, "whoosh_soft": whoosh_soft,
+    "riser": riser, "impact_drop_big": impact_drop_big, "chart_build": chart_build, "punch_ding": punch_ding,
+    "stamp": stamp, "node_swarm": node_swarm, "gather_swell": gather_swell, "chime_big": chime_big,
+    "whoosh_soft": whoosh_soft,
 }
 
-# (bus, gain dB). Buses: ui (dry-ish), notif, big (hall), air, glitch (dry), bell (plate+hall)
+# (bus, gain dB). Buses: ui (dry-ish), notif, big (hall), air, glitch (dry), bell (plate+hall),
+# tiny (small room: the collar bell)
 LEVELS = {
-    "drone_in": ("air", -19), "pulse_blip": ("bell", -17), "text_hit": ("big", -11), "comic_ding": ("bell", -15),
+    "drone_in": ("air", -19), "node_blip": ("bell", -15), "text_hit": ("big", -11), "count_tick": ("ui", -11),
+    "comic_ding": ("bell", -15),
     "notif_ping": ("notif", -12.5), "soft_tick": ("ui", -21), "hard_stop": ("big", -9), "reverse_riser": ("air", -12),
     "impact_drop": ("big", -5), "whoosh": ("air", -5), "key_click": ("ui", -9), "ui_click": ("ui", -4),
     "post_pop": ("ui", -7), "reply_pop": ("ui", -8), "upvote_tick": ("ui", -15), "counter_ding": ("bell", -9),
     "swish_small": ("air", -5), "countdown_hit": ("big", -5), "ui_click_big": ("ui", -2),
     "glitch_hit": ("glitch", -10), "error_beep": ("glitch", -15), "static_rise": ("glitch", -1),
-    "party_popper": ("big", -4), "party_horn": ("ui", -5), "term_key": ("ui", -26),
+    "bell_jingle": ("tiny", -12), "lights_on": ("air", -9), "party_popper": ("big", -9), "term_key": ("ui", -26),
     "crescendo_noise": ("glitch", -1), "flash_impact": ("big", -5), "type_soft": ("ui", -15),
-    "riser": ("air", -11), "impact_drop_big": ("big", -6.5), "name_chime": ("bell", -8), "whoosh_soft": ("air", -9),
+    "riser": ("air", -11), "impact_drop_big": ("big", -6.5), "chart_build": ("notif", -13.5),
+    "punch_ding": ("bell", -8.5), "stamp": ("ui", -3), "node_swarm": ("bell", -9), "gather_swell": ("air", -5),
+    "chime_big": ("bell", -8), "whoosh_soft": ("air", -9),
 }
-
-
-def chime_notes(cues):
-    """17 ascending notes of the major pentatonic of the reveal key, from its 6th degree
-    (D major -> B3 D4 E4 F#4 A4 B4 ... D7): every chime on a downbeat is a 3rd or 5th of
-    the chord under it, and the last one is the tonic."""
-    root, _ = chord_pcs(cues["tempo"]["reveal"]["chords"][0])
-    pent = {(root + i) % 12 for i in (0, 2, 4, 7, 9)}
-    start = 48 + (root + 9) % 12 + (12 if (root + 9) % 12 < 6 else 0)
-    out, m = [], start
-    N = len(cues["names"]["times"])
-    while len(out) < N:
-        if m % 12 in pent:
-            out.append(m)
-        m += 1
-    return out
 
 
 def sfx_reverbs():
@@ -663,24 +950,46 @@ def _mixer(name, t0, t1):
     mx.bus("air", gain_db=0.0, sends={"plate": 0.12})
     mx.bus("glitch", gain_db=0.0, sends={"room": 0.06})
     mx.bus("bell", gain_db=0.0, sends={"plate": 0.22, "hall": 0.18}, width=1.2)
+    mx.bus("tiny", gain_db=0.0, hp=1500, sends={"room": 0.10, "plate": 0.10}, width=1.1)
     return mx
 
 
-def render_sfx(cues):
-    """-> (pre_mixer, pre_mix, post_mixer, post_mix).
+def check_kinds(cues):
+    """Fail loudly if the cue sheet asks for an SFX kind that cannot be rendered."""
+    kinds = sorted({e["kind"] for e in cues["sfx"]})
+    missing = [k for k in kinds if k not in DESIGNS]
+    unlevelled = [k for k in kinds if k in DESIGNS and k not in LEVELS]
+    if missing or unlevelled:
+        raise KeyError("cues.sfx uses SFX kinds that sfx.py cannot render - "
+                       f"no design: {missing or 'none'}; no level/bus: {unlevelled or 'none'}. "
+                       "Add them to DESIGNS and LEVELS in tools/audio/sfx.py.")
+    return kinds
+
+
+def render_sfx(cues, epochs):
+    """-> (pre_mixer, pre_mix, [(post_mixer, post_mix), ...]).
 
     pre  = the launch-film SFX bed (cue t < g1.start, except hard_stop): it later gets the
            same hard stop + G1 crash processing as the music ("everything cuts").
-    post = everything else (the glitch SFX themselves, birthday, terminal, act 3).
+    post = everything else, one mixer per epoch. `epochs` are the stretches between the cue
+           sheet's black / silence spans; a mixer ends where its epoch ends, so no reverb
+           tail survives a silence (the collar bell after G1 and the letter after G2 start
+           from nothing).
     """
+    check_kinds(cues)
     g1s = cues["g1"]["start"]
-    dur = cues["duration"]
     pre = _mixer("sfx_pre", 0.0, cues["g1"]["end"])
-    post = _mixer("sfx_post", 0.0, dur)
+    posts = [_mixer(f"sfx_post{i + 1}", a, b) for i, (a, b) in enumerate(epochs)]
+    ev_all = cues["sfx"]
+    T1 = cues["tempo"]["act1"]
+    ticks = [e["t"] for e in ev_all if e["kind"] == "count_tick"]
+    tick_chord = T1["chords"][int((min(ticks) - T1.get("first_beat", 0.0)) // T1["bar_seconds"]) % len(T1["chords"])] \
+        if ticks else T1["chords"][0]
     ctx_base = {"ir_hall": make_ir(2.0, 2.6, rng_for("ir", "revriser")),
                 "key": cues["tempo"]["reveal"]["chords"][0],
-                "chime_notes": chime_notes(cues)}
-    ev_all = cues["sfx"]
+                "key1": T1["chords"][0],
+                "tick_chord": tick_chord,
+                "bday_key": cues["tempo"]["birthday"].get("key", "C major").split()[0]}
     counts, seen = {}, {}
     for e in ev_all:
         counts[e["kind"]] = counts.get(e["kind"], 0) + 1
@@ -690,8 +999,6 @@ def render_sfx(cues):
     first_hit = {}
     for e in ev_all:
         kind = e["kind"]
-        if kind not in DESIGNS:
-            raise KeyError(f"no design for SFX kind {kind!r}")
         idx = seen.get(kind, 0)
         seen[kind] = idx + 1
         ctx = dict(ctx_base, index=idx, count=counts[kind])
@@ -703,6 +1010,9 @@ def render_sfx(cues):
                 if w[0] <= e["t"] < w[1] and w not in first_hit:
                     first_hit[w] = e["t"]
                     ctx["first_of_window"] = True
+        if kind in ("chart_build", "punch_ding", "stamp"):
+            # the chord the band accents on this card's punch (a build ends on its punch)
+            ctx["chord"] = reveal_punch_chord(cues, e["t"] + float(e.get("dur", 0.0)))
         rng = rng_for("sfx", kind, e["t"], idx)
         off, sig = DESIGNS[kind](e, rng, ctx)
         bus, gdb = LEVELS[kind]
@@ -710,8 +1020,13 @@ def render_sfx(cues):
         if kind == "notif_ping":
             dens = np.sum(np.abs(pings - e["t"]) < 0.25)
             g *= float(np.clip(2.2 / np.sqrt(max(dens, 1)), 0.6, 1.0))
-        target = pre if (e["t"] < g1s and kind != "hard_stop") else post
+        if e["t"] < g1s and kind != "hard_stop":
+            target = pre
+        else:
+            home = [mx for mx, (a, b) in zip(posts, epochs) if a - 1e-9 <= e["t"] < b]
+            if not home:
+                raise ValueError(f"SFX cue {kind!r} at {e['t']} s lies inside a black/silence span of the cue sheet")
+            target = home[0]
         target.buses[bus].add(e["t"] + off, sig, g)
     pre_mix = pre.render()
-    post_mix = post.render()
-    return pre, pre_mix, post, post_mix
+    return pre, pre_mix, [(mx, mx.render()) for mx in posts]

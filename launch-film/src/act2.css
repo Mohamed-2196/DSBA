@@ -1,0 +1,14 @@
+/* Act 2 — the fake birthday for Noor (72–85.5) and the DOM side of glitch #2 (terminal, 85.5–90).
+   The party is painted on one canvas by act2.js (photograph, lights, confetti and type: see the notes at the top
+   of that file); this sheet only places the canvas and styles the terminal that takes the screen after the cut. */
+
+.bday { background: #000; }
+.bd-world { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+
+/* ── g2 terminal (covers the party from terminal_lines[0].t - 0.1) ───────────────────────── */
+.term { position: absolute; inset: 0; background: #04060a; visibility: hidden; padding: 236px 0 0 200px; font: 500 64px/1.6 var(--mono); color: #39ff88; }
+.term__head { position: absolute; left: 200px; top: 136px; font-size: 34px; line-height: 1.2; color: #1f9c57; }
+.term p { white-space: pre; min-height: 1.62em; }
+.term p.warn { color: #ffe14a; font-weight: 700; }
+.term p.bad { color: #ff5470; }
+.term .caret { margin-left: 4px; }

@@ -97,7 +97,7 @@ export function typeText(node, text, t0, cps, { caret = null } = {}) {
 }
 
 /** Browser window showing 1920×1080 "screens". Children placed in .bw__content use screen pixels. */
-export function browser({ width = 1500, url = 'dsba-pulse.app', screens = [] } = {}) {
+export function browser({ width = 1500, url = 'mohamed-2196.github.io/DSBA', screens = [] } = {}) {
   const s0 = width / W;
   const viewH = Math.round(H * s0);
   const bw = el('div', 'bw');
@@ -133,7 +133,7 @@ export function browser({ width = 1500, url = 'dsba-pulse.app', screens = [] } =
 
 /** Mouse cursor with a click ripple, positioned in its parent's coordinate space. */
 export function cursor(parent) {
-  const c = el('div', 'cursor', `<svg viewBox="0 0 24 24" width="34" height="34"><path d="M4 2l15 9.5-6.6 1.6L16 20.6l-3 1.4-3.6-7.6L4 19z" fill="#fff" stroke="#0e1542" stroke-width="1.6" stroke-linejoin="round"/></svg><i class="cursor__ring"></i>`);
+  const c = el('div', 'cursor', `<svg viewBox="0 0 24 24" width="34" height="34"><path d="M4 2l15 9.5-6.6 1.6L16 20.6l-3 1.4-3.6-7.6L4 19z" fill="#fff" stroke="#0a1f44" stroke-width="1.6" stroke-linejoin="round"/></svg><i class="cursor__ring"></i>`);
   parent.appendChild(c);
   const ring = c.querySelector('.cursor__ring');
   gsap.set(c, { autoAlpha: 0, x: 0, y: 0 });
@@ -166,18 +166,31 @@ export function callout(parent, text, x, y, { side = 'right' } = {}) {
   };
 }
 
-/** The brand pulse trace as an SVG path string spanning `w`, with a spike at fraction `at`. */
+/** A quiet baseline with a spike at fraction `at` (used as a generic "signal" line). */
 export function pulsePath(w, y, at = 0.5, amp = 1) {
   const x = w * at;
   const p = [[0, 0], [x - 150, 0], [x - 120, -18 * amp], [x - 96, 14 * amp], [x - 74, 0], [x - 46, 0], [x - 22, -150 * amp], [x + 10, 120 * amp], [x + 34, -46 * amp], [x + 56, 18 * amp], [x + 80, 0], [w, 0]];
   return p.map(([px, py], i) => `${i ? 'L' : 'M'}${px.toFixed(1)} ${(y + py).toFixed(1)}`).join(' ');
 }
 
-/** The DSBA Pulse logo tile (navy square with the trace). */
+/** Geometry of the DSBA Hub mark in a 100×100 box: three cohort nodes joined at a highlighted hub. */
+export const HUB_MARK = {
+  hub: [50, 51.5],
+  nodes: [[50, 23], [74.7, 65.8], [25.3, 65.8]],
+  nodeR: 9, hubR: 12.5, stroke: 7.2,
+};
+
+/** The DSBA Hub mark as SVG markup (white spokes + nodes, yellow hub). Classes: hub-spoke, hub-node, hub-core. */
+export function hubMarkSvg() {
+  const { hub, nodes, nodeR, hubR, stroke } = HUB_MARK;
+  return `<svg viewBox="0 0 100 100">${nodes.map(([x, y]) => `<line class="hub-spoke" x1="${hub[0]}" y1="${hub[1]}" x2="${x}" y2="${y}" stroke="#fff" stroke-width="${stroke}" stroke-linecap="round"/>`).join('')}${nodes.map(([x, y]) => `<circle class="hub-node" cx="${x}" cy="${y}" r="${nodeR}" fill="#fff"/>`).join('')}<circle class="hub-core" cx="${hub[0]}" cy="${hub[1]}" r="${hubR}" fill="#ffe14a" stroke="#1558f0" stroke-width="4.6"/></svg>`;
+}
+
+/** The DSBA Hub logo tile (brand-blue rounded square with the hub mark). */
 export function logoTile(size = 150) {
   const t = el('div', 'logo-tile');
   t.style.width = t.style.height = `${size}px`;
-  t.style.borderRadius = `${size * 0.24}px`;
-  t.innerHTML = `<svg viewBox="0 0 100 100"><path d="M12 54h20l7-9 6 14 9-34 9 44 7-22 5 7h13" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  t.style.borderRadius = `${size * 0.28}px`;
+  t.innerHTML = hubMarkSvg();
   return t;
 }

@@ -2,7 +2,7 @@
 // Usage:
 //   node tools/shoot-ui.mjs --url "http://127.0.0.1:5173/DSBA/#/forum" --out out.png \
 //        [--w 1920] [--h 1080] [--theme light|dark] [--year 2] [--full] [--scale 1] [--wait 1200]
-//        [--selector "[data-pulse=thread-card]"]   (element screenshot of the first match)
+//        [--selector "[data-hub=thread-card]"]   (element screenshot of the first match)
 import { chromium } from '/home/claude/.npm-global/lib/node_modules/playwright/index.mjs';
 import { installFontRoutes } from './fonts-route.mjs';
 

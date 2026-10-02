@@ -1,17 +1,30 @@
 // Builds the film as one paused GSAP timeline plus per-frame functions, and exposes
 // window.__film = { duration, fps, seek(t), ready } for the frame renderer.
 // Open with ?play to watch it in real time (with sound, if out/audio/mix.wav exists).
+// ?only=2 (or 1,3 / 2,3 …) builds just those acts: handy while working on one of them.
 import { FPS, el, frameFns, scenes, prog } from './lib.js';
-import { buildAct1 } from './act1.js';
-import { buildAct23 } from './act23.js';
 
+const params = new URLSearchParams(location.search);
 const json = (u) => fetch(u).then((r) => r.json());
-const [cues, config, manifest] = await Promise.all([json('../cues.json'), json('../config.json'), json('../assets/ui/manifest.json')]);
+const [cues, config, manifest] = await Promise.all([json('../cues.json'), json('../config.json'), json('../assets/ui/manifest.json').catch(() => ({}))]);
 const stage = document.getElementById('stage');
 const tl = gsap.timeline({ paused: true });
 const C = { cues, config, manifest, stage, tl };
-buildAct1(C);
-buildAct23(C);
+/** Scene start/end by id prefix, e.g. S('s08') → { start: 72, end: 85.5 }. */
+C.S = (id) => cues.scenes.find((s) => s.id === id || s.id.startsWith(`${id}_`));
+
+const only = params.get('only');
+const ACTS = [['1', './act1.js', 'buildAct1'], ['2', './act2.js', 'buildAct2'], ['3', './act3.js', 'buildAct3']];
+for (const [n, file, fn] of ACTS) {
+  if (only && !only.split(',').includes(n)) continue;
+  try {
+    const mod = await import(file);
+    await mod[fn](C);
+  } catch (err) {
+    // one act failing must not take the others down while several people work on the film
+    console.error(`[film] act ${n} failed to build:`, err);
+  }
+}
 const fade = el('div');
 fade.id = 'fade';
 stage.appendChild(fade);
@@ -25,7 +38,7 @@ function seek(t) {
 }
 
 const ready = (async () => {
-  const fonts = ['800 60px Schibsted', '500 60px Schibsted', '600 60px Newsreader', 'italic 500 60px Newsreader', '500 40px JBMono', '700 40px JBMono', '700 60px Fredoka', '600 60px Fredoka', '800 60px Playfair', '600 30px Playfair', 'italic 700 60px Playfair', '700 60px Caveat'];
+  const fonts = ['800 60px Schibsted', '500 60px Schibsted', '600 60px Newsreader', 'italic 500 60px Newsreader', '500 40px JBMono', '700 40px JBMono', '800 60px Playfair', '600 30px Playfair', 'italic 700 60px Playfair', '700 60px Caveat'];
   await Promise.all(fonts.map((f) => document.fonts.load(f)));
   await document.fonts.ready;
   await Promise.all([...document.images].map((img) => (img.complete ? Promise.resolve() : new Promise((res) => { img.onload = img.onerror = res; })).then(() => img.decode().catch(() => {}))));
@@ -35,9 +48,9 @@ const ready = (async () => {
 
 window.__film = { duration: cues.duration, fps: FPS, seek, ready, cues };
 
-if (new URLSearchParams(location.search).has('play')) {
+if (params.has('play')) {
   await ready;
-  const from = Number(new URLSearchParams(location.search).get('t') || 0);
+  const from = Number(params.get('t') || 0);
   const audio = new Audio('../out/audio/mix.wav');
   audio.currentTime = from;
   let t0 = null;

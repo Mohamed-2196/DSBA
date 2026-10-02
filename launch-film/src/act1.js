@@ -1,53 +1,105 @@
-// Act 1 — the believable product-launch film (0–64 s) plus the DOM side of glitch #1 (64–68 s).
-import { W, H, el, chars, onFrame, scene, browser, cursor, callout, pulsePath, logoTile, mulberry, clamp, lerp, prog, ease, track } from './lib.js';
+// Act 1 — the believable product-launch film for the new DSBA Hub (0–68 s) plus the DOM side of
+// glitch #1 (68–72 s). Every time comes from cues.json.
+import { W, H, el, chars, onFrame, scene, browser, cursor, callout, logoTile, mulberry, clamp, lerp, prog, ease, track } from './lib.js';
+import { COHORTS, cohortNodes, crossLinks } from './net.js';
 
 const UI = '../assets/ui';
+const YT = '../assets/yt';
 const BRAND = '/dsba/public/brand';
+const NEWS = '/dsba/public/demo/news';
+
+// The seven places a DSBA student checks every day (same order as cues.cold_open.places).
+const SRC = [
+  { name: 'BIBF email', ic: '✉️', col: '#1558f0' },
+  { name: 'Backup email', ic: '📨', col: '#5b6f94' },
+  { name: 'Personal email', ic: '📧', col: '#e8590c' },
+  { name: 'LSE VLE', ic: '🎓', col: '#c92a2a' },
+  { name: 'BIBF MyClass', img: `${BRAND}/myclass.png`, col: '#ffffff' },
+  { name: 'UoL portal', img: `${BRAND}/uol.png`, col: '#ffffff' },
+  { name: 'WhatsApp groups', ic: '💬', col: '#12b886' },
+];
+const icon = (s) => `<div class="bub__ic" style="background:${s.col}">${s.img ? `<img src="${s.img}">` : s.ic}</div>`;
 
 // ───────────────────────────────────────────────────────── s01 cold open
-function s01({ tl, cues, config, stage }) {
-  const root = scene(stage, 's01', 0, 8);
-  const L = cues.cold_open_lines;
+function s01({ tl, cues, stage, S }) {
+  const { start, end } = S('s01');
+  const T = cues.cold_open;
+  const L = T.lines;
+  const root = scene(stage, 's01', start, end);
+  const NX = [480, 960, 1440];
   root.innerHTML = `<div class="bg-grid"></div>
-    <svg class="pulse-svg" viewBox="0 0 1920 1080"><path d="${pulsePath(W, 540, 0.5, 1.5)}"/></svg>
+    <svg class="line-svg" viewBox="0 0 1920 1080"><path d="M-20 540H1940"/>
+      ${NX.map((x, i) => `<g class="line-node" style="--c:${COHORTS[i].hex}"><circle class="halo" cx="${x}" cy="540" r="38"/><circle cx="${x}" cy="540" r="15"/><text x="${x}" y="470" text-anchor="middle">${COHORTS[i].label}</text></g>`).join('')}
+    </svg>
     <div class="s01-stack">
       <div class="s01-line">3 cohorts.</div>
-      <div class="s01-line"><small></small> tutors.</div>
       <div class="s01-line"><small></small> students.</div>
-      <div class="s01-line s01-line--hl"><span class="hl">…and ${config.program.group_chats} group chats.</span></div>
-    </div><div class="vignette"></div>`;
-  const path = root.querySelector('path');
-  const len = path.getTotalLength();
-  gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
+      <div class="s01-line s01-line--hl"><span class="hl"><small>1</small> <b>places</b> to check.</span></div>
+    </div>
+    <div class="places"></div><div class="vignette"></div>`;
+  const svg = root.querySelector('.line-svg');
+  const path = svg.querySelector('path');
+  gsap.set(path, { strokeDasharray: 1960, strokeDashoffset: 1960 });
   tl.to(path, { strokeDashoffset: 0, duration: 1.45, ease: 'power2.inOut' }, 0.35);
-  tl.to(path, { opacity: 0.2, y: 430, duration: 0.5, ease: 'power3.inOut' }, 1.85);
+  [...svg.querySelectorAll('.line-node')].forEach((g, i) => {
+    tl.from(g, { scale: 0, opacity: 0, svgOrigin: `${NX[i]} 540`, duration: 0.45, ease: 'back.out(2.6)' }, T.nodes[i]);
+  });
+  tl.to(svg, { opacity: 0.22, y: 430, duration: 0.5, ease: 'power3.inOut' }, 1.85);
   const lines = [...root.querySelectorAll('.s01-line')];
   L.forEach((l, i) => tl.from(lines[i], { y: 80, opacity: 0, duration: 0.5, ease: 'power4.out' }, l.t));
-  const [n17, n160] = root.querySelectorAll('small');
+  const [n160, nPlaces] = root.querySelectorAll('small');
+  const noun = root.querySelector('.s01-line--hl b');
+  // the seven places tick in on the right while the number counts up
+  const box = root.querySelector('.places');
+  T.places.forEach((p, i) => {
+    const s = SRC[i];
+    const chip = el('div', 'place', `${icon(s)}<span>${p.text}</span><em></em>`);
+    box.appendChild(chip);
+    gsap.set(chip, { rotation: (i % 2 ? 1 : -1) * (0.6 + (i % 3) * 0.35) });
+    tl.from(chip, { x: 150, opacity: 0, scale: 0.86, duration: 0.34, ease: 'back.out(1.9)' }, p.t);
+    tl.to(chip, { x: 420 + i * 30, opacity: 0, rotation: (i - 3) * 9, duration: 0.4, ease: 'power3.in' }, end - 0.47 + i * 0.012);
+  });
   onFrame((t) => {
-    n17.textContent = Math.round(config.program.tutors * ease.out3(prog(t, L[1].t, L[1].t + 0.45)));
-    n160.textContent = `~${Math.round(160 * ease.out3(prog(t, L[2].t, L[2].t + 0.6)))}`;
+    if (t >= end) return;
+    n160.textContent = `~${Math.round(160 * ease.out3(prog(t, L[1].t, L[1].t + 0.6)))}`;
+    const n = Math.max(1, T.places.filter((p) => p.t <= t).length);
+    nPlaces.textContent = String(n);
+    noun.textContent = n === 1 ? 'place' : 'places';
   });
   const hl = root.querySelector('.hl');
-  tl.fromTo(hl, { '--hlx': 0 }, { '--hlx': 1, duration: 0.38, ease: 'power3.out' }, L[3].t + 0.04);
-  tl.fromTo(lines[3], { rotation: -3.5 }, { rotation: -1.2, duration: 0.7, ease: 'elastic.out(1.1, 0.35)', transformOrigin: '0 60%' }, L[3].t);
-  tl.to(root.querySelector('.s01-stack'), { x: -160, opacity: 0, duration: 0.42, ease: 'power3.in' }, 7.55);
+  tl.fromTo(hl, { '--hlx': 0 }, { '--hlx': 1, duration: 0.38, ease: 'power3.out' }, T.punch);
+  tl.fromTo(hl, { color: '#f2f6ff' }, { color: '#0a1f44', duration: 0.16, ease: 'none' }, T.punch + 0.04);
+  tl.fromTo(lines[2], { rotation: 0 }, { rotation: -1.4, duration: 0.7, ease: 'elastic.out(1.1, 0.35)', transformOrigin: '0 60%', immediateRender: false }, T.punch);
+  tl.to(root.querySelector('.s01-stack'), { x: -160, opacity: 0, duration: 0.42, ease: 'power3.in' }, end - 0.45);
 }
 
 // ───────────────────────────────────────────────────────── s02 chaos
-const MSG = ['Is the exam on Sunday??', 'which room??', 'anyone have the Year 2 notes?', 'link to the slides pls', 'WHO moved the Drive folder', 'did anyone get the email?', 'deadline extended???', 'is the mock tomorrow', 'wrong group, sorry', 'past papers?? 🙏', 'which Drive folder is it', 'pls reply 😭', 'same question', 'is class cancelled?', 'check the other group', 'forwarded many times', 'what chapter are we on', 'resend the link, it expired', 'anyone awake?', 'calculator allowed??', 'who has the formula sheet', '+1', 'scroll up, it was answered', 'I can’t find it 😩'];
-const WHO = ['DSBA Year 2', 'Stats study grp', 'Econ 2026 📈', 'DSBA Official', 'Year 1 ❤️', 'Programming help', 'Year 3 seniors', 'Maths revision', 'DSBA memes', 'Group project 4', 'Past papers swap', 'Class reps'];
-const ICON = [['💬', '#2e3bff'], ['📎', '#12b886'], ['📢', '#f03e5e'], ['❓', '#7048e8'], ['📚', '#f08c00'], ['🗓️', '#0fa3b1'], ['🔗', '#4a5175']];
+const GROUPS = ['DSBA Year 3', 'DSBA Men', 'The Boys', 'DSBA Announcement', 'ST2133 · Group B', 'DSBA Year 2', 'EC2020 study group', 'DSBA Year 1', 'MN1178 · Group 4', 'Stats revision'];
+const MSG = [
+  ['Timetable update (v3)', 'Room change for Thursday', 'Reminder: registration closes soon', 'Fwd: Fwd: exam arrangements', 'Advisory session this week'],
+  ['Fwd: Timetable update (v3)', 'Sent to your other address too', 'Did you see the BIBF email?'],
+  ['Shared with you: Notes_FINAL(2).pdf', 'Fwd: notes from last year', 'Your fee receipt'],
+  ['New announcement in ST2134', 'Assignment brief uploaded', 'Past examination papers updated', 'New forum post: mock solutions'],
+  ['New material in Statistics', 'Session recording available', 'Attendance updated'],
+  ['Exam entry is now open', 'Action needed: confirm your modules', 'Please sign in again'],
+  ['which email was it in??', 'link expired, resend pls', 'is it on the VLE or MyClass?', 'who has the past papers 🙏', 'scroll up, it was answered', 'check the other group', 'wrong group, sorry', 'did anyone get the email?', 'anyone have the notes?', 'forwarded many times', 'what chapter are we on', 'is class cancelled?', '+1', 'same question'],
+];
 
-function s02({ tl, cues, stage }) {
-  const root = scene(stage, 's02', 8, 18);
-  const { pops, captions, freeze } = cues.chaos;
-  root.innerHTML = `<div class="bg-grid"></div><div class="bubs"></div><div class="band"></div><div class="unread"><i></i><span>0</span></div><div class="vignette"></div><div class="dot"></div>`;
+function s02({ tl, cues, stage, S }) {
+  const { start, end } = S('s02');
+  const { pops, captions, freeze, implode } = cues.chaos;
+  const root = scene(stage, 's02', start, end);
+  root.innerHTML = `<div class="bg-grid"></div><div class="bubs"></div><div class="band"></div><div class="unread"><i></i><span></span></div><div class="vignette"></div><div class="dot"></div>`;
   const layer = root.querySelector('.bubs');
+  const used = SRC.map(() => 0);
   pops.forEach((p, i) => {
+    const s = SRC[p.src];
+    const k = used[p.src];
+    used[p.src] += 1;
+    const who = p.src === 6 ? GROUPS[k % GROUPS.length] : s.name;
+    const pool = MSG[p.src];
     const b = el('div', `bub${i % 3 === 1 ? ' bub--l' : ''}`);
-    const [ic, col] = ICON[i % ICON.length];
-    b.innerHTML = `<div class="bub__ic" style="background:${col}">${ic}</div><div><div class="bub__t">${WHO[(i * 5) % WHO.length]}<em>now</em></div><div class="bub__m">${MSG[i % MSG.length]}</div></div>`;
+    b.innerHTML = `${icon(s)}<div><div class="bub__t">${who}<em>now</em></div><div class="bub__m">${pool[k % pool.length]}</div></div>`;
     const left = p.x * W - 60;
     const top = p.y * H - 20;
     b.style.left = `${left}px`;
@@ -57,43 +109,48 @@ function s02({ tl, cues, stage }) {
     gsap.set(b, { rotation: p.rot });
     tl.from(b, { scale: 0.3, opacity: 0, duration: 0.24, ease: 'back.out(2.4)' }, p.t);
     const r = mulberry(i * 31 + 7)();
-    tl.to(b, { x: 960 - (left + 200), y: 540 - (top + 50), scale: 0, rotation: p.rot + (r - 0.5) * 260, duration: 0.5 + r * 0.32, ease: 'power3.in' }, cues.chaos.implode[0] + r * 0.14);
+    tl.to(b, { x: 960 - (left + 200), y: 540 - (top + 50), scale: 0, rotation: p.rot + (r - 0.5) * 260, duration: 0.5 + r * 0.32, ease: 'power3.in' }, implode[0] + r * 0.14);
   });
   const unread = root.querySelector('.unread');
   const unreadN = unread.querySelector('span');
-  tl.from(unread, { y: -90, opacity: 0, duration: 0.4, ease: 'back.out(1.6)' }, 8.35);
+  tl.from(unread, { y: -90, opacity: 0, duration: 0.4, ease: 'back.out(1.6)' }, start + 0.35);
   tl.to(unread, { opacity: 0, duration: 0.2 }, freeze + 0.9);
   onFrame((t) => {
+    if (t < start || t >= end) return;
     const n = pops.filter((p) => p.t <= Math.min(t, freeze)).length;
-    unreadN.textContent = `${Math.round(1284 * (n / pops.length) ** 1.45).toLocaleString('en-US')} unread`;
+    unreadN.textContent = `${Math.round(1284 * (n / pops.length) ** 1.45).toLocaleString('en-US')} unread · 7 places`;
   });
   const band = root.querySelector('.band');
   tl.from(band, { opacity: 0, duration: 0.3 }, captions[0].t - 0.1);
-  tl.to(band, { opacity: 0, duration: 0.3 }, cues.chaos.implode[0] - 0.05);
+  tl.to(band, { opacity: 0, duration: 0.3 }, implode[0] - 0.05);
   captions.forEach((c, i) => {
     const cap = el('div', 'cap', c.text);
     root.insertBefore(cap, unread);
-    const end = i < captions.length - 1 ? captions[i + 1].t : freeze;
+    const stop = i < captions.length - 1 ? captions[i + 1].t : freeze;
     tl.from(cap, { y: 46, opacity: 0, scale: 0.96, duration: 0.26, ease: 'power3.out' }, c.t);
-    tl.to(cap, { y: -34, opacity: 0, duration: 0.16, ease: 'power2.in' }, end - 0.16);
+    tl.to(cap, { y: -34, opacity: 0, duration: 0.16, ease: 'power2.in' }, stop - 0.16);
   });
   // the freeze: everything stops and drains of colour
   tl.to(layer, { filter: 'grayscale(1) brightness(0.42)', scale: 0.985, duration: 0.16, ease: 'power2.out' }, freeze);
-  const calm = el('div', 'cap cap--calm', 'There has to be a better way.');
+  const calm = el('div', 'cap cap--calm', cues.chaos.calm);
   root.insertBefore(calm, unread);
   tl.from(calm, { opacity: 0, y: 24, duration: 0.4, ease: 'power2.out' }, freeze + 0.22);
-  tl.to(calm, { opacity: 0, scale: 0.9, duration: 0.22, ease: 'power2.in' }, cues.chaos.implode[0] - 0.12);
+  tl.to(calm, { opacity: 0, scale: 0.9, duration: 0.22, ease: 'power2.in' }, implode[0] - 0.12);
   const dot = root.querySelector('.dot');
-  tl.from(dot, { scale: 0, duration: 0.3, ease: 'back.out(3)' }, cues.chaos.implode[1] - 0.34);
+  tl.from(dot, { scale: 0, duration: 0.3, ease: 'back.out(3)' }, implode[1] - 0.34);
 }
 
 // ───────────────────────────────────────────────────────── s03 logo
-function s03({ tl, cues, stage }) {
+function s03({ tl, cues, stage, S }) {
+  const { end } = S('s03');
   const T = cues.logo;
-  const root = scene(stage, 's03', 18, 26);
-  root.innerHTML = `<div class="bg-grid"></div><div class="flash"></div><div class="intro-label">Introducing</div>
-    <div class="lockup"><div class="lockup__row"><div class="wordmark">DSBA Pulse</div></div>
-      <div class="tagline">DSBA, <span class="hl">rebuilt from scratch.</span></div><div class="pills"></div></div>
+  const root = scene(stage, 's03', S('s03').start, end);
+  const tw = T.tagline_text.split(' ');
+  const tagTail = tw.splice(-2).join(' ');
+  root.innerHTML = `<div class="bg-grid"></div><div class="flash"></div><div class="intro-label">${T.label}</div>
+    <div class="lockup"><div class="lockup__row"><div class="wordmark">${T.wordmark}</div></div>
+      <div class="tagline">${tw.join(' ')} <span class="hl">${tagTail}</span></div>
+      <div class="subline">${T.subline_text}</div><div class="pills"></div></div>
     <div class="partners"><span>For the DSBA programme at</span><img src="${BRAND}/bibf-white.png"><i></i><img class="crest" src="${BRAND}/uol.png"></div>
     <div class="vignette"></div>`;
   const row = root.querySelector('.lockup__row');
@@ -102,6 +159,18 @@ function s03({ tl, cues, stage }) {
   const flash = root.querySelector('.flash');
   tl.fromTo(flash, { scale: 0.08, opacity: 1 }, { scale: 7, opacity: 0, duration: 0.95, ease: 'power2.out' }, T.drop);
   tl.from(tile, { scale: 0, rotation: -120, duration: 0.75, ease: 'back.out(1.7)' }, T.drop);
+  // the mark assembles: three cohorts leave the hub and stay joined to it
+  const nodes = [...tile.querySelectorAll('.hub-node')];
+  const spokes = [...tile.querySelectorAll('.hub-spoke')];
+  const core = tile.querySelector('.hub-core');
+  nodes.forEach((n, i) => {
+    const at = T.drop + 0.42 + i * 0.09;
+    tl.from(n, { attr: { cx: 50, cy: 51.5, r: 3 }, duration: 0.5, ease: 'back.out(2.2)' }, at);
+    tl.fromTo(n, { fill: COHORTS[i].hex }, { fill: '#ffffff', duration: 0.5, ease: 'power1.in' }, at + 0.5);
+    gsap.set(spokes[i], { strokeDasharray: 40, strokeDashoffset: 40 });
+    tl.to(spokes[i], { strokeDashoffset: 0, duration: 0.4, ease: 'power2.out' }, at + 0.04);
+  });
+  tl.from(core, { scale: 0, svgOrigin: '50 51.5', duration: 0.5, ease: 'back.out(3)' }, T.drop + 0.3);
   tl.from(chars(root.querySelector('.wordmark')), { y: 130, opacity: 0, duration: 0.7, ease: 'power4.out', stagger: 0.035 }, T.drop + 0.08);
   const label = root.querySelector('.intro-label');
   tl.from(label, { opacity: 0, y: 24, duration: 0.4, ease: 'power2.out' }, T.drop + 0.3);
@@ -109,41 +178,42 @@ function s03({ tl, cues, stage }) {
   const tag = root.querySelector('.tagline');
   tl.from(tag, { y: 56, opacity: 0, duration: 0.6, ease: 'power4.out' }, T.tagline);
   tl.fromTo(tag.querySelector('.hl'), { '--hlx': 0 }, { '--hlx': 1, duration: 0.4, ease: 'power3.out' }, T.tagline + 0.45);
+  tl.from(root.querySelector('.subline'), { y: 30, opacity: 0, duration: 0.55, ease: 'power3.out' }, T.subline);
   const pills = root.querySelector('.pills');
   T.pills_text.forEach((p, i) => {
     const pill = el('div', 'pill', p);
     pills.appendChild(pill);
-    tl.from(pill, { scale: 0.4, opacity: 0, y: 34, duration: 0.42, ease: 'back.out(2.2)' }, T.pills + i * 0.5);
+    tl.from(pill, { scale: 0.4, opacity: 0, y: 34, duration: 0.42, ease: 'back.out(2.2)' }, T.pills + i * T.pill_step);
   });
   const partners = root.querySelector('.partners');
-  tl.from(partners, { opacity: 0, y: 26, duration: 0.5, ease: 'power2.out' }, T.pills + 2.0);
-  tl.to(root.querySelector('.lockup'), { y: -170, opacity: 0, scale: 0.92, duration: 0.5, ease: 'power3.in' }, 25.45);
-  tl.to(partners, { opacity: 0, duration: 0.3 }, 25.45);
+  tl.from(partners, { opacity: 0, y: 26, duration: 0.5, ease: 'power2.out' }, T.pills + 2.1);
+  tl.to(root.querySelector('.lockup'), { y: -170, opacity: 0, scale: 0.92, duration: 0.5, ease: 'power3.in' }, end - 0.55);
+  tl.to(partners, { opacity: 0, duration: 0.3 }, end - 0.55);
 }
 
 // ───────────────────────────────────────────────────────── s04 newsletter
-function s04({ tl, cues, stage, manifest }) {
+function s04({ tl, cues, config, stage, S }) {
+  const { start, end } = S('s04');
   const T = cues.newsletter;
-  const root = scene(stage, 's04', 26, 36);
+  const root = scene(stage, 's04', start, end);
   root.innerHTML = `<div class="bg-grid"></div>`;
-  const title = el('div', 'sec-title', `<div class="kick">Newsletter</div><div class="title-serif">The Pulse</div>`);
-  const bw = browser({ width: 1380, url: 'dsba-pulse.app/newsletter', screens: ['newsletter', 'issue-top', 'issue-cohort', 'issue-deadlines'] });
+  const title = el('div', 'sec-title', `<div class="kick">Feature 01</div><div class="title-serif">${T.title}</div>`);
+  const order = ['newsletter', 'issue-top', 'issue-council', 'issue-speech'];
+  const bw = browser({ width: 1380, url: `${config.product.url}/#/newsletter`, screens: order });
   bw.el.style.left = '440px';
   bw.el.style.top = '140px';
   root.append(bw.el, title, el('div', 'vignette'));
   tl.from(title, { opacity: 0, y: 70, duration: 0.6, ease: 'power4.out' }, T.start);
-  tl.to(title, { scale: 0.34, x: -30, y: -100, duration: 0.8, ease: 'power3.inOut' }, T.start + 0.8);
+  tl.to(title, { scale: 0.3, x: -30, y: -78, duration: 0.7, ease: 'power3.inOut' }, T.start + 0.65);
   tl.fromTo(bw.el, { opacity: 0, rotationY: -36, rotationX: 15, z: -900, y: 280 }, { opacity: 1, rotationY: -9, rotationX: 4, z: 0, y: 0, duration: 1.25, ease: 'power3.out' }, T.browser_in);
   tl.to(bw.el, { rotationY: 7, rotationX: 2, duration: 4.4, ease: 'sine.inOut' }, T.browser_in + 1.25);
   // "scroll" between screens: each new screen slides up from below
-  const order = ['newsletter', 'issue-top', 'issue-cohort', 'issue-deadlines'];
-  const slideAt = [null, T.callouts[0] + 0.95, T.callouts[1] + 0.12, T.callouts[2] - 0.12];
   order.forEach((name, i) => {
     bw.imgs[name].style.clipPath = 'inset(64px 0 0 265px)';
     if (i) {
       gsap.set(bw.imgs[name], { y: H });
-      tl.to(bw.imgs[name], { y: 0, duration: 0.62, ease: 'power3.inOut' }, slideAt[i]);
-      tl.to(bw.imgs[order[i - 1]], { y: -H, duration: 0.62, ease: 'power3.inOut' }, slideAt[i]);
+      tl.to(bw.imgs[name], { y: 0, duration: 0.6, ease: 'power3.inOut' }, T.slides[i - 1]);
+      tl.to(bw.imgs[order[i - 1]], { y: -H, duration: 0.6, ease: 'power3.inOut' }, T.slides[i - 1]);
     }
   });
   // the app's rail and top bar stay put while the reading pane slides underneath
@@ -155,72 +225,84 @@ function s04({ tl, cues, stage, manifest }) {
   bw.content.appendChild(chrome);
   const s0 = bw.s0;
   const at = (sx, sy) => [sx * s0, 46 + sy * s0];
-  callout(bw.el, 'A new issue every week', ...at(1630, 372), { side: 'left' }).show(tl, T.callouts[0], 0.85);
-  callout(bw.el, 'News from every cohort', ...at(1010, 410)).show(tl, T.callouts[1] + 0.5, 1.0);
-  callout(bw.el, 'Deadlines you won’t miss', ...at(1080, 470)).show(tl, T.callouts[2] + 0.35, 0.95);
-  // covers fan out in front
+  const spots = [[930, 352, 'right', 0.82], [880, 492, 'right', 0.72], [1690, 470, 'left', 0.6], [1290, 560, 'left', 0.62]];
+  T.callouts.forEach((c, i) => {
+    const [sx, sy, side, hold] = spots[i];
+    callout(bw.el, c.text, ...at(sx, sy), { side }).show(tl, c.t, hold);
+  });
+  // the stories fan out in front
   tl.to(bw.el, { scale: 0.84, opacity: 0.16, z: -260, duration: 0.55, ease: 'power3.inOut' }, T.covers - 0.1);
   const covers = el('div', 'covers');
   root.insertBefore(covers, title);
-  const picks = [{ n: 'cover-3', w: 330, x: -470, r: -10, z: 0 }, { n: 'cover-1', w: 330, x: 470, r: 10, z: 0 }, { n: 'cover-0', w: 440, x: 0, r: 0, z: 120 }];
-  picks.forEach((c, i) => {
+  const picks = [
+    { src: `${NEWS}/speech-day.jpg`, w: 340, x: -520, r: -9, z: 0, d: 0.12 },
+    { src: `${NEWS}/cfa-research-challenge.jpg`, w: 560, x: 540, r: 7, z: 0, d: 0.24 },
+    { src: `${UI}/cover-0.png`, w: 430, x: 0, r: 0, z: 120, d: 0 },
+  ];
+  picks.forEach((c) => {
     const img = el('img', 'cover');
-    img.src = `${UI}/${c.n}.png`;
+    img.src = c.src;
     img.decoding = 'sync';
     img.style.width = `${c.w}px`;
     covers.appendChild(img);
     gsap.set(img, { xPercent: -50, yPercent: -50, x: c.x, rotation: c.r, z: c.z });
-    tl.from(img, { y: 900, rotation: c.r * 4 + 14, opacity: 0, duration: 0.85, ease: 'back.out(1.25)' }, T.covers + [0.12, 0.24, 0][i]);
+    tl.from(img, { y: 900, rotation: c.r * 4 + 14, opacity: 0, duration: 0.85, ease: 'back.out(1.25)' }, T.covers + c.d);
     tl.to(img, { y: -14, duration: 2.0, ease: 'sine.inOut' }, T.covers + 1.15);
   });
-  const cap = el('div', 'caption', 'A 7-minute read. <span class="hl">Every week.</span>');
+  const cw = T.caption.split(', ');
+  const cap = el('div', 'caption', `${cw[0]}, <span class="hl">${cw[1]}</span>`);
   root.insertBefore(cap, title);
   tl.from(cap, { y: 50, opacity: 0, duration: 0.5, ease: 'power4.out' }, T.read_time);
   tl.fromTo(cap.querySelector('.hl'), { '--hlx': 0 }, { '--hlx': 1, duration: 0.35, ease: 'power3.out' }, T.read_time + 0.35);
-  tl.to([covers, cap, title], { x: -260, opacity: 0, duration: 0.42, ease: 'power3.in' }, 35.52);
+  tl.to([covers, cap, title], { x: -260, opacity: 0, duration: 0.42, ease: 'power3.in' }, end - 0.48);
 }
 
 // ───────────────────────────────────────────────────────── s05 forum
-function s05({ tl, cues, stage, manifest: M }) {
+function s05({ tl, cues, config, stage, manifest: M, S }) {
+  const { start, end } = S('s05');
   const T = cues.forum;
   const EGG = T.easter_egg;
-  const root = scene(stage, 's05', 36, 46);
+  const root = scene(stage, 's05', start, end);
   root.innerHTML = `<div class="bg-grid"></div>`;
-  const title = el('div', 'sec-title', `<div class="kick">Forum</div><div class="title-sans">Ask anything.</div>`);
+  const title = el('div', 'sec-title', `<div class="kick">Feature 02 · Forum</div><div class="title-sans">Ask anything.</div>`);
   const frames = Array.from({ length: M.composerFrames }, (_, i) => `composer-${String(i).padStart(2, '0')}`);
-  const bw = browser({ width: 1380, url: 'dsba-pulse.app/forum', screens: ['forum', ...frames, 'composer-final', 'forum-posted'] });
+  const bw = browser({ width: 1380, url: `${config.product.url}/#/forum`, screens: ['forum', ...frames, 'composer-final', 'forum-posted'] });
   bw.el.style.left = '100px';
   bw.el.style.top = '140px';
   root.append(bw.el, title, el('div', 'vignette'));
   gsap.set(title, { left: 'auto', right: 110, transformOrigin: '100% 0', textAlign: 'right' });
   tl.from(title, { opacity: 0, y: 70, duration: 0.6, ease: 'power4.out' }, T.start);
-  tl.to(title, { scale: 0.34, y: -100, x: 30, duration: 0.8, ease: 'power3.inOut' }, T.start + 0.75);
-  tl.fromTo(bw.el, { opacity: 0, rotationY: 36, rotationX: 14, z: -900, y: 280, x: 340 }, { opacity: 1, rotationY: 8, rotationX: 3, z: 0, y: 0, x: 200, duration: 1.15, ease: 'power3.out' }, T.start + 0.45);
+  tl.to(title, { scale: 0.34, y: -100, x: 30, duration: 0.7, ease: 'power3.inOut' }, T.start + 0.65);
+  tl.fromTo(bw.el, { opacity: 0, rotationY: 36, rotationX: 14, z: -900, y: 280, x: 340 }, { opacity: 1, rotationY: 8, rotationX: 3, z: 0, y: 0, x: 200, duration: 1.0, ease: 'power3.out' }, T.start + 0.72);
   tl.to(bw.el, { rotationY: -5, rotationX: 2, duration: 7.6, ease: 'sine.inOut' }, T.start + 1.6);
 
   // which screen is up, and where the camera looks (screen pixels + zoom)
   const tOpen = T.composer_open;
   const tPost = T.post_appears;
+  const tTyped = T.typing[T.typing.length - 1];
+  const tFinal = tTyped + 0.12;          // the page scrolls down to the attached question + Post
   const screenAt = (t) => {
     if (t < tOpen + 0.06) return 'forum';
     if (t >= tPost) return 'forum-posted';
-    if (t >= T.typing[T.typing.length - 1] + 0.3) return 'composer-final';
-    const n = T.typing.filter((x) => x <= t).length;
-    return frames[n];
+    if (t >= tFinal) return 'composer-final';
+    return frames[T.typing.filter((x) => x <= t).length];
   };
   const eggY = M.postedEggRow.y + M.postedEggRow.h / 2;
+  const att = M.composerAttachmentFinal;
+  const lin = (p) => p;
   const cam = track([
     { t: T.threads_in + 0.2, v: { fx: 960, fy: 540, z: 1 } },
     { t: T.threads_in + 1.3, v: { fx: 940, fy: 590, z: 1.5 } },
     { t: tOpen - 0.55, v: { fx: 940, fy: 600, z: 1.56 } },
     { t: tOpen - 0.15, v: { fx: 1180, fy: 420, z: 1.16 } },
-    { t: tOpen + 0.06, v: { fx: 930, fy: 430, z: 1.42 }, cut: true },
-    { t: T.typing[T.typing.length - 1] + 0.1, v: { fx: 930, fy: 420, z: 1.32 }, e: (p) => p },
-    { t: T.post_click - 0.12, v: { fx: 930, fy: 700, z: 1.1 } },
+    { t: tOpen + 0.06, v: { fx: 930, fy: 520, z: 1.3 }, cut: true },
+    { t: tTyped + 0.1, v: { fx: 930, fy: 690, z: 1.18 }, e: lin },
+    { t: tFinal, v: { fx: 930, fy: att.y + att.h / 2 - 40, z: 1.3 }, cut: true },
+    { t: T.post_click - 0.05, v: { fx: 960, fy: att.y + att.h / 2 + 30, z: 1.2 }, e: lin },
     { t: tPost, v: { fx: 930, fy: 440, z: 1.56 }, cut: true },
-    { t: EGG.start - 0.5, v: { fx: 930, fy: 450, z: 1.5 }, e: (p) => p },
+    { t: EGG.start - 0.5, v: { fx: 930, fy: 450, z: 1.5 }, e: lin },
     { t: EGG.start - 0.02, v: { fx: 900, fy: eggY, z: 2.05 } },
-    { t: EGG.end + 0.2, v: { fx: 900, fy: eggY, z: 2.2 }, e: (p) => p },
+    { t: EGG.end + 0.2, v: { fx: 900, fy: eggY, z: 2.2 }, e: lin },
   ]);
   // the vote count the film animates (the captures hide the real one)
   const vote = el('div', 'votebox');
@@ -231,7 +313,7 @@ function s05({ tl, cues, stage, manifest: M }) {
   tl.fromTo(marker, { scaleX: 0 }, { scaleX: 1, duration: 0.34, ease: 'power3.out' }, EGG.end - 0.45);
   tl.fromTo(vote, { scale: 1 }, { scale: 1.9, duration: 0.12, yoyo: true, repeat: 1, ease: 'power2.out' }, EGG.end - 0.02);
   onFrame((t) => {
-    if (t < 36 || t >= 46) return;
+    if (t < start || t >= end) return;
     const name = screenAt(t);
     for (const [n, img] of Object.entries(bw.imgs)) img.style.visibility = n === name ? 'inherit' : 'hidden';
     const c = cam(t);
@@ -245,7 +327,7 @@ function s05({ tl, cues, stage, manifest: M }) {
     vote.textContent = String(23 + Math.round((EGG.votes - 23) * (n / EGG.ticks.length)));
     vote.classList.toggle('is-hot', t >= EGG.start);
   });
-  // upvote rings on the first rows, then callouts
+  // upvote rings on the first rows
   [0, 1, 2].forEach((i) => {
     const ring = el('div', 'ring');
     ring.style.left = `${M.forumFirstRow.x + 40}px`;
@@ -256,8 +338,8 @@ function s05({ tl, cues, stage, manifest: M }) {
   const caps = [
     ['Upvote what', 'helped.', T.threads_in + 1.05, T.threads_in + 2.0],
     ['Answers you can', 'trust.', T.threads_in + 2.0, tOpen - 0.1],
-    ['Ask your', 'cohort.', tOpen + 0.3, T.post_click + 0.05],
-    ['Get answers', 'fast.', T.replies[0] - 0.15, EGG.start - 0.3],
+    ['Stuck? Ask', 'every cohort.', tOpen + 0.3, tOpen + 1.9],
+    ['Someone has', 'been there.', T.replies[0] - 0.15, EGG.start - 0.3],
   ];
   caps.forEach(([a, b, t0, t1]) => {
     const cap = el('div', 'caption caption--left', `${a} <span class="hl">${b}</span>`);
@@ -273,26 +355,26 @@ function s05({ tl, cues, stage, manifest: M }) {
   cur.place(tl, 1180, 640, tOpen - 0.6);
   cur.move(tl, sx, sy, tOpen - 0.55, 0.5);
   cur.click(tl, tOpen);
-  cur.move(tl, M.composerTitle.x + 420, M.composerTitle.y + 70, tOpen + 0.1, 0.25);
+  cur.move(tl, M.composerTitle.x + 470, M.composerTitle.y + 70, tOpen + 0.1, 0.25);
   const px = M.composerPost.x + M.composerPost.w / 2;
   const py = M.composerPost.y + M.composerPost.h / 2;
-  cur.move(tl, px, py, T.post_click - 0.45, 0.4);
+  tl.set(cur.el, { x: px - 260, y: py - 150 }, tFinal);
+  cur.move(tl, px, py, tFinal + 0.02, Math.max(0.15, T.post_click - tFinal - 0.06), 'power2.out');
   cur.click(tl, T.post_click);
   tl.to(cur.el, { autoAlpha: 0, duration: 0.1 }, tPost);
   // replies pop in over the frame
-  const replies = [
-    { n: 'Noor E.', y: 'Year 3', c: 'var(--y3)', bg: '#ffe8cc', m: 'Past papers. All of them. Twice.', x: 1080, top: 440, r: 2.5 },
-    { n: 'Ali H.', y: 'Year 2', c: 'var(--y2)', bg: '#e5dbff', m: 'Office hours saved my life.', x: 1150, top: 640, r: -2 },
-  ];
-  replies.forEach((r, i) => {
-    const card = el('div', 'reply', `<div class="reply__av" style="background:${r.bg};color:#0e1542">${r.n.split(' ').map((w) => w[0]).join('')}</div>
-      <div><div class="reply__n">${r.n}<em style="background:${r.bg};color:#0e1542">${r.y}</em></div><div class="reply__m">${r.m}</div></div>`);
-    card.style.left = `${r.x}px`;
-    card.style.top = `${r.top}px`;
+  const tint = ['#c5f6fa', '#d0e2ff', '#ffe8cc'];
+  const spots = [{ x: 1040, top: 430, r: 2.5 }, { x: 1000, top: 640, r: -2 }];
+  T.reply_cards.forEach((r, i) => {
+    const bg = tint[r.year - 1];
+    const card = el('div', 'reply', `<div class="reply__av" style="background:${bg}">${r.name.split(' ').map((w) => w[0]).join('')}</div>
+      <div><div class="reply__n">${r.name}<em style="background:${bg}">Year ${r.year}</em></div><div class="reply__m">${r.text}</div></div>`);
+    card.style.left = `${spots[i].x}px`;
+    card.style.top = `${spots[i].top}px`;
     root.insertBefore(card, title);
-    gsap.set(card, { rotation: r.r });
+    gsap.set(card, { rotation: spots[i].r });
     tl.from(card, { x: 260, opacity: 0, scale: 0.8, duration: 0.42, ease: 'back.out(1.8)' }, T.replies[i]);
-    tl.to(card, { x: 180, opacity: 0, duration: 0.22, ease: 'power2.in' }, EGG.start + 0.5 + i * 0.12);
+    tl.to(card, { x: 180, opacity: 0, duration: 0.22, ease: 'power2.in' }, EGG.start + 0.7 + i * 0.55);
   });
   // the vote widget pulses while the count runs up
   [0.05, 0.5, 0.95, 1.4].forEach((d) => {
@@ -302,35 +384,48 @@ function s05({ tl, cues, stage, manifest: M }) {
     bw.content.appendChild(ring);
     tl.fromTo(ring, { scale: 0.4, opacity: 0.9 }, { scale: 1.5, opacity: 0, duration: 0.45, ease: 'power2.out' }, EGG.start + d);
   });
-  tl.to(bw.el, { opacity: 0, x: -140, rotationY: -22, duration: 0.3, ease: 'power3.in' }, 45.68);
-  tl.to(title, { opacity: 0, duration: 0.25 }, 45.7);
+  tl.to(bw.el, { opacity: 0, x: -140, rotationY: -22, duration: 0.3, ease: 'power3.in' }, end - 0.32);
+  tl.to(title, { opacity: 0, duration: 0.25 }, end - 0.3);
 }
 
 // ───────────────────────────────────────────────────────── s06 montage
-function s06({ tl, cues, stage, manifest: M }) {
+function s06({ tl, cues, config, stage, manifest: M, S }) {
+  const { start, end } = S('s06');
   const T = cues.montage;
   const cuts = Object.fromEntries(T.cuts.map((c) => [c.id, c]));
-  const root = scene(stage, 's06', 46, 58);
+  const root = scene(stage, 's06', start, end);
   root.innerHTML = `<div class="bg-grid"></div>`;
   const cmdk = Array.from({ length: M.cmdkFrames }, (_, i) => `cmdk-${String(i).padStart(2, '0')}`);
-  const bw = browser({ width: 1500, url: 'dsba-pulse.app', screens: ['library', 'viewer-nb', 'lessons', 'calendar', 'grades', ...cmdk] });
+  const bw = browser({ width: 1500, url: config.product.url, screens: ['library', 'viewer-fine', 'lessons', 'career', 'career-ds', 'calendar', 'grades', ...cmdk] });
   bw.el.style.left = '210px';
   bw.el.style.top = '70px';
   root.append(bw.el);
+  gsap.set(bw.el, { opacity: 0 });
+  const tPlay = T.lesson_play_click;
+  const tRole = cuts.career.t + 1.35;        // the cursor picks another role
+  const fit = M.careerFit;
+  const post = M.lessonsPoster;
   // each beat: screen, frame pose, camera start → end (slow push), until the next beat
   const beats = [
     { t: cuts.library.t, s: 'library', ry: -13, rx: 5, a: [960, 500, 1.0], b: [900, 470, 1.14] },
-    { t: T.file_preview_click, s: 'viewer-nb', ry: -13, rx: 5, a: [1010, 520, 1.28], b: [1010, 560, 1.2] },
-    { t: cuts.lessons.t, s: 'lessons', ry: 11, rx: 4, a: [1000, 560, 1.08], b: [1040, 620, 1.3] },
+    { t: T.file_preview_click, s: 'viewer-fine', ry: -13, rx: 5, a: [936, 575, 1.4], b: [936, 590, 1.95] },
+    { t: cuts.lessons.t, s: 'lessons', ry: 11, rx: 4, a: [1000, 560, 1.08], b: [post.x + post.w / 2 + 60, post.y + post.h / 2 + 10, 1.42] },
+    { t: cuts.career.t, s: 'career', ry: -9, rx: 5, a: [1040, 520, 1.04], b: [fit.x + 500, fit.y + 250, 1.5] },
     { t: cuts.calendar.t, s: 'calendar', ry: -8, rx: 7, a: [1090, 430, 1.1], b: [1090, 480, 1.42] },
     { t: cuts.grades.t, s: 'grades', ry: 12, rx: 3, a: [1090, 420, 1.12], b: [1090, 440, 1.38] },
     { t: cuts.search.t, s: null, ry: 0, rx: 2, a: [960, 480, 1.16], b: [960, 470, 1.3] },
     { t: cuts.network.t, s: 'OUT' },
   ];
-  const urls = { library: '/library', 'viewer-nb': '/library/st2195-block-6-notebook', lessons: '/modules/st2133', calendar: '/calendar', grades: '/grades' };
+  const urls = { library: '/#/library', 'viewer-fine': '/#/library/st2187-business-analytics', lessons: '/#/modules/st2133', career: '/#/career', 'career-ds': '/#/career?role=data-scientist', calendar: '/#/calendar', grades: '/#/grades' };
   const urlEl = bw.el.querySelector('.bw__url');
+  // the lesson "plays": a real frame of the lecture + a progress bar, over the poster
+  const play = el('div', 'playframe', `<img src="${YT}/qIzC1-9PwQo.frame3.jpg"><div class="playframe__bar"><i></i><b></b></div><div class="playframe__t"></div>`);
+  Object.assign(play.style, { left: `${post.x}px`, top: `${post.y}px`, width: `${post.w}px`, height: `${post.h}px` });
+  bw.content.appendChild(play);
+  const playBar = play.querySelector('.playframe__bar b');
+  const playT = play.querySelector('.playframe__t');
   onFrame((t) => {
-    if (t < 46 || t >= 58) return;
+    if (t < start || t >= end) return;
     let k = 0;
     while (k < beats.length - 1 && t >= beats[k + 1].t) k += 1;
     const b = beats[k];
@@ -339,11 +434,21 @@ function s06({ tl, cues, stage, manifest: M }) {
     const p = prog(t, b.t, next);
     let name = b.s;
     if (!name) name = cmdk[T.search_typing.filter((x) => x <= t).length];
+    if (name === 'career' && t >= tRole) name = 'career-ds';
     for (const [n, img] of Object.entries(bw.imgs)) img.style.visibility = n === name ? 'inherit' : 'hidden';
     const punch = 1 + 0.07 * (1 - ease.out5(prog(t, b.t, b.t + 0.32)));
     gsap.set(bw.el, { rotationY: b.ry + p * (b.ry > 0 ? -3 : 3), rotationX: b.rx, scale: punch, opacity: 1 });
     gsap.set(bw.content, bw.focus(lerp(b.a[0], b.b[0], p), lerp(b.a[1], b.b[1], p), lerp(b.a[2], b.b[2], p)));
-    urlEl.lastChild.textContent = `dsba-pulse.app${b.s ? urls[b.s] : ''}`;
+    urlEl.lastChild.textContent = `${config.product.url}${urls[name] || ''}`;
+    const playing = b.s === 'lessons' && t >= tPlay + 0.04;
+    play.style.visibility = playing ? 'inherit' : 'hidden';
+    if (playing) {
+      const pp = t - tPlay;
+      play.style.opacity = String(clamp(pp / 0.14));
+      playBar.style.width = `${(62 + pp * 2.2).toFixed(2)}%`;
+      const sec = Math.floor(9 * 60 + 24 + pp * 1);
+      playT.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')} / 14:15`;
+    }
   });
   // library: the new files lift off the shelf toward the viewer
   const fly = M.thumbs.slice(0, 6).map((th, i) => {
@@ -352,25 +457,31 @@ function s06({ tl, cues, stage, manifest: M }) {
     img.decoding = 'sync';
     Object.assign(img.style, { left: `${th.x}px`, top: `${th.y}px`, width: `${th.w}px`, height: `${th.h}px`, zIndex: 10 + i });
     bw.content.appendChild(img);
-    tl.to(img, { y: -70 - Math.sin((i / 5) * Math.PI) * 60, x: (i - 2.5) * 26, scale: 1.62, rotation: (i - 2.5) * 4.5, duration: 0.5, ease: 'back.out(1.5)' }, cuts.library.t + 0.38 + i * 0.07);
+    tl.to(img, { y: -70 - Math.sin((i / 5) * Math.PI) * 60, x: (i - 2.5) * 26, scale: 1.62, rotation: (i - 2.5) * 4.5, duration: 0.45, ease: 'back.out(1.5)' }, cuts.library.t + 0.3 + i * 0.05);
     return img;
   });
   onFrame((t) => { const on = t >= cuts.library.t && t < T.file_preview_click; fly.forEach((f) => { f.style.visibility = on ? 'inherit' : 'hidden'; }); });
-  // cursor: opens a file, presses play
+  // cursor: opens a file, presses play, picks a role
   const cur = cursor(bw.content);
-  const t2 = M.thumbs[2];
-  cur.place(tl, 1300, 760, cuts.library.t + 0.5);
-  cur.move(tl, t2.x + 90, t2.y + 60, cuts.library.t + 0.6, 0.6);
+  const t0 = M.thumbs[0];
+  cur.place(tl, 1100, 760, cuts.library.t + 0.3);
+  cur.move(tl, t0.x + 60, t0.y - 40, cuts.library.t + 0.36, 0.5);
   cur.click(tl, T.file_preview_click - 0.04);
   tl.set(cur.el, { autoAlpha: 0 }, T.file_preview_click + 0.02);
   const pl = M.lessonsPlay;
   tl.set(cur.el, { x: 1420, y: 860, autoAlpha: 1 }, cuts.lessons.t + 0.05);
   cur.move(tl, pl.x + pl.w / 2 - 4, pl.y + pl.h / 2 - 2, cuts.lessons.t + 0.15, 0.6);
-  cur.click(tl, T.lesson_play_click);
+  cur.click(tl, tPlay);
   const ring = el('div', 'ring');
-  Object.assign(ring.style, { left: `${pl.x + pl.w / 2}px`, top: `${pl.y + pl.h / 2}px`, width: '120px', height: '120px', margin: '-60px', borderColor: '#fff' });
+  Object.assign(ring.style, { left: `${pl.x + pl.w / 2}px`, top: `${pl.y + pl.h / 2}px`, width: '120px', height: '120px', margin: '-60px', borderColor: '#fff', zIndex: 12 });
   bw.content.appendChild(ring);
-  tl.fromTo(ring, { scale: 0.6, opacity: 0.9 }, { scale: 2.6, opacity: 0, duration: 0.8, ease: 'power2.out' }, T.lesson_play_click);
+  tl.fromTo(ring, { scale: 0.6, opacity: 0.9 }, { scale: 2.6, opacity: 0, duration: 0.8, ease: 'power2.out' }, tPlay);
+  tl.to(cur.el, { autoAlpha: 0, duration: 0.2 }, tPlay + 0.35);
+  const chip = M.careerChip;
+  tl.set(cur.el, { x: chip.x + 360, y: chip.y + 240, autoAlpha: 1 }, cuts.career.t + 0.3);
+  cur.move(tl, chip.x + chip.w / 2, chip.y + chip.h / 2 + 4, cuts.career.t + 0.4, 0.8);
+  cur.click(tl, tRole - 0.03);
+  tl.to(cur.el, { autoAlpha: 0, duration: 0.2 }, tRole + 0.7);
   tl.set(cur.el, { autoAlpha: 0 }, cuts.calendar.t);
   // captions (one at a time, bottom left)
   T.cuts.forEach((c, i) => {
@@ -379,53 +490,36 @@ function s06({ tl, cues, stage, manifest: M }) {
     const last = words.pop();
     const cap = el('div', 'caption caption--left', `${words.join(' ')} <span class="hl">${last}</span>`);
     root.appendChild(cap);
-    const end = T.cuts[i + 1] ? T.cuts[i + 1].t : 58;
+    const stop = T.cuts[i + 1] ? T.cuts[i + 1].t : end;
     tl.from(cap, { y: 60, opacity: 0, duration: 0.3, ease: 'power4.out' }, c.t + 0.06);
     tl.fromTo(cap.querySelector('.hl'), { '--hlx': 0 }, { '--hlx': 1, duration: 0.26, ease: 'power3.out' }, c.t + 0.26);
-    tl.to(cap, { opacity: 0, y: -26, duration: 0.12, ease: 'power2.in' }, end - 0.12);
+    tl.to(cap, { opacity: 0, y: -26, duration: 0.12, ease: 'power2.in' }, stop - 0.12);
   });
-  // network: three cohorts and 17 tutors, joined up
+  // network: three cohorts of students, joined up (the same layout returns, in gold, in Act 3)
   const svgNS = 'http://www.w3.org/2000/svg';
   const net = document.createElementNS(svgNS, 'svg');
   net.setAttribute('class', 'net');
   net.setAttribute('viewBox', '0 0 1920 1080');
   root.appendChild(net);
-  const rnd = mulberry(2026);
-  const groups = [{ c: [470, 500], n: 52, col: 'var(--y1)', label: 'Year 1' }, { c: [960, 300], n: 56, col: 'var(--y2)', label: 'Year 2' }, { c: [1450, 500], n: 52, col: 'var(--y3)', label: 'Year 3' }];
-  const pts = [];
-  groups.forEach((g, gi) => {
-    for (let i = 0; i < g.n; i += 1) {
-      const a = rnd() * Math.PI * 2;
-      const r = Math.sqrt(rnd()) * 190;
-      pts.push({ x: g.c[0] + Math.cos(a) * r * 1.25, y: g.c[1] + Math.sin(a) * r * 0.8, g: gi, col: g.col });
-    }
-  });
-  const tutors = Array.from({ length: 17 }, (_, i) => {
-    const a = (i / 17) * Math.PI * 2 - Math.PI / 2;
-    return { x: 960 + Math.cos(a) * 250, y: 640 + Math.sin(a) * 105 };
-  });
+  const pts = cohortNodes();
+  const links = crossLinks(pts, 72);
   const mk = (tag, attrs) => { const n = document.createElementNS(svgNS, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); net.appendChild(n); return n; };
   const NT = cuts.network.t;
-  const lines = [];
-  tutors.forEach((tu) => { for (let k = 0; k < 3; k += 1) { const p = pts[Math.floor(rnd() * pts.length)]; lines.push(mk('line', { x1: tu.x, y1: tu.y, x2: p.x, y2: p.y, class: 'g' })); } });
-  for (let k = 0; k < 46; k += 1) { const a = pts[Math.floor(rnd() * pts.length)]; let b = pts[Math.floor(rnd() * pts.length)]; if (b.g === a.g) b = pts[(pts.indexOf(b) + 60) % pts.length]; lines.push(mk('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y })); }
-  lines.forEach((ln, i) => {
-    const len = Math.hypot(ln.x2.baseVal.value - ln.x1.baseVal.value, ln.y2.baseVal.value - ln.y1.baseVal.value);
+  links.forEach(([a, b], i) => {
+    const A = pts[a];
+    const B = pts[b];
+    const ln = mk('line', { x1: A.x, y1: A.y, x2: B.x, y2: B.y });
+    const len = Math.hypot(B.x - A.x, B.y - A.y);
     gsap.set(ln, { strokeDasharray: len, strokeDashoffset: len });
-    tl.to(ln, { strokeDashoffset: 0, duration: 0.5, ease: 'power2.out' }, NT + 0.55 + (i / lines.length) * 0.75);
+    tl.to(ln, { strokeDashoffset: 0, duration: 0.55, ease: 'power2.out' }, NT + 0.7 + (i / links.length) * 1.0);
   });
   pts.forEach((p, i) => {
-    const c = mk('circle', { cx: p.x, cy: p.y, r: 6.5, fill: p.col });
+    const c = mk('circle', { cx: p.x, cy: p.y, r: 6.5, fill: p.hex });
     tl.from(c, { attr: { r: 0 }, duration: 0.3, ease: 'back.out(3)' }, NT + 0.04 + (i / pts.length) * 0.62);
   });
-  tutors.forEach((p, i) => {
-    const c = mk('circle', { cx: p.x, cy: p.y, r: 13, fill: '#f5c86b', stroke: '#fff3c4', 'stroke-width': 2.5 });
-    tl.from(c, { attr: { r: 0 }, duration: 0.34, ease: 'back.out(3)' }, NT + 0.5 + i * 0.022);
-  });
-  const labels = [...groups.map((g) => ({ t: g.label, x: g.c[0], y: g.c[1] - 196, col: g.col })), { t: 'Tutors', x: 960, y: 800, col: '#f5c86b' }];
-  labels.forEach((l, i) => {
-    const tx = mk('text', { x: l.x, y: l.y, 'text-anchor': 'middle', fill: l.col, 'font-size': 38, 'font-weight': 700, 'font-family': 'Schibsted' });
-    tx.textContent = l.t;
+  COHORTS.forEach((g, i) => {
+    const tx = mk('text', { x: g.c[0], y: g.c[1] - 198, 'text-anchor': 'middle', fill: g.hex, 'font-size': 38, 'font-weight': 700, 'font-family': 'Schibsted' });
+    tx.textContent = g.label;
     tl.from(tx, { opacity: 0, duration: 0.3 }, NT + 0.3 + i * 0.1);
   });
   // "Built by students. For all of DSBA."
@@ -437,12 +531,12 @@ function s06({ tl, cues, stage, manifest: M }) {
   tl.from(chars(big.children[0]), { y: 110, opacity: 0, duration: 0.55, ease: 'power4.out', stagger: 0.018 }, BT);
   tl.from(big.children[1], { y: 80, opacity: 0, duration: 0.5, ease: 'power4.out' }, BT + 0.5);
   tl.fromTo(big.querySelector('.hl'), { '--hlx': 0 }, { '--hlx': 1, duration: 0.36, ease: 'power3.out' }, BT + 0.72);
-  tl.to([big, net], { opacity: 0, scale: 0.94, duration: 0.3, ease: 'power3.in' }, 57.68);
+  tl.to([big, net], { opacity: 0, scale: 0.94, duration: 0.3, ease: 'power3.in' }, end - 0.32);
 }
 
 // ───────────────────────────────────────────────────────── s07 launch + glitch #1 (DOM side)
 const ERRS = [
-  { bar: 'pulse.exe', ic: '✕', m: 'pulse.exe has stopped responding.', x: 130, y: 96 },
+  { bar: 'hub.exe', ic: '✕', m: 'hub.exe has stopped responding.', x: 130, y: 96 },
   { bar: 'file-watcher', ic: '!', warn: 1, m: 'Unexpected file found:<br>surprise.mp4', x: 930, y: 150 },
   { bar: 'launchd', ic: '✕', m: 'Launch sequence overridden.', x: 250, y: 420 },
   { bar: 'system', ic: '!', warn: 1, m: 'This was never about an app.', x: 950, y: 520 },
@@ -450,18 +544,20 @@ const ERRS = [
   { bar: 'notice', ic: '!', warn: 1, m: 'Please remain seated.', x: 640, y: 690 },
 ];
 
-function s07({ tl, cues, stage }) {
+function s07({ tl, cues, config, stage, S }) {
   const T = cues.launch;
   const G = cues.g1;
-  const root = scene(stage, 's07', 58, 68);
+  const start = S('s07').start;
+  const root = scene(stage, 's07', start, G.end);
+  const NAME = config.product.name;
   root.innerHTML = `<div class="bg-grid"></div><div class="wall"></div><div class="wall-shade"></div>
     <div class="count"></div>
-    <div class="launch-top"><span>DSBA Pulse</span></div>
+    <div class="launch-top"><span>${NAME}</span></div>
     <div class="launch-h">Launching today.</div>
-    <div class="btn-launch"><span>Launch DSBA Pulse</span></div>
+    <div class="btn-launch"><span>Launch ${NAME}</span></div>
     <div class="vignette"></div>`;
   const wall = root.querySelector('.wall');
-  const shots = ['home-dark', 'forum-dark', 'library-dark', 'newsletter-dark', 'calendar-dark', 'lessons-dark', 'forum-dark', 'home-dark', 'library-dark'];
+  const shots = ['home-dark', 'forum-dark', 'library-dark', 'newsletter-dark', 'career-dark', 'lessons-dark', 'forum-dark', 'calendar-dark', 'library-dark'];
   shots.forEach((n, i) => {
     const img = el('img');
     img.src = `${UI}/${n}.png`;
@@ -490,7 +586,7 @@ function s07({ tl, cues, stage }) {
   tl.to(btn, { scale: 0.93, duration: 0.07, ease: 'power2.out' }, T.click - 0.02);
   tl.to(btn, { scale: 1.02, duration: 0.09, ease: 'power2.out' }, T.click + 0.06);
   const GL = '█▓▒░#@$%&?!<>/\\';
-  const BASE = 'Launch DSBA Pulse';
+  const BASE = `Launch ${NAME}`;
   const errEls = ERRS.map((e) => {
     const w = el('div', 'errwin', `<div class="errwin__bar"><span>${e.bar}</span><b>×</b></div>
       <div class="errwin__body"><div class="errwin__ic${e.warn ? ' warn' : ''}">${e.ic}</div><div>${e.m}</div></div>
@@ -501,13 +597,15 @@ function s07({ tl, cues, stage }) {
     return w;
   });
   const bar = root.querySelector('.errwin__prog i');
+  const tErr = G.segments.find((s) => s.kind === 'errors').t0;     // the app is declared dead
+  const tStatic = G.segments.find((s) => s.kind === 'static').t0;
   onFrame((t) => {
-    if (t < 58 || t >= 68) return;
+    if (t < start || t >= G.end) return;
     // background wall drifts; after the click it shudders
     const f = Math.round(t * 30);
     const r = mulberry(f * 13 + 5);
-    const shake = t >= G.start && t < 65.5 ? 1 : 0;
-    gsap.set(wall, { rotationX: 54, rotationZ: -24, x: (t - 58) * -14 + shake * (r() - 0.5) * 40, y: (t - 58) * 6 + shake * (r() - 0.5) * 30, scale: 1.12 });
+    const shake = t >= G.start && t < tErr ? 1 : 0;
+    gsap.set(wall, { rotationX: 54, rotationZ: -24, x: (t - start) * -14 + shake * (r() - 0.5) * 40, y: (t - start) * 6 + shake * (r() - 0.5) * 30, scale: 1.12 });
     // countdown numerals
     let cTxt = '';
     let cP = 0;
@@ -518,21 +616,21 @@ function s07({ tl, cues, stage }) {
     // the button label breaks down
     let txt = BASE;
     if (t >= T.click + 0.05 && t < G.start) txt = 'Launching…';
-    else if (t >= G.start && t < 65.5) {
-      const k = Math.round(3 + 12 * prog(t, G.start, 65.5));
+    else if (t >= G.start && t < tErr) {
+      const k = Math.round(3 + 10 * prog(t, G.start, tErr));
       const a = [...BASE];
       for (let i = 0; i < k; i += 1) a[Math.floor(r() * a.length)] = GL[Math.floor(r() * GL.length)];
       txt = a.join('');
-    } else if (t >= 65.5) txt = 'launch.exe not responding';
+    } else if (t >= tErr) txt = 'launch.exe not responding';
     if (label.textContent !== txt) label.textContent = txt;
-    btn.style.background = t >= 65.5 ? 'linear-gradient(180deg,#ff5470,#d81e45)' : '';
-    btn.style.fontFamily = t >= 65.5 ? 'var(--mono)' : '';
-    btn.style.fontSize = t >= 65.5 ? '38px' : '';
-    cur.el.style.opacity = t >= 64.4 ? '0' : '';
-    h.style.visibility = t >= 65.5 ? 'hidden' : '';
+    btn.style.background = t >= tErr ? 'linear-gradient(180deg,#ff5470,#d81e45)' : '';
+    btn.style.fontFamily = t >= tErr ? 'var(--mono)' : '';
+    btn.style.fontSize = t >= tErr ? '38px' : '';
+    cur.el.style.opacity = t >= G.start + 0.4 ? '0' : '';
+    h.style.visibility = t >= tErr ? 'hidden' : '';
     // error windows appear instantly at their cue times (the glitch engine supplies the pop)
     errEls.forEach((w, i) => { w.style.visibility = t >= G.error_windows[i] ? 'inherit' : 'hidden'; });
-    bar.style.width = `${Math.round(100 * prog(t, G.error_windows[4] + 0.05, 67.5))}%`;
+    bar.style.width = `${Math.round(100 * prog(t, G.error_windows[4] + 0.05, tStatic + 0.5))}%`;
   });
 }
 

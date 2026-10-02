@@ -1,4 +1,4 @@
-// Captures every UI asset the film needs from the running DSBA Pulse app (clock frozen at the
+// Captures every UI asset the film needs from the running DSBA Hub app (clock frozen at the
 // event time). Writes PNGs to assets/ui/ and rectangles to assets/ui/manifest.json.
 //   node tools/capture-ui.mjs [only-group ...]     groups: stills seq-composer seq-cmdk elements dark
 import fs from 'fs';
@@ -14,6 +14,10 @@ const only = process.argv.slice(2);
 const want = (g) => !only.length || only.includes(g);
 const TYPED = JSON.parse(fs.readFileSync('/home/claude/launch-video/cues.json', 'utf8'));
 const EGG = 'why-is-everyone-acting-weird-today';
+const COOKED = 'what-is-this-am-i-cooked';
+// The film shows this thread being written, so the seeded copy is hidden while capturing the forum.
+const HIDE = { 'hub.forum.hidden': [COOKED] };
+const LESSON = '/modules/advanced-stats-distribution?tab=lessons&chapter=1&video=10';
 
 const rect = async (page, sel) => {
   const b = await page.locator(sel).first().boundingBox();
@@ -31,20 +35,30 @@ if (want('stills')) {
   const stills = [
     ['home', '/', 4600],
     ['newsletter', '/newsletter', 1500],
-    ['issue-top', '/newsletter/launch-edition', 1500],
-    ['issue-cohort', '/newsletter/launch-edition?section=cohort-corner', 2200],
-    ['issue-deadlines', '/newsletter/launch-edition?section=deadlines', 2200],
-    ['library', '/library', 1800],
-    ['viewer-nb', '/library/st2195-block-6-notebook-data-wrangling', 1800],
-    ['viewer-paper', '/library/st2133-past-paper-2025-zone-a', 1800],
-    ['lessons', '/modules/advanced-stats-distribution?tab=lessons&chapter=1&video=3', 1800],
+    ['issue-top', '/newsletter/launch-edition', 1800],
+    ['issue-council', '/newsletter/launch-edition?section=student-council', 2400],
+    ['issue-speech', '/newsletter/launch-edition?section=speech-day', 2400],
+    ['issue-launch', '/newsletter/launch-edition?section=launch', 2400],
+    ['library', '/library', 2200],
+    ['viewer-fine', '/library/st2187-business-analytics-cover', 2600],
+    ['viewer-table', '/library/st2133-common-continuous-distributions', 2600],
+    ['lessons', LESSON, 2200],
+    ['career', '/career', 2200],
+    ['career-ds', '/career?role=data-scientist', 2200],
     ['modules', '/modules', 1500],
     ['calendar', '/calendar', 2500],
   ];
   for (const [name, hash, wait] of stills) {
     const { ctx, page } = await openPage(browser, { hash, scale: 2, wait });
     await shot(page, name);
-    if (name === 'lessons') manifest.lessonsPlay = await rect(page, '.mod-poster__play');
+    if (name === 'lessons') {
+      manifest.lessonsPlay = await rect(page, '.mod-poster__play');
+      manifest.lessonsPoster = await rect(page, '[data-hub=lesson-poster]');
+    }
+    if (name === 'career') {
+      manifest.careerChip = await rect(page, '[data-hub=career-role][data-role-id=data-scientist]');
+      manifest.careerFit = await rect(page, '[data-hub=career-fit]');
+    }
     await ctx.close();
   }
   // grades with the first-class example loaded
@@ -56,12 +70,12 @@ if (want('stills')) {
   }
   // forum list (egg count hidden: the film animates it)
   {
-    const { ctx, page } = await openPage(browser, { hash: '/forum', scale: 2, wait: 1500 });
-    manifest.forumEggRow = await rect(page, `[data-pulse=thread-row][data-thread-id="${EGG}"]`);
+    const { ctx, page } = await openPage(browser, { hash: '/forum', scale: 2, wait: 1500, ls: HIDE });
+    manifest.forumEggRow = await rect(page, `[data-hub=thread-row][data-thread-id="${EGG}"]`);
     manifest.forumEggCount = await rect(page, `[data-thread-id="${EGG}"] .forum-vote__count`);
-    manifest.forumEggVote = await rect(page, `[data-thread-id="${EGG}"] [data-pulse=vote]`);
-    manifest.forumStart = await rect(page, '[data-pulse=new-thread-button]');
-    manifest.forumFirstRow = await rect(page, '[data-pulse=thread-row]');
+    manifest.forumEggVote = await rect(page, `[data-thread-id="${EGG}"] [data-hub=vote]`);
+    manifest.forumStart = await rect(page, '[data-hub=new-thread-button]');
+    manifest.forumFirstRow = await rect(page, '[data-hub=thread-row]');
     await hideEggCount(page);
     await shot(page, 'forum');
     await ctx.close();
@@ -72,7 +86,7 @@ if (want('elements')) {
   console.log('elements (2x)');
   {
     const { ctx, page } = await openPage(browser, { hash: '/newsletter', scale: 2, wait: 1500, h: 2400 });
-    const covers = page.locator('[data-pulse=issue-cover]');
+    const covers = page.locator('[data-hub=issue-cover]');
     const n = await covers.count();
     manifest.covers = [];
     for (let i = 0; i < n; i += 1) {
@@ -87,7 +101,7 @@ if (want('elements')) {
   }
   {
     const { ctx, page } = await openPage(browser, { hash: '/library', scale: 2, wait: 1800 });
-    const thumbs = page.locator('[data-pulse=library-new] [data-pulse=file-thumb], .lib-new [data-pulse=file-thumb]');
+    const thumbs = page.locator('[data-hub=library-new] [data-hub=file-thumb], .lib-new [data-hub=file-thumb]');
     const n = Math.min(8, await thumbs.count());
     manifest.thumbs = [];
     for (let i = 0; i < n; i += 1) {
@@ -103,29 +117,39 @@ if (want('elements')) {
 
 if (want('seq-composer')) {
   console.log('composer typing (1x)');
-  const text = TYPED.forum.typed_text;
-  const { ctx, page } = await openPage(browser, { hash: '/forum/new', scale: 1, wait: 1500 });
-  manifest.composer = await rect(page, '[data-pulse=composer]');
-  manifest.composerTitle = await rect(page, '[data-pulse=composer-title]');
-  manifest.composerPost = await rect(page, '[data-pulse=post-button]');
-  const title = page.locator('[data-pulse=composer-title]');
+  const text = Array.from(TYPED.forum.typed_text);   // code points: the skull is one keystroke
+  const { ctx, page } = await openPage(browser, { hash: '/forum/new?attach=reduction-formula', scale: 1, wait: 1800, ls: HIDE });
+  // Film-only: a shorter details box, so the attached question is on screen while the title is typed.
+  await page.addStyleTag({ content: '[data-hub=composer-body]{min-height:0!important;height:84px!important}' });
+  await page.waitForTimeout(300);
+  manifest.composer = await rect(page, '[data-hub=composer]');
+  manifest.composerTitle = await rect(page, '[data-hub=composer-title]');
+  manifest.composerAttachment = await rect(page, '[data-hub=composer-attachment]');
+  const title = page.locator('[data-hub=composer-title]');
   await title.click();
   await page.waitForTimeout(300);
   await shot(page, 'composer-00');
   for (let i = 0; i < text.length; i += 1) {
-    await page.keyboard.type(text[i]);
+    await page.keyboard.insertText(text[i]);
     await page.waitForTimeout(i === text.length - 1 ? 900 : 60);
     await shot(page, `composer-${String(i + 1).padStart(2, '0')}`);
   }
   manifest.composerFrames = text.length + 1;
-  await page.locator('[data-pulse=composer-body]').fill('Did the 2024 Zone A paper last night and the MGF questions destroyed me. What did you focus on in the last two weeks?');
+  // scroll down to the Post button for the last beat
+  await page.locator('[data-hub=post-button]').scrollIntoViewIfNeeded();
+  await page.evaluate(() => { const b = document.querySelector('[data-hub=post-button]'); const r = b.getBoundingClientRect(); window.scrollBy(0, r.bottom - (window.innerHeight - 70)); });
   await page.waitForTimeout(500);
+  manifest.composerScroll = await page.evaluate(() => window.scrollY || document.scrollingElement.scrollTop);
+  manifest.composerPost = await rect(page, '[data-hub=post-button]');
+  manifest.composerAttachmentFinal = await rect(page, '[data-hub=composer-attachment]');
   await shot(page, 'composer-final');
-  manifest.composerPost = await rect(page, '[data-pulse=post-button]');
-  await page.locator('[data-pulse=post-button]').click();
-  await page.waitForTimeout(1300);
-  manifest.postedFirstRow = await rect(page, '[data-pulse=thread-row]:not(:has-text("Welcome to the forum"))');
-  manifest.postedEggRow = await rect(page, `[data-pulse=thread-row][data-thread-id="${EGG}"]`);
+  await page.locator('[data-hub=post-button]').click();
+  await page.waitForTimeout(1500);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(400);
+  manifest.postedHash = await page.evaluate(() => location.hash);
+  manifest.postedFirstRow = await rect(page, '[data-hub=thread-row]:not(:has-text("Welcome to the forum"))');
+  manifest.postedEggRow = await rect(page, `[data-hub=thread-row][data-thread-id="${EGG}"]`);
   manifest.postedEggCount = await rect(page, `[data-thread-id="${EGG}"] .forum-vote__count`);
   await hideEggCount(page);
   await shot(page, 'forum-posted');
@@ -138,7 +162,7 @@ if (want('seq-cmdk')) {
   const { ctx, page } = await openPage(browser, { hash: '/', scale: 1, wait: 4600 });
   await page.keyboard.press('Meta+k');
   await page.waitForTimeout(700);
-  manifest.cmdk = await rect(page, '[data-pulse=cmdk]');
+  manifest.cmdk = await rect(page, '[data-hub=cmdk]');
   await shot(page, 'cmdk-00');
   for (let i = 0; i < text.length; i += 1) {
     await page.keyboard.type(text[i]);
@@ -146,13 +170,13 @@ if (want('seq-cmdk')) {
     await shot(page, `cmdk-${String(i + 1).padStart(2, '0')}`);
   }
   manifest.cmdkFrames = text.length + 1;
-  manifest.cmdkFinal = await rect(page, '[data-pulse=cmdk]');
+  manifest.cmdkFinal = await rect(page, '[data-hub=cmdk]');
   await ctx.close();
 }
 
 if (want('dark')) {
   console.log('dark stills (1x)');
-  for (const [name, hash, wait] of [['home-dark', '/', 4600], ['forum-dark', '/forum', 1500], ['library-dark', '/library', 1800], ['newsletter-dark', '/newsletter', 1500], ['calendar-dark', '/calendar', 2500], ['lessons-dark', '/modules/advanced-stats-distribution?tab=lessons&chapter=1&video=3', 1800]]) {
+  for (const [name, hash, wait] of [['home-dark', '/', 4600], ['forum-dark', '/forum', 1500], ['library-dark', '/library', 1800], ['newsletter-dark', '/newsletter', 1500], ['calendar-dark', '/calendar', 2500], ['lessons-dark', LESSON, 2200], ['career-dark', '/career', 2200]]) {
     const { ctx, page } = await openPage(browser, { hash, scale: 1, wait, theme: 'dark' });
     await shot(page, name);
     await ctx.close();

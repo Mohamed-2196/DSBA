@@ -1,0 +1,96 @@
+/* Act 3 — the letter (91.5–100), the title (100–106), "we ran the numbers" (106–124),
+   the network that becomes THANK YOU (124–132) and the finale (132–140).
+   One palette for the whole act: navy to near-black, gold and cream; the cohort colours come back in the charts and the network. */
+.a3 {
+  --cream: #f6f1e3; --cream-2: rgba(246, 241, 227, .72);
+  --hair: rgba(245, 200, 107, .3); --stamp: #ff5b49;
+  --foil: linear-gradient(100deg, #b8862b 0%, #f5c86b 16%, #fff3c4 29%, #f5c86b 42%, #dba94c 53%, #ffd98a 65%, #fff8dc 76%, #f5c86b 87%, #b8862b 100%);
+  color: var(--cream);
+}
+.a3 canvas { position: absolute; left: 0; top: 0; }
+.a3 .wd { display: inline-block; white-space: pre; }
+
+/* ── backdrop: three moods that cross-fade; the rays and the dust field are drawn on its canvas ── */
+.a3-backdrop { background: #02030a; }
+.a3-bg { position: absolute; inset: 0; opacity: 0; }
+/* each mood carries its own dark edge (a separate vignette layer over a gradient costs a lot at render time) */
+.a3-bg--cool { background: radial-gradient(ellipse 1500px 900px at 50% 46%, #111c4e 0%, #080d2a 56%, #040618 78%, #010207 100%); }
+.a3-bg--warm { background: radial-gradient(ellipse 1300px 800px at 50% 44%, #3b2c0c 0%, #14143c 46%, #06081c 84%, #020309 112%); }
+.a3-bg--paper { background: radial-gradient(ellipse 1700px 1100px at 40% 54%, #0f1b49 0%, #0a1234 50%, #050818 74%, #020309 100%); }
+.a3-bloom { position: absolute; left: 960px; top: 470px; width: 2200px; height: 1300px; margin: -650px -1100px; opacity: 0;
+  background: radial-gradient(ellipse at center, rgba(255, 226, 160, .5) 0%, rgba(245, 200, 107, .16) 32%, transparent 64%); }
+.a3-flash { position: absolute; inset: 0; visibility: hidden; background: radial-gradient(circle at 50% 44%, #fff 0%, #ffeab4 40%, #f5c86b 100%); }
+.a3-burst { position: absolute; left: 960px; top: 475px; width: 2800px; height: 2800px; margin: -1400px; border-radius: 50%; opacity: 0;
+  background: radial-gradient(circle closest-side, #fff 0%, #fffaf0 22%, #ffefc4 40%, rgba(255, 226, 158, .92) 54%, rgba(245, 200, 107, .6) 68%, rgba(245, 200, 107, .24) 82%, rgba(245, 200, 107, .06) 93%, rgba(245, 200, 107, 0) 100%); }
+
+/* ── s09 the letter ─────────────────────────────────────────────── */
+.a3 .lt-block { position: absolute; left: 334px; top: 176px; width: 1400px; }
+.a3 .lt-ln { height: 96px; white-space: pre; font: italic 400 66px/96px var(--serif); color: var(--cream); }
+.a3 .lt-dear { height: 176px; margin: 0 0 38px -6px; font: 700 172px/176px 'Caveat', cursive; color: var(--gold-2); text-shadow: 0 0 46px rgba(245, 200, 107, .3);
+  transform: rotate(-2deg); transform-origin: 0 100%; }
+.a3 .lt-turn { margin-top: 40px; }
+.a3 .lt-last { height: 144px; margin-top: 4px; font: italic 600 124px/144px var(--serif); letter-spacing: -.012em; color: var(--gold-2); text-shadow: 0 0 80px rgba(245, 200, 107, .3); }
+.a3 .lt-tx { display: inline-block; padding: .6em; margin: -.6em; }
+.a3 .lt-caret { display: inline-block; width: 5px; height: .84em; margin-left: .1em; vertical-align: -.1em; border-radius: 3px; background: var(--gold-2); box-shadow: 0 0 16px rgba(245, 200, 107, .75); }
+.a3 .lt-dear .lt-caret { height: .62em; vertical-align: -.02em; }
+
+/* ── s10 the title ──────────────────────────────────────────────── */
+.a3 .td-head { position: absolute; left: 0; right: 0; top: 226px; text-align: center; transform-origin: 50% 46%; }
+.a3 .td-happy { display: flex; align-items: center; justify-content: center; gap: 46px; height: 86px; }
+.a3 .td-happy-tx { font: 700 70px/86px var(--sans); letter-spacing: .5em; margin-right: -.5em; color: #fffaf0; }
+/* no compositor layers here: a cached layer keeps the scale it was first drawn at, so a frame would depend on where the render started */
+.a3 .td-happy-tx .ch { will-change: auto; }
+.a3 .td-rule { width: 210px; height: 2px; background: linear-gradient(90deg, rgba(255, 217, 138, 0), var(--gold-2)); transform-origin: 100% 50%; }
+.a3 .td-rule--r { background: linear-gradient(270deg, rgba(255, 217, 138, 0), var(--gold-2)); transform-origin: 0 50%; }
+.a3 .td-title { position: relative; margin-top: 4px; font: 800 258px/1.08 'Playfair', serif; letter-spacing: -.015em; white-space: nowrap; transform-origin: 50% 54%; }
+.a3 .td-foil, .a3 .td-glint { padding: 0 .1em .08em; -webkit-background-clip: text; background-clip: text; color: transparent; }
+.a3 .td-foil { display: inline-block; background-image: var(--foil); background-size: 260% 100%; background-position: 100% 0; }
+.a3 .td-glint { position: absolute; left: 0; right: 0; top: 0; background-image: linear-gradient(104deg, rgba(255, 255, 255, 0) 45.5%, rgba(255, 255, 255, .92) 50%, rgba(255, 255, 255, 0) 54.5%);
+  background-size: 300% 100%; background-position: 100% 0; background-repeat: no-repeat; }
+.a3 .td-sub { margin-top: 26px; font: italic 500 56px/1.3 var(--serif); color: var(--cream); }
+
+/* ── s11 "we ran the numbers" ───────────────────────────────────── */
+.a3-defs { position: absolute; }
+.a3 .nm-intro { position: absolute; left: 0; right: 0; top: 352px; text-align: center; white-space: nowrap; }
+.a3 .nm-il { font: 600 104px/1.16 var(--serif); letter-spacing: -.014em; color: var(--cream); }
+.a3 .nm-il--last { margin-top: 24px; font: italic 600 114px/1.16 var(--serif); color: var(--gold-2); text-shadow: 0 0 90px rgba(245, 200, 107, .26); }
+.a3 .fig { position: absolute; inset: 0; }
+.a3 .fig-kicker { position: absolute; left: 120px; right: 120px; top: 90px; display: flex; align-items: center; gap: 28px; font: 700 34px/40px var(--mono); letter-spacing: .08em; color: var(--gold); }
+.a3 .fig-kicker i { flex: 1; height: 2px; background: linear-gradient(90deg, var(--hair), rgba(245, 200, 107, .04)); transform-origin: 0 50%; }
+.a3 .fig-title { position: absolute; left: 120px; top: 138px; font: 600 64px/80px var(--serif); letter-spacing: -.012em; color: var(--cream); white-space: nowrap;
+  text-shadow: 0 2px 20px rgba(4, 7, 25, .95), 0 0 5px rgba(4, 7, 25, .7); }
+.a3 .fig-title sub { position: relative; top: .2em; margin-left: .03em; font-size: .6em; vertical-align: baseline; line-height: 0; }
+.a3 .fig-punch { position: absolute; left: 1220px; top: 430px; width: 580px; height: 230px; font: 700 116px/230px var(--mono); text-align: center; white-space: nowrap; }
+.a3 .fig--ci .fig-punch { font-size: 184px; letter-spacing: -.03em; }
+.a3 .pv { position: absolute; left: 0; right: 0; top: 0; }
+.a3 .pv--dim { color: var(--cream); }
+.a3 .pv--foil { background-image: var(--foil); background-size: 220% 100%; background-position: 40% 0; -webkit-background-clip: text; background-clip: text; color: transparent; }
+.a3 .fig-note { position: absolute; left: 1220px; top: 664px; width: 580px; text-align: center; font: italic 400 46px/1.26 var(--serif); color: var(--cream); }
+.a3 .fig--ci .fig-note { left: 1250px; width: 520px; font-size: 38px; color: var(--cream-2); }
+.a3 .fig--h0 .fig-note { top: 600px; }
+.a3 .stamp { position: absolute; left: 668px; top: 592px; width: 0; height: 0; }
+.a3 .stamp b { position: absolute; left: 0; top: 0; display: block; padding: 2px 52px 10px; border: 11px solid currentColor; border-radius: 22px; outline: 3px solid currentColor; outline-offset: 8px;
+  font: 900 150px/1.12 var(--sans); letter-spacing: .07em; color: var(--stamp); white-space: nowrap; filter: url(#a3-ink); }
+
+/* ── s12 the network → THANK YOU ────────────────────────────────── */
+.a3 .nt-lab { position: absolute; font: 700 34px/1 var(--sans); white-space: nowrap; transform: translateX(-50%); }
+.a3 .nt-cap { position: absolute; left: 0; right: 0; text-align: center; white-space: nowrap; }
+.a3 .nt-cap--0 { top: 770px; font: 600 66px/1.2 var(--serif); letter-spacing: -.01em; color: var(--cream); }
+.a3 .nt-cap--1 { top: 868px; font: italic 500 54px/1.2 var(--serif); color: var(--gold-2); }
+.a3 .nt-small { position: absolute; left: 0; right: 0; top: 706px; text-align: center; font: italic 400 46px/1.2 var(--serif); color: var(--cream-2); }
+
+/* ── s13 finale ─────────────────────────────────────────────────── */
+.a3 .fn-col { position: absolute; left: 0; right: 0; top: 232px; text-align: center; }
+.a3 .fn-title { font: 800 134px/1.12 'Playfair', serif; letter-spacing: -.012em; white-space: nowrap; filter: drop-shadow(0 6px 36px rgba(245, 200, 107, .4)); }
+.a3 .fn-title .td-foil { background-size: 220% 100%; background-position: 46% 0; }
+.a3 .fn-rule { display: block; width: 170px; height: 2px; margin: 30px auto 0; background: linear-gradient(90deg, rgba(245, 200, 107, 0), var(--gold), rgba(245, 200, 107, 0)); }
+.a3 .fn-sign { margin-top: 30px; font: 500 48px/1.2 var(--serif); letter-spacing: .004em; color: var(--cream); white-space: nowrap; }
+.a3 .fn-logos { margin-top: 92px; display: flex; align-items: center; justify-content: center; gap: 42px; }
+.a3 .fn-mini { display: flex; align-items: center; gap: 16px; font: 800 40px/1 var(--sans); letter-spacing: -.03em; color: #fff; white-space: nowrap; }
+.a3 .fn-tag { padding: 12px 30px 14px; border-radius: 999px; border: 2px solid rgba(245, 200, 107, .62); font: 700 36px/1 var(--sans); color: var(--gold-2); white-space: nowrap; }
+.a3 .fn-logos img { height: 44px; }
+.a3 .fn-logos img.crest { height: 84px; }
+.a3 .fn-ps { position: absolute; right: 452px; bottom: 132px; font: 700 62px/1.1 'Caveat', cursive; color: var(--gold-2); white-space: nowrap; transform: rotate(-2.5deg); transform-origin: 100% 100%; }
+.a3 .fn-ps span { display: inline-block; padding: .3em; margin: -.3em; }
+.a3-fin.no-cat .fn-ps { right: 120px; }
+.a3 .fn-cat { position: absolute; left: 1552px; top: 1080px; width: 456px; height: auto; transform-origin: 60% 100%; filter: drop-shadow(0 10px 40px rgba(0, 0, 0, .55)); }
