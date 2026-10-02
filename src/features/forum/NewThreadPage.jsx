@@ -177,7 +177,7 @@ function Composer() {
       <PageHeader title="Start a thread" description="Ask your cohort a question, or share something that helped you." />
 
       <div className="forum-new__layout">
-        <form className="forum-composer" data-pulse="composer" onSubmit={submit} noValidate>
+        <form className="forum-composer" data-hub="composer" onSubmit={submit} noValidate>
           {restored ? (
             <div className="forum-composer__restored" role="status">
               <span>We kept the draft you started earlier.</span>
@@ -215,7 +215,7 @@ function Composer() {
                 {form.title.length}/{TITLE_MAX}
               </span>
             }
-            data-pulse="composer-title"
+            data-hub="composer-title"
           />
 
           <div className={cx('forum-composer__similar', !similar.length && 'is-empty')} aria-live="polite">
@@ -273,7 +273,7 @@ function Composer() {
             placeholder="What have you tried so far? Where exactly do you get stuck?"
             rows={9}
             onSubmit={submit}
-            textareaProps={{ 'data-pulse': 'composer-body' }}
+            textareaProps={{ 'data-hub': 'composer-body' }}
           />
 
           <div className="forum-composer__footer">
@@ -291,7 +291,7 @@ function Composer() {
             <Button variant="ghost" onClick={discard}>
               Discard
             </Button>
-            <Button type="submit" variant="primary" leadingIcon={PaperPlaneRight} data-pulse="post-button">
+            <Button type="submit" variant="primary" leadingIcon={PaperPlaneRight} data-hub="post-button">
               Post thread
             </Button>
           </div>

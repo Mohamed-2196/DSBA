@@ -3,8 +3,8 @@ import { cx, Highlight } from '../../ui';
 import { countdownLabel, daysUntil, DAY_MS, formatDayMonth, formatLong, formatShort, parseKey, startOfDay } from './dates.js';
 import { eventModule } from './eventMeta.js';
 
-// The brand pulse trace around its spike, as [dx, dy] from (peak x, baseline): the same shape as the
-// PulseMark logo path, stretched. The exam you're counting down to is the spike.
+// The brand trace around its spike, as [dx, dy] from (peak x, baseline): the same shape as the
+// HubMark logo path, stretched. The exam you're counting down to is the spike.
 const SPIKE = [[-11.1, 0], [-8.6, -2.4], [-6.1, 0.8], [-3.4, -0.6], [0, -11.6], [4, 5.6], [7, -2.6], [10, 0.4], [13.6, -1.4], [17.4, 0]];
 const SX = 2;
 const SY = 3.1;
@@ -19,7 +19,7 @@ const LABEL_GAP = 8;
 
 /**
  * Timeline of an exam session: today on the left, every exam of the session as a dot, the next one
- * as the pulse spike, and the countdown drawn as a measured span from today to it.
+ * as the spike, and the countdown drawn as a measured span from today to it.
  * @param {CalendarEvent[]} session   the session's exams, by date
  * @param {CalendarEvent} next        the exam being counted down to
  * @param {Date} now
@@ -53,7 +53,7 @@ export function SessionStrip({ session, next, now, onOpen }) {
     const nextX = x(parseKey(next.date).getTime());
     const days = daysUntil(next.date, today);
 
-    // Trace: history (before today) quiet, the rest is the pulse; the next exam is the spike.
+    // Trace: history (before today) quiet, the rest is the trace; the next exam is the spike.
     const pts = SPIKE.map(([dx, dy]) => [nextX + dx * SX, BASE_Y + dy * SY]);
     const startX = x(start);
     const endX = x(end) + PAD_R - 6;

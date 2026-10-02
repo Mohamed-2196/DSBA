@@ -13,7 +13,7 @@ const issueHref = (issue, section) => `/newsletter/${issue.slug}${section ? `?se
 
 function Masthead({ first, upcoming }) {
   return (
-    <header className="nl-masthead" data-pulse="nl-masthead">
+    <header className="nl-masthead" data-hub="nl-masthead">
       <h1 className="nl-masthead__title">
         <Nameplate />
       </h1>
@@ -41,7 +41,7 @@ function Masthead({ first, upcoming }) {
 function LatestFeature({ issue }) {
   const no = issueNo(issue.number);
   return (
-    <section className="nl-feature" data-pulse="latest-issue" aria-labelledby="nl-latest-title">
+    <section className="nl-feature" data-hub="latest-issue" aria-labelledby="nl-latest-title">
       <Link to={issueHref(issue)} className="nl-feature__cover" tabIndex={-1} aria-hidden="true">
         <IssueCover issue={issue} decorative />
       </Link>
@@ -108,7 +108,7 @@ function ShelfItem({ issue }) {
 }
 
 export default function NewsletterPage() {
-  useDocumentTitle('The Pulse');
+  useDocumentTitle('The DSBA Newsletter');
   const latest = getLatest();
   const upcoming = getUpcoming();
 
@@ -120,7 +120,7 @@ export default function NewsletterPage() {
         <LatestFeature issue={latest} />
       ) : (
         <Panel padding="none">
-          <EmptyState icon={Newspaper} title="The first issue is on its way" body="Subscribe below and The Pulse will land in your inbox on Monday." />
+          <EmptyState icon={Newspaper} title="The first issue is on its way" body="Subscribe below and The DSBA Newsletter will land in your inbox on Monday." />
         </Panel>
       )}
 

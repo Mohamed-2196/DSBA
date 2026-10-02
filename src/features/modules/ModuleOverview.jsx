@@ -217,7 +217,7 @@ export function ModuleOverview({ module: m, state, resume, exam, files, onOpenLe
             </Button>
           }
         />
-        <Panel as="div" padding="none" className="mod-res" data-pulse="module-resources">
+        <Panel as="div" padding="none" className="mod-res" data-hub="module-resources">
           <dl className="mod-res__list">
             {entries.map((e) => (
               <ResourceEntry key={e.id} entry={e} inApp={inAppFor(e.id)} onTab={onTab} />

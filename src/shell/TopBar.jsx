@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GithubLogo, MagnifyingGlass } from '@phosphor-icons/react';
-import { Button, ErrorBoundary, IconButton, PulseMark, SearchField, cx } from '../ui';
+import { Button, ErrorBoundary, IconButton, HubMark, SearchField, cx } from '../ui';
 import { CONTRIBUTE_URL } from '../data/people.js';
 import { openCommandPalette } from '../features/search/public.js';
 import { NotificationsMenu } from '../features/notifications/public.js';
@@ -23,11 +23,11 @@ function useScrolled(threshold = 4) {
 export function TopBar() {
   const scrolled = useScrolled();
   return (
-    <header className={cx('shell-topbar', scrolled && 'is-scrolled')} data-pulse="topbar">
+    <header className={cx('shell-topbar', scrolled && 'is-scrolled')} data-hub="topbar">
       <div className="shell-topbar__inner">
-        <Link to="/" className="shell-brand shell-topbar__brand" aria-label="DSBA Pulse home">
-          <PulseMark tile size={28} />
-          <span className="shell-brand__name">DSBA Pulse</span>
+        <Link to="/" className="shell-brand shell-topbar__brand" aria-label="DSBA Hub home">
+          <HubMark tile size={28} />
+          <span className="shell-brand__name">DSBA Hub</span>
         </Link>
         <SearchField
           asButton
@@ -36,15 +36,15 @@ export function TopBar() {
           label="Search everything"
           shortcut="K"
           onClick={() => openCommandPalette()}
-          data-pulse="search"
+          data-hub="search"
         />
         <div className="shell-topbar__actions">
-          <YearSwitcher compact menuSide="bottom" className="shell-topbar__year" pulseId="year-switcher-mobile" />
+          <YearSwitcher compact menuSide="bottom" className="shell-topbar__year" hookId="year-switcher-mobile" />
           <IconButton className="shell-topbar__search-icon" label="Search" icon={MagnifyingGlass} onClick={() => openCommandPalette()} />
           <ErrorBoundary name="NotificationsMenu" fallback={null}>
             <NotificationsMenu />
           </ErrorBoundary>
-          <Button className="shell-topbar__contribute" href={CONTRIBUTE_URL} leadingIcon={GithubLogo} data-pulse="contribute">
+          <Button className="shell-topbar__contribute" href={CONTRIBUTE_URL} leadingIcon={GithubLogo} data-hub="contribute">
             Contribute
           </Button>
         </div>

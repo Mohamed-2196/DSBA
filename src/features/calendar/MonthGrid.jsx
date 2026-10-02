@@ -18,7 +18,7 @@ function groupByDay(events) {
 /**
  * Month grid (ARIA grid, Sunday first, Fri/Sat weekend). One tab stop: arrow keys move by day/week,
  * Home/End to the week's ends, PageUp/PageDown change month, Enter opens the day's first event.
- * data-pulse="calendar-grid" on the grid, "calendar-event" on each event.
+ * data-hub="calendar-grid" on the grid, "calendar-event" on each event.
  */
 export function MonthGrid({ month, events, today, selectedId, showCohort, labelledBy, onOpen, onNavigate }) {
   const { y, m } = month;
@@ -73,7 +73,7 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
   };
 
   return (
-    <div ref={gridRef} role="grid" aria-labelledby={labelledBy} className="cal-grid" data-pulse="calendar-grid">
+    <div ref={gridRef} role="grid" aria-labelledby={labelledBy} className="cal-grid" data-hub="calendar-grid">
       <div role="row" className="cal-grid__row cal-grid__row--head">
         {WEEKDAYS.map((w, i) => (
           <div key={w.short} role="columnheader" className={cx('cal-grid__wd', (i === 5 || i === 6) && 'is-weekend')}>
@@ -119,7 +119,7 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                           tabIndex={-1}
                           className={cx('cal-chip', `cal-chip--${ev.type}`, ev.id === selectedId && 'is-selected', past && 'is-past')}
                           onClick={() => onOpen(ev)}
-                          data-pulse="calendar-event"
+                          data-hub="calendar-event"
                           data-event-id={ev.id}
                           aria-label={eventSummary(ev)}
                         >

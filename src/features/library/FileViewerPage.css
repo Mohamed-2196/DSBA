@@ -84,7 +84,7 @@
   overflow: hidden;
   border-radius: var(--r-page);
   background: #fff;
-  box-shadow: 0 0 0 1px var(--line), 0 14px 32px -20px rgba(14, 21, 66, .45);
+  box-shadow: 0 0 0 1px var(--line), 0 14px 32px -20px rgba(10, 31, 68, .45);
 }
 .lib-viewer__sheet { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
 

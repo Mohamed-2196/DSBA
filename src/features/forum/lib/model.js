@@ -227,7 +227,7 @@ export function topContributors(threads, now = Date.now(), n = 5) {
   const map = new Map();
   for (const t of threads) {
     for (const r of t.replies) {
-      if (r.createdAt < since || r.authorId === 'pulse' || r.authorId === 'everyone') continue;
+      if (r.createdAt < since || r.authorId === 'hub' || r.authorId === 'everyone') continue;
       const e = map.get(r.authorId) || { authorId: r.authorId, authorYear: r.authorYear, replies: 0, votes: 0, accepted: 0 };
       e.replies += 1;
       e.votes += r.votes;

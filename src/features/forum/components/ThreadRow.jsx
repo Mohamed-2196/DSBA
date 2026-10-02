@@ -18,7 +18,7 @@ export function ThreadRow({ thread, onVote, fresh = false, terms, showModule = t
   return (
     <li
       className={cx('forum-row', thread.pinned && 'is-pinned', fresh && 'is-fresh')}
-      data-pulse="thread-row"
+      data-hub="thread-row"
       data-thread-id={thread.id}
     >
       <div className="forum-row__vote">

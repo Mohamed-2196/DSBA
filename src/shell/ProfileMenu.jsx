@@ -7,7 +7,7 @@ import { Avatar, Menu, cx } from '../ui';
 export function ProfileMenu({ compact = false }) {
   const { year, setYear } = useYear();
   const items = [
-    { id: 'about', label: 'About DSBA Pulse', icon: Info, to: '/about' },
+    { id: 'about', label: 'About DSBA Hub', icon: Info, to: '/about' },
     { id: 'styleguide', label: 'Style guide', icon: Palette, to: '/styleguide' },
     { id: 'contribute', label: 'Contribute a resource', icon: GithubLogo, href: CONTRIBUTE_URL },
     { divider: true },
@@ -20,7 +20,7 @@ export function ProfileMenu({ compact = false }) {
       label="Profile"
       items={items}
       trigger={
-        <button type="button" className={cx('shell-profile', compact && 'shell-profile--compact')} aria-label={`${CURRENT_USER.name}, ${cohortLabel(year)}. Open profile menu`} data-pulse="profile">
+        <button type="button" className={cx('shell-profile', compact && 'shell-profile--compact')} aria-label={`${CURRENT_USER.name}, ${cohortLabel(year)}. Open profile menu`} data-hub="profile">
           <Avatar name={CURRENT_USER.name} size="md" />
           {!compact ? (
             <>

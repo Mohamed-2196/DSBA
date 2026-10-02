@@ -1,6 +1,6 @@
 // Lesson posters. Nothing loads from YouTube / vc.bibf.com until the student presses play, so the
 // poster has to stand on its own: a dark plot plane in the module's cohort colour, the chapter title,
-// "Video n of m", the source, and the lesson's own pulse trace (deterministic per lesson).
+// "Video n of m", the source, and the lesson's own trace (deterministic per lesson).
 // A YouTube thumbnail is layered on top only if it actually loads (blocked in the sandbox; BBB
 // recordings and playlists have none).
 import { useMemo } from 'react';
@@ -8,7 +8,7 @@ import { Play } from '@phosphor-icons/react';
 import { lessonKey, videoThumbnailUrl } from '../../data/modules.js';
 import { videoTitle } from '../../data/videoTitles.js';
 import { cx } from '../../ui';
-import { KIND_ICON, KIND_SOURCE, kindLabel, lessonPosition, pulseTrace } from './lessons.js';
+import { KIND_ICON, KIND_SOURCE, kindLabel, lessonPosition, lessonTrace } from './lessons.js';
 import { useThumbnail } from './thumbs.js';
 import './Poster.css';
 
@@ -36,7 +36,7 @@ export function LessonPoster({ module: m, c, v, isWatched, onPlay }) {
   const video = chapter.videos[v];
   const count = chapter.videos.length;
   const key = lessonKey(m.id, c, v);
-  const trace = useMemo(() => pulseTrace(key, { width: W, height: TRACE_H, points: 38, spikeAt: 0.765 }), [key]);
+  const trace = useMemo(() => lessonTrace(key, { width: W, height: TRACE_H, points: 38, spikeAt: 0.765 }), [key]);
   const thumb = videoThumbnailUrl(video);
   const thumbOk = useThumbnail(thumb) === 'ok';
   const KindIcon = KIND_ICON[video.kind];
@@ -48,7 +48,7 @@ export function LessonPoster({ module: m, c, v, isWatched, onPlay }) {
       type="button"
       className={cx('mod-poster', thumbOk && 'has-thumb')}
       data-theme="dark"
-      data-pulse="lesson-poster"
+      data-hub="lesson-poster"
       style={{ '--mc': `var(--y${m.year})`, '--mc-on': `var(--on-y${m.year})` }}
       onClick={onPlay}
       aria-label={`Play chapter ${c + 1}${position ? `, ${position.toLowerCase()}` : ''}: ${chapter.title}. Loads from ${source}.`}
@@ -113,7 +113,7 @@ export function LessonPoster({ module: m, c, v, isWatched, onPlay }) {
  */
 export function MiniPoster({ module: m, c = 0, v = 0, size = 'md', className }) {
   const key = lessonKey(m.id, c, v);
-  const trace = useMemo(() => pulseTrace(key, { width: 320, height: 64, points: 18, spikeAt: 0.62, noise: 0.08 }), [key]);
+  const trace = useMemo(() => lessonTrace(key, { width: 320, height: 64, points: 18, spikeAt: 0.62, noise: 0.08 }), [key]);
   return (
     <span className={cx('mod-mini', `mod-mini--${size}`, className)} data-theme="dark" style={{ '--mc': `var(--y${m.year})`, '--mc-on': `var(--on-y${m.year})` }} aria-hidden="true">
       <svg className="mod-mini__plot" viewBox="0 0 320 180" preserveAspectRatio="none">

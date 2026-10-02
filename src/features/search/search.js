@@ -11,7 +11,7 @@ export const GROUPS = {
   lessons: { label: 'Lessons', cap: 3, noun: 'lessons' },
   files: { label: 'Library', cap: 3, noun: 'files' },
   threads: { label: 'Forum', cap: 3, noun: 'threads' },
-  issues: { label: 'The Pulse', cap: 2, noun: 'issues' },
+  issues: { label: 'The DSBA Newsletter', cap: 2, noun: 'issues' },
   events: { label: 'Calendar', cap: 3, noun: 'dates' },
   actions: { label: 'Actions', cap: 3, noun: 'actions' },
   pages: { label: 'Pages', cap: 3, noun: 'pages' },
@@ -111,7 +111,7 @@ function issueEntry(i) {
     group: 'issues',
     kind: 'issue',
     title: String(i.title || `Issue ${i.number}`),
-    subtitle: i.snippet ? String(i.snippet) : `The Pulse, issue ${i.number}`,
+    subtitle: i.snippet ? String(i.snippet) : `The DSBA Newsletter, issue ${i.number}`,
     number: i.number,
     to: `/newsletter/${encodeURIComponent(i.slug)}`,
   };

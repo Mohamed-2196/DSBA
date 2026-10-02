@@ -2,23 +2,23 @@
 .forum-page { container: forum-page / inline-size; }
 
 /* Live line under the description */
-.forum-pulse { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; color: var(--ink-2); font-size: var(--fs-14); }
-.forum-pulse__live { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-weight: var(--fw-medium); }
-.forum-pulse__dot {
+.forum-live { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; color: var(--ink-2); font-size: var(--fs-14); }
+.forum-live__live { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-weight: var(--fw-medium); }
+.forum-live__dot {
   width: 8px;
   height: 8px;
   border-radius: var(--r-pill);
   background: var(--signal);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal) 22%, transparent);
 }
-.forum-pulse__link {
+.forum-live__link {
   color: var(--ink-2);
   font-size: var(--fs-14);
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
   text-underline-offset: 0.2em;
 }
-.forum-pulse__link:hover { color: var(--ink); text-decoration-color: currentColor; }
+.forum-live__link:hover { color: var(--ink); text-decoration-color: currentColor; }
 
 /* ── Filters ─────────────────────────────────────────────────────────────────── */
 /* One grid: tabs + sort on a hairline, then search + chips. Narrow: tabs / search + sort / chips. */

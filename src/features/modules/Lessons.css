@@ -41,7 +41,7 @@
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
-.mod-frame__loading .ui-pulse { color: var(--mc); }
+.mod-frame__loading .ui-mark { color: var(--mc); }
 
 /* YouTube unreachable */
 .mod-frame--blocked { display: grid; place-items: center; }

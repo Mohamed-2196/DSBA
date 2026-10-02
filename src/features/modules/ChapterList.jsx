@@ -52,7 +52,7 @@ export function ChapterList({ module: m, selection, state, nowLabel = 'Selected'
     });
 
   return (
-    <nav className="mod-chapters" aria-label={`${m.unitCode || m.name} chapters and lessons`} data-pulse="lesson-list">
+    <nav className="mod-chapters" aria-label={`${m.unitCode || m.name} chapters and lessons`} data-hub="lesson-list">
       <div className="mod-chapters__head">
         <div className="mod-chapters__heading">
           <h2 className="mod-chapters__title">Chapters</h2>
@@ -113,7 +113,7 @@ export function ChapterList({ module: m, selection, state, nowLabel = 'Selected'
                           replace
                           className={cx('mod-vid', current && 'is-current', seen && 'is-watched')}
                           aria-current={current ? 'true' : undefined}
-                          data-pulse="lesson-item"
+                          data-hub="lesson-item"
                           data-lesson={`${ci}:${vi}`}
                           onClick={onPick}
                         >

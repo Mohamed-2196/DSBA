@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useLocalStorage } from '../../../state';
 
-const KEY = 'pulse.library.starred';
+const KEY = 'hub.library.starred';
 
 /** Starred files (per viewer, localStorage). { starred: Set<id>, isStarred(id), toggle(id) → nowStarred } */
 export function useStarred() {

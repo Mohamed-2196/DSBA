@@ -15,7 +15,7 @@ export function VoteButton({ count, voted, onToggle, layout = 'stack', size = 'm
       className={cx('forum-vote', `forum-vote--${layout}`, `forum-vote--${size}`, voted && 'is-voted', className)}
       aria-pressed={voted}
       aria-label={`Upvote, ${count} ${count === 1 ? 'vote' : 'votes'}`}
-      data-pulse="vote"
+      data-hub="vote"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

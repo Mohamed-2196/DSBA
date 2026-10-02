@@ -153,7 +153,7 @@ function ThreadView({ threadId }) {
 
       <div className="forum-thread__layout">
         <div className="forum-thread__main">
-          <Panel as="article" padding="none" className="forum-op" data-pulse="thread-op" aria-label="Original post">
+          <Panel as="article" padding="none" className="forum-op" data-hub="thread-op" aria-label="Original post">
             <div className="forum-op__vote">
               <VoteButton size="lg" count={thread.votes} voted={thread.voted} onToggle={() => forum.toggleThreadVote(thread.id)} />
             </div>

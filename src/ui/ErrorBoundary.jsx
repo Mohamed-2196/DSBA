@@ -7,7 +7,7 @@ import './ErrorBoundary.css';
  * Wrap every component you import from another feature's public.js:
  *   <ErrorBoundary name="HotThreads"><HotThreads n={5} /></ErrorBoundary>
  *
- * @param {string} name      shown in the console message ("[DSBA Pulse] HotThreads crashed")
+ * @param {string} name      shown in the console message ("[DSBA Hub] HotThreads crashed")
  * @param {node|((error, reset) => node)|null} fallback
  *        default: a compact "This section didn't load" line with a Try again button.
  *        Pass null to render nothing (the shell does this for global overlays).
@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error(`[DSBA Pulse] ${this.props.name || 'A component'} crashed:`, error, info?.componentStack);
+    console.error(`[DSBA Hub] ${this.props.name || 'A component'} crashed:`, error, info?.componentStack);
   }
 
   componentDidUpdate(prev) {

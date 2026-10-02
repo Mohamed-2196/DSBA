@@ -23,7 +23,7 @@ function sanitize(value) {
 
 /**
  * The marks form: three year columns in one sheet. Enter moves to the next field, ↑/↓ nudge a mark
- * by 1 (Shift: 5), so "what if I got 3 more?" is a keystroke away. data-pulse="grades-inputs".
+ * by 1 (Shift: 5), so "what if I got 3 more?" is a keystroke away. data-hub="grades-inputs".
  * @param {string[]} marks       13 raw values in v1 order
  * @param {object} picks         { year2Option, elective1, elective2 }
  * @param {Map<number, number>} aims  subject index → mark suggested by the what-if plan
@@ -67,7 +67,7 @@ export function MarksSheet({ marks, picks, yearOneAverage, aims, onMark, onPick 
   const y1SingleFail = marks.slice(0, 4).some((m) => m !== '' && Number(m) < 40) && yearOneAverage != null && yearOneAverage >= 40;
 
   return (
-    <section className="grades-sheet" data-pulse="grades-inputs" aria-labelledby="grades-sheet-title">
+    <section className="grades-sheet" data-hub="grades-inputs" aria-labelledby="grades-sheet-title">
       <h2 id="grades-sheet-title" className="visually-hidden">Your module marks</h2>
       {YEARS.map(({ year, subjects }) => (
         <div key={year} className="grades-year" role="group" aria-labelledby={`grades-y${year}`}>

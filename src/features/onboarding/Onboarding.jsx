@@ -6,7 +6,7 @@ import { ArrowFatUp, ArrowSquareOut, ChatsCircle, MagnifyingGlass } from '@phosp
 import { COHORTS, YEARS, useYear } from '../../state';
 import { getModule, getModulesForYear } from '../../data/modules.js';
 import { EVENTS, eventDate } from '../../data/calendar.js';
-import { Button, Highlight, Kbd, Modal, ModuleIcon, PulseMark, cx, modKeyLabel } from '../../ui';
+import { Button, Highlight, Kbd, Modal, ModuleIcon, HubMark, cx, modKeyLabel } from '../../ui';
 import './Onboarding.css';
 
 /** First upcoming exam for a year (for the cohort cards). */
@@ -26,7 +26,7 @@ function CohortCard({ year, onChoose }) {
   const modules = getModulesForYear(year);
   const line = sessionLine(year);
   return (
-    <button type="button" className={cx('onb-card', `onb-card--y${year}`)} onClick={() => onChoose(year)} data-pulse={`onboarding-y${year}`}>
+    <button type="button" className={cx('onb-card', `onb-card--y${year}`)} onClick={() => onChoose(year)} data-hub={`onboarding-y${year}`}>
       <span className="onb-card__top">
         <span className="onb-card__num u-code" aria-hidden="true">{year}</span>
         <span className="onb-card__label">
@@ -146,7 +146,7 @@ const TOUR = [
   {
     id: 'forum',
     title: 'Ask your cohort',
-    body: 'The new forum is for questions, answers and study groups, and The Pulse brings the program’s news to you every issue.',
+    body: 'The new forum is for questions, answers and study groups, and The DSBA Newsletter brings the program’s news to you every issue.',
     Art: ForumArt,
   },
 ];
@@ -164,7 +164,7 @@ export function Onboarding() {
     const root = document.documentElement;
     if (open) root.dataset.onboarding = 'open';
     else delete root.dataset.onboarding;
-    window.dispatchEvent(new CustomEvent('pulse:onboarding', { detail: { open } }));
+    window.dispatchEvent(new CustomEvent('hub:onboarding', { detail: { open } }));
   }, [open]);
   useEffect(() => () => {
     delete document.documentElement.dataset.onboarding;
@@ -202,18 +202,18 @@ export function Onboarding() {
     <Modal
       open={open}
       onClose={onClose}
-      title={tour ? `What’s new: ${tour.title}` : 'Welcome to DSBA Pulse'}
+      title={tour ? `What’s new: ${tour.title}` : 'Welcome to DSBA Hub'}
       hideHeader
       size="xl"
       className={cx('onb', tour && 'onb--tour')}
       bodyClassName="onb-body"
-      data-pulse="onboarding"
+      data-hub="onboarding"
     >
       {!tour ? (
         <div className="onb-step onb-step--year" key="year">
           <header className="onb-head">
-            <PulseMark tile size={44} className="onb-head__mark" />
-            <h2 className="onb-head__title">Welcome to DSBA Pulse</h2>
+            <HubMark tile size={44} className="onb-head__mark" />
+            <h2 className="onb-head__title">Welcome to DSBA Hub</h2>
             <p className="onb-head__desc">The DSBA resource hub, rebuilt. Choose your year and we’ll put your modules, exams and classmates first.</p>
           </header>
           <div className="onb-cards" role="group" aria-label="Choose your year">

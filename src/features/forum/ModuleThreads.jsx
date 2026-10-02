@@ -44,7 +44,7 @@ function ModuleThreadsList({ moduleId }) {
   }
 
   return (
-    <section className="forum-modthreads" aria-labelledby="forum-modthreads-title" data-pulse="module-threads">
+    <section className="forum-modthreads" aria-labelledby="forum-modthreads-title" data-hub="module-threads">
       <div className="forum-modthreads__head">
         <div>
           <h2 id="forum-modthreads-title" className="forum-modthreads__title">

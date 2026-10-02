@@ -21,7 +21,7 @@ const BASIC_IDS = new Set(['bold', 'italic', 'code', 'ul', 'link']);
  * Textarea with a small formatting toolbar (forum markdown) and an optional Write / Preview toggle.
  * Ctrl/⌘+B and +I format, Ctrl/⌘+Enter calls onSubmit.
  * @param {'full'|'basic'} tools
- * @param {object} textareaProps  extra attributes for the <textarea> (e.g. data-pulse)
+ * @param {object} textareaProps  extra attributes for the <textarea> (e.g. data-hub)
  */
 export function MarkdownEditor({
   label, hideLabel = false, hint, error, required, value, onChange, placeholder, rows = 8, tools = 'full', preview = true,

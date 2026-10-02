@@ -6,18 +6,18 @@ import { getLatest } from './lib/issues.js';
 import { issueNo, shortDate } from './lib/text.js';
 import './LatestIssueCard.css';
 
-/** Home: the latest issue of The Pulse as one link (compact cover, title, summary, read time). */
+/** Home: the latest issue of The DSBA Newsletter as one link (compact cover, title, summary, read time). */
 export function LatestIssueCard() {
   const issue = getLatest();
   if (!issue) {
     return (
       <Panel padding="none">
-        <EmptyState size="sm" icon={Newspaper} title="The first issue is on its way" body="The Pulse, the DSBA newsletter, will show here when it’s out." />
+        <EmptyState size="sm" icon={Newspaper} title="The first issue is on its way" body="The DSBA Newsletter, the DSBA newsletter, will show here when it’s out." />
       </Panel>
     );
   }
   return (
-    <Link to={`/newsletter/${issue.slug}`} className="nl-latest-card" data-pulse="latest-issue-card">
+    <Link to={`/newsletter/${issue.slug}`} className="nl-latest-card" data-hub="latest-issue-card">
       <span className="nl-latest-card__cover">
         <IssueCover issue={issue} decorative />
       </span>
@@ -27,7 +27,7 @@ export function LatestIssueCard() {
             New
           </Badge>
           <span>
-            The Pulse {issueNo(issue.number)}, {shortDate(issue.date)}
+            The DSBA Newsletter {issueNo(issue.number)}, {shortDate(issue.date)}
           </span>
         </span>
         <span className="nl-latest-card__title">{issue.title}</span>

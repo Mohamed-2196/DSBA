@@ -1,4 +1,4 @@
-// DSBA Pulse library: a deterministic mock file catalog derived from MODULES (src/data/modules.js).
+// DSBA Hub library: a deterministic mock file catalog derived from MODULES (src/data/modules.js).
 // Every v1 resource link becomes one or more "real" files. Each file keeps the v1 link it came from as
 // `sourceUrl` (the viewer's "Open original"). Nothing here uses Math.random(); "new this week" files
 // are placed relative to Date.now() (the launch film freezes the clock, so they stay stable).

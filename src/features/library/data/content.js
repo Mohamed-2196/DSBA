@@ -379,7 +379,7 @@ const prog = {
       '  summarise(avg = mean(arr_delay), n = n())',
       '',
       'ggplot(delays, aes(month, avg)) +',
-      '  geom_line(colour = "#2E3BFF") +',
+      '  geom_line(colour = "#1558F0") +',
       '  labs(x = "Month", y = "Mean arrival delay (min)")',
       '',
       'classify <- function(delay) {',

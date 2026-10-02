@@ -1,4 +1,4 @@
-/* DSBA Pulse library — mock document pages. Every page is a light "paper" island (data-theme="light")
+/* DSBA Hub library — mock document pages. Every page is a light "paper" island (data-theme="light")
    laid out at print size; thumbnails and the viewer scale it. Newsreader for reading text,
    Schibsted Grotesk for headings and big module codes, JetBrains Mono for formulas and code. */
 
@@ -351,7 +351,7 @@
 .lib-notes--ruled {
   background-image:
     linear-gradient(to right, transparent 92px, rgba(240, 62, 94, 0.5) 92px, rgba(240, 62, 94, 0.5) 93.5px, transparent 93.5px),
-    repeating-linear-gradient(to bottom, transparent 0, transparent 27px, rgba(46, 59, 255, 0.13) 27px, rgba(46, 59, 255, 0.13) 28px);
+    repeating-linear-gradient(to bottom, transparent 0, transparent 27px, rgba(21, 88, 240, 0.13) 27px, rgba(21, 88, 240, 0.13) 28px);
   background-position: 0 0, 0 1px;
 }
 .lib-notes--ruled .lib-doc__flow, .lib-notes--ruled .lib-notes__head { font-size: 16px; line-height: 28px; }

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { CONTRIBUTORS, CONTRIBUTE_URL, COPYRIGHT_HOLDER, DISCLAIMER, LAUNCH_YEAR, MYCLASS_URL, UOL_PORTAL_URL } from '../data/people.js';
-import { ProgrammeLockup, PulseMark } from '../ui';
+import { ProgrammeLockup, HubMark } from '../ui';
 import './SiteFooter.css';
 
 /** Footer inside the content column: v1 contributors, links, disclaimer, copyright. */
@@ -11,9 +11,9 @@ export function SiteFooter() {
     <footer className="shell-footer">
       <div className="shell-footer__inner">
         <div className="shell-footer__top">
-          <Link to="/about" className="shell-footer__brand" aria-label="About DSBA Pulse">
-            <PulseMark tile size={24} />
-            <span>DSBA Pulse</span>
+          <Link to="/about" className="shell-footer__brand" aria-label="About DSBA Hub">
+            <HubMark tile size={24} />
+            <span>DSBA Hub</span>
           </Link>
           <nav aria-label="Footer" className="shell-footer__links">
             <Link to="/about">About</Link>

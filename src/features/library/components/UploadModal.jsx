@@ -68,7 +68,7 @@ export function UploadModal({ open, onClose, defaultModule, defaultYear }) {
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button variant="primary" type="submit" form={`upload-${uid}`} data-pulse="upload-submit">Send for review</Button>
+          <Button variant="primary" type="submit" form={`upload-${uid}`} data-hub="upload-submit">Send for review</Button>
         </>
       }
     >
@@ -85,7 +85,7 @@ export function UploadModal({ open, onClose, defaultModule, defaultYear }) {
         ) : (
           <div
             className={cx('lib-upload__drop', dragging && 'is-dragging', error && !file && 'has-error')}
-            data-pulse="upload-dropzone"
+            data-hub="upload-dropzone"
             onDragOver={(e) => {
               e.preventDefault();
               e.dataTransfer.dropEffect = 'copy';

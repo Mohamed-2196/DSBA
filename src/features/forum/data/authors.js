@@ -1,5 +1,5 @@
 // Forum authors. Everyone is a dummy student (spec: common Bahraini first names + initial):
-// the shared DUMMY_STUDENTS plus a few forum regulars, the student-run "DSBA Pulse" account that
+// the shared DUMMY_STUDENTS plus a few forum regulars, the student-run "DSBA Hub" account that
 // owns the pinned guidelines, and the signed-in prototype user (CURRENT_USER, id 'me').
 // Never attribute forum content to real tutors or staff.
 import { CURRENT_USER, DUMMY_STUDENTS } from '../../../data/people.js';
@@ -14,8 +14,8 @@ const FORUM_REGULARS = [
   { id: 'khalid-n', name: 'Khalid N.', year: 1 },
 ];
 
-/** The student team account that posts the guidelines. Rendered with the pulse mark as its avatar. */
-export const TEAM_AUTHOR = { id: 'pulse', name: 'DSBA Pulse', year: null, kind: 'team' };
+/** The student team account that posts the guidelines. Rendered with the logo mark as its avatar. */
+export const TEAM_AUTHOR = { id: 'hub', name: 'DSBA Hub', year: null, kind: 'team' };
 /** Only used by the hidden reveal reply (see ThreadPage, ?reveal=1 on the easter-egg thread). */
 export const EVERYONE_AUTHOR = { id: 'everyone', name: 'Every DSBA student', year: null, kind: 'everyone' };
 

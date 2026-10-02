@@ -11,7 +11,7 @@ import { CURRENT_USER, DUMMY_STUDENTS } from '../../data/people.js';
 import { cohortColor, useToast } from '../../state';
 import {
   Avatar, Badge, Button, Chip, CohortBadge, Divider, Drawer, EmptyState, Highlight, IconButton, Kbd, Menu, Modal,
-  ModuleIcon, Page, PageHeader, Panel, ProgressRing, PulseMark, SearchField, SectionHeader, SegmentedControl, Select,
+  ModuleIcon, Page, PageHeader, Panel, ProgressRing, HubMark, SearchField, SectionHeader, SegmentedControl, Select,
   Skeleton, Sparkline, TabPanel, Tabs, TextArea, TextField, Tooltip, cx,
 } from '../../ui';
 import './StyleGuidePage.css';
@@ -21,27 +21,27 @@ const COLOURS = [
   {
     group: 'Surfaces',
     items: [
-      ['--paper', '#F6F7FB', '#0A0F2C', 'App background'],
-      ['--surface', '#FFFFFF', '#11183D', 'Panels and cards'],
-      ['--surface-2', '#EEF0F8', '#18214F', 'Insets, hovers, table stripes'],
-      ['--line', '#E2E5F0', '#263063', 'Borders and dividers'],
-      ['--line-strong', '#CDD2E3', '#34407A', 'Input and chip borders'],
+      ['--paper', '#F4F7FC', '#07122B', 'App background'],
+      ['--surface', '#FFFFFF', '#0D1B3B', 'Panels and cards'],
+      ['--surface-2', '#EAF0F9', '#14264F', 'Insets, hovers, table stripes'],
+      ['--line', '#DCE5F2', '#213563', 'Borders and dividers'],
+      ['--line-strong', '#C6D3E6', '#2F477E', 'Input and chip borders'],
     ],
   },
   {
     group: 'Ink',
     items: [
-      ['--ink', '#0E1542', '#EEF0FF', 'Text and headings'],
-      ['--ink-2', '#4A5175', '#A9B0D6', 'Secondary text'],
-      ['--ink-3', '#7C83A6', '#7880AE', 'Icons and placeholders, not small text'],
+      ['--ink', '#0A1F44', '#ECF2FF', 'Text and headings'],
+      ['--ink-2', '#425372', '#A6B6D8', 'Secondary text'],
+      ['--ink-3', '#7587A6', '#7488B0', 'Icons and placeholders, not small text'],
     ],
   },
   {
     group: 'Brand',
     items: [
-      ['--cobalt', '#2E3BFF', '#7B86FF', 'Actions, links, focus, the pulse'],
-      ['--cobalt-ink', '#FFFFFF', '#0A0F2C', 'Text on cobalt'],
-      ['--navy', '#1A237E', '#1A237E', 'Logo tile, deep accents'],
+      ['--cobalt', '#1558F0', '#6FA2FF', 'Actions, links, focus'],
+      ['--cobalt-ink', '#FFFFFF', '#07122B', 'Text on cobalt'],
+      ['--navy', '#0C2D75', '#0C2D75', 'Logo tile, deep accents'],
       ['--highlight', '#FFE14A', '#FFE14A', 'Highlighter marks only, never text'],
     ],
   },
@@ -56,7 +56,7 @@ const COLOURS = [
     group: 'Cohorts',
     items: [
       ['--y1', '#0FA3B1', '#3BC9DB', 'Year 1, lagoon'],
-      ['--y2', '#7048E8', '#9775FA', 'Year 2, iris'],
+      ['--y2', '#1F6FEB', '#5E9BFF', 'Year 2, azure'],
       ['--y3', '#F08C00', '#FFA94D', 'Year 3, amber'],
     ],
   },
@@ -303,7 +303,7 @@ export default function StyleGuidePage() {
     <Page className="sg">
       <PageHeader
         title="Style guide"
-        description="The tokens and shared primitives DSBA Pulse is built from. Build pages from these and copy the code under each specimen. Don't invent new colours, radii or shadows."
+        description="The tokens and shared primitives DSBA Hub is built from. Build pages from these and copy the code under each specimen. Don't invent new colours, radii or shadows."
         meta={
           <>
             <Badge tone="outline">{MODULES.length} modules in the data</Badge>
@@ -332,7 +332,7 @@ export default function StyleGuidePage() {
             <div>
               <h2 className="sg-rules__title">Spend boldness in one place</h2>
               <p className="sg-rules__body">
-                The pulse trace and the highlighter are the signature. Everything else stays quiet: borders before shadows,
+                The trace and the highlighter are the signature. Everything else stays quiet: borders before shadows,
                 lists and tables before grids of cards, sentence case, plain verbs.
               </p>
             </div>
@@ -347,31 +347,31 @@ export default function StyleGuidePage() {
           </Panel>
 
           {/* ── Brand ─────────────────────────────────────────────────── */}
-          <Section id="brand" title="Brand" description="The pulse trace is the logo, the active-nav mark and the loader. The highlighter marks what is new or important.">
+          <Section id="brand" title="Brand" description="The trace is the logo, the active-nav mark and the loader. The highlighter marks what is new or important.">
             <div className="sg-grid sg-grid--2">
               <Specimen
-                title="PulseMark"
+                title="HubMark"
                 note="size, animate, tone, tile, dot"
-                code={`<PulseMark size={24} />\n<PulseMark tile size={32} />\n<PulseMark size={40} animate="draw" />   // once\n<PulseMark size={22} animate="loop" />   // loader`}
+                code={`<HubMark size={24} />\n<HubMark tile size={32} />\n<HubMark size={40} animate="draw" />   // once\n<HubMark size={22} animate="loop" />   // loader`}
                 stageClassName="sg-stage--brand"
               >
-                <div className="sg-pulse-row">
-                  <PulseMark size={12} />
-                  <PulseMark size={18} />
-                  <PulseMark size={24} />
-                  <PulseMark size={40} tone="ink" />
-                  <span className="sg-pulse-inverse"><PulseMark size={24} tone="inverse" /></span>
+                <div className="sg-mark-row">
+                  <HubMark size={12} />
+                  <HubMark size={18} />
+                  <HubMark size={24} />
+                  <HubMark size={40} tone="ink" />
+                  <span className="sg-mark-inverse"><HubMark size={24} tone="inverse" /></span>
                 </div>
-                <div className="sg-pulse-row">
-                  <PulseMark tile size={20} />
-                  <PulseMark tile size={28} />
-                  <PulseMark tile size={40} />
-                  <PulseMark tile size={64} title="DSBA Pulse" />
+                <div className="sg-mark-row">
+                  <HubMark tile size={20} />
+                  <HubMark tile size={28} />
+                  <HubMark tile size={40} />
+                  <HubMark tile size={64} title="DSBA Hub" />
                 </div>
-                <div className="sg-pulse-row">
-                  <PulseMark key={drawKey} size={40} animate="draw" />
+                <div className="sg-mark-row">
+                  <HubMark key={drawKey} size={40} animate="draw" />
                   <Replay onClick={() => setDrawKey((k) => k + 1)} />
-                  <span className="sg-pulse-loader"><PulseMark size={22} animate="loop" /> <span className="sg-caption">Loader</span></span>
+                  <span className="sg-mark-loader"><HubMark size={22} animate="loop" /> <span className="sg-caption">Loader</span></span>
                 </div>
               </Specimen>
 
@@ -399,16 +399,16 @@ export default function StyleGuidePage() {
 
             <Specimen title="Lockup" note="Tile plus wordmark, Schibsted 800 at −0.025em" stageClassName="sg-stage--lockups">
               <span className="sg-lockup sg-lockup--lg">
-                <PulseMark tile size={48} />
-                <span>DSBA Pulse</span>
+                <HubMark tile size={48} />
+                <span>DSBA Hub</span>
               </span>
               <span className="sg-lockup">
-                <PulseMark tile size={32} />
-                <span>DSBA Pulse</span>
+                <HubMark tile size={32} />
+                <span>DSBA Hub</span>
               </span>
               <span className="sg-lockup sg-lockup--navy">
-                <PulseMark size={18} tone="inverse" />
-                <span>DSBA Pulse</span>
+                <HubMark size={18} tone="inverse" />
+                <span>DSBA Hub</span>
               </span>
             </Specimen>
           </Section>
@@ -899,7 +899,7 @@ export default function StyleGuidePage() {
                 {({ close }) => (
                   <div className="sg-popover">
                     <p className="sg-popover__title">Share this file</p>
-                    <p className="sg-caption">Anyone in DSBA Pulse with the link can open it.</p>
+                    <p className="sg-caption">Anyone in DSBA Hub with the link can open it.</p>
                     <Button size="sm" variant="primary" leadingIcon={Copy} onClick={() => { push({ title: 'Link copied', tone: 'success' }); close(); }}>Copy link</Button>
                   </div>
                 )}

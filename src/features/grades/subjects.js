@@ -10,7 +10,7 @@ export const YEAR2_OPTIONS = [
   { value: 'information-systems', moduleId: 'information-systems' },
   { value: 'abstract-maths', label: 'Abstract Mathematics', moduleId: null },
 ];
-/** Year 3 modules on DSBA Pulse that aren't compulsory in the v1 calculator. */
+/** Year 3 modules on DSBA Hub that aren't compulsory in the v1 calculator. */
 export const ELECTIVE_OPTIONS = ['microeconomics', 'asset-pricing', 'marketing-management', 'further-maths-economists'].map((id) => ({ value: id, moduleId: id }));
 
 const optionLabel = (o) => (o.moduleId ? getModule(o.moduleId)?.name || o.value : o.label);

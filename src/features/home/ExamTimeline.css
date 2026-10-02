@@ -1,4 +1,4 @@
-/* Home hero: the next exam + the session's pulse trace. The one bold element on Home. */
+/* Home hero: the next exam + the session's trace. The one bold element on Home. */
 .home-hero {
   --hero-pad: var(--sp-32);
   position: relative;

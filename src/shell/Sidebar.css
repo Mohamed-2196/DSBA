@@ -48,7 +48,7 @@
 .shell-nav__item.is-active .shell-nav__icon { color: var(--cobalt); }
 .shell-nav__label { flex: 1 1 auto; min-width: 0; }
 .shell-nav__new { flex: 0 0 auto; }
-.shell-nav__pulse { flex: 0 0 auto; margin-left: 2px; }
+.shell-nav__mark { flex: 0 0 auto; margin-left: 2px; }
 .shell-nav__newdot {
   display: none;
   position: absolute;
@@ -116,7 +116,7 @@
 .shell-rail.is-collapsed .shell-brand__name,
 .shell-rail.is-collapsed .shell-nav__label,
 .shell-rail.is-collapsed .shell-nav__new,
-.shell-rail.is-collapsed .shell-nav__pulse,
+.shell-rail.is-collapsed .shell-nav__mark,
 .shell-rail.is-collapsed .shell-ext__label { display: none; }
 .shell-rail.is-collapsed .shell-rail__year { padding: var(--sp-4) 0 var(--sp-16); }
 .shell-rail.is-collapsed .shell-nav__item { justify-content: center; width: 48px; height: 44px; padding: 0; }

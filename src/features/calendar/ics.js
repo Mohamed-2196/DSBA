@@ -55,7 +55,7 @@ function describe(event) {
   const module = getModule(event.moduleId);
   const lines = [`${type} for ${event.year ? cohortLabel(event.year) : 'all years'}.`];
   if (module) lines.push(`Module: ${module.unitCode ? `${module.unitCode} ` : ''}${module.name}.`);
-  lines.push('From the DSBA Pulse calendar (all-day event; exam times and venues are not included).');
+  lines.push('From the DSBA Hub calendar (all-day event; exam times and venues are not included).');
   return lines.join('\n');
 }
 
@@ -65,7 +65,7 @@ function vevent(event, now) {
   const url = eventUrl(event);
   const lines = [
     'BEGIN:VEVENT',
-    `UID:${event.id}@dsba-pulse`,
+    `UID:${event.id}@dsba-hub`,
     `DTSTAMP:${utcStamp(now)}`,
     `DTSTART;VALUE=DATE:${dateValue(start)}`,
     `DTEND;VALUE=DATE:${dateValue(end)}`,
@@ -93,11 +93,11 @@ function vevent(event, now) {
  * @param {CalendarEvent[]} events
  * @param {{ name?: string, now?: Date }} opts  name → X-WR-CALNAME (calendar name shown on import)
  */
-export function buildIcs(events, { name = 'DSBA Pulse', now = new Date() } = {}) {
+export function buildIcs(events, { name = 'DSBA Hub', now = new Date() } = {}) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//DSBA Pulse//Calendar//EN',
+    'PRODID:-//DSBA Hub//Calendar//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${escapeText(name)}`,

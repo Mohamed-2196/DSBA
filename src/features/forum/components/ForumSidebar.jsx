@@ -36,7 +36,7 @@ const RULES = [
 export function ForumSidebar({ threads, counts, cohort, onPickCategory }) {
   const people = useMemo(() => topContributors(threads), [threads]);
   return (
-    <aside className="forum-side" data-pulse="forum-sidebar" aria-label="Forum overview">
+    <aside className="forum-side" data-hub="forum-sidebar" aria-label="Forum overview">
       <section className="forum-side__block" aria-labelledby="forum-side-cats">
         <h2 id="forum-side-cats" className="forum-side__title">Categories</h2>
         <ul role="list" className="forum-cats">

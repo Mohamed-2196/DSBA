@@ -50,7 +50,7 @@ export function ContinueLearning() {
 
   if (!items.length) {
     return (
-      <Panel padding="none" data-pulse="continue-learning">
+      <Panel padding="none" data-hub="continue-learning">
         <EmptyState
           size="sm"
           icon={PlayCircle}
@@ -67,7 +67,7 @@ export function ContinueLearning() {
   }
 
   return (
-    <Panel padding="none" className="mod-cl" data-pulse="continue-learning">
+    <Panel padding="none" className="mod-cl" data-hub="continue-learning">
       <ol className="mod-cl__list" role="list">
         {items.map((it, i) => (
           <li key={it.module.id}>

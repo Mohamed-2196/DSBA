@@ -15,7 +15,7 @@ const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'S
  * Compact "coming up" list for Home and the forum sidebar: date, type dot, title, countdown.
  * Each row opens the event on the calendar (?event=<id>); hosts add their own "Open calendar" link.
  * Adapts to its container's width (container queries).
- * data-pulse="upcoming-events".
+ * data-hub="upcoming-events".
  */
 export function UpcomingEvents({ n = 5 }) {
   const { year } = useYear();
@@ -24,7 +24,7 @@ export function UpcomingEvents({ n = 5 }) {
 
   if (!events.length) {
     return (
-      <div className="cal-upcoming cal-upcoming--empty" data-pulse="upcoming-events">
+      <div className="cal-upcoming cal-upcoming--empty" data-hub="upcoming-events">
         <EmptyState
           size="sm"
           icon={CalendarBlank}
@@ -37,7 +37,7 @@ export function UpcomingEvents({ n = 5 }) {
   }
 
   return (
-    <div className="cal-upcoming" data-pulse="upcoming-events">
+    <div className="cal-upcoming" data-hub="upcoming-events">
       <ol role="list" className="cal-upcoming__list">
         {events.map((e) => {
           const date = parseKey(e.date);

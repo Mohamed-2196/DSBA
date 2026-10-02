@@ -1,7 +1,7 @@
 import { createElement, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ArrowUpRight, DotsThreeOutline, GithubLogo, Info } from '@phosphor-icons/react';
-import { Divider, Drawer, PulseMark, cx } from '../ui';
+import { Divider, Drawer, HubMark, cx } from '../ui';
 import { CONTRIBUTE_URL } from '../data/people.js';
 import { EXTERNAL_LINKS, MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav.js';
 import { YearSwitcher } from './YearSwitcher.jsx';
@@ -21,10 +21,10 @@ export function MobileNav() {
     <>
       <nav className="shell-tabbar" aria-label="Main">
         {TABS.map((item) => (
-          <NavLink key={item.id} to={item.to} end={item.end} className={({ isActive }) => cx('shell-tabbar__item', isActive && 'is-active')} data-pulse={`tab-${item.id}`}>
+          <NavLink key={item.id} to={item.to} end={item.end} className={({ isActive }) => cx('shell-tabbar__item', isActive && 'is-active')} data-hub={`tab-${item.id}`}>
             {({ isActive }) => (
               <>
-                <span className="shell-tabbar__mark" aria-hidden="true">{isActive ? <PulseMark size={6} animate="draw" dot={false} /> : null}</span>
+                <span className="shell-tabbar__mark" aria-hidden="true">{isActive ? <HubMark size={6} animate="draw" dot={false} /> : null}</span>
                 <span className="shell-tabbar__icon">
                   {createElement(item.icon, { weight: isActive ? 'duotone' : 'regular', 'aria-hidden': true })}
                   {item.isNew ? <span className="shell-tabbar__newdot" aria-hidden="true" /> : null}
@@ -34,8 +34,8 @@ export function MobileNav() {
             )}
           </NavLink>
         ))}
-        <button type="button" className={cx('shell-tabbar__item', moreActive && 'is-active')} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} data-pulse="tab-more">
-          <span className="shell-tabbar__mark" aria-hidden="true">{moreActive ? <PulseMark size={6} dot={false} /> : null}</span>
+        <button type="button" className={cx('shell-tabbar__item', moreActive && 'is-active')} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} data-hub="tab-more">
+          <span className="shell-tabbar__mark" aria-hidden="true">{moreActive ? <HubMark size={6} dot={false} /> : null}</span>
           <span className="shell-tabbar__icon"><DotsThreeOutline aria-hidden="true" weight={moreActive ? 'fill' : 'regular'} /></span>
           <span className="shell-tabbar__label">More</span>
         </button>
@@ -43,7 +43,7 @@ export function MobileNav() {
 
       <Drawer side="bottom" open={open} onClose={close} title="More">
         <div className="shell-more">
-          <YearSwitcher pulseId="year-switcher-more" />
+          <YearSwitcher hookId="year-switcher-more" />
           <ul role="list" className="shell-more__list">
             {MORE.map((item) => (
               <li key={item.id}>
@@ -56,7 +56,7 @@ export function MobileNav() {
             <li>
               <Link to="/about" onClick={close} className="shell-more__item">
                 <Info aria-hidden="true" />
-                <span>About DSBA Pulse</span>
+                <span>About DSBA Hub</span>
               </Link>
             </li>
           </ul>

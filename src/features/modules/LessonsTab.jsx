@@ -5,7 +5,7 @@ import { ArrowSquareOut, CaretLeft, CaretRight, CheckCircle, Circle, Headphones,
 import { lessonKey, videoSourceUrl, videoThumbnailUrl } from '../../data/modules.js';
 import { videoTitle } from '../../data/videoTitles.js';
 import { useToast } from '../../state';
-import { Button, PulseMark, cx } from '../../ui';
+import { Button, HubMark, cx } from '../../ui';
 import { flatLessons } from './progress.js';
 import { KIND_SOURCE, chapterPosition, embedSrc, kindLabel, lessonPosition, openOriginalLabel } from './lessons.js';
 import { LessonPoster } from './Poster.jsx';
@@ -20,7 +20,7 @@ function LessonWaiting({ module: m, video }) {
   return (
     <div className="mod-frame" data-theme="dark" style={{ '--mc': `var(--y${m.year})` }}>
       <div className="mod-frame__loading" role="status">
-        <PulseMark size={18} animate="loop" tone="current" />
+        <HubMark size={18} animate="loop" tone="current" />
         <span>Loading from {KIND_SOURCE[video.kind] || 'the original site'}</span>
       </div>
     </div>
@@ -66,7 +66,7 @@ function LessonFrame({ module: m, c, v }) {
     <div className="mod-frame" data-theme="dark" style={{ '--mc': `var(--y${m.year})` }}>
       {!loaded ? (
         <div className="mod-frame__loading" role="status">
-          <PulseMark size={18} animate="loop" tone="current" />
+          <HubMark size={18} animate="loop" tone="current" />
           <span>Loading from {KIND_SOURCE[video.kind] || 'the original site'}</span>
         </div>
       ) : null}
@@ -164,7 +164,7 @@ export function LessonsTab({ module: m, selection, progress, onSelect }) {
     <div className="mod-lessons">
       <div className="mod-lessons__grid">
         <div className="mod-lessons__main">
-          <div className="mod-player" data-pulse="lesson-player" ref={playerRef}>
+          <div className="mod-player" data-hub="lesson-player" ref={playerRef}>
             {stage === 'poster' ? <LessonPoster key={key} module={m} c={c} v={v} isWatched={isWatched} onPlay={() => setPlaying(true)} /> : null}
             {stage === 'waiting' ? <LessonWaiting module={m} video={video} /> : null}
             {stage === 'blocked' ? <LessonUnreachable module={m} video={video} onTryAnyway={() => setForceLoad(true)} /> : null}

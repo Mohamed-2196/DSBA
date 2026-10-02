@@ -13,7 +13,7 @@ import { useCallback, useMemo } from 'react';
 import { getModule, lessonKey } from '../../data/modules.js';
 import { useLocalStorage } from '../../state';
 
-export const PROGRESS_KEY = 'pulse.lessons.v1';
+export const PROGRESS_KEY = 'hub.lessons.v1';
 const EMPTY = Object.freeze({ watched: Object.freeze({}), last: Object.freeze({}) });
 
 const HOUR = 3600 * 1000;

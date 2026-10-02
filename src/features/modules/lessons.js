@@ -1,5 +1,5 @@
 // Lesson helpers for the modules feature: labels, embed URLs, URL params, exam countdowns and the
-// deterministic per-lesson pulse trace drawn on posters.
+// deterministic per-lesson trace drawn on posters.
 import { ChalkboardTeacher, Playlist, YoutubeLogo } from '@phosphor-icons/react';
 import { VIDEO_KIND_LABEL, videoEmbedUrl } from '../../data/modules.js';
 import { videoTitle } from '../../data/videoTitles.js';
@@ -125,7 +125,7 @@ export function lastOpenedLabel(at, now = Date.now()) {
   return formatDate(new Date(at), { day: 'numeric', month: 'short' });
 }
 
-// ── Pulse trace (poster art) ──────────────────────────────────────────────
+// ── Trace (poster art) ──────────────────────────────────────────────
 function hashString(s) {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
@@ -148,7 +148,7 @@ function seeded(seed) {
  * Deterministic per seed (no Math.random at render). Coordinates in a width × height box.
  * @returns {{ d: string, end: [number, number], spike: [number, number] }}
  */
-export function pulseTrace(seed, { width = 600, height = 120, points = 36, spikeAt = 0.72, noise = 0.07, flat = 0.06 } = {}) {
+export function lessonTrace(seed, { width = 600, height = 120, points = 36, spikeAt = 0.72, noise = 0.07, flat = 0.06 } = {}) {
   const rand = seeded(hashString(String(seed)));
   const base = height * 0.6;
   const si = Math.max(3, Math.min(points - 4, Math.round(spikeAt * (points - 1))));

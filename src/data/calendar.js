@@ -1,4 +1,4 @@
-// DSBA Pulse — academic calendar, extracted from v1 src/legacy/components/Calander/Calander.jsx.
+// DSBA Hub — academic calendar, extracted from v1 src/legacy/components/Calander/Calander.jsx.
 // GENERATED once by /home/claude/v2-spec/gen-data.mjs and verified by verify-data.mjs.
 // All 46 v1 events, sorted by date, typed. Cleaned titles keep the v1 original (v1Title);
 // v1Color is the v1 dot colour (red/blue/green/gold), kept for traceability only.

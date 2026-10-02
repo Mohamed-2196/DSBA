@@ -14,7 +14,7 @@ export class RouteErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error(`[DSBA Pulse] route "${this.props.routeId}" crashed:`, error, info?.componentStack);
+    console.error(`[DSBA Hub] route "${this.props.routeId}" crashed:`, error, info?.componentStack);
   }
 
   render() {
@@ -25,7 +25,7 @@ export class RouteErrorBoundary extends Component {
           <EmptyState
             icon={WarningCircle}
             title="This page didn't load"
-            body="Something went wrong while showing this page. The rest of DSBA Pulse still works, so try again or head back home."
+            body="Something went wrong while showing this page. The rest of DSBA Hub still works, so try again or head back home."
             action={
               <>
                 <Button variant="primary" leadingIcon={ArrowClockwise} onClick={() => this.setState({ error: null })}>Try again</Button>

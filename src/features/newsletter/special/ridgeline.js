@@ -1,4 +1,4 @@
-// 17 stacked pulse traces (a ridgeline, after the famous pulsar plot): one line per tutor.
+// 17 stacked traces (a ridgeline, after the famous pulsar plot): one line per tutor.
 // Seeded, so every render (and every tutor's card) gets the same line.
 import { mulberry32, r1 } from '../lib/seed.js';
 

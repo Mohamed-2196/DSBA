@@ -35,7 +35,7 @@ export function FileTable({ files, sort, onSort, isStarred, onToggleStar, linkSt
         </thead>
         <tbody>
           {files.map((f) => (
-            <tr key={f.id} className="lib-row" data-pulse="file-card">
+            <tr key={f.id} className="lib-row" data-hub="file-card">
               <td className="lib-table__name">
                 <Link to={f.url} state={linkState} className="lib-row__link">
                   <FileThumb file={f} size="list" />

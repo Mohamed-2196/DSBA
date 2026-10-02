@@ -10,7 +10,7 @@ import { ResultHero } from './ResultHero.jsx';
 import { blankIndexes, improvementPlan } from './whatif.js';
 import './GradesPage.css';
 
-const STORAGE_KEY = 'pulse.grades';
+const STORAGE_KEY = 'hub.grades';
 const hasMarks = (rec) => Array.isArray(rec?.marks) && rec.marks.some((m) => m !== '' && m != null);
 
 export default function GradesPage() {
@@ -215,7 +215,7 @@ function Rules() {
 function StickyResult({ marks, result }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
-    const hero = document.querySelector('[data-pulse="grades-result"]');
+    const hero = document.querySelector('[data-hub="grades-result"]');
     if (!hero || typeof IntersectionObserver === 'undefined') return undefined;
     const io = new IntersectionObserver(([entry]) => setVisible(!entry.isIntersecting), { threshold: 0 });
     io.observe(hero);
@@ -228,7 +228,7 @@ function StickyResult({ marks, result }) {
     <button
       type="button"
       className="grades-sticky"
-      onClick={() => document.querySelector('[data-pulse="grades-result"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+      onClick={() => document.querySelector('[data-hub="grades-result"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
     >
       <span className="grades-sticky__big">{kind ? CLASS_SHORT[kind] : `${13 - blanks}/13`}</span>
       <span className="grades-sticky__text">

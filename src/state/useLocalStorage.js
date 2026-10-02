@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
-const SYNC_EVENT = 'pulse:storage';
+const SYNC_EVENT = 'hub:storage';
 
 function readKey(key, initial) {
   const fallback = typeof initial === 'function' ? initial() : initial;

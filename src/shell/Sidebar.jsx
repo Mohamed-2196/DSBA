@@ -2,7 +2,7 @@ import { createElement } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { ArrowUpRight } from '@phosphor-icons/react';
 import { BREAKPOINTS, useMediaQuery } from '../state';
-import { Badge, BrandLogo, PulseMark, Tooltip, cx } from '../ui';
+import { Badge, BrandLogo, HubMark, Tooltip, cx } from '../ui';
 import { EXTERNAL_LINKS, NAV } from './nav.js';
 import { YearSwitcher } from './YearSwitcher.jsx';
 import { ThemeToggle } from './ThemeToggle.jsx';
@@ -16,7 +16,7 @@ function NavItem({ item, collapsed }) {
       end={item.end}
       className={({ isActive }) => cx('shell-nav__item', isActive && 'is-active')}
       aria-label={collapsed ? (item.isNew ? `${item.label} (new)` : item.label) : undefined}
-      data-pulse={`nav-${item.id}`}
+      data-hub={`nav-${item.id}`}
     >
       {({ isActive }) => (
         <>
@@ -30,7 +30,7 @@ function NavItem({ item, collapsed }) {
               New
             </Badge>
           ) : null}
-          {isActive ? <PulseMark size={10} animate="draw" className="shell-nav__pulse" /> : null}
+          {isActive ? <HubMark size={10} animate="draw" className="shell-nav__mark" /> : null}
         </>
       )}
     </NavLink>
@@ -72,11 +72,11 @@ export function Sidebar() {
   return (
     // The column wrapper runs the full page height (surface + border); the rail inside is sticky.
     <div className="shell-rail-col">
-      <aside className={cx('shell-rail', collapsed && 'is-collapsed')} data-pulse="sidebar" aria-label="Sidebar">
+      <aside className={cx('shell-rail', collapsed && 'is-collapsed')} data-hub="sidebar" aria-label="Sidebar">
         <div className="shell-rail__brand">
-          <Link to="/" className="shell-brand" aria-label="DSBA Pulse home" data-pulse="brand">
-            <PulseMark tile size={32} />
-            <span className="shell-brand__name">DSBA Pulse</span>
+          <Link to="/" className="shell-brand" aria-label="DSBA Hub home" data-hub="brand">
+            <HubMark tile size={32} />
+            <span className="shell-brand__name">DSBA Hub</span>
           </Link>
         </div>
 

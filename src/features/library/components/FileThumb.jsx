@@ -9,13 +9,13 @@ import './FileThumb.css';
  * @param {'grid'|'strip'|'list'|'mini'|'related'|'rail'} size
  * @param {boolean} newTag  highlighter "New" tag on the corner for files added this week
  */
-export function FileThumb({ file, size = 'grid', page = 0, newTag = false, className, pulse = true }) {
+export function FileThumb({ file, size = 'grid', page = 0, newTag = false, className, hook = true }) {
   const ps = pageSizeFor(file.format);
   const landscape = ps.w > ps.h;
   return (
     <span
       className={cx('lib-thumb', `lib-thumb--${size}`, landscape && 'is-landscape', file.format === 'PPTX' && 'is-deck', className)}
-      data-pulse={pulse ? 'file-thumb' : undefined}
+      data-hub={hook ? 'file-thumb' : undefined}
       aria-hidden="true"
     >
       <span className="lib-thumb__paper">

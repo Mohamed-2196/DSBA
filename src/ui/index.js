@@ -1,4 +1,4 @@
-// DSBA Pulse shared primitives. Import from here: `import { Button, Panel } from '../../ui';`
+// DSBA Hub shared primitives. Import from here: `import { Button, Panel } from '../../ui';`
 // Every primitive is rendered (light + dark) on /#/styleguide.
 export { Button } from './Button.jsx';
 export { IconButton } from './IconButton.jsx';
@@ -15,7 +15,7 @@ export { EmptyState } from './EmptyState.jsx';
 export { Skeleton } from './Skeleton.jsx';
 export { ProgressRing } from './ProgressRing.jsx';
 export { Sparkline } from './Sparkline.jsx';
-export { PulseMark } from './PulseMark.jsx';
+export { HubMark } from './HubMark.jsx';
 export { Highlight } from './Highlight.jsx';
 export { Kbd } from './Kbd.jsx';
 export { SectionHeader } from './SectionHeader.jsx';

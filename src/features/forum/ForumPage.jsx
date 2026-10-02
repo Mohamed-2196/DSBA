@@ -86,18 +86,18 @@ function ForumList() {
         title="Forum"
         description="Ask your cohort, share what worked and find people to revise with."
         actions={
-          <Button variant="primary" leadingIcon={Plus} to="/forum/new" data-pulse="new-thread-button">
+          <Button variant="primary" leadingIcon={Plus} to="/forum/new" data-hub="new-thread-button">
             Start a thread
           </Button>
         }
         meta={
-          <div className="forum-pulse">
-            <span className="forum-pulse__live">
-              <span className="forum-pulse__dot" aria-hidden="true" />
+          <div className="forum-live">
+            <span className="forum-live__live">
+              <span className="forum-live__dot" aria-hidden="true" />
               <span className="u-tabular">{stats.repliesToday}</span> replies today
             </span>
             {stats.noReplies ? (
-              <button type="button" className="forum-pulse__link" onClick={() => update({ cohort: 'all', status: 'no-replies', tag: '', q: '' })}>
+              <button type="button" className="forum-live__link" onClick={() => update({ cohort: 'all', status: 'no-replies', tag: '', q: '' })}>
                 <span className="u-tabular">{stats.noReplies}</span> {stats.noReplies === 1 ? 'question is' : 'questions are'} waiting for a first reply
               </button>
             ) : null}
@@ -105,7 +105,7 @@ function ForumList() {
         }
       />
 
-      <div className="forum-filters" data-pulse="forum-filters">
+      <div className="forum-filters" data-hub="forum-filters">
         <div className="forum-filters__tabs-wrap" ref={tabsRef}>
           <Tabs
             idBase="forum"

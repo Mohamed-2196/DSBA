@@ -25,7 +25,7 @@ function ModuleRow({ module: m, progress, exam, showExam, showProgress }) {
       <Link
         to={`/modules/${m.id}`}
         className={cx('mod-row', `mod-row--y${m.year}`, !showExam && 'mod-row--no-exam', !showProgress && 'mod-row--no-prog')}
-        data-pulse="module-tile"
+        data-hub="module-tile"
         data-module-id={m.id}
         aria-labelledby={`${uid}-anchor ${uid}-name`}
         aria-describedby={described}

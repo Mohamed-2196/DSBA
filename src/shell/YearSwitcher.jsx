@@ -7,7 +7,7 @@ import './YearSwitcher.css';
  * Year 1/2/3 switcher in cohort colours.
  * Full: a segmented control (rail, More drawer). Compact: a "Y2" pill that opens a menu (icon rail, mobile top bar).
  */
-export function YearSwitcher({ compact = false, menuSide = 'right', className, pulseId = 'year-switcher' }) {
+export function YearSwitcher({ compact = false, menuSide = 'right', className, hookId = 'year-switcher' }) {
   const { year, setYear } = useYear();
   if (compact) {
     return (
@@ -30,7 +30,7 @@ export function YearSwitcher({ compact = false, menuSide = 'right', className, p
             type="button"
             className={cx('yr-compact', year && `yr-compact--y${year}`, className)}
             aria-label={year ? `${COHORTS[year].label}. Change year` : 'Choose your year'}
-            data-pulse={pulseId}
+            data-hub={hookId}
           >
             <span>{year ? COHORTS[year].short : 'Year'}</span>
             <CaretUpDown aria-hidden="true" weight="bold" className="yr-compact__caret" />
@@ -40,7 +40,7 @@ export function YearSwitcher({ compact = false, menuSide = 'right', className, p
     );
   }
   return (
-    <div className={cx('yr', className)} data-pulse={pulseId}>
+    <div className={cx('yr', className)} data-hub={hookId}>
       <span className="yr__label" aria-hidden="true">Year</span>
       <SegmentedControl
         label="Your year"

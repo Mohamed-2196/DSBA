@@ -8,14 +8,14 @@ import { SessionStrip } from './SessionStrip.jsx';
 
 /**
  * The countdown to the next exam for the student's year: the unit code as the anchor, the session
- * timeline under it. data-pulse="next-exam".
+ * timeline under it. data-hub="next-exam".
  */
 export function NextExam({ year, now, onOpen, onDownload, onShowAllYears }) {
   const next = getNextExam({ year, from: now });
 
   if (!next) {
     return (
-      <section className="cal-next cal-next--empty" data-pulse="next-exam" aria-label="Next exam">
+      <section className="cal-next cal-next--empty" data-hub="next-exam" aria-label="Next exam">
         <EmptyState
           size="sm"
           icon={CalendarCheck}
@@ -36,7 +36,7 @@ export function NextExam({ year, now, onOpen, onDownload, onShowAllYears }) {
   const position = session.findIndex((e) => e.id === next.id) + 1;
 
   return (
-    <section className="cal-next" data-pulse="next-exam" aria-labelledby="cal-next-title">
+    <section className="cal-next" data-hub="next-exam" aria-labelledby="cal-next-title">
       <p className="cal-next__kicker">
         <span>Your next exam</span>
         {year ? <CohortBadge year={year} size="sm" /> : null}

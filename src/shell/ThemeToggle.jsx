@@ -14,12 +14,12 @@ export function ThemeToggle({ compact = false, className }) {
         onClick={toggleTheme}
         tooltip
         tooltipSide="right"
-        data-pulse="theme-toggle"
+        data-hub="theme-toggle"
       />
     );
   }
   return (
-    <div className={cx('shell-theme', className)} data-pulse="theme-toggle">
+    <div className={cx('shell-theme', className)} data-hub="theme-toggle">
       <span className="shell-theme__label">
         <CircleHalf aria-hidden="true" />
         Theme

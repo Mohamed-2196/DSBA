@@ -1,4 +1,4 @@
-// DSBA Pulse — people. v1 footer contributors (src/legacy/components/Footer/Footer.jsx),
+// DSBA Hub — people. v1 footer contributors (src/legacy/components/Footer/Footer.jsx),
 // every named note contributor (from MODULES[].notes[].author), and the seeded dummy
 // students that feature agents use for forum posts, library uploads, etc.
 // Public-repo rule: never invent quotes or content attributed to real tutors/staff.

@@ -1,4 +1,4 @@
-// DSBA Pulse — degree classification, ported from v1 src/legacy/components/gpa/GPACalculator.tsx.
+// DSBA Hub — degree classification, ported from v1 src/legacy/components/gpa/GPACalculator.tsx.
 //
 // The algorithm is the v1 algorithm, line for line: same 13 subjects in the same order, same
 // weighting, same use of Number() on the raw input strings (so a blank field counts as 0, exactly

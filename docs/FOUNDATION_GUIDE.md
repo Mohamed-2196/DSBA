@@ -1,4 +1,4 @@
-# How to build a page in DSBA Pulse (from the foundation engineer)
+# How to build a page in DSBA Hub (from the foundation engineer)
 
 Foundation is done and verified: data check passes against v1 (16 modules, 94 chapters, 337 videos,
 46 links, 11 notes; 46 events), `npx eslint src` clean, build OK. Reference screenshots:
@@ -61,7 +61,7 @@ export default function ForumPage() {
 - `Menu`: `trigger`, `items` ([{id,label,icon,onSelect|to|href,danger,hint}|{divider}|{heading}]) or `children({close})` popover, `align`, `side`, `width`, `label`.
 - `Tooltip`: `label`, `side`. `EmptyState`: `icon`, `title`, `body`, `action`, `size`. `Skeleton`: `width`, `height`, `circle`, `radius`, `lines`.
 - `ProgressRing`: `value`, `size`, `stroke`, `color`, `label`. `Sparkline`: `data`, `width`, `height`, `color`, `area`, `label`.
-- `PulseMark`: `size`, `animate` false|'draw'|'loop', `tone`, `tile`, `dot`, `title`. `Highlight`: `animate`, `delay`, `as`.
+- `HubMark`: `size`, `animate` false|'draw'|'loop', `tone`, `tile`, `dot`, `title`. `Highlight`: `animate`, `delay`, `as`.
 - `Kbd`, `SectionHeader` (`title`,`description`,`action`,`as`,`id`), `Divider`, `Panel` (`padding` none|sm|md|lg, `radius` panel|feature, `tone` surface|inset, `float`), `ModuleIcon` (`moduleId`).
 - `ErrorBoundary`: `name`, `fallback` (node|fn|null), `resetKey`.
 - Utils: `cx`, `initials`, `modKeyLabel`, `timeAgo(input, now = Date.now())`, `formatDate`.
@@ -113,7 +113,7 @@ Sample event:
 - Note `author` can be null.
 - Deadline colour `--highlight` is too faint as a dot on white: give the dot a 1px ink ring or use `Highlight` behind the label.
 - v1 Year 2 announcement (key `year2_new_notes_announcement_v1`) had an empty list → becomes a notification.
-- Existing `data-pulse` hooks: `sidebar`, `topbar`, `brand`, `year-switcher` (`-mobile`, `-more`), `search`, `contribute`,
+- Existing `data-hub` hooks: `sidebar`, `topbar`, `brand`, `year-switcher` (`-mobile`, `-more`), `search`, `contribute`,
   `theme-toggle`, `profile`, `notifications` (keep on the bell), `nav-<id>`, `tab-<id>`.
 - Fixed bottom UI on mobile must sit above `calc(var(--tabbar-h) + env(safe-area-inset-bottom))`.
 - Never show the Teacher's Day surprise on launch-visible views.

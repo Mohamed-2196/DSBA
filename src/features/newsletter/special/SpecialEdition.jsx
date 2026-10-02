@@ -1,9 +1,9 @@
 // The hidden special edition (/newsletter/thank-you-tutors). NOT linked from anywhere, not in the
 // archive, search or "latest". Loaded as its own chunk. Shared with the tutors after the reveal.
 import { Link } from 'react-router-dom';
-import { CohortBadge, Page, PulseMark } from '../../../ui';
+import { CohortBadge, Page, HubMark } from '../../../ui';
 import { useDocumentTitle } from '../../../state';
-import { PulsePlate } from '../components/Nameplate.jsx';
+import { NamePlate } from '../components/Nameplate.jsx';
 import { ShareActions } from '../components/ShareActions.jsx';
 import { longDate } from '../lib/text.js';
 import { cardLine, getRidgelines } from './ridgeline.js';
@@ -27,7 +27,7 @@ function Ridgeline() {
 function TutorCard({ tutor, index }) {
   const line = cardLine(index);
   return (
-    <li className="nl-sp-card" data-pulse="tutor-card">
+    <li className="nl-sp-card" data-hub="tutor-card">
       <svg viewBox={line.viewBox} className="nl-sp-card__line" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMax meet">
         <path d={line.d} />
       </svg>
@@ -42,7 +42,7 @@ function TutorCard({ tutor, index }) {
 }
 
 export default function SpecialEdition() {
-  useDocumentTitle('To the 17 people who taught us, The Pulse');
+  useDocumentTitle('To the 17 people who taught us, The DSBA Newsletter');
   const { letter } = SPECIAL;
   const route = `/newsletter/${SPECIAL.slug}`;
 
@@ -50,8 +50,8 @@ export default function SpecialEdition() {
     <Page className="nl-sp">
       <div className="nl-runhead">
         <Link to="/newsletter" className="nl-runhead__name">
-          The Pulse
-          <PulseMark size={11} className="nl-runhead__mark" />
+          The DSBA Newsletter
+          <HubMark size={11} className="nl-runhead__mark" />
         </Link>
         <p className="nl-runhead__meta">
           <span>Special edition</span>
@@ -60,7 +60,7 @@ export default function SpecialEdition() {
         <ShareActions route={route} title={SPECIAL.heading} className="nl-runhead__share" />
       </div>
 
-      <header className="nl-sp-hero" data-pulse="special-cover">
+      <header className="nl-sp-hero" data-hub="special-cover">
         <Ridgeline />
         <div className="nl-sp-hero__text">
           <p className="nl-sp-hero__kicker">A special edition</p>
@@ -69,7 +69,7 @@ export default function SpecialEdition() {
         </div>
       </header>
 
-      <article className="nl-sp-letter" aria-label="An open letter" data-pulse="special-letter">
+      <article className="nl-sp-letter" aria-label="An open letter" data-hub="special-letter">
         <p className="nl-sp-letter__salutation">{letter.salutation}</p>
         {letter.paragraphs.map((p, i) => (
           <p key={i} className={i === 1 ? 'nl-sp-letter__p nl-sp-letter__p--turn' : 'nl-sp-letter__p'}>
@@ -99,13 +99,13 @@ export default function SpecialEdition() {
         </ol>
       </section>
 
-      <section className="nl-sp-thanks" aria-label="Thank you" data-pulse="special-thanks">
-        <PulsePlate text="Thank you." fontSize={160} textWidth={810} tone="inverse" skipInk />
+      <section className="nl-sp-thanks" aria-label="Thank you" data-hub="special-thanks">
+        <NamePlate text="Thank you." fontSize={160} textWidth={810} tone="inverse" skipInk />
         <p className="nl-sp-thanks__line">Happy Teachers’ Day, from the students of DSBA.</p>
       </section>
 
       <footer className="nl-sp-foot">
-        <p>This edition isn’t listed anywhere on DSBA Pulse. If you’re reading it, someone wanted you to.</p>
+        <p>This edition isn’t listed anywhere on DSBA Hub. If you’re reading it, someone wanted you to.</p>
         <ShareActions route={route} title={SPECIAL.heading} />
       </footer>
     </Page>

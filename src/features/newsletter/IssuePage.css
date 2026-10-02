@@ -90,7 +90,7 @@
 }
 .nl-toc__item:hover { background: var(--surface-2); color: var(--ink); }
 .nl-toc__item.is-active { background: var(--surface-2); color: var(--ink); font-weight: var(--fw-semibold); }
-.nl-toc__pulse { flex: 0 0 auto; }
+.nl-toc__mark { flex: 0 0 auto; }
 .nl-toc__time { margin-top: var(--sp-16); padding: 0 10px; color: var(--ink-2); font-size: var(--fs-14); }
 
 .nl-article { container-type: inline-size; min-width: 0; }
@@ -469,7 +469,7 @@
   .nl-toc__list::-webkit-scrollbar { display: none; }
   .nl-toc__item { width: auto; white-space: nowrap; border: 1px solid var(--line-strong); border-radius: var(--r-pill); padding: 6px 14px; background: var(--surface); }
   .nl-toc__item.is-active { border-color: var(--ink); }
-  .nl-toc__pulse { display: none; }
+  .nl-toc__mark { display: none; }
   .nl-locked { grid-template-columns: 260px minmax(0, 1fr); gap: var(--sp-32); }
 }
 @media (max-width: 699px) {

@@ -53,7 +53,7 @@
   fill: var(--ink-2);
 }
 
-/* Launch: the brand pulse on ECG paper, navy ground */
+/* Launch: the brand trace on ECG paper, navy ground */
 .nl-cover--launch { background: var(--navy); }
 .nl-cover--launch .nl-cover__ground { fill: var(--navy); }
 .nl-cover--launch .nl-cover__grid-minor { stroke: #fff; stroke-opacity: .07; stroke-width: .6; fill: none; }

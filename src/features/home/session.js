@@ -1,4 +1,4 @@
-// The exam session ahead, and the geometry of Home's pulse trace (pure + deterministic).
+// The exam session ahead, and the geometry of Home's trace (pure + deterministic).
 import { EVENT_TYPES, eventDate, getEventsForYear } from '../../data/calendar.js';
 import { getModule } from '../../data/modules.js';
 import { daysBetween, startOfDay } from './time.js';
@@ -36,8 +36,8 @@ export function traceLabel(e) {
 }
 
 // ── Trace geometry ────────────────────────────────────────────────────────
-// One "beat" per exam, in the proportions of the brand PulseMark (x and y are multiples of the
-// spike height; the PulseMark's spike is at x = 0). Compressed horizontally to fit the spacing.
+// One "beat" per exam, in the proportions of the brand HubMark (x and y are multiples of the
+// spike height; the HubMark's spike is at x = 0). Compressed horizontally to fit the spacing.
 const BEAT = [
   [-0.957, 0],
   [-0.741, -0.207],
@@ -68,13 +68,13 @@ const pathOf = (pts) => pts.map(([x, y], i) => `${i ? 'L' : 'M'}${fmt(x)} ${fmt(
  * Build the trace for a session.
  * @param {object} o
  * @param {number} o.width     px width of the drawing
- * @param {number} o.x0        px where "today" sits (the PulseMark's end dot)
+ * @param {number} o.x0        px where "today" sits (the HubMark's end dot)
  * @param {number} o.y0        baseline y
  * @param {number} o.spike     spike height of the next exam (others are 80%)
  * @param {number} o.span      days shown (today = 0)
  * @param {Array}  o.exams     [{ id, days, ... }] (sorted)
  * @param {number} o.labelW    estimated label width (for collision levels)
- * @param {number} o.compress  horizontal compression of a beat (1 = PulseMark proportions)
+ * @param {number} o.compress  horizontal compression of a beat (1 = HubMark proportions)
  * @param {boolean} o.secondaryLabels  label every exam (false: only the next one)
  * -> { head, tail, beats: [{ exam, x, top, h, level, showLabel, isNext }], dayX(d), end }
  *    head = today → end of the next beat (cobalt); tail = the rest (quiet).

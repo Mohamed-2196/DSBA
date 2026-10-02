@@ -56,7 +56,7 @@
   font-size: var(--fs-14);
 }
 
-/* Session strip: measured countdown + the pulse */
+/* Session strip: measured countdown + the trace */
 .cal-strip { grid-area: strip; margin: var(--sp-12) 0 0; min-width: 0; }
 .cal-strip__plot { position: relative; width: 100%; }
 .cal-strip__svg { position: absolute; inset: 0; overflow: visible; }

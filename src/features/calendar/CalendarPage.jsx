@@ -103,7 +103,7 @@ export default function CalendarPage() {
   // ── .ics ─────────────────────────────────────────────────────────────────────────────────────
   const downloadOne = (e) => {
     const name = icsFileName(e);
-    const ok = downloadIcs(name, buildIcs([e], { name: 'DSBA Pulse', now }));
+    const ok = downloadIcs(name, buildIcs([e], { name: 'DSBA Hub', now }));
     push(
       ok
         ? { tone: 'success', title: `Downloaded ${name}`, body: 'Open the file to add it to your calendar.' }

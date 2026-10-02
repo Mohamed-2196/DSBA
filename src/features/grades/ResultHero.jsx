@@ -17,7 +17,7 @@ function shownMarks(result, blanks) {
 
 /**
  * The live result: the class set big, the average, what would change it, and the 18-cell chart.
- * data-pulse="grades-result" (the chart is data-pulse="grades-breakdown").
+ * data-hub="grades-result" (the chart is data-hub="grades-breakdown").
  */
 export function ResultHero({ marks, picks, result }) {
   const blanks = blankIndexes(marks);
@@ -49,7 +49,7 @@ export function ResultHero({ marks, picks, result }) {
   }
 
   return (
-    <section className={cx('grades-hero', `grades-hero--${state}`, state === 'classified' && `grades-hero--${result.kind}`)} data-pulse="grades-result" aria-labelledby="grades-result-title">
+    <section className={cx('grades-hero', `grades-hero--${state}`, state === 'classified' && `grades-hero--${result.kind}`)} data-hub="grades-result" aria-labelledby="grades-result-title">
       <div className="grades-hero__main">
         <p className="grades-hero__kicker">{kicker}</p>
         <h2 id="grades-result-title" className="grades-hero__title">
@@ -241,7 +241,7 @@ function Breakdown({ cells, state, nameOf, kind }) {
   };
 
   return (
-    <figure className="grades-chart" data-pulse="grades-breakdown" aria-labelledby="grades-chart-title">
+    <figure className="grades-chart" data-hub="grades-breakdown" aria-labelledby="grades-chart-title">
       <figcaption id="grades-chart-title" className="grades-chart__title">
         Classification marks
         <span className="grades-chart__sub">{state === 'empty' ? `${total} in all` : `${sorted.length} of ${total} counted`}</span>

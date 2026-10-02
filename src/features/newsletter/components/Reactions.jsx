@@ -4,7 +4,7 @@ import { Tooltip, cx } from '../../../ui';
 import { useLocalStorage } from '../../../state';
 import './Reactions.css';
 
-export const REACTIONS_KEY = 'pulse.newsletter.reactions';
+export const REACTIONS_KEY = 'hub.newsletter.reactions';
 
 const KINDS = [
   { id: 'useful', label: 'Useful', icon: Lightbulb },
@@ -34,7 +34,7 @@ export function Reactions({ issueSlug, sectionId, seed = {}, label }) {
   };
 
   return (
-    <div className="nl-reactions" role="group" aria-label={label ? `React to ${label}` : 'Reactions'} data-pulse="reactions">
+    <div className="nl-reactions" role="group" aria-label={label ? `React to ${label}` : 'Reactions'} data-hub="reactions">
       {KINDS.map(({ id, label: name, icon: Icon }) => {
         const on = mine.includes(id);
         const count = (seed[id] || 0) + (on ? 1 : 0);

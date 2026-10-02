@@ -16,14 +16,14 @@ const totals = MODULES.reduce(
 const LINKS = [
   { label: 'BIBF MyClass', note: 'Lecture slides, announcements and coursework', href: MYCLASS_URL, icon: GraduationCap },
   { label: 'UoL student portal', note: 'Exam entries, results and your student record', href: UOL_PORTAL_URL, icon: Bank },
-  { label: 'Source code on GitHub', note: 'DSBA Pulse is open source', href: REPO_URL, icon: GithubLogo },
+  { label: 'Source code on GitHub', note: 'DSBA Hub is open source', href: REPO_URL, icon: GithubLogo },
 ];
 
 export default function AboutPage() {
   return (
     <Page>
       <PageHeader
-        title="About DSBA Pulse"
+        title="About DSBA Hub"
         description="A student-run hub for the Data Science and Business Analytics programme at BIBF, studied for a University of London degree."
       />
       <div className="about">
@@ -32,7 +32,7 @@ export default function AboutPage() {
             <SectionHeader id="about-what" title="What it is" />
             <div className="about__prose">
               <p>
-                DSBA Pulse grew out of the DSBA Resource Hub. It keeps everything the hub offered for each module — books and study guides,
+                DSBA Hub grew out of the DSBA Resource Hub. It keeps everything the hub offered for each module — books and study guides,
                 notes shared by students, exercises, past exams, cheat sheets and recorded lessons — and adds a library you can read without
                 leaving the app, a newsletter, a forum, a full calendar and a degree classification calculator.
               </p>

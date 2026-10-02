@@ -6,7 +6,7 @@ import { StarButton } from './StarButton.jsx';
 /** Grid item: the document itself is the card (no chrome), title and one line of meta below. */
 export function FileCard({ file, sort = 'newest', starred = false, onToggleStar, linkState, thumbSize = 'grid' }) {
   return (
-    <article className="lib-card" data-pulse="file-card">
+    <article className="lib-card" data-hub="file-card">
       <Link to={file.url} state={linkState} className="lib-card__link">
         <FileThumb file={file} size={thumbSize} newTag />
         <span className="lib-card__title">

@@ -29,7 +29,7 @@ export const SEED_THREADS = [
     moduleId: null,
     pinned: true,
     title: 'Welcome to the forum: read this before you post',
-    author: 'pulse',
+    author: 'hub',
     ago: d(12),
     votes: 64,
     tags: [],
@@ -52,7 +52,7 @@ export const SEED_THREADS = [
       {
         id: 'b', author: 'sayed-ali-m', ago: d(11, 2), votes: 9, body: 'Could we get a place for internship and job posts too?',
         replies: [
-          { id: 'b1', author: 'pulse', ago: d(10, 20), votes: 6, body: "Good idea. Post them in General for now and we'll add a category once there's enough interest." },
+          { id: 'b1', author: 'hub', ago: d(10, 20), votes: 6, body: "Good idea. Post them in General for now and we'll add a category once there's enough interest." },
         ],
       },
     ],

@@ -21,7 +21,7 @@ export function MetaPanel({ file, related, linkState, className, id }) {
   const m = getModule(file.moduleId);
   const nounPlural = pageNoun(file.format, 2);
   return (
-    <aside id={id} className={cx('lib-meta', className)} data-pulse="file-meta" aria-label="File details">
+    <aside id={id} className={cx('lib-meta', className)} data-hub="file-meta" aria-label="File details">
       <section className="lib-meta__module">
         <Link to={`/modules/${m.id}?tab=files`} className="lib-meta__module-link">
           {m.unitCode ? (
@@ -68,7 +68,7 @@ export function MetaPanel({ file, related, linkState, className, id }) {
             {related.map((f) => (
               <li key={f.id}>
                 <Link to={f.url} state={linkState} className="lib-related">
-                  <FileThumb file={f} size="related" pulse={false} />
+                  <FileThumb file={f} size="related" hook={false} />
                   <span className="lib-related__text">
                     <span className="lib-related__title">{f.title}</span>
                     <span className="lib-related__meta">{f.kindLabel}, {pagesLabel(f)}</span>

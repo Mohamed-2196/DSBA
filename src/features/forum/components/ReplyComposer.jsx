@@ -7,7 +7,7 @@ import { AuthorAvatar } from './AuthorAvatar.jsx';
 import { MarkdownEditor } from './MarkdownEditor.jsx';
 
 /**
- * Write a reply. At the bottom of a thread (data-pulse="reply-composer", textarea "reply-input"),
+ * Write a reply. At the bottom of a thread (data-hub="reply-composer", textarea "reply-input"),
  * or inline under a reply when `parent` is set (one level of nesting: replies to a nested reply
  * attach to its parent and mention the person).
  */
@@ -36,7 +36,7 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
   return (
     <form
       className={cx('forum-composer-reply', inline && 'is-inline')}
-      data-pulse={inline ? 'reply-composer-inline' : 'reply-composer'}
+      data-hub={inline ? 'reply-composer-inline' : 'reply-composer'}
       onSubmit={submit}
       noValidate
     >
@@ -58,7 +58,7 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
           onSubmit={submit}
           textareaRef={textareaRef}
           autoFocus={autoFocus}
-          textareaProps={inline ? undefined : { 'data-pulse': 'reply-input' }}
+          textareaProps={inline ? undefined : { 'data-hub': 'reply-input' }}
         />
         <div className="forum-composer-reply__actions">
           <span className="forum-composer-reply__hint" aria-hidden="true">

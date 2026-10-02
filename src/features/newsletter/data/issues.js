@@ -1,4 +1,4 @@
-// The Pulse: every public issue, as data. Copy uses the inline markup from lib/text.js:
+// The DSBA Newsletter: every public issue, as data. Copy uses the inline markup from lib/text.js:
 //   **bold**  *italic*  ==highlighter mark==  [label](/route | https://…)
 // Rules: written by students, for students. Never quote or attribute words to real tutors or staff.
 // Dummy people come from data/people.js (DUMMY_STUDENTS). Facts (unit codes, dates, counts) come from
@@ -20,8 +20,8 @@ const PILOT = {
   date: '2026-09-29',
   status: 'published',
   cover: 'pilot',
-  dek: 'A short test run before the real thing: what The Pulse will be, and one favour to ask.',
-  summary: 'The test issue: what The Pulse will cover every week, a first look at the October session and a request for your ideas.',
+  dek: 'A short test run before the real thing: what The DSBA Newsletter will be, and one favour to ask.',
+  summary: 'The test issue: what The DSBA Newsletter will cover every week, a first look at the October session and a request for your ideas.',
   editors: EDITORS,
   sections: [
     {
@@ -33,7 +33,7 @@ const PILOT = {
         {
           type: 'p',
           lead: true,
-          text: 'This is issue zero of The Pulse, a weekly newsletter written by DSBA students for DSBA students. Think of it as a pilot study: a small sample, a rough instrument and a lot of questions we want you to answer.',
+          text: 'This is issue zero of The DSBA Newsletter, a weekly newsletter written by DSBA students for DSBA students. Think of it as a pilot study: a small sample, a rough instrument and a lot of questions we want you to answer.',
         },
         {
           type: 'p',
@@ -85,7 +85,7 @@ const PILOT = {
       blocks: [
         {
           type: 'p',
-          text: 'What would make you open The Pulse every week? What should we never do again? Reply to the email or find any of us in the corridor. The best answer gets its own section.',
+          text: 'What would make you open The DSBA Newsletter every week? What should we never do again? Reply to the email or find any of us in the corridor. The best answer gets its own section.',
         },
       ],
       reactions: { useful: 4, love: 11, laugh: 3 },
@@ -102,7 +102,7 @@ const LAUNCH = {
   cover: 'launch',
   dek: 'A new home for everything DSBA, thirteen days to the first exam, and a chart nobody asked for.',
   summary:
-    'DSBA Pulse is live: files that open in the hub, lessons that remember where you stopped and a forum for every cohort. Plus every October exam date, a study tip and a student spotlight.',
+    'DSBA Hub is live: files that open in the hub, lessons that remember where you stopped and a forum for every cohort. Plus every October exam date, a study tip and a student spotlight.',
   editors: EDITORS,
   sections: [
     {
@@ -114,7 +114,7 @@ const LAUNCH = {
         {
           type: 'p',
           lead: true,
-          text: 'Today the DSBA Resource Hub becomes DSBA Pulse, and The Pulse becomes a proper weekly newsletter. The idea hasn’t changed: everything a DSBA student needs, gathered by students who needed it first. What has changed is that it no longer feels like a page of links.',
+          text: 'Today the DSBA Resource Hub becomes DSBA Hub, and The DSBA Newsletter becomes a proper weekly newsletter. The idea hasn’t changed: everything a DSBA student needs, gathered by students who needed it first. What has changed is that it no longer feels like a page of links.',
         },
         {
           type: 'p',
@@ -132,7 +132,7 @@ const LAUNCH = {
       ],
       aside: {
         type: 'note',
-        title: 'Who writes The Pulse',
+        title: 'Who writes The DSBA Newsletter',
         text: 'Three students, one from each cohort, plus anyone with something worth sharing. Got a tip, a story or a correction? [Start a thread in the forum](/forum/new) and we’ll read it.',
       },
       reactions: { useful: 18, love: 42, laugh: 3 },
@@ -153,7 +153,7 @@ const LAUNCH = {
             '**Files open in the hub.** Study guides, students’ notes and past papers open in a built-in reader, so comparing three past papers no longer means three Drive tabs. *Open original* is always one click away.',
             '**Lessons remember where you stopped.** All 337 videos, from YouTube lectures to recorded classes, play inside the hub and track your progress chapter by chapter.',
             '**Your exams, on your phone.** The October timetable is in the [calendar](/calendar) with real unit codes. Download the .ics file and every paper lands in your phone’s calendar.',
-            '**Search everything.** Press Ctrl K (⌘K on a Mac) to jump to any module, file, lesson, thread or past issue of The Pulse.',
+            '**Search everything.** Press Ctrl K (⌘K on a Mac) to jump to any module, file, lesson, thread or past issue of The DSBA Newsletter.',
             '**A forum for every cohort.** Ask, answer and vote up the replies that helped, filtered by module. Be kind: everyone is revising.',
           ],
         },

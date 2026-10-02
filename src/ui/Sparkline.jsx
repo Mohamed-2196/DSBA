@@ -2,7 +2,7 @@ import { cx } from './internal.js';
 import './Sparkline.css';
 
 /**
- * Tiny line chart in the pulse style.
+ * Tiny line chart in the trace style.
  * @param {number[]} data
  * @param {number} width / height  px (default 120 × 32)
  * @param {string} color  CSS colour (default var(--cobalt))

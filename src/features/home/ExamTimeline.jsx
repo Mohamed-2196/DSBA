@@ -2,16 +2,16 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDots } from '@phosphor-icons/react';
 import { cohortLabel } from '../../state';
-import { Button, Highlight, ModuleIcon, PulseMark, cx } from '../../ui';
+import { Button, Highlight, ModuleIcon, HubMark, cx } from '../../ui';
 import { buildTrace, traceLabel } from './session.js';
 import { inDays, longDay, numberWord, shortDay } from './time.js';
-import './ExamPulse.css';
+import './ExamTimeline.css';
 
-// The PulseMark sits at the start of the trace; its end dot is "today".
+// The DSBA NewsletterMark sits at the start of the trace; its end dot is "today".
 const MARK = 32;
 const DOT_X = (44.6 / 48) * MARK * 2; // 59.5
 const DOT_Y = (12.9 / 24) * MARK; // 17.2
-// Choreography (ms). The PulseMark draws in 900ms; the trace leaves its dot, runs to the next
+// Choreography (ms). The DSBA NewsletterMark draws in 900ms; the trace leaves its dot, runs to the next
 // exam (highlights swipe in on arrival), then finishes the session.
 const HEAD_DELAY = 620;
 const SPEED = 1.15; // px per ms
@@ -35,7 +35,7 @@ function examName(e) {
   return e.module ? e.module.name : e.title;
 }
 
-/** The trace: PulseMark (now) → one spike per exam, annotated with unit codes. */
+/** The trace: HubMark (now) → one spike per exam, annotated with unit codes. */
 function Trace({ session, intro, today }) {
   const ref = useRef(null);
   const width = useWidth(ref);
@@ -103,7 +103,7 @@ function Trace({ session, intro, today }) {
             {trace.tail ? <path className="home-trace__tail" d={trace.tail} pathLength="1" /> : null}
             <path className="home-trace__head" d={trace.head} pathLength="1" />
           </svg>
-          <PulseMark size={MARK} animate={intro ? 'draw' : false} className="home-trace__mark" style={{ top: y0 - DOT_Y }} />
+          <HubMark size={MARK} animate={intro ? 'draw' : false} className="home-trace__mark" style={{ top: y0 - DOT_Y }} />
           <span className="home-trace__now" style={{ left: DOT_X, top: y0 }} aria-hidden="true" />
           <span className="home-trace__today" style={{ left: DOT_X, top: y0 + 16 }}>Today</span>
           {weeks.map((w) => (
@@ -143,12 +143,12 @@ function Trace({ session, intro, today }) {
 }
 
 /**
- * Home hero: the next exam as a big unit code + countdown sentence, over the session's pulse trace.
+ * Home hero: the next exam as a big unit code + countdown sentence, over the session's trace.
  * @param {object|null} session  from getExamSession()
  * @param {1|2|3} year
  * @param {boolean} intro  play the one-time load choreography
  */
-export function ExamPulse({ session, year, intro, today }) {
+export function ExamTimeline({ session, year, intro, today }) {
   const next = session?.next;
   const isExam = session?.kind === 'exams';
   const more = isExam ? session.exams.length - 1 : 0;
@@ -191,7 +191,7 @@ export function ExamPulse({ session, year, intro, today }) {
   const modulePath = next?.moduleId ? `/modules/${next.moduleId}` : null;
   const titleId = 'home-hero-title';
   return (
-    <section className={cx('home-hero', `home-hero--y${year}`)} aria-labelledby={titleId} data-pulse="home-hero">
+    <section className={cx('home-hero', `home-hero--y${year}`)} aria-labelledby={titleId} data-hub="home-hero">
       <div className="home-hero__top">
         <div className="home-hero__text">
           {code ? (

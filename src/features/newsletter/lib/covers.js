@@ -1,5 +1,5 @@
 // Geometry for the generated issue covers (SVG, viewBox 300 × 400). Every cover is a chart of its
-// issue: the pilot is a small-sample scatter on graph paper, the launch is the pulse on ECG paper,
+// issue: the pilot is a small-sample scatter on graph paper, the launch is the trace on graph paper,
 // an upcoming issue is a forecast with a fan of uncertainty. Seeded, so identical on every render.
 import { mulberry32, r1 } from './seed.js';
 
@@ -14,7 +14,7 @@ export function gridPath({ x0 = 0, y0 = 0, x1 = COVER_W, y1 = COVER_H, step }) {
   return d;
 }
 
-// ── Launch: the brand pulse trace (ui/PulseMark PULSE_PATH), enlarged onto ECG paper ─────────
+// ── Launch: the brand trace (ui/HubMark MARK_PATH), enlarged onto ECG paper ─────────
 // Brand path in its own 48×24 box (baseline y = 15). Mapped with X = 18 + (x − 2)·6, Y = 228 + (y − 15)·11.
 const BRAND_POINTS = [
   [8.5, 15], [11, 12.6], [13.5, 15.8], [16.2, 14.4], [19.6, 3.4], [23.6, 20.6], [26.6, 12.4],

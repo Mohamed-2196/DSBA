@@ -37,7 +37,7 @@ export function YourModules({ year, today }) {
     .map((m, i) => ({ m, i, exam: nextExam(m.id, today) }))
     .sort((a, b) => (a.exam ? a.exam.days : 1e6) - (b.exam ? b.exam.days : 1e6) || a.i - b.i);
   return (
-    <ul role="list" className={cx('home-mods', `home-mods--y${year}`)} data-pulse="home-modules">
+    <ul role="list" className={cx('home-mods', `home-mods--y${year}`)} data-hub="home-modules">
       {modules.map(({ m, exam }) => {
         const progress = safeProgress(m.id);
         const pct = progress && progress.total > 0 ? Math.round((progress.watched / progress.total) * 100) : 0;

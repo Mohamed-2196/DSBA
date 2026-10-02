@@ -166,7 +166,7 @@ function Viewer({ file }) {
     const url = `${window.location.origin}${window.location.pathname}#${file.url}`;
     try {
       await navigator.clipboard.writeText(url);
-      toast.push({ title: 'Link copied', body: 'Anyone with DSBA Pulse can open this file with it.', tone: 'success' });
+      toast.push({ title: 'Link copied', body: 'Anyone with DSBA Hub can open this file with it.', tone: 'success' });
     } catch {
       toast.push({ title: 'Couldn’t copy the link', body: url, tone: 'alert' });
     }
@@ -227,7 +227,7 @@ function Viewer({ file }) {
   const renderTo = Math.max(last, current) + 1;
 
   return (
-    <div className={cx('lib-viewer', isDesktop ? 'is-app' : 'is-stacked')} data-pulse="file-viewer">
+    <div className={cx('lib-viewer', isDesktop ? 'is-app' : 'is-stacked')} data-hub="file-viewer">
       <header className="lib-viewer__head">
         <nav aria-label="Breadcrumb" className="lib-crumbs">
           <ol>
@@ -256,7 +256,7 @@ function Viewer({ file }) {
         </div>
       </header>
 
-      <div className="lib-viewer__toolbar" role="toolbar" aria-label="Document" data-pulse="file-toolbar">
+      <div className="lib-viewer__toolbar" role="toolbar" aria-label="Document" data-hub="file-toolbar">
         <div className="lib-tb__group">
           {isDesktop ? (
             <>
@@ -320,7 +320,7 @@ function Viewer({ file }) {
                 className={cx('lib-viewer__page', i === current && 'is-current')}
                 style={{ width: pageW, height: pageH }}
                 aria-label={`${cap(noun)} ${i + 1} of ${count}`}
-                data-pulse="file-page"
+                data-hub="file-page"
               >
                 <div className="lib-viewer__paper" data-theme="light">
                   {i >= renderFrom && i <= renderTo ? (

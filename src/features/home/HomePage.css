@@ -1,4 +1,4 @@
-/* Home — greeting, body grid, "Your modules" and "New in the library". Hero lives in ExamPulse.css. */
+/* Home — greeting, body grid, "Your modules" and "New in the library". Hero lives in ExamTimeline.css. */
 
 /* ── Greeting ──────────────────────────────────────────────────────── */
 .home-greeting { position: relative; margin-bottom: var(--sp-24); }
@@ -35,18 +35,18 @@
 .home-sec--upcoming { order: 3; }
 .home-sec--threads { order: 4; }
 .home-sec--library { order: 5; }
-.home-sec--pulse { order: 6; }
+.home-sec--exams { order: 6; }
 
 @container home (min-width: 640px) {
   .home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .home-sec--continue, .home-sec--threads, .home-sec--library, .home-sec--pulse { grid-column: 1 / -1; }
+  .home-sec--continue, .home-sec--threads, .home-sec--library, .home-sec--exams { grid-column: 1 / -1; }
 }
 @container home (min-width: 900px) {
   .home-grid { grid-template-columns: minmax(0, 1fr) minmax(320px, 372px); gap: var(--sp-48); align-items: start; }
   .home-main, .home-aside { display: flex; flex-direction: column; gap: var(--sp-48); min-width: 0; }
   .home-main { grid-column: 1; }
   .home-aside { grid-column: 2; }
-  .home-sec--continue, .home-sec--threads, .home-sec--library, .home-sec--pulse { grid-column: auto; }
+  .home-sec--continue, .home-sec--threads, .home-sec--library, .home-sec--exams { grid-column: auto; }
 }
 
 /* ── Your modules ──────────────────────────────────────────────────── */

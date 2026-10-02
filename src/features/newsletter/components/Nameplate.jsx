@@ -1,11 +1,11 @@
 import { r1 } from '../lib/seed.js';
 import './Nameplate.css';
 
-// A "pulse plate": words in Newsreader display, underlined by the brand pulse trace. The trace runs
+// A "name plate": words in Newsreader display, underlined by the brand trace. The trace runs
 // flat under the words, spikes to cap height beside them and ends in the highlighter "now" dot.
 // One SVG (viewBox 1180 wide) so the composition is identical at every width.
 const W = 1180;
-// Brand trace (ui/PulseMark PULSE_PATH, baseline 15), stretched: up ×13.8, down ×7, across ×6.2.
+// Brand trace (ui/HubMark MARK_PATH, baseline 15), stretched: up ×13.8, down ×7, across ×6.2.
 const FEATURES = [[11, 12.6], [13.5, 15.8], [16.2, 14.4], [19.6, 3.4], [23.6, 20.6], [26.6, 12.4], [29.6, 15.4], [33.2, 13.6], [37, 15]];
 
 function tracePath({ rule, startX, peakY }) {
@@ -23,7 +23,7 @@ function tracePath({ rule, startX, peakY }) {
  * @param skipInk    break the trace around descenders (a halo in the ground colour; ground must match the tone)
  * @param label      accessible name (defaults to text)
  */
-export function PulsePlate({ text, fontSize, textWidth, tone = 'ink', skipInk = false, label, className }) {
+export function NamePlate({ text, fontSize, textWidth, tone = 'ink', skipInk = false, label, className }) {
   const ascent = fontSize * 0.75;
   const base = Math.round(ascent + 12);
   const rule = Math.round(base + fontSize * 0.15);
@@ -41,8 +41,8 @@ export function PulsePlate({ text, fontSize, textWidth, tone = 'ink', skipInk = 
   );
 }
 
-/** The Pulse nameplate (the /newsletter masthead). */
+/** The DSBA Newsletter nameplate (the /newsletter masthead). */
 export function Nameplate({ className }) {
-  // 812 = advance of "The Pulse" at 184px, weight 600, −0.03em (measured in Chromium).
-  return <PulsePlate text="The Pulse" fontSize={184} textWidth={812} className={className} />;
+  // 812 = advance of "The DSBA Newsletter" at 184px, weight 600, −0.03em (measured in Chromium).
+  return <NamePlate text="The DSBA Newsletter" fontSize={184} textWidth={812} className={className} />;
 }

@@ -85,7 +85,7 @@ export function Deadlines({ issue, exams }) {
 
   if (!exams.length) {
     return (
-      <div className="nl-deadlines" data-pulse="deadlines">
+      <div className="nl-deadlines" data-hub="deadlines">
         <p className="nl-p">No exams on the calendar for this window. Check the calendar for anything new.</p>
         <p className="nl-cta">
           <Button to="/calendar" leadingIcon={CalendarBlank}>
@@ -97,7 +97,7 @@ export function Deadlines({ issue, exams }) {
   }
 
   return (
-    <div className="nl-deadlines" data-pulse="deadlines">
+    <div className="nl-deadlines" data-hub="deadlines">
       <div className="nl-deadlines__bar">
         <SegmentedControl
           size="sm"

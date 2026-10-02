@@ -11,8 +11,8 @@ const ROUTES = [
   { id: 'module', path: '/modules/:moduleId', title: 'Module', Page: lazy(() => import('./features/modules/ModulePage.jsx')) },
   { id: 'library', path: '/library', title: 'Library', Page: lazy(() => import('./features/library/LibraryPage.jsx')) },
   { id: 'file', path: '/library/:fileId', title: 'Library', Page: lazy(() => import('./features/library/FileViewerPage.jsx')) },
-  { id: 'newsletter', path: '/newsletter', title: 'The Pulse', Page: lazy(() => import('./features/newsletter/NewsletterPage.jsx')) },
-  { id: 'issue', path: '/newsletter/:slug', title: 'The Pulse', Page: lazy(() => import('./features/newsletter/IssuePage.jsx')) },
+  { id: 'newsletter', path: '/newsletter', title: 'The DSBA Newsletter', Page: lazy(() => import('./features/newsletter/NewsletterPage.jsx')) },
+  { id: 'issue', path: '/newsletter/:slug', title: 'The DSBA Newsletter', Page: lazy(() => import('./features/newsletter/IssuePage.jsx')) },
   { id: 'forum', path: '/forum', title: 'Forum', Page: lazy(() => import('./features/forum/ForumPage.jsx')) },
   { id: 'forum-new', path: '/forum/new', title: 'Start a thread', Page: lazy(() => import('./features/forum/NewThreadPage.jsx')) },
   { id: 'thread', path: '/forum/:threadId', title: 'Forum', Page: lazy(() => import('./features/forum/ThreadPage.jsx')) },
@@ -28,7 +28,7 @@ function RouteFrame({ route }) {
   const { id, title, Page } = route;
   // Default tab title. A layout effect, so a page's own useDocumentTitle() (a passive effect) wins.
   useLayoutEffect(() => {
-    document.title = title ? `${title} – DSBA Pulse` : 'DSBA Pulse';
+    document.title = title ? `${title} – DSBA Hub` : 'DSBA Hub';
   }, [title, pathname]);
   return (
     <RouteErrorBoundary key={pathname} routeId={id}>

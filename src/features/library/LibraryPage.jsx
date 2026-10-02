@@ -60,7 +60,7 @@ function useLibraryParams() {
 function NewThisWeek({ files, total, yearLabel, linkState }) {
   if (!files.length) return null;
   return (
-    <PageSection className="lib-new" aria-labelledby="lib-new-title" data-pulse="library-new">
+    <PageSection className="lib-new" aria-labelledby="lib-new-title" data-hub="library-new">
       <div className="lib-new__head">
         <h2 id="lib-new-title" className="lib-new__title">New this week</h2>
         <p className="lib-new__desc">
@@ -69,7 +69,7 @@ function NewThisWeek({ files, total, yearLabel, linkState }) {
       </div>
       <ul className="lib-new__list" role="list">
         {files.map((f) => (
-          <li key={f.id} className="lib-new__item" data-pulse="file-card">
+          <li key={f.id} className="lib-new__item" data-hub="file-card">
             <Link to={f.url} state={linkState} className="lib-new__link">
               <FileThumb file={f} size="strip" />
               <span className="lib-new__name">{f.title}</span>
@@ -164,7 +164,7 @@ export default function LibraryPage() {
         title="Library"
         description="Study guides, past papers, notes and cheat sheets you can read right here. Every file keeps a link to its original on Google Drive."
         actions={
-          <Button variant="primary" leadingIcon={UploadSimple} onClick={() => setUpload((u) => ({ open: true, key: u.key + 1 }))} data-pulse="upload-button">
+          <Button variant="primary" leadingIcon={UploadSimple} onClick={() => setUpload((u) => ({ open: true, key: u.key + 1 }))} data-hub="upload-button">
             Upload a file
           </Button>
         }
@@ -181,7 +181,7 @@ export default function LibraryPage() {
       <NewThisWeek files={newFiles} total={allNew.length} yearLabel={yearLabel} linkState={linkState} />
 
       <PageSection aria-label="Browse files" className="lib-browse">
-        <div className="lib-filters" data-pulse="library-filters">
+        <div className="lib-filters" data-hub="library-filters">
           <div className="lib-filters__top">
             <SearchField
               ref={searchRef}

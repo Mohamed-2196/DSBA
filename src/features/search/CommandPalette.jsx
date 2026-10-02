@@ -7,19 +7,19 @@ import {
   GithubLogo, GraduationCap, House, Info, MagnifyingGlass, Moon, Newspaper, PencilSimpleLine, Play, SquaresFour, Sun, X,
 } from '@phosphor-icons/react';
 import { useLocalStorage, useTheme, useToast, useYear } from '../../state';
-import { Kbd, Modal, ModuleIcon, PulseMark, cx } from '../../ui';
+import { Kbd, Modal, ModuleIcon, HubMark, cx } from '../../ui';
 import { OPEN_PALETTE_EVENT } from './bus.js';
 import { matchRanges, tokenize } from './match.js';
 import { getSources, loadSources } from './sources.js';
 import { runSearch } from './search.js';
 import './CommandPalette.css';
 
-const RECENT_KEY = 'pulse.search.recent';
+const RECENT_KEY = 'hub.search.recent';
 const ICONS = { ArrowsLeftRight, Bank, Books, Calculator, CalendarDots, ChatsCircle, GithubLogo, GraduationCap, House, Info, Moon, Newspaper, PencilSimpleLine, SquaresFour, Sun };
 
 const NO_TOKENS = [];
 const isEditable = (el) => !!el?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"]');
-const otherDialogOpen = () => [...document.querySelectorAll('[aria-modal="true"]')].some((d) => !d.closest('[data-pulse="cmdk"]'));
+const otherDialogOpen = () => [...document.querySelectorAll('[aria-modal="true"]')].some((d) => !d.closest('[data-hub="cmdk"]'));
 
 /** Text with every query token marked. */
 function Marked({ text, tokens, className = 'cmdk-mark' }) {
@@ -313,13 +313,13 @@ export function CommandPalette() {
     <Modal
       open={open}
       onClose={close}
-      title="Search DSBA Pulse"
+      title="Search DSBA Hub"
       hideHeader
       size="lg"
       initialFocusRef={inputRef}
       className="cmdk"
       bodyClassName="cmdk-body"
-      data-pulse="cmdk"
+      data-hub="cmdk"
     >
       <div className="cmdk-field">
         <MagnifyingGlass className="cmdk-field__icon" aria-hidden="true" />
@@ -332,7 +332,7 @@ export function CommandPalette() {
           aria-controls={`cmdk${uid}-list`}
           aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
           aria-autocomplete="list"
-          aria-label="Search modules, lessons, files, threads, The Pulse and dates"
+          aria-label="Search modules, lessons, files, threads, The DSBA Newsletter and dates"
           placeholder="Search modules, lessons, files, threads…"
           autoComplete="off"
           autoCorrect="off"
@@ -341,9 +341,9 @@ export function CommandPalette() {
           value={query}
           onChange={(e) => setQueryFromInput(e.target.value)}
           onKeyDown={onKeyDown}
-          data-pulse="cmdk-input"
+          data-hub="cmdk-input"
         />
-        {loading ? <PulseMark size={9} animate="loop" className="cmdk-field__loading" /> : null}
+        {loading ? <HubMark size={9} animate="loop" className="cmdk-field__loading" /> : null}
         {query ? (
           <button type="button" className="cmdk-field__clear" aria-label="Clear search" tabIndex={-1} onClick={() => { setQueryFromInput(''); inputRef.current?.focus(); }}>
             <X weight="bold" aria-hidden="true" />
@@ -354,7 +354,7 @@ export function CommandPalette() {
         </button>
       </div>
 
-      <div ref={listRef} id={`cmdk${uid}-list`} role="listbox" aria-label="Search results" className="cmdk-list" data-pulse="cmdk-results">
+      <div ref={listRef} id={`cmdk${uid}-list`} role="listbox" aria-label="Search results" className="cmdk-list" data-hub="cmdk-results">
         <span ref={indicatorRef} className="cmdk-indicator" aria-hidden="true" />
         {results.empty ? (
           <div className="cmdk-empty">

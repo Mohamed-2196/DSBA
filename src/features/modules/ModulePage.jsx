@@ -44,7 +44,7 @@ function ModuleHeader({ module: m, progress, resume, exam, onOpenLesson }) {
   else if (resume) resumeNote = `Up next: ${chapterPosition(resume.c, resumeChapter.videos[resume.v], resume.v, resumeChapter.videos.length).toLowerCase()}.`;
 
   return (
-    <header className={`mod-head mod-head--y${m.year}`} data-pulse="module-header">
+    <header className={`mod-head mod-head--y${m.year}`} data-hub="module-header">
       <Link to={backTo} className="mod-head__back">
         <CaretLeft weight="bold" aria-hidden="true" />
         {COHORTS[m.year].label} modules
@@ -192,7 +192,7 @@ function ModuleView({ module: m }) {
     <Page className={`mod-page mod-page--y${m.year}`}>
       <ModuleHeader module={m} progress={progress} resume={resume} exam={exam} onOpenLesson={openLesson} />
 
-      <Tabs idBase="module" label="Module sections" className="mod-tabs" data-pulse="module-tabs" tabs={tabs} value={tab} onChange={setTab} />
+      <Tabs idBase="module" label="Module sections" className="mod-tabs" data-hub="module-tabs" tabs={tabs} value={tab} onChange={setTab} />
 
       <div className="mod-panels">
         <TabPanel idBase="module" id="overview" value={tab}>

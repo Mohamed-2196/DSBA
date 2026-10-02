@@ -85,11 +85,11 @@ export const PAGE_ENTRIES = [
   { path: '/', title: 'Home', icon: 'House', keywords: ['dashboard', 'start'] },
   { path: '/modules', title: 'Modules', icon: 'SquaresFour', keywords: ['subjects', 'courses', 'lessons', 'videos'] },
   { path: '/library', title: 'Library', icon: 'Books', keywords: ['files', 'notes', 'past papers', 'exams', 'study guide', 'documents'] },
-  { path: '/newsletter', title: 'The Pulse newsletter', icon: 'Newspaper', keywords: ['newsletter', 'issues', 'news'] },
+  { path: '/newsletter', title: 'The DSBA newsletter', icon: 'Newspaper', keywords: ['newsletter', 'issues', 'news'] },
   { path: '/forum', title: 'Forum', icon: 'ChatsCircle', keywords: ['threads', 'questions', 'discussion', 'ask'] },
   { path: '/calendar', title: 'Calendar', icon: 'CalendarDots', keywords: ['exams', 'timetable', 'dates', 'deadlines', 'ics'] },
   { path: '/grades', title: 'Grade calculator', icon: 'Calculator', keywords: ['grades', 'gpa', 'classification', 'marks', 'degree'] },
-  { path: '/about', title: 'About DSBA Pulse', icon: 'Info', keywords: ['contributors', 'disclaimer', 'credits'] },
+  { path: '/about', title: 'About DSBA Hub', icon: 'Info', keywords: ['contributors', 'disclaimer', 'credits'] },
 ].map((p) => ({ ...p, id: `page:${p.path}`, group: 'pages', kind: 'page', to: p.path }));
 
 /** Relative day phrase for an event: 'in 28 days', 'tomorrow', 'today', '3 days ago', '5 months ago'. */
@@ -121,7 +121,7 @@ let promise = null;
 
 function pick(result, name) {
   if (result.status !== 'fulfilled') {
-    console.error(`[DSBA Pulse] Search could not load ${name}:`, result.reason);
+    console.error(`[DSBA Hub] Search could not load ${name}:`, result.reason);
     return null;
   }
   const fn = result.value?.[name];
@@ -151,7 +151,7 @@ export function safeSearch(fn, query) {
     const out = fn(query);
     return Array.isArray(out) ? out.filter(Boolean) : [];
   } catch (err) {
-    console.error('[DSBA Pulse] A search source failed:', err);
+    console.error('[DSBA Hub] A search source failed:', err);
     return [];
   }
 }

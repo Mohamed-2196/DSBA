@@ -1,6 +1,6 @@
-// Home: the front door. Greeting, the exam pulse (the page's one dominant element and its one
+// Home: the front door. Greeting, the exam timeline (the page's one dominant element and its one
 // orchestrated motion moment), then an editorial body: a main column (learning, forum, library)
-// and an aside (your modules, coming up, The Pulse). Widgets from other features come from their
+// and an aside (your modules, coming up, The DSBA Newsletter). Widgets from other features come from their
 // public.js and each sits in its own ErrorBoundary.
 import { useEffect, useMemo, useState } from 'react';
 import { useYear } from '../../state';
@@ -10,7 +10,7 @@ import { ContinueLearning } from '../modules/public.js';
 import { UpcomingEvents } from '../calendar/public.js';
 import { HotThreads } from '../forum/public.js';
 import { LatestIssueCard } from '../newsletter/public.js';
-import { ExamPulse } from './ExamPulse.jsx';
+import { ExamTimeline } from './ExamTimeline.jsx';
 import { YourModules } from './YourModules.jsx';
 import { NewInLibrary } from './NewInLibrary.jsx';
 import { getExamSession } from './session.js';
@@ -27,8 +27,8 @@ function useOnboardingOpen() {
   useEffect(() => {
     const on = () => setOpen(read());
     on();
-    window.addEventListener('pulse:onboarding', on);
-    return () => window.removeEventListener('pulse:onboarding', on);
+    window.addEventListener('hub:onboarding', on);
+    return () => window.removeEventListener('hub:onboarding', on);
   }, []);
   return open;
 }
@@ -55,7 +55,7 @@ export default function HomePage() {
 
   return (
     <Page className="home">
-      <header className="home-greeting" data-pulse="home-greeting">
+      <header className="home-greeting" data-hub="home-greeting">
         <p className="home-greeting__meta">
           <time dateTime={isoDay(today)}>{longDay(now)}</time>
           <CohortBadge year={activeYear} />
@@ -66,7 +66,7 @@ export default function HomePage() {
         <ProgrammeLockup className="home-greeting__affil" />
       </header>
 
-      <ExamPulse session={session} year={activeYear} intro={intro && !onboarding} today={today} />
+      <ExamTimeline session={session} year={activeYear} intro={intro && !onboarding} today={today} />
 
       <div className="home-body">
         <div className="home-grid">
@@ -101,8 +101,8 @@ export default function HomePage() {
                 <UpcomingEvents n={4} />
               </ErrorBoundary>
             </PageSection>
-            <PageSection className="home-sec home-sec--pulse" aria-labelledby="home-pulse">
-              <SectionHeader id="home-pulse" title="The Pulse" action={<Button variant="ghost" size="sm" to="/newsletter">All issues</Button>} />
+            <PageSection className="home-sec home-sec--exams" aria-labelledby="home-news">
+              <SectionHeader id="home-news" title="The DSBA Newsletter" action={<Button variant="ghost" size="sm" to="/newsletter">All issues</Button>} />
               <ErrorBoundary name="LatestIssueCard">
                 <LatestIssueCard />
               </ErrorBoundary>

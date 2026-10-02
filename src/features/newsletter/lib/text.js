@@ -1,4 +1,4 @@
-// Text helpers for The Pulse: the tiny inline markup used in the issue copy, plain-text
+// Text helpers for The DSBA Newsletter: the tiny inline markup used in the issue copy, plain-text
 // extraction (read time, search), snippets and date maths. Pure functions, no React.
 //
 // Inline markup (one level, no nesting):

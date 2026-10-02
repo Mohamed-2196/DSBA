@@ -16,7 +16,7 @@ export function ReplyItem({ reply, thread, fresh = false, nested = false, onVote
   return (
     <article
       className={cx('forum-reply', nested && 'is-nested', accepted && 'is-accepted', fresh && 'is-fresh', reply.reveal && 'is-reveal')}
-      data-pulse="reply"
+      data-hub="reply"
       data-reply-id={reply.id}
       aria-label={`${accepted ? 'Accepted answer' : 'Reply'} by ${authorLabel(author)}`}
     >

@@ -1,4 +1,4 @@
-/* DSBA Pulse — design tokens (spec §1).
+/* DSBA Hub — design tokens (spec §1).
    Colours: light on `:root, [data-theme='light']`, dark on `[data-theme='dark']` (both can be nested,
    e.g. <div data-theme="dark"> renders a dark island inside a light page — the style guide uses this).
    Spec tokens are exact. Derived tokens (marked "derived") exist for AA-contrast text on fills, tints
@@ -98,46 +98,47 @@
   color-scheme: light;
 
   /* Spec */
-  --paper: #F6F7FB;        /* app background (cool, never cream) */
+  --paper: #F4F7FC;        /* app background (cool, never cream) */
   --surface: #FFFFFF;      /* panels, cards */
-  --surface-2: #EEF0F8;    /* inset areas, hovers, table stripes */
-  --ink: #0E1542;          /* primary text & headings */
-  --ink-2: #4A5175;        /* secondary text (AA on paper/surface) */
-  --ink-3: #7C83A6;        /* tertiary: icons, placeholders, large meta — NOT AA for small text in light */
-  --line: #E2E5F0;         /* borders/dividers */
-  --cobalt: #2E3BFF;       /* primary actions, links, focus, pulse */
+  --surface-2: #EAF0F9;    /* inset areas, hovers, table stripes */
+  --ink: #0A1F44;          /* primary text & headings */
+  --ink-2: #425372;        /* secondary text (AA on paper/surface) */
+  --ink-3: #7587A6;        /* tertiary: icons, placeholders, large meta — NOT AA for small text in light */
+  --line: #DCE5F2;         /* borders/dividers */
+  --cobalt: #1558F0;       /* primary actions, links, focus */
   --cobalt-ink: #FFFFFF;   /* text on cobalt */
-  --navy: #1A237E;         /* v1 brand navy (logo lockup, deep accents) */
+  --navy: #0C2D75;         /* deep brand navy (dark islands, deep accents) */
+  --brand: #1558F0;        /* the logo tile (same blue in both themes) */
   --highlight: #FFE14A;    /* highlighter marks only — never a text colour */
   --signal: #12B886;       /* live, answered, success, watched */
   --alert: #F03E5E;        /* exams, errors, destructive */
   --y1: #0FA3B1;           /* Year 1 (lagoon) */
-  --y2: #7048E8;           /* Year 2 (iris) */
+  --y2: #1F6FEB;           /* Year 2 (azure) */
   --y3: #F08C00;           /* Year 3 (amber) */
-  --shadow-float: 0 18px 40px -18px rgba(14, 21, 66, .35), 0 2px 6px rgba(14, 21, 66, .06);
+  --shadow-float: 0 18px 40px -18px rgba(10, 31, 68, .35), 0 2px 6px rgba(10, 31, 68, .06);
 
   /* Derived */
-  --line-strong: #CDD2E3;              /* input/chip borders, scrollbar thumb */
-  --highlight-ink: #0E1542;            /* text sitting on a highlighter mark (both themes) */
+  --line-strong: #C6D3E6;              /* input/chip borders, scrollbar thumb */
+  --highlight-ink: #0A1F44;            /* text sitting on a highlighter mark (both themes) */
   --alert-strong: #C81E43;             /* alert as small text / danger fill (AA) */
   --alert-ink: #FFFFFF;                /* text on an --alert-strong fill */
   --alert-hover: #A9183A;              /* danger button hover */
   --signal-strong: #0A7D5B;            /* success as small text (AA) */
   --y1-strong: #0B7C87;                /* cohort colour as small text (AA) */
-  --y2-strong: #7048E8;
+  --y2-strong: #1A62D4;
   --y3-strong: #A35E00;
-  --on-y1: #0E1542;                    /* text on a solid cohort fill (AA) */
+  --on-y1: #0A1F44;                    /* text on a solid cohort fill (AA) */
   --on-y2: #FFFFFF;
-  --on-y3: #0E1542;
-  --cobalt-hover: #1F2BE0;
-  --cobalt-soft: #EBECFF;              /* cobalt tint (selected rows, info) */
+  --on-y3: #0A1F44;
+  --cobalt-hover: #0F47CF;
+  --cobalt-soft: #E6EEFF;              /* cobalt tint (selected rows, info) */
   --alert-soft: #FEECEF;
   --signal-soft: #E3F6F0;
   --highlight-soft: #FFF7CC;
   --thumb-bg: #FFFFFF;                 /* sliding thumb of segmented controls / pill tabs */
-  --thumb-shadow: 0 1px 2px rgba(14, 21, 66, .10), 0 0 0 1px var(--line);
+  --thumb-shadow: 0 1px 2px rgba(10, 31, 68, .10), 0 0 0 1px var(--line);
   --tile-stroke: transparent;          /* hairline around the navy logo tile (visible in dark) */
-  --scrim: rgba(14, 21, 66, .42);
+  --scrim: rgba(10, 31, 68, .42);
   --focus-color: var(--cobalt);
   --show-on-light: block;              /* theme-conditional display (BrandLogo) */
   --show-on-dark: none;
@@ -148,46 +149,47 @@
   color-scheme: dark;
 
   /* Spec */
-  --paper: #0A0F2C;
-  --surface: #11183D;
-  --surface-2: #18214F;
-  --ink: #EEF0FF;
-  --ink-2: #A9B0D6;
-  --ink-3: #7880AE;
-  --line: #263063;
-  --cobalt: #7B86FF;
-  --cobalt-ink: #0A0F2C;
-  --navy: #1A237E;
+  --paper: #07122B;
+  --surface: #0D1B3B;
+  --surface-2: #14264F;
+  --ink: #ECF2FF;
+  --ink-2: #A6B6D8;
+  --ink-3: #7488B0;
+  --line: #213563;
+  --cobalt: #6FA2FF;
+  --cobalt-ink: #07122B;
+  --navy: #0C2D75;
+  --brand: #1D5FF5;
   --highlight: #FFE14A;
   --signal: #38D9A9;
   --alert: #FF6B81;
   --y1: #3BC9DB;
-  --y2: #9775FA;
+  --y2: #5E9BFF;
   --y3: #FFA94D;
   --shadow-float: 0 18px 40px -18px rgba(0, 0, 0, .6), 0 2px 6px rgba(0, 0, 0, .28);
 
   /* Derived */
-  --line-strong: #34407A;
-  --highlight-ink: #0E1542;
+  --line-strong: #2F477E;
+  --highlight-ink: #0A1F44;
   --alert-strong: #FF6B81;
-  --alert-ink: #0A0F2C;
+  --alert-ink: #07122B;
   --alert-hover: #FF8A9C;
   --signal-strong: #38D9A9;
   --y1-strong: #3BC9DB;
-  --y2-strong: #9775FA;
+  --y2-strong: #5E9BFF;
   --y3-strong: #FFA94D;
-  --on-y1: #0A0F2C;
-  --on-y2: #0A0F2C;
-  --on-y3: #0A0F2C;
-  --cobalt-hover: #9AA3FF;
-  --cobalt-soft: #222B6B;
+  --on-y1: #07122B;
+  --on-y2: #07122B;
+  --on-y3: #07122B;
+  --cobalt-hover: #96BBFF;
+  --cobalt-soft: #173066;
   --alert-soft: #3A1F45;
   --signal-soft: #133E4A;
   --highlight-soft: #3A3A3F;
-  --thumb-bg: #263063;
+  --thumb-bg: #213563;
   --thumb-shadow: none;
   --tile-stroke: rgba(255, 255, 255, .14);
-  --scrim: rgba(3, 5, 18, .62);
+  --scrim: rgba(2, 8, 20, .62);
   --focus-color: var(--cobalt);
   --show-on-light: none;
   --show-on-dark: block;

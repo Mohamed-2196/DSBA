@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 import { Alarm, Bell, Check, Checks, ChatsCircle, NotePencil } from '@phosphor-icons/react';
 import { useLocalStorage, useYear } from '../../state';
 import { CURRENT_USER } from '../../data/people.js';
-import { Button, IconButton, Menu, PulseMark, Tooltip, cx, timeAgo } from '../../ui';
+import { Button, IconButton, Menu, HubMark, Tooltip, cx, timeAgo } from '../../ui';
 import { V1_ANNOUNCEMENT_KEY, buildNotifications } from './seed.js';
 import './NotificationsMenu.css';
 
-const READ_KEY = 'pulse.notifications.read';
+const READ_KEY = 'hub.notifications.read';
 
 // Enrichment from other features, loaded lazily so the top bar never depends on them at import time.
 let extrasPromise = null;
@@ -21,7 +21,7 @@ function loadExtras() {
       try {
         if (nl.status === 'fulfilled') issue = nl.value.getLatestIssue?.() || null;
       } catch (err) {
-        console.error('[DSBA Pulse] Notifications could not read the latest issue:', err);
+        console.error('[DSBA Hub] Notifications could not read the latest issue:', err);
       }
       try {
         if (forum.status === 'fulfilled') {
@@ -34,7 +34,7 @@ function loadExtras() {
           thread = hot.find((t) => t?.authorId === CURRENT_USER.id || mine(t)) || null;
         }
       } catch (err) {
-        console.error('[DSBA Pulse] Notifications could not read the forum:', err);
+        console.error('[DSBA Hub] Notifications could not read the forum:', err);
       }
       return { issue, thread, hot };
     });
@@ -43,7 +43,7 @@ function loadExtras() {
 }
 
 function KindIcon({ n }) {
-  if (n.kind === 'welcome') return <PulseMark tile size={36} className="notif-icon notif-icon--tile" />;
+  if (n.kind === 'welcome') return <HubMark tile size={36} className="notif-icon notif-icon--tile" />;
   if (n.kind === 'newsletter') {
     return (
       <span className="notif-icon notif-icon--newsletter" aria-hidden="true">
@@ -104,10 +104,10 @@ export function NotificationsMenu() {
       onOpenChange={(open) => {
         if (open) loadExtras().then(setExtras);
       }}
-      trigger={<IconButton label={unread ? `Notifications, ${unread} unread` : 'Notifications'} icon={Bell} badge={unread || undefined} data-pulse="notifications" />}
+      trigger={<IconButton label={unread ? `Notifications, ${unread} unread` : 'Notifications'} icon={Bell} badge={unread || undefined} data-hub="notifications" />}
     >
       {({ close }) => (
-        <div className="notif" data-pulse="notif-menu">
+        <div className="notif" data-hub="notif-menu">
           <div className="notif__head">
             <h2 className="notif__title">Notifications</h2>
             <span className={cx('notif__count', unread && 'has-unread')}>{unread ? `${unread} new` : 'You’re all caught up'}</span>

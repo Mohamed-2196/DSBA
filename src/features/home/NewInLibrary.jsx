@@ -28,7 +28,7 @@ function safeRecent(n, year) {
     const files = getRecentFiles(n, { year });
     return Array.isArray(files) ? files.filter(Boolean) : [];
   } catch (err) {
-    console.error('[DSBA Pulse] getRecentFiles failed:', err);
+    console.error('[DSBA Hub] getRecentFiles failed:', err);
     return [];
   }
 }

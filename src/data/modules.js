@@ -1,4 +1,4 @@
-// DSBA Pulse — module catalogue, extracted from v1 src/legacy/components/subjects/subjects.jsx.
+// DSBA Hub — module catalogue, extracted from v1 src/legacy/components/subjects/subjects.jsx.
 // GENERATED once by /home/claude/v2-spec/gen-data.mjs and verified by verify-data.mjs.
 // Every v1 link, note, chapter and video is here. Cleaned strings keep their v1 original
 // (v1Name / v1Title / v1Description); v1 '#' placeholder links are null.

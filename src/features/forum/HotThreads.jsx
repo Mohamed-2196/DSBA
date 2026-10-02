@@ -39,7 +39,7 @@ function HotThreadsList({ n }) {
   }
 
   return (
-    <Panel as="div" padding="none" className="forum-hot" data-pulse="hot-threads">
+    <Panel as="div" padding="none" className="forum-hot" data-hub="hot-threads">
       <ol role="list" className="forum-hot__list">
         {list.map((t) => (
           <li key={t.id} className="forum-hot__row" data-thread-id={t.id}>

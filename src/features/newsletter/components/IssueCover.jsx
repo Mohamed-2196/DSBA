@@ -73,12 +73,12 @@ const ART = { launch: LaunchArt, pilot: PilotArt, forecast: ForecastArt };
 export function IssueCover({ issue, locked = false, decorative = false, className }) {
   if (!issue) return null;
   const Art = ART[issue.cover] || PilotArt;
-  const label = `Cover of The Pulse, issue ${issueNo(issue.number)}: ${issue.title}, ${longDate(issue.date)}`;
+  const label = `Cover of The DSBA Newsletter, issue ${issueNo(issue.number)}: ${issue.title}, ${longDate(issue.date)}`;
   return (
-    <div className={cx('nl-cover', `nl-cover--${issue.cover}`, locked && 'is-locked', className)} data-theme="light" data-pulse="issue-cover">
+    <div className={cx('nl-cover', `nl-cover--${issue.cover}`, locked && 'is-locked', className)} data-theme="light" data-hub="issue-cover">
       <svg viewBox={`0 0 ${COVER_W} ${COVER_H}`} className="nl-cover__svg" {...(decorative ? { 'aria-hidden': true, focusable: 'false' } : { role: 'img', 'aria-label': label })}>
         <Art />
-        <text x="20" y="45" className="nl-cover__nameplate">The Pulse</text>
+        <text x="20" y="45" className="nl-cover__nameplate">The DSBA Newsletter</text>
         <text x="280" y="45" textAnchor="end" className="nl-cover__no">{issueNo(issue.number)}</text>
         <path d="M20 62H280" className="nl-cover__rule" />
         <text x="20" y="352" className="nl-cover__title">{issue.title}</text>

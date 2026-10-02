@@ -1,14 +1,14 @@
-# DSBA v2 — "DSBA Pulse" — product + engineering spec
+# DSBA v2 — "DSBA Hub" — product + engineering spec
 
 Read this whole file before you touch code. It is the contract between the **foundation** agent and
 the five **feature** agents who work in parallel in the same working tree.
 
 ## 0. What we're building and why
-`/home/claude/dsba` (branch `feature/dsba-pulse`) is the **DSBA Resource Hub** — a student-run site for the
+`/home/claude/dsba` (branch `feature/dsba-hub`) is the **DSBA Resource Hub** — a student-run site for the
 DSBA program (Data Science & Business Analytics, BIBF Bahrain, University of London degree). Live v1:
 https://mohamed-2196.github.io/DSBA/ (React 18 + Vite 5, deployed to GitHub Pages under base `/DSBA/`).
 
-We are building **v2, a ground-up rebuild named "DSBA Pulse"**: everything v1 does, redesigned, plus new
+We are building **v2, a ground-up rebuild named "DSBA Hub"**: everything v1 does, redesigned, plus new
 features. It will be "launched" in front of ~160 students and 17 tutors, and a launch film will show it in
 close-up at 1920×1080 — it must look premium, coherent and real. It is a **front-end prototype**: no backend;
 dummy data where needed; everything clickable.
@@ -28,7 +28,7 @@ or in `src/components/` before that):
 - The "new Year 2 notes" announcement → becomes a notification in v2.
 - PostHog analytics provider in `main.jsx` (keep as is).
 
-**New in v2**: dashboard home, **newsletter ("The Pulse")**, **forum**, **in-app file library with a document
+**New in v2**: dashboard home, **newsletter ("The DSBA Newsletter")**, **forum**, **in-app file library with a document
 viewer** (files that v1 only linked to on Google Drive appear as real files inside the app; the original
 Drive link stays available as "Open original"), **video lessons player** with progress, full calendar
 with .ics export, redesigned grade calculator, **⌘K search** over everything, notifications, onboarding.
@@ -54,34 +54,34 @@ have no code in v1 → show none.
 ## 1. Design system
 
 ### Concept
-**"An annotated notebook with a pulse."** DSBA students live in lecture notes, past papers and plots. v2 is a
+**"An annotated notebook."** DSBA students live in lecture notes, past papers and plots. v2 is a
 sharp, modern study tool that feels built by data-science students: a precise grid, confident grotesk
 typography, **highlighter-yellow annotation marks** for what's new or important (like a student's notes),
-module codes used as big typographic objects, and one signature motif — the **pulse trace**, a small
+module codes used as big typographic objects, and one signature motif — the **trace**, a small
 time-series line with a single spike, which is the logo mark, the active-nav indicator and the loader.
 Spend boldness there; keep everything else quiet and disciplined.
 
 ### Color tokens (CSS variables in `src/styles/tokens.css`)
 | token | light | dark | use |
 |---|---|---|---|
-| `--paper` | `#F6F7FB` | `#0A0F2C` | app background (cool, never cream) |
-| `--surface` | `#FFFFFF` | `#11183D` | panels, cards |
-| `--surface-2` | `#EEF0F8` | `#18214F` | inset areas, hovers, table stripes |
-| `--ink` | `#0E1542` | `#EEF0FF` | primary text & headings (brand navy ink) |
-| `--ink-2` | `#4A5175` | `#A9B0D6` | secondary text |
-| `--ink-3` | `#7C83A6` | `#7880AE` | tertiary/meta |
-| `--line` | `#E2E5F0` | `#263063` | borders/dividers |
-| `--cobalt` | `#2E3BFF` | `#7B86FF` | primary actions, links, focus, pulse |
-| `--cobalt-ink` | `#FFFFFF` | `#0A0F2C` | text on cobalt |
-| `--navy` | `#1A237E` | `#1A237E` | v1 brand navy (logo lockup, deep accents) |
+| `--paper` | `#F4F7FC` | `#07122B` | app background (cool, never cream) |
+| `--surface` | `#FFFFFF` | `#0D1B3B` | panels, cards |
+| `--surface-2` | `#EAF0F9` | `#14264F` | inset areas, hovers, table stripes |
+| `--ink` | `#0A1F44` | `#ECF2FF` | primary text & headings (brand navy ink) |
+| `--ink-2` | `#425372` | `#A6B6D8` | secondary text |
+| `--ink-3` | `#7587A6` | `#7488B0` | tertiary/meta |
+| `--line` | `#DCE5F2` | `#213563` | borders/dividers |
+| `--cobalt` | `#1558F0` | `#6FA2FF` | primary actions, links, focus |
+| `--cobalt-ink` | `#FFFFFF` | `#07122B` | text on cobalt |
+| `--navy` | `#0C2D75` | `#0C2D75` | v1 brand navy (logo lockup, deep accents) |
 | `--highlight` | `#FFE14A` | `#FFE14A` | highlighter marks only — never text color |
 | `--signal` | `#12B886` | `#38D9A9` | live, answered, success, watched |
 | `--alert` | `#F03E5E` | `#FF6B81` | exams, errors, destructive |
 | `--y1` | `#0FA3B1` | `#3BC9DB` | Year 1 (lagoon) |
-| `--y2` | `#7048E8` | `#9775FA` | Year 2 (iris) |
+| `--y2` | `#1F6FEB` | `#5E9BFF` | Year 2 (iris) |
 | `--y3` | `#F08C00` | `#FFA94D` | Year 3 (amber) |
 Elevation: borders first. Shadows only on floating layers (menus, modals, toasts, the active file page):
-`--shadow-float: 0 18px 40px -18px rgba(14,21,66,.35), 0 2px 6px rgba(14,21,66,.06)` (dark: rgba(0,0,0,.6)).
+`--shadow-float: 0 18px 40px -18px rgba(10,31,68,.35), 0 2px 6px rgba(10,31,68,.06)` (dark: rgba(0,0,0,.6)).
 No decorative gradients, no glassmorphism, no glow-for-the-sake-of-it.
 
 ### Type
@@ -102,7 +102,7 @@ No decorative gradients, no glassmorphism, no glow-for-the-sake-of-it.
 desktop ≥1100px                                   tablet 700–1099: rail = 72px icons only
 ┌────────────┬───────────────────────────────────────────────┐
 │ ⌁ DSBA     │ [ Search everything…      ⌘K ]   🔔  Contribute│  ← top bar (sticky, 64px)
-│   Pulse    ├───────────────────────────────────────────────┤
+│   Hub      ├───────────────────────────────────────────────┤
 │ Year 1 2 3 │                                               │
 │            │   page content, left-aligned,                 │
 │ ⌂ Home     │   max-width 1180px, padding 40px              │
@@ -126,7 +126,7 @@ Prefer **lists, tables and editorial layouts** over grids of identical cards: fo
 file table/grid toggle with real document thumbnails, newsletter = editorial, modules = typographic tiles.
 
 ### Motion
-One orchestrated moment: on Home first load the pulse trace draws and the highlighter marks swipe in.
+One orchestrated moment: on Home first load the trace draws and the highlighter marks swipe in.
 Otherwise motion only answers actions (open/close modal, drawer, menu, accordion, toast, tab change,
 vote, star): 150–250ms, `cubic-bezier(.2,.8,.2,1)`. Respect `prefers-reduced-motion`. No scroll-reveal
 fade-ups, no hover-lift on every card.
@@ -244,7 +244,7 @@ export function Onboarding() {}                       // mounted by the shell; s
 (initials, deterministic color), `Tabs` (controlled, works with URL params), `TextField`, `TextArea`,
 `Select`, `SearchField`, `Modal` (focus trap, Esc, scroll lock), `Drawer`, `Menu` (dropdown),
 `Tooltip`, `Toaster` (renders `useToast` toasts), `EmptyState`, `Skeleton`, `ProgressRing`,
-`Sparkline`, `PulseMark` (the brand trace; props: size, animate), `Highlight` (highlighter swipe behind
+`Sparkline`, `HubMark` (the brand trace; props: size, animate), `Highlight` (highlighter swipe behind
 inline text), `Kbd`, `SectionHeader({title, action})`, `Divider`, `Panel` (surface with border; not a
 generic "card everywhere" — use when a surface is actually needed).
 
@@ -264,6 +264,6 @@ generic "card everywhere" — use when a surface is actually needed).
   (primary, light), 1440×900, dark mode, and 390×844 mobile.
 - **Determinism for the film**: relative times ("2h ago") must be computed from `Date.now()` (the film's
   capture freezes the clock at 2026-10-06 10:00 Asia/Bahrain). Seeded data only, no `Math.random()` at render.
-- **Film capture hooks**: add `data-pulse="<name>"` attributes on the key elements listed in your brief.
+- **Film capture hooks**: add `data-hub="<name>"` attributes on the key elements listed in your brief.
 - **No git commits, no pushes.** The lead reviews and commits.
 - 2 CPUs are shared by ~7 agents: don't run builds/screenshots in tight loops.

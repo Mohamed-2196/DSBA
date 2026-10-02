@@ -17,7 +17,7 @@ import {
   Student,
   UsersThree,
 } from '@phosphor-icons/react';
-import { Button, EmptyState, ErrorBoundary, Page, Panel, PulseMark, cx } from '../../ui';
+import { Button, EmptyState, ErrorBoundary, Page, Panel, HubMark, cx } from '../../ui';
 import { useDocumentTitle, useMediaQuery, useQueryParam } from '../../state';
 import { getStudent } from '../../data/people.js';
 import { IssueCover } from './components/IssueCover.jsx';
@@ -46,14 +46,14 @@ function RunningHead({ issue, share = true }) {
   return (
     <div className="nl-runhead">
       <Link to="/newsletter" className="nl-runhead__name">
-        The Pulse
-        <PulseMark size={11} className="nl-runhead__mark" />
+        The DSBA Newsletter
+        <HubMark size={11} className="nl-runhead__mark" />
       </Link>
       <p className="nl-runhead__meta">
         <span className="u-tabular">Issue {issueNo(issue.number)}</span>
         <span className="u-tabular">{longDate(issue.date)}</span>
       </p>
-      {share ? <ShareActions route={`/newsletter/${issue.slug}`} title={`The Pulse ${issueNo(issue.number)}: ${issue.title}`} className="nl-runhead__share" /> : null}
+      {share ? <ShareActions route={`/newsletter/${issue.slug}`} title={`The DSBA Newsletter ${issueNo(issue.number)}: ${issue.title}`} className="nl-runhead__share" /> : null}
     </div>
   );
 }
@@ -103,7 +103,7 @@ function IssueSection({ issue, section, live }) {
   const exams = live?.exams || [];
   const aside = section.kind === 'deadlines' ? (exams.length ? <SessionCalendar exams={exams} /> : null) : section.aside ? <Aside aside={section.aside} /> : null;
   return (
-    <section id={domId(section.id)} className={cx('nl-section', `nl-section--${section.kind || 'copy'}`)} aria-labelledby={headId} data-pulse="issue-section">
+    <section id={domId(section.id)} className={cx('nl-section', `nl-section--${section.kind || 'copy'}`)} aria-labelledby={headId} data-hub="issue-section">
       <header className="nl-section__head">
         <p className="nl-section__label">
           <Icon weight="duotone" aria-hidden="true" />
@@ -138,7 +138,7 @@ function Toc({ issue, active, onGo }) {
             <li key={s.id}>
               <button type="button" className={cx('nl-toc__item', on && 'is-active')} aria-current={on ? 'location' : undefined} onClick={() => onGo(s.id)}>
                 <span>{s.label}</span>
-                {on ? <PulseMark size={9} animate="draw" className="nl-toc__pulse" /> : null}
+                {on ? <HubMark size={9} animate="draw" className="nl-toc__mark" /> : null}
               </button>
             </li>
           );
@@ -187,7 +187,7 @@ function Pager({ issue }) {
 
 function IssueReader({ issue }) {
   const no = issueNo(issue.number);
-  useDocumentTitle(`${issue.title}, The Pulse ${no}`);
+  useDocumentTitle(`${issue.title}, The DSBA Newsletter ${no}`);
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const [sectionParam, setSectionParam] = useQueryParam('section', null);
   const [active, setActive] = useState(issue.sections[0]?.id);
@@ -257,7 +257,7 @@ function IssueReader({ issue }) {
 
   return (
     <Page className="nl-issue">
-      <header className="nl-issue__head" data-pulse="issue-masthead">
+      <header className="nl-issue__head" data-hub="issue-masthead">
         <RunningHead issue={issue} />
         <div className="nl-issue__hero">
           <div className="nl-issue__titles">
@@ -289,12 +289,12 @@ function IssueReader({ issue }) {
             <IssueSection key={s.id} issue={issue} section={s} live={live[s.id]} />
           ))}
           <footer className="nl-issue__end">
-            <PulseMark size={14} className="nl-issue__end-mark" />
+            <HubMark size={14} className="nl-issue__end-mark" />
             <p>
               End of issue {no}. Found a mistake or have a story for the next one?{' '}
               <Link to="/forum/new">Tell us in the forum</Link>.
             </p>
-            <ShareActions route={`/newsletter/${issue.slug}`} title={`The Pulse ${no}: ${issue.title}`} />
+            <ShareActions route={`/newsletter/${issue.slug}`} title={`The DSBA Newsletter ${no}: ${issue.title}`} />
           </footer>
         </article>
       </div>
@@ -307,13 +307,13 @@ function IssueReader({ issue }) {
 
 function LockedIssue({ issue }) {
   const no = issueNo(issue.number);
-  useDocumentTitle(`${issue.title}, The Pulse ${no}`);
+  useDocumentTitle(`${issue.title}, The DSBA Newsletter ${no}`);
   const latest = getLatest();
   const days = daysBetween(new Date(Date.now()), issue.date);
   const when = days > 1 ? `in ${days} days` : days === 1 ? 'tomorrow' : days === 0 ? 'today' : null;
   return (
     <Page className="nl-issue nl-issue--locked">
-      <header className="nl-issue__head" data-pulse="issue-masthead">
+      <header className="nl-issue__head" data-hub="issue-masthead">
         <RunningHead issue={issue} share={false} />
       </header>
       <div className="nl-locked">
@@ -362,7 +362,7 @@ function IssueNotFound() {
         <EmptyState
           icon={Newspaper}
           title="We couldn’t find that issue"
-          body="The link may be mistyped. Every issue of The Pulse is on the newsletter page."
+          body="The link may be mistyped. Every issue of The DSBA Newsletter is on the newsletter page."
           action={<Button to="/newsletter">See all issues</Button>}
         />
       </Panel>
@@ -374,7 +374,7 @@ export default function IssuePage() {
   const { slug } = useParams();
   if (slug === SPECIAL_SLUG) {
     return (
-      <Suspense fallback={<div className="nl-loading" aria-busy="true"><PulseMark size={22} animate="loop" title="Loading" /></div>}>
+      <Suspense fallback={<div className="nl-loading" aria-busy="true"><HubMark size={22} animate="loop" title="Loading" /></div>}>
         <SpecialEdition />
       </Suspense>
     );

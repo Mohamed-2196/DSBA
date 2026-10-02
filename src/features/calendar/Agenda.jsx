@@ -5,7 +5,7 @@ import { splitTitle, typeLabel } from './eventMeta.js';
 
 /**
  * The month as a list: one row per day with events, a "today" rule between past and upcoming.
- * Desktop: next to the grid. Mobile: the whole calendar. data-pulse="calendar-agenda".
+ * Desktop: next to the grid. Mobile: the whole calendar. data-hub="calendar-agenda".
  */
 export function Agenda({ month, events, today, selectedId, showCohort, onOpen, empty, footer, titleId = 'cal-agenda-title' }) {
   const todayKey = toKey(today);
@@ -22,7 +22,7 @@ export function Agenda({ month, events, today, selectedId, showCohort, onOpen, e
   const n = events.length;
 
   return (
-    <section className="cal-agenda" data-pulse="calendar-agenda" aria-labelledby={titleId}>
+    <section className="cal-agenda" data-hub="calendar-agenda" aria-labelledby={titleId}>
       <h3 id={titleId} className="cal-agenda__title">
         {n ? `${n} ${n === 1 ? 'event' : 'events'} in ${monthName(month)}` : `Nothing in ${monthName(month)}`}
       </h3>
@@ -46,7 +46,7 @@ export function Agenda({ month, events, today, selectedId, showCohort, onOpen, e
                           type="button"
                           className={cx('cal-agenda__event', `cal-agenda__event--${e.type}`, e.id === selectedId && 'is-selected')}
                           onClick={() => onOpen(e)}
-                          data-pulse="calendar-event"
+                          data-hub="calendar-event"
                           data-event-id={e.id}
                         >
                           <span className="visually-hidden">{formatLong(day.date)}: </span>

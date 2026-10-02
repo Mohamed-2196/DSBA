@@ -33,8 +33,8 @@ export function ShareActions({ route, title, compact = false, className }) {
         label="Share this issue"
         trigger={<IconButton label="Share" icon={ShareNetwork} variant="secondary" size={compact ? 'md' : 'sm'} tooltip />}
         items={[
-          { id: 'whatsapp', label: 'Share on WhatsApp', icon: WhatsappLogo, href: whatsappUrl(`${title}, from The Pulse:`, url) },
-          { id: 'email', label: 'Share by email', icon: EnvelopeSimple, href: mailUrl(`${title}, from The Pulse`, url) },
+          { id: 'whatsapp', label: 'Share on WhatsApp', icon: WhatsappLogo, href: whatsappUrl(`${title}, from The DSBA Newsletter:`, url) },
+          { id: 'email', label: 'Share by email', icon: EnvelopeSimple, href: mailUrl(`${title}, from The DSBA Newsletter`, url) },
           { divider: true },
           { id: 'copy', label: 'Copy link', icon: LinkSimple, onSelect: copy },
         ]}

@@ -87,17 +87,17 @@ export function buildNotifications({ year, now = Date.now(), issue = null, threa
     id: `newsletter:issue-${n}`,
     kind: 'newsletter',
     number: n,
-    title: `The Pulse #${String(n).padStart(2, '0')} is out`,
+    title: `The DSBA Newsletter #${String(n).padStart(2, '0')} is out`,
     body: issue ? `${issue.title}${issue.readMinutes ? `, a ${issue.readMinutes} minute read` : ''}. ${issue.summary ? issue.summary : ''}`.trim() : 'The new issue of the DSBA newsletter is ready to read.',
     to: issue?.slug ? `/newsletter/${encodeURIComponent(issue.slug)}` : '/newsletter',
     at: issue?.date ? at(`${issue.date}T07:00:00+03:00`, now, 3 * HOUR) : at('2026-10-06T07:00:00+03:00', now, 3 * HOUR),
   });
 
   list.push({
-    id: 'welcome:dsba-pulse',
+    id: 'welcome:dsba-hub',
     kind: 'welcome',
-    title: 'Welcome to DSBA Pulse',
-    body: 'Everything from the old hub is here, plus a forum, a library that opens files in the app and The Pulse.',
+    title: 'Welcome to DSBA Hub',
+    body: 'Everything from the old hub is here, plus a forum, a library that opens files in the app and The DSBA Newsletter.',
     to: '/about',
     at: at('2026-10-06T06:00:00+03:00', now, 4 * HOUR),
     defaultRead: true,
