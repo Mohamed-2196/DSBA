@@ -177,6 +177,14 @@ img { display: block; }
 .errwin__prog i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(90deg, #1558f0 0 22px, #dde4ee 22px 28px); }
 
 /* ── s05b Mini Noora ── */
+/* The formula's type: one family made of two files, chosen by character. Letters (Latin and Greek) come from a
+   maths italic, figures, brackets and signs from its upright companion, so the markup needs no italics of its own.
+   NrMain is the upright file alone, for a word like "Var". (KaTeX's fonts, from node_modules.) */
+@font-face { font-family: 'NrMath'; src: url('/launch-video/node_modules/katex/dist/fonts/KaTeX_Math-Italic.woff2') format('woff2'); unicode-range: U+41-5A, U+61-7A, U+391-3C9; }
+@font-face { font-family: 'NrMath'; src: url('/launch-video/node_modules/katex/dist/fonts/KaTeX_Main-Regular.woff2') format('woff2'); unicode-range: U+20-40, U+5B-60, U+7B-7E, U+A0-FF, U+2010-2033, U+2200-22FF; }
+@font-face { font-family: 'NrMain'; src: url('/launch-video/node_modules/katex/dist/fonts/KaTeX_Main-Regular.woff2') format('woff2'); }
+/* ... and the tall brackets and the integral sign, which sit on the maths axis by themselves */
+@font-face { font-family: 'NrBig'; src: url('/launch-video/node_modules/katex/dist/fonts/KaTeX_Size2-Regular.woff2') format('woff2'); }
 /* the film's sans with the colour emoji font next in line, so that no emoji falls back to a plain outline glyph */
 #s05b { --nr-sans: 'Schibsted', 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', system-ui, sans-serif; }
 /* Inside the browser (page pixels in .bw__content): the little mascot, her shadow on the page, her "Hi!".
@@ -245,16 +253,31 @@ img { display: block; }
 /* blocks that grow in under the text: the wrapper's height is opened from onFrame */
 .nr-grow { overflow: hidden; }
 .nr-pad { padding-top: 14px; }
-.nr-fcard { padding: 12px 24px 16px; border-radius: 18px; background: #eef3fc; text-align: center; transform-origin: 50% 0; }
-.nr-fcard__f { height: 96px; display: flex; align-items: center; justify-content: center; font: italic 500 50px/60px var(--serif); letter-spacing: 0; white-space: nowrap; }
-.nr-fcard__f .nr-num { font-style: normal; }
-.nr-fcard__f sub { font-size: .56em; line-height: 0; vertical-align: -0.28em; margin-left: .03em; }
-.nr-fcard__f .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 .14em; font-size: .8em; line-height: 46px; }
-.nr-fcard__f .frac b { padding: 0 .2em; font-weight: inherit; }
-.nr-fcard__f .frac b:first-child { border-bottom: 2.5px solid var(--ink); }
-.nr-fcard__n { height: 38px; margin-top: 2px; font-size: 32px; font-weight: 500; line-height: 38px; letter-spacing: 0; color: #425372; }
-.nr-fcard__n i { font: italic 500 1.14em/1 var(--serif); }
-.nr-fcard__n sub { font-size: .78em; line-height: 0; vertical-align: -0.24em; }
+/* Her working: one pale card per step, a numbered disc, a line of words and a line of maths. The maths is markup
+   from the cue sheet: .frac a stacked fraction, .int an integral sign with its limits beside it, .bg a tall bracket. */
+.nr-ans + .nr-grow--step .nr-pad { padding-top: 12px; }
+.nr-grow--step .nr-pad { padding-top: 8px; }
+.nr-step { padding: 9px 14px 8px; border-radius: 18px; background: #eef3fc; transform-origin: 0 50%; }
+.nr-step__h { display: flex; align-items: center; gap: 12px; height: 34px; }
+.nr-step__h b { flex: 0 0 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--cobalt); color: #fff; font: 700 20px/1 var(--mono); }
+.nr-step__h em { font-size: 26px; font-style: normal; font-weight: 600; line-height: 34px; letter-spacing: -0.008em; color: #425372; white-space: nowrap; }
+.nr-step__h em .m { font: 400 1.14em/1 'NrMath', var(--serif); letter-spacing: 0; color: var(--ink); }
+.nr-step__m { height: 70px; display: flex; align-items: center; justify-content: center; font: 400 30px/40px 'NrMath', var(--serif); letter-spacing: 0; white-space: nowrap; }
+.nr-step--result .nr-step__m { height: 78px; font-size: 40px; }
+.nr-step__m i { font-style: normal; }
+.nr-step__m sub { font-size: .62em; line-height: 0; vertical-align: -0.3em; margin-left: .03em; }
+.nr-step__m sup { font-size: .62em; line-height: 0; vertical-align: .56em; margin-left: .03em; }
+.nr-step__m .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 .16em; font-size: .86em; line-height: 1.14; }
+.nr-step__m .frac b { align-self: stretch; padding: 0 .2em; font-weight: inherit; text-align: center; }   /* both as wide as the wider one: the rule spans the fraction */
+.nr-step__m .frac b:first-child { padding-bottom: .05em; border-bottom: 2px solid var(--ink); }
+.nr-step__m .frac b:last-child { padding-top: .05em; }
+.nr-step__m .bg { font-family: 'NrBig'; margin: 0 .05em; }
+.nr-step__m .int { display: inline-flex; align-items: center; margin: 0 .06em 0 .1em; }
+.nr-step__m .int__s { font-family: 'NrBig'; }
+.nr-step__m .int__l { display: inline-flex; flex-direction: column; gap: 1.05em; margin: 0 .12em 0 -.06em; font-size: .56em; line-height: 1; }
+.nr-step__m .int__l b { font-weight: inherit; }
+.nr-step__m .int__l b:first-child { margin-left: .55em; }
+.nr-step__m .hl { padding: 0 .2em; }
 .nr-label { display: block; height: 32px; margin-bottom: 8px; font-size: 28px; font-style: normal; font-weight: 700; line-height: 32px; letter-spacing: 0; color: #7587a6; }
 /* the lessons: side by side if they fit, else one under the other (width: 0 keeps the row out of the bubble's own sizing) */
 .nr-more { position: relative; display: flex; flex-wrap: wrap; gap: 10px; width: 0; min-width: 100%; padding-top: 10px; }

@@ -8,6 +8,8 @@
 // The song is ONE locked-off framing from lights-on to the cut: no push-in, no closer shot. The life is inside
 // the frame: the cat sways with the waltz and blinks, her hat bobbles on the beat, a soft puff of confetti and a
 // glint on the foil mark each phrase.
+// With a hold (cues.birthday.hold) the song then ends on its last chord and the greeting simply stays up: she
+// comes to rest, breathes, blinks now and then, the foil glints, a stray piece of confetti drifts down.
 // At cues.g2.start the party freezes, the greeting breaks, and a terminal takes the screen.
 //
 // Everything is a pure function of the film time: no tweens, no state carried between frames.
@@ -63,7 +65,18 @@ export async function buildAct2({ cues, config, stage, S }) {
   const B = cues.birthday;
   const G = cues.g2;
   const { start } = S('s08');
-  const CUT = G.start;                       // the song is cut here: the party freezes
+  const CUT = G.start;                       // glitch #2 takes the picture here: the party freezes
+  // The song ends on its last downbeat, B.cut. Without a hold that is also where the glitch hits. With one the
+  // greeting stays up from there to the glitch: `pre` seconds played once (the last chord rings out, the party
+  // settles), then a `loop`-second stretch that repeats: the ambient clock wraps, and tools/hold_loop.py
+  // cross-fades the end of each pass into the frames before its start, so the film shows no seam. During the
+  // glitch the picture is frozen as it was at the start of the loop: the state the last pass has faded back to.
+  const SONG = B.cut;
+  const HOLD = B.hold || null;
+  const LOOP0 = HOLD ? HOLD.loop_start : CUT;
+  const LOOP = HOLD ? HOLD.loop : 0;
+  const ambient = (t) => (HOLD && t >= LOOP0 + LOOP ? LOOP0 + ((t - LOOP0) % LOOP) : t);
+  const FROZEN = HOLD ? LOOP0 : CUT;
   const END = G.flash + 0.2;                 // the frame is black from here (raster pass + Act 3 take over)
   const LIGHTS = B.lights_on;
   const root = scene(stage, 's08', start, END, 'bday');
@@ -201,9 +214,9 @@ export async function buildAct2({ cues, config, stage, S }) {
     }
     // pieces that fall in front of the cat stay out of the column its face is in (the star stays clean and sharp)
     const fallX = (lo, hi) => { let x = lo + r() * (hi - lo); if (spec.clear) { const [a, b] = spec.clear; if (x > a && x < b) x = x - a < b - x ? a - r() * 240 : b + r() * 90; } return x; };
-    // the steady drift from above for the rest of the scene
+    // the steady drift from above for as long as the song lasts
     for (let i = 0; i < spec.drift; i += 1) {
-      piece({ b: LIGHTS + 0.4 + r() * (CUT - LIGHTS - 1.2), x0: fallX(-160, W + 160), y0: -60 - r() * 90, vx: (r() - 0.5) * 60, vy: 40 + r() * 80, vt: (95 + r() * 140) * spec.speed });
+      piece({ b: LIGHTS + 0.4 + r() * (SONG - LIGHTS - 1.2), x0: fallX(-160, W + 160), y0: -60 - r() * 90, vx: (r() - 0.5) * 60, vy: 40 + r() * 80, vt: (95 + r() * 140) * spec.speed });
     }
     // a fresh flutter on each later phrase: a wave that is already in frame as the phrase starts
     PH.slice(1).forEach((tp) => {
@@ -219,16 +232,24 @@ export async function buildAct2({ cues, config, stage, S }) {
         piece({ b: tp + r() * 0.12, x0: p.x + (r() - 0.5) * p.dx, y0: p.y + (r() - 0.5) * p.dy, vx: Math.cos(an) * v, vy: Math.sin(an) * v, vt: (120 + r() * 150) * spec.speed });
       }
     });
+    // while the greeting is held: a few stragglers (spec.hold pieces a second), so the air is never quite still.
+    // They are made last and are born after the song, so nothing before the hold changes.
+    if (HOLD && spec.hold) {
+      const [a, b] = [SONG + 0.1, LOOP0 + LOOP + 1];
+      for (let i = 0; i < Math.round(spec.hold * (b - a)); i += 1) {
+        piece({ b: a + r() * (b - a), x0: fallX(-160, W + 160), y0: -60 - r() * 90, vx: (r() - 0.5) * 60, vy: 40 + r() * 80, vt: (80 + r() * 110) * spec.speed });
+      }
+    }
     return out;
   };
   const behind = catPt(720, 1260);           // the far layer bursts from behind the cat's shoulders ...
-  const far = makeLayer(7301, { burst: 170, drift: 260, flutter: 28, puff: 52, size: [5, 11], alpha: [0.55, 0.9], sway: 16, speed: 0.78,
+  const far = makeLayer(7301, { burst: 170, drift: 260, flutter: 28, puff: 52, hold: 1.6, size: [5, 11], alpha: [0.55, 0.9], sway: 16, speed: 0.78,
     pop: { x: behind.x, y: behind.y, dx: 160, dy: 120, angle: -Math.PI / 2 - 0.5, fan: 2.0, v0: 420, v1: 1600 } });
   // ... the nearer layers come up from under the frame, between the cat and the lens, and lean away from the face
   const FACE = [catPt(250, 0).x, catPt(1080, 0).x - 30];
-  const mid = makeLayer(7302, { burst: 64, drift: 100, flutter: 13, puff: 16, size: [12, 22], alpha: [0.8, 1], sway: 28, speed: 1, clear: FACE,
+  const mid = makeLayer(7302, { burst: 64, drift: 100, flutter: 13, puff: 16, hold: 0.5, size: [12, 22], alpha: [0.8, 1], sway: 28, speed: 1, clear: FACE,
     pop: { x: 1150, y: H + 70, dx: 460, dy: 60, angle: -Math.PI / 2 - 0.46, fan: 0.76, v0: 1100, v1: 2700 } });
-  const near = makeLayer(7303, { burst: 9, drift: 16, flutter: 3, size: [44, 84], alpha: [0.5, 0.78], sway: 46, speed: 1.5, clear: [FACE[0] - 60, W + 200],
+  const near = makeLayer(7303, { burst: 9, drift: 16, flutter: 3, hold: 0.1, size: [44, 84], alpha: [0.5, 0.78], sway: 46, speed: 1.5, clear: [FACE[0] - 60, W + 200],
     pop: { x: 800, y: H + 160, dx: 900, dy: 80, angle: -Math.PI / 2 - 0.32, fan: 0.5, v0: 1500, v1: 3200 } });
   // a breath of air on each phrase: pieces swing sideways and turn over a little faster
   const gustAt = (tf) => PH.reduce((s, tp) => { const u = tf - tp; return u > 0 ? s + u * Math.exp(-u * 2.4) * 2.2 : s; }, 0);
@@ -346,6 +367,7 @@ export async function buildAct2({ cues, config, stage, S }) {
   // the foil catches the light once in every phrase: as it lands, on the long "you" of phrase two (where the
   // closer shot used to be), on "dear Noor", and on the last "birth-" before the cut
   const SHIMMERS = [[T0 + 1.05, 1.5], [last(notesOf(1)).t - 0.1, 1.3], [NAME_T - 0.05, 1.25], [notesOf(3)[2].t - 0.05, 1.2]];
+  if (HOLD) SHIMMERS.push([LOOP0 + 5.0, 1.5]);   // and once in every pass of the hold
 
   /** Everything the type depends on at time t (tf = t clamped to the cut). */
   const typeState = (t, tf) => {
@@ -669,7 +691,7 @@ export async function buildAct2({ cues, config, stage, S }) {
     c.fill(hatPath);
   }
   const NUDGES = [[POP, 1.15]];
-  for (let i = -1; DOWN + i * BEAT < CUT - 0.05; i += 1) if (DOWN + i * BEAT > POP + 0.2) NUDGES.push([DOWN + i * BEAT, ((i % 3) + 3) % 3 === 0 ? 1 : 0.5]);
+  for (let i = -1; DOWN + i * BEAT < SONG - 0.05; i += 1) if (DOWN + i * BEAT > POP + 0.2) NUDGES.push([DOWN + i * BEAT, ((i % 3) + 3) % 3 === 0 ? 1 : 0.5]);
   const hatAt = (tf) => NUDGES.reduce((s, [tb, w], i) => {
     const u = tf - tb;
     return u > 0 ? s + (i % 2 ? -1 : 1) * w * Math.exp(-u / HAT.decay) * Math.sin(TAU * HAT.hz * u) : s;
@@ -682,7 +704,9 @@ export async function buildAct2({ cues, config, stage, S }) {
     [last(notesOf(0)).t + 0.62, BLINK.quick],
     [last(notesOf(1)).t + 0.5, BLINK.quick], [last(notesOf(1)).t + 0.8, BLINK.quick],
     [last(notesOf(2)).t + 0.3, BLINK.slow],
-  ].map(([at, b]) => [onFrameTime(at), b]).filter(([at, [, hold, up]]) => at + hold + up < CUT - 0.1);
+  ].map(([at, b]) => [onFrameTime(at), b]).filter(([at, [, hold, up]]) => at + hold + up < SONG - 0.1);
+  // while the greeting is held: once as the last chord dies away, then a blink and a double blink in every pass
+  if (HOLD) LIT_BLINKS.push(...[[SONG + 3.3, BLINK.slow], [LOOP0 + 2.9, BLINK.quick], [LOOP0 + 7.7, BLINK.quick], [LOOP0 + 8.0, BLINK.quick]].map(([at, b]) => [onFrameTime(at), b]));
   const litShut = (tf) => Math.max(0, ...LIT_BLINKS.map(([at, b]) => lidAt(tf, at, b)));
   const probe = offscreen(12, 12).getContext('2d', { willReadFrequently: true });
   const furAt = (u, v) => {
@@ -759,7 +783,7 @@ export async function buildAct2({ cues, config, stage, S }) {
       return;
     }
     term.style.visibility = t >= TERM_IN ? 'inherit' : 'hidden';
-    const tf = Math.min(t, CUT);             // the party freezes dead when the song is cut
+    const tf = t < CUT ? ambient(t) : FROZEN;   // the party freezes dead when the glitch hits
     const lights = ease.out3(prog(tf, LIGHTS, LIGHTS + 0.26));
     const lit = tf >= LIGHTS;
 
@@ -795,11 +819,13 @@ export async function buildAct2({ cues, config, stage, S }) {
       ctx.drawImage(vigImg, 0, 0);
     }
     // the cat (and, before the lights, only its bell and eyes), swaying with the waltz once the song is going
-    const sway = swayIn(tf);
+    // (with a hold she comes to rest when the song is over, and then breathes: two slow breaths to a pass)
+    const sway = swayIn(tf) * (HOLD ? 1 - smooth(prog(tf, SONG + 0.3, SONG + 2.8)) : 1);
+    const breath = HOLD ? 1.1 * smooth(prog(tf, SONG + 2.6, SONG + 5)) * (0.5 - 0.5 * Math.cos((TAU * (tf - LOOP0)) / (LOOP / 2))) : 0;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    if (sway > 0) {
+    if (sway > 0 || breath > 0) {
       const bar = (tf - DOWN) / BAR;
-      ctx.translate(SWAY_AT.x, SWAY_AT.y - BOB * sway * (0.5 - 0.5 * Math.cos(TAU * bar)));
+      ctx.translate(SWAY_AT.x, SWAY_AT.y - BOB * sway * (0.5 - 0.5 * Math.cos(TAU * bar)) - breath);
       ctx.rotate(SWAY * sway * (0.5 - 0.5 * Math.cos(Math.PI * bar)));
       ctx.translate(-SWAY_AT.x, -SWAY_AT.y);
     }
@@ -873,8 +899,8 @@ export async function buildAct2({ cues, config, stage, S }) {
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
     }
-    if (GRAIN && !TYPE_ONLY) {               // frozen with the picture at the cut
-      const rg = mulberry(Math.round(tf * 30) * 13 + 5);
+    if (GRAIN && !TYPE_ONLY) {               // the grain stops with the song: still through the hold and the glitch
+      const rg = mulberry(Math.round(Math.min(tf, SONG) * 30) * 13 + 5);
       const ox = Math.floor(rg() * 128) * 2;
       const oy = Math.floor(rg() * 128) * 2;
       ctx.setTransform(1, 0, 0, 1, -ox, -oy);

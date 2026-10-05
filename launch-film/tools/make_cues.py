@@ -20,24 +20,32 @@ from pathlib import Path
 
 FPS = 30
 W, H = 1920, 1080
-DURATION = 155.0
+DURATION = 309.0
 
 # ---------------------------------------------------------------- tempo maps
 ACT1_BPM = 120          # beats at 0.0, 0.5, 1.0 ... ; bars (4/4) every 2.0s
 ACT1_DROP = 10.0
-ACT1_END = 78.0
+ACT1_END = 82.0
 BDAY_BPM = 110          # "Happy Birthday" (3/4)
-BDAY_START = 82.0       # scene start: darkness, a collar bell, two eyes that blink
-BDAY_LIGHTS = 86.4      # lights on
-BDAY_PICKUP = 86.5      # time of the first "Hap-" (pickup)
+BDAY_START = 86.0       # scene start: darkness, a collar bell, two eyes that blink
+BDAY_LIGHTS = 90.4      # lights on
+BDAY_PICKUP = 90.5      # time of the first "Hap-" (pickup)
+# The hold: the song finishes on its last "you", and the greeting stays up, quiet, for this long before
+# glitch #2. The first PRE seconds are played once (the last chord rings out, the party settles); the rest
+# is one LOOP-second stretch repeated (tools/hold_loop.py cross-fades the last XFADE seconds of the loop
+# into the frames just before its start, so it repeats without a seam). 0 = no hold: the glitch cuts the song.
+BDAY_HOLD = 150.0
+BDAY_HOLD_PRE = 6.0
+BDAY_HOLD_LOOP = 12.0
+BDAY_HOLD_XFADE = 1.5
 REVEAL_BPM = 120        # downbeat of the anthem drop
-REVEAL_DROP = 113.0
-PIANO_START = 105.0     # 4 bars of piano before the drop (105, 107, 109, 111)
+REVEAL_DROP = 267.0
+PIANO_START = 259.0     # 4 bars of piano before the drop (259, 261, 263, 265)
 
 bday_beat = 60.0 / BDAY_BPM
 
 # Happy Birthday melody: (beat_offset_from_pickup, duration_beats, midi, syllable)
-# Key of C major, 3/4. The film CUTS the song on the final "you" (beat 22).
+# Key of C major, 3/4. Without a hold the film CUTS the song on the final "you" (beat 22); with one it rings out.
 BDAY_MELODY = [
     (0.0, 0.75, 67, "Hap"), (0.75, 0.25, 67, "py"),
     (1, 1, 69, "birth"), (2, 1, 67, "day"), (3, 1, 72, "to"), (4, 2, 71, "you"),
@@ -48,7 +56,7 @@ BDAY_MELODY = [
     (16, 1, 71, "No"), (17, 1, 69, "or"),
     (18.0, 0.75, 77, "Hap"), (18.75, 0.25, 77, "py"),
     (19, 1, 76, "birth"), (20, 1, 72, "day"), (21, 1, 74, "to"),
-    (22, 3, 72, "you"),  # <- the glitch hits exactly here
+    (22, 3, 72, "you"),  # <- without a hold, the glitch hits exactly here
 ]
 BDAY_CUT = round(BDAY_PICKUP + 22 * bday_beat, 4)   # 84.5
 BDAY_PHRASES = [round(BDAY_PICKUP + b * bday_beat, 4) for b in (0, 6, 12, 18)]
@@ -60,17 +68,17 @@ SCENES = [
     ("s03_logo",       10.0,  18.0, 1, "DROP. DSBA Hub: 'Here to help you through it.' + subline + 5 pills."),
     ("s04_newsletter", 18.0,  28.0, 1, "Feature 1 - the newsletter in a 3D browser frame: CFA Research Challenge, Student Council, Speech Day, the launch."),
     ("s05_forum",      28.0,  40.0, 1, "Feature 2 - Forum: the list; 'What is this, am I cooked?' is typed and posted in Year 1 Mathematical Methods; Nasser replies; easter egg."),
-    ("s05b_noora",     40.0,  54.0, 1, "Feature 3 - Mini Noora, the Hub's study buddy: she is picked up and dragged, the chat opens, the 'am I cooked?' photo is dropped in, she answers with the chapter and lessons."),
-    ("s06_everything", 54.0,  72.0, 1, "Montage: library, lessons, Career Navigator (scrolls), the calendar that keeps track of everything, grades, search; cohorts network; 'Built by students.'"),
-    ("s07_launch",     72.0,  78.0, 1, "'Launching today' + LAUNCH button + 3/2/1 countdown + click at 77.85."),
-    ("g1_glitch",      78.0,  82.0, 2, "Glitch #1: freeze, corruption, error windows, static, black."),
-    ("s08_birthday",   82.0,  98.5, 2, "4.4 s of darkness: a collar bell, two eyes, blinks. Lights on: Noor's cat in a party hat, 'Happy Birthday, Noor'."),
-    ("g2_glitch",      98.5,  105.0, 3, "Glitch #2: song cut on the final 'you', scramble, terminal (expected Noor's birthday, found Teacher's Day), flash, black+silence."),
-    ("s09_letter",     105.0,  113.0, 3, "Letter to the teachers, typed line by line over soft piano; riser into the drop."),
-    ("s10_teachers_day", 113.0, 119.0, 3, "DROP: HAPPY TEACHER'S DAY, gold, particles; 'Yes, it was yesterday.'"),
-    ("s11_numbers",    119.0, 139.0, 3, "'We study data. So we ran the numbers on you.' Four statistics jokes, one card each (4 s; the last one 6 s)."),
-    ("s12_network",    139.0, 147.0, 3, "The three cohorts as one network; the ~160 dots gather into THANK YOU."),
-    ("s13_finale",     147.0, 155.0, 3, "Happy Teacher's Day sign-off, institution logos, the cat says Meow, fade to black."),
+    ("s05b_noora",     40.0,  58.0, 1, "Feature 3 - Mini Noora, the Hub's study buddy: she is picked up and dragged, the chat opens, a photo of a distribution-theory question is dropped in with a real question, she writes out the solution step by step, then the chapter and where to look."),
+    ("s06_everything", 58.0,  76.0, 1, "Montage: library, lessons, Career Navigator (scrolls), the calendar that keeps track of everything, grades, search; cohorts network; 'Built by students.'"),
+    ("s07_launch",     76.0,  82.0, 1, "'Launching today' + LAUNCH button + 3/2/1 countdown + click at 81.85."),
+    ("g1_glitch",      82.0,  86.0, 2, "Glitch #1: freeze, corruption, error windows, static, black."),
+    ("s08_birthday",   86.0,  252.5, 2, "4.4 s of darkness: a collar bell, two eyes, blinks. Lights on: Noor's cat in a party hat, 'Happy Birthday, Noor'; the song finishes and the greeting is held for 150 s."),
+    ("g2_glitch",      252.5,  259.0, 3, "Glitch #2 (out of the quiet of the hold): scramble, terminal (expected Noor's birthday, found Teacher's Day), flash, black+silence."),
+    ("s09_letter",     259.0,  267.0, 3, "Letter to the teachers, typed line by line over soft piano; riser into the drop."),
+    ("s10_teachers_day", 267.0, 273.0, 3, "DROP: HAPPY TEACHER'S DAY, gold, particles; 'Yes, it was yesterday.'"),
+    ("s11_numbers",    273.0, 293.0, 3, "'We study data. So we ran the numbers on you.' Four statistics jokes, one card each (4 s; the last one 6 s)."),
+    ("s12_network",    293.0, 301.0, 3, "The three cohorts as one network; the ~160 dots gather into THANK YOU."),
+    ("s13_finale",     301.0, 309.0, 3, "Happy Teacher's Day sign-off, institution logos, the cat says Meow, fade to black."),
 ]
 S = {s[0].split("_")[0]: (s[1], s[2]) for s in SCENES}
 
@@ -154,9 +162,29 @@ FORUM = {
 # Feature 3: Mini Noora, the mascot chatbot. First inside the browser (she waves, the cursor picks her
 # up and drags her, drops her, clicks her), then a close-up: her bust on the left, the chat on the right.
 n5 = S["s05b"][0]
-NOORA_TYPED_TEXT = "What is this, am I cooked? 💀"
+NOORA_TYPED_TEXT = "How do I find the MGF?"
 noora_t0, noora_t1 = n5 + 6.2, n5 + 7.4
 noora_typing = [round(noora_t0 + i * (noora_t1 - noora_t0) / len(NOORA_TYPED_TEXT), 3) for i in range(len(NOORA_TYPED_TEXT))]
+# Her working for "How do I find the MGF?" (question 3: density k·e^(−λ|x|)). Each step has a line of words and
+# a line of maths; the maths is markup for the film (frac = stacked fraction, int = integral with its limits,
+# bg = a tall bracket; letters are set in italics by the typeface itself).
+def _int(lo, hi):
+    return f'<span class="int"><span class="int__s">∫</span><span class="int__l"><b>{hi}</b><b>{lo}</b></span></span>'
+_half = '<span class="frac"><b>λ</b><b>2</b></span>'
+_M = '<i>M</i><sub>X</sub>(<i>t</i>)'
+NOORA_STEPS = [
+    {"t": n5 + 9.9, "label": "With k = λ/2 from (a), split at x = 0",
+     "label_html": 'With <span class="m">k = λ/2</span> from (a), split at <span class="m">x = 0</span>',
+     "say": "M X of t equals lambda over 2, times the integral from minus infinity to 0 of e to the lambda plus t, x, plus the integral from 0 to infinity of e to the minus lambda minus t, x.",
+     "html": f'{_M} = {_half}<span class="bg">[</span>{_int("−∞", "0")}<i>e</i><sup>(λ+<i>t</i>)<i>x</i></sup> <i>dx</i> + {_int("0", "∞")}<i>e</i><sup>−(λ−<i>t</i>)<i>x</i></sup> <i>dx</i><span class="bg">]</span>'},
+    {"t": n5 + 11.3, "label": "Integrate each piece, for |t| < λ",
+     "label_html": 'Integrate each piece, for <span class="m">|t| &lt; λ</span>',
+     "say": "equals lambda over 2, times 1 over lambda plus t, plus 1 over lambda minus t.",
+     "html": f'= {_half}<span class="bg">[</span><span class="frac"><b>1</b><b>λ + <i>t</i></b></span> + <span class="frac"><b>1</b><b>λ − <i>t</i></b></span><span class="bg">]</span>'},
+    {"t": n5 + 12.7, "label": "Add the two fractions", "label_html": "Add the two fractions",
+     "say": "M X of t equals lambda squared over lambda squared minus t squared.",
+     "html": f'{_M} = <span class="frac"><b>λ<sup>2</sup></b><b>λ<sup>2</sup> − <i>t</i><sup>2</sup></b></span>'},
+]
 NOORA = {
     "start": n5, "browser_in": n5 + 0.7,
     "hello": n5 + 1.3,                       # she waves from the corner of the page
@@ -167,32 +195,29 @@ NOORA = {
     "typed_text": NOORA_TYPED_TEXT, "typing": noora_typing,
     "send_click": n5 + 7.6, "sent": n5 + 7.65,
     "thinking": [n5 + 7.8, n5 + 8.8],
-    "answer": n5 + 8.8, "answer_end": n5 + 10.2,                          # the answer streams in word by word
-    "formula": n5 + 10.45,
-    "refs": [n5 + 11.0, n5 + 11.25, n5 + 11.5],
-    "cheer": n5 + 11.75,                                                 # then the finished answer is held until the scene leaves
+    "answer": n5 + 8.8, "answer_end": n5 + 9.5,                           # her answer: one line streams in ...
+    "steps": NOORA_STEPS,                                                # ... then the working, one step at a time
+    "result": n5 + 13.15,                                                # the highlighter lands on the result
+    "refs": [n5 + 14.1, n5 + 14.35, n5 + 14.6],
+    "cheer": n5 + 14.9,                                                  # then the finished answer is held until the scene leaves
     "kicker": "Feature 03 · Mini Noora", "title": "Meet Mini Noora.",
     "captions": [
         {"t": n5 + 1.9, "end": n5 + 4.15, "text": "Pick her up. Put her anywhere."},
         {"t": n5 + 4.6, "end": n5 + 8.9, "text": "Ask her. Or drop in a photo."},
-        {"t": n5 + 9.2, "end": n5 + 13.6, "text": "She knows the chapter."},
+        {"t": n5 + 9.2, "end": n5 + 13.95, "text": "She shows the steps."},
+        {"t": n5 + 14.1, "end": n5 + 17.6, "text": "She knows the chapter."},
     ],
     "chat_title": "Mini Noora", "chat_subtitle": "Knows your modules",
     "placeholder": "Ask about a module, or drop a file…",
     "greeting_text": "Hi Mohamed! Ask me about any module, or drop in a photo of a question.",
-    "attachment_name": "question-3a.jpg",
+    "attachment_name": "question-3.png",
     "thinking_text": "Reading your photo…",
-    "answer_text": "You’re not cooked 😄 It’s a reduction formula. Integrate by parts once and you get:",
-    "formula_text": "Iₙ = (n − 1)/n · Iₙ₋₂",
-    "formula_note": "so I₂ = π/4 and I₃ = 2/3",
-    # the same two lines as markup: the film sets them with real subscripts and a stacked fraction
-    "formula_html": "<i>I</i><sub>n</sub> = <span class=\"frac\"><b>n − 1</b><b>n</b></span> <i>I</i><sub>n−2</sub>",
-    "formula_note_html": "so <i>I</i><sub>2</sub> = π/4 and <i>I</i><sub>3</sub> = 2/3",
+    "answer_text": "Here’s how, step by step:",
     "refs_label": "Where to look",
     "refs_text": [
-        {"code": "MT1186", "text": "Chapter 4 · The Art of Integration"},
-        {"code": "4.5", "text": "Integration by parts"},
-        {"code": "4.6", "text": "The DI method"},
+        {"code": "ST2133", "text": "Chapter 2 · Univariate distributions"},
+        {"code": "2.16", "text": "The exponential distribution"},
+        {"code": "Library", "text": "Common continuous distributions"},
     ],
     "end": S["s05b"][1],
 }
@@ -245,7 +270,8 @@ G1 = {
     "hits": [g1(x) for x in (0.0, 0.42, 0.66, 0.88, 1.12, 1.31, 1.60, 1.85, 2.10, 2.35, 2.60, 2.80)],
 }
 
-G2_T = BDAY_CUT   # 84.5
+assert BDAY_HOLD == 0 or abs((BDAY_HOLD - BDAY_HOLD_PRE) / BDAY_HOLD_LOOP - round((BDAY_HOLD - BDAY_HOLD_PRE) / BDAY_HOLD_LOOP)) < 1e-9
+G2_T = round(BDAY_CUT + BDAY_HOLD, 4)   # glitch #2: on the song's last "you", or after the hold
 def g2(x):
     return round(G2_T + x, 4)
 G2 = {
@@ -376,7 +402,9 @@ add(NOORA["sent"], "post_pop")
 for k in range(3):
     add(NOORA["thinking"][0] + 0.12 + k * 0.3, "soft_tick")
 add(NOORA["answer"], "reply_pop")
-add(NOORA["formula"], "soft_tick")
+for st_ in NOORA_STEPS:
+    add(st_["t"], "soft_tick")
+add(NOORA["result"], "upvote_tick")
 for t_ in NOORA["refs"]:
     add(t_, "soft_tick")
 add(NOORA["cheer"], "counter_ding")
@@ -467,6 +495,8 @@ cues = {
                  "looks": BDAY_LOOKS, "blinks": BDAY_BLINKS, "widen": BDAY_WIDEN,
                  "lights_on": BDAY_LIGHTS,
                  "title_in": BDAY_LIGHTS + 0.2, "lower_third": BDAY_LIGHTS + 1.8, "phrases": BDAY_PHRASES, "cut": BDAY_CUT,
+                 **({"hold": {"start": BDAY_CUT, "end": G2_T, "pre": BDAY_HOLD_PRE, "loop_start": round(BDAY_CUT + BDAY_HOLD_PRE, 4),
+                              "loop": BDAY_HOLD_LOOP, "loops": int(round((BDAY_HOLD - BDAY_HOLD_PRE) / BDAY_HOLD_LOOP)), "xfade": BDAY_HOLD_XFADE}} if BDAY_HOLD else {}),
                  "name": "Noor",
                  "melody": [
                      {"t": round(BDAY_PICKUP + b * bday_beat, 4), "dur": round(d * bday_beat, 4), "midi": m, "syl": s}

@@ -179,7 +179,7 @@ def main():
     mxb, bd = score.birthday(cues)
     bd_pre = bd.copy() if review else None
     bd = score.birthday_glitch(bd, mxb.n0, cues)
-    stamp("birthday rendered (jazz waltz + sabotaged final note)")
+    stamp("birthday rendered (jazz waltz + %s)" % ("its last chord rings out, then the hold" if cues["birthday"].get("hold") else "sabotaged final note"))
     mx3, a3 = score.act3(cues)
     stamp("act 3 rendered (letter piano, anthem, numbers bed, network climax, finale)")
     music = np.zeros((2, N))

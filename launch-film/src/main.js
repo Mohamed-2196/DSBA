@@ -40,6 +40,9 @@ function seek(t) {
 const ready = (async () => {
   const fonts = ['800 60px Schibsted', '500 60px Schibsted', '600 60px Newsreader', 'italic 500 60px Newsreader', '500 40px JBMono', '700 40px JBMono', '800 60px Playfair', '600 30px Playfair', 'italic 700 60px Playfair', '700 60px Caveat'];
   await Promise.all(fonts.map((f) => document.fonts.load(f)));
+  // the formula in Mini Noora's answer: letters and figures come from two files of one family (film.css), and a
+  // family is only fetched for the characters asked for, so ask for both kinds
+  await Promise.all([document.fonts.load('40px NrMath', 'MXtλ 02=()−′/'), document.fonts.load('40px NrMain', 'Var 2'), document.fonts.load('40px NrBig', '[]∫')]);
   await document.fonts.ready;
   await Promise.all([...document.images].map((img) => (img.complete ? Promise.resolve() : new Promise((res) => { img.onload = img.onerror = res; })).then(() => img.decode().catch(() => {}))));
   seek(0);

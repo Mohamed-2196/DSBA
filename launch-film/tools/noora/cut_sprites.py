@@ -17,37 +17,37 @@ import json
 from pathlib import Path
 import numpy as np
 import ncnn
-from PIL import Image
+from PIL import Image, ImageFilter
 from scipy import ndimage as ndi
 
-SRC = Path('/root/.claude/uploads/331caa53-7cba-5bfe-8500-672e2c76573d/f0c342a1-image.png')
+SRC = Path('/root/.claude/uploads/331caa53-7cba-5bfe-8500-672e2c76573d/c4f39e2f-image.png')   # the second sheet he sent: a clearer BIBF badge
 HERE = Path(__file__).resolve().parent
 FILM = HERE.parent.parent / 'assets' / 'noora'
 APP = Path('/home/claude/dsba/public/noora')
 K = 4                                               # the model's enlargement
 
-# cell boxes on the 1254 px sheet (x0, y0, x1, y1), below each label pill
+# cell boxes on the 1254 px sheet (x0, y0, x1, y1): below each label pill, split midway between neighbours
 FULL = {
-    'idle':       (18, 52, 218, 418),
-    'side-right': (262, 52, 452, 418),
-    'side-left':  (528, 52, 718, 418),
-    'back':       (758, 52, 948, 418),
-    'walk-right': (998, 52, 1204, 418),
-    'walk-left':  (28, 480, 212, 788),
-    'talking':    (224, 480, 438, 788),
-    'happy':      (444, 480, 626, 788),
-    'excited':    (628, 480, 862, 788),
-    'surprised':  (864, 480, 1038, 788),
-    'sad':        (1048, 480, 1228, 788),
+    'idle':       (20, 58, 250, 440),
+    'side-right': (256, 58, 505, 440),
+    'side-left':  (512, 58, 755, 440),
+    'back':       (758, 58, 985, 440),
+    'walk-right': (988, 58, 1240, 440),
+    'walk-left':  (20, 494, 236, 818),
+    'talking':    (238, 494, 463, 818),
+    'happy':      (464, 494, 644, 818),
+    'excited':    (644, 494, 872, 818),
+    'surprised':  (873, 494, 1052, 818),
+    'sad':        (1054, 494, 1244, 818),
 }
 ROW1 = ('idle', 'side-right', 'side-left', 'back', 'walk-right')
 BUST = {
-    'angry':    (12, 834, 212, 1088),
-    'laughing': (218, 834, 398, 1088),
-    'winking':  (412, 834, 624, 1088),
-    'thinking': (628, 834, 800, 1088),
-    'wave':     (826, 834, 1044, 1088),     # the sheet calls it "Bye"
-    'neutral':  (1046, 834, 1224, 1088),
+    'angry':    (14, 862, 240, 1113),
+    'laughing': (242, 862, 445, 1118),
+    'winking':  (447, 862, 670, 1118),
+    'thinking': (672, 862, 852, 1118),
+    'wave':     (854, 862, 1059, 1118),     # the sheet calls it "Bye"
+    'neutral':  (1060, 862, 1240, 1118),
 }
 
 im = Image.open(SRC).convert('RGB')
@@ -73,7 +73,7 @@ net.load_param(str(HERE / 'models' / 'realesrgan-x4plus-anime.param'))
 net.load_model(str(HERE / 'models' / 'realesrgan-x4plus-anime.bin'))
 
 
-def enlarge(rgb):
+def enlarge_one(rgb):
     h, w, _ = rgb.shape
     m = ncnn.Mat.from_pixels(np.ascontiguousarray(rgb), ncnn.Mat.PixelType.PIXEL_RGB, w, h)
     m.substract_mean_normalize([], [1 / 255.0] * 3)
@@ -81,6 +81,63 @@ def enlarge(rgb):
     ex.input('data', m)
     _, out = ex.extract('output')
     return (np.clip(np.array(out), 0, 1).transpose(1, 2, 0) * 255).round().astype(np.uint8)
+
+
+def enlarge(rgb, tile=150, pad=14):
+    """K x enlargement, in horizontal bands: a whole cell at once needs more memory than this machine
+    gives one process. Each band is enlarged with `pad` rows of its neighbours as context and the
+    context is cut off again, so the bands meet without a seam."""
+    h = rgb.shape[0]
+    if h <= tile + 2 * pad:
+        return enlarge_one(rgb)
+    out = []
+    for y in range(0, h, tile):
+        y0, y1 = max(0, y - pad), min(h, y + tile + pad)
+        big = enlarge_one(rgb[y0:y1])
+        out.append(big[(y - y0) * K:(min(h, y + tile) - y0) * K])
+    return np.concatenate(out, axis=0)
+
+
+def keep_badge(src, big):
+    """The badge on her jacket is four letters about five pixels tall, and the enlarger redraws them as
+    squiggles. So the badge is found in the enlarged picture (a white disc with blue marks inside it, on the
+    navy of the jacket) and a plain, sharpened enlargement of the sheet's own pixels is put back there:
+    softer than the rest, but it says what the sheet says. Returns the picture and how many discs it restored."""
+    bi = big.astype(np.int16)
+    white = bi.min(-1) >= 212
+    navy = (bi[..., 2] >= 55) & (bi[..., 2] <= 175) & (bi[..., 0] <= 75) & (bi[..., 1] <= 100)
+    lab_, n_ = ndi.label(white)
+    region = np.zeros(white.shape, bool)
+    found = 0
+    for i, sl in enumerate(ndi.find_objects(lab_), 1):
+        hh, ww = sl[0].stop - sl[0].start, sl[1].stop - sl[1].start
+        if not (30 <= hh <= 130 and 14 <= ww <= 130):
+            continue
+        pad = 12
+        ys = slice(max(0, sl[0].start - pad), min(white.shape[0], sl[0].stop + pad))
+        xs = slice(max(0, sl[1].start - pad), min(white.shape[1], sl[1].stop + pad))
+        comp = lab_[ys, xs] == i
+        area = int(comp.sum())
+        if not 900 <= area <= 12000:
+            continue
+        filled = ndi.binary_fill_holes(comp)
+        holes = filled & ~comp
+        if holes.sum() < 0.04 * filled.sum():
+            continue                                             # nothing written on it
+        sub = bi[ys, xs]
+        if (sub[..., 2] - sub[..., 0])[holes].mean() < 30:
+            continue                                             # the marks are not blue
+        ring = ndi.binary_dilation(filled, iterations=8) & ~filled
+        if navy[ys, xs][ring].mean() < 0.35:
+            continue                                             # not on the jacket
+        # only the face of the disc is taken from the sheet; its rim stays as the enlarger drew it
+        region[ys, xs] |= ndi.binary_dilation(holes, iterations=7) & ndi.binary_erosion(filled, iterations=4)
+        found += 1
+    if not found:
+        return big, 0
+    plain = Image.fromarray(src).resize((big.shape[1], big.shape[0]), Image.BICUBIC).filter(ImageFilter.GaussianBlur(1.2)).filter(ImageFilter.UnsharpMask(radius=7, percent=110, threshold=0))
+    w = np.clip(ndi.gaussian_filter(region.astype(np.float32), 1.6) * 1.15, 0, 1)[..., None]
+    return (big * (1 - w) + np.asarray(plain, np.float32) * w + 0.5).astype(np.uint8), found
 
 
 def cut(box):
@@ -96,7 +153,8 @@ def cut(box):
         if comp.sum() < 6 or (touches and comp.sum() < 400):     # specks, slivers of a neighbour or of a label pill
             continue
         keep |= comp
-    big = enlarge(a[y0:y1, x0:x1])
+    big, badges = keep_badge(a[y0:y1, x0:x1], enlarge(a[y0:y1, x0:x1]))
+    print('  cell', box, 'badge restored' if badges else 'no badge found', flush=True)
     bi = big.astype(np.int16)
     light = (bi.max(-1) - bi.min(-1) <= 12) & (bi.min(-1) >= 226)            # background-looking at K x
     up = np.asarray(Image.fromarray((keep * 255).astype(np.uint8)).resize((big.shape[1], big.shape[0]), Image.BICUBIC)) > 127

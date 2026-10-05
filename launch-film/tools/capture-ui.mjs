@@ -1,6 +1,6 @@
 // Captures every UI asset the film needs from the running DSBA Hub app (clock frozen at the
 // event time). Writes PNGs to assets/ui/ and rectangles to assets/ui/manifest.json.
-//   node tools/capture-ui.mjs [only-group ...]     groups: stills seq-composer seq-cmdk seq-career elements dark
+//   node tools/capture-ui.mjs [only-group ...]     groups: stills forum seq-composer seq-cmdk seq-career elements dark
 import fs from 'fs';
 import path from 'path';
 import { chromium } from '/home/claude/.npm-global/lib/node_modules/playwright/index.mjs';
@@ -63,6 +63,10 @@ if (want('stills')) {
     await shot(page, 'grades');
     await ctx.close();
   }
+}
+
+// the forum list on its own group too (`forum`), so a change to a thread does not mean retaking every still
+if (want('stills') || only.includes('forum')) {
   // forum list (egg count hidden: the film animates it)
   {
     const { ctx, page } = await openPage(browser, { hash: '/forum', scale: 2, wait: 1500, ls: HIDE });

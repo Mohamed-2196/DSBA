@@ -2,14 +2,14 @@
  "fps": 30,
  "width": 1920,
  "height": 1080,
- "duration": 155.0,
- "frames": 4650,
+ "duration": 309.0,
+ "frames": 9270,
  "tempo": {
   "act1": {
    "bpm": 120,
    "first_beat": 0.0,
    "drop": 10.0,
-   "end": 78.0,
+   "end": 82.0,
    "chords": [
     "Am",
     "F",
@@ -20,22 +20,22 @@
   },
   "birthday": {
    "bpm": 110,
-   "pickup": 86.5,
+   "pickup": 90.5,
    "beat_seconds": 0.5455,
-   "cut": 98.5,
+   "cut": 102.5,
    "key": "C major",
    "time_signature": "3/4",
    "phrases": [
-    86.5,
-    89.7727,
-    93.0455,
-    96.3182
+    90.5,
+    93.7727,
+    97.0455,
+    100.3182
    ]
   },
   "reveal": {
    "bpm": 120,
-   "piano_start": 105.0,
-   "drop": 113.0,
+   "piano_start": 259.0,
+   "drop": 267.0,
    "chords": [
     "D",
     "A",
@@ -45,25 +45,25 @@
    "bar_seconds": 2.0,
    "sections": {
     "title": [
-     113.0,
-     119.0
+     267.0,
+     273.0
     ],
     "numbers": [
-     119.0,
-     139.0
+     273.0,
+     293.0
     ],
     "network": [
-     139.0,
-     147.0
+     293.0,
+     301.0
     ],
     "finale": [
-     147.0,
-     155.0
+     301.0,
+     309.0
     ]
    },
-   "climax": 144.5,
-   "final_chord": 151.0,
-   "end": 155.0
+   "climax": 298.5,
+   "final_chord": 305.0,
+   "end": 309.0
   }
  },
  "scenes": [
@@ -98,77 +98,77 @@
   {
    "id": "s05b_noora",
    "start": 40.0,
-   "end": 54.0,
+   "end": 58.0,
    "act": 1,
-   "desc": "Feature 3 - Mini Noora, the Hub's study buddy: she is picked up and dragged, the chat opens, the 'am I cooked?' photo is dropped in, she answers with the chapter and lessons."
+   "desc": "Feature 3 - Mini Noora, the Hub's study buddy: she is picked up and dragged, the chat opens, a photo of a distribution-theory question is dropped in with a real question, she writes out the solution step by step, then the chapter and where to look."
   },
   {
    "id": "s06_everything",
-   "start": 54.0,
-   "end": 72.0,
+   "start": 58.0,
+   "end": 76.0,
    "act": 1,
    "desc": "Montage: library, lessons, Career Navigator (scrolls), the calendar that keeps track of everything, grades, search; cohorts network; 'Built by students.'"
   },
   {
    "id": "s07_launch",
-   "start": 72.0,
-   "end": 78.0,
+   "start": 76.0,
+   "end": 82.0,
    "act": 1,
-   "desc": "'Launching today' + LAUNCH button + 3/2/1 countdown + click at 77.85."
+   "desc": "'Launching today' + LAUNCH button + 3/2/1 countdown + click at 81.85."
   },
   {
    "id": "g1_glitch",
-   "start": 78.0,
-   "end": 82.0,
+   "start": 82.0,
+   "end": 86.0,
    "act": 2,
    "desc": "Glitch #1: freeze, corruption, error windows, static, black."
   },
   {
    "id": "s08_birthday",
-   "start": 82.0,
-   "end": 98.5,
+   "start": 86.0,
+   "end": 252.5,
    "act": 2,
-   "desc": "4.4 s of darkness: a collar bell, two eyes, blinks. Lights on: Noor's cat in a party hat, 'Happy Birthday, Noor'."
+   "desc": "4.4 s of darkness: a collar bell, two eyes, blinks. Lights on: Noor's cat in a party hat, 'Happy Birthday, Noor'; the song finishes and the greeting is held for 150 s."
   },
   {
    "id": "g2_glitch",
-   "start": 98.5,
-   "end": 105.0,
+   "start": 252.5,
+   "end": 259.0,
    "act": 3,
-   "desc": "Glitch #2: song cut on the final 'you', scramble, terminal (expected Noor's birthday, found Teacher's Day), flash, black+silence."
+   "desc": "Glitch #2 (out of the quiet of the hold): scramble, terminal (expected Noor's birthday, found Teacher's Day), flash, black+silence."
   },
   {
    "id": "s09_letter",
-   "start": 105.0,
-   "end": 113.0,
+   "start": 259.0,
+   "end": 267.0,
    "act": 3,
    "desc": "Letter to the teachers, typed line by line over soft piano; riser into the drop."
   },
   {
    "id": "s10_teachers_day",
-   "start": 113.0,
-   "end": 119.0,
+   "start": 267.0,
+   "end": 273.0,
    "act": 3,
    "desc": "DROP: HAPPY TEACHER'S DAY, gold, particles; 'Yes, it was yesterday.'"
   },
   {
    "id": "s11_numbers",
-   "start": 119.0,
-   "end": 139.0,
+   "start": 273.0,
+   "end": 293.0,
    "act": 3,
    "desc": "'We study data. So we ran the numbers on you.' Four statistics jokes, one card each (4 s; the last one 6 s)."
   },
   {
    "id": "s12_network",
-   "start": 139.0,
-   "end": 147.0,
+   "start": 293.0,
+   "end": 301.0,
    "act": 3,
    "desc": "The three cohorts as one network; the ~160 dots gather into THANK YOU."
   },
   {
    "id": "s13_finale",
-   "start": 147.0,
-   "end": 155.0,
+   "start": 301.0,
+   "end": 309.0,
    "act": 3,
    "desc": "Happy Teacher's Day sign-off, institution logos, the cat says Meow, fade to black."
   }
@@ -1017,36 +1017,30 @@
    46.0
   ],
   "image_drop": 46.0,
-  "typed_text": "What is this, am I cooked? 💀",
+  "typed_text": "How do I find the MGF?",
   "typing": [
    46.2,
-   46.243,
-   46.286,
-   46.329,
-   46.371,
-   46.414,
-   46.457,
-   46.5,
-   46.543,
-   46.586,
-   46.629,
-   46.671,
-   46.714,
-   46.757,
+   46.255,
+   46.309,
+   46.364,
+   46.418,
+   46.473,
+   46.527,
+   46.582,
+   46.636,
+   46.691,
+   46.745,
    46.8,
-   46.843,
-   46.886,
-   46.929,
-   46.971,
-   47.014,
-   47.057,
-   47.1,
-   47.143,
-   47.186,
-   47.229,
-   47.271,
-   47.314,
-   47.357
+   46.855,
+   46.909,
+   46.964,
+   47.018,
+   47.073,
+   47.127,
+   47.182,
+   47.236,
+   47.291,
+   47.345
   ],
   "send_click": 47.6,
   "sent": 47.65,
@@ -1055,14 +1049,37 @@
    48.8
   ],
   "answer": 48.8,
-  "answer_end": 50.2,
-  "formula": 50.45,
-  "refs": [
-   51.0,
-   51.25,
-   51.5
+  "answer_end": 49.5,
+  "steps": [
+   {
+    "t": 49.9,
+    "label": "With k = λ/2 from (a), split at x = 0",
+    "label_html": "With <span class=\"m\">k = λ/2</span> from (a), split at <span class=\"m\">x = 0</span>",
+    "say": "M X of t equals lambda over 2, times the integral from minus infinity to 0 of e to the lambda plus t, x, plus the integral from 0 to infinity of e to the minus lambda minus t, x.",
+    "html": "<i>M</i><sub>X</sub>(<i>t</i>) = <span class=\"frac\"><b>λ</b><b>2</b></span><span class=\"bg\">[</span><span class=\"int\"><span class=\"int__s\">∫</span><span class=\"int__l\"><b>0</b><b>−∞</b></span></span><i>e</i><sup>(λ+<i>t</i>)<i>x</i></sup> <i>dx</i> + <span class=\"int\"><span class=\"int__s\">∫</span><span class=\"int__l\"><b>∞</b><b>0</b></span></span><i>e</i><sup>−(λ−<i>t</i>)<i>x</i></sup> <i>dx</i><span class=\"bg\">]</span>"
+   },
+   {
+    "t": 51.3,
+    "label": "Integrate each piece, for |t| < λ",
+    "label_html": "Integrate each piece, for <span class=\"m\">|t| &lt; λ</span>",
+    "say": "equals lambda over 2, times 1 over lambda plus t, plus 1 over lambda minus t.",
+    "html": "= <span class=\"frac\"><b>λ</b><b>2</b></span><span class=\"bg\">[</span><span class=\"frac\"><b>1</b><b>λ + <i>t</i></b></span> + <span class=\"frac\"><b>1</b><b>λ − <i>t</i></b></span><span class=\"bg\">]</span>"
+   },
+   {
+    "t": 52.7,
+    "label": "Add the two fractions",
+    "label_html": "Add the two fractions",
+    "say": "M X of t equals lambda squared over lambda squared minus t squared.",
+    "html": "<i>M</i><sub>X</sub>(<i>t</i>) = <span class=\"frac\"><b>λ<sup>2</sup></b><b>λ<sup>2</sup> − <i>t</i><sup>2</sup></b></span>"
+   }
   ],
-  "cheer": 51.75,
+  "result": 53.15,
+  "refs": [
+   54.1,
+   54.35,
+   54.6
+  ],
+  "cheer": 54.9,
   "kicker": "Feature 03 · Mini Noora",
   "title": "Meet Mini Noora.",
   "captions": [
@@ -1078,7 +1095,12 @@
    },
    {
     "t": 49.2,
-    "end": 53.6,
+    "end": 53.95,
+    "text": "She shows the steps."
+   },
+   {
+    "t": 54.1,
+    "end": 57.6,
     "text": "She knows the chapter."
    }
   ],
@@ -1086,142 +1108,138 @@
   "chat_subtitle": "Knows your modules",
   "placeholder": "Ask about a module, or drop a file…",
   "greeting_text": "Hi Mohamed! Ask me about any module, or drop in a photo of a question.",
-  "attachment_name": "question-3a.jpg",
+  "attachment_name": "question-3.png",
   "thinking_text": "Reading your photo…",
-  "answer_text": "You’re not cooked 😄 It’s a reduction formula. Integrate by parts once and you get:",
-  "formula_text": "Iₙ = (n − 1)/n · Iₙ₋₂",
-  "formula_note": "so I₂ = π/4 and I₃ = 2/3",
-  "formula_html": "<i>I</i><sub>n</sub> = <span class=\"frac\"><b>n − 1</b><b>n</b></span> <i>I</i><sub>n−2</sub>",
-  "formula_note_html": "so <i>I</i><sub>2</sub> = π/4 and <i>I</i><sub>3</sub> = 2/3",
+  "answer_text": "Here’s how, step by step:",
   "refs_label": "Where to look",
   "refs_text": [
    {
-    "code": "MT1186",
-    "text": "Chapter 4 · The Art of Integration"
+    "code": "ST2133",
+    "text": "Chapter 2 · Univariate distributions"
    },
    {
-    "code": "4.5",
-    "text": "Integration by parts"
+    "code": "2.16",
+    "text": "The exponential distribution"
    },
    {
-    "code": "4.6",
-    "text": "The DI method"
+    "code": "Library",
+    "text": "Common continuous distributions"
    }
   ],
-  "end": 54.0
+  "end": 58.0
  },
  "montage": {
-  "start": 54.0,
-  "end": 72.0,
+  "start": 58.0,
+  "end": 76.0,
   "cuts": [
    {
-    "t": 54.0,
+    "t": 58.0,
     "id": "library",
     "caption": "Every file, inside the app."
    },
    {
-    "t": 56.0,
+    "t": 60.0,
     "id": "lessons",
     "caption": "Every lecture, one click away."
    },
    {
-    "t": 58.0,
+    "t": 62.0,
     "id": "career",
     "caption": "Plan what comes next."
    },
    {
-    "t": 62.0,
+    "t": 66.0,
     "id": "calendar",
     "caption": "Keep track of everything."
    },
    {
-    "t": 64.0,
+    "t": 68.0,
     "id": "grades",
     "caption": "Your classification, live."
    },
    {
-    "t": 65.5,
+    "t": 69.5,
     "id": "search",
     "caption": "Find anything."
    },
    {
-    "t": 67.0,
+    "t": 71.0,
     "id": "network",
     "caption": "Three cohorts, finally connected."
    },
    {
-    "t": 70.0,
+    "t": 74.0,
     "id": "built_by",
     "caption": "Built by students. For all of DSBA."
    }
   ],
-  "file_preview_click": 55.0,
-  "lesson_play_click": 56.9,
+  "file_preview_click": 59.0,
+  "lesson_play_click": 60.9,
   "career_scroll": [
-   59.6,
-   60.5
+   63.6,
+   64.5
   ],
   "search_text": "econometrics",
   "search_typing": [
-   65.8,
-   65.865,
-   65.93,
-   65.995,
-   66.06,
-   66.125,
-   66.19,
-   66.255,
-   66.32,
-   66.385,
-   66.45,
-   66.515
+   69.8,
+   69.865,
+   69.93,
+   69.995,
+   70.06,
+   70.125,
+   70.19,
+   70.255,
+   70.32,
+   70.385,
+   70.45,
+   70.515
   ]
  },
  "launch": {
-  "start": 72.0,
-  "button_in": 73.0,
+  "start": 76.0,
+  "button_in": 77.0,
   "countdown": [
-   75.0,
-   76.0,
-   77.0
+   79.0,
+   80.0,
+   81.0
   ],
-  "click": 77.85
+  "click": 81.85
  },
  "g1": {
-  "start": 78.0,
-  "end": 82.0,
+  "start": 82.0,
+  "end": 86.0,
   "segments": [
    {
-    "t0": 78.0,
-    "t1": 78.4,
+    "t0": 82.0,
+    "t1": 82.4,
     "kind": "freeze_stutter",
     "i0": 0.35,
     "i1": 0.55
    },
    {
-    "t0": 78.4,
-    "t1": 79.5,
+    "t0": 82.4,
+    "t1": 83.5,
     "kind": "corrupt",
     "i0": 0.5,
     "i1": 1.0
    },
    {
-    "t0": 79.5,
-    "t1": 81.0,
+    "t0": 83.5,
+    "t1": 85.0,
     "kind": "errors",
     "i0": 0.15,
     "i1": 0.25
    },
    {
-    "t0": 81.0,
-    "t1": 81.9,
+    "t0": 85.0,
+    "t1": 85.9,
     "kind": "static",
     "i0": 0.3,
     "i1": 1.0
    },
    {
-    "t0": 81.9,
-    "t1": 82.0,
+    "t0": 85.9,
+    "t1": 86.0,
     "kind": "black",
     "i0": 0.0,
     "i1": 0.0
@@ -1229,237 +1247,246 @@
   ],
   "stutters": [
    {
-    "start": 78.0,
-    "end": 78.375,
-    "src": 77.875,
+    "start": 82.0,
+    "end": 82.375,
+    "src": 81.875,
     "len": 0.125
    },
    {
-    "start": 78.5,
-    "end": 78.75,
-    "src": 78.375,
+    "start": 82.5,
+    "end": 82.75,
+    "src": 82.375,
     "len": 0.0625
    },
    {
-    "start": 78.9,
-    "end": 79.1,
-    "src": 78.85,
+    "start": 82.9,
+    "end": 83.1,
+    "src": 82.85,
     "len": 0.0312
    }
   ],
   "tape_stop": {
-   "t0": 78.75,
-   "t1": 79.5
+   "t0": 82.75,
+   "t1": 83.5
   },
   "error_windows": [
-   79.6,
-   79.85,
-   80.1,
-   80.35,
-   80.6,
-   80.8
+   83.6,
+   83.85,
+   84.1,
+   84.35,
+   84.6,
+   84.8
   ],
   "hits": [
-   78.0,
-   78.42,
-   78.66,
-   78.88,
-   79.12,
-   79.31,
-   79.6,
-   79.85,
-   80.1,
-   80.35,
-   80.6,
-   80.8
+   82.0,
+   82.42,
+   82.66,
+   82.88,
+   83.12,
+   83.31,
+   83.6,
+   83.85,
+   84.1,
+   84.35,
+   84.6,
+   84.8
   ]
  },
  "birthday": {
-  "start": 82.0,
-  "bell": 82.3,
+  "start": 86.0,
+  "bell": 86.3,
   "bells": [
-   82.3,
-   85.1
+   86.3,
+   89.1
   ],
-  "eyes_in": 82.45,
+  "eyes_in": 86.45,
   "looks": [
    {
-    "t": 83.0,
+    "t": 87.0,
     "x": -1
    },
    {
-    "t": 83.6,
+    "t": 87.6,
     "x": 1
    },
    {
-    "t": 84.2,
+    "t": 88.2,
     "x": 0
    }
   ],
   "blinks": [
-   84.7,
-   85.5,
-   85.8
+   88.7,
+   89.5,
+   89.8
   ],
-  "widen": 86.1,
-  "lights_on": 86.4,
-  "title_in": 86.6,
-  "lower_third": 88.2,
+  "widen": 90.1,
+  "lights_on": 90.4,
+  "title_in": 90.6,
+  "lower_third": 92.2,
   "phrases": [
-   86.5,
-   89.7727,
-   93.0455,
-   96.3182
+   90.5,
+   93.7727,
+   97.0455,
+   100.3182
   ],
-  "cut": 98.5,
+  "cut": 102.5,
+  "hold": {
+   "start": 102.5,
+   "end": 252.5,
+   "pre": 6.0,
+   "loop_start": 108.5,
+   "loop": 12.0,
+   "loops": 12,
+   "xfade": 1.5
+  },
   "name": "Noor",
   "melody": [
    {
-    "t": 86.5,
+    "t": 90.5,
     "dur": 0.4091,
     "midi": 67,
     "syl": "Hap"
    },
    {
-    "t": 86.9091,
+    "t": 90.9091,
     "dur": 0.1364,
     "midi": 67,
     "syl": "py"
    },
    {
-    "t": 87.0455,
+    "t": 91.0455,
     "dur": 0.5455,
     "midi": 69,
     "syl": "birth"
    },
    {
-    "t": 87.5909,
+    "t": 91.5909,
     "dur": 0.5455,
     "midi": 67,
     "syl": "day"
    },
    {
-    "t": 88.1364,
+    "t": 92.1364,
     "dur": 0.5455,
     "midi": 72,
     "syl": "to"
    },
    {
-    "t": 88.6818,
+    "t": 92.6818,
     "dur": 1.0909,
     "midi": 71,
     "syl": "you"
    },
    {
-    "t": 89.7727,
+    "t": 93.7727,
     "dur": 0.4091,
     "midi": 67,
     "syl": "Hap"
    },
    {
-    "t": 90.1818,
+    "t": 94.1818,
     "dur": 0.1364,
     "midi": 67,
     "syl": "py"
    },
    {
-    "t": 90.3182,
+    "t": 94.3182,
     "dur": 0.5455,
     "midi": 69,
     "syl": "birth"
    },
    {
-    "t": 90.8636,
+    "t": 94.8636,
     "dur": 0.5455,
     "midi": 67,
     "syl": "day"
    },
    {
-    "t": 91.4091,
+    "t": 95.4091,
     "dur": 0.5455,
     "midi": 74,
     "syl": "to"
    },
    {
-    "t": 91.9545,
+    "t": 95.9545,
     "dur": 1.0909,
     "midi": 72,
     "syl": "you"
    },
    {
-    "t": 93.0455,
+    "t": 97.0455,
     "dur": 0.4091,
     "midi": 67,
     "syl": "Hap"
    },
    {
-    "t": 93.4545,
+    "t": 97.4545,
     "dur": 0.1364,
     "midi": 67,
     "syl": "py"
    },
    {
-    "t": 93.5909,
+    "t": 97.5909,
     "dur": 0.5455,
     "midi": 79,
     "syl": "birth"
    },
    {
-    "t": 94.1364,
+    "t": 98.1364,
     "dur": 0.5455,
     "midi": 76,
     "syl": "day"
    },
    {
-    "t": 94.6818,
+    "t": 98.6818,
     "dur": 0.5455,
     "midi": 72,
     "syl": "dear"
    },
    {
-    "t": 95.2273,
+    "t": 99.2273,
     "dur": 0.5455,
     "midi": 71,
     "syl": "No"
    },
    {
-    "t": 95.7727,
+    "t": 99.7727,
     "dur": 0.5455,
     "midi": 69,
     "syl": "or"
    },
    {
-    "t": 96.3182,
+    "t": 100.3182,
     "dur": 0.4091,
     "midi": 77,
     "syl": "Hap"
    },
    {
-    "t": 96.7273,
+    "t": 100.7273,
     "dur": 0.1364,
     "midi": 77,
     "syl": "py"
    },
    {
-    "t": 96.8636,
+    "t": 100.8636,
     "dur": 0.5455,
     "midi": 76,
     "syl": "birth"
    },
    {
-    "t": 97.4091,
+    "t": 101.4091,
     "dur": 0.5455,
     "midi": 72,
     "syl": "day"
    },
    {
-    "t": 97.9545,
+    "t": 101.9545,
     "dur": 0.5455,
     "midi": 74,
     "syl": "to"
    },
    {
-    "t": 98.5,
+    "t": 102.5,
     "dur": 1.6364,
     "midi": 72,
     "syl": "you"
@@ -1467,40 +1494,40 @@
   ]
  },
  "g2": {
-  "start": 98.5,
-  "end": 105.0,
+  "start": 252.5,
+  "end": 259.0,
   "segments": [
    {
-    "t0": 98.5,
-    "t1": 99.5,
+    "t0": 252.5,
+    "t1": 253.5,
     "kind": "warp",
     "i0": 0.3,
     "i1": 0.7
    },
    {
-    "t0": 99.5,
-    "t1": 102.6,
+    "t0": 253.5,
+    "t1": 256.6,
     "kind": "terminal",
     "i0": 0.16,
     "i1": 0.24
    },
    {
-    "t0": 102.6,
-    "t1": 103.25,
+    "t0": 256.6,
+    "t1": 257.25,
     "kind": "crescendo",
     "i0": 0.45,
     "i1": 1.0
    },
    {
-    "t0": 103.25,
-    "t1": 103.45,
+    "t0": 257.25,
+    "t1": 257.45,
     "kind": "flash",
     "i0": 1.0,
     "i1": 1.0
    },
    {
-    "t0": 103.45,
-    "t1": 105.0,
+    "t0": 257.45,
+    "t1": 259.0,
     "kind": "black",
     "i0": 0.0,
     "i1": 0.0
@@ -1508,383 +1535,383 @@
   ],
   "stutters": [
    {
-    "start": 98.68,
-    "end": 99.2,
-    "src": 98.5,
+    "start": 252.68,
+    "end": 253.2,
+    "src": 252.5,
     "len": 0.18
    }
   ],
   "note_warp": {
-   "t0": 98.5,
-   "t1": 99.5
+   "t0": 252.5,
+   "t1": 253.5
   },
   "terminal_lines": [
    {
-    "t": 99.55,
+    "t": 253.55,
     "text": "> ERROR: celebration.target mismatch"
    },
    {
-    "t": 100.35,
+    "t": 254.35,
     "text": "> expected: Noor's birthday"
    },
    {
-    "t": 101.05,
+    "t": 255.05,
     "text": "> found: Teacher's Day"
    },
    {
-    "t": 101.95,
+    "t": 255.95,
     "text": "> rerouting celebration..."
    }
   ],
   "silence": {
-   "t0": 103.45,
-   "t1": 105.0
+   "t0": 257.45,
+   "t1": 259.0
   },
-  "crescendo": 102.6,
-  "flash": 103.25,
+  "crescendo": 256.6,
+  "flash": 257.25,
   "hits": [
-   98.5,
-   99.55,
-   100.35,
-   101.05,
-   101.95,
-   103.25
+   252.5,
+   253.55,
+   254.35,
+   255.05,
+   255.95,
+   257.25
   ],
   "terminal_typing": [
-   99.55,
-   99.5672,
-   99.5845,
-   99.6017,
-   99.619,
-   99.6362,
-   99.6534,
-   99.6707,
-   99.6879,
-   99.7052,
-   99.7224,
-   99.7397,
-   99.7569,
-   99.7741,
-   99.7914,
-   99.8086,
-   99.8259,
-   99.8431,
-   99.8603,
-   99.8776,
-   99.8948,
-   99.9121,
-   99.9293,
-   99.9466,
-   99.9638,
-   99.981,
-   99.9983,
-   100.0155,
-   100.0328,
-   100.05,
-   100.0672,
-   100.0845,
-   100.1017,
-   100.119,
-   100.1362,
-   100.1534,
-   100.35,
-   100.3672,
-   100.3845,
-   100.4017,
-   100.419,
-   100.4362,
-   100.4534,
-   100.4707,
-   100.4879,
-   100.5052,
-   100.5224,
-   100.5397,
-   100.5569,
-   100.5741,
-   100.5914,
-   100.6086,
-   100.6259,
-   100.6431,
-   100.6603,
-   100.6776,
-   100.6948,
-   100.7121,
-   100.7293,
-   100.7466,
-   100.7638,
-   100.781,
-   100.7983,
-   101.05,
-   101.0672,
-   101.0845,
-   101.1017,
-   101.119,
-   101.1362,
-   101.1534,
-   101.1707,
-   101.1879,
-   101.2052,
-   101.2224,
-   101.2397,
-   101.2569,
-   101.2741,
-   101.2914,
-   101.3086,
-   101.3259,
-   101.3431,
-   101.3603,
-   101.3776,
-   101.3948,
-   101.4121,
-   101.95,
-   101.9672,
-   101.9845,
-   102.0017,
-   102.019,
-   102.0362,
-   102.0534,
-   102.0707,
-   102.0879,
-   102.1052,
-   102.1224,
-   102.1397,
-   102.1569,
-   102.1741,
-   102.1914,
-   102.2086,
-   102.2259,
-   102.2431,
-   102.2603,
-   102.2776,
-   102.2948,
-   102.3121,
-   102.3293,
-   102.3466,
-   102.3638,
-   102.381
+   253.55,
+   253.5672,
+   253.5845,
+   253.6017,
+   253.619,
+   253.6362,
+   253.6534,
+   253.6707,
+   253.6879,
+   253.7052,
+   253.7224,
+   253.7397,
+   253.7569,
+   253.7741,
+   253.7914,
+   253.8086,
+   253.8259,
+   253.8431,
+   253.8603,
+   253.8776,
+   253.8948,
+   253.9121,
+   253.9293,
+   253.9466,
+   253.9638,
+   253.981,
+   253.9983,
+   254.0155,
+   254.0328,
+   254.05,
+   254.0672,
+   254.0845,
+   254.1017,
+   254.119,
+   254.1362,
+   254.1534,
+   254.35,
+   254.3672,
+   254.3845,
+   254.4017,
+   254.419,
+   254.4362,
+   254.4534,
+   254.4707,
+   254.4879,
+   254.5052,
+   254.5224,
+   254.5397,
+   254.5569,
+   254.5741,
+   254.5914,
+   254.6086,
+   254.6259,
+   254.6431,
+   254.6603,
+   254.6776,
+   254.6948,
+   254.7121,
+   254.7293,
+   254.7466,
+   254.7638,
+   254.781,
+   254.7983,
+   255.05,
+   255.0672,
+   255.0845,
+   255.1017,
+   255.119,
+   255.1362,
+   255.1534,
+   255.1707,
+   255.1879,
+   255.2052,
+   255.2224,
+   255.2397,
+   255.2569,
+   255.2741,
+   255.2914,
+   255.3086,
+   255.3259,
+   255.3431,
+   255.3603,
+   255.3776,
+   255.3948,
+   255.4121,
+   255.95,
+   255.9672,
+   255.9845,
+   256.0017,
+   256.019,
+   256.0362,
+   256.0534,
+   256.0707,
+   256.0879,
+   256.1052,
+   256.1224,
+   256.1397,
+   256.1569,
+   256.1741,
+   256.1914,
+   256.2086,
+   256.2259,
+   256.2431,
+   256.2603,
+   256.2776,
+   256.2948,
+   256.3121,
+   256.3293,
+   256.3466,
+   256.3638,
+   256.381
   ],
   "terminal_cps": 58.0
  },
  "letter": {
-  "start": 105.0,
+  "start": 259.0,
   "lines": [
    {
-    "t": 105.1,
+    "t": 259.1,
     "text": "Dear teachers,"
    },
    {
-    "t": 106.5,
+    "t": 260.5,
     "text": "today, you thought you were in on the surprise."
    },
    {
-    "t": 109.5,
+    "t": 263.5,
     "text": "plot twist:"
    },
    {
-    "t": 110.7,
+    "t": 264.7,
     "text": "you were the surprise."
    }
   ],
   "cps": 26.0,
   "typing": [
-   105.1,
-   105.1385,
-   105.1769,
-   105.2154,
-   105.2538,
-   105.2923,
-   105.3308,
-   105.3692,
-   105.4077,
-   105.4462,
-   105.4846,
-   105.5231,
-   105.5615,
-   105.6,
-   106.5,
-   106.5385,
-   106.5769,
-   106.6154,
-   106.6538,
-   106.6923,
-   106.7308,
-   106.7692,
-   106.8077,
-   106.8462,
-   106.8846,
-   106.9231,
-   106.9615,
-   107.0,
-   107.0385,
-   107.0769,
-   107.1154,
-   107.1538,
-   107.1923,
-   107.2308,
-   107.2692,
-   107.3077,
-   107.3462,
-   107.3846,
-   107.4231,
-   107.4615,
-   107.5,
-   107.5385,
-   107.5769,
-   107.6154,
-   107.6538,
-   107.6923,
-   107.7308,
-   107.7692,
-   107.8077,
-   107.8462,
-   107.8846,
-   107.9231,
-   107.9615,
-   108.0,
-   108.0385,
-   108.0769,
-   108.1154,
-   108.1538,
-   108.1923,
-   108.2308,
-   108.2692,
-   109.5,
-   109.5385,
-   109.5769,
-   109.6154,
-   109.6538,
-   109.6923,
-   109.7308,
-   109.7692,
-   109.8077,
-   109.8462,
-   109.8846,
-   110.7,
-   110.7385,
-   110.7769,
-   110.8154,
-   110.8538,
-   110.8923,
-   110.9308,
-   110.9692,
-   111.0077,
-   111.0462,
-   111.0846,
-   111.1231,
-   111.1615,
-   111.2,
-   111.2385,
-   111.2769,
-   111.3154,
-   111.3538,
-   111.3923,
-   111.4308,
-   111.4692,
-   111.5077
+   259.1,
+   259.1385,
+   259.1769,
+   259.2154,
+   259.2538,
+   259.2923,
+   259.3308,
+   259.3692,
+   259.4077,
+   259.4462,
+   259.4846,
+   259.5231,
+   259.5615,
+   259.6,
+   260.5,
+   260.5385,
+   260.5769,
+   260.6154,
+   260.6538,
+   260.6923,
+   260.7308,
+   260.7692,
+   260.8077,
+   260.8462,
+   260.8846,
+   260.9231,
+   260.9615,
+   261.0,
+   261.0385,
+   261.0769,
+   261.1154,
+   261.1538,
+   261.1923,
+   261.2308,
+   261.2692,
+   261.3077,
+   261.3462,
+   261.3846,
+   261.4231,
+   261.4615,
+   261.5,
+   261.5385,
+   261.5769,
+   261.6154,
+   261.6538,
+   261.6923,
+   261.7308,
+   261.7692,
+   261.8077,
+   261.8462,
+   261.8846,
+   261.9231,
+   261.9615,
+   262.0,
+   262.0385,
+   262.0769,
+   262.1154,
+   262.1538,
+   262.1923,
+   262.2308,
+   262.2692,
+   263.5,
+   263.5385,
+   263.5769,
+   263.6154,
+   263.6538,
+   263.6923,
+   263.7308,
+   263.7692,
+   263.8077,
+   263.8462,
+   263.8846,
+   264.7,
+   264.7385,
+   264.7769,
+   264.8154,
+   264.8538,
+   264.8923,
+   264.9308,
+   264.9692,
+   265.0077,
+   265.0462,
+   265.0846,
+   265.1231,
+   265.1615,
+   265.2,
+   265.2385,
+   265.2769,
+   265.3154,
+   265.3538,
+   265.3923,
+   265.4308,
+   265.4692,
+   265.5077
   ],
-  "dissolve": 112.4,
-  "flash": 112.84
+  "dissolve": 266.4,
+  "flash": 266.84
  },
  "teachers_day": {
-  "drop": 113.0,
-  "subline": 115.0,
+  "drop": 267.0,
+  "subline": 269.0,
   "subline_text": "Yes, it was yesterday. We needed a day to fool you.",
-  "end": 119.0
+  "end": 273.0
  },
  "numbers": {
-  "start": 119.0,
+  "start": 273.0,
   "intro": [
    {
-    "t": 119.15,
+    "t": 273.15,
     "text": "We study data."
    },
    {
-    "t": 120.0,
+    "t": 274.0,
     "text": "So we ran the numbers on you."
    }
   ],
   "cards": [
    {
-    "t": 121.0,
+    "t": 275.0,
     "id": "exam",
     "kicker": "Figure 1",
     "title": "Times we asked “Will this be in the exam?”",
-    "build": 121.9,
-    "punch_t": 123.0,
+    "build": 275.9,
+    "punch_t": 277.0,
     "punch": "∞",
     "note": "…and counting.",
     "year1_note": "Year 1 just got here. Give them a week."
    },
    {
-    "t": 125.0,
+    "t": 279.0,
     "id": "h0",
     "kicker": "Figure 2",
     "title": "H₀: you were only doing your job.",
-    "build": 125.9,
-    "punch_t": 127.0,
+    "build": 279.9,
+    "punch_t": 281.0,
     "punch": "REJECTED",
     "note": "p < 0.0001"
    },
    {
-    "t": 129.0,
+    "t": 283.0,
     "id": "heart",
     "kicker": "Figure 3",
     "title": "Your patience vs. our questions",
-    "build": 129.8,
-    "punch_t": 131.0,
+    "build": 283.8,
+    "punch_t": 285.0,
     "punch": "r = 1.00",
     "note": "A perfect fit."
    },
    {
-    "t": 133.0,
+    "t": 287.0,
     "id": "ci",
     "kicker": "Figure 4",
     "title": "Confidence that we couldn’t have done it without you",
-    "build": 133.9,
-    "punch_t": 135.0,
+    "build": 287.9,
+    "punch_t": 289.0,
     "punch": "100%",
     "note": "Disclaimer: I DO know this is not how confidence intervals work 😅",
     "len": 6.0
    }
   ],
   "card_len": 4.0,
-  "end": 139.0
+  "end": 293.0
  },
  "network": {
-  "start": 139.0,
-  "nodes_in": 139.0,
-  "links_in": 139.9,
+  "start": 293.0,
+  "nodes_in": 293.0,
+  "links_in": 293.9,
   "lines": [
    {
-    "t": 140.3,
+    "t": 294.3,
     "text": "Every connection here started in one of your classes."
    }
   ],
-  "gather": 143.0,
-  "formed": 144.5,
+  "gather": 297.0,
+  "formed": 298.5,
   "word": "THANK YOU",
-  "end": 147.0
+  "end": 301.0
  },
  "finale": {
-  "start": 147.0,
-  "title": 147.2,
-  "signoff": 148.6,
-  "logos": 149.4,
-  "cat": 150.8,
-  "meow": 151.5,
+  "start": 301.0,
+  "title": 301.2,
+  "signoff": 302.6,
+  "logos": 303.4,
+  "cat": 304.8,
+  "meow": 305.5,
   "title_text": "Happy Teacher’s Day",
   "signoff_text": "From all of us in DSBA · Years 1, 2 & 3",
   "hashtag": "#HappyTeachersDay",
   "meow_text": "Meow.",
   "fade": [
-   153.6,
-   155.0
+   307.6,
+   309.0
   ]
  },
  "outro": {
   "fade": [
-   153.6,
-   155.0
+   307.6,
+   309.0
   ]
  },
  "sfx": [
@@ -2604,55 +2631,43 @@
    "kind": "key_click"
   },
   {
-   "t": 46.243,
+   "t": 46.255,
    "kind": "key_click"
   },
   {
-   "t": 46.286,
+   "t": 46.309,
    "kind": "key_click"
   },
   {
-   "t": 46.329,
+   "t": 46.364,
    "kind": "key_click"
   },
   {
-   "t": 46.371,
+   "t": 46.418,
    "kind": "key_click"
   },
   {
-   "t": 46.414,
+   "t": 46.473,
    "kind": "key_click"
   },
   {
-   "t": 46.457,
+   "t": 46.527,
    "kind": "key_click"
   },
   {
-   "t": 46.5,
+   "t": 46.582,
    "kind": "key_click"
   },
   {
-   "t": 46.543,
+   "t": 46.636,
    "kind": "key_click"
   },
   {
-   "t": 46.586,
+   "t": 46.691,
    "kind": "key_click"
   },
   {
-   "t": 46.629,
-   "kind": "key_click"
-  },
-  {
-   "t": 46.671,
-   "kind": "key_click"
-  },
-  {
-   "t": 46.714,
-   "kind": "key_click"
-  },
-  {
-   "t": 46.757,
+   "t": 46.745,
    "kind": "key_click"
   },
   {
@@ -2660,55 +2675,43 @@
    "kind": "key_click"
   },
   {
-   "t": 46.843,
+   "t": 46.855,
    "kind": "key_click"
   },
   {
-   "t": 46.886,
+   "t": 46.909,
    "kind": "key_click"
   },
   {
-   "t": 46.929,
+   "t": 46.964,
    "kind": "key_click"
   },
   {
-   "t": 46.971,
+   "t": 47.018,
    "kind": "key_click"
   },
   {
-   "t": 47.014,
+   "t": 47.073,
    "kind": "key_click"
   },
   {
-   "t": 47.057,
+   "t": 47.127,
    "kind": "key_click"
   },
   {
-   "t": 47.1,
+   "t": 47.182,
    "kind": "key_click"
   },
   {
-   "t": 47.143,
+   "t": 47.236,
    "kind": "key_click"
   },
   {
-   "t": 47.186,
+   "t": 47.291,
    "kind": "key_click"
   },
   {
-   "t": 47.229,
-   "kind": "key_click"
-  },
-  {
-   "t": 47.271,
-   "kind": "key_click"
-  },
-  {
-   "t": 47.314,
-   "kind": "key_click"
-  },
-  {
-   "t": 47.357,
+   "t": 47.345,
    "kind": "key_click"
   },
   {
@@ -2736,52 +2739,54 @@
    "kind": "reply_pop"
   },
   {
-   "t": 50.45,
+   "t": 49.9,
    "kind": "soft_tick"
   },
   {
-   "t": 51.0,
+   "t": 51.3,
    "kind": "soft_tick"
   },
   {
-   "t": 51.25,
+   "t": 52.7,
    "kind": "soft_tick"
   },
   {
-   "t": 51.5,
+   "t": 53.15,
+   "kind": "upvote_tick"
+  },
+  {
+   "t": 54.1,
    "kind": "soft_tick"
   },
   {
-   "t": 51.75,
+   "t": 54.35,
+   "kind": "soft_tick"
+  },
+  {
+   "t": 54.6,
+   "kind": "soft_tick"
+  },
+  {
+   "t": 54.9,
    "kind": "counter_ding"
   },
   {
-   "t": 53.65,
+   "t": 57.65,
    "kind": "whoosh",
    "dur": 0.6
   },
   {
-   "t": 55.0,
+   "t": 59.0,
    "kind": "ui_click"
   },
   {
-   "t": 55.88,
+   "t": 59.88,
    "kind": "swish_small",
    "dur": 0.3
   },
   {
-   "t": 56.9,
+   "t": 60.9,
    "kind": "ui_click"
-  },
-  {
-   "t": 57.88,
-   "kind": "swish_small",
-   "dur": 0.3
-  },
-  {
-   "t": 59.6,
-   "kind": "swish_small",
-   "dur": 0.5
   },
   {
    "t": 61.88,
@@ -2789,1146 +2794,1156 @@
    "dur": 0.3
   },
   {
-   "t": 63.88,
+   "t": 63.6,
+   "kind": "swish_small",
+   "dur": 0.5
+  },
+  {
+   "t": 65.88,
    "kind": "swish_small",
    "dur": 0.3
   },
   {
-   "t": 65.38,
+   "t": 67.88,
    "kind": "swish_small",
    "dur": 0.3
   },
   {
-   "t": 65.8,
-   "kind": "key_click"
-  },
-  {
-   "t": 65.865,
-   "kind": "key_click"
-  },
-  {
-   "t": 65.93,
-   "kind": "key_click"
-  },
-  {
-   "t": 65.995,
-   "kind": "key_click"
-  },
-  {
-   "t": 66.06,
-   "kind": "key_click"
-  },
-  {
-   "t": 66.125,
-   "kind": "key_click"
-  },
-  {
-   "t": 66.19,
-   "kind": "key_click"
-  },
-  {
-   "t": 66.255,
-   "kind": "key_click"
-  },
-  {
-   "t": 66.32,
-   "kind": "key_click"
-  },
-  {
-   "t": 66.385,
-   "kind": "key_click"
-  },
-  {
-   "t": 66.45,
-   "kind": "key_click"
-  },
-  {
-   "t": 66.515,
-   "kind": "key_click"
-  },
-  {
-   "t": 66.88,
+   "t": 69.38,
    "kind": "swish_small",
    "dur": 0.3
   },
   {
-   "t": 69.88,
+   "t": 69.8,
+   "kind": "key_click"
+  },
+  {
+   "t": 69.865,
+   "kind": "key_click"
+  },
+  {
+   "t": 69.93,
+   "kind": "key_click"
+  },
+  {
+   "t": 69.995,
+   "kind": "key_click"
+  },
+  {
+   "t": 70.06,
+   "kind": "key_click"
+  },
+  {
+   "t": 70.125,
+   "kind": "key_click"
+  },
+  {
+   "t": 70.19,
+   "kind": "key_click"
+  },
+  {
+   "t": 70.255,
+   "kind": "key_click"
+  },
+  {
+   "t": 70.32,
+   "kind": "key_click"
+  },
+  {
+   "t": 70.385,
+   "kind": "key_click"
+  },
+  {
+   "t": 70.45,
+   "kind": "key_click"
+  },
+  {
+   "t": 70.515,
+   "kind": "key_click"
+  },
+  {
+   "t": 70.88,
    "kind": "swish_small",
    "dur": 0.3
   },
   {
-   "t": 71.65,
+   "t": 73.88,
+   "kind": "swish_small",
+   "dur": 0.3
+  },
+  {
+   "t": 75.65,
    "kind": "whoosh",
    "dur": 0.6
   },
   {
-   "t": 75.0,
+   "t": 79.0,
    "kind": "countdown_hit"
   },
   {
-   "t": 76.0,
+   "t": 80.0,
    "kind": "countdown_hit"
-  },
-  {
-   "t": 77.0,
-   "kind": "countdown_hit"
-  },
-  {
-   "t": 77.85,
-   "kind": "ui_click_big"
-  },
-  {
-   "t": 78.0,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 78.42,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 78.66,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 78.88,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 79.12,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 79.31,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 79.6,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 79.6,
-   "kind": "error_beep"
-  },
-  {
-   "t": 79.85,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 79.85,
-   "kind": "error_beep"
-  },
-  {
-   "t": 80.1,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 80.1,
-   "kind": "error_beep"
-  },
-  {
-   "t": 80.35,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 80.35,
-   "kind": "error_beep"
-  },
-  {
-   "t": 80.6,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 80.6,
-   "kind": "error_beep"
-  },
-  {
-   "t": 80.8,
-   "kind": "glitch_hit"
-  },
-  {
-   "t": 80.8,
-   "kind": "error_beep"
   },
   {
    "t": 81.0,
+   "kind": "countdown_hit"
+  },
+  {
+   "t": 81.85,
+   "kind": "ui_click_big"
+  },
+  {
+   "t": 82.0,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 82.42,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 82.66,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 82.88,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 83.12,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 83.31,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 83.6,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 83.6,
+   "kind": "error_beep"
+  },
+  {
+   "t": 83.85,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 83.85,
+   "kind": "error_beep"
+  },
+  {
+   "t": 84.1,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 84.1,
+   "kind": "error_beep"
+  },
+  {
+   "t": 84.35,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 84.35,
+   "kind": "error_beep"
+  },
+  {
+   "t": 84.6,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 84.6,
+   "kind": "error_beep"
+  },
+  {
+   "t": 84.8,
+   "kind": "glitch_hit"
+  },
+  {
+   "t": 84.8,
+   "kind": "error_beep"
+  },
+  {
+   "t": 85.0,
    "kind": "static_rise",
    "dur": 0.9
   },
   {
-   "t": 82.3,
+   "t": 86.3,
    "kind": "bell_jingle"
   },
   {
-   "t": 84.7,
+   "t": 88.7,
    "kind": "blink_tick"
   },
   {
-   "t": 85.1,
+   "t": 89.1,
    "kind": "bell_jingle"
   },
   {
-   "t": 85.5,
+   "t": 89.5,
    "kind": "blink_tick"
   },
   {
-   "t": 85.8,
+   "t": 89.8,
    "kind": "blink_tick"
   },
   {
-   "t": 86.4,
+   "t": 90.4,
    "kind": "lights_on"
   },
   {
-   "t": 86.48,
+   "t": 90.48,
    "kind": "party_popper"
   },
   {
-   "t": 98.5,
+   "t": 252.5,
    "kind": "glitch_hit"
   },
   {
-   "t": 99.55,
+   "t": 253.55,
    "kind": "glitch_hit"
   },
   {
-   "t": 99.55,
+   "t": 253.55,
    "kind": "term_key"
   },
   {
-   "t": 99.5672,
+   "t": 253.5672,
    "kind": "term_key"
   },
   {
-   "t": 99.5845,
+   "t": 253.5845,
    "kind": "term_key"
   },
   {
-   "t": 99.6017,
+   "t": 253.6017,
    "kind": "term_key"
   },
   {
-   "t": 99.619,
+   "t": 253.619,
    "kind": "term_key"
   },
   {
-   "t": 99.6362,
+   "t": 253.6362,
    "kind": "term_key"
   },
   {
-   "t": 99.6534,
+   "t": 253.6534,
    "kind": "term_key"
   },
   {
-   "t": 99.6707,
+   "t": 253.6707,
    "kind": "term_key"
   },
   {
-   "t": 99.6879,
+   "t": 253.6879,
    "kind": "term_key"
   },
   {
-   "t": 99.7052,
+   "t": 253.7052,
    "kind": "term_key"
   },
   {
-   "t": 99.7224,
+   "t": 253.7224,
    "kind": "term_key"
   },
   {
-   "t": 99.7397,
+   "t": 253.7397,
    "kind": "term_key"
   },
   {
-   "t": 99.7569,
+   "t": 253.7569,
    "kind": "term_key"
   },
   {
-   "t": 99.7741,
+   "t": 253.7741,
    "kind": "term_key"
   },
   {
-   "t": 99.7914,
+   "t": 253.7914,
    "kind": "term_key"
   },
   {
-   "t": 99.8086,
+   "t": 253.8086,
    "kind": "term_key"
   },
   {
-   "t": 99.8259,
+   "t": 253.8259,
    "kind": "term_key"
   },
   {
-   "t": 99.8431,
+   "t": 253.8431,
    "kind": "term_key"
   },
   {
-   "t": 99.8603,
+   "t": 253.8603,
    "kind": "term_key"
   },
   {
-   "t": 99.8776,
+   "t": 253.8776,
    "kind": "term_key"
   },
   {
-   "t": 99.8948,
+   "t": 253.8948,
    "kind": "term_key"
   },
   {
-   "t": 99.9121,
+   "t": 253.9121,
    "kind": "term_key"
   },
   {
-   "t": 99.9293,
+   "t": 253.9293,
    "kind": "term_key"
   },
   {
-   "t": 99.9466,
+   "t": 253.9466,
    "kind": "term_key"
   },
   {
-   "t": 99.9638,
+   "t": 253.9638,
    "kind": "term_key"
   },
   {
-   "t": 99.981,
+   "t": 253.981,
    "kind": "term_key"
   },
   {
-   "t": 99.9983,
+   "t": 253.9983,
    "kind": "term_key"
   },
   {
-   "t": 100.0155,
+   "t": 254.0155,
    "kind": "term_key"
   },
   {
-   "t": 100.0328,
+   "t": 254.0328,
    "kind": "term_key"
   },
   {
-   "t": 100.05,
+   "t": 254.05,
    "kind": "term_key"
   },
   {
-   "t": 100.0672,
+   "t": 254.0672,
    "kind": "term_key"
   },
   {
-   "t": 100.0845,
+   "t": 254.0845,
    "kind": "term_key"
   },
   {
-   "t": 100.1017,
+   "t": 254.1017,
    "kind": "term_key"
   },
   {
-   "t": 100.119,
+   "t": 254.119,
    "kind": "term_key"
   },
   {
-   "t": 100.1362,
+   "t": 254.1362,
    "kind": "term_key"
   },
   {
-   "t": 100.1534,
+   "t": 254.1534,
    "kind": "term_key"
   },
   {
-   "t": 100.35,
+   "t": 254.35,
    "kind": "glitch_hit"
   },
   {
-   "t": 100.35,
+   "t": 254.35,
    "kind": "term_key"
   },
   {
-   "t": 100.3672,
+   "t": 254.3672,
    "kind": "term_key"
   },
   {
-   "t": 100.3845,
+   "t": 254.3845,
    "kind": "term_key"
   },
   {
-   "t": 100.4017,
+   "t": 254.4017,
    "kind": "term_key"
   },
   {
-   "t": 100.419,
+   "t": 254.419,
    "kind": "term_key"
   },
   {
-   "t": 100.4362,
+   "t": 254.4362,
    "kind": "term_key"
   },
   {
-   "t": 100.4534,
+   "t": 254.4534,
    "kind": "term_key"
   },
   {
-   "t": 100.4707,
+   "t": 254.4707,
    "kind": "term_key"
   },
   {
-   "t": 100.4879,
+   "t": 254.4879,
    "kind": "term_key"
   },
   {
-   "t": 100.5052,
+   "t": 254.5052,
    "kind": "term_key"
   },
   {
-   "t": 100.5224,
+   "t": 254.5224,
    "kind": "term_key"
   },
   {
-   "t": 100.5397,
+   "t": 254.5397,
    "kind": "term_key"
   },
   {
-   "t": 100.5569,
+   "t": 254.5569,
    "kind": "term_key"
   },
   {
-   "t": 100.5741,
+   "t": 254.5741,
    "kind": "term_key"
   },
   {
-   "t": 100.5914,
+   "t": 254.5914,
    "kind": "term_key"
   },
   {
-   "t": 100.6086,
+   "t": 254.6086,
    "kind": "term_key"
   },
   {
-   "t": 100.6259,
+   "t": 254.6259,
    "kind": "term_key"
   },
   {
-   "t": 100.6431,
+   "t": 254.6431,
    "kind": "term_key"
   },
   {
-   "t": 100.6603,
+   "t": 254.6603,
    "kind": "term_key"
   },
   {
-   "t": 100.6776,
+   "t": 254.6776,
    "kind": "term_key"
   },
   {
-   "t": 100.6948,
+   "t": 254.6948,
    "kind": "term_key"
   },
   {
-   "t": 100.7121,
+   "t": 254.7121,
    "kind": "term_key"
   },
   {
-   "t": 100.7293,
+   "t": 254.7293,
    "kind": "term_key"
   },
   {
-   "t": 100.7466,
+   "t": 254.7466,
    "kind": "term_key"
   },
   {
-   "t": 100.7638,
+   "t": 254.7638,
    "kind": "term_key"
   },
   {
-   "t": 100.781,
+   "t": 254.781,
    "kind": "term_key"
   },
   {
-   "t": 100.7983,
+   "t": 254.7983,
    "kind": "term_key"
   },
   {
-   "t": 101.05,
+   "t": 255.05,
    "kind": "glitch_hit"
   },
   {
-   "t": 101.05,
+   "t": 255.05,
    "kind": "term_key"
   },
   {
-   "t": 101.0672,
+   "t": 255.0672,
    "kind": "term_key"
   },
   {
-   "t": 101.0845,
+   "t": 255.0845,
    "kind": "term_key"
   },
   {
-   "t": 101.1017,
+   "t": 255.1017,
    "kind": "term_key"
   },
   {
-   "t": 101.119,
+   "t": 255.119,
    "kind": "term_key"
   },
   {
-   "t": 101.1362,
+   "t": 255.1362,
    "kind": "term_key"
   },
   {
-   "t": 101.1534,
+   "t": 255.1534,
    "kind": "term_key"
   },
   {
-   "t": 101.1707,
+   "t": 255.1707,
    "kind": "term_key"
   },
   {
-   "t": 101.1879,
+   "t": 255.1879,
    "kind": "term_key"
   },
   {
-   "t": 101.2052,
+   "t": 255.2052,
    "kind": "term_key"
   },
   {
-   "t": 101.2224,
+   "t": 255.2224,
    "kind": "term_key"
   },
   {
-   "t": 101.2397,
+   "t": 255.2397,
    "kind": "term_key"
   },
   {
-   "t": 101.2569,
+   "t": 255.2569,
    "kind": "term_key"
   },
   {
-   "t": 101.2741,
+   "t": 255.2741,
    "kind": "term_key"
   },
   {
-   "t": 101.2914,
+   "t": 255.2914,
    "kind": "term_key"
   },
   {
-   "t": 101.3086,
+   "t": 255.3086,
    "kind": "term_key"
   },
   {
-   "t": 101.3259,
+   "t": 255.3259,
    "kind": "term_key"
   },
   {
-   "t": 101.3431,
+   "t": 255.3431,
    "kind": "term_key"
   },
   {
-   "t": 101.3603,
+   "t": 255.3603,
    "kind": "term_key"
   },
   {
-   "t": 101.3776,
+   "t": 255.3776,
    "kind": "term_key"
   },
   {
-   "t": 101.3948,
+   "t": 255.3948,
    "kind": "term_key"
   },
   {
-   "t": 101.4121,
+   "t": 255.4121,
    "kind": "term_key"
   },
   {
-   "t": 101.95,
+   "t": 255.95,
    "kind": "glitch_hit"
   },
   {
-   "t": 101.95,
+   "t": 255.95,
    "kind": "term_key"
   },
   {
-   "t": 101.9672,
+   "t": 255.9672,
    "kind": "term_key"
   },
   {
-   "t": 101.9845,
+   "t": 255.9845,
    "kind": "term_key"
   },
   {
-   "t": 102.0017,
+   "t": 256.0017,
    "kind": "term_key"
   },
   {
-   "t": 102.019,
+   "t": 256.019,
    "kind": "term_key"
   },
   {
-   "t": 102.0362,
+   "t": 256.0362,
    "kind": "term_key"
   },
   {
-   "t": 102.0534,
+   "t": 256.0534,
    "kind": "term_key"
   },
   {
-   "t": 102.0707,
+   "t": 256.0707,
    "kind": "term_key"
   },
   {
-   "t": 102.0879,
+   "t": 256.0879,
    "kind": "term_key"
   },
   {
-   "t": 102.1052,
+   "t": 256.1052,
    "kind": "term_key"
   },
   {
-   "t": 102.1224,
+   "t": 256.1224,
    "kind": "term_key"
   },
   {
-   "t": 102.1397,
+   "t": 256.1397,
    "kind": "term_key"
   },
   {
-   "t": 102.1569,
+   "t": 256.1569,
    "kind": "term_key"
   },
   {
-   "t": 102.1741,
+   "t": 256.1741,
    "kind": "term_key"
   },
   {
-   "t": 102.1914,
+   "t": 256.1914,
    "kind": "term_key"
   },
   {
-   "t": 102.2086,
+   "t": 256.2086,
    "kind": "term_key"
   },
   {
-   "t": 102.2259,
+   "t": 256.2259,
    "kind": "term_key"
   },
   {
-   "t": 102.2431,
+   "t": 256.2431,
    "kind": "term_key"
   },
   {
-   "t": 102.2603,
+   "t": 256.2603,
    "kind": "term_key"
   },
   {
-   "t": 102.2776,
+   "t": 256.2776,
    "kind": "term_key"
   },
   {
-   "t": 102.2948,
+   "t": 256.2948,
    "kind": "term_key"
   },
   {
-   "t": 102.3121,
+   "t": 256.3121,
    "kind": "term_key"
   },
   {
-   "t": 102.3293,
+   "t": 256.3293,
    "kind": "term_key"
   },
   {
-   "t": 102.3466,
+   "t": 256.3466,
    "kind": "term_key"
   },
   {
-   "t": 102.3638,
+   "t": 256.3638,
    "kind": "term_key"
   },
   {
-   "t": 102.381,
+   "t": 256.381,
    "kind": "term_key"
   },
   {
-   "t": 102.6,
+   "t": 256.6,
    "kind": "crescendo_noise",
    "dur": 0.65
   },
   {
-   "t": 103.25,
+   "t": 257.25,
    "kind": "flash_impact"
   },
   {
-   "t": 105.1,
+   "t": 259.1,
    "kind": "type_soft"
   },
   {
-   "t": 105.1385,
+   "t": 259.1385,
    "kind": "type_soft"
   },
   {
-   "t": 105.1769,
+   "t": 259.1769,
    "kind": "type_soft"
   },
   {
-   "t": 105.2154,
+   "t": 259.2154,
    "kind": "type_soft"
   },
   {
-   "t": 105.2538,
+   "t": 259.2538,
    "kind": "type_soft"
   },
   {
-   "t": 105.2923,
+   "t": 259.2923,
    "kind": "type_soft"
   },
   {
-   "t": 105.3308,
+   "t": 259.3308,
    "kind": "type_soft"
   },
   {
-   "t": 105.3692,
+   "t": 259.3692,
    "kind": "type_soft"
   },
   {
-   "t": 105.4077,
+   "t": 259.4077,
    "kind": "type_soft"
   },
   {
-   "t": 105.4462,
+   "t": 259.4462,
    "kind": "type_soft"
   },
   {
-   "t": 105.4846,
+   "t": 259.4846,
    "kind": "type_soft"
   },
   {
-   "t": 105.5231,
+   "t": 259.5231,
    "kind": "type_soft"
   },
   {
-   "t": 105.5615,
+   "t": 259.5615,
    "kind": "type_soft"
   },
   {
-   "t": 105.6,
+   "t": 259.6,
    "kind": "type_soft"
   },
   {
-   "t": 106.5,
+   "t": 260.5,
    "kind": "type_soft"
   },
   {
-   "t": 106.5385,
+   "t": 260.5385,
    "kind": "type_soft"
   },
   {
-   "t": 106.5769,
+   "t": 260.5769,
    "kind": "type_soft"
   },
   {
-   "t": 106.6154,
+   "t": 260.6154,
    "kind": "type_soft"
   },
   {
-   "t": 106.6538,
+   "t": 260.6538,
    "kind": "type_soft"
   },
   {
-   "t": 106.6923,
+   "t": 260.6923,
    "kind": "type_soft"
   },
   {
-   "t": 106.7308,
+   "t": 260.7308,
    "kind": "type_soft"
   },
   {
-   "t": 106.7692,
+   "t": 260.7692,
    "kind": "type_soft"
   },
   {
-   "t": 106.8077,
+   "t": 260.8077,
    "kind": "type_soft"
   },
   {
-   "t": 106.8462,
+   "t": 260.8462,
    "kind": "type_soft"
   },
   {
-   "t": 106.8846,
+   "t": 260.8846,
    "kind": "type_soft"
   },
   {
-   "t": 106.9231,
+   "t": 260.9231,
    "kind": "type_soft"
   },
   {
-   "t": 106.9615,
+   "t": 260.9615,
    "kind": "type_soft"
   },
   {
-   "t": 107.0,
+   "t": 261.0,
    "kind": "type_soft"
   },
   {
-   "t": 107.0385,
+   "t": 261.0385,
    "kind": "type_soft"
   },
   {
-   "t": 107.0769,
+   "t": 261.0769,
    "kind": "type_soft"
   },
   {
-   "t": 107.1154,
+   "t": 261.1154,
    "kind": "type_soft"
   },
   {
-   "t": 107.1538,
+   "t": 261.1538,
    "kind": "type_soft"
   },
   {
-   "t": 107.1923,
+   "t": 261.1923,
    "kind": "type_soft"
   },
   {
-   "t": 107.2308,
+   "t": 261.2308,
    "kind": "type_soft"
   },
   {
-   "t": 107.2692,
+   "t": 261.2692,
    "kind": "type_soft"
   },
   {
-   "t": 107.3077,
+   "t": 261.3077,
    "kind": "type_soft"
   },
   {
-   "t": 107.3462,
+   "t": 261.3462,
    "kind": "type_soft"
   },
   {
-   "t": 107.3846,
+   "t": 261.3846,
    "kind": "type_soft"
   },
   {
-   "t": 107.4231,
+   "t": 261.4231,
    "kind": "type_soft"
   },
   {
-   "t": 107.4615,
+   "t": 261.4615,
    "kind": "type_soft"
   },
   {
-   "t": 107.5,
+   "t": 261.5,
    "kind": "type_soft"
   },
   {
-   "t": 107.5385,
+   "t": 261.5385,
    "kind": "type_soft"
   },
   {
-   "t": 107.5769,
+   "t": 261.5769,
    "kind": "type_soft"
   },
   {
-   "t": 107.6154,
+   "t": 261.6154,
    "kind": "type_soft"
   },
   {
-   "t": 107.6538,
+   "t": 261.6538,
    "kind": "type_soft"
   },
   {
-   "t": 107.6923,
+   "t": 261.6923,
    "kind": "type_soft"
   },
   {
-   "t": 107.7308,
+   "t": 261.7308,
    "kind": "type_soft"
   },
   {
-   "t": 107.7692,
+   "t": 261.7692,
    "kind": "type_soft"
   },
   {
-   "t": 107.8077,
+   "t": 261.8077,
    "kind": "type_soft"
   },
   {
-   "t": 107.8462,
+   "t": 261.8462,
    "kind": "type_soft"
   },
   {
-   "t": 107.8846,
+   "t": 261.8846,
    "kind": "type_soft"
   },
   {
-   "t": 107.9231,
+   "t": 261.9231,
    "kind": "type_soft"
   },
   {
-   "t": 107.9615,
+   "t": 261.9615,
    "kind": "type_soft"
   },
   {
-   "t": 108.0,
+   "t": 262.0,
    "kind": "type_soft"
   },
   {
-   "t": 108.0385,
+   "t": 262.0385,
    "kind": "type_soft"
   },
   {
-   "t": 108.0769,
+   "t": 262.0769,
    "kind": "type_soft"
   },
   {
-   "t": 108.1154,
+   "t": 262.1154,
    "kind": "type_soft"
   },
   {
-   "t": 108.1538,
+   "t": 262.1538,
    "kind": "type_soft"
   },
   {
-   "t": 108.1923,
+   "t": 262.1923,
    "kind": "type_soft"
   },
   {
-   "t": 108.2308,
+   "t": 262.2308,
    "kind": "type_soft"
   },
   {
-   "t": 108.2692,
+   "t": 262.2692,
    "kind": "type_soft"
   },
   {
-   "t": 109.5,
+   "t": 263.5,
    "kind": "type_soft"
   },
   {
-   "t": 109.5385,
+   "t": 263.5385,
    "kind": "type_soft"
   },
   {
-   "t": 109.5769,
+   "t": 263.5769,
    "kind": "type_soft"
   },
   {
-   "t": 109.6154,
+   "t": 263.6154,
    "kind": "type_soft"
   },
   {
-   "t": 109.6538,
+   "t": 263.6538,
    "kind": "type_soft"
   },
   {
-   "t": 109.6923,
+   "t": 263.6923,
    "kind": "type_soft"
   },
   {
-   "t": 109.7308,
+   "t": 263.7308,
    "kind": "type_soft"
   },
   {
-   "t": 109.7692,
+   "t": 263.7692,
    "kind": "type_soft"
   },
   {
-   "t": 109.8077,
+   "t": 263.8077,
    "kind": "type_soft"
   },
   {
-   "t": 109.8462,
+   "t": 263.8462,
    "kind": "type_soft"
   },
   {
-   "t": 109.8846,
+   "t": 263.8846,
    "kind": "type_soft"
   },
   {
-   "t": 110.7,
+   "t": 264.7,
    "kind": "type_soft"
   },
   {
-   "t": 110.7385,
+   "t": 264.7385,
    "kind": "type_soft"
   },
   {
-   "t": 110.7769,
+   "t": 264.7769,
    "kind": "type_soft"
   },
   {
-   "t": 110.8154,
+   "t": 264.8154,
    "kind": "type_soft"
   },
   {
-   "t": 110.8538,
+   "t": 264.8538,
    "kind": "type_soft"
   },
   {
-   "t": 110.8923,
+   "t": 264.8923,
    "kind": "type_soft"
   },
   {
-   "t": 110.9308,
+   "t": 264.9308,
    "kind": "type_soft"
   },
   {
-   "t": 110.9692,
+   "t": 264.9692,
    "kind": "type_soft"
   },
   {
-   "t": 111.0,
+   "t": 265.0,
    "kind": "riser",
    "dur": 2.0
   },
   {
-   "t": 111.0077,
+   "t": 265.0077,
    "kind": "type_soft"
   },
   {
-   "t": 111.0462,
+   "t": 265.0462,
    "kind": "type_soft"
   },
   {
-   "t": 111.0846,
+   "t": 265.0846,
    "kind": "type_soft"
   },
   {
-   "t": 111.1231,
+   "t": 265.1231,
    "kind": "type_soft"
   },
   {
-   "t": 111.1615,
+   "t": 265.1615,
    "kind": "type_soft"
   },
   {
-   "t": 111.2,
+   "t": 265.2,
    "kind": "type_soft"
   },
   {
-   "t": 111.2385,
+   "t": 265.2385,
    "kind": "type_soft"
   },
   {
-   "t": 111.2769,
+   "t": 265.2769,
    "kind": "type_soft"
   },
   {
-   "t": 111.3154,
+   "t": 265.3154,
    "kind": "type_soft"
   },
   {
-   "t": 111.3538,
+   "t": 265.3538,
    "kind": "type_soft"
   },
   {
-   "t": 111.3923,
+   "t": 265.3923,
    "kind": "type_soft"
   },
   {
-   "t": 111.4308,
+   "t": 265.4308,
    "kind": "type_soft"
   },
   {
-   "t": 111.4692,
+   "t": 265.4692,
    "kind": "type_soft"
   },
   {
-   "t": 111.5077,
+   "t": 265.5077,
    "kind": "type_soft"
   },
   {
-   "t": 113.0,
+   "t": 267.0,
    "kind": "impact_drop_big"
   },
   {
-   "t": 120.88,
+   "t": 274.88,
    "kind": "swish_small",
    "dur": 0.3
   },
   {
-   "t": 121.9,
+   "t": 275.9,
    "kind": "chart_build",
    "dur": 1.1,
    "id": "exam"
   },
   {
-   "t": 123.0,
+   "t": 277.0,
    "kind": "punch_ding",
    "id": "exam"
   },
   {
-   "t": 124.88,
+   "t": 278.88,
    "kind": "swish_small",
    "dur": 0.3
   },
   {
-   "t": 125.9,
+   "t": 279.9,
    "kind": "chart_build",
    "dur": 1.1,
    "id": "h0"
   },
   {
-   "t": 127.0,
+   "t": 281.0,
    "kind": "stamp",
    "id": "h0"
   },
   {
-   "t": 128.88,
+   "t": 282.88,
    "kind": "swish_small",
    "dur": 0.3
   },
   {
-   "t": 129.8,
+   "t": 283.8,
    "kind": "chart_build",
    "dur": 1.2,
    "id": "heart"
   },
   {
-   "t": 131.0,
+   "t": 285.0,
    "kind": "punch_ding",
    "id": "heart"
   },
   {
-   "t": 132.88,
+   "t": 286.88,
    "kind": "swish_small",
    "dur": 0.3
   },
   {
-   "t": 133.9,
+   "t": 287.9,
    "kind": "chart_build",
    "dur": 1.1,
    "id": "ci"
   },
   {
-   "t": 135.0,
+   "t": 289.0,
    "kind": "punch_ding",
    "id": "ci"
   },
   {
-   "t": 139.0,
+   "t": 293.0,
    "kind": "node_swarm",
    "dur": 0.8
   },
   {
-   "t": 143.0,
+   "t": 297.0,
    "kind": "gather_swell",
    "dur": 1.5
   },
   {
-   "t": 144.5,
+   "t": 298.5,
    "kind": "chime_big"
   },
   {
-   "t": 146.6,
+   "t": 300.6,
    "kind": "whoosh_soft",
    "dur": 0.8
   },
   {
-   "t": 150.8,
+   "t": 304.8,
    "kind": "bell_jingle"
   },
   {
-   "t": 151.5,
+   "t": 305.5,
    "kind": "reply_pop"
   }
  ]

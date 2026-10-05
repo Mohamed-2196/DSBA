@@ -8,8 +8,18 @@ python3 tools/noora/from_app.py                  # Mini Noora's sprites: the app
 python3 tools/make_cues.py                       # timeline -> cues.json
 python3 tools/audio/build_audio.py --no-review   # soundtrack + SFX -> out/audio/*.wav
 node tools/capture-ui.mjs                        # screenshots of the app -> assets/ui/
-DUR=$(python3 -c "import json;print(json.load(open('cues.json'))['duration'])")
-node tools/frames.mjs --from 0 --to "$DUR" --workers 2          # clean frames -> out/frames/
-python3 tools/glitch_post.py --frames out/frames --cues cues.json --out out/video_silent.mp4
-ffmpeg -y -i out/video_silent.mp4 -i out/audio/mix.wav -c:v copy -c:a aac -b:a 320k -movflags +faststart out/DSBA_Hub_Launch_Film.mp4
-ffmpeg -y -i out/video_silent.mp4 -i out/audio/sfx_only_mix.wav -c:v copy -c:a aac -b:a 320k -movflags +faststart out/DSBA_Hub_Launch_Film_no-music.mp4
+# Frames: everything but the repeats of the hold's loop (one pass is rendered; see tools/hold_loop.py).
+read -r DUR HOLD_END LOOP_END <<< "$(python3 -c "
+import json; c = json.load(open('cues.json')); h = c['birthday'].get('hold')
+print(c['duration'], h['end'] if h else c['duration'], h['loop_start'] + h['loop'] if h else c['duration'])")"
+node tools/frames.mjs --from 0 --to "$LOOP_END" --workers 2
+if [ "$HOLD_END" != "$DUR" ]; then
+  node tools/frames.mjs --from "$HOLD_END" --to "$DUR" --workers 2
+  python3 tools/hold_loop.py                     # the loop's pass, its end cross-faded -> out/hold_loop/
+fi
+# Encode each stretch (glitch pass included), then join them and mux the sound.
+python3 tools/assemble.py --list | while read -r name from to frames times; do
+  if [ "$name" = h1_hold_loop ]; then tools/seg_encode.sh "$name" "$from" "$to" out/hold_loop
+  else tools/seg_encode.sh "$name" "$from" "$to"; fi
+done
+python3 tools/assemble.py --mux DSBA_Hub_Launch_Film

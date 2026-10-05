@@ -1,5 +1,5 @@
 // Act 1 — the believable product-launch film for the new DSBA Hub, plus the DOM side of glitch #1
-// (0–82 s in cut 5). Every time comes from cues.json.
+// (0–86 s in cut 6). Every time comes from cues.json.
 import { W, H, el, chars, onFrame, scene, browser, cursor, callout, mulberry, clamp, lerp, prog, ease, track, filesPresent, loadBrand, hubLogo } from './lib.js';
 import { COHORTS, cohortNodes, crossLinks } from './net.js';
 
@@ -456,16 +456,17 @@ function s05({ tl, cues, config, stage, manifest: M, S }) {
 // ───────────────────────────────────────────────────────── s05b Mini Noora
 // The Hub's mascot, in two halves. Inside the browser she walks in at her corner of the home page; the
 // cursor picks her up, carries her across the page, puts her down and clicks her. That click opens the
-// close-up: her bust on the left and the chat on the right, where a photo of the "am I cooked?"
-// question is dropped in and she answers with the formula, the chapter and the lessons.
+// close-up: her bust on the left and the chat on the right, where a photo of a distribution-theory
+// question is dropped in with a real question about it, and she writes out the working one step at a
+// time, then the chapter and where to look.
 //
 // Whatever follows a path (she, both cursors, the dragged photo) and the state of the chat (what is
 // typed, sent and streamed, how far each block has opened) is worked out from the film time in onFrame.
 // The timeline only carries one-off entrances, pops and exits, and never touches a property that
 // onFrame writes.
 const NOORA = '../assets/noora';
-// the photo the student drops in: exam question 3(a), the reduction formula (1080×503)
-const QUESTION = '/dsba/public/demo/forum/reduction-formula.jpg';
+// the photo the student drops in: question 3 of a problem sheet, the Laplace distribution (974×463)
+const QUESTION = '/dsba/public/demo/noora/laplace-question.png';
 // plain interface glyphs, drawn here on a 24 px grid and stroked in the colour of their button
 const glyph = (d, w = 2.4) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const NR_GLYPH = {
@@ -501,7 +502,7 @@ function s05b({ tl, cues, config, stage, S }) {
   const { start, end } = S('s05b');
   const T = cues.noora;
   const tOpen = T.chat_open;
-  const [capPick, capAsk, capKnows] = T.captions;
+  const [capPick, ...capClose] = T.captions;     // one in the browser, the rest are the close-up's headlines
   const glide = (p) => p * p * p * (p * (p * 6 - 15) + 10);       // sets off and stops gently
   const root = scene(stage, 's05b', start, end);
   root.innerHTML = `<div class="bg-grid"></div>`;
@@ -636,7 +637,7 @@ function s05b({ tl, cues, config, stage, S }) {
   // ── the close-up (film pixels) ───────────────────────────────────────────────────────────────
   // Left: the small title, a two-line headline and her bust standing on the bottom edge. Right: the chat,
   // placed so that the copy in its header and in its composer stays inside the 96 px text-safe margin.
-  const PANEL = { x: 1004, y: 80, w: 820, h: 944 };
+  const PANEL = { x: 1004, y: 64, w: 820, h: 968 };
   const [d0, d1] = T.image_drag;
   const [k0] = T.thinking;
   const refAt = (i) => T.refs[i] ?? T.refs[T.refs.length - 1] + 0.2 * (i - T.refs.length + 1);
@@ -662,8 +663,8 @@ function s05b({ tl, cues, config, stage, S }) {
     return s;
   });
 
-  // the two headlines of the close-up: two lines each, the second one under the highlighter
-  const heads = [capAsk, capKnows].map((c) => {
+  // the headlines of the close-up: two lines each, the second one under the highlighter
+  const heads = capClose.map((c) => {
     const [a, b] = twoParts(c.text);
     const h = el('div', 'nr-head', `<div>${a}</div><div><span class="hl">${b}</span></div>`);
     const hl = h.querySelector('.hl');
@@ -689,7 +690,7 @@ function s05b({ tl, cues, config, stage, S }) {
       <div class="nr-slot"><div class="nr-row"><div class="nr-av">${face}</div><div class="nr-bub nr-bub--ans">
         <div class="nr-think"><span class="nr-dots"><i></i><i></i><i></i></span>${T.thinking_text}</div>
         <div class="nr-ans"><p></p></div>
-        <div class="nr-grow"><div class="nr-pad"><div class="nr-fcard"><div class="nr-fcard__f"><span>${T.formula_html}</span></div><div class="nr-fcard__n">${T.formula_note_html}</div></div></div></div>
+        ${T.steps.map((st, i) => `<div class="nr-grow nr-grow--step"><div class="nr-pad"><div class="nr-step${i === T.steps.length - 1 ? ' nr-step--result' : ''}"><div class="nr-step__h"><b>${i + 1}</b><em>${st.label_html || st.label}</em></div><div class="nr-step__m"><span${i === T.steps.length - 1 ? ' class="hl"' : ''}>${st.html}</span></div></div></div></div>`).join('')}
         <div class="nr-grow"><div class="nr-pad"><em class="nr-label">${T.refs_label}</em>${chip(chapter, true)}</div></div>
         <div class="nr-grow"><div class="nr-more">${lessons.map((r) => chip(r)).join('')}</div></div>
       </div></div></div>
@@ -734,14 +735,11 @@ function s05b({ tl, cues, config, stage, S }) {
     ansText.appendChild(s);
     return s;
   });
-  // in the formula the letters are italic and the figures upright, as in the exam paper
-  const figures = document.createTreeWalker(q('.nr-fcard__f'), NodeFilter.SHOW_TEXT);
-  for (let n = figures.nextNode(), next; n; n = next) {
-    next = figures.nextNode();
-    const parts = n.textContent.split(/(\d+)/);
-    if (parts.length > 1) n.replaceWith(...parts.map((part, i) => (i % 2 ? el('span', 'nr-num', part) : part)));
-  }
-  const [growFormula, growChapter, growLessons] = chat.querySelectorAll('.nr-grow');
+  // her working: one wrapper per step, then "Where to look" with the chapter, then the other references
+  const grows = [...chat.querySelectorAll('.nr-grow')];
+  const growSteps = grows.slice(0, T.steps.length);
+  const [growChapter, growLessons] = grows.slice(T.steps.length);
+  const stepEls = [...chat.querySelectorAll('.nr-step')];
   const chips = [...chat.querySelectorAll('.nr-chip')];
   const zone = q('.nr-zone');
   const tray = q('.nr-tray');
@@ -760,7 +758,10 @@ function s05b({ tl, cues, config, stage, S }) {
   tl.from(rowHi, { scale: 0.6, opacity: 0, duration: 0.32, ease: 'back.out(2)' }, T.greeting);
   chips.forEach((c, i) => tl.from(c, { scale: 0.7, opacity: 0, duration: 0.3, ease: 'back.out(2.2)' }, refAt(i) + 0.02));
   tl.fromTo(chips[0].querySelector('.hl'), { '--hlx': 0 }, { '--hlx': 1, duration: 0.32, ease: 'power3.out' }, T.cheer);
-  tl.from(q('.nr-fcard'), { scale: 0.9, opacity: 0, duration: 0.3, ease: 'power3.out' }, T.formula + 0.02);
+  stepEls.forEach((e, i) => tl.from(e, { scale: 0.94, opacity: 0, duration: 0.3, ease: 'power3.out' }, T.steps[i].t + 0.02));
+  // the highlighter lands on the result
+  const result = stepEls[stepEls.length - 1].querySelector('.hl');
+  tl.fromTo(result, { '--hlx': 0 }, { '--hlx': 1, duration: 0.34, ease: 'power3.out' }, T.result);
 
   /** The middle of a node in film pixels, from the layout (transforms are ignored: the chat is at rest whenever this is asked). */
   const middle = (node) => {
@@ -848,14 +849,14 @@ function s05b({ tl, cues, config, stage, S }) {
     const shown = answering ? Math.min(letters.length, 1 + Math.floor(letters.length * prog(t, T.answer, T.answer_end))) : 0;
     letters.forEach((s, i) => { s.style.visibility = i < shown ? 'inherit' : 'hidden'; });
     // The bubble opens from the size of the dots row to the size of the text, which then streams in.
-    // It hugs the longest line of the text until the formula card arrives and needs the full width.
+    // It hugs the longest line of the text until the first step arrives and needs the full width.
     const g = ease.out3(prog(t, T.answer, T.answer + 0.25));
-    const wide = ease.inOut3(prog(t, T.formula, T.formula + 0.25));
+    const wide = ease.inOut3(prog(t, T.steps[0].t, T.steps[0].t + 0.25));
     const longest = Math.max(...letters.map((s) => s.offsetLeft + s.offsetWidth));
     ans.style.width = wide >= 1 ? '' : `${Math.round(lerp(lerp(think.offsetWidth, longest, g), ansText.offsetWidth, wide))}px`;
     ans.style.height = g >= 1 ? '' : `${Math.round(lerp(think.offsetHeight, ansText.offsetHeight, g))}px`;
-    // the formula card, then "Where to look" with the chapter, grow in under the text
-    open(growFormula, ease.out3(prog(t, T.formula, T.formula + 0.25)));
+    // her working, a step at a time, then "Where to look" with the chapter, grow in under the text
+    growSteps.forEach((g, i) => open(g, ease.out3(prog(t, T.steps[i].t, T.steps[i].t + 0.25))));
     open(growChapter, ease.out3(prog(t, refAt(0), refAt(0) + 0.22)));
     // the lessons open line by line: one row if the chips fit side by side, a row each if they wrap
     growLessons.style.display = t >= refAt(1) ? '' : 'none';

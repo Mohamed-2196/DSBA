@@ -696,7 +696,13 @@ def birthday(cues):
     mel = cues["birthday"]["melody"]
     # Nothing of the song may sound before the lights come on: the mixer itself starts there.
     t_start = min(cues["birthday"]["lights_on"], pickup)
-    end = cues["g2"]["note_warp"]["t1"] + 0.6
+    # With a hold (cues.birthday.hold) nothing cuts the song: its last chord is held for FINAL
+    # seconds and let go, and the room is quiet until glitch #2. Without one the glitch takes
+    # the last "you" (note_warp), so the chord only has to last until the tape stop.
+    hold = cues["birthday"].get("hold")
+    rings = bool(hold) and hold["end"] - cut > 4.0
+    FINAL = 3.6
+    end = cut + FINAL + 3.0 if rings else cues["g2"]["note_warp"]["t1"] + 0.6
     rv = {
         "plate": dict(kind="ir", ir=make_ir(1.3, 1.9, rng_for("ir", "plate_bd"), predelay=0.014, er_level=0.25,
                                             hf=0.5), ret_db=-7),
@@ -755,7 +761,7 @@ def birthday(cues):
         elif k >= 0 and abs(bb) < 1e-3:
             vel *= 1.05                                  # downbeats lean in a little
         vel = float(np.clip((0.80 if last else vel) * hv(("mel", i), 0.96, 1.04), 0.3, 0.9))
-        ring = (end - t) if last else nt["dur"] + 0.05   # legato: a hair of overlap
+        ring = ((FINAL if rings else end - t) if last else nt["dur"] + 0.05)   # legato: a hair of overlap
         pn.add(melody, t, m, ring, vel, ("mel", i), pan=ppan(m), damper=0.3 if last else 0.12)
         # the 2nd and 4th phrases are harmonised in sixths below
         if ph in (1, 3) and not last:
@@ -802,9 +808,10 @@ def birthday(cues):
                     pan=(-0.25, 0.0, 0.25)[j % 3])
     # the final downbeat: bass, low fifth + rolled 6/9 chord, the sixth under the melody,
     # strings and a celesta roll - all on the cut, so that is what stutters and tape-stops
+    # (or, with a hold, what rings out as the song's ending)
     d = downs[-1]
     fin = bd_transposed(BD_FINAL, sh)
-    ring = end - d
+    ring = FINAL if rings else end - d
     bass.add(d + 0.003, ins.upright_bass(fin["bass"], ring, 0.95, rng_for("bdb", "fin"), tau=1.4), 1.0)
     for q, m in enumerate(fin["low"] + fin["lh"]):
         pn.add(comp, d + 0.006 * q, m, ring, 0.5 if q < len(fin["low"]) else 0.42, ("fin", q),
@@ -812,7 +819,7 @@ def birthday(cues):
     for q, m in enumerate(fin["rh"]):
         pn.add(comp, d + 0.004, m, ring, 0.5, ("finr", q), pan=ppan(m), damper=0.3, bright=0.7)
     brush.add(d, ins.brush_swish(rng_for("bdsw", "fin"), dur=beat * 1.6, peak=0.25), 0.8, pan=0.15)
-    pad.add(d, ins.strings(fin["pad"], ring, rng_for("bdpad", "fin"), attack=0.12, release=0.5, voices=3,
+    pad.add(d, ins.strings(fin["pad"], ring, rng_for("bdpad", "fin"), attack=0.12, release=1.6 if rings else 0.5, voices=3,
                            detune=6.0, lp=2200.0, vib_cents=6.0), 1.25)
     for q, m in enumerate(fin["cel"]):
         cel.add(d + 0.028 * q, ins.celesta(m, 0.7, rng_for("bdcel", "fin", q)), 1.0,
@@ -823,6 +830,8 @@ def birthday(cues):
 
 
 def birthday_glitch(mix, n0, cues):
+    if cues["birthday"].get("hold"):         # the song has ended long before glitch #2: nothing to sabotage
+        return mix
     from mixing import glitch2
     glitch2(mix, n0, cues["g2"])
     return mix
