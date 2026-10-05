@@ -6,12 +6,13 @@ cues.json. Never hand-edit cues.json; edit this file and re-run it.
 
 All times are in seconds from the start of the film. 30 fps, 1920x1080.
 
-Cut 3 (DSBA Hub): 141 s.
-  Act 1   0-64      opens straight on the notification pile-up, then the launch film for DSBA Hub
-  g1      64-68     glitch #1
-  Act 2   68-84.5   darkness and the cat's eyes (4.4 s), then the fake birthday for Noor
-  g2      84.5-91   glitch #2 (terminal: expected Noor's birthday, found Teacher's Day)
-  Act 3   91-141    the letter, Teacher's Day, "we ran the numbers", the network, finale
+Cut 5 (DSBA Hub): 153 s.
+  Act 1   0-76      three portal tabs and the notification pile-up, then the launch film for DSBA Hub
+                    (newsletter, forum, Mini Noora, the montage, 3-2-1)
+  g1      76-80     glitch #1
+  Act 2   80-96.5   darkness and the cat's eyes (4.4 s), then the fake birthday for Noor
+  g2      96.5-103  glitch #2 (terminal: expected Noor's birthday, found Teacher's Day)
+  Act 3   103-153   the letter, Teacher's Day, "we ran the numbers", the network, finale
 """
 import json
 import random
@@ -19,19 +20,19 @@ from pathlib import Path
 
 FPS = 30
 W, H = 1920, 1080
-DURATION = 141.0
+DURATION = 155.0
 
 # ---------------------------------------------------------------- tempo maps
 ACT1_BPM = 120          # beats at 0.0, 0.5, 1.0 ... ; bars (4/4) every 2.0s
 ACT1_DROP = 10.0
-ACT1_END = 64.0
+ACT1_END = 78.0
 BDAY_BPM = 110          # "Happy Birthday" (3/4)
-BDAY_START = 68.0       # scene start: darkness, a collar bell, two eyes that blink
-BDAY_LIGHTS = 72.4      # lights on
-BDAY_PICKUP = 72.5      # time of the first "Hap-" (pickup)
+BDAY_START = 82.0       # scene start: darkness, a collar bell, two eyes that blink
+BDAY_LIGHTS = 86.4      # lights on
+BDAY_PICKUP = 86.5      # time of the first "Hap-" (pickup)
 REVEAL_BPM = 120        # downbeat of the anthem drop
-REVEAL_DROP = 99.0
-PIANO_START = 91.0      # 4 bars of piano before the drop (91, 93, 95, 97)
+REVEAL_DROP = 113.0
+PIANO_START = 105.0     # 4 bars of piano before the drop (105, 107, 109, 111)
 
 bday_beat = 60.0 / BDAY_BPM
 
@@ -59,16 +60,17 @@ SCENES = [
     ("s03_logo",       10.0,  18.0, 1, "DROP. DSBA Hub: 'Here to help you through it.' + subline + 5 pills."),
     ("s04_newsletter", 18.0,  28.0, 1, "Feature 1 - the newsletter in a 3D browser frame: CFA Research Challenge, Student Council, Speech Day, the launch."),
     ("s05_forum",      28.0,  40.0, 1, "Feature 2 - Forum: the list; 'What is this, am I cooked?' is typed and posted in Year 1 Mathematical Methods; Nasser replies; easter egg."),
-    ("s06_everything", 40.0,  58.0, 1, "Montage: library, lessons, Career Navigator (scrolls), the calendar that keeps track of everything, grades, search; cohorts network; 'Built by students.'"),
-    ("s07_launch",     58.0,  64.0, 1, "'Launching today' + LAUNCH button + 3/2/1 countdown + click at 63.85."),
-    ("g1_glitch",      64.0,  68.0, 2, "Glitch #1: freeze, corruption, error windows, static, black."),
-    ("s08_birthday",   68.0,  84.5, 2, "4.4 s of darkness: a collar bell, two eyes, blinks. Lights on: Noor's cat in a party hat, 'Happy Birthday, Noor'."),
-    ("g2_glitch",      84.5,  91.0, 3, "Glitch #2: song cut on the final 'you', scramble, terminal (expected Noor's birthday, found Teacher's Day), flash, black+silence."),
-    ("s09_letter",     91.0,  99.0, 3, "Letter to the teachers, typed line by line over soft piano; riser into the drop."),
-    ("s10_teachers_day", 99.0, 105.0, 3, "DROP: HAPPY TEACHER'S DAY, gold, particles; 'Yes, it was yesterday.'"),
-    ("s11_numbers",    105.0, 125.0, 3, "'We study data. So we ran the numbers on you.' Four statistics jokes, one card each (4 s; the last one 6 s)."),
-    ("s12_network",    125.0, 133.0, 3, "The three cohorts as one network; the ~160 dots gather into THANK YOU."),
-    ("s13_finale",     133.0, 141.0, 3, "Happy Teacher's Day sign-off, institution logos, the cat says Meow, fade to black."),
+    ("s05b_noora",     40.0,  54.0, 1, "Feature 3 - Mini Noora, the Hub's study buddy: she is picked up and dragged, the chat opens, the 'am I cooked?' photo is dropped in, she answers with the chapter and lessons."),
+    ("s06_everything", 54.0,  72.0, 1, "Montage: library, lessons, Career Navigator (scrolls), the calendar that keeps track of everything, grades, search; cohorts network; 'Built by students.'"),
+    ("s07_launch",     72.0,  78.0, 1, "'Launching today' + LAUNCH button + 3/2/1 countdown + click at 77.85."),
+    ("g1_glitch",      78.0,  82.0, 2, "Glitch #1: freeze, corruption, error windows, static, black."),
+    ("s08_birthday",   82.0,  98.5, 2, "4.4 s of darkness: a collar bell, two eyes, blinks. Lights on: Noor's cat in a party hat, 'Happy Birthday, Noor'."),
+    ("g2_glitch",      98.5,  105.0, 3, "Glitch #2: song cut on the final 'you', scramble, terminal (expected Noor's birthday, found Teacher's Day), flash, black+silence."),
+    ("s09_letter",     105.0,  113.0, 3, "Letter to the teachers, typed line by line over soft piano; riser into the drop."),
+    ("s10_teachers_day", 113.0, 119.0, 3, "DROP: HAPPY TEACHER'S DAY, gold, particles; 'Yes, it was yesterday.'"),
+    ("s11_numbers",    119.0, 139.0, 3, "'We study data. So we ran the numbers on you.' Four statistics jokes, one card each (4 s; the last one 6 s)."),
+    ("s12_network",    139.0, 147.0, 3, "The three cohorts as one network; the ~160 dots gather into THANK YOU."),
+    ("s13_finale",     147.0, 155.0, 3, "Happy Teacher's Day sign-off, institution logos, the cat says Meow, fade to black."),
 ]
 S = {s[0].split("_")[0]: (s[1], s[2]) for s in SCENES}
 
@@ -147,6 +149,52 @@ FORUM = {
          "text": "You’re cooked if you don’t know integration by parts. Just apply it and you’ll get the answer."},
     ],
     "easter_egg": {"start": EGG_T0, "end": EGG_T1, "votes": 160, "ticks": upvote_ticks},
+}
+
+# Feature 3: Mini Noora, the mascot chatbot. First inside the browser (she waves, the cursor picks her
+# up and drags her, drops her, clicks her), then a close-up: her bust on the left, the chat on the right.
+n5 = S["s05b"][0]
+NOORA_TYPED_TEXT = "What is this, am I cooked? 💀"
+noora_t0, noora_t1 = n5 + 6.2, n5 + 7.4
+noora_typing = [round(noora_t0 + i * (noora_t1 - noora_t0) / len(NOORA_TYPED_TEXT), 3) for i in range(len(NOORA_TYPED_TEXT))]
+NOORA = {
+    "start": n5, "browser_in": n5 + 0.7,
+    "hello": n5 + 1.3,                       # she waves from the corner of the page
+    "grab": n5 + 2.3, "drag": [n5 + 2.3, n5 + 3.5], "drop": n5 + 3.5,   # picked up, carried (walking), put down
+    "open_click": n5 + 4.2, "chat_open": n5 + 4.25,                      # a click on her opens the chat (the close-up)
+    "greeting": n5 + 4.8,
+    "image_drag": [n5 + 5.3, n5 + 6.0], "image_drop": n5 + 6.0,          # the photo of the question is dropped into the chat
+    "typed_text": NOORA_TYPED_TEXT, "typing": noora_typing,
+    "send_click": n5 + 7.6, "sent": n5 + 7.65,
+    "thinking": [n5 + 7.8, n5 + 8.8],
+    "answer": n5 + 8.8, "answer_end": n5 + 10.2,                          # the answer streams in word by word
+    "formula": n5 + 10.45,
+    "refs": [n5 + 11.0, n5 + 11.25, n5 + 11.5],
+    "cheer": n5 + 11.75,                                                 # then the finished answer is held until the scene leaves
+    "kicker": "Feature 03 · Mini Noora", "title": "Meet Mini Noora.",
+    "captions": [
+        {"t": n5 + 1.9, "end": n5 + 4.15, "text": "Pick her up. Put her anywhere."},
+        {"t": n5 + 4.6, "end": n5 + 8.9, "text": "Ask her. Or drop in a photo."},
+        {"t": n5 + 9.2, "end": n5 + 13.6, "text": "She knows the chapter."},
+    ],
+    "chat_title": "Mini Noora", "chat_subtitle": "Knows your modules",
+    "placeholder": "Ask about a module, or drop a file…",
+    "greeting_text": "Hi Mohamed! Ask me about any module, or drop in a photo of a question.",
+    "attachment_name": "question-3a.jpg",
+    "thinking_text": "Reading your photo…",
+    "answer_text": "You’re not cooked 😄 It’s a reduction formula. Integrate by parts once and you get:",
+    "formula_text": "Iₙ = (n − 1)/n · Iₙ₋₂",
+    "formula_note": "so I₂ = π/4 and I₃ = 2/3",
+    # the same two lines as markup: the film sets them with real subscripts and a stacked fraction
+    "formula_html": "<i>I</i><sub>n</sub> = <span class=\"frac\"><b>n − 1</b><b>n</b></span> <i>I</i><sub>n−2</sub>",
+    "formula_note_html": "so <i>I</i><sub>2</sub> = π/4 and <i>I</i><sub>3</sub> = 2/3",
+    "refs_label": "Where to look",
+    "refs_text": [
+        {"code": "MT1186", "text": "Chapter 4 · The Art of Integration"},
+        {"code": "4.5", "text": "Integration by parts"},
+        {"code": "4.6", "text": "The DI method"},
+    ],
+    "end": S["s05b"][1],
 }
 
 # Montage of the rest of the Hub: cuts on bar / half-bar boundaries
@@ -302,7 +350,7 @@ for tab in TABS[1:]:
 add(CHAOS_FREEZE, "hard_stop")              # music + everything cuts (tape-stop 0.25s)
 add(CHAOS_IMPLODE[0], "reverse_riser", dur=round(CHAOS_IMPLODE[1] - CHAOS_IMPLODE[0], 3))  # sucks into the drop
 add(ACT1_DROP, "impact_drop")
-for t_ in (S["s04"][0], S["s05"][0], S["s06"][0], LAUNCH["start"]):
+for t_ in (S["s04"][0], S["s05"][0], S["s05b"][0], S["s06"][0], LAUNCH["start"]):
     add(t_ - 0.35, "whoosh", dur=0.6)
 for t_ in forum_typing:
     add(t_, "key_click")
@@ -313,6 +361,25 @@ for t_ in FORUM["replies"]:
 for t_ in upvote_ticks[::4]:          # every 4th +1 gets a tick (40 ticks)
     add(t_, "upvote_tick")
 add(EGG_T1, "counter_ding")
+# Mini Noora
+add(NOORA["hello"], "reply_pop")
+add(NOORA["grab"], "ui_click")
+add(NOORA["drop"], "post_pop")
+add(NOORA["open_click"], "ui_click")
+add(NOORA["chat_open"], "swish_small", dur=0.3)
+add(NOORA["greeting"], "reply_pop")
+add(NOORA["image_drop"], "post_pop")
+for t_ in noora_typing:
+    add(t_, "key_click")
+add(NOORA["send_click"], "ui_click")
+add(NOORA["sent"], "post_pop")
+for k in range(3):
+    add(NOORA["thinking"][0] + 0.12 + k * 0.3, "soft_tick")
+add(NOORA["answer"], "reply_pop")
+add(NOORA["formula"], "soft_tick")
+for t_ in NOORA["refs"]:
+    add(t_, "soft_tick")
+add(NOORA["cheer"], "counter_ding")
 for m in MONTAGE[1:]:
     add(m["t"] - 0.12, "swish_small", dur=0.3)
 add(FILE_CLICK, "ui_click")           # file opens
@@ -390,6 +457,7 @@ cues = {
              "pills_text": ["Newsletter", "Forum", "Library", "Lessons", "Career Navigator"]},
     "newsletter": NEWSLETTER,
     "forum": FORUM,
+    "noora": NOORA,
     "montage": {"start": S["s06"][0], "end": S["s06"][1], "cuts": MONTAGE,
                 "file_preview_click": FILE_CLICK, "lesson_play_click": LESSON_PLAY, "career_scroll": CAREER_SCROLL,
                 "search_text": SEARCH_TYPED_TEXT, "search_typing": search_typing},

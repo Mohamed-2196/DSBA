@@ -176,3 +176,115 @@ img { display: block; }
 .errwin__prog { margin: 0 30px 26px; height: 40px; border: 3px solid #08142e; background: #fff; }
 .errwin__prog i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(90deg, #1558f0 0 22px, #dde4ee 22px 28px); }
 
+/* ── s05b Mini Noora ── */
+/* the film's sans with the colour emoji font next in line, so that no emoji falls back to a plain outline glyph */
+#s05b { --nr-sans: 'Schibsted', 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', system-ui, sans-serif; }
+/* Inside the browser (page pixels in .bw__content): the little mascot, her shadow on the page, her "Hi!".
+   .nr-mini is a point, her chest: the sprites (340×392, shown at 56 %) hang around it. */
+.nr-shadow { position: absolute; left: 0; top: 0; z-index: 20; width: 128px; height: 28px; margin: -14px -64px; border-radius: 50%; background: radial-gradient(closest-side, rgba(10, 31, 68, .42), rgba(10, 31, 68, 0)); }
+.nr-mini { position: absolute; left: 0; top: 0; z-index: 21; width: 0; height: 0; transform-origin: 0 0; }
+.nr-mini__body { position: absolute; left: -95px; top: -129.6px; width: 190px; height: 219px; transform-origin: 95px 214.6px; }
+.nr-mini__body img { position: absolute; left: 0; top: 0; width: 190px; height: auto; }
+.nr-hi { position: absolute; left: -110px; bottom: 126px; width: 200px; display: flex; justify-content: center; transform-origin: 50% 100%; filter: drop-shadow(0 0 1.5px rgba(10, 31, 68, .45)) drop-shadow(0 8px 10px rgba(10, 31, 68, .22)); }
+.nr-hi span { position: relative; padding: 8px 22px 11px; border-radius: 24px; background: #fff; color: var(--ink); font-family: var(--nr-sans); font-size: 38px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; white-space: nowrap; }
+.nr-hi span::after { content: ''; position: absolute; left: 50%; bottom: -8px; width: 20px; height: 20px; margin-left: -4px; border-radius: 0 0 5px 0; background: #fff; transform: rotate(45deg); }
+
+/* The close-up (film pixels). Left column: the headline and her bust; right: the chat. */
+.nr-head { position: absolute; left: 110px; top: 190px; font-size: 84px; font-weight: 800; line-height: 89px; letter-spacing: -0.035em; white-space: nowrap; }
+.nr-head .hl { margin-left: -.16em; }
+.nr-bust { position: absolute; left: 150px; top: 480px; width: 600px; height: 600px; }
+.nr-bust__in { position: absolute; inset: 0; transform-origin: 50% 100%; }
+.nr-bust__in img { position: absolute; left: 0; top: 0; width: 600px; height: 600px; }
+.nr-spark { position: absolute; }
+.nr-spark svg { display: block; width: 100%; height: 100%; fill: var(--hl); }
+.nr-spark--blue svg { fill: var(--cobalt-2); }
+
+/* The chat: a light widget like the app's. Header, messages, attachment tray, composer. Its place and
+   size on film are set in act1.js (820 × 944 at 1004, 80). Every height in it is a whole number of
+   pixels (line heights included), so that the messages stay on the pixel grid while they are pushed up.
+   It has a glow but no hairline around it (as .bw and the caption box have): the hairline's corners
+   would cross the edges of the areas the chat repaints, and Chromium draws a curve a touch differently
+   when a repaint cuts it, so a few pixels there would depend on which frame was drawn before. */
+.nr-chat { position: absolute; display: flex; flex-direction: column; overflow: hidden; border-radius: 40px; background: #fff; color: var(--ink); font-family: var(--nr-sans); box-shadow: 0 50px 120px -30px rgba(0, 0, 0, .85), 0 0 130px -20px rgba(21, 88, 240, .6); }
+.nr-chat__head { flex: 0 0 108px; display: flex; align-items: center; gap: 20px; padding: 0 26px 0 28px; background: linear-gradient(135deg, #1558f0, #0c2d75); color: #fff; }
+/* her face in a disc: the bust sprite, placed so that her head fills it */
+.nr-av { position: relative; flex: 0 0 auto; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: #fff; box-shadow: 0 0 0 1.5px #dce5f2; }
+.nr-av img { position: absolute; left: -25px; top: -15px; width: 102px; height: 102px; }
+.nr-av--lg { width: 76px; height: 76px; box-shadow: 0 0 0 3px rgba(255, 255, 255, .28); }
+.nr-av--lg img { left: -37px; top: -22px; width: 150px; height: 150px; }
+.nr-chat__id { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.nr-chat__id b { font-size: 40px; font-weight: 800; line-height: 44px; letter-spacing: -0.022em; }
+.nr-chat__id span { display: flex; align-items: center; gap: 11px; font-size: 28px; font-weight: 500; line-height: 32px; color: #d6e3ff; }
+.nr-chat__id span i { width: 14px; height: 14px; border-radius: 50%; background: #38d9a9; box-shadow: 0 0 0 4px rgba(56, 217, 169, .26); }
+.nr-chat__x { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .16); }
+.nr-chat__x svg { width: 26px; height: 26px; }
+
+/* Messages hang from the bottom of their area; what is pushed out at the top fades under the header.
+   Each message sits in a slot (.nr-slot, a plain block) that onFrame opens to its height: the slot does
+   not clip, so a new message overhangs the bottom of the list and comes up from behind the composer. */
+.nr-msgs { position: relative; flex: 1 1 0; min-height: 0; overflow: hidden; background: #f4f7fc; }
+.nr-msgs::after { content: ''; position: absolute; left: 0; right: 0; top: 0; z-index: 2; height: 46px; background: linear-gradient(#f4f7fc 12%, rgba(244, 247, 252, 0)); }
+.nr-list { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 24px 24px; }
+.nr-row { display: flex; gap: 14px; padding-top: 16px; transform-origin: 26px 44px; }
+.nr-row--me { justify-content: flex-end; }
+.nr-row > .nr-av { margin-top: 2px; }
+.nr-bub { position: relative; max-width: 676px; padding: 18px 24px 20px; border: 1.5px solid #dce5f2; border-radius: 8px 26px 26px 26px; background: #fff; font-size: 33px; font-weight: 500; line-height: 43px; letter-spacing: -0.008em; text-wrap: balance; box-shadow: 0 8px 18px -12px rgba(10, 31, 68, .3); }
+/* the student's message: the photo, as wide as the bubble, over the line of text */
+.nr-bub--me { padding: 12px 12px 14px; border: 0; border-radius: 26px 8px 26px 26px; background: var(--cobalt); color: #fff; font-weight: 600; box-shadow: 0 10px 22px -12px rgba(21, 88, 240, .7); }
+.nr-shot { width: 484px; height: 230px; border: 4px solid #fff; border-radius: 16px; object-fit: cover; box-shadow: 0 8px 18px -8px rgba(4, 16, 48, .6); }
+.nr-bub--me p { padding: 9px 10px 0; white-space: nowrap; }
+/* her reply: the dots row first; with .is-answer the text takes its place (the row stays measurable) */
+.nr-bub--ans { transform-origin: 0 0; }
+.nr-think { display: flex; align-items: center; gap: 16px; width: max-content; height: 36px; font-size: 28px; line-height: 36px; color: #425372; white-space: nowrap; }
+.nr-dots { display: flex; gap: 8px; padding: 0 2px; }
+.nr-dots i { width: 12px; height: 12px; border-radius: 50%; background: var(--cobalt); }
+.nr-bub.is-answer .nr-think { position: absolute; visibility: hidden; }
+.nr-bub:not(.is-answer) .nr-ans { display: none; }
+.nr-ans { overflow: hidden; }
+.nr-ans p { position: relative; width: 626px; }
+/* blocks that grow in under the text: the wrapper's height is opened from onFrame */
+.nr-grow { overflow: hidden; }
+.nr-pad { padding-top: 14px; }
+.nr-fcard { padding: 12px 24px 16px; border-radius: 18px; background: #eef3fc; text-align: center; transform-origin: 50% 0; }
+.nr-fcard__f { height: 96px; display: flex; align-items: center; justify-content: center; font: italic 500 50px/60px var(--serif); letter-spacing: 0; white-space: nowrap; }
+.nr-fcard__f .nr-num { font-style: normal; }
+.nr-fcard__f sub { font-size: .56em; line-height: 0; vertical-align: -0.28em; margin-left: .03em; }
+.nr-fcard__f .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 .14em; font-size: .8em; line-height: 46px; }
+.nr-fcard__f .frac b { padding: 0 .2em; font-weight: inherit; }
+.nr-fcard__f .frac b:first-child { border-bottom: 2.5px solid var(--ink); }
+.nr-fcard__n { height: 38px; margin-top: 2px; font-size: 32px; font-weight: 500; line-height: 38px; letter-spacing: 0; color: #425372; }
+.nr-fcard__n i { font: italic 500 1.14em/1 var(--serif); }
+.nr-fcard__n sub { font-size: .78em; line-height: 0; vertical-align: -0.24em; }
+.nr-label { display: block; height: 32px; margin-bottom: 8px; font-size: 28px; font-style: normal; font-weight: 700; line-height: 32px; letter-spacing: 0; color: #7587a6; }
+/* the lessons: side by side if they fit, else one under the other (width: 0 keeps the row out of the bubble's own sizing) */
+.nr-more { position: relative; display: flex; flex-wrap: wrap; gap: 10px; width: 0; min-width: 100%; padding-top: 10px; }
+.nr-chip { display: flex; width: max-content; height: 54px; overflow: hidden; border-radius: 14px; white-space: nowrap; transform-origin: 0 50%; }
+.nr-chip b { display: flex; align-items: center; padding: 0 14px; background: var(--cobalt); color: #fff; font: 700 28px/1 var(--mono); letter-spacing: 0; }
+.nr-chip > span { display: flex; align-items: center; padding: 0 16px; background: #eaf0f9; font-size: 28px; font-weight: 600; line-height: 34px; letter-spacing: -0.01em; }
+.nr-chip .hl { margin: 0 -.12em; padding: 0 .12em; }
+/* the drop target shown while a file hovers over the chat */
+.nr-zone { position: absolute; inset: 14px; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 84px; border: 4px dashed var(--cobalt); border-radius: 28px; background: rgba(228, 237, 255, .94); color: var(--cobalt); font-size: 40px; font-weight: 800; line-height: 48px; letter-spacing: -0.02em; }
+.nr-zone svg { width: 88px; height: 88px; }
+
+.nr-foot { position: relative; flex: 0 0 auto; border-top: 1.5px solid #dce5f2; background: #fff; }
+.nr-tray { position: relative; height: 0; overflow: hidden; }
+.nr-file { position: absolute; left: 22px; bottom: 0; height: 72px; display: flex; align-items: center; gap: 14px; padding: 0 14px 0 8px; border: 1.5px solid #dce5f2; border-radius: 18px; background: #eef3fc; transform-origin: 0 100%; }
+.nr-file img { width: 56px; height: 56px; border-radius: 11px; object-fit: cover; }
+.nr-file b { font-size: 28px; font-weight: 600; line-height: 36px; letter-spacing: -0.01em; white-space: nowrap; }
+.nr-file svg { width: 24px; height: 24px; margin-left: 4px; color: #7587a6; }
+.nr-composer { height: 116px; display: flex; align-items: center; gap: 14px; padding: 0 22px; }
+.nr-btn { position: relative; flex: 0 0 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: #eaf0f9; color: var(--cobalt); }
+.nr-btn svg { position: relative; width: 30px; height: 30px; }
+.nr-btn--send { background: #c9d6ee; color: #fff; }
+.nr-btn--send i { position: absolute; inset: 0; border-radius: 50%; background: var(--cobalt); opacity: 0; }
+.nr-btn--send svg { width: 32px; height: 32px; }
+.nr-input { position: relative; flex: 1 1 auto; min-width: 0; height: 68px; display: flex; align-items: center; padding: 0 26px; overflow: hidden; border: 2px solid #dce5f2; border-radius: 34px; background: #f4f7fc; font-size: 32px; font-weight: 500; line-height: 40px; letter-spacing: -0.008em; white-space: nowrap; }
+.nr-input.is-on { border-color: var(--cobalt); background: #fff; }
+.nr-input__ph { position: absolute; left: 26px; color: #7587a6; }
+.nr-input__txt { white-space: pre; }
+.nr-caret { flex: 0 0 auto; width: 3px; height: 38px; margin-left: 2px; border-radius: 2px; background: var(--cobalt); }
+
+/* the photo while it is dragged in, and the film's own cursor (both placed by their own point: the photo's middle, the arrow's tip) */
+.nr-photo { position: absolute; left: 0; top: 0; z-index: 50; width: 420px; height: 204px; margin: -102px -210px; border: 8px solid #fff; border-radius: 18px; background: #fff; box-shadow: 0 34px 70px -18px rgba(0, 0, 0, .8), 0 0 0 1.5px rgba(10, 31, 68, .25); }
+.nr-photo img { width: 404px; height: 188px; border-radius: 10px; object-fit: cover; }
+.nr-hand { position: absolute; left: 0; top: 0; z-index: 51; width: 0; height: 0; transform-origin: 0 0; }

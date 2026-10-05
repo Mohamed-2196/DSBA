@@ -1,7 +1,7 @@
 # Film engine guide (read this before touching a scene)
 
 The film is ONE web page (`src/index.html`) rendered frame by frame by headless Chromium.
-1920×1080, 30 fps, 141.0 s (4230 frames) in cut 3. Every frame must be a pure function of the film time `t`.
+1920×1080, 30 fps, 155.0 s (4650 frames) in cut 5. Every frame must be a pure function of the film time `t`.
 
 ## Files
 - `tools/make_cues.py` → `cues.json`: the single source of truth for timing and on-screen copy.
@@ -11,9 +11,10 @@ The film is ONE web page (`src/index.html`) rendered frame by frame by headless 
 - `src/main.js`: loads cues/config, builds each act inside try/catch, exposes `window.__film.seek(t)`.
   `?only=2` (or `?only=3`, `?only=2,3`) builds just those acts.
 - `src/lib.js`: helpers (below). `src/net.js`: the shared cohort network (160 student dots).
-- `src/act1.js` + `src/film.css`: Act 1 and glitch 1 (0–68). `src/act2.js` + `src/act2.css`: Act 2 and glitch 2 (68–91).
-  `src/act3.js` + `src/act3.css`: Act 3 (91–141). Scene times always come from `cues.scenes` via `S('s08')`; never hard-code them. One owner per act; stay in your files.
-- `assets/`: images (`assets/ui/*.png` are app screenshots, `assets/cat/` is Noor's cat).
+- `src/act1.js` + `src/film.css`: Act 1 and glitch 1 (0–82). `src/act2.js` + `src/act2.css`: Act 2 and glitch 2 (82–105).
+  `src/act3.js` + `src/act3.css`: Act 3 (105–155). Scene times always come from `cues.scenes` via `S('s08')`; never hard-code them. One owner per act; stay in your files.
+- `assets/`: images (`assets/ui/*.png` are app screenshots, `assets/cat/` is Noor's cat, `assets/noora/` Mini Noora's
+  sprites: full-body poses on one 680×784 canvas with half-size twins in `sm/`, busts on a 600×600 one).
   Reference assets from scenes as `../assets/...`. Brand logos: `/dsba/public/brand/{bibf-white,bibf,uol,myclass-white,myclass}.png`.
 
 ## How a scene is built
@@ -40,6 +41,11 @@ export function buildAct2({ tl, cues, config, stage, S }) {
    frame must not depend on earlier frames (no accumulated state in `onFrame`; recompute from `t`).
 2. **GSAP `from`/`fromTo` render immediately at build time.** Use at most one `from` per element+property;
    later tweens on the same property use `to`, or pass `immediateRender: false`. `tl.set` is fine.
+   **One writer per property.** Never drive the same property of the same element from both the timeline and an
+   `onFrame` write: the tween captures its start value from whatever the last frame left there. Anything that follows
+   a path (a cursor carrying something, a dragged card) is computed from `t` in one `onFrame`; the timeline keeps the
+   one-off entrances and exits. The same goes for measurements: read sizes inside `onFrame`, never cache one taken at
+   build time (the fonts are not loaded yet). `node tools/seekcheck.mjs --times …` proves a scene is seek-order-proof.
 3. `chars(node)` splits text into inline-block spans (`.ch`) for staggered reveals.
 4. `typeText(node, text, t0, cps, { caret })` types text as a pure function of time.
 5. Canvas: a `<canvas width="1920" height="1080">` cleared and redrawn in `onFrame`. Keep particle counts

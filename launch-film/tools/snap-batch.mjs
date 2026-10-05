@@ -3,7 +3,7 @@
 //
 //   node tools/snap-batch.mjs spec.json outDir
 //
-// spec.json: [{ name, hash, w?, h?, scale?, theme?, year?, full?, selector?, wait?, clearYear?,
+// spec.json: [{ name, hash, w?, h?, scale?, theme?, year?, full?, selector?, wait?, clearYear?, noora?,
 //               ls?: {key: value}, steps?: [{click}|{type:[sel,text]}|{press}|{wait}|{eval}|{hover}|{scroll:[sel,y]}] }]
 import fs from 'fs';
 import path from 'path';
@@ -33,13 +33,15 @@ export async function openPage(browser, s = {}) {
     return route.abort();
   });
   await page.clock.setFixedTime(new Date(s.now || FILM_NOW));
-  await page.addInitScript(([theme, year, clearYear, ls]) => {
+  await page.addInitScript(([theme, year, clearYear, ls, noora]) => {
     try {
       if (clearYear) localStorage.removeItem('selectedYear'); else localStorage.setItem('selectedYear', year);
       localStorage.setItem('theme', theme);
+      // Mini Noora (the floating mascot) stays out of the film's page captures unless a shot asks for her: { noora: true }
+      localStorage.setItem('hub.noora.hidden', noora ? '0' : '1');
       for (const [k, v] of Object.entries(ls || {})) localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
     } catch { /* ignore */ }
-  }, [s.theme || 'light', String(s.year || 2), !!s.clearYear, s.ls || null]);
+  }, [s.theme || 'light', String(s.year || 2), !!s.clearYear, s.ls || null, !!s.noora]);
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !/posthog|ERR_FAILED|Failed to load resource/i.test(m.text())) errors.push(m.text()); });

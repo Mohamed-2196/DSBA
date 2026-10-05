@@ -136,6 +136,7 @@ def act1(cues):
     logo = scene(cues, "s03_logo")
     news = scene(cues, "s04_newsletter")
     forum = scene(cues, "s05_forum")
+    noora = next(((x["start"], x["end"]) for x in cues["scenes"] if x["id"] == "s05b_noora"), None)   # optional scene
     mont = scene(cues, "s06_everything")
     launch = scene(cues, "s07_launch")
     g1 = cues["g1"]
@@ -406,6 +407,17 @@ def act1(cues):
     snare_fill(forum[1], 4, toms=True)
     t_l, sig = ins.lead_line(lead_notes(chs, motif_names_for(chs)), rng_for("lead", "forum"))
     B["lead"].add(t_l, sig, 1.0)
+    # Mini Noora (when the cut has her): groove A again, lighter and playful, with a glock sparkle
+    # when the chat opens, when she answers and when the chapter chips arrive
+    if noora:
+        groove(noora[0], noora[1], "grooveA")
+        B["drums"].add(noora[0], CRASH, 0.55)
+        snare_fill(noora[1], 4, toms=True)
+        N = cues.get("noora", {})
+        for key, notes in (("chat_open", (84, 88, 91)), ("answer", (88, 91, 96)), ("cheer", (91, 96, 100, 103))):
+            if key in N:
+                for i, m in enumerate(notes):
+                    B["bells"].add(N[key] + i * s16, ins.glock(m, 0.8), 0.9)
     # montage: everything, lead doubled, fills into every cut, crashes on the cuts
     chs = groove(mont[0], mont[1], "montage")
     B["drums"].add(mont[0], CRASH, 0.75)

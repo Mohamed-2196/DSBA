@@ -4,6 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 python3 tools/intake_brand.py                    # supplied logos + cover art -> assets/ and the app (needs the source files)
+python3 tools/noora/from_app.py                  # Mini Noora's sprites: the app's public/noora -> assets/noora
 python3 tools/make_cues.py                       # timeline -> cues.json
 python3 tools/audio/build_audio.py --no-review   # soundtrack + SFX -> out/audio/*.wav
 node tools/capture-ui.mjs                        # screenshots of the app -> assets/ui/
