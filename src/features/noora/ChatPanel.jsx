@@ -56,7 +56,8 @@ function spokenFor(messages, pending) {
   const last = messages[messages.length - 1];
   if (last.from !== 'noora') return '';
   const where = last.refs && last.refs.length ? ` Where to look: ${last.refs.map((r) => `${r.code}, ${r.label}`).join('; ')}.` : '';
-  return `${last.text}${last.formula ? ` ${last.formula.say}` : ''}${where}`;
+  const working = (last.steps || []).map((s) => s.say).join(' ');
+  return `${last.text}${last.formula ? ` ${last.formula.say}` : ''}${working ? ` ${working}` : ''}${where}`;
 }
 
 const carriesFiles = (e) => Array.from(e.dataTransfer?.types || []).includes('Files');

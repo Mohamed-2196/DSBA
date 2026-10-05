@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { cx } from '../../ui';
 import { FileChip, Shot } from './Attachment.jsx';
 import { Face } from './Face.jsx';
-import { Formula } from './Formula.jsx';
+import { Formula, Steps } from './Formula.jsx';
 
 /** "Where to look": links to the module, chapter or exact lesson. */
 function Refs({ refs, onFollow }) {
@@ -56,6 +56,7 @@ const NooraMessage = memo(function NooraMessage({ message, shown, isNew, suggest
             {typing ? <span className="nc-caret" aria-hidden="true" /> : null}
           </p>
           {!typing && message.formula ? <Formula formula={message.formula} /> : null}
+          {!typing && message.steps?.length ? <Steps steps={message.steps} /> : null}
           {!typing && message.refs?.length ? <Refs refs={message.refs} onFollow={onFollow} /> : null}
         </div>
         {suggest && message.suggestions?.length ? (

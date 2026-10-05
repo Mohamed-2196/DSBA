@@ -2,10 +2,11 @@
 // module list (src/data/modules.js: every module, chapter and lesson) and calendar, and answers with
 // where to look. Everything here is a pure function of its arguments: no network, no storage, no React.
 //
-//   answer({ text, attachments, year, now }) → { mood, text, formula?, refs, suggestions? }
+//   answer({ text, attachments, year, now }) → { mood, text, formula?, steps?, refs, suggestions? }
 //     mood         how she says it: 'happy' | 'laughing' | 'angry' | 'sad' | 'wave' | 'neutral'
 //     text         one or two short sentences
 //     formula      { say, line, note? }: a formula as plain data, set as real maths by Formula.jsx
+//     steps        [{ label, line, say, result? }]: a worked solution, one numbered card per step
 //     refs         [{ code, label, to }]: the "Where to look" links (`to` is a route in the app)
 //     suggestions  questions to offer as chips
 import { MODULES, getModuleStats } from '../../data/modules.js';
@@ -191,6 +192,7 @@ function topicRefs(topics) {
 // ── Formulas (plain data: strings are set upright, v() is a variable in italics) ──────────────────
 const v = (name) => ({ v: name });
 const sub = (name, ...below) => ({ v: name, sub: below });
+const pow = (name, ...above) => ({ v: name, sup: above });
 const frac = (top, bottom) => ({ top, bottom });
 const n = v('n');
 
@@ -200,13 +202,38 @@ const REDUCTION_FORMULA = {
   note: ['so ', sub('I', '2'), ' = π/4 and ', sub('I', '3'), ' = 2/3'],
 };
 
+// The moment generating function of the Laplace distribution with density k·e^(−λ|x|), worked in three steps.
+// (int(lower, upper) is an integral sign with its limits, big() a tall bracket.)
+const int = (lower, upper) => ({ int: [lower, upper] });
+const big = (bracket) => ({ big: bracket });
+const half = frac(['λ'], ['2']);
+const mgf = [sub('M', v('X')), '(', v('t'), ')'];
+const LAPLACE_MGF_STEPS = [
+  {
+    label: ['With ', v('k'), ' = λ/2 from (a), split at ', v('x'), ' = 0'],
+    say: 'M X of t equals lambda over 2, times the integral from minus infinity to 0 of e to the lambda plus t, x, plus the integral from 0 to infinity of e to the minus lambda minus t, x.',
+    line: [...mgf, ' = ', half, big('['), int('−∞', '0'), pow('e', '(λ+', v('t'), ')', v('x')), ' ', v('dx'), ' + ', int('0', '∞'), pow('e', '−(λ−', v('t'), ')', v('x')), ' ', v('dx'), big(']')],
+  },
+  {
+    label: ['Integrate each piece, for |', v('t'), '| < λ'],
+    say: 'That equals lambda over 2, times 1 over lambda plus t, plus 1 over lambda minus t.',
+    line: ['= ', half, big('['), frac(['1'], ['λ + ', v('t')]), ' + ', frac(['1'], ['λ − ', v('t')]), big(']')],
+  },
+  {
+    label: ['Add the two fractions'],
+    say: 'So M X of t equals lambda squared over lambda squared minus t squared.',
+    line: [...mgf, ' = ', frac([pow('λ', '2')], [pow('λ', '2'), ' − ', pow('t', '2')])],
+    result: true,
+  },
+];
+
 const BY_PARTS_FORMULA = {
   say: 'The integral of u d v equals u v, minus the integral of v d u.',
   line: ['∫ ', v('u'), ' d', v('v'), ' = ', v('u'), v('v'), ' − ∫ ', v('v'), ' d', v('u')],
 };
 
 // ── Answers ───────────────────────────────────────────────────────────────────────────────────────
-const SUGGESTIONS = ['Where is integration by parts?', 'What’s in ST2133?', 'When is my next exam?', 'What is this, am I cooked? 💀'];
+const SUGGESTIONS = ['How do I find the MGF?', 'Where is integration by parts?', 'What’s in ST2133?', 'When is my next exam?'];
 const TRY_INSTEAD = ['Where is hypothesis testing?', 'What’s in ST2133?', 'When is my next exam?'];
 
 const firstName = () => String(CURRENT_USER.name || '').split(' ')[0] || 'there';
@@ -236,7 +263,29 @@ function findIntegration() {
   return { m, chapter, refs: refs.filter(Boolean) };
 }
 
-/** The question from the launch film: a photo of a reduction formula, "am I cooked?". */
+/**
+ * The question from the launch film: a photo of a problem on the Laplace distribution, and "How do I find
+ * the MGF?". The places are looked up by name (the chapter on univariate distributions in ST2133 and its
+ * lesson on the exponential distribution), plus the table of continuous distributions in the library.
+ */
+function aboutTheMgf() {
+  const m = INDEX.find((x) => x.id === 'advanced-stats-distribution');
+  const chapter = m && m.chapters.find((c) => /univariate/i.test(c.title));
+  const exponential = chapter && chapter.lessons.find((l) => /exponential distribution/i.test(l.title));
+  const refs = [
+    chapter ? chapterRef(m, chapter) : m && moduleRef(m),
+    exponential && lessonRef(chapter, exponential, 'The exponential distribution'),
+    { code: 'Library', label: 'Common continuous distributions', to: '/library/st2133-common-continuous-distributions' },
+  ];
+  return {
+    mood: 'happy',
+    text: 'Here’s how, step by step:',
+    steps: LAPLACE_MGF_STEPS,
+    refs: refs.filter(Boolean),
+  };
+}
+
+/** The forum's question ("What is this, am I cooked?"): a reduction formula. */
 function aboutTheReductionFormula() {
   return {
     mood: 'laughing',
@@ -348,7 +397,8 @@ function aboutFiles(named) {
 // What a message is asking for. They are tested in the order answer() lists them.
 const ASKS_TO_CHEAT =
   /\b(do|write|finish|complete|solve) (my|our|the|this|me)\b.*\b(homework|coursework|assignment|essay|problem set|exam|mock|paper)\b|\b(exam|mock|test|homework|coursework|assignment) answers\b|\banswers (to|for) (the |my )?(exam|mock|test|homework|coursework|assignment)\b|\bgive me (the )?answers\b|\bcheat(ing)?\b(?! ?sheet)/;
-const THE_FILM_QUESTION = /\bcooked\b|\bwhat\s?i?s this\b|\breduction formula/;
+const THE_FILM_QUESTION = /\bmgfs?\b|\bmoment generating\b|\blaplace\b/;
+const THE_FORUM_QUESTION = /\bcooked\b|\bwhat\s?i?s this\b|\breduction formula/;
 const BY_PARTS = /\bby parts\b|\bdi method\b/;
 const ABOUT_FILES = /\b(past|previous|old)\s+(exam\s+)?(papers?|exams?)\b|\bcheat\s?sheets?\b|\bstudy guides?\b|\bnotes\b/;
 const ABOUT_EXAMS = /\b(exams?|mocks?|finals)\b/;
@@ -382,7 +432,7 @@ function lookUp(text, said, year) {
  */
 export function answer({ text = '', attachments = [], year = null, now = Date.now() } = {}) {
   // A photo of a question: the one from the launch film.
-  if (attachments.some((a) => a.kind === 'image')) return aboutTheReductionFormula();
+  if (attachments.some((a) => a.kind === 'image')) return aboutTheMgf();
 
   const said = wordsOf(text).join(' ');
   const named = () => {
@@ -395,7 +445,8 @@ export function answer({ text = '', attachments = [], year = null, now = Date.no
     const refs = found ? found.refs.slice(0, 4) : [];
     return { mood: 'angry', text: `Nice try 😤 I won’t do it for you, but I’ll show you where it’s taught.${refs.length ? '' : ' Tell me the topic.'}`, refs };
   }
-  if (THE_FILM_QUESTION.test(said)) return aboutTheReductionFormula();
+  if (THE_FILM_QUESTION.test(said)) return aboutTheMgf();
+  if (THE_FORUM_QUESTION.test(said)) return aboutTheReductionFormula();
   if (BY_PARTS.test(said)) return aboutIntegrationByParts();
   if (SAYS_THANKS.test(said)) return { mood: 'laughing', text: 'Any time 😄 Good luck with the revision!', refs: [] };
   if (ABOUT_FILES.test(said)) return aboutFiles(named());

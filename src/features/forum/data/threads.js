@@ -688,7 +688,7 @@ export const SEED_THREADS = [
     ago: m(175),
     votes: 23,
     tags: [],
-    body: 'Is it just me, or is everyone in a suspiciously good mood today? People keep smiling at me in the corridor. What did I miss?',
+    body: 'Is it just me, or is everyone in a suspiciously good mood today? The group chats are quiet and nobody is complaining about anything. What did I miss?',
     replies: [
       { id: 'a', author: 'zainab-k', ago: m(152), votes: 15, body: 'Nothing to see here 🙂' },
       { id: 'b', author: 'ali-h', ago: m(141), votes: 12, body: 'Just enjoy the launch.' },

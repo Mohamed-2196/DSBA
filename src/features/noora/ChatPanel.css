@@ -168,6 +168,7 @@
 .nc-formula__note { margin-top: 4px; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.4; }
 .nc-formula i { font-style: italic; }
 .nc-formula sub { margin-left: 0.04em; font-size: 0.62em; line-height: 0; vertical-align: -0.38em; }
+.nc-formula sup { margin-left: 0.04em; font-size: 0.62em; line-height: 0; vertical-align: 0.6em; }
 .nc-frac {
   display: inline-flex;
   flex-direction: column;
@@ -177,8 +178,40 @@
   line-height: 1.15;
   vertical-align: middle;
 }
-.nc-frac__top { padding: 0 0.34em 0.08em; border-bottom: 1.5px solid currentColor; }
-.nc-frac__bottom { padding: 0.08em 0.34em 0; }
+/* both halves are as wide as the wider one, so the rule spans the whole fraction */
+.nc-frac__top { align-self: stretch; padding: 0 0.34em 0.08em; border-bottom: 1.5px solid currentColor; }
+.nc-frac__bottom { align-self: stretch; padding: 0.08em 0.34em 0; }
+
+/* A worked solution: one pale card per step, a numbered disc and a line of words over a line of maths. */
+.nc-steps { display: grid; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.nc-step { padding: 8px 10px 9px; border-radius: var(--r-control); background: var(--surface-2); color: var(--ink); }
+.nc-step__label { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); line-height: 1.35; }
+.nc-step__label b {
+  flex: 0 0 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--cobalt);
+  color: var(--cobalt-ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+}
+.nc-step__label i { font-family: var(--font-serif); font-size: 1.12em; font-style: italic; font-weight: var(--fw-medium); }
+.nc-step__line { margin-top: 5px; overflow-x: auto; font-family: var(--font-serif); font-size: var(--fs-16); line-height: 1.5; text-align: center; white-space: nowrap; }
+.nc-step--result .nc-step__line { font-size: var(--fs-20); }
+.nc-step--result .nc-step__line > span { padding: 2px 8px; border-radius: var(--r-xs); background: var(--highlight); color: #0A1F44; }
+.nc-step i { font-style: italic; }
+.nc-step sub { margin-left: 0.04em; font-size: 0.62em; line-height: 0; vertical-align: -0.38em; }
+.nc-step sup { margin-left: 0.04em; font-size: 0.62em; line-height: 0; vertical-align: 0.6em; }
+.nc-step .nc-frac { font-size: 0.86em; }
+.nc-step--result .nc-frac__top { border-bottom-color: #0A1F44; }
+.nc-int { display: inline-flex; align-items: center; margin: 0 0.08em; vertical-align: middle; }
+.nc-int__sign { font-size: 1.7em; line-height: 1; font-weight: 300; }
+.nc-int__limits { display: inline-flex; flex-direction: column; gap: 0.9em; margin: 0 0.14em 0 0.02em; font-size: 0.58em; line-height: 1; text-align: left; }
+.nc-int__limits span:first-child { margin-left: 0.5em; }
+.nc-big { display: inline-block; margin: 0 0.06em; font-weight: 300; transform: scaleY(1.9); }
 
 /* "Where to look": each reference is a link with a code (mono, on cobalt) and a label. */
 .nc-refs { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }

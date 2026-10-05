@@ -31,7 +31,7 @@ function thinkingTime(text, attachments) {
  * @param year  the year the student is browsing (the brain uses it to break ties)
  * @param calm  reduced motion: replies appear whole instead of streaming
  * @returns {{ messages, pending, busy, send }}
- *   messages  [{ id, from: 'noora'|'me', text, attachments?, mood?, formula?, refs?, suggestions? }]
+ *   messages  [{ id, from: 'noora'|'me', text, attachments?, mood?, formula?, steps?, refs?, suggestions? }]
  *   busy      she is still answering; send() does nothing until she has finished
  *   send({ text, attachments }) → true if the message was taken
  */
