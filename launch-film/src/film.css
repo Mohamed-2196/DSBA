@@ -26,6 +26,14 @@ body { font-family: var(--sans); color: var(--white); -webkit-font-smoothing: an
 .ch { display: inline-block; white-space: pre; }
 img { display: block; }
 #fade { position: absolute; inset: 0; background: #000; z-index: 99; pointer-events: none; }
+/* what a tape deck prints over the picture while the film rewinds, and as it plays again (src/main.js) */
+#osd { position: absolute; left: 104px; right: 104px; top: 84px; z-index: 98; visibility: hidden; display: flex; justify-content: space-between; align-items: center;
+  font: 700 58px/1 var(--mono); letter-spacing: .04em; color: #f6f8ff; text-shadow: 3px 0 0 rgba(255, 60, 90, .55), -3px 0 0 rgba(60, 220, 255, .55), 0 0 18px rgba(255, 255, 255, .35); pointer-events: none; }
+#osd .osd__mode { display: flex; align-items: center; gap: 0; }
+#osd .osd__mode i { width: 0; height: 0; border-style: solid; border-color: transparent; border-width: 21px 34px 21px 0; border-right-color: #f6f8ff; filter: drop-shadow(3px 0 0 rgba(255, 60, 90, .55)) drop-shadow(-3px 0 0 rgba(60, 220, 255, .55)); }
+#osd .osd__mode b { margin-left: 22px; font-weight: 700; }
+#osd.play .osd__mode i { border-width: 21px 0 21px 34px; border-right-color: transparent; border-left-color: #f6f8ff; }
+#osd.play .osd__mode i + i { display: none; }
 
 /* Act 1 backdrop: deep navy, faint plot grid, vignette */
 .bg-grid { position: absolute; inset: 0; background:

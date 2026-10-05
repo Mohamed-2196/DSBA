@@ -2,8 +2,8 @@
  "fps": 30,
  "width": 1920,
  "height": 1080,
- "duration": 259.0,
- "frames": 7770,
+ "duration": 249.5,
+ "frames": 7485,
  "tempo": {
   "act1": {
    "bpm": 120,
@@ -34,8 +34,8 @@
   },
   "reveal": {
    "bpm": 120,
-   "piano_start": 229.0,
-   "drop": 237.0,
+   "piano_start": 229.5,
+   "drop": 237.5,
    "chords": [
     "D",
     "A",
@@ -45,25 +45,25 @@
    "bar_seconds": 2.0,
    "sections": {
     "title": [
-     237.0,
-     243.0
+     237.5,
+     237.5
     ],
     "numbers": [
-     243.0,
-     243.0
+     237.5,
+     237.5
     ],
     "network": [
-     243.0,
-     251.0
+     237.5,
+     241.5
     ],
     "finale": [
-     251.0,
-     259.0
+     241.5,
+     249.5
     ]
    },
-   "climax": 248.5,
-   "final_chord": 255.0,
-   "end": 259.0
+   "climax": 239.0,
+   "final_chord": 245.5,
+   "end": 249.5
   }
  },
  "scenes": [
@@ -135,33 +135,26 @@
    "start": 222.5,
    "end": 229.0,
    "act": 3,
-   "desc": "Glitch #2 (out of the quiet of the hold): scramble, terminal (expected Noor's birthday, found Teacher's Day), flash, black+silence."
+   "desc": "Glitch #2 (out of the quiet of the hold): scramble, terminal (expected Noor's birthday, found Teacher's Day, rolling back...), then the film rewinds to the cohort dots."
   },
   {
    "id": "s09_letter",
    "start": 229.0,
-   "end": 237.0,
+   "end": 237.5,
    "act": 3,
-   "desc": "Letter to the teachers, typed line by line over soft piano; riser into the drop."
-  },
-  {
-   "id": "s10_teachers_day",
-   "start": 237.0,
-   "end": 243.0,
-   "act": 3,
-   "desc": "DROP: HAPPY TEACHER'S DAY, gold, particles; 'Yes, it was yesterday.'"
+   "desc": "The rewind has landed just before the cohort dots of the launch part. Half a second of stillness; then, over soft piano, the dots pop in again and a letter to the teachers is set under them, one cohort lighting up per phrase; riser into the drop."
   },
   {
    "id": "s12_network",
-   "start": 243.0,
-   "end": 251.0,
+   "start": 237.5,
+   "end": 241.5,
    "act": 3,
-   "desc": "The three cohorts as one network; the ~160 dots gather into THANK YOU."
+   "desc": "DROP: the ~160 dots gather into THANK YOU."
   },
   {
    "id": "s13_finale",
-   "start": 251.0,
-   "end": 259.0,
+   "start": 241.5,
+   "end": 249.5,
    "act": 3,
    "desc": "Happy Teacher's Day sign-off, institution logos, the cat says Meow, fade to black."
   }
@@ -1506,24 +1499,10 @@
    },
    {
     "t0": 226.6,
-    "t1": 227.25,
-    "kind": "crescendo",
-    "i0": 0.45,
-    "i1": 1.0
-   },
-   {
-    "t0": 227.25,
-    "t1": 227.45,
-    "kind": "flash",
+    "t1": 229.0,
+    "kind": "rewind",
     "i0": 1.0,
     "i1": 1.0
-   },
-   {
-    "t0": 227.45,
-    "t1": 229.0,
-    "kind": "black",
-    "i0": 0.0,
-    "i1": 0.0
    }
   ],
   "stutters": [
@@ -1553,22 +1532,27 @@
    },
    {
     "t": 225.95,
-    "text": "> rerouting celebration..."
+    "text": "> rolling back..."
    }
   ],
-  "silence": {
-   "t0": 227.45,
-   "t1": 229.0
+  "rewind": {
+   "t0": 226.6,
+   "t1": 229.0,
+   "from": 102.4,
+   "to": 71.0,
+   "power": 1.8
   },
-  "crescendo": 226.6,
-  "flash": 227.25,
+  "crescendo": 226.3,
+  "silence": {
+   "t0": 229.3,
+   "t1": 229.5
+  },
   "hits": [
    222.5,
    223.55,
    224.35,
    225.05,
-   225.95,
-   227.25
+   225.95
   ],
   "terminal_typing": [
    223.55,
@@ -1672,187 +1656,91 @@
    226.1741,
    226.1914,
    226.2086,
-   226.2259,
-   226.2431,
-   226.2603,
-   226.2776,
-   226.2948,
-   226.3121,
-   226.3293,
-   226.3466,
-   226.3638,
-   226.381
+   226.2259
   ],
   "terminal_cps": 58.0
  },
  "letter": {
   "start": 229.0,
-  "lines": [
-   {
-    "t": 229.1,
-    "text": "Dear teachers,"
-   },
-   {
-    "t": 230.5,
-    "text": "today, you thought you were in on the surprise."
-   },
-   {
-    "t": 233.5,
-    "text": "plot twist:"
-   },
-   {
-    "t": 234.7,
-    "text": "you were the surprise."
-   }
-  ],
+  "lines": [],
   "cps": 26.0,
-  "typing": [
-   229.1,
-   229.1385,
-   229.1769,
-   229.2154,
-   229.2538,
-   229.2923,
-   229.3308,
-   229.3692,
-   229.4077,
-   229.4462,
-   229.4846,
-   229.5231,
-   229.5615,
-   229.6,
-   230.5,
-   230.5385,
-   230.5769,
-   230.6154,
-   230.6538,
-   230.6923,
-   230.7308,
-   230.7692,
-   230.8077,
-   230.8462,
-   230.8846,
-   230.9231,
-   230.9615,
-   231.0,
-   231.0385,
-   231.0769,
-   231.1154,
-   231.1538,
-   231.1923,
-   231.2308,
-   231.2692,
-   231.3077,
-   231.3462,
-   231.3846,
-   231.4231,
-   231.4615,
-   231.5,
-   231.5385,
-   231.5769,
-   231.6154,
-   231.6538,
-   231.6923,
-   231.7308,
-   231.7692,
-   231.8077,
-   231.8462,
-   231.8846,
-   231.9231,
-   231.9615,
-   232.0,
-   232.0385,
-   232.0769,
-   232.1154,
-   232.1538,
-   232.1923,
-   232.2308,
-   232.2692,
-   233.5,
-   233.5385,
-   233.5769,
-   233.6154,
-   233.6538,
-   233.6923,
-   233.7308,
-   233.7692,
-   233.8077,
-   233.8462,
-   233.8846,
-   234.7,
-   234.7385,
-   234.7769,
-   234.8154,
-   234.8538,
-   234.8923,
-   234.9308,
-   234.9692,
-   235.0077,
-   235.0462,
-   235.0846,
-   235.1231,
-   235.1615,
-   235.2,
-   235.2385,
-   235.2769,
-   235.3154,
-   235.3538,
-   235.3923,
-   235.4308,
-   235.4692,
-   235.5077
-  ],
+  "typing": [],
   "dissolve": 236.4,
   "flash": 236.84
  },
  "teachers_day": {
-  "drop": 237.0,
-  "subline": 239.0,
+  "drop": 237.5,
+  "subline": 239.5,
   "subline_text": "Yes, it was yesterday. We needed a day to fool you.",
-  "end": 243.0
+  "end": 237.5
  },
  "numbers": {
-  "start": 243.0,
+  "start": 237.5,
   "intro": [],
   "cards": [],
   "card_len": 4.0,
-  "end": 243.0
+  "end": 237.5
  },
  "network": {
-  "start": 243.0,
-  "nodes_in": 243.0,
-  "links_in": 243.9,
-  "lines": [
-   {
-    "t": 244.3,
-    "text": "Every connection here started in one of your classes."
-   }
-  ],
-  "gather": 247.0,
-  "formed": 248.5,
+  "start": 229.0,
+  "nodes_in": 229.5,
+  "links_in": 229.5,
+  "lines": [],
+  "rollback": {
+   "land": 229.0,
+   "play": [
+    229.0,
+    229.9
+   ],
+   "dots_in": 229.5,
+   "dear": {
+    "t": 230.5,
+    "text": "Dear teachers,"
+   },
+   "rows": [
+    {
+     "t": 231.3,
+     "text": "thank you for {inspiring us,} {guiding us,}",
+     "marks": [
+      232.25,
+      233.05
+     ]
+    },
+    {
+     "t": 233.9,
+     "text": "and helping us become {better every day.}",
+     "marks": [
+      235.1
+     ]
+    }
+   ],
+   "out": 237.2
+  },
+  "gather": 237.5,
+  "formed": 239.0,
   "word": "THANK YOU",
-  "end": 251.0
+  "end": 241.5
  },
  "finale": {
-  "start": 251.0,
-  "title": 251.2,
-  "signoff": 252.6,
-  "logos": 253.4,
-  "cat": 254.8,
-  "meow": 255.5,
+  "start": 241.5,
+  "title": 241.7,
+  "signoff": 243.1,
+  "logos": 243.9,
+  "cat": 245.3,
+  "meow": 246.0,
   "title_text": "Happy Teacher’s Day",
-  "signoff_text": "From all of us in DSBA · Years 1, 2 & 3",
+  "signoff_text": "From all of us in DSBA",
   "hashtag": "#HappyTeachersDay",
   "meow_text": "Meow.",
   "fade": [
-   257.6,
-   259.0
+   248.1,
+   249.5
   ]
  },
  "outro": {
   "fade": [
-   257.6,
-   259.0
+   248.1,
+   249.5
   ]
  },
  "sfx": [
@@ -3367,460 +3255,43 @@
    "kind": "term_key"
   },
   {
-   "t": 226.2431,
-   "kind": "term_key"
-  },
-  {
-   "t": 226.2603,
-   "kind": "term_key"
-  },
-  {
-   "t": 226.2776,
-   "kind": "term_key"
-  },
-  {
-   "t": 226.2948,
-   "kind": "term_key"
-  },
-  {
-   "t": 226.3121,
-   "kind": "term_key"
-  },
-  {
-   "t": 226.3293,
-   "kind": "term_key"
-  },
-  {
-   "t": 226.3466,
-   "kind": "term_key"
-  },
-  {
-   "t": 226.3638,
-   "kind": "term_key"
-  },
-  {
-   "t": 226.381,
-   "kind": "term_key"
-  },
-  {
    "t": 226.6,
-   "kind": "crescendo_noise",
-   "dur": 0.65
+   "kind": "tape_clunk",
+   "soft": 1
   },
   {
-   "t": 227.25,
-   "kind": "flash_impact"
+   "t": 229.0,
+   "kind": "tape_clunk"
   },
   {
-   "t": 229.1,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.1385,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.1769,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.2154,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.2538,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.2923,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.3308,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.3692,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.4077,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.4462,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.4846,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.5231,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.5615,
-   "kind": "type_soft"
-  },
-  {
-   "t": 229.6,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.5,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.5385,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.5769,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.6154,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.6538,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.6923,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.7308,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.7692,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.8077,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.8462,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.8846,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.9231,
-   "kind": "type_soft"
-  },
-  {
-   "t": 230.9615,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.0,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.0385,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.0769,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.1154,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.1538,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.1923,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.2308,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.2692,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.3077,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.3462,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.3846,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.4231,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.4615,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.5,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.5385,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.5769,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.6154,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.6538,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.6923,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.7308,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.7692,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.8077,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.8462,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.8846,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.9231,
-   "kind": "type_soft"
-  },
-  {
-   "t": 231.9615,
-   "kind": "type_soft"
-  },
-  {
-   "t": 232.0,
-   "kind": "type_soft"
-  },
-  {
-   "t": 232.0385,
-   "kind": "type_soft"
-  },
-  {
-   "t": 232.0769,
-   "kind": "type_soft"
-  },
-  {
-   "t": 232.1154,
-   "kind": "type_soft"
-  },
-  {
-   "t": 232.1538,
-   "kind": "type_soft"
-  },
-  {
-   "t": 232.1923,
-   "kind": "type_soft"
-  },
-  {
-   "t": 232.2308,
-   "kind": "type_soft"
-  },
-  {
-   "t": 232.2692,
-   "kind": "type_soft"
-  },
-  {
-   "t": 233.5,
-   "kind": "type_soft"
-  },
-  {
-   "t": 233.5385,
-   "kind": "type_soft"
-  },
-  {
-   "t": 233.5769,
-   "kind": "type_soft"
-  },
-  {
-   "t": 233.6154,
-   "kind": "type_soft"
-  },
-  {
-   "t": 233.6538,
-   "kind": "type_soft"
-  },
-  {
-   "t": 233.6923,
-   "kind": "type_soft"
-  },
-  {
-   "t": 233.7308,
-   "kind": "type_soft"
-  },
-  {
-   "t": 233.7692,
-   "kind": "type_soft"
-  },
-  {
-   "t": 233.8077,
-   "kind": "type_soft"
-  },
-  {
-   "t": 233.8462,
-   "kind": "type_soft"
-  },
-  {
-   "t": 233.8846,
-   "kind": "type_soft"
-  },
-  {
-   "t": 234.7,
-   "kind": "type_soft"
-  },
-  {
-   "t": 234.7385,
-   "kind": "type_soft"
-  },
-  {
-   "t": 234.7769,
-   "kind": "type_soft"
-  },
-  {
-   "t": 234.8154,
-   "kind": "type_soft"
-  },
-  {
-   "t": 234.8538,
-   "kind": "type_soft"
-  },
-  {
-   "t": 234.8923,
-   "kind": "type_soft"
-  },
-  {
-   "t": 234.9308,
-   "kind": "type_soft"
-  },
-  {
-   "t": 234.9692,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.0,
+   "t": 235.5,
    "kind": "riser",
    "dur": 2.0
   },
   {
-   "t": 235.0077,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.0462,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.0846,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.1231,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.1615,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.2,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.2385,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.2769,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.3154,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.3538,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.3923,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.4308,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.4692,
-   "kind": "type_soft"
-  },
-  {
-   "t": 235.5077,
-   "kind": "type_soft"
-  },
-  {
-   "t": 237.0,
+   "t": 237.5,
    "kind": "impact_drop_big"
   },
   {
-   "t": 243.0,
-   "kind": "node_swarm",
-   "dur": 0.8
-  },
-  {
-   "t": 247.0,
+   "t": 237.5,
    "kind": "gather_swell",
    "dur": 1.5
   },
   {
-   "t": 248.5,
+   "t": 239.0,
    "kind": "chime_big"
   },
   {
-   "t": 250.6,
+   "t": 241.1,
    "kind": "whoosh_soft",
    "dur": 0.8
   },
   {
-   "t": 254.8,
+   "t": 245.3,
    "kind": "bell_jingle"
   },
   {
-   "t": 255.5,
+   "t": 246.0,
    "kind": "reply_pop"
   }
  ]

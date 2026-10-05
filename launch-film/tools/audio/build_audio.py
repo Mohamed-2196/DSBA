@@ -212,6 +212,11 @@ def main():
     for (pmx, pmix) in posts:
         place(sfx, pmix, pmx.n0)
     stamp("SFX rendered (%d cues, %d kinds)" % (len(cues["sfx"]), len(kinds)))
+    # the picture rewinds (g2.rewind): so does the sound, read from the film's own music and effects
+    rw = cues["g2"].get("rewind")
+    if rw:
+        place(sfx, sfxmod.tape_rewind(music + sfx, rw, rng_for("sfx", "tape_rewind")), s2n(rw["t0"]))
+        stamp("rewind rendered (%.1f s of the film backwards in %.1f s)" % (abs(rw["from"] - rw["to"]), rw["t1"] - rw["t0"]))
 
     # ---------------------------------------------------------------- master
     # Nothing that sounded before a silence may come back after it: music and SFX are

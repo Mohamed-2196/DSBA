@@ -29,11 +29,45 @@ const fade = el('div');
 fade.id = 'fade';
 stage.appendChild(fade);
 
+// The tape rewinds (cues.g2.rewind, in the cut that rolls back to the cohort dots): between t0 and t1 the
+// picture is the film itself at an earlier time, running backwards from `from` to `to`, fast at first and
+// coming to rest. Every scene is a pure function of the time it is given, so this is only another clock.
+// On top, drawn by the real clock: what a tape deck prints on the picture, REWIND and then PLAY.
+const RW = (cues.g2 && cues.g2.rewind) || null;
+const PLAY = (cues.network && cues.network.rollback && cues.network.rollback.play) || null;
+const shown = (t) => {
+  if (!RW || t < RW.t0 || t >= RW.t1) return t;
+  const p = (t - RW.t0) / (RW.t1 - RW.t0);
+  return RW.from + (RW.to - RW.from) * (1 - (1 - p) ** (RW.power || 1.8));
+};
+const osd = el('div');
+osd.id = 'osd';
+osd.innerHTML = '<span class="osd__mode"><i></i><i></i><b></b></span><span class="osd__clock"></span>';
+stage.appendChild(osd);
+const [osdMode, osdClock] = osd.children;
+const clock = (u) => `${Math.floor(u / 60)}:${String(Math.floor(u % 60)).padStart(2, '0')}`;
+let osdWas = '';
+
 function seek(t) {
-  tl.seek(t, true);
-  for (const s of scenes) s.root.style.visibility = t >= s.start && t < s.end ? 'visible' : 'hidden';
-  for (const fn of frameFns) fn(t);
+  const u = shown(t);
+  tl.seek(u, true);
+  for (const s of scenes) s.root.style.visibility = u >= s.start && u < s.end ? 'visible' : 'hidden';
+  for (const fn of frameFns) fn(u);
   fade.style.opacity = String(Math.max(1 - prog(t, 0, 0.5), prog(t, cues.outro.fade[0], cues.outro.fade[1] - 0.1)));
+  const mode = RW && t >= RW.t0 && t < RW.t1 ? 'rew' : PLAY && t >= PLAY[0] && t < PLAY[1] ? 'play' : '';
+  if (mode !== osdWas) {
+    osdWas = mode;
+    osd.style.visibility = mode ? 'visible' : 'hidden';
+    osd.className = mode;
+    osdMode.lastChild.textContent = mode === 'rew' ? 'REWIND' : 'PLAY';
+  }
+  if (mode) {
+    const s = clock(mode === 'rew' ? u : RW.to + (t - PLAY[0]));       // the film's own clock at the picture shown
+    if (osdClock.textContent !== s) osdClock.textContent = s;
+    // a deck's PLAY blinks out: on for most of its second, then gone
+    if (mode === 'play') osd.style.opacity = t < PLAY[1] - 0.25 ? '1' : String(Math.floor((PLAY[1] - t) * 16) % 2);
+    else osd.style.opacity = '1';
+  }
   return t;
 }
 

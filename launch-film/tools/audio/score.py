@@ -1025,17 +1025,19 @@ def act3(cues):
     for (t, ch, d) in ach:
         for (b, m, ln) in THEME[ci(t)]:
             notes.append((t + b * beat, ln * beat * 0.95, m, 1.0 if b == 0 else 0.9))
-    t_l, sig = ins.lead_line(notes, rng_for("a3lead"), glide=0.045, vib_cents=18.0, vib_rate=5.2,
-                             cutoff=3600, detune=9, sub=0.18, fenv=0.8)
-    B["lead"].add(t_l, sig, 1.0)
-    t_l, sig = ins.lead_line([(a, b, m - 12, v) for (a, b, m, v) in notes], rng_for("a3lead8"), glide=0.045,
-                             vib_cents=12.0, cutoff=2400, detune=6, sub=0.0)
-    B["lead"].add(t_l, sig, 0.35)
-    # the band lands on the first downbeat of the numbers scene and drops out
-    cL = ch3(loop[ci(title1)])
-    B["kick"].add(title1, KICK, 0.9)
-    kicks.append(title1)
-    B["bass"].add(title1, ins.bass_note(cL["bass"], beat * 0.8, 0.85, cutoff=600), 1.0)
+    # (a cut with no title scene -- the drop goes straight into the gather -- has no anthem and no band to land)
+    if notes:
+        t_l, sig = ins.lead_line(notes, rng_for("a3lead"), glide=0.045, vib_cents=18.0, vib_rate=5.2,
+                                 cutoff=3600, detune=9, sub=0.18, fenv=0.8)
+        B["lead"].add(t_l, sig, 1.0)
+        t_l, sig = ins.lead_line([(a, b, m - 12, v) for (a, b, m, v) in notes], rng_for("a3lead8"), glide=0.045,
+                                 vib_cents=12.0, cutoff=2400, detune=6, sub=0.0)
+        B["lead"].add(t_l, sig, 0.35)
+        # the band lands on the first downbeat of the numbers scene and drops out
+        cL = ch3(loop[ci(title1)])
+        B["kick"].add(title1, KICK, 0.9)
+        kicks.append(title1)
+        B["bass"].add(title1, ins.bass_note(cL["bass"], beat * 0.8, 0.85, cutoff=600), 1.0)
 
     # ================================================= numbers: light, playful, rhythmic bed
     # Per card: groove -> thin out while the chart builds (room for the SFX) -> an accent
@@ -1173,18 +1175,21 @@ def act3(cues):
                                            rng_for("a3pz", "acc", i), tau=0.6), ag)
         B["bells"].add(tp, ins.glock(top + 12, 0.55, rng_for("a3accg", i), tau_scale=0.5), 0.8)
 
-    # the last bar of the numbers scene swells into the network (strings, cymbal, a short roll)
-    tb = num1 - bar
-    cb = ch3(loop[ci(tb)])
-    B["strings"].add(tb, ins.strings(cb["low"] + [cb["pad"][1], cb["pad"][3]], bar, rng_for("a3nstr"), attack=1.6,
-                                     release=0.5), 0.8)
-    B["pad"].add(tb, ins.supersaw(cb["pad"], bar, rng_for("a3npad"), voices=7, detune=12, attack=1.5, decay=1.0,
-                                  sustain=1.0, release=0.4), 0.5)
-    B["fx"].add(num1 - beat * 2, ins.noise_sweep(beat * 2, rng_for("a3", "riser2"), 500.0, 7000.0, q=1.3,
-                                                 amp_pow=2.2), 0.22)
-    for i, t in enumerate(grid(num1 - beat, num1, s16)):
-        B["drums"].add(t, SNARE, 0.14 + 0.08 * i)
-    run_into(num1, THEME[ci(tb)][-1][1], THEME[ci(net0)][0][1], vel=0.75)
+    # the last bar of the numbers scene swells into the network (strings, cymbal, a short roll).
+    # With neither a title nor a numbers scene, the bar before the network is the letter's own last bar,
+    # which already has its riser and fill: nothing is added to it.
+    if ach or nch:
+        tb = num1 - bar
+        cb = ch3(loop[ci(tb)])
+        B["strings"].add(tb, ins.strings(cb["low"] + [cb["pad"][1], cb["pad"][3]], bar, rng_for("a3nstr"), attack=1.6,
+                                         release=0.5), 0.8)
+        B["pad"].add(tb, ins.supersaw(cb["pad"], bar, rng_for("a3npad"), voices=7, detune=12, attack=1.5, decay=1.0,
+                                      sustain=1.0, release=0.4), 0.5)
+        B["fx"].add(num1 - beat * 2, ins.noise_sweep(beat * 2, rng_for("a3", "riser2"), 500.0, 7000.0, q=1.3,
+                                                     amp_pow=2.2), 0.22)
+        for i, t in enumerate(grid(num1 - beat, num1, s16)):
+            B["drums"].add(t, SNARE, 0.14 + 0.08 * i)
+        run_into(num1, THEME[ci(tb)][-1][1], THEME[ci(net0)][0][1], vel=0.75)
 
     # ================================================= network: the lift, the gather, the climax
     lch = bars(net0, gather)

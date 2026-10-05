@@ -155,13 +155,21 @@ function buildBackdrop({ cues, stage }, FX) {
   // The figures (s11) sit between the title and the network on a paper mood of their own. A cut without them
   // goes from the title straight to the network: no paper, and the dust eases directly to the network's level.
   const figures = NW.start - X > 1;
-  const kCool = keys([[T0, 0], [T0 + 1.8, 1]]);
-  const kWarm = keys([[D - 0.02, 0], [D, 1], [X - 0.8, 1], [X, 0], [F.start - 0.2, 0], [F.start + 1.8, 0.5]]);
-  const kPaper = figures ? keys([[X - 0.8, 0], [X, 1], [NW.start - 0.3, 1], [NW.start + 0.5, 0]]) : () => 0;
-  const kRays = keys([[D - 0.01, 0], [D + 0.12, 1], [X - 0.85, 1], [X - 0.2, 0], [F.title, 0], [F.title + 2.2, 0.28]]);
-  const kBloom = keys([[D - 0.01, 0], [D, 1], [D + 1.4, 0.55], [X - 0.85, 0.55], [X - 0.2, 0], [F.title, 0], [F.title + 1.8, 0.4]]);
-  const kAmb = keys([[T0 + 3.4, 0], [L.dissolve - 1.6, 0.5], [D, 1], [X - 0.7, 1],
-    ...(figures ? [[X + 0.1, 0.4], [NW.start - 0.4, 0.4]] : []), [NW.start + 0.6, 0.6], [F.start - 0.2, 0.6], [F.start + 1.4, 1]]);
+  // The cut that rolls back to the cohort dots has no letter scene and no title: until the dots gather, the
+  // launch part's own grid lies over this backdrop (buildNetwork), so it only has to be there, plain navy, and
+  // bring its dust in with the gather; the warm light and the rays come back for the finale as before.
+  const plain = !!NW.rollback;
+  const kCool = plain ? () => 1 : keys([[T0, 0], [T0 + 1.8, 1]]);
+  const kWarm = plain ? keys([[F.start - 0.2, 0], [F.start + 1.8, 0.5]])
+    : keys([[D - 0.02, 0], [D, 1], [X - 0.8, 1], [X, 0], [F.start - 0.2, 0], [F.start + 1.8, 0.5]]);
+  const kPaper = figures && !plain ? keys([[X - 0.8, 0], [X, 1], [NW.start - 0.3, 1], [NW.start + 0.5, 0]]) : () => 0;
+  const kRays = plain ? keys([[F.title, 0], [F.title + 2.2, 0.28]])
+    : keys([[D - 0.01, 0], [D + 0.12, 1], [X - 0.85, 1], [X - 0.2, 0], [F.title, 0], [F.title + 2.2, 0.28]]);
+  const kBloom = plain ? keys([[F.title, 0], [F.title + 1.8, 0.4]])
+    : keys([[D - 0.01, 0], [D, 1], [D + 1.4, 0.55], [X - 0.85, 0.55], [X - 0.2, 0], [F.title, 0], [F.title + 1.8, 0.4]]);
+  const kAmb = plain ? keys([[NW.gather - 0.1, 0], [NW.gather + 1.1, 0.6], [F.start - 0.2, 0.6], [F.start + 1.4, 1]])
+    : keys([[T0 + 3.4, 0], [L.dissolve - 1.6, 0.5], [D, 1], [X - 0.7, 1],
+      ...(figures ? [[X + 0.1, 0.4], [NW.start - 0.4, 0.4]] : []), [NW.start + 0.6, 0.6], [F.start - 0.2, 0.6], [F.start + 1.4, 1]]);
 
   const r = mulberry(9151);
   const amb = Array.from({ length: 150 }, () => ({ x: r() * W, y: r() * (H + 60), v: 7 + r() * 24, a: 10 + r() * 36, f: 0.2 + r() * 0.6, s: 0.9 + r() ** 2 * 2.3, ph: r() * TAU, tw: 0.5 + r() * 1.5 }));
@@ -243,7 +251,7 @@ function buildBackdrop({ cues, stage }, FX) {
       }
     }
     // the letter: dust gathers and rises toward the drop, and the words themselves go up as dust
-    if (t >= riseT && t < D + 1.6) {
+    if (!plain && t >= riseT && t < D + 1.6) {
       const fade = 1 - prog(t, D, D + 1.6);
       for (const p of riser) {
         if (t < p.b) continue;
@@ -268,7 +276,7 @@ function buildBackdrop({ cues, stage }, FX) {
       }
     }
     // the drop: a burst of sparks behind the title
-    const td = t - D;
+    const td = plain ? -1 : t - D;
     if (td >= 0 && td < 5.2) FX.drawSparks(ctx, td, false);
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
@@ -1332,27 +1340,82 @@ function wordDots(word, count, { cx, cy, maxW, maxH }) {
   return { dots: out.slice(0, count), h, width: width * h };
 }
 
+/**
+ * One row of the letter the dots carry: plain words rise one by one, and a phrase in {braces} is a single piece
+ * with the launch part's yellow marker under it. Returns the pieces, and the marked ones.
+ */
+function letterRow(node, text) {
+  const units = [];
+  const marks = [];
+  text.split(/(\{[^}]*\})/).forEach((part) => {
+    if (!part.trim()) return;
+    const add = (inner) => { const s = el('span', 'wd', inner); node.appendChild(s); units.push(s); return s; };
+    if (part[0] === '{') marks.push(add(`<span class="hl rb-hl"><span class="rb-ink">${esc(part.slice(1, -1))}</span></span>`).firstChild);
+    else part.trim().split(/\s+/).forEach((w) => add(esc(w)));
+  });
+  units.slice(0, -1).forEach((u) => u.insertAdjacentText('afterend', ' '));
+  return { units, marks };
+}
+
 function buildNetwork({ cues, stage, S }) {
   const NW = cues.network;
   const FN = cues.finale;
-  const { start } = S('s12');
+  // The roll-back cut lands here straight from the rewind: the launch part's cohort beat once more, on its own
+  // grid and with its own dots, labels and type, but with no connections and with a letter under the dots.
+  // From the gather on, both cuts are the same.
+  const RB = NW.rollback || null;
+  const start = RB ? RB.land : S('s12').start;
   const END = cues.duration + 0.1;
-  const root = scene(stage, 's12', start, END, 'a3 a3-net');
-  root.innerHTML = `<canvas width="${W}" height="${H}"></canvas>`;
-  const ctx = root.firstChild.getContext('2d');
+  const root = scene(stage, 's12', start, END, `a3 a3-net${RB ? ' a3-roll' : ''}`);
+  root.innerHTML = `${RB ? '<div class="bg-grid"></div>' : ''}<canvas width="${W}" height="${H}"></canvas>`;
+  const grid = RB ? root.firstChild : null;
+  const ctx = root.querySelector('canvas').getContext('2d');
   const pts = cohortNodes();
   const links = crossLinks(pts, 72);
   const N = pts.length;
   const rnd = mulberry(1294);
-  const labs = COHORTS.map((g) => {
-    const d = el('div', 'nt-lab');
-    d.textContent = g.label;
-    d.style.left = `${g.c[0]}px`;
-    d.style.top = `${g.c[1] - 223}px`;
-    d.style.color = g.hex;
-    root.appendChild(d);
-    return d;
-  });
+  let labs;
+  if (RB) {                                           // the labels exactly as the launch part sets them (SVG text)
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('class', 'net');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    labs = COHORTS.map((g) => {
+      const tx = document.createElementNS(NS, 'text');
+      for (const [k, v] of Object.entries({ x: g.c[0], y: g.c[1] - 198, 'text-anchor': 'middle', fill: g.hex, 'font-size': 38, 'font-weight': 700, 'font-family': 'Schibsted' })) tx.setAttribute(k, v);
+      tx.textContent = g.label;
+      svg.appendChild(tx);
+      return tx;
+    });
+    root.appendChild(svg);
+  } else {
+    labs = COHORTS.map((g) => {
+      const d = el('div', 'nt-lab');
+      d.textContent = g.label;
+      d.style.left = `${g.c[0]}px`;
+      d.style.top = `${g.c[1] - 223}px`;
+      d.style.color = g.hex;
+      root.appendChild(d);
+      return d;
+    });
+  }
+  // the letter: a salutation, then rows whose marked phrases each light one cohort
+  let letter = null;
+  if (RB) {
+    const box = el('div', 'rb-letter');
+    const dear = el('div', 'rb-dear');
+    dear.textContent = RB.dear.text;
+    box.appendChild(dear);
+    const rows = RB.rows.map((r) => {
+      const d = el('div', 'rb-row');
+      box.appendChild(d);
+      return { t: r.t, marks_t: r.marks, ...letterRow(d, r.text) };
+    });
+    root.appendChild(box);
+    letter = { box, dear: chars(dear), rows };
+  }
+  const markT = RB ? RB.rows.flatMap((r) => r.marks) : [];        // mark k is the moment cohort k lights up
+  const SP_COH = COHORTS.map((g) => glowSprite(hex(g.hex)));
   // the caption (one line in this cut; more would stack) sits centred in the band under the network
   const capBox = el('div', 'nt-caps');
   root.appendChild(capBox);
@@ -1365,6 +1428,7 @@ function buildNetwork({ cues, stage, S }) {
   const small = el('div', 'nt-small');
   small.textContent = NET_SMALL;
   root.appendChild(small);
+  const vig = RB ? root.appendChild(el('div', 'vignette')) : null;
 
   const word = wordDots(NW.word, N, { cx: W / 2, cy: 500, maxW: 1610, maxH: 232 });
   const RW = 9.2;                                   // dot radius once it is part of a letter
@@ -1379,11 +1443,14 @@ function buildNetwork({ cues, stage, S }) {
       const p = pts[s.i];
       const g = COHORTS[p.g];
       const an = rnd() * TAU;
+      const jit = rnd();
+      const far = Math.hypot((p.x - g.c[0]) / 1.25, (p.y - g.c[1]) / 0.8) / 190;      // 0 at the middle of its cluster, 1 at the rim
       dot[s.i] = {
-        s: [p.x, p.y], c: g.c, col: hex(p.hex), g: word.dots[Bc[j].i],
+        s: [p.x, p.y], c: g.c, col: hex(p.hex), g: word.dots[Bc[j].i], gi: p.g, far,
         // each cluster opens from its centre, right on the cue and at an even rate (radius squared = share of the dots):
-        // with one caption, and that one later, the dots are what the scene opens on
-        born: NW.nodes_in + 0.42 * (Math.hypot((p.x - g.c[0]) / 1.25, (p.y - g.c[1]) / 0.8) / 190) ** 2 + 0.06 * rnd(),
+        // with one caption, and that one later, the dots are what the scene opens on.
+        // (rolled back, they pop in one after another in the launch part's own order and time)
+        born: RB ? RB.dots_in + 0.04 + (s.i / N) * 0.62 : NW.nodes_in + 0.42 * far ** 2 + 0.06 * jit,
         d: 0.1 + 0.36 * ((c + j) / N) + 0.04 * rnd(), th: 1.1 + 0.9 * rnd(),
         dx: Math.cos(an), dy: Math.sin(an), up: 5 + rnd() * 17, ds: 1.1 + rnd() ** 2 * 2.2, da: 0.22 + rnd() * 0.4, tw: 0.8 + rnd() * 1.8, ph: rnd() * TAU, fq: 0.3 + rnd() * 0.6,
       };
@@ -1411,9 +1478,9 @@ function buildNetwork({ cues, stage, S }) {
   onFrame((t) => {
     if (t < start || t >= END) return;
     ctx.clearRect(0, 0, W, H);
-    // links between cohorts, in gold
+    // links between cohorts, in gold (the roll-back cut has none: there the dots stand on their own)
     const lo = 1 - at(t, G0, 0.42, E.in2);
-    if (t >= NW.links_in && lo > 0) {
+    if (!RB && t >= NW.links_in && lo > 0) {
       const warm = at(t, pulseOn - 0.1, 0.7, E.io2);
       ctx.lineWidth = 1.7;
       ctx.lineCap = 'butt';
@@ -1460,9 +1527,21 @@ function buildNetwork({ cues, stage, S }) {
       let y = w[1];
       const e = w[2];
       const q = w[3];
-      let r = lerp(6.5, RW, e) * E.back(2.5)(prog(t, d.born, d.born + 0.3));
+      let r = lerp(6.5, RW, e) * E.back(RB ? 3 : 2.5)(prog(t, d.born, d.born + 0.3));
       let al = 1;
       let shine = 0;
+      // rolled back: a marked phrase lights its cohort, from the middle of the cluster outward, and it stays lit
+      let flare = 0;
+      let lit = 0;
+      const tm = markT[d.gi];
+      if (tm != null && e < 1) {
+        const x0 = t - tm - 0.24 * d.far;
+        if (x0 > 0) {
+          flare = clamp(x0 / 0.05) * Math.exp(-x0 / 0.3) * (1 - e);
+          lit = E.out2(clamp(x0 / 0.3)) * (1 - e);
+          r *= 1 + 0.5 * flare;
+        }
+      }
       if (land >= 0) shine = 0.5 * Math.exp(-(((x - sweepX) / 110) ** 2)) + 0.06 * Math.sin(t * d.tw + d.ph);
       if (tf > 0) {
         x += d.dx * 46 * kd + Math.sin(tf * d.fq + d.ph) * 12 * kd;
@@ -1470,7 +1549,7 @@ function buildNetwork({ cues, stage, S }) {
         r = lerp(RW, d.ds, rel);
         al = lerp(1, d.da * (0.7 + 0.3 * Math.sin(t * d.tw + d.ph)), rel);
       }
-      return { d, x, y, e, q, r, al, shine };
+      return { d, x, y, e, q, r, al, shine, flare, lit };
     });
     ctx.globalCompositeOperation = 'lighter';
     if (pulse > 0.01 && rel < 1) {
@@ -1500,19 +1579,40 @@ function buildNetwork({ cues, stage, S }) {
         ctx.stroke();
       }
       glow(ctx, SP_GOLD, s.x, s.y, s.r * (0.72 + 0.22 * pulse * (1 - rel)), s.al * (0.46 * s.e + 0.22 * pulse) * (1 - 0.45 * rel) + s.shine * 0.4);
+      if (s.lit > 0) glow(ctx, SP_COH[s.d.gi], s.x, s.y, 6.5 * (0.8 + 0.5 * s.flare), 0.26 * s.lit + 0.5 * s.flare);
     }
     ctx.globalCompositeOperation = 'source-over';
     for (const s of state) {
       if (s.r <= 0) continue;
       ctx.globalAlpha = clamp(s.al);
-      ctx.fillStyle = rgb(mix(mix(s.d.col, GOLD2, E.out2(s.q)), [255, 252, 240], clamp(0.9 * pulse + s.shine)));
+      ctx.fillStyle = rgb(mix(mix(s.d.col, GOLD2, E.out2(s.q)), [255, 252, 240], clamp(0.9 * pulse + s.shine + 0.6 * s.flare + 0.1 * s.lit)));
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, TAU);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
     // labels and captions
-    labs.forEach((d, i) => css(d, { opacity: (at(t, NW.nodes_in + 0.06 + i * 0.08, 0.36, E.out2) * (1 - at(t, G0 - 0.1, 0.3, E.in2))).toFixed(3) }));
+    labs.forEach((d, i) => css(d, { opacity: ((RB ? at(t, RB.dots_in + 0.3 + i * 0.1, 0.3, E.out2) : at(t, NW.nodes_in + 0.06 + i * 0.08, 0.36, E.out2)) * (1 - at(t, G0 - 0.1, 0.3, E.in2))).toFixed(3) }));
+    if (RB) {
+      // the launch part's grid gives way to this act's own dark as the dots leave their places
+      const go = (1 - at(t, G0, 0.9, E.io2)).toFixed(3);
+      css(grid, { opacity: go });
+      css(vig, { opacity: go });
+      const on = t >= RB.dear.t - 0.05 && t < RB.out + 0.3;
+      vis(letter.box, on);
+      if (on) {
+        const out = at(t, RB.out, 0.26, E.in2);
+        css(letter.box, { opacity: (1 - out).toFixed(3), transform: `translateY(${(-26 * out).toFixed(2)}px)` });
+        rise(letter.dear, t, RB.dear.t, { stag: 0.018, dur: 0.55, dy: 90 });
+        letter.rows.forEach((row) => {
+          rise(row.units, t, row.t, { stag: 0.07, dur: 0.5, dy: 46 });
+          row.marks.forEach((m, k) => {
+            const v = (1 - (1 - prog(t, row.marks_t[k], row.marks_t[k] + 0.3)) ** 4).toFixed(4);
+            if (m.__hlx !== v) { m.__hlx = v; m.style.setProperty('--hlx', v); }
+          });
+        });
+      }
+    }
     const capsOn = t < G0 + 0.25;
     vis(capBox, capsOn);
     if (capsOn) {
@@ -1620,7 +1720,10 @@ function buildFinale({ cues, stage, S }) {
 
 export function buildAct3(C) {
   const FX = {};
-  for (const build of [buildBackdrop, buildLetter, buildTitle, buildNumbers, buildNetwork, buildFinale, buildFront]) {
+  // The cut that rolls back to the cohort dots (cues.network.rollback) has no letter scene, no gold title and no
+  // figures of its own: the dots carry the letter, then the finale.
+  const rollback = !!(C.cues.network && C.cues.network.rollback);
+  for (const build of rollback ? [buildBackdrop, buildNetwork, buildFinale] : [buildBackdrop, buildLetter, buildTitle, buildNumbers, buildNetwork, buildFinale, buildFront]) {
     try { build(C, FX); } catch (err) { console.error(`[act3] ${build.name} failed:`, err); }
   }
 }

@@ -18,7 +18,7 @@ import numpy as np
 import instruments as ins
 from dsp import (SR, TWO_PI, s2n, tarr, mtof, cents, osc, phase_of, butter, biquad, tv_filter,
                  fade_edges, rng_for, smoothstep, pan_gains, softclip, bitcrush, make_ir,
-                 convolve, rc_ramp)
+                 convolve, rc_ramp, read_cubic)
 from mixing import Mixer
 from score import chord_pcs, reveal_punch_chord
 
@@ -1019,6 +1019,87 @@ def chime_big(ev, rng, ctx):
     return 0.0, _norm(y)
 
 
+def tape_clunk(ev, rng, ctx):
+    """A tape transport changing mode: the solenoid's click, the thud of the mechanism in its
+    plastic body, and the smaller click as it settles. `soft` is the lighter one (into rewind);
+    without it, the heavier stop-and-play."""
+    soft = bool(ev.get("soft"))
+    n = s2n(0.24)
+    t = tarr(n)
+    f = (80.0 if soft else 62.0) + 95.0 * np.exp(-t / 0.016)
+    thud = np.sin(TWO_PI * phase_of(f, n)) * _env(n, 0.0012, 0.03 if soft else 0.046)
+    clk = butter(rng.standard_normal(n), "bandpass", (1400.0, 6500.0), 2) * _env(n, 0.0003, 0.0035)
+    clk /= np.max(np.abs(clk)) + 1e-9
+    body = np.zeros(n)
+    for fr, a, tau in ((430.0, 0.5, 0.02), (905.0, 0.34, 0.014), (1740.0, 0.2, 0.009)):
+        body += a * np.sin(TWO_PI * fr * (1 + rng.uniform(-0.02, 0.02)) * t + rng.uniform(0, TWO_PI)) * np.exp(-t / tau)
+    body *= _env(n, 0.0006, 0.2)
+    hit = 0.75 * clk + 0.5 * body
+    x = (0.55 if soft else 1.0) * thud + hit
+    k = s2n(0.03 if soft else 0.041)
+    x[k:] += 0.42 * hit[:n - k]
+    fade_edges(x, 0.0, 0.03)
+    return 0.0, _norm(_st(x, 0.0)) * (0.62 if soft else 1.0)
+
+
+def tape_rewind(program, rw, rng):
+    """The film's own soundtrack running backwards under the heads while the picture rewinds
+    (cues.g2.rewind = {t0, t1, from, to, power}): `program` (2, N) is read along the same clock
+    as the picture (src/main.js), from `from` back to `to`, fast at first and slowing to a stop.
+
+    The read does not alias: by its speed it picks between copies of the programme low-passed
+    for that speed (a mip-map, as a head gap does). It is then narrowed to the band of a deck in
+    search and laid over the transport's own whirr (motor pitch and spool hiss follow the reels).
+    -> stereo, exactly (t1 - t0) long; silent at its last sample (the tape has stopped)."""
+    from scipy import signal
+    n = s2n(rw["t1"]) - s2n(rw["t0"])
+    p = (np.arange(n) + 0.5) / n
+    pw = float(rw.get("power", 1.8))
+    u = rw["from"] + (rw["to"] - rw["from"]) * (1.0 - (1.0 - p) ** pw)       # film time under the head
+    a = max(0, s2n(min(rw["from"], rw["to"]) - 0.25))
+    b = min(program.shape[1], s2n(max(rw["from"], rw["to"]) + 0.25))
+    src = program[:, a:b]
+    pos = u * SR - a
+    speed = np.abs(np.gradient(pos))                                         # x normal speed
+    levels = [src]
+    while 2 ** (len(levels) - 1) < speed.max():
+        sos = signal.butter(8, 0.42 * SR / 2 ** len(levels), "lowpass", fs=SR, output="sos")
+        levels.append(signal.sosfiltfilt(sos, src, axis=-1))
+    lv = np.clip(np.log2(np.maximum(speed, 1.0)), 0.0, len(levels) - 1.0)
+    i0 = np.minimum(np.floor(lv).astype(int), len(levels) - 2) if len(levels) > 1 else np.zeros(n, int)
+    w = lv - i0
+    tape = np.zeros((2, n))
+    for k, x in enumerate(levels):
+        for m, g in ((i0 == k, 1.0 - w), (i0 + 1 == k, w)):
+            if m.any():
+                tape[:, m] += read_cubic(x, pos[m]) * g[m]
+    tape = butter(butter(tape, "highpass", 230.0, 2), "lowpass", 4800.0, 2)
+    # Squeezed like this, a quiet song and a loud drop should still read as one tape: even the level out
+    # (a slow gain rider), then give it the transport's own arc -- fullest as it bites, thinner as it
+    # slows, and nothing once it stands still.
+    s = speed / speed.max()
+    win = s2n(0.06)
+    env = np.sqrt(np.convolve(np.mean(tape ** 2, axis=0), np.ones(win) / win, mode="same"))
+    tape *= np.clip((env / (np.sqrt(np.mean(tape ** 2)) + 1e-12) + 1e-3) ** -0.75, 0.25, 6.0)
+    tape *= (0.5 + 0.5 * s ** 0.6) * np.minimum(1.0, speed) ** 0.5
+    ref = np.sqrt(np.mean(src ** 2)) + 1e-12
+    tape *= ref * 10 ** (TAPE_REWIND_DB / 20) / (np.sqrt(np.mean(tape ** 2)) + 1e-12)
+    # the transport itself
+    f = 130.0 + 800.0 * s ** 0.7
+    whine = (np.sin(TWO_PI * phase_of(f, n)) + 0.42 * np.sin(TWO_PI * phase_of(2.01 * f, n))
+             + 0.2 * np.sin(TWO_PI * phase_of(3.02 * f, n))) * s ** 0.5
+    hiss = butter(rng.standard_normal((2, n)), "bandpass", (1800.0, 5200.0), 2) * s ** 0.8
+    lvl = np.sqrt(np.mean(tape ** 2))
+    whine *= lvl * 10 ** (-11 / 20) / (np.sqrt(np.mean(whine ** 2)) + 1e-12)
+    hiss *= lvl * 10 ** (-15 / 20) / (np.sqrt(np.mean(hiss ** 2)) + 1e-12)
+    y = tape + np.stack([whine, whine]) + hiss
+    fade_edges(y, 0.012, 0.02)
+    return y
+
+
+TAPE_REWIND_DB = -7.0    # level of the backwards programme, against the level of the stretch it replays
+
+
 DESIGNS = {
     "drone_in": drone_in, "node_blip": node_blip, "text_hit": text_hit, "count_tick": count_tick,
     "comic_ding": comic_ding, "notif_ping": notif_ping, "soft_tick": soft_tick, "hard_stop": hard_stop,
@@ -1031,7 +1112,7 @@ DESIGNS = {
     "crescendo_noise": crescendo_noise, "flash_impact": flash_impact, "type_soft": type_soft,
     "riser": riser, "impact_drop_big": impact_drop_big, "chart_build": chart_build, "punch_ding": punch_ding,
     "stamp": stamp, "node_swarm": node_swarm, "gather_swell": gather_swell, "chime_big": chime_big,
-    "whoosh_soft": whoosh_soft,
+    "whoosh_soft": whoosh_soft, "tape_clunk": tape_clunk,
 }
 
 # (bus, gain dB). Buses: ui (dry-ish), notif, big (hall), air, glitch (dry), bell (plate+hall),
@@ -1049,7 +1130,7 @@ LEVELS = {
     "crescendo_noise": ("glitch", -1), "flash_impact": ("big", -5), "type_soft": ("ui", -15),
     "riser": ("air", -11), "impact_drop_big": ("big", -6.5), "chart_build": ("notif", -13.5),
     "punch_ding": ("bell", -8.5), "stamp": ("ui", -3), "node_swarm": ("bell", -9), "gather_swell": ("air", -5),
-    "chime_big": ("bell", -8), "whoosh_soft": ("air", -9),
+    "chime_big": ("bell", -8), "whoosh_soft": ("air", -9), "tape_clunk": ("ui", -5),
 }
 
 

@@ -77,7 +77,10 @@ export async function buildAct2({ cues, config, stage, S }) {
   const LOOP = HOLD ? HOLD.loop : 0;
   const ambient = (t) => (HOLD && t >= LOOP0 + LOOP ? LOOP0 + ((t - LOOP0) % LOOP) : t);
   const FROZEN = HOLD ? LOOP0 : CUT;
-  const END = G.flash + 0.2;                 // the frame is black from here (raster pass + Act 3 take over)
+  // The terminal ends on the white flash (first build) or when the tape starts to rewind (cues.g2.rewind: from
+  // there the picture is the film itself, earlier, and this scene is shown again as it was, backwards).
+  const OUT = G.rewind ? G.rewind.t0 : G.flash;
+  const END = G.rewind ? OUT : OUT + 0.2;    // nothing of this scene after that (raster pass + Act 3 take over)
   const LIGHTS = B.lights_on;
   const root = scene(stage, 's08', start, END, 'bday');
 
@@ -514,9 +517,9 @@ export async function buildAct2({ cues, config, stage, S }) {
   // Time: a line is fully typed before the next one starts, and the last two can be read for half a second.
   G.terminal_lines.forEach((ln, i, all) => {
     const typed = ln.t + ln.text.length / G.terminal_cps;
-    const until = i + 1 < all.length ? all[i + 1].t : G.flash;
+    const until = i + 1 < all.length ? all[i + 1].t : OUT;
     if (typed > until) console.error(`[act2] terminal line ${i + 1} is still being typed when the next thing happens (${typed.toFixed(2)} > ${until.toFixed(2)})`);
-    if (i >= all.length - 2 && G.flash - typed < 0.5) console.error(`[act2] terminal line ${i + 1} is on screen for only ${(G.flash - typed).toFixed(2)} s before the flash`);
+    if (i >= all.length - 2 && OUT - typed < (G.rewind ? 0.3 : 0.5)) console.error(`[act2] terminal line ${i + 1} is on screen for only ${(OUT - typed).toFixed(2)} s before the terminal ends`);
   });
   const pb = term.querySelector('.pb');
   const TERM_IN = G.terminal_lines[0].t - 0.1;
@@ -779,7 +782,7 @@ export async function buildAct2({ cues, config, stage, S }) {
     if (t < start || t >= END) return;
     if (t >= TERM_IN + 0.05) {               // the terminal covers the frame: nothing underneath needs drawing
       term.style.visibility = 'inherit';
-      const pp = prog(t, G.crescendo, G.flash - 0.12);
+      const pp = prog(t, G.crescendo, OUT - (G.rewind ? 0.06 : 0.12));
       const cells = Math.round(pp * 24);
       pb.textContent = t >= G.crescendo - 0.05 ? `[${'█'.repeat(cells)}${'░'.repeat(24 - cells)}] ${Math.round(pp * 100)}%` : '';
       return;

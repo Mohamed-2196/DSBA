@@ -6,14 +6,17 @@ cues.json. Never hand-edit cues.json; edit this file and re-run it.
 
 All times are in seconds from the start of the film. 30 fps, 1920x1080.
 
-Cut 8 (DSBA Hub): 259 s.
+Cut 9 (DSBA Hub): 249.5 s.
   Act 1   0-82      three portal tabs and the notification pile-up, then the launch film for DSBA Hub
-                    (newsletter, forum, Mini Noora, the montage, 3-2-1)
+                    (newsletter, forum, Mini Noora, the montage with the cohort dots at 71-74, 3-2-1)
   g1      82-86     glitch #1 (the error windows)
   Act 2   86-222.5  darkness and the cat's eyes (4.4 s), the fake birthday for Noor (the song ends at 102.5),
                     then the greeting is held, quiet, for 120 s
-  g2      222.5-229 glitch #2 (terminal: expected Noor's birthday, found Teacher's Day)
-  Act 3   229-259   the letter, Teacher's Day, the network that becomes THANK YOU, finale
+  g2      222.5-229 glitch #2: terminal (expected Noor's birthday, found Teacher's Day, rolling back...),
+                    then the film rewinds, fast, to the moment before the cohort dots of the launch part
+  Act 3   229-249.5 the dots come in again, without their connections, and this time carry a letter to the
+                    teachers, one cohort lighting up per phrase; on the drop they gather into THANK YOU;
+                    sign-off, the cat says Meow
 Everything from glitch #2 on is placed by lengths (BDAY_HOLD, G2_LEN, ACT3), so a change of length moves
 what follows by itself.
 """
@@ -40,11 +43,19 @@ BDAY_HOLD = 120.0
 BDAY_HOLD_PRE = 12.0
 BDAY_HOLD_LOOP = 12.0
 BDAY_HOLD_XFADE = 1.5
-G2_LEN = 6.5            # glitch #2, its black and silence included
+G2_LEN = 6.5            # glitch #2 (first build: its black and silence included; ROLLBACK: the rewind included)
 REVEAL_BPM = 120        # the anthem; its bars (2 s) are counted from the drop, so Act 3's scenes are whole bars long
-# "We ran the numbers on you": four statistics jokes, one chart each, between the title and the network.
-# Out since cut 8 (the room found them cliche); the scene, its score and its sounds are kept for a re-cut.
+# The Teacher's Day part as he settled it for cut 9. The terminal of glitch #2 ends on "rolling back...", the
+# film rewinds to the dots of the launch part (the three cohorts), and this time the dots carry a letter to the
+# teachers; on the drop its last line lands, the dots gather into THANK YOU, then the sign-off.
+# False = the first build: a typed letter and a gold title on plain navy, then the network (cut 8).
+ROLLBACK = True
+REW_T0, REW_LEN = 4.1, 2.4   # glitch #2: the tape starts to rewind this long after the glitch, and takes this long
+STILL = 0.5                  # the empty grid the rewind lands on, silent, before the piano starts and the dots come back
+# "We ran the numbers on you": four statistics jokes, one chart each, between the title and the network
+# (first build only). Out since cut 8 (the room found them cliche); kept for a re-cut.
 FIGURES = False
+assert not ROLLBACK or abs(REW_T0 + REW_LEN - G2_LEN) < 1e-9
 
 bday_beat = 60.0 / BDAY_BPM
 
@@ -79,10 +90,14 @@ SCENES = [
     ("s07_launch",     76.0,  82.0, 1, "'Launching today' + LAUNCH button + 3/2/1 countdown + click at 81.85."),
     ("g1_glitch",      82.0,  86.0, 2, "Glitch #1: freeze, corruption, error windows, static, black."),
     ("s08_birthday",   86.0,  G2_T, 2, f"4.4 s of darkness: a collar bell, two eyes, blinks. Lights on: Noor's cat in a party hat, 'Happy Birthday, Noor'; the song finishes and the greeting is held for {BDAY_HOLD:g} s."),
-    ("g2_glitch",      G2_T,  G2_T + G2_LEN, 3, "Glitch #2 (out of the quiet of the hold): scramble, terminal (expected Noor's birthday, found Teacher's Day), flash, black+silence."),
+    ("g2_glitch",      G2_T,  G2_T + G2_LEN, 3, "Glitch #2 (out of the quiet of the hold): scramble, terminal (expected Noor's birthday, found Teacher's Day, rolling back...), then the film rewinds to the cohort dots." if ROLLBACK else "Glitch #2 (out of the quiet of the hold): scramble, terminal (expected Noor's birthday, found Teacher's Day), flash, black+silence."),
 ]
 # Act 3: (id, seconds, description), in order
 ACT3 = [
+    ("s09_letter",    STILL + 8.0, "The rewind has landed just before the cohort dots of the launch part. Half a second of stillness; then, over soft piano, the dots pop in again and a letter to the teachers is set under them, one cohort lighting up per phrase; riser into the drop."),
+    ("s12_network",      4.0, "DROP: the ~160 dots gather into THANK YOU."),
+    ("s13_finale",       8.0, "Happy Teacher's Day sign-off, institution logos, the cat says Meow, fade to black."),
+] if ROLLBACK else [
     ("s09_letter",       8.0, "Letter to the teachers, typed line by line over soft piano; riser into the drop."),
     ("s10_teachers_day", 6.0, "DROP: HAPPY TEACHER'S DAY, gold, particles; 'Yes, it was yesterday.'"),
     *([("s11_numbers",  20.0, "'We study data. So we ran the numbers on you.' Four statistics jokes, one card each (4 s; the last one 6 s).")] if FIGURES else []),
@@ -93,8 +108,10 @@ for (sid_, len_, desc_) in ACT3:
     SCENES.append((sid_, SCENES[-1][2], round(SCENES[-1][2] + len_, 4), 3, desc_))
 S = {s[0].split("_")[0]: (s[1], s[2]) for s in SCENES}
 DURATION = SCENES[-1][2]
-PIANO_START = S["s09"][0]   # 4 bars of piano before the drop
-REVEAL_DROP = S["s10"][0]   # downbeat of the anthem drop
+PIANO_START = S["s09"][0] + (STILL if ROLLBACK else 0.0)   # 4 bars of piano before the drop
+REVEAL_DROP = S["s09"][1]                                   # downbeat of the anthem drop
+TITLE = S.get("s10", (REVEAL_DROP, REVEAL_DROP))            # the gold title of the first build; no length in ROLLBACK
+assert abs(REVEAL_DROP - PIANO_START - 8.0) < 1e-9
 
 # ------------------------------------------------------------ act 1 details
 # The film opens on a browser with three portals open in tabs (the student's own MyClass, LSE VLE and
@@ -286,7 +303,31 @@ G1 = {
 
 def g2(x):
     return round(G2_T + x, 4)
+NET_CUT = next(m for m in MONTAGE if m["id"] == "network")
 G2 = {
+    "start": g2(0), "end": g2(G2_LEN),
+    "segments": [
+        {"t0": g2(0.00), "t1": g2(1.00), "kind": "warp",       "i0": 0.30, "i1": 0.70},
+        {"t0": g2(1.00), "t1": g2(REW_T0), "kind": "terminal", "i0": 0.16, "i1": 0.24},
+        {"t0": g2(REW_T0), "t1": g2(G2_LEN), "kind": "rewind", "i0": 1.00, "i1": 1.00},
+    ],
+    "stutters": [
+        {"start": g2(0.18), "end": g2(0.70), "src": g2(0.0), "len": 0.18},
+    ],
+    "note_warp": {"t0": g2(0.0), "t1": g2(1.0)},
+    "terminal_lines": [
+        {"t": g2(1.05), "text": "> ERROR: celebration.target mismatch"},
+        {"t": g2(1.85), "text": "> expected: Noor's birthday"},
+        {"t": g2(2.55), "text": "> found: Teacher's Day"},       # then a beat for the room
+        {"t": g2(3.45), "text": "> rolling back..."},
+    ],
+    # The tape rewinds: between t0 and t1 the picture shows earlier film time, from the birthday greeting back to
+    # the first frame of the cohort-dots beat of the launch part, before any dot is there (src/main.js remaps the
+    # clock; tools/audio plays the same stretch backwards). The film goes on from that picture: the dots again.
+    "rewind": {"t0": g2(REW_T0), "t1": g2(G2_LEN), "from": round(BDAY_CUT - 0.1, 4), "to": NET_CUT["t"], "power": 1.8},
+    "crescendo": g2(3.80),                                # the bar under the last line fills from here to the rewind
+    "silence": {"t0": g2(G2_LEN) + 0.3, "t1": g2(G2_LEN) + STILL},    # the tape has stopped: nothing, until the piano
+} if ROLLBACK else {
     "start": g2(0), "end": g2(G2_LEN),
     "segments": [
         {"t0": g2(0.00), "t1": g2(1.00), "kind": "warp",       "i0": 0.30, "i1": 0.70},
@@ -309,7 +350,7 @@ G2 = {
     "silence": {"t0": g2(4.95), "t1": g2(G2_LEN)},
     "crescendo": g2(4.10), "flash": g2(4.75),
 }
-G2["hits"] = [g2(0.0)] + [ln["t"] for ln in G2["terminal_lines"]] + [G2["flash"]]
+G2["hits"] = [g2(0.0)] + [ln["t"] for ln in G2["terminal_lines"]] + ([] if ROLLBACK else [G2["flash"]])
 
 # Terminal typing (fast enough that each line finishes before the next starts)
 TERMINAL_CPS = 58.0
@@ -323,7 +364,7 @@ for i, line in enumerate(G2["terminal_lines"]):
 
 # --------------------------------------------------------------- act 3 copy
 LETTER_T = S["s09"][0]
-LETTER_LINES = [
+LETTER_LINES = [] if ROLLBACK else [
     {"t": LETTER_T + 0.10, "text": "Dear teachers,"},
     {"t": LETTER_T + 1.50, "text": "today, you thought you were in on the surprise."},
     {"t": LETTER_T + 4.50, "text": "plot twist:"},
@@ -335,7 +376,7 @@ for line in LETTER_LINES:
     for i, _ in enumerate(line["text"]):
         letter_typing.append(round(line["t"] + i / LETTER_CPS, 4))
 
-n0 = S["s11"][0] if FIGURES else S["s10"][1]
+n0 = S["s11"][0] if "s11" in S else TITLE[1]
 NUMBERS = {
     "start": n0,
     "intro": [{"t": n0 + 0.15, "text": "We study data."}, {"t": n0 + 1.0, "text": "So we ran the numbers on you."}],
@@ -353,9 +394,27 @@ NUMBERS = {
     ],
     "card_len": 4.0,          # a card may carry its own "len"
     "end": S["s11"][1],
-} if FIGURES else {"start": n0, "intro": [], "cards": [], "card_len": 4.0, "end": n0}   # no scene: an empty stretch at the end of the title
+} if "s11" in S else {"start": n0, "intro": [], "cards": [], "card_len": 4.0, "end": n0}   # no scene: an empty stretch at the end of the title
 w0 = S["s12"][0]
 NETWORK = {
+    # ROLLBACK: the scene is the picture the rewind lands on (the grid of the launch part, no dots yet), so it is on
+    # screen from the end of glitch #2. With the piano the dots pop in as they did in the launch part, but no
+    # connections are drawn, and instead of its caption the letter is set under them. In `rows` the {braces} mark
+    # what the highlighter takes, in order; with every highlight one cohort of dots lights up (Year 1, 2, 3).
+    "start": LETTER_T, "nodes_in": PIANO_START, "links_in": PIANO_START, "lines": [],
+    "rollback": {
+        "land": LETTER_T, "play": [LETTER_T, LETTER_T + 0.9],        # "PLAY", as a tape deck shows when it starts again
+        "dots_in": PIANO_START,
+        "dear": {"t": PIANO_START + 1.0, "text": "Dear teachers,"},
+        "rows": [
+            {"t": PIANO_START + 1.8, "text": "thank you for {inspiring us,} {guiding us,}", "marks": [PIANO_START + 2.75, PIANO_START + 3.55]},
+            {"t": PIANO_START + 4.4, "text": "and helping us become {better every day.}", "marks": [PIANO_START + 5.6]},
+        ],
+        "out": REVEAL_DROP - 0.3,
+    },
+    "gather": w0, "formed": w0 + 1.5, "word": "THANK YOU",
+    "end": S["s12"][1],
+} if ROLLBACK else {
     "start": w0,
     "nodes_in": w0 + 0.0, "links_in": w0 + 0.9,
     "lines": [{"t": w0 + 1.3, "text": "Every connection here started in one of your classes."}],
@@ -366,7 +425,7 @@ f0 = S["s13"][0]
 FINALE = {
     "start": f0, "title": f0 + 0.2, "signoff": f0 + 1.6, "logos": f0 + 2.4, "cat": f0 + 3.8, "meow": f0 + 4.5,
     "title_text": "Happy Teacher’s Day",
-    "signoff_text": "From all of us in DSBA · Years 1, 2 & 3",
+    "signoff_text": "From all of us in DSBA" if ROLLBACK else "From all of us in DSBA · Years 1, 2 & 3",
     "hashtag": "#HappyTeachersDay",
     "meow_text": "Meow.",
     "fade": [DURATION - 1.4, DURATION],
@@ -449,12 +508,16 @@ for t_ in BDAY_BLINKS:
 add(BDAY_LIGHTS, "lights_on")         # a switch click + warm bloom
 add(BDAY_LIGHTS + 0.08, "party_popper")
 # glitch 2
-for t_ in G2["hits"][:-1]:
+for t_ in (G2["hits"] if ROLLBACK else G2["hits"][:-1]):
     add(t_, "glitch_hit")
 for t_ in terminal_typing:
     add(t_, "term_key")
-add(G2["crescendo"], "crescendo_noise", dur=round(G2["flash"] - G2["crescendo"], 3))
-add(G2["flash"], "flash_impact")
+if ROLLBACK:
+    add(G2["rewind"]["t0"], "tape_clunk", soft=1)          # the deck engages; the rewind itself is the film's own sound, backwards (build_audio.py)
+    add(G2["rewind"]["t1"], "tape_clunk")                  # ... and stops
+else:
+    add(G2["crescendo"], "crescendo_noise", dur=round(G2["flash"] - G2["crescendo"], 3))
+    add(G2["flash"], "flash_impact")
 # act 3
 for t_ in letter_typing:
     add(t_, "type_soft")
@@ -464,7 +527,8 @@ for c in NUMBERS["cards"]:
     add(c["t"] - 0.12, "swish_small", dur=0.3)
     add(c["build"], "chart_build", dur=round(c["punch_t"] - c["build"], 3), id=c["id"])
     add(c["punch_t"], "stamp" if c["id"] == "h0" else "punch_ding", id=c["id"])
-add(NETWORK["nodes_in"], "node_swarm", dur=0.8)
+if not ROLLBACK:
+    add(NETWORK["nodes_in"], "node_swarm", dur=0.8)
 add(NETWORK["gather"], "gather_swell", dur=round(NETWORK["formed"] - NETWORK["gather"], 3))
 add(NETWORK["formed"], "chime_big")
 add(FINALE["start"] - 0.4, "whoosh_soft", dur=0.8)
@@ -482,7 +546,7 @@ cues = {
                       "cut": BDAY_CUT, "key": "C major", "time_signature": "3/4", "phrases": BDAY_PHRASES},
         "reveal": {"bpm": REVEAL_BPM, "piano_start": PIANO_START, "drop": REVEAL_DROP,
                     "chords": ["D", "A", "Bm", "G"], "bar_seconds": 2.0,
-                    "sections": {"title": list(S["s10"]), "numbers": [NUMBERS["start"], NUMBERS["end"]], "network": list(S["s12"]), "finale": list(S["s13"])},
+                    "sections": {"title": list(TITLE), "numbers": [NUMBERS["start"], NUMBERS["end"]], "network": list(S["s12"]), "finale": list(S["s13"])},
                     "climax": NETWORK["formed"], "final_chord": f0 + 4.0, "end": DURATION},
     },
     "scenes": [{"id": s[0], "start": s[1], "end": s[2], "act": s[3], "desc": s[4]} for s in SCENES],
@@ -517,7 +581,7 @@ cues = {
     "letter": {"start": LETTER_T, "lines": LETTER_LINES, "cps": LETTER_CPS, "typing": letter_typing,
                "dissolve": LETTER_T + 7.4, "flash": LETTER_T + 7.84},
     "teachers_day": {"drop": REVEAL_DROP, "subline": REVEAL_DROP + 2.0,
-                     "subline_text": "Yes, it was yesterday. We needed a day to fool you.", "end": S["s10"][1]},
+                     "subline_text": "Yes, it was yesterday. We needed a day to fool you.", "end": TITLE[1]},
     "numbers": NUMBERS,
     "network": NETWORK,
     "finale": FINALE,

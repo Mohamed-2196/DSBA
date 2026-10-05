@@ -86,6 +86,15 @@
 .a3 .nt-caps { position: absolute; left: 0; right: 0; top: 836px; transform: translateY(-50%); }
 .a3 .nt-cap { text-align: center; white-space: nowrap; font: italic 500 64px/1.24 var(--serif); letter-spacing: -.004em; color: var(--gold-2); text-shadow: 0 0 70px rgba(245, 200, 107, .28); }
 .a3 .nt-small { position: absolute; left: 0; right: 0; top: 706px; text-align: center; font: italic 400 46px/1.2 var(--serif); color: var(--cream-2); }
+/* the roll-back: the launch part's cohort beat again, in the launch part's own look (its grid, its heavy sans, its
+   yellow marker), now carrying the letter. The words under a marker turn to ink exactly where the marker has passed. */
+.a3-roll { color: var(--white); }
+.a3-roll .rb-letter { position: absolute; z-index: 2; left: 0; right: 0; top: 612px; text-align: center; font-family: var(--sans); font-weight: 800; letter-spacing: -.03em; white-space: nowrap; }
+.a3-roll .rb-dear { height: 128px; font-size: 88px; line-height: 104px; }
+.a3-roll .rb-row { height: 116px; font-size: 72px; line-height: 116px; }
+.a3-roll .rb-hl { --hlx: 0; margin: 0 .06em; }
+.a3-roll .rb-ink { color: transparent; -webkit-background-clip: text; background-clip: text;
+  background-image: linear-gradient(90deg, var(--ink) calc(var(--hlx) * 100%), var(--white) calc(var(--hlx) * 100%)); }
 
 /* ── s13 finale ─────────────────────────────────────────────────── */
 .a3 .fn-col { position: absolute; left: 0; right: 0; top: 232px; text-align: center; }

@@ -739,6 +739,42 @@ def r_flash(img, c):
     return gl.white_flash(ghost, a)
 
 
+def r_rewind(img, c):
+    """The tape rewinds with the picture on. The film itself runs backwards in the source frames
+    (src/main.js remaps the clock over cues.g2.rewind); this pass adds what a deck in reverse
+    picture search shows: noise bars crawling up the picture and tearing the lines they cover,
+    lines pulled sideways, smeared colour, head-switching noise along the bottom edge. All of it
+    follows the tape's speed: full as the transport bites, thinning as it slows, and gone when
+    it stops on the cohort dots -- the last frames are the clean picture, so the stop is clean."""
+    rng = c.rng("rewind")
+    rw = c.win.g.get("rewind") or {}
+    p = c.p
+    speed = (1.0 - p) ** max(0.0, float(rw.get("power", 1.8)) - 1.0)        # of the tape: 1 -> 0
+    E = gl.clamp01(1.15 * speed) * (1.0 - gl.smoothstep(0.84, 1.0, p))
+    if E <= 0.004:
+        return img
+    on = min(1.0, 6.0 * E)                  # what would otherwise leave a floor fades out with it
+    out = img
+    if c.k < 3:                             # the transport bites: the picture rolls once before it holds
+        out = gl.vroll(out, c.H * (0.42, 0.2, 0.07)[c.k], bar=44)
+        c.fx.append("roll")
+    out = gl.chroma_bleed(out, width=6 + 18 * E, shift=int(round(2 + 7 * E)), sat=1.0 - 0.3 * E)
+    out = gl.row_jitter(out, rng, (1.5 + 9 * E) * on, smooth=18, spikes=int(4 * E + rng.random()),
+                        spike_amp=70 * E)
+    nb = 4                                  # noise bars: evenly spaced, crawling up
+    drift = c.t * 0.42
+    for j in range(nb):
+        y = ((j / nb - drift) % 1.0) * (c.H + 140) - 70
+        hgt = (30 + 50 * E) * (0.75 + 0.5 * ((j * 37) % 10) / 10)
+        out = gl.tracking_band(out, rng, y, hgt * on, strength=(0.35 + 0.65 * E) * on)
+    c.fx.append("bars")
+    if E > 0.12:
+        out = gl.head_switch(out, rng, rows=int(10 + 14 * E), shift=int(18 + 30 * E))
+        out = gl.dropouts(out, rng, int(1 + 7 * E), maxlen=260)
+    out = _split(out, c, (1.5 + 5 * E) * on, rng)
+    return gl.scanlines(out, (0.05 + 0.1 * E) * on, period=4.0, phase=c.k * 0.5)
+
+
 def r_generic(img, c):
     rng = c.rng("generic")
     E = min(1.0, c.I + 0.5 * c.spike)
@@ -759,6 +795,7 @@ RECIPES = {
     "terminal": r_terminal,
     "crescendo": r_crescendo,
     "flash": r_flash,
+    "rewind": r_rewind,
 }
 
 

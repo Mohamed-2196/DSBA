@@ -1,7 +1,7 @@
 # Film engine guide (read this before touching a scene)
 
 The film is ONE web page (`src/index.html`) rendered frame by frame by headless Chromium.
-1920×1080, 30 fps, 259.0 s (7770 frames) in cut 8, of which 120 s are the birthday hold. Every frame must be a pure function of the film time `t`.
+1920×1080, 30 fps, 249.5 s (7485 frames) in cut 9, of which 120 s are the birthday hold. Every frame must be a pure function of the film time `t`.
 
 ## Files
 - `tools/make_cues.py` → `cues.json`: the single source of truth for timing and on-screen copy.
@@ -12,7 +12,7 @@ The film is ONE web page (`src/index.html`) rendered frame by frame by headless 
   `?only=2` (or `?only=3`, `?only=2,3`) builds just those acts.
 - `src/lib.js`: helpers (below). `src/net.js`: the shared cohort network (160 student dots).
 - `src/act1.js` + `src/film.css`: Act 1 and glitch 1 (0–86). `src/act2.js` + `src/act2.css`: Act 2, its hold and glitch 2 (86–229).
-  `src/act3.js` + `src/act3.css`: Act 3 (229–259). Scene times always come from `cues.scenes` via `S('s08')`; never hard-code them. One owner per act; stay in your files.
+  `src/act3.js` + `src/act3.css`: Act 3 (229–249.5). Scene times always come from `cues.scenes` via `S('s08')`; never hard-code them. One owner per act; stay in your files.
 - `assets/`: images (`assets/ui/*.png` are app screenshots, `assets/cat/` is Noor's cat, `assets/noora/` Mini Noora's
   sprites: full-body poses on one 680×784 canvas with half-size twins in `sm/`, busts on a 600×600 one).
   Reference assets from scenes as `../assets/...`. Brand logos: `/dsba/public/brand/{bibf-white,bibf,uol,myclass-white,myclass}.png`.
@@ -49,6 +49,10 @@ export function buildAct2({ tl, cues, config, stage, S }) {
    **The hold repeats.** From `cues.birthday.hold.loop_start` the birthday scene's ambient clock wraps every `loop`
    seconds, so anything added to the hold must be a function of that clock (and must not happen in a pass's last
    `xfade` seconds, which are cross-faded into the frames before the loop's start).
+   **The film also runs backwards.** During `cues.g2.rewind` the engine shows the film time `u` (from 102.4 s back
+   to 71 s) instead of the output time: scenes are shown by `u`, every `onFrame` gets `u`, and from one frame to
+   the next time goes back, fast. A scene that is a pure function of time needs nothing for this; one that is not
+   will show it here first. (A page built with `?only=3` has nothing to show during the rewind.)
 3. `chars(node)` splits text into inline-block spans (`.ch`) for staggered reveals.
 4. `typeText(node, text, t0, cps, { caret })` types text as a pure function of time.
 5. Canvas: a `<canvas width="1920" height="1080">` cleared and redrawn in `onFrame`. Keep particle counts
@@ -60,7 +64,7 @@ export function buildAct2({ tl, cues, config, stage, S }) {
    'Playfair' (600, 800, italic 700), 'Caveat' (700). Nothing else is installed; emoji render in colour.
 10. Palette (CSS vars in film.css): `--bg #040a1c`, `--navy #081433`, `--cobalt #1558f0`, `--cobalt-2 #6fa2ff`,
     `--hl #ffe14a` (highlighter), `--gold #f5c86b`, `--gold-2 #ffd98a`, `--gold-3 #b8862b`,
-    cohorts `--y1 #3bc9db`, `--y2 #5e9bff`, `--y3 #ffa94d`. The film is blue; gold belongs to Act 3 (and the birthday's foil).
+    cohorts `--y1 #3bc9db`, `--y2 #5e9bff`, `--y3 #ffa94d`. The film is blue; gold belongs to the birthday's foil and to the end of Act 3 (THANK YOU, the finale). The letter on the cohort dots that opens Act 3 is in the launch part's look.
 
 ## Rendering review frames (do this, look at the result, iterate)
 The static server is already running (`http://127.0.0.1:5180/launch-video/src/index.html`). Do not restart it.
