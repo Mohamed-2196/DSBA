@@ -1,0 +1,167 @@
+/* Mini Noora, the floating mascot. Where she is comes from JS (MiniNoora.jsx); how she moves is here.
+   She sits above the page and its menus, and below modals and the command palette. */
+
+/* A ruler for the room the phone tab bar takes. CSS knows the token and the safe-area inset;
+   JS reads this element's height and never lets her stand lower (see useViewport.js). */
+.noora-ruler {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+@media (max-width: 699px) {
+  .noora-ruler { height: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
+}
+
+/* Her box: width, height and the translate that places it are set inline. */
+.noora {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: calc(var(--z-dropdown) + 6);
+  /* She glides when she is nudged with the keyboard, when the window changes, and to and from the phone sheet. */
+  transition: transform var(--dur-slow) var(--ease);
+}
+.noora[data-state='carried'] { transition: none; }
+
+.noora__button {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--r-panel);
+  /* She fades in once her first sprite has arrived, rather than popping in half-loaded. */
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease);
+  cursor: grab;
+  touch-action: none; /* a finger on her drags her, it does not scroll the page */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.noora[data-ready] .noora__button { opacity: 1; }
+.noora[data-state='carried'] .noora__button { cursor: grabbing; }
+
+/* The shadow she stands on. It fades when she is picked up. */
+.noora__ground {
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 92%;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scrim) 62%, transparent), transparent);
+  transform: translateX(-50%);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  pointer-events: none;
+}
+.noora[data-state='carried'] .noora__ground { opacity: 0; transform: translateX(-50%) scale(0.5); }
+
+/* Lift: carried, she rises a little, grows, leans the way she is going and casts a longer shadow. */
+.noora__lift {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 30%;
+  /* --tile-stroke only shows in the dark theme: a faint rim, so her navy suit does not sink into the page. */
+  filter: drop-shadow(0 0 1px var(--tile-stroke)) drop-shadow(0 1px 1px color-mix(in srgb, var(--scrim) 30%, transparent));
+  transition: transform var(--dur) var(--ease), filter var(--dur) var(--ease);
+  pointer-events: none;
+}
+.noora[data-state='pressed'] .noora__lift { transform: scale(0.97); }
+.noora[data-state='carried'] .noora__lift {
+  transform: translateY(-6px) scale(1.08) rotate(var(--noora-tilt, 0deg));
+  filter: drop-shadow(0 0 1px var(--tile-stroke)) drop-shadow(0 14px 9px color-mix(in srgb, var(--scrim) 80%, transparent));
+}
+
+/* The figure breathes at rest and squashes, then settles, when she is put down. */
+.noora__figure {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+}
+.noora[data-state='rest'] .noora__figure { animation: noora-breathe 3.4s ease-in-out infinite; }
+.noora[data-state='dropped'] .noora__figure { animation: noora-settle 640ms var(--ease) both; }
+@keyframes noora-breathe {
+  50% { transform: translateY(-1.5px) scaleY(1.016); }
+}
+@keyframes noora-settle {
+  0% { transform: translateY(-6px) scale(1.06); }
+  30% { transform: scale(1.1, 0.88); }
+  56% { transform: scale(0.96, 1.05); }
+  80% { transform: scale(1.02, 0.985); }
+  100% { transform: none; }
+}
+
+/* Every pose is in the page, stacked on the same canvas; only the current one is visible, so a
+   change of pose is a change of visibility and never waits for an image. The canvas is bigger than
+   her box and hangs around it (the --noora-c* lengths), feet on the box's bottom edge. */
+.noora__pose {
+  position: absolute;
+  left: var(--noora-cx);
+  top: var(--noora-cy);
+  width: var(--noora-cw);
+  height: var(--noora-ch);
+  max-width: none;
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.noora__pose[data-on] { visibility: visible; }
+.noora__figure[data-mirrored] .noora__pose { transform: scaleX(-1); }
+
+/* First visit: a speech bubble beside her, with an unread dot. It goes once she is clicked or moved. */
+.noora__hint {
+  position: absolute;
+  right: calc(100% + 10px);
+  bottom: 58%;
+  width: max-content;
+  max-width: 216px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel) var(--r-panel) var(--r-xs) var(--r-panel);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  line-height: 1.4;
+  text-align: left;
+  transform-origin: 100% 100%;
+  animation: noora-hint-in var(--dur-slow) var(--ease) both;
+}
+.noora__hint[data-side='right'] {
+  right: auto;
+  left: calc(100% + 10px);
+  border-radius: var(--r-panel) var(--r-panel) var(--r-panel) var(--r-xs);
+  transform-origin: 0 100%;
+}
+.noora__hint::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 11px;
+  height: 11px;
+  border-radius: var(--r-pill);
+  background: var(--alert);
+  box-shadow: 0 0 0 2px var(--paper);
+}
+.noora__hint[data-side='right']::after { right: auto; left: -4px; }
+@keyframes noora-hint-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.94); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noora, .noora__button, .noora__lift, .noora__ground { transition: none; }
+  .noora[data-state] .noora__figure, .noora__hint { animation: none; }
+}
+
+/* She stays out of printed pages. */
+@media print {
+  .noora, .noora-ruler { display: none; }
+}

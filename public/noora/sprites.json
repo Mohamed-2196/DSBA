@@ -1,0 +1,70 @@
+{
+ "full": {
+  "idle": {
+   "file": "idle.png"
+  },
+  "side-right": {
+   "file": "side-right.png"
+  },
+  "side-left": {
+   "file": "side-left.png"
+  },
+  "back": {
+   "file": "back.png"
+  },
+  "walk-right": {
+   "file": "walk-right.png"
+  },
+  "walk-left": {
+   "file": "walk-left.png"
+  },
+  "talking": {
+   "file": "talking.png"
+  },
+  "happy": {
+   "file": "happy.png"
+  },
+  "excited": {
+   "file": "excited.png"
+  },
+  "surprised": {
+   "file": "surprised.png"
+  },
+  "sad": {
+   "file": "sad.png"
+  }
+ },
+ "bust": {
+  "angry": {
+   "file": "bust-angry.png"
+  },
+  "laughing": {
+   "file": "bust-laughing.png"
+  },
+  "winking": {
+   "file": "bust-winking.png"
+  },
+  "thinking": {
+   "file": "bust-thinking.png"
+  },
+  "wave": {
+   "file": "bust-wave.png"
+  },
+  "neutral": {
+   "file": "bust-neutral.png"
+  }
+ },
+ "canvas": {
+  "full": {
+   "w": 680,
+   "h": 784,
+   "feetY": 768,
+   "centreX": 340
+  },
+  "bust": {
+   "w": 600,
+   "h": 600
+  }
+ },
+ "note": "Full-body poses share one canvas (feet at feetY, centred on centreX); busts share another. Size them with CSS: the pixels are 2x."
+}

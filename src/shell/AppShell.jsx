@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { ErrorBoundary, Toaster } from '../ui';
 import { CommandPalette } from '../features/search/public.js';
 import { Onboarding } from '../features/onboarding/public.js';
+import { MiniNoora } from '../features/noora/public.js';
 import { Sidebar } from './Sidebar.jsx';
 import { TopBar } from './TopBar.jsx';
 import { MobileNav } from './MobileNav.jsx';
@@ -36,6 +37,9 @@ export function AppShell({ children }) {
       </ErrorBoundary>
       <ErrorBoundary name="Onboarding" fallback={null}>
         <Onboarding />
+      </ErrorBoundary>
+      <ErrorBoundary name="MiniNoora" fallback={null}>
+        <MiniNoora />
       </ErrorBoundary>
       <Toaster />
     </div>
