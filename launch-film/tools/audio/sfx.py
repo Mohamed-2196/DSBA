@@ -11,6 +11,8 @@ the opening drone lasts, which pop is the cat's speech bubble, which typing cues
 the dark room tone lies) are derived from the cue sheet in render_sfx()."""
 from __future__ import annotations
 
+import os
+
 import numpy as np
 
 import instruments as ins
@@ -480,24 +482,85 @@ def glitch_hit(ev, rng, ctx):
     return 0.0, y
 
 
+def _error_stab(i, rng):
+    """A hard, low, sour stab: the sound an error dialog makes, as a machine that has hung repeats it.
+
+    Low and short (a thud more than a beep), on an interval that cannot resolve (a tritone, with a minor
+    ninth on top), brightened and then driven until it flattens, and cut to a coarse sample grid so it has
+    the grit of a cheap sound chip. It sags in pitch: nothing about an error goes up. Every window gets
+    the same stab (that sameness is what says "machine"); it only gets dirtier as they pile up, and the
+    last two, which come faster, stammer."""
+    late = min(i, 5) / 5.0
+    dur = 0.30
+    n = s2n(dur)
+    t = tarr(n)
+    sag = 2.0 ** (-0.8 * np.minimum(t / 0.22, 1.0) / 12.0)
+    f0 = float(mtof(50)) * sag                                        # D3
+    x = (0.9 * osc("saw", f0, n, 0.0, fmax=160.0)
+         + 0.8 * osc("square", f0 * 2.0 ** (6 / 12), n, 0.25, fmax=225.0)           # the tritone
+         + 0.6 * osc("saw", f0 * 2.0 ** (13 / 12), n, 0.1, fmax=330.0)              # the minor ninth
+         + 0.25 * osc("square", f0 * 0.5, n, 0.0, fmax=80.0))                       # weight
+    x = biquad(x / np.max(np.abs(x)), "highshelf", 900.0, gain_db=9.0)             # brightened before the drive
+    # the hit itself: a click and a short low thud, under the tone and through the same drive
+    nc = s2n(0.04)
+    tc = tarr(nc)
+    x[:nc] += 0.5 * np.sin(TWO_PI * phase_of(90.0 + 130.0 * np.exp(-tc / 0.010), nc)) * np.exp(-tc / 0.016)
+    x[:s2n(0.004)] += 0.5 * butter(rng.standard_normal(s2n(0.004)), "highpass", 2000.0, 2) * np.exp(-tarr(s2n(0.004)) / 0.0012)
+    env = np.minimum(t / 0.001, 1.0) * np.where(t < 0.06, 1.0, np.exp(-(t - 0.06) / 0.03))
+    x = np.tanh((2.2 + 1.0 * late) * env * x)
+    x = bitcrush(x, np.full(n, 7.0 - 2.0 * late), np.full(n, 3.0 + 3.0 * late))
+    x = butter(x, "highpass", 120.0, 2)
+    x = biquad(x, "peak", 2600.0, 0.9, 4.0)                           # where harsh lives
+    x = butter(x, "lowpass", 7500.0, 2)
+    if i >= 4:                                                        # the last two stammer: d-dun
+        k = s2n(0.07)
+        y = np.zeros(n + k)
+        y[:n] += x
+        y[k:] += 0.75 * x
+        x = y
+    return np.tanh(1.1 * x), 1.0                                      # the filters' overshoot, flattened again: all body
+
+
+def _error_buzz(i, rng):
+    """A buzzer: "wrong". Two low saws a semitone apart, so the tone itself rattles, flat-topped (a buzzer
+    does not die away, it is switched off) and driven hard."""
+    n = s2n(0.19)
+    t = tarr(n)
+    f0 = float(mtof(43))                                              # G2
+    x = osc("saw", f0, n, 0.0, fmax=100.0) + 0.9 * osc("saw", f0 * 2.0 ** (1 / 12), n, 0.3, fmax=106.0) \
+        + 0.6 * osc("square", f0 * 2.0, n, 0.1, fmax=200.0)
+    x = biquad(x / np.max(np.abs(x)), "highshelf", 700.0, gain_db=10.0)
+    env = np.minimum(t / 0.002, 1.0) * np.where(t < 0.15, 1.0, np.exp(-(t - 0.15) / 0.010))
+    x = np.tanh((3.0 + 1.0 * min(i, 5) / 5.0) * env * x)
+    x = butter(butter(x, "highpass", 140.0, 2), "lowpass", 6000.0, 2)
+    return np.tanh(1.2 * x), 0.95
+
+
+def _error_alarm(i, rng):
+    """An alarm: two short, piercing beeps, the two squares a semitone apart so the beep itself is rough."""
+    n = s2n(0.19)
+    x = np.zeros(n)
+    f = float(mtof(94))                                               # just under 2 kHz, where the ear is keenest
+    for k0 in (0.0, 0.095):
+        a0, a1 = s2n(k0), s2n(k0 + 0.06)
+        seg = osc("square", f, a1 - a0, 0.0) + 0.8 * osc("square", f * 2.0 ** (1 / 12), a1 - a0, 0.2)
+        e = np.ones(a1 - a0)
+        fade_edges(e, 0.0008, 0.004)
+        x[a0:a1] += seg * e
+    x = butter(np.tanh(1.5 * x / np.max(np.abs(x))), "lowpass", 9000.0, 2)
+    return x, 0.5                                                     # (matched to the others by ear-weighted level)
+
+
+# The error window's sound. "stab" is the one in the film; the others are kept for comparison
+# (DSBA_ERROR_SOUND=buzz|alarm python3 tools/audio/build_audio.py --out <dir> renders the mix with one of them).
+ERROR_SOUNDS = {"stab": _error_stab, "buzz": _error_buzz, "alarm": _error_alarm}
+
+
 def error_beep(ev, rng, ctx):
     i = ctx["index"]
-    n = s2n(0.36)
-    t = tarr(n)
-    f1 = float(mtof(70 + i))       # each new window a semitone higher: stacking alarm
-    f2 = f1 * 2 ** (-4 / 12)
-    a = s2n(0.13)
-    x = np.zeros(n)
-    x[:a] = osc("square", f1, a, 0.0, fmax=f1) * 0.7 + 0.3 * osc("saw", f1 * 1.003, a)
-    x[a:a + s2n(0.16)] = (osc("square", f2, s2n(0.16), 0.0) * 0.7 + 0.3 * osc("saw", f2 * 0.997, s2n(0.16)))
-    env = np.ones(n)
-    env[:a] *= _env(a, 0.003, 10.0)
-    seg = slice(a, a + s2n(0.16))
-    env[seg] = _env(s2n(0.16), 0.003, 0.09)
-    env[a + s2n(0.16):] = 0
-    x = butter(x * env, "lowpass", 4200.0, 2)
-    fade_edges(x, 0.002, 0.01)
-    return 0.0, _norm(_st(x, (-0.35, 0.35)[i % 2]))
+    x, g = ERROR_SOUNDS[os.environ.get("DSBA_ERROR_SOUND", "stab")](i, rng)
+    fade_edges(x, 0.0005, 0.01)
+    return 0.0, g * _norm(_st(x, (-0.2, 0.2)[i % 2]))
 
 
 def static_rise(ev, rng, ctx):
@@ -981,7 +1044,7 @@ LEVELS = {
     "impact_drop": ("big", -5), "whoosh": ("air", -5), "key_click": ("ui", -9), "ui_click": ("ui", -4),
     "post_pop": ("ui", -7), "reply_pop": ("ui", -8), "upvote_tick": ("ui", -15), "counter_ding": ("bell", -9),
     "swish_small": ("air", -5), "countdown_hit": ("big", -5), "ui_click_big": ("ui", -2),
-    "glitch_hit": ("glitch", -10), "error_beep": ("glitch", -15), "static_rise": ("glitch", -1),
+    "glitch_hit": ("glitch", -10), "error_beep": ("glitch", -4.5), "static_rise": ("glitch", -1),
     "bell_jingle": ("tiny", -12), "blink_tick": ("wood", -22), "lights_on": ("air", -9), "party_popper": ("big", -9), "term_key": ("ui", -26),
     "crescendo_noise": ("glitch", -1), "flash_impact": ("big", -5), "type_soft": ("ui", -15),
     "riser": ("air", -11), "impact_drop_big": ("big", -6.5), "chart_build": ("notif", -13.5),
@@ -1194,6 +1257,7 @@ def render_sfx(cues, epochs):
             for li, ln in enumerate(cues["g2"].get("terminal_lines", [])):
                 if abs(ln["t"] - e["t"]) < 1e-3:
                     ctx["terminal_line"] = li
+            ctx["under_error"] = any(abs(tw - e["t"]) < 1e-3 for tw in cues["g1"].get("error_windows", []))
             for w in glitch_windows:
                 if w[0] <= e["t"] < w[1] and w not in first_hit:
                     first_hit[w] = e["t"]
@@ -1223,6 +1287,8 @@ def render_sfx(cues, epochs):
         if kind == "notif_ping":
             dens = np.sum(np.abs(pings - e["t"]) < 0.25)
             g *= float(np.clip(2.2 / np.sqrt(max(dens, 1)), 0.6, 1.0))
+        if ctx.get("under_error"):
+            g *= 10 ** (-7 / 20)                    # the burst steps back: the window's own error sound leads
         if e["t"] < g1s and kind != "hard_stop":
             target = pre
         else:

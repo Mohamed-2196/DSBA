@@ -1,5 +1,5 @@
-// Act 3 — the letter (s09) and Teacher's Day: the title (s10), "we ran the numbers" (s11),
-// the network that becomes THANK YOU (s12) and the finale (s13).
+// Act 3 — the letter (s09) and Teacher's Day: the title (s10), "we ran the numbers" (s11, only when the cue
+// sheet has that scene: it is out since cut 8), the network that becomes THANK YOU (s12) and the finale (s13).
 // Every time and every line of copy comes from cues.json (cues.scenes, cues.letter, cues.teachers_day,
 // cues.numbers, cues.network, cues.finale); times that are not in the cue sheet are offsets from one that is.
 // Every frame is a pure function of the film time: styles and canvases are recomputed from t on each seek.
@@ -152,12 +152,16 @@ function buildBackdrop({ cues, stage }, FX) {
   const raysA = raysSprite(702, 6, 15, 'rgba(255,217,138,.115)', 0.19);
   const raysB = raysSprite(498, 1.5, 10, 'rgba(255,243,196,.075)', 0.14);
 
+  // The figures (s11) sit between the title and the network on a paper mood of their own. A cut without them
+  // goes from the title straight to the network: no paper, and the dust eases directly to the network's level.
+  const figures = NW.start - X > 1;
   const kCool = keys([[T0, 0], [T0 + 1.8, 1]]);
   const kWarm = keys([[D - 0.02, 0], [D, 1], [X - 0.8, 1], [X, 0], [F.start - 0.2, 0], [F.start + 1.8, 0.5]]);
-  const kPaper = keys([[X - 0.8, 0], [X, 1], [NW.start - 0.3, 1], [NW.start + 0.5, 0]]);
+  const kPaper = figures ? keys([[X - 0.8, 0], [X, 1], [NW.start - 0.3, 1], [NW.start + 0.5, 0]]) : () => 0;
   const kRays = keys([[D - 0.01, 0], [D + 0.12, 1], [X - 0.85, 1], [X - 0.2, 0], [F.title, 0], [F.title + 2.2, 0.28]]);
   const kBloom = keys([[D - 0.01, 0], [D, 1], [D + 1.4, 0.55], [X - 0.85, 0.55], [X - 0.2, 0], [F.title, 0], [F.title + 1.8, 0.4]]);
-  const kAmb = keys([[T0 + 3.4, 0], [L.dissolve - 1.6, 0.5], [D, 1], [X - 0.7, 1], [X + 0.1, 0.4], [NW.start - 0.4, 0.4], [NW.start + 0.6, 0.6], [F.start - 0.2, 0.6], [F.start + 1.4, 1]]);
+  const kAmb = keys([[T0 + 3.4, 0], [L.dissolve - 1.6, 0.5], [D, 1], [X - 0.7, 1],
+    ...(figures ? [[X + 0.1, 0.4], [NW.start - 0.4, 0.4]] : []), [NW.start + 0.6, 0.6], [F.start - 0.2, 0.6], [F.start + 1.4, 1]]);
 
   const r = mulberry(9151);
   const amb = Array.from({ length: 150 }, () => ({ x: r() * W, y: r() * (H + 60), v: 7 + r() * 24, a: 10 + r() * 36, f: 0.2 + r() * 0.6, s: 0.9 + r() ** 2 * 2.3, ph: r() * TAU, tw: 0.5 + r() * 1.5 }));
@@ -1234,6 +1238,7 @@ function figure(root, card, tOut) {
 }
 
 function buildNumbers({ cues, stage, S }) {
+  if (!S('s11')) return;                       // this cut has no figures (tools/make_cues.py: FIGURES)
   const N = cues.numbers;
   const { start, end } = S('s11');
   const root = scene(stage, 's11', start, end, 'a3 a3-num');

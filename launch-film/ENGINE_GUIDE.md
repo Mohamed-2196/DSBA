@@ -1,7 +1,7 @@
 # Film engine guide (read this before touching a scene)
 
 The film is ONE web page (`src/index.html`) rendered frame by frame by headless Chromium.
-1920×1080, 30 fps, 309.0 s (9270 frames) in cut 6, of which 150 s are the birthday hold. Every frame must be a pure function of the film time `t`.
+1920×1080, 30 fps, 259.0 s (7770 frames) in cut 8, of which 120 s are the birthday hold. Every frame must be a pure function of the film time `t`.
 
 ## Files
 - `tools/make_cues.py` → `cues.json`: the single source of truth for timing and on-screen copy.
@@ -11,8 +11,8 @@ The film is ONE web page (`src/index.html`) rendered frame by frame by headless 
 - `src/main.js`: loads cues/config, builds each act inside try/catch, exposes `window.__film.seek(t)`.
   `?only=2` (or `?only=3`, `?only=2,3`) builds just those acts.
 - `src/lib.js`: helpers (below). `src/net.js`: the shared cohort network (160 student dots).
-- `src/act1.js` + `src/film.css`: Act 1 and glitch 1 (0–86). `src/act2.js` + `src/act2.css`: Act 2, its hold and glitch 2 (86–259).
-  `src/act3.js` + `src/act3.css`: Act 3 (259–309). Scene times always come from `cues.scenes` via `S('s08')`; never hard-code them. One owner per act; stay in your files.
+- `src/act1.js` + `src/film.css`: Act 1 and glitch 1 (0–86). `src/act2.js` + `src/act2.css`: Act 2, its hold and glitch 2 (86–229).
+  `src/act3.js` + `src/act3.css`: Act 3 (229–259). Scene times always come from `cues.scenes` via `S('s08')`; never hard-code them. One owner per act; stay in your files.
 - `assets/`: images (`assets/ui/*.png` are app screenshots, `assets/cat/` is Noor's cat, `assets/noora/` Mini Noora's
   sprites: full-body poses on one 680×784 canvas with half-size twins in `sm/`, busts on a 600×600 one).
   Reference assets from scenes as `../assets/...`. Brand logos: `/dsba/public/brand/{bibf-white,bibf,uol,myclass-white,myclass}.png`.

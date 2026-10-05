@@ -1,0 +1,58 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="board.css">
+<style>
+.note { position: absolute; padding: 22px 22px 18px; box-shadow: 0 1px 1px rgba(30,36,46,.18), 0 7px 12px -6px rgba(30,36,46,.42); color: #1c2333; }
+.note::after { content: ''; position: absolute; left: 50%; top: -15px; width: 96px; height: 30px; margin-left: -48px; background: rgba(238,232,206,.62); box-shadow: 0 1px 1px rgba(60,60,40,.18); transform: rotate(var(--tape, -3deg)); }
+.note.mag::after { width: 26px; height: 26px; margin-left: -13px; top: 8px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ff6b6b, #b3121b 70%); box-shadow: 0 2px 3px rgba(0,0,0,.35); }
+.y { background: #fff07a; } .p { background: #ffa7c6; } .b { background: #a5d9f5; } .g { background: #c4ee9f; } .o { background: #ffc98a; }
+.w { background: #fdfdfb; background-image: repeating-linear-gradient(#fdfdfb 0 37px, #b9d1ec 37px 38px); }
+.k { background: #fdfdfb; background-image: linear-gradient(#cfe0f0 1px, transparent 1px), linear-gradient(90deg, #cfe0f0 1px, transparent 1px); background-size: 26px 26px; }
+.blue { color: #1d3fae; } .black { color: #1a1b20; } .red { color: #c2202b; } .pencil { color: #50545e; } .green { color: #17703d; }
+.tag { position: absolute; left: 22px; bottom: 16px; font: 500 20px/1 system-ui, sans-serif; color: #5b6472; background: rgba(255,255,255,.82); padding: 8px 12px; border-radius: 6px; z-index: 99; }
+</style></head><body>
+<div class="board">
+  <div class="smear" style="left:1180px;top:120px;width:620px;height:300px;background:#8fa3c9;opacity:.16"></div>
+  <div class="smear" style="left:60px;top:700px;width:760px;height:300px;background:#9aa2ad;opacity:.2"></div>
+  <div id="wall"></div>
+  <div class="frame"></div>
+  <div class="tag">Mock-up, idea 2: example lines in fonts. In the film these are photos of your classmates’ real notes.</div>
+</div>
+<script>
+const R = (() => { let s = 20261006; return () => ((s = Math.imul(s ^ (s >>> 15), 2246822507) ^ Math.imul(s ^ (s >>> 13), 3266489909)) >>> 0) / 4294967296; })();
+const lines = [
+  ['Thank you for explaining MGFs a fourth time. And a fifth.', 'Reenie', 50, 'y', 'blue', 350],
+  ['You made 8 am worth it.', 'Kalam', 44, 'w', 'black', 300],
+  ['For every “any questions?” you actually waited for.', 'Shadows', 44, 'p', 'black', 320],
+  ['شكراً من القلب', 'Ruqaa', 60, 'b', 'blue', 300],
+  ['You replied at 11 pm. On a Friday.', 'Patrick', 42, 'k', 'pencil', 310],
+  ['I passed because of the Thursday revision class.', 'Indie', 40, 'g', 'black', 320],
+  ['You never made anyone feel stupid for asking.', 'CaveatM', 50, 'y', 'red', 330],
+  ['Best lecturer. Don’t tell the others.', 'Gochi', 42, 'o', 'black', 290],
+  ['For “let’s try it one more way”.', 'Reenie', 58, 'w', 'blue', 310],
+  ['Sorry about the group chat. Thank you anyway.', 'Kalam', 38, 'p', 'pencil', 310],
+  ['You remembered my name in week one.', 'Shadows', 44, 'y', 'green', 310],
+  ['I still hear “show your working”.', 'Patrick', 44, 'b', 'black', 300],
+  ['Thank you for the extra past papers.', 'Indie', 40, 'k', 'blue', 300],
+  ['You made statistics make sense. Almost.', 'CaveatM', 50, 'g', 'black', 320],
+  ['For staying after class.', 'Gloria', 34, 'y', 'blue', 280],
+  ['We noticed. Thank you.', 'Reenie', 62, 'o', 'red', 290],
+  ['يعطيك العافية دكتور', 'Ruqaa', 52, 'w', 'black', 310],
+  ['For believing we could do Year 2.', 'Kalam', 40, 'p', 'blue', 310],
+  ['You turned “I can’t” into 68%.', 'Gochi', 44, 'y', 'black', 300],
+  ['Thank you for the coffee-break jokes.', 'Shadows', 42, 'b', 'pencil', 300],
+  ['For the feedback that stung and helped.', 'Patrick', 42, 'g', 'black', 310],
+  ['From the back row: thank you.', 'CaveatM', 52, 'w', 'green', 300],
+  ['You answered the same email three times.', 'Indie', 38, 'y', 'black', 310],
+  ['Thank you, from all of Year 1.', 'Reenie', 60, 'p', 'blue', 300],
+];
+const wall = document.getElementById('wall');
+const cols = 6, rows = 4, cw = 1920 / cols, rh = 1010 / rows;
+lines.forEach(([text, font, size, paper, pen, w], i) => {
+  const c = i % cols, r = Math.floor(i / cols);
+  const d = document.createElement('div');
+  d.className = `note ${paper} ${pen}${R() < 0.28 ? ' mag' : ''}`;
+  const x = Math.max(26, Math.min(1920 - w - 30, c * cw + (cw - w) / 2 + (R() - 0.5) * 60)), y = 40 + r * (rh - 8) + (R() - 0.5) * 40 + (c % 2 ? 22 : 0);
+  d.style.cssText = `left:${x.toFixed(0)}px;top:${y.toFixed(0)}px;width:${w}px;min-height:${(150 + R() * 70).toFixed(0)}px;font-family:${font};font-size:${size}px;line-height:1.08;transform:rotate(${((R() - 0.5) * 11).toFixed(2)}deg);--tape:${((R() - 0.5) * 14).toFixed(1)}deg;z-index:${Math.round(R() * 20)};${paper === 'w' ? 'line-height:38px;padding-top:30px;' : ''}${font === 'Ruqaa' ? 'direction:rtl;font-weight:700;line-height:1.5;' : ''}`;
+  d.textContent = text;
+  wall.appendChild(d);
+});
+</script></body></html>

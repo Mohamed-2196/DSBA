@@ -1,0 +1,31 @@
+/* Mock-ups for the new Teacher's Day act: one classroom whiteboard, marker and paper. Not part of the film build. */
+@font-face { font-family: Marker; src: url('../node_modules/@fontsource/covered-by-your-grace/files/covered-by-your-grace-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: Kalam; font-weight: 700; src: url('../node_modules/@fontsource/kalam/files/kalam-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: Kalam; font-weight: 400; src: url('../node_modules/@fontsource/kalam/files/kalam-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: Reenie; src: url('../node_modules/@fontsource/reenie-beanie/files/reenie-beanie-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: Shadows; src: url('../node_modules/@fontsource/shadows-into-light/files/shadows-into-light-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: Patrick; src: url('../node_modules/@fontsource/patrick-hand/files/patrick-hand-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: Indie; src: url('../node_modules/@fontsource/indie-flower/files/indie-flower-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: Gochi; src: url('../node_modules/@fontsource/gochi-hand/files/gochi-hand-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: Gloria; src: url('../node_modules/@fontsource/gloria-hallelujah/files/gloria-hallelujah-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: CaveatM; font-weight: 700; src: url('../node_modules/@fontsource/caveat/files/caveat-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: Ruqaa; font-weight: 700; src: url('../node_modules/@fontsource/aref-ruqaa/files/aref-ruqaa-arabic-700-normal.woff2') format('woff2'); }
+
+:root { --board: #f3f5f4; --ink: #17191e; --blue: #1b49c9; --red: #cf2530; --green: #1c8148; }
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #111; }
+.board { position: absolute; inset: 0; background: var(--board); overflow: hidden; }
+/* the board as a phone would photograph it: ceiling light from the top, a tube reflected along it, darker corners */
+.board::before { content: ''; position: absolute; inset: 0;
+  background:
+    linear-gradient(101deg, transparent 50%, rgba(255,255,255,.34) 57%, transparent 64%),
+    radial-gradient(1300px 620px at 46% -8%, rgba(255,255,255,.95), transparent 70%),
+    radial-gradient(ellipse at 50% 55%, transparent 55%, rgba(74,84,98,.20) 100%); }
+/* what the eraser left: smears of old ink, and the ghost of an earlier lecture */
+.smear { position: absolute; border-radius: 50%; filter: blur(34px); opacity: .5; }
+.ghost { position: absolute; font-family: Kalam; font-weight: 400; color: #5d6b86; opacity: .11; filter: blur(1.6px); white-space: nowrap; }
+.ghost.wipe { -webkit-mask-image: linear-gradient(97deg, #000 0 22%, transparent 34% 47%, #000 58% 71%, transparent 83%); }
+.grain { position: absolute; inset: 0; opacity: .5; mix-blend-mode: multiply; }
+/* marker ink: slightly rough edge, a little uneven */
+.ink { filter: url(#rough); }
+.frame { position: absolute; inset: 0; box-shadow: inset 0 0 0 10px #c3c8cf, inset 0 0 0 12px #8f96a1, inset 0 0 38px rgba(40,48,60,.28); pointer-events: none; }

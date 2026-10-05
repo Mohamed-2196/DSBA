@@ -1,5 +1,5 @@
 // Act 1 — the believable product-launch film for the new DSBA Hub, plus the DOM side of glitch #1
-// (0–86 s in cut 6). Every time comes from cues.json.
+// (0–86 s). Every time comes from cues.json.
 import { W, H, el, chars, onFrame, scene, browser, cursor, callout, mulberry, clamp, lerp, prog, ease, track, filesPresent, loadBrand, hubLogo } from './lib.js';
 import { COHORTS, cohortNodes, crossLinks } from './net.js';
 

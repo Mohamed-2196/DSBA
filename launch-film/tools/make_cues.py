@@ -6,13 +6,16 @@ cues.json. Never hand-edit cues.json; edit this file and re-run it.
 
 All times are in seconds from the start of the film. 30 fps, 1920x1080.
 
-Cut 5 (DSBA Hub): 153 s.
-  Act 1   0-76      three portal tabs and the notification pile-up, then the launch film for DSBA Hub
+Cut 8 (DSBA Hub): 259 s.
+  Act 1   0-82      three portal tabs and the notification pile-up, then the launch film for DSBA Hub
                     (newsletter, forum, Mini Noora, the montage, 3-2-1)
-  g1      76-80     glitch #1
-  Act 2   80-96.5   darkness and the cat's eyes (4.4 s), then the fake birthday for Noor
-  g2      96.5-103  glitch #2 (terminal: expected Noor's birthday, found Teacher's Day)
-  Act 3   103-153   the letter, Teacher's Day, "we ran the numbers", the network, finale
+  g1      82-86     glitch #1 (the error windows)
+  Act 2   86-222.5  darkness and the cat's eyes (4.4 s), the fake birthday for Noor (the song ends at 102.5),
+                    then the greeting is held, quiet, for 120 s
+  g2      222.5-229 glitch #2 (terminal: expected Noor's birthday, found Teacher's Day)
+  Act 3   229-259   the letter, Teacher's Day, the network that becomes THANK YOU, finale
+Everything from glitch #2 on is placed by lengths (BDAY_HOLD, G2_LEN, ACT3), so a change of length moves
+what follows by itself.
 """
 import json
 import random
@@ -20,7 +23,6 @@ from pathlib import Path
 
 FPS = 30
 W, H = 1920, 1080
-DURATION = 309.0
 
 # ---------------------------------------------------------------- tempo maps
 ACT1_BPM = 120          # beats at 0.0, 0.5, 1.0 ... ; bars (4/4) every 2.0s
@@ -34,13 +36,15 @@ BDAY_PICKUP = 90.5      # time of the first "Hap-" (pickup)
 # glitch #2. The first PRE seconds are played once (the last chord rings out, the party settles); the rest
 # is one LOOP-second stretch repeated (tools/hold_loop.py cross-fades the last XFADE seconds of the loop
 # into the frames just before its start, so it repeats without a seam). 0 = no hold: the glitch cuts the song.
-BDAY_HOLD = 150.0
-BDAY_HOLD_PRE = 6.0
+BDAY_HOLD = 120.0
+BDAY_HOLD_PRE = 12.0
 BDAY_HOLD_LOOP = 12.0
 BDAY_HOLD_XFADE = 1.5
-REVEAL_BPM = 120        # downbeat of the anthem drop
-REVEAL_DROP = 267.0
-PIANO_START = 259.0     # 4 bars of piano before the drop (259, 261, 263, 265)
+G2_LEN = 6.5            # glitch #2, its black and silence included
+REVEAL_BPM = 120        # the anthem; its bars (2 s) are counted from the drop, so Act 3's scenes are whole bars long
+# "We ran the numbers on you": four statistics jokes, one chart each, between the title and the network.
+# Out since cut 8 (the room found them cliche); the scene, its score and its sounds are kept for a re-cut.
+FIGURES = False
 
 bday_beat = 60.0 / BDAY_BPM
 
@@ -58,7 +62,9 @@ BDAY_MELODY = [
     (19, 1, 76, "birth"), (20, 1, 72, "day"), (21, 1, 74, "to"),
     (22, 3, 72, "you"),  # <- without a hold, the glitch hits exactly here
 ]
-BDAY_CUT = round(BDAY_PICKUP + 22 * bday_beat, 4)   # 84.5
+BDAY_CUT = round(BDAY_PICKUP + 22 * bday_beat, 4)   # the last "you"
+assert BDAY_HOLD == 0 or abs((BDAY_HOLD - BDAY_HOLD_PRE) / BDAY_HOLD_LOOP - round((BDAY_HOLD - BDAY_HOLD_PRE) / BDAY_HOLD_LOOP)) < 1e-9
+G2_T = round(BDAY_CUT + BDAY_HOLD, 4)   # glitch #2: on the song's last "you", or after the hold
 BDAY_PHRASES = [round(BDAY_PICKUP + b * bday_beat, 4) for b in (0, 6, 12, 18)]
 
 # ------------------------------------------------------------------ scenes
@@ -72,15 +78,23 @@ SCENES = [
     ("s06_everything", 58.0,  76.0, 1, "Montage: library, lessons, Career Navigator (scrolls), the calendar that keeps track of everything, grades, search; cohorts network; 'Built by students.'"),
     ("s07_launch",     76.0,  82.0, 1, "'Launching today' + LAUNCH button + 3/2/1 countdown + click at 81.85."),
     ("g1_glitch",      82.0,  86.0, 2, "Glitch #1: freeze, corruption, error windows, static, black."),
-    ("s08_birthday",   86.0,  252.5, 2, "4.4 s of darkness: a collar bell, two eyes, blinks. Lights on: Noor's cat in a party hat, 'Happy Birthday, Noor'; the song finishes and the greeting is held for 150 s."),
-    ("g2_glitch",      252.5,  259.0, 3, "Glitch #2 (out of the quiet of the hold): scramble, terminal (expected Noor's birthday, found Teacher's Day), flash, black+silence."),
-    ("s09_letter",     259.0,  267.0, 3, "Letter to the teachers, typed line by line over soft piano; riser into the drop."),
-    ("s10_teachers_day", 267.0, 273.0, 3, "DROP: HAPPY TEACHER'S DAY, gold, particles; 'Yes, it was yesterday.'"),
-    ("s11_numbers",    273.0, 293.0, 3, "'We study data. So we ran the numbers on you.' Four statistics jokes, one card each (4 s; the last one 6 s)."),
-    ("s12_network",    293.0, 301.0, 3, "The three cohorts as one network; the ~160 dots gather into THANK YOU."),
-    ("s13_finale",     301.0, 309.0, 3, "Happy Teacher's Day sign-off, institution logos, the cat says Meow, fade to black."),
+    ("s08_birthday",   86.0,  G2_T, 2, f"4.4 s of darkness: a collar bell, two eyes, blinks. Lights on: Noor's cat in a party hat, 'Happy Birthday, Noor'; the song finishes and the greeting is held for {BDAY_HOLD:g} s."),
+    ("g2_glitch",      G2_T,  G2_T + G2_LEN, 3, "Glitch #2 (out of the quiet of the hold): scramble, terminal (expected Noor's birthday, found Teacher's Day), flash, black+silence."),
 ]
+# Act 3: (id, seconds, description), in order
+ACT3 = [
+    ("s09_letter",       8.0, "Letter to the teachers, typed line by line over soft piano; riser into the drop."),
+    ("s10_teachers_day", 6.0, "DROP: HAPPY TEACHER'S DAY, gold, particles; 'Yes, it was yesterday.'"),
+    *([("s11_numbers",  20.0, "'We study data. So we ran the numbers on you.' Four statistics jokes, one card each (4 s; the last one 6 s).")] if FIGURES else []),
+    ("s12_network",      8.0, "The three cohorts as one network; the ~160 dots gather into THANK YOU."),
+    ("s13_finale",       8.0, "Happy Teacher's Day sign-off, institution logos, the cat says Meow, fade to black."),
+]
+for (sid_, len_, desc_) in ACT3:
+    SCENES.append((sid_, SCENES[-1][2], round(SCENES[-1][2] + len_, 4), 3, desc_))
 S = {s[0].split("_")[0]: (s[1], s[2]) for s in SCENES}
+DURATION = SCENES[-1][2]
+PIANO_START = S["s09"][0]   # 4 bars of piano before the drop
+REVEAL_DROP = S["s10"][0]   # downbeat of the anthem drop
 
 # ------------------------------------------------------------ act 1 details
 # The film opens on a browser with three portals open in tabs (the student's own MyClass, LSE VLE and
@@ -270,18 +284,16 @@ G1 = {
     "hits": [g1(x) for x in (0.0, 0.42, 0.66, 0.88, 1.12, 1.31, 1.60, 1.85, 2.10, 2.35, 2.60, 2.80)],
 }
 
-assert BDAY_HOLD == 0 or abs((BDAY_HOLD - BDAY_HOLD_PRE) / BDAY_HOLD_LOOP - round((BDAY_HOLD - BDAY_HOLD_PRE) / BDAY_HOLD_LOOP)) < 1e-9
-G2_T = round(BDAY_CUT + BDAY_HOLD, 4)   # glitch #2: on the song's last "you", or after the hold
 def g2(x):
     return round(G2_T + x, 4)
 G2 = {
-    "start": g2(0), "end": g2(6.5),
+    "start": g2(0), "end": g2(G2_LEN),
     "segments": [
         {"t0": g2(0.00), "t1": g2(1.00), "kind": "warp",       "i0": 0.30, "i1": 0.70},
         {"t0": g2(1.00), "t1": g2(4.10), "kind": "terminal",   "i0": 0.16, "i1": 0.24},
         {"t0": g2(4.10), "t1": g2(4.75), "kind": "crescendo",  "i0": 0.45, "i1": 1.00},
         {"t0": g2(4.75), "t1": g2(4.95), "kind": "flash",      "i0": 1.00, "i1": 1.00},
-        {"t0": g2(4.95), "t1": g2(6.50), "kind": "black",      "i0": 0.00, "i1": 0.00},
+        {"t0": g2(4.95), "t1": g2(G2_LEN), "kind": "black",    "i0": 0.00, "i1": 0.00},
     ],
     "stutters": [
         # the final "you" stutters: you-you-you-yo-y
@@ -294,7 +306,7 @@ G2 = {
         {"t": g2(2.55), "text": "> found: Teacher's Day"},       # then a beat for the room
         {"t": g2(3.45), "text": "> rerouting celebration..."},
     ],
-    "silence": {"t0": g2(4.95), "t1": g2(6.5)},
+    "silence": {"t0": g2(4.95), "t1": g2(G2_LEN)},
     "crescendo": g2(4.10), "flash": g2(4.75),
 }
 G2["hits"] = [g2(0.0)] + [ln["t"] for ln in G2["terminal_lines"]] + [G2["flash"]]
@@ -310,7 +322,7 @@ for i, line in enumerate(G2["terminal_lines"]):
         terminal_typing.append(round(line["t"] + k / TERMINAL_CPS, 4))
 
 # --------------------------------------------------------------- act 3 copy
-LETTER_T = S["s09"][0]   # 91.0
+LETTER_T = S["s09"][0]
 LETTER_LINES = [
     {"t": LETTER_T + 0.10, "text": "Dear teachers,"},
     {"t": LETTER_T + 1.50, "text": "today, you thought you were in on the surprise."},
@@ -323,7 +335,7 @@ for line in LETTER_LINES:
     for i, _ in enumerate(line["text"]):
         letter_typing.append(round(line["t"] + i / LETTER_CPS, 4))
 
-n0 = S["s11"][0]   # 105
+n0 = S["s11"][0] if FIGURES else S["s10"][1]
 NUMBERS = {
     "start": n0,
     "intro": [{"t": n0 + 0.15, "text": "We study data."}, {"t": n0 + 1.0, "text": "So we ran the numbers on you."}],
@@ -341,8 +353,8 @@ NUMBERS = {
     ],
     "card_len": 4.0,          # a card may carry its own "len"
     "end": S["s11"][1],
-}
-w0 = S["s12"][0]   # 125
+} if FIGURES else {"start": n0, "intro": [], "cards": [], "card_len": 4.0, "end": n0}   # no scene: an empty stretch at the end of the title
+w0 = S["s12"][0]
 NETWORK = {
     "start": w0,
     "nodes_in": w0 + 0.0, "links_in": w0 + 0.9,
@@ -350,7 +362,7 @@ NETWORK = {
     "gather": w0 + 4.0, "formed": w0 + 5.5, "word": "THANK YOU",
     "end": S["s12"][1],
 }
-f0 = S["s13"][0]   # 133
+f0 = S["s13"][0]
 FINALE = {
     "start": f0, "title": f0 + 0.2, "signoff": f0 + 1.6, "logos": f0 + 2.4, "cat": f0 + 3.8, "meow": f0 + 4.5,
     "title_text": "Happy Teacher’s Day",
@@ -470,7 +482,7 @@ cues = {
                       "cut": BDAY_CUT, "key": "C major", "time_signature": "3/4", "phrases": BDAY_PHRASES},
         "reveal": {"bpm": REVEAL_BPM, "piano_start": PIANO_START, "drop": REVEAL_DROP,
                     "chords": ["D", "A", "Bm", "G"], "bar_seconds": 2.0,
-                    "sections": {"title": list(S["s10"]), "numbers": list(S["s11"]), "network": list(S["s12"]), "finale": list(S["s13"])},
+                    "sections": {"title": list(S["s10"]), "numbers": [NUMBERS["start"], NUMBERS["end"]], "network": list(S["s12"]), "finale": list(S["s13"])},
                     "climax": NETWORK["formed"], "final_chord": f0 + 4.0, "end": DURATION},
     },
     "scenes": [{"id": s[0], "start": s[1], "end": s[2], "act": s[3], "desc": s[4]} for s in SCENES],

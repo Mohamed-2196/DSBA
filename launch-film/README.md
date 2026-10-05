@@ -1,6 +1,6 @@
 # DSBA Hub launch film
 
-A 5 min 9 s film for the DSBA event on Tuesday 6 October 2026 (2 min 39 s of film, plus a 150 s hold on the
+A 4 min 19 s film for the DSBA event on Tuesday 6 October 2026 (2 min 19 s of film, plus a 120 s hold on the
 birthday screen that leaves the room to the room). It opens as a product-launch film
 for the new DSBA Hub, "crashes" into a surprise birthday for Noor (the programme admin) starring her
 cat, then crashes again into the real reason for the event: Teacher's Day.
@@ -13,10 +13,14 @@ cat, then crashes again into the real reason for the event: Teacher's Day.
 | 0:58–1:22 | library, lessons, Career Navigator, the calendar that keeps track of everything, grades, search, the cohort network, 3-2-1 |
 | 1:22–1:26 | Glitch 1: the launch crashes, error windows |
 | 1:26–1:42 | 4.4 s of darkness, a collar bell, two eyes that look around and blink; lights on (1:30): Noor's cat in a party hat, "Happy Birthday, Noor", the song |
-| 1:42–4:12 | The hold: the song ends on its last chord and the greeting stays up, quiet, for 150 s. The cat comes to rest, breathes and blinks, the foil glints, a stray piece of confetti drifts down |
-| 4:12–4:19 | Glitch 2, out of the silence: the greeting breaks; terminal: expected Noor's birthday, found Teacher's Day; 1.5 s of silence |
-| 4:19–4:27 | A letter to the teachers, typed line by line |
-| 4:27–5:09 | Happy Teacher's Day; "we ran the numbers" (four statistics jokes); the network becomes THANK YOU; sign-off; the cat says "Meow." |
+| 1:42–3:42 | The hold: the song ends on its last chord and the greeting stays up, quiet, for 120 s. The cat comes to rest, breathes and blinks, the foil glints, a stray piece of confetti drifts down |
+| 3:42–3:49 | Glitch 2, out of the silence: the greeting breaks; terminal: expected Noor's birthday, found Teacher's Day; 1.5 s of silence |
+| 3:49–3:57 | A letter to the teachers, typed line by line |
+| 3:57–4:19 | Happy Teacher's Day; the network becomes THANK YOU; sign-off; the cat says "Meow." |
+
+Cut 8 is a stop-gap for the Teacher's Day part: the room found it generic, so the four chart jokes ("we ran the
+numbers") are out (`FIGURES` in `tools/make_cues.py` brings the scene back) and the part is to be rebuilt from
+the students' own material. The THANK YOU and the cat's "Meow." stay.
 
 ## Supplied artwork
 `tools/intake_brand.py` places what the student rep supplied: his DSBA wordmark (blue and white twins plus a
@@ -45,7 +49,7 @@ sprite on a dark and on a saturated background before using it: leftovers do not
   Open `src/index.html?play` to watch it live; `?only=2` builds a single act. See `ENGINE_GUIDE.md`.
 - `tools/capture-ui.mjs` screenshots the real app (clock frozen at the event date) into `assets/ui/`.
 - `tools/cat/` cuts the cat out of the photo and composites the party hat (`assets/cat/`).
-- `tools/frames.mjs` renders the PNG frames with headless Chromium. The cut has 9270; 4770 are rendered, because the
+- `tools/frames.mjs` renders the PNG frames with headless Chromium. The cut has 7770; 4890 are rendered, because the
   hold is `pre` seconds played once and then one `loop`-second pass played `loops` times (`cues.birthday.hold`).
   `tools/hold_loop.py` cross-fades the end of that pass into the frames before its start, so it repeats without a seam.
 - `tools/seekcheck.mjs --times a,b,c` renders the same times in a different seek order and compares the

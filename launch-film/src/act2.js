@@ -706,7 +706,9 @@ export async function buildAct2({ cues, config, stage, S }) {
     [last(notesOf(2)).t + 0.3, BLINK.slow],
   ].map(([at, b]) => [onFrameTime(at), b]).filter(([at, [, hold, up]]) => at + hold + up < SONG - 0.1);
   // while the greeting is held: once as the last chord dies away, then a blink and a double blink in every pass
-  if (HOLD) LIT_BLINKS.push(...[[SONG + 3.3, BLINK.slow], [LOOP0 + 2.9, BLINK.quick], [LOOP0 + 7.7, BLINK.quick], [LOOP0 + 8.0, BLINK.quick]].map(([at, b]) => [onFrameTime(at), b]));
+  // (and once more before the first pass when that is more than ten seconds away)
+  if (HOLD) LIT_BLINKS.push(...[[SONG + 3.3, BLINK.slow], ...(LOOP0 - SONG > 10 ? [[SONG + 8.6, BLINK.quick]] : []),
+    [LOOP0 + 2.9, BLINK.quick], [LOOP0 + 7.7, BLINK.quick], [LOOP0 + 8.0, BLINK.quick]].map(([at, b]) => [onFrameTime(at), b]));
   const litShut = (tf) => Math.max(0, ...LIT_BLINKS.map(([at, b]) => lidAt(tf, at, b)));
   const probe = offscreen(12, 12).getContext('2d', { willReadFrequently: true });
   const furAt = (u, v) => {
