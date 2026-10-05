@@ -28,7 +28,10 @@ The Career Navigator's employer and certificate logos live in the app (`public/l
 Mini Noora is the sprite sheet he supplied (the second one, with the clearer BIBF badge): `tools/noora/cut_sprites.py`
 cut it into the app's `public/noora/` (17 poses on normalised canvases; the badge's letters are kept as the sheet
 has them rather than as the enlarger would redraw them), and `tools/noora/from_app.py` copies those into
-`assets/noora/` for the film, with half-size twins for the small mascot.
+`assets/noora/` for the film, with half-size twins for the small mascot. The sheet has a checkerboard baked in, a pale
+fringe along her outline and a pale glow round every mark beside her (wave lines, star, dashes, anger mark); the
+script takes all three out, and gives the marks their own colour-keyed cut-out. After a re-cut, look at every
+sprite on a dark and on a saturated background before using it: leftovers do not show on white.
 
 ## Change names and copy
 - `config.json`: the admin's name and the cat's title.
@@ -68,7 +71,8 @@ tools/build.sh                                                                  
 ```
 Needs Node 22, Playwright with Chromium, Python 3 with numpy, scipy, OpenCV and Pillow, and ffmpeg.
 (`tools/noora/cut_sprites.py` is only needed to re-cut the sprite sheet: it also wants `pip install ncnn`
-and the two `realesrgan-x4plus-anime` model files from the Real-ESRGAN ncnn release in `tools/noora/models/`.)
+and the two `realesrgan-x4plus-anime` model files from the Real-ESRGAN ncnn release in `tools/noora/models/`.
+It keeps the enlarged cells in `tools/noora/work/`, so a second run takes seconds.)
 Not committed: build outputs (`out/`, `assets/ui/`), the YouTube thumbnails and lecture frames used in
 the lessons beat (`assets/yt/`, fetched from YouTube in a browser) and the cat photo and its
 derivatives (`assets/cat/`). Without `assets/yt/` the lesson posters fall back to the designed
