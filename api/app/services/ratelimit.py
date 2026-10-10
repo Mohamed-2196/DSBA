@@ -23,17 +23,9 @@ IPV6_BUCKET_PREFIX = 64  # one IPv6 client usually holds a whole /64
 
 
 def request_ip(request: Request) -> str | None:
-    """The client's address from core.security.client_ip, or None when it is not an IP address."""
-    raw = client_ip(request)
-    if not raw:
-        return None
-    try:
-        addr = ipaddress.ip_address(raw.strip())
-    except ValueError:
-        return None
-    if isinstance(addr, ipaddress.IPv6Address) and addr.ipv4_mapped is not None:
-        return str(addr.ipv4_mapped)
-    return str(addr)
+    """The client's IP address, or None when it isn't known: core.security.client_ip, which reads X-Forwarded-For
+    only from DSBA_TRUSTED_PROXIES (security review, finding 1)."""
+    return client_ip(request)
 
 
 def ip_bucket(ip: str | None) -> str | None:

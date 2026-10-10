@@ -1,4 +1,5 @@
-"""Loads the reference content exported from the prototype (app/seed/data/*.json, exported once from the prototype at commit 350b0d8).
+"""Loads the reference content exported from the prototype (app/seed/data/*.json, exported once from the prototype
+at commit 350b0d8).
 
 Idempotent: running it again adds what is missing and never overwrites what moderators changed through the API.
 Something a moderator deleted stays deleted: calendar events and newsletter issues are looked up in the audit log
@@ -19,7 +20,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.text import slugify, unique_slug
-from app.core.time import utcnow
 from app.models import (
     AuditEntry,
     CalendarEvent,
@@ -148,6 +148,10 @@ def load_career(db: Session) -> int:
 
 # ── library: the v1 links of each module ─────────────────────────────────────────────────────
 
+# When the v1 Hub's links count as published: before anything shared through the new library, so "newest first"
+# lists real uploads above them instead of the seed run's time.
+V1_PUBLISHED_AT = dt.datetime(2026, 9, 1, tzinfo=dt.UTC)
+
 
 @dataclass(frozen=True)
 class SeedLink:
@@ -231,7 +235,6 @@ def load_library(db: Session) -> int:
             )
         )
     ]
-    now = utcnow()
     n = 0
     for spec in read("modules"):
         module = modules.get(spec["id"])
@@ -255,7 +258,7 @@ def load_library(db: Session) -> int:
                 url=link.url,
                 author_name=link.author_name,
                 status=ItemStatus.published,
-                published_at=now,
+                published_at=V1_PUBLISHED_AT,
             )
             db.add(item)
             db.flush()

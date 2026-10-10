@@ -5,14 +5,22 @@ Raise ApiError (or one of the helpers) from handlers and services; never return 
 from __future__ import annotations
 
 import logging
+import re
+from collections.abc import Sequence
 from typing import Any
+from urllib.parse import unquote
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import DataError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.types import ASGIApp, Receive, Scope, Send
+
+from app.core.headers import ERROR_HEADERS
 
 log = logging.getLogger("dsba.errors")
+_CONTROL_CHARACTERS = re.compile(r"[\x00-\x1f\x7f]")
 
 
 class ApiError(Exception):
@@ -63,6 +71,19 @@ def _body(code: str, message: str, **extra: Any) -> dict[str, Any]:
     return {"error": err}
 
 
+_LOCATIONS = frozenset({"body", "query", "path", "header", "cookie"})
+
+
+def field_name(loc: Sequence[object]) -> str:
+    """A validation error's location as the client names the field: ('body', 'sections', 0, 'href') ->
+    'sections.0.href'. Only the first segment says where the value came from: a field called 'body' (a reply's
+    text) keeps its name. The whole body or request: 'request'."""
+    parts = [str(p) for p in loc]
+    if parts and parts[0] in _LOCATIONS:
+        parts = parts[1:]
+    return ".".join(parts) or "request"
+
+
 _STATUS_CODES = {
     400: "bad_request",
     401: "unauthenticated",
@@ -86,8 +107,7 @@ def install_error_handlers(app: FastAPI) -> None:
     async def _validation(_: Request, exc: RequestValidationError) -> JSONResponse:
         fields: dict[str, str] = {}
         for e in exc.errors():
-            loc = [str(p) for p in e.get("loc", ()) if p not in ("body", "query", "path")]
-            fields[".".join(loc) or "request"] = str(e.get("msg", "Invalid value"))
+            fields[field_name(e.get("loc", ()))] = str(e.get("msg", "Invalid value"))
         return JSONResponse(_body("invalid_input", "Some fields are not valid.", fields=fields), status_code=422)
 
     @app.exception_handler(StarletteHTTPException)
@@ -99,7 +119,36 @@ def install_error_handlers(app: FastAPI) -> None:
     async def _todo(_: Request, __: NotImplementedError) -> JSONResponse:
         return JSONResponse(_body("not_implemented", "This endpoint is not built yet."), status_code=501)
 
+    @app.exception_handler(DataError)
+    async def _data(request: Request, exc: DataError) -> JSONResponse:
+        # A value the database can't store (a NUL byte in text, a number out of range) that got past validation.
+        # Logged without the SQL and its parameters, which may hold personal data.
+        log.warning(
+            "the database refused a value on %s %s (%s)", request.method, request.url.path, type(exc.orig).__name__
+        )
+        return JSONResponse(_body("invalid_input", "Some fields are not valid."), status_code=422)
+
     @app.exception_handler(Exception)
     async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
         log.exception("unhandled error on %s %s", request.method, request.url.path, exc_info=exc)
-        return JSONResponse(_body("internal", "Something went wrong on our side."), status_code=500)
+        # Made outside the security headers middleware (Starlette's error middleware wraps it): add them here.
+        return JSONResponse(
+            _body("internal", "Something went wrong on our side."), status_code=500, headers=ERROR_HEADERS
+        )
+
+
+class ControlCharactersMiddleware:
+    """400 bad_request for a path or query string holding control characters (NUL above all: PostgreSQL refuses it
+    in text, so it would end as a 500 with a traceback in the log). No route takes them (security review SEC-5)."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http":
+            query = unquote(scope.get("query_string", b"").decode("latin-1"))
+            if _CONTROL_CHARACTERS.search(scope.get("path", "")) or _CONTROL_CHARACTERS.search(query):
+                body = _body("bad_request", "This address has characters it can't have.")
+                await JSONResponse(body, status_code=400)(scope, receive, send)
+                return
+        await self.app(scope, receive, send)

@@ -30,7 +30,6 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from html import escape
-from typing import cast
 from urllib.parse import urlsplit
 
 from sqlalchemy import ColumnElement, delete, select, update
@@ -62,29 +61,10 @@ DAY = timedelta(days=1)
 FAILED_CODES_PER_DAY = 15  # wrong codes for one address in 24 h before it is locked (finding 9)
 KEEP_CHALLENGES = timedelta(days=2)  # older rows serve no limit any more and hold personal data: deleted
 
-# Settings the security review asks the lead to add to config.py (finding 3). Until config.py defines them these
-# values apply; once it does, the configured values win.
-FALLBACK_SETTINGS: dict[str, object] = {
-    "sms_allowed_regions": ["BH"],
-    "sms_max_per_hour": 50,
-    "sms_max_per_day": 300,
-    "otp_max_per_identifier_per_day": 10,
-}
-
-
-def setting(name: str) -> object:
-    return getattr(get_settings(), name, FALLBACK_SETTINGS[name])
-
-
-def _int_setting(name: str) -> int:
-    return int(cast(int, setting(name)))
-
 
 def sms_regions() -> list[str]:
-    value = setting("sms_allowed_regions")
-    if isinstance(value, str):
-        return [r.strip() for r in value.split(",") if r.strip()]
-    return [str(r) for r in cast(Sequence[object], value)]
+    """DSBA_SMS_ALLOWED_REGIONS: the countries whose mobile numbers get codes by text (none: no texts)."""
+    return list(get_settings().sms_allowed_regions)
 
 
 # ── codes ───────────────────────────────────────────────────────────────────────────────────
@@ -233,7 +213,7 @@ def _check_limits(
     check([address, delivered], 1, timedelta(seconds=s.otp_resend_seconds), "Wait {} before asking for another code.")
     too_many_here = "Too many codes were sent to this address. Try again in {}."
     check([address], s.otp_max_per_identifier_per_hour, HOUR, too_many_here)
-    check([address], _int_setting("otp_max_per_identifier_per_day"), DAY, too_many_here)
+    check([address], s.otp_max_per_identifier_per_day, DAY, too_many_here)
     check(
         [in_ip_bucket(OtpChallenge.ip, ip)],
         s.otp_max_per_ip_per_hour,
@@ -252,7 +232,7 @@ def _check_limits(
 
     if channel == Channel.sms:
         texts = [OtpChallenge.channel == Channel.sms, delivered]
-        for limit, window in ((_int_setting("sms_max_per_hour"), HOUR), (_int_setting("sms_max_per_day"), DAY)):
+        for limit, window in ((s.sms_max_per_hour, HOUR), (s.sms_max_per_day, DAY)):
             if window_wait(db, created, texts, limit=limit, window=window, now=now):
                 log.warning("SMS budget reached (%d per %s): codes by text are paused", limit, window)
                 raise ApiError(429, "sms_unavailable", "We can't send texts right now. Use your email address instead.")

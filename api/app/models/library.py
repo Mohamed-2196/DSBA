@@ -91,10 +91,15 @@ class UploadStatus(enum.StrEnum):
 class Upload(Base):
     """An object a browser uploads straight to S3 with a presigned POST.
 
+    A forum image belongs to the post that shows it, set when the post is saved: `thread_id` for a thread's body,
+    `reply_id` for a reply's. /media serves it only while that post is visible (security review, finding 8).
     Uploads that are never attached to anything are swept after a day."""
 
     __tablename__ = "uploads"
-    __table_args__ = (Index("ix_uploads_status_created", "status", "created_at"),)
+    __table_args__ = (
+        Index("ix_uploads_status_created", "status", "created_at"),
+        Index("ix_uploads_user_created", "user_id", "created_at"),  # uploads per user per hour; account deletion
+    )
 
     id: Mapped[uuid.UUID] = uuid_pk()
     user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
@@ -106,3 +111,5 @@ class Upload(Base):
     status: Mapped[UploadStatus] = mapped_column(str_enum(UploadStatus, 12), default=UploadStatus.pending)
     created_at: Mapped[datetime] = created_ts()
     completed_at: Mapped[datetime | None]
+    thread_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("forum_threads.id", ondelete="SET NULL"))
+    reply_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("forum_replies.id", ondelete="SET NULL"))

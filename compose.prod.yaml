@@ -1,0 +1,145 @@
+# Production: Caddy (TLS, the web app, the API under /api), the API, PostgreSQL, and two daily jobs (backup, sweep).
+# Object storage is outside: AWS S3, or MinIO behind HTTPS. Settings come from .env next to this file (see
+# .env.example); compose stops here when a required one is missing, and the API refuses to start while any
+# setting is unsafe for production. docs/backend/DEPLOYMENT.md walks through it.
+#
+#   docker compose -f compose.prod.yaml up -d --build
+#   docker compose -f compose.prod.yaml run --rm api python -m app.cli setup-bucket     # once
+#   docker compose -f compose.prod.yaml run --rm api python -m app.cli seed             # once, and after updates
+name: dsba-hub
+
+x-api-env: &api-env
+  DSBA_ENV: production
+  DSBA_SECRET_KEY: ${DSBA_SECRET_KEY:?set DSBA_SECRET_KEY in .env}
+  DSBA_DATABASE_URL: postgresql+psycopg://dsba:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/dsba
+  DSBA_WEB_ORIGINS: https://${DSBA_DOMAIN:?set DSBA_DOMAIN in .env}
+  DSBA_WEB_BASE_URL: https://${DSBA_DOMAIN}
+  # Only the proxy (the web service, at its fixed address below) may tell the API who the client is.
+  DSBA_TRUSTED_PROXIES: ${DSBA_PROXY_IP:-172.30.0.10}
+  DSBA_S3_ENDPOINT_URL: ${DSBA_S3_ENDPOINT_URL?set DSBA_S3_ENDPOINT_URL in .env (empty for AWS S3)}
+  DSBA_S3_PUBLIC_ENDPOINT_URL: ${DSBA_S3_PUBLIC_ENDPOINT_URL:-}
+  DSBA_S3_REGION: ${DSBA_S3_REGION:?set DSBA_S3_REGION in .env}
+  DSBA_S3_BUCKET: ${DSBA_S3_BUCKET:?set DSBA_S3_BUCKET in .env}
+  DSBA_S3_ACCESS_KEY_ID: ${DSBA_S3_ACCESS_KEY_ID:?set DSBA_S3_ACCESS_KEY_ID in .env}
+  DSBA_S3_SECRET_ACCESS_KEY: ${DSBA_S3_SECRET_ACCESS_KEY:?set DSBA_S3_SECRET_ACCESS_KEY in .env}
+  DSBA_S3_FORCE_PATH_STYLE: ${DSBA_S3_FORCE_PATH_STYLE:-false}
+  DSBA_EMAIL_BACKEND: smtp
+  DSBA_EMAIL_FROM: ${DSBA_EMAIL_FROM:?set DSBA_EMAIL_FROM in .env}
+  DSBA_SMTP_HOST: ${DSBA_SMTP_HOST:?set DSBA_SMTP_HOST in .env}
+  DSBA_SMTP_PORT: ${DSBA_SMTP_PORT:-587}
+  DSBA_SMTP_USERNAME: ${DSBA_SMTP_USERNAME:-}
+  DSBA_SMTP_PASSWORD: ${DSBA_SMTP_PASSWORD:-}
+  DSBA_SMTP_STARTTLS: ${DSBA_SMTP_STARTTLS:-true}
+  DSBA_SMS_BACKEND: twilio
+  # Empty turns codes by text off (then the Twilio settings may stay empty too).
+  DSBA_SMS_ALLOWED_REGIONS: ${DSBA_SMS_ALLOWED_REGIONS-BH}
+  DSBA_TWILIO_ACCOUNT_SID: ${DSBA_TWILIO_ACCOUNT_SID:-}
+  DSBA_TWILIO_AUTH_TOKEN: ${DSBA_TWILIO_AUTH_TOKEN:-}
+  DSBA_TWILIO_FROM: ${DSBA_TWILIO_FROM:-}
+  DSBA_ADMIN_IDENTIFIERS: ${DSBA_ADMIN_IDENTIFIERS:-}
+
+x-api: &api
+  build: ./api
+  image: dsba-hub-api
+  environment: *api-env
+  networks: [internal]
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: dsba
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: dsba
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dsba -d dsba"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    <<: *api
+    command: alembic upgrade head
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    # No published port: only the web service reaches it.
+    <<: *api
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    build:
+      context: ./web
+      args:
+        VITE_CSRF_COOKIE: __Host-dsba_csrf
+        VITE_POSTHOG_KEY: ${VITE_POSTHOG_KEY:-}
+    environment:
+      DSBA_DOMAIN: ${DSBA_DOMAIN}
+      DSBA_BUCKET_ORIGIN: ${DSBA_BUCKET_ORIGIN:?set DSBA_BUCKET_ORIGIN in .env (the origin of presigned URLs)}
+      DSBA_API_UPSTREAM: api:8000
+      DSBA_CSP_SCRIPT_EXTRA: ${DSBA_CSP_SCRIPT_EXTRA:-}
+      DSBA_CSP_CONNECT_EXTRA: ${DSBA_CSP_CONNECT_EXTRA:-}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"  # HTTP/3
+    volumes:
+      - caddy_data:/data  # certificates: keep this volume
+      - caddy_config:/config
+    networks:
+      internal:
+        ipv4_address: ${DSBA_PROXY_IP:-172.30.0.10}
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  backup:
+    # Every 24 hours: pg_dump into the backup bucket, encrypted at rest, newest DSBA_BACKUP_KEEP kept. Its key is
+    # its own (the API never holds it). Restore: docs/backend/DEPLOYMENT.md.
+    <<: *api
+    command: >-
+      sh -c "while true; do python -m app.cli backup || echo 'backup failed' >&2; sleep 86400; done"
+    environment:
+      <<: *api-env
+      DSBA_BACKUP_BUCKET: ${DSBA_BACKUP_BUCKET:?set DSBA_BACKUP_BUCKET in .env}
+      DSBA_BACKUP_PREFIX: ${DSBA_BACKUP_PREFIX:-backups/db/}
+      DSBA_BACKUP_S3_ENDPOINT_URL: ${DSBA_BACKUP_S3_ENDPOINT_URL:-}
+      DSBA_BACKUP_S3_REGION: ${DSBA_BACKUP_S3_REGION:-}
+      DSBA_BACKUP_ACCESS_KEY_ID: ${DSBA_BACKUP_ACCESS_KEY_ID:?set DSBA_BACKUP_ACCESS_KEY_ID in .env}
+      DSBA_BACKUP_SECRET_ACCESS_KEY: ${DSBA_BACKUP_SECRET_ACCESS_KEY:?set DSBA_BACKUP_SECRET_ACCESS_KEY in .env}
+      DSBA_BACKUP_SSE: ${DSBA_BACKUP_SSE:-AES256}
+      DSBA_BACKUP_KMS_KEY_ID: ${DSBA_BACKUP_KMS_KEY_ID:-}
+      DSBA_BACKUP_KEEP: ${DSBA_BACKUP_KEEP:-14}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  sweep:
+    # Every 24 hours: uploads never attached to anything, old sign-in codes, sessions that ended long ago.
+    <<: *api
+    command: >-
+      sh -c "while true; do python -m app.cli sweep || echo 'sweep failed' >&2; sleep 86400; done"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+networks:
+  internal:
+    ipam:
+      config:
+        - subnet: ${DSBA_DOCKER_SUBNET:-172.30.0.0/24}
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

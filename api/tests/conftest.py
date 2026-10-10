@@ -3,7 +3,9 @@
 - A throw-away Postgres database per test run (DSBA_TEST_ADMIN_URL), migrated with Alembic.
 - Each test runs inside a transaction that is rolled back afterwards: handlers' commits are savepoints.
 - S3 is moto's in-process mock: a "browser upload" in a test is storage.client.put_object(...).
-- client_for(user) gives a TestClient with the CSRF cookie and header set, signed in as `user` (or a guest).
+- client_for(user) gives a TestClient with the CSRF cookie and header set, signed in as `user` (or a guest). With a
+  session the CSRF token is the one bound to it; after a sign-in or sign-out through the API, copy the new cookie
+  into the header (as the web app does before every request).
 """
 
 from __future__ import annotations
@@ -159,8 +161,6 @@ def client_for(app: FastAPI, db: Session, storage: object) -> Iterator[Callable[
         c = TestClient(app)
         c.__enter__()
         clients.append(c)
-        c.get("/api/v1/auth/csrf")
-        c.headers["X-CSRF-Token"] = c.cookies.get("dsba_csrf") or ""
         if user is not None:
             from datetime import timedelta
 
@@ -168,6 +168,8 @@ def client_for(app: FastAPI, db: Session, storage: object) -> Iterator[Callable[
             db.add(UserSession(user_id=user.id, token_hash=hash_token(token), expires_at=utcnow() + timedelta(days=1)))  # type: ignore[attr-defined]
             db.commit()
             c.cookies.set("dsba_session", token)
+        c.get("/api/v1/auth/csrf")  # the CSRF cookie (bound to the session, when there is one)
+        c.headers["X-CSRF-Token"] = c.cookies.get("dsba_csrf") or ""
         return c
 
     yield _client

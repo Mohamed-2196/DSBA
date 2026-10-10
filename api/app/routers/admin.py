@@ -9,7 +9,7 @@ from fastapi import Request
 from sqlalchemy import ColumnElement, Select, func, or_, select
 from sqlalchemy.orm import aliased
 
-from app.core.errors import conflict, forbidden, not_found
+from app.core.errors import conflict, not_found
 from app.core.pagination import Limit, Offset
 from app.core.security import DB, Admin, Moderator
 from app.models import (
@@ -54,12 +54,6 @@ STATUS_NOTICES: dict[UserStatus, tuple[str, str | None]] = {
 }
 
 
-def _require_active(user: User) -> None:
-    """A suspended moderator or admin keeps no powers (security review finding 4; core.security will cover it)."""
-    if user.status == UserStatus.suspended:
-        raise forbidden("Your account is suspended. Contact a student rep.")
-
-
 def _count(db: DB, q: Select[tuple[int]]) -> int:
     return db.scalar(q) or 0
 
@@ -89,7 +83,6 @@ def _like(text: str) -> str:
 def stats(user: Moderator, db: DB) -> AdminStats:
     """Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
     for review and open reports."""
-    _require_active(user)
     n = func.count()
     return AdminStats(
         users=_count(db, select(n).select_from(User)),
@@ -107,7 +100,6 @@ def list_users(
 ) -> AdminUserPage:
     """Search by name, email or phone number (case-insensitive, any part; a phone number may be typed with spaces),
     newest accounts first."""
-    _require_active(user)
     where: list[ColumnElement[bool]] = []
     text = (q or "").strip()[:SEARCH_MAX]
     if text:
@@ -132,7 +124,6 @@ def list_users(
 def update_user(user_id: UUID, body: AdminUserUpdate, request: Request, user: Admin, db: DB) -> AdminUser:
     """Change a role or suspend an account (audited; an admin cannot change their own role or status: 409
     cannot_change_self). The person gets a notification."""
-    _require_active(user)
     target = db.get(User, user_id)
     if target is None:
         raise not_found("This account doesn't exist.")
@@ -163,7 +154,6 @@ def update_user(user_id: UUID, body: AdminUserUpdate, request: Request, user: Ad
 @router.get("/admin/audit", response_model=AuditPage)
 def audit_log(user: Admin, db: DB, limit: Limit = 50, offset: Offset = 0) -> AuditPage:
     """Who did what, newest first."""
-    _require_active(user)
     actor = aliased(User)
     total = _count(db, select(func.count()).select_from(AuditEntry))
     rows = db.execute(

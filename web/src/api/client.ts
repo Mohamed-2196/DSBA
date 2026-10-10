@@ -6,7 +6,8 @@ import type { paths } from './schema';
 
 /** '' = the same origin as the app (the dev server and the production proxy both forward /api). */
 export const API_ORIGIN: string = import.meta.env.VITE_API_ORIGIN ?? '';
-const CSRF_COOKIE = 'dsba_csrf';
+/** The API's CSRF cookie: dsba_csrf in development, __Host-dsba_csrf in production (set when the app is built). */
+const CSRF_COOKIE: string = import.meta.env.VITE_CSRF_COOKIE || 'dsba_csrf';
 const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 function readCookie(name: string): string | null {
@@ -14,17 +15,50 @@ function readCookie(name: string): string | null {
   return hit ? decodeURIComponent(hit.slice(name.length + 1)) : null;
 }
 
-/** The API rejects unsafe requests without the CSRF token: echo the dsba_csrf cookie (fetching it once if needed). */
+/** The CSRF cookie's token, asking the API for one first if the browser has none yet. */
+async function csrfToken(): Promise<string | null> {
+  const token = readCookie(CSRF_COOKIE);
+  if (token) return token;
+  await fetch(`${API_ORIGIN}/api/v1/auth/csrf`, { credentials: 'include' });
+  return readCookie(CSRF_COOKIE);
+}
+
+/** 403 {"error": {"code": "csrf_failed"}} (read from a copy: the caller still reads the answer itself). */
+async function isCsrfFailure(response: Response): Promise<boolean> {
+  if (response.status !== 403) return false;
+  try {
+    const body: unknown = await response.clone().json();
+    if (typeof body !== 'object' || body === null || !('error' in body)) return false;
+    const { error } = body;
+    return typeof error === 'object' && error !== null && 'code' in error && error.code === 'csrf_failed';
+  } catch {
+    return false;
+  }
+}
+
+/** Unsafe requests on their way, each with an untouched copy kept for one retry (a body can only be sent once). */
+const copies = new WeakMap<Request, Request>();
+
+/**
+ * The API rejects unsafe requests without the CSRF token: echo the CSRF cookie in X-CSRF-Token. The token belongs
+ * to the session and changes at sign-in and sign-out, so a request that crossed one (another tab signed out, a
+ * page left open) gets 403 csrf_failed together with the right cookie: it is sent once more with the new token.
+ */
 const csrf: Middleware = {
   async onRequest({ request }) {
     if (!UNSAFE.has(request.method)) return request;
-    let token = readCookie(CSRF_COOKIE);
-    if (!token) {
-      await fetch(`${API_ORIGIN}/api/v1/auth/csrf`, { credentials: 'include' });
-      token = readCookie(CSRF_COOKIE);
-    }
+    const token = await csrfToken();
     if (token) request.headers.set('X-CSRF-Token', token);
+    copies.set(request, request.clone());
     return request;
+  },
+  async onResponse({ request, response }) {
+    const copy = copies.get(request);
+    copies.delete(request);
+    if (!copy || !(await isCsrfFailure(response))) return undefined;
+    const token = readCookie(CSRF_COOKIE);
+    if (token) copy.headers.set('X-CSRF-Token', token);
+    return fetch(copy);
   },
 };
 

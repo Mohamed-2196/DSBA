@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
 from app.models import Module, OtpChallenge
-from app.services import mailer, otp, sms
+from app.services import mailer, sms
 
 API = "/api/v1"
 
@@ -65,13 +65,11 @@ def settings() -> Settings:
 
 @pytest.fixture
 def set_option(monkeypatch: pytest.MonkeyPatch, settings: Settings) -> Callable[[str, Any], None]:
-    """Changes a setting for one test, including those config.py doesn't define yet (otp.FALLBACK_SETTINGS)."""
+    """Changes a setting for one test."""
 
     def _set(name: str, value: Any) -> None:
-        if name in type(settings).model_fields:
-            monkeypatch.setattr(settings, name, value)
-        else:
-            monkeypatch.setitem(otp.FALLBACK_SETTINGS, name, value)
+        assert name in type(settings).model_fields, f"no setting called {name}"
+        monkeypatch.setattr(settings, name, value)
 
     return _set
 

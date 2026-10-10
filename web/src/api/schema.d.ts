@@ -786,7 +786,8 @@ export interface paths {
         };
         /**
          * Media
-         * @description A forum image: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes).
+         * @description A forum image: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). 404 when
+         *     the post it belongs to is hidden or deleted, except for moderators.
          */
         get: operations["media_api_v1_media__upload_id__get"];
         put?: never;
@@ -2364,7 +2365,8 @@ export interface components {
         };
         /**
          * ProgressImport
-         * @description Progress kept in the browser before signing in, merged into the account once (newest wins).
+         * @description Progress kept in the browser before signing in, merged into the account once (newest wins). At most 5000
+         *     watched lessons and 100 modules (security review, finding 19).
          */
         ProgressImport: {
             /** Watched */

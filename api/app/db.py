@@ -10,10 +10,16 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import get_settings
 
+# Every connection works in UTC, whatever the server's default (timestamps come back as UTC, and SQL that reads the
+# session's time zone agrees with app.core.time.utcnow()). "Today in Bahrain" is computed explicitly.
+CONNECT_ARGS = {"options": "-c timezone=UTC"}
+
 
 @lru_cache
 def get_engine() -> Engine:
-    return create_engine(get_settings().database_url, pool_pre_ping=True, pool_size=10, max_overflow=10)
+    return create_engine(
+        get_settings().database_url, pool_pre_ping=True, pool_size=10, max_overflow=10, connect_args=CONNECT_ARGS
+    )
 
 
 @lru_cache

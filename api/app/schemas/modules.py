@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
+from pydantic import Field
+
 from app.schemas.common import ApiModel, Year
 
 
@@ -72,7 +74,8 @@ class ResumeUpdate(ApiModel):
 
 
 class ProgressImport(ApiModel):
-    """Progress kept in the browser before signing in, merged into the account once (newest wins)."""
+    """Progress kept in the browser before signing in, merged into the account once (newest wins). At most 5000
+    watched lessons and 100 modules (security review, finding 19)."""
 
-    watched: dict[str, datetime]
-    last: dict[str, LastLesson]
+    watched: dict[str, datetime] = Field(max_length=5000)
+    last: dict[str, LastLesson] = Field(max_length=100)

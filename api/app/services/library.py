@@ -36,8 +36,8 @@ from app.schemas.library import FileLink, LibraryFacets, LibraryItemCreate, Libr
 from app.schemas.library import LibraryItem as LibraryItemOut
 from app.services import audit
 from app.services.notify import notify
-from app.services.storage import Storage, get_storage
-from app.services.uploads import INLINE_TYPES, extension, serve_type
+from app.services.storage import INLINE_TYPES, Storage, get_storage
+from app.services.uploads import extension, serve_type
 
 KIND_LABELS: dict[str, str] = {
     "past-paper": "Past paper",
@@ -488,7 +488,10 @@ def review(
 
 def download_url(db: Session, item: LibraryItem, storage: Storage | None = None) -> str:
     """Where /download sends the browser: a short-lived attachment link for files, the stored https URL for links.
-    Opening a published item counts as a download (in SQL, in the caller's transaction)."""
+    Opening a published item counts as a download (in SQL, in the caller's transaction). A removed item has
+    nothing left to open, even for the moderators who still see its page: 404."""
+    if item.status == ItemStatus.removed:
+        raise not_found("This file was removed.")
     if item.source == ItemSource.link:
         if not item.url or not item.url.startswith("https://"):
             raise not_found("This link isn't available.")
@@ -508,7 +511,9 @@ def download_url(db: Session, item: LibraryItem, storage: Storage | None = None)
 
 
 def preview_link(item: LibraryItem, storage: Storage | None = None) -> FileLink:
-    """A short-lived inline link for the viewer: PDFs and images only."""
+    """A short-lived inline link for the viewer: PDFs and images only (404 once the item was removed)."""
+    if item.status == ItemStatus.removed:
+        raise not_found("This file was removed.")
     content_type = serve_type(item.file_name)
     if item.source != ItemSource.file or not item.storage_key or content_type not in INLINE_TYPES:
         raise ApiError(409, "no_preview", "This file can't be shown in the browser. Download it instead.")

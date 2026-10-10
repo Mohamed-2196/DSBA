@@ -1936,6 +1936,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100000,
               "minimum": 0,
               "description": "Items to skip",
               "default": 0,
@@ -2366,6 +2367,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100000,
               "minimum": 0,
               "description": "Items to skip",
               "default": 0,
@@ -2601,6 +2603,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100000,
               "minimum": 0,
               "description": "Items to skip",
               "default": 0,
@@ -3103,6 +3106,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100000,
               "minimum": 0,
               "description": "Items to skip",
               "default": 0,
@@ -4531,7 +4535,7 @@
           "uploads"
         ],
         "summary": "Media",
-        "description": "A forum image: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes).",
+        "description": "A forum image: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). 404 when\nthe post it belongs to is hidden or deleted, except for moderators.",
         "operationId": "media_api_v1_media__upload_id__get",
         "parameters": [
           {
@@ -4967,6 +4971,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100000,
               "minimum": 0,
               "description": "Items to skip",
               "default": 0,
@@ -6939,6 +6944,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100000,
               "minimum": 0,
               "description": "Items to skip",
               "default": 0,
@@ -12018,6 +12024,7 @@
               "format": "date-time"
             },
             "type": "object",
+            "maxProperties": 5000,
             "title": "Watched"
           },
           "last": {
@@ -12025,6 +12032,7 @@
               "$ref": "#/components/schemas/LastLesson"
             },
             "type": "object",
+            "maxProperties": 100,
             "title": "Last"
           }
         },
@@ -12034,7 +12042,7 @@
           "last"
         ],
         "title": "ProgressImport",
-        "description": "Progress kept in the browser before signing in, merged into the account once (newest wins)."
+        "description": "Progress kept in the browser before signing in, merged into the account once (newest wins). At most 5000\nwatched lessons and 100 modules (security review, finding 19)."
       },
       "ReactionCounts": {
         "properties": {

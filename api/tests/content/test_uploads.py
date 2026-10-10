@@ -232,10 +232,13 @@ def test_office_files_are_checked_by_their_signature(
 def test_forum_images_are_served_inline_from_a_short_lived_link(
     client_for: Clients, student: User, upload_file: Callable[..., dict[str, Any]]
 ) -> None:
-    out = upload_file(client_for(student), purpose="forum_image", name="graph.png", content_type="image/png", body=PNG)
+    me = client_for(student)
+    out = upload_file(me, purpose="forum_image", name="graph.png", content_type="image/png", body=PNG)
     assert out["mediaUrl"] == f"/api/v1/media/{out['uploadId']}"
 
-    r = client_for().get(out["mediaUrl"], follow_redirects=False)  # public, like the forum
+    # public once a visible post shows it (tests/core/test_media.py); before that, its uploader's preview
+    assert client_for().get(out["mediaUrl"], follow_redirects=False).status_code == 404
+    r = me.get(out["mediaUrl"], follow_redirects=False)
     assert r.status_code == 302
     assert r.headers["cache-control"] == "private, max-age=240"
     location = urlparse(r.headers["location"])

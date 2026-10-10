@@ -1,0 +1,52 @@
+# DSBA Hub in production: the built web app and the API behind one origin (docs/backend/DEPLOYMENT.md).
+# Caddy gets and renews the TLS certificate for DSBA_DOMAIN itself (ports 80 and 443 must reach it).
+#
+# Environment (compose.prod.yaml sets it):
+#   DSBA_DOMAIN              the app's host name, e.g. hub.example.com
+#   DSBA_BUCKET_ORIGIN       the origin of the presigned URLs the API hands out (uploads, file previews, forum
+#                            images), e.g. https://dsba-hub.s3.eu-central-1.amazonaws.com
+#   DSBA_API_UPSTREAM        where the API listens (default api:8000)
+#   DSBA_CSP_SCRIPT_HASHES   set by the image (web/Dockerfile): the hashes of index.html's inline scripts
+#   DSBA_CSP_SCRIPT_EXTRA, DSBA_CSP_CONNECT_EXTRA
+#                            more sources when the build turns analytics on (VITE_POSTHOG_KEY):
+#                            https://us-assets.i.posthog.com and https://us.i.posthog.com
+{
+	admin off
+}
+
+{$DSBA_DOMAIN} {
+	encode zstd gzip
+
+	# On every answer, the API's included ("?": only when the answer has none of its own).
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		?X-Content-Type-Options "nosniff"
+		?Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+		defer
+	}
+
+	# The API. Caddy writes the client's address in X-Forwarded-For (it drops whatever the client sent), and
+	# no request body is over 1 MB: files go straight to the bucket, never through here.
+	handle /api/* {
+		request_body {
+			max_size 1MB
+		}
+		reverse_proxy {$DSBA_API_UPSTREAM:api:8000}
+	}
+
+	# The web app. Scripts only from the app itself (no inline script but the theme one, no javascript: URLs);
+	# images, uploads, previews and media from the app, YouTube and the bucket.
+	handle {
+		root * /srv
+		header {
+			Content-Security-Policy "default-src 'self'; script-src 'self' {$DSBA_CSP_SCRIPT_HASHES} {$DSBA_CSP_SCRIPT_EXTRA}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.ytimg.com {$DSBA_BUCKET_ORIGIN}; media-src 'self' https:; font-src 'self' data:; connect-src 'self' {$DSBA_BUCKET_ORIGIN} {$DSBA_CSP_CONNECT_EXTRA}; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://vc.bibf.com {$DSBA_BUCKET_ORIGIN}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+			X-Frame-Options "DENY"
+			Cache-Control "no-cache"
+		}
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		try_files {path} /index.html
+		file_server
+	}
+}

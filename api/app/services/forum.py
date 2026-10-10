@@ -12,7 +12,6 @@ Who sees what, in one place:
 
 from __future__ import annotations
 
-import ipaddress
 import re
 import secrets
 import unicodedata
@@ -66,7 +65,6 @@ from app.models import (
     UploadPurpose,
     UploadStatus,
     User,
-    UserStatus,
 )
 from app.schemas.common import UserPublic
 from app.schemas.forum import (
@@ -403,20 +401,14 @@ _THREAD_OPTS = (defer(ForumThread.search_vector),)
 _REPLY_OPTS = (defer(ForumReply.search_vector),)
 
 
-def moderates(user: User | None) -> bool:
-    """Acts as a student rep: a moderator or admin whose account isn't suspended. Sees hidden posts and may act on
-    other people's posts; a suspended rep is a student like any other (security review, finding 4)."""
-    return user is not None and is_moderator(user) and user.status == UserStatus.active
-
-
 def can_see_thread(t: ForumThread, viewer: User | None) -> bool:
-    if t.status == PostStatus.visible or moderates(viewer):
+    if t.status == PostStatus.visible or is_moderator(viewer):
         return True
     return t.status == PostStatus.deleted and t.reply_count > 0
 
 
 def can_see_reply(r: ForumReply, viewer: User | None) -> bool:
-    return r.status != PostStatus.hidden or moderates(viewer)
+    return r.status != PostStatus.hidden or is_moderator(viewer)
 
 
 def _listed(viewer: User | None) -> ColumnElement[bool]:
@@ -425,7 +417,7 @@ def _listed(viewer: User | None) -> ColumnElement[bool]:
         ForumThread.status == PostStatus.visible,
         and_(ForumThread.status == PostStatus.deleted, ForumThread.reply_count > 0),
     ]
-    if moderates(viewer):
+    if is_moderator(viewer):
         conds.append(ForumThread.status == PostStatus.hidden)
     return or_(*conds)
 
@@ -470,24 +462,9 @@ def _unavailable(status: PostStatus) -> ApiError:
     return conflict("post_unavailable", message)
 
 
-def require_moderator(user: User) -> None:
-    """For the moderation endpoints: `Moderator` checks the role only (until core/security.py checks the status)."""
-    if not moderates(user):
-        raise forbidden("Your account is suspended. Contact a student rep.")
-
-
-def _valid_ip(ip: str | None) -> str | None:
-    """The address for the audit log's INET column, or None when it isn't one: a bad value must never turn a
-    moderation action into a 500 (security review, finding 1)."""
-    try:
-        return str(ipaddress.ip_address(ip)) if ip else None
-    except ValueError:
-        return None
-
-
 def _audit(db: Session, actor: User, action: str, kind: str, target_id: object, ip: str | None, **data: Any) -> None:
-    """An audit row with a snapshot of who acted (the account may be deleted later) and what they acted on."""
-    record(db, actor, action, kind, target_id, {"actorName": actor.display_name, **data}, _valid_ip(ip))
+    """An audit row with what was acted on (audit.record adds who acted, and keeps only a valid IP address)."""
+    record(db, actor, action, kind, target_id, data, ip)
 
 
 # ── SQL pieces ──────────────────────────────────────────────────────────────────────────────────────
@@ -688,7 +665,7 @@ def _reply_dict(r: ForumReply, author: User | None, t: ForumThread, viewer: User
         "status": r.status.value,
         "accepted": t.accepted_reply_id == r.id,
         "is_mine": mine,
-        "can_edit": (mine or moderates(viewer)) and not deleted,
+        "can_edit": (mine or is_moderator(viewer)) and not deleted,
     }
 
 
@@ -709,7 +686,7 @@ def _thread_year(db: Session, t: ForumThread) -> int | None:
 
 def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDetail:
     """The thread with its replies, oldest first (hidden replies only for moderators; deleted ones keep their place)."""
-    mod = moderates(viewer)
+    mod = is_moderator(viewer)
     mine = viewer is not None and t.author_id == viewer.id
     author = db.get(User, t.author_id) if t.author_id else None
     voted = viewer is not None and bool(
@@ -1008,8 +985,17 @@ def _bump_thread(db: Session, t: ForumThread, *, replies: int = 0, activity: dat
     set_committed_value(t, "last_activity_at", row.last_activity_at)
 
 
-def attach_images(db: Session, owner_id: uuid.UUID | None, body: str) -> None:
-    """Forum images the post shows that its author uploaded become 'attached' (so the daily sweep keeps them)."""
+def attach_images(
+    db: Session,
+    owner_id: uuid.UUID | None,
+    body: str,
+    *,
+    thread_id: uuid.UUID | None = None,
+    reply_id: uuid.UUID | None = None,
+) -> None:
+    """Forum images the post shows that its author uploaded become 'attached' to it: the daily sweep keeps them, and
+    /media serves them only while the post is visible (finding 8). Pass the thread's id for a thread's body, the
+    reply's id for a reply's."""
     ids = media_ids(body)
     if not ids or owner_id is None:
         return
@@ -1021,34 +1007,56 @@ def attach_images(db: Session, owner_id: uuid.UUID | None, body: str) -> None:
             Upload.purpose == UploadPurpose.forum_image,
             Upload.status == UploadStatus.uploaded,
         )
-        .values(status=UploadStatus.attached)
+        .values(status=UploadStatus.attached, thread_id=thread_id, reply_id=reply_id)
         .execution_options(synchronize_session="fetch")
     )
 
 
+def _post_showing(db: Session, image_id: uuid.UUID) -> tuple[uuid.UUID | None, uuid.UUID | None] | None:
+    """A post of the image's uploader whose body shows it, a visible one first: (thread id, None) or
+    (None, reply id). Like attaching, only the uploader's own posts count."""
+    owner = select(Upload.user_id).where(Upload.id == image_id).scalar_subquery()
+    pattern = f"%/api/v1/media/{image_id}%"
+    thread_id = db.scalar(
+        select(ForumThread.id)
+        .where(ForumThread.author_id == owner, ForumThread.body.ilike(pattern))
+        .order_by(ForumThread.status != PostStatus.visible, ForumThread.created_at)
+        .limit(1)
+    )
+    if thread_id is not None:
+        return thread_id, None
+    reply_id = db.scalar(
+        select(ForumReply.id)
+        .where(ForumReply.author_id == owner, ForumReply.body.ilike(pattern))
+        .order_by(ForumReply.status != PostStatus.visible, ForumReply.created_at)
+        .limit(1)
+    )
+    return (None, reply_id) if reply_id is not None else None
+
+
 def release_images(db: Session, ids: Iterable[uuid.UUID]) -> None:
-    """Images a post no longer shows go back to 'uploaded' (the daily sweep deletes them), unless another post shows
-    them too. Call after the post's new body is in the session."""
+    """Images a post no longer shows go back to 'uploaded' (the daily sweep deletes them), unless another post of
+    their uploader shows them too: then they belong to that post. Call after the post's new body is in the
+    session."""
     ids = list(ids)[:MAX_IMAGES_PER_POST]
     if not ids:
         return
     db.flush()
     for image_id in ids:
-        pattern = f"%/api/v1/media/{image_id}%"
-        in_use = db.scalar(
-            select(exists().where(ForumThread.body.ilike(pattern)) | exists().where(ForumReply.body.ilike(pattern)))
+        post = _post_showing(db, image_id)
+        values: dict[str, Any] = (
+            {"status": UploadStatus.uploaded} if post is None else {"thread_id": post[0], "reply_id": post[1]}
         )
-        if not in_use:
-            db.execute(
-                update(Upload)
-                .where(
-                    Upload.id == image_id,
-                    Upload.purpose == UploadPurpose.forum_image,
-                    Upload.status == UploadStatus.attached,
-                )
-                .values(status=UploadStatus.uploaded)
-                .execution_options(synchronize_session="fetch")
+        db.execute(
+            update(Upload)
+            .where(
+                Upload.id == image_id,
+                Upload.purpose == UploadPurpose.forum_image,
+                Upload.status == UploadStatus.attached,
             )
+            .values(**values)
+            .execution_options(synchronize_session="fetch")
+        )
 
 
 def _status_before_hide(db: Session, kind: Literal["thread", "reply"], target_id: uuid.UUID) -> PostStatus:
@@ -1124,14 +1132,14 @@ def create_thread(db: Session, user: User, data: ThreadCreate) -> ForumThread:
     else:
         raise conflict("busy", "Something went wrong. Try again.")
     db.add(ThreadVote(user_id=user.id, thread_id=t.id))
-    attach_images(db, user.id, body)
+    attach_images(db, user.id, body, thread_id=t.id)
     return t
 
 
 def update_thread(db: Session, user: User, t: ForumThread, data: ThreadUpdate, ip: str | None) -> None:
     """The author or a moderator edits the thread (its slug stays, so links keep working)."""
     mine = t.author_id == user.id
-    if not (mine or moderates(user)):
+    if not (mine or is_moderator(user)):
         raise forbidden("You can only edit your own threads.")
     if t.status == PostStatus.deleted:
         raise _unavailable(t.status)
@@ -1168,7 +1176,7 @@ def update_thread(db: Session, user: User, t: ForumThread, data: ThreadUpdate, i
         return
     t.edited_at = utcnow()
     if "body" in changed:
-        attach_images(db, t.author_id, t.body)
+        attach_images(db, t.author_id, t.body, thread_id=t.id)
         release_images(db, set(media_ids(old_body)) - set(media_ids(t.body)))
     if not mine:
         _audit(db, user, "forum.thread.edit", "thread", t.id, ip, title=t.title, fields=changed)
@@ -1177,10 +1185,10 @@ def update_thread(db: Session, user: User, t: ForumThread, data: ThreadUpdate, i
 def delete_thread(db: Session, user: User, thread_id: uuid.UUID, ip: str | None) -> None:
     """The author or a moderator deletes the thread: its text goes, its title and replies stay. Idempotent."""
     t = get_thread(db, thread_id)
-    if t is None or (t.status == PostStatus.hidden and not moderates(user)):
+    if t is None or (t.status == PostStatus.hidden and not is_moderator(user)):
         raise not_found("This thread doesn't exist or was removed.")
     mine = t.author_id == user.id
-    if not (mine or moderates(user)):
+    if not (mine or is_moderator(user)):
         if not can_see_thread(t, user):
             raise not_found("This thread doesn't exist or was removed.")
         raise forbidden("You can only delete your own threads.")
@@ -1252,7 +1260,7 @@ def vote(
 def accept_answer(db: Session, user: User, t: ForumThread, reply_id: uuid.UUID | None, ip: str | None) -> None:
     """The thread's author (or a moderator) marks a direct reply by someone else as the answer, or clears it."""
     mine = t.author_id == user.id
-    if not (mine or moderates(user)):
+    if not (mine or is_moderator(user)):
         raise forbidden("Only the person who asked can accept an answer.")
     if t.status != PostStatus.visible:
         raise _unavailable(t.status)
@@ -1291,7 +1299,6 @@ def accept_answer(db: Session, user: User, t: ForumThread, reply_id: uuid.UUID |
 
 def moderate_thread(db: Session, user: User, t: ForumThread, data: ThreadModeration, ip: str | None) -> None:
     """Pin, lock or hide (a moderator). Each change is audited as forum.thread.<action>."""
-    require_moderator(user)
     info: dict[str, Any] = {"title": t.title, "slug": t.slug}
     if data.pinned is not None and data.pinned != t.pinned:
         t.pinned = data.pinned
@@ -1331,7 +1338,7 @@ def create_reply(db: Session, user: User, t: ForumThread, data: ReplyCreate) -> 
     if t.status != PostStatus.visible:
         what = "was deleted" if t.status == PostStatus.deleted else "is hidden"
         raise conflict("thread_locked", f"This thread {what}, so it can't take new replies.")
-    if t.locked and not moderates(user):
+    if t.locked and not is_moderator(user):
         raise conflict("thread_locked", "This thread is locked, so it can't take new replies.")
     body = _valid_body(data.body, required=True)
     parent: ForumReply | None = None
@@ -1365,7 +1372,7 @@ def create_reply(db: Session, user: User, t: ForumThread, data: ReplyCreate) -> 
     db.add(r)
     db.flush()
     _bump_thread(db, t, replies=1, activity=now)
-    attach_images(db, user.id, body)
+    attach_images(db, user.id, body, reply_id=r.id)
     name = user.display_name or "Someone"
     url = f"/forum/{t.slug}"
     info = {"threadId": str(t.id), "replyId": str(r.id)}
@@ -1389,7 +1396,7 @@ def create_reply(db: Session, user: User, t: ForumThread, data: ReplyCreate) -> 
 
 def update_reply(db: Session, user: User, r: ForumReply, t: ForumThread, body: str, ip: str | None) -> None:
     mine = r.author_id == user.id
-    if not (mine or moderates(user)):
+    if not (mine or is_moderator(user)):
         raise forbidden("You can only edit your own replies.")
     if r.status == PostStatus.deleted:
         raise _unavailable(r.status)
@@ -1399,7 +1406,7 @@ def update_reply(db: Session, user: User, r: ForumReply, t: ForumThread, body: s
     old_body = r.body
     r.body = new_body
     r.edited_at = utcnow()
-    attach_images(db, r.author_id, new_body)
+    attach_images(db, r.author_id, new_body, reply_id=r.id)
     release_images(db, set(media_ids(old_body)) - set(media_ids(new_body)))
     if not mine:
         _audit(db, user, "forum.reply.edit", "reply", r.id, ip, title=t.title, threadId=str(t.id))
@@ -1408,7 +1415,7 @@ def update_reply(db: Session, user: User, r: ForumReply, t: ForumThread, body: s
 def delete_reply(db: Session, user: User, r: ForumReply, t: ForumThread, ip: str | None) -> None:
     """The author or a moderator deletes a reply: it keeps its place with no text. Idempotent."""
     mine = r.author_id == user.id
-    if not (mine or moderates(user)):
+    if not (mine or is_moderator(user)):
         raise forbidden("You can only delete your own replies.")
     if r.status == PostStatus.deleted:
         return
@@ -1422,7 +1429,6 @@ def delete_reply(db: Session, user: User, r: ForumReply, t: ForumThread, ip: str
 
 def moderate_reply(db: Session, user: User, r: ForumReply, t: ForumThread, status: str, ip: str | None) -> None:
     """Hide a reply, or show it again (a hidden reply that was deleted before goes back to deleted). Audited."""
-    require_moderator(user)
     info = {"title": t.title, "threadId": str(t.id)}
     if status == "hidden" and r.status != PostStatus.hidden:
         _audit(db, user, "forum.reply.hide", "reply", r.id, ip, **info, **{"from": r.status.value})
@@ -1590,7 +1596,6 @@ def _report_outs(db: Session, reports: Sequence[Report], viewer: User) -> list[R
 
 def list_reports(db: Session, user: User, status: str, limit: int, offset: int) -> ReportPage:
     """Open reports oldest first (a queue); closed ones most recently closed first."""
-    require_moderator(user)
     st = ReportStatus(status)
     total = db.scalar(select(func.count()).select_from(Report).where(Report.status == st)) or 0
     order: list[Any] = (
@@ -1607,7 +1612,6 @@ _TARGET_WORDS = {"thread": "the thread", "reply": "a reply in", "library_item": 
 
 def resolve_report(db: Session, user: User, report_id: uuid.UUID, data: ReportResolve, ip: str | None) -> ReportOut:
     """Close a report (resolved: a moderator acted; dismissed: left as it is). Tells the reporter. Audited."""
-    require_moderator(user)
     report = db.get(Report, report_id)
     if report is None:
         raise not_found("This report doesn't exist.")

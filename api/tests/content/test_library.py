@@ -172,7 +172,7 @@ def test_moderators_publish_their_own_uploads_at_once(
     assert db.scalar(select(Notification)) is None  # nobody is told about their own action
     entry = db.scalar(select(AuditEntry).where(AuditEntry.action == "library.publish"))
     assert entry is not None  # it skipped review: on the record
-    assert entry.data == {"title": "Distribution theory cheat sheet", "own": True}
+    assert entry.data == {"title": "Distribution theory cheat sheet", "own": True, "actorName": "Maryam Rep"}
 
 
 def test_creating_an_item_needs_a_finished_upload_of_your_own(

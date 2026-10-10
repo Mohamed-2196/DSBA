@@ -7,7 +7,7 @@ from uuid import UUID
 from fastapi import status
 from fastapi.responses import RedirectResponse
 
-from app.core.security import DB, ActiveUser
+from app.core.security import DB, ActiveUser, OptionalUser
 from app.routers._base import router_for
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
 from app.services import uploads as svc
@@ -39,7 +39,8 @@ def complete_upload(upload_id: UUID, user: ActiveUser, db: DB) -> UploadOut:
 
 
 @router.get("/media/{upload_id}", response_class=RedirectResponse, status_code=status.HTTP_302_FOUND)
-def media(upload_id: UUID, db: DB) -> RedirectResponse:
-    """A forum image: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes)."""
-    url = svc.media_redirect_url(db, upload_id)
+def media(upload_id: UUID, db: DB, user: OptionalUser) -> RedirectResponse:
+    """A forum image: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). 404 when
+    the post it belongs to is hidden or deleted, except for moderators."""
+    url = svc.media_redirect_url(db, upload_id, user)
     return RedirectResponse(url, status_code=status.HTTP_302_FOUND, headers={"Cache-Control": MEDIA_CACHE})

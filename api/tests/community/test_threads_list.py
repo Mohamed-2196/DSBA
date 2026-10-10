@@ -244,11 +244,13 @@ def test_related_threads(
 def test_control_characters_in_parameters(client_for: Client, student: User) -> None:
     t = new_thread(client_for(student), title="Plain thread", tags=["r"])
     guest = client_for()
+    # one rule for the whole API (app.core.errors.ControlCharactersMiddleware): a bad address, before any route
     for params in ({"q": '"\x00abc'}, {"q": "plain\x00"}, {"tag": "r\x00"}, {"module_id": "a\x00"}):
         r = guest.get(f"{API}/forum/threads", params=params)
-        assert r.status_code == 200, params
-    assert ids(listing(guest, q="plain\x00")["items"]) == [t["id"]]
-    assert guest.get(f"{API}/forum/threads/plain%00thread").status_code == 404
+        assert r.status_code == 400, params
+        assert r.json()["error"]["code"] == "bad_request"
+    assert ids(listing(guest, q="plain")["items"]) == [t["id"]]
+    assert guest.get(f"{API}/forum/threads/plain%00thread").status_code == 400
     r = client_for(student).post(f"{API}/forum/threads", json={"title": "Valid title", "moduleId": "x\x00"})
     assert r.status_code == 422
     assert "moduleId" in r.json()["error"]["fields"]

@@ -36,15 +36,20 @@ MAX_COVER_BYTES = 16 * 1024
 # ── links in moderator- and admin-written JSON ───────────────────────────────────────────────
 
 _MD_LINK = re.compile(r"\[([^\]]*)\]\(([^)\s]*)\)")
-_LINK_KEYS = frozenset({"href", "url", "src", "art", "link", "image"})
+_LINK_KEYS = frozenset({"href", "url", "src", "art", "link", "image", "to"})  # "to": an in-app link
 _ASSET_PATH = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_./-]*$")  # 'demo/news/speech-day.jpg', relative to the app
+# Never inside a link: browsers drop tabs and newlines from URLs ('/\t/host' becomes '//host') and read '\' as '/'.
+_UNSAFE_IN_LINK = re.compile(r"[\x00-\x20\x7f\x85\u2028\u2029\\]")
 LINK_RULE = "Links must start with https:// or point to a page of the Hub (like /calendar)."
 
 
 def safe_link(value: str) -> bool:
     """https:// (no user:password@), mailto:, a path in the app ('/career', not '//host' or '/\\host'), an
-    #anchor, or a relative asset path. Never javascript:, data: or any other scheme."""
+    #anchor, or a relative asset path. Never javascript:, data: or any other scheme, and never whitespace, a control
+    character or a backslash anywhere (security review SEC-3)."""
     v = value.strip()
+    if _UNSAFE_IN_LINK.search(v):
+        return False
     if v.lower().startswith("https://"):
         try:
             parts = urlsplit(v)

@@ -24,13 +24,13 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.core.errors import ApiError, conflict, not_found, rate_limited
+from app.core.security import is_moderator
 from app.core.time import utcnow
-from app.models import Upload, UploadPurpose, UploadStatus, User
+from app.models import ForumReply, ForumThread, PostStatus, Upload, UploadPurpose, UploadStatus, User
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
-from app.services.storage import Storage, get_storage, safe_file_name
+from app.services.storage import INCOMING_PREFIX, Storage, error_code, get_storage, safe_file_name
 
 UPLOADS_PER_HOUR = 20
-INCOMING_PREFIX = "incoming/"
 SNIFF_BYTES = 1024
 
 
@@ -77,8 +77,7 @@ ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
     UploadPurpose.library: LIBRARY_TYPES,
     UploadPurpose.forum_image: IMAGE_TYPES,
 }
-# Shown in the browser (PDF viewer, <img>); everything else is downloaded as an attachment.
-INLINE_TYPES = frozenset({"application/pdf", "image/png", "image/jpeg", "image/webp", "image/gif"})
+# Shown in the browser (PDF viewer, <img>): storage.INLINE_TYPES. Everything else downloads as an attachment.
 IMAGE_CONTENT_TYPES = frozenset(t.content_type for t in IMAGE_TYPES.values())
 
 # The paths media_url() hands out, as a post refers to them (the forum attaches images it finds this way).
@@ -213,16 +212,6 @@ def create_upload(db: Session, user: User, body: UploadCreate, storage: Storage 
 # ── POST /uploads/{id}/complete ──────────────────────────────────────────────────────────────
 
 
-def _first_bytes(st: Storage, key: str) -> bytes | None:
-    try:
-        r = st.client.get_object(Bucket=st.bucket, Key=key, Range=f"bytes=0-{SNIFF_BYTES - 1}")
-    except ClientError as e:
-        if e.response.get("Error", {}).get("Code") in ("404", "NoSuchKey", "NotFound"):
-            return None
-        raise
-    return r["Body"].read(SNIFF_BYTES)
-
-
 def _looks_right(ft: FileType, head: bytes) -> bool:
     """Does the file start the way its type says? (Text types are not checked: they are never shown inline.)"""
     if ft.magic is None:
@@ -239,16 +228,8 @@ def _mismatch(st: Storage, key: str) -> ApiError:
     return ApiError(422, "mismatch", "This file doesn't match what was declared. Choose the file again.")
 
 
-def _promote(st: Storage, src: str, dst: str, content_type: str) -> None:
-    """Server-side copy of a checked object to its final key (the bytes never pass through the API).
-    The type is set again from the allowlist (REPLACE), whatever the incoming object carried."""
-    st.client.copy_object(
-        Bucket=st.bucket,
-        Key=dst,
-        CopySource={"Bucket": st.bucket, "Key": src},
-        MetadataDirective="REPLACE",
-        ContentType=content_type,
-    )
+def _not_uploaded(message: str = "The file hasn't arrived yet. Upload it again.") -> ApiError:
+    return conflict("not_uploaded", message)
 
 
 def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Storage | None = None) -> UploadOut:
@@ -260,24 +241,33 @@ def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Stor
 
     st = storage or get_storage()
     incoming = up.storage_key
+    ft = file_type_for(up.file_name, up.purpose)
+    max_size = min(up.size_bytes, limit_bytes(up.purpose))
     info = st.head(incoming)
     if info is None:
-        raise conflict("not_uploaded", "The file hasn't arrived yet. Upload it again.")
-    ft = file_type_for(up.file_name, up.purpose)
-    too_big = info.size > min(up.size_bytes, limit_bytes(up.purpose))
-    if ft is None or too_big or info.size < 1 or media_type(info.content_type) != up.content_type:
-        raise _mismatch(st, incoming)
-    head = _first_bytes(st, incoming)
-    if head is None:
-        raise conflict("not_uploaded", "The file hasn't arrived yet. Upload it again.")
-    if not _looks_right(ft, head):
+        raise _not_uploaded()
+    if ft is None or not 1 <= info.size <= max_size or media_type(info.content_type) != up.content_type:
         raise _mismatch(st, incoming)
 
+    # Copy first, then check the copy: no presigned policy can write a final key, so what passes here is exactly
+    # what will be served, even if the uploader re-POSTs to incoming/ meanwhile (security review, SEC-13). Where the
+    # store supports it, the copy is also tied to the version that was HEADed.
     final = _final_key(up)
-    _promote(st, incoming, final, up.content_type)
+    try:
+        st.copy(incoming, final, up.content_type, if_match=info.etag)  # the allowlist's type, whatever was sent
+    except ClientError as e:
+        if error_code(e) in ("PreconditionFailed", "412"):
+            raise _not_uploaded("The file changed while we checked it. Upload it again.") from None
+        if error_code(e) in ("404", "NoSuchKey", "NotFound"):
+            raise _not_uploaded() from None
+        raise
     st.delete(incoming)
+    stored = st.head(final)
+    head = st.read_head(final, SNIFF_BYTES)
+    if stored is None or head is None or not 1 <= stored.size <= max_size or not _looks_right(ft, head):
+        raise _mismatch(st, final)
     up.storage_key = final
-    up.size_bytes = info.size
+    up.size_bytes = stored.size
     up.status = UploadStatus.uploaded
     up.completed_at = utcnow()
     db.commit()
@@ -287,8 +277,12 @@ def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Stor
 # ── GET /media/{id} ──────────────────────────────────────────────────────────────────────────
 
 
-def media_redirect_url(db: Session, upload_id: uuid.UUID, storage: Storage | None = None) -> str:
-    """A short-lived inline link to a forum image; 404 for anything else (library files never go out this way)."""
+def media_redirect_url(
+    db: Session, upload_id: uuid.UUID, viewer: User | None = None, storage: Storage | None = None
+) -> str:
+    """A short-lived inline link to a forum image; 404 for anything else (library files never go out this way), and
+    for an image that isn't in a visible post, except to its uploader and to moderators (security review, finding 8
+    and SEC-10)."""
     up = db.get(Upload, upload_id)
     if (
         up is None
@@ -299,5 +293,27 @@ def media_redirect_url(db: Session, upload_id: uuid.UUID, storage: Storage | Non
     ft = file_type_for(up.file_name, UploadPurpose.forum_image)
     if ft is None or ft.content_type not in IMAGE_CONTENT_TYPES or up.content_type != ft.content_type:
         raise not_found("This image doesn't exist.")
+    if not can_view_image(db, up, viewer):
+        raise not_found("This image doesn't exist.")
     st = storage or get_storage()
-    return st.presigned_get(up.storage_key, file_name=up.file_name, inline=True, content_type=ft.content_type)
+    return st.presigned_get(up.storage_key, file_name=up.file_name, content_type=ft.content_type, inline=True)
+
+
+def can_view_image(db: Session, up: Upload, viewer: User | None) -> bool:
+    """Its uploader and moderators always. Everyone else while it is attached to a visible post: the thread, or the
+    reply and a thread that isn't hidden. Not before it is posted (the composer previews from the file itself), and
+    not once the post is hidden, deleted or gone, or no longer shows it."""
+    if is_moderator(viewer) or (viewer is not None and up.user_id == viewer.id):
+        return True
+    if up.status != UploadStatus.attached:
+        return False
+    if up.reply_id is not None:
+        reply = db.get(ForumReply, up.reply_id)
+        if reply is None or reply.status != PostStatus.visible:
+            return False
+        thread = db.get(ForumThread, reply.thread_id)
+        return thread is not None and thread.status != PostStatus.hidden
+    if up.thread_id is not None:
+        thread = db.get(ForumThread, up.thread_id)
+        return thread is not None and thread.status == PostStatus.visible
+    return False
