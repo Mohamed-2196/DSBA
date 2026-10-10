@@ -28,3 +28,7 @@ launch-film/out
 launch-film/assets
 launch-film/node_modules
 __pycache__
+
+# Backend and local stack
+.env
+api/var/

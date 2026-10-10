@@ -1,0 +1,120 @@
+# Local development stack: Postgres and MinIO keep their data in named volumes, so `docker compose down`
+# (without -v) and restarts lose nothing. Mailpit catches every email the API sends (http://localhost:8025);
+# one-time codes sent by SMS are printed in the API's log (docker compose logs -f api).
+#
+#   docker compose up --build      then open http://localhost:5173
+#
+# Production uses compose.prod.yaml (see docs/DEPLOYMENT.md).
+name: dsba-hub
+
+x-api-env: &api-env
+  DSBA_ENV: development
+  DSBA_DATABASE_URL: postgresql+psycopg://dsba:${POSTGRES_PASSWORD:-dsba}@db:5432/dsba
+  DSBA_SECRET_KEY: ${DSBA_SECRET_KEY:-dev-insecure-secret-change-me}
+  DSBA_WEB_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+  DSBA_WEB_BASE_URL: http://localhost:5173
+  DSBA_S3_ENDPOINT_URL: http://minio:9000
+  DSBA_S3_PUBLIC_ENDPOINT_URL: http://localhost:9000  # what the browser uses for presigned uploads/downloads
+  DSBA_S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-dsba}
+  DSBA_S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-dsba-dev-secret}
+  DSBA_S3_BUCKET: dsba-hub
+  DSBA_EMAIL_BACKEND: smtp
+  DSBA_SMTP_HOST: mailpit
+  DSBA_SMTP_PORT: "1025"
+  DSBA_SMS_BACKEND: console
+  DSBA_ADMIN_IDENTIFIERS: ${DSBA_ADMIN_IDENTIFIERS:-}
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: dsba
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dsba}
+      POSTGRES_DB: dsba
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dsba -d dsba"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  minio:
+    # MinIO stopped publishing images in October 2025; this is its last official release. Fine for local work.
+    # In production point the API at AWS S3 or Cloudflare R2 instead (docs/DEPLOYMENT.md).
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-dsba}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-dsba-dev-secret}
+      MINIO_API_CORS_ALLOW_ORIGIN: http://localhost:5173,http://127.0.0.1:5173
+    volumes:
+      - miniodata:/data
+    ports:
+      - "127.0.0.1:9000:9000"  # S3 API
+      - "127.0.0.1:9001:9001"  # web console
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:8025:8025"  # inbox UI
+    restart: unless-stopped
+
+  api:
+    build: ./api
+    environment: *api-env
+    command: >-
+      sh -c "alembic upgrade head && python -m app.cli seed &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir app"
+    volumes:
+      - ./api/app:/app/app  # live reload while developing
+      - ./api/migrations:/app/migrations
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+
+  web:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev"
+    environment:
+      VITE_DEV_API_TARGET: http://api:8000
+      VITE_DEV_HOST: 0.0.0.0
+    volumes:
+      - ./web:/app
+      - web_node_modules:/app/node_modules
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:5173:5173"
+
+  backup:
+    # A database dump into the bucket every 24 hours (backups/db/, the newest 14 kept). Restore: docs/DEPLOYMENT.md.
+    build: ./api
+    environment: *api-env
+    command: sh -c "sleep 60; while true; do python -m app.cli backup || echo 'backup failed'; sleep 86400; done"
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  miniodata:
+  web_node_modules:

@@ -1,0 +1,1475 @@
+{
+  "checkedOn": "2 October 2026",
+  "initialCount": 12,
+  "tracks": [
+    {
+      "id": "data",
+      "label": "Data science & analytics",
+      "short": "Data & analytics",
+      "about": "Analyst and data science teams: SQL, modelling and dashboards.",
+      "modules": [
+        "programming-data-science",
+        "business-analytics",
+        "machine-learning"
+      ]
+    },
+    {
+      "id": "business",
+      "label": "Business analysis",
+      "short": "Business analysis",
+      "about": "Work that sits between a business team and its numbers: process, requirements and reporting.",
+      "modules": [
+        "business",
+        "business-analytics",
+        "information-systems"
+      ]
+    },
+    {
+      "id": "consulting",
+      "label": "Consulting",
+      "short": "Consulting",
+      "about": "Client projects in small teams: structure the problem, analyse it, present the answer.",
+      "modules": [
+        "business",
+        "economics",
+        "business-analytics"
+      ]
+    },
+    {
+      "id": "quant",
+      "label": "Quantitative & risk",
+      "short": "Quant & risk",
+      "about": "Risk, credit and modelling teams in banks, investment firms and the regulator.",
+      "modules": [
+        "advanced-stats-distribution",
+        "advanced-stats-inferential",
+        "econometrics"
+      ]
+    },
+    {
+      "id": "markets",
+      "label": "Treasury & markets",
+      "short": "Treasury & markets",
+      "about": "Treasury desks, asset managers, brokers and the exchange.",
+      "modules": [
+        "economics",
+        "econometrics",
+        "asset-pricing"
+      ]
+    },
+    {
+      "id": "tech",
+      "label": "Technology",
+      "short": "Technology",
+      "about": "Software, cloud and digital teams.",
+      "modules": [
+        "programming-data-science",
+        "information-systems",
+        "machine-learning"
+      ]
+    }
+  ],
+  "offerTypes": {
+    "graduate": {
+      "label": "Graduate programme",
+      "plural": "Graduate programmes"
+    },
+    "internship": {
+      "label": "Internship",
+      "plural": "Internships"
+    },
+    "careers": {
+      "label": "Careers page",
+      "plural": "Careers pages"
+    }
+  },
+  "ctaLabel": {
+    "apply": "Apply",
+    "programme": "See the programme",
+    "roles": "See open roles"
+  },
+  "employers": [
+    {
+      "id": "nbb",
+      "name": "National Bank of Bahrain",
+      "mono": "NBB",
+      "sector": "Bank",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "EVOLVE"
+        },
+        {
+          "type": "internship",
+          "name": "THRIVE"
+        }
+      ],
+      "tracks": [
+        "markets",
+        "quant"
+      ],
+      "why": "EVOLVE is the bank’s summer internship. THRIVE is a paid internship of 6 to 12 months in a full-time role from day one.",
+      "url": "https://nbbonline.com/about/careers/",
+      "cta": "roles"
+    },
+    {
+      "id": "citi",
+      "name": "Citi",
+      "mono": "Ci",
+      "sector": "Bank",
+      "offers": [
+        {
+          "type": "graduate",
+          "name": "Full Time Analyst Program, Technology"
+        }
+      ],
+      "tracks": [
+        "tech",
+        "data"
+      ],
+      "why": "Graduate analysts join Citi’s technology hub in Bahrain to build software, with exposure to cloud and data analytics.",
+      "url": "https://jobs.citi.com/early-career-programs",
+      "cta": "roles"
+    },
+    {
+      "id": "investcorp",
+      "name": "Investcorp",
+      "mono": "In",
+      "sector": "Investment",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "Nemir Kirdar Global Internship Program"
+        }
+      ],
+      "tracks": [
+        "markets",
+        "business"
+      ],
+      "why": "Ten weeks inside a global alternative investment firm with an office in Manama, working across its businesses.",
+      "url": "https://www.investcorp.com/culture-and-development/",
+      "cta": "programme"
+    },
+    {
+      "id": "cbb",
+      "name": "Central Bank of Bahrain",
+      "mono": "CBB",
+      "sector": "Regulator",
+      "offers": [
+        {
+          "type": "graduate",
+          "name": "GP15 Graduate Development Program"
+        }
+      ],
+      "tracks": [
+        "quant",
+        "markets"
+      ],
+      "why": "Six months of work across the central bank’s directorates, with training sessions delivered by BIBF.",
+      "url": "https://www.cbb.gov.bh/careers/",
+      "cta": "roles"
+    },
+    {
+      "id": "pwc",
+      "name": "PwC Middle East",
+      "mono": "PwC",
+      "sector": "Audit & consulting",
+      "offers": [
+        {
+          "type": "graduate",
+          "name": "Graduate Programme"
+        }
+      ],
+      "tracks": [
+        "consulting",
+        "business"
+      ],
+      "why": "Graduate intake across Assurance, Consulting, Deals and Tax & Legal. PwC Middle East has an office in Bahrain.",
+      "url": "https://www.pwc.com/m1/en/careers/graduates-and-undergraduates-careers.html",
+      "cta": "roles"
+    },
+    {
+      "id": "stc-bahrain",
+      "name": "stc Bahrain",
+      "mono": "STC",
+      "sector": "Telecom",
+      "offers": [
+        {
+          "type": "graduate",
+          "name": "jeel ICT Graduate Development Program"
+        }
+      ],
+      "tracks": [
+        "tech",
+        "data"
+      ],
+      "why": "A one-year programme with job rotations across core services, fintech, technology and support functions.",
+      "url": "https://careers.stc.com.bh/jeelICT",
+      "cta": "apply"
+    },
+    {
+      "id": "mumtalakat",
+      "name": "Mumtalakat",
+      "mono": "Mu",
+      "sector": "Sovereign fund",
+      "offers": [
+        {
+          "type": "careers"
+        }
+      ],
+      "tracks": [
+        "markets",
+        "business"
+      ],
+      "why": "Bahrain’s sovereign wealth fund. Its careers page has routes for graduates and for interns who want a start in investments.",
+      "url": "https://www.mumtalakat.bh/careers",
+      "cta": "roles"
+    },
+    {
+      "id": "bapco-energies",
+      "name": "Bapco Energies",
+      "mono": "BE",
+      "sector": "Energy",
+      "offers": [
+        {
+          "type": "graduate",
+          "name": "Information and Digital Technology Graduate Trainee Program"
+        }
+      ],
+      "tracks": [
+        "tech",
+        "data"
+      ],
+      "why": "A one-year programme built on on-the-job learning in the energy group’s information and digital technology teams.",
+      "url": "https://www.bapcoenergies.com/information-technology-digital-graduate-trainee-program",
+      "cta": "apply"
+    },
+    {
+      "id": "sico",
+      "name": "SICO",
+      "mono": "SICO",
+      "sector": "Investment",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "Internship Program"
+        },
+        {
+          "type": "graduate",
+          "name": "Executive Training Program"
+        }
+      ],
+      "tracks": [
+        "markets",
+        "quant"
+      ],
+      "why": "Summer interns see asset management, brokerage, treasury and research. New graduates get six months of training.",
+      "url": "https://www.sicobank.com/en/internships",
+      "cta": "apply"
+    },
+    {
+      "id": "kpmg",
+      "name": "KPMG in Bahrain",
+      "mono": "KPMG",
+      "sector": "Audit & consulting",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "Hussain Kasim Internship"
+        }
+      ],
+      "tracks": [
+        "consulting",
+        "business"
+      ],
+      "why": "An internship that places students in the Audit, Tax and Advisory teams of KPMG in Bahrain.",
+      "url": "https://kpmg.com/bh/en/careers/hussain-kasim-internship.html",
+      "cta": "apply"
+    },
+    {
+      "id": "bahrain-bourse",
+      "name": "Bahrain Bourse",
+      "mono": "BHB",
+      "sector": "Exchange",
+      "offers": [
+        {
+          "type": "graduate",
+          "name": "Capital Markets Apprenticeship Programme"
+        },
+        {
+          "type": "graduate",
+          "name": "Emerging Talents"
+        }
+      ],
+      "tracks": [
+        "markets",
+        "tech"
+      ],
+      "why": "Six months of hands-on experience across the stock exchange and Bahrain Clear. Emerging Talents is its two-month graduate training.",
+      "url": "https://bahrainbourse.com/en/Investors/InvestorAwareness/capital-market",
+      "cta": "apply"
+    },
+    {
+      "id": "benefit",
+      "name": "BENEFIT",
+      "mono": "Be",
+      "sector": "Fintech",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "Masar FinTech Internship Program"
+        }
+      ],
+      "tracks": [
+        "tech",
+        "data"
+      ],
+      "why": "A summer internship at Bahrain’s payments network, with on-the-job training in data services and payment services.",
+      "url": "https://benefit.bh/Application-Forms/Careers",
+      "cta": "roles"
+    },
+    {
+      "id": "gib",
+      "name": "Gulf International Bank",
+      "mono": "GIB",
+      "sector": "Bank",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "Internship Program, GIB Bahrain"
+        }
+      ],
+      "tracks": [
+        "markets",
+        "quant"
+      ],
+      "why": "GIB posts its Bahrain internship on its own careers site, next to its open roles.",
+      "url": "https://www.gib.com/en/careers-home-page",
+      "cta": "roles"
+    },
+    {
+      "id": "deloitte",
+      "name": "Deloitte Middle East",
+      "mono": "De",
+      "sector": "Audit & consulting",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "Tadarab"
+        }
+      ],
+      "tracks": [
+        "consulting",
+        "data"
+      ],
+      "why": "Tadarab is its internship for undergraduates and graduates, with client work and training. Deloitte has an office in Bahrain Bay.",
+      "url": "https://www.deloitte.com/middle-east/en/careers/explore-your-fit/students/internship-program.html",
+      "cta": "apply"
+    },
+    {
+      "id": "bahrain-edb",
+      "name": "Bahrain EDB",
+      "mono": "EDB",
+      "sector": "Public body",
+      "offers": [
+        {
+          "type": "graduate",
+          "name": "Graduate Trainee Programme"
+        }
+      ],
+      "tracks": [
+        "business"
+      ],
+      "why": "A one-year programme of practical work at the Economic Development Board, Bahrain’s investment promotion agency.",
+      "url": "https://www.bahrainedb.com/about-us/career-opportunities/graduate-trainee-programme",
+      "cta": "programme"
+    },
+    {
+      "id": "batelco",
+      "name": "Batelco",
+      "mono": "Ba",
+      "sector": "Telecom",
+      "offers": [
+        {
+          "type": "graduate",
+          "name": "Batelco Graduate Trainee Program"
+        }
+      ],
+      "tracks": [
+        "tech",
+        "business"
+      ],
+      "why": "A long-established graduate scheme that mixes telecom training with real tasks under supervision. Batelco is part of Beyon.",
+      "url": "https://careers.batelco.com/",
+      "cta": "roles"
+    },
+    {
+      "id": "ey",
+      "name": "EY",
+      "mono": "EY",
+      "sector": "Audit & consulting",
+      "offers": [
+        {
+          "type": "careers"
+        }
+      ],
+      "tracks": [
+        "consulting",
+        "data"
+      ],
+      "why": "Student programmes and entry-level roles go through EY’s early careers board. This link opens its Bahrain careers page.",
+      "url": "https://www.ey.com/en_bh/careers",
+      "cta": "roles"
+    },
+    {
+      "id": "mckinsey",
+      "name": "McKinsey & Company",
+      "mono": "Mc",
+      "sector": "Consulting",
+      "offers": [
+        {
+          "type": "careers"
+        }
+      ],
+      "tracks": [
+        "consulting",
+        "business"
+      ],
+      "why": "McKinsey has an office in Manama. Its Middle East careers page lists student paths and entry roles such as Business Analyst.",
+      "url": "https://www.mckinsey.com/middle-east/careers",
+      "cta": "roles"
+    },
+    {
+      "id": "aws",
+      "name": "Amazon Web Services",
+      "mono": "AWS",
+      "sector": "Technology",
+      "offers": [
+        {
+          "type": "careers"
+        }
+      ],
+      "tracks": [
+        "tech",
+        "data"
+      ],
+      "why": "AWS runs a cloud region in Bahrain. Its early career page lists internships for students and jobs for recent graduates.",
+      "url": "https://www.amazon.jobs/content/en/teams/amazon-web-services/early-career",
+      "cta": "roles"
+    },
+    {
+      "id": "zain-bahrain",
+      "name": "Zain Bahrain",
+      "mono": "Za",
+      "sector": "Telecom",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "Zain Career Connect"
+        }
+      ],
+      "tracks": [
+        "tech",
+        "business"
+      ],
+      "why": "A summer internship for university students in teams such as marketing, customer experience, network operations and digital innovation.",
+      "url": "https://careers.zain.com/",
+      "cta": "roles"
+    },
+    {
+      "id": "al-salam-bank",
+      "name": "Al Salam Bank",
+      "mono": "ASB",
+      "sector": "Bank",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "Annual Summer Internship Program"
+        }
+      ],
+      "tracks": [
+        "quant",
+        "business"
+      ],
+      "why": "A long-running summer programme: an induction week, then on-the-job placements across the bank’s departments.",
+      "url": "https://www.alsalambank.com/en/careers/",
+      "cta": "apply"
+    },
+    {
+      "id": "kfh-bahrain",
+      "name": "Kuwait Finance House Bahrain",
+      "mono": "KFH",
+      "sector": "Bank",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "Summer Internship Programme"
+        }
+      ],
+      "tracks": [
+        "quant",
+        "business"
+      ],
+      "why": "Hands-on training across a wide range of the bank’s departments, with an induction and a mentor.",
+      "url": "https://www.bh.kfh.com/about/careers/",
+      "cta": "roles"
+    },
+    {
+      "id": "bisb",
+      "name": "Bahrain Islamic Bank",
+      "mono": "BisB",
+      "sector": "Bank",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "Athr Summer Internship Programme"
+        }
+      ],
+      "tracks": [
+        "quant",
+        "business"
+      ],
+      "why": "Two months of training across the bank’s departments for university students, working on real projects with experienced staff.",
+      "url": "https://www.bisb.com/en/careers",
+      "cta": "apply"
+    },
+    {
+      "id": "bank-abc",
+      "name": "Bank ABC",
+      "mono": "ABC",
+      "sector": "Bank",
+      "offers": [
+        {
+          "type": "careers"
+        }
+      ],
+      "tracks": [
+        "markets",
+        "quant"
+      ],
+      "why": "An international bank headquartered in Bahrain. Its careers page links to its current vacancies.",
+      "url": "https://www.bank-abc.com/en/AboutABC/Pages/Culture-Careers.aspx",
+      "cta": "roles"
+    },
+    {
+      "id": "bbk",
+      "name": "BBK",
+      "mono": "BBK",
+      "sector": "Bank",
+      "offers": [
+        {
+          "type": "careers"
+        }
+      ],
+      "tracks": [
+        "quant",
+        "business"
+      ],
+      "why": "One of Bahrain’s retail banks. Its careers page takes general applications through a single form.",
+      "url": "https://www.bbkonline.com/careers/",
+      "cta": "apply"
+    },
+    {
+      "id": "alba",
+      "name": "Alba",
+      "mono": "Al",
+      "sector": "Industry",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "On-the-Job Training (OJT) Programmes"
+        }
+      ],
+      "tracks": [
+        "business"
+      ],
+      "why": "On-the-job training places university students in operational and support functions at Bahrain’s aluminium smelter.",
+      "url": "https://www.albasmelter.com/en/category/careers",
+      "cta": "roles"
+    }
+  ],
+  "featured": {
+    "id": "cfa-research-challenge",
+    "kind": "Competition",
+    "title": "CFA Institute Research Challenge 2027",
+    "organiser": "CFA Institute",
+    "mono": "CFA",
+    "logo": {
+      "kind": "cert",
+      "id": "cfa"
+    },
+    "badge": "BIBF is taking participants",
+    "blurb": "Teams of students research a listed company, write an equity research report and present it to judges.",
+    "note": "Ask the programme office how to join.",
+    "url": "https://www.cfainstitute.org/insights/events/research-challenge"
+  },
+  "effortLabel": {
+    "1": "Light",
+    "2": "Medium",
+    "3": "Heavy"
+  },
+  "certNote": "Fees, exam dates and entry rules change, so check each official page before you plan around one.",
+  "certs": [
+    {
+      "id": "cfa",
+      "name": "CFA Program, Level I",
+      "short": "CFA Level I",
+      "issuer": "CFA Institute",
+      "mono": "CFA",
+      "url": "https://www.cfainstitute.org/programs/cfa-program",
+      "goodFor": "Investment, research and finance roles. Three exam levels, and the charter also asks for work experience, so an early start helps.",
+      "effort": 3,
+      "effortNote": "Months of steady study for each level.",
+      "covers": [
+        "statistics",
+        "economics",
+        "asset-pricing"
+      ],
+      "roles": [
+        "financial-analyst",
+        "risk-analyst"
+      ]
+    },
+    {
+      "id": "frm",
+      "name": "FRM (Financial Risk Manager)",
+      "short": "FRM",
+      "issuer": "GARP",
+      "mono": "FRM",
+      "url": "https://www.garp.org/frm",
+      "goodFor": "Risk roles in banks, funds and regulators. Two exam parts, and the certification also asks for work experience.",
+      "effort": 3,
+      "effortNote": "Months of study for each part.",
+      "covers": [
+        "advanced-stats-distribution",
+        "advanced-stats-inferential",
+        "econometrics",
+        "asset-pricing"
+      ],
+      "roles": [
+        "risk-analyst"
+      ]
+    },
+    {
+      "id": "pl300",
+      "name": "Power BI Data Analyst (PL-300)",
+      "short": "Power BI (PL-300)",
+      "issuer": "Microsoft",
+      "mono": "PBI",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/data-analyst-associate/",
+      "goodFor": "Analysts who build reports and dashboards. One exam on preparing, modelling and visualising data in Power BI.",
+      "effort": 2,
+      "effortNote": "A few weeks of regular practice.",
+      "covers": [
+        "business-analytics",
+        "programming-data-science"
+      ],
+      "roles": [
+        "data-analyst",
+        "bi-developer",
+        "business-analyst",
+        "product-analyst"
+      ]
+    },
+    {
+      "id": "aws-ccp",
+      "name": "AWS Certified Cloud Practitioner",
+      "short": "AWS Cloud Practitioner",
+      "issuer": "Amazon Web Services",
+      "mono": "AWS",
+      "url": "https://aws.amazon.com/certification/certified-cloud-practitioner/",
+      "goodFor": "A foundation-level exam on cloud basics. A common first step towards data science or machine learning engineering.",
+      "effort": 1,
+      "effortNote": "A few weeks of part-time study.",
+      "covers": [
+        "information-systems"
+      ],
+      "coversNote": "No module teaches cloud hands-on. IS2184 covers information systems in organisations.",
+      "roles": [
+        "ml-engineer",
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "google-da",
+      "name": "Google Data Analytics Certificate",
+      "short": "Google Data Analytics",
+      "issuer": "Google",
+      "mono": "GDA",
+      "url": "https://grow.google/certificates/data-analytics/",
+      "goodFor": "A guided first step into data analysis, made for beginners. It covers spreadsheets, SQL, Python and Tableau.",
+      "effort": 2,
+      "effortNote": "A few months part-time, at your own pace.",
+      "covers": [
+        "programming-data-science",
+        "statistics",
+        "business-analytics"
+      ],
+      "roles": [
+        "data-analyst",
+        "product-analyst",
+        "business-analyst"
+      ]
+    },
+    {
+      "id": "tableau",
+      "name": "Tableau certification",
+      "short": "Tableau",
+      "issuer": "Tableau, part of Salesforce",
+      "mono": "Tab",
+      "url": "https://www.tableau.com/learn/certification",
+      "goodFor": "Dashboard-focused analyst and BI roles. Desktop Foundations is the entry exam and Data Analyst is the next level.",
+      "effort": 2,
+      "effortNote": "A few weeks of regular practice.",
+      "covers": [
+        "business-analytics",
+        "programming-data-science"
+      ],
+      "roles": [
+        "data-analyst",
+        "bi-developer"
+      ]
+    },
+    {
+      "id": "bmc",
+      "name": "Bloomberg Market Concepts (BMC)",
+      "short": "Bloomberg Market Concepts",
+      "issuer": "Bloomberg",
+      "mono": "BMC",
+      "url": "https://professional.bloomberg.com/products/bloomberg-terminal/education/certificate-courses/",
+      "goodFor": "Treasury, markets and investment roles. A self-paced online course that introduces the financial markets through the Bloomberg Terminal.",
+      "effort": 1,
+      "effortNote": "Self-paced, so it fits around lectures.",
+      "covers": [
+        "economics",
+        "asset-pricing"
+      ],
+      "roles": [
+        "financial-analyst",
+        "risk-analyst"
+      ]
+    },
+    {
+      "id": "sql-practice",
+      "name": "SQL practice",
+      "short": "SQL practice",
+      "issuer": "Self-study, no exam",
+      "file": {
+        "module": "programming-data-science",
+        "id": "st2195-block-3-notebook-sql-and-databases"
+      },
+      "goodFor": "Almost every data role on this page, and the quickest win. Start with SELECT, WHERE and GROUP BY, then joins and window functions.",
+      "effort": 1,
+      "effortNote": "Little and often over a few weeks.",
+      "covers": [
+        "programming-data-science"
+      ],
+      "roles": [
+        "data-analyst",
+        "data-scientist",
+        "business-analyst",
+        "bi-developer",
+        "risk-analyst",
+        "ml-engineer",
+        "product-analyst"
+      ]
+    }
+  ],
+  "defaultRoleId": "data-analyst",
+  "roles": [
+    {
+      "id": "data-analyst",
+      "label": "Data analyst",
+      "title": "Data analyst",
+      "about": "Turns messy business data into answers. Pulls it with SQL, cleans it, summarises it and explains what it means to the people who decide.",
+      "tools": [
+        "SQL",
+        "Excel",
+        "Power BI or Tableau",
+        "Python or R"
+      ],
+      "skills": [
+        "sql",
+        "excel",
+        "programming",
+        "wrangling",
+        "inference",
+        "dataviz",
+        "regression",
+        "bi",
+        "ml",
+        "presenting"
+      ],
+      "ask": "What should I learn first to become a data analyst?"
+    },
+    {
+      "id": "data-scientist",
+      "label": "Data scientist",
+      "title": "Data scientist",
+      "about": "Builds models that predict or classify, then tests whether they hold up. Part statistician, part programmer, and has to explain the result in plain words.",
+      "tools": [
+        "Python",
+        "R",
+        "SQL",
+        "Notebooks",
+        "Git"
+      ],
+      "skills": [
+        "programming",
+        "sql",
+        "wrangling",
+        "probability",
+        "inference",
+        "regression",
+        "ml",
+        "maths",
+        "cloud",
+        "presenting"
+      ],
+      "ask": "What should I learn first to become a data scientist?"
+    },
+    {
+      "id": "business-analyst",
+      "label": "Business analyst",
+      "title": "Business analyst",
+      "about": "Works out what a team needs, maps how the process runs today and checks the numbers before a decision is made. Sits between the business and the technical team.",
+      "tools": [
+        "Excel",
+        "SQL",
+        "Power BI",
+        "Process maps",
+        "Jira"
+      ],
+      "skills": [
+        "excel",
+        "sql",
+        "business",
+        "systems",
+        "decision",
+        "inference",
+        "bi",
+        "project",
+        "presenting"
+      ],
+      "ask": "What does a business analyst actually do day to day?"
+    },
+    {
+      "id": "bi-developer",
+      "label": "BI developer",
+      "title": "BI developer",
+      "about": "Builds and looks after the dashboards and data models the rest of the company reads every morning, and fixes the numbers when they do not match.",
+      "tools": [
+        "Power BI",
+        "Tableau",
+        "SQL",
+        "Excel"
+      ],
+      "skills": [
+        "sql",
+        "bi",
+        "bi-modelling",
+        "dataviz",
+        "excel",
+        "wrangling",
+        "business",
+        "presenting"
+      ],
+      "ask": "How do I get started as a BI developer?"
+    },
+    {
+      "id": "risk-analyst",
+      "label": "Risk analyst",
+      "title": "Risk analyst",
+      "about": "Measures how likely a loss is and how large it could be, then checks it stays inside the limits. Found in banks, insurers and regulators.",
+      "tools": [
+        "Excel",
+        "SQL",
+        "Python or R",
+        "Reporting tools"
+      ],
+      "skills": [
+        "probability",
+        "inference",
+        "regression",
+        "forecasting",
+        "excel",
+        "programming",
+        "economics",
+        "valuation",
+        "credit-risk",
+        "accounting"
+      ],
+      "ask": "How do I get into risk analysis after DSBA?"
+    },
+    {
+      "id": "financial-analyst",
+      "label": "Financial analyst",
+      "title": "Financial / investment analyst",
+      "about": "Reads company accounts, values companies and assets, builds financial models and writes up a recommendation.",
+      "tools": [
+        "Excel models",
+        "Company reports",
+        "PowerPoint",
+        "Python"
+      ],
+      "skills": [
+        "excel",
+        "accounting",
+        "valuation",
+        "economics",
+        "business",
+        "regression",
+        "forecasting",
+        "programming",
+        "presenting"
+      ],
+      "ask": "How do I get into financial or investment analysis?",
+      "close": {
+        "presenting": {
+          "kind": "opps",
+          "text": "Join the CFA Institute Research Challenge and present to a panel."
+        }
+      }
+    },
+    {
+      "id": "ml-engineer",
+      "label": "ML engineer",
+      "title": "Machine learning engineer",
+      "about": "Takes a model from a notebook to something that runs reliably: data pipelines, training, deployment and monitoring.",
+      "tools": [
+        "Python",
+        "Git",
+        "SQL",
+        "Cloud platforms",
+        "Docker"
+      ],
+      "skills": [
+        "programming",
+        "software-eng",
+        "git",
+        "sql",
+        "maths",
+        "probability",
+        "ml",
+        "cloud",
+        "deployment"
+      ],
+      "ask": "What do I need to become a machine learning engineer?"
+    },
+    {
+      "id": "product-analyst",
+      "label": "Product analyst",
+      "title": "Product analyst",
+      "about": "Studies how people use a product, runs experiments and tells the product team what to build or fix next.",
+      "tools": [
+        "SQL",
+        "A/B testing tools",
+        "A dashboard tool",
+        "Python or R"
+      ],
+      "skills": [
+        "sql",
+        "experiments",
+        "dataviz",
+        "programming",
+        "regression",
+        "business",
+        "product-metrics",
+        "survey",
+        "bi",
+        "presenting"
+      ],
+      "ask": "How do I get into product analytics?"
+    },
+    {
+      "id": "consultant",
+      "label": "Consultant",
+      "title": "Consultant",
+      "about": "Joins a team for a few months to solve one problem for a client: analyses the situation, structures the answer and presents it.",
+      "tools": [
+        "Excel",
+        "PowerPoint",
+        "A BI tool",
+        "Interviews and surveys"
+      ],
+      "skills": [
+        "excel",
+        "decision",
+        "business",
+        "economics",
+        "inference",
+        "dataviz",
+        "survey",
+        "structuring",
+        "presenting"
+      ],
+      "ask": "How do I prepare for consulting applications?"
+    }
+  ],
+  "depthLabel": {
+    "0": "Not taught",
+    "1": "Intro only",
+    "2": "Solid",
+    "3": "In depth"
+  },
+  "chosen": {
+    "econometrics": "option",
+    "information-systems": "option",
+    "microeconomics": "elective",
+    "asset-pricing": "elective",
+    "marketing-management": "elective",
+    "further-maths-economists": "elective"
+  },
+  "skills": {
+    "sql": {
+      "name": "SQL and databases",
+      "taught": [
+        {
+          "module": "programming-data-science",
+          "depth": 3,
+          "what": "The SQL course, then Block 3: SQLite from R and Python."
+        }
+      ]
+    },
+    "programming": {
+      "name": "Python and R",
+      "taught": [
+        {
+          "module": "programming-data-science",
+          "depth": 3,
+          "what": "Full R and Python courses, then data structures and control flow."
+        }
+      ]
+    },
+    "wrangling": {
+      "name": "Cleaning and reshaping data",
+      "taught": [
+        {
+          "module": "programming-data-science",
+          "depth": 3,
+          "what": "Block 6 is data wrangling in R and Python; Block 2 covers file formats."
+        }
+      ]
+    },
+    "git": {
+      "name": "Version control with Git",
+      "taught": [
+        {
+          "module": "programming-data-science",
+          "depth": 3,
+          "what": "Block 1 introduces Git, and there is a full Git course in the lessons."
+        }
+      ]
+    },
+    "software-eng": {
+      "name": "Writing code others can run",
+      "taught": [
+        {
+          "module": "programming-data-science",
+          "depth": 2,
+          "what": "Block 5 on object-oriented Python, Block 10 on software development."
+        }
+      ]
+    },
+    "excel": {
+      "name": "Excel modelling",
+      "taught": [
+        {
+          "module": "business-analytics",
+          "depth": 3,
+          "what": "The Excel course, then workbooks on decision trees, forecasting and simulation."
+        }
+      ]
+    },
+    "dataviz": {
+      "name": "Data visualisation",
+      "taught": [
+        {
+          "module": "programming-data-science",
+          "depth": 2,
+          "what": "Blocks 7 to 8 cover data visualisation in code, plus web data and APIs."
+        },
+        {
+          "module": "business-analytics",
+          "depth": 1,
+          "what": "A Tableau course is recommended in the lessons."
+        }
+      ]
+    },
+    "bi": {
+      "name": "Dashboards in Power BI or Tableau",
+      "taught": [
+        {
+          "module": "business-analytics",
+          "depth": 1,
+          "what": "Only an intro: ST2187 recommends a Tableau course in its lessons."
+        }
+      ],
+      "gapNote": "Only an intro: ST2187 recommends a Tableau course in its lessons.",
+      "close": {
+        "kind": "lesson",
+        "module": "business-analytics",
+        "chapter": "Tableau",
+        "text": "Do the ST2187 Tableau lessons, then rebuild a dashboard in Power BI."
+      }
+    },
+    "bi-modelling": {
+      "name": "Data models and measures for BI",
+      "taught": [],
+      "gapNote": "Data models for BI tools are not a module topic.",
+      "close": {
+        "kind": "cert",
+        "cert": "pl300",
+        "text": "PL-300 covers data models and DAX measures: use it as a study plan."
+      }
+    },
+    "cloud": {
+      "name": "Cloud basics",
+      "taught": [],
+      "gapNote": "Cloud platforms are not taught hands-on in the modules.",
+      "close": {
+        "kind": "cert",
+        "cert": "aws-ccp",
+        "text": "AWS Certified Cloud Practitioner is the usual first step."
+      }
+    },
+    "deployment": {
+      "name": "Putting a model into use",
+      "taught": [
+        {
+          "module": "programming-data-science",
+          "depth": 1,
+          "what": "Block 10 on software development is the nearest thing."
+        }
+      ],
+      "gapNote": "Block 10 on software development is the nearest thing.",
+      "close": {
+        "kind": "lesson",
+        "module": "programming-data-science",
+        "chapter": "Block 10",
+        "text": "Read ST2195 Block 10, then put one model in a script on GitHub."
+      }
+    },
+    "inference": {
+      "name": "Statistics and hypothesis testing",
+      "taught": [
+        {
+          "module": "advanced-stats-inferential",
+          "depth": 3,
+          "what": "Point estimation and hypothesis testing in depth."
+        },
+        {
+          "module": "statistics",
+          "depth": 2,
+          "what": "Estimation, confidence intervals, hypothesis tests and ANOVA."
+        },
+        {
+          "module": "business-analytics",
+          "depth": 2,
+          "what": "Confidence intervals and hypothesis tests on business data."
+        }
+      ]
+    },
+    "probability": {
+      "name": "Probability and distributions",
+      "taught": [
+        {
+          "module": "advanced-stats-distribution",
+          "depth": 3,
+          "what": "Probability spaces, random variables and distributions in depth."
+        },
+        {
+          "module": "statistics",
+          "depth": 2,
+          "what": "Probability, random variables and the common distributions."
+        }
+      ]
+    },
+    "regression": {
+      "name": "Regression analysis",
+      "taught": [
+        {
+          "module": "econometrics",
+          "depth": 3,
+          "what": "OLS, inference, heteroskedasticity and instrumental variables."
+        },
+        {
+          "module": "business-analytics",
+          "depth": 2,
+          "what": "Simple and multiple regression on business data."
+        },
+        {
+          "module": "statistics",
+          "depth": 1,
+          "what": "Linear regression is the last chapter."
+        }
+      ]
+    },
+    "forecasting": {
+      "name": "Time series and forecasting",
+      "taught": [
+        {
+          "module": "business-analytics",
+          "depth": 3,
+          "what": "Block 13 is time series analysis and forecasting."
+        },
+        {
+          "module": "econometrics",
+          "depth": 2,
+          "what": "A time series chapter in the econometrics course."
+        }
+      ]
+    },
+    "ml": {
+      "name": "Machine learning",
+      "taught": [
+        {
+          "module": "machine-learning",
+          "depth": 3,
+          "what": "Supervised and unsupervised methods, and how models are trained and evaluated."
+        },
+        {
+          "module": "programming-data-science",
+          "depth": 1,
+          "what": "Block 9 introduces machine learning frameworks."
+        }
+      ]
+    },
+    "decision": {
+      "name": "Decision analysis and optimisation",
+      "taught": [
+        {
+          "module": "business-analytics",
+          "depth": 3,
+          "what": "Decision trees, optimisation models and Monte Carlo simulation."
+        }
+      ]
+    },
+    "maths": {
+      "name": "Calculus and linear algebra",
+      "taught": [
+        {
+          "module": "mathematics",
+          "depth": 3,
+          "what": "Differentiation, optimisation, matrices and linear equations."
+        },
+        {
+          "module": "further-maths-economists",
+          "depth": 2,
+          "what": "More advanced tools for economic analysis and optimisation."
+        }
+      ]
+    },
+    "experiments": {
+      "name": "A/B tests and experiments",
+      "taught": [
+        {
+          "module": "business-analytics",
+          "depth": 2,
+          "what": "Sampling and hypothesis testing, the maths behind an A/B test."
+        }
+      ]
+    },
+    "survey": {
+      "name": "Survey and customer analysis",
+      "taught": [
+        {
+          "module": "market-research",
+          "depth": 3,
+          "what": "Statistical techniques for survey and consumer data."
+        },
+        {
+          "module": "marketing-management",
+          "depth": 2,
+          "what": "Segmentation through to the marketing mix."
+        }
+      ]
+    },
+    "business": {
+      "name": "Business and strategy",
+      "taught": [
+        {
+          "module": "business",
+          "depth": 3,
+          "what": "Strategy, international markets, operations, people and digital management."
+        }
+      ]
+    },
+    "economics": {
+      "name": "Economics for decisions",
+      "taught": [
+        {
+          "module": "economics",
+          "depth": 3,
+          "what": "Markets, firms, labour, money and banking, inflation and exchange rates."
+        },
+        {
+          "module": "microeconomics",
+          "depth": 3,
+          "what": "Consumers, firms, market structures and welfare in depth."
+        }
+      ]
+    },
+    "systems": {
+      "name": "Systems and process analysis",
+      "taught": [
+        {
+          "module": "information-systems",
+          "depth": 2,
+          "what": "Designing, implementing and managing information systems in organisations."
+        },
+        {
+          "module": "business",
+          "depth": 1,
+          "what": "One chapter on global information systems management."
+        }
+      ]
+    },
+    "project": {
+      "name": "Project management",
+      "taught": [
+        {
+          "module": "business",
+          "depth": 1,
+          "what": "International project management is one chapter."
+        }
+      ],
+      "gapNote": "International project management is one chapter.",
+      "close": {
+        "kind": "lesson",
+        "module": "business",
+        "chapter": "International Project Management",
+        "text": "Watch the MN1178 project lessons, then plan a small project."
+      }
+    },
+    "valuation": {
+      "name": "Valuing assets",
+      "taught": [
+        {
+          "module": "asset-pricing",
+          "depth": 3,
+          "what": "How financial assets are valued and how risk and return relate."
+        },
+        {
+          "module": "economics",
+          "depth": 1,
+          "what": "Money, banking and interest rates in the macro chapters."
+        }
+      ]
+    },
+    "accounting": {
+      "name": "Financial statements and accounting",
+      "taught": [],
+      "gapNote": "Accounting is not a module topic.",
+      "close": {
+        "kind": "cert",
+        "cert": "cfa",
+        "text": "Learn to read accounts: CFA Level I covers financial statements."
+      }
+    },
+    "credit-risk": {
+      "name": "Credit and market risk",
+      "taught": [
+        {
+          "module": "asset-pricing",
+          "depth": 1,
+          "what": "Risk and return is one part of asset pricing."
+        }
+      ],
+      "gapNote": "Risk and return is one part of asset pricing, nothing more.",
+      "close": {
+        "kind": "cert",
+        "cert": "frm",
+        "text": "The FRM covers market and credit risk in depth across its two parts."
+      }
+    },
+    "presenting": {
+      "name": "Presenting your findings",
+      "taught": [],
+      "gapNote": "A skill you build by doing it, not a module topic.",
+      "close": {
+        "kind": "forum",
+        "to": "/forum?cohort=study-groups",
+        "text": "Present one project to a study group, then ask for feedback."
+      }
+    },
+    "structuring": {
+      "name": "Structuring a business problem",
+      "taught": [],
+      "gapNote": "Case-style problem solving is not a module topic.",
+      "close": {
+        "kind": "forum",
+        "to": "/forum?cohort=study-groups",
+        "text": "Practise cases in a study group: one sets it, the rest structure it."
+      }
+    },
+    "product-metrics": {
+      "name": "Product metrics",
+      "taught": [],
+      "gapNote": "Funnels and retention are not module topics.",
+      "close": {
+        "kind": "file",
+        "module": "programming-data-science",
+        "file": "st2195-block-3-notebook-sql-and-databases",
+        "text": "Use the SQL notebook, then write funnel and retention queries."
+      }
+    }
+  },
+  "checklist": [
+    {
+      "id": "cv",
+      "title": "A one-page CV",
+      "hint": "Lead with skills and projects, then modules. One page is enough."
+    },
+    {
+      "id": "linkedin",
+      "title": "A LinkedIn profile",
+      "hint": "A clear photo, a headline that names the role you want, and your modules listed."
+    },
+    {
+      "id": "github",
+      "title": "A GitHub portfolio with two projects",
+      "hint": "Each one with a README that says the question, the data and what you found.",
+      "link": {
+        "kind": "lesson",
+        "module": "programming-data-science",
+        "chapter": "Git",
+        "label": "Git course"
+      }
+    },
+    {
+      "id": "sql",
+      "title": "SQL practice",
+      "hint": "Keep going until joins and GROUP BY feel easy.",
+      "link": {
+        "kind": "cert",
+        "cert": "sql-practice",
+        "label": "SQL practice card"
+      }
+    },
+    {
+      "id": "mock",
+      "title": "One mock interview",
+      "hint": "Ask a senior to run one. You learn most from the first.",
+      "link": {
+        "kind": "forum",
+        "to": "/forum/new?title=Can%20a%20senior%20run%20a%20mock%20interview%20with%20me%3F",
+        "label": "Ask in the forum"
+      }
+    }
+  ],
+  "furtherStudy": {
+    "title": "Thinking about an MSc instead?",
+    "body": "Most courses publish a minimum degree class and may ask about your maths and statistics modules. Check the entry rules early, and keep an eye on your projected class.",
+    "action": {
+      "to": "/grades",
+      "label": "Open the grade calculator"
+    }
+  },
+  "yearHints": {
+    "1": "Counting Year 1 modules only. Programming starts in Year 2, so a head start on SQL and Git pays off.",
+    "2": "Counting modules up to Year 2. A good year to start a portfolio and look for a first internship.",
+    "3": "Counting every module through Year 3. Graduate applications and MSc courses come first."
+  },
+  "seniors": []
+}

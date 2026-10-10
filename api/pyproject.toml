@@ -1,0 +1,61 @@
+[project]
+name = "dsba-hub-api"
+version = "0.1.0"
+description = "DSBA Hub backend: accounts, forum, library, newsletter, calendar and more."
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.8,<3",
+    "pydantic-settings>=2.4,<3",
+    "sqlalchemy>=2.0.35,<2.1",
+    "psycopg[binary]>=3.2,<4",
+    "alembic>=1.13,<2",
+    "boto3>=1.35,<2",
+    "phonenumbers>=8.13,<10",
+    "email-validator>=2.2,<3",
+    "httpx>=0.27,<1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "moto[s3,server]>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "boto3-stubs[s3]>=1.35",
+    "aiosmtpd>=1.4",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "C4", "SIM", "RUF", "DTZ", "PT", "RET", "N"]
+ignore = ["S101", "B008", "RUF012"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106", "S311"]
+"migrations/**" = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+plugins = ["pydantic.mypy"]
+exclude = ["migrations/"]
+
+[[tool.mypy.overrides]]
+module = ["moto.*", "phonenumbers.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+filterwarnings = [
+    "ignore::DeprecationWarning:botocore.*",
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
