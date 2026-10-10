@@ -6,10 +6,9 @@ from uuid import UUID
 
 from fastapi import Query, Request, Response, status
 
-from app.core.pagination import Limit, Offset
+from app.core.pagination import Limit, Offset, YearParam
 from app.core.security import DB, ActiveUser, CurrentUser, Moderator, OptionalUser
 from app.routers._base import router_for
-from app.schemas.common import Year
 from app.schemas.forum import (
     AcceptRequest,
     Category,
@@ -51,7 +50,7 @@ def list_threads(
     category: Category | None = None,
     module_id: str | None = None,
     tag: str | None = None,
-    year: Year | None = Query(default=None, description="A cohort's threads plus forum-wide ones"),
+    year: YearParam | None = None,
     sort: Sort = "hot",
     unanswered: bool = False,
     mine: bool = False,
@@ -65,7 +64,7 @@ def list_threads(
 
 @router.get("/forum/threads/hot", response_model=list[ThreadSummary])
 def hot_threads(
-    db: DB, user: OptionalUser, n: int = Query(default=5, ge=1, le=20), year: Year | None = None
+    db: DB, user: OptionalUser, n: int = Query(default=5, ge=1, le=20), year: YearParam | None = None
 ) -> list[ThreadSummary]:
     """The hottest threads (pinned ones excluded), for Home and the newsletter."""
     raise NotImplementedError

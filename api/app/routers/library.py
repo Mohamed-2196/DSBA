@@ -8,10 +8,9 @@ from uuid import UUID
 from fastapi import Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 
-from app.core.pagination import Limit, Offset
+from app.core.pagination import Limit, Offset, YearParam
 from app.core.security import DB, ActiveUser, CurrentUser, Moderator, OptionalUser
 from app.routers._base import router_for
-from app.schemas.common import Year
 from app.schemas.library import (
     FileLink,
     ItemStatus,
@@ -35,7 +34,7 @@ def list_items(
     user: OptionalUser,
     q: str | None = Query(default=None, max_length=200),
     module_id: str | None = None,
-    year: Year | None = None,
+    year: YearParam | None = None,
     kind: LibraryKind | None = None,
     source: Literal["file", "link"] | None = None,
     sort: Literal["new", "popular", "title"] = "new",

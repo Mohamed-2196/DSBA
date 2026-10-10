@@ -2654,12 +2654,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    1,
-                    2,
-                    3
-                  ],
-                  "type": "integer"
+                  "type": "integer",
+                  "maximum": 3,
+                  "minimum": 1,
+                  "description": "Cohort: 1, 2 or 3"
                 },
                 {
                   "type": "null"
@@ -2908,12 +2906,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    1,
-                    2,
-                    3
-                  ],
-                  "type": "integer"
+                  "type": "integer",
+                  "maximum": 3,
+                  "minimum": 1,
+                  "description": "Cohort: 1, 2 or 3"
                 },
                 {
                   "type": "null"
@@ -4841,21 +4837,17 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    1,
-                    2,
-                    3
-                  ],
-                  "type": "integer"
+                  "type": "integer",
+                  "maximum": 3,
+                  "minimum": 1,
+                  "description": "Cohort: 1, 2 or 3"
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "A cohort's threads plus forum-wide ones",
               "title": "Year"
-            },
-            "description": "A cohort's threads plus forum-wide ones"
+            }
           },
           {
             "name": "sort",
@@ -5132,12 +5124,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    1,
-                    2,
-                    3
-                  ],
-                  "type": "integer"
+                  "type": "integer",
+                  "maximum": 3,
+                  "minimum": 1,
+                  "description": "Cohort: 1, 2 or 3"
                 },
                 {
                   "type": "null"
@@ -8008,21 +7998,17 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    1,
-                    2,
-                    3
-                  ],
-                  "type": "integer"
+                  "type": "integer",
+                  "maximum": 3,
+                  "minimum": 1,
+                  "description": "Cohort: 1, 2 or 3"
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "That cohort's events plus everyone's",
               "title": "Year"
-            },
-            "description": "That cohort's events plus everyone's"
+            }
           },
           {
             "name": "module_id",
@@ -8281,12 +8267,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    1,
-                    2,
-                    3
-                  ],
-                  "type": "integer"
+                  "type": "integer",
+                  "maximum": 3,
+                  "minimum": 1,
+                  "description": "Cohort: 1, 2 or 3"
                 },
                 {
                   "type": "null"
@@ -8400,12 +8384,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    1,
-                    2,
-                    3
-                  ],
-                  "type": "integer"
+                  "type": "integer",
+                  "maximum": 3,
+                  "minimum": 1,
+                  "description": "Cohort: 1, 2 or 3"
                 },
                 {
                   "type": "null"

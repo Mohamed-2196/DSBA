@@ -5076,7 +5076,7 @@ export interface operations {
     list_modules_api_v1_modules_get: {
         parameters: {
             query?: {
-                year?: (1 | 2 | 3) | null;
+                year?: number | null;
             };
             header?: never;
             path?: never;
@@ -5248,7 +5248,7 @@ export interface operations {
             query?: {
                 q?: string | null;
                 module_id?: string | null;
-                year?: (1 | 2 | 3) | null;
+                year?: number | null;
                 kind?: ("past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
                 source?: ("file" | "link") | null;
                 sort?: "new" | "popular" | "title";
@@ -6711,8 +6711,7 @@ export interface operations {
                 category?: ("year-1" | "year-2" | "year-3" | "study-groups" | "general") | null;
                 module_id?: string | null;
                 tag?: string | null;
-                /** @description A cohort's threads plus forum-wide ones */
-                year?: (1 | 2 | 3) | null;
+                year?: number | null;
                 sort?: "hot" | "new" | "top";
                 unanswered?: boolean;
                 mine?: boolean;
@@ -6892,7 +6891,7 @@ export interface operations {
         parameters: {
             query?: {
                 n?: number;
-                year?: (1 | 2 | 3) | null;
+                year?: number | null;
             };
             header?: never;
             path?: never;
@@ -9144,8 +9143,7 @@ export interface operations {
             query?: {
                 from?: string | null;
                 to?: string | null;
-                /** @description That cohort's events plus everyone's */
-                year?: (1 | 2 | 3) | null;
+                year?: number | null;
                 module_id?: string | null;
                 type?: ("exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term") | null;
             };
@@ -9320,7 +9318,7 @@ export interface operations {
         parameters: {
             query?: {
                 n?: number;
-                year?: (1 | 2 | 3) | null;
+                year?: number | null;
             };
             header?: never;
             path?: never;
@@ -9405,7 +9403,7 @@ export interface operations {
     ics_feed_api_v1_calendar_feed_ics_get: {
         parameters: {
             query?: {
-                year?: (1 | 2 | 3) | null;
+                year?: number | null;
             };
             header?: never;
             path?: never;

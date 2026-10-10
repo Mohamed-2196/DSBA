@@ -6,10 +6,10 @@ import datetime as dt
 
 from fastapi import Query, Request, Response, status
 
+from app.core.pagination import YearParam
 from app.core.security import DB, Moderator
 from app.routers._base import router_for
 from app.schemas.calendar import CalendarEventCreate, CalendarEventOut, CalendarEventUpdate, EventType
-from app.schemas.common import Year
 
 router = router_for("calendar")
 
@@ -19,7 +19,7 @@ def list_events(
     db: DB,
     from_: dt.date | None = Query(default=None, alias="from"),
     to: dt.date | None = None,
-    year: Year | None = Query(default=None, description="That cohort's events plus everyone's"),
+    year: YearParam | None = None,
     module_id: str | None = None,
     type_: EventType | None = Query(default=None, alias="type"),
 ) -> list[CalendarEventOut]:
@@ -27,13 +27,13 @@ def list_events(
 
 
 @router.get("/calendar/upcoming", response_model=list[CalendarEventOut])
-def upcoming(db: DB, n: int = Query(default=5, ge=1, le=60), year: Year | None = None) -> list[CalendarEventOut]:
+def upcoming(db: DB, n: int = Query(default=5, ge=1, le=60), year: YearParam | None = None) -> list[CalendarEventOut]:
     """The next n events from today (Bahrain time)."""
     raise NotImplementedError
 
 
 @router.get("/calendar/feed.ics", response_class=Response)
-def ics_feed(db: DB, year: Year | None = None) -> Response:
+def ics_feed(db: DB, year: YearParam | None = None) -> Response:
     """An iCalendar feed to subscribe to from Google Calendar or Outlook."""
     raise NotImplementedError
 
