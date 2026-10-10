@@ -3,10 +3,10 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { api, call } from '../api/client';
 import { ApiError } from '../api/errors';
 import type { Me } from '../api/types';
+import { useAccountYearSync } from '../state';
 import { AuthContext, type AuthValue, type SignInRequest } from './context';
+import { ME_KEY, clearPersonalStorage, resetPersonalQueries } from './queries';
 import { SignInDialog } from './SignInDialog';
-
-export const ME_KEY = ['me'] as const;
 
 async function fetchMe(): Promise<Me | null> {
   try {
@@ -23,6 +23,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState<SignInRequest | null>(null);
   const me = meQuery.data ?? null;
 
+  // A signed-in student's cohort is the year the Hub shows by default.
+  useAccountYearSync(me?.year ?? null);
+
   const refresh = useCallback(async () => {
     await qc.invalidateQueries({ queryKey: ME_KEY });
   }, [qc]);
@@ -30,14 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     try {
       await call(api.POST('/api/v1/auth/logout'));
-    } finally {
-      qc.setQueryData(ME_KEY, null);
-      // everything personal (stars, votes, notifications) must be re-read as a guest
-      await qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== ME_KEY[0] });
+    } catch (e) {
+      // Already signed out (the session expired or was revoked elsewhere) is fine; anything else is not:
+      // the session cookie would still work, so don't pretend.
+      if (!(e instanceof ApiError && e.status === 401)) throw e;
     }
+    qc.setQueryData(ME_KEY, null);
+    // Everything personal (stars, votes, notifications, drafts) is forgotten; what is on screen is re-read as a guest.
+    clearPersonalStorage();
+    await resetPersonalQueries(qc);
   }, [qc]);
 
   const openSignIn = useCallback((req: SignInRequest = {}) => setRequest(req), []);
+  const closeSignIn = useCallback(() => setRequest(null), []);
 
   const value = useMemo<AuthValue>(() => {
     const ready = !!me && !me.needsProfile;
@@ -60,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={value}>
       {children}
-      <SignInDialog request={request} onClose={() => setRequest(null)} />
+      <SignInDialog request={request} onClose={closeSignIn} />
     </AuthContext.Provider>
   );
 }

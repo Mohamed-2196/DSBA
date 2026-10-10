@@ -1,0 +1,2 @@
+.mod-import__text { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.55; }
+.mod-import__error { margin-top: var(--sp-12); color: var(--alert-strong); font-size: var(--fs-14); font-weight: var(--fw-medium); }

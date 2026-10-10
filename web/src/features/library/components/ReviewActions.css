@@ -1,0 +1,8 @@
+.lib-review { display: grid; gap: var(--sp-8); }
+.lib-review__buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-8); }
+.lib-review__reject { display: grid; gap: var(--sp-8); }
+.lib-review__error { color: var(--alert-strong); font-size: var(--fs-14); font-weight: var(--fw-medium); }
+
+@media (max-width: 899px) {
+  .lib-review__buttons { justify-content: flex-start; }
+}

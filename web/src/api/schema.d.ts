@@ -57,7 +57,8 @@ export interface paths {
          * Start Sign In
          * @description Send a 6-digit code to an email address or phone number. The same answer whether or not an account exists.
          *
-         *     Errors: invalid_identifier (422), rate_limited (429, with retryAfter).
+         *     Errors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited
+         *     (429, with retryAfter), delivery_failed (503: try again or use the other method).
          */
         post: operations["start_sign_in_api_v1_auth_otp_post"];
         delete?: never;
@@ -99,7 +100,7 @@ export interface paths {
         put?: never;
         /**
          * Logout
-         * @description End this browser's session (no error when not signed in).
+         * @description End this browser's session (no error when not signed in). The CSRF cookie is replaced too.
          */
         post: operations["logout_api_v1_auth_logout_post"];
         delete?: never;
@@ -125,13 +126,17 @@ export interface paths {
         /**
          * Delete Me
          * @description Delete the account: personal data goes, posts stay as 'deleted user', uploads stay unattributed.
+         *
+         *     Errors: storage_unavailable (503: files could not be deleted, nothing changed; try again).
          */
         delete: operations["delete_me_api_v1_me_delete"];
         options?: never;
         head?: never;
         /**
          * Update Me
-         * @description Display name, cohort year and notification preferences.
+         * @description Display name, cohort year and notification preferences. Only the fields sent change; `year: null` clears it.
+         *
+         *     Errors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).
          */
         patch: operations["update_me_api_v1_me_patch"];
         trace?: never;
@@ -165,7 +170,7 @@ export interface paths {
         };
         /**
          * List Sessions
-         * @description Browsers signed in to this account.
+         * @description Browsers signed in to this account, most recently used first.
          */
         get: operations["list_sessions_api_v1_me_sessions_get"];
         put?: never;
@@ -188,7 +193,7 @@ export interface paths {
         post?: never;
         /**
          * Revoke Session
-         * @description Sign out one browser (use /auth/logout for this one).
+         * @description Sign out one browser (use /auth/logout for this one; if it is this one, its cookie is cleared too).
          */
         delete: operations["revoke_session_api_v1_me_sessions__session_id__delete"];
         options?: never;
@@ -209,7 +214,10 @@ export interface paths {
          * Start Add Identifier
          * @description Add the other kind of identifier (a phone number to an email account, or the reverse), or change it.
          *
-         *     Errors: identifier_taken (409) when another account already uses it.
+         *     The answer is the same whether or not another account uses the identifier: if one does, the address gets a
+         *     message saying so instead of a code (so nobody can test which addresses have accounts), and
+         *     /me/identifiers/verify answers identifier_taken. Errors: identifier_unchanged (409) when it is already this
+         *     account's, plus those of POST /auth/otp.
          */
         post: operations["start_add_identifier_api_v1_me_identifiers_otp_post"];
         delete?: never;
@@ -227,7 +235,13 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Verify Add Identifier */
+        /**
+         * Verify Add Identifier
+         * @description Check the code sent by POST /me/identifiers/otp and put the identifier on the account. The account's other
+         *     sessions are signed out, and the identifier it replaces (or, for an addition, the other one) gets a notice.
+         *
+         *     Errors: invalid_code (422), code_expired (410), too_many_attempts (429), identifier_taken (409).
+         */
         post: operations["verify_add_identifier_api_v1_me_identifiers_verify_post"];
         delete?: never;
         options?: never;
@@ -248,6 +262,7 @@ export interface paths {
         /**
          * Remove Identifier
          * @description Remove the email or the phone number; the account must keep at least one (last_identifier, 409).
+         *     The account's other sessions are signed out and the removed identifier gets a notice.
          */
         delete: operations["remove_identifier_api_v1_me_identifiers__kind__delete"];
         options?: never;
@@ -302,7 +317,7 @@ export interface paths {
         get?: never;
         /**
          * Set Resume
-         * @description The lesson the student just opened in a module.
+         * @description The lesson the student just opened in a module (404 when it does not exist).
          */
         put: operations["set_resume_api_v1_me_progress_resume_put"];
         post?: never;
@@ -322,7 +337,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Reset Module */
+        /**
+         * Reset Module
+         * @description Forget the watched lessons and the last lesson of one module.
+         */
         delete: operations["reset_module_api_v1_me_progress_modules__module_id__delete"];
         options?: never;
         head?: never;
@@ -410,7 +428,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Stats */
+        /**
+         * Stats
+         * @description Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
+         *     for review and open reports.
+         */
         get: operations["stats_api_v1_admin_stats_get"];
         put?: never;
         post?: never;
@@ -429,7 +451,8 @@ export interface paths {
         };
         /**
          * List Users
-         * @description Search by name, email or phone number.
+         * @description Search by name, email or phone number (case-insensitive, any part; a phone number may be typed with spaces),
+         *     newest accounts first.
          */
         get: operations["list_users_api_v1_admin_users_get"];
         put?: never;
@@ -455,7 +478,8 @@ export interface paths {
         head?: never;
         /**
          * Update User
-         * @description Change a role or suspend an account (audited; an admin cannot demote or suspend themselves).
+         * @description Change a role or suspend an account (audited; an admin cannot change their own role or status: 409
+         *     cannot_change_self). The person gets a notification.
          */
         patch: operations["update_user_api_v1_admin_users__user_id__patch"];
         trace?: never;
@@ -467,7 +491,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Audit Log */
+        /**
+         * Audit Log
+         * @description Who did what, newest first.
+         */
         get: operations["audit_log_api_v1_admin_audit_get"];
         put?: never;
         post?: never;
@@ -521,12 +548,16 @@ export interface paths {
         /**
          * List Items
          * @description Published items for everyone. `starred` and `mine` need a session; `mine` includes pending and rejected.
+         *     `q` searches titles, descriptions, authors and file names, plus the module's code and name and the kind
+         *     ("ST2133 past papers"); the last word matches as a prefix.
          */
         get: operations["list_items_api_v1_library_items_get"];
         put?: never;
         /**
          * Create Item
          * @description Turn a completed upload into a library item: pending for students, published for moderators.
+         *
+         *     Errors: not_uploaded (409), already_used (409), invalid_input (422: an unknown module).
          */
         post: operations["create_item_api_v1_library_items_post"];
         delete?: never;
@@ -581,7 +612,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create Link */
+        /**
+         * Create Link
+         * @description A link to a resource kept elsewhere (https only), published at once.
+         */
         post: operations["create_link_api_v1_library_links_post"];
         delete?: never;
         options?: never;
@@ -643,6 +677,8 @@ export interface paths {
         /**
          * File Link
          * @description A short-lived link that shows the file in the browser (PDFs and images), for the viewer. Not counted.
+         *
+         *     Errors: no_preview (409) for links and other formats: download them instead.
          */
         get: operations["file_link_api_v1_library_items__item_id__file_get"];
         put?: never;
@@ -683,6 +719,8 @@ export interface paths {
         /**
          * Review
          * @description Publish or reject a pending upload. Notifies the uploader. Audited.
+         *
+         *     Errors: removed (409).
          */
         post: operations["review_api_v1_library_items__item_id__review_post"];
         delete?: never;
@@ -702,8 +740,11 @@ export interface paths {
         put?: never;
         /**
          * Create Upload
-         * @description A presigned POST for one file. library: PDF, Word, Excel, PowerPoint, notebooks, R scripts, up to
-         *     DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB.
+         * @description A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,
+         *     .ppt), notebooks (.ipynb), R scripts (.r), text (.txt) and CSV, up to DSBA_MAX_UPLOAD_MB; forum_image: PNG,
+         *     JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r,
+         *     `application/octet-stream` is accepted too). POST `fields` and then the file as `file` to `url`, then call
+         *     /uploads/{id}/complete. 20 uploads per hour.
          *
          *     Errors: unsupported_type (422), too_large (422), rate_limited (429).
          */
@@ -783,7 +824,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Stats */
+        /**
+         * Stats
+         * @description Counts for the tabs and chips, replies since midnight (Bahrain) and the week's top contributors.
+         */
         get: operations["stats_api_v1_forum_stats_get"];
         put?: never;
         post?: never;
@@ -802,8 +846,10 @@ export interface paths {
         };
         /**
          * List Threads
-         * @description Pinned threads first (when not searching), then by `sort`. Hidden and deleted threads are left out
-         *     (moderators see hidden ones). `hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.
+         * @description Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);
+         *     deleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its
+         *     category, or a module of that year) plus forum-wide ones (study groups and general without a module).
+         *     `hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.
          */
         get: operations["list_threads_api_v1_forum_threads_get"];
         put?: never;
@@ -847,7 +893,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Thread */
+        /**
+         * Get Thread
+         * @description By slug (or id). Replies oldest first; hidden ones only for moderators.
+         */
         get: operations["get_thread_api_v1_forum_threads__slug__get"];
         put?: never;
         post?: never;
@@ -876,7 +925,7 @@ export interface paths {
         head?: never;
         /**
          * Update Thread
-         * @description The author (or a moderator) edits the thread; edited_at is set.
+         * @description The author (or a moderator) edits the thread; edited_at is set. The slug never changes.
          */
         patch: operations["update_thread_api_v1_forum_threads__thread_id__patch"];
         trace?: never;
@@ -911,7 +960,7 @@ export interface paths {
         get?: never;
         /**
          * Vote Thread
-         * @description Upvote (idempotent).
+         * @description Upvote (idempotent). Errors: post_unavailable (409) for deleted and hidden threads.
          */
         put: operations["vote_thread_api_v1_forum_threads__thread_id__vote_put"];
         post?: never;
@@ -933,7 +982,8 @@ export interface paths {
         put?: never;
         /**
          * Accept Answer
-         * @description The thread's author (or a moderator) marks a reply as the answer, or clears it.
+         * @description The thread's author (or a moderator) marks a reply as the answer, or clears it. The answer is a visible,
+         *     top-level reply by someone other than the thread's author. Notifies the reply's author.
          */
         post: operations["accept_answer_api_v1_forum_threads__thread_id__accept_post"];
         delete?: never;
@@ -992,7 +1042,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Reply */
+        /**
+         * Delete Reply
+         * @description The author (or a moderator) deletes a reply: it keeps its place without its text.
+         */
         delete: operations["delete_reply_api_v1_forum_replies__reply_id__delete"];
         options?: never;
         head?: never;
@@ -1027,7 +1080,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Moderate Reply */
+        /**
+         * Moderate Reply
+         * @description Hide a reply, or show it again. Audited.
+         */
         post: operations["moderate_reply_api_v1_forum_replies__reply_id__moderate_post"];
         delete?: never;
         options?: never;
@@ -1047,6 +1103,9 @@ export interface paths {
         /**
          * Create Report
          * @description Report a thread, reply or library item (one open report per person and target).
+         *
+         *     Errors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),
+         *     rate_limited (429).
          */
         post: operations["create_report_api_v1_reports_post"];
         delete?: never;
@@ -1062,7 +1121,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Reports */
+        /**
+         * List Reports
+         * @description Open reports oldest first (a queue); closed ones most recently closed first. `reporter` is set for admins only
+         *     (student reps are classmates).
+         */
         get: operations["list_reports_api_v1_admin_reports_get"];
         put?: never;
         post?: never;
@@ -1084,6 +1147,8 @@ export interface paths {
         /**
          * Resolve Report
          * @description Close a report (hiding the post is a separate moderation call). Notifies the reporter. Audited.
+         *
+         *     Errors: report_closed (409) when it was already closed.
          */
         post: operations["resolve_report_api_v1_admin_reports__report_id__resolve_post"];
         delete?: never;
@@ -1101,13 +1166,14 @@ export interface paths {
         };
         /**
          * List Issues
-         * @description Published issues, newest first (drafts too for moderators who ask for them).
+         * @description Published issues, newest first (drafts too for moderators who ask for them; ignored for everyone else).
          */
         get: operations["list_issues_api_v1_newsletter_issues_get"];
         put?: never;
         /**
          * Create Issue
-         * @description A draft. Errors: slug_taken (409).
+         * @description A draft. Errors: slug_taken (409), invalid_input (422: every section needs a unique id; links must be
+         *     https://, mailto: or a page of the Hub; at most 40 sections and 256 KB).
          */
         post: operations["create_issue_api_v1_newsletter_issues_post"];
         delete?: never;
@@ -1123,7 +1189,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Issue */
+        /**
+         * Get Issue
+         * @description An issue with its sections and the reactions to each section. Drafts: moderators only.
+         */
         get: operations["get_issue_api_v1_newsletter_issues__slug__get"];
         put?: never;
         post?: never;
@@ -1147,7 +1216,12 @@ export interface paths {
         delete: operations["delete_issue_api_v1_newsletter_issues__issue_id__delete"];
         options?: never;
         head?: never;
-        /** Update Issue */
+        /**
+         * Update Issue
+         * @description Edit a draft or a published issue (fields that are not sent stay as they are).
+         *
+         *     Errors: slug_taken (409), invalid_input (422).
+         */
         patch: operations["update_issue_api_v1_newsletter_issues__issue_id__patch"];
         trace?: never;
     };
@@ -1163,6 +1237,7 @@ export interface paths {
         /**
          * Publish Issue
          * @description Publishes the issue and notifies everyone who wants newsletter notifications. Audited.
+         *     Publishing an issue that is already out changes nothing.
          */
         post: operations["publish_issue_api_v1_newsletter_issues__issue_id__publish_post"];
         delete?: never;
@@ -1179,7 +1254,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** React */
+        /**
+         * React
+         * @description Idempotent. Published issues only. Errors: not_found (404: no such issue or section).
+         */
         put: operations["react_api_v1_newsletter_issues__issue_id__sections__section_id__reactions__reaction__put"];
         post?: never;
         /** Unreact */
@@ -1196,10 +1274,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Events */
+        /**
+         * List Events
+         * @description Events between `from` and `to` (inclusive; an event spanning several days counts if it overlaps), for a
+         *     cohort plus everyone-events, oldest first.
+         */
         get: operations["list_events_api_v1_calendar_events_get"];
         put?: never;
-        /** Create Event */
+        /**
+         * Create Event
+         * @description A new date. The id is '<date>-<slug of the title>'. For a module's event the cohort defaults to the
+         *     module's year; leave `year` out (or null without a module) for everyone.
+         */
         post: operations["create_event_api_v1_calendar_events_post"];
         delete?: never;
         options?: never;
@@ -1216,7 +1302,7 @@ export interface paths {
         };
         /**
          * Upcoming
-         * @description The next n events from today (Bahrain time).
+         * @description The next n events from today (Bahrain time), including any still running today.
          */
         get: operations["upcoming_api_v1_calendar_upcoming_get"];
         put?: never;
@@ -1236,7 +1322,7 @@ export interface paths {
         };
         /**
          * Ics Feed
-         * @description An iCalendar feed to subscribe to from Google Calendar or Outlook.
+         * @description An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).
          */
         get: operations["ics_feed_api_v1_calendar_feed_ics_get"];
         put?: never;
@@ -1257,11 +1343,18 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Event */
+        /**
+         * Delete Event
+         * @description Removes the date. Audited (the seed doesn't bring a deleted date back).
+         */
         delete: operations["delete_event_api_v1_calendar_events__event_id__delete"];
         options?: never;
         head?: never;
-        /** Update Event */
+        /**
+         * Update Event
+         * @description Fields that are not sent stay as they are; `endDate`, `time`, `place`, `year` and `moduleId` can be
+         *     cleared with null. The id never changes.
+         */
         patch: operations["update_event_api_v1_calendar_events__event_id__patch"];
         trace?: never;
     };
@@ -1272,11 +1365,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Career */
+        /**
+         * Career
+         * @description The Career Navigator's content (empty until it is loaded).
+         */
         get: operations["career_api_v1_career_get"];
         /**
          * Update Career
          * @description Replace the whole document. Audited.
+         *
+         *     Errors: invalid_input (422: over 512 KB, or a link that isn't https://, mailto: or a page of the Hub).
          */
         put: operations["update_career_api_v1_career_put"];
         post?: never;
@@ -1296,7 +1394,7 @@ export interface paths {
         /**
          * Search
          * @description Threads, library items, newsletter issues, modules and calendar events. Prefix-matches the last word
-         *     (for search-as-you-type).
+         *     (for search-as-you-type). Only public things are found: visible threads, published files and issues.
          */
         get: operations["search_api_v1_search_get"];
         put?: never;
@@ -1348,6 +1446,14 @@ export interface components {
             };
             /** Notifications */
             notifications: {
+                [key: string]: unknown;
+            }[];
+            /** Votes */
+            votes?: {
+                [key: string]: unknown;
+            }[];
+            /** Reports */
+            reports?: {
                 [key: string]: unknown;
             }[];
         };
@@ -1613,7 +1719,10 @@ export interface components {
             /** Maxtags */
             maxTags: number;
         };
-        /** ForumStats */
+        /**
+         * ForumStats
+         * @description Counts over the threads a guest's list shows (visible ones, and deleted ones that still have replies).
+         */
         ForumStats: {
             /** Total */
             total: number;
@@ -1627,6 +1736,20 @@ export interface components {
             noReplies: number;
             /** Topcontributors */
             topContributors: components["schemas"]["Contributor"][];
+            /** Bytag */
+            byTag?: {
+                [key: string]: number;
+            };
+            /** Norepliesbycategory */
+            noRepliesByCategory?: {
+                [key: string]: number;
+            };
+            /** Tagsbycategory */
+            tagsByCategory?: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            };
         };
         /** Health */
         Health: {
@@ -2376,6 +2499,11 @@ export interface components {
             targetTitle: string | null;
             /** Targeturl */
             targetUrl: string | null;
+            /** Targetexcerpt */
+            targetExcerpt?: string | null;
+            /** Targetstatus */
+            targetStatus?: ("visible" | "hidden" | "deleted" | "pending" | "published" | "rejected" | "removed") | null;
+            targetAuthor?: components["schemas"]["UserPublic"] | null;
             /**
              * Reason
              * @enum {string}
@@ -3112,6 +3240,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     verify_sign_in_api_v1_auth_otp_verify_post: {
@@ -3174,6 +3311,15 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Gone */
+            410: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3437,6 +3583,15 @@ export interface operations {
             };
             /** @description Too Many Requests */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3867,6 +4022,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     verify_add_identifier_api_v1_me_identifiers_verify_post: {
@@ -3929,6 +4093,15 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Gone */
+            410: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5251,7 +5424,8 @@ export interface operations {
                 year?: number | null;
                 kind?: ("past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
                 source?: ("file" | "link") | null;
-                sort?: "new" | "popular" | "title";
+                /** @description relevance: best match first (with q) */
+                sort?: "new" | "popular" | "title" | "relevance";
                 starred?: boolean;
                 mine?: boolean;
                 /** @description Moderators: e.g. pending */
@@ -6713,7 +6887,9 @@ export interface operations {
                 tag?: string | null;
                 year?: number | null;
                 sort?: "hot" | "new" | "top";
+                /** @description Only threads without a visible reply yet */
                 unanswered?: boolean;
+                /** @description Only the signed-in user's threads (needs a session) */
                 mine?: boolean;
                 /** @description Page size */
                 limit?: number;
@@ -9416,7 +9592,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "text/calendar": string;
+                };
             };
             /** @description Bad Request */
             400: {

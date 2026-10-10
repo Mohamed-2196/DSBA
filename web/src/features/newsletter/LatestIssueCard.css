@@ -41,3 +41,5 @@
   .nl-latest-card__cover { width: 84px; }
   .nl-latest-card__title { font-size: var(--fs-25); }
 }
+.nl-latest-card--loading:hover { border-color: var(--line); background: var(--surface); }
+.nl-latest-card--loading .nl-latest-card__body { flex: 1 1 auto; gap: 10px; }

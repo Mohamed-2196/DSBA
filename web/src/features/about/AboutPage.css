@@ -38,3 +38,4 @@ a.about__name:hover { color: var(--cobalt); text-decoration: underline; }
 @media (max-width: 699px) {
   .about__people, .about__notes { grid-template-columns: minmax(0, 1fr); }
 }
+.about__issue { margin-top: var(--sp-8); }

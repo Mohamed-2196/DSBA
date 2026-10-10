@@ -357,3 +357,14 @@
   .grades-table tbody th { width: 40%; }
   .grades-page { padding-bottom: calc(var(--sp-96) + var(--sp-32)); }
 }
+
+/* One line under the page description: the marks never leave the browser. */
+.grades-privacy {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--sp-8);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.45;
+}
+.grades-privacy__icon { flex: 0 0 auto; margin-top: 2px; width: 16px; height: 16px; color: var(--ink-3); }

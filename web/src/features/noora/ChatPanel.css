@@ -355,7 +355,7 @@
 .nc-input {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 40px; /* its height follows the text (Composer.jsx) */
+  min-height: 40px; /* its height follows the text (Composer.tsx) */
   padding: 9px 12px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-control);

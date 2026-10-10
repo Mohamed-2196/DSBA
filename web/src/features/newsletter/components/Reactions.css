@@ -26,3 +26,6 @@
 @media (prefers-reduced-motion: reduce) {
   .nl-reaction.is-popping .nl-reaction__icon { animation: none; }
 }
+/* A draft (or the editor's preview): the counts show, nothing to press. */
+.nl-reaction:disabled { cursor: default; }
+.nl-reaction:disabled:hover { background: var(--surface); color: var(--ink-2); }

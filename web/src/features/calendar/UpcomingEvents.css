@@ -67,3 +67,8 @@
   .cal-upcoming__meta { grid-column: 2; grid-row: 2; align-self: start; }
   .cal-upcoming__count { grid-column: 3; grid-row: 2; align-self: start; color: var(--ink-2); font-size: var(--fs-12); }
 }
+
+/* Loading: the same rows, drawn as skeletons. */
+.cal-upcoming__row--loading { cursor: default; }
+.cal-upcoming__row--loading:hover { background: none; }
+.cal-upcoming__row--loading .cal-upcoming__body { gap: 8px; }

@@ -1,4 +1,4 @@
-/* Mini Noora, the floating mascot. Where she is comes from JS (MiniNoora.jsx); how she moves is here.
+/* Mini Noora, the floating mascot. Where she is comes from MiniNoora.tsx; how she moves is here.
    She sits above the page and its menus, and below modals and the command palette. */
 
 /* A ruler for the room the phone tab bar takes. CSS knows the token and the safe-area inset;

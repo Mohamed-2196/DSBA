@@ -188,7 +188,7 @@
           "auth"
         ],
         "summary": "Start Sign In",
-        "description": "Send a 6-digit code to an email address or phone number. The same answer whether or not an account exists.\n\nErrors: invalid_identifier (422), rate_limited (429, with retryAfter).",
+        "description": "Send a 6-digit code to an email address or phone number. The same answer whether or not an account exists.\n\nErrors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited\n(429, with retryAfter), delivery_failed (503: try again or use the other method).",
         "operationId": "start_sign_in_api_v1_auth_otp_post",
         "requestBody": {
           "content": {
@@ -273,6 +273,16 @@
           },
           "429": {
             "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
             "content": {
               "application/json": {
                 "schema": {
@@ -382,6 +392,16 @@
                 }
               }
             }
+          },
+          "410": {
+            "description": "Gone",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -392,7 +412,7 @@
           "auth"
         ],
         "summary": "Logout",
-        "description": "End this browser's session (no error when not signed in).",
+        "description": "End this browser's session (no error when not signed in). The CSRF cookie is replaced too.",
         "operationId": "logout_api_v1_auth_logout_post",
         "responses": {
           "204": {
@@ -567,7 +587,7 @@
           "me"
         ],
         "summary": "Delete Me",
-        "description": "Delete the account: personal data goes, posts stay as 'deleted user', uploads stay unattributed.",
+        "description": "Delete the account: personal data goes, posts stay as 'deleted user', uploads stay unattributed.\n\nErrors: storage_unavailable (503: files could not be deleted, nothing changed; try again).",
         "operationId": "delete_me_api_v1_me_delete",
         "responses": {
           "204": {
@@ -642,6 +662,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -650,7 +680,7 @@
           "me"
         ],
         "summary": "Update Me",
-        "description": "Display name, cohort year and notification preferences.",
+        "description": "Display name, cohort year and notification preferences. Only the fields sent change; `year: null` clears it.\n\nErrors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).",
         "operationId": "update_me_api_v1_me_patch",
         "requestBody": {
           "content": {
@@ -844,7 +874,7 @@
           "me"
         ],
         "summary": "List Sessions",
-        "description": "Browsers signed in to this account.",
+        "description": "Browsers signed in to this account, most recently used first.",
         "operationId": "list_sessions_api_v1_me_sessions_get",
         "responses": {
           "200": {
@@ -940,7 +970,7 @@
           "me"
         ],
         "summary": "Revoke Session",
-        "description": "Sign out one browser (use /auth/logout for this one).",
+        "description": "Sign out one browser (use /auth/logout for this one; if it is this one, its cookie is cleared too).",
         "operationId": "revoke_session_api_v1_me_sessions__session_id__delete",
         "parameters": [
           {
@@ -1037,7 +1067,7 @@
           "me"
         ],
         "summary": "Start Add Identifier",
-        "description": "Add the other kind of identifier (a phone number to an email account, or the reverse), or change it.\n\nErrors: identifier_taken (409) when another account already uses it.",
+        "description": "Add the other kind of identifier (a phone number to an email account, or the reverse), or change it.\n\nThe answer is the same whether or not another account uses the identifier: if one does, the address gets a\nmessage saying so instead of a code (so nobody can test which addresses have accounts), and\n/me/identifiers/verify answers identifier_taken. Errors: identifier_unchanged (409) when it is already this\naccount's, plus those of POST /auth/otp.",
         "operationId": "start_add_identifier_api_v1_me_identifiers_otp_post",
         "requestBody": {
           "content": {
@@ -1129,6 +1159,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -1139,6 +1179,7 @@
           "me"
         ],
         "summary": "Verify Add Identifier",
+        "description": "Check the code sent by POST /me/identifiers/otp and put the identifier on the account. The account's other\nsessions are signed out, and the identifier it replaces (or, for an addition, the other one) gets a notice.\n\nErrors: invalid_code (422), code_expired (410), too_many_attempts (429), identifier_taken (409).",
         "operationId": "verify_add_identifier_api_v1_me_identifiers_verify_post",
         "requestBody": {
           "content": {
@@ -1230,6 +1271,16 @@
                 }
               }
             }
+          },
+          "410": {
+            "description": "Gone",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -1240,7 +1291,7 @@
           "me"
         ],
         "summary": "Remove Identifier",
-        "description": "Remove the email or the phone number; the account must keep at least one (last_identifier, 409).",
+        "description": "Remove the email or the phone number; the account must keep at least one (last_identifier, 409).\nThe account's other sessions are signed out and the removed identifier gets a notice.",
         "operationId": "remove_identifier_api_v1_me_identifiers__kind__delete",
         "parameters": [
           {
@@ -1552,7 +1603,7 @@
           "progress"
         ],
         "summary": "Set Resume",
-        "description": "The lesson the student just opened in a module.",
+        "description": "The lesson the student just opened in a module (404 when it does not exist).",
         "operationId": "set_resume_api_v1_me_progress_resume_put",
         "requestBody": {
           "content": {
@@ -1654,6 +1705,7 @@
           "progress"
         ],
         "summary": "Reset Module",
+        "description": "Forget the watched lessons and the last lesson of one module.",
         "operationId": "reset_module_api_v1_me_progress_modules__module_id__delete",
         "parameters": [
           {
@@ -2162,6 +2214,7 @@
           "admin"
         ],
         "summary": "Stats",
+        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review and open reports.",
         "operationId": "stats_api_v1_admin_stats_get",
         "responses": {
           "200": {
@@ -2253,7 +2306,7 @@
           "admin"
         ],
         "summary": "List Users",
-        "description": "Search by name, email or phone number.",
+        "description": "Search by name, email or phone number (case-insensitive, any part; a phone number may be typed with spaces),\nnewest accounts first.",
         "operationId": "list_users_api_v1_admin_users_get",
         "parameters": [
           {
@@ -2411,7 +2464,7 @@
           "admin"
         ],
         "summary": "Update User",
-        "description": "Change a role or suspend an account (audited; an admin cannot demote or suspend themselves).",
+        "description": "Change a role or suspend an account (audited; an admin cannot change their own role or status: 409\ncannot_change_self). The person gets a notification.",
         "operationId": "update_user_api_v1_admin_users__user_id__patch",
         "parameters": [
           {
@@ -2525,6 +2578,7 @@
           "admin"
         ],
         "summary": "Audit Log",
+        "description": "Who did what, newest first.",
         "operationId": "audit_log_api_v1_admin_audit_get",
         "parameters": [
           {
@@ -2863,7 +2917,7 @@
           "library"
         ],
         "summary": "List Items",
-        "description": "Published items for everyone. `starred` and `mine` need a session; `mine` includes pending and rejected.",
+        "description": "Published items for everyone. `starred` and `mine` need a session; `mine` includes pending and rejected.\n`q` searches titles, descriptions, authors and file names, plus the module's code and name and the kind\n(\"ST2133 past papers\"); the last word matches as a prefix.",
         "operationId": "list_items_api_v1_library_items_get",
         "parameters": [
           {
@@ -2975,12 +3029,15 @@
               "enum": [
                 "new",
                 "popular",
-                "title"
+                "title",
+                "relevance"
               ],
               "type": "string",
+              "description": "relevance: best match first (with q)",
               "default": "new",
               "title": "Sort"
-            }
+            },
+            "description": "relevance: best match first (with q)"
           },
           {
             "name": "starred",
@@ -3142,7 +3199,7 @@
           "library"
         ],
         "summary": "Create Item",
-        "description": "Turn a completed upload into a library item: pending for students, published for moderators.",
+        "description": "Turn a completed upload into a library item: pending for students, published for moderators.\n\nErrors: not_uploaded (409), already_used (409), invalid_input (422: an unknown module).",
         "operationId": "create_item_api_v1_library_items_post",
         "requestBody": {
           "required": true,
@@ -3438,6 +3495,7 @@
           "library"
         ],
         "summary": "Create Link",
+        "description": "A link to a resource kept elsewhere (https only), published at once.",
         "operationId": "create_link_api_v1_library_links_post",
         "requestBody": {
           "content": {
@@ -3845,7 +3903,7 @@
           "library"
         ],
         "summary": "File Link",
-        "description": "A short-lived link that shows the file in the browser (PDFs and images), for the viewer. Not counted.",
+        "description": "A short-lived link that shows the file in the browser (PDFs and images), for the viewer. Not counted.\n\nErrors: no_preview (409) for links and other formats: download them instead.",
         "operationId": "file_link_api_v1_library_items__item_id__file_get",
         "parameters": [
           {
@@ -4153,7 +4211,7 @@
           "library"
         ],
         "summary": "Review",
-        "description": "Publish or reject a pending upload. Notifies the uploader. Audited.",
+        "description": "Publish or reject a pending upload. Notifies the uploader. Audited.\n\nErrors: removed (409).",
         "operationId": "review_api_v1_library_items__item_id__review_post",
         "parameters": [
           {
@@ -4267,7 +4325,7 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "A presigned POST for one file. library: PDF, Word, Excel, PowerPoint, notebooks, R scripts, up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB.\n\nErrors: unsupported_type (422), too_large (422), rate_limited (429).",
+        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt) and CSV, up to DSBA_MAX_UPLOAD_MB; forum_image: PNG,\nJPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r,\n`application/octet-stream` is accepted too). POST `fields` and then the file as `file` to `url`, then call\n/uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), rate_limited (429).",
         "operationId": "create_upload_api_v1_uploads_post",
         "requestBody": {
           "content": {
@@ -4662,6 +4720,7 @@
           "forum"
         ],
         "summary": "Stats",
+        "description": "Counts for the tabs and chips, replies since midnight (Bahrain) and the week's top contributors.",
         "operationId": "stats_api_v1_forum_stats_get",
         "responses": {
           "200": {
@@ -4753,7 +4812,7 @@
           "forum"
         ],
         "summary": "List Threads",
-        "description": "Pinned threads first (when not searching), then by `sort`. Hidden and deleted threads are left out\n(moderators see hidden ones). `hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.",
+        "description": "Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);\ndeleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its\ncategory, or a module of that year) plus forum-wide ones (study groups and general without a module).\n`hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.",
         "operationId": "list_threads_api_v1_forum_threads_get",
         "parameters": [
           {
@@ -4870,9 +4929,11 @@
             "required": false,
             "schema": {
               "type": "boolean",
+              "description": "Only threads without a visible reply yet",
               "default": false,
               "title": "Unanswered"
-            }
+            },
+            "description": "Only threads without a visible reply yet"
           },
           {
             "name": "mine",
@@ -4880,9 +4941,11 @@
             "required": false,
             "schema": {
               "type": "boolean",
+              "description": "Only the signed-in user's threads (needs a session)",
               "default": false,
               "title": "Mine"
-            }
+            },
+            "description": "Only the signed-in user's threads (needs a session)"
           },
           {
             "name": "limit",
@@ -5231,6 +5294,7 @@
           "forum"
         ],
         "summary": "Get Thread",
+        "description": "By slug (or id). Replies oldest first; hidden ones only for moderators.",
         "operationId": "get_thread_api_v1_forum_threads__slug__get",
         "parameters": [
           {
@@ -5333,7 +5397,7 @@
           "forum"
         ],
         "summary": "Update Thread",
-        "description": "The author (or a moderator) edits the thread; edited_at is set.",
+        "description": "The author (or a moderator) edits the thread; edited_at is set. The slug never changes.",
         "operationId": "update_thread_api_v1_forum_threads__thread_id__patch",
         "parameters": [
           {
@@ -5662,7 +5726,7 @@
           "forum"
         ],
         "summary": "Vote Thread",
-        "description": "Upvote (idempotent).",
+        "description": "Upvote (idempotent). Errors: post_unavailable (409) for deleted and hidden threads.",
         "operationId": "vote_thread_api_v1_forum_threads__thread_id__vote_put",
         "parameters": [
           {
@@ -5867,7 +5931,7 @@
           "forum"
         ],
         "summary": "Accept Answer",
-        "description": "The thread's author (or a moderator) marks a reply as the answer, or clears it.",
+        "description": "The thread's author (or a moderator) marks a reply as the answer, or clears it. The answer is a visible,\ntop-level reply by someone other than the thread's author. Notifies the reply's author.",
         "operationId": "accept_answer_api_v1_forum_threads__thread_id__accept_post",
         "parameters": [
           {
@@ -6320,6 +6384,7 @@
           "forum"
         ],
         "summary": "Delete Reply",
+        "description": "The author (or a moderator) deletes a reply: it keeps its place without its text.",
         "operationId": "delete_reply_api_v1_forum_replies__reply_id__delete",
         "parameters": [
           {
@@ -6620,6 +6685,7 @@
           "forum"
         ],
         "summary": "Moderate Reply",
+        "description": "Hide a reply, or show it again. Audited.",
         "operationId": "moderate_reply_api_v1_forum_replies__reply_id__moderate_post",
         "parameters": [
           {
@@ -6733,7 +6799,7 @@
           "reports"
         ],
         "summary": "Create Report",
-        "description": "Report a thread, reply or library item (one open report per person and target).",
+        "description": "Report a thread, reply or library item (one open report per person and target).\n\nErrors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),\nrate_limited (429).",
         "operationId": "create_report_api_v1_reports_post",
         "requestBody": {
           "content": {
@@ -6835,6 +6901,7 @@
           "reports"
         ],
         "summary": "List Reports",
+        "description": "Open reports oldest first (a queue); closed ones most recently closed first. `reporter` is set for admins only\n(student reps are classmates).",
         "operationId": "list_reports_api_v1_admin_reports_get",
         "parameters": [
           {
@@ -6970,7 +7037,7 @@
           "reports"
         ],
         "summary": "Resolve Report",
-        "description": "Close a report (hiding the post is a separate moderation call). Notifies the reporter. Audited.",
+        "description": "Close a report (hiding the post is a separate moderation call). Notifies the reporter. Audited.\n\nErrors: report_closed (409) when it was already closed.",
         "operationId": "resolve_report_api_v1_admin_reports__report_id__resolve_post",
         "parameters": [
           {
@@ -7084,7 +7151,7 @@
           "newsletter"
         ],
         "summary": "List Issues",
-        "description": "Published issues, newest first (drafts too for moderators who ask for them).",
+        "description": "Published issues, newest first (drafts too for moderators who ask for them; ignored for everyone else).",
         "operationId": "list_issues_api_v1_newsletter_issues_get",
         "parameters": [
           {
@@ -7190,7 +7257,7 @@
           "newsletter"
         ],
         "summary": "Create Issue",
-        "description": "A draft. Errors: slug_taken (409).",
+        "description": "A draft. Errors: slug_taken (409), invalid_input (422: every section needs a unique id; links must be\nhttps://, mailto: or a page of the Hub; at most 40 sections and 256 KB).",
         "operationId": "create_issue_api_v1_newsletter_issues_post",
         "requestBody": {
           "required": true,
@@ -7292,6 +7359,7 @@
           "newsletter"
         ],
         "summary": "Get Issue",
+        "description": "An issue with its sections and the reactions to each section. Drafts: moderators only.",
         "operationId": "get_issue_api_v1_newsletter_issues__slug__get",
         "parameters": [
           {
@@ -7394,6 +7462,7 @@
           "newsletter"
         ],
         "summary": "Update Issue",
+        "description": "Edit a draft or a published issue (fields that are not sent stay as they are).\n\nErrors: slug_taken (409), invalid_input (422).",
         "operationId": "update_issue_api_v1_newsletter_issues__issue_id__patch",
         "parameters": [
           {
@@ -7601,7 +7670,7 @@
           "newsletter"
         ],
         "summary": "Publish Issue",
-        "description": "Publishes the issue and notifies everyone who wants newsletter notifications. Audited.",
+        "description": "Publishes the issue and notifies everyone who wants newsletter notifications. Audited.\nPublishing an issue that is already out changes nothing.",
         "operationId": "publish_issue_api_v1_newsletter_issues__issue_id__publish_post",
         "parameters": [
           {
@@ -7705,6 +7774,7 @@
           "newsletter"
         ],
         "summary": "React",
+        "description": "Idempotent. Published issues only. Errors: not_found (404: no such issue or section).",
         "operationId": "react_api_v1_newsletter_issues__issue_id__sections__section_id__reactions__reaction__put",
         "parameters": [
           {
@@ -7955,6 +8025,7 @@
           "calendar"
         ],
         "summary": "List Events",
+        "description": "Events between `from` and `to` (inclusive; an event spanning several days counts if it overlaps), for a\ncohort plus everyone-events, oldest first.",
         "operationId": "list_events_api_v1_calendar_events_get",
         "parameters": [
           {
@@ -8144,6 +8215,7 @@
           "calendar"
         ],
         "summary": "Create Event",
+        "description": "A new date. The id is '<date>-<slug of the title>'. For a module's event the cohort defaults to the\nmodule's year; leave `year` out (or null without a module) for everyone.",
         "operationId": "create_event_api_v1_calendar_events_post",
         "requestBody": {
           "required": true,
@@ -8245,7 +8317,7 @@
           "calendar"
         ],
         "summary": "Upcoming",
-        "description": "The next n events from today (Bahrain time).",
+        "description": "The next n events from today (Bahrain time), including any still running today.",
         "operationId": "upcoming_api_v1_calendar_upcoming_get",
         "parameters": [
           {
@@ -8374,7 +8446,7 @@
           "calendar"
         ],
         "summary": "Ics Feed",
-        "description": "An iCalendar feed to subscribe to from Google Calendar or Outlook.",
+        "description": "An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).",
         "operationId": "ics_feed_api_v1_calendar_feed_ics_get",
         "parameters": [
           {
@@ -8399,7 +8471,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "content": {
+              "text/calendar": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "content": {
@@ -8480,6 +8559,7 @@
           "calendar"
         ],
         "summary": "Update Event",
+        "description": "Fields that are not sent stay as they are; `endDate`, `time`, `place`, `year` and `moduleId` can be\ncleared with null. The id never changes.",
         "operationId": "update_event_api_v1_calendar_events__event_id__patch",
         "parameters": [
           {
@@ -8590,6 +8670,7 @@
           "calendar"
         ],
         "summary": "Delete Event",
+        "description": "Removes the date. Audited (the seed doesn't bring a deleted date back).",
         "operationId": "delete_event_api_v1_calendar_events__event_id__delete",
         "parameters": [
           {
@@ -8685,6 +8766,7 @@
           "content"
         ],
         "summary": "Career",
+        "description": "The Career Navigator's content (empty until it is loaded).",
         "operationId": "career_api_v1_career_get",
         "responses": {
           "200": {
@@ -8774,7 +8856,7 @@
           "content"
         ],
         "summary": "Update Career",
-        "description": "Replace the whole document. Audited.",
+        "description": "Replace the whole document. Audited.\n\nErrors: invalid_input (422: over 512 KB, or a link that isn't https://, mailto: or a page of the Hub).",
         "operationId": "update_career_api_v1_career_put",
         "requestBody": {
           "content": {
@@ -8878,7 +8960,7 @@
           "content"
         ],
         "summary": "Search",
-        "description": "Threads, library items, newsletter issues, modules and calendar events. Prefix-matches the last word\n(for search-as-you-type).",
+        "description": "Threads, library items, newsletter issues, modules and calendar events. Prefix-matches the last word\n(for search-as-you-type). Only public things are found: visible threads, published files and issues.",
         "operationId": "search_api_v1_search_get",
         "parameters": [
           {
@@ -9106,6 +9188,22 @@
             },
             "type": "array",
             "title": "Notifications"
+          },
+          "votes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Votes"
+          },
+          "reports": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Reports"
           }
         },
         "type": "object",
@@ -10052,6 +10150,30 @@
             },
             "type": "array",
             "title": "Topcontributors"
+          },
+          "byTag": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Bytag"
+          },
+          "noRepliesByCategory": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Norepliesbycategory"
+          },
+          "tagsByCategory": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Tagsbycategory"
           }
         },
         "type": "object",
@@ -10062,7 +10184,8 @@
           "noReplies",
           "topContributors"
         ],
-        "title": "ForumStats"
+        "title": "ForumStats",
+        "description": "Counts over the threads a guest's list shows (visible ones, and deleted ones that still have replies)."
       },
       "Health": {
         "properties": {
@@ -12215,6 +12338,47 @@
               }
             ],
             "title": "Targeturl"
+          },
+          "targetExcerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Targetexcerpt"
+          },
+          "targetStatus": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "visible",
+                  "hidden",
+                  "deleted",
+                  "pending",
+                  "published",
+                  "rejected",
+                  "removed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Targetstatus"
+          },
+          "targetAuthor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "reason": {
             "type": "string",

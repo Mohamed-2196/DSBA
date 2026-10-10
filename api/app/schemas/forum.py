@@ -148,8 +148,13 @@ class Contributor(ApiModel):
 
 
 class ForumStats(ApiModel):
+    """Counts over the threads a guest's list shows (visible ones, and deleted ones that still have replies)."""
+
     total: int
     by_category: dict[str, int]
-    replies_today: int
+    replies_today: int  # visible replies since midnight in Bahrain
     no_replies: int
     top_contributors: list[Contributor]
+    by_tag: dict[str, int] = Field(default_factory=dict)  # tag id -> threads
+    no_replies_by_category: dict[str, int] = Field(default_factory=dict)
+    tags_by_category: dict[str, dict[str, int]] = Field(default_factory=dict)  # category -> tag id -> threads

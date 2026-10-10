@@ -1,0 +1,153 @@
+// Lesson posters. Nothing loads from YouTube or vc.bibf.com until the student presses play, so the poster has to
+// stand on its own: a dark plot plane in the module's cohort colour, the lesson's title, "Video n of m", the
+// source, and the lesson's own trace (deterministic per lesson). A YouTube thumbnail is layered on top only if it
+// actually loads (class recordings and playlists have none).
+import { Play } from '@phosphor-icons/react';
+import { useMemo, type CSSProperties } from 'react';
+import type { ModuleDetail, ModuleSummary } from '../../api/types';
+import { lessonKey, videoThumbnailUrl } from '../../lib/modules';
+import { cx } from '../../ui';
+import { KIND_ICON, KIND_SOURCE, chapterLessons, kindLabel, lessonPosition, lessonTrace } from './lessons';
+import { useThumbnail } from './thumbs';
+import './Poster.css';
+
+const W = 960;
+const H = 540;
+const GRID = 40;
+// The trace band sits in the lower half; its spike rises to just under the play button.
+const TRACE_Y = 296;
+const TRACE_H = 168;
+
+// Graph paper: one path, no ids or patterns needed.
+const GRID_PATH = (() => {
+  let d = '';
+  for (let x = GRID; x < W; x += GRID) d += `M${x} 0V${H}`;
+  for (let y = GRID; y < H; y += GRID) d += `M0 ${y}H${W}`;
+  return d;
+})();
+
+const cohortVars = (year: number) => ({ '--mc': `var(--y${year})`, '--mc-on': `var(--on-y${year})` }) as CSSProperties;
+
+/** The big click-to-load poster (a button), in place of the player until play is pressed. */
+export function LessonPoster({
+  module: m,
+  c,
+  v,
+  isWatched,
+  onPlay,
+}: {
+  module: ModuleDetail;
+  c: number;
+  v: number;
+  isWatched?: (key: string) => boolean;
+  onPlay: () => void;
+}) {
+  const chapter = m.chapters[c];
+  const video = chapter.videos[v];
+  const count = chapter.videos.length;
+  const key = lessonKey(m.id, c, v);
+  const trace = useMemo(() => lessonTrace(key, { width: W, height: TRACE_H, points: 38, spikeAt: 0.765 }), [key]);
+  const thumb = videoThumbnailUrl(video);
+  const thumbOk = useThumbnail(thumb) === 'ok';
+  const KindIcon = KIND_ICON[video.kind];
+  const position = lessonPosition(video, v, count);
+  const source = KIND_SOURCE[video.kind] ?? 'the original site';
+  const info = useMemo(() => chapterLessons(chapter)[v], [chapter, v]);
+  const title = info.real ? info.title : chapter.title;
+  const subline = [position, info.by].filter(Boolean).join(' · ');
+
+  return (
+    <button
+      type="button"
+      className={cx('mod-poster', thumbOk && 'has-thumb')}
+      data-theme="dark"
+      data-hub="lesson-poster"
+      style={cohortVars(m.year)}
+      onClick={onPlay}
+      aria-label={`Play chapter ${c + 1}${position ? `, ${position.toLowerCase()}` : ''}: ${title}. Loads from ${source}.`}
+    >
+      <svg className="mod-poster__plot" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+        <path className="mod-poster__grid" d={GRID_PATH} />
+        <g transform={`translate(0 ${TRACE_Y})`}>
+          <path className="mod-poster__axis" d={`M0 ${TRACE_H * 0.6}H${W}`} />
+          <path className="mod-poster__trace" d={trace.d} />
+        </g>
+      </svg>
+
+      {thumbOk && thumb ? (
+        <span className="mod-poster__thumb" aria-hidden="true">
+          <img src={thumb} alt="" />
+        </span>
+      ) : null}
+
+      <span className="mod-poster__top" aria-hidden="true">
+        <span className="mod-poster__module">
+          {m.unitCode ? <span className="mod-poster__code">{m.unitCode}</span> : null}
+          <span className="mod-poster__short">{m.shortName}</span>
+        </span>
+        <span className="mod-poster__kind">
+          <KindIcon weight="fill" aria-hidden="true" />
+          {kindLabel(video)}
+        </span>
+      </span>
+
+      <span className="mod-poster__body" aria-hidden="true">
+        <span className="mod-poster__chapter">{info.real ? `Chapter ${c + 1}: ${chapter.title}` : `Chapter ${c + 1}`}</span>
+        <span className="mod-poster__title">{title}</span>
+        {subline ? <span className="mod-poster__pos">{subline}</span> : null}
+      </span>
+
+      <span className="mod-poster__play" aria-hidden="true">
+        <Play weight="fill" />
+      </span>
+
+      <span className="mod-poster__foot" aria-hidden="true">
+        {count > 1 ? (
+          <span className="mod-poster__ticks">
+            {chapter.videos.map((_, i) => (
+              <span key={i} className={cx('mod-poster__tick', i === v && 'is-current', isWatched?.(lessonKey(m.id, c, i)) && 'is-watched')} />
+            ))}
+          </span>
+        ) : (
+          <span />
+        )}
+        <span className="mod-poster__source">Loads from {source} when you press play</span>
+      </span>
+    </button>
+  );
+}
+
+/**
+ * Small decorative poster for lesson links (Continue learning, Pick up where you left off).
+ * Purely visual (aria-hidden): the surrounding link carries the name.
+ */
+export function MiniPoster({
+  module: m,
+  c = 0,
+  v = 0,
+  size = 'md',
+  className,
+}: {
+  module: Pick<ModuleSummary, 'id' | 'unitCode' | 'shortName' | 'year'>;
+  c?: number;
+  v?: number;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}) {
+  const key = lessonKey(m.id, c, v);
+  const trace = useMemo(() => lessonTrace(key, { width: 320, height: 64, points: 18, spikeAt: 0.62, noise: 0.08 }), [key]);
+  return (
+    <span className={cx('mod-mini', `mod-mini--${size}`, className)} data-theme="dark" style={cohortVars(m.year)} aria-hidden="true">
+      <svg className="mod-mini__plot" viewBox="0 0 320 180" preserveAspectRatio="none">
+        <path className="mod-mini__grid" d="M40 0V180M80 0V180M120 0V180M160 0V180M200 0V180M240 0V180M280 0V180M0 40H320M0 80H320M0 120H320M0 160H320" />
+        <g transform="translate(0 104)">
+          <path className="mod-mini__trace" d={trace.d} />
+        </g>
+      </svg>
+      <span className="mod-mini__code">{m.unitCode || m.shortName}</span>
+      <span className="mod-mini__play">
+        <Play weight="fill" />
+      </span>
+    </span>
+  );
+}

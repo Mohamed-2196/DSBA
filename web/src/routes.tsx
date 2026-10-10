@@ -12,7 +12,7 @@ interface AppRoute {
 
 // Every page is lazy-loaded and wrapped in its own error boundary + Suspense,
 // so one broken feature can't take down the rest of the app.
-export const ROUTES: AppRoute[] = [
+const ROUTES: AppRoute[] = [
   { id: 'home', path: '/', title: null, Page: lazy(() => import('./features/home/HomePage')) },
   { id: 'modules', path: '/modules', title: 'Modules', Page: lazy(() => import('./features/modules/ModulesPage')) },
   { id: 'module', path: '/modules/:moduleId', title: 'Module', Page: lazy(() => import('./features/modules/ModulePage')) },

@@ -4,13 +4,15 @@ from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import StringConstraints
+from pydantic import Field, StringConstraints, WithJsonSchema
 
 from app.schemas.common import ApiModel, Role, UserStatus, Year
 
 Identifier = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)]
 Code = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^\d{6}$")]
-DisplayName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=40)]
+# 2-40 characters after trimming: letters (any script), digits, spaces and . ' -. The documented schema says so;
+# the rule itself is applied by PATCH /me, so that every bad name answers 422 invalid_display_name.
+DisplayName = Annotated[str, WithJsonSchema({"type": "string", "maxLength": 40, "minLength": 2})]
 
 
 class OtpStartRequest(ApiModel):
@@ -89,3 +91,5 @@ class AccountExport(ApiModel):
     reactions: list[dict[str, object]]
     progress: dict[str, object]
     notifications: list[dict[str, object]]
+    votes: list[dict[str, object]] = Field(default_factory=list)  # forum upvotes: {type: thread|reply, id, createdAt}
+    reports: list[dict[str, object]] = Field(default_factory=list)  # reports this person filed

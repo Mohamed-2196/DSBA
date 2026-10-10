@@ -29,5 +29,6 @@ def test_signed_in_client_reaches_protected_routes(client_for, make_user) -> Non
     user = make_user()
     c = client_for(user)
     r = c.get("/api/v1/me")
-    assert r.status_code == 501  # not built yet: the session itself was accepted
+    assert r.status_code == 200
+    assert r.json()["id"] == str(user.id)
     assert client_for().get("/api/v1/me").status_code == 401

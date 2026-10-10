@@ -1,0 +1,37 @@
+/* Moderators' review queue for library uploads. */
+.lib-queue { display: grid; gap: var(--sp-16); }
+.lib-queue__h { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-12); font-size: var(--fs-20); font-weight: var(--fw-bold); }
+.lib-queue__intro { max-width: 72ch; margin-top: var(--sp-4); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.lib-queue__list { margin: 0; padding: 0; list-style: none; }
+.lib-queue__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-16);
+  padding: var(--sp-16) var(--sp-24);
+  border-bottom: 1px solid var(--line);
+}
+.lib-queue__row:last-child { border-bottom: 0; }
+.lib-queue__loading .lib-queue__row { grid-template-columns: auto minmax(0, 1fr); }
+.lib-queue__main { display: grid; gap: 4px; min-width: 0; }
+.lib-queue__module { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+.lib-queue__code { color: var(--ink); font-weight: var(--fw-heavy); font-variant-numeric: tabular-nums lining-nums; }
+.lib-queue__title { font-size: var(--fs-16); font-weight: var(--fw-bold); line-height: 1.35; overflow-wrap: anywhere; }
+.lib-queue__title a { color: inherit; text-decoration: none; }
+.lib-queue__title a:hover { text-decoration: underline; text-underline-offset: 0.18em; }
+.lib-queue__facts { display: flex; flex-wrap: wrap; gap: 2px var(--sp-12); color: var(--ink-2); font-size: var(--fs-14); }
+.lib-queue__file { min-width: 0; overflow-wrap: anywhere; }
+.lib-queue__by { color: var(--ink-2); font-size: var(--fs-14); }
+.lib-queue__by strong { color: var(--ink); font-weight: var(--fw-semibold); }
+.lib-queue__desc { max-width: 72ch; margin-top: var(--sp-4); color: var(--ink); font-size: var(--fs-14); line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }
+.lib-queue__links { display: flex; flex-wrap: wrap; gap: var(--sp-4); margin: var(--sp-4) 0 0 calc(-1 * var(--sp-12)); }
+.lib-queue__actions { min-width: 220px; }
+
+@media (max-width: 899px) {
+  .lib-queue__row { grid-template-columns: auto minmax(0, 1fr); padding: var(--sp-16); }
+  .lib-queue__actions { grid-column: 1 / -1; min-width: 0; }
+}
+@media (max-width: 699px) {
+  .lib-queue__thumb { display: none; }
+  .lib-queue__row { grid-template-columns: minmax(0, 1fr); }
+}

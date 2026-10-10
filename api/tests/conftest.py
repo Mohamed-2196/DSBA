@@ -5,6 +5,7 @@
 - S3 is moto's in-process mock: a "browser upload" in a test is storage.client.put_object(...).
 - client_for(user) gives a TestClient with the CSRF cookie and header set, signed in as `user` (or a guest).
 """
+
 from __future__ import annotations
 
 import os

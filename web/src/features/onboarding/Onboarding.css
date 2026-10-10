@@ -161,6 +161,19 @@
 .onb-mini__tile { flex: 0 0 auto; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; font-size: 15px; }
 .onb-mini__tile--y2 { background: color-mix(in srgb, var(--y2) 15%, var(--surface)); color: var(--y2-strong); }
 .onb-mini__tile--lesson { background: var(--cobalt-soft); color: var(--cobalt); font-size: 9px; }
+/* A library file: a small page with a folded corner (the palette's document glyph). */
+.onb-mini__doc {
+  position: relative;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 30px;
+  margin: 0 2px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-page);
+  background: var(--surface) repeating-linear-gradient(var(--line-strong) 0 1.5px, transparent 1.5px 4px) 4px 7px / 12px 11px no-repeat;
+}
+.onb-mini__doc::before { content: ''; position: absolute; top: -1px; right: -1px; width: 7px; height: 7px; background: linear-gradient(225deg, var(--surface-2) 50%, var(--line-strong) 50%); }
 .onb-mini__date {
   flex: 0 0 auto;
   display: grid;

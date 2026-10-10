@@ -1,0 +1,75 @@
+/* Sign-in dialog and the shared code entry (also used on the account page). */
+.signin { display: grid; gap: var(--sp-16); }
+.signin__form { display: grid; gap: var(--sp-16); }
+.signin__form > .ui-button { margin-top: var(--sp-4); }
+
+.signin__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4) var(--sp-8);
+  margin: calc(var(--sp-8) * -1) -12px 0;
+}
+.signin__wait { padding: 0 12px; color: var(--ink-2); font-size: var(--fs-12); }
+
+.signin__fine { color: var(--ink-2); font-size: var(--fs-12); line-height: 1.5; }
+.signin__alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--alert-strong);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+}
+.signin__alert svg { flex: 0 0 auto; margin-top: 2px; font-size: 16px; }
+
+/* The code: big, spaced digits, centred. */
+.otp__field .ui-control__input {
+  padding-inline: 12px calc(12px - 0.42em);
+  font-family: var(--font-mono);
+  font-size: var(--fs-25);
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.otp__field .ui-control__input::placeholder { letter-spacing: 0.42em; }
+
+/* Profile step: the cohort choice as a row of cards. */
+.signin-cohorts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-8); border: 0; padding: 0; margin: 0; min-width: 0; }
+.signin-cohorts legend { margin-bottom: 6px; padding: 0; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.signin-cohort { position: relative; }
+.signin-cohort--wide { grid-column: 1 / -1; }
+.signin-cohort input { position: absolute; opacity: 0; pointer-events: none; }
+.signin-cohort label {
+  --c: var(--ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.signin-cohort label:hover { border-color: var(--ink-3); }
+.signin-cohort--y1 label { --c: var(--y1); }
+.signin-cohort--y2 label { --c: var(--y2); }
+.signin-cohort--y3 label { --c: var(--y3); }
+.signin-cohort__dot { width: 9px; height: 9px; border-radius: var(--r-pill); background: var(--c); }
+.signin-cohort input:checked + label {
+  border-color: var(--c);
+  background: color-mix(in srgb, var(--c) 12%, var(--surface));
+  box-shadow: inset 0 0 0 1px var(--c);
+}
+.signin-cohort--none input:checked + label { --c: var(--cobalt); }
+.signin-cohort input:focus-visible + label { outline: var(--focus-width) solid var(--focus-color); outline-offset: var(--focus-offset); }
+.signin-cohorts.has-error .signin-cohort label { border-color: var(--alert-strong); }
+.signin-cohorts__error { grid-column: 1 / -1; }

@@ -1,0 +1,16 @@
+/* Account slot: rail foot (desktop, icon rail) and the mobile top bar. The row itself is in Sidebar.css. */
+.shell-profile.is-loading { pointer-events: none; }
+.shell-profile.is-loading .shell-profile__text { display: grid; gap: 6px; }
+.shell-profile__name, .shell-profile__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.shell-signin--topbar { margin-left: 4px; }
+
+/* The menu's heading: who is signed in. */
+.shell-account { display: grid; gap: 1px; min-width: 0; max-width: 260px; padding-bottom: 2px; }
+.shell-account__name { overflow: hidden; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); text-overflow: ellipsis; white-space: nowrap; }
+.shell-account__id { overflow: hidden; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-regular); text-overflow: ellipsis; white-space: nowrap; }
+
+.shell-topbar__profile { display: none; }
+@media (max-width: 699px) {
+  .shell-topbar__profile { display: inline-flex; align-items: center; }
+}

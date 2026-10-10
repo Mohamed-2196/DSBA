@@ -20,6 +20,17 @@
   line-height: 1.08;
   letter-spacing: -0.025em;
 }
+/* A guest: what signing in adds, said once, quietly. */
+.home-greeting__guest {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px var(--sp-8);
+  margin-top: var(--sp-8);
+  color: var(--ink-2);
+  font-size: var(--fs-16);
+}
+.home-greeting__guest .ui-button { margin-left: -6px; }
 
 /* ── Body: main column + aside (container query, the rail width varies) ── */
 .home-body { margin-top: var(--sp-48); container: home / inline-size; }

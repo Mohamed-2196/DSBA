@@ -398,6 +398,7 @@
 .nl-row__stat { display: inline-flex; align-items: center; gap: 4px; }
 .nl-row__stat svg { font-size: 15px; }
 .nl-live > * + * { margin-top: var(--sp-24); }
+.nl-row--loading .nl-row__main { flex: 1 1 auto; gap: 8px; }
 
 /* ── Chart section ────────────────────────────────────────────────────── */
 .nl-chart { margin: 0; padding: var(--sp-24) var(--sp-24) var(--sp-16); border: 1px solid var(--line); border-radius: var(--r-panel); background: var(--surface); }
@@ -559,3 +560,28 @@
 /* Highlighter marks cover the whole glyph height (the shared swipe alone leaves ascenders outside it,
    which disappear in dark mode where marked text is navy). Vertical padding grows the mark, not the line. */
 .nl-issue .ui-highlight { padding-block: 0.12em; background-position: 0 50%; --hl-size: 100% 100%; }
+
+/* ── Moderators: draft or published, and what to do with it ─────────────── */
+.nl-modbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-12) var(--sp-24);
+  margin-bottom: var(--sp-24);
+  padding: var(--sp-12) var(--sp-16);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+}
+.nl-modbar.is-draft { border-style: dashed; border-color: var(--line-strong); background: var(--surface-2); }
+.nl-modbar__text { display: flex; align-items: center; flex-wrap: wrap; gap: 6px var(--sp-12); color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-medium); line-height: 1.4; }
+.nl-modbar__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); }
+.nl-issue__empty { margin-top: var(--sp-48); }
+.nl-issue__loading-body { max-width: 680px; margin: var(--sp-48) 0 0 244px; }
+@media (max-width: 1099px) { .nl-issue__loading-body { margin-left: 0; } }
+
+/* Confirmation dialogs (publish, delete) */
+.nl-confirm { display: grid; gap: var(--sp-12); color: var(--ink-2); font-size: var(--fs-16); line-height: 1.5; }
+.nl-confirm b { color: var(--ink); }
+.nl-confirm__error { color: var(--alert-strong); font-size: var(--fs-14); font-weight: var(--fw-medium); }

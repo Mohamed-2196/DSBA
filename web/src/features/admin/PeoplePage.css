@@ -1,0 +1,79 @@
+/* /admin/people: a search row, the accounts table (stacked on phones) and the activity log. */
+.people-tabs { margin-bottom: var(--sp-24); }
+.people-tabpanel:focus-visible { outline-offset: 4px; border-radius: var(--r-panel); }
+
+.people-tools { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+.people-tools__search { flex: 1 1 280px; max-width: 440px; }
+.people-tools__role { flex: 0 0 180px; }
+.people-count { margin: var(--sp-12) 0 var(--sp-8); color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+
+.people-panel { overflow: hidden; }
+.people-table { width: 100%; font-size: var(--fs-14); }
+.people-table th {
+  padding: 10px var(--sp-16);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  text-align: left;
+  white-space: nowrap;
+}
+.people-table td { padding: var(--sp-12) var(--sp-16); vertical-align: middle; }
+.people-table tbody tr + tr td { border-top: 1px solid var(--line); }
+.people-table tr.is-suspended .people-person__name { color: var(--ink-2); }
+
+.people-cell--person { display: flex; align-items: center; gap: var(--sp-12); min-width: 240px; }
+.people-person { display: grid; gap: 2px; min-width: 0; }
+.people-person__name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--ink); font-weight: var(--fw-semibold); }
+.people-person__ids { overflow: hidden; max-width: 340px; color: var(--ink-2); font-size: var(--fs-12); text-overflow: ellipsis; white-space: nowrap; }
+.people-cell--role { width: 168px; }
+.people-role .ui-control { min-height: 32px; }
+.people-role .ui-control__input { font-size: var(--fs-14); }
+.people-cell--seen { color: var(--ink); white-space: nowrap; }
+.people-joined { display: block; color: var(--ink-2); font-size: var(--fs-12); }
+.people-cell--actions { width: 1%; text-align: right; white-space: nowrap; }
+.people-muted { color: var(--ink-2); }
+
+.people-loading { display: grid; }
+.people-loading__row { display: flex; align-items: center; gap: var(--sp-12); padding: var(--sp-16); }
+.people-loading__row + .people-loading__row { border-top: 1px solid var(--line); }
+.people-loading__row .ui-skeleton-lines { flex: 1 1 auto; max-width: 320px; }
+
+.people-more { display: flex; justify-content: center; margin-top: var(--sp-16); }
+.people-dialog { color: var(--ink-2); font-size: var(--fs-14); }
+
+/* Activity */
+.people-activity { display: grid; }
+.people-activity__item { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: start; gap: var(--sp-12); padding: var(--sp-12) var(--sp-16); }
+.people-activity__item + .people-activity__item { border-top: 1px solid var(--line); }
+.people-activity__text { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.people-activity__text strong { color: var(--ink); font-weight: var(--fw-semibold); }
+.people-activity__time { color: var(--ink-2); font-size: var(--fs-12); white-space: nowrap; }
+
+/* Phones: each account becomes a card. */
+@media (max-width: 799px) {
+  .people-tools__search { max-width: none; }
+  .people-tools__role { flex: 1 1 140px; }
+  .people-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .people-table, .people-table tbody, .people-table tr, .people-table td { display: block; width: auto; }
+  .people-table tr {
+    display: grid;
+    grid-template-areas: 'person person' 'year seen' 'role actions';
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--sp-8) var(--sp-12);
+    padding: var(--sp-12) var(--sp-16);
+  }
+  .people-table tbody tr + tr { border-top: 1px solid var(--line); }
+  .people-table tbody tr + tr td { border-top: 0; }
+  .people-table td { padding: 0; }
+  .people-table td.people-cell--person { display: flex; grid-area: person; min-width: 0; }
+  .people-cell--year { grid-area: year; }
+  .people-cell--seen { grid-area: seen; justify-content: flex-end; }
+  .people-cell--role { grid-area: role; width: auto; max-width: 200px; }
+  .people-cell--actions { grid-area: actions; width: auto; text-align: right; }
+  .people-table td.people-cell--year, .people-table td.people-cell--seen { display: flex; align-items: center; gap: 6px; font-size: var(--fs-12); }
+  .people-cell--year::before, .people-cell--seen::before { content: attr(data-label); color: var(--ink-2); }
+  .people-joined { display: none; }
+}

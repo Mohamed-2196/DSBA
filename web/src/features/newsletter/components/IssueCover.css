@@ -1,4 +1,4 @@
-/* Issue covers (components/IssueCover.jsx, lib/covers.js). A cover is a printed object: the sheet keeps its
+/* Issue covers (components/IssueCover.tsx, lib/covers.ts). A cover is a printed object: the sheet keeps its
    own colours in dark mode (it is a data-theme="light" island), has a document-page radius and scales as one
    piece (everything on it is drawn in a 300 x 400 box). Sizes below are in that box's units. */
 .nl-cover {

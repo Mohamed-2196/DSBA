@@ -1,0 +1,52 @@
+/* /newsletter/:slug/edit — the issue editor: fields and JSON on the left, the live preview on the right. */
+.nl-editor__panes { margin-bottom: var(--sp-16); }
+.nl-editor__panes.ui-seg { width: 100%; }
+.nl-editor__panes .ui-seg__item { flex: 1 1 0; }
+.nl-editor__layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--sp-32); align-items: start; }
+.nl-editor__form { display: grid; gap: var(--sp-32); min-width: 0; }
+.nl-editor__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-16); }
+.nl-editor__wide { grid-column: 1 / -1; }
+.nl-editor__code { display: grid; gap: var(--sp-8); min-width: 0; }
+.nl-editor__code .ui-control__input {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  tab-size: 2;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  resize: vertical;
+}
+.nl-editor__code-actions { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+.nl-editor__problems { display: grid; gap: 4px; padding: var(--sp-12) var(--sp-16); border-radius: var(--r-control); background: var(--alert-soft); }
+.nl-editor__problem { color: var(--alert-strong); font-size: var(--fs-14); line-height: 1.4; overflow-wrap: anywhere; }
+.nl-editor__problem code { font-family: var(--font-mono); font-size: 12px; font-weight: var(--fw-semibold); }
+.nl-editor__problem.is-warning { color: var(--ink-2); }
+.nl-editor__problem.is-more { color: var(--ink-2); font-style: italic; }
+.nl-editor__error { color: var(--alert-strong); font-weight: var(--fw-semibold); }
+.nl-editor__help { border: 1px solid var(--line); border-radius: var(--r-control); background: var(--surface); }
+.nl-editor__help summary { padding: 10px var(--sp-16); cursor: pointer; font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.nl-editor__help-body { display: grid; gap: var(--sp-8); padding: 0 var(--sp-16) var(--sp-16); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.nl-editor__help-body b { color: var(--ink); }
+.nl-editor__help-body code { padding: 0 3px; border-radius: 4px; background: var(--surface-2); font-family: var(--font-mono); font-size: 12px; color: var(--ink); }
+
+/* The preview: the reader's own components, in a column of their own. */
+.nl-editor__side { position: sticky; top: calc(var(--topbar-h, 64px) + var(--sp-16)); max-height: calc(100vh - var(--topbar-h, 64px) - var(--sp-32)); overflow: auto; min-width: 0; padding: var(--sp-24); border: 1px solid var(--line); border-radius: var(--r-feature); background: var(--paper); }
+.nl-editor__preview-hero { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: var(--sp-24); align-items: center; padding-bottom: var(--sp-24); border-bottom: 1px solid var(--line); }
+.nl-editor__preview-kicker { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+.nl-editor__preview-title { margin-top: 6px; font-size: var(--fs-39); }
+.nl-editor__preview-hero .nl-issue__dek { font-size: var(--fs-20); }
+.nl-editor__preview-by { margin-top: var(--sp-8); color: var(--ink-2); font-size: var(--fs-14); }
+.nl-editor__preview-article { margin-top: var(--sp-32); }
+.nl-editor__preview-empty { color: var(--ink-2); }
+
+@media (max-width: 1099px) {
+  .nl-editor__layout { grid-template-columns: minmax(0, 1fr); }
+  .nl-editor__side { position: static; max-height: none; overflow: visible; }
+}
+@media (max-width: 699px) {
+  .nl-editor__grid { grid-template-columns: minmax(0, 1fr); }
+  .nl-editor__side { padding: var(--sp-16); border-radius: var(--r-panel); }
+  .nl-editor__preview-hero { grid-template-columns: 84px minmax(0, 1fr); gap: var(--sp-16); }
+  .nl-editor__preview-title { font-size: var(--fs-25); }
+}

@@ -153,3 +153,49 @@
   .nl-shelf__item { flex: 0 0 62%; scroll-snap-align: start; }
   .nl-shelf__title { font-size: var(--fs-20); }
 }
+
+/* ── No issue yet ─────────────────────────────────────────────────────── */
+/* The cover of the issue to come stands where the latest issue would, a little paler. */
+.nl-soon__cover { opacity: 0.92; }
+.nl-soon__list { display: grid; gap: var(--sp-12); margin-top: var(--sp-12); padding: 0; list-style: none; max-width: 62ch; }
+.nl-soon__list li { position: relative; padding-left: 20px; color: var(--ink-2); font-size: var(--fs-16); line-height: 1.5; }
+.nl-soon__list li::before { content: ''; position: absolute; left: 2px; top: 0.6em; width: 8px; height: 8px; border-radius: var(--r-pill); background: var(--highlight); box-shadow: 0 0 0 1px var(--ink); }
+.nl-soon__list b { color: var(--ink); font-weight: var(--fw-semibold); }
+.nl-soon__subscribe { margin-top: var(--sp-64); }
+
+/* ── Moderators: drafts ───────────────────────────────────────────────── */
+.nl-drafts { margin-bottom: var(--sp-48); }
+.nl-drafts__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-12) var(--sp-24);
+  padding: var(--sp-16) var(--sp-24);
+  border-bottom: 1px solid var(--line);
+}
+.nl-drafts__title { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-20); font-weight: var(--fw-bold); }
+.nl-drafts__title svg { color: var(--cobalt); font-size: 22px; }
+.nl-drafts__count { padding: 1px 8px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.nl-drafts__desc { margin-top: 4px; color: var(--ink-2); font-size: var(--fs-14); }
+.nl-drafts__list > li + li { border-top: 1px solid var(--line); }
+.nl-drafts__row { display: flex; align-items: center; gap: var(--sp-16); padding: var(--sp-12) var(--sp-24); }
+.nl-drafts__no { flex: 0 0 auto; width: 44px; font-family: var(--font-serif); font-size: var(--fs-31); font-weight: 600; line-height: 1; color: var(--ink-2); }
+.nl-drafts__text { display: grid; gap: 4px; flex: 1 1 auto; min-width: 0; }
+.nl-drafts__name { overflow: hidden; color: var(--ink); font-family: var(--font-serif); font-size: var(--fs-20); font-weight: 600; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.nl-drafts__name:hover { text-decoration: underline; text-decoration-thickness: 1px; }
+.nl-drafts__meta { display: flex; align-items: center; gap: var(--sp-12); color: var(--ink-2); font-size: var(--fs-14); }
+.nl-drafts__actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-8); }
+.nl-drafts__empty { padding: var(--sp-16) var(--sp-24); color: var(--ink-2); }
+@media (max-width: 699px) {
+  .nl-drafts__head, .nl-drafts__row, .nl-drafts__empty { padding-inline: var(--sp-16); }
+  .nl-drafts__row { flex-wrap: wrap; }
+  .nl-drafts__no { width: auto; font-size: var(--fs-25); }
+  .nl-drafts__actions { width: 100%; justify-content: flex-start; }
+}
+
+/* ── Dialog forms (new issue) ─────────────────────────────────────────── */
+.nl-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-16); }
+.nl-form__wide { grid-column: 1 / -1; }
+.nl-form__error { color: var(--alert-strong); font-size: var(--fs-14); font-weight: var(--fw-medium); }
+@media (max-width: 699px) { .nl-form { grid-template-columns: minmax(0, 1fr); } }

@@ -31,7 +31,6 @@
 .cal-dot--event { background: var(--y3); }
 .cal-dot--break { background: var(--ink-3); }
 .cal-dot--term { background: var(--ink-2); }
-.cal-dot--thanks { background: var(--highlight); box-shadow: 0 0 0 1px var(--ink); }
 
 /* The date leaf: weekday on the band, day number, month. The band takes the event type's colour. */
 .cal-leaf {
@@ -64,5 +63,5 @@
 .cal-leaf--mock { --leaf-band: var(--cobalt-soft); --leaf-band-ink: var(--cobalt); --leaf-edge: color-mix(in srgb, var(--cobalt) 32%, var(--line)); }
 .cal-leaf--revision { --leaf-band: var(--signal-soft); --leaf-band-ink: var(--signal-strong); --leaf-edge: color-mix(in srgb, var(--signal) 38%, var(--line)); }
 .cal-leaf--event { --leaf-band: color-mix(in srgb, var(--y3) 15%, var(--surface)); --leaf-band-ink: var(--y3-strong); --leaf-edge: color-mix(in srgb, var(--y3) 42%, var(--line)); }
-.cal-leaf--deadline, .cal-leaf--thanks { --leaf-band: var(--highlight-soft); --leaf-band-ink: var(--ink); --leaf-edge: color-mix(in srgb, var(--highlight) 60%, var(--line-strong)); }
+.cal-leaf--deadline { --leaf-band: var(--highlight-soft); --leaf-band-ink: var(--ink); --leaf-edge: color-mix(in srgb, var(--highlight) 60%, var(--line-strong)); }
 .cal-leaf--today.is-solid { --leaf-band: var(--cobalt); --leaf-band-ink: var(--cobalt-ink); --leaf-edge: var(--cobalt); }

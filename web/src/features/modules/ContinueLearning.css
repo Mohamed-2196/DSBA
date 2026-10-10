@@ -51,3 +51,6 @@
   .mod-cl__poster.mod-mini--md { width: 96px; }
   .mod-cl__meta > span + span { display: none; }
 }
+
+.mod-cl__loading { display: flex; align-items: center; gap: var(--sp-16); padding: var(--sp-16); }
+.mod-cl__loading > :last-child { flex: 1 1 auto; }

@@ -1,0 +1,43 @@
+/* Forum dialogs: report (ReportButton.tsx, also used on library files), confirm, resolve. Tokens only. */
+.forum-report { display: grid; gap: var(--sp-16); }
+.forum-report__reasons { display: grid; gap: 4px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.forum-report__legend { margin-bottom: 6px; padding: 0; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.forum-report__reason {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
+}
+.forum-report__reason:hover { border-color: var(--line-strong); background: color-mix(in srgb, var(--surface-2) 50%, var(--surface)); }
+.forum-report__reason.is-checked { border-color: var(--cobalt); background: var(--cobalt-soft); }
+.forum-report__reason:has(input:focus-visible) { box-shadow: 0 0 0 var(--focus-width, 2px) var(--focus-color); }
+.forum-report__reason input { width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--cobalt); }
+.forum-report__reason input:focus-visible { outline: none; }
+.forum-report__text { display: grid; gap: 1px; min-width: 0; }
+.forum-report__label { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); line-height: 1.35; }
+.forum-report__hint { color: var(--ink-2); font-size: var(--fs-12); line-height: 1.4; }
+
+/* A form's own problem (not tied to one field), above its buttons. Shared with the forum's dialogs. */
+.forum-form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-control);
+  background: var(--alert-soft);
+  color: var(--alert-strong);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  line-height: 1.45;
+}
+
+/* Confirm dialog */
+.forum-confirm { display: grid; gap: var(--sp-16); }
+.forum-confirm__body { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.forum-confirm__body strong { color: var(--ink); }

@@ -64,3 +64,8 @@ export function useModules(): ModulesValue {
   if (!v) throw new Error('useModules() must be used inside <ModulesProvider>');
   return v;
 }
+
+/** The catalogue, or null outside <ModulesProvider> (for primitives that also render without it). */
+export function useModulesOptional(): ModulesValue | null {
+  return useContext(ModulesContext);
+}

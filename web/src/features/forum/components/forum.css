@@ -1,4 +1,4 @@
-/* Forum — shared pieces: thread rows, vote button, counts, module tags, prose, typing.
+/* Forum — shared pieces: thread rows, vote button, counts, module tags, prose, editor, attachments, notices.
    Classes are prefixed forum-. Tokens only. */
 
 /* ── Emoji in colour ──
@@ -233,12 +233,16 @@
 
 /* ── Avatars ─────────────────────────────────────────────────────────────────── */
 .forum-avatar { flex: 0 0 auto; }
-.forum-avatar--everyone {
+/* A deleted account: a plain disc, no initials to read as a person. */
+.forum-avatar--ghost {
   display: inline-grid;
   place-items: center;
   border-radius: var(--r-pill);
-  background: var(--highlight);
-  color: var(--highlight-ink);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--ink-3);
+  font-weight: var(--fw-bold);
+  line-height: 1;
 }
 
 /* ── Prose (post bodies) ─────────────────────────────────────────────────────── */
@@ -258,15 +262,20 @@
 .forum-prose code { font-size: 0.86em; padding: 0.12em 0.38em; white-space: break-spaces; }
 .forum-prose blockquote { padding-inline-start: 14px; border-inline-start: 3px solid var(--line-strong); color: var(--ink-2); }
 .forum-prose a { font-weight: var(--fw-medium); }
-/* A picture in a post (markdown ![alt](/demo/…)): rounded and bordered on a neutral surface, never taller than 420px. */
+/* A picture in a post (markdown ![alt](/api/v1/media/…)): rounded and bordered on a neutral surface, never taller than 420px. */
 .forum-figure {
+  width: fit-content;
+  max-width: 100%;
   overflow: hidden;
   margin: 0;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-control);
   background: var(--surface-2);
 }
-.forum-figure img { display: block; width: 100%; height: auto; max-height: 420px; object-fit: contain; }
+/* Natural size up to the width of the post (a small screenshot isn't blown up), never taller than 420px. */
+.forum-figure img { display: block; width: auto; max-width: 100%; height: auto; max-height: 420px; margin: 0 auto; }
+.forum-figure.is-broken { display: flex; align-items: center; gap: 8px; padding: 12px 14px; color: var(--ink-2); font-size: var(--fs-14); }
+.forum-figure.is-broken svg { flex: 0 0 auto; font-size: 18px; }
 .forum-code {
   position: relative;
   max-width: 100%;
@@ -358,35 +367,119 @@
 .forum-related__link:hover { color: var(--cobalt); text-decoration: underline; }
 .forum-related__meta { display: flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: var(--fs-12); }
 
-/* ── Typing ──────────────────────────────────────────────────────────────────── */
-.forum-typing {
+/* Links to other sites say where they go (security review, finding 11). */
+.forum-prose__ext { overflow-wrap: anywhere; }
+.forum-prose__host { color: var(--ink-2); font-weight: var(--fw-regular); }
+.forum-prose__ext-icon { display: inline-block; margin-inline-start: 0.2em; font-size: 0.85em; vertical-align: -0.08em; }
+
+/* ── Thread rows: states ─────────────────────────────────────────────────────── */
+/* Moderators see hidden threads, marked and muted. */
+.forum-row.is-hidden .forum-row__link, .forum-row.is-hidden .forum-row__excerpt { color: var(--ink-2); }
+.forum-row.is-hidden { background: color-mix(in srgb, var(--alert) 4%, var(--surface)); }
+.forum-row.is-deleted .forum-row__link { color: var(--ink-2); }
+.forum-vote:disabled { cursor: default; opacity: .55; }
+.forum-vote:disabled:not(.is-voted):hover { border-color: var(--line-strong); color: var(--ink-2); }
+.forum-row__title > .ui-badge + .ui-badge { margin-inline-start: 6px; }
+.forum-row--skeleton { pointer-events: none; }
+.forum-row--skeleton .forum-row__main { display: grid; }
+
+/* A list re-reading for new filters keeps what it showed, dimmed. */
+.forum-list-panel, .forum-replies__panel { transition: opacity var(--dur-fast) var(--ease); }
+.is-updating { opacity: .6; }
+
+/* "Show more" under a paged list */
+.forum-more { display: flex; justify-content: center; margin-top: var(--sp-12); }
+
+/* ── Notices (locked, hidden, suspended) ─────────────────────────────────────── */
+.forum-notice {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 8px 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface-2);
   color: var(--ink-2);
   font-size: var(--fs-14);
+  line-height: 1.45;
+}
+.forum-notice__icon { flex: 0 0 auto; font-size: 18px; }
+.forum-notice__text { flex: 1 1 260px; min-width: 0; }
+.forum-notice__text strong { color: var(--ink); font-weight: var(--fw-semibold); }
+.forum-notice.is-alert { border-color: color-mix(in srgb, var(--alert) 35%, var(--line)); background: var(--alert-soft); color: var(--alert-strong); }
+.forum-notice.is-alert .forum-notice__text strong { color: inherit; }
+.forum-compose-note { padding: 12px 14px; border-radius: var(--r-control); background: var(--surface-2); color: var(--ink-2); font-size: var(--fs-14); }
+.forum-compose-note.is-inline { margin: 8px 0 4px; }
+.forum-compose-note--locked { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.forum-compose-note--locked svg { flex: 0 0 auto; font-size: 16px; }
+
+/* ── Post actions ─────────────────────────────────────────────────────────────── */
+/* Report and the "More actions" menu sit at the end of a post's action row. */
+.forum-report-button.ui-button--ghost { color: var(--ink-2); }
+.forum-report-button.ui-button--ghost:hover { color: var(--ink); }
+.forum-post-menu { color: var(--ink-2); }
+
+/* ── Thread fields (composer and edit form: where it lives, module, tags) ───── */
+.forum-composer__row { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); align-items: start; gap: var(--sp-16); }
+.forum-composer__tags { margin: 0; padding: 0; border: 0; min-width: 0; }
+.forum-composer__legend { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-bottom: 8px; padding: 0; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.forum-composer__legend-hint { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-regular); }
+.forum-composer__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.forum-composer__chips .ui-chip:disabled { opacity: .45; cursor: not-allowed; }
+@container forum-page (max-width: 640px) {
+  .forum-composer__row { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ── Editing a post in place ─────────────────────────────────────────────────── */
+.forum-edit { display: grid; gap: var(--sp-12); min-width: 0; margin-top: 4px; }
+.forum-edit--thread { gap: var(--sp-16); margin-top: 0; }
+.forum-edit__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+/* ── Attached pictures (composer, replies, edit) ─────────────────────────────── */
+.forum-attachments { display: grid; gap: 10px; width: 100%; margin: 0; padding: 0; list-style: none; }
+.forum-attachment {
+  width: 100%;
+  max-width: 520px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
   animation: forum-fade-in var(--dur) var(--ease);
 }
-.forum-typing__avatars { display: inline-flex; }
-.forum-typing__avatars > * + * { margin-left: -6px; box-shadow: 0 0 0 2px var(--surface); border-radius: var(--r-pill); }
-.forum-typing__dots { display: inline-flex; gap: 3px; }
-.forum-typing__dots span {
-  width: 5px;
-  height: 5px;
-  border-radius: var(--r-pill);
-  background: currentColor;
-  animation: forum-typing 1.1s infinite ease-in-out;
+.forum-attachment__media { position: relative; }
+.forum-attachment__img { display: block; width: 100%; height: auto; max-height: 320px; object-fit: contain; }
+.forum-attachment.is-uploading .forum-attachment__img { opacity: .55; }
+.forum-attachment.is-error .forum-attachment__img { max-height: 96px; opacity: .4; filter: grayscale(1); }
+.forum-attachment__progress { position: absolute; inset: auto 0 0 0; height: 4px; background: color-mix(in srgb, var(--cobalt) 18%, transparent); }
+.forum-attachment__progress > span { display: block; height: 100%; background: var(--cobalt); transition: width 160ms linear; }
+.forum-attachment__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 4px 4px 12px;
+  border-top: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
 }
-.forum-typing__dots span:nth-child(2) { animation-delay: .16s; }
-.forum-typing__dots span:nth-child(3) { animation-delay: .32s; }
-@keyframes forum-typing {
-  0%, 80%, 100% { opacity: .25; transform: none; }
-  40% { opacity: 1; transform: translateY(-2px); }
-}
+.forum-attachment__icon { flex: 0 0 auto; color: var(--ink-3); font-size: 18px; }
+.forum-attachment__icon.is-error { color: var(--alert-strong); }
+.forum-attachment__name { flex: 0 1 auto; min-width: 0; overflow: hidden; color: var(--ink); font-weight: var(--fw-semibold); text-overflow: ellipsis; white-space: nowrap; }
+.forum-attachment__meta { flex: 1 1 auto; min-width: 0; }
+.forum-attachment__meta.is-error { color: var(--alert-strong); font-weight: var(--fw-medium); }
+/* A problem gets a line of its own under the name, so neither is cut short. */
+.forum-attachment.is-error .forum-attachment__bar { flex-wrap: wrap; row-gap: 0; }
+.forum-attachment.is-error .forum-attachment__name { flex: 1 1 auto; }
+.forum-attachment.is-error .forum-attachment__meta { order: 10; flex-basis: 100%; padding: 0 8px 8px 26px; line-height: 1.4; }
+.forum-attachment:not(:has(.forum-attachment__media)) .forum-attachment__bar { border-top: 0; }
+.forum-attachment__pct { flex: 0 0 auto; color: var(--ink); font-weight: var(--fw-semibold); }
+.forum-attachment__remove { flex: 0 0 auto; margin-left: auto; }
 @keyframes forum-fade-in { from { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .forum-row.is-fresh, .forum-vote__icon.is-popping, .forum-roll > span, .forum-typing { animation: none !important; }
+  .forum-row.is-fresh, .forum-vote__icon.is-popping, .forum-roll > span, .forum-attachment { animation: none !important; }
   .forum-roll__old { display: none; }
-  .forum-typing__dots span { animation: none; opacity: .6; }
 }

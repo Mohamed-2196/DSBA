@@ -31,43 +31,11 @@
 .forum-composer__count.is-near { color: var(--alert-strong); font-weight: var(--fw-semibold); }
 .forum-composer .ui-control--lg .ui-control__input { font-size: var(--fs-20); font-weight: var(--fw-semibold); letter-spacing: -0.012em; }
 .forum-composer .ui-control--lg .ui-control__input:dir(rtl) { letter-spacing: 0; } /* Arabic letters join: no tracking */
-.forum-composer__row { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); align-items: start; gap: var(--sp-16); }
 
-.forum-composer__tags { margin: 0; padding: 0; border: 0; min-width: 0; }
-.forum-composer__legend { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-bottom: 8px; padding: 0; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
-.forum-composer__legend-hint { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-regular); }
-.forum-composer__chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.forum-composer__chips .ui-chip:disabled { opacity: .45; cursor: not-allowed; }
 
-/* Attach image: a button, then the attached picture with a bar to remove it. */
+/* Attach image: the pictures being attached (see forum.css), then the button and a note. */
 .forum-composer__attach { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: calc(-1 * var(--sp-8)); }
-.forum-composer__attach-note { color: var(--ink-2); font-size: var(--fs-12); }
-.forum-attachment {
-  width: 100%;
-  max-width: 520px;
-  margin: 0;
-  overflow: hidden;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-control);
-  background: var(--surface-2);
-  animation: forum-fade-in var(--dur) var(--ease);
-}
-.forum-attachment__img { display: block; width: 100%; height: auto; max-height: 320px; object-fit: contain; }
-.forum-attachment__bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding: 4px 4px 4px 12px;
-  border-top: 1px solid var(--line-strong);
-  background: var(--surface);
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-}
-.forum-attachment__icon { flex: 0 0 auto; color: var(--ink-3); font-size: 18px; }
-.forum-attachment__name { min-width: 0; overflow: hidden; color: var(--ink); font-weight: var(--fw-semibold); text-overflow: ellipsis; white-space: nowrap; }
-.forum-attachment__meta { flex: 1 1 auto; white-space: nowrap; }
-.forum-attachment__remove { flex: 0 0 auto; margin-left: auto; }
+.forum-composer__attach-note { flex: 1 1 240px; min-width: 0; color: var(--ink-2); font-size: var(--fs-12); }
 
 .forum-composer__footer {
   display: flex;
@@ -80,6 +48,7 @@
 }
 .forum-composer__as { display: inline-flex; align-items: center; gap: 10px; margin-right: auto; color: var(--ink-2); font-size: var(--fs-14); }
 .forum-composer__as strong { color: var(--ink); font-weight: var(--fw-semibold); }
+.forum-composer__flair { margin-left: 8px; vertical-align: 1px; }
 .forum-composer__kbd { display: inline-flex; }
 
 /* Margin */
@@ -114,7 +83,6 @@
 }
 @container forum-page (max-width: 640px) {
   .forum-composer { padding: var(--sp-16); border-radius: var(--r-panel); gap: var(--sp-16); }
-  .forum-composer__row { grid-template-columns: minmax(0, 1fr); }
   .forum-composer__kbd { display: none; }
   .forum-composer__as { flex-basis: 100%; }
   .forum-new__side { grid-template-columns: minmax(0, 1fr); }

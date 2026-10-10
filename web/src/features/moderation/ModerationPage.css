@@ -1,0 +1,31 @@
+/* /moderation: a row of counts, then the two queues. */
+.mod-stats {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--sp-8);
+  margin: 0 0 var(--sp-32);
+}
+.mod-stat {
+  display: grid;
+  gap: 2px;
+  padding: var(--sp-12) var(--sp-16);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+}
+.mod-stat__label { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+.mod-stat__value { margin: 0; color: var(--ink); font-size: var(--fs-25); font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: 1.2; }
+
+.mod-stats-error { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); margin: 0 0 var(--sp-24); color: var(--ink-2); font-size: var(--fs-14); }
+.mod-stats-error svg { color: var(--alert-strong); font-size: 16px; }
+
+.mod-tabs { margin-bottom: var(--sp-24); }
+.mod-panel:focus-visible { outline-offset: 4px; border-radius: var(--r-panel); }
+
+@media (max-width: 1099px) {
+  .mod-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 699px) {
+  .mod-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: var(--sp-24); }
+  .mod-stat__value { font-size: var(--fs-20); }
+}

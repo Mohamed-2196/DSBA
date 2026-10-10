@@ -73,3 +73,7 @@
   0%, 35% { outline-color: var(--cobalt); }
   100% { outline-color: transparent; }
 }
+
+/* ── Loading ─────────────────────────────────────────────────────────────────────────────────── */
+.career-skeleton { display: grid; gap: var(--sp-24); }
+.career-skeleton__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-16); }
