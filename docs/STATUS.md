@@ -24,6 +24,8 @@ deployed yet.
   - The API suite (598 tests) passed at `e96121a`. The API hasn't changed since.
   - `scripts/check.sh web` passed at `5c3617d`.
   - The end-to-end suite hasn't run since round 2. Two of its setup steps were fixed without being run.
+- **Removed from this branch:** `launch-film/` (still on `feature/dsba-pulse` and in the history) and an unused
+  demo picture.
 
 ## In flight
 
@@ -34,7 +36,31 @@ deployed yet.
 - add a pre-push hook (`.githooks/pre-push`, enabled with `scripts/install-hooks.sh`).
 
 It pushes the branch `round3/standards` (or a `claude/...` branch if that name is refused) and writes
-`docs/reviews/standards.md`.
+`docs/reviews/standards.md`. Its run appears in Mohamed's scheduled tasks as "DSBA Hub standards review (one-off)".
+
+What Mohamed asked for, so the branch can be checked against it, or the job redone locally if no branch arrives:
+1. **Audit the standards.** Check the coding standards and quality rules in the docs (`ARCHITECTURE.md`'s
+   conventions and security baseline, the README's checks) against the official sources:
+   - FastAPI, SQLAlchemy 2, Pydantic v2 and Alembic;
+   - OWASP ASVS and the cheat sheets;
+   - react.dev, TanStack Query, the tsconfig strict options, typescript-eslint and ruff.
+
+   Use web search and cite the sources. Fix the docs where they're wrong or vague, and check that the code
+   follows them.
+2. **Port useful skills** into `.claude/skills/`. Look for existing good ones online first (FastAPI, React and
+   others), keep their licence notices, and fit them to this repo. Suggested: `fastapi-endpoint`, `react-feature`,
+   `db-migration`, `e2e-test` and `review-checklist`.
+3. **CLAUDE.md**, merged with this one.
+4. **A refreshed README** for a new contributor.
+5. **A pre-push hook** for the standard checks.
+   - It lives at `.githooks/pre-push`, is enabled with `git config core.hooksPath .githooks` through
+     `scripts/install-hooks.sh`, and works on macOS (bash 3.2) and Linux.
+   - It runs only what the pushed commits touch:
+     - `api/**` gets ruff, ruff format, mypy and pytest;
+     - `web/**` gets both tsc projects, ESLint, the unit tests and the schema drift check.
+   - A typical push takes under about two minutes. The full API suite runs with `FULL_CHECKS=1`, and CI runs
+     everything.
+   - `SKIP_CHECKS=1 git push` (or `--no-verify`) skips it in an emergency.
 
 To bring it in:
 1. Review the branch and merge it into `feature/backend`.
@@ -53,7 +79,8 @@ To bring it in:
 2. **Re-review round.** The security, code-quality and UI/UX reviewers check that their findings are fixed and
    review what round 2 added. The student tester re-tests every feature as a guest, a student in each year, a rep
    and an admin. Run all four in the background, in parallel.
-3. **Import the Google Drive files into the library** (`python -m app.cli import-drive`). The plan is below.
+3. **Import the Google Drive files into the library** (`python -m app.cli import-drive`), and add
+   `scripts/seed-real.sh`, which fills a fresh install with the real content in one command. The plan is below.
 4. **Adopt the shared helpers everywhere** (left over from round 2):
    - The forum uploads images through `src/api/uploads.ts`: `uploadFile('forum_image', …)`, `checkUpload`,
      `formatSize`, `canRetryUpload` and `UPLOAD_RULES.forum_image`.
@@ -123,10 +150,15 @@ To bring it in:
      - the description names the folder path.
   - Print a plan and ask before importing unless `--yes` is given. Keep the link items; `--retire-links` could
     remove a link once its whole folder is in.
-- **Wrapper and tests.**
-  - A wrapper, `scripts/import-drive.sh [--prod]`, runs the command in the compose stack: locally into MinIO, on
-    the server into S3.
-  - Test it with a fake Drive (`httpx.MockTransport`) and moto.
+- **Seeding the real thing.** Mohamed asked for a script that fills a fresh install with the real content in one
+  go: `scripts/seed-real.sh [--prod] [--dry-run]`. It runs in the compose stack, locally into MinIO or on the
+  server into S3, and does three things in order:
+  1. applies the migrations;
+  2. loads the reference content (`python -m app.cli seed`: modules, calendar, newsletter, career, library links);
+  3. runs `import-drive`.
+
+  It's safe to run again: the seed and the import both skip what's already there.
+- **Tests.** Use a fake Drive (`httpx.MockTransport`) and moto.
 
 ## How the team works
 
