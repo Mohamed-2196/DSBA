@@ -2,21 +2,12 @@
 // made once the chat is first opened), the calendar from today on, and the student's first name.
 import { useMemo } from 'react';
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
-import { api, call } from '../../api/client';
 import type { ModuleDetail } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import { dayKeyFromToday, useCalendarEvents } from '../calendar/public';
+import { moduleDetailQuery } from '../modules/public';
 import { buildKnowledge, type Knowledge } from './brain';
-
-// The modules feature's cache entry for a module (['modules', 'detail', id]): lessons fetched here are already
-// there when the student follows one of her links, and the other way round.
-const detailQuery = (id: string) => ({
-  queryKey: ['modules', 'detail', id] as const,
-  queryFn: ({ signal }: { signal?: AbortSignal }): Promise<ModuleDetail> =>
-    call(api.GET('/api/v1/modules/{module_id}', { params: { path: { module_id: id } }, signal })),
-  staleTime: 10 * 60_000,
-});
 
 interface Details {
   byId: Map<string, ModuleDetail>;
@@ -42,7 +33,9 @@ export interface KnowledgeState {
 export function useKnowledge(): KnowledgeState {
   const { modules } = useModules();
   const { me, status } = useAuth();
-  const details = useQueries({ queries: modules.map((m) => detailQuery(m.id)), combine });
+  // The modules feature's cache entry for each module: lessons read here are already there when the student follows
+  // one of her links, and the other way round.
+  const details = useQueries({ queries: modules.map((m) => moduleDetailQuery(m.id)), combine });
   const events = useCalendarEvents({ from: dayKeyFromToday() });
   const name = status === 'signed-in' ? firstNameOf(me?.displayName) : null;
   const eventList = events.data ?? null;

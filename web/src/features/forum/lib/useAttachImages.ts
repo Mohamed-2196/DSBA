@@ -7,8 +7,9 @@
 //   <MarkdownEditor onAttachImage={images.pick} onImageFiles={images.addFiles} textareaRef={textareaRef} … />
 //   <AttachmentList uploads={images.cards} onRetry={images.retry} onRemove={images.remove} />
 import { useCallback, useRef, type ChangeEvent, type InputHTMLAttributes, type RefObject } from 'react';
+import { UPLOAD_RULES } from '../../../api/uploads';
 import { imageMarkdown, insertBlock, removeImageLines } from './editing';
-import { IMAGE_ACCEPT, useImageUploads, type ImageUpload } from './uploads';
+import { useImageUploads, type ImageUpload } from './uploads';
 
 export interface AttachImagesOptions {
   /** the text the pictures go into */
@@ -86,7 +87,7 @@ export function useAttachImages({ text, setText, textareaRef, gate }: AttachImag
   const fileInput: FileInputProps = {
     ref: inputRef,
     type: 'file',
-    accept: IMAGE_ACCEPT,
+    accept: UPLOAD_RULES.forum_image.accept,
     multiple: true,
     className: 'visually-hidden',
     tabIndex: -1,

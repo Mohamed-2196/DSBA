@@ -15,10 +15,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { isApiError } from '../../api/errors';
+import { appUrl, copyText } from '../../lib/share';
 import { BREAKPOINTS, useDocumentTitle, useMediaQuery, useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, EmptyState, IconButton, Menu, Page, Panel, QueryError, Skeleton, cx, timeAgo } from '../../ui';
-import { ReportButton } from '../forum/ReportButton';
+import { ReportButton } from '../forum/public';
 import { useLibraryAccess } from './access';
 import { downloadHref, itemPath, libraryKeys, openLinkHref, useLibraryItem } from './api';
 import { DeleteItemDialog, EditItemDialog } from './components/EditItemDialog';
@@ -184,13 +185,9 @@ function FileView({ item }: { item: LibraryItem }) {
     );
 
   const copyLink = async () => {
-    const url = new URL(`${import.meta.env.BASE_URL}${itemPath(item).slice(1)}`, window.location.origin).href;
-    try {
-      await navigator.clipboard.writeText(url);
-      push({ title: 'Link copied', body: 'Anyone can open this file with it.', tone: 'success' });
-    } catch {
-      push({ title: 'Couldn’t copy the link', body: url, tone: 'alert' });
-    }
+    const url = appUrl(itemPath(item));
+    if (await copyText(url)) push({ title: 'Link copied', body: 'Anyone can open this file with it.', tone: 'success' });
+    else push({ title: 'Couldn’t copy the link', body: url, tone: 'alert' });
   };
 
   const moreItems = [

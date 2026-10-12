@@ -3,6 +3,7 @@
 //           http:, https: or mailto: URL, with no whitespace, control character or backslash anywhere in it
 //   images: only pictures served by the API, exactly /api/v1/media/<uuid> (isMediaPath, the one rule for every area)
 import { apiUrl } from '../../../api/client';
+import { hostOf } from '../../../lib/share';
 import { isMediaPath, safeHref } from '../../../ui/safeHref';
 
 export type SafeLink =
@@ -27,10 +28,8 @@ export function safeLink(raw: string): SafeLink | null {
     return null;
   }
   if (url.protocol === 'mailto:') return { kind: 'mailto', href: url.href };
-  if ((url.protocol === 'https:' || url.protocol === 'http:') && url.hostname) {
-    return { kind: 'external', href: url.href, host: url.hostname.replace(/^www\./, '') };
-  }
-  return null;
+  const host = hostOf(url.href);
+  return host ? { kind: 'external', href: url.href, host } : null;
 }
 
 /** The URL to load a forum picture from, or null when the source is not one of ours. */

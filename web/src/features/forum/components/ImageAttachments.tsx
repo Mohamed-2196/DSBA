@@ -1,6 +1,7 @@
 import { ArrowClockwise, ImageSquare, WarningCircle, X } from '@phosphor-icons/react';
+import { formatSize } from '../../../api/uploads';
 import { IconButton, cx } from '../../../ui';
-import { formatBytes, type ImageUpload } from '../lib/uploads';
+import type { ImageUpload } from '../lib/uploads';
 
 export interface AttachmentListProps {
   uploads: ImageUpload[];
@@ -21,7 +22,7 @@ export function AttachmentList({ uploads, onRemove, onRetry }: AttachmentListPro
                 <img className="forum-attachment__img" src={u.previewUrl} alt="" />
                 {u.phase === 'uploading' ? (
                   <span className="forum-attachment__progress" aria-hidden="true">
-                    <span style={{ width: `${Math.round(u.progress * 100)}%` }} />
+                    <span style={{ width: `${u.progress}%` }} />
                   </span>
                 ) : null}
               </div>
@@ -35,11 +36,11 @@ export function AttachmentList({ uploads, onRemove, onRetry }: AttachmentListPro
               <span className="forum-attachment__name">{u.fileName}</span>
               {/* Announced once per phase (uploading, added, the problem); the percentage is for the eyes only. */}
               <span className={cx('forum-attachment__meta', u.phase === 'error' && 'is-error')} aria-live="polite">
-                {u.phase === 'uploading' ? 'Uploading…' : u.phase === 'error' ? u.error : `${formatBytes(u.size)} · in your post`}
+                {u.phase === 'uploading' ? 'Uploading…' : u.phase === 'error' ? u.error : `${formatSize(u.size)} · in your post`}
               </span>
               {u.phase === 'uploading' ? (
                 <span className="forum-attachment__pct u-tabular" aria-hidden="true">
-                  {Math.round(u.progress * 100)}%
+                  {u.progress}%
                 </span>
               ) : null}
               {u.phase === 'error' && u.retryable ? (

@@ -1,8 +1,9 @@
-// Dates on the calendar that concern modules (the calendar feature's public hooks), with display strings.
+// Dates on the calendar that concern modules (the calendar feature's public hooks), with display strings. Days count
+// from today in Bahrain, as the API counts them (src/lib/dates.ts).
 import { useMemo } from 'react';
-import { formatDate } from '../../ui';
-import { daysUntil, useCalendarEvents, useNextExamForModule, type CalendarEvent } from '../calendar/public';
+import { daysUntil, formatDay, inDays, parseDay, today, todayKey, weekdayOf, type DayInput } from '../../lib/dates';
 import type { CohortYear } from '../../state';
+import { useCalendarEvents, useNextExamForModule, type CalendarEvent } from '../calendar/public';
 
 export interface ExamInfo {
   event: CalendarEvent;
@@ -19,23 +20,17 @@ export interface ExamInfo {
   soon: boolean;
 }
 
-const pad = (n: number) => String(n).padStart(2, '0');
-
-/** Today as 'YYYY-MM-DD' (local), the way the calendar counts days. */
-export function todayKey(now = new Date()): string {
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-}
-
-export function examInfo(event: CalendarEvent | null | undefined, now = new Date()): ExamInfo | null {
+/** What the module pages show about an exam, counted from `from` (today in Bahrain). */
+export function examInfo(event: CalendarEvent | null | undefined, from: DayInput = today()): ExamInfo | null {
   if (!event) return null;
-  const days = daysUntil(event.date, now);
+  const days = daysUntil(event.date, from);
   return {
     event,
     days,
-    date: formatDate(event.date, { day: 'numeric', month: 'short' }),
-    weekdayDate: `${formatDate(event.date, { weekday: 'short' })} ${formatDate(event.date, { day: 'numeric', month: 'short' })}`,
-    weekday: formatDate(event.date, { weekday: 'long' }),
-    relative: days <= 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`,
+    date: formatDay(event.date, { month: 'short', year: false }),
+    weekdayDate: formatDay(event.date, { weekday: 'short', month: 'short', year: false }),
+    weekday: weekdayOf(parseDay(event.date)).long,
+    relative: inDays(days),
     soon: days <= 14,
   };
 }

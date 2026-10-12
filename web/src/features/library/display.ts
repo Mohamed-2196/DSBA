@@ -1,6 +1,7 @@
 // Display strings for library items (sentence case, short).
 import type { ModuleSummary } from '../../api/types';
 import { formatSize } from '../../api/uploads';
+import { hostOf } from '../../lib/share';
 import { timeAgo } from '../../ui';
 import { formatOf, kindLabel, type ItemStatus } from './kinds';
 import type { LibraryItem, LibrarySort } from './types';
@@ -24,20 +25,9 @@ export function downloadsLabel(n: number): string {
   return `${n.toLocaleString('en-GB')} ${n === 1 ? 'download' : 'downloads'}`;
 }
 
-/** 'drive.google.com' for an http(s) address; null for anything else. */
-export function linkHost(url: string | null | undefined): string | null {
-  if (!url) return null;
-  try {
-    const u = new URL(url);
-    return u.protocol === 'https:' || u.protocol === 'http:' ? u.hostname.replace(/^www\./, '') : null;
-  } catch {
-    return null;
-  }
-}
-
 /** Where a link leads, in words: 'Google Drive', 'the VLE', or its host. */
 export function linkPlace(item: Pick<LibraryItem, 'url'>): string {
-  const host = linkHost(item.url);
+  const host = hostOf(item.url);
   if (!host) return 'another site';
   if (host === 'drive.google.com' || host === 'docs.google.com') return 'Google Drive';
   return host;
