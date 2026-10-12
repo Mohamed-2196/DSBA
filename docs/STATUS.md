@@ -1,8 +1,8 @@
 # Status
 
 This is the handoff between sessions: where the work stands, what's next and what Mohamed still has to decide.
-Update it whenever you finish or start something. Last updated 2026-10-12, when the work moved from the cloud
-session that built rounds 1 and 2 to Claude Code on Mohamed's Mac.
+Update it whenever you finish or start something. Last updated 2026-10-12 at about 23:58, when round 3 started on
+Mohamed's Mac.
 
 ## Where things stand
 
@@ -26,6 +26,27 @@ deployed yet.
   - The end-to-end suite hasn't run since round 2. Two of its setup steps were fixed without being run.
 
 ## In flight
+
+**Round 3.** Started 2026-10-12, about 23:55. Three agents work in parallel, each on its own branch and worktree.
+The lead merges them.
+
+| Branch | Agent | Worktree | Covers ("Next" below) |
+| --- | --- | --- | --- |
+| `round3/e2e-docker` | student-tester | `../dsba-e2e` | 1: the e2e suite on Docker, one command, a rerun |
+| `round3/drive-import` | api-builder | `../dsba-drive` | 3: `import-drive`, its wrapper and tests; then the CQ-15 nits |
+| `round3/web-leftovers` | web-builder | `../dsba-web` | 4, and 5 on the web side (the data router for the leave guard) |
+
+- **The re-review round (2) waits** until these three are merged, so the reviewers and the student tester see
+  the finished round rather than a moving target.
+- **The Docker stack** runs from the main checkout (compose project `dsba-hub`).
+  - The student tester owns it while round 3 runs: it may recreate `api`, `mail` and `web` with its e2e override.
+  - Nobody runs `docker compose down`: the API's pytest uses its Postgres.
+- **The local API environment** uses Python 3.12, pinned in `api/.python-version` to match the image and CI. uv
+  had picked 3.15.
+- **Mohamed's part.** `api/app/services/exam_names.py`: `exam_meta_from_name()` reads a past paper's exam year,
+  zone and examiners'-report marker from its file name.
+  - It's a stub for Mohamed to write, because he knows how the real files are named.
+  - Until then, imported papers have no year or zone. The import calls it already.
 
 **Standards review.** A separate cloud session started at 23:40 on 2026-10-12. Its job:
 - check the coding standards in the docs against the official sources;
