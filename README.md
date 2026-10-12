@@ -11,7 +11,6 @@ web/            the web app: React 18, strict TypeScript, Vite, TanStack Query; 
 docs/           the team brief, the deployment guide, the reviews and the product spec (see "Docs" below)
 scripts/        check.sh: every check CI runs, in one command
 compose.yaml    the local stack            compose.prod.yaml    production
-launch-film/    the Hub's launch film, a separate project with its own README
 ```
 
 ## Run it with Docker

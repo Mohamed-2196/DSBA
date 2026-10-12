@@ -23,10 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# Launch film build outputs
-launch-film/out
-launch-film/assets
-launch-film/node_modules
 __pycache__
 
 # Backend and local stack

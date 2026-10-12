@@ -48,7 +48,7 @@ setup('Sara signs up with her phone number: wrong code, resend, profile', async 
   await expect(dialog).toContainText(`We’ll text a 6-digit code to +973 ${run.sara.local}.`);
   const first = await sendCode(page);
   await expect(dialog).toContainText('Check your messages');
-  await expect(dialog).toContainText(`Sent to +973 •••• ••${run.sara.local.slice(-2)}.`);
+  await expect(dialog).toContainText(`Sent to +973 ${run.sara.local}.`);
   const code1 = await waitForCode('sms', run.sara.e164, first.since);
 
   // A wrong code says how many tries are left.

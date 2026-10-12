@@ -146,6 +146,7 @@ test('the rep hides the reply, resolves the report and locks the thread; student
   const offTopic = reply(rep, 'WhatsApp group please');
   await offTopic.locator('[data-hub="post-menu"]').click();
   await rep.getByRole('menuitem', { name: 'Hide reply' }).click();
+  await rep.getByRole('dialog').getByRole('button', { name: 'Hide reply' }).click();
   await expect(rep.getByText('Reply hidden')).toBeVisible();
 
   await rep.goto('/moderation');
@@ -188,6 +189,7 @@ test('a hidden thread is gone for students and guests', async ({ ali, rep, sara,
   await rep.goto(`/forum/${hiddenSlug}`);
   await rep.locator('[data-hub="post-menu"]').first().click();
   await rep.getByRole('menuitem', { name: 'Hide thread' }).click();
+  await rep.getByRole('dialog').getByRole('button', { name: 'Hide thread' }).click();
   await expect(rep.locator('main')).toContainText('This thread is hidden.');
 
   for (const page of [sara, guest]) {
