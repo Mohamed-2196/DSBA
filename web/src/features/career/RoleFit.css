@@ -5,6 +5,9 @@
 /* ── Role chips ──────────────────────────────────────────────────────────────────────────────── */
 .career-roles { display: flex; flex-wrap: wrap; gap: var(--sp-8); margin-bottom: var(--sp-16); }
 .career-roles .career-role { height: 36px; padding: 0 14px; gap: var(--sp-8); }
+@media (pointer: coarse) {
+  .career-roles .career-role { height: 44px; }
+}
 .career-roles .career-role .ui-chip__icon { font-size: 17px; }
 
 /* ── Panel ───────────────────────────────────────────────────────────────────────────────────── */
@@ -35,7 +38,7 @@
 .career-score__headline strong { font-weight: var(--fw-heavy); }
 .career-score__sub { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.4; }
 
-.career-fit__about { color: var(--ink); font-size: var(--fs-16); line-height: 1.5; }
+.career-fit__about { max-width: 68ch; color: var(--ink); font-size: var(--fs-16); line-height: 1.5; }
 
 .career-tools__label { margin-bottom: var(--sp-8); color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
 .career-tools__list { display: flex; flex-wrap: wrap; gap: var(--sp-8); list-style: none; }
@@ -117,6 +120,10 @@
   transition: background-color var(--dur-fast) var(--ease);
 }
 .career-close:hover { background: color-mix(in srgb, var(--cobalt) 16%, var(--surface)); }
+@media (pointer: coarse) {
+  .career-fitcert { height: 44px; }
+  .career-close { min-height: 44px; align-items: center; }
+}
 .career-close__icon { flex: none; margin-top: 1px; font-size: 18px; color: var(--cobalt); }
 .career-close__text { min-width: 0; flex: 1 1 auto; }
 .career-close__go { flex: none; margin-top: 3px; font-size: 14px; color: var(--cobalt); transition: transform var(--dur-fast) var(--ease); }

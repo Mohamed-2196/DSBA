@@ -1,7 +1,5 @@
-import { useMemo, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { useMemo, useState } from 'react';
 import {
-  ArrowRight,
   Briefcase,
   Certificate,
   ChartBar,
@@ -10,28 +8,23 @@ import {
   CheckCircle,
   CircleDashed,
   Cpu,
-  FileText,
   Flask,
   Handshake,
-  PlayCircle,
   ShieldWarning,
   Target,
-  Trophy,
   TrendUp,
   Wrench,
   type Icon,
 } from '@phosphor-icons/react';
-import type { CohortYear } from '../../lib/modules';
-import { cohortColor, cohortLabel } from '../../state';
+import type { CareerRole } from '../../api/types';
+import { cohortColor, cohortLabel, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, Chip, CohortBadge, PageSection, Panel, ProgressRing, SectionHeader, cx } from '../../ui';
-import { useModuleDetail } from './api';
 import { useCareerData } from './context';
-import { evaluateRole, type RoleFitResult, type SkillFit, type SkillStatus } from './lib/fit';
+import { evaluateRole, type RoleFitResult, type SkillStatus } from './lib/fit';
 import { jumpTo } from './lib/jump';
-import { askLink, lessonPath, libraryLink, resolveClose } from './lib/links';
-import { ModuleLink } from './ModuleLink';
-import type { CloseStep, Role } from './types';
+import { askLink } from './lib/links';
+import { SkillRow } from './SkillRow';
 import './RoleFit.css';
 
 const ROLE_ICONS: Record<string, Icon> = {
@@ -52,100 +45,6 @@ const GROUPS: { status: SkillStatus; key: 'covered' | 'later' | 'gaps'; title: s
   { status: 'gap', key: 'gaps', title: 'Yours to close', icon: Wrench, weight: 'bold' },
 ];
 
-const CLOSE_ICONS: Record<CloseStep['kind'], Icon> = { lesson: PlayCircle, file: FileText, cert: Certificate, forum: ChatsCircle, opps: Trophy };
-
-function CloseBody({ close }: { close: CloseStep }) {
-  const Glyph = CLOSE_ICONS[close.kind];
-  return (
-    <>
-      <Glyph className="career-close__icon" weight="regular" aria-hidden="true" />
-      <span className="career-close__text">
-        <span className="visually-hidden">Suggested next step: </span>
-        {close.text}
-      </span>
-      <ArrowRight className="career-close__go" weight="bold" aria-hidden="true" />
-    </>
-  );
-}
-
-/** A lesson: the chapter is found by its title in the module's lessons (the module's lessons while they load). */
-function LessonLink({ moduleId, chapter, className, children }: { moduleId: string; chapter: string; className: string; children: ReactNode }) {
-  const detail = useModuleDetail(moduleId);
-  return (
-    <Link to={lessonPath(moduleId, chapter, detail.data)} className={className}>
-      {children}
-    </Link>
-  );
-}
-
-/** The one thing to do about a gap: a link into the app, or a button that scrolls to the right card. */
-function CloseAction({ close }: { close: CloseStep }) {
-  switch (close.kind) {
-    case 'lesson':
-      return (
-        <LessonLink moduleId={close.module} chapter={close.chapter} className="career-close">
-          <CloseBody close={close} />
-        </LessonLink>
-      );
-    case 'file':
-      return (
-        <Link to={libraryLink(close.module)} className="career-close">
-          <CloseBody close={close} />
-        </Link>
-      );
-    case 'forum':
-      return (
-        <Link to={close.to} className="career-close">
-          <CloseBody close={close} />
-        </Link>
-      );
-    case 'cert':
-      return (
-        <button type="button" className="career-close" onClick={() => jumpTo(`career-cert-${close.cert}`, { flash: true, block: 'center' })}>
-          <CloseBody close={close} />
-        </button>
-      );
-    case 'opps':
-      // The competition beside the page title (the board when it is not on screen).
-      return (
-        <button
-          type="button"
-          className="career-close"
-          onClick={() => {
-            const featured = document.querySelector<HTMLElement>('[data-hub="career-featured"]');
-            if (!(featured && jumpTo(featured.id, { flash: true, block: 'center' }))) jumpTo('career-opportunities');
-          }}
-        >
-          <CloseBody close={close} />
-        </button>
-      );
-  }
-}
-
-/** One skill: its name and the module that teaches it, or (for a gap) why it is a gap and what to do about it. */
-function Skill({ row, roleId }: { row: SkillFit; roleId: string }) {
-  const data = useCareerData();
-  const close = row.status === 'gap' ? resolveClose(data, row.id, roleId) : null;
-  return (
-    <li className={cx('career-skill', `is-${row.status}`)} data-hub="career-skill" data-skill-id={row.id} data-skill-status={row.status}>
-      <p className="career-skill__name">{row.skill.name}</p>
-      {row.status === 'gap' ? (
-        <>
-          {row.detail ? <p className="career-skill__detail">{row.detail}</p> : null}
-          {close ? <CloseAction close={close} /> : null}
-        </>
-      ) : (
-        <div className="career-skill__mods">
-          {row.named.slice(0, 1).map((n) => (
-            <ModuleLink key={n.module} module={n.mod} />
-          ))}
-          {row.status === 'later' ? <span className="career-skill__when">{row.label}</span> : null}
-        </div>
-      )}
-    </li>
-  );
-}
-
 /** What is left after the covered skills, as one short sentence. */
 function subline(fit: RoleFitResult): string {
   const parts: string[] = [];
@@ -159,7 +58,7 @@ function subline(fit: RoleFitResult): string {
 }
 
 export interface RoleFitProps {
-  role: Role;
+  role: CareerRole;
   year: CohortYear;
   onSelect: (roleId: string) => void;
 }
@@ -280,7 +179,7 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
                   </h4>
                   <ul role="list" className="career-group__list">
                     {rows.map((row) => (
-                      <Skill key={row.id} row={row} roleId={role.id} />
+                      <SkillRow key={row.id} row={row} roleId={role.id} />
                     ))}
                   </ul>
                 </section>

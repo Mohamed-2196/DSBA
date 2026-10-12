@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type Keyboard
 import { cohortTextColor } from '../../state';
 import { useModules } from '../../state/modules';
 import { cx } from '../../ui';
-import { addDays, formatLong, isWeekend, monthMatrix, monthOfDate, toKey, WEEKDAYS, type MonthRef } from './dates';
+import { addDays, dayKey, formatLong, isWeekend, WEEKDAYS } from '../../lib/dates';
+import { monthMatrix, monthOfDate, type MonthRef } from './dates';
 import { chipText, eventSummary } from './eventMeta';
 import { groupByDay } from './queries';
 import type { CalendarEvent } from './types';
@@ -16,6 +17,8 @@ export interface MonthGridProps {
   selectedId: string | null;
   showCohort: boolean;
   labelledBy: string;
+  /** phones: each day is its number and a dot per date (up to three); tapping a day opens its first date */
+  compact?: boolean;
   onOpen: (e: CalendarEvent) => void;
   onNavigate: (month: MonthRef) => void;
 }
@@ -23,21 +26,22 @@ export interface MonthGridProps {
 /**
  * Month grid (ARIA grid, Sunday first, Fri/Sat weekend). One tab stop: arrow keys move by day/week,
  * Home/End to the week's ends, PageUp/PageDown change month, Enter opens the day's first event.
- * A multi-day event (a break) sits on each of its days.
+ * A multi-day event (a break) sits on each of its days. On phones (`compact`) a day shows dots instead of chips
+ * and a tap on it opens its first date (the drawer lists the others).
  * data-hub="calendar-grid" on the grid, "calendar-event" on each event.
  */
-export function MonthGrid({ month, events, today, selectedId, showCohort, labelledBy, onOpen, onNavigate }: MonthGridProps) {
+export function MonthGrid({ month, events, today, selectedId, showCohort, labelledBy, compact = false, onOpen, onNavigate }: MonthGridProps) {
   const { y, m } = month;
   const { getModule } = useModules();
   const weeks = useMemo(() => monthMatrix({ y, m }), [y, m]);
   const byDay = useMemo(() => groupByDay(events), [events]);
-  const todayKey = toKey(today);
+  const todayKey = dayKey(today);
   const gridRef = useRef<HTMLDivElement>(null);
   const wantFocus = useRef(false);
   const [focusKey, setFocusKey] = useState<string | null>(null);
 
   const inMonth = (d: Date) => d.getMonth() === m && d.getFullYear() === y;
-  const visibleKeys = weeks.flat().filter(inMonth).map(toKey);
+  const visibleKeys = weeks.flat().filter(inMonth).map((d) => dayKey(d));
   const firstEventKey = visibleKeys.find((k) => byDay.has(k));
   const activeKey =
     focusKey && visibleKeys.includes(focusKey) ? focusKey : visibleKeys.includes(todayKey) ? todayKey : (firstEventKey ?? visibleKeys[0]);
@@ -49,7 +53,7 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
   });
 
   const moveTo = (date: Date) => {
-    setFocusKey(toKey(date));
+    setFocusKey(dayKey(date));
     wantFocus.current = true;
     if (!inMonth(date)) onNavigate(monthOfDate(date));
   };
@@ -69,7 +73,7 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
       const lastDay = new Date(date.getFullYear(), date.getMonth() + dir + 1, 0).getDate();
       moveTo(new Date(date.getFullYear(), date.getMonth() + dir, Math.min(date.getDate(), lastDay)));
     } else if (e.key === 'Enter' || e.key === ' ') {
-      const first = byDay.get(toKey(date))?.[0];
+      const first = byDay.get(dayKey(date))?.[0];
       if (first) {
         e.preventDefault();
         onOpen(first);
@@ -78,7 +82,7 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
   };
 
   return (
-    <div ref={gridRef} role="grid" aria-labelledby={labelledBy} className="cal-grid" data-hub="calendar-grid" style={{ '--rows': weeks.length } as CSSProperties}>
+    <div ref={gridRef} role="grid" aria-labelledby={labelledBy} className={cx('cal-grid', compact && 'cal-grid--compact')} data-hub="calendar-grid" style={{ '--rows': weeks.length } as CSSProperties}>
       <div role="row" className="cal-grid__row cal-grid__row--head">
         {WEEKDAYS.map((w, i) => (
           <div key={w.short} role="columnheader" className={cx('cal-grid__wd', (i === 5 || i === 6) && 'is-weekend')}>
@@ -87,15 +91,17 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
         ))}
       </div>
       {weeks.map((week) => (
-        <div key={toKey(week[0] ?? today)} role="row" className="cal-grid__row">
+        <div key={dayKey(week[0] ?? today)} role="row" className="cal-grid__row">
           {week.map((date) => {
-            const key = toKey(date);
+            const key = dayKey(date);
             const list = byDay.get(key) ?? [];
             const outside = !inMonth(date);
             const isToday = key === todayKey;
             const past = date < today;
             const label = `${formatLong(date)}${isToday ? ', today' : ''}${list.length ? `, ${list.length} event${list.length > 1 ? 's' : ''}: ${list.map(eventSummary).join('; ')}` : ''}`;
             const more = list[MAX_CHIPS];
+            const first = list[0];
+            const selected = !!selectedId && list.some((ev) => ev.id === selectedId);
             return (
               <div
                 key={key}
@@ -104,17 +110,26 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                 tabIndex={key === activeKey ? 0 : -1}
                 aria-label={label}
                 aria-current={isToday ? 'date' : undefined}
-                className={cx('cal-day', outside && 'is-outside', isToday && 'is-today', isWeekend(date) && 'is-weekend', past && 'is-past', list.length > 0 && 'has-events')}
+                className={cx('cal-day', outside && 'is-outside', isToday && 'is-today', isWeekend(date) && 'is-weekend', past && 'is-past', list.length > 0 && 'has-events', compact && selected && 'is-selected')}
                 onKeyDown={(e) => onKeyDown(e, date)}
+                onClick={compact && first ? () => onOpen(first) : undefined}
                 onFocus={(e) => {
                   if (e.target === e.currentTarget) setFocusKey(key);
                 }}
               >
                 <span className="cal-day__head" aria-hidden="true">
                   <span className="cal-day__num">{date.getDate()}</span>
-                  {isToday ? <span className="cal-day__today">Today</span> : null}
+                  {isToday && !compact ? <span className="cal-day__today">Today</span> : null}
                 </span>
-                {list.length ? (
+                {compact ? (
+                  list.length ? (
+                    <span className="cal-day__dots" aria-hidden="true">
+                      {list.slice(0, 3).map((ev) => (
+                        <span key={ev.id} className={cx('cal-dot', `cal-dot--${ev.type}`)} />
+                      ))}
+                    </span>
+                  ) : null
+                ) : list.length ? (
                   <span className="cal-day__events">
                     {list.slice(0, MAX_CHIPS).map((ev) => {
                       const { code, line } = chipText(ev, getModule(ev.moduleId));

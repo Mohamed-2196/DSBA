@@ -1,7 +1,7 @@
 // The exam session ahead, and the geometry of Home's trace (pure + deterministic).
 import type { ModuleSummary } from '../../api/types';
 import { typeLabel, type CalendarEvent } from '../calendar/public';
-import { dayFromISO, daysBetween, startOfDay } from './time';
+import { daysBetween, parseDay, today as bahrainToday } from '../../lib/dates';
 
 const EXAM_TYPES = new Set(['exam', 'mock']);
 
@@ -20,7 +20,7 @@ export interface ExamSession {
 }
 
 /**
- * The next exam (or mock) for a year within `horizon` days, plus the exams that follow it with gaps ≤ `maxGap`
+ * The next exam (or mock) for a year within `horizon` days of `today` (Bahrain's, at local midnight), plus the exams that follow it with gaps ≤ `maxGap`
  * days (one "session"). Falls back to the next other date (break, deadline…) so the hero always has something
  * true to say. null when the calendar has nothing ahead.
  * Home counts down to confirmed dates only: sample dates (placeholders, `sample: true`) and programme events
@@ -30,14 +30,13 @@ export function getExamSession(
   events: readonly CalendarEvent[],
   year: number,
   getModule: (id: string | null | undefined) => ModuleSummary | null,
-  now: Date = new Date(),
+  today: Date = bahrainToday(),
   { horizon = 120, maxGap = 21 }: { horizon?: number; maxGap?: number } = {},
 ): ExamSession | null {
-  const today = startOfDay(now);
   const upcoming: SessionEvent[] = events
     .filter((e) => (e.year == null || e.year === year) && !e.sample && e.type !== 'event')
     .map((e) => {
-      const when = dayFromISO(e.date);
+      const when = parseDay(e.date);
       return { ...e, days: daysBetween(today, when), module: getModule(e.moduleId), when };
     })
     .filter((e) => e.days >= 0 && e.days <= horizon)

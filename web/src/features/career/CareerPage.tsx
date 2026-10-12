@@ -1,19 +1,20 @@
-import { Compass, WarningCircle } from '@phosphor-icons/react';
+import { Compass } from '@phosphor-icons/react';
+import type { CareerDoc } from '../../api/types';
 import { useQueryParam, useYear } from '../../state';
-import { Button, EmptyState, Page, PageHeader, Panel, Skeleton } from '../../ui';
+import { Button, EmptyState, Page, PageHeader, Panel, QueryError, Skeleton } from '../../ui';
 import { AfterDsba } from './AfterDsba';
 import { useCareer } from './api';
 import { Certificates } from './Certificates';
 import { CareerContext } from './context';
-import { FeaturedCompetition, Opportunities } from './Opportunities';
+import { FeaturedCompetition } from './FeaturedCompetition';
+import { Opportunities } from './Opportunities';
 import { RoleFit } from './RoleFit';
-import type { CareerData } from './types';
 import './CareerPage.css';
 
 const TITLE = 'Career Navigator';
 const DESCRIPTION = 'Graduate programmes, internships and careers pages at employers in Bahrain.';
 
-function CareerBody({ data }: { data: CareerData }) {
+function CareerBody({ data }: { data: CareerDoc }) {
   const { activeYear } = useYear();
   const [roleParam, setRoleParam] = useQueryParam('role', data.defaultRoleId);
   const role = data.roles.find((r) => r.id === roleParam) ?? data.roles.find((r) => r.id === data.defaultRoleId) ?? data.roles[0];
@@ -61,18 +62,7 @@ export default function CareerPage() {
       ) : q.isError ? (
         <>
           <PageHeader title={TITLE} description={DESCRIPTION} />
-          <Panel padding="none">
-            <EmptyState
-              icon={WarningCircle}
-              title="Career Navigator didn’t load"
-              body="Check your connection, then try again."
-              action={
-                <Button onClick={() => void q.refetch()} loading={q.isFetching}>
-                  Try again
-                </Button>
-              }
-            />
-          </Panel>
+          <QueryError error={q.error} title="Career Navigator didn’t load" onRetry={() => void q.refetch()} retrying={q.isFetching} />
         </>
       ) : q.data ? (
         <CareerBody data={q.data} />

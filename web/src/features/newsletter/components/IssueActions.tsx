@@ -3,10 +3,9 @@ import { useState } from 'react';
 import { PaperPlaneTilt, Trash } from '@phosphor-icons/react';
 import { errorMessage } from '../../../api/errors';
 import { useToast } from '../../../state';
-import { Button, IconButton, type ButtonSize } from '../../../ui';
+import { Button, ConfirmDialog, IconButton, type ButtonSize } from '../../../ui';
 import { useDeleteIssue, usePublishIssue } from '../api';
 import { issueNo } from '../lib/text';
-import { ConfirmDialog } from './ConfirmDialog';
 
 interface ActionIssue {
   id: string;

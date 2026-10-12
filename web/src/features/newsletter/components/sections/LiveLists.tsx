@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowFatUp, Books, ChatCircle, ChatsCircle, FileText, Plus } from '@phosphor-icons/react';
-import type { LibraryItem, ThreadSummary } from '../../../../api/types';
+import type { LibraryItem, LiveFallback, ThreadSummary } from '../../../../api/types';
 import { libraryItemPath } from '../../../library/public';
 import { useModules } from '../../../../state/modules';
 import { Badge, Button, CohortBadge, Skeleton } from '../../../../ui';
@@ -30,7 +30,7 @@ export function LiveSkeleton({ rows = 3 }: { rows?: number }) {
 }
 
 /** From the forum: the hottest threads, or an invitation when there are none. */
-export function ForumList({ threads, fallback }: { threads: ThreadSummary[]; fallback?: { title: string; text: string } }) {
+export function ForumList({ threads, fallback }: { threads: ThreadSummary[]; fallback?: LiveFallback | null }) {
   const { getModule } = useModules();
   if (!threads.length) {
     return (
@@ -95,7 +95,7 @@ const FORMAT_LABEL: Record<string, string> = { pdf: 'PDF', docx: 'Word', doc: 'W
 const isRecent = (iso: string | null, now = Date.now()): boolean => !!iso && now - new Date(iso).getTime() < NEW_DAYS * 86400000;
 
 /** New in the library: the newest files, or an invitation to the library when there are none. */
-export function LibraryList({ files, fallback }: { files: LibraryItem[]; fallback?: { title: string; text: string } }) {
+export function LibraryList({ files, fallback }: { files: LibraryItem[]; fallback?: LiveFallback | null }) {
   const { getModule } = useModules();
   if (!files.length) {
     return (

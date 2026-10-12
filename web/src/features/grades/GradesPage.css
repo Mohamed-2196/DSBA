@@ -255,6 +255,10 @@
 .grades-choice__select option { background: var(--surface); color: var(--ink); }
 .grades-choice.is-placeholder .grades-choice__select { color: var(--ink-2); font-weight: var(--fw-medium); }
 .grades-choice__caret { position: absolute; right: 2px; color: var(--ink-2); font-size: 12px; pointer-events: none; }
+/* Touch screens: a 44px control to tap (requests from frontend-accounts). */
+@media (pointer: coarse) {
+  .grades-choice__select { min-height: 44px; }
+}
 
 .grades-year__foot {
   display: flex;
@@ -310,7 +314,7 @@
 .grades-table--bands tbody th { width: auto; white-space: nowrap; }
 .grades-table--bands tbody th .grades-swatch { margin-right: 10px; }
 .grades-table--bands td { white-space: nowrap; }
-.grades-how__note { margin-top: var(--sp-12); color: var(--ink-2); font-size: var(--fs-12); line-height: 1.5; }
+.grades-how__note { margin-top: var(--sp-12); max-width: 72ch; color: var(--ink-2); font-size: var(--fs-12); line-height: 1.5; }
 
 /* ── Mobile sticky result ──────────────────────────────────────────────────────────────────── */
 .grades-sticky {

@@ -1,154 +1,20 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
-  ArrowUpRight,
-  Bank,
-  Briefcase,
-  Buildings,
-  CaretDown,
-  CaretUp,
-  CellTower,
-  ChartLineUp,
-  Cloud,
-  CreditCard,
-  Factory,
-  Handshake,
-  Lightning,
-  MagnifyingGlass,
-  Scales,
-  TrendUp,
-  Vault,
-  type Icon,
-} from '@phosphor-icons/react';
+import { CaretDown, CaretUp, MagnifyingGlass } from '@phosphor-icons/react';
 import type { ModuleSummary } from '../../api/types';
 import { useQueryParam } from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, Chip, EmptyState, PageSection, Panel, cx } from '../../ui';
+import { Button, Chip, EmptyState, PageSection, Panel, cx } from '../../ui';
 import { useCareerData } from './context';
-import { hostOf } from './lib/links';
-import { LogoSlot } from './LogoSlot';
+import { EmployerCard } from './EmployerCard';
 import { ModuleLink } from './ModuleLink';
-import type { Employer, OfferType, Track } from './types';
 import './Opportunities.css';
-
-// Generic icons for the sector line (never a brand mark).
-const SECTOR_ICONS: Record<string, Icon> = {
-  Bank,
-  Investment: ChartLineUp,
-  Regulator: Scales,
-  'Sovereign fund': Vault,
-  'Public body': Buildings,
-  Exchange: TrendUp,
-  'Audit & consulting': Briefcase,
-  Consulting: Handshake,
-  Telecom: CellTower,
-  Technology: Cloud,
-  Fintech: CreditCard,
-  Energy: Lightning,
-  Industry: Factory,
-};
-
-const TYPE_TONE: Record<OfferType, 'cobalt' | 'signal' | 'outline'> = { graduate: 'cobalt', internship: 'signal', careers: 'outline' };
 
 // The two kinds of programme a student can filter by. The dot repeats the colour of the badge on the cards.
 const TYPE_FILTERS: { id: 'graduate' | 'internship'; color: string }[] = [
   { id: 'graduate', color: 'var(--cobalt)' },
   { id: 'internship', color: 'var(--signal)' },
 ];
-
-const OFFER_ORDER: readonly OfferType[] = ['graduate', 'internship', 'careers'];
-
-/** The distinct offer types of an employer, in the order graduate, internship, careers. */
-const offerTypes = (employer: Employer): OfferType[] => OFFER_ORDER.filter((type) => employer.offers.some((o) => o.type === type));
-
-/** 'EVOLVE and THRIVE' from the named offers of an employer. */
-function programmeLine(employer: Employer): string {
-  const names = employer.offers.map((o) => o.name).filter((n): n is string => !!n);
-  if (names.length < 2) return names[0] ?? '';
-  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
-}
-
-function EmployerCard({ employer, track, tracks }: { employer: Employer; track: string; tracks: Map<string, Track> }) {
-  const { offerTypes: labels, ctaLabel } = useCareerData();
-  const types = offerTypes(employer);
-  const programme = programmeLine(employer);
-  const host = hostOf(employer.url);
-  const SectorIcon = SECTOR_ICONS[employer.sector] ?? Buildings;
-  return (
-    <Panel as="li" padding="none" id={`career-emp-${employer.id}`} className="career-emp" data-hub="career-employer" data-employer-id={employer.id} data-offer-types={types.join(' ')}>
-      <div className="career-emp__top">
-        <LogoSlot kind="employer" id={employer.id} mono={employer.mono} />
-        <ul role="list" className="career-emp__types" aria-label="What it offers">
-          {types.map((t) => (
-            <li key={t}>
-              <Badge tone={TYPE_TONE[t]}>{labels[t].label}</Badge>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="career-emp__who">
-        <h3 className="career-emp__name">{employer.name}</h3>
-        <p className="career-emp__sector">
-          <SectorIcon className="career-emp__sector-icon" aria-hidden="true" />
-          {employer.sector}
-        </p>
-      </div>
-
-      <div className="career-emp__body">
-        {programme ? <p className="career-emp__programme">{programme}</p> : null}
-        <p className="career-emp__why">{employer.why}</p>
-      </div>
-
-      <ul role="list" className="career-emp__tracks" aria-label="Good for">
-        {employer.tracks.map((id) => (
-          <li key={id} className={cx('career-track', id === track && 'is-active')}>
-            {tracks.get(id)?.short ?? id}
-          </li>
-        ))}
-      </ul>
-
-      <footer className="career-emp__foot">
-        <Button variant="secondary" size="sm" href={employer.url} trailingIcon={ArrowUpRight} className="career-emp__cta" data-hub="career-apply">
-          {ctaLabel[employer.cta]}
-          <span className="visually-hidden">{` at ${employer.name}, opens ${host} in a new tab`}</span>
-        </Button>
-        <span className="career-emp__host" aria-hidden="true">
-          {host}
-        </span>
-      </footer>
-    </Panel>
-  );
-}
-
-/**
- * The one competition on the board, featured beside the page title. BIBF is taking participants, so the way in
- * is the programme office (no deadline is shown, and none is invented).
- */
-export function FeaturedCompetition() {
-  const { featured: f } = useCareerData();
-  if (!f) return null;
-  return (
-    <aside id={`career-opp-${f.id}`} className="career-featured" aria-labelledby="career-featured-title" data-hub="career-featured" data-opp-id={f.id}>
-      <LogoSlot kind={f.logo.kind} id={f.logo.id} mono={f.mono} size="sm" />
-      <div className="career-featured__text">
-        <div className="career-featured__head">
-          <h2 id="career-featured-title" className="career-featured__title">
-            <a href={f.url} target="_blank" rel="noopener noreferrer" className="career-featured__link">
-              {f.title}
-              <ArrowUpRight className="career-featured__go" weight="bold" aria-hidden="true" />
-              <span className="visually-hidden">{`, opens ${hostOf(f.url)} in a new tab`}</span>
-            </a>
-          </h2>
-          {f.badge ? <Badge tone="signal">{f.badge}</Badge> : null}
-        </div>
-        <p className="career-featured__blurb">
-          {f.kind ? <span className="career-featured__kind">{f.kind}.</span> : null} {f.blurb} {f.note ? <strong>{f.note}</strong> : null}
-        </p>
-      </div>
-    </aside>
-  );
-}
 
 /**
  * The board: real employers, each with a logo slot, what it offers students and graduates, and one button to the

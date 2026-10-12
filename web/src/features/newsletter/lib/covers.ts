@@ -7,8 +7,9 @@
 //
 // A cover is drawn in a 300 x 400 box and scaled as one piece, so a thumbnail is the same cover, smaller.
 // This file is the geometry and the copy fitting (pure functions); the drawing is components/IssueCover.tsx.
-import type { Cover, Section } from '../types';
-import { issueNo, longDate } from './text';
+import type { IssueCover, IssueSection } from '../../../api/types';
+import { formatDay } from '../../../lib/dates';
+import { issueNo, plainText, sectionLabel } from './text';
 
 export const COVER_W = 300;
 export const COVER_H = 400;
@@ -72,18 +73,25 @@ export interface CoverModel {
  * headline cut down to a cover line; the section's label is printed beside it. An issue without lines lists
  * its first sections by name. `sections` may be null while the issue's detail is loading.
  */
-export function coverOf(issue: { number: number; title: string; date: string; cover: Cover; sections: readonly Pick<Section, 'id' | 'label'>[] | null }): CoverModel {
+export function coverOf(issue: {
+  number: number;
+  title: string;
+  date: string;
+  cover: IssueCover;
+  sections: readonly Pick<IssueSection, 'id' | 'label' | 'title'>[] | null;
+}): CoverModel {
   const { cover } = issue;
   const byId = new Map((issue.sections ?? []).map((s) => [s.id, s]));
   const known = (id: string) => !issue.sections || byId.has(id);
+  const label = (s: Pick<IssueSection, 'label' | 'title'> | undefined, id: string) => (s ? plainText(sectionLabel(s)) : labelFromId(id));
   const rows = cover.lines.length
-    ? cover.lines.filter((l) => known(l.section)).map((l) => ({ id: l.section, label: byId.get(l.section)?.label ?? labelFromId(l.section), text: l.text }))
-    : (issue.sections ?? []).slice(0, 5).map((s) => ({ id: s.id, label: s.label, text: '' }));
+    ? cover.lines.filter((l) => known(l.section)).map((l) => ({ id: l.section, label: label(byId.get(l.section), l.section), text: plainText(l.text) }))
+    : (issue.sections ?? []).slice(0, 5).map((s) => ({ id: s.id, label: label(s, s.id), text: '' }));
   return {
     tone: cover.tone,
-    art: cover.art,
+    art: cover.art ?? null,
     number: issueNo(issue.number),
-    date: issue.date ? longDate(issue.date) : '',
+    date: issue.date ? formatDay(issue.date) : '',
     title: issue.title,
     rows,
   };

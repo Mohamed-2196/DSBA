@@ -136,6 +136,11 @@
 .cmdk-item--more.is-active .cmdk-item__title { color: var(--ink); }
 .cmdk-glyph { flex: 0 0 auto; width: 36px; font-size: 18px; color: var(--ink-2); }
 .cmdk-item--more { min-height: 38px; }
+@media (pointer: coarse) {
+  .cmdk-item--more { min-height: 44px; }
+  .cmdk-field__clear { flex: none; width: 44px; height: 44px; }
+  .cmdk-field__esc { align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+}
 .cmdk-item--more .cmdk-glyph { font-size: 14px; }
 
 /* Marks: the brand highlighter on titles, quieter bold on subtitles. */

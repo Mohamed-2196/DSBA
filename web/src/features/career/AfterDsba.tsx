@@ -1,14 +1,14 @@
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, GraduationCap } from '@phosphor-icons/react';
+import type { CareerChecklistItem } from '../../api/types';
 import { useLocalStorage } from '../../state';
 import { Badge, Button, PageSection, Panel, SectionHeader, cx } from '../../ui';
 import { useModuleDetail } from './api';
 import { useCareerData } from './context';
 import { jumpTo } from './lib/jump';
-import { lessonPath } from './lib/links';
+import { appPath, lessonPath } from './lib/links';
 import { Seniors } from './Seniors';
-import type { ChecklistItem } from './types';
 import './AfterDsba.css';
 
 /** Ticks are kept in this browser as a JSON array of checklist ids, e.g. ["cv","linkedin"]. */
@@ -27,7 +27,7 @@ function LessonRowLink({ moduleId, chapter, children }: { moduleId: string; chap
 }
 
 /** The small link at the end of a checklist row: a lesson, a card further up the page or the forum. */
-function RowLink({ link }: { link: ChecklistItem['link'] }) {
+function RowLink({ link }: { link: CareerChecklistItem['link'] }) {
   if (!link) return null;
   const body = (
     <>
@@ -48,12 +48,14 @@ function RowLink({ link }: { link: ChecklistItem['link'] }) {
           {body}
         </LessonRowLink>
       );
-    case 'forum':
-      return (
-        <Link to={link.to} className="career-ready__link">
+    case 'forum': {
+      const to = appPath(link.to);
+      return to ? (
+        <Link to={to} className="career-ready__link">
           {body}
         </Link>
-      );
+      ) : null;
+    }
   }
 }
 
@@ -103,6 +105,7 @@ function Checklist() {
 /** What to have ready, who to ask, and one line for those heading to further study instead. */
 export function AfterDsba() {
   const { checklist, seniors, furtherStudy: study } = useCareerData();
+  const studyTo = appPath(study?.action.to);
   if (!checklist.length && !seniors.length && !study) return null;
   const description = seniors.length ? 'Things to have ready, and people who can tell you how it went for them.' : 'Things to have ready before you send an application.';
   return (
@@ -119,9 +122,11 @@ export function AfterDsba() {
             <p className="career-study__text">
               <strong>{study.title}</strong> {study.body}
             </p>
-            <Button variant="secondary" size="sm" to={study.action.to} trailingIcon={ArrowRight}>
-              {study.action.label}
-            </Button>
+            {studyTo ? (
+              <Button variant="secondary" size="sm" to={studyTo} trailingIcon={ArrowRight}>
+                {study.action.label}
+              </Button>
+            ) : null}
           </Panel>
         ) : null}
       </div>

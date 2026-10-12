@@ -1,33 +1,7 @@
-// Calendar date helpers. Events are calendar days ('YYYY-MM-DD', no time zone) and are compared as
-// local midnights, so a countdown counts calendar days whatever the hour.
-
-export const DAY_MS = 86400000;
-
-export interface Weekday {
-  short: string;
-  long: string;
-  two: string;
-  one: string;
-}
-
-/** Weekday headers, Sunday first (the Bahraini week; v1 also started on Sunday). */
-export const WEEKDAYS: readonly Weekday[] = [
-  { short: 'Sun', long: 'Sunday', two: 'Su', one: 'S' },
-  { short: 'Mon', long: 'Monday', two: 'Mo', one: 'M' },
-  { short: 'Tue', long: 'Tuesday', two: 'Tu', one: 'T' },
-  { short: 'Wed', long: 'Wednesday', two: 'We', one: 'W' },
-  { short: 'Thu', long: 'Thursday', two: 'Th', one: 'T' },
-  { short: 'Fri', long: 'Friday', two: 'Fr', one: 'F' },
-  { short: 'Sat', long: 'Saturday', two: 'Sa', one: 'S' },
-];
-
-/** The weekday of a date (index 0–6 is always in range). */
-export const weekdayOf = (date: Date): Weekday => WEEKDAYS[date.getDay()] as Weekday;
-
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
-const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
-const monthLong = (m: number): string => MONTHS[m] ?? '';
-const monthShort = (m: number): string => MONTHS_SHORT[m] ?? '';
+// Calendar-only date helpers: months as { y, m }, the month grid, countdown labels and distances. Days themselves
+// (day keys, today in Bahrain, weekdays, month names, formats) come from src/lib/dates.ts, the one home every area
+// shares (code quality review CQ-5).
+import { addDays, daysUntil, isWeekend, monthName, startOfDay } from '../../lib/dates';
 
 /** A month of a year; m is 0-based. */
 export interface MonthRef {
@@ -35,34 +9,7 @@ export interface MonthRef {
   m: number;
 }
 
-/** Friday and Saturday are the weekend in Bahrain. */
-export const isWeekend = (date: Date): boolean => date.getDay() === 5 || date.getDay() === 6;
-
 const pad = (n: number): string => String(n).padStart(2, '0');
-
-/** Local midnight Date for 'YYYY-MM-DD'. */
-export function parseKey(key: string): Date {
-  const [y = 1970, m = 1, d = 1] = key.split('-').map(Number);
-  return new Date(y, m - 1, d);
-}
-
-/** Local midnight of a Date / timestamp / 'YYYY-MM-DD'. */
-export function startOfDay(input: Date | number | string = new Date()): Date {
-  if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input)) return parseKey(input);
-  const d = new Date(input);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-/** 'YYYY-MM-DD' for a local date. */
-export function toKey(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-/** Whole calendar days from `from` to `date` (negative = in the past). */
-export function daysUntil(date: Date | string, from: Date | number = new Date()): number {
-  return Math.round((startOfDay(date).getTime() - startOfDay(from).getTime()) / DAY_MS);
-}
 
 /** 'Today', 'Tomorrow', 'In 17 days', 'Yesterday', '3 days ago'; more than a month back: 'Past'. */
 export function countdownLabel(days: number): string {
@@ -71,12 +18,6 @@ export function countdownLabel(days: number): string {
   if (days === -1) return 'Yesterday';
   if (days < -30) return 'Past';
   return days > 1 ? `In ${days} days` : `${-days} days ago`;
-}
-
-/** The same inside a sentence: 'today', 'tomorrow', 'in 17 days' (for days that are today or later). */
-export function inDays(days: number): string {
-  if (days <= 0) return 'today';
-  return days === 1 ? 'tomorrow' : `in ${days} days`;
 }
 
 /** Compact form for tight lists: 'Today' · 'Tomorrow' · '17 days' · 'Past'. */
@@ -88,8 +29,6 @@ export function countdownShort(days: number): string {
 }
 
 // ── Months ──────────────────────────────────────────────────────────────────────────────────────
-/** 'YYYY-MM' for a Date. */
-export const monthKeyOf = (date: Date): string => `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
 
 /** { y, m } (m 0-based) from 'YYYY-MM', or null when malformed. */
 export function parseMonthKey(key: string | null | undefined): MonthRef | null {
@@ -105,14 +44,15 @@ export function addMonths({ y, m }: MonthRef, n: number): MonthRef {
   return { y: d.getFullYear(), m: d.getMonth() };
 }
 
+/** 'YYYY-MM' for the ?month= parameter. */
 export const monthKey = ({ y, m }: MonthRef): string => `${y}-${pad(m + 1)}`;
 export const sameMonth = (a: MonthRef, b: MonthRef): boolean => a.y === b.y && a.m === b.m;
 export const monthOfDate = (date: Date): MonthRef => ({ y: date.getFullYear(), m: date.getMonth() });
 
 /** 'October 2026' */
-export const monthTitle = ({ y, m }: MonthRef): string => `${monthLong(m)} ${y}`;
+export const monthTitle = ({ y, m }: MonthRef): string => `${monthName(m)} ${y}`;
 /** 'October' */
-export const monthName = ({ m }: MonthRef): string => monthLong(m);
+export const monthLabel = ({ m }: MonthRef): string => monthName(m);
 
 /** Weeks (arrays of 7 local Dates, Sunday first) covering a month. */
 export function monthMatrix({ y, m }: MonthRef): Date[][] {
@@ -126,27 +66,6 @@ export function monthMatrix({ y, m }: MonthRef): Date[][] {
   }
   return weeks;
 }
-
-export const addDays = (date: Date, n: number): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
-
-// ── Formatting (en-GB order, built by hand so no locale adds commas or 'Sept') ──────────────────
-// Every format a student sees carries the weekday: a date without its day of the week is not allowed
-// out of this file (the only exceptions are month titles and the bare day number of a date block,
-// which always sits under its weekday).
-/** 'Friday 23 October 2026' */
-export const formatLong = (date: Date): string => `${weekdayOf(date).long} ${date.getDate()} ${monthLong(date.getMonth())} ${date.getFullYear()}`;
-/** 'Friday 23 October' */
-export const formatLongDay = (date: Date): string => `${weekdayOf(date).long} ${date.getDate()} ${monthLong(date.getMonth())}`;
-/** 'Fri 23 Oct' */
-export const formatShort = (date: Date): string => `${weekdayOf(date).short} ${date.getDate()} ${monthShort(date.getMonth())}`;
-/** 'Fri 23 Oct 2026' */
-export const formatShortYear = (date: Date): string => `${formatShort(date)} ${date.getFullYear()}`;
-/** 'Oct' */
-export const formatMonthShort = (date: Date): string => monthShort(date.getMonth());
-/** 'October' */
-export const formatMonthLong = (date: Date): string => monthLong(date.getMonth());
-/** 'October 2026' */
-export const formatMonthYear = (date: Date): string => `${monthLong(date.getMonth())} ${date.getFullYear()}`;
 
 // ── Distances ───────────────────────────────────────────────────────────────────────────────────
 const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`;

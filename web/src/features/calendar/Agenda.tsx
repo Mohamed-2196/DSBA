@@ -1,7 +1,8 @@
 import { Fragment, type ReactNode } from 'react';
 import { CohortBadge, cx } from '../../ui';
 import { DateLeaf } from './DateLeaf';
-import { countdownLabel, daysUntil, formatLong, formatShort, monthName, parseKey, toKey, type MonthRef } from './dates';
+import { dayKey, daysUntil, formatLong, formatShort, parseDay } from '../../lib/dates';
+import { countdownLabel, monthLabel, type MonthRef } from './dates';
 import { splitTitle, timeAndPlace, typeLabel } from './eventMeta';
 import type { CalendarEvent } from './types';
 
@@ -30,12 +31,12 @@ interface AgendaDay {
  * Desktop: next to the grid. Mobile: the whole calendar. data-hub="calendar-agenda".
  */
 export function Agenda({ month, events, today, selectedId, showCohort, onOpen, empty, footer, titleId = 'cal-agenda-title' }: AgendaProps) {
-  const todayKey = toKey(today);
+  const todayKey = dayKey(today);
   const days: AgendaDay[] = [];
   events.forEach((e) => {
     const last = days[days.length - 1];
     if (last && last.key === e.date) last.events.push(e);
-    else days.push({ key: e.date, date: parseKey(e.date), events: [e] });
+    else days.push({ key: e.date, date: parseDay(e.date), events: [e] });
   });
   const isThisMonth = today.getMonth() === month.m && today.getFullYear() === month.y;
   // The "today" rule goes before the first day that is today or later.
@@ -46,7 +47,7 @@ export function Agenda({ month, events, today, selectedId, showCohort, onOpen, e
   return (
     <section className="cal-agenda" data-hub="calendar-agenda" aria-labelledby={titleId}>
       <h3 id={titleId} className="cal-agenda__title">
-        {n ? `${n} ${n === 1 ? 'event' : 'events'} in ${monthName(month)}` : `Nothing in ${monthName(month)}`}
+        {n ? `${n} ${n === 1 ? 'event' : 'events'} in ${monthLabel(month)}` : `Nothing in ${monthLabel(month)}`}
       </h3>
       {n ? (
         <ol role="list" className="cal-agenda__list">
@@ -63,7 +64,7 @@ export function Agenda({ month, events, today, selectedId, showCohort, onOpen, e
                       const { code, rest } = splitTitle(e);
                       const d = daysUntil(day.date, today);
                       const where = timeAndPlace(e);
-                      const until = e.endDate && e.endDate > e.date ? `Until ${formatShort(parseKey(e.endDate))}` : null;
+                      const until = e.endDate && e.endDate > e.date ? `Until ${formatShort(parseDay(e.endDate))}` : null;
                       return (
                         <li key={e.id}>
                           <button

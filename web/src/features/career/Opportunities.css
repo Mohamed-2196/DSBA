@@ -28,6 +28,11 @@
 .career-opps__filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-12) var(--sp-24); margin-bottom: var(--sp-16); }
 .career-opps__tracks, .career-opps__types { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
 .career-opps__filters .ui-chip { height: 34px; padding: 0 14px; }
+@media (pointer: coarse) {
+  .career-opps__filters .ui-chip { height: 44px; }
+  /* a taller target, the text where it was: padding pulled back by a negative margin */
+  .career-featured__link { padding-block: 12px; margin-block: -12px; }
+}
 
 /* What a track means, and the modules nearest to it. Appears once a track is picked. */
 .career-opps__about {

@@ -1,10 +1,13 @@
 // Calendar data from the API: queries (TanStack Query) and the moderators' mutations.
 //   GET /api/v1/calendar/events      every date, filtered by from/to/year/module/type
 //   GET /api/v1/calendar/upcoming    the next n dates from today (Bahrain time)
+//   GET /api/v1/calendar/feed.ics    the feed to subscribe to (a cohort, or every cohort; ?type=exam: the exams)
+//   GET /api/v1/calendar/events/{id}.ics   one date, to add to a calendar
 //   POST/PATCH/DELETE /api/v1/calendar/events[/id]   moderators only
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiUrl, call } from '../../api/client';
-import type { CohortYear } from '../../lib/modules';
+import { appUrl } from '../../lib/share';
+import type { CohortYear } from '../../state';
 import { dayKeyFromToday, sortEvents } from './queries';
 import type { CalendarEvent, EventFilters, EventInput, EventPatch } from './types';
 
@@ -76,6 +79,15 @@ export function feedUrl(year: CohortYear | null): string {
   const path = apiUrl(year ? `/api/v1/calendar/feed.ics?year=${year}` : '/api/v1/calendar/feed.ics');
   return new URL(path, window.location.origin).href;
 }
+
+/** The address of a date on the calendar page, to share. */
+export const eventPageUrl = (e: Pick<CalendarEvent, 'id'>): string => appUrl(`/calendar?event=${encodeURIComponent(e.id)}`);
+
+/** One date as an .ics file to import ("Add to calendar"): all day, with a reminder the day before an exam or a deadline. */
+export const eventIcsUrl = (id: string): string => apiUrl(`/api/v1/calendar/events/${encodeURIComponent(id)}.ics`);
+
+/** Every exam of a cohort (and the exams for everyone; null: every cohort) as one .ics file. */
+export const examsIcsUrl = (year: CohortYear | null): string => apiUrl(year ? `/api/v1/calendar/feed.ics?type=exam&year=${year}` : '/api/v1/calendar/feed.ics?type=exam');
 
 // ── Moderators ─────────────────────────────────────────────────────────────────────────────────
 

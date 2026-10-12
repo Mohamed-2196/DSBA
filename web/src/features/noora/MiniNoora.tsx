@@ -3,11 +3,12 @@
 //   Mascot     the draggable sprite (Mascot.tsx)
 //   ChatPanel  the chat and its scripted "brain" (ChatPanel.tsx), fetched on demand so that the
 //              shell, which is on every page, only carries the mascot
-// She remembers two things in localStorage: hub.noora.pos (where she was put) and hub.noora.seen
-// (the first-visit hint has done its job). The screenshot tooling hides her with hub.noora.hidden = '1'.
+// She remembers three things in localStorage: hub.noora.pos (where she was put), hub.noora.seen (the first-visit
+// hint has done its job) and hub.noora.hidden (hidden from her chat, or by the screenshot tooling: visibility.ts).
 import { lazy, Suspense, useCallback, useEffect, useId, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { BREAKPOINTS, useLocalStorage, useMediaQuery, useYear } from '../../state';
+import { useLocation } from 'react-router-dom';
+import { BREAKPOINTS, useLocalStorage, useMediaQuery, useToast, useYear } from '../../state';
 import { ErrorBoundary } from '../../ui';
 import { Mascot, type MascotState } from './Mascot';
 import { clampPoint, fromAnchor, homePoint, perchOnSheet, placeChat, toAnchor, type Anchor, type Point, type Side } from './layout';
@@ -15,17 +16,18 @@ import { choosePose, heading, lean, type ChatMood, type Heading } from './poses'
 import { HEIGHT, figure, preloadSprites } from './sprites';
 import { useDrag } from './useDrag';
 import { useViewport } from './useViewport';
+import { hideMiniNoora, showMiniNoora, useMiniNooraHidden } from './visibility';
 
 const loadChat = () => import('./ChatPanel');
 const ChatPanel = lazy(loadChat);
 
 const POS_KEY = 'hub.noora.pos';
 const SEEN_KEY = 'hub.noora.seen';
-const HIDDEN_KEY = 'hub.noora.hidden';
 
 const WALK_FRAME = 125; // ms per frame: carried sideways, she walks at 8 frames a second
 const LANDING = 900; // ms she looks pleased after being put down
 const HINT_DELAY = 1400; // ms before the first-visit hint speaks up
+const HINT_STAYS = 12_000; // ms it stays before it has done its job (it never covers a form for long: UX-17)
 const NUDGE: Partial<Record<string, [number, number]>> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 
 interface Carried {
@@ -35,17 +37,10 @@ interface Carried {
   moving: boolean;
 }
 
-function isHidden(): boolean {
-  try {
-    return window.localStorage.getItem(HIDDEN_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
+// The year prompt or the tour (onboarding announces both on <html data-onboarding>: 'prompt' or 'open').
+const onboardingIsUp = (): boolean => document.documentElement.dataset.onboarding != null;
 
-const onboardingIsUp = (): boolean => document.documentElement.dataset.onboarding === 'open';
-
-/** true while the onboarding dialog is up (it announces itself on <html data-onboarding>). */
+/** true while onboarding's prompt or tour is up: her first-visit hint waits, and on a phone she does too. */
 function useOnboardingOpen(): boolean {
   const [up, setUp] = useState(onboardingIsUp);
   useEffect(() => {
@@ -57,10 +52,13 @@ function useOnboardingOpen(): boolean {
   return up;
 }
 
-/** Mounted once by the shell. Renders nothing at all when the screenshot tooling has hidden her. */
+/** Mounted once by the shell. Renders nothing at all while she is hidden, or on a phone while the year prompt
+ *  takes the bottom of the screen. */
 export function MiniNoora() {
-  const [hidden] = useState(isHidden);
-  return hidden ? null : <Noora />;
+  const hidden = useMiniNooraHidden();
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const onboarding = useOnboardingOpen();
+  return hidden || (phone && onboarding) ? null : <Noora />;
 }
 
 function Noora() {
@@ -169,6 +167,12 @@ function Noora() {
     setOpen(false);
     button.current?.focus({ preventScroll: true });
   }, []);
+  // Hidden from her chat: she goes at once, and the toast (or the palette, later) brings her back.
+  const { push } = useToast();
+  const hide = useCallback(() => {
+    hideMiniNoora();
+    push({ title: 'Mini Noora is hidden', body: 'Bring her back from search: type “Noora”.', action: { label: 'Undo', onClick: showMiniNoora }, duration: 8000 });
+  }, [push]);
 
   useEffect(() => {
     preloadSprites();
@@ -185,13 +189,21 @@ function Noora() {
   }, []);
 
   // ── The first-visit hint ────────────────────────────────────────────────────────────────────────
+  // Only on Home, where nothing it could cover is being filled in, and only for a while (UX review UX-17).
+  const onHome = useLocation().pathname === '/';
   useEffect(() => {
-    if (seen || onboarding) return undefined;
+    if (seen || onboarding || !onHome) return undefined;
     const due = setTimeout(() => setHintDue(true), HINT_DELAY);
     return () => clearTimeout(due);
-  }, [seen, onboarding]);
+  }, [seen, onboarding, onHome]);
   const hintSide = point.x + size.w / 2 > view.w / 2 ? 'left' : 'right';
-  const hint = hintDue && !seen && !onboarding && !open && !carried ? hintSide : null;
+  const hint = hintDue && onHome && !seen && !onboarding && !open && !carried ? hintSide : null;
+  const hinting = hint !== null;
+  useEffect(() => {
+    if (!hinting) return undefined;
+    const done = setTimeout(() => setSeen(true), HINT_STAYS);
+    return () => clearTimeout(done);
+  }, [hinting, setSeen]);
 
   // ── Events on her ───────────────────────────────────────────────────────────────────────────────
   const onClick = (e: MouseEvent<HTMLButtonElement>) => {
@@ -225,7 +237,7 @@ function Noora() {
         // If the chat ever fails, she stays; opening it again gives it another go.
         <ErrorBoundary name="MiniNoora chat" fallback={null} resetKey={open}>
           <Suspense fallback={null}>
-            <ChatPanel id={chatId} open={open} place={place} year={year} calm={calm} onClose={closeChat} onPose={setChatPose} />
+            <ChatPanel id={chatId} open={open} place={place} year={year} calm={calm} onClose={closeChat} onHide={hide} onPose={setChatPose} />
           </Suspense>
         </ErrorBoundary>
       ) : null}

@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ME_KEY } from '../../auth';
-import type { CohortYear } from '../../lib/modules';
+import type { CohortYear } from '../../state';
 
 export function useSaveCohort() {
   const qc = useQueryClient();

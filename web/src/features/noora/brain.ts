@@ -5,10 +5,12 @@
 //
 //   answer(question, knowledge, now) → Reply { mood, text, formula?, steps?, refs, suggestions? }
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
+import { daysBetween, formatLongDay, formatShort, today as bahrainToday } from '../../lib/dates';
 import { eventDate, type CalendarEvent } from '../calendar/public';
 // The modules feature owns the address of a lesson. Using its helper means these links cannot drift.
 import { lessonHref } from '../modules/public';
-import type { FormulaData, MathFrac, MathInt, MathBig, MathPart, MathVar, Question, Ref, Reply, Step } from './types';
+import { BY_PARTS_FORMULA, distributionAsked, LAPLACE_MGF_STEPS, MGF_DEFINITION, REDUCTION_FORMULA, type Distribution } from './formulas';
+import type { Question, Ref, Reply } from './types';
 
 // ── The index: every module, chapter and titled lesson, with its link ─────────────────────────────────
 interface Lesson {
@@ -257,58 +259,18 @@ function topicRefs(topics: FoundTopic[]): Ref[] {
   return refs;
 }
 
-// ── Formulas (plain data: strings are set upright, v() is a variable in italics) ──────────────────
-const v = (name: string): MathVar => ({ v: name });
-const sub = (name: string, ...below: MathPart[]): MathVar => ({ v: name, sub: below });
-const pow = (name: string, ...above: MathPart[]): MathVar => ({ v: name, sup: above });
-const frac = (top: MathPart[], bottom: MathPart[]): MathFrac => ({ top, bottom });
-const n = v('n');
-
-const REDUCTION_FORMULA: FormulaData = {
-  say: 'I n equals n minus 1 over n, times I n minus 2. So I 2 equals pi over 4, and I 3 equals 2 over 3.',
-  line: [sub('I', n), ' = ', frac([n, ' − 1'], [n]), ' ', sub('I', n, '−2')],
-  note: ['so ', sub('I', '2'), ' = π/4 and ', sub('I', '3'), ' = 2/3'],
-};
-
-// The moment generating function of the Laplace distribution with density k·e^(−λ|x|), worked in three steps.
-// (int(lower, upper) is an integral sign with its limits, big() a tall bracket.)
-const int = (lower: string, upper: string): MathInt => ({ int: [lower, upper] });
-const big = (bracket: string): MathBig => ({ big: bracket });
-const half = frac(['λ'], ['2']);
-const mgf: MathPart[] = [sub('M', v('X')), '(', v('t'), ')'];
-const LAPLACE_MGF_STEPS: Step[] = [
-  {
-    label: ['With ', v('k'), ' = λ/2 from (a), split at ', v('x'), ' = 0'],
-    say: 'M X of t equals lambda over 2, times the integral from minus infinity to 0 of e to the lambda plus t, x, plus the integral from 0 to infinity of e to the minus lambda minus t, x.',
-    line: [...mgf, ' = ', half, big('['), int('−∞', '0'), pow('e', '(λ+', v('t'), ')', v('x')), ' ', v('dx'), ' + ', int('0', '∞'), pow('e', '−(λ−', v('t'), ')', v('x')), ' ', v('dx'), big(']')],
-  },
-  {
-    label: ['Integrate each piece, for |', v('t'), '| < λ'],
-    say: 'That equals lambda over 2, times 1 over lambda plus t, plus 1 over lambda minus t.',
-    line: ['= ', half, big('['), frac(['1'], ['λ + ', v('t')]), ' + ', frac(['1'], ['λ − ', v('t')]), big(']')],
-  },
-  {
-    label: ['Add the two fractions'],
-    say: 'So M X of t equals lambda squared over lambda squared minus t squared.',
-    line: [...mgf, ' = ', frac([pow('λ', '2')], [pow('λ', '2'), ' − ', pow('t', '2')])],
-    result: true,
-  },
-];
-
-const BY_PARTS_FORMULA: FormulaData = {
-  say: 'The integral of u d v equals u v, minus the integral of v d u.',
-  line: ['∫ ', v('u'), ' d', v('v'), ' = ', v('u'), v('v'), ' − ∫ ', v('v'), ' d', v('u')],
-};
-
 // ── Answers ───────────────────────────────────────────────────────────────────────────────────────
 const SUGGESTIONS = ['How do I find the MGF?', 'Where is integration by parts?', 'What’s in ST2133?', 'When is my next exam?'];
 const TRY_INSTEAD = ['Where is hypothesis testing?', 'What’s in ST2133?', 'When is my next exam?'];
+const MGF_EXAMPLES = ['MGF of a Poisson', 'MGF of the normal', 'MGF of the exponential'];
+/** She can't see pictures: she says so before anything else (student test ST-3). */
+const NO_PHOTOS = 'I can’t read photos in this preview yet.';
 
 const hello = (name: string | null): string => (name ? `Hi ${name}!` : 'Hi!');
 
 /** What she says when the chat opens. */
 export function greeting(name: string | null): Reply {
-  return { mood: 'wave', text: `${hello(name)} Ask me about any module, or drop in a photo of a question.`, refs: [], suggestions: SUGGESTIONS };
+  return { mood: 'wave', text: `${hello(name)} Ask me where a topic is taught, what’s in a module or when your next exam is.`, refs: [], suggestions: SUGGESTIONS };
 }
 
 /**
@@ -326,21 +288,41 @@ function findIntegration(k: Knowledge): { m: IndexedModule | undefined; chapter:
   return { m, chapter, refs: refs.filter(isRef) };
 }
 
+/** A distribution's own lesson: in `home` (ST2133) if it has one, else in any module. */
+function lessonOn(k: Knowledge, d: Distribution, home: IndexedModule | undefined): Ref | null {
+  const found = k.topics.filter((t) => t.l && d.lesson.test(t.l.title));
+  const best = found.find((t) => t.m === home) ?? found[0];
+  if (!best?.l) return null;
+  const label = d.name.replace(/^the /, '').replace(/^./, (c) => c.toUpperCase());
+  return best.m === home ? lessonRef(best.c, best.l, label) : { code: best.m.code ?? best.m.name, label: best.l.title, to: best.l.to };
+}
+
 /**
- * The question from the launch film: a photo of a problem on the Laplace distribution, and "How do I find the
- * MGF?". The places are looked up by name (the chapter on univariate distributions in ST2133 and its lesson on the
- * exponential distribution), plus the module's files in the library.
+ * "How do I find the MGF?" The MGF of the distribution asked about, in the parameters it is written in; the
+ * worked Laplace example (the question from the launch film) only when the Laplace distribution is what was
+ * asked about; otherwise the definition, and an honest word that there is no worked example (student test ST-3).
+ * Where to look: the ST2133 chapter on univariate distributions, the lesson on that distribution, the library.
  */
-function aboutTheMgf(k: Knowledge): Reply {
+function aboutTheMgf(k: Knowledge, said: string, photo: boolean): Reply {
   const m = k.modules.find((x) => x.id === 'advanced-stats-distribution');
   const chapter = m?.chapters.find((c) => /univariate/i.test(c.title));
-  const exponential = chapter?.lessons.find((l) => /exponential distribution/i.test(l.title));
+  const d = distributionAsked(said);
   const refs = [
     m && chapter ? chapterRef(m, chapter) : m && moduleRef(m),
-    chapter && exponential && lessonRef(chapter, exponential, 'The exponential distribution'),
+    d && lessonOn(k, d, m),
     m && { code: 'Library', label: `${m.code ?? m.name} notes and past papers`, to: `/library?module=${encodeURIComponent(m.id)}` },
-  ];
-  return { mood: 'happy', text: 'Here’s how, step by step:', steps: LAPLACE_MGF_STEPS, refs: refs.filter(isRef) };
+  ].filter(isRef);
+  const first = photo ? `${NO_PHOTOS} ` : '';
+  if (d?.id === 'laplace') return { mood: 'happy', text: `${first}The MGF of the Laplace distribution, density k·e^(−λ|x|), step by step:`, steps: LAPLACE_MGF_STEPS, refs };
+  if (d?.mgf) return { mood: 'happy', text: `${first}The MGF of ${d.name}:`, formula: d.mgf, refs };
+  if (d) return { mood: 'neutral', text: `${first}I don’t have a worked MGF for ${d.name}. Start from the definition, with its probability function or density:`, formula: MGF_DEFINITION, refs };
+  return {
+    mood: 'happy',
+    text: `${first}Start from the definition, with the distribution’s probability function or density. Tell me which distribution and I’ll show you its MGF.`,
+    formula: MGF_DEFINITION,
+    refs,
+    suggestions: MGF_EXAMPLES,
+  };
 }
 
 /** The forum's question ("What is this, am I cooked?"): a reduction formula. */
@@ -395,26 +377,16 @@ function aboutTopic(topics: FoundTopic[], stems: string[]): Reply | null {
   return { mood: 'happy', text, refs: topicRefs(topics) };
 }
 
-// Dates, written the way the calendar writes them: always with the weekday, and built by hand so that no locale
-// turns September into 'Sept'.
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const dayName = (d: Date): string => DAYS[d.getDay()] ?? '';
-const monthName = (d: Date): string => MONTHS[d.getMonth()] ?? '';
-const longDay = (d: Date): string => `${dayName(d)} ${d.getDate()} ${monthName(d)}`;
-const shortDay = (d: Date): string => `${dayName(d).slice(0, 3)} ${d.getDate()} ${monthName(d).slice(0, 3)}`;
-
 /** 'on Friday 23 October, in 18 days' · 'tomorrow, Friday 23 October' · 'today, Friday 23 October' */
 function onDay(date: Date, today: Date): string {
-  const days = Math.round((date.getTime() - today.getTime()) / 86400000);
-  if (days <= 0) return `today, ${longDay(date)}`;
-  return days === 1 ? `tomorrow, ${longDay(date)}` : `on ${longDay(date)}, in ${days} days`;
+  const days = daysBetween(today, date);
+  if (days <= 0) return `today, ${formatLongDay(date)}`;
+  return days === 1 ? `tomorrow, ${formatLongDay(date)}` : `on ${formatLongDay(date)}, in ${days} days`;
 }
 
 /** The next exam (or mock) from the calendar. Placeholder dates (sample: true) are never quoted as real. */
 function aboutExams(k: Knowledge, said: string, year: number | null, named: IndexedModule | null, now: number): Reply {
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
+  const today = bahrainToday(now); // the calendar's today
   const what = /\bmocks?\b/.test(said) ? 'mock' : 'exam';
   const whose = named ? named.called : year ? `Year ${year}` : 'the programme';
   const calendar: Ref = { code: 'Calendar', label: !named && year ? `Year ${year} dates` : 'Every date in one place', to: '/calendar' };
@@ -441,13 +413,13 @@ function aboutExams(k: Knowledge, said: string, year: number | null, named: Inde
   let text = named ? `The next ${name} ${what} is ${onDay(when, today)}.` : `Your next ${what} is ${name} ${onDay(when, today)}.`;
   const last = later[later.length - 1];
   if (!named && last) {
-    const lastDay = longDay(eventDate(last));
+    const lastDay = formatLongDay(eventDate(last));
     text += later.length === 1 ? ` One more follows on ${lastDay}.` : ` ${later.length} more follow, the last on ${lastDay}.`;
   }
   return {
     mood: 'happy',
     text,
-    refs: [{ ...calendar, code: shortDay(when), to: `/calendar?event=${encodeURIComponent(next.id)}` }, ...(m ? [moduleRef(m)] : [])],
+    refs: [{ ...calendar, code: formatShort(when), to: `/calendar?event=${encodeURIComponent(next.id)}` }, ...(m ? [moduleRef(m)] : [])],
   };
 }
 
@@ -470,7 +442,7 @@ function aboutFiles(named: IndexedModule | null): Reply {
 // What a message is asking for. They are tested in the order answer() lists them.
 const ASKS_TO_CHEAT =
   /\b(do|write|finish|complete|solve) (my|our|the|this|me)\b.*\b(homework|coursework|assignment|essay|problem set|exam|mock|paper)\b|\b(exam|mock|test|homework|coursework|assignment) answers\b|\banswers (to|for) (the |my )?(exam|mock|test|homework|coursework|assignment)\b|\bgive me (the )?answers\b|\bcheat(ing)?\b(?! ?sheet)/;
-const THE_FILM_QUESTION = /\bmgfs?\b|\bmoment generating\b|\blaplace\b/;
+const ABOUT_MGF = /\bmgfs?\b|\bmoment generating\b|\blaplace\b/;
 const THE_FORUM_QUESTION = /\bcooked\b|\bwhat\s?i?s this\b|\breduction formula/;
 const BY_PARTS = /\bby parts\b|\bdi method\b/;
 const ABOUT_FILES = /\b(past|previous|old)\s+(exam\s+)?(papers?|exams?)\b|\bcheat\s?sheets?\b|\bstudy guides?\b|\bnotes\b/;
@@ -500,10 +472,11 @@ function lookUp(k: Knowledge, text: string, said: string, year: number | null): 
 
 /** Answer one message. `now` is the time, for exam countdowns. */
 export function answer({ text, attachments, year }: Question, k: Knowledge, now: number = Date.now()): Reply {
-  // A photo of a question: the one from the launch film.
-  if (attachments.some((a) => a.kind === 'image')) return aboutTheMgf(k);
-
+  // She can't see pictures: a photo is answered by the words that came with it (and its file name), and she says so.
+  const photo = attachments.some((a) => a.kind === 'image');
   const said = wordsOf(text).join(' ');
+  const withNames = wordsOf([text, ...attachments.map((a) => a.name.replace(/\.[a-z0-9]+$/i, ''))].join(' ')).join(' ');
+  const honest = (r: Reply): Reply => (photo ? { ...r, text: `${NO_PHOTOS} Going by your message: ${r.text}` } : r);
   const named = (): IndexedModule | null => {
     const found = findModule(k, text, topicWords(said).map(stem), year);
     return found && found.sure ? found.module : null;
@@ -514,23 +487,26 @@ export function answer({ text, attachments, year }: Question, k: Knowledge, now:
     const refs = found ? found.refs.slice(0, 4) : [];
     return { mood: 'angry', text: `Nice try 😤 I won’t do it for you, but I’ll show you where it’s taught.${refs.length ? '' : ' Tell me the topic.'}`, refs };
   }
-  if (THE_FILM_QUESTION.test(said)) return aboutTheMgf(k);
-  if (THE_FORUM_QUESTION.test(said)) return aboutTheReductionFormula(k);
-  if (BY_PARTS.test(said)) return aboutIntegrationByParts(k);
+  if (ABOUT_MGF.test(photo ? withNames : said)) return aboutTheMgf(k, photo ? withNames : said, photo);
+  if (THE_FORUM_QUESTION.test(said)) return honest(aboutTheReductionFormula(k));
+  if (BY_PARTS.test(said)) return honest(aboutIntegrationByParts(k));
   if (SAYS_THANKS.test(said)) return { mood: 'laughing', text: 'Any time 😄 Good luck with the revision!', refs: [] };
-  if (ABOUT_FILES.test(said)) return aboutFiles(named());
-  if (ABOUT_EXAMS.test(said)) return aboutExams(k, said, year, named(), now);
+  if (ABOUT_FILES.test(said)) return honest(aboutFiles(named()));
+  if (ABOUT_EXAMS.test(said)) return honest(aboutExams(k, said, year, named(), now));
 
   const found = lookUp(k, text, said, year);
-  if (found) return found;
+  if (found) return honest(found);
 
+  if (photo) {
+    return { mood: 'neutral', text: `${NO_PHOTOS} Type the question, or tell me the topic, and I’ll find where it’s taught.`, refs: [], suggestions: TRY_INSTEAD.slice(0, 2) };
+  }
   if (SAYS_HELLO.test(said)) {
     return { mood: 'wave', text: `${hello(k.name)} Ask me where a topic is taught, what’s in a module, or when your next exam is.`, refs: [], suggestions: SUGGESTIONS.slice(0, 3) };
   }
   if (ASKS_WHO.test(said)) {
     return {
       mood: 'wave',
-      text: 'I’m Mini Noora, the Hub’s study helper. I can find the chapter or lesson for a topic, tell you what’s in a module, check your exam dates, and read a photo of a question.',
+      text: 'I’m Mini Noora, the Hub’s study helper. I can find the chapter or lesson for a topic, tell you what’s in a module and check your exam dates.',
       refs: [],
       suggestions: SUGGESTIONS.slice(0, 3),
     };
@@ -541,7 +517,7 @@ export function answer({ text, attachments, year }: Question, k: Knowledge, now:
     const names = attachments.map((a) => a.name.replace(/\.[a-z0-9]+$/i, '')).join(' ');
     const guess = lookUp(k, names, wordsOf(names).join(' '), year);
     if (guess) return { mood: 'happy', text: 'I can’t open files in this preview, but going by the name, this is where I’d look.', refs: guess.refs.slice(0, 4) };
-    return { mood: 'neutral', text: 'I can only read photos of questions in this preview, not whole files. Tell me the topic and I’ll find the chapter.', refs: [], suggestions: TRY_INSTEAD.slice(0, 2) };
+    return { mood: 'neutral', text: 'I can’t open files in this preview. Tell me the topic and I’ll find the chapter.', refs: [], suggestions: TRY_INSTEAD.slice(0, 2) };
   }
   return { mood: 'sad', text: 'I couldn’t find that in the DSBA material yet.', refs: [], suggestions: TRY_INSTEAD };
 }

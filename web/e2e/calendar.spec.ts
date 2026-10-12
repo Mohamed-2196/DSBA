@@ -107,7 +107,6 @@ test('a rep adds, edits and deletes an event; students see each change', async (
 });
 
 test('ST-2: an event for a Year 2 module added with the default cohort is a Year 2 event', async ({ rep, run }) => {
-  test.fail(true, 'ST-2: the form sends year: null, so the event shows on every cohort’s calendar');
   const id = await addEvent(rep, { title: `ST2133 drop-in [e2e ${run.tag}]`, date: inDays(13), module: 'advanced-stats-distribution', time: '1:00 PM', place: 'Room 101' });
   const events = await api<{ id: string; year: number | null }[]>(rep, 'GET', `/api/v1/calendar/events?from=${inDays(13)}&to=${inDays(13)}`);
   const ev = events.body.find((e) => e.id === id);

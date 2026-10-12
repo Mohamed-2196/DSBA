@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Books } from '@phosphor-icons/react';
-import type { CohortYear } from '../../lib/modules';
+import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, EmptyState, Panel, Skeleton, timeAgo } from '../../ui';
+import { Badge, Button, EmptyState, Panel, QueryError, Skeleton, timeAgo } from '../../ui';
+import { DAY_MS } from '../../lib/dates';
 import { libraryItemPath, libraryKindLabel, useRecentFiles } from '../library/public';
 
 const NEW_DAYS = 14;
-const isRecent = (iso: string | null): boolean => !!iso && Date.now() - new Date(iso).getTime() < NEW_DAYS * 86400000;
+const isRecent = (iso: string | null): boolean => !!iso && Date.now() - new Date(iso).getTime() < NEW_DAYS * DAY_MS;
 
 /** A small document glyph: page with a folded corner and its format, e.g. PDF. */
 function DocGlyph({ format }: { format: string | null }) {
@@ -43,21 +44,7 @@ export function NewInLibrary({ year, n = 5 }: { year: CohortYear; n?: number }) 
     );
   }
   if (q.isError) {
-    return (
-      <Panel padding="none">
-        <EmptyState
-          size="sm"
-          icon={Books}
-          title="The library didn’t load"
-          body="Check your connection, then try again."
-          action={
-            <Button size="sm" onClick={() => void q.refetch()} loading={q.isFetching}>
-              Try again
-            </Button>
-          }
-        />
-      </Panel>
-    );
+    return <QueryError error={q.error} title="The library didn’t load" size="sm" onRetry={() => void q.refetch()} retrying={q.isFetching} />;
   }
   const files = q.data ?? [];
   if (!files.length) {

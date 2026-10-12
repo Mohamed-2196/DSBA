@@ -1,9 +1,12 @@
-import { CalendarPlus, DownloadSimple, LinkSimple, PencilSimple, Trash } from '@phosphor-icons/react';
-import type { CohortYear } from '../../lib/modules';
-import { BREAKPOINTS, cohortLabel, useMediaQuery } from '../../state';
+import { LinkSimple, PencilSimple, Trash } from '@phosphor-icons/react';
+import { BREAKPOINTS, useMediaQuery, useToast, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, CohortBadge, cx, Drawer, IconButton, ModuleIcon } from '../../ui';
-import { countdownLabel, daysUntil, formatLong, formatMonthYear, formatShort, formatShortYear, parseKey, weekdayOf } from './dates';
+import { daysUntil, formatLong, formatMonthYear, formatShort, formatShortYear, parseDay, weekdayOf } from '../../lib/dates';
+import { copyText } from '../../lib/share';
+import { AddExamsToCalendar, AddToCalendar } from './AddToCalendar';
+import { eventPageUrl } from './api';
+import { countdownLabel } from './dates';
 import { splitTitle, timeAndPlace, TYPE_BADGE_TONE, typeLabel } from './eventMeta';
 import type { CalendarEvent } from './types';
 
@@ -13,24 +16,31 @@ export interface EventDrawerProps {
   events: CalendarEvent[];
   today: Date;
   year: CohortYear | null;
+  /** Upcoming exams for `year`: when there are some, the footer offers all of them as one file. */
   examCount: number;
   onClose: () => void;
   onOpen: (e: CalendarEvent) => void;
-  onDownload: (e: CalendarEvent) => void;
-  onDownloadAll: () => void;
-  onCopyLink: (e: CalendarEvent) => void;
   /** Moderators: edit and delete. */
   onEdit?: (e: CalendarEvent) => void;
   onDelete?: (e: CalendarEvent) => void;
 }
 
 /**
- * Event details: date, type, cohort, time and place when published, linked module, countdown, .ics
- * downloads. Opened from the grid, the agenda, the cards at the top or a ?event=<id> link.
+ * Event details: date, type, cohort, time and place when published, linked module, countdown, and "Add to
+ * calendar" (the API's .ics files). Opened from the grid, the agenda, the cards at the top or a ?event=<id> link.
  * Moderators also get Edit and Delete.
  */
-export function EventDrawer({ event, events, today, year, examCount, onClose, onOpen, onDownload, onDownloadAll, onCopyLink, onEdit, onDelete }: EventDrawerProps) {
+export function EventDrawer({ event, events, today, year, examCount, onClose, onOpen, onEdit, onDelete }: EventDrawerProps) {
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
+  const { push } = useToast();
+  const copyLink = async (e: CalendarEvent) => {
+    const url = eventPageUrl(e);
+    push(
+      (await copyText(url))
+        ? { tone: 'success', title: 'Link copied', body: 'Anyone with the link sees this date on the DSBA Hub calendar.' }
+        : { tone: 'alert', title: 'Couldn’t copy the link', body: url },
+    );
+  };
   return (
     <Drawer
       open={!!event}
@@ -43,31 +53,33 @@ export function EventDrawer({ event, events, today, year, examCount, onClose, on
       footer={
         event ? (
           <div className="cal-drawer__footer">
-            <IconButton label="Copy link to this event" icon={LinkSimple} variant="secondary" tooltip tooltipSide="top" onClick={() => onCopyLink(event)} />
+            <IconButton label="Copy link to this event" icon={LinkSimple} variant="secondary" tooltip tooltipSide="top" onClick={() => void copyLink(event)} />
             {onEdit ? <IconButton label="Edit this event" icon={PencilSimple} variant="secondary" tooltip tooltipSide="top" onClick={() => onEdit(event)} data-hub="calendar-edit" /> : null}
             {onDelete ? <IconButton label="Delete this event" icon={Trash} variant="secondary" tooltip tooltipSide="top" onClick={() => onDelete(event)} data-hub="calendar-delete" /> : null}
             <span className="cal-drawer__spacer" />
-            {examCount > 0 ? (
-              <Button leadingIcon={DownloadSimple} onClick={onDownloadAll}>
-                {year ? `All ${cohortLabel(year)} exams` : 'All exams'} ({examCount})
-              </Button>
-            ) : null}
-            <Button variant="primary" leadingIcon={CalendarPlus} onClick={() => onDownload(event)}>
-              Add to calendar
-            </Button>
+            <AddToCalendar event={event} />
           </div>
         ) : null
       }
     >
-      {event ? <DrawerContent event={event} events={events} today={today} onOpen={onOpen} /> : null}
+      {event ? <DrawerContent event={event} events={events} today={today} onOpen={onOpen} examsYear={examCount > 0 ? year : undefined} /> : null}
     </Drawer>
   );
 }
 
-function DrawerContent({ event, events, today, onOpen }: { event: CalendarEvent; events: CalendarEvent[]; today: Date; onOpen: (e: CalendarEvent) => void }) {
+interface DrawerContentProps {
+  event: CalendarEvent;
+  events: CalendarEvent[];
+  today: Date;
+  onOpen: (e: CalendarEvent) => void;
+  /** offer every exam of this cohort (null: of every cohort) as one file; undefined: no exams ahead */
+  examsYear?: CohortYear | null;
+}
+
+function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerContentProps) {
   const { getModule } = useModules();
-  const date = parseKey(event.date);
-  const end = event.endDate && event.endDate > event.date ? parseKey(event.endDate) : null;
+  const date = parseDay(event.date);
+  const end = event.endDate && event.endDate > event.date ? parseDay(event.endDate) : null;
   const days = daysUntil(date, today);
   const module = getModule(event.moduleId);
   const { code } = splitTitle(event);
@@ -155,7 +167,7 @@ function DrawerContent({ event, events, today, onOpen }: { event: CalendarEvent;
           </h3>
           <ol role="list" className="cal-drawer__list cal-drawer__timeline">
             {related.map((e) => {
-              const d = parseKey(e.date);
+              const d = parseDay(e.date);
               const current = e.id === event.id;
               return (
                 <li key={e.id} className={cx(current && 'is-current', d < today && 'is-past')}>
@@ -173,7 +185,7 @@ function DrawerContent({ event, events, today, onOpen }: { event: CalendarEvent;
 
       {event.sample ? (
         <p className="cal-drawer__sample">
-          <b>Sample date.</b> It follows last year’s pattern and is not confirmed: check with the programme office before you plan around it.
+          <b>Not confirmed yet.</b> Check with the programme office before you plan around it.
         </p>
       ) : null}
 
@@ -185,6 +197,11 @@ function DrawerContent({ event, events, today, onOpen }: { event: CalendarEvent;
             : 'Added as an all-day event.'}
         {event.type === 'exam' || event.type === 'deadline' ? ' The .ics file includes a reminder at 9:00 the day before.' : ''}
       </p>
+      {examsYear !== undefined ? (
+        <div className="cal-drawer__exams">
+          <AddExamsToCalendar year={examsYear} size="sm" />
+        </div>
+      ) : null}
     </div>
   );
 }

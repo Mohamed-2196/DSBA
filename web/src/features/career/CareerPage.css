@@ -26,7 +26,7 @@
 }
 .career-page .ui-page-section > .ui-section-header { margin-bottom: 20px; }
 .career-page .ui-page-section > .ui-section-header .ui-section-header__title { font-size: var(--fs-25); font-weight: var(--fw-heavy); letter-spacing: var(--tracking-head); }
-.career-page .ui-page-section > .ui-section-header .ui-section-header__desc { margin-top: 6px; max-width: 96ch; font-size: var(--fs-16); }
+.career-page .ui-page-section > .ui-section-header .ui-section-header__desc { margin-top: 6px; max-width: 72ch; font-size: var(--fs-16); }
 @media (max-width: 699px) {
   .career-page .ui-page-section > .ui-section-header .ui-section-header__title { font-size: var(--fs-20); }
   .career-page .ui-page-section > .ui-section-header .ui-section-header__desc { font-size: var(--fs-14); }
@@ -49,6 +49,10 @@
 .career-mod__dot { flex: none; width: 8px; height: 8px; border-radius: var(--r-pill); }
 .career-mod__code { flex: none; font-size: var(--fs-12); }
 .career-mod__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Touch screens: a 44px row to tap, whatever the text size (requests from frontend-accounts). */
+@media (pointer: coarse) {
+  .career-mod { min-height: 44px; }
+}
 .career-mod__tag {
   flex: none;
   padding: 1px 7px;
@@ -61,7 +65,7 @@
 }
 
 /* ── Notes under a block ─────────────────────────────────────────────────────────────────────── */
-.career-note { margin-top: var(--sp-16); max-width: 118ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.career-note { margin-top: var(--sp-16); max-width: 66ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
 
 /* ── "Look here": a ring on the card a button just scrolled to. It stays put for reduced motion and fades otherwise.
    (jumpTo removes the class after 1.8s.) ──────────────────────────────────────────────────────────── */

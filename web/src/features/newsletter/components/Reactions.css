@@ -29,3 +29,8 @@
 /* A draft (or the editor's preview): the counts show, nothing to press. */
 .nl-reaction:disabled { cursor: default; }
 .nl-reaction:disabled:hover { background: var(--surface); color: var(--ink-2); }
+
+/* Touch screens: 44px targets (UX review UX-11). */
+@media (pointer: coarse) {
+  .nl-reaction { height: 44px; min-width: 56px; padding: 0 16px 0 14px; }
+}

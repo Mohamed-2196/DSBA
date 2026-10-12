@@ -9,12 +9,8 @@ const BURSTS = 60; // a reply takes about this many bursts, however long it is
 const AFTERGLOW = 3200; // ms her mood lingers once she has finished
 const MAX_WAIT = 6000; // ms she waits for the lessons and the calendar before answering with what she has
 
-/** What she says she is doing while she "reads" a message. */
-function thinkingLabel(attachments: readonly Attachment[]): string {
-  if (attachments.some((a) => a.kind === 'image')) return 'Reading your photo…';
-  if (attachments.length) return 'Reading your file…';
-  return 'Thinking…';
-}
+/** What she says while she works on a message. Never "Reading your photo…": she can't see pictures (ST-3). */
+const THINKING = 'Thinking…';
 
 /** How long she takes before answering (0.9 to 1.4 s). Never random: the same message always takes as long. */
 function thinkingTime(text: string, attachments: readonly Attachment[]): number {
@@ -25,7 +21,7 @@ function thinkingTime(text: string, attachments: readonly Attachment[]): number 
 
 /**
  * The reply on its way:
- *   thinking   the dots, and a line such as "Reading your photo…" (the answer is worked out when it ends)
+ *   thinking   the dots and "Thinking…" (the answer is worked out when it ends)
  *   typing     the reply is in the list and streams in; `shown` characters so far
  *   done       it is all there; her mood lingers for a moment
  * and then null again.
@@ -74,7 +70,7 @@ export function useChat({ year, calm }: { year: number | null; calm: boolean }):
       lastId.current += 1;
       const replyId = lastId.current;
       setMessages((list) => [...list, mine]);
-      setPending({ phase: 'thinking', label: thinkingLabel(attachments), wait: thinkingTime(text, attachments), since: Date.now(), question: { text, attachments, year }, replyId });
+      setPending({ phase: 'thinking', label: THINKING, wait: thinkingTime(text, attachments), since: Date.now(), question: { text, attachments, year }, replyId });
       return true;
     },
     [year],

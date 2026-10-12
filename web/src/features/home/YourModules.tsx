@@ -1,12 +1,12 @@
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleSummary } from '../../api/types';
-import type { CohortYear } from '../../lib/modules';
+import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { ModuleIcon, cx } from '../../ui';
 import { useCalendarEvents } from '../calendar/public';
 import { useModuleProgress } from '../modules/public';
-import { dayFromISO, daysBetween, inDays, isoDay, longDay, shortDay } from './time';
+import { dayKey, daysBetween, formatDayMonth, formatLongDay, inDays, parseDay } from '../../lib/dates';
 
 interface NextExam {
   date: Date;
@@ -27,7 +27,7 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
   const pct = progress.total > 0 ? Math.round((progress.watched / progress.total) * 100) : 0;
   return (
     <li>
-      <Link to={`/modules/${m.id}`} className="home-mods__row" aria-label={`${m.unitCode ? `${m.unitCode} ` : ''}${m.name}${exam ? `, exam ${longDay(exam.date)}` : ''}`}>
+      <Link to={`/modules/${m.id}`} className="home-mods__row" aria-label={`${m.unitCode ? `${m.unitCode} ` : ''}${m.name}${exam ? `, exam ${formatLongDay(exam.date)}` : ''}`}>
         {m.unitCode ? (
           <span className="home-mods__code u-code" aria-hidden="true">
             {m.unitCode}
@@ -44,7 +44,7 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
         {exam ? (
           <span className="home-mods__exam" title={`Exam ${inDays(exam.days)}`}>
             <span className="home-mods__examdot" aria-hidden="true" />
-            <span className="u-tabular">{shortDay(exam.date)}</span>
+            <span className="u-tabular">{formatDayMonth(exam.date)}</span>
           </span>
         ) : null}
         {pct > 0 ? <span className="home-mods__bar" style={{ '--pct': `${pct}%` } as CSSProperties} aria-hidden="true" /> : null}
@@ -56,11 +56,11 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
 /** "Your modules": the year's modules as a quick list (unit code, name, progress, next exam). */
 export function YourModules({ year, today }: { year: CohortYear; today: Date }) {
   const { getModulesForYear } = useModules();
-  const exams = useCalendarEvents({ from: isoDay(today), type: 'exam' });
+  const exams = useCalendarEvents({ from: dayKey(today), type: 'exam' });
   const nextExam = (moduleId: string): NextExam | null => {
     const e = (exams.data ?? []).find((ev) => ev.moduleId === moduleId && !ev.sample);
     if (!e) return null;
-    const date = dayFromISO(e.date);
+    const date = parseDay(e.date);
     return { date, days: daysBetween(today, date) };
   };
   // In exam season the list reads in exam order (it doubles as the hero trace's legend).

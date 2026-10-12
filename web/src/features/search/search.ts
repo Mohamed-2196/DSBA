@@ -1,9 +1,10 @@
 // Query → grouped results for the palette. Content (modules, library items, threads, newsletter issues and
 // calendar dates) comes ranked from the API; the palette adds its own actions, pages and recent searches.
 import type { ModuleSummary, SearchHit, SearchResults } from '../../api/types';
-import { CONTRIBUTE_URL, MYCLASS_URL, UOL_PORTAL_URL } from '../../data/people';
+import { MYCLASS_URL, REPORT_PROBLEM_URL, UOL_PORTAL_URL } from '../../data/people';
+import { daysBetween, formatLong, isDayKey, parseDay, today } from '../../lib/dates';
 import { safeInternalPath } from '../../ui';
-import { EVENT_TYPES, TYPE_ORDER, formatLong, type EventType } from '../calendar/public';
+import { EVENT_TYPES, TYPE_ORDER, type EventType } from '../calendar/public';
 import { scoreEntry, tokenize } from './match';
 
 export type GroupId = 'recent' | 'suggested' | 'modules' | 'files' | 'threads' | 'issues' | 'events' | 'actions' | 'pages' | 'quick' | 'goto' | 'fallback';
@@ -15,6 +16,8 @@ export type IconName =
   | 'Calculator'
   | 'CalendarDots'
   | 'ChatsCircle'
+  | 'Eye'
+  | 'EyeSlash'
   | 'GithubLogo'
   | 'GraduationCap'
   | 'House'
@@ -23,9 +26,10 @@ export type IconName =
   | 'Newspaper'
   | 'PencilSimpleLine'
   | 'SquaresFour'
-  | 'Sun';
+  | 'Sun'
+  | 'UploadSimple';
 
-export type Run = { type: 'theme' } | { type: 'year'; year: 1 | 2 | 3 };
+export type Run = { type: 'theme' } | { type: 'year'; year: 1 | 2 | 3 } | { type: 'noora'; hide: boolean };
 
 interface Base {
   id: string;
@@ -102,8 +106,8 @@ export const PAGE_ENTRIES: Item[] = (
   ] as const
 ).map((p) => ({ id: `page:${p.path}`, group: 'pages' as const, kind: 'page' as const, title: p.title, icon: p.icon, keywords: [...p.keywords], to: p.path }));
 
-/** Actions depend on the current year and theme. */
-export function buildActions({ year, theme }: { year: number | null; theme: 'light' | 'dark' }): Item[] {
+/** Actions depend on the current year, the theme and whether Mini Noora is hidden. */
+export function buildActions({ year, theme, nooraHidden = false }: { year: number | null; theme: 'light' | 'dark'; nooraHidden?: boolean }): Item[] {
   const switches = ([1, 2, 3] as const)
     .filter((y) => y !== year)
     .map(
@@ -119,6 +123,16 @@ export function buildActions({ year, theme }: { year: number | null; theme: 'lig
     );
   return [
     { id: 'action:new-thread', group: 'actions', kind: 'action', title: 'Start a thread', icon: 'PencilSimpleLine', keywords: ['new thread', 'ask a question', 'post', 'forum'], to: '/forum/new' },
+    // Contributing means uploading to the library (decision D6).
+    {
+      id: 'action:upload',
+      group: 'actions',
+      kind: 'action',
+      title: 'Upload a file',
+      icon: 'UploadSimple',
+      keywords: ['upload', 'share notes', 'share a file', 'past paper', 'contribute', 'add a file'],
+      to: '/library?upload=1',
+    },
     ...switches,
     {
       id: 'action:theme',
@@ -131,7 +145,10 @@ export function buildActions({ year, theme }: { year: number | null; theme: 'lig
     },
     { id: 'action:grades', group: 'actions', kind: 'action', title: 'Calculate my grade', icon: 'Calculator', keywords: ['gpa', 'classification', 'grade calculator', 'marks'], to: '/grades' },
     { id: 'action:subscribe', group: 'actions', kind: 'action', title: 'Subscribe to the calendar', icon: 'CalendarDots', keywords: ['ics', 'google calendar', 'outlook', 'feed', 'subscribe'], to: '/calendar' },
-    { id: 'action:contribute', group: 'actions', kind: 'action', title: 'Contribute a resource', icon: 'GithubLogo', keywords: ['github', 'share notes', 'issue'], href: CONTRIBUTE_URL },
+    nooraHidden
+      ? { id: 'action:noora', group: 'actions', kind: 'action', title: 'Show Mini Noora', icon: 'Eye', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot', 'bring back'], run: { type: 'noora', hide: false } }
+      : { id: 'action:noora', group: 'actions', kind: 'action', title: 'Hide Mini Noora', icon: 'EyeSlash', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot'], run: { type: 'noora', hide: true } },
+    { id: 'action:report', group: 'actions', kind: 'action', title: 'Report a problem', icon: 'GithubLogo', keywords: ['bug', 'problem', 'broken', 'feedback', 'github', 'issue'], href: REPORT_PROBLEM_URL },
     { id: 'action:myclass', group: 'actions', kind: 'action', title: 'Open BIBF MyClass', icon: 'GraduationCap', keywords: ['myclass', 'bibf'], href: MYCLASS_URL },
     { id: 'action:uol', group: 'actions', kind: 'action', title: 'Open the UoL student portal', icon: 'Bank', keywords: ['uol', 'university of london', 'portal'], href: UOL_PORTAL_URL },
   ];
@@ -142,15 +159,13 @@ export function buildActions({ year, theme }: { year: number | null; theme: 'lig
 
 /** Local midnight of the hit's calendar day ('2026-10-23T00:00:00+03:00' → 23 Oct). */
 function hitDay(iso: string | null): Date | null {
-  const m = iso ? /^(\d{4})-(\d{2})-(\d{2})/.exec(iso) : null;
-  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
+  const key = iso?.slice(0, 10);
+  return key && isDayKey(key) ? parseDay(key) : null;
 }
 
-/** 'in 28 days', 'tomorrow', 'today', '3 days ago', '5 months ago'. */
+/** 'in 28 days', 'tomorrow', 'today', '3 days ago', '5 months ago', counted from today in Bahrain. */
 export function relativeDay(date: Date, now: Date = new Date()): string {
-  const a = new Date(now);
-  a.setHours(0, 0, 0, 0);
-  const d = Math.round((date.getTime() - a.getTime()) / 86400000);
+  const d = daysBetween(today(now), date);
   if (d === 0) return 'today';
   if (d === 1) return 'tomorrow';
   if (d === -1) return 'yesterday';
@@ -191,7 +206,7 @@ function toItem(hit: SearchHit, group: GroupId, getModule: (id: string) => Modul
     }
     case 'event': {
       const when = hitDay(hit.date);
-      const past = when ? when.getTime() < new Date(now).setHours(0, 0, 0, 0) : false;
+      const past = when ? daysBetween(today(now), when) < 0 : false;
       const date = when ? formatLong(when) : null;
       const subtitle = [plainMeta(hit.meta), date].filter(Boolean).join(', ') + (hit.snippet ? `. ${hit.snippet}` : '');
       return { ...base, kind: 'event', subtitle, when, eventType: eventTypeOf(hit.meta), rel: when ? relativeDay(when, now) : null, past, to };
@@ -208,6 +223,7 @@ export interface SearchInput {
   query: string;
   year: number | null;
   theme: 'light' | 'dark';
+  nooraHidden?: boolean;
   expanded: ReadonlySet<GroupId>;
   recent: readonly string[];
   /** The API's answer for the query (undefined while there is none yet). */
@@ -238,12 +254,12 @@ export function textOf(query: string): string {
   return query.replace(YEAR_RE, ' ').replace(/\s+/g, ' ').trim();
 }
 
-export function runSearch({ query, year, theme, expanded, recent, results, getModule, getModulesForYear, now = new Date() }: SearchInput): Results {
+export function runSearch({ query, year, theme, nooraHidden = false, expanded, recent, results, getModule, getModulesForYear, now = new Date() }: SearchInput): Results {
   const cohortMatch = YEAR_RE.exec(query);
   const cohort = cohortMatch ? Number(cohortMatch[1]) : null;
   const text = textOf(query);
   const tokens = tokenize(text);
-  const actions = buildActions({ year, theme });
+  const actions = buildActions({ year, theme, nooraHidden });
 
   // Just a cohort: switch to it, or browse its modules.
   if (cohort && !tokens.length) {
@@ -262,7 +278,7 @@ export function runSearch({ query, year, theme, expanded, recent, results, getMo
     else groups.push({ id: 'suggested', items: SUGGESTIONS.map((q) => ({ id: `suggest:${q}`, kind: 'suggestion', group: 'suggested', title: q, query: q })), total: 0 });
     groups.push({
       id: 'quick',
-      items: actions.filter((a) => a.id === 'action:new-thread' || a.id === 'action:theme' || a.id.startsWith('action:year-')).map((a) => ({ ...a, group: 'quick' })),
+      items: actions.filter((a) => a.id === 'action:new-thread' || a.id === 'action:upload' || a.id === 'action:theme' || a.id.startsWith('action:year-')).map((a) => ({ ...a, group: 'quick' })),
       total: 0,
     });
     groups.push({ id: 'goto', items: PAGE_ENTRIES.filter((p) => p.id !== 'page:/about').map((p) => ({ ...p, group: 'goto' })), total: 0 });

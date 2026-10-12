@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { CalendarCheck, CalendarPlus } from '@phosphor-icons/react';
-import type { CohortYear } from '../../lib/modules';
-import { cohortLabel, cohortTextColor } from '../../state';
+import { CalendarCheck } from '@phosphor-icons/react';
+import { cohortLabel, cohortTextColor, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, CohortBadge, cx, EmptyState, Highlight, ModuleIcon } from '../../ui';
-import { countdownLabel, daysUntil, formatLong, formatLongDay, parseKey, startOfDay } from './dates';
+import { daysUntil, formatLong, formatLongDay, parseDay } from '../../lib/dates';
+import { AddToCalendar } from './AddToCalendar';
+import { countdownLabel } from './dates';
 import { DayStrip } from './DayStrip';
 import { splitTitle, timeAndPlace, typeLabel } from './eventMeta';
 import { examOutlook, upcomingFrom } from './queries';
@@ -15,9 +16,9 @@ export interface NextUpProps {
   /** Every event on the calendar, by date. */
   events: CalendarEvent[];
   year: CohortYear | null;
-  now: Date;
+  /** Today in Bahrain, at local midnight. */
+  today: Date;
   onOpen: (e: CalendarEvent) => void;
-  onDownload: (e: CalendarEvent) => void;
   onShowAllYears?: () => void;
 }
 
@@ -28,10 +29,10 @@ export interface NextUpProps {
  * leaves (UpcomingBoard).
  * data-hub="next-exam".
  */
-export function NextUp({ events, year, now, onOpen, onDownload, onShowAllYears }: NextUpProps) {
+export function NextUp({ events, year, today, onOpen, onShowAllYears }: NextUpProps) {
   const { getModule } = useModules();
-  const upcoming = useMemo(() => upcomingFrom(events, { year, from: now, n: Infinity }), [events, year, now]);
-  const outlook = useMemo(() => examOutlook(events, { year, from: now }), [events, year, now]);
+  const upcoming = useMemo(() => upcomingFrom(events, { year, from: today, n: Infinity }), [events, year, today]);
+  const outlook = useMemo(() => examOutlook(events, { year, from: today }), [events, year, today]);
   const who = year ? cohortLabel(year) : null;
   const next = upcoming[0];
 
@@ -55,12 +56,11 @@ export function NextUp({ events, year, now, onOpen, onDownload, onShowAllYears }
     );
   }
 
-  const today = startOfDay(now);
-  const date = parseKey(next.date);
+  const date = parseDay(next.date);
   const days = daysUntil(date, today);
   const module = getModule(next.moduleId);
   const name = next.type === 'exam' && module ? module.name : splitTitle(next).rest;
-  const detail = [timeAndPlace(next), next.year == null ? 'All years' : null, next.sample ? 'Not confirmed' : null].filter(Boolean).join(', ');
+  const detail = [timeAndPlace(next), next.year == null ? 'All years' : null, next.sample ? 'Not confirmed yet' : null].filter(Boolean).join(', ');
   const sameDay = upcoming.filter((e) => e.date === next.date).length - 1;
 
   return (
@@ -72,9 +72,7 @@ export function NextUp({ events, year, now, onOpen, onDownload, onShowAllYears }
           {sameDay > 0 ? <span className="cal-next__of">and {sameDay} more that day</span> : null}
         </p>
         <div className="cal-next__actions">
-          <Button variant="primary" leadingIcon={CalendarPlus} onClick={() => onDownload(next)}>
-            Add to calendar
-          </Button>
+          <AddToCalendar event={next} />
           {module ? (
             <Button to={`/modules/${module.id}`} leadingIcon={<ModuleIcon moduleId={module.id} />}>
               Open module
@@ -112,12 +110,12 @@ export function NextUp({ events, year, now, onOpen, onDownload, onShowAllYears }
       <DayStrip
         events={upcoming}
         outlook={outlook}
-        now={now}
+        today={today}
         nextId={next.id}
         getModule={getModule}
         noExams={who ? `No exams ahead on the ${who} calendar` : 'No exams ahead on the calendar'}
       />
-      <UpcomingBoard events={upcoming} today={today} onOpen={onOpen} onDownload={onDownload} getModule={getModule} />
+      <UpcomingBoard events={upcoming} today={today} onOpen={onOpen} getModule={getModule} />
     </section>
   );
 }

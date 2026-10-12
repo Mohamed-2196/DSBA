@@ -1,7 +1,8 @@
 import { EnvelopeSimple, LinkSimple, ShareNetwork, WhatsappLogo } from '@phosphor-icons/react';
+import { appUrl, copyText } from '../../../lib/share';
 import { useToast } from '../../../state';
 import { Button, IconButton, Menu, cx } from '../../../ui';
-import { appUrl, copyText, mailUrl, whatsappUrl } from '../lib/links';
+import { mailUrl, whatsappUrl } from '../lib/links';
 
 export interface ShareActionsProps {
   /** e.g. '/newsletter/launch-edition' */

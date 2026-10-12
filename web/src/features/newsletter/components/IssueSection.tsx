@@ -1,19 +1,18 @@
-// One section of an issue: the label, the headline, the copy, a live part (deadlines from the calendar,
-// threads from the forum, files from the library) and the reactions; a picture or a margin note beside it.
+// One section of an issue: the label, the headline, the copy, a live part (deadlines from the calendar, threads
+// from the forum, files from the library) and the reactions; a picture or a card beside it.
 // Used by the reader and by the editor's preview.
 import type { ReactNode } from 'react';
-import type { ReactionCounts } from '../../../api/types';
+import type { IssueSection as SectionData, LiveFallback, ReactionCounts } from '../../../api/types';
+import { addDaysToKey } from '../../../lib/dates';
+import { ErrorBoundary, cx } from '../../../ui';
 import { useCalendarEvents } from '../../calendar/public';
 import { useHotThreads } from '../../forum/public';
 import { useRecentFiles } from '../../library/public';
-import { ErrorBoundary, cx } from '../../../ui';
-import { addDaysIso, sectionDomId } from '../lib/text';
-import type { Block, Section } from '../types';
-import { Aside, Blocks, Figure, Profile } from './Blocks';
+import { plainText, sectionDomId, sectionLabel } from '../lib/text';
+import type { Block } from '../types';
+import { Aside, Blocks, Figure } from './Blocks';
 import { Reactions } from './Reactions';
 import { sectionIcon } from './sectionIcons';
-import { ChartOfTheWeek } from './sections/ChartOfTheWeek';
-import { CohortCorner } from './sections/CohortCorner';
 import { Deadlines, SessionCalendar } from './sections/Deadlines';
 import { ForumList, LibraryList, LiveSkeleton } from './sections/LiveLists';
 
@@ -27,7 +26,7 @@ export interface SectionIssue {
 
 export interface IssueSectionProps {
   issue: SectionIssue;
-  section: Section;
+  section: SectionData;
   /** Reactions show their counts but can't be pressed (a draft, the editor's preview). */
   readOnly?: boolean;
 }
@@ -38,14 +37,15 @@ interface FrameProps extends IssueSectionProps {
   /** The copy before the live part (hidden when the live part falls back to an invitation). */
   blocks?: readonly Block[];
   body?: ReactNode;
-  /** Beside the copy when the section has no picture or margin note of its own. */
+  /** Beside the copy when the section has no picture or card of its own. */
   aside?: ReactNode;
 }
 
 function SectionFrame({ issue, section, readOnly, title = section.title, blocks = section.blocks, body, aside }: FrameProps) {
   const Icon = sectionIcon(section.icon);
   const headId = `${sectionDomId(section.id)}-title`;
-  // A picture (or a wide margin note) takes a column beside the copy; on a phone it moves above it.
+  const label = plainText(sectionLabel(section));
+  // A picture (or a wide card) takes a column beside the copy; on a phone it moves above it.
   const wide = Boolean(section.figure) || Boolean(section.aside?.wide);
   let side: ReactNode = null;
   if (section.figure) side = <Figure figure={section.figure} />;
@@ -56,12 +56,11 @@ function SectionFrame({ issue, section, readOnly, title = section.title, blocks 
       <header className="nl-section__head">
         <p className="nl-section__label">
           <Icon weight="duotone" aria-hidden="true" />
-          {section.label}
+          {label}
         </p>
         <h2 id={headId} className="nl-section__title" tabIndex={-1}>
-          {title}
+          {plainText(title)}
         </h2>
-        {section.profile ? <Profile profile={section.profile} /> : null}
       </header>
       <div className="nl-section__body">
         <Blocks blocks={blocks} editors={issue.editors} />
@@ -71,7 +70,7 @@ function SectionFrame({ issue, section, readOnly, title = section.title, blocks 
           </ErrorBoundary>
         ) : null}
         <Blocks blocks={section.after} editors={issue.editors} />
-        <Reactions issueId={issue.id} issueSlug={issue.slug} sectionId={section.id} counts={issue.reactions[section.id]} label={section.label} readOnly={readOnly} />
+        <Reactions issueId={issue.id} issueSlug={issue.slug} sectionId={section.id} counts={issue.reactions[section.id]} label={label} readOnly={readOnly} />
       </div>
       {side ? <div className="nl-section__aside">{side}</div> : null}
     </section>
@@ -82,7 +81,7 @@ function SectionFrame({ issue, section, readOnly, title = section.title, blocks 
 function DeadlinesSection(props: IssueSectionProps) {
   const { issue, section } = props;
   const from = section.window?.from ?? issue.date;
-  const to = section.window?.to ?? addDaysIso(from, 90);
+  const to = section.window?.to ?? addDaysToKey(from, 90);
   const q = useCalendarEvents({ from, to, type: 'exam' });
   const exams = q.data ?? [];
   return (
@@ -94,52 +93,37 @@ function DeadlinesSection(props: IssueSectionProps) {
   );
 }
 
+/** A live list that may have nothing to show yet: the section then reads as its fallback (an invitation). */
+function fallbackProps(section: SectionData, empty: boolean): { title: string; blocks: readonly Block[]; fallback: LiveFallback | null } {
+  const fallback = section.fallback ?? null;
+  return empty && fallback ? { title: fallback.title, blocks: [], fallback } : { title: section.title, blocks: section.blocks, fallback };
+}
+
 /** From the forum: hot threads about a module first (study questions, study groups), then the rest. */
 function ForumSection(props: IssueSectionProps) {
-  const { section } = props;
   const q = useHotThreads({ n: 12 });
   const list = q.data ?? [];
   const threads = [...list.filter((t) => t.moduleId), ...list.filter((t) => !t.moduleId)].slice(0, 4);
-  const empty = !q.isPending && !threads.length;
-  return (
-    <SectionFrame
-      {...props}
-      title={empty && section.fallback ? section.fallback.title : section.title}
-      blocks={empty && section.fallback ? [] : section.blocks}
-      body={q.isPending ? <LiveSkeleton /> : <ForumList threads={threads} fallback={section.fallback} />}
-    />
-  );
+  const { title, blocks, fallback } = fallbackProps(props.section, !q.isPending && !threads.length);
+  return <SectionFrame {...props} title={title} blocks={blocks} body={q.isPending ? <LiveSkeleton /> : <ForumList threads={threads} fallback={fallback} />} />;
 }
 
 /** New in the library: the newest published files. */
 function LibrarySection(props: IssueSectionProps) {
-  const { section } = props;
   const q = useRecentFiles({ n: 4 });
   const files = q.data ?? [];
-  const empty = !q.isPending && !files.length;
-  return (
-    <SectionFrame
-      {...props}
-      title={empty && section.fallback ? section.fallback.title : section.title}
-      blocks={empty && section.fallback ? [] : section.blocks}
-      body={q.isPending ? <LiveSkeleton /> : <LibraryList files={files} fallback={section.fallback} />}
-    />
-  );
+  const { title, blocks, fallback } = fallbackProps(props.section, !q.isPending && !files.length);
+  return <SectionFrame {...props} title={title} blocks={blocks} body={q.isPending ? <LiveSkeleton /> : <LibraryList files={files} fallback={fallback} />} />;
 }
 
 export function IssueSection(props: IssueSectionProps) {
-  const { section } = props;
-  switch (section.kind) {
+  switch (props.section.kind) {
     case 'deadlines':
       return <DeadlinesSection {...props} />;
     case 'forum':
       return <ForumSection {...props} />;
     case 'library':
       return <LibrarySection {...props} />;
-    case 'cohorts':
-      return <SectionFrame {...props} body={section.cohorts?.length ? <CohortCorner sectionId={section.id} cohorts={section.cohorts} /> : null} />;
-    case 'chart':
-      return <SectionFrame {...props} body={section.chart ? <ChartOfTheWeek chart={section.chart} /> : null} />;
     default:
       return <SectionFrame {...props} />;
   }

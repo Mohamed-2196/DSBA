@@ -1,12 +1,13 @@
 // Calendar queries: pure functions over a list of events from the API (oldest first).
-import { DAY_MS, addDays, parseKey, startOfDay, toKey } from './dates';
+import { addDaysToKey, DAY_MS, parseDay, startOfDay, todayKey, type DayKey } from '../../lib/dates';
 import { appliesTo } from './eventMeta';
 import type { CalendarEvent, EventType, ExamOutlook } from './types';
 
 /** Local-midnight Date of an event (dates are calendar days, no time zone). */
-export const eventDate = (e: Pick<CalendarEvent, 'date'>): Date => parseKey(e.date);
+export const eventDate = (e: Pick<CalendarEvent, 'date'>): Date => parseDay(e.date);
 
-const fromTime = (from: Date | number | string | undefined): number => startOfDay(from ?? new Date()).getTime();
+/** The day to count from: `from`, or today in Bahrain. */
+const fromTime = (from: Date | number | string | undefined): number => startOfDay(from).getTime();
 
 /** Events by date, oldest first; events on the same day keep the order they came in. */
 export function sortEvents<T extends Pick<CalendarEvent, 'date'>>(events: readonly T[]): T[] {
@@ -22,7 +23,7 @@ export function filterEvents(events: readonly CalendarEvent[], { year, types }: 
 }
 
 /** Events from `from` (inclusive, by day), for `year` (+ everyone-events); year null → all. n may be Infinity. */
-export function upcomingFrom(events: readonly CalendarEvent[], { year, from = new Date(), n = 5 }: { year?: number | null; from?: Date | number | string; n?: number } = {}): CalendarEvent[] {
+export function upcomingFrom(events: readonly CalendarEvent[], { year, from, n = 5 }: { year?: number | null; from?: Date | number | string; n?: number } = {}): CalendarEvent[] {
   const t = fromTime(from);
   return events.filter((e) => appliesTo(e, year) && eventDate(e).getTime() >= t).slice(0, n);
 }
@@ -33,13 +34,13 @@ export function examsFor(events: readonly CalendarEvent[], year: number | null |
 }
 
 /** The next exam (today or later) for a year; null → any year. */
-export function nextExam(events: readonly CalendarEvent[], { year, from = new Date() }: { year?: number | null; from?: Date | number } = {}): CalendarEvent | null {
+export function nextExam(events: readonly CalendarEvent[], { year, from }: { year?: number | null; from?: Date | number } = {}): CalendarEvent | null {
   const t = fromTime(from);
   return examsFor(events, year).find((e) => eventDate(e).getTime() >= t) ?? null;
 }
 
 /** Upcoming exams (today or later) for a year. */
-export function upcomingExams(events: readonly CalendarEvent[], { year, from = new Date() }: { year?: number | null; from?: Date | number } = {}): CalendarEvent[] {
+export function upcomingExams(events: readonly CalendarEvent[], { year, from }: { year?: number | null; from?: Date | number } = {}): CalendarEvent[] {
   const t = fromTime(from);
   return examsFor(events, year).filter((e) => eventDate(e).getTime() >= t);
 }
@@ -65,7 +66,7 @@ export function examSession(events: readonly CalendarEvent[], exam: CalendarEven
  * session that are still to come (the next one first) and whether that session has already started.
  * null when no exam is ahead.
  */
-export function examOutlook(events: readonly CalendarEvent[], { year, from = new Date() }: { year?: number | null; from?: Date | number } = {}): ExamOutlook | null {
+export function examOutlook(events: readonly CalendarEvent[], { year, from }: { year?: number | null; from?: Date | number } = {}): ExamOutlook | null {
   const next = nextExam(events, { year, from });
   if (!next) return null;
   const t = fromTime(from);
@@ -75,11 +76,10 @@ export function examOutlook(events: readonly CalendarEvent[], { year, from = new
 }
 
 /** Every day key ('YYYY-MM-DD') an event covers: its date, through its end date when it has one. */
-export function eventDays(e: Pick<CalendarEvent, 'date' | 'endDate'>): string[] {
+export function eventDays(e: Pick<CalendarEvent, 'date' | 'endDate'>): DayKey[] {
   if (!e.endDate || e.endDate <= e.date) return [e.date];
-  const out: string[] = [];
-  const end = parseKey(e.endDate);
-  for (let d = parseKey(e.date); d <= end && out.length < 120; d = addDays(d, 1)) out.push(toKey(d));
+  const out: DayKey[] = [];
+  for (let key = e.date; key <= e.endDate && out.length < 120; key = addDaysToKey(key, 1)) out.push(key);
   return out;
 }
 
@@ -96,5 +96,5 @@ export function groupByDay(events: readonly CalendarEvent[]): Map<string, Calend
   return map;
 }
 
-/** 'YYYY-MM-DD' of today plus `days` (local). */
-export const dayKeyFromToday = (days = 0, now: Date | number = new Date()): string => toKey(addDays(startOfDay(now), days));
+/** 'YYYY-MM-DD' of today in Bahrain plus `days`. */
+export const dayKeyFromToday = (days = 0, now: Date | number = Date.now()): DayKey => addDaysToKey(todayKey(now), days);

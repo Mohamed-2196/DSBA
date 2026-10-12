@@ -15,7 +15,8 @@ import { LatestIssueCard } from '../newsletter/public';
 import { ExamTimeline } from './ExamTimeline';
 import { NewInLibrary } from './NewInLibrary';
 import { getExamSession } from './session';
-import { greetingFor, isoDay, longDay, startOfDay } from './time';
+import { addDays, dayKey, formatLongDay, parseDay, todayKey } from '../../lib/dates';
+import { greetingFor } from './time';
 import { YourModules } from './YourModules';
 import './HomePage.css';
 
@@ -46,10 +47,10 @@ export default function HomePage() {
   const onboarding = useOnboardingOpen();
   const [intro, setIntro] = useState(() => !introPlayed);
   const now = new Date();
-  const dayKey = startOfDay(now).getTime();
-  const today = useMemo(() => new Date(dayKey), [dayKey]);
-  const horizon = useMemo(() => new Date(dayKey + 120 * 86400000), [dayKey]);
-  const calendar = useCalendarEvents({ from: isoDay(today), to: isoDay(horizon) });
+  // Today in Bahrain, as the API counts it; a new object only when the day changes.
+  const todayIs = todayKey(now);
+  const today = useMemo(() => parseDay(todayIs), [todayIs]);
+  const calendar = useCalendarEvents({ from: todayIs, to: dayKey(addDays(today, 120)) });
   const loading = calendar.isPending;
   const playing = intro && !onboarding && !loading;
 
@@ -68,7 +69,7 @@ export default function HomePage() {
     <Page className="home">
       <header className="home-greeting" data-hub="home-greeting">
         <p className="home-greeting__meta">
-          <time dateTime={isoDay(today)}>{longDay(now)}</time>
+          <time dateTime={todayIs}>{formatLongDay(today)}</time>
           <CohortBadge year={activeYear} />
         </p>
         <h1 className="home-greeting__title">
@@ -87,7 +88,16 @@ export default function HomePage() {
       </header>
 
       <ErrorBoundary name="ExamTimeline">
-        <ExamTimeline session={session} year={activeYear} intro={playing} today={today} loading={loading} />
+        <ExamTimeline
+          session={session}
+          year={activeYear}
+          intro={playing}
+          today={today}
+          loading={loading}
+          error={calendar.isError ? calendar.error : undefined}
+          onRetry={() => void calendar.refetch()}
+          retrying={calendar.isFetching}
+        />
       </ErrorBoundary>
 
       <div className="home-body">

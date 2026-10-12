@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { CaretLeft, CaretRight, Clock, Newspaper, PencilSimple, WarningCircle } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, Clock, Newspaper, PencilSimple } from '@phosphor-icons/react';
 import { isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
+import { formatDay } from '../../lib/dates';
 import { useDocumentTitle, useMediaQuery, useQueryParam } from '../../state';
-import { Badge, Button, EmptyState, HubLogo, HubMark, Page, Panel, Skeleton, cx } from '../../ui';
+import { Badge, Button, EmptyState, HubLogo, HubMark, Page, Panel, QueryError, Skeleton, cx } from '../../ui';
 import { toCard, useIssue, useIssueDetails, useIssues } from './api';
 import { EditorAvatars } from './components/Blocks';
 import { DeleteIssueButton, PublishButton } from './components/IssueActions';
@@ -13,7 +14,7 @@ import { IssueSection } from './components/IssueSection';
 import { Wordmark } from './components/Nameplate';
 import { ShareActions } from './components/ShareActions';
 import { SubscribeBox } from './components/SubscribeBox';
-import { issueNo, listNames, longDate, sectionDomId } from './lib/text';
+import { issueNo, listNames, plainText, sectionDomId, sectionLabel } from './lib/text';
 import type { Issue, IssueCard } from './types';
 import './IssuePage.css';
 
@@ -25,7 +26,7 @@ function RunningHead({ issue, share = true }: { issue: Pick<Issue, 'number' | 'd
       </Link>
       <p className="nl-runhead__meta">
         <span className="u-tabular">Issue {issueNo(issue.number)}</span>
-        <span className="u-tabular">{longDate(issue.date)}</span>
+        <span className="u-tabular">{formatDay(issue.date)}</span>
       </p>
       {share ? <ShareActions route={`/newsletter/${issue.slug}`} title={`The DSBA Newsletter ${issueNo(issue.number)}: ${issue.title}`} className="nl-runhead__share" /> : null}
     </div>
@@ -42,7 +43,7 @@ function Toc({ issue, active, onGo }: { issue: Issue; active: string | undefined
           return (
             <li key={s.id}>
               <button type="button" className={cx('nl-toc__item', on && 'is-active')} aria-current={on ? 'location' : undefined} onClick={() => onGo(s.id)}>
-                <span>{s.label}</span>
+                <span>{plainText(sectionLabel(s))}</span>
                 {on ? <HubMark size={9} animate="draw" className="nl-toc__mark" /> : null}
               </button>
             </li>
@@ -82,7 +83,7 @@ function Pager({ issue }: { issue: Issue }) {
           </span>
           <span className="nl-pager__title">{i.title}</span>
           <span className="nl-pager__meta">
-            Issue {issueNo(i.number)}, {longDate(i.date)}
+            Issue {issueNo(i.number)}, {formatDay(i.date)}
           </span>
         </span>
       </Link>
@@ -104,7 +105,7 @@ function ModeratorBar({ issue }: { issue: Issue }) {
     <div className={cx('nl-modbar', draft && 'is-draft')} data-hub="issue-modbar">
       <p className="nl-modbar__text">
         <Badge tone={draft ? 'highlight' : 'signal'}>{draft ? 'Draft' : 'Published'}</Badge>
-        <span>{draft ? 'Only student reps can see this issue until it’s published.' : `Published ${issue.publishedAt ? new Date(issue.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}. Changes show to everyone as soon as you save them.`}</span>
+        <span>{draft ? 'Only student reps can see this issue until it’s published.' : `Published${issue.publishedAt ? ` ${formatDay(new Date(issue.publishedAt))}` : ''}. Changes show to everyone as soon as you save them.`}</span>
       </p>
       <div className="nl-modbar__actions">
         <Button size="sm" leadingIcon={PencilSimple} to={`/newsletter/${issue.slug}/edit`} data-hub="issue-edit">
@@ -300,18 +301,7 @@ export default function IssuePage() {
     return (
       <Page>
         <h1 className="visually-hidden">The DSBA Newsletter</h1>
-        <Panel padding="none">
-          <EmptyState
-            icon={WarningCircle}
-            title="This issue didn’t load"
-            body="Check your connection, then try again."
-            action={
-              <Button onClick={() => void q.refetch()} loading={q.isFetching}>
-                Try again
-              </Button>
-            }
-          />
-        </Panel>
+        <QueryError error={q.error} title="This issue didn’t load" onRetry={() => void q.refetch()} retrying={q.isFetching} />
       </Page>
     );
   }

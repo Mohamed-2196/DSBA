@@ -7,14 +7,15 @@
 //   useNextExamForModule(moduleId)           UseQueryResult<CalendarEvent | null>: the module's next exam, null when none.
 //   useCalendarEvents({ from, to, year, moduleId, type })   UseQueryResult<CalendarEvent[]>, oldest first.
 //
-//   eventDate(e) / dayKeyFromToday(n)        an event's day as a local Date; 'YYYY-MM-DD' n days from today.
+//   eventDate(e) / dayKeyFromToday(n)        an event's day as a local Date; 'YYYY-MM-DD' n days from today (Bahrain).
+//   daysUntil, formatLong, …                 day helpers, from src/lib/dates.ts (import them from there in new code).
 //
 // Deep links into the page: /calendar?event=<id> (opens the event), ?month=YYYY-MM, ?cohort=all,
 // ?types=exam,mock (comma list of event types).
 export { UpcomingEvents } from './UpcomingEvents';
 export type { UpcomingEventsProps } from './UpcomingEvents';
 export { CALENDAR_KEY, feedUrl, useCalendarEvents, useNextExamForModule, useUpcomingEvents } from './api';
-export { daysUntil, formatLong, formatLongDay, formatMonthShort, formatShort } from './dates';
+export { daysUntil, formatLong, formatLongDay, formatMonthShort, formatShort } from '../../lib/dates';
 export { EVENT_TYPES, TYPE_ORDER, typeLabel } from './eventMeta';
 export { dayKeyFromToday, eventDate } from './queries';
 export type { CalendarEvent, EventFilters, EventType } from './types';

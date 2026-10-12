@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { CalendarBlank } from '@phosphor-icons/react';
 import { cohortLabel, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, cx, EmptyState, Skeleton } from '../../ui';
+import { Button, cx, EmptyState, QueryError, Skeleton } from '../../ui';
 import { useUpcomingEvents } from './api';
 import { DateLeaf } from './DateLeaf';
-import { countdownShort, daysUntil, formatLong, parseKey } from './dates';
+import { daysUntil, formatLong, parseDay, today as bahrainToday } from '../../lib/dates';
+import { countdownShort } from './dates';
 import { splitTitle, typeLabel } from './eventMeta';
 import './calendar-shared.css';
 import './UpcomingEvents.css';
@@ -26,7 +27,7 @@ export interface UpcomingEventsProps {
 export function UpcomingEvents({ n = 5 }: UpcomingEventsProps) {
   const { year } = useYear();
   const { getModule } = useModules();
-  const [now] = useState(() => new Date());
+  const [today] = useState(() => bahrainToday());
   const query = useUpcomingEvents({ n, year });
 
   if (query.isPending) {
@@ -52,17 +53,7 @@ export function UpcomingEvents({ n = 5 }: UpcomingEventsProps) {
   if (query.isError) {
     return (
       <div className="cal-upcoming cal-upcoming--empty" data-hub="upcoming-events">
-        <EmptyState
-          size="sm"
-          icon={CalendarBlank}
-          title="The calendar didn’t load"
-          body="Check your connection, then try again."
-          action={
-            <Button size="sm" onClick={() => void query.refetch()} loading={query.isFetching}>
-              Try again
-            </Button>
-          }
-        />
+        <QueryError error={query.error} title="The calendar didn’t load" size="sm" panel={false} onRetry={() => void query.refetch()} retrying={query.isFetching} />
       </div>
     );
   }
@@ -90,8 +81,8 @@ export function UpcomingEvents({ n = 5 }: UpcomingEventsProps) {
     <div className="cal-upcoming" data-hub="upcoming-events">
       <ol role="list" className="cal-upcoming__list">
         {events.map((e) => {
-          const date = parseKey(e.date);
-          const days = daysUntil(date, now);
+          const date = parseDay(e.date);
+          const days = daysUntil(date, today);
           const { code, rest } = splitTitle(e);
           const module = getModule(e.moduleId);
           const name = code && module ? module.name : rest;

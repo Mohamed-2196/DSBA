@@ -1,8 +1,9 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
-import { CalendarPlus } from '@phosphor-icons/react';
 import type { ModuleSummary } from '../../api/types';
-import { cx, IconButton } from '../../ui';
-import { countdownLabel, daysUntil, formatLong, formatMonthShort, gapLabel, parseKey, weekdayOf } from './dates';
+import { cx } from '../../ui';
+import { AddToCalendar } from './AddToCalendar';
+import { daysUntil, formatLong, formatMonthShort, parseDay, weekdayOf } from '../../lib/dates';
+import { countdownLabel, gapLabel } from './dates';
 import { cardText, typeLabel } from './eventMeta';
 import type { CalendarEvent } from './types';
 
@@ -25,7 +26,6 @@ export interface UpcomingBoardProps {
   events: CalendarEvent[];
   today: Date;
   onOpen: (e: CalendarEvent) => void;
-  onDownload: (e: CalendarEvent) => void;
   getModule: (id: string | null | undefined) => ModuleSummary | null;
 }
 
@@ -36,7 +36,7 @@ export interface UpcomingBoardProps {
  * Each card opens the event's details and can be added to a calendar.
  * data-hub="exam-list".
  */
-export function UpcomingBoard({ events, today, onOpen, onDownload, getModule }: UpcomingBoardProps) {
+export function UpcomingBoard({ events, today, onOpen, getModule }: UpcomingBoardProps) {
   const ref = useRef<HTMLOListElement>(null);
   const [width, setWidth] = useState(0);
 
@@ -65,10 +65,10 @@ export function UpcomingBoard({ events, today, onOpen, onDownload, getModule }: 
       aria-label={n === 1 ? 'The next date on the calendar' : `The next ${n} dates on the calendar, in order`}
     >
       {shown.map((e, i) => {
-        const date = parseKey(e.date);
+        const date = parseDay(e.date);
         const days = daysUntil(date, today);
         const prev = i > 0 ? shown[i - 1] : undefined;
-        const gap = prev ? daysUntil(date, parseKey(prev.date)) : 0;
+        const gap = prev ? daysUntil(date, parseDay(prev.date)) : 0;
         const exams = !!prev && prev.type === 'exam' && e.type === 'exam';
         const { code, name } = cardText(e, getModule(e.moduleId));
         const wd = weekdayOf(date);
@@ -116,15 +116,7 @@ export function UpcomingBoard({ events, today, onOpen, onDownload, getModule }: 
                 {prev ? <span className="visually-hidden">, {gapSentence(gap, prev)}</span> : null}
               </span>
             </button>
-            <IconButton
-              className="cal-up__add"
-              label={`Add ${e.title} on ${formatLong(date)} to your calendar`}
-              icon={CalendarPlus}
-              size="sm"
-              tooltip
-              tooltipSide="top"
-              onClick={() => onDownload(e)}
-            />
+            <AddToCalendar event={e} iconOnly size="sm" tooltipSide="top" className="cal-up__add" />
           </li>
         );
       })}

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { CalendarPlus, Copy, DownloadSimple } from '@phosphor-icons/react';
-import { YEARS, type CohortYear } from '../../lib/modules';
-import { cohortColor, cohortOnColor, useToast } from '../../state';
+import { cohortColor, cohortLabel, cohortOnColor, normalizeYear, useToast, YEARS, type CohortYear } from '../../state';
 import { Button, Modal, SegmentedControl, TextField } from '../../ui';
+import { copyText } from '../../lib/share';
 import { feedUrl } from './api';
 
 export interface SubscribeDialogProps {
@@ -26,18 +26,17 @@ export function SubscribeDialog({ open, year, onClose }: SubscribeDialogProps) {
     if (open) setChoice(year ? `${year}` : 'all');
   }, [open, year]);
 
-  const chosen: CohortYear | null = choice === 'all' ? null : (Number(choice) as CohortYear);
+  const chosen: CohortYear | null = choice === 'all' ? null : normalizeYear(Number(choice));
   const url = feedUrl(chosen);
   const webcal = url.replace(/^https?:/, 'webcal:');
-  const fileName = chosen ? `dsba-year-${chosen}.ics` : 'dsba-calendar.ics';
+  const fileName = chosen ? `dsba-hub-year-${chosen}.ics` : 'dsba-hub.ics';
 
   const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      push({ tone: 'success', title: 'Link copied', body: 'Paste it into your calendar app to subscribe.' });
-    } catch {
-      push({ tone: 'alert', title: 'Couldn’t copy the link', body: 'Select the link and copy it yourself.' });
-    }
+    push(
+      (await copyText(url))
+        ? { tone: 'success', title: 'Link copied', body: 'Paste it into your calendar app to subscribe.' }
+        : { tone: 'alert', title: 'Couldn’t copy the link', body: 'Select the link and copy it yourself.' },
+    );
   };
 
   return (
@@ -69,7 +68,7 @@ export function SubscribeDialog({ open, year, onClose }: SubscribeDialogProps) {
             setChoice(s === '1' || s === '2' || s === '3' ? s : 'all');
           }}
           options={[
-            ...YEARS.map((y) => ({ value: `${y}`, label: `Year ${y}`, color: cohortColor(y), onColor: cohortOnColor(y) })),
+            ...YEARS.map((y) => ({ value: `${y}`, label: cohortLabel(y), color: cohortColor(y), onColor: cohortOnColor(y) })),
             { value: 'all', label: 'All years' },
           ]}
         />
@@ -83,7 +82,7 @@ export function SubscribeDialog({ open, year, onClose }: SubscribeDialogProps) {
               Copy
             </Button>
           }
-          hint={chosen ? `Year ${chosen} dates and the dates for everyone.` : 'Every cohort’s dates.'}
+          hint={chosen ? `${cohortLabel(chosen)} dates and the dates for everyone.` : 'Every cohort’s dates.'}
         />
         <ul role="list" className="cal-subscribe__how">
           <li>
@@ -96,7 +95,7 @@ export function SubscribeDialog({ open, year, onClose }: SubscribeDialogProps) {
             <b>Apple Calendar:</b> use <i>Open in my calendar app</i>, or File, then <i>New Calendar Subscription</i>.
           </li>
         </ul>
-        <p className="cal-subscribe__note">Sample dates are marked as not confirmed in their notes. Exam times and venues are not included.</p>
+        <p className="cal-subscribe__note">Dates that aren’t confirmed are marked in their notes. Exam times and venues are not included.</p>
       </div>
     </Modal>
   );

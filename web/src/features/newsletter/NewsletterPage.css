@@ -76,6 +76,10 @@
   text-decoration: none;
 }
 .nl-feature__contents a:hover { color: var(--cobalt); text-decoration: underline; text-decoration-thickness: 1px; }
+@media (pointer: coarse) {
+  .nl-feature__contents ol { gap: 0 var(--sp-24); }
+  .nl-feature__contents a { display: flex; align-items: center; min-height: 44px; }
+}
 
 .nl-feature__actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-24); margin-top: var(--sp-32); }
 .nl-feature__time, .nl-shelf__time { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-medium); }
