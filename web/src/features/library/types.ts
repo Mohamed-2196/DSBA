@@ -1,9 +1,9 @@
 // Shapes shared inside the library feature. API models come from src/api/types.
 import type { LibraryItem } from '../../api/types';
+import type { CohortYear } from '../../state';
 import type { ItemSource, ItemStatus, LibraryKind } from './kinds';
 
-export type { LibraryItem };
-export type CohortYear = 1 | 2 | 3;
+export type { CohortYear, LibraryItem };
 
 /** Sort orders the API knows. 'relevance' (best match first) only means something with a search. */
 export type LibrarySort = 'new' | 'popular' | 'title' | 'relevance';

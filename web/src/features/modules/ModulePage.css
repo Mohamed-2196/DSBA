@@ -20,6 +20,10 @@
 }
 .mod-head__back:hover { color: var(--ink); }
 .mod-head__back svg { font-size: 14px; }
+/* Touch screens: a 44px target (UX review UX-11); the space under it stays the same. */
+@media (pointer: coarse) {
+  .mod-head__back { min-height: 44px; margin: -10px 0 calc(var(--sp-16) - 10px) -2px; padding: 0 var(--sp-8) 0 2px; }
+}
 
 .mod-head__grid {
   display: grid;
@@ -27,7 +31,7 @@
   align-items: center;
   gap: var(--sp-32) var(--sp-48);
 }
-.mod-head__main { min-width: 0; }
+.mod-head__main { min-width: 0; container: mod-head / inline-size; }
 /* The lockup: the unit code (or the module's plate) set beside the name. */
 .mod-head__title { display: flex; align-items: center; gap: var(--sp-24); }
 .mod-head__code {
@@ -60,6 +64,14 @@
   color: var(--mc);
   font-size: 42px;
 }
+/* Too narrow for the code and a readable name side by side (a phone, or a small laptop with the progress panel beside
+   it): the name goes under the code. */
+@container mod-head (max-width: 600px) {
+  .mod-head__title { flex-direction: column; align-items: flex-start; gap: var(--sp-12); }
+  .mod-head__code { padding-right: 0; border-right: 0; font-size: var(--fs-49); line-height: 0.86; }
+  .mod-head__name { max-width: none; font-size: var(--fs-25); }
+  .mod-head__plate { width: 60px; height: 60px; border-radius: var(--r-panel); font-size: 32px; }
+}
 .mod-head__desc { margin-top: var(--sp-16); max-width: 64ch; color: var(--ink-2); font-size: var(--fs-16); }
 .mod-head__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8) var(--sp-12); margin-top: var(--sp-16); }
 .mod-head__counts { color: var(--ink-2); font-size: var(--fs-14); }
@@ -82,10 +94,10 @@
   font-size: 30px;
 }
 .mod-head__actions { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
-.mod-head__actions > .ui-button { flex: 1 1 auto; padding-inline: 14px; }
+.mod-head__action { flex: 1 1 auto; }
 
 /* ── Tabs ──────────────────────────────────────────────────────────────── */
-.mod-page .mod-tabs { margin-bottom: var(--sp-32); } /* scoped: /moderation has its own .mod-tabs */
+.mod-tabs { margin-bottom: var(--sp-32); }
 .mod-panels { container: mod-panels / inline-size; }
 
 /* ── Overview ──────────────────────────────────────────────────────────── */
@@ -234,14 +246,10 @@
 }
 @media (max-width: 699px) {
   .mod-head { margin-bottom: var(--sp-24); }
-  .mod-head__title { flex-direction: column; align-items: flex-start; gap: var(--sp-12); }
-  .mod-head__code { padding-right: 0; border-right: 0; font-size: var(--fs-49); line-height: 0.86; }
-  .mod-head__name { max-width: none; font-size: var(--fs-25); }
-  .mod-head__plate { width: 60px; height: 60px; border-radius: var(--r-panel); font-size: 32px; }
   .mod-head__side { max-width: none; padding: var(--sp-16); }
-  .mod-page .mod-tabs { margin-bottom: var(--sp-24); }
+  .mod-tabs { margin-bottom: var(--sp-24); }
   .mod-res__entry { padding: var(--sp-16); }
   .mod-res__missing { padding: 12px var(--sp-16); }
-  .mod-ov__main > .ui-section-header { flex-direction: column; align-items: flex-start; gap: var(--sp-8); }
-  .mod-ov__main > .ui-section-header .ui-section-header__action { margin-left: -12px; }
+  /* The section header puts its action under the title on phones: line the ghost button up with the text. */
+  .mod-ov__files { margin-left: -12px; }
 }

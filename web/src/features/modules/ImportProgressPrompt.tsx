@@ -66,7 +66,7 @@ export function ImportProgressPrompt() {
         setClosed(true);
         push({ title: 'Lesson progress added', body: 'It’s saved to your account now, on every device.', tone: 'success' });
       })
-      .catch((e: unknown) => setError(errorMessage(e, 'It couldn’t be added. Check your connection and try again.')))
+      .catch((e: unknown) => setError(errorMessage(e, 'It couldn’t be added. Try again.')))
       .finally(() => setBusy(false));
   };
 

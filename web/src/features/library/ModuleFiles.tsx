@@ -1,11 +1,11 @@
 // The module page's Files tab: the module's library items grouped by type, with Upload and a way into the
 // library already filtered to the module.
-import { ArrowSquareOut, Books, DownloadSimple, UploadSimple, WarningCircle } from '@phosphor-icons/react';
+import { ArrowSquareOut, Books, DownloadSimple, UploadSimple } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
-import { Badge, Button, EmptyState, IconButton, Panel, Skeleton, timeAgo } from '../../ui';
+import { Badge, Button, EmptyState, IconButton, Panel, QueryError, Skeleton, timeAgo } from '../../ui';
 import { downloadHref, itemPath, openLinkHref, useLibraryList } from './api';
 import type { LinkState } from './components/FileCard';
 import { FileThumb } from './components/FileThumb';
@@ -95,16 +95,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
       </Panel>
     );
   } else if (files.isError) {
-    body = (
-      <Panel padding="none">
-        <EmptyState
-          icon={WarningCircle}
-          title="The files didn’t load"
-          body="Check your connection, then try again."
-          action={<Button onClick={() => void files.refetch()}>Try again</Button>}
-        />
-      </Panel>
-    );
+    body = <QueryError error={files.error} title={`The files for ${name} didn’t load`} onRetry={() => void files.refetch()} retrying={files.isFetching} />;
   } else if (!groups.length) {
     body = (
       <Panel padding="none">

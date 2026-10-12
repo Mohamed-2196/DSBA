@@ -1,7 +1,7 @@
 import { useId, useRef, useState, type FormEvent } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import { useModules } from '../../../state/modules';
-import { Button, Modal } from '../../../ui';
+import { Button, ConfirmDialog, Modal } from '../../../ui';
 import { useDeleteItem, useUpdateItem } from '../api';
 import { checkValues, errorsFromApi, toUpdateBody, valuesFromItem, type ItemFormErrors, type ItemFormValues } from '../itemForm';
 import type { LibraryItem } from '../types';
@@ -60,12 +60,12 @@ export function EditItemDialog({ item, open, onClose, onSaved }: { item: Library
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={update.isPending ? () => undefined : onClose}
       title="Edit details"
       size="md"
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} disabled={update.isPending}>
             Cancel
           </Button>
           <Button variant="primary" type="submit" form={`edit-${uid}`} loading={update.isPending}>
@@ -86,54 +86,42 @@ export function EditItemDialog({ item, open, onClose, onSaved }: { item: Library
   );
 }
 
-/** "Delete this file?" confirmation. */
+/** What deleting does, in words: it leaves the library at once; the file itself is deleted a week later (the
+ *  API's grace period, security review SEC-14), and nobody can open it meanwhile. */
+function deleteBody(item: LibraryItem): string {
+  if (item.source === 'link') return 'The link leaves the library. The folder it points to isn’t touched. This can’t be undone.';
+  if (item.status === 'published') return 'It leaves the library at once and nobody can open it any more. The file itself is deleted a week later. This can’t be undone.';
+  return 'It leaves Your uploads and the review queue at once. The file itself is deleted a week later. This can’t be undone.';
+}
+
+/** "Delete “…”?" (the shared ConfirmDialog: it opens on Cancel). */
 export function DeleteItemDialog({ item, open, onClose, onDeleted }: { item: LibraryItem; open: boolean; onClose: () => void; onDeleted?: () => void }) {
   const remove = useDeleteItem();
   const [error, setError] = useState<string | null>(null);
   return (
-    <Modal
+    <ConfirmDialog
       open={open}
       onClose={onClose}
-      title={item.status === 'published' ? 'Delete this file?' : 'Delete this upload?'}
-      description={
-        item.source === 'link'
-          ? 'The link is removed from the library. The folder it points to isn’t touched. This can’t be undone.'
-          : 'The file is removed from the library and from storage. This can’t be undone.'
-      }
-      size="sm"
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            loading={remove.isPending}
-            data-autofocus
-            onClick={() =>
-              remove.mutate(
-                { id: item.id },
-                {
-                  onSuccess: () => {
-                    onClose();
-                    onDeleted?.();
-                  },
-                  onError: (e) => setError(errorMessage(e)),
-                },
-              )
-            }
-          >
-            Delete
-          </Button>
-        </>
-      }
-    >
-      <p className="lib-confirm__name">“{item.title}”</p>
-      {error ? (
-        <p className="lib-upload__error lib-upload__error--form" role="alert">
-          {error}
-        </p>
-      ) : null}
-    </Modal>
+      title={`Delete “${item.title}”?`}
+      body={<p>{deleteBody(item)}</p>}
+      confirmLabel="Delete"
+      tone="danger"
+      busy={remove.isPending}
+      error={error}
+      onConfirm={() => {
+        setError(null);
+        remove.mutate(
+          { id: item.id },
+          {
+            onSuccess: () => {
+              onClose();
+              onDeleted?.();
+            },
+            // A suspended account gets the API's own reason (student test ST-8).
+            onError: (e) => setError(errorMessage(e)),
+          },
+        );
+      }}
+    />
   );
 }

@@ -10,6 +10,9 @@ import {
   type QueryKey,
 } from '@tanstack/react-query';
 import { api, apiUrl, call } from '../../api/client';
+import { isApiError } from '../../api/errors';
+import { ADMIN_STATS_KEY } from '../../api/keys';
+import { nextOffset } from '../../api/paging';
 import type {
   FileLink,
   LibraryFacets,
@@ -20,6 +23,7 @@ import type {
   ReviewDecision,
   StarResult,
 } from '../../api/types';
+import { MODULES_KEY } from '../../state/modules';
 import type { CohortYear, LibraryQuery } from './types';
 
 // ── Keys ──────────────────────────────────────────────────────────────────────
@@ -94,10 +98,7 @@ export function useLibraryPages(query: LibraryQuery, { pageSize = PAGE_SIZE, ena
     queryKey: libraryKeys.list('pages', query, pageSize),
     queryFn: ({ pageParam, signal }) => fetchPage(query, pageSize, pageParam, signal),
     initialPageParam: 0,
-    getNextPageParam: (last) => {
-      const next = last.offset + last.items.length;
-      return last.items.length > 0 && next < last.total ? next : undefined;
-    },
+    getNextPageParam: nextOffset,
     placeholderData: keepPreviousData,
     enabled,
   });
@@ -224,9 +225,15 @@ async function cancelLibraryRefetches(qc: QueryClient) {
 }
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
+// After a change, what counts published files follows too: the facets, the moderation page's counters
+// (ADMIN_STATS_KEY) and each module's file count in the catalogue (MODULES_KEY, exact: not every module's
+// lessons), which the module pages and Home show (code quality review CQ-11).
 
-/** The moderation page's counters (uploads to review, library files) follow every change. */
-const ADMIN_STATS_KEY = ['admin', 'stats'] as const;
+function refreshCounts(qc: QueryClient) {
+  void qc.invalidateQueries({ queryKey: libraryKeys.facets });
+  void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
+  void qc.invalidateQueries({ queryKey: MODULES_KEY, exact: true });
+}
 
 /** Star or unstar (optimistic). */
 export function useStarItem() {
@@ -258,8 +265,8 @@ export function useCreateItem() {
     onSuccess: (item) => {
       qc.setQueryData(libraryKeys.item(item.id), item);
       void qc.invalidateQueries({ queryKey: LISTS_KEY });
-      void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
-      if (item.status === 'published') void qc.invalidateQueries({ queryKey: libraryKeys.facets });
+      if (item.status === 'published') refreshCounts(qc);
+      else void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
     },
   });
 }
@@ -273,6 +280,8 @@ export function useUpdateItem() {
     onSuccess: (item) => {
       patchCachedItem(qc, item.id, () => item);
       void qc.invalidateQueries({ queryKey: LISTS_KEY });
+      // A published file moved to another module or year changes both counts.
+      if (item.status === 'published') refreshCounts(qc);
     },
   });
 }
@@ -286,8 +295,7 @@ export function useDeleteItem() {
       removeCachedItem(qc, id);
       qc.removeQueries({ queryKey: ITEMS_KEY, predicate: (q) => (q.state.data as LibraryItem | undefined)?.id === id });
       void qc.invalidateQueries({ queryKey: LISTS_KEY });
-      void qc.invalidateQueries({ queryKey: libraryKeys.facets });
-      void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
+      refreshCounts(qc);
     },
   });
 }
@@ -305,8 +313,14 @@ export function useReviewItem() {
       );
       patchCachedItem(qc, item.id, () => item);
       void qc.invalidateQueries({ queryKey: LISTS_KEY, predicate: (q) => listQueryOf(q.queryKey)?.status !== 'pending' });
-      void qc.invalidateQueries({ queryKey: libraryKeys.facets });
-      void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
+      refreshCounts(qc);
+    },
+    onError: (e) => {
+      // Things changed under the rep (the file was removed, or deleted a week after a rejection): show them as they are.
+      if (isApiError(e) && (e.code === 'file_gone' || e.code === 'post_unavailable' || e.status === 404)) {
+        void qc.invalidateQueries({ queryKey: LISTS_KEY });
+        void qc.invalidateQueries({ queryKey: ITEMS_KEY });
+      }
     },
   });
 }

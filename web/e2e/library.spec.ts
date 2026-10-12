@@ -16,11 +16,12 @@ interface Item {
   reviewNote: string | null;
 }
 
+/** The shell's "Upload a file" leads to /library?upload=1: the library opens its dialog and takes the param out. */
 async function openUpload(page: Page) {
-  await page.goto('/library');
-  await page.getByRole('button', { name: 'Upload a file' }).first().click();
+  await page.goto('/library?upload=1');
   const dialog = page.getByRole('dialog');
   await expect(dialog).toContainText('Upload a file');
+  await expect(page).toHaveURL(/\/library$/);
   return dialog;
 }
 
@@ -183,12 +184,49 @@ test('Sara stars a file and finds it under Starred; search and filters find it',
 });
 
 test('ST-1: a starred file from another year shows under Starred', async ({ ali }) => {
-  test.fail(true, 'ST-1: "Starred" keeps the cohort filter and says "No starred files yet"');
   // A Year 2 file someone else shared (Ali is Year 1, and his own uploads show under "Your uploads" anyway).
   const other = (await api<{ items: Item[] }>(ali, 'GET', '/api/v1/library/items?year=2&source=link&limit=1')).body.items[0];
   expect((await api(ali, 'PUT', `/api/v1/library/items/${other.id}/star`)).status).toBe(200);
   await ali.goto('/library?starred=1');
-  await expect(ali.locator('[data-hub="library-filters"]').getByRole('radio', { name: 'Year 1' })).toHaveAttribute('aria-checked', 'true');
+  // Starred is Ali's own list: it covers every year unless he picks one.
+  await expect(ali.locator('[data-hub="library-filters"]').getByRole('radio', { name: 'All years' })).toHaveAttribute('aria-checked', 'true');
   const results = ali.locator('main article[data-hub="file-card"], main tr[data-hub="file-card"]');
   await expect(results.locator(`a[href$="/library/${other.slug}"]`).first()).toBeVisible({ timeout: 5_000 });
+  // Leaving Starred brings his own year back.
+  await ali.goto('/library');
+  await expect(ali.locator('[data-hub="library-filters"]').getByRole('radio', { name: 'Year 1' })).toHaveAttribute('aria-checked', 'true');
+  await api(ali, 'DELETE', `/api/v1/library/items/${other.id}/star`);
+});
+
+test('D9: a photo of notes is checked, reviewed and shown on its page', async ({ ali, rep, guest, run }) => {
+  const files = makeFiles(run.tag);
+  const title = `ST2133 working, photo [e2e ${run.tag}]`;
+  const dialog = await openUpload(ali);
+  await dialog.locator('input[type="file"]').setInputFiles(files.png);
+  await expect(dialog.locator('img.lib-upload__thumb')).toBeVisible(); // the picture shows itself before it is sent
+  await dialog.getByLabel('Title').fill(title);
+  await dialog.getByLabel('Module').selectOption('advanced-stats-distribution');
+  await dialog.getByLabel('Type').selectOption('notes');
+  const [resp] = await Promise.all([
+    ali.waitForResponse((r) => r.url().endsWith('/api/v1/library/items') && r.request().method() === 'POST', { timeout: 30_000 }),
+    dialog.locator('[data-hub="upload-submit"]').click(),
+  ]);
+  expect(resp.status(), await resp.text()).toBe(201);
+  const item = (await resp.json()) as Item & { contentType: string };
+  remember('items', item.id);
+  expect(item.contentType).toBe('image/png');
+
+  await rep.goto('/moderation?tab=uploads');
+  const row = rep.locator('[data-hub="upload-review"]').filter({ hasText: title }).first();
+  await expect(row.locator('img.lib-queue__picture')).toBeVisible(); // the rep sees the picture itself
+  await row.getByRole('button', { name: 'Publish' }).click();
+  await expect(rep.getByText(`“${title}” is in the library now.`)).toBeVisible();
+
+  await guest.goto(`/library/${item.slug}`);
+  const img = guest.locator('main img.lib-preview__image');
+  await expect(img).toBeVisible();
+  const shown = await guest.request.get((await img.getAttribute('src')) ?? '');
+  expect(shown.status()).toBe(200);
+  expect(shown.headers()['content-type']).toBe('image/png');
+  expect(shown.headers()['content-disposition']).toMatch(/^inline/);
 });

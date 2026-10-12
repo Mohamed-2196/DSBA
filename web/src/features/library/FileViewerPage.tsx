@@ -10,17 +10,16 @@ import {
   LinkSimple,
   PencilSimple,
   Trash,
-  WarningCircle,
 } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { isApiError } from '../../api/errors';
-import { useAuth } from '../../auth';
 import { BREAKPOINTS, useDocumentTitle, useMediaQuery, useToast } from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, EmptyState, IconButton, Menu, Page, Panel, Skeleton, cx, timeAgo } from '../../ui';
+import { Badge, Button, EmptyState, IconButton, Menu, Page, Panel, QueryError, Skeleton, cx, timeAgo } from '../../ui';
 import { ReportButton } from '../forum/ReportButton';
+import { useLibraryAccess } from './access';
 import { downloadHref, itemPath, libraryKeys, openLinkHref, useLibraryItem } from './api';
 import { DeleteItemDialog, EditItemDialog } from './components/EditItemDialog';
 import type { LinkState } from './components/FileCard';
@@ -63,8 +62,8 @@ export default function FileViewerPage() {
   if (item.isError) {
     return (
       <Page>
-        <Panel padding="none">
-          {notFound ? (
+        {notFound ? (
+          <Panel padding="none">
             <EmptyState
               icon={FileMagnifyingGlass}
               title="We couldn’t find that file"
@@ -75,15 +74,10 @@ export default function FileViewerPage() {
                 </Button>
               }
             />
-          ) : (
-            <EmptyState
-              icon={WarningCircle}
-              title="This file didn’t load"
-              body="Check your connection, then try again."
-              action={<Button onClick={() => void item.refetch()}>Try again</Button>}
-            />
-          )}
-        </Panel>
+          </Panel>
+        ) : (
+          <QueryError error={item.error} title="This file didn’t load" onRetry={() => void item.refetch()} retrying={item.isFetching} />
+        )}
       </Page>
     );
   }
@@ -92,10 +86,12 @@ export default function FileViewerPage() {
 
 /** What the uploader (or a moderator) sees above an item that isn't public. */
 function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: () => void; onDelete: () => void }) {
-  const { isModerator } = useAuth();
+  const { suspended, moderator: isModerator } = useLibraryAccess();
   const status = statusInfo(item.status);
   if (!status) return null;
   const who = item.uploadedBy?.displayName;
+  // A suspended uploader can't change anything (the API answers 403): don't offer it.
+  const manage = item.isMine && !suspended && item.status !== 'removed';
   return (
     <div className={cx('lib-status', `lib-status--${item.status}`)} role="status" data-hub="file-status">
       <div className="lib-status__text">
@@ -105,7 +101,7 @@ function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: (
         {item.status === 'pending' ? (
           <p>
             {item.isMine
-              ? 'A student rep checks every upload before it’s public. Until then only you and the reps can see this page. You can still edit the details or delete it.'
+              ? `A student rep checks every upload before it’s public. Until then only you and the reps can see this page.${manage ? ' You can still edit the details or delete it.' : ''}`
               : `${who ?? 'A student'} uploaded this ${timeAgo(item.createdAt)}. Check it, then publish it or tell them why not.`}
           </p>
         ) : item.status === 'rejected' ? (
@@ -116,7 +112,9 @@ function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: (
               </>
             ) : (
               'A student rep decided not to publish this file.'
-            )}
+            )}{' '}
+            {/* Rejected files leave storage a week after the review (security review SEC-14). */}
+            {item.isMine ? 'This copy is deleted a week after the review: to share a fixed version, upload it as a new file.' : 'Its file is deleted a week after the review.'}
           </p>
         ) : (
           <p>This file was removed from the library.</p>
@@ -124,7 +122,7 @@ function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: (
       </div>
       {item.status === 'pending' && isModerator ? (
         <ReviewActions item={item} className="lib-status__review" />
-      ) : item.isMine && item.status !== 'removed' ? (
+      ) : manage ? (
         <div className="lib-status__actions">
           {item.canEdit ? (
             <Button size="sm" leadingIcon={PencilSimple} onClick={onEdit}>
@@ -145,7 +143,7 @@ function FileView({ item }: { item: LibraryItem }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { push } = useToast();
-  const { isModerator } = useAuth();
+  const { suspended, moderator: isModerator } = useLibraryAccess();
   const { getModule } = useModules();
   const toggleStar = useStar();
   const isDesktop = useMediaQuery(BREAKPOINTS.desktop);
@@ -162,8 +160,8 @@ function FileView({ item }: { item: LibraryItem }) {
   const fmt = formatOf(item);
   const isLink = item.source === 'link';
   const metaOpen = isDesktop ? (metaPref ?? wide) : true;
-  // The uploader of an item that isn't public manages it from the status banner.
-  const canManage = isModerator || (item.isMine && item.status === 'published');
+  // The uploader of an item that isn't public manages it from the status banner; a suspended one can't.
+  const canManage = isModerator || (item.isMine && item.status === 'published' && !suspended);
   const status = statusInfo(item.status);
 
   // Esc goes back to where the student came from.

@@ -16,15 +16,14 @@ import {
   Star,
   UploadSimple,
   UserCircle,
-  WarningCircle,
   type Icon,
 } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../auth';
-import { BREAKPOINTS, cohortLabel, normalizeYear, useDocumentTitle, useMediaQuery, useYear } from '../../state';
+import { BREAKPOINTS, cohortLabel, normalizeYear, useDebouncedValue, useDocumentTitle, useMediaQuery, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, Chip, EmptyState, Menu, Page, PageHeader, PageSection, SearchField, SegmentedControl, Skeleton, cx, timeAgo } from '../../ui';
+import { Badge, Button, Chip, EmptyState, Kbd, Menu, Page, PageHeader, PageSection, QueryError, SearchField, SegmentedControl, Skeleton, cx, timeAgo } from '../../ui';
 import { itemPath, useLibraryFacets, useLibraryList, useLibraryPages } from './api';
 import { FileCard, type LinkState } from './components/FileCard';
 import { FileTable } from './components/FileTable';
@@ -34,7 +33,6 @@ import { YourUploads } from './components/YourUploads';
 import { addedAt, isNew, moduleTag } from './display';
 import { KINDS, KIND_BY_ID, isLibraryKind, type LibraryKind } from './kinds';
 import type { CohortYear, LibraryItem, LibrarySort, LibraryView } from './types';
-import { useDebouncedValue } from './useDebouncedValue';
 import { useStar } from './useStar';
 import './LibraryPage.css';
 
@@ -61,7 +59,8 @@ const KIND_ICONS: Partial<Record<LibraryKind, Icon>> = {
 
 type Patch = Record<string, string | null | undefined>;
 
-/** All library filters live in the URL: ?year=&module=&type=&q=&sort=&view=&starred=1&mine=1&source=file|link */
+/** All library filters live in the URL: ?year=&module=&type=&q=&sort=&view=&starred=1&mine=1&source=file|link.
+ *  ?upload=1 opens the upload dialog (the shell's "Upload a file", decision D6), and is then taken out of the URL. */
 function useLibraryParams(): [URLSearchParams, (patch: Patch) => void] {
   const [params, setParams] = useSearchParams();
   const update = useCallback(
@@ -175,18 +174,21 @@ export default function LibraryPage() {
   const mineOnly = params.get('mine') === '1';
   const sourceParam = params.get('source');
   const source = sourceParam === 'file' || sourceParam === 'link' ? sourceParam : null;
+  // Starred files and your uploads are your own lists: they show every year unless one is picked (student test ST-1).
+  const needsAccount = starredOnly || mineOnly;
+  const defaultYear: CohortYear | null = needsAccount ? null : (globalYear ?? null);
   const yearParam = params.get('year');
-  let year = (yearParam === 'all' ? null : (normalizeYear(yearParam) ?? globalYear ?? null)) as CohortYear | null;
+  let year: CohortYear | null = yearParam === 'all' ? null : (normalizeYear(yearParam) ?? defaultYear);
   if (module && year && module.year !== year) year = module.year; // a module link wins over the default year
   const yearValue: 'all' | CohortYear = year == null ? 'all' : year;
   const yearLabel = year ? cohortLabel(year) : null;
-  const needsAccount = starredOnly || mineOnly;
+  const uploadParam = params.get('upload') === '1';
 
   const debouncedQ = useDebouncedValue(q, 300);
   // The request follows the settled search text, so its order changes with the results, not a keystroke earlier.
   const querySort = readSort(params.get('sort'), !!debouncedQ.trim());
   const list = useLibraryPages(
-    { q: debouncedQ, moduleId: module?.id ?? null, year: mineOnly ? null : year, kind, source, sort: querySort, starred: starredOnly, mine: mineOnly },
+    { q: debouncedQ, moduleId: module?.id ?? null, year, kind, source, sort: querySort, starred: starredOnly, mine: mineOnly },
     { enabled: !needsAccount || signedIn },
   );
   const facets = useLibraryFacets();
@@ -211,12 +213,25 @@ export default function LibraryPage() {
 
   const setYear = (v: 'all' | CohortYear) => {
     const y = v === 'all' ? null : v;
-    const isDefault = (y ?? null) === (globalYear ?? null);
+    const isDefault = y === defaultYear;
     update({ year: isDefault ? null : v === 'all' ? 'all' : String(v), module: module && y && module.year !== y ? null : moduleParam });
   };
   const anyFilter = Boolean(module || kind || q || starredOnly || mineOnly || source);
   const clearFilters = () => update({ module: null, type: null, q: null, starred: null, mine: null, source: null });
-  const openUpload = () => setUpload((u) => ({ open: true, key: u.key + 1 }));
+  const openUpload = useCallback(() => setUpload((u) => ({ open: true, key: u.key + 1 })), []);
+  const startUpload = () => {
+    if (requireAuth('Sign in to upload a file', openUpload)) openUpload();
+  };
+
+  // ?upload=1 (from the shell, also while this page is open): sign in first if needed, then the dialog. Once per
+  // navigation, and only once it is known who is signed in.
+  const handledUpload = useRef<string | null>(null);
+  useEffect(() => {
+    if (!uploadParam || status === 'loading' || handledUpload.current === location.key) return;
+    handledUpload.current = location.key;
+    update({ upload: null });
+    if (requireAuth('Sign in to upload a file', openUpload)) openUpload();
+  }, [uploadParam, status, location.key, requireAuth, update, openUpload]);
 
   const yearOptions = [
     { value: 'all' as const, label: isMobile ? 'All' : 'All years' },
@@ -255,39 +270,49 @@ export default function LibraryPage() {
       </div>
     );
   } else if (list.isError && !list.data) {
-    results = (
-      <div className="lib-empty">
-        <EmptyState
-          icon={WarningCircle}
-          title="The library didn’t load"
-          body="Check your connection, then try again."
-          action={<Button onClick={() => void list.refetch()}>Try again</Button>}
-        />
-      </div>
-    );
+    results = <QueryError error={list.error} title="The library didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} />;
   } else if (list.isPending) {
     results = <ResultsSkeleton view={view} isMobile={isMobile} />;
   } else if (!items.length) {
     results = (
       <div className="lib-empty">
-        {starredOnly && !q && !module && !kind ? (
-          <EmptyState
-            icon={Star}
-            title="No starred files yet"
-            body="Star the files you keep coming back to and they will wait for you here."
-            action={<Button onClick={() => update({ starred: null })}>Show all files</Button>}
-          />
-        ) : mineOnly && !q && !module && !kind ? (
-          <EmptyState
-            icon={UploadSimple}
-            title="You haven’t uploaded anything yet"
-            body="Share your notes, a cheat sheet or a past paper with other students."
-            action={
-              <Button variant="primary" leadingIcon={UploadSimple} onClick={openUpload}>
-                Upload a file
-              </Button>
-            }
-          />
+        {starredOnly && !q && !module && !kind && !source ? (
+          year ? (
+            // A year was picked on purpose: the other years may hold starred files.
+            <EmptyState
+              icon={Star}
+              title={`No starred files for ${yearLabel}`}
+              body="Files you starred for other years are under All years."
+              action={<Button onClick={() => setYear('all')}>See all years</Button>}
+            />
+          ) : (
+            <EmptyState
+              icon={Star}
+              title="No starred files yet"
+              body="Star the files you keep coming back to and they will wait for you here."
+              action={<Button onClick={() => update({ starred: null })}>Show all files</Button>}
+            />
+          )
+        ) : mineOnly && !q && !module && !kind && !source ? (
+          year ? (
+            <EmptyState
+              icon={UploadSimple}
+              title={`No uploads for ${yearLabel}`}
+              body="Files you uploaded for other years are under All years."
+              action={<Button onClick={() => setYear('all')}>See all years</Button>}
+            />
+          ) : (
+            <EmptyState
+              icon={UploadSimple}
+              title="You haven’t uploaded anything yet"
+              body="Share your notes, a cheat sheet or a past paper with other students."
+              action={
+                <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload}>
+                  Upload a file
+                </Button>
+              }
+            />
+          )
         ) : !anyFilter ? (
           <EmptyState
             icon={Books}
@@ -295,13 +320,7 @@ export default function LibraryPage() {
             body="Past papers, notes and guides that students share will show up here. Have something useful? Share it."
             action={
               <>
-                <Button
-                  variant="primary"
-                  leadingIcon={UploadSimple}
-                  onClick={() => {
-                    if (requireAuth('Sign in to upload a file', openUpload)) openUpload();
-                  }}
-                >
+                <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload}>
                   Upload a file
                 </Button>
                 {year ? (
@@ -387,14 +406,7 @@ export default function LibraryPage() {
         title="Library"
         description="Past papers, study guides and students’ notes for every module. Read them here, download them, or share your own."
         actions={
-          <Button
-            variant="primary"
-            leadingIcon={UploadSimple}
-            onClick={() => {
-              if (requireAuth('Sign in to upload a file', openUpload)) openUpload();
-            }}
-            data-hub="upload-button"
-          >
+          <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload} data-hub="upload-button">
             Upload a file
           </Button>
         }
@@ -423,10 +435,10 @@ export default function LibraryPage() {
               onValueChange={(v) => update({ q: v || null })}
               placeholder="Search titles, module codes or authors"
               label="Search the library"
-              shortcut={isMobile ? null : <kbd className="ui-kbd">/</kbd>}
+              shortcut={isMobile ? null : <Kbd>/</Kbd>}
               size="lg"
             />
-            <SegmentedControl label="Year" options={yearOptions} value={yearValue} onChange={setYear} className="lib-filters__year" />
+            <SegmentedControl label="Year" options={yearOptions} value={yearValue} onChange={setYear} className="lib-filters__year" fullWidth={isMobile} />
           </div>
           <div className="lib-filters__row" role="group" aria-label="Module">
             <div className="lib-filters__chips">

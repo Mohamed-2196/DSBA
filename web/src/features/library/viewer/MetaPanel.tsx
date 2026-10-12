@@ -1,6 +1,7 @@
 import { ArrowSquareOut, DownloadSimple, GoogleDriveLogo } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { formatSize } from '../../../api/uploads';
 import { cohortTextColor } from '../../../state';
 import { useModules } from '../../../state/modules';
 import { Button, CohortBadge, Kbd, Skeleton, cx, formatDate, timeAgo } from '../../../ui';
@@ -8,7 +9,7 @@ import { downloadHref, itemPath, openLinkHref, useLibraryList } from '../api';
 import type { LinkState } from '../components/FileCard';
 import { FileThumb } from '../components/FileThumb';
 import { addedAt, examLabel, linkHost, linkPlace, sizeLabel } from '../display';
-import { formatOf, formatSize, kindLabel } from '../kinds';
+import { formatOf, kindLabel } from '../kinds';
 import type { LibraryItem } from '../types';
 
 function Row({ label, children }: { label: string; children: ReactNode }) {

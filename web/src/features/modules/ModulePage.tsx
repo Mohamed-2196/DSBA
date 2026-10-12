@@ -1,16 +1,15 @@
 // /modules/:moduleId: header (code, name, year, next exam, progress and quick actions) and URL-driven tabs:
 // ?tab=overview|lessons|files|discussion, the lesson via &chapter=<i>&video=<j> (0-based).
 // The header comes from the catalogue at once; chapters, videos and resources load with GET /modules/{id}.
-import { ArrowSquareOut, BookOpenText, CalendarBlank, CaretLeft, ChatsCircle, Files, Info, MagnifyingGlass, Play, PlayCircle, WarningCircle } from '@phosphor-icons/react';
+import { ArrowSquareOut, BookOpenText, CalendarBlank, CaretLeft, ChatsCircle, Files, Info, MagnifyingGlass, Play, PlayCircle, UploadSimple } from '@phosphor-icons/react';
 import { useCallback, useEffect, type ReactNode } from 'react';
 import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
-import { CONTRIBUTE_URL } from '../../data/people';
 import { COHORTS, cohortColor, useDocumentTitle, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, CohortBadge, EmptyState, ErrorBoundary, ModuleIcon, Page, Panel, ProgressRing, Skeleton, TabPanel, Tabs } from '../../ui';
+import { Badge, Button, CohortBadge, EmptyState, ErrorBoundary, ModuleIcon, Page, Panel, ProgressRing, QueryError, Skeleton, TabPanel, Tabs } from '../../ui';
 import { ModuleThreads } from '../forum/public';
-import { ModuleFiles } from '../library/public';
+import { ModuleFiles, useLibraryUpload } from '../library/public';
 import { useModule } from './api';
 import { useModuleExam, type ExamInfo } from './exams';
 import { ImportProgressPrompt } from './ImportProgressPrompt';
@@ -123,14 +122,14 @@ function ModuleHeader({
               </div>
               <div className="mod-head__actions">
                 {resume ? (
-                  <Button variant="primary" leadingIcon={Play} onClick={() => onOpenLesson(resume.c, resume.v)}>
+                  <Button variant="primary" leadingIcon={Play} onClick={() => onOpenLesson(resume.c, resume.v)} className="mod-head__action">
                     {RESUME_LABEL[resume.kind]}
                   </Button>
                 ) : (
                   <Skeleton width={150} height={40} radius={10} />
                 )}
                 {pastPapers ? (
-                  <Button href={pastPapers} trailingIcon={ArrowSquareOut} aria-label="Past papers (opens in a new tab)">
+                  <Button href={pastPapers} trailingIcon={ArrowSquareOut} aria-label="Past papers (opens in a new tab)" className="mod-head__action">
                     Past papers
                   </Button>
                 ) : null}
@@ -149,12 +148,12 @@ function ModuleHeader({
               </div>
               <div className="mod-head__actions">
                 {studyGuide ? (
-                  <Button variant="primary" href={studyGuide} trailingIcon={ArrowSquareOut} aria-label="Study guide (opens in a new tab)">
+                  <Button variant="primary" href={studyGuide} trailingIcon={ArrowSquareOut} aria-label="Study guide (opens in a new tab)" className="mod-head__action">
                     Study guide
                   </Button>
                 ) : null}
                 {pastPapers ? (
-                  <Button href={pastPapers} trailingIcon={ArrowSquareOut} aria-label="Past papers (opens in a new tab)">
+                  <Button href={pastPapers} trailingIcon={ArrowSquareOut} aria-label="Past papers (opens in a new tab)" className="mod-head__action">
                     Past papers
                   </Button>
                 ) : null}
@@ -187,6 +186,8 @@ function ModuleView({ summary: m }: { summary: ModuleSummary }) {
   const exam = useModuleExam(m.id);
   const progress = detail ? computeModuleProgress(state, detail) : summaryProgress(state, m.id, m.lessonCount);
   const resume = detail && ready ? computeResumePoint(state, detail) : null;
+  // Contributing means uploading to the library (decision D6), with this module chosen.
+  const upload = useLibraryUpload({ moduleId: m.id, year: m.year });
 
   const update = useCallback(
     (patch: Record<string, string | number | null>) => {
@@ -237,14 +238,7 @@ function ModuleView({ summary: m }: { summary: ModuleSummary }) {
   let detailProblem: ReactNode = null;
   if (detailQ.isError) {
     detailProblem = (
-      <Panel padding="none">
-        <EmptyState
-          icon={WarningCircle}
-          title="This module’s lessons didn’t load"
-          body="Check your connection, then try again."
-          action={<Button onClick={() => void detailQ.refetch()}>Try again</Button>}
-        />
-      </Panel>
+      <QueryError error={detailQ.error} title="This module’s lessons didn’t load" onRetry={() => void detailQ.refetch()} retrying={detailQ.isFetching} />
     );
   }
 
@@ -258,12 +252,12 @@ function ModuleView({ summary: m }: { summary: ModuleSummary }) {
         <EmptyState
           icon={PlayCircle}
           title={`No video lessons for ${m.unitCode || m.name} yet`}
-          body="The study guide and past papers are in Overview. Know a good playlist for this module? Suggest it and it can be added here."
+          body="The study guide and past papers are in Overview. Have notes or a past paper for this module? Share them in the library."
           action={
             <>
               <Button onClick={() => setTab('overview')}>See resources</Button>
-              <Button variant="primary" href={CONTRIBUTE_URL} trailingIcon={ArrowSquareOut}>
-                Suggest a playlist
+              <Button variant="primary" leadingIcon={UploadSimple} onClick={upload.start}>
+                Upload a file
               </Button>
             </>
           }
@@ -282,7 +276,15 @@ function ModuleView({ summary: m }: { summary: ModuleSummary }) {
         <TabPanel idBase="module" id="overview" value={tab}>
           {detailProblem ??
             (detail ? (
-              <ModuleOverview module={detail} state={state} resume={resume} libraryCount={m.libraryCount} onOpenLesson={openLesson} onTab={setTab} />
+              <ModuleOverview
+                module={detail}
+                state={state}
+                resume={resume}
+                libraryCount={m.libraryCount}
+                onOpenLesson={openLesson}
+                onTab={setTab}
+                onUpload={upload.start}
+              />
             ) : (
               <PanelSkeleton />
             ))}
@@ -302,6 +304,7 @@ function ModuleView({ summary: m }: { summary: ModuleSummary }) {
         </TabPanel>
       </div>
       <ImportProgressPrompt />
+      {upload.dialog}
     </Page>
   );
 }

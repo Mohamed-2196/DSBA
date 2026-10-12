@@ -1,20 +1,36 @@
 // Moderators: uploads waiting for review (GET /library/items?status=pending), oldest first, each with a
 // preview, a download, Edit details, Publish and Reject (with a note the uploader sees).
 // Rendered by features/moderation/ModerationPage.
-import { ArrowSquareOut, CheckCircle, DownloadSimple, Eye, PencilSimple, WarningCircle } from '@phosphor-icons/react';
+import { ArrowSquareOut, CheckCircle, DownloadSimple, Eye, PencilSimple } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../auth';
+import { formatSize } from '../../api/uploads';
 import { useModules } from '../../state/modules';
-import { Badge, Button, CohortBadge, EmptyState, Panel, Skeleton, timeAgo } from '../../ui';
-import { downloadHref, itemPath, openLinkHref, useLibraryList } from './api';
+import { Badge, Button, CohortBadge, EmptyState, Panel, QueryError, Skeleton, timeAgo } from '../../ui';
+import { useLibraryAccess } from './access';
+import { downloadHref, itemPath, openLinkHref, useFileLink, useLibraryList } from './api';
 import { EditItemDialog } from './components/EditItemDialog';
 import { FileThumb } from './components/FileThumb';
 import { ReviewActions } from './components/ReviewActions';
 import { examLabel, linkPlace } from './display';
-import { formatOf, formatSize, kindLabel } from './kinds';
+import { formatOf, kindLabel, previewKind } from './kinds';
 import type { LibraryItem } from './types';
 import './UploadsQueue.css';
+
+/** A picture shows itself, so the rep sees what they are about to publish (decision D9); other files show their
+ *  cover. The first short-lived link is kept, so the picture doesn't reload when the link is refreshed. */
+function QueueThumb({ item }: { item: LibraryItem }) {
+  const picture = previewKind(item) === 'image';
+  const link = useFileLink(picture ? item.id : null);
+  const [src, setSrc] = useState<string | null>(null);
+  if (!src && link.data) setSrc(link.data.url);
+  if (!picture || !src) return <FileThumb item={item} size="related" className="lib-queue__thumb" />;
+  return (
+    <Link to={itemPath(item)} className="lib-queue__picture-link" tabIndex={-1} aria-hidden="true">
+      <img className="lib-queue__picture" src={src} alt="" referrerPolicy="no-referrer" />
+    </Link>
+  );
+}
 
 function QueueRow({ item }: { item: LibraryItem }) {
   const { getModule } = useModules();
@@ -25,7 +41,7 @@ function QueueRow({ item }: { item: LibraryItem }) {
   const who = item.uploadedBy;
   return (
     <li className="lib-queue__row" data-hub="upload-review">
-      <FileThumb item={item} size="related" className="lib-queue__thumb" />
+      <QueueThumb item={item} />
       <div className="lib-queue__main">
         <p className="lib-queue__module">
           {m ? (
@@ -85,7 +101,7 @@ function QueueRow({ item }: { item: LibraryItem }) {
 
 /** The library's review queue for moderators. */
 export function UploadsQueue() {
-  const { isModerator } = useAuth();
+  const { moderator: isModerator } = useLibraryAccess();
   const queue = useLibraryList({ status: 'pending' }, { limit: 100, enabled: isModerator });
   const items = useMemo(
     () => [...(queue.data?.items ?? [])].filter((i) => i.status === 'pending').sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
@@ -107,14 +123,7 @@ export function UploadsQueue() {
       </div>
     );
   } else if (queue.isError) {
-    body = (
-      <EmptyState
-        icon={WarningCircle}
-        title="The review queue didn’t load"
-        body="Check your connection, then try again."
-        action={<Button onClick={() => void queue.refetch()}>Try again</Button>}
-      />
-    );
+    body = <QueryError error={queue.error} title="The review queue didn’t load" onRetry={() => void queue.refetch()} retrying={queue.isFetching} panel={false} />;
   } else if (!items.length) {
     body = <EmptyState icon={CheckCircle} title="No uploads waiting" body="When a student uploads a file, it waits here until a rep publishes it." />;
   } else {

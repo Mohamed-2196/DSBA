@@ -1,6 +1,6 @@
 // Modules data: a module's chapters and videos (GET /modules/{id}) and a signed-in student's lesson progress
 // (/me/progress…). The catalogue itself is loaded once by state/modules.tsx (useModules()).
-import { useQuery, type QueryClient } from '@tanstack/react-query';
+import { queryOptions, useQuery, type QueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import type { ModuleDetail, Progress, ProgressImport } from '../../api/types';
 
@@ -8,14 +8,18 @@ export const moduleKeys = {
   detail: (id: string) => ['modules', 'detail', id] as const,
 };
 
+/**
+ * A module with its chapters, videos and resources (GET /modules/{id}): the one definition of this cache entry for
+ * every feature (code quality review CQ-5), so lessons loaded by Mini Noora or the Career Navigator are already there
+ * on the module page, and the other way round. Use it with useQuery, useQueries or prefetchQuery.
+ */
 export function moduleDetailQuery(id: string) {
-  return {
+  return queryOptions({
     queryKey: moduleKeys.detail(id),
-    queryFn: ({ signal }: { signal?: AbortSignal }): Promise<ModuleDetail> =>
-      call(api.GET('/api/v1/modules/{module_id}', { params: { path: { module_id: id } }, signal })),
+    queryFn: ({ signal }): Promise<ModuleDetail> => call(api.GET('/api/v1/modules/{module_id}', { params: { path: { module_id: id } }, signal })),
     // Lessons change when the content team edits the seed: rarely.
     staleTime: 10 * 60_000,
-  };
+  });
 }
 
 /** A module with its chapters, videos and resources. */
