@@ -97,7 +97,7 @@ export function Composer({ inputRef, draft, onDraft, files, note, busy, onAttach
           className="nc-input"
           rows={1}
           value={draft}
-          placeholder="Ask about a module, or drop a file…"
+          placeholder="Ask about a module, a topic or an exam…"
           aria-label="Message Mini Noora"
           dir="auto"
           enterKeyHint="send"

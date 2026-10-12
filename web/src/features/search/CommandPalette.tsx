@@ -1,146 +1,26 @@
 // ⌘K command palette: search everything + quick actions. Mounted once by the shell.
 // Opens on ⌘K / Ctrl+K (toggle), "/" (outside text fields) and openCommandPalette(query).
 // Content comes from GET /api/v1/search (debounced); recent searches stay in this browser.
-import { createElement, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  ArrowSquareOut,
-  ArrowsLeftRight,
-  Bank,
-  Books,
-  Calculator,
-  CalendarDots,
-  CaretDown,
-  ChatsCircle,
-  ClockCounterClockwise,
-  GithubLogo,
-  GraduationCap,
-  House,
-  Info,
-  MagnifyingGlass,
-  Moon,
-  Newspaper,
-  PencilSimpleLine,
-  SquaresFour,
-  Sun,
-  X,
-  type Icon,
-} from '@phosphor-icons/react';
-import { useLocalStorage, useTheme, useToast, useYear } from '../../state';
+import { loadProblem } from '../../api/errors';
+import { MagnifyingGlass, X } from '@phosphor-icons/react';
+import { useDebouncedValue, useLocalStorage, useTheme, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { HubMark, Kbd, Modal, ModuleIcon, cx } from '../../ui';
-import { formatMonthShort } from '../calendar/public';
-import { useDebouncedValue, useSearch } from './api';
-import { OPEN_PALETTE_EVENT, type OpenPaletteDetail } from './bus';
-import { matchRanges, tokenize } from './match';
-import { runSearch, textOf, type GroupId, type IconName, type Item } from './search';
+import { HubMark, Kbd, Modal, cx } from '../../ui';
+import { hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
+import { useSearch } from './api';
+import { tokenize } from './match';
+import { Leading, Marked, Trailing } from './PaletteRow';
+import { runSearch, textOf, type GroupId, type Item } from './search';
+import { usePaletteShortcuts } from './useShortcuts';
 import './CommandPalette.css';
 
 // 'hub.mine.' keys are cleared on sign-out (shared lab computers: security review, finding 23).
 const RECENT_KEY = 'hub.mine.search.recent';
-const ICONS: Record<IconName, Icon> = { ArrowsLeftRight, Bank, Books, Calculator, CalendarDots, ChatsCircle, GithubLogo, GraduationCap, House, Info, Moon, Newspaper, PencilSimpleLine, SquaresFour, Sun };
 
 const NO_TOKENS: string[] = [];
-const isEditable = (el: EventTarget | null): boolean => el instanceof Element && !!el.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]');
-const otherDialogOpen = (): boolean => [...document.querySelectorAll('[aria-modal="true"]')].some((d) => !d.closest('[data-hub="cmdk"]'));
 const recentOf = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 5) : []);
-
-/** Text with every query token marked. */
-function Marked({ text, tokens, className = 'cmdk-mark' }: { text: string | null | undefined; tokens: readonly string[]; className?: string }) {
-  if (!text) return null;
-  const ranges = matchRanges(text, tokens);
-  if (!ranges.length) return <>{text}</>;
-  const out: (string | JSX.Element)[] = [];
-  let pos = 0;
-  ranges.forEach(([a, b], i) => {
-    if (a > pos) out.push(text.slice(pos, a));
-    out.push(
-      <mark key={i} className={className}>
-        {text.slice(a, b)}
-      </mark>,
-    );
-    pos = b;
-  });
-  if (pos < text.length) out.push(text.slice(pos));
-  return <>{out}</>;
-}
-
-function DateTile({ when, type }: { when: Date; type: string | null }) {
-  return (
-    <span className={cx('cmdk-date', type && `cmdk-date--${type}`)} aria-hidden="true">
-      <span className="cmdk-date__m">{formatMonthShort(when)}</span>
-      <span className="cmdk-date__d u-tabular">{when.getDate()}</span>
-    </span>
-  );
-}
-
-function Leading({ item }: { item: Item }) {
-  switch (item.kind) {
-    case 'module':
-      return (
-        <span className={cx('cmdk-tile', 'cmdk-tile--module', item.year && `cmdk-tile--y${item.year}`)} aria-hidden="true">
-          <ModuleIcon moduleId={item.moduleId} />
-        </span>
-      );
-    case 'file':
-      return <span className="cmdk-doc" aria-hidden="true" />;
-    case 'thread':
-      return (
-        <span className="cmdk-tile" aria-hidden="true">
-          <ChatsCircle />
-        </span>
-      );
-    case 'issue':
-      return (
-        <span className="cmdk-tile cmdk-tile--issue" aria-hidden="true">
-          {item.number != null ? String(item.number).padStart(2, '0') : <Newspaper />}
-        </span>
-      );
-    case 'event':
-      return item.when ? (
-        <DateTile when={item.when} type={item.eventType} />
-      ) : (
-        <span className="cmdk-tile" aria-hidden="true">
-          <CalendarDots />
-        </span>
-      );
-    case 'recent':
-      return <ClockCounterClockwise className="cmdk-glyph" aria-hidden="true" />;
-    case 'suggestion':
-      return <MagnifyingGlass className="cmdk-glyph" aria-hidden="true" />;
-    case 'more':
-      return <CaretDown className="cmdk-glyph" aria-hidden="true" weight="bold" />;
-    case 'action':
-    case 'page':
-    case 'fallback':
-      return (
-        <span className="cmdk-tile" aria-hidden="true">
-          {createElement(ICONS[item.icon])}
-        </span>
-      );
-  }
-}
-
-function Trailing({ item, tokens, active }: { item: Item; tokens: readonly string[]; active: boolean }) {
-  let meta = null;
-  if (item.kind === 'module' && item.code)
-    meta = (
-      <span className="cmdk-code u-code">
-        <Marked text={item.code} tokens={tokens} className="cmdk-mark cmdk-mark--code" />
-      </span>
-    );
-  else if (item.kind === 'event' && item.rel) meta = <span className={cx('cmdk-meta', !item.past && item.eventType === 'exam' && 'is-exam')}>{item.rel}</span>;
-  else if (item.kind === 'thread' && item.meta) meta = <span className="cmdk-meta u-tabular">{item.meta}</span>;
-  else if (item.kind === 'action' && item.href) meta = <ArrowSquareOut className="cmdk-ext" aria-label="Opens in a new tab" />;
-  return (
-    <span className="cmdk-trail">
-      {meta}
-      <span className={cx('cmdk-enter', active && 'is-on')} aria-hidden="true">
-        <Kbd>↵</Kbd>
-      </span>
-    </span>
-  );
-}
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -152,6 +32,7 @@ export function CommandPalette() {
   const { year, activeYear, setYear } = useYear();
   const { theme, toggleTheme } = useTheme();
   const { getModule, getModulesForYear } = useModules();
+  const nooraHidden = useMiniNooraHidden();
   const { push } = useToast();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -182,33 +63,15 @@ export function CommandPalette() {
   const close = useCallback(() => setOpen(false), []);
 
   // Bindings: ⌘K / Ctrl+K toggles, "/" opens outside text fields, openCommandPalette() opens.
-  useEffect(() => {
-    const onOpen = (e: Event) => {
-      if (otherDialogOpen()) return;
-      show((e as CustomEvent<OpenPaletteDetail>).detail?.query ?? '');
-    };
-    const onKey = (e: globalThis.KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key?.toLowerCase() === 'k') {
-        e.preventDefault();
-        if (otherDialogOpen()) return;
-        setOpen((o) => {
-          if (!o) reset('');
-          return !o;
-        });
-        return;
-      }
-      if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.defaultPrevented && !isEditable(e.target) && !otherDialogOpen()) {
-        e.preventDefault();
-        show('');
-      }
-    };
-    window.addEventListener(OPEN_PALETTE_EVENT, onOpen);
-    window.addEventListener('keydown', onKey);
-    return () => {
-      window.removeEventListener(OPEN_PALETTE_EVENT, onOpen);
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [show, reset]);
+  const toggle = useCallback(
+    () =>
+      setOpen((o) => {
+        if (!o) reset('');
+        return !o;
+      }),
+    [reset],
+  );
+  usePaletteShortcuts(show, toggle);
 
   const results = useMemo(
     () =>
@@ -216,13 +79,14 @@ export function CommandPalette() {
         query,
         year: year ?? activeYear,
         theme,
+        nooraHidden,
         expanded,
         recent,
         results: search.data,
         getModule,
         getModulesForYear,
       }),
-    [query, year, activeYear, theme, expanded, recent, search.data, getModule, getModulesForYear],
+    [query, year, activeYear, theme, nooraHidden, expanded, recent, search.data, getModule, getModulesForYear],
   );
   // Until the API has answered the words typed, "nothing found" would be premature.
   const searching = results.empty && waiting;
@@ -282,7 +146,10 @@ export function CommandPalette() {
     if (item.kind === 'action' && item.run) {
       const run = item.run;
       if (run.type === 'theme') toggleTheme();
-      else {
+      else if (run.type === 'noora') {
+        if (run.hide) hideMiniNoora();
+        else showMiniNoora();
+      } else {
         setYear(run.year);
         push({ title: `Showing Year ${run.year}`, body: 'Modules, exams and threads now follow your new year.', tone: 'success' });
       }
@@ -406,7 +273,7 @@ export function CommandPalette() {
         ) : failed ? (
           <div className="cmdk-empty">
             <p className="cmdk-empty__title">Search isn’t available right now</p>
-            <p className="cmdk-empty__body">Check your connection and try again in a moment, or look in the library or the forum.</p>
+            <p className="cmdk-empty__body">{loadProblem(search.error)} You can also look in the library or the forum.</p>
           </div>
         ) : results.empty ? (
           <div className="cmdk-empty">

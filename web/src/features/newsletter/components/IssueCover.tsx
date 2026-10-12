@@ -1,7 +1,7 @@
+import type { IssueCover as CoverData, IssueSection } from '../../../api/types';
 import { cx } from '../../../ui';
 import { COVER_H, COVER_W, MARGIN, coverOf, fitLabel, fitLine, numeralBox, type CoverModel } from '../lib/covers';
 import { safeImageSrc } from '../lib/links';
-import type { Cover, Section } from '../types';
 import './IssueCover.css';
 
 const RIGHT = COVER_W - MARGIN;
@@ -138,9 +138,9 @@ export interface CoverIssue {
   title: string;
   /** 'YYYY-MM-DD', or '' for an issue that has no date yet. */
   date: string;
-  cover: Cover;
+  cover: CoverData;
   /** null while the issue's sections are loading (cover lines then fall back to labels from their ids). */
-  sections: readonly Pick<Section, 'id' | 'label'>[] | null;
+  sections: readonly Pick<IssueSection, 'id' | 'label' | 'title'>[] | null;
 }
 
 /**

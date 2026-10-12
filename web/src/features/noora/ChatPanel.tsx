@@ -2,7 +2,7 @@
 // one: the page beside it stays usable. This file is fetched on demand (see MiniNoora.tsx) and brings the
 // conversation and her scripted "brain" with it.
 import { useCallback, useEffect, useId, useRef, useState, type DragEvent } from 'react';
-import { TrayArrowDown, X } from '@phosphor-icons/react';
+import { EyeSlash, TrayArrowDown, X } from '@phosphor-icons/react';
 import { IconButton, cx } from '../../ui';
 import { Composer } from './Composer';
 import { Face } from './Face';
@@ -79,11 +79,13 @@ export interface ChatPanelProps {
   calm: boolean;
   /** close it and hand the keyboard back to her */
   onClose: () => void;
+  /** hide her (and the chat) on this device */
+  onHide: () => void;
   /** tells MiniNoora how she should stand */
   onPose: (pose: ChatMood | null) => void;
 }
 
-export default function ChatPanel({ id, open, place, year, calm, onClose, onPose }: ChatPanelProps) {
+export default function ChatPanel({ id, open, place, year, calm, onClose, onHide, onPose }: ChatPanelProps) {
   const { messages, pending, busy, send } = useChat({ year, calm });
   const [draft, setDraft] = useState('');
   const [files, setFiles] = useState<Attachment[]>([]);
@@ -197,6 +199,7 @@ export default function ChatPanel({ id, open, place, year, calm, onClose, onPose
             Knows your modules
           </p>
         </div>
+        <IconButton label="Hide Mini Noora" icon={EyeSlash} size="sm" tooltip className="nc-head__hide" onClick={onHide} data-hub="noora-hide" />
         <IconButton label="Close chat" icon={X} size="sm" className="nc-head__close" onClick={onClose} />
       </header>
 

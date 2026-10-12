@@ -1,16 +1,16 @@
 import { ArrowUpRight, Database, FileText, Timer } from '@phosphor-icons/react';
-import type { ModuleSummary } from '../../api/types';
+import type { CareerCert, ModuleSummary } from '../../api/types';
 import { useModules } from '../../state/modules';
 import { Button, PageSection, Panel, SectionHeader, cx } from '../../ui';
+import { hostOf } from '../../lib/share';
 import { useCareerData } from './context';
-import { hostOf, libraryLink } from './lib/links';
+import { libraryLink, webUrl } from './lib/links';
 import { LogoSlot } from './LogoSlot';
 import { ModuleLink } from './ModuleLink';
-import type { Cert, Effort as EffortLevel } from './types';
 import './Certificates.css';
 
 /** Three pips for how heavy the study load is. Light, medium or heavy: a rough guide, not a promise. */
-function Effort({ level }: { level: EffortLevel }) {
+function Effort({ level }: { level: CareerCert['effort'] }) {
   const { effortLabel } = useCareerData();
   const label = effortLabel[String(level)] ?? '';
   return (
@@ -27,15 +27,16 @@ function Effort({ level }: { level: EffortLevel }) {
   );
 }
 
-function CertCard({ cert }: { cert: Cert }) {
+function CertCard({ cert }: { cert: CareerCert }) {
   const { getModule } = useModules();
   const modules = cert.covers.map((id) => getModule(id)).filter((m): m is ModuleSummary => m !== null);
-  const host = cert.url ? hostOf(cert.url) : null;
+  const url = webUrl(cert.url);
+  const host = hostOf(url);
   return (
     <Panel as="li" padding="none" id={`career-cert-${cert.id}`} className="career-cert" data-hub="career-cert" data-cert-id={cert.id}>
       <div className="career-cert__top">
-        {cert.url ? (
-          <LogoSlot kind="cert" id={cert.id} mono={cert.mono} />
+        {url ? (
+          <LogoSlot kind="cert" id={cert.id} mono={cert.mono ?? ''} />
         ) : (
           // Self-study has no issuer and so no logo: a generic icon keeps the same box.
           <span className="career-cert__icon" aria-hidden="true">
@@ -71,9 +72,9 @@ function CertCard({ cert }: { cert: Cert }) {
       </div>
 
       <footer className="career-cert__foot">
-        {cert.url ? (
+        {url ? (
           <>
-            <Button variant="secondary" size="sm" href={cert.url} trailingIcon={ArrowUpRight}>
+            <Button variant="secondary" size="sm" href={url} trailingIcon={ArrowUpRight}>
               Official page
               <span className="visually-hidden">{` for ${cert.name}, opens ${host} in a new tab`}</span>
             </Button>

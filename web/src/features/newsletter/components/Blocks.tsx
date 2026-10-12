@@ -1,21 +1,27 @@
-import { Avatar, Button, CohortBadge, cx } from '../../../ui';
+import type { IssueFigure } from '../../../api/types';
+import { Avatar, Button, cx } from '../../../ui';
 import { safeHref, safeImageSrc } from '../lib/links';
-import type { Aside as AsideData, Block as BlockData, Figure as FigureData, Section } from '../types';
+import { plainText } from '../lib/text';
+import type { Aside as AsideData, Block as BlockData } from '../types';
 import { RichText } from './RichText';
 
 /**
- * An image block: rounded, a hairline edge, a caption, space reserved from width × height (no layout
- * shift while it loads), lazy-loaded, never taller than 560px. `alt` describes the picture; `caption` is
- * the editor's line under it. Only pictures of the app or uploaded images are shown (lib/links.ts).
+ * A section's picture: rounded, a hairline edge, a caption, space reserved from width × height (no layout shift
+ * while it loads), lazy-loaded, never taller than 560px. `alt` describes the picture; `caption` is the editor's
+ * line under it. Only pictures of the app or uploaded images are shown (lib/links.ts).
  */
-export function Figure({ figure, className }: { figure: FigureData | null | undefined; className?: string }) {
+export function Figure({ figure, className }: { figure: IssueFigure | null | undefined; className?: string }) {
   const src = safeImageSrc(figure?.src);
   if (!figure || !src) return null;
   const { width, height, alt, caption } = figure;
   return (
     <figure className={cx('nl-figure', height > width ? 'nl-figure--portrait' : 'nl-figure--landscape', className)}>
-      <img src={src} width={width} height={height} alt={alt || ''} loading="lazy" decoding="async" />
-      {caption ? <figcaption className="nl-figure__caption">{caption}</figcaption> : null}
+      <img src={src} width={width} height={height} alt={alt} loading="lazy" decoding="async" />
+      {caption ? (
+        <figcaption className="nl-figure__caption">
+          <RichText text={caption} />
+        </figcaption>
+      ) : null}
     </figure>
   );
 }
@@ -50,42 +56,13 @@ function Block({ block, editors }: { block: BlockData; editors: readonly string[
           ))}
         </ul>
       );
-    case 'steps':
-      return (
-        <ol className="nl-steps">
-          {block.items.map((s, i) => (
-            <li key={`${i}-${s.title}`} className="nl-steps__item">
-              <span className="nl-steps__no" aria-hidden="true">
-                {i + 1}
-              </span>
-              <div>
-                <p className="nl-steps__title">{s.title}</p>
-                <p className="nl-steps__text">
-                  <RichText text={s.text} />
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      );
-    case 'qa':
-      return (
-        <dl className="nl-qa">
-          {block.items.map((x, i) => (
-            <div key={`${i}-${x.q}`} className="nl-qa__pair">
-              <dt className="nl-qa__q">{x.q}</dt>
-              <dd className="nl-qa__a">
-                <RichText text={x.a} />
-              </dd>
-            </div>
-          ))}
-        </dl>
-      );
     case 'signoff':
       return (
         <p className="nl-signoff">
           <EditorAvatars names={editors} />
-          <span>{block.text}</span>
+          <span>
+            <RichText text={block.text} />
+          </span>
         </p>
       );
     case 'cta': {
@@ -105,12 +82,10 @@ function Block({ block, editors }: { block: BlockData; editors: readonly string[
         </p>
       );
     }
-    case 'figure':
-      return <Figure figure={block} />;
   }
 }
 
-/** Renders a list of standard copy blocks (p, list, steps, qa, signoff, cta, figure). */
+/** A section's copy: paragraphs, bulleted lists, the editors' sign-off and buttons. */
 export function Blocks({ blocks = [], editors = [] }: { blocks?: readonly BlockData[]; editors?: readonly string[] }) {
   return (
     <>
@@ -121,69 +96,42 @@ export function Blocks({ blocks = [], editors = [] }: { blocks?: readonly BlockD
   );
 }
 
-/** A margin note beside a section: note | stats | quote | card (a typographic panel). */
+/** Beside the copy: a typographic card, or a few numbers. */
 export function Aside({ aside }: { aside: AsideData | null | undefined }) {
   if (!aside) return null;
   switch (aside.type) {
     case 'card':
       return (
-        <aside className="nl-aside nl-aside--card" aria-label={aside.kicker}>
-          <p className="nl-card__kicker">{aside.kicker}</p>
+        <aside className="nl-aside nl-aside--card" aria-label={plainText(aside.kicker)}>
+          <p className="nl-card__kicker">{plainText(aside.kicker)}</p>
           <p className="nl-card__title">
-            <span className="nl-card__mark">{aside.title}</span>
+            <span className="nl-card__mark">{plainText(aside.title)}</span>
           </p>
           <p className="nl-card__text">
             <RichText text={aside.text} />
           </p>
         </aside>
       );
-    case 'quote':
-      return (
-        <figure className="nl-aside nl-aside--quote">
-          <blockquote className="nl-aside__quote">
-            <p>{aside.text}</p>
-          </blockquote>
-          {aside.cite ? <figcaption className="nl-aside__cite">{aside.cite}</figcaption> : null}
-        </figure>
-      );
     case 'stats':
       return (
-        <aside className="nl-aside nl-aside--stats" aria-label={aside.title}>
-          <p className="nl-aside__title">{aside.title}</p>
+        <aside className="nl-aside nl-aside--stats" aria-label={plainText(aside.title)}>
+          <p className="nl-aside__title">{plainText(aside.title)}</p>
           <dl className="nl-stats">
-            {aside.items.map((s) => (
-              <div key={s.label} className="nl-stats__item">
-                <dt className="nl-stats__label">{s.label}</dt>
+            {aside.items.map((s, i) => (
+              <div key={`${i}-${s.label}`} className="nl-stats__item">
+                <dt className="nl-stats__label">
+                  <RichText text={s.label} />
+                </dt>
                 <dd className="nl-stats__value">{s.value}</dd>
               </div>
             ))}
           </dl>
-          {aside.foot ? <p className="nl-aside__foot">{aside.foot}</p> : null}
-        </aside>
-      );
-    case 'note':
-      return (
-        <aside className="nl-aside nl-aside--note" aria-label={aside.title}>
-          <p className="nl-aside__title">{aside.title}</p>
-          <p className="nl-aside__text">
-            <RichText text={aside.text} />
-          </p>
+          {aside.foot ? (
+            <p className="nl-aside__foot">
+              <RichText text={aside.foot} />
+            </p>
+          ) : null}
         </aside>
       );
   }
-}
-
-/** Spotlight header: a typographic portrait (initials avatar, name, cohort). */
-export function Profile({ profile }: { profile: Section['profile'] }) {
-  if (!profile) return null;
-  return (
-    <div className="nl-profile">
-      <Avatar name={profile.name} size={52} decorative />
-      <div className="nl-profile__text">
-        <p className="nl-profile__name">{profile.name}</p>
-        {profile.line ? <p className="nl-profile__line">{profile.line}</p> : null}
-        {profile.year ? <CohortBadge year={profile.year} size="sm" /> : null}
-      </div>
-    </div>
-  );
 }

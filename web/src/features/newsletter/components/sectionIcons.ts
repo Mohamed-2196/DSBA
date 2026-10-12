@@ -1,4 +1,5 @@
-// The icons a section's label may carry (section.icon is one of these names). Only these are bundled.
+// The icons a section's label may carry (IssueSection.icon names one of them: the API lists the same names). Only
+// these are bundled.
 import {
   Books,
   CalendarCheck,
@@ -16,8 +17,9 @@ import {
   UsersThree,
   type Icon,
 } from '@phosphor-icons/react';
+import type { SectionIcon } from '../types';
 
-export const SECTION_ICONS: Record<string, Icon> = {
+export const SECTION_ICONS: Record<SectionIcon, Icon> = {
   NotePencil,
   ListBullets,
   CalendarCheck,
@@ -34,4 +36,4 @@ export const SECTION_ICONS: Record<string, Icon> = {
   Newspaper,
 };
 
-export const sectionIcon = (name: string | undefined): Icon => (name ? SECTION_ICONS[name] : undefined) ?? Newspaper;
+export const sectionIcon = (name: SectionIcon | null | undefined): Icon => (name ? SECTION_ICONS[name] : Newspaper);

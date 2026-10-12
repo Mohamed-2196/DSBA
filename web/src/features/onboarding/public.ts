@@ -1,4 +1,4 @@
 // Public API of the onboarding feature.
-//   <Onboarding />   mounted by the shell; shows while no year is chosen (a guest's first visit, or a signed-in
-//                    student without a cohort, whose choice is saved on the account)
+//   <Onboarding />   mounted by the shell. While no year is chosen, a small prompt asks for one (or "I'm not a
+//                    student", or "Sign in"); it never blocks the page (decision D7). The tour opens on request.
 export { Onboarding } from './Onboarding';

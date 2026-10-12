@@ -1,6 +1,8 @@
 import { useEffect, useId, useMemo, useState, type FormEvent } from 'react';
+import type { ModuleSummary } from '../../api/types';
 import { errorMessage, isApiError } from '../../api/errors';
-import { YEARS, moduleLabel, type CohortYear } from '../../lib/modules';
+import { moduleLabel } from '../../lib/modules';
+import { cohortLabel, normalizeYear, YEARS, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, Modal, Select, TextField } from '../../ui';
 import { useCreateEvent, useUpdateEvent } from './api';
@@ -23,6 +25,9 @@ interface FormState {
   date: string;
   endDate: string;
   year: string; // '' = every cohort
+  /** The cohort was picked in this form (or an event being edited has one of its own): picking a module then
+   *  leaves it alone. Until then the cohort follows the module (student test ST-2). */
+  yearPicked: boolean;
   moduleId: string; // '' = none
   time: string;
   place: string;
@@ -31,12 +36,21 @@ interface FormState {
 
 type FieldErrors = Partial<Record<keyof FormState, string>>;
 
-const fromEvent = (e: CalendarEvent | null, defaultDate = ''): FormState => ({
+type ModuleLookup = (id: string | null | undefined) => ModuleSummary | null;
+
+/** An event's own cohort: one that isn't simply its module's year. */
+const hasOwnCohort = (e: CalendarEvent, getModule: ModuleLookup): boolean => {
+  const module = getModule(e.moduleId);
+  return module ? module.year !== e.year : e.year != null;
+};
+
+const fromEvent = (e: CalendarEvent | null, getModule: ModuleLookup, defaultDate = ''): FormState => ({
   title: e?.title ?? '',
   type: e?.type ?? 'exam',
   date: e?.date ?? defaultDate,
   endDate: e?.endDate ?? '',
   year: e?.year ? String(e.year) : '',
+  yearPicked: e ? hasOwnCohort(e, getModule) : false,
   moduleId: e?.moduleId ?? '',
   time: e?.time ?? '',
   place: e?.place ?? '',
@@ -44,7 +58,7 @@ const fromEvent = (e: CalendarEvent | null, defaultDate = ''): FormState => ({
 });
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const toYear = (v: string): CohortYear | null => (v === '1' || v === '2' || v === '3' ? (Number(v) as CohortYear) : null);
+const toYear = (v: string): CohortYear | null => (v ? normalizeYear(Number(v)) : null);
 
 function validate(f: FormState): FieldErrors {
   const errors: FieldErrors = {};
@@ -76,10 +90,10 @@ const API_FIELDS: Record<string, keyof FormState> = {
 /** Moderators: add an event to the calendar, or edit one. */
 export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: EventFormDialogProps) {
   const uid = useId().replace(/:/g, '');
-  const { modules } = useModules();
+  const { modules, getModule } = useModules();
   const create = useCreateEvent();
   const update = useUpdateEvent();
-  const [form, setForm] = useState<FormState>(() => fromEvent(event, defaultDate));
+  const [form, setForm] = useState<FormState>(() => fromEvent(event, getModule, defaultDate));
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const saving = create.isPending || update.isPending;
@@ -87,16 +101,33 @@ export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: 
   // A fresh form every time the dialog opens (or opens on another event).
   useEffect(() => {
     if (!open) return;
-    setForm(fromEvent(event, defaultDate));
+    setForm(fromEvent(event, getModule, defaultDate));
     setErrors({});
     setFormError(null);
-  }, [open, event, defaultDate]);
+  }, [open, event, defaultDate, getModule]);
 
+  // A cohort picked here narrows the modules to its own; until then every module is offered.
   const year = toYear(form.year);
+  const narrowTo = form.yearPicked ? year : null;
   const moduleOptions = useMemo(
-    () => modules.filter((m) => !year || m.year === year).map((m) => ({ value: m.id, label: `${moduleLabel(m)} (Year ${m.year})` })),
-    [modules, year],
+    () => modules.filter((m) => !narrowTo || m.year === narrowTo).map((m) => ({ value: m.id, label: `${moduleLabel(m)} (Year ${m.year})` })),
+    [modules, narrowTo],
   );
+  const module = getModule(form.moduleId);
+  const yearHint = module && !form.yearPicked ? 'From the module. Pick “Every cohort” if it’s for everyone.' : undefined;
+
+  /** The cohort, picked by the rep: a year that isn't the module's own drops the module. */
+  const pickYear = (value: string) => {
+    const y = toYear(value);
+    setForm((f) => ({ ...f, year: value, yearPicked: true, moduleId: y && getModule(f.moduleId)?.year !== y ? '' : f.moduleId }));
+    if (errors.year) setErrors((e) => ({ ...e, year: undefined }));
+  };
+  /** The module: until a cohort is picked, the event is for the module's year (student test ST-2). */
+  const pickModule = (id: string) => {
+    const picked = getModule(id);
+    setForm((f) => ({ ...f, moduleId: id, year: f.yearPicked ? f.year : picked ? String(picked.year) : '' }));
+    if (errors.moduleId) setErrors((e) => ({ ...e, moduleId: undefined }));
+  };
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -132,7 +163,14 @@ export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: 
       } else setFormError(errorMessage(err, 'The event wasn’t saved. Try again.'));
     };
     if (event) update.mutate({ id: event.id, patch: body }, { onSuccess: (saved) => onSaved(saved, false), onError: fail });
-    else create.mutate(body, { onSuccess: (saved) => onSaved(saved, true), onError: fail });
+    else {
+      // 409 retry: another date took the same id at the same moment. Once more, without bothering the rep.
+      const created = (saved: CalendarEvent) => onSaved(saved, true);
+      create.mutate(body, {
+        onSuccess: created,
+        onError: (err) => (isApiError(err) && err.code === 'retry' ? create.mutate(body, { onSuccess: created, onError: fail }) : fail(err)),
+      });
+    }
   };
 
   return (
@@ -168,21 +206,17 @@ export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: 
         <Select
           label="Cohort"
           value={form.year}
-          onChange={(e) => {
-            const next = e.target.value;
-            set('year', next);
-            const y = toYear(next);
-            if (y && form.moduleId && modules.find((m) => m.id === form.moduleId)?.year !== y) set('moduleId', '');
-          }}
-          options={[{ value: '', label: 'Every cohort' }, ...YEARS.map((y) => ({ value: String(y), label: `Year ${y}` }))]}
+          onChange={(e) => pickYear(e.target.value)}
+          options={[{ value: '', label: 'Every cohort' }, ...YEARS.map((y) => ({ value: String(y), label: cohortLabel(y) }))]}
           error={errors.year}
+          hint={yearHint}
         />
         <TextField label="Date" type="date" required value={form.date} onChange={(e) => set('date', e.target.value)} error={errors.date} />
         <TextField label="End date" type="date" value={form.endDate} min={form.date || undefined} onChange={(e) => set('endDate', e.target.value)} error={errors.endDate} hint="Only for something longer than a day." />
         <Select
           label="Module"
           value={form.moduleId}
-          onChange={(e) => set('moduleId', e.target.value)}
+          onChange={(e) => pickModule(e.target.value)}
           options={[{ value: '', label: 'No module' }, ...moduleOptions]}
           error={errors.moduleId}
           className="cal-form__wide"
@@ -193,7 +227,7 @@ export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: 
           <input type="checkbox" checked={form.sample} onChange={(e) => set('sample', e.target.checked)} />
           <span>
             <span className="cal-form__check-title">Not confirmed yet</span>
-            <span className="cal-form__check-hint">Students see it marked as a sample date until you untick this.</span>
+            <span className="cal-form__check-hint">Students see it marked as not confirmed until you untick this.</span>
           </span>
         </label>
         {formError ? (

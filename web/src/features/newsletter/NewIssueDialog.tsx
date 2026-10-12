@@ -2,11 +2,14 @@ import { useEffect, useId, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { errorMessage, isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
+import { isDayKey, todayKey } from '../../lib/dates';
 import { Button, Modal, TextField } from '../../ui';
 import { useCreateIssue } from './api';
-import { isoDay, slugify } from './lib/text';
+import { LIMITS } from './lib/draft';
+import { slugify } from './lib/text';
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const FIELDS = new Set(['title', 'number', 'date', 'slug']);
 
 /** Moderators: start a new issue (a draft) and go straight to its editor. */
 export function NewIssueDialog({ open, nextNumber, onClose }: { open: boolean; nextNumber: number; onClose: () => void }) {
@@ -16,7 +19,7 @@ export function NewIssueDialog({ open, nextNumber, onClose }: { open: boolean; n
   const create = useCreateIssue();
   const [title, setTitle] = useState('');
   const [number, setNumber] = useState(String(nextNumber));
-  const [date, setDate] = useState(isoDay());
+  const [date, setDate] = useState(todayKey);
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -26,7 +29,7 @@ export function NewIssueDialog({ open, nextNumber, onClose }: { open: boolean; n
     if (!open) return;
     setTitle('');
     setNumber(String(nextNumber));
-    setDate(isoDay());
+    setDate(todayKey());
     setSlug('');
     setSlugTouched(false);
     setErrors({});
@@ -40,9 +43,10 @@ export function NewIssueDialog({ open, nextNumber, onClose }: { open: boolean; n
     const found: Record<string, string> = {};
     const n = Number(number);
     if (!title.trim()) found.title = 'Give the issue a title.';
-    if (!Number.isInteger(n) || n < 0) found.number = 'Use a whole number, like 2.';
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) found.date = 'Choose the date it comes out.';
-    if (!SLUG_RE.test(address)) found.slug = 'Use lowercase letters, numbers and hyphens, like launch-edition.';
+    else if (title.trim().length > LIMITS.title) found.title = `Keep the title to ${LIMITS.title} characters.`;
+    if (!/^\d+$/.test(number.trim()) || n > LIMITS.number) found.number = 'Use a whole number, like 2.';
+    if (!isDayKey(date)) found.date = 'Choose the date it comes out.';
+    if (!SLUG_RE.test(address) || address.length > LIMITS.slug) found.slug = 'Use lowercase letters, numbers and hyphens, like launch-edition.';
     setErrors(found);
     setFormError(null);
     if (Object.keys(found).length) return;
@@ -65,7 +69,7 @@ export function NewIssueDialog({ open, nextNumber, onClose }: { open: boolean; n
         },
         onError: (err) => {
           if (isApiError(err) && err.code === 'slug_taken') setErrors({ slug: 'Another issue already uses this address. Choose another.' });
-          else if (isApiError(err) && Object.keys(err.fields).length) setErrors(err.fields);
+          else if (isApiError(err) && Object.keys(err.fields).some((k) => FIELDS.has(k))) setErrors(err.fields);
           else setFormError(errorMessage(err, 'The issue wasn’t created. Try again.'));
         },
       },

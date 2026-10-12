@@ -23,17 +23,19 @@
 
 /* ── Header ──────────────────────────────────────────────────────────────────────────────────── */
 .nc-head {
+  /* white on the brand gradient, in both themes (there is no theme token for it) */
+  --nc-on-head: #fff;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: var(--sp-12);
   padding: var(--sp-12) var(--sp-12) var(--sp-12) var(--sp-16);
   background: linear-gradient(135deg, var(--brand), var(--navy));
-  color: #fff;
+  color: var(--nc-on-head);
 }
 .nc-head__face {
-  background: color-mix(in srgb, #fff 88%, var(--brand));
-  box-shadow: 0 0 0 2px color-mix(in srgb, #fff 45%, transparent);
+  background: color-mix(in srgb, var(--nc-on-head) 88%, var(--brand));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nc-on-head) 45%, transparent);
 }
 .nc-head__text { flex: 1 1 auto; min-width: 0; }
 .nc-head__title {
@@ -47,7 +49,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: color-mix(in srgb, #fff 84%, transparent);
+  color: color-mix(in srgb, var(--nc-on-head) 84%, transparent);
   font-size: var(--fs-12);
   font-weight: var(--fw-medium);
   line-height: 1.4;
@@ -57,11 +59,11 @@
   height: 8px;
   border-radius: var(--r-pill);
   background: var(--signal);
-  box-shadow: 0 0 0 2px color-mix(in srgb, #fff 24%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nc-on-head) 24%, transparent);
 }
-.nc-head .nc-head__close.ui-iconbutton { color: #fff; }
-.nc-head .nc-head__close.ui-iconbutton:hover { background: color-mix(in srgb, #fff 16%, transparent); color: #fff; }
-.nc-head .nc-head__close.ui-iconbutton:focus-visible { outline-color: #fff; }
+.nc-head :is(.nc-head__close, .nc-head__hide).ui-iconbutton { color: var(--nc-on-head); }
+.nc-head :is(.nc-head__close, .nc-head__hide).ui-iconbutton:hover { background: color-mix(in srgb, var(--nc-on-head) 16%, transparent); color: var(--nc-on-head); }
+.nc-head :is(.nc-head__close, .nc-head__hide).ui-iconbutton:focus-visible { outline-color: var(--nc-on-head); }
 
 /* Her face: a bust sprite in a round frame (each image is placed by sprites.js → faceCrop). */
 .nc-face {
@@ -201,12 +203,12 @@
 .nc-step__label i { font-family: var(--font-serif); font-size: 1.12em; font-style: italic; font-weight: var(--fw-medium); }
 .nc-step__line { margin-top: 5px; overflow-x: auto; font-family: var(--font-serif); font-size: var(--fs-16); line-height: 1.5; text-align: center; white-space: nowrap; }
 .nc-step--result .nc-step__line { font-size: var(--fs-20); }
-.nc-step--result .nc-step__line > span { padding: 2px 8px; border-radius: var(--r-xs); background: var(--highlight); color: #0A1F44; }
+.nc-step--result .nc-step__line > span { padding: 2px 8px; border-radius: var(--r-xs); background: var(--highlight); color: var(--highlight-ink); }
 .nc-step i { font-style: italic; }
 .nc-step sub { margin-left: 0.04em; font-size: 0.62em; line-height: 0; vertical-align: -0.38em; }
 .nc-step sup { margin-left: 0.04em; font-size: 0.62em; line-height: 0; vertical-align: 0.6em; }
 .nc-step .nc-frac { font-size: 0.86em; }
-.nc-step--result .nc-frac__top { border-bottom-color: #0A1F44; }
+.nc-step--result .nc-frac__top { border-bottom-color: var(--highlight-ink); }
 .nc-int { display: inline-flex; align-items: center; margin: 0 0.08em; vertical-align: middle; }
 .nc-int__sign { font-size: 1.7em; line-height: 1; font-weight: 300; }
 .nc-int__limits { display: inline-flex; flex-direction: column; gap: 0.9em; margin: 0 0.14em 0 0.02em; font-size: 0.58em; line-height: 1; text-align: left; }
@@ -271,6 +273,9 @@
   transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
 }
 .nc-suggest__chip:hover { border-color: var(--cobalt); background: var(--cobalt-soft); }
+@media (pointer: coarse) {
+  .nc-suggest__chip { min-height: 44px; }
+}
 
 /* What the student attached: pictures as thumbnails, other files as chips. */
 .nc-shot {
@@ -366,6 +371,9 @@
   resize: none;
   outline: none;
   transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+@media (pointer: coarse) {
+  .nc-input { min-height: 44px; }
 }
 .nc-input:hover { border-color: var(--ink-3); }
 .nc-input:focus, .nc-input:focus-visible { border-color: var(--cobalt); box-shadow: 0 0 0 3px var(--cobalt-soft); outline: none; }

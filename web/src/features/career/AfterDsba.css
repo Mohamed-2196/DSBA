@@ -42,7 +42,7 @@
 .career-check__box:checked { background: var(--cobalt); border-color: var(--cobalt); }
 .career-check__box:checked::after { transform: scale(1); }
 .career-check:hover .career-check__box:not(:checked) { border-color: var(--ink); }
-.career-check__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.career-check__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; max-width: 66ch; }
 .career-check__title { color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); line-height: 1.35; }
 .career-check__hint { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
 
@@ -64,11 +64,14 @@
 }
 .career-ready__link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .career-ready__link svg { font-size: 12px; }
+@media (pointer: coarse) {
+  .career-ready__link { min-height: 44px; }
+}
 
 /* ── Further study: one line and one button ──────────────────────────────────────────────────── */
 .career-after > .career-study { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-12) var(--sp-16); padding: var(--sp-16) var(--sp-24); }
 .career-study__icon { flex: none; font-size: 28px; color: var(--cobalt); }
-.career-study__text { flex: 1 1 320px; min-width: 0; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.career-study__text { flex: 1 1 320px; min-width: 0; max-width: 66ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
 .career-study__text strong { color: var(--ink); font-weight: var(--fw-bold); }
 
 @container career-after (min-width: 900px) {

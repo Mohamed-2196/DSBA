@@ -8,7 +8,6 @@ import { useMutation, useQueries, useQuery, useQueryClient, type QueryClient } f
 import { api, call } from '../../api/client';
 import type { IssueCreate, IssueDetail, IssueSummary, IssueUpdate, Me, ReactionCounts } from '../../api/types';
 import { ME_KEY } from '../../auth';
-import { readCover, readSections } from './lib/schema';
 import { readMinutes } from './lib/text';
 import type { Issue, IssueCard, Reaction } from './types';
 
@@ -26,21 +25,19 @@ const STALE = 60_000;
 
 const byNewest = (a: IssueSummary, b: IssueSummary): number => b.number - a.number || b.date.localeCompare(a.date);
 
-// ── Reading the JSON (stable functions, so TanStack Query memoises what they select) ───────────────
+// ── Issues as the pages use them (stable functions, so TanStack Query memoises what they select) ──────
+// The API types the cover and the sections (CQ-4) and leaves out a stored section that no longer fits, so the
+// detail is used as it comes.
 
-/** An issue as the reader uses it: cover and sections read from their JSON, plus the read time. */
+/** An issue as the reader uses it: the detail, plus the read time. */
 export function toIssue(detail: IssueDetail): Issue {
-  const { sections } = readSections(detail.sections);
-  const { cover } = readCover(detail.cover);
-  return { ...detail, cover, sections, readMinutes: readMinutes({ title: detail.title, dek: detail.dek, sections }) };
+  return { ...detail, readMinutes: readMinutes(detail) };
 }
 
 /** An issue in a list; its detail (when it has been read) adds the section labels and the read time. */
 export function toCard(summary: IssueSummary, detail?: IssueDetail): IssueCard {
-  const { cover } = readCover(summary.cover);
-  if (!detail) return { ...summary, cover, sections: null, readMinutes: null };
-  const issue = toIssue(detail);
-  return { ...summary, cover, sections: issue.sections.map((s) => ({ id: s.id, label: s.label })), readMinutes: issue.readMinutes };
+  if (!detail) return { ...summary, sections: null, readMinutes: null };
+  return { ...summary, sections: detail.sections.map((s) => ({ id: s.id, label: s.label, title: s.title })), readMinutes: readMinutes(detail) };
 }
 
 async function fetchIssue(slug: string): Promise<IssueDetail> {
@@ -86,7 +83,7 @@ export function useIssue(slug: string | undefined) {
   });
 }
 
-/** The raw detail (the editor works on the JSON as stored). */
+/** The detail as the API sends it (the editor's starting point). */
 export function useIssueDetail(slug: string | undefined) {
   return useQuery({
     queryKey: newsletterKeys.issue(slug ?? ''),
@@ -165,7 +162,7 @@ const EMPTY: ReactionCounts = { useful: 0, love: 0, laugh: 0, mine: [] };
 /** The counts after adding or removing your reaction (never below zero, never twice). */
 export function applyReaction(counts: ReactionCounts | undefined, reaction: Reaction, on: boolean): ReactionCounts {
   const cur = counts ?? EMPTY;
-  const mine = new Set(cur.mine ?? []);
+  const mine = new Set(cur.mine);
   if (on === mine.has(reaction)) return cur;
   if (on) mine.add(reaction);
   else mine.delete(reaction);

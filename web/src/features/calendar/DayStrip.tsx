@@ -1,7 +1,8 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ModuleSummary } from '../../api/types';
 import { cx } from '../../ui';
-import { addDays, breakdownLabel, daysBreakdown, daysUntil, formatLong, formatMonthLong, formatShort, inDays, isWeekend, parseKey, startOfDay, toKey, weeksAndDays, weekdayOf } from './dates';
+import { addDays, dayKey, daysUntil, formatLong, formatMonthLong, formatShort, inDays, isWeekend, parseDay, startOfDay, weekdayOf } from '../../lib/dates';
+import { breakdownLabel, daysBreakdown, weeksAndDays } from './dates';
 import { primaryEvent, stripWord, TYPE_ORDER, typeLabel } from './eventMeta';
 import type { CalendarEvent, EventType, ExamOutlook } from './types';
 
@@ -108,7 +109,8 @@ export interface DayStripProps {
   /** Everything from today on, by date. */
   events: CalendarEvent[];
   outlook: ExamOutlook | null;
-  now: Date;
+  /** Today in Bahrain, at local midnight. */
+  today: Date;
   /** Id of the event the page is counting down to. */
   nextId: string;
   /** What to say when no exam is ahead. */
@@ -124,7 +126,7 @@ export interface DayStripProps {
  * the line above. A picture: the same dates are listed (and opened) in the cards under it.
  * data-hub="exam-track".
  */
-export function DayStrip({ events, outlook, now, nextId, noExams, getModule }: DayStripProps) {
+export function DayStrip({ events, outlook, today: todayIn, nextId, noExams, getModule }: DayStripProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
 
@@ -138,7 +140,8 @@ export function DayStrip({ events, outlook, now, nextId, noExams, getModule }: D
     return () => ro.disconnect();
   }, []);
 
-  const todayT = startOfDay(now).getTime();
+  // a stable Date for the memos below, whatever object the page passes
+  const todayT = startOfDay(todayIn).getTime();
   const today = useMemo(() => new Date(todayT), [todayT]);
 
   // What is drawn (independent of the width).
@@ -147,9 +150,9 @@ export function DayStrip({ events, outlook, now, nextId, noExams, getModule }: D
     let cells = MIN_CELLS;
     const lastAhead = outlook?.ahead[outlook.ahead.length - 1];
     if (outlook && lastAhead) {
-      const first = parseKey(outlook.next.date);
+      const first = parseDay(outlook.next.date);
       const d1 = daysUntil(first, today);
-      const dL = daysUntil(parseKey(lastAhead.date), today);
+      const dL = daysUntil(parseDay(lastAhead.date), today);
       const n = outlook.ahead.length;
       const span = dL - d1 + 1;
       exam = {
@@ -168,7 +171,7 @@ export function DayStrip({ events, outlook, now, nextId, noExams, getModule }: D
     // The days that hold something, in order.
     const days: StripDay[] = [];
     events.forEach((e) => {
-      const off = daysUntil(parseKey(e.date), today);
+      const off = daysUntil(parseDay(e.date), today);
       if (off < 0 || off >= cells) return;
       const last = days[days.length - 1];
       if (last && last.off === off) last.events.push(e);
@@ -314,7 +317,7 @@ export function DayStrip({ events, outlook, now, nextId, noExams, getModule }: D
             const day = byOff.get(i);
             return (
               <li
-                key={toKey(d)}
+                key={dayKey(d)}
                 className={cx(
                   'cal-strip__cell',
                   isWeekend(d) && 'is-weekend',

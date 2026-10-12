@@ -1,16 +1,17 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Eye, NotePencil, PencilSimple, Plus, WarningCircle } from '@phosphor-icons/react';
+import { Clock, Eye, NotePencil, PencilSimple, Plus } from '@phosphor-icons/react';
 import type { IssueSummary } from '../../api/types';
 import { useAuth } from '../../auth';
+import { formatDay, formatMonthYear, parseDay } from '../../lib/dates';
 import { useDocumentTitle } from '../../state';
-import { Badge, Button, EmptyState, IconButton, Page, Panel, Skeleton } from '../../ui';
+import { Badge, Button, IconButton, Page, Panel, QueryError, Skeleton } from '../../ui';
 import { toCard, useIssueDetails, useIssues } from './api';
 import { DeleteIssueButton, PublishButton } from './components/IssueActions';
 import { IssueCover, type CoverIssue } from './components/IssueCover';
 import { Nameplate } from './components/Nameplate';
 import { SubscribeBox } from './components/SubscribeBox';
-import { issueNo, longDate, parseDay, shortDate } from './lib/text';
+import { issueNo, plainText, sectionLabel } from './lib/text';
 import { NewIssueDialog } from './NewIssueDialog';
 import type { IssueCard } from './types';
 import './NewsletterPage.css';
@@ -30,13 +31,13 @@ function Masthead({ first, latest }: { first: IssueCard | undefined; latest: Iss
           {first ? (
             <div className="nl-masthead__fact">
               <dt>Since</dt>
-              <dd>{parseDay(first.date).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</dd>
+              <dd>{formatMonthYear(parseDay(first.date))}</dd>
             </div>
           ) : null}
           {latest ? (
             <div className="nl-masthead__fact">
               <dt>Latest issue</dt>
-              <dd className="u-tabular">{longDate(latest.date)}</dd>
+              <dd className="u-tabular">{formatDay(latest.date)}</dd>
             </div>
           ) : null}
         </dl>
@@ -56,7 +57,7 @@ function LatestFeature({ issue }: { issue: IssueCard }) {
         <p className="nl-feature__kicker">
           <Badge tone="highlight">New</Badge>
           <span>
-            Issue {no}, {longDate(issue.date)}
+            Issue {no}, {formatDay(issue.date)}
           </span>
         </p>
         <h2 id="nl-latest-title" className="nl-feature__title">
@@ -70,7 +71,7 @@ function LatestFeature({ issue }: { issue: IssueCard }) {
             <ol role="list">
               {issue.sections.map((s) => (
                 <li key={s.id}>
-                  <Link to={issueHref(issue, s.id)}>{s.label}</Link>
+                  <Link to={issueHref(issue, s.id)}>{plainText(sectionLabel(s))}</Link>
                 </li>
               ))}
             </ol>
@@ -109,11 +110,11 @@ const SOON_COVER: CoverIssue = {
     ],
   },
   sections: [
-    { id: 'news', label: 'News' },
-    { id: 'cohorts', label: 'Cohort corner' },
-    { id: 'deadlines', label: 'Deadlines and dates' },
-    { id: 'forum', label: 'From the forum' },
-    { id: 'library', label: 'New in the library' },
+    { id: 'news', label: 'News', title: 'What changed on the Hub' },
+    { id: 'cohorts', label: 'Cohort corner', title: 'News for your year' },
+    { id: 'deadlines', label: 'Deadlines and dates', title: 'Every exam, with a countdown' },
+    { id: 'forum', label: 'From the forum', title: 'What your cohort is asking' },
+    { id: 'library', label: 'New in the library', title: 'Fresh notes and past papers' },
   ],
 };
 
@@ -170,7 +171,7 @@ function ShelfItem({ issue }: { issue: IssueCard }) {
         <span className="nl-shelf__no">Issue {issueNo(issue.number)}</span>
         <span className="nl-shelf__title">{issue.title}</span>
         <span className="nl-shelf__meta">
-          <span className="u-tabular">{shortDate(issue.date)}</span>
+          <span className="u-tabular">{formatDay(issue.date, { month: 'short' })}</span>
           {issue.readMinutes ? (
             <span className="nl-shelf__time">
               <Clock aria-hidden="true" />
@@ -213,7 +214,7 @@ function Drafts({ drafts, onNew }: { drafts: IssueSummary[]; onNew: () => void }
                   <Badge tone="highlight" size="sm">
                     Draft
                   </Badge>
-                  <span className="u-tabular">{shortDate(d.date)}</span>
+                  <span className="u-tabular">{formatDay(d.date, { month: 'short' })}</span>
                 </span>
               </span>
               <span className="nl-drafts__actions">
@@ -273,18 +274,7 @@ export default function NewsletterPage() {
       {list.isPending ? (
         <NewsletterSkeleton />
       ) : list.isError ? (
-        <Panel padding="none">
-          <EmptyState
-            icon={WarningCircle}
-            title="The newsletter didn’t load"
-            body="Check your connection, then try again."
-            action={
-              <Button onClick={() => void list.refetch()} loading={list.isFetching}>
-                Try again
-              </Button>
-            }
-          />
-        </Panel>
+        <QueryError error={list.error} title="The newsletter didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} />
       ) : latest ? (
         <LatestFeature issue={latest} />
       ) : (

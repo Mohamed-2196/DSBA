@@ -1,11 +1,12 @@
 import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDots } from '@phosphor-icons/react';
-import type { CohortYear } from '../../lib/modules';
-import { cohortLabel } from '../../state';
+import { ArrowClockwise, CalendarDots } from '@phosphor-icons/react';
+import { loadProblem } from '../../api/errors';
+import { cohortLabel, type CohortYear } from '../../state';
 import { Button, Highlight, HubMark, ModuleIcon, Skeleton, cx } from '../../ui';
 import { buildTrace, traceLabel, type ExamSession, type SessionEvent } from './session';
-import { inDays, longDay, numberWord } from './time';
+import { formatLongDay, inDays } from '../../lib/dates';
+import { numberWord } from './time';
 import './ExamTimeline.css';
 
 // The HubMark sits at the start of the trace; its end dot is "today".
@@ -145,7 +146,7 @@ function Trace({ session, intro, today }: { session: ExamSession | null; intro: 
                 to={to}
                 className={cx('home-trace__label', 'u-code', b.isNext && 'is-next')}
                 style={{ left: b.x, bottom: H - (b.top - lift), ...(intro && !b.isNext ? { animationDelay: `${delay}ms` } : null) }}
-                aria-label={`${examName(e)}, ${e.type === 'mock' ? 'mock exam' : e.type === 'exam' ? 'exam' : e.title} on ${longDay(e.when)}, ${inDays(e.days)}`}
+                aria-label={`${examName(e)}, ${e.type === 'mock' ? 'mock exam' : e.type === 'exam' ? 'exam' : e.title} on ${formatLongDay(e.when)}, ${inDays(e.days)}`}
               >
                 {b.isNext ? (
                   <Highlight as="span" className="home-hl" animate={intro} delay={delay}>
@@ -171,10 +172,14 @@ export interface ExamTimelineProps {
   today: Date;
   /** The calendar is still loading: no claim about exams yet. */
   loading?: boolean;
+  /** The calendar didn't load (UX review UX-10): say so, never "no exams". */
+  error?: unknown;
+  onRetry?: () => void;
+  retrying?: boolean;
 }
 
 /** Home hero: the next exam as a big unit code + countdown sentence, over the session's trace. */
-export function ExamTimeline({ session, year, intro, today, loading = false }: ExamTimelineProps) {
+export function ExamTimeline({ session, year, intro, today, loading = false, error, onRetry, retrying = false }: ExamTimelineProps) {
   const next = session?.next;
   const isExam = session?.kind === 'exams';
   const more = isExam ? session.exams.length - 1 : 0;
@@ -187,6 +192,9 @@ export function ExamTimeline({ session, year, intro, today, loading = false }: E
   if (loading) {
     title = <Skeleton width="62%" height={40} />;
     detail = <Skeleton width="44%" height={18} />;
+  } else if (error) {
+    title = 'Your exams didn’t load';
+    detail = loadProblem(error);
   } else if (!next) {
     title = `No ${cohortLabel(year)} exams on the calendar yet`;
     detail = 'When the next exam session is announced, your countdown starts here.';
@@ -203,8 +211,8 @@ export function ExamTimeline({ session, year, intro, today, loading = false }: E
     );
     detail =
       more > 0 && lastExam
-        ? `${longDay(next.when)}, then ${restPhrase(next, session.exams.slice(1))} by ${longDay(lastExam.when)}.`
-        : `${longDay(next.when)}. It's the only ${next.type === 'mock' ? 'mock' : 'exam'} on your calendar for now.`;
+        ? `${formatLongDay(next.when)}, then ${restPhrase(next, session.exams.slice(1))} by ${formatLongDay(lastExam.when)}.`
+        : `${formatLongDay(next.when)}. It's the only ${next.type === 'mock' ? 'mock' : 'exam'} on your calendar for now.`;
   } else {
     title = (
       <>
@@ -214,7 +222,7 @@ export function ExamTimeline({ session, year, intro, today, loading = false }: E
         </Highlight>
       </>
     );
-    detail = `${longDay(next.when)}. No exams on your ${cohortLabel(year)} calendar in the next few months.`;
+    detail = `${formatLongDay(next.when)}. No exams on your ${cohortLabel(year)} calendar in the next few months.`;
   }
 
   const modulePath = next?.moduleId ? `/modules/${next.moduleId}` : null;
@@ -236,6 +244,11 @@ export function ExamTimeline({ session, year, intro, today, loading = false }: E
           <p className="home-hero__detail">{detail}</p>
         </div>
         <div className="home-hero__actions">
+          {error && onRetry ? (
+            <Button variant="secondary" leadingIcon={ArrowClockwise} loading={retrying} onClick={onRetry}>
+              Try again
+            </Button>
+          ) : null}
           {modulePath && next ? (
             <Button variant="primary" to={modulePath} leadingIcon={<ModuleIcon moduleId={next.moduleId} />}>
               Open {next.unitCode || next.module?.shortName || 'module'}

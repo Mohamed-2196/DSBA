@@ -1,7 +1,6 @@
 // Site-wide search: GET /api/v1/search?q= (threads, library items, newsletter issues, modules and calendar
 // events, each list ranked by the API; the last word matches as a prefix, for search-as-you-type).
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
 import { api, call } from '../../api/client';
 
 export const SEARCH_KEY = ['search'] as const;
@@ -18,14 +17,4 @@ export function useSearch(query: string) {
     placeholderData: keepPreviousData,
     staleTime: 30_000,
   });
-}
-
-/** `value`, once it has stopped changing for `ms`. */
-export function useDebouncedValue<T>(value: T, ms: number): T {
-  const [settled, setSettled] = useState(value);
-  useEffect(() => {
-    const t = window.setTimeout(() => setSettled(value), ms);
-    return () => window.clearTimeout(t);
-  }, [value, ms]);
-  return settled;
 }

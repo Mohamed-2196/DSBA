@@ -1,7 +1,6 @@
 // Career Navigator: how well a student's modules cover a role. Pure functions over the career document's skills
 // and the module catalogue, so the numbers can never drift from either.
-import type { ModuleSummary } from '../../../api/types';
-import type { CareerData, Depth, Role, Skill } from '../types';
+import type { CareerDoc, CareerRole, CareerSkill, ModuleSummary, SkillTaught } from '../../../api/types';
 
 type ModuleLookup = (id: string | null | undefined) => ModuleSummary | null;
 
@@ -9,7 +8,7 @@ export type SkillStatus = 'covered' | 'later' | 'gap';
 
 export interface Teaching {
   module: string;
-  depth: Depth;
+  depth: SkillTaught['depth'];
   what: string;
   mod: ModuleSummary;
   chosen: string | null;
@@ -17,7 +16,7 @@ export interface Teaching {
 
 export interface SkillFit {
   id: string;
-  skill: Skill;
+  skill: CareerSkill;
   status: SkillStatus;
   /** Meter segments out of 3: reached so far, and added by later years. */
   solid: number;
@@ -47,7 +46,7 @@ const bestDepth = (list: readonly Teaching[]): number => list.reduce((m, t) => M
  *   later:   they don't yet, but a later year does.
  *   gap:     DSBA never takes it past an intro: it is yours to close.
  */
-export function evaluateSkill(data: CareerData, getModule: ModuleLookup, skillId: string, year: number): SkillFit | null {
+export function evaluateSkill(data: CareerDoc, getModule: ModuleLookup, skillId: string, year: number): SkillFit | null {
   const skill = data.skills[skillId];
   if (!skill) return null;
   const taught: Teaching[] = [];
@@ -82,7 +81,7 @@ export function evaluateSkill(data: CareerData, getModule: ModuleLookup, skillId
 }
 
 /** Every skill of a role for a year, with the three headline counts. */
-export function evaluateRole(data: CareerData, getModule: ModuleLookup, role: Role, year: number): RoleFitResult {
+export function evaluateRole(data: CareerDoc, getModule: ModuleLookup, role: CareerRole, year: number): RoleFitResult {
   const rows = role.skills.map((id) => evaluateSkill(data, getModule, id, year)).filter((r): r is SkillFit => r !== null);
   const by = (status: SkillStatus) => rows.filter((r) => r.status === status);
   return { rows, covered: by('covered'), later: by('later'), gaps: by('gap'), total: rows.length };

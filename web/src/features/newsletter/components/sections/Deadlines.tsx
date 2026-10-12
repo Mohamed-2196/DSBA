@@ -1,12 +1,10 @@
 import { useMemo, useState } from 'react';
 import { CalendarBlank } from '@phosphor-icons/react';
-import type { CalendarEvent } from '../../../calendar/public';
+import { addDays, dayKey, daysBetween, formatDay, monthName, monthShort, parseDay, relativeDays, WEEKDAYS } from '../../../../lib/dates';
+import type { CohortYear } from '../../../../state';
 import { useModules } from '../../../../state/modules';
 import { Button, CohortBadge, Highlight, SegmentedControl, Tooltip, cx } from '../../../../ui';
-import { countdownLabel, daysBetween, isoDay, monthShort, parseDay } from '../../lib/text';
-
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const fmt = (iso: string, opts: Intl.DateTimeFormatOptions): string => parseDay(iso).toLocaleDateString('en-GB', opts);
+import type { CalendarEvent } from '../../../calendar/public';
 
 interface SessionDay {
   iso: string;
@@ -15,6 +13,9 @@ interface SessionDay {
   exam: CalendarEvent | null;
 }
 
+/** The cohorts that have exams in a list, in order. */
+const cohortsOf = (exams: readonly CalendarEvent[]): CohortYear[] => [...new Set(exams.map((e) => e.year).filter((y): y is CohortYear => y != null))].sort();
+
 /** Sunday-first weeks (Bahrain's weekend is Fri–Sat) covering the session, for the mini calendar. */
 function sessionWeeks(exams: readonly CalendarEvent[]): SessionDay[][] {
   const firstExam = exams[0];
@@ -22,13 +23,11 @@ function sessionWeeks(exams: readonly CalendarEvent[]): SessionDay[][] {
   if (!firstExam || !lastExam) return [];
   const first = parseDay(firstExam.date);
   const last = parseDay(lastExam.date);
-  const start = new Date(first);
-  start.setDate(start.getDate() - start.getDay());
   const byDay = new Map(exams.map((e) => [e.date, e]));
   const weeks: SessionDay[][] = [];
-  for (let d = new Date(start); d <= last || d.getDay() !== 0; d.setDate(d.getDate() + 1)) {
+  for (let d = addDays(first, -first.getDay()); d <= last || d.getDay() !== 0; d = addDays(d, 1)) {
     if (d.getDay() === 0) weeks.push([]);
-    const iso = isoDay(d);
+    const iso = dayKey(d);
     weeks[weeks.length - 1]?.push({ iso, day: d.getDate(), dow: d.getDay(), exam: byDay.get(iso) ?? null });
   }
   return weeks;
@@ -40,30 +39,32 @@ export function SessionCalendar({ exams }: { exams: CalendarEvent[] }) {
   const firstExam = exams[0];
   const lastExam = exams[exams.length - 1];
   if (!weeks.length || !firstExam || !lastExam) return null;
-  const years = [...new Set(exams.map((e) => e.year).filter((y): y is 1 | 2 | 3 => y != null))].sort();
-  const firstMonth = fmt(firstExam.date, { month: 'long' });
-  const lastMonth = fmt(lastExam.date, { month: 'long', year: 'numeric' });
+  const years = cohortsOf(exams);
+  const first = parseDay(firstExam.date);
+  const last = parseDay(lastExam.date);
+  const firstMonth = monthName(first.getMonth());
+  const lastMonth = `${monthName(last.getMonth())} ${last.getFullYear()}`;
   return (
     <figure className="nl-aside nl-session" aria-label="The session at a glance">
       <p className="nl-aside__title">The session at a glance</p>
       <p className="nl-session__months">
-        {firstMonth === fmt(lastExam.date, { month: 'long' }) ? lastMonth : `${firstMonth} to ${lastMonth}`}
+        {first.getMonth() === last.getMonth() && first.getFullYear() === last.getFullYear() ? lastMonth : `${firstMonth} to ${lastMonth}`}
       </p>
       <div className="nl-session__grid" role="presentation">
         {WEEKDAYS.map((w, i) => (
-          <span key={w} className={cx('nl-session__dow', i >= 5 && 'is-weekend')} aria-hidden="true">
-            {w.slice(0, 1)}
+          <span key={w.short} className={cx('nl-session__dow', i >= 5 && 'is-weekend')} aria-hidden="true">
+            {w.one}
           </span>
         ))}
         {weeks.flat().map((c) => {
           const cell = (
             <span key={c.iso} className={cx('nl-session__day', c.dow >= 5 && 'is-weekend', c.exam && `is-exam is-y${c.exam.year ?? 0}`, c.day === 1 && 'is-first')} aria-hidden="true">
-              {c.day === 1 ? <span className="nl-session__mon">{monthShort(parseDay(c.iso))}</span> : null}
+              {c.day === 1 ? <span className="nl-session__mon">{monthShort(parseDay(c.iso).getMonth())}</span> : null}
               {c.day}
             </span>
           );
           return c.exam ? (
-            <Tooltip key={c.iso} label={`${WEEKDAYS[c.dow] ?? ''} ${c.day} ${monthShort(parseDay(c.iso))}: ${c.exam.unitCode ?? c.exam.title}`} describe={false}>
+            <Tooltip key={c.iso} label={`${formatDay(c.iso, { weekday: 'short', month: 'short', year: false })}: ${c.exam.unitCode ?? c.exam.title}`} describe={false}>
               {cell}
             </Tooltip>
           ) : (
@@ -88,7 +89,7 @@ export function SessionCalendar({ exams }: { exams: CalendarEvent[] }) {
 export function Deadlines({ issueDate, exams }: { issueDate: string; exams: CalendarEvent[] }) {
   const { getModule } = useModules();
   const [filter, setFilter] = useState('all');
-  const years = [...new Set(exams.map((e) => e.year).filter((y): y is 1 | 2 | 3 => y != null))].sort();
+  const years = cohortsOf(exams);
   const shown = filter === 'all' ? exams : exams.filter((e) => String(e.year) === filter);
   const firstId = exams[0]?.id;
 
@@ -124,14 +125,14 @@ export function Deadlines({ issueDate, exams }: { issueDate: string; exams: Cale
       <ol role="list" className="nl-dates">
         {shown.map((e) => {
           const mod = getModule(e.moduleId);
-          const days = daysBetween(issueDate, e.date);
-          const count = countdownLabel(days);
+          const count = relativeDays(daysBetween(issueDate, e.date));
+          const day = parseDay(e.date);
           return (
             <li key={e.id} className={cx('nl-date', e.year && `nl-date--y${e.year}`)}>
               <time dateTime={e.date} className="nl-date__when">
-                <span className="nl-date__num u-tabular">{fmt(e.date, { day: 'numeric' })}</span>
+                <span className="nl-date__num u-tabular">{day.getDate()}</span>
                 <span className="nl-date__mon">
-                  {monthShort(parseDay(e.date))}, {WEEKDAYS[parseDay(e.date).getDay()] ?? ''}
+                  {monthShort(day.getMonth())}, {WEEKDAYS[day.getDay()]?.short ?? ''}
                 </span>
               </time>
               <div className="nl-date__what">
@@ -150,7 +151,7 @@ export function Deadlines({ issueDate, exams }: { issueDate: string; exams: Cale
         <Button to="/calendar" leadingIcon={CalendarBlank}>
           Open the calendar
         </Button>
-        <span>Countdowns are from {fmt(issueDate, { day: 'numeric', month: 'long' })}, the day this issue came out.</span>
+        <span>Countdowns are from {formatDay(issueDate, { year: false })}, the day this issue came out.</span>
       </p>
     </div>
   );

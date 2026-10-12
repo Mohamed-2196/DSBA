@@ -198,8 +198,3 @@ export function classify(input: unknown): Classification {
     yearOneAverage,
   };
 }
-
-/** True when `a` is the same outcome as `b` or better. */
-export function atLeast(kindA: ClassKind, kindB: ClassKind): boolean {
-  return RANK[kindA] >= RANK[kindB];
-}

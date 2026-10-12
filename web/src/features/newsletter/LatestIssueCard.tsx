@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Clock, Newspaper } from '@phosphor-icons/react';
-import { Badge, Button, EmptyState, Panel, Skeleton } from '../../ui';
+import { formatDay } from '../../lib/dates';
+import { Badge, Button, EmptyState, Panel, QueryError, Skeleton } from '../../ui';
 import { toCard, useIssueDetail, useLatestIssue } from './api';
 import { IssueCover } from './components/IssueCover';
-import { issueNo, shortDate } from './lib/text';
+import { issueNo } from './lib/text';
 import './LatestIssueCard.css';
 
 /** Home: the latest issue of The DSBA Newsletter as one link (compact cover, title, summary, read time). */
@@ -27,21 +28,7 @@ export function LatestIssueCard() {
     );
   }
   if (latest.isError) {
-    return (
-      <Panel padding="none">
-        <EmptyState
-          size="sm"
-          icon={Newspaper}
-          title="The newsletter didn’t load"
-          body="Check your connection, then try again."
-          action={
-            <Button size="sm" onClick={() => void latest.refetch()} loading={latest.isFetching}>
-              Try again
-            </Button>
-          }
-        />
-      </Panel>
-    );
+    return <QueryError error={latest.error} title="The newsletter didn’t load" size="sm" onRetry={() => void latest.refetch()} retrying={latest.isFetching} />;
   }
   const summary = latest.data;
   if (!summary) {
@@ -73,7 +60,7 @@ export function LatestIssueCard() {
             New
           </Badge>
           <span>
-            The DSBA Newsletter {issueNo(issue.number)}, {shortDate(issue.date)}
+            The DSBA Newsletter {issueNo(issue.number)}, {formatDay(issue.date, { month: 'short' })}
           </span>
         </span>
         <span className="nl-latest-card__title">{issue.title}</span>

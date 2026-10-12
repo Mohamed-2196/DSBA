@@ -1,11 +1,11 @@
 import { ChatsCircle } from '@phosphor-icons/react';
+import type { CareerSenior } from '../../api/types';
 import { Avatar, Badge, Button, CohortBadge, Panel } from '../../ui';
 import { useCareerData } from './context';
 import { askLink } from './lib/links';
-import type { Senior as SeniorData } from './types';
 import './Seniors.css';
 
-function Senior({ s }: { s: SeniorData }) {
+function Senior({ s }: { s: CareerSenior }) {
   return (
     <li className="career-senior" data-hub="career-senior" data-senior-id={s.id}>
       <Avatar name={s.name} size="lg" decorative />

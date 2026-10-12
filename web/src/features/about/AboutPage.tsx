@@ -1,5 +1,5 @@
-import { ArrowUpRight, Bank, GithubLogo, GraduationCap, type Icon } from '@phosphor-icons/react';
-import { CONTRIBUTORS, CONTRIBUTE_URL, DISCLAIMER, MYCLASS_URL, NOTE_CONTRIBUTORS, REPO_URL, UOL_PORTAL_URL } from '../../data/people';
+import { ArrowUpRight, Bank, GithubLogo, GraduationCap, UploadSimple, type Icon } from '@phosphor-icons/react';
+import { CONTRIBUTORS, DISCLAIMER, MYCLASS_URL, NOTE_CONTRIBUTORS, REPORT_PROBLEM_URL, UOL_PORTAL_URL } from '../../data/people';
 import { useModules } from '../../state/modules';
 import { Avatar, Button, Page, PageHeader, PageSection, Panel, SectionHeader } from '../../ui';
 import { useCalendarEvents } from '../calendar/public';
@@ -8,7 +8,6 @@ import './AboutPage.css';
 const LINKS: { label: string; note: string; href: string; icon: Icon }[] = [
   { label: 'BIBF MyClass', note: 'Lecture slides, announcements and coursework', href: MYCLASS_URL, icon: GraduationCap },
   { label: 'UoL student portal', note: 'Exam entries, results and your student record', href: UOL_PORTAL_URL, icon: Bank },
-  { label: 'Source code on GitHub', note: 'DSBA Hub is open source', href: REPO_URL, icon: GithubLogo },
 ];
 
 const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
@@ -102,15 +101,21 @@ export default function AboutPage() {
           </PageSection>
         </div>
 
-        <aside className="about__aside" aria-label="Links and contributing">
+        <aside className="about__aside" aria-label="Sharing, problems and links">
+          {/* Contributing means uploading to the library; GitHub is only where problems are reported (decision D6). */}
           <Panel padding="md" className="about__contribute">
             <h2 className="about__aside-title">Got a resource to share?</h2>
-            <p className="about__aside-body">Notes, past papers or a guide: sign in and upload it to the library, and a student rep will check it before it goes up. Found a mistake? Open an issue on GitHub.</p>
-            <Button variant="primary" to="/library" fullWidth>
-              Go to the library
+            <p className="about__aside-body">Notes, past papers or a guide: upload it to the library, and a student rep checks it before it goes up.</p>
+            <Button variant="primary" to="/library?upload=1" leadingIcon={UploadSimple} fullWidth data-hub="about-upload">
+              Upload a file
             </Button>
-            <Button variant="ghost" href={CONTRIBUTE_URL} leadingIcon={GithubLogo} fullWidth className="about__issue">
-              Open a GitHub issue
+          </Panel>
+          <Panel padding="md" className="about__report">
+            <h2 className="about__aside-title">Something wrong with the Hub?</h2>
+            <p className="about__aside-body">A broken page, a wrong date or a typo: tell the people who build it.</p>
+            <Button href={REPORT_PROBLEM_URL} leadingIcon={GithubLogo} trailingIcon={ArrowUpRight} fullWidth data-hub="about-report">
+              Report a problem
+              <span className="visually-hidden">, opens GitHub in a new tab</span>
             </Button>
           </Panel>
           <Panel padding="none">

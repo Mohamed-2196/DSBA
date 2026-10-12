@@ -1,11 +1,11 @@
 // Shapes of the calendar feature. Events come from the API (GET /api/v1/calendar/events).
 import type { CalendarEventCreate, CalendarEventOut, CalendarEventUpdate } from '../../api/types';
-import type { CohortYear } from '../../lib/modules';
+import type { CohortYear } from '../../state';
 
 /**
  * One date on the calendar: { id, date: 'YYYY-MM-DD', endDate, title, type, year (null = everyone),
  * moduleId, unitCode, time, place (free text, only when the organiser published them),
- * sample (a placeholder date, not confirmed yet) }.
+ * sample (true: not confirmed yet; students see it marked so) }.
  */
 export type CalendarEvent = CalendarEventOut;
 export type EventType = CalendarEventOut['type'];
