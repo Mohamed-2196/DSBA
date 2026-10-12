@@ -195,3 +195,36 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
 - Every agent ends with a report covering what it built, how it verified it (commands and results), any
   deviations from this brief or the contract, requests for the lead (schema or contract changes,
   dependencies), and open issues.
+
+## Round 2 decisions (fix round after the reviews)
+
+The reviews are in `docs/reviews/` (security, code-quality, ui-ux, student-test). The lead settled the product
+questions they raised:
+
+- **D1 Email notifications are real.** Notifications that matter go out by email to people who have an email
+  address and keep the matching switch on: replies to your thread or reply, your answer accepted, your upload
+  published or rejected, account security notices (already sent), and new newsletter issues. Delivery uses an
+  outbox table drained by a worker, so a slow mail server never slows a request and failures retry. The
+  switches on Your account map one-to-one to these kinds, and the in-app notification is never silenced by an
+  email switch.
+- **D2 Step-up for account changes.** Changing or removing an email or phone, and deleting the account, need a
+  fresh code sent to an identifier the account already has (or, for deletion, any of them). A session alone
+  is not enough.
+- **D3 Hidden threads stay visible to their author.** The author can still open a hidden thread, with a banner
+  saying a student rep hid it, and is notified when it is hidden. Everyone else gets a 404, as before;
+  moderators see it with the hidden marker. No schema change: the reason travels in the notification.
+- **D4 Sign-in lockout.** Follow SEC-2's recommended fix: wrong-code lockouts apply to the pair of address and
+  network (IP, or /64 for IPv6); per-address limits only slow down, they never lock the owner out for a day.
+- **D5 The newsletter editor is a form.** Sections and their blocks get real schemas (CQ-4), and reps edit them
+  with fields, not JSON. It must work on a phone.
+- **D6 Contribute means upload.** "Contribute" opens the library upload (sign-in first for guests). GitHub stays
+  only as "Report a problem" on About.
+- **D7 The year prompt never blocks.** A first-time visitor on any link sees the page, with a small prompt to pick
+  a year, say they're not a student, or sign in.
+- **D8 Titles without Latin letters** get a short id slug (`t-<6 chars>`), not `thread-2`.
+- **D9 The library accepts images** (jpg, png, webp) for photos of handwritten notes, previewed inline.
+- **D10 Kept as built:** reporters are visible to admins only; grades are cleared on sign-out; reading never
+  needs an account.
+
+Migrations in round 2: only the accounts builder adds one (0003, the email outbox) in the first wave; the core
+builder adds index changes after it (0004). Nobody else changes `app/models` or `migrations/`.
