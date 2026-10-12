@@ -18,6 +18,10 @@ Where the work stands and what's next: @docs/STATUS.md
 - **Use the team.** Split big work across the agents in `.claude/agents/`, each in the background. Give each its own
   git worktree (`git worktree add ../dsba-<name> -b <branch>`) so agents never move each other's HEAD. Merge their
   branches yourself.
+- **Clean up as you go.** Once a branch is merged or finished, remove its worktree (`git worktree remove`) and
+  delete the branch, locally and on GitHub. Mohamed doesn't want them piling up.
+- **Ideas wait for approval.** The `student-user` agent proposes features in `docs/ideas.md`. Build only the ones
+  Mohamed approves.
 - **Check in briefly.** Write a line or two when something lands: a branch merged, checks green or red, a decision
   needed. Don't go silent, and don't narrate every step.
 - **Ask only when it matters.** Ask before anything that can't be undone or that he might decide differently:

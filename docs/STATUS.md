@@ -37,6 +37,7 @@ The lead merges them.
 | `round3/e2e-docker` | student-tester | `../dsba-e2e` | 1: the e2e suite on Docker, one command, a rerun |
 | `round3/drive-import` | api-builder | `../dsba-drive` | 3: `import-drive`, `scripts/seed-real.sh` and tests; then the CQ-15 nits |
 | `round3/web-leftovers` | web-builder | `../dsba-web` | 4, and 5 on the web side (the data router for the leave guard) |
+| `round3/student-ideas` | student-user | `../dsba-ideas` | Feature ideas in `docs/ideas.md`, for Mohamed to approve |
 
 - **The re-review round (2) waits** until these three are merged, so the reviewers and the student tester see
   the finished round rather than a moving target.
@@ -123,11 +124,16 @@ To bring it in:
      a data router would.
    - `--measure` is 72ch, too wide; use 58–60ch.
    - The CQ-15 index and column nits that remain.
-6. **Clean-up.** Delete the merged branches `round2/fe-forum`, `round2/fe-library` and `round2/fe-content`, and
-   `wip/accounts-round2`, which was superseded.
+6. **Clean-up.** Mohamed approved deleting finished branches (2026-10-13). Auto mode blocks `git push --delete`,
+   so he runs the command himself or allows it in his settings.
+   - Still on GitHub: `round2/fe-forum`, `round2/fe-library`, `round2/fe-content` (all merged), and
+     `claude/zen-cerf-7e5mbj` (in `master` since 2026-09-23).
+   - Also `wip/accounts-round2`, which was superseded. Its one unmerged commit is `140fd8e`, if it's ever wanted.
 
 ## Waiting on Mohamed
 
+- **Ideas to approve:** the student-user's proposals in `docs/ideas.md`, once its branch is merged.
+- **`exam_meta_from_name()`:** the past-paper name patterns, in `api/app/services/exam_names.py`.
 - **Product calls:**
   - Should notification emails stay on by default?
   - Should there be a site-wide daily upload budget?
@@ -184,7 +190,10 @@ To bring it in:
 ## How the team works
 
 - Agents live in `.claude/agents/`: `security-reviewer`, `code-quality-reviewer`, `ui-ux-reviewer`,
-  `student-tester`, `api-builder` and `web-builder`.
+  `student-tester`, `student-user`, `api-builder` and `web-builder`.
+- `student-user` uses the hub as a student and proposes features in `docs/ideas.md` (IDEA-1 onwards). Nothing is
+  built until Mohamed approves it. Approved ideas join "Next".
+- A merged or finished branch loses its worktree and its branch, locally and on GitHub.
 - Builders own folders and work on their own branch in their own worktree. The lead merges.
 - Reviewers write numbered findings to `docs/reviews/` (SEC-, CQ-, UX- and ST-) and re-check them later. The same
   files record what was fixed.
