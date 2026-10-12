@@ -1,27 +1,27 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { CaretRight, ImageSquare, PaperPlaneRight } from '@phosphor-icons/react';
-import { ApiError, errorMessage } from '../../api/errors';
+import { CaretRight } from '@phosphor-icons/react';
+import { errorMessage } from '../../api/errors';
 import type { UserPublic } from '../../api/types';
 import { useAuth } from '../../auth';
-import { Button, Kbd, Page, PageHeader, Skeleton, TextField, cx, modKeyLabel } from '../../ui';
-import { useDebouncedValue, useToast, useYear } from '../../state';
+import { Page, PageHeader, Skeleton, TextField, cx } from '../../ui';
+import { useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { useCreateThread, useSimilarThreads } from './api';
+import { useCreateThread } from './api';
+import { composerPresets } from './lib/composerPresets';
 import { usePlacementRules } from './lib/placement';
-import { rankSimilar } from './lib/search';
-import { categoryForYear, isCategoryId, useTaxonomy } from './lib/taxonomy';
-import { TITLE_MAX, restoreDraft, type ThreadForm } from './lib/threadDraft';
-import { MAX_IMAGE_MB } from './lib/uploads';
+import { categoryForYear, useTaxonomy } from './lib/taxonomy';
+import { restoreDraft, type ThreadForm } from './lib/threadDraft';
+import { BODY_MAX, TITLE_MAX, threadFieldErrors, titleProblem, type ThreadErrors } from './lib/threadForm';
 import { useAccountKey } from './lib/useAccountKey';
 import { useAttachImages } from './lib/useAttachImages';
+import { useSimilar } from './lib/useSimilar';
 import { useThreadDraft } from './lib/useThreadDraft';
 import type { CategoryId } from './types';
-import { AuthorAvatar } from './components/AuthorAvatar';
-import { ComposerAside, SimilarInline, type SimilarState } from './components/ComposerAside';
-import { AttachmentList } from './components/ImageAttachments';
+import { AttachRow } from './components/AttachRow';
+import { ComposerAside, SimilarInline } from './components/ComposerAside';
+import { ComposerFooter } from './components/ComposerFooter';
 import { MarkdownEditor } from './components/MarkdownEditor';
-import { AuthorFlair } from './components/ThreadBits';
 import { CategorySelect, ModuleSelect, TagPicker } from './components/ThreadFields';
 import './components/forum.css';
 import './components/dialogs.css';
@@ -75,11 +75,6 @@ function ComposerPlaceholder() {
   );
 }
 
-const TITLE_MIN = 8;
-const BODY_MAX = 20_000;
-
-type Errors = Partial<Record<'title' | 'body' | 'category' | 'moduleId' | 'tags', string>>;
-
 function Composer() {
   const { me, status: authStatus, requireAuth } = useAuth();
   const { year } = useYear();
@@ -91,30 +86,20 @@ function Composer() {
   const rules = usePlacementRules();
   const create = useCreateThread();
   const viewer = me?.id ?? null;
-  const defaultCategory = (): CategoryId => categoryForYear(me?.year ?? year) ?? 'general';
+  const ownYear = me?.year ?? year;
+  const defaultCategory = (): CategoryId => categoryForYear(ownYear) ?? 'general';
 
-  const [presets] = useState<ThreadForm | null>(() => {
-    const presetModule = params.get('module');
-    const mod = presetModule ? (getModule(presetModule) ?? getModuleByUnitCode(presetModule.toUpperCase())) : null;
-    const presetCategory = params.get('category');
-    const cat = isCategoryId(presetCategory) ? getCategory(presetCategory) : null;
-    const presetTitle = params.get('title') ?? '';
-    if (!cat && !mod && !presetTitle) return null;
-    // The category you asked for, unless it is a year that disagrees with the module (the module is the more specific
-    // choice, so the category follows its year). Without one: the module's year, then your year.
-    const category: CategoryId = cat && !(cat.year && mod && cat.year !== mod.year) ? cat.id : (categoryForYear(mod?.year ?? me?.year ?? year) ?? 'general');
-    return { title: presetTitle.slice(0, TITLE_MAX), body: '', category, moduleId: mod?.id ?? '', tags: [] };
-  });
+  // What the link asks for (?category, ?module, ?title): it wins over a stored draft.
+  const [presets] = useState<ThreadForm | null>(() => composerPresets(params, { getModule, getModuleByUnitCode, getCategory }, ownYear));
   const { form, setForm, restored, startOver, finish } = useThreadDraft({
     viewer,
     presets,
     restore: (raw, who) => restoreDraft(raw, who, { knownModule: (id) => !!getModule(id), fallbackCategory: defaultCategory(), maxTags }),
     empty: () => ({ title: '', body: '', moduleId: '', category: defaultCategory(), tags: [] }),
   });
-  const [errors, setErrors] = useState<Errors>({});
+  const [errors, setErrors] = useState<ThreadErrors>({});
   const titleRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
-  const attachRef = useRef<HTMLElement>(null);
 
   // Tags the server doesn't know (an old draft) are dropped once the list has loaded.
   useEffect(() => {
@@ -127,7 +112,7 @@ function Composer() {
 
   const set = (patch: Partial<ThreadForm>) => {
     setForm((f) => ({ ...f, ...patch }));
-    const touched = Object.keys(patch) as (keyof Errors)[];
+    const touched = Object.keys(patch) as (keyof ThreadErrors)[];
     if (touched.some((k) => errors[k])) setErrors((e) => ({ ...e, ...Object.fromEntries(touched.map((k) => [k, undefined])) }));
   };
 
@@ -138,21 +123,13 @@ function Composer() {
     gate: () => requireAuth('Sign in to attach images'),
   });
 
-  const mod = getModule(form.moduleId);
-  const debouncedTitle = useDebouncedValue(form.title, 350);
-  const longEnough = debouncedTitle.trim().length >= 6;
-  const similarQuery = useSimilarThreads(longEnough ? debouncedTitle : '');
-  const similarThreads = useMemo(() => (longEnough ? rankSimilar(similarQuery.data ?? [], debouncedTitle) : []), [longEnough, similarQuery.data, debouncedTitle]);
-  const similar: SimilarState = { threads: similarThreads, searching: longEnough, loading: similarQuery.isFetching };
+  const similar = useSimilar(form.title);
 
   const send = () => {
     const title = form.title.trim();
-    const next: Errors = {};
-    if (title.length < TITLE_MIN) {
-      next.title = title
-        ? `Make the title a little longer (at least ${TITLE_MIN} characters) so classmates know what you're asking.`
-        : 'Add a title so classmates know what you’re asking.';
-    }
+    const next: ThreadErrors = {};
+    const problem = titleProblem(title);
+    if (problem) next.title = problem;
     if (!getCategory(form.category)) next.category = 'Choose where to post this thread.';
     if (Object.values(next).some(Boolean)) {
       setErrors(next);
@@ -179,11 +156,11 @@ function Composer() {
           });
         },
         onError: (e) => {
-          // A field the API turned down (an unknown module, too many tags…) says so under that field.
-          const f = e instanceof ApiError ? e.fields : {};
-          if (f.title || f.body || f.category || f.moduleId || f.tags) {
-            setErrors({ title: f.title, body: f.body, category: f.category, moduleId: f.moduleId, tags: f.tags });
-            if (f.title) titleRef.current?.focus();
+          // A field the API turned down ("Pick a module from the list.", too many tags…) says so under that field.
+          const fields = threadFieldErrors(e);
+          if (fields) {
+            setErrors(fields);
+            if (fields.title) titleRef.current?.focus();
             return;
           }
           // Anything else (too many threads in an hour, the server down): the API's words, and the draft is kept.
@@ -281,7 +258,7 @@ function Composer() {
 
           <TagPicker value={form.tags} error={errors.tags} onChange={(tags) => set({ tags })} />
 
-          {images.input}
+          <input {...images.fileInput} />
           <MarkdownEditor
             label="Details"
             hint="Optional, but threads with details get better answers."
@@ -296,61 +273,13 @@ function Composer() {
             textareaProps={{ 'data-hub': 'composer-body', dir: 'auto', maxLength: BODY_MAX }}
           />
 
-          <div className="forum-composer__attach">
-            <AttachmentList
-              uploads={images.cards}
-              onRetry={images.retry}
-              onRemove={(key) => {
-                images.remove(key);
-                requestAnimationFrame(() => attachRef.current?.focus());
-              }}
-            />
-            <Button ref={attachRef} size="sm" leadingIcon={ImageSquare} onClick={images.pick} data-hub="attach-image">
-              {images.cards.length ? 'Attach another image' : 'Attach image'}
-            </Button>
-            <span className="forum-composer__attach-note">
-              A photo of the question or your working. PNG, JPEG, WebP or GIF, up to {MAX_IMAGE_MB} MB. It goes into your post where the cursor is.
-            </span>
-          </div>
+          <AttachRow images={images} />
 
           <ComposerFooter author={author} checking={authStatus === 'loading'} posting={create.isPending} suspended={suspended} onDiscard={discard} />
         </form>
 
-        <ComposerAside similar={similar} module={mod} />
+        <ComposerAside similar={similar} module={getModule(form.moduleId)} />
       </div>
     </Page>
-  );
-}
-
-/** Who posts it (a guest signs in when they post), and Discard / Post thread. */
-function ComposerFooter({ author, checking, posting, suspended, onDiscard }: { author: UserPublic | null; checking: boolean; posting: boolean; suspended: boolean; onDiscard: () => void }) {
-  return (
-    <div className="forum-composer__footer">
-      <span className="forum-composer__as">
-        <AuthorAvatar author={author} guest={!author} size="sm" />
-        {author ? (
-          <span>
-            Posting as <strong>{author.displayName}</strong>
-            <AuthorFlair author={author} className="forum-composer__flair" />
-          </span>
-        ) : checking ? (
-          <span>Checking your account…</span>
-        ) : (
-          <span>You’ll sign in when you post. Your draft stays on this device.</span>
-        )}
-      </span>
-      <span className="forum-composer__kbd" aria-hidden="true">
-        <Kbd>{modKeyLabel()}</Kbd>
-        <Kbd>Enter</Kbd>
-      </span>
-      <span className="forum-composer__buttons">
-        <Button variant="ghost" onClick={onDiscard} disabled={posting}>
-          Discard
-        </Button>
-        <Button type="submit" variant="primary" leadingIcon={PaperPlaneRight} loading={posting} disabled={suspended} data-hub="post-button">
-          Post thread
-        </Button>
-      </span>
-    </div>
   );
 }

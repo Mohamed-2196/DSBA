@@ -1,31 +1,42 @@
-import { useEffect, useRef, type RefObject } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useLocation } from 'react-router-dom';
-import type { Reply } from '../../../api/types';
 import { prefersReducedMotion } from './motion';
+import { replyTargetId } from './replies';
 
 const SETTLE_MS = 4000;
 
+export interface ReplyTarget {
+  /** the reply the link points at, or null */
+  id: string | null;
+  /** it isn't in the thread, even after reading the thread again: deleted, or hidden by a rep */
+  missing: boolean;
+}
+
 /**
  * The reply a link points at (/forum/<slug>#reply-<id>: a notification, a report, a shared link), scrolled into view
- * once the thread is on screen (student test ST-4). Pictures above it load later and push it down, so it is kept in
- * view while the page settles (a few seconds), until the person scrolls themselves. A reply the thread on screen
- * doesn't have yet (posted a moment ago) makes the thread load again, once. Returns the reply's id, or null.
+ * once the thread is on screen (student test ST-4); ReplyItem marks it for a moment. Pictures above it load later and
+ * push it down, so it is kept in view while the page settles (a few seconds), until the person scrolls themselves.
+ * A reply the page doesn't show yet (posted a moment ago) makes the thread load again, once; if it still isn't
+ * there, `missing` says so.
+ * @param shown   ids of the replies the page shows (lib/replies.ts shownReplyIds)
+ * @param reload  read the thread again
  */
-export function useReplyTarget(replies: readonly Reply[], container: RefObject<HTMLElement>, reload: () => void): string | null {
+export function useReplyTarget(shown: ReadonlySet<string>, container: RefObject<HTMLElement>, reload: () => Promise<unknown>): ReplyTarget {
   const { hash } = useLocation();
-  const targetId = hash.startsWith('#reply-') ? hash.slice('#reply-'.length) : null;
-  const known = !!targetId && replies.some((r) => r.id === targetId);
+  const targetId = replyTargetId(hash);
+  const known = !!targetId && shown.has(targetId);
   const scrolledTo = useRef<string | null>(null);
   const reloadedFor = useRef<string | null>(null);
+  const [checked, setChecked] = useState<string | null>(null);
 
   useEffect(() => {
     if (!targetId || known || reloadedFor.current === targetId) return;
     reloadedFor.current = targetId;
-    reload();
+    void reload().finally(() => setChecked(targetId));
   }, [targetId, known, reload]);
 
   useEffect(() => {
-    if (!targetId || scrolledTo.current === targetId) return undefined;
+    if (!targetId || !known || scrolledTo.current === targetId) return undefined;
     const el = document.getElementById(`reply-${targetId}`);
     const main = container.current;
     if (!el || !main) return undefined;
@@ -59,7 +70,7 @@ export function useReplyTarget(replies: readonly Reply[], container: RefObject<H
       window.clearTimeout(until);
       for (const ev of events) window.removeEventListener(ev, stop);
     };
-  }, [targetId, replies, container]);
+  }, [targetId, known, shown, container]);
 
-  return targetId;
+  return { id: targetId, missing: !!targetId && !known && checked === targetId };
 }

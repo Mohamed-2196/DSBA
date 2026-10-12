@@ -1,17 +1,20 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Reply } from '../../../api/types';
 import { errorMessage } from '../../../api/errors';
 import { Button } from '../../../ui';
 import { useUpdateReply } from '../api';
+import { REPLY_MAX } from '../lib/threadForm';
+import { useAttachImages } from '../lib/useAttachImages';
+import { AttachmentList } from './ImageAttachments';
 import { MarkdownEditor } from './MarkdownEditor';
 
-const REPLY_MAX = 10_000;
-
-/** A reply edited in place: its text, Cancel and Save changes. */
+/** A reply edited in place: its text (pictures can be added or taken out), Cancel and Save changes. */
 export function ReplyEditForm({ reply, onDone }: { reply: Reply; onDone: () => void }) {
   const update = useUpdateReply();
   const [draft, setDraft] = useState(reply.body);
   const [error, setError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const images = useAttachImages({ text: draft, setText: setDraft, textareaRef });
 
   const save = () => {
     const text = draft.trim();
@@ -19,15 +22,29 @@ export function ReplyEditForm({ reply, onDone }: { reply: Reply; onDone: () => v
       setError('A reply needs some text. To remove it, delete it instead.');
       return;
     }
+    if (images.busy) {
+      setError('Wait for the image to finish uploading.');
+      return;
+    }
     if (text === reply.body.trim()) {
       onDone();
       return;
     }
-    update.mutate({ replyId: reply.id, body: text }, { onSuccess: onDone, onError: (e) => setError(errorMessage(e, "Your changes weren't saved. Try again.")) });
+    update.mutate(
+      { replyId: reply.id, body: text },
+      {
+        onSuccess: () => {
+          images.reset();
+          onDone();
+        },
+        onError: (e) => setError(errorMessage(e, "Your changes weren't saved. Try again.")),
+      },
+    );
   };
 
   return (
     <div className="forum-edit">
+      <input {...images.fileInput} />
       <MarkdownEditor
         label="Edit your reply"
         hideLabel
@@ -42,7 +59,18 @@ export function ReplyEditForm({ reply, onDone }: { reply: Reply; onDone: () => v
         preview={false}
         autoFocus
         onSubmit={save}
+        textareaRef={textareaRef}
+        onAttachImage={images.pick}
+        onImageFiles={images.addFiles}
         textareaProps={{ dir: 'auto', maxLength: REPLY_MAX }}
+      />
+      <AttachmentList
+        uploads={images.cards}
+        onRetry={images.retry}
+        onRemove={(key) => {
+          images.remove(key);
+          requestAnimationFrame(() => textareaRef.current?.focus({ preventScroll: true }));
+        }}
       />
       <div className="forum-edit__actions">
         <Button variant="ghost" size="sm" onClick={onDone} disabled={update.isPending}>

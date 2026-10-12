@@ -287,7 +287,7 @@ export function useThreadVote() {
     },
     onError: (err, { threadId, up }) => {
       patchThread(qc, threadId, (t) => (t.voted === up ? withVote(t, !up) : t));
-      push({ title: "Your vote wasn't saved", body: errorMessage(err, 'Check your connection and try again.'), tone: 'alert' });
+      push({ title: "Your vote wasn't saved", body: errorMessage(err), tone: 'alert' });
     },
     onSuccess: (res, { threadId }, ctx) => {
       if (ctx && isLatestVote(`t:${threadId}`, ctx.seq)) patchThread(qc, threadId, (t) => ({ ...t, voted: res.voted, voteCount: res.voteCount }));
@@ -310,7 +310,7 @@ export function useReplyVote() {
     },
     onError: (err, { replyId, up }) => {
       patchReply(qc, replyId, (r) => (r.voted === up ? withVote(r, !up) : r));
-      push({ title: "Your vote wasn't saved", body: errorMessage(err, 'Check your connection and try again.'), tone: 'alert' });
+      push({ title: "Your vote wasn't saved", body: errorMessage(err), tone: 'alert' });
     },
     onSuccess: (res, { replyId }, ctx) => {
       if (ctx && isLatestVote(`r:${replyId}`, ctx.seq)) patchReply(qc, replyId, (r) => ({ ...r, voted: res.voted, voteCount: res.voteCount }));
@@ -406,8 +406,9 @@ export function useCreateReply() {
       void invalidateLists(qc);
     },
     onError: (e) => {
-      // Locked, hidden or deleted since the page loaded: show the thread as it is now.
-      if (e instanceof ApiError && (e.code === 'thread_locked' || e.code === 'post_unavailable')) {
+      // Locked, hidden or deleted since the page loaded (a 404 for someone who may no longer see it, or for a reply
+      // that went): show the thread as it is now.
+      if (e instanceof ApiError && (e.code === 'thread_locked' || e.code === 'post_unavailable' || e.status === 404)) {
         void qc.invalidateQueries({ queryKey: forumKeys.threads });
       }
     },

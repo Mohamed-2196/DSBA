@@ -158,22 +158,25 @@
   .forum-side__block + .forum-side__block { padding-top: 0; border-top: 0; }
   .forum-side__block { padding-top: var(--sp-24); border-top: 1px solid var(--line); }
 }
+/* Narrow (phones): search gets a row of its own (beside the sort it was too narrow to type in), and the sort leads the
+   row of chips, which scrolls sideways to the screen's edge. */
 @container forum-page (max-width: 640px) {
   .forum-filters {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     grid-template-areas:
       'tabs tabs'
-      'search sort'
-      'chips chips';
+      'search search'
+      'sort chips';
     row-gap: var(--sp-12);
   }
-  .forum-filters__sort { padding-left: var(--sp-8); box-shadow: none; }
-  .forum-filters__chips { margin: -3px calc(-1 * var(--content-pad)) -3px -3px; padding-right: var(--content-pad); }
+  .forum-filters__sort { padding-left: 0; box-shadow: none; }
+  .forum-filters__chips { margin: -3px calc(-1 * var(--content-pad)) -3px 5px; padding-right: var(--content-pad); }
   .forum-side { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Touch screens: 44px targets (UX review UX-11) */
 @media (pointer: coarse) {
-  .forum-live__link, .forum-side__link { display: inline-flex; align-items: center; min-height: 44px; }
+  /* As flex boxes they drop the space between the count and its words ("11 questions"): the gap puts it back. */
+  .forum-live__link, .forum-side__link { display: inline-flex; align-items: center; column-gap: 0.28em; min-height: 44px; }
   .forum-cat { min-height: 48px; }
 }

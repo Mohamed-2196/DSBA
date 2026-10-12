@@ -1,20 +1,28 @@
 import { useRef, useState } from 'react';
 import type { ThreadDetail, ThreadUpdate } from '../../../api/types';
-import { ApiError, errorMessage } from '../../../api/errors';
+import { errorMessage } from '../../../api/errors';
 import { Button, TextField } from '../../../ui';
 import { useUpdateThread } from '../api';
 import { usePlacementRules, type Placement } from '../lib/placement';
+import { BODY_MAX, TITLE_MAX, threadFieldErrors, titleProblem, type ThreadErrors } from '../lib/threadForm';
 import { useAttachImages } from '../lib/useAttachImages';
 import { AttachmentList } from './ImageAttachments';
 import { MarkdownEditor } from './MarkdownEditor';
 import { CategorySelect, ModuleSelect, TagPicker } from './ThreadFields';
 import './dialogs.css';
 
-const TITLE_MIN = 5;
-const TITLE_MAX = 160;
-const BODY_MAX = 20_000;
+type Errors = ThreadErrors & { form?: string };
 
-type Errors = Partial<Record<'title' | 'body' | 'category' | 'moduleId' | 'tags' | 'form', string>>;
+/** What changed between the thread and the form (only that is sent). */
+function changes(thread: ThreadDetail, form: { title: string; body: string; place: Placement; tags: string[] }): ThreadUpdate {
+  const patch: ThreadUpdate = {};
+  if (form.title !== thread.title) patch.title = form.title;
+  if (form.body !== thread.body.trim()) patch.body = form.body;
+  if (form.place.category !== thread.category) patch.category = form.place.category;
+  if ((form.place.moduleId || null) !== (thread.moduleId ?? null)) patch.moduleId = form.place.moduleId || null;
+  if (form.tags.join() !== thread.tags.join()) patch.tags = form.tags;
+  return patch;
+}
 
 /** Edit the original post in place: title, details (with pictures), where it lives and its tags. */
 export function ThreadEditForm({ thread, onDone }: { thread: ThreadDetail; onDone: (updated: ThreadDetail | null) => void }) {
@@ -29,21 +37,15 @@ export function ThreadEditForm({ thread, onDone }: { thread: ThreadDetail; onDon
   const images = useAttachImages({ text: body, setText: setBody, textareaRef: bodyRef });
 
   const save = () => {
-    const t = title.trim();
     const next: Errors = {};
-    if (t.length < TITLE_MIN) next.title = `Make the title at least ${TITLE_MIN} characters long.`;
+    const problem = titleProblem(title);
+    if (problem) next.title = problem;
     if (images.busy) next.form = 'Wait for the image to finish uploading.';
     if (Object.keys(next).length) {
       setErrors(next);
       return;
     }
-    // Only what changed.
-    const patch: ThreadUpdate = {};
-    if (t !== thread.title) patch.title = t;
-    if (body.trim() !== thread.body.trim()) patch.body = body.trim();
-    if (place.category !== thread.category) patch.category = place.category;
-    if ((place.moduleId || null) !== (thread.moduleId ?? null)) patch.moduleId = place.moduleId || null;
-    if (tags.join() !== thread.tags.join()) patch.tags = tags;
+    const patch = changes(thread, { title: title.trim(), body: body.trim(), place, tags });
     if (!Object.keys(patch).length) {
       onDone(null);
       return;
@@ -55,14 +57,8 @@ export function ThreadEditForm({ thread, onDone }: { thread: ThreadDetail; onDon
           images.reset();
           onDone(updated);
         },
-        onError: (e) => {
-          const f = e instanceof ApiError ? e.fields : {};
-          if (f.title || f.body || f.category || f.moduleId || f.tags) {
-            setErrors({ title: f.title, body: f.body, category: f.category, moduleId: f.moduleId, tags: f.tags });
-          } else {
-            setErrors({ form: errorMessage(e, "Your changes weren't saved. Try again.") });
-          }
-        },
+        // A field the API turned down (an unknown module, too many tags) says so under that field.
+        onError: (e) => setErrors(threadFieldErrors(e) ?? { form: errorMessage(e, "Your changes weren't saved. Try again.") }),
       },
     );
   };
@@ -101,7 +97,7 @@ export function ThreadEditForm({ thread, onDone }: { thread: ThreadDetail; onDon
         />
       </div>
       <TagPicker value={tags} onChange={setTags} error={errors.tags} />
-      {images.input}
+      <input {...images.fileInput} />
       <MarkdownEditor
         label="Details"
         value={body}

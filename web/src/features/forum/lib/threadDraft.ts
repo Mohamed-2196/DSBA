@@ -2,6 +2,7 @@
 // removes it (auth/queries.ts PERSONAL_STORAGE_PREFIXES). Plain functions: the composer (NewThreadPage) holds the state.
 import type { CategoryId } from '../types';
 import { isCategoryId } from './categories';
+import { TITLE_MAX } from './threadForm';
 
 /** What the composer holds. */
 export interface ThreadForm {
@@ -18,8 +19,6 @@ export interface ThreadDraft extends ThreadForm {
   /** who wrote it: an account id, or null for a guest (a shared computer must not show one student's draft to the next) */
   owner?: string | null;
 }
-
-export const TITLE_MAX = 120;
 
 /** Anything stored under the key that looks like a draft (stored JSON is never trusted as it is). */
 export function isDraft(v: unknown): v is ThreadDraft {

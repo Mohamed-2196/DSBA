@@ -2,16 +2,16 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowBendUpLeft, Eye, EyeSlash, LinkSimple, LockSimple, LockSimpleOpen, PencilSimple, PushPin, PushPinSlash, Trash } from '@phosphor-icons/react';
 import type { ThreadDetail } from '../../../api/types';
-import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
-import { Button, ConfirmDialog, Panel, timeAgo } from '../../../ui';
+import { Button, Panel, timeAgo } from '../../../ui';
 import { useToast } from '../../../state';
 import { ReportButton } from '../ReportButton';
-import { useDeleteThread, useThreadVote } from '../api';
+import { useThreadVote } from '../api';
 import { authorName, postYear, roleFlair } from '../lib/authors';
 import { readOnlyFor, takesReplies, textDeleted } from '../lib/replies';
 import type { useThreadModeration } from '../lib/useThreadModeration';
 import { AuthorAvatar } from './AuthorAvatar';
+import { DeleteThreadDialog } from './DeleteDialogs';
 import { HideDialog } from './HideDialog';
 import { PostMenu } from './PostMenu';
 import { Prose } from './Prose';
@@ -25,28 +25,19 @@ export interface OriginalPostProps {
   /** "Reply": go to the composer under the replies */
   onReply: () => void;
   onCopyLink: () => void;
-}
-
-/** What "Delete" says will happen (student test ST-12, security review SEC-15). */
-function deleteCopy(thread: ThreadDetail): string {
-  if (thread.status === 'hidden') {
-    return 'Its text is deleted for good. The thread stays hidden; if you unhide it later, it comes back as a deleted thread.';
-  }
-  return thread.replyCount > 0
-    ? 'Its text is deleted. Because it has replies, it stays listed with its title so they can still be read. This can’t be undone.'
-    : 'It is removed from the forum and its text is deleted. This can’t be undone.';
+  /** the thread was hidden or deleted after the page loaded: it stays on screen, with nothing to change */
+  unavailable?: boolean;
 }
 
 /**
  * The question: vote, byline, text (or the edit form), and its actions: reply, copy link, report, and a menu for its
  * author (edit, delete) and for the reps (pin, lock, hide with a reason).
  */
-export function OriginalPost({ thread, moderation, onReply, onCopyLink }: OriginalPostProps) {
+export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavailable = false }: OriginalPostProps) {
   const { requireAuth } = useAuth();
   const { push } = useToast();
   const navigate = useNavigate();
   const vote = useThreadVote();
-  const removeThread = useDeleteThread();
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [hiding, setHiding] = useState(false);
@@ -54,7 +45,7 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink }: Origin
   const deleted = thread.status === 'deleted';
   const hidden = thread.status === 'hidden';
   const gone = textDeleted(thread, thread.canModerate);
-  const readOnly = readOnlyFor(thread);
+  const readOnly = readOnlyFor(thread) || unavailable;
   const year = postYear(thread.authorYear, thread.author);
   // What stands before 'posted' in the byline: a flair (shown as a pill next to the name) replaces the year.
   const byline = roleFlair(thread.author) ? null : year ? `Year ${year}` : null;
@@ -87,7 +78,7 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink }: Origin
   return (
     <Panel as="article" padding="none" className="forum-op" data-hub="thread-op" aria-label="Original post">
       <div className="forum-op__vote">
-        <VoteButton size="lg" count={thread.voteCount} voted={thread.voted} onToggle={toggleVote} disabled={deleted || hidden} />
+        <VoteButton size="lg" count={thread.voteCount} voted={thread.voted} onToggle={toggleVote} disabled={deleted || hidden || unavailable} />
       </div>
       <div className="forum-op__main">
         <header className="forum-byline">
@@ -162,32 +153,7 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink }: Origin
         }}
       />
 
-      <ConfirmDialog
-        open={confirmDelete}
-        tone="danger"
-        title={`Delete “${thread.title}”?`}
-        body={<p>{deleteCopy(thread)}</p>}
-        confirmLabel="Delete thread"
-        busy={removeThread.isPending}
-        error={removeThread.isError ? errorMessage(removeThread.error, "The thread wasn't deleted. Try again.") : null}
-        onClose={() => {
-          setConfirmDelete(false);
-          removeThread.reset();
-        }}
-        onConfirm={() =>
-          removeThread.mutate(
-            { threadId: thread.id, slug: thread.slug, stay: hidden },
-            {
-              onSuccess: () => {
-                setConfirmDelete(false);
-                push({ title: 'Thread deleted', tone: 'success' });
-                // A hidden thread stays here for the reps (hidden, without its text); any other leaves for the list.
-                if (!hidden) navigate('/forum');
-              },
-            },
-          )
-        }
-      />
+      <DeleteThreadDialog thread={thread} open={confirmDelete} onClose={() => setConfirmDelete(false)} />
     </Panel>
   );
 }

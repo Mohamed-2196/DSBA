@@ -106,7 +106,7 @@ function RelatedThreads({ threadId }: { threadId: string }) {
 }
 
 /** Margin of the thread page: the module (with its next exam), who's here, related threads. */
-export function ThreadSidebar({ thread }: { thread: ThreadDetail }) {
+export function ThreadSidebar({ thread, unavailable = false }: { thread: ThreadDetail; unavailable?: boolean }) {
   const { getModule } = useModules();
   const { getCategory } = useTaxonomy();
   const module = getModule(thread.moduleId);
@@ -147,7 +147,7 @@ export function ThreadSidebar({ thread }: { thread: ThreadDetail }) {
             <p className="forum-tside__facts">Last reply {timeAgo(last.createdAt)}</p>
           </>
         ) : (
-          <p className="forum-tside__facts">{takesReplies(thread) ? 'No replies yet. If you know the answer, be the first to help.' : 'No replies.'}</p>
+          <p className="forum-tside__facts">{takesReplies(thread) && !unavailable ? 'No replies yet. If you know the answer, be the first to help.' : 'No replies.'}</p>
         )}
       </section>
 

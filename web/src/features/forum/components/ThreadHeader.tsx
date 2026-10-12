@@ -21,8 +21,11 @@ export function ThreadCrumbs({ category }: { category?: { id: string; label: str
   );
 }
 
-/** Breadcrumb, title and what the thread is: answered or waiting, pinned, locked, hidden, where it lives, its module and tags. */
-export function ThreadHeader({ thread }: { thread: ThreadDetail }) {
+/**
+ * Breadcrumb, title and what the thread is: answered or waiting, pinned, locked, hidden, where it lives, its module and
+ * tags. `unavailable`: it was hidden or deleted after the page loaded (it waits for nothing any more).
+ */
+export function ThreadHeader({ thread, unavailable = false }: { thread: ThreadDetail; unavailable?: boolean }) {
   const { getModule } = useModules();
   const { getCategory } = useTaxonomy();
   const deleted = thread.status === 'deleted';
@@ -43,7 +46,7 @@ export function ThreadHeader({ thread }: { thread: ThreadDetail }) {
               <Badge tone="signal" icon={CheckCircle}>
                 Answered
               </Badge>
-            ) : thread.replyCount === 0 && thread.status === 'visible' ? (
+            ) : thread.replyCount === 0 && thread.status === 'visible' && !unavailable ? (
               <Badge tone="outline">Waiting for a first reply</Badge>
             ) : null}
             {thread.pinned ? <Badge tone="cobalt">Pinned</Badge> : null}
