@@ -4,9 +4,7 @@ import { useAuth } from '../../../auth';
 import { ConfirmDialog, TextArea } from '../../../ui';
 import { useMediaQuery } from '../../../state';
 import { authorName } from '../lib/authors';
-
-/** The API keeps up to 500 characters of a reason (ThreadModeration / ReplyModeration). */
-export const REASON_MAX = 500;
+import { REASON_MAX, remainingNote } from '../lib/threadForm';
 
 export interface HideDialogProps {
   open: boolean;
@@ -38,6 +36,8 @@ export function HideDialog({ open, what, author, busy, error, onConfirm, onClose
   const name = author ? authorName(author) : null;
   // Nobody is told when a rep hides their own post, or a post of a deleted account.
   const toldBy = author && author.id !== me?.id ? name : null;
+  const count = remainingNote(reason.length, REASON_MAX);
+  const hint = toldBy ? `Optional. ${toldBy} sees it in the notification; it also goes into the activity log.` : 'Optional. It goes into the activity log.';
 
   return (
     <ConfirmDialog
@@ -64,7 +64,7 @@ export function HideDialog({ open, what, author, busy, error, onConfirm, onClose
     >
       <TextArea
         label="Reason"
-        hint={toldBy ? `Optional. ${toldBy} sees it in the notification; it also goes into the activity log.` : 'Optional. It goes into the activity log.'}
+        hint={count ? `${hint} ${count}` : hint}
         rows={2}
         maxLength={REASON_MAX}
         value={reason}

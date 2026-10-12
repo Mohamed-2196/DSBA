@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Reply, UserPublic } from '../../../api/types';
-import { nestReplies, participants, readOnlyFor, takesReplies, textDeleted } from './replies';
+import { nestReplies, participants, readOnlyFor, replyTargetId, shownReplyIds, takesReplies, textDeleted } from './replies';
 
 const person = (id: string, displayName = id): UserPublic => ({ id, displayName, year: 2, role: 'student' });
 let n = 0;
@@ -86,5 +86,23 @@ describe('hidden posts', () => {
     expect(takesReplies({ status: 'visible', locked: true, canModerate: true })).toBe(true);
     expect(takesReplies({ status: 'hidden', locked: false, canModerate: true })).toBe(false);
     expect(takesReplies({ status: 'deleted', locked: false, canModerate: true })).toBe(false);
+  });
+});
+
+describe('links to a reply (ST-4)', () => {
+  it('reads the reply id from #reply-<id>, and nothing else', () => {
+    expect(replyTargetId('#reply-7511c4f7-ffbf-4f8e-8500-93334507e674')).toBe('7511c4f7-ffbf-4f8e-8500-93334507e674');
+    expect(replyTargetId('')).toBeNull();
+    expect(replyTargetId('#top')).toBeNull();
+    expect(replyTargetId('#reply-')).toBeNull();
+    expect(replyTargetId('#reply-x"><img src=x>')).toBeNull();
+  });
+
+  it('can reach the replies the page shows: not a deleted one nobody answered', () => {
+    const kept = reply({ status: 'deleted', body: '' });
+    const under = reply({ parentId: kept.id });
+    const gone = reply({ status: 'deleted', body: '' });
+    const hidden = reply({ status: 'hidden', isMine: true });
+    expect(shownReplyIds([kept, under, gone, hidden])).toEqual(new Set([kept.id, under.id, hidden.id]));
   });
 });

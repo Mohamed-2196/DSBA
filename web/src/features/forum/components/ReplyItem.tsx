@@ -3,18 +3,20 @@ import { ArrowBendUpLeft, CheckCircle, Eye, EyeSlash, PencilSimple, Trash } from
 import type { Reply, ThreadDetail } from '../../../api/types';
 import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
-import { Badge, Button, CohortBadge, ConfirmDialog, cx, timeAgo } from '../../../ui';
+import { Button, cx } from '../../../ui';
 import { useToast } from '../../../state';
 import { ReportButton } from '../ReportButton';
-import { useAcceptAnswer, useDeleteReply, useModerateReply, useReplyVote } from '../api';
-import { authorName, postYear, roleFlair, sameAuthor } from '../lib/authors';
+import { useAcceptAnswer, useReplyVote } from '../api';
+import { authorName, sameAuthor } from '../lib/authors';
 import { readOnlyFor, textDeleted } from '../lib/replies';
+import { useReplyModeration } from '../lib/useReplyModeration';
 import { AuthorAvatar } from './AuthorAvatar';
+import { DeleteReplyDialog } from './DeleteDialogs';
 import { HideDialog } from './HideDialog';
 import { PostMenu } from './PostMenu';
 import { Prose } from './Prose';
+import { ReplyByline } from './ReplyByline';
 import { ReplyEditForm } from './ReplyEditForm';
-import { AuthorFlair } from './ThreadBits';
 import { VoteButton } from './VoteButton';
 
 export interface ReplyItemProps {
@@ -27,6 +29,8 @@ export interface ReplyItemProps {
   fresh?: boolean;
   /** the reply a link pointed at (#reply-<id>): briefly marked */
   targeted?: boolean;
+  /** nothing can change here (the thread was hidden or deleted after the page loaded) */
+  readOnly?: boolean;
   /** start a reply to this one (absent when the thread takes no replies) */
   onReply?: (reply: Reply) => void;
   /** nested replies and the inline composer, under a top-level reply */
@@ -39,36 +43,34 @@ export interface ReplyItemProps {
  * sense. A hidden reply shows to moderators and to its own author, marked (decision D3).
  * The body is right-to-left or left-to-right per paragraph (see Prose), so an Arabic reply sits right-aligned.
  */
-export function ReplyItem({ reply, thread, nested = false, hasReplies = false, fresh = false, targeted = false, onReply, children }: ReplyItemProps) {
+export function ReplyItem({ reply, thread, nested = false, hasReplies = false, fresh = false, targeted = false, readOnly = false, onReply, children }: ReplyItemProps) {
   const { requireAuth } = useAuth();
   const { push } = useToast();
   const vote = useReplyVote();
   const accept = useAcceptAnswer();
-  const remove = useDeleteReply();
-  const moderate = useModerateReply();
+  const moderation = useReplyModeration(reply);
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [hiding, setHiding] = useState(false);
 
-  const mod = thread.canModerate;
   const deleted = reply.status === 'deleted';
   const hidden = reply.status === 'hidden';
   // Hidden with its text deleted (SEC-15): unhiding brings it back deleted.
-  const gone = textDeleted(reply, mod);
+  const gone = textDeleted(reply, thread.canModerate);
   const accepted = reply.accepted || thread.acceptedReplyId === reply.id;
   const isOp = sameAuthor(reply.author, thread.author);
-  const name = authorName(reply.author);
-  const year = postYear(reply.authorYear, reply.author);
-  // The thread's author (or a moderator) accepts a top-level reply by someone else.
-  const canAccept = thread.canAccept && !nested && !deleted && !hidden && !isOp;
   // Your own reply, hidden by a rep: you still see it, marked, and nothing on it can change.
-  const hiddenFromOthers = hidden && !mod;
+  const hiddenFromOthers = hidden && !thread.canModerate;
   // A hidden thread is only in front of the reps and its author: no votes or reports there.
   const threadHidden = thread.status === 'hidden';
-  const canReport = !reply.isMine && reply.status === 'visible' && !threadHidden;
   // The author of a hidden thread reads it with nothing they can change, their own replies in it included (the API
-  // turns every write there down).
-  const canChange = reply.canEdit && !readOnlyFor(thread);
+  // turns every write there down); and so does everyone once the thread has gone from under the page.
+  const frozen = readOnly || readOnlyFor(thread);
+  const moderates = thread.canModerate && !readOnly;
+  const canChange = reply.canEdit && !frozen;
+  const canReport = !reply.isMine && reply.status === 'visible' && !threadHidden && !readOnly;
+  // The thread's author (or a moderator) accepts a top-level reply by someone else.
+  const canAccept = thread.canAccept && !readOnly && !nested && !deleted && !hidden && !isOp;
 
   const toggleVote = () => {
     const up = !reply.voted;
@@ -91,90 +93,21 @@ export function ReplyItem({ reply, thread, nested = false, hasReplies = false, f
     );
   };
 
-  const hide = (reason: string | null) => {
-    moderate.mutate(
-      { replyId: reply.id, change: { status: 'hidden', reason } },
-      {
-        onSuccess: () => {
-          setHiding(false);
-          push({ title: 'Reply hidden', body: 'Only student reps can see it now. Resolve the report in Moderation if there is one.', tone: 'success' });
-        },
-      },
-    );
-  };
-
-  const unhide = () => {
-    moderate.mutate(
-      { replyId: reply.id, change: { status: 'visible' } },
-      {
-        onSuccess: (r) =>
-          push(
-            r.status === 'deleted'
-              ? { title: 'Reply shown as deleted', body: 'Its text was deleted while it was hidden, so it keeps its place without it.', tone: 'info' }
-              : { title: 'Reply visible again', tone: 'success' },
-          ),
-        onError: (e) => push({ title: "That didn't work", body: errorMessage(e), tone: 'alert' }),
-      },
-    );
-  };
-
   return (
     <article
       className={cx('forum-reply', nested && 'is-nested', accepted && 'is-accepted', fresh && 'is-fresh', targeted && 'is-target', hidden && 'is-hidden', deleted && 'is-deleted')}
       data-hub="reply"
       data-reply-id={reply.id}
       id={`reply-${reply.id}`}
-      aria-label={deleted ? 'Deleted reply' : `${accepted ? 'Accepted answer' : hidden ? 'Hidden reply' : 'Reply'} by ${name}`}
+      aria-label={deleted ? 'Deleted reply' : `${accepted ? 'Accepted answer' : hidden ? 'Hidden reply' : 'Reply'} by ${authorName(reply.author)}`}
     >
       <AuthorAvatar author={deleted ? null : reply.author} size={nested ? 'sm' : 'md'} className="forum-reply__avatar" />
       <div className="forum-reply__main">
-        <header className="forum-reply__head">
-          {deleted ? (
-            <span className="forum-reply__name is-muted">Deleted reply</span>
-          ) : (
-            <>
-              <span className="forum-reply__name">{name}</span>
-              {roleFlair(reply.author) ? (
-                <AuthorFlair author={reply.author} className="forum-reply__flair" />
-              ) : year ? (
-                <CohortBadge year={year} variant="dot" size="sm" className="forum-reply__cohort" />
-              ) : null}
-              {isOp ? (
-                <Badge tone="outline" size="sm">
-                  Author
-                </Badge>
-              ) : null}
-            </>
-          )}
-          <time className="forum-reply__time" dateTime={reply.createdAt}>
-            {timeAgo(reply.createdAt)}
-          </time>
-          {reply.editedAt && !deleted && !gone ? (
-            <span className="forum-reply__edited" title={`Edited ${new Date(reply.editedAt).toLocaleString('en-GB')}`}>
-              edited
-            </span>
-          ) : null}
-          {fresh && !deleted ? (
-            <Badge tone="highlight" size="sm">
-              New
-            </Badge>
-          ) : null}
-          {hidden ? (
-            <Badge tone="alert" size="sm" icon={EyeSlash}>
-              Hidden
-            </Badge>
-          ) : null}
-          {accepted ? (
-            <span className="forum-reply__accepted">
-              <CheckCircle weight="fill" aria-hidden="true" />
-              Accepted answer
-            </span>
-          ) : null}
-        </header>
+        <ReplyByline reply={reply} isOp={isOp} accepted={accepted} fresh={fresh} gone={gone} />
 
         {hiddenFromOthers ? (
           <p className="forum-reply__note" role="note">
-            A student rep hid your reply. Only you and the student reps can see it.
+            A student rep hid your reply. Only you and the student reps can see it. If they gave a reason, it’s in your notifications.
           </p>
         ) : null}
 
@@ -190,15 +123,15 @@ export function ReplyItem({ reply, thread, nested = false, hasReplies = false, f
 
         {!deleted && !editing && !hiddenFromOthers ? (
           <footer className="forum-reply__actions">
-            {gone ? null : <VoteButton layout="inline" count={reply.voteCount} voted={reply.voted} onToggle={toggleVote} disabled={hidden || threadHidden} />}
+            {gone ? null : <VoteButton layout="inline" count={reply.voteCount} voted={reply.voted} onToggle={toggleVote} disabled={hidden || threadHidden || readOnly} />}
             {onReply && !hidden ? (
               <Button variant="ghost" size="sm" leadingIcon={ArrowBendUpLeft} onClick={() => onReply(reply)}>
                 Reply
               </Button>
             ) : null}
-            {hidden && mod ? (
-              <Button variant="ghost" size="sm" leadingIcon={Eye} onClick={unhide} loading={moderate.isPending}>
-                Unhide
+            {hidden && moderates ? (
+              <Button variant="ghost" size="sm" leadingIcon={Eye} onClick={moderation.unhide} loading={moderation.pending}>
+                {gone ? 'Unhide as deleted' : 'Unhide'}
               </Button>
             ) : null}
             {canAccept ? (
@@ -216,9 +149,9 @@ export function ReplyItem({ reply, thread, nested = false, hasReplies = false, f
                     canChange && { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setConfirmDelete(true) },
                   ],
                   [
-                    mod &&
+                    moderates &&
                       (hidden
-                        ? { id: 'unhide', label: gone ? 'Unhide as deleted' : 'Unhide reply', icon: Eye, onSelect: unhide }
+                        ? { id: 'unhide', label: gone ? 'Unhide as deleted' : 'Unhide reply', icon: Eye, onSelect: moderation.unhide }
                         : { id: 'hide', label: 'Hide reply', icon: EyeSlash, onSelect: () => setHiding(true) }),
                   ],
                 ]}
@@ -233,47 +166,15 @@ export function ReplyItem({ reply, thread, nested = false, hasReplies = false, f
         open={hiding}
         what="reply"
         author={reply.author}
-        busy={moderate.isPending}
-        error={hiding && moderate.isError ? errorMessage(moderate.error, "The reply wasn't hidden. Try again.") : null}
-        onConfirm={hide}
+        busy={moderation.pending}
+        error={hiding ? moderation.hideError : null}
+        onConfirm={(reason) => moderation.hide(reason, () => setHiding(false))}
         onClose={() => {
           setHiding(false);
-          moderate.reset();
+          moderation.reset();
         }}
       />
-
-      <ConfirmDialog
-        open={confirmDelete}
-        tone="danger"
-        title="Delete this reply?"
-        body={
-          hidden ? (
-            <p>Its text is deleted for good. The reply stays hidden; if you unhide it later, it comes back as a deleted reply.</p>
-          ) : (
-            <p>
-              Its text is deleted for everyone.{hasReplies ? ' The replies to it stay, under a “Deleted reply” note.' : ''} This can’t be undone.
-            </p>
-          )
-        }
-        confirmLabel="Delete reply"
-        busy={remove.isPending}
-        error={remove.isError ? errorMessage(remove.error, "The reply wasn't deleted. Try again.") : null}
-        onClose={() => {
-          setConfirmDelete(false);
-          remove.reset();
-        }}
-        onConfirm={() =>
-          remove.mutate(
-            { replyId: reply.id },
-            {
-              onSuccess: () => {
-                setConfirmDelete(false);
-                push({ title: 'Reply deleted', tone: 'success' });
-              },
-            },
-          )
-        }
-      />
+      <DeleteReplyDialog reply={reply} hasReplies={hasReplies} open={confirmDelete} onClose={() => setConfirmDelete(false)} />
     </article>
   );
 }

@@ -72,8 +72,19 @@
 .forum-reply__edited { color: var(--ink-2); font-size: var(--fs-12); }
 .forum-reply__name.is-muted { color: var(--ink-2); font-weight: var(--fw-semibold); }
 .forum-reply__gone { margin-top: 4px; color: var(--ink-2); font-size: var(--fs-14); font-style: italic; }
-/* Your own reply after a student rep hid it (decision D3) */
-.forum-reply__note { margin-top: 8px; padding: 8px 12px; border-radius: var(--r-control); background: var(--alert-soft); color: var(--alert-strong); font-size: var(--fs-14); font-weight: var(--fw-medium); line-height: 1.45; }
+/* Your own reply after a student rep hid it (decision D3): sized to its sentence, which keeps a readable length. */
+.forum-reply__note {
+  width: fit-content;
+  max-width: var(--forum-measure, 58ch);
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-control);
+  background: var(--alert-soft);
+  color: var(--alert-strong);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  line-height: 1.45;
+}
 
 /* Moderators see hidden replies, marked and muted; a deleted reply keeps its place for the replies under it. */
 .forum-reply.is-hidden { background: color-mix(in srgb, var(--alert) 5%, var(--surface)); }
@@ -82,9 +93,14 @@
 .forum-reply.is-nested.is-hidden { padding-inline: 8px; border-radius: var(--r-control); }
 .forum-reply.is-nested.is-hidden::before { content: none; }
 .forum-reply.is-deleted .forum-reply__avatar { opacity: .7; }
-/* The reply a link pointed at (#reply-<id>) */
-.forum-reply.is-target { animation: forum-reply-target 2.4s var(--ease) 300ms both; }
-@keyframes forum-reply-target { 0%, 60% { box-shadow: inset 0 0 0 2px var(--cobalt); } 100% { box-shadow: inset 0 0 0 2px transparent; } }
+/* The reply a link pointed at (#reply-<id>, from a notification or a report): tinted and outlined while the page
+   scrolls to it and for a few seconds after, then back to normal. A nested reply gets a little room for the outline. */
+.forum-reply.is-target { animation: forum-reply-target 4.2s var(--ease) 200ms both; }
+.forum-reply.is-nested.is-target { margin-inline: -8px; padding-inline: 8px; border-radius: var(--r-control); }
+@keyframes forum-reply-target {
+  0%, 70% { background-color: color-mix(in srgb, var(--cobalt) 9%, var(--surface)); box-shadow: inset 0 0 0 2px var(--cobalt); }
+  100% { box-shadow: inset 0 0 0 2px transparent; }
+}
 
 .forum-reply.is-accepted { background: color-mix(in srgb, var(--signal) 6%, var(--surface)); }
 .forum-reply.is-accepted::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--signal); }
@@ -103,7 +119,7 @@
 @keyframes forum-reply-in { from { opacity: 0; transform: translateY(10px); } }
 @media (prefers-reduced-motion: reduce) {
   .forum-reply.is-fresh { animation: none; }
-  .forum-reply.is-target { animation: none; box-shadow: inset 0 0 0 2px var(--cobalt); }
+  .forum-reply.is-target { animation: none; background-color: color-mix(in srgb, var(--cobalt) 9%, var(--surface)); box-shadow: inset 0 0 0 2px var(--cobalt); }
 }
 
 /* ── Reply composer ──────────────────────────────────────────────────────────── */

@@ -27,14 +27,16 @@ export interface ReplyListProps {
   onReplyTo: (reply: Reply) => void;
   onCancelReply: () => void;
   onPosted: (reply: Reply) => void;
+  /** the thread was hidden or deleted after the page loaded: nothing can change here */
+  unavailable?: boolean;
 }
 
 /** "N replies" with Top / Oldest, the replies (one level nested, the accepted answer first) and the inline composer. */
-export function ReplyList({ thread, targetId, replyingTo, onReplyTo, onCancelReply, onPosted }: ReplyListProps) {
+export function ReplyList({ thread, targetId, replyingTo, onReplyTo, onCancelReply, onPosted, unavailable = false }: ReplyListProps) {
   const [params, setParams] = useSearchParams();
   const order: ReplyOrder = params.get('order') === 'oldest' ? 'oldest' : 'top';
   const replies = useMemo(() => nestReplies(thread.replies, order, thread.acceptedReplyId), [thread.replies, order, thread.acceptedReplyId]);
-  const canReply = takesReplies(thread);
+  const canReply = takesReplies(thread) && !unavailable;
   const onReply = canReply ? onReplyTo : undefined;
 
   // Replies that arrive while the page is open (yours, or a classmate's on the next refresh) animate in.
@@ -80,12 +82,20 @@ export function ReplyList({ thread, targetId, replyingTo, onReplyTo, onCancelRep
               const composing = replyingTo?.parent.id === r.id;
               return (
                 <li key={r.id} className="forum-replies__item">
-                  <ReplyItem reply={r} thread={thread} hasReplies={r.children.length > 0} fresh={isFresh(r.id)} targeted={r.id === targetId} onReply={onReply}>
+                  <ReplyItem
+                    reply={r}
+                    thread={thread}
+                    hasReplies={r.children.length > 0}
+                    fresh={isFresh(r.id)}
+                    targeted={r.id === targetId}
+                    readOnly={unavailable}
+                    onReply={onReply}
+                  >
                     {r.children.length || composing ? (
                       <ol role="list" className="forum-replies__nested">
                         {r.children.map((c) => (
                           <li key={c.id}>
-                            <ReplyItem reply={c} thread={thread} nested fresh={isFresh(c.id)} targeted={c.id === targetId} onReply={onReply} />
+                            <ReplyItem reply={c} thread={thread} nested fresh={isFresh(c.id)} targeted={c.id === targetId} readOnly={unavailable} onReply={onReply} />
                           </li>
                         ))}
                         {composing && replyingTo ? (
@@ -96,6 +106,7 @@ export function ReplyList({ thread, targetId, replyingTo, onReplyTo, onCancelRep
                               parent={replyingTo.parent}
                               mention={replyingTo.mention}
                               autoFocus
+                              closed={!canReply}
                               onCancel={onCancelReply}
                               onPosted={onPosted}
                             />

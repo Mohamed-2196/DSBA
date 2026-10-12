@@ -24,6 +24,22 @@ export function nestReplies(replies: readonly Reply[], order: ReplyOrder, accept
     .filter((r) => r.status !== 'deleted' || r.children.length > 0);
 }
 
+/** The replies the page shows (nestReplies leaves out deleted ones nobody answered): what a #reply-<id> link can reach. */
+export function shownReplyIds(replies: readonly Reply[]): Set<string> {
+  const ids = new Set<string>();
+  for (const r of nestReplies(replies, 'oldest', null)) {
+    ids.add(r.id);
+    for (const c of r.children) ids.add(c.id);
+  }
+  return ids;
+}
+
+/** The reply a link points at: '#reply-<id>' gives '<id>'; anything else, null. */
+export function replyTargetId(hash: string): string | null {
+  const m = /^#reply-([0-9A-Za-z-]{1,64})$/.exec(hash);
+  return m ? m[1] : null;
+}
+
 export interface Participants {
   /** the people who replied (visible replies), in the order they first replied; the thread's author only when they
    *  replied too (student test ST-11: "1 reply from 2 people") */

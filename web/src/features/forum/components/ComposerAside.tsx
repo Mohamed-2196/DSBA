@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { CheckCircle } from '@phosphor-icons/react';
 import type { ModuleSummary, ThreadSummary } from '../../../api/types';
 import { useModules } from '../../../state/modules';
+import type { SimilarState } from '../lib/useSimilar';
 import { ModuleTag, ReplyCount } from './ThreadBits';
 
 const TIPS = [
@@ -35,14 +36,6 @@ export function SimilarList({ threads }: { threads: ThreadSummary[] }) {
       ))}
     </ul>
   );
-}
-
-export interface SimilarState {
-  threads: ThreadSummary[];
-  /** the title is long enough to look for similar threads */
-  searching: boolean;
-  /** a search is running */
-  loading: boolean;
 }
 
 /** Under the title on narrow layouts (the margin shows the list on wide ones). */

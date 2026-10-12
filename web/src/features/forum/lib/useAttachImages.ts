@@ -1,12 +1,12 @@
-// Attaching pictures to a post, the one wiring for the thread composer, the reply composer and the edit form (code
-// quality review CQ-5): a hidden file input, uploads with progress (lib/uploads.ts), the picture's markdown line put
-// in after the line the cursor is on, and its card taken away again when the line leaves the text.
+// Attaching pictures to a post: the one wiring for "Start a thread", the reply composer and both edit forms (code
+// quality review CQ-5). A hidden file input, uploads with progress (lib/uploads.ts), the picture's markdown line put
+// in after the line the cursor is on, and its card taken away again when that line leaves the text.
 //
-//   const images = useAttachImages({ text: body, setText: (f) => setBody(f), textareaRef, gate });
-//   {images.input}
+//   const images = useAttachImages({ text: body, setText: (update) => setBody(update), textareaRef, gate });
+//   <input {...images.fileInput} />
 //   <MarkdownEditor onAttachImage={images.pick} onImageFiles={images.addFiles} textareaRef={textareaRef} … />
 //   <AttachmentList uploads={images.cards} onRetry={images.retry} onRemove={images.remove} />
-import { useCallback, useRef, type ReactNode, type RefObject } from 'react';
+import { useCallback, useRef, type ChangeEvent, type InputHTMLAttributes, type RefObject } from 'react';
 import { imageMarkdown, insertBlock, removeImageLines } from './editing';
 import { IMAGE_ACCEPT, useImageUploads, type ImageUpload } from './uploads';
 
@@ -21,9 +21,11 @@ export interface AttachImagesOptions {
   gate?: () => boolean;
 }
 
+export type FileInputProps = InputHTMLAttributes<HTMLInputElement> & { ref: RefObject<HTMLInputElement> };
+
 export interface AttachImages {
-  /** the hidden file input: render it once, anywhere in the form */
-  input: ReactNode;
+  /** the hidden file input: `<input {...images.fileInput} />`, once, anywhere in the form */
+  fileInput: FileInputProps;
   /** open the file picker */
   pick: () => void;
   /** upload pasted or dropped pictures */
@@ -40,7 +42,7 @@ export interface AttachImages {
 }
 
 export function useAttachImages({ text, setText, textareaRef, gate }: AttachImagesOptions): AttachImages {
-  const fileInput = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const uploads = useImageUploads((img) => {
     setText((t) => {
       const at = textareaRef.current ? textareaRef.current.selectionEnd : t.length;
@@ -52,7 +54,7 @@ export function useAttachImages({ text, setText, textareaRef, gate }: AttachImag
 
   const pick = useCallback(() => {
     if (gate && !gate()) return;
-    fileInput.current?.click();
+    inputRef.current?.click();
   }, [gate]);
 
   const addFiles = useCallback(
@@ -72,25 +74,28 @@ export function useAttachImages({ text, setText, textareaRef, gate }: AttachImag
     [items, setText, removeUpload],
   );
 
-  const input = (
-    <input
-      ref={fileInput}
-      type="file"
-      accept={IMAGE_ACCEPT}
-      multiple
-      className="visually-hidden"
-      tabIndex={-1}
-      aria-hidden="true"
-      onChange={(e) => {
-        const files = Array.from(e.target.files ?? []);
-        e.target.value = ''; // picking the same file again still fires onChange
-        for (const f of files) start(f);
-      }}
-    />
+  const onChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files ?? []);
+      e.target.value = ''; // picking the same file again still fires onChange
+      for (const f of files) start(f);
+    },
+    [start],
   );
+
+  const fileInput: FileInputProps = {
+    ref: inputRef,
+    type: 'file',
+    accept: IMAGE_ACCEPT,
+    multiple: true,
+    className: 'visually-hidden',
+    tabIndex: -1,
+    'aria-hidden': true,
+    onChange,
+  };
 
   // A card is only kept while its picture is still in the text (deleting the line removes the card).
   const cards = items.filter((u) => u.phase !== 'done' || (u.mediaUrl !== null && text.includes(u.mediaUrl)));
 
-  return { input, pick, addFiles, cards, retry, remove, reset, busy };
+  return { fileInput, pick, addFiles, cards, retry, remove, reset, busy };
 }

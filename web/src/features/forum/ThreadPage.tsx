@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ChatCircleText, Plus } from '@phosphor-icons/react';
 import type { Reply, ThreadDetail } from '../../api/types';
@@ -7,12 +7,13 @@ import { useDocumentTitle, useToast } from '../../state';
 import { isNotFound, useThread } from './api';
 import { authorName } from './lib/authors';
 import { scrollBehavior } from './lib/motion';
+import { shownReplyIds } from './lib/replies';
 import { useReplyTarget } from './lib/useReplyTarget';
 import { useThreadModeration } from './lib/useThreadModeration';
 import { OriginalPost } from './components/OriginalPost';
 import { ReplyList, type ReplyingTo } from './components/ReplyList';
 import { ThreadCrumbs, ThreadHeader } from './components/ThreadHeader';
-import { HiddenBanner, ThreadCompose } from './components/ThreadNotices';
+import { HiddenBanner, MissingReplyNote, ThreadCompose, UnavailableBanner } from './components/ThreadNotices';
 import { ThreadSidebar } from './components/ThreadSidebar';
 import './components/forum.css';
 import './ForumPage.css';
@@ -22,12 +23,13 @@ import './ThreadPage.css';
 export default function ThreadPage() {
   const { threadId: slug = '' } = useParams();
   const query = useThread(slug);
-  const notFound = !query.data && query.isError && isNotFound(query.error);
+  const notFound = query.isError && isNotFound(query.error);
   useDocumentTitle(query.data ? query.data.title : notFound ? 'Thread not found' : null);
   const { refetch } = query;
-  const reload = useCallback(() => void refetch(), [refetch]);
+  const reload = useCallback(() => refetch(), [refetch]);
 
-  if (query.data) return <ThreadView key={query.data.id} thread={query.data} reload={reload} />;
+  // A thread on screen that is gone when it is read again (hidden or deleted meanwhile) stays, read-only, with a note.
+  if (query.data) return <ThreadView key={query.data.id} thread={query.data} reload={reload} unavailable={notFound} />;
   if (query.isPending) return <ThreadSkeleton />;
   if (notFound) {
     return (
@@ -55,7 +57,7 @@ export default function ThreadPage() {
   return (
     <Page className="forum-page">
       <ThreadCrumbs />
-      <QueryError error={query.error} title="This thread didn’t load" onRetry={reload} retrying={query.isFetching} />
+      <QueryError error={query.error} title="This thread didn’t load" onRetry={() => void reload()} retrying={query.isFetching} />
     </Page>
   );
 }
@@ -100,13 +102,21 @@ async function copyThreadLink(slug: string): Promise<boolean> {
   }
 }
 
-function ThreadView({ thread, reload }: { thread: ThreadDetail; reload: () => void }) {
+interface ThreadViewProps {
+  thread: ThreadDetail;
+  reload: () => Promise<unknown>;
+  /** reading the thread again answered 404: it was hidden or deleted after the page loaded */
+  unavailable: boolean;
+}
+
+function ThreadView({ thread, reload, unavailable }: ThreadViewProps) {
   const { push } = useToast();
   const moderation = useThreadModeration(thread);
   const [replyingTo, setReplyingTo] = useState<ReplyingTo | null>(null);
   const composerInput = useRef<HTMLTextAreaElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
-  const targetId = useReplyTarget(thread.replies, mainRef, reload);
+  const shown = useMemo(() => shownReplyIds(thread.replies), [thread.replies]);
+  const target = useReplyTarget(shown, mainRef, reload);
 
   const startReply = (reply: Reply) => {
     // One level of nesting: replying to a nested reply attaches to its parent and mentions the person.
@@ -135,15 +145,16 @@ function ThreadView({ thread, reload }: { thread: ThreadDetail; reload: () => vo
 
   return (
     <Page className="forum-page forum-thread">
-      <ThreadHeader thread={thread} />
+      <ThreadHeader thread={thread} unavailable={unavailable} />
 
       <div className="forum-thread__layout">
         <div className="forum-thread__main" ref={mainRef}>
-          <HiddenBanner thread={thread} onUnhide={moderation.unhide} unhiding={moderation.pending} />
-          <OriginalPost thread={thread} moderation={moderation} onReply={focusComposer} onCopyLink={() => void copyLink()} />
+          {unavailable ? <UnavailableBanner /> : <HiddenBanner thread={thread} onUnhide={moderation.unhide} unhiding={moderation.pending} />}
+          {target.missing ? <MissingReplyNote /> : null}
+          <OriginalPost thread={thread} moderation={moderation} onReply={focusComposer} onCopyLink={() => void copyLink()} unavailable={unavailable} />
           <ReplyList
             thread={thread}
-            targetId={targetId}
+            targetId={target.id}
             replyingTo={replyingTo}
             onReplyTo={startReply}
             onCancelReply={() => setReplyingTo(null)}
@@ -151,11 +162,12 @@ function ThreadView({ thread, reload }: { thread: ThreadDetail; reload: () => vo
               setReplyingTo(null);
               scrollToReply(reply);
             }}
+            unavailable={unavailable}
           />
-          <ThreadCompose thread={thread} textareaRef={composerInput} onPosted={scrollToReply} />
+          <ThreadCompose thread={thread} textareaRef={composerInput} onPosted={scrollToReply} unavailable={unavailable} />
         </div>
 
-        <ThreadSidebar thread={thread} />
+        <ThreadSidebar thread={thread} unavailable={unavailable} />
       </div>
     </Page>
   );

@@ -262,8 +262,10 @@
   overflow-wrap: break-word;
 }
 .forum-prose > * + * { margin-top: 12px; }
-/* Lines of text stay readable (about 72 characters) on any screen; pictures and code may use the post's width. */
-.forum-prose > :is(p, ul, ol, blockquote) { max-width: var(--measure); }
+/* Lines of text stay readable on any screen, at about 75 characters (in this typeface the design system's 72ch measure
+   holds 85 to 95); pictures and code may use the post's width. */
+.forum-prose > :is(p, ul, ol, blockquote) { max-width: var(--forum-measure, 58ch); }
+.forum-page, .forum-hot, .forum-modthreads { --forum-measure: min(var(--measure), 58ch); }
 .forum-prose ul, .forum-prose ol { padding-inline-start: 1.35em; }
 .forum-prose ul { list-style: disc; }
 .forum-prose ol { list-style: decimal; }
@@ -429,7 +431,8 @@
   line-height: 1.45;
 }
 .forum-notice__icon { flex: 0 0 auto; font-size: 18px; }
-.forum-notice__text { flex: 1 1 260px; min-width: 0; }
+/* The notice spans the column; its sentences keep to a readable length on big screens. */
+.forum-notice__text { flex: 1 1 260px; min-width: 0; max-width: var(--forum-measure, 58ch); }
 .forum-notice__text strong { color: var(--ink); font-weight: var(--fw-semibold); }
 .forum-notice.is-alert { border-color: color-mix(in srgb, var(--alert) 35%, var(--line)); background: var(--alert-soft); color: var(--alert-strong); }
 .forum-notice.is-alert .forum-notice__text strong { color: inherit; }

@@ -1,7 +1,8 @@
 // What the thread page says about a thread that isn't open to everyone: hidden (to the reps, and to its author),
-// deleted, or locked, and the reply composer when the thread takes replies.
+// deleted, locked, or gone while the page was open; a link to a reply that isn't there; and the reply composer when
+// the thread takes replies.
 import { useState, type RefObject } from 'react';
-import { Eye, EyeSlash, LockSimple } from '@phosphor-icons/react';
+import { ChatCircleText, Eye, EyeSlash, LockSimple, WarningCircle } from '@phosphor-icons/react';
 import type { Reply, ThreadDetail } from '../../../api/types';
 import { Button } from '../../../ui';
 import { readOnlyFor, takesReplies, textDeleted } from '../lib/replies';
@@ -46,13 +47,39 @@ export function HiddenBanner({ thread, onUnhide, unhiding }: HiddenBannerProps) 
   );
 }
 
+/** The thread went while the page was open (reading it again answered 404): what is on screen stays, read-only. */
+export function UnavailableBanner() {
+  return (
+    <div className="forum-notice is-alert" role="status" data-hub="thread-unavailable">
+      <WarningCircle aria-hidden="true" weight="bold" className="forum-notice__icon" />
+      <span className="forum-notice__text">
+        <strong>This thread isn’t available any more.</strong> It was hidden or deleted after you opened it. You can still read what’s on the
+        page, but it can’t take replies.
+      </span>
+    </div>
+  );
+}
+
+/** A link (a notification, a report) pointed at a reply that isn't in the thread: deleted, or hidden by a rep. */
+export function MissingReplyNote() {
+  return (
+    <p className="forum-notice" role="note" data-hub="reply-missing">
+      <ChatCircleText aria-hidden="true" weight="bold" className="forum-notice__icon" />
+      <span className="forum-notice__text">The reply this link points to isn’t here any more. It may have been deleted or hidden.</span>
+    </p>
+  );
+}
+
 export interface ThreadComposeProps {
   thread: ThreadDetail;
   textareaRef: RefObject<HTMLTextAreaElement>;
   onPosted: (reply: Reply) => void;
+  /** the thread was hidden or deleted after the page loaded */
+  unavailable?: boolean;
 }
 
-function whyClosed(thread: ThreadDetail): string {
+function whyClosed(thread: ThreadDetail, unavailable: boolean): string {
+  if (unavailable) return 'This thread was hidden or deleted after you opened it, so new replies are off.';
   if (thread.status === 'deleted') return 'This thread was deleted, so new replies are off.';
   if (thread.status === 'hidden') {
     return thread.canModerate ? 'This thread is hidden, so new replies are off. Unhide it to let people reply.' : 'New replies are off while this thread is hidden.';
@@ -64,14 +91,14 @@ function whyClosed(thread: ThreadDetail): string {
  * Under the replies: the composer when the thread takes replies, otherwise why it doesn't. A reply being written when
  * the thread closes (locked, hidden or deleted meanwhile) stays on screen, so its text can be copied.
  */
-export function ThreadCompose({ thread, textareaRef, onPosted }: ThreadComposeProps) {
-  const open = takesReplies(thread);
+export function ThreadCompose({ thread, textareaRef, onPosted, unavailable = false }: ThreadComposeProps) {
+  const open = takesReplies(thread) && !unavailable;
   const [unsent, setUnsent] = useState(false);
   if (!open && !unsent) {
     return (
       <p className="forum-notice" role="note">
         <LockSimple aria-hidden="true" weight="bold" className="forum-notice__icon" />
-        <span className="forum-notice__text">{whyClosed(thread)}</span>
+        <span className="forum-notice__text">{whyClosed(thread, unavailable)}</span>
       </p>
     );
   }
@@ -84,7 +111,7 @@ export function ThreadCompose({ thread, textareaRef, onPosted }: ThreadComposePr
       ) : null}
       {!open ? (
         <p className="forum-compose-note forum-compose-note--locked" role="alert">
-          <LockSimple aria-hidden="true" weight="bold" /> {whyClosed(thread)} Copy your reply if you want to keep it.
+          <LockSimple aria-hidden="true" weight="bold" /> {whyClosed(thread, unavailable)} Copy your reply if you want to keep it.
         </p>
       ) : null}
       <ReplyComposer thread={thread} textareaRef={textareaRef} onPosted={onPosted} onTextChange={setUnsent} closed={!open} />
