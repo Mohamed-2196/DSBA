@@ -35,7 +35,7 @@ The lead merges them.
 | Branch | Agent | Worktree | Covers ("Next" below) |
 | --- | --- | --- | --- |
 | `round3/e2e-docker` | student-tester | `../dsba-e2e` | 1: the e2e suite on Docker, one command, a rerun |
-| `round3/drive-import` | api-builder | `../dsba-drive` | 3: `import-drive`, its wrapper and tests; then the CQ-15 nits |
+| `round3/drive-import` | api-builder | `../dsba-drive` | 3: `import-drive`, `scripts/seed-real.sh` and tests; then the CQ-15 nits |
 | `round3/web-leftovers` | web-builder | `../dsba-web` | 4, and 5 on the web side (the data router for the leave guard) |
 
 - **The re-review round (2) waits** until these three are merged, so the reviewers and the student tester see
