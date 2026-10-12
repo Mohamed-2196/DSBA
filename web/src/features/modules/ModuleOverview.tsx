@@ -1,10 +1,10 @@
-// Overview tab: the module's shared folders (each opens in a new tab), a way into its library files, progress,
-// "Pick up where you left off" and the module's upcoming dates from the calendar.
+// Overview tab: the module's shared folders (each opens in a new tab), a way into its library files and to share
+// one (decision D6: contributing means uploading), progress, "Pick up where you left off" and the module's upcoming
+// dates from the calendar.
 import { ArrowSquareOut, CalendarBlank, CheckCircle, Files, UploadSimple } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
-import { CONTRIBUTE_URL } from '../../data/people';
 import { lessonKey } from '../../lib/modules';
 import { cohortColor } from '../../state';
 import { Button, Panel, SectionHeader, Skeleton, cx, formatDate } from '../../ui';
@@ -48,7 +48,7 @@ function ResourceRow({ entry }: { entry: ResourceEntry }) {
   );
 }
 
-function LibraryRow({ count, name, onTab }: { count: number; name: string; onTab: (tab: string) => void }) {
+function LibraryRow({ count, name, onTab, onUpload }: { count: number; name: string; onTab: (tab: string) => void; onUpload: () => void }) {
   return (
     <div className="mod-res__entry mod-res__entry--library">
       <dt className="mod-res__label">
@@ -62,9 +62,15 @@ function LibraryRow({ count, name, onTab }: { count: number; name: string; onTab
             : `Past papers, students’ notes and guides for ${name} will be here as students share them.`}
         </p>
         <div className="mod-res__actions">
-          <Button size="sm" leadingIcon={Files} onClick={() => onTab('files')}>
-            {count ? `See ${count} ${count === 1 ? 'file' : 'files'}` : 'Share a file'}
-          </Button>
+          {count ? (
+            <Button size="sm" leadingIcon={Files} onClick={() => onTab('files')}>
+              See {count} {count === 1 ? 'file' : 'files'}
+            </Button>
+          ) : (
+            <Button size="sm" leadingIcon={UploadSimple} onClick={onUpload}>
+              Upload a file
+            </Button>
+          )}
         </div>
       </dd>
     </div>
@@ -208,6 +214,7 @@ export function ModuleOverview({
   libraryCount,
   onOpenLesson,
   onTab,
+  onUpload,
 }: {
   module: ModuleDetail;
   state: ProgressState;
@@ -215,6 +222,8 @@ export function ModuleOverview({
   libraryCount: number;
   onOpenLesson: (c: number, v: number) => void;
   onTab: (tab: string) => void;
+  /** Open the library's upload dialog for this module (guests sign in first). */
+  onUpload: () => void;
 }) {
   const { entries, missing } = useMemo(() => buildResources(m), [m]);
   const name = m.unitCode || m.name;
@@ -227,7 +236,7 @@ export function ModuleOverview({
           title="Resources"
           description="The module’s shared folders open in a new tab. Files students share are in the library."
           action={
-            <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files')}>
+            <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files')} className="mod-ov__files">
               {libraryCount ? `${libraryCount} ${libraryCount === 1 ? 'file' : 'files'} in the library` : 'Files'}
             </Button>
           }
@@ -237,15 +246,15 @@ export function ModuleOverview({
             {entries.map((e) => (
               <ResourceRow key={e.id} entry={e} />
             ))}
-            <LibraryRow count={libraryCount} name={name} onTab={onTab} />
+            <LibraryRow count={libraryCount} name={name} onTab={onTab} onUpload={onUpload} />
           </dl>
           {missing.length ? (
             <div className="mod-res__missing">
               <p>
                 <span className="mod-res__missing-label">No shared folder yet for</span> {joinAnd(missing)}.
               </p>
-              <Button size="sm" variant="ghost" leadingIcon={UploadSimple} onClick={() => onTab('files')}>
-                Share a file
+              <Button size="sm" variant="ghost" leadingIcon={UploadSimple} onClick={onUpload}>
+                Upload a file
               </Button>
             </div>
           ) : null}
@@ -259,11 +268,11 @@ export function ModuleOverview({
           ) : (
             <section className="mod-side__section" aria-labelledby="mod-nolessons-title">
               <h2 id="mod-nolessons-title" className="mod-side__title">
-                Know a good playlist?
+                Have notes for {name}?
               </h2>
-              <p className="mod-side__text">Suggest videos for {name} and they can be added as lessons here.</p>
-              <Button size="sm" href={CONTRIBUTE_URL} trailingIcon={ArrowSquareOut} aria-label="Suggest a playlist on GitHub (opens in a new tab)">
-                Suggest a playlist
+              <p className="mod-side__text">Share your notes, a cheat sheet or a past paper. A student rep checks every upload before it appears.</p>
+              <Button size="sm" leadingIcon={UploadSimple} onClick={onUpload}>
+                Upload a file
               </Button>
             </section>
           )}

@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useModules } from '../../../state/modules';
 import { Badge, Button, PageSection, timeAgo } from '../../../ui';
+import { useLibraryAccess } from '../access';
 import { itemPath, useLibraryList } from '../api';
 import { moduleTag, statusInfo } from '../display';
-import { kindLabel } from '../kinds';
+import { MAX_PENDING_UPLOADS, kindLabel } from '../kinds';
 import type { LibraryItem } from '../types';
 import { DeleteItemDialog, EditItemDialog } from './EditItemDialog';
 import type { LinkState } from './FileCard';
 import { FileThumb } from './FileThumb';
 
-function UploadRow({ item, linkState }: { item: LibraryItem; linkState?: LinkState }) {
+function UploadRow({ item, linkState, canChange }: { item: LibraryItem; linkState?: LinkState; canChange: boolean }) {
   const { getModule } = useModules();
   const [dialog, setDialog] = useState<'edit' | 'delete' | null>(null);
   const status = statusInfo(item.status);
@@ -35,16 +36,18 @@ function UploadRow({ item, linkState }: { item: LibraryItem; linkState?: LinkSta
             {status.label}
           </Badge>
         ) : null}
-        <span className="lib-yours__actions">
-          {item.status === 'pending' && item.canEdit ? (
-            <Button size="sm" variant="ghost" onClick={() => setDialog('edit')}>
-              Edit
+        {canChange ? (
+          <span className="lib-yours__actions">
+            {item.status === 'pending' && item.canEdit ? (
+              <Button size="sm" variant="ghost" onClick={() => setDialog('edit')}>
+                Edit
+              </Button>
+            ) : null}
+            <Button size="sm" variant="ghost" onClick={() => setDialog('delete')}>
+              Delete
             </Button>
-          ) : null}
-          <Button size="sm" variant="ghost" onClick={() => setDialog('delete')}>
-            Delete
-          </Button>
-        </span>
+          </span>
+        ) : null}
       </span>
       {item.status === 'rejected' ? (
         <p className="lib-yours__note">
@@ -68,6 +71,7 @@ function UploadRow({ item, linkState }: { item: LibraryItem; linkState?: LinkSta
  * note). Renders nothing when there are none.
  */
 export function YourUploads({ linkState, onShowAll }: { linkState?: LinkState; onShowAll: () => void }) {
+  const { suspended } = useLibraryAccess();
   const mine = useLibraryList({ mine: true }, { limit: 50 });
   const open = (mine.data?.items ?? []).filter((i) => i.status === 'pending' || i.status === 'rejected');
   if (!open.length) return null;
@@ -81,7 +85,9 @@ export function YourUploads({ linkState, onShowAll }: { linkState?: LinkState; o
           </h2>
           <p className="lib-yours__desc">
             {pending
-              ? `${pending === 1 ? 'One upload is' : `${pending} uploads are`} waiting for review. A student rep checks every upload before it’s public; until then only you and the reps can see it.`
+              ? `${pending === 1 ? 'One upload is' : `${pending} uploads are`} waiting for review. A student rep checks every upload before it’s public; until then only you and the reps can see it.${
+                  pending >= MAX_PENDING_UPLOADS ? ` That’s as many as can wait at once: you can share more once a rep has looked at them.` : ''
+                }`
               : open.length === 1
                 ? 'A student rep didn’t publish this one. Their note says why.'
                 : 'A student rep didn’t publish these. Their notes say why.'}
@@ -93,7 +99,7 @@ export function YourUploads({ linkState, onShowAll }: { linkState?: LinkState; o
       </div>
       <ul className="lib-yours__list" role="list">
         {open.map((item) => (
-          <UploadRow key={item.id} item={item} linkState={linkState} />
+          <UploadRow key={item.id} item={item} linkState={linkState} canChange={!suspended} />
         ))}
       </ul>
     </PageSection>

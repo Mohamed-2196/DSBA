@@ -1,10 +1,12 @@
 import { ArrowSquareOut, DownloadSimple, FilePdf, MagnifyingGlassMinus, MagnifyingGlassPlus } from '@phosphor-icons/react';
 import { useState } from 'react';
+import { isApiError } from '../../../api/errors';
+import { formatSize } from '../../../api/uploads';
 import { Button, HubMark, cx } from '../../../ui';
 import { downloadHref, openLinkHref, useFileLink } from '../api';
 import { FileThumb } from '../components/FileThumb';
 import { linkHost, linkPlace } from '../display';
-import { formatOf, formatSize, previewKind } from '../kinds';
+import { formatOf, previewKind } from '../kinds';
 import type { LibraryItem } from '../types';
 
 /** Which app opens a format, for "Download it to open it in …". */
@@ -103,7 +105,7 @@ function ImagePreview({ item, src }: { item: LibraryItem; src: string }) {
       {loaded ? (
         <span className="lib-preview__zoomhint" aria-hidden="true">
           {actual ? <MagnifyingGlassMinus /> : <MagnifyingGlassPlus />}
-          {actual ? 'Click to fit' : 'Click for full size'}
+          {actual ? 'Fit to the window' : 'See it full size'}
         </span>
       ) : null}
     </div>
@@ -124,19 +126,34 @@ export function Preview({ item, compact }: { item: LibraryItem; compact: boolean
   if (!src && link.data) setSrc(link.data.url);
 
   if (removed) {
-    // The file left storage when it was removed: nothing to show or download.
+    // Nothing serves a removed file any more (the API answers 404); the sweep deletes it a week later.
     return (
       <div className="lib-nopreview" data-hub="file-nopreview">
         <FileThumb item={item} size="grid" />
         <div className="lib-nopreview__text">
           <h2 className="lib-nopreview__title">This file was removed</h2>
-          <p>It’s no longer in the library, and its file has been deleted.</p>
+          <p>It’s no longer in the library and can’t be opened. The file itself is deleted a week after it was removed.</p>
         </div>
       </div>
     );
   }
   if (!kind) return <NoPreview item={item} />;
-  if (link.isError && !src) return <NoPreview item={item} problem />;
+  if (link.isError && !src) {
+    // A file that wasn't published leaves storage a week after the review (security review SEC-14).
+    const gone = item.status !== 'published' && isApiError(link.error) && (link.error.code === 'no_preview' || link.error.status === 404);
+    if (gone) {
+      return (
+        <div className="lib-nopreview" data-hub="file-nopreview">
+          <FileThumb item={item} size="grid" />
+          <div className="lib-nopreview__text">
+            <h2 className="lib-nopreview__title">This file was deleted</h2>
+            <p>Files that aren’t published are deleted a week after the review. {item.isMine ? 'Upload it again to share a fixed version.' : ''}</p>
+          </div>
+        </div>
+      );
+    }
+    return <NoPreview item={item} problem />;
+  }
   if (!src) return <Loading label={kind === 'pdf' ? 'Loading the PDF' : 'Loading the image'} />;
 
   if (kind === 'image') return <ImagePreview item={item} src={src} />;

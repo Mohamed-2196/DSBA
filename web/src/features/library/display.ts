@@ -1,7 +1,8 @@
 // Display strings for library items (sentence case, short).
 import type { ModuleSummary } from '../../api/types';
+import { formatSize } from '../../api/uploads';
 import { timeAgo } from '../../ui';
-import { formatOf, formatSize, kindLabel, type ItemStatus } from './kinds';
+import { formatOf, kindLabel, type ItemStatus } from './kinds';
 import type { LibraryItem, LibrarySort } from './types';
 
 const WEEK = 7 * 24 * 3600 * 1000;

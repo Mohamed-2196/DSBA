@@ -2,7 +2,7 @@
 import { useMemo } from 'react';
 import { formatDate } from '../../ui';
 import { daysUntil, useCalendarEvents, useNextExamForModule, type CalendarEvent } from '../calendar/public';
-import type { CohortYear } from '../../lib/modules';
+import type { CohortYear } from '../../state';
 
 export interface ExamInfo {
   event: CalendarEvent;

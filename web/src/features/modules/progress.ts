@@ -331,7 +331,7 @@ function useAccountProgress(userId: string | null): ProgressApi {
     },
     onError: (e, _op, ctx) => {
       if (ctx?.prev) qc.setQueryData(key, ctx.prev);
-      push({ title: 'Your progress wasn’t saved', body: errorMessage(e, 'Check your connection and try again.'), tone: 'alert' });
+      push({ title: 'Your progress wasn’t saved', body: errorMessage(e, 'Try again in a moment.'), tone: 'alert' });
     },
     onSettled: (data, error) => {
       // Only the last write in flight speaks for the server: earlier answers may already be out of date.

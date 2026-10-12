@@ -21,7 +21,9 @@ function LessonWaiting({ year, video }: { year: number; video: Video }) {
   return (
     <div className="mod-frame" data-theme="dark" style={frameVars(year)}>
       <div className="mod-frame__loading" role="status">
-        <HubMark size={18} animate="loop" tone="current" />
+        <span className="mod-frame__mark">
+          <HubMark size={18} animate="loop" tone="current" />
+        </span>
         <span>Loading from {KIND_SOURCE[video.kind] ?? 'the original site'}</span>
       </div>
     </div>
@@ -71,7 +73,9 @@ function LessonFrame({ module: m, c, v }: { module: ModuleDetail; c: number; v: 
     <div className="mod-frame" data-theme="dark" style={frameVars(m.year)}>
       {!loaded ? (
         <div className="mod-frame__loading" role="status">
-          <HubMark size={18} animate="loop" tone="current" />
+          <span className="mod-frame__mark">
+            <HubMark size={18} animate="loop" tone="current" />
+          </span>
           <span>Loading from {KIND_SOURCE[video.kind] ?? 'the original site'}</span>
         </div>
       ) : null}
@@ -216,7 +220,7 @@ export function LessonsTab({
               <Button
                 className={cx('mod-watch', watched && 'is-on')}
                 aria-pressed={watched}
-                leadingIcon={watched ? <CheckCircle weight="fill" /> : <Circle />}
+                leadingIcon={watched ? <CheckCircle weight="fill" size={19} /> : <Circle size={19} />}
                 onClick={() => setWatched(m.id, c, v, !watched)}
                 disabled={!progress.ready}
                 data-hub="lesson-watched"
@@ -227,10 +231,10 @@ export function LessonsTab({
 
             <div className="mod-lesson__nav">
               <div className="mod-lesson__steps">
-                <Button leadingIcon={CaretLeft} disabled={!prev} onClick={() => go(prev)}>
+                <Button leadingIcon={CaretLeft} disabled={!prev} onClick={() => go(prev)} className="mod-lesson__step">
                   Previous
                 </Button>
-                <Button variant="primary" trailingIcon={CaretRight} disabled={!next} onClick={() => go(next)}>
+                <Button variant="primary" trailingIcon={CaretRight} disabled={!next} onClick={() => go(next)} className="mod-lesson__step">
                   {nextLabel}
                 </Button>
               </div>

@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
 import { cohortColor } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, EmptyState, Panel, ProgressRing, Skeleton, cx } from '../../ui';
+import { Button, EmptyState, Panel, ProgressRing, QueryError, Skeleton, cx } from '../../ui';
 import { moduleDetailQuery } from './api';
 import { chapterPosition, lastOpenedLabel, lessonHref } from './lessons';
 import { ImportProgressPrompt } from './ImportProgressPrompt';
@@ -55,9 +55,18 @@ function ContinueRow({ item, featured }: { item: Item; featured: boolean }) {
   );
 }
 
-/** One stable value for all the module queries (re-made only when one of them changes). */
+/** One stable value for all the module queries (re-made only when one of them changes). `failed`: every one of
+ *  them failed, so there is nothing to show but the problem. */
 function combineDetails(results: UseQueryResult<ModuleDetail>[]) {
-  return { data: results.map((r) => r.data), pending: results.some((r) => r.isPending) };
+  const failed = results.length > 0 && results.every((r) => r.isError);
+  return {
+    data: results.map((r) => r.data),
+    pending: results.some((r) => r.isPending),
+    failed,
+    error: failed ? results[0].error : null,
+    retrying: results.some((r) => r.isFetching),
+    retry: () => results.forEach((r) => void r.refetch()),
+  };
 }
 
 function Loading() {
@@ -101,7 +110,9 @@ export function ContinueLearning() {
 
   let body: ReactNode;
   if (!ready || (recent.length > 0 && details.pending && !items.length)) body = <Loading />;
-  else if (!items.length) {
+  else if (details.failed) {
+    body = <QueryError error={details.error} title="Your lessons didn’t load" onRetry={details.retry} retrying={details.retrying} size="sm" />;
+  } else if (!items.length) {
     body = (
       <Panel padding="none" data-hub="continue-learning">
         <EmptyState

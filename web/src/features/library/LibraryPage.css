@@ -116,14 +116,13 @@
 .lib-card__ext { color: var(--ink-2); font-weight: var(--fw-regular); }
 .lib-card__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-8); margin-top: 2px; }
 .lib-card__meta { display: flex; align-items: center; gap: var(--sp-8); min-width: 0; overflow: hidden; color: var(--ink-2); font-size: var(--fs-12); text-overflow: ellipsis; white-space: nowrap; }
-.lib-card__star { margin: -6px -6px -6px 0; }
+.lib-card__star { margin: -2px -6px -6px 0; } /* clear of the card link above: the two never overlap */
 
-/* Star (shared with the viewer). */
-.lib-star.ui-iconbutton { color: var(--ink-3); }
-.lib-star.ui-iconbutton:hover { color: var(--ink); }
-.lib-star.ui-iconbutton.is-active { background: transparent; color: var(--cobalt); }
-.lib-star.ui-iconbutton.is-active:hover { background: var(--surface-2); }
-.lib-star.is-popping .ui-iconbutton__icon { animation: lib-star-pop 300ms var(--ease); }
+/* Star (shared with the viewer): the colours are on the star itself. */
+.lib-star__glyph { color: var(--ink-3); transition: color var(--dur-fast) var(--ease); }
+.lib-star:hover .lib-star__glyph { color: var(--ink); }
+.lib-star__glyph.is-on, .lib-star:hover .lib-star__glyph.is-on { color: var(--cobalt); }
+.lib-star__glyph.is-popping { animation: lib-star-pop 300ms var(--ease); }
 @keyframes lib-star-pop {
   0% { transform: scale(0.6); }
   60% { transform: scale(1.25); }
@@ -174,7 +173,6 @@
 .lib-skeleton-row:last-child { border-bottom: 0; }
 .lib-more__error { margin-top: var(--sp-16); color: var(--alert-strong); font-size: var(--fs-14); text-align: center; }
 .lib-more__error button { color: var(--cobalt); font: inherit; font-weight: var(--fw-semibold); text-decoration: underline; }
-.lib-confirm__name { color: var(--ink); font-weight: var(--fw-semibold); overflow-wrap: anywhere; }
 .lib-more { display: flex; flex-direction: column; align-items: center; gap: var(--sp-8); margin-top: var(--sp-48); }
 .lib-more__count { color: var(--ink-2); font-size: var(--fs-12); font-variant-numeric: tabular-nums; }
 .lib-clear { display: flex; justify-content: center; margin-top: var(--sp-24); }
@@ -195,7 +193,6 @@
   .lib-browse { margin-top: var(--sp-32); }
   .lib-filters { padding: var(--sp-12); }
   .lib-filters__year { align-self: stretch; }
-  .lib-filters__year .ui-seg__item { flex: 1 1 0; }
   .lib-filters__chips { flex-wrap: nowrap; width: calc(100% + 2 * var(--sp-12)); margin-inline: calc(-1 * var(--sp-12)); padding: 2px var(--sp-12); overflow-x: auto; scrollbar-width: none; }
   .lib-filters__chips::-webkit-scrollbar, .lib-new__list::-webkit-scrollbar { display: none; }
   .lib-results-bar { margin: var(--sp-16) 0; }

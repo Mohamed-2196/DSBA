@@ -45,7 +45,7 @@
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
-.mod-frame__loading .ui-mark { color: var(--mc); }
+.mod-frame__mark { display: inline-flex; color: var(--mc); }
 
 /* YouTube unreachable */
 .mod-frame--blocked { display: grid; place-items: center; }
@@ -98,7 +98,6 @@
 .mod-lesson__by svg { flex: 0 0 auto; color: var(--ink-3); font-size: 16px; }
 .mod-lesson__by.is-note { font-weight: var(--fw-regular); }
 .mod-watch { flex: 0 0 auto; }
-.mod-watch .ui-button__icon { font-size: 19px; }
 .mod-watch.is-on { background: var(--signal-soft); border-color: transparent; color: var(--signal-strong); }
 .mod-watch.is-on:hover { background: color-mix(in srgb, var(--signal) 22%, var(--surface)); }
 
@@ -279,7 +278,7 @@
   .mod-watch { align-self: flex-start; }
   .mod-lesson__title { font-size: var(--fs-20); }
   .mod-lesson__steps { flex: 1 1 100%; }
-  .mod-lesson__steps > .ui-button { flex: 1 1 0; }
+  .mod-lesson__step { flex: 1 1 0; }
   .mod-lesson__upnext { white-space: normal; }
   .mod-lesson__orig { margin-left: -12px; }
 }

@@ -12,7 +12,7 @@
 .lib-crumbs a { display: inline-flex; align-items: center; gap: var(--sp-4); border-radius: var(--r-xs); color: inherit; text-decoration: none; }
 .lib-crumbs a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 0.18em; }
 .lib-crumbs strong { color: var(--ink); font-weight: var(--fw-heavy); }
-.lib-crumbs__back { color: var(--ink) !important; font-weight: var(--fw-semibold); }
+.lib-crumbs .lib-crumbs__back { color: var(--ink); font-weight: var(--fw-semibold); }
 .lib-viewer__titlerow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8) var(--sp-12); min-width: 0; }
 .lib-viewer__title { margin: 0; min-width: 0; color: var(--ink); font-size: var(--fs-25); font-weight: var(--fw-heavy); line-height: var(--lh-heading); letter-spacing: var(--tracking-head); overflow-wrap: anywhere; }
 .lib-viewer__badges { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); }
@@ -72,15 +72,38 @@
 
 .lib-preview__loading { display: flex; flex: 1 1 auto; align-items: center; justify-content: center; gap: var(--sp-8); padding: var(--sp-48) var(--sp-16); color: var(--ink-2); font-size: var(--fs-14); }
 
-/* Images: fitted to the canvas; click for full size. */
-.lib-preview__image-wrap { position: relative; display: flex; flex: 1 1 auto; align-items: center; justify-content: center; min-height: 0; padding: var(--sp-24); }
+/* Images (photos of notes, scans, decision D9): the whole picture fits the canvas, whatever its shape; pressing it
+   shows it at full size, scrolling inside the canvas. Only the picture takes the press, not the space around it. */
+.lib-preview__image-wrap { position: relative; display: flex; flex: 1 1 auto; min-height: 0; }
 .lib-preview__image-wrap .lib-preview__loading { position: absolute; inset: 0; }
-.lib-preview__image-button { display: block; max-width: 100%; max-height: 100%; padding: 0; border: 0; border-radius: var(--r-page); background: none; cursor: zoom-in; }
-.lib-preview__image { display: block; max-width: 100%; max-height: calc(100dvh - var(--topbar-h) - 220px); border-radius: var(--r-page); background: #fff; box-shadow: 0 0 0 1px var(--line), 0 14px 32px -20px rgba(10, 31, 68, .45); opacity: 0; transition: opacity var(--dur) var(--ease); }
+.lib-preview__image-button {
+  position: absolute;
+  inset: var(--sp-24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-page);
+  background: none;
+  pointer-events: none;
+}
+.lib-preview__image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--r-page);
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--line), 0 14px 32px -20px rgba(10, 31, 68, .45);
+  opacity: 0;
+  cursor: zoom-in;
+  pointer-events: auto;
+  transition: opacity var(--dur) var(--ease);
+}
 .lib-preview__image.is-loaded { opacity: 1; }
-.lib-preview__image-wrap.is-actual { align-items: flex-start; justify-content: flex-start; overflow: auto; }
-.lib-preview__image-wrap.is-actual .lib-preview__image-button { max-width: none; max-height: none; cursor: zoom-out; }
-.lib-preview__image-wrap.is-actual .lib-preview__image { max-width: none; max-height: none; }
+.lib-preview__image-wrap.is-actual { overflow: auto; }
+.lib-preview__image-wrap.is-actual .lib-preview__image-button { position: static; display: block; margin: var(--sp-24); }
+.lib-preview__image-wrap.is-actual .lib-preview__image { max-width: none; max-height: none; cursor: zoom-out; }
 .lib-preview__zoomhint { position: absolute; right: var(--sp-16); bottom: var(--sp-12); display: inline-flex; align-items: center; gap: var(--sp-4); padding: 4px 10px; border-radius: 999px; background: var(--surface); box-shadow: var(--thumb-shadow); color: var(--ink-2); font-size: var(--fs-12); pointer-events: none; }
 
 /* No preview (other formats) and links. */
@@ -137,6 +160,13 @@
   .lib-crumbs li:nth-child(3) { display: none; }
   .lib-viewer.is-stacked .lib-viewer__canvas { min-height: 0; }
   .lib-nopreview { flex-direction: column; align-items: flex-start; gap: var(--sp-24); padding: var(--sp-32) var(--content-pad); }
-  .lib-preview__image-wrap { padding: var(--sp-12); }
-  .lib-preview__image { max-height: none; }
+  /* Phones: the page scrolls, so the picture takes the width and its own height. */
+  .lib-preview__image-wrap { justify-content: center; padding: var(--sp-12); }
+  .lib-preview__image-button, .lib-preview__image-wrap.is-actual .lib-preview__image-button { position: static; display: block; margin: 0; }
+}
+
+/* Touch screens: every crumb is a 44px target (UX review UX-11); the head's top padding gives the room back. */
+@media (pointer: coarse) {
+  .lib-crumbs a { min-height: 44px; }
+  .lib-viewer.is-app .lib-viewer__head, .lib-viewer.is-stacked .lib-viewer__head { padding-top: var(--sp-4); }
 }
