@@ -6,7 +6,9 @@ import logging
 import re
 import unicodedata
 import uuid
+from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Literal, get_args
 
 from botocore.exceptions import BotoCoreError, ClientError
 from sqlalchemy import delete, false, func, or_, select, update
@@ -17,6 +19,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import ApiError, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
+    EmailOutbox,
     ForumReply,
     ForumThread,
     ItemStatus,
@@ -38,31 +41,61 @@ from app.models import (
     User,
     UserSession,
 )
-from app.schemas.auth import AccountExport, Me, Preferences, PreferencesUpdate
+from app.schemas.auth import (
+    AccountExport,
+    ExportEmail,
+    ExportLibraryItem,
+    ExportNotification,
+    ExportReaction,
+    ExportReply,
+    ExportReport,
+    ExportThread,
+    ExportVote,
+    Me,
+    Preferences,
+    PreferencesUpdate,
+)
 from app.schemas.common import UserPublic
 from app.schemas.modules import Progress, ProgressImport
+from app.schemas.notifications import NotificationKind
 from app.services import otp, sessions
 from app.services.audit import record
-from app.services.identifiers import Kind, admin_identifiers
+from app.services.identifiers import Kind, admin_identifiers, destination_hint
+from app.services.outbox import ACCOUNT_NOTICE
 from app.services.storage import Storage
 
 log = logging.getLogger("dsba.accounts")
+NOTIFICATION_KINDS = frozenset(get_args(NotificationKind))
 
 # ── the signed-in user ───────────────────────────────────────────────────────────────────────
 
 
+# The email switches, one per kind of email (decision D1), and the two older fields, kept until the web app moves on.
+EMAIL_SWITCHES = ("email_replies", "email_answer_accepted", "email_upload_reviews", "email_new_issues")
+DEPRECATED_SWITCHES: dict[str, tuple[str, ...]] = {
+    "email_notifications": ("email_replies", "email_answer_accepted", "email_upload_reviews"),
+    "newsletter_emails": ("email_new_issues",),
+}
+
+
 def preferences_of(user: User) -> Preferences:
+    """The switches as stored on the account (users.preferences; unset means on)."""
     stored = user.preferences if isinstance(user.preferences, dict) else {}
-    known = {k: v for k, v in stored.items() if k in Preferences.model_fields and isinstance(v, bool)}
-    return Preferences.model_validate(known)
+    values: dict[str, bool] = {name: stored.get(name) is not False for name in EMAIL_SWITCHES}
+    for old, names in DEPRECATED_SWITCHES.items():
+        values[old] = all(values[name] for name in names)
+    return Preferences.model_validate(values)
 
 
 def update_preferences(user: User, changes: PreferencesUpdate) -> None:
-    merged = preferences_of(user).model_dump()
-    for name in changes.model_fields_set:
-        value = getattr(changes, name)
-        if value is not None:
-            merged[name] = value
+    """Applies the switches that were sent (a deprecated one sets the switches it stands for; the new ones win)."""
+    sent = {name: value for name, value in changes.model_dump(exclude_unset=True).items() if value is not None}
+    stored = user.preferences if isinstance(user.preferences, dict) else {}
+    merged = {name: stored[name] for name in EMAIL_SWITCHES if isinstance(stored.get(name), bool)}
+    for old, names in DEPRECATED_SWITCHES.items():
+        if old in sent:
+            merged.update(dict.fromkeys(names, sent[old]))
+    merged.update({name: sent[name] for name in EMAIL_SWITCHES if name in sent})
     user.preferences = merged  # a new dict: JSONB columns don't see changes made in place
 
 
@@ -83,15 +116,20 @@ def me_out(user: User) -> Me:
     )
 
 
+UNNAMED = "Student"  # an account without a display name yet (it can't post until it has one)
+
+
 def public_user(user: User | None) -> UserPublic | None:
-    """How a person appears next to what they did (never their email or phone number)."""
+    """How a person appears next to what they did, everywhere in the Hub: name, cohort and role, never their email
+    or phone number. None for a deleted account ("deleted user"). The one serialiser for UserPublic (code quality
+    review CQ-6): areas import this rather than writing their own."""
     if user is None:
         return None
     return UserPublic.model_validate(
         {
             "id": user.id,
-            "display_name": user.display_name or "Unnamed account",
-            "year": user.year,
+            "display_name": user.display_name or UNNAMED,
+            "year": user.year if user.year in (1, 2, 3) else None,
             "role": user.role.value,
         }
     )
@@ -105,6 +143,87 @@ NAME_PUNCTUATION = frozenset(" .'-")
 NAME_LOOKALIKES = str.maketrans({"\u2019": "'", "\u2018": "'", "\u2010": "-", "\u2011": "-"})
 # Names that pass for the Hub's staff: only moderators and admins may use them (security review finding 20)
 STAFF_WORDS = ("admin", "moderator", "student rep", "dsba", "bibf")
+# Characters that look like Latin letters or like the letters of STAFF_WORDS, after casefold (from Unicode TR39's
+# confusables; security review SEC-11): Cyrillic, Greek, Armenian, Latin variants and two digits.
+CONFUSABLES = str.maketrans(
+    {
+        # Cyrillic
+        "\u0430": "a",
+        "\u0432": "b",
+        "\u0435": "e",
+        "\u0451": "e",
+        "\u043a": "k",
+        "\u043c": "m",
+        "\u043d": "h",
+        "\u043e": "o",
+        "\u0440": "p",
+        "\u0441": "c",
+        "\u0442": "t",
+        "\u0443": "y",
+        "\u0445": "x",
+        "\u0456": "i",
+        "\u0457": "i",
+        "\u0458": "j",
+        "\u0455": "s",
+        "\u0501": "d",
+        "\u04bb": "h",
+        "\u04cf": "l",
+        "\u051b": "q",
+        "\u051d": "w",
+        # Greek
+        "\u03b1": "a",
+        "\u03b2": "b",
+        "\u03b5": "e",
+        "\u03b6": "z",
+        "\u03b7": "n",
+        "\u03b9": "i",
+        "\u03ba": "k",
+        "\u03bc": "m",
+        "\u03bd": "n",
+        "\u03bf": "o",
+        "\u03c1": "p",
+        "\u03c4": "t",
+        "\u03c5": "u",
+        "\u03c7": "x",
+        "\u03f2": "c",
+        "\u03f3": "j",
+        # Armenian
+        "\u0585": "o",
+        "\u057d": "u",
+        "\u0578": "n",
+        # Latin look-alikes and digits
+        "\u0131": "i",
+        "\u0251": "a",
+        "\u0261": "g",
+        "0": "o",
+        "1": "i",
+    }
+)
+CONFUSABLE_PAIRS = (("rn", "m"), ("cl", "d"))  # two letters that read as one
+LOOKALIKE_SCRIPTS = ("LATIN", "CYRILLIC", "GREEK")
+
+
+def skeleton(text: str) -> str:
+    """`text` reduced to what it looks like: casefolded, look-alike letters mapped to Latin ones."""
+    out = text.casefold().translate(CONFUSABLES)
+    for pair, single in CONFUSABLE_PAIRS:
+        out = out.replace(pair, single)
+    return out
+
+
+def _mixes_scripts(name: str) -> bool:
+    """True when one word mixes Latin, Cyrillic or Greek letters ('\u0410dmin': a Cyrillic A, then Latin)."""
+    for word in name.replace(".", " ").replace("-", " ").replace("'", " ").split():
+        scripts = {
+            script
+            for ch in word
+            if unicodedata.category(ch)[0] == "L"
+            for script in LOOKALIKE_SCRIPTS
+            if unicodedata.name(ch, "").startswith(script)
+        }
+        if len(scripts) > 1:
+            return True
+    return False
 
 
 def _bad_name(message: str) -> ApiError:
@@ -114,7 +233,8 @@ def _bad_name(message: str) -> ApiError:
 def clean_display_name(raw: str, *, staff: bool = False) -> str:
     """NFKC, trimmed and single-spaced. 2-40 characters: letters in any script (with their combining marks),
     digits, spaces and . ' - , with at least one letter. Control and format characters (bidi controls, zero-width
-    characters) and everything else are refused, and so are STAFF_WORDS in a non-staff name.
+    characters) and everything else are refused; so is a word that mixes Latin, Cyrillic or Greek letters, and, in
+    a non-staff name, anything that reads as one of STAFF_WORDS once look-alike letters are mapped (skeleton()).
     Raises invalid_display_name (422)."""
     name = " ".join(unicodedata.normalize("NFKC", raw).translate(NAME_LOOKALIKES).split())
     if not NAME_MIN <= len(name) <= NAME_MAX:
@@ -127,7 +247,9 @@ def clean_display_name(raw: str, *, staff: bool = False) -> str:
         raise _bad_name("Include at least one letter.")
     if unicodedata.category(name[0])[0] == "M":
         raise _bad_name("Start with a letter or a digit.")
-    if not staff and any(word in name.casefold() for word in STAFF_WORDS):
+    if _mixes_scripts(name):
+        raise _bad_name("Write each word in one alphabet.")
+    if not staff and any(word in skeleton(name) for word in STAFF_WORDS):
         raise _bad_name("This name is kept for the Hub's staff. Choose another one.")
     return name
 
@@ -164,11 +286,71 @@ def user_for_sign_in(db: Session, kind: Kind, identifier: str, ip: str | None) -
         else:
             user, created = candidate, True
     if user.role != Role.admin and {user.email, user.phone} & admin_identifiers():
-        change = {"from": user.role.value, "to": "admin", "via": "bootstrap", "targetName": user.display_name}
+        # a new account has no name yet: the activity log shows its masked address instead (UX-15)
+        name = user.display_name or destination_hint(kind, identifier)
+        change = {"from": user.role.value, "to": "admin", "via": "bootstrap", "targetName": name}
         record(db, None, "user.role", "user", user.id, change, ip)
         user.role = Role.admin
     user.last_seen_at = now
     return user, created
+
+
+# ── identifiers: step-up, changes and their notices ───────────────────────────────────────────
+
+LABELS: dict[Kind, str] = {"email": "email address", "phone": "phone number"}
+
+
+def step_up_target(user: User, via: Literal["email", "phone"] | None) -> tuple[Kind, str]:
+    """Where a step-up code goes: the identifier `via` names, by default the email address, else the phone number.
+    Raises invalid_input (422) when the account has no such identifier."""
+    if via == "phone" or (via is None and user.email is None):
+        if user.phone is None:
+            raise invalid("via", "Your account has no phone number. Use your email address.")
+        return "phone", user.phone
+    if user.email is None:
+        raise invalid("via", "Your account has no email address. Use your phone number.")
+    return "email", user.email
+
+
+@dataclass(frozen=True)
+class IdentifierChange:
+    kind: Kind
+    before: str | None  # what the account had (None: an addition)
+    after: str | None  # what it has now (None: a removal)
+    other: str | None  # the account's identifier of the other kind
+
+
+def set_identifier(user: User, kind: Kind, value: str | None) -> IdentifierChange:
+    """Puts `value` on the account as its email address or phone number (None removes it). The caller flushes."""
+    before, other = (user.email, user.phone) if kind == "email" else (user.phone, user.email)
+    if kind == "email":
+        user.email = value
+    else:
+        user.phone = value
+    return IdentifierChange(kind=kind, before=before, after=value, other=other)
+
+
+def queue_identifier_notice(db: Session, user: User, change: IdentifierChange) -> tuple[str, str] | None:
+    """The security notice for a change of identifier (security design finding 15): to the address that was
+    replaced or removed, or, for an addition, to the account's other identifier. An email goes through the outbox
+    in the caller's transaction. -> (phone number, text) when it is a text, to send once the change is committed."""
+    label = LABELS[change.kind]
+    hint = destination_hint(change.kind, change.after) if change.after else ""
+    to_kind: Kind
+    if change.before is not None and change.before != change.after:
+        to_kind, to = change.kind, change.before
+        text = (
+            f"The {label} on your DSBA Hub account was changed to {hint}."
+            if change.after
+            else f"This {label} was removed from your DSBA Hub account."
+        )
+    elif change.before is None and change.other is not None:
+        to_kind, to = ("phone" if change.kind == "email" else "email"), change.other
+        article = "An" if change.kind == "email" else "A"
+        text = f"{article} {label} ({hint}) was added to your DSBA Hub account."
+    else:
+        return None
+    return (to, text) if otp.queue_notice(db, to_kind, to, text, user.id) else None
 
 
 # ── lesson progress ──────────────────────────────────────────────────────────────────────────
@@ -295,37 +477,38 @@ def import_progress(db: Session, user_id: uuid.UUID, body: ProgressImport) -> No
 
 
 def export_account(db: Session, user: User, current: UserSession | None) -> AccountExport:
-    """Everything stored about `user`, as JSON (camelCase keys, like the rest of the API)."""
+    """Everything stored about `user` (GET /me/export; code quality review CQ-4: typed, so a field added to a table
+    has to be added here on purpose)."""
     uid = user.id
     threads = [
-        {
-            "id": t.id,
-            "slug": t.slug,
-            "title": t.title,
-            "body": t.body,
-            "category": t.category,
-            "moduleId": t.module_id,
-            "tags": list(t.tags or []),
-            "status": t.status.value,
-            "createdAt": t.created_at,
-            "editedAt": t.edited_at,
-            "voteCount": t.vote_count,
-            "replyCount": t.reply_count,
-        }
+        ExportThread(
+            id=t.id,
+            slug=t.slug,
+            title=t.title,
+            body=t.body,
+            category=t.category,
+            module_id=t.module_id,
+            tags=list(t.tags or []),
+            status=t.status.value,
+            created_at=t.created_at,
+            edited_at=t.edited_at,
+            vote_count=t.vote_count,
+            reply_count=t.reply_count,
+        )
         for t in db.scalars(select(ForumThread).where(ForumThread.author_id == uid).order_by(ForumThread.created_at))
     ]
     replies = [
-        {
-            "id": r.id,
-            "threadId": r.thread_id,
-            "threadSlug": slug,
-            "parentId": r.parent_id,
-            "body": r.body,
-            "status": r.status.value,
-            "createdAt": r.created_at,
-            "editedAt": r.edited_at,
-            "voteCount": r.vote_count,
-        }
+        ExportReply(
+            id=r.id,
+            thread_id=r.thread_id,
+            thread_slug=slug,
+            parent_id=r.parent_id,
+            body=r.body,
+            status=r.status.value,
+            created_at=r.created_at,
+            edited_at=r.edited_at,
+            vote_count=r.vote_count,
+        )
         for r, slug in db.execute(
             select(ForumReply, ForumThread.slug)
             .join(ForumThread, ForumThread.id == ForumReply.thread_id)
@@ -334,84 +517,97 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         ).tuples()
     ]
     library_items = [
-        {
-            "id": i.id,
-            "slug": i.slug,
-            "source": i.source.value,
-            "kind": i.kind,
-            "title": i.title,
-            "description": i.description,
-            "moduleId": i.module_id,
-            "year": i.year,
-            "url": i.url,
-            "fileName": i.file_name,
-            "contentType": i.content_type,
-            "sizeBytes": i.size_bytes,
-            "examYear": i.exam_year,
-            "zone": i.zone,
-            "authorName": i.author_name,
-            "status": i.status.value,
-            "reviewNote": i.review_note,
-            "downloadCount": i.download_count,
-            "createdAt": i.created_at,
-            "publishedAt": i.published_at,
-        }
+        ExportLibraryItem(
+            id=i.id,
+            slug=i.slug,
+            source=i.source.value,
+            kind=i.kind,
+            title=i.title,
+            description=i.description,
+            module_id=i.module_id,
+            year=i.year,
+            url=i.url,
+            file_name=i.file_name,
+            content_type=i.content_type,
+            size_bytes=i.size_bytes,
+            exam_year=i.exam_year,
+            zone=i.zone,
+            author_name=i.author_name,
+            status=i.status.value,
+            review_note=i.review_note,
+            download_count=i.download_count,
+            created_at=i.created_at,
+            published_at=i.published_at,
+        )
         for i in db.scalars(select(LibraryItem).where(LibraryItem.uploaded_by == uid).order_by(LibraryItem.created_at))
     ]
-    stars = [str(i) for i in db.scalars(select(LibraryStar.item_id).where(LibraryStar.user_id == uid))]
+    stars = list(
+        db.scalars(select(LibraryStar.item_id).where(LibraryStar.user_id == uid).order_by(LibraryStar.item_id))
+    )
     reactions = [
-        {
-            "issueId": r.issue_id,
-            "issueSlug": slug,
-            "sectionId": r.section_id,
-            "reaction": r.reaction,
-            "createdAt": r.created_at,
-        }
+        ExportReaction(
+            issue_id=r.issue_id, issue_slug=slug, section_id=r.section_id, reaction=r.reaction, created_at=r.created_at
+        )
         for r, slug in db.execute(
             select(NewsletterReaction, NewsletterIssue.slug)
             .join(NewsletterIssue, NewsletterIssue.id == NewsletterReaction.issue_id)
             .where(NewsletterReaction.user_id == uid)
+            .order_by(NewsletterReaction.created_at)
         ).tuples()
     ]
-    votes: list[dict[str, object]] = [
-        {"type": "thread", "id": tid, "createdAt": at}
+    votes = [
+        ExportVote(type="thread", id=tid, created_at=at)
         for tid, at in db.execute(
-            select(ThreadVote.thread_id, ThreadVote.created_at).where(ThreadVote.user_id == uid)
+            select(ThreadVote.thread_id, ThreadVote.created_at)
+            .where(ThreadVote.user_id == uid)
+            .order_by(ThreadVote.created_at)
         ).tuples()
     ]
     votes += [
-        {"type": "reply", "id": rid, "createdAt": at}
-        for rid, at in db.execute(select(ReplyVote.reply_id, ReplyVote.created_at).where(ReplyVote.user_id == uid))
-        .tuples()
-        .all()
+        ExportVote(type="reply", id=rid, created_at=at)
+        for rid, at in db.execute(
+            select(ReplyVote.reply_id, ReplyVote.created_at)
+            .where(ReplyVote.user_id == uid)
+            .order_by(ReplyVote.created_at)
+        ).tuples()
     ]
     reports = [
-        {
-            "id": r.id,
-            "targetType": r.target_type,
-            "targetId": r.target_id,
-            "reason": r.reason,
-            "note": r.note,
-            "status": r.status.value,
-            "createdAt": r.created_at,
-        }
+        ExportReport(
+            id=r.id,
+            target_type=r.target_type,
+            target_id=r.target_id,
+            reason=r.reason,
+            note=r.note,
+            status=r.status.value,
+            created_at=r.created_at,
+        )
         for r in db.scalars(select(Report).where(Report.reporter_id == uid).order_by(Report.created_at))
     ]
     notifications = [
-        {
-            "id": n.id,
-            "kind": n.kind,
-            "title": n.title,
-            "body": n.body,
-            "url": n.url,
-            "createdAt": n.created_at,
-            "readAt": n.read_at,
-        }
+        ExportNotification(
+            id=n.id,
+            kind=n.kind if n.kind in NOTIFICATION_KINDS else "system",
+            title=n.title,
+            body=n.body,
+            url=n.url,
+            created_at=n.created_at,
+            read_at=n.read_at,
+        )
         for n in db.scalars(
             select(Notification).where(Notification.user_id == uid).order_by(Notification.created_at.desc())
         )
     ]
-    progress = progress_of(db, uid).model_dump(by_alias=True)
+    emails = [
+        ExportEmail(
+            kind=e.kind if e.kind in NOTIFICATION_KINDS or e.kind == ACCOUNT_NOTICE else "system",
+            to_address=e.to_address,
+            subject=e.subject,
+            status=e.status.value,
+            created_at=e.created_at,
+            sent_at=e.sent_at,
+        )
+        for e in db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == uid).order_by(EmailOutbox.created_at))
+    ]
     return AccountExport(
         user=me_out(user),
         sessions=[sessions.info(s, current) for s in sessions.live(db, uid)],
@@ -420,10 +616,11 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         library_items=library_items,
         stars=stars,
         reactions=reactions,
-        progress=progress,
+        progress=progress_of(db, uid),
         notifications=notifications,
         votes=votes,
         reports=reports,
+        emails=emails,
     )
 
 
@@ -433,8 +630,9 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
 def delete_account(db: Session, user: User, storage: Storage) -> None:
     """Deletes the account. Files that never reached the library and forum pictures go (objects first: if the
     bucket fails, nothing is deleted and the person can try again); pending and rejected library items go;
-    published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set NULL), and
-    everything personal (sessions, codes, notifications, progress, stars, votes, reactions) cascades."""
+    published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set NULL); everything
+    personal (sessions, notifications, queued emails, progress, stars, votes, reactions) cascades; the sign-in
+    codes stay, anonymised, until the sweep (the rate limits count them)."""
     uid = user.id
     dropped_items = list(
         db.scalars(
@@ -480,6 +678,8 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
         .where(ForumReply.id.in_(select(ReplyVote.reply_id).where(ReplyVote.user_id == uid)))
         .values(vote_count=func.greatest(ForumReply.vote_count - 1, 0))
     )
-    otp.forget_identifiers(db, [i for i in (user.email, user.phone) if i])
+    # The sign-in rows stay, without the addresses, for the rate limits (student test: deleting the account and
+    # signing up again must refill nothing).
+    otp.anonymise(db, user)
     db.execute(delete(User).where(User.id == uid))
     db.commit()

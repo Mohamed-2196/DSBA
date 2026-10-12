@@ -1,7 +1,7 @@
 // How people appear next to their posts. Authors are UserPublic ({ id, displayName, year, role }) or null when the
 // account was deleted.
 import type { UserPublic } from '../../../api/types';
-import type { CohortYear } from '../types';
+import type { CohortYear } from '../../../state';
 
 export const DELETED_ACCOUNT = 'Deleted account';
 

@@ -1,12 +1,13 @@
 // Add or change the email address or phone number on the account: the new one gets a code, like sign-in.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { WarningCircle } from '@phosphor-icons/react';
 import { api, call } from '../../api/client';
 import type { OtpChallengeOut } from '../../api/types';
 import { ME_KEY } from '../../auth';
-import { checkIdentifier } from '../../auth/identifiers';
+import { checkIdentifier, displayIdentifier } from '../../auth/identifiers';
 import { CodeEntry } from '../../auth/CodeEntry';
-import { otpErrorMessage } from '../../auth/otpErrors';
+import { isAddressProblem, otpErrorMessage } from '../../auth/otpErrors';
 import { useToast } from '../../state';
 import { Button, Modal, TextField } from '../../ui';
 import { SESSIONS_KEY, type IdentifierKind } from './api';
@@ -26,6 +27,7 @@ export function IdentifierDialog({ kind, current, onClose }: IdentifierDialogPro
   const { push } = useToast();
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [pending, setPending] = useState<{ challenge: OtpChallengeOut; receivedAt: number; identifier: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -37,6 +39,7 @@ export function IdentifierDialog({ kind, current, onClose }: IdentifierDialogPro
     setShownKind(kind);
     setValue('');
     setError(null);
+    setFormError(null);
     setPending(null);
   }, [kind]);
 
@@ -59,12 +62,19 @@ export function IdentifierDialog({ kind, current, onClose }: IdentifierDialogPro
       return;
     }
     setError(null);
+    setFormError(null);
     setSending(true);
     try {
+      // When the session is older than 10 minutes, the API asks for a code to an address the account already has
+      // first (decision D2): the session guard opens "Confirm it's you" and sends this again.
       await send(identifier);
     } catch (err) {
-      setError(otpErrorMessage(err));
-      inputRef.current?.focus();
+      if (isAddressProblem(err)) {
+        setError(otpErrorMessage(err));
+        inputRef.current?.focus();
+      } else {
+        setFormError(otpErrorMessage(err));
+      }
     } finally {
       setSending(false);
     }
@@ -86,7 +96,7 @@ export function IdentifierDialog({ kind, current, onClose }: IdentifierDialogPro
 
   const title = `${changing ? 'Change your' : 'Add'} ${changing ? noun : shownKind === 'email' ? 'an email address' : 'a phone number'}`;
   const description = pending
-    ? `Sent to ${pending.challenge.destinationHint}.`
+    ? `Sent to ${displayIdentifier(pending.identifier)}.`
     : `We’ll send a code to the new ${noun} to check it’s yours.`;
 
   return (
@@ -111,6 +121,7 @@ export function IdentifierDialog({ kind, current, onClose }: IdentifierDialogPro
               onChange={(e) => {
                 setValue(e.target.value);
                 if (error) setError(null);
+                if (formError) setFormError(null);
               }}
               error={error}
               hint={shownKind === 'phone' ? 'Bahraini numbers don’t need +973.' : undefined}
@@ -125,6 +136,12 @@ export function IdentifierDialog({ kind, current, onClose }: IdentifierDialogPro
             <div className="visually-hidden" aria-live="polite">
               {error || ''}
             </div>
+            {formError ? (
+              <p className="signin__alert" role="alert">
+                <WarningCircle aria-hidden="true" weight="fill" />
+                {formError}
+              </p>
+            ) : null}
             <Button type="submit" variant="primary" size="lg" fullWidth loading={sending}>
               Send code
             </Button>

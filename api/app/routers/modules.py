@@ -2,49 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Any
-
-from sqlalchemy import select
-
-from app.core.errors import not_found
 from app.core.pagination import YearParam
 from app.core.security import DB
-from app.models import Module
 from app.routers._base import router_for
 from app.schemas.modules import ModuleDetail, ModuleSummary
-from app.services.library import published_count_by_module
+from app.services import modules as svc
 
 router = router_for("modules")
 
 
-def _summary(m: Module, library_count: int) -> dict[str, Any]:
-    return {
-        "id": m.id,
-        "unit_code": m.unit_code,
-        "name": m.name,
-        "short_name": m.short_name,
-        "year": m.year,
-        "description": m.description,
-        "icon": m.icon,
-        "chapter_count": len(m.chapters),
-        "lesson_count": sum(len(c.get("videos", [])) for c in m.chapters),
-        "library_count": library_count,
-    }
-
-
 @router.get("/modules", response_model=list[ModuleSummary])
 def list_modules(db: DB, year: YearParam | None = None) -> list[ModuleSummary]:
-    q = select(Module).order_by(Module.position, Module.id)
-    if year is not None:
-        q = q.where(Module.year == year)
-    counts = published_count_by_module(db)  # published items only
-    return [ModuleSummary.model_validate(_summary(m, counts.get(m.id, 0))) for m in db.scalars(q)]
+    """Every module, in programme order, with its published library count."""
+    return svc.list_modules(db, year)
 
 
 @router.get("/modules/{module_id}", response_model=ModuleDetail)
 def get_module(module_id: str, db: DB) -> ModuleDetail:
-    m = db.get(Module, module_id)
-    if m is None:
-        raise not_found("This module doesn't exist.")
-    count = published_count_by_module(db, m.id).get(m.id, 0)
-    return ModuleDetail.model_validate({**_summary(m, count), "resources": m.resources, "chapters": m.chapters})
+    return svc.module_detail(db, module_id)

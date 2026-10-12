@@ -1,0 +1,94 @@
+# The checks of scripts/check.sh on every push and pull request: one job for the API, one for the web app.
+# Actions are pinned to a commit (the comment names its release).
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API
+    # A pull request from a branch of this repository is checked by that branch's push already.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      # PostgreSQL 16, like the runner's pg_dump (the backup test dumps this server; pg_dump refuses newer ones).
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: dsba
+          POSTGRES_PASSWORD: dsba
+          POSTGRES_DB: dsba
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dsba"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # The tests create a throwaway database per run on this server (S3 is moto, in-process).
+      DSBA_TEST_ADMIN_URL: postgresql+psycopg://dsba:dsba@127.0.0.1:5432/postgres
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.8.17"
+          python-version: "3.12" # the API image's Python
+          working-directory: api
+          enable-cache: true
+
+      - name: pg_dump
+        run: pg_dump --version || (sudo apt-get update && sudo apt-get install -y postgresql-client && pg_dump --version)
+
+      - name: Install
+        working-directory: api
+        run: uv sync --locked
+
+      - name: Checks (lockfiles, ruff, mypy, pytest with the migration and openapi.json drift tests)
+        run: bash scripts/check.sh api
+
+      - name: Migrations on an empty database (alembic upgrade head, alembic check)
+        if: ${{ !cancelled() }}
+        working-directory: api
+        env:
+          DSBA_DATABASE_URL: postgresql+psycopg://dsba:dsba@127.0.0.1:5432/dsba
+        run: |
+          uv run --no-sync alembic upgrade head
+          uv run --no-sync alembic check
+
+  web:
+    name: Web app
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install
+        working-directory: web
+        run: npm ci --no-audit --no-fund
+
+      - name: Checks (tsc, eslint, unit tests, schema.d.ts drift, build)
+        run: bash scripts/check.sh web

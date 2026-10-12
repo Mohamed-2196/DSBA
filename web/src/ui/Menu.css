@@ -44,3 +44,7 @@
 .ui-menu__hint { color: var(--ink-3); font-size: var(--fs-12); }
 .ui-menu__sep { height: 1px; margin: 6px 4px; background: var(--line); }
 .ui-menu__heading { padding: 8px 10px 4px; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+
+@media (pointer: coarse) {
+  .ui-menu__item { min-height: 44px; }
+}

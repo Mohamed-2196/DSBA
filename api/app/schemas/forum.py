@@ -14,6 +14,8 @@ ThreadTitle = Annotated[str, StringConstraints(strip_whitespace=True, min_length
 ThreadBody = Annotated[str, StringConstraints(strip_whitespace=True, max_length=20_000)]
 ReplyBody = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=10_000)]
 TagId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9-]{1,32}$")]
+# Why a student rep hid a post: it goes to the post's author in their notification (decision D3).
+HideReason = Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)]
 
 
 class CategoryOut(ApiModel):
@@ -133,10 +135,12 @@ class ThreadModeration(ApiModel):
     pinned: bool | None = None
     locked: bool | None = None
     status: Literal["visible", "hidden"] | None = None
+    reason: HideReason | None = None  # with status 'hidden': told to the thread's author
 
 
 class ReplyModeration(ApiModel):
     status: Literal["visible", "hidden"]
+    reason: HideReason | None = None  # with status 'hidden': told to the reply's author
 
 
 class Contributor(ApiModel):

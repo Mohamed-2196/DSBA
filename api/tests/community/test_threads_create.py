@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
@@ -13,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
 from app.models import ForumThread, ThreadVote, UploadPurpose, UploadStatus, User, UserStatus
-from app.services import forum
+from app.services.forum import rules, threads
 from tests.community.helpers import API, make_upload, new_thread, thread_row
 
 Client = Callable[..., TestClient]
@@ -73,7 +74,7 @@ def test_slugs_are_unique_and_avoid_reserved_words(client_for: Client, student: 
     assert new_thread(c, title="Exam timetable??")["slug"] == "exam-timetable-3"
     assert new_thread(c, title="New!!")["slug"] == "new-thread"  # /forum/new is the composer
     assert new_thread(c, title="Hot!!")["slug"] == "hot-thread"  # /forum/threads/hot is the hot list
-    assert new_thread(c, title="ممكن مساعدة في الإحصاء")["slug"] == "thread"
+    assert re.fullmatch(r"t-[a-z0-9]{6}", new_thread(c, title="ممكن مساعدة في الإحصاء")["slug"])  # D8
 
 
 def test_create_thread_validation(client_for: Client, student: User, modules: dict[str, Any]) -> None:
@@ -201,14 +202,58 @@ def test_a_slug_taken_in_the_meantime(
     client_for: Client, student: User, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     first = new_thread(client_for(student), title="Taken slug")
-    original = forum._thread_slug
+    original = rules.thread_slug
 
     def racy(db_: Session, title: str, attempt: int) -> str:  # another request took it between check and insert
         return first["slug"] if attempt == 0 else original(db_, title, attempt)
 
-    monkeypatch.setattr(forum, "_thread_slug", racy)
+    monkeypatch.setattr(threads, "thread_slug", racy)
     second = new_thread(client_for(student), title="Taken slug")
     assert second["slug"].startswith("taken-slug-")
     assert second["slug"] != first["slug"]
     assert second["voteCount"] == 1
     assert db.scalar(select(func.count()).select_from(ThreadVote)) == 2
+
+
+def test_titles_without_latin_letters_get_a_short_id_slug(client_for: Client, student: User) -> None:
+    c = client_for(student)
+    first = new_thread(c, title="هل المكتبة مفتوحة يوم الجمعة؟")["slug"]
+    second = new_thread(c, title="هل المكتبة مفتوحة يوم الجمعة؟")["slug"]
+    digits = new_thread(c, title="2023 / 2024 ???")["slug"]
+    for slug in (first, second, digits):
+        assert re.fullmatch(r"t-[a-z0-9]{6}", slug), slug  # decision D8: not thread, thread-2, ...
+    assert first != second
+    assert new_thread(c, title="سؤال عن ST2133 الإحصاء")["slug"] == "st2133"  # Latin letters: as usual
+    assert client_for().get(f"{API}/forum/threads/{first}").json()["title"] == "هل المكتبة مفتوحة يوم الجمعة؟"
+
+
+def test_a_slug_never_stands_in_for_an_id(client_for: Client, student: User, classmate: User, db: Session) -> None:
+    original = new_thread(client_for(student), title="The original thread")
+    # a title whose slug would read as another thread's id (or any id) gets a short slug instead (SEC-12)
+    c = client_for(classmate)
+    copycat = new_thread(c, title=original["id"])
+    no_dashes = new_thread(c, title=original["id"].replace("-", ""))
+    spaced = new_thread(c, title=" ".join("a" * 32))  # 'a-a-...-a': an id once the dashes go, as uuid.UUID reads
+    hex31 = "abcdef0123456789abcdef012345678"  # 31 hex digits: not an id...
+    first = new_thread(c, title=hex31)
+    again = new_thread(c, title=hex31)  # ...but with the '-2' that keeps slugs apart, it would be
+    assert first["slug"] == hex31
+    for t in (copycat, no_dashes, spaced, again):
+        assert re.fullmatch(r"t-[a-z0-9]{6}", t["slug"]), t["slug"]
+    guest = client_for()
+    assert guest.get(f"{API}/forum/threads/{original['id']}").json()["id"] == original["id"]
+    assert guest.get(f"{API}/forum/threads/{copycat['slug']}").json()["id"] == copycat["id"]
+    # a slug from before this rule that spells another thread's id: the id wins (the reverse can't happen)
+    legacy = ForumThread(
+        slug=original["id"],
+        title="Old impostor",
+        body="",
+        category="general",
+        author_id=classmate.id,
+        created_at=utcnow(),
+        last_activity_at=utcnow(),
+    )
+    db.add(legacy)
+    db.commit()
+    assert guest.get(f"{API}/forum/threads/{original['id']}").json()["id"] == original["id"]
+    assert guest.get(f"{API}/forum/threads/{legacy.id}").json()["title"] == "Old impostor"

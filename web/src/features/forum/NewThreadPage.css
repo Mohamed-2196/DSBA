@@ -50,6 +50,7 @@
 .forum-composer__as strong { color: var(--ink); font-weight: var(--fw-semibold); }
 .forum-composer__flair { margin-left: 8px; vertical-align: 1px; }
 .forum-composer__kbd { display: inline-flex; }
+.forum-composer__buttons { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-12); }
 
 /* Margin */
 .forum-new__side { display: grid; gap: var(--sp-24); align-content: start; min-width: 0; }
@@ -89,4 +90,9 @@
   .forum-new__block + .forum-new__block { padding-top: var(--sp-24); border-top: 1px solid var(--line); }
   .forum-new__block--similar + .forum-new__block { padding-top: 0; border-top: 0; }
   .forum-composer__similar:not(.is-empty) { margin-top: 0; }
+}
+
+/* Touch screens: 44px targets (UX review UX-11) */
+@media (pointer: coarse) {
+  .forum-composer__link { min-height: 44px; }
 }

@@ -24,6 +24,8 @@ from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
+from app.models import User
+
 ADMIN_URL = os.environ.get("DSBA_TEST_ADMIN_URL", "postgresql+psycopg://dsba:dsba@127.0.0.1:5432/postgres")
 HERE = os.path.dirname(__file__)
 
@@ -127,8 +129,10 @@ def storage(settings_env: None):  # type: ignore[no-untyped-def]
 
 
 @pytest.fixture
-def make_user(db: Session) -> Callable[..., object]:
-    from app.models import Role, User
+def make_user(db: Session) -> Callable[..., User]:
+    """make_user(email=, phone=, name=, role=, year=) -> a User, committed (an email address is made up if neither
+    identifier is given)."""
+    from app.models import Role
 
     def _make(
         *,
@@ -157,7 +161,7 @@ def client_for(app: FastAPI, db: Session, storage: object) -> Iterator[Callable[
 
     clients: list[TestClient] = []
 
-    def _client(user: object | None = None) -> TestClient:
+    def _client(user: User | None = None) -> TestClient:
         c = TestClient(app)
         c.__enter__()
         clients.append(c)
@@ -165,7 +169,7 @@ def client_for(app: FastAPI, db: Session, storage: object) -> Iterator[Callable[
             from datetime import timedelta
 
             token = new_token()
-            db.add(UserSession(user_id=user.id, token_hash=hash_token(token), expires_at=utcnow() + timedelta(days=1)))  # type: ignore[attr-defined]
+            db.add(UserSession(user_id=user.id, token_hash=hash_token(token), expires_at=utcnow() + timedelta(days=1)))
             db.commit()
             c.cookies.set("dsba_session", token)
         c.get("/api/v1/auth/csrf")  # the CSRF cookie (bound to the session, when there is one)

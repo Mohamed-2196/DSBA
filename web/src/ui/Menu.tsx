@@ -14,7 +14,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, type To } from 'react-router-dom';
-import { cx, mergeRefs, renderIcon, useFloating, useLayer, type IconSource } from './internal';
+import { cx, getFocusable, mergeRefs, renderIcon, useFloating, useLayer, type IconSource } from './internal';
 import './Menu.css';
 
 /** A choice in a menu: runs `onSelect`, or navigates (`to`) or opens a link in a new tab (`href`). */
@@ -114,16 +114,35 @@ export function Menu({ trigger, items, children, align = 'start', side = 'bottom
   }, [open, pos]);
 
   const onPanelKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const panel = panelRef.current;
+    if (!panel) return;
     if (e.key === 'Tab') {
-      setOpen(false);
+      // A menu is one stop: Tab leaves it, back on the trigger. A popover keeps Tab inside until either end, then
+      // closes back on the trigger, so focus never falls to the top of the page (UX review UX-2).
+      if (isMenu) {
+        e.preventDefault();
+        close(true);
+        return;
+      }
+      const els = getFocusable(panel);
+      const active = document.activeElement;
+      const atEnd = !els.length || (e.shiftKey ? active === els[0] || active === panel : active === els[els.length - 1]);
+      if (atEnd) {
+        e.preventDefault();
+        close(true);
+      }
       return;
     }
-    if (!isMenu || !panelRef.current) return;
-    const els = [...panelRef.current.querySelectorAll<HTMLElement>('[role="menuitem"]:not([aria-disabled="true"])')];
-    const i = els.indexOf(document.activeElement as HTMLElement);
+    // Arrow keys move between a menu's items, or between a popover's [data-roving] items (a list of links), so a
+    // long list isn't two Tab stops per row.
+    const els = [...panel.querySelectorAll<HTMLElement>(isMenu ? '[role="menuitem"]:not([aria-disabled="true"])' : '[data-roving]')];
+    if (!els.length) return;
+    const active = document.activeElement as HTMLElement | null;
+    const i = active ? els.indexOf(active) : -1;
+    if (!isMenu && i < 0 && active !== panel) return;
     let next: HTMLElement | null = null;
     if (e.key === 'ArrowDown') next = els[(i + 1) % els.length];
-    else if (e.key === 'ArrowUp') next = els[(i - 1 + els.length) % els.length];
+    else if (e.key === 'ArrowUp') next = els[i <= 0 ? els.length - 1 : i - 1];
     else if (e.key === 'Home') next = els[0];
     else if (e.key === 'End') next = els[els.length - 1];
     if (next) {

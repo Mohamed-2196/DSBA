@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowSquareOut, Eye, FloppyDisk, MagicWand, PencilSimple, WarningCircle } from '@phosphor-icons/react';
+import type { components } from '../../api/schema';
 import type { IssueDetail } from '../../api/types';
 import { errorMessage, isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
@@ -229,8 +230,10 @@ function Editor({ detail }: { detail: IssueDetail }) {
           dek: draft.dek.trim(),
           summary: draft.summary.trim(),
           editors,
-          cover: coverJson.value as Record<string, unknown>,
-          sections: sectionsJson.value as Record<string, unknown>[],
+          // The JSON editor's text is checked by the server against these schemas (a 422 names the field); the
+          // form editor that replaces this page (round 2, D5) builds them typed.
+          cover: coverJson.value as components['schemas']['IssueCover'],
+          sections: sectionsJson.value as components['schemas']['IssueSection'][],
         },
       },
       {

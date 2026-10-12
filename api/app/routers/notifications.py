@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import logging
-from typing import get_args
 from uuid import UUID
 
 from fastapi import Response, status
@@ -16,23 +14,18 @@ from app.core.security import DB, CurrentUser
 from app.core.time import utcnow
 from app.models import Notification, User
 from app.routers._base import router_for
-from app.schemas.notifications import NotificationKind, NotificationOut, NotificationPage
+from app.schemas.notifications import NotificationOut, NotificationPage
 from app.services.accounts import public_user
 
 router = router_for("notifications")
-log = logging.getLogger("dsba.notifications")
-KINDS = frozenset(get_args(NotificationKind))
 
 
 def _out(n: Notification, actor: User | None) -> NotificationOut:
-    kind = n.kind
-    if kind not in KINDS:  # a kind the contract doesn't list yet: shown as a system notice, not a 500
-        log.warning("notification %s has an unknown kind %r", n.id, kind)
-        kind = "system"
+    # n.kind is a NotificationKind: notify() takes nothing else and the database checks it (migration 0004)
     return NotificationOut.model_validate(
         {
             "id": n.id,
-            "kind": kind,
+            "kind": n.kind,
             "title": n.title,
             "body": n.body,
             "url": n.url,

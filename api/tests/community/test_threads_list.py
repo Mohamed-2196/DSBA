@@ -132,7 +132,9 @@ def test_year_filter(client_for: Client, student: User, modules: dict[str, Any])
 
 
 @pytest.fixture
-def searchable(client_for: Client, student: User, classmate: User, moderator: User, modules: dict[str, Any]) -> dict:
+def searchable(
+    client_for: Client, student: User, classmate: User, moderator: User, modules: dict[str, Any]
+) -> dict[str, Any]:
     s, c = client_for(student), client_for(classmate)
     mgf = new_thread(
         s,
@@ -251,6 +253,7 @@ def test_control_characters_in_parameters(client_for: Client, student: User) -> 
         assert r.json()["error"]["code"] == "bad_request"
     assert ids(listing(guest, q="plain")["items"]) == [t["id"]]
     assert guest.get(f"{API}/forum/threads/plain%00thread").status_code == 400
+    # in a JSON body: the database refuses it and core's DataError handler answers 422 (no forum guard of its own)
     r = client_for(student).post(f"{API}/forum/threads", json={"title": "Valid title", "moduleId": "x\x00"})
     assert r.status_code == 422
-    assert "moduleId" in r.json()["error"]["fields"]
+    assert r.json()["error"]["code"] == "invalid_input"

@@ -1,26 +1,34 @@
-// Sign in with a one-time code: email or phone number → the 6-digit code → (first time) name and cohort.
-// Contract (auth/context.ts): shown while `request` is not null; on success it calls request.onSuccess?.()
-// and then onClose(). Closing it half-way keeps a pending code, so reopening it goes back to the code.
+// Sign in with a one-time code: email or phone number → the code → (first time) name and cohort.
+// AuthProvider shows it while someone needs to sign in, and calls the waiting actions once onDone() runs.
+// Closing it half-way keeps a pending code, so reopening it goes back to the code.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { WarningCircle } from '@phosphor-icons/react';
 import { api, call } from '../api/client';
-import { ApiError } from '../api/errors';
+import { ApiError, errorMessage } from '../api/errors';
 import type { Me, OtpChallengeOut } from '../api/types';
 import { useToast, useYear, type CohortYear } from '../state';
 import { Button, Modal, TextField } from '../ui';
 import { CohortPicker, type CohortChoice } from './CohortPicker';
-import type { SignInRequest } from './context';
-import { checkIdentifier, identifierHint } from './identifiers';
+import { checkIdentifier, displayIdentifier, formatPhone, identifierHint } from './identifiers';
 import { CodeEntry } from './CodeEntry';
-import { otpErrorMessage } from './otpErrors';
+import { isAddressProblem, otpErrorMessage } from './otpErrors';
 import { ME_KEY, refreshPersonalQueries } from './queries';
 import { useAuth } from './useAuth';
 import './SignInDialog.css';
 
 export interface SignInDialogProps {
-  request: SignInRequest | null;
-  onClose: () => void;
+  open: boolean;
+  /** why sign-in is needed ('Sign in to reply'): the title of the first step */
+  reason?: string;
+  /** an action carries on after signing in: it is the confirmation, so no "Signed in" toast covers it (UX-8) */
+  resumes?: boolean;
+  /** the session ended under the person shown as signed in: they sign in again (the app still shows them) */
+  reauth?: boolean;
+  /** signed in, with a profile */
+  onDone: () => void;
+  /** closed before that */
+  onDismiss: () => void;
 }
 
 type Step = 'identifier' | 'code' | 'profile';
@@ -38,8 +46,7 @@ function firstName(name: string | null | undefined): string {
   return (name ?? '').trim().split(/\s+/)[0] ?? '';
 }
 
-export function SignInDialog({ request, onClose }: SignInDialogProps) {
-  const open = request !== null;
+export function SignInDialog({ open, reason, resumes = false, reauth = false, onDone, onDismiss }: SignInDialogProps) {
   const qc = useQueryClient();
   const { me, status } = useAuth();
   const { push } = useToast();
@@ -48,6 +55,7 @@ export function SignInDialog({ request, onClose }: SignInDialogProps) {
   const [step, setStep] = useState<Step>('identifier');
   const [identifier, setIdentifier] = useState('');
   const [idError, setIdError] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
   const [isNew, setIsNew] = useState(false);
@@ -61,27 +69,18 @@ export function SignInDialog({ request, onClose }: SignInDialogProps) {
 
   const idRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
-  const requestRef = useRef(request);
-  requestRef.current = request;
-  // The request whose onSuccess already ran: it runs once, whichever path finishes first (the action it
-  // retries may not be safe to repeat, like posting a thread).
-  const completedRef = useRef<SignInRequest | null>(null);
-
-  const complete = () => {
-    const req = requestRef.current;
-    if (req && completedRef.current !== req) {
-      completedRef.current = req;
-      req.onSuccess?.();
-    }
-    onClose();
-  };
 
   const pendingAlive = (p: Pending | null): p is Pending => !!p && Date.now() < p.receivedAt + p.challenge.expiresIn * 1000;
 
   // Where to start when the dialog opens.
   useEffect(() => {
     if (!open) return;
-    if (me?.needsProfile) {
+    setStartError(null);
+    if (reauth) {
+      // Signing in again: their address is filled in (they can change it).
+      if (me && !pendingAlive(pending)) setIdentifier(me.email ?? (me.phone ? formatPhone(me.phone) : ''));
+      setStep(pendingAlive(pending) ? 'code' : 'identifier');
+    } else if (me?.needsProfile) {
       setName(me.displayName ?? '');
       setCohort(me.year ?? browsedYear ?? null);
       setStep('profile');
@@ -90,14 +89,14 @@ export function SignInDialog({ request, onClose }: SignInDialogProps) {
     }
     // Only when it opens (or the person behind it changes), not on every edit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, me?.id, me?.needsProfile]);
+  }, [open, reauth, me?.id, me?.needsProfile]);
 
-  // Already signed in with a profile (e.g. /me arrived after the dialog opened): nothing to ask.
+  // Already signed in with a profile (e.g. the session arrived after the dialog opened): nothing to ask.
   useEffect(() => {
-    if (open && status === 'signed-in' && me && !me.needsProfile && step !== 'profile') complete();
-    // complete() reads refs only; re-running it for a new function identity would change nothing.
+    if (open && !reauth && status === 'signed-in' && me && !me.needsProfile && step !== 'profile') onDone();
+    // onDone runs the waiting actions once, however often it is called.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, status, me, step]);
+  }, [open, reauth, status, me, step]);
 
   // Each step hands focus to its field.
   useEffect(() => {
@@ -108,11 +107,12 @@ export function SignInDialog({ request, onClose }: SignInDialogProps) {
 
   const finish = (user: Me) => {
     const greeting = firstName(user.displayName);
-    push({ tone: 'success', title: isNew ? `Welcome to DSBA Hub${greeting ? `, ${greeting}` : ''}` : `Signed in${greeting ? ` as ${user.displayName}` : ''}` });
+    if (isNew) push({ tone: 'success', title: `Welcome to DSBA Hub${greeting ? `, ${greeting}` : ''}` });
+    else if (!resumes) push({ tone: 'success', title: `Signed in${greeting ? ` as ${user.displayName}` : ''}` });
     setPending(null);
     setIdentifier('');
     setStep('identifier');
-    complete();
+    onDone();
   };
 
   const sendCode = async (value: string) => {
@@ -125,6 +125,7 @@ export function SignInDialog({ request, onClose }: SignInDialogProps) {
     e.preventDefault();
     const value = identifier.trim();
     const check = checkIdentifier(value);
+    setStartError(null);
     if (check.error) {
       setIdError(check.error);
       idRef.current?.focus();
@@ -135,8 +136,12 @@ export function SignInDialog({ request, onClose }: SignInDialogProps) {
     try {
       await sendCode(value);
     } catch (err) {
-      setIdError(otpErrorMessage(err));
-      idRef.current?.focus();
+      if (isAddressProblem(err)) {
+        setIdError(otpErrorMessage(err));
+        idRef.current?.focus();
+      } else {
+        setStartError(otpErrorMessage(err));
+      }
     } finally {
       setStarting(false);
     }
@@ -181,10 +186,8 @@ export function SignInDialog({ request, onClose }: SignInDialogProps) {
       if (err instanceof ApiError && err.fields.displayName) {
         setNameError(err.fields.displayName);
         nameRef.current?.focus();
-      } else if (err instanceof ApiError && err.code === 'network') {
-        setSaveError('Couldn’t reach the Hub. Check your connection and try again.');
       } else {
-        setSaveError(err instanceof ApiError ? err.message : 'Something went wrong. Try again.');
+        setSaveError(errorMessage(err));
       }
     } finally {
       setSaving(false);
@@ -199,16 +202,18 @@ export function SignInDialog({ request, onClose }: SignInDialogProps) {
         ? channel === 'sms'
           ? 'Check your messages'
           : 'Check your email'
-        : request?.reason || 'Sign in to DSBA Hub';
+        : reason || 'Sign in to DSBA Hub';
   const description =
     step === 'profile'
       ? 'This is how classmates see you on the forum and in the library.'
       : step === 'code' && pending
-        ? `Sent to ${pending.challenge.destinationHint}.`
+        ? `Sent to ${displayIdentifier(pending.identifier)}.`
         : 'Use your email or phone number. New here? This creates your account.';
+  // A number gets the phone keypad; anything else the email keyboard (UX-17).
+  const numeric = /^\s*[+\d]/.test(identifier);
 
   return (
-    <Modal open={open} onClose={onClose} title={title} description={description} size="sm" className="signin-dialog" data-hub="sign-in">
+    <Modal open={open} onClose={onDismiss} title={title} description={description} size="sm" className="signin-dialog" data-hub="sign-in">
       <div className="signin">
         {step === 'identifier' ? (
           <form className="signin__form" onSubmit={onStart} noValidate>
@@ -220,11 +225,12 @@ export function SignInDialog({ request, onClose }: SignInDialogProps) {
               onChange={(e) => {
                 setIdentifier(e.target.value);
                 if (idError) setIdError(null);
+                if (startError) setStartError(null);
               }}
               error={idError}
               hint={identifierHint(identifier)}
               type="text"
-              inputMode="email"
+              inputMode={numeric ? 'tel' : 'email'}
               autoComplete="username"
               autoCapitalize="none"
               autoCorrect="off"
@@ -235,10 +241,18 @@ export function SignInDialog({ request, onClose }: SignInDialogProps) {
             <div className="visually-hidden" aria-live="polite">
               {idError || ''}
             </div>
+            {startError ? (
+              <p className="signin__alert" role="alert">
+                <WarningCircle aria-hidden="true" weight="fill" />
+                {startError}
+              </p>
+            ) : null}
             <Button type="submit" variant="primary" size="lg" fullWidth loading={starting}>
               Send code
             </Button>
-            <p className="signin__fine">We only use it to sign you in and, if you want, to tell you about replies.</p>
+            <p className="signin__fine">
+              We use it to sign you in. Emails about replies and new newsletter issues are on until you turn them off in Your account.
+            </p>
           </form>
         ) : null}
 

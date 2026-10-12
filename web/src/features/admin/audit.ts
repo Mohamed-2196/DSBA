@@ -1,6 +1,6 @@
 // The audit log in plain words: "hid a thread: “Week 3 notes”".
 import type { AuditOut } from '../../api/types';
-import { roleLabel, type Role } from '../../auth';
+import { roleLabel, type Role } from '../../auth/labels';
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v : null);
 const quoted = (v: unknown): string => {
@@ -13,6 +13,17 @@ const isRole = (v: unknown): v is Role => v === 'student' || v === 'moderator' |
 type Describe = (data: Record<string, unknown>, name: string | null) => string;
 
 const via = (d: Record<string, unknown>) => (d.via === 'bootstrap' ? ' (from the server settings)' : d.via === 'cli' ? ' (from the server)' : '');
+
+/** What a report was about: "the thread “X”", "a reply in “X”", "the library file “X”". */
+const REPORTED: Record<string, string> = { thread: 'the thread', reply: 'a reply in', library_item: 'the library file' };
+const reported = (d: Record<string, unknown>): string => {
+  const title = quoted(d.title);
+  if (!title) return 'a post';
+  return `${REPORTED[str(d.targetType) ?? ''] ?? 'the post'}${title}`;
+};
+
+/** An admin's identifier change (account recovery): data.from and data.to are masked ("s•••@example.com"). */
+const IDENTIFIER_NOUN: Record<string, string> = { email: 'email address', phone: 'phone number' };
 
 const ACTIONS: Record<string, Describe> = {
   'user.role': (d, name) =>
@@ -38,19 +49,29 @@ const ACTIONS: Record<string, Describe> = {
   'forum.reply.unhide': (d) => `brought back a reply in${quoted(d.title)}`,
   'forum.reply.edit': (d) => `edited a reply in${quoted(d.title)}`,
   'forum.reply.delete': (d) => `deleted a reply in${quoted(d.title)}`,
-  'report.resolve': (d) => (d.status === 'dismissed' ? 'dismissed a report' : 'resolved a report'),
+  'user.identifier': (d, name) => {
+    const noun = IDENTIFIER_NOUN[str(d.kind) ?? ''] ?? 'sign-in address';
+    const whose = name ? `${name}’s` : 'an account’s';
+    const from = str(d.from);
+    const to = str(d.to);
+    if (from && to) return `changed ${whose} ${noun} from ${from} to ${to}`;
+    if (to) return `added ${to} as ${whose} ${noun}`;
+    if (from) return `removed ${whose} ${noun}, ${from}`;
+    return `changed ${whose} ${noun}`;
+  },
+  'report.resolve': (d) => (d.status === 'dismissed' ? `dismissed a report about ${reported(d)}` : `acted on a report about ${reported(d)}`),
   'library.publish': (d) => `published${quoted(d.title) || ' an upload'}`,
-  'library.reject': (d) => `turned down${quoted(d.title) || ' an upload'}`,
+  'library.reject': (d) => `rejected${quoted(d.title) || ' an upload'}`,
   'library.link': (d) => `added a link to the library:${quoted(d.title)}`,
   'library.edit': (d) => `edited${quoted(d.title) || ' a library file'}`,
   'library.remove': (d) => `removed${quoted(d.title) || ' a library file'}`,
   'calendar.create': (d) => `added an event:${quoted(d.title)}`,
   'calendar.update': (d) => `edited an event${quoted(d.title)}`,
   'calendar.delete': (d) => `deleted an event${quoted(d.title)}`,
-  'newsletter.create': () => 'started a newsletter issue',
-  'newsletter.update': () => 'edited a newsletter issue',
-  'newsletter.publish': () => 'published a newsletter issue',
-  'newsletter.delete': () => 'deleted a newsletter issue',
+  'newsletter.create': (d) => `started a newsletter issue${quoted(d.title) ? `:${quoted(d.title)}` : ''}`,
+  'newsletter.update': (d) => `edited the newsletter issue${quoted(d.title) || ' (untitled)'}`,
+  'newsletter.publish': (d) => `published the newsletter issue${quoted(d.title) || ' (untitled)'}`,
+  'newsletter.delete': (d) => `deleted the newsletter issue${quoted(d.title) || ' (untitled)'}`,
   'career.update': () => 'updated the Career Navigator',
 };
 

@@ -103,11 +103,103 @@
           "auth"
         ],
         "summary": "Csrf",
-        "description": "Sets the dsba_csrf cookie (the middleware does it for any response without one). Call once at start-up.",
+        "description": "Sets the CSRF cookie (the middleware does it for any response without one). Call once at start-up.",
         "operationId": "csrf_api_v1_auth_csrf_get",
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/session": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Session State",
+        "description": "Who is signed in: `{\"me\": Me}`, or `{\"me\": null}` for a guest. Never 401, so a guest's page load logs no\nerror (student test ST-10); GET /me still answers 401 when signed out.",
+        "operationId": "session_state_api_v1_auth_session_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionState"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
@@ -188,7 +280,7 @@
           "auth"
         ],
         "summary": "Start Sign In",
-        "description": "Send a 6-digit code to an email address or phone number. The same answer whether or not an account exists.\n\nErrors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited\n(429, with retryAfter), delivery_failed (503: try again or use the other method).",
+        "description": "Send a code to an email address or phone number. The same answer whether or not an account exists.\n\nThe code is 6 digits; after many wrong codes for an address it is 10 letters and digits instead\n(`codeFormat: \"long\"`, written 'ABCDE-FGH23'), which nobody can guess.\n\nErrors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited\n(429, with retryAfter), delivery_failed (503: try again or use the other method).",
         "operationId": "start_sign_in_api_v1_auth_otp_post",
         "requestBody": {
           "content": {
@@ -300,7 +392,7 @@
           "auth"
         ],
         "summary": "Verify Sign In",
-        "description": "Check the code; on success the account is created if needed and the session cookie is set.\n\nErrors: invalid_code (422, with attempts left in the message), code_expired (410), too_many_attempts (429).",
+        "description": "Check the code; on success the account is created if needed and the session cookie is set (with a CSRF\ncookie bound to it: read it again before the next request).\n\nErrors: invalid_code (422, with attempts left in the message), code_expired (410), too_many_attempts (429).",
         "operationId": "verify_sign_in_api_v1_auth_otp_verify_post",
         "requestBody": {
           "content": {
@@ -497,7 +589,7 @@
           "me"
         ],
         "summary": "Get Me",
-        "description": "The signed-in user (401 when signed out: the web app treats that as a guest).",
+        "description": "The signed-in user (401 when signed out). GET /auth/session answers the same without a 401 for guests.",
         "operationId": "get_me_api_v1_me_get",
         "responses": {
           "200": {
@@ -587,7 +679,7 @@
           "me"
         ],
         "summary": "Delete Me",
-        "description": "Delete the account: personal data goes, posts stay as 'deleted user', uploads stay unattributed.\n\nErrors: storage_unavailable (503: files could not be deleted, nothing changed; try again).",
+        "description": "Delete the account: personal data goes, posts stay as 'deleted user', published files stay unattributed.\n\nErrors: step_up_required (403), storage_unavailable (503: files could not be deleted, nothing changed).",
         "operationId": "delete_me_api_v1_me_delete",
         "responses": {
           "204": {
@@ -614,7 +706,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "step_up_required: confirm it's you first (POST /me/step-up)",
             "content": {
               "application/json": {
                 "schema": {
@@ -680,7 +772,7 @@
           "me"
         ],
         "summary": "Update Me",
-        "description": "Display name, cohort year and notification preferences. Only the fields sent change; `year: null` clears it.\n\nErrors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).",
+        "description": "Display name, cohort year and email switches. Only the fields sent change; `year: null` clears it.\n\nErrors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).",
         "operationId": "update_me_api_v1_me_patch",
         "requestBody": {
           "content": {
@@ -782,7 +874,7 @@
           "me"
         ],
         "summary": "Export Me",
-        "description": "Everything the Hub stores about the signed-in user, as JSON.",
+        "description": "Everything the Hub stores about the signed-in user.",
         "operationId": "export_me_api_v1_me_export_get",
         "responses": {
           "200": {
@@ -1061,13 +1153,237 @@
         }
       }
     },
+    "/api/v1/me/step-up": {
+      "post": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Start Step Up",
+        "description": "Send a code to one of the account's own identifiers: `via` \"email\" or \"phone\" (by default the email\naddress, else the phone number). Check it with POST /me/step-up/verify.\n\nErrors: invalid_input (422: the account has no such identifier), sms_unavailable, rate_limited,\ndelivery_failed, as for POST /auth/otp.",
+        "operationId": "start_step_up_api_v1_me_step_up_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StepUpStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpChallengeOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/step-up/verify": {
+      "post": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Verify Step Up",
+        "description": "Check the code sent by POST /me/step-up. On success this browser gets a new session (and a new CSRF cookie:\nread it again), with which changing identifiers and deleting the account work for `expiresIn` seconds.\n\nErrors: invalid_code (422), code_expired (410), too_many_attempts (429).",
+        "operationId": "verify_step_up_api_v1_me_step_up_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StepUpResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Gone",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/me/identifiers/otp": {
       "post": {
         "tags": [
           "me"
         ],
         "summary": "Start Add Identifier",
-        "description": "Add the other kind of identifier (a phone number to an email account, or the reverse), or change it.\n\nThe answer is the same whether or not another account uses the identifier: if one does, the address gets a\nmessage saying so instead of a code (so nobody can test which addresses have accounts), and\n/me/identifiers/verify answers identifier_taken. Errors: identifier_unchanged (409) when it is already this\naccount's, plus those of POST /auth/otp.",
+        "description": "Add the other kind of identifier (a phone number to an email account, or the reverse), or change one: a code\ngoes to the new address.\n\nThe answer is the same whether or not another account uses the identifier: if one does, the address gets a\nmessage saying so instead of a code (so nobody can test which addresses have accounts), and\n/me/identifiers/verify answers identifier_taken. Errors: identifier_unchanged (409) when it is already this\naccount's, step_up_required (403), plus those of POST /auth/otp.",
         "operationId": "start_add_identifier_api_v1_me_identifiers_otp_post",
         "requestBody": {
           "content": {
@@ -1111,7 +1427,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "step_up_required: confirm it's you first (POST /me/step-up)",
             "content": {
               "application/json": {
                 "schema": {
@@ -1291,7 +1607,7 @@
           "me"
         ],
         "summary": "Remove Identifier",
-        "description": "Remove the email or the phone number; the account must keep at least one (last_identifier, 409).\nThe account's other sessions are signed out and the removed identifier gets a notice.",
+        "description": "Remove the email address or the phone number; the account must keep at least one (last_identifier, 409).\nThe account's other sessions are signed out and the removed identifier gets a notice.\n\nErrors: step_up_required (403), last_identifier (409).",
         "operationId": "remove_identifier_api_v1_me_identifiers__kind__delete",
         "parameters": [
           {
@@ -1340,14 +1656,14 @@
             "description": "Unauthorized"
           },
           "403": {
+            "description": "step_up_required: confirm it's you first (POST /me/step-up)",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            },
-            "description": "Forbidden"
+            }
           },
           "404": {
             "content": {
@@ -2466,7 +2782,7 @@
           "admin"
         ],
         "summary": "Update User",
-        "description": "Change a role or suspend an account (audited; an admin cannot change their own role or status: 409\ncannot_change_self). The person gets a notification.",
+        "description": "Change a role, suspend an account, or recover one (security review SEC-9): replace or remove its email\naddress or phone number. Only the fields sent change; everything is audited and the person gets a notification.\nRecovery also ends every session of the account and sends a notice to the address that was replaced or removed.\n\nErrors: cannot_change_self (409: an admin can't change their own account here; ask another admin),\nidentifier_taken (409), last_identifier (409), invalid_identifier (422).",
         "operationId": "update_user_api_v1_admin_users__user_id__patch",
         "parameters": [
           {
@@ -2702,6 +3018,7 @@
           "modules"
         ],
         "summary": "List Modules",
+        "description": "Every module, in programme order, with its published library count.",
         "operationId": "list_modules_api_v1_modules_get",
         "parameters": [
           {
@@ -3203,7 +3520,7 @@
           "library"
         ],
         "summary": "Create Item",
-        "description": "Turn a completed upload into a library item: pending for students, published for moderators.\n\nErrors: not_uploaded (409), already_used (409), invalid_input (422: an unknown module).",
+        "description": "Turn a completed upload into a library item: pending for students, published for moderators.\n\nErrors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting\nfor review), invalid_input (422: an unknown module).",
         "operationId": "create_item_api_v1_library_items_post",
         "requestBody": {
           "required": true,
@@ -3713,7 +4030,7 @@
           "library"
         ],
         "summary": "Delete Item",
-        "description": "The uploader or a moderator. The file is deleted from storage.",
+        "description": "The uploader or a moderator. Nothing serves the file any more; the daily sweep deletes it from storage a week\nlater.",
         "operationId": "delete_item_api_v1_library_items__item_id__delete",
         "parameters": [
           {
@@ -4215,7 +4532,7 @@
           "library"
         ],
         "summary": "Review",
-        "description": "Publish or reject a pending upload. Notifies the uploader. Audited.\n\nErrors: removed (409).",
+        "description": "Publish or reject a pending upload. Notifies the uploader. Audited. A rejected file is deleted from storage a\nweek later (the item and its note stay).\n\nErrors: removed (409), file_gone (409: publishing a file that was rejected more than a week ago).",
         "operationId": "review_api_v1_library_items__item_id__review_post",
         "parameters": [
           {
@@ -4329,7 +4646,7 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt) and CSV, up to DSBA_MAX_UPLOAD_MB; forum_image: PNG,\nJPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r,\n`application/octet-stream` is accepted too). POST `fields` and then the file as `file` to `url`, then call\n/uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), rate_limited (429).",
+        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429).",
         "operationId": "create_upload_api_v1_uploads_post",
         "requestBody": {
           "content": {
@@ -4431,7 +4748,7 @@
           "uploads"
         ],
         "summary": "Complete Upload",
-        "description": "Call after the browser's POST to the bucket succeeded: checks the object exists and matches what was declared.\n\nErrors: not_uploaded (409), mismatch (422; the object is deleted).",
+        "description": "Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and\nfirst bytes match the file's name.\n\nErrors: not_uploaded (409), mismatch (422; the object is deleted).",
         "operationId": "complete_upload_api_v1_uploads__upload_id__complete_post",
         "parameters": [
           {
@@ -5299,7 +5616,7 @@
           "forum"
         ],
         "summary": "Get Thread",
-        "description": "By slug (or id). Replies oldest first; hidden ones only for moderators.",
+        "description": "By slug or id (a value that reads as an id is looked up as one first). Replies oldest first.\n\nHidden threads and replies are for moderators and for their own author: the author gets them with status\n'hidden' and canModerate false (show them a \"hidden by a student rep\" banner) and can't change them (canEdit\nfalse). Everyone else: 404 for a hidden thread; a hidden reply is left out of `replies`.",
         "operationId": "get_thread_api_v1_forum_threads__slug__get",
         "parameters": [
           {
@@ -5514,7 +5831,7 @@
           "forum"
         ],
         "summary": "Delete Thread",
-        "description": "The author (or a moderator) deletes the thread: its text goes, its replies stay readable.",
+        "description": "The author (or a moderator) deletes the thread: its text goes; its title and replies stay listed while it has\nreplies. A hidden thread stays hidden (only reps reach it) and unhiding it later gives a deleted thread.",
         "operationId": "delete_thread_api_v1_forum_threads__thread_id__delete",
         "parameters": [
           {
@@ -5611,7 +5928,7 @@
           "forum"
         ],
         "summary": "Related Threads",
-        "description": "Same module first, then shared tags and category.",
+        "description": "Same module first, then shared tags and category. Works on any thread the viewer can open.",
         "operationId": "related_threads_api_v1_forum_threads__thread_id__related_get",
         "parameters": [
           {
@@ -6050,7 +6367,7 @@
           "forum"
         ],
         "summary": "Moderate Thread",
-        "description": "Pin, lock (no new replies) or hide a thread. Audited.",
+        "description": "Pin, lock (no new replies) or hide a thread. Hiding tells the author (a \"system\" notification, with `reason`\nwhen given); unhiding a thread that was deleted while hidden gives a deleted thread. Audited.",
         "operationId": "moderate_thread_api_v1_forum_threads__thread_id__moderate_post",
         "parameters": [
           {
@@ -6164,7 +6481,7 @@
           "forum"
         ],
         "summary": "Create Reply",
-        "description": "Notifies the thread's author (and the parent reply's author). Errors: thread_locked (409), rate_limited (429).",
+        "description": "Notifies the thread's author (and the parent reply's author), linking to /forum/<slug>#reply-<id>.\n\nErrors: thread_locked (409: locked by a student rep), post_unavailable (409: the thread was deleted or hidden),\nrate_limited (429).",
         "operationId": "create_reply_api_v1_forum_threads__thread_id__replies_post",
         "parameters": [
           {
@@ -6389,7 +6706,7 @@
           "forum"
         ],
         "summary": "Delete Reply",
-        "description": "The author (or a moderator) deletes a reply: it keeps its place without its text.",
+        "description": "The author (or a moderator) deletes a reply: it keeps its place without its text, and the notifications about\nit are taken back. A hidden reply stays hidden (only reps reach it).",
         "operationId": "delete_reply_api_v1_forum_replies__reply_id__delete",
         "parameters": [
           {
@@ -6690,7 +7007,7 @@
           "forum"
         ],
         "summary": "Moderate Reply",
-        "description": "Hide a reply, or show it again. Audited.",
+        "description": "Hide a reply (its author is told, with `reason` when given; the notifications about it are taken back), or\nshow it again (a reply deleted while hidden comes back deleted). Audited.",
         "operationId": "moderate_reply_api_v1_forum_replies__reply_id__moderate_post",
         "parameters": [
           {
@@ -7263,7 +7580,7 @@
           "newsletter"
         ],
         "summary": "Create Issue",
-        "description": "A draft. Errors: slug_taken (409), invalid_input (422: every section needs a unique id; links must be\nhttps://, mailto: or a page of the Hub; at most 40 sections and 256 KB).",
+        "description": "A draft. Errors: slug_taken (409); invalid_input (422: the content doesn't fit the schema, a link isn't\nhttps://, mailto: or a page of the Hub, or the issue is over 256 KB of JSON).",
         "operationId": "create_issue_api_v1_newsletter_issues_post",
         "requestBody": {
           "required": true,
@@ -7468,7 +7785,7 @@
           "newsletter"
         ],
         "summary": "Update Issue",
-        "description": "Edit a draft or a published issue (fields that are not sent stay as they are).\n\nErrors: slug_taken (409), invalid_input (422).",
+        "description": "Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are\nreplaced as a whole). Errors: slug_taken (409), invalid_input (422).",
         "operationId": "update_issue_api_v1_newsletter_issues__issue_id__patch",
         "parameters": [
           {
@@ -7676,7 +7993,7 @@
           "newsletter"
         ],
         "summary": "Publish Issue",
-        "description": "Publishes the issue and notifies everyone who wants newsletter notifications. Audited.\nPublishing an issue that is already out changes nothing.",
+        "description": "Publishes the issue and tells every account (in the Hub; by email to those who keep \"New newsletter issues\"\non). Audited. Publishing an issue that is already out changes nothing.",
         "operationId": "publish_issue_api_v1_newsletter_issues__issue_id__publish_post",
         "parameters": [
           {
@@ -8452,7 +8769,7 @@
           "calendar"
         ],
         "summary": "Ics Feed",
-        "description": "An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).",
+        "description": "An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).\n`type=exam` gives only the exams (the web app's \"Download the exams\").",
         "operationId": "ics_feed_api_v1_calendar_feed_ics_get",
         "parameters": [
           {
@@ -8472,6 +8789,134 @@
                 }
               ],
               "title": "Year"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "exam",
+                    "mock",
+                    "revision",
+                    "deadline",
+                    "event",
+                    "break",
+                    "term"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/calendar": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/events/{event_id}.ics": {
+      "get": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Event Ics",
+        "description": "One event as an iCalendar file to import (\"Add to calendar\"): all-day, with a reminder the day before an exam\nor a deadline. Errors: not_found (404).",
+        "operationId": "event_ics_api_v1_calendar_events__event_id__ics_get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
             }
           }
         ],
@@ -8772,7 +9217,7 @@
           "content"
         ],
         "summary": "Career",
-        "description": "The Career Navigator's content (empty until it is loaded).",
+        "description": "The Career Navigator's content (`data` is null until it is loaded).",
         "operationId": "career_api_v1_career_get",
         "responses": {
           "200": {
@@ -8862,15 +9307,13 @@
           "content"
         ],
         "summary": "Update Career",
-        "description": "Replace the whole document. Audited.\n\nErrors: invalid_input (422: over 512 KB, or a link that isn't https://, mailto: or a page of the Hub).",
+        "description": "Replace the whole document. Audited.\n\nErrors: invalid_input (422: it doesn't fit the schema, refers to an id it doesn't define or a module that\ndoesn't exist, has a link that isn't https:// or a page of the Hub, or is over 512 KB of JSON).",
         "operationId": "update_career_api_v1_career_put",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "additionalProperties": true,
-                "type": "object",
-                "title": "Body"
+                "$ref": "#/components/schemas/CareerDoc"
               }
             }
           },
@@ -9145,71 +9588,70 @@
           },
           "threads": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ExportThread"
             },
             "type": "array",
             "title": "Threads"
           },
           "replies": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ExportReply"
             },
             "type": "array",
             "title": "Replies"
           },
           "libraryItems": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ExportLibraryItem"
             },
             "type": "array",
             "title": "Libraryitems"
           },
           "stars": {
             "items": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             },
             "type": "array",
             "title": "Stars"
           },
           "reactions": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ExportReaction"
             },
             "type": "array",
             "title": "Reactions"
           },
           "progress": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Progress"
+            "$ref": "#/components/schemas/Progress"
           },
           "notifications": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ExportNotification"
             },
             "type": "array",
             "title": "Notifications"
           },
           "votes": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ExportVote"
             },
             "type": "array",
             "title": "Votes"
           },
           "reports": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/ExportReport"
             },
             "type": "array",
             "title": "Reports"
+          },
+          "emails": {
+            "items": {
+              "$ref": "#/components/schemas/ExportEmail"
+            },
+            "type": "array",
+            "title": "Emails"
           }
         },
         "type": "object",
@@ -9222,7 +9664,10 @@
           "stars",
           "reactions",
           "progress",
-          "notifications"
+          "notifications",
+          "votes",
+          "reports",
+          "emails"
         ],
         "title": "AccountExport",
         "description": "Everything the Hub stores about the signed-in user (GET /me/export)."
@@ -9433,10 +9878,37 @@
               }
             ],
             "title": "Status"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
           }
         },
         "type": "object",
-        "title": "AdminUserUpdate"
+        "title": "AdminUserUpdate",
+        "description": "Only the fields sent change. `email` and `phone` are the account-recovery action (security review SEC-9):\nthey replace the account's address (`null` removes it; one must stay), end every session of the account, send\na notice to the address that was replaced or removed, and are audited (`user.identifier`)."
       },
       "AuditOut": {
         "properties": {
@@ -9883,12 +10355,251 @@
         "type": "object",
         "title": "CalendarEventUpdate"
       },
+      "CardAside": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "card",
+            "title": "Type"
+          },
+          "kicker": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Kicker"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "wide": {
+            "type": "boolean",
+            "title": "Wide",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "kicker",
+          "title",
+          "text"
+        ],
+        "title": "CardAside",
+        "description": "A typographic card beside the copy: a kicker, a short title in a highlight, a line of text."
+      },
+      "CareerCert": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "short": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Short"
+          },
+          "issuer": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Issuer"
+          },
+          "mono": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 6,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mono"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CertFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "goodFor": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Goodfor"
+          },
+          "effort": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Effort"
+          },
+          "effortNote": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Effortnote"
+          },
+          "covers": {
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Covers",
+            "default": []
+          },
+          "coversNote": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 600,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coversnote"
+          },
+          "roles": {
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Roles",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "short",
+          "issuer",
+          "goodFor",
+          "effort",
+          "effortNote"
+        ],
+        "title": "CareerCert"
+      },
+      "CareerChecklistItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "hint": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Hint"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ChecklistLesson"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ChecklistCert"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ChecklistForum"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "kind",
+                  "mapping": {
+                    "cert": "#/components/schemas/ChecklistCert",
+                    "forum": "#/components/schemas/ChecklistForum",
+                    "lesson": "#/components/schemas/ChecklistLesson"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "hint"
+        ],
+        "title": "CareerChecklistItem"
+      },
       "CareerContent": {
         "properties": {
           "data": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Data"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CareerDoc"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "updatedAt": {
             "anyOf": [
@@ -9909,7 +10620,685 @@
           "updatedAt"
         ],
         "title": "CareerContent",
-        "description": "The Career Navigator's content, edited by admins as one document (shapes: web/src/features/career/types)."
+        "description": "The Career Navigator's content, edited by admins as one document. `data` is None until it is loaded."
+      },
+      "CareerDoc": {
+        "properties": {
+          "checkedOn": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Checkedon"
+          },
+          "initialCount": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Initialcount"
+          },
+          "tracks": {
+            "items": {
+              "$ref": "#/components/schemas/CareerTrack"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Tracks"
+          },
+          "offerTypes": {
+            "$ref": "#/components/schemas/OfferTypeLabels"
+          },
+          "ctaLabel": {
+            "$ref": "#/components/schemas/CtaLabels"
+          },
+          "employers": {
+            "items": {
+              "$ref": "#/components/schemas/CareerEmployer"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Employers"
+          },
+          "featured": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CareerFeatured"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "effortLabel": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 60,
+              "minLength": 1
+            },
+            "type": "object",
+            "title": "Effortlabel"
+          },
+          "certNote": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Certnote"
+          },
+          "certs": {
+            "items": {
+              "$ref": "#/components/schemas/CareerCert"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Certs"
+          },
+          "defaultRoleId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Defaultroleid"
+          },
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/CareerRole"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Roles"
+          },
+          "depthLabel": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 60,
+              "minLength": 1
+            },
+            "type": "object",
+            "title": "Depthlabel"
+          },
+          "chosen": {
+            "patternProperties": {
+              "^[a-z0-9]+(?:-[a-z0-9]+)*$": {
+                "type": "string",
+                "enum": [
+                  "option",
+                  "elective"
+                ]
+              }
+            },
+            "propertyNames": {
+              "maxLength": 64,
+              "minLength": 1
+            },
+            "type": "object",
+            "title": "Chosen",
+            "default": {}
+          },
+          "skills": {
+            "patternProperties": {
+              "^[a-z0-9]+(?:-[a-z0-9]+)*$": {
+                "$ref": "#/components/schemas/CareerSkill"
+              }
+            },
+            "propertyNames": {
+              "maxLength": 64,
+              "minLength": 1
+            },
+            "type": "object",
+            "title": "Skills"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/CareerChecklistItem"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Checklist"
+          },
+          "furtherStudy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FurtherStudy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "yearHints": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 600,
+              "minLength": 1
+            },
+            "type": "object",
+            "title": "Yearhints"
+          },
+          "seniors": {
+            "items": {
+              "$ref": "#/components/schemas/CareerSenior"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Seniors",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "checkedOn",
+          "initialCount",
+          "tracks",
+          "offerTypes",
+          "ctaLabel",
+          "employers",
+          "featured",
+          "effortLabel",
+          "certNote",
+          "certs",
+          "defaultRoleId",
+          "roles",
+          "depthLabel",
+          "skills",
+          "checklist",
+          "furtherStudy",
+          "yearHints"
+        ],
+        "title": "CareerDoc"
+      },
+      "CareerEmployer": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "mono": {
+            "type": "string",
+            "maxLength": 6,
+            "minLength": 1,
+            "title": "Mono"
+          },
+          "sector": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Sector"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/CareerOffer"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Offers",
+            "default": []
+          },
+          "tracks": {
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Tracks",
+            "default": []
+          },
+          "why": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Why"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Url"
+          },
+          "cta": {
+            "type": "string",
+            "enum": [
+              "apply",
+              "programme",
+              "roles"
+            ],
+            "title": "Cta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "mono",
+          "sector",
+          "why",
+          "url",
+          "cta"
+        ],
+        "title": "CareerEmployer",
+        "description": "A real employer with a presence in Bahrain."
+      },
+      "CareerFeatured": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "organiser": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Organiser"
+          },
+          "mono": {
+            "type": "string",
+            "maxLength": 6,
+            "minLength": 1,
+            "title": "Mono"
+          },
+          "logo": {
+            "$ref": "#/components/schemas/FeaturedLogo"
+          },
+          "badge": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Badge"
+          },
+          "blurb": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Blurb"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Note"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "organiser",
+          "mono",
+          "logo",
+          "badge",
+          "blurb",
+          "note",
+          "url"
+        ],
+        "title": "CareerFeatured",
+        "description": "The one competition beside the page title."
+      },
+      "CareerOffer": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "graduate",
+              "internship",
+              "careers"
+            ],
+            "title": "Type"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "title": "CareerOffer"
+      },
+      "CareerRole": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "about": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "About"
+          },
+          "tools": {
+            "items": {
+              "type": "string",
+              "maxLength": 60,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Tools",
+            "default": []
+          },
+          "skills": {
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Skills",
+            "default": []
+          },
+          "ask": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Ask"
+          },
+          "close": {
+            "patternProperties": {
+              "^[a-z0-9]+(?:-[a-z0-9]+)*$": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CloseLesson"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CloseFile"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CloseCert"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CloseForum"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CloseOpps"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "kind",
+                  "mapping": {
+                    "cert": "#/components/schemas/CloseCert",
+                    "file": "#/components/schemas/CloseFile",
+                    "forum": "#/components/schemas/CloseForum",
+                    "lesson": "#/components/schemas/CloseLesson",
+                    "opps": "#/components/schemas/CloseOpps"
+                  }
+                }
+              }
+            },
+            "propertyNames": {
+              "maxLength": 64,
+              "minLength": 1
+            },
+            "type": "object",
+            "title": "Close",
+            "default": {}
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "title",
+          "about",
+          "ask"
+        ],
+        "title": "CareerRole"
+      },
+      "CareerSenior": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "short": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Short"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "badge": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Badge"
+          },
+          "helps": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Helps"
+          },
+          "ask": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Ask"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "short",
+          "helps",
+          "ask"
+        ],
+        "title": "CareerSenior",
+        "description": "A Year 3 student or a recent graduate who answers questions."
+      },
+      "CareerSkill": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "taught": {
+            "items": {
+              "$ref": "#/components/schemas/SkillTaught"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Taught",
+            "default": []
+          },
+          "gapNote": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 600,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gapnote"
+          },
+          "close": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CloseLesson"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CloseFile"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CloseCert"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CloseForum"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CloseOpps"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "kind",
+                  "mapping": {
+                    "cert": "#/components/schemas/CloseCert",
+                    "file": "#/components/schemas/CloseFile",
+                    "forum": "#/components/schemas/CloseForum",
+                    "lesson": "#/components/schemas/CloseLesson",
+                    "opps": "#/components/schemas/CloseOpps"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Close"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "CareerSkill"
+      },
+      "CareerTrack": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "short": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Short"
+          },
+          "about": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "About"
+          },
+          "modules": {
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Modules",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "short",
+          "about"
+        ],
+        "title": "CareerTrack"
       },
       "CategoryOut": {
         "properties": {
@@ -9963,6 +11352,30 @@
         ],
         "title": "CategoryOut"
       },
+      "CertFile": {
+        "properties": {
+          "module": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Module"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "module",
+          "id"
+        ],
+        "title": "CertFile",
+        "description": "A library file to study from instead of an official page (self-study)."
+      },
       "Chapter": {
         "properties": {
           "title": {
@@ -9994,6 +11407,249 @@
           "videos"
         ],
         "title": "Chapter"
+      },
+      "ChecklistCert": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "cert",
+            "title": "Kind"
+          },
+          "cert": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Cert"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "cert",
+          "label"
+        ],
+        "title": "ChecklistCert"
+      },
+      "ChecklistForum": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "forum",
+            "title": "Kind"
+          },
+          "to": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "To"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "to",
+          "label"
+        ],
+        "title": "ChecklistForum"
+      },
+      "ChecklistLesson": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "lesson",
+            "title": "Kind"
+          },
+          "module": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Module"
+          },
+          "chapter": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Chapter"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "module",
+          "chapter",
+          "label"
+        ],
+        "title": "ChecklistLesson"
+      },
+      "CloseCert": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "cert",
+            "title": "Kind"
+          },
+          "cert": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Cert"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "cert",
+          "text"
+        ],
+        "title": "CloseCert"
+      },
+      "CloseFile": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "file",
+            "title": "Kind"
+          },
+          "module": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Module"
+          },
+          "file": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "File"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "module",
+          "file",
+          "text"
+        ],
+        "title": "CloseFile"
+      },
+      "CloseForum": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "forum",
+            "title": "Kind"
+          },
+          "to": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "To"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "to",
+          "text"
+        ],
+        "title": "CloseForum"
+      },
+      "CloseLesson": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "lesson",
+            "title": "Kind"
+          },
+          "module": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Module"
+          },
+          "chapter": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Chapter"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "module",
+          "chapter",
+          "text"
+        ],
+        "title": "CloseLesson"
+      },
+      "CloseOpps": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "opps",
+            "title": "Kind"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "text"
+        ],
+        "title": "CloseOpps"
       },
       "Contributor": {
         "properties": {
@@ -10027,10 +11683,163 @@
         ],
         "title": "Contributor"
       },
+      "CoverLine": {
+        "properties": {
+          "section": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Section"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "section",
+          "text"
+        ],
+        "title": "CoverLine"
+      },
+      "CtaBlock": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "cta",
+            "title": "Type"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "to": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "label",
+          "to"
+        ],
+        "title": "CtaBlock",
+        "description": "A button: 'Open the calendar', 'Upload a file'."
+      },
+      "CtaLabels": {
+        "properties": {
+          "apply": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Apply"
+          },
+          "programme": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Programme"
+          },
+          "roles": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Roles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "apply",
+          "programme",
+          "roles"
+        ],
+        "title": "CtaLabels"
+      },
+      "DateWindow": {
+        "properties": {
+          "from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To"
+          }
+        },
+        "type": "object",
+        "title": "DateWindow",
+        "description": "The dates a deadlines section lists (either end may be open)."
+      },
       "ErrorDetail": {
         "properties": {
           "code": {
             "type": "string",
+            "enum": [
+              "invalid_input",
+              "bad_request",
+              "unauthenticated",
+              "forbidden",
+              "not_found",
+              "method_not_allowed",
+              "csrf_failed",
+              "rate_limited",
+              "retry",
+              "internal",
+              "not_implemented",
+              "error",
+              "invalid_identifier",
+              "sms_unavailable",
+              "delivery_failed",
+              "invalid_code",
+              "code_expired",
+              "too_many_attempts",
+              "invalid_display_name",
+              "identifier_taken",
+              "identifier_unchanged",
+              "last_identifier",
+              "step_up_required",
+              "cannot_change_self",
+              "storage_unavailable",
+              "thread_locked",
+              "post_unavailable",
+              "already_used",
+              "already_reported",
+              "report_closed",
+              "slug_taken",
+              "not_published",
+              "unsupported_type",
+              "too_large",
+              "not_uploaded",
+              "mismatch",
+              "no_preview",
+              "file_gone",
+              "too_many_pending"
+            ],
             "title": "Code"
           },
           "message": {
@@ -10081,6 +11890,709 @@
           "error"
         ],
         "title": "ErrorResponse"
+      },
+      "ExportEmail": {
+        "properties": {
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "thread_reply",
+                  "reply_reply",
+                  "answer_accepted",
+                  "upload_published",
+                  "upload_rejected",
+                  "new_issue",
+                  "report_resolved",
+                  "system"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "account_notice"
+              }
+            ],
+            "title": "Kind"
+          },
+          "toAddress": {
+            "type": "string",
+            "title": "Toaddress"
+          },
+          "subject": {
+            "type": "string",
+            "title": "Subject"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "sent",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "sentAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sentat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "toAddress",
+          "subject",
+          "status",
+          "createdAt",
+          "sentAt"
+        ],
+        "title": "ExportEmail",
+        "description": "An email the Hub sent you, or will send (notifications and account notices; sign-in codes are not kept)."
+      },
+      "ExportLibraryItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "file",
+              "link"
+            ],
+            "title": "Source"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "past-paper",
+              "examiners-report",
+              "subject-guide",
+              "reading",
+              "study-guide",
+              "exercises",
+              "notes",
+              "cheat-sheet",
+              "course-materials",
+              "vle-materials",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "fileName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "contentType": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contenttype"
+          },
+          "sizeBytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sizebytes"
+          },
+          "examYear": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examyear"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          },
+          "authorName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorname"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "published",
+              "rejected",
+              "removed"
+            ],
+            "title": "Status"
+          },
+          "reviewNote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewnote"
+          },
+          "downloadCount": {
+            "type": "integer",
+            "title": "Downloadcount"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "source",
+          "kind",
+          "title",
+          "description",
+          "moduleId",
+          "year",
+          "url",
+          "fileName",
+          "contentType",
+          "sizeBytes",
+          "examYear",
+          "zone",
+          "authorName",
+          "status",
+          "reviewNote",
+          "downloadCount",
+          "createdAt",
+          "publishedAt"
+        ],
+        "title": "ExportLibraryItem"
+      },
+      "ExportNotification": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "thread_reply",
+              "reply_reply",
+              "answer_accepted",
+              "upload_published",
+              "upload_rejected",
+              "new_issue",
+              "report_resolved",
+              "system"
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "readAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Readat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "body",
+          "url",
+          "createdAt",
+          "readAt"
+        ],
+        "title": "ExportNotification"
+      },
+      "ExportReaction": {
+        "properties": {
+          "issueId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Issueid"
+          },
+          "issueSlug": {
+            "type": "string",
+            "title": "Issueslug"
+          },
+          "sectionId": {
+            "type": "string",
+            "title": "Sectionid"
+          },
+          "reaction": {
+            "type": "string",
+            "title": "Reaction"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "issueId",
+          "issueSlug",
+          "sectionId",
+          "reaction",
+          "createdAt"
+        ],
+        "title": "ExportReaction"
+      },
+      "ExportReply": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "threadId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Threadid"
+          },
+          "threadSlug": {
+            "type": "string",
+            "title": "Threadslug"
+          },
+          "parentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parentid"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "visible",
+              "hidden",
+              "deleted"
+            ],
+            "title": "Status"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "editedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Editedat"
+          },
+          "voteCount": {
+            "type": "integer",
+            "title": "Votecount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "threadId",
+          "threadSlug",
+          "parentId",
+          "body",
+          "status",
+          "createdAt",
+          "editedAt",
+          "voteCount"
+        ],
+        "title": "ExportReply"
+      },
+      "ExportReport": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "targetType": {
+            "type": "string",
+            "enum": [
+              "thread",
+              "reply",
+              "library_item"
+            ],
+            "title": "Targettype"
+          },
+          "targetId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Targetid"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "spam",
+              "harassment",
+              "inappropriate",
+              "copyright",
+              "other"
+            ],
+            "title": "Reason"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "resolved",
+              "dismissed"
+            ],
+            "title": "Status"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "targetType",
+          "targetId",
+          "reason",
+          "note",
+          "status",
+          "createdAt"
+        ],
+        "title": "ExportReport"
+      },
+      "ExportThread": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "year-1",
+              "year-2",
+              "year-3",
+              "study-groups",
+              "general"
+            ],
+            "title": "Category"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "visible",
+              "hidden",
+              "deleted"
+            ],
+            "title": "Status"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "editedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Editedat"
+          },
+          "voteCount": {
+            "type": "integer",
+            "title": "Votecount"
+          },
+          "replyCount": {
+            "type": "integer",
+            "title": "Replycount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "body",
+          "category",
+          "moduleId",
+          "tags",
+          "status",
+          "createdAt",
+          "editedAt",
+          "voteCount",
+          "replyCount"
+        ],
+        "title": "ExportThread"
+      },
+      "ExportVote": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "thread",
+              "reply"
+            ],
+            "title": "Type"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "id",
+          "createdAt"
+        ],
+        "title": "ExportVote"
+      },
+      "FeaturedLogo": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "employer",
+              "cert"
+            ],
+            "title": "Kind"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "FeaturedLogo"
       },
       "FileLink": {
         "properties": {
@@ -10193,6 +12705,54 @@
         "title": "ForumStats",
         "description": "Counts over the threads a guest's list shows (visible ones, and deleted ones that still have replies)."
       },
+      "FurtherStudy": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Body"
+          },
+          "action": {
+            "$ref": "#/components/schemas/FurtherStudyAction"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "body",
+          "action"
+        ],
+        "title": "FurtherStudy"
+      },
+      "FurtherStudyAction": {
+        "properties": {
+          "to": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "To"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "to",
+          "label"
+        ],
+        "title": "FurtherStudyAction"
+      },
       "Health": {
         "properties": {
           "status": {
@@ -10233,6 +12793,44 @@
         ],
         "title": "Health"
       },
+      "IssueCover": {
+        "properties": {
+          "tone": {
+            "type": "string",
+            "enum": [
+              "navy",
+              "paper"
+            ],
+            "title": "Tone",
+            "default": "navy"
+          },
+          "art": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Art"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/CoverLine"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Lines",
+            "default": []
+          }
+        },
+        "type": "object",
+        "title": "IssueCover",
+        "description": "Typographic, or an illustration (`art`, portrait 3:4) with the type over it. A cover shows five lines at most\n(three over an illustration)."
+      },
       "IssueCreate": {
         "properties": {
           "slug": {
@@ -10243,6 +12841,7 @@
           },
           "number": {
             "type": "integer",
+            "maximum": 100000.0,
             "minimum": 0.0,
             "title": "Number"
           },
@@ -10258,33 +12857,36 @@
             "title": "Date"
           },
           "cover": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Cover"
+            "$ref": "#/components/schemas/IssueCover"
           },
           "dek": {
             "type": "string",
+            "maxLength": 2000,
             "title": "Dek",
             "default": ""
           },
           "summary": {
             "type": "string",
+            "maxLength": 2000,
             "title": "Summary",
             "default": ""
           },
           "editors": {
             "items": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
             },
             "type": "array",
+            "maxItems": 12,
             "title": "Editors"
           },
           "sections": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/IssueSection"
             },
             "type": "array",
+            "maxItems": 40,
             "title": "Sections"
           }
         },
@@ -10295,7 +12897,8 @@
           "title",
           "date"
         ],
-        "title": "IssueCreate"
+        "title": "IssueCreate",
+        "description": "A new draft. The whole issue may take 256 KB of JSON."
       },
       "IssueDetail": {
         "properties": {
@@ -10322,9 +12925,7 @@
             "title": "Date"
           },
           "cover": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Cover"
+            "$ref": "#/components/schemas/IssueCover"
           },
           "dek": {
             "type": "string",
@@ -10363,8 +12964,7 @@
           },
           "sections": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/components/schemas/IssueSection"
             },
             "type": "array",
             "title": "Sections"
@@ -10395,6 +12995,264 @@
         ],
         "title": "IssueDetail"
       },
+      "IssueFigure": {
+        "properties": {
+          "src": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Src"
+          },
+          "width": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Height"
+          },
+          "alt": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Alt",
+            "default": ""
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          }
+        },
+        "type": "object",
+        "required": [
+          "src",
+          "width",
+          "height"
+        ],
+        "title": "IssueFigure",
+        "description": "A picture beside a section's copy. Width and height (pixels) reserve its space while it loads; `alt`\ndescribes it for people who can't see it."
+      },
+      "IssueSection": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "NotePencil",
+                  "ListBullets",
+                  "CalendarCheck",
+                  "Sparkle",
+                  "Megaphone",
+                  "UsersThree",
+                  "Lightbulb",
+                  "Student",
+                  "ChatsCircle",
+                  "Books",
+                  "ChartLineUp",
+                  "Microphone",
+                  "RocketLaunch",
+                  "Newspaper"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "deadlines",
+                  "forum",
+                  "library"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "blocks": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ParagraphBlock"
+                },
+                {
+                  "$ref": "#/components/schemas/ListBlock"
+                },
+                {
+                  "$ref": "#/components/schemas/SignoffBlock"
+                },
+                {
+                  "$ref": "#/components/schemas/CtaBlock"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "cta": "#/components/schemas/CtaBlock",
+                  "list": "#/components/schemas/ListBlock",
+                  "p": "#/components/schemas/ParagraphBlock",
+                  "signoff": "#/components/schemas/SignoffBlock"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Blocks",
+            "default": []
+          },
+          "after": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ParagraphBlock"
+                },
+                {
+                  "$ref": "#/components/schemas/ListBlock"
+                },
+                {
+                  "$ref": "#/components/schemas/SignoffBlock"
+                },
+                {
+                  "$ref": "#/components/schemas/CtaBlock"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "cta": "#/components/schemas/CtaBlock",
+                  "list": "#/components/schemas/ListBlock",
+                  "p": "#/components/schemas/ParagraphBlock",
+                  "signoff": "#/components/schemas/SignoffBlock"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "After",
+            "default": []
+          },
+          "figure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IssueFigure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "aside": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CardAside"
+                  },
+                  {
+                    "$ref": "#/components/schemas/StatsAside"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "type",
+                  "mapping": {
+                    "card": "#/components/schemas/CardAside",
+                    "stats": "#/components/schemas/StatsAside"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aside"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DateWindow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fallback": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveFallback"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "estWords": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estwords"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "IssueSection"
+      },
       "IssueSummary": {
         "properties": {
           "id": {
@@ -10420,9 +13278,7 @@
             "title": "Date"
           },
           "cover": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Cover"
+            "$ref": "#/components/schemas/IssueCover"
           },
           "dek": {
             "type": "string",
@@ -10495,6 +13351,7 @@
             "anyOf": [
               {
                 "type": "integer",
+                "maximum": 100000.0,
                 "minimum": 0.0
               },
               {
@@ -10531,19 +13388,18 @@
           "cover": {
             "anyOf": [
               {
-                "additionalProperties": true,
-                "type": "object"
+                "$ref": "#/components/schemas/IssueCover"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Cover"
+            ]
           },
           "dek": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 2000
               },
               {
                 "type": "null"
@@ -10554,7 +13410,8 @@
           "summary": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 2000
               },
               {
                 "type": "null"
@@ -10566,9 +13423,12 @@
             "anyOf": [
               {
                 "items": {
-                  "type": "string"
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
                 },
-                "type": "array"
+                "type": "array",
+                "maxItems": 12
               },
               {
                 "type": "null"
@@ -10580,10 +13440,10 @@
             "anyOf": [
               {
                 "items": {
-                  "additionalProperties": true,
-                  "type": "object"
+                  "$ref": "#/components/schemas/IssueSection"
                 },
-                "type": "array"
+                "type": "array",
+                "maxItems": 40
               },
               {
                 "type": "null"
@@ -10593,7 +13453,8 @@
           }
         },
         "type": "object",
-        "title": "IssueUpdate"
+        "title": "IssueUpdate",
+        "description": "Fields that are not sent stay as they are."
       },
       "LastLesson": {
         "properties": {
@@ -11296,6 +14157,56 @@
         ],
         "title": "LibraryPage"
       },
+      "ListBlock": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "list",
+            "title": "Type"
+          },
+          "items": {
+            "items": {
+              "type": "string",
+              "maxLength": 1000,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "items"
+        ],
+        "title": "ListBlock",
+        "description": "A bulleted list."
+      },
+      "LiveFallback": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "text"
+        ],
+        "title": "LiveFallback",
+        "description": "What a live section says when there is nothing to list yet."
+      },
       "Me": {
         "properties": {
           "id": {
@@ -11805,6 +14716,48 @@
         ],
         "title": "NotificationPage"
       },
+      "OfferTypeLabel": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "plural": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Plural"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "plural"
+        ],
+        "title": "OfferTypeLabel"
+      },
+      "OfferTypeLabels": {
+        "properties": {
+          "graduate": {
+            "$ref": "#/components/schemas/OfferTypeLabel"
+          },
+          "internship": {
+            "$ref": "#/components/schemas/OfferTypeLabel"
+          },
+          "careers": {
+            "$ref": "#/components/schemas/OfferTypeLabel"
+          }
+        },
+        "type": "object",
+        "required": [
+          "graduate",
+          "internship",
+          "careers"
+        ],
+        "title": "OfferTypeLabels"
+      },
       "Ok": {
         "properties": {
           "ok": {
@@ -11842,6 +14795,15 @@
           "resendAfter": {
             "type": "integer",
             "title": "Resendafter"
+          },
+          "codeFormat": {
+            "type": "string",
+            "enum": [
+              "digits",
+              "long"
+            ],
+            "title": "Codeformat",
+            "default": "digits"
           }
         },
         "type": "object",
@@ -11879,7 +14841,7 @@
           },
           "code": {
             "type": "string",
-            "pattern": "^\\d{6}$",
+            "pattern": "^(?:\\d{6}|[A-Za-z0-9]{5}[- ]?[A-Za-z0-9]{5})$",
             "title": "Code"
           }
         },
@@ -11889,6 +14851,32 @@
           "code"
         ],
         "title": "OtpVerifyRequest"
+      },
+      "ParagraphBlock": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "p",
+            "title": "Type"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "lead": {
+            "type": "boolean",
+            "title": "Lead",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "text"
+        ],
+        "title": "ParagraphBlock"
       },
       "PostImage": {
         "properties": {
@@ -11910,22 +14898,89 @@
       },
       "Preferences": {
         "properties": {
+          "emailReplies": {
+            "type": "boolean",
+            "title": "Emailreplies",
+            "default": true
+          },
+          "emailAnswerAccepted": {
+            "type": "boolean",
+            "title": "Emailansweraccepted",
+            "default": true
+          },
+          "emailUploadReviews": {
+            "type": "boolean",
+            "title": "Emailuploadreviews",
+            "default": true
+          },
+          "emailNewIssues": {
+            "type": "boolean",
+            "title": "Emailnewissues",
+            "default": true
+          },
           "emailNotifications": {
             "type": "boolean",
             "title": "Emailnotifications",
-            "default": true
+            "default": true,
+            "deprecated": true
           },
           "newsletterEmails": {
             "type": "boolean",
             "title": "Newsletteremails",
-            "default": true
+            "default": true,
+            "deprecated": true
           }
         },
         "type": "object",
-        "title": "Preferences"
+        "title": "Preferences",
+        "description": "Which notifications also come by email, to the account's email address. In the Hub every notification shows\nwhatever these say, and account security notices are always emailed."
       },
       "PreferencesUpdate": {
         "properties": {
+          "emailReplies": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emailreplies"
+          },
+          "emailAnswerAccepted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emailansweraccepted"
+          },
+          "emailUploadReviews": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emailuploadreviews"
+          },
+          "emailNewIssues": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emailnewissues"
+          },
           "emailNotifications": {
             "anyOf": [
               {
@@ -11935,7 +14990,8 @@
                 "type": "null"
               }
             ],
-            "title": "Emailnotifications"
+            "title": "Emailnotifications",
+            "deprecated": true
           },
           "newsletterEmails": {
             "anyOf": [
@@ -11946,11 +15002,13 @@
                 "type": "null"
               }
             ],
-            "title": "Newsletteremails"
+            "title": "Newsletteremails",
+            "deprecated": true
           }
         },
         "type": "object",
-        "title": "PreferencesUpdate"
+        "title": "PreferencesUpdate",
+        "description": "Only the switches sent change."
       },
       "PresignedUpload": {
         "properties": {
@@ -12071,7 +15129,8 @@
               ]
             },
             "type": "array",
-            "title": "Mine"
+            "title": "Mine",
+            "default": []
           }
         },
         "type": "object",
@@ -12233,6 +15292,18 @@
               "hidden"
             ],
             "title": "Status"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
           }
         },
         "type": "object",
@@ -12785,6 +15856,26 @@
         ],
         "title": "SessionInfo"
       },
+      "SessionState": {
+        "properties": {
+          "me": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Me"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "me"
+        ],
+        "title": "SessionState",
+        "description": "GET /auth/session: the signed-in user, or null for a guest. Never 401."
+      },
       "SignInResult": {
         "properties": {
           "user": {
@@ -12802,6 +15893,62 @@
         ],
         "title": "SignInResult"
       },
+      "SignoffBlock": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "signoff",
+            "title": "Type"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "text"
+        ],
+        "title": "SignoffBlock",
+        "description": "The editors' sign-off at the end of a story or an issue, shown with their avatars."
+      },
+      "SkillTaught": {
+        "properties": {
+          "module": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Module"
+          },
+          "depth": {
+            "type": "integer",
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "title": "Depth"
+          },
+          "what": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "What"
+          }
+        },
+        "type": "object",
+        "required": [
+          "module",
+          "depth",
+          "what"
+        ],
+        "title": "SkillTaught"
+      },
       "StarResult": {
         "properties": {
           "starred": {
@@ -12814,6 +15961,114 @@
           "starred"
         ],
         "title": "StarResult"
+      },
+      "StatItem": {
+        "properties": {
+          "value": {
+            "type": "string",
+            "maxLength": 24,
+            "minLength": 1,
+            "title": "Value"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "label"
+        ],
+        "title": "StatItem"
+      },
+      "StatsAside": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "stats",
+            "title": "Type"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StatItem"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Items"
+          },
+          "foot": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Foot"
+          },
+          "wide": {
+            "type": "boolean",
+            "title": "Wide",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "items"
+        ],
+        "title": "StatsAside",
+        "description": "A few numbers beside the copy."
+      },
+      "StepUpResult": {
+        "properties": {
+          "expiresIn": {
+            "type": "integer",
+            "title": "Expiresin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expiresIn"
+        ],
+        "title": "StepUpResult",
+        "description": "The browser's session was renewed: changing or removing an identifier and deleting the account work without\nanother code for `expires_in` seconds."
+      },
+      "StepUpStart": {
+        "properties": {
+          "via": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "email",
+                  "phone"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Via"
+          }
+        },
+        "type": "object",
+        "title": "StepUpStart",
+        "description": "Which of the account's own identifiers gets the code: by default the email address, else the phone number."
       },
       "TagOut": {
         "properties": {
@@ -13158,6 +16413,18 @@
               }
             ],
             "title": "Status"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
           }
         },
         "type": "object",

@@ -1,22 +1,32 @@
-"""One-time codes: signing in, and adding an email address or phone number to an account.
+"""One-time codes: signing in, confirming it's you (step-up), and adding an email address or phone number.
 
-The rules (ARCHITECTURE.md security baseline; docs/reviews/security-design.md findings 2, 3, 9, 15 and 20):
+The rules (ARCHITECTURE.md security baseline; docs/reviews/security-design.md findings 2, 3, 9, 15 and 20;
+docs/reviews/security.md SEC-2; round 2 decisions D2 and D4):
 
 - A code is 6 digits from `secrets`. Only HMAC-SHA256(secret key, "<challenge id>:<code>") is stored.
-- It expires after DSBA_OTP_TTL_SECONDS and works once. Each try is counted atomically BEFORE the comparison
-  (and committed on its own), so parallel requests cannot get more than DSBA_OTP_MAX_ATTEMPTS tries.
+- It expires after DSBA_OTP_TTL_SECONDS and works once. Each try is counted atomically BEFORE the comparison (and
+  committed on its own), so parallel requests cannot get more than DSBA_OTP_MAX_ATTEMPTS tries.
+- A code works only in the flow it was sent for (Flow): signing in (bound to no account), step-up (a sign-in code
+  bound to the signed-in account) or adding an identifier (bound to the account).
 - Only the newest code for an address works: a code that was sent retires the older ones, and a successful
-  sign-in closes every other open code for that address.
-- Limits, all from the database: a resend cooldown per address, codes per address per hour and per day, wrong
-  codes per address per day, codes per IP (IPv6 by /64) per hour, codes per user per hour (adding an
-  identifier), and a global hourly and daily budget of texts. Addresses are counted by their rate-limit key
-  (name+tag@ and Gmail dots fold together). Advisory locks serialise count-then-insert.
+  check closes every other open code for that address.
+- Wrong codes never lock an address out for its owner (D4). FAILED_CODES_PER_DAY wrong codes for an address from
+  one network (an IP address, or an IPv6 /64) in 24 h lock that network out of codes for that address. Once
+  LONG_CODES_AFTER wrong codes were tried for an address from anywhere, its codes are long (10 letters and digits,
+  about 50 bits): guessing is hopeless, and the owner still signs in.
+- Every other limit only slows down: a resend cooldown and codes per hour for an address; codes per day for an
+  address from one network; codes per network per hour; codes per user per hour (step-up, adding an identifier);
+  and a global hourly and daily budget of texts. Addresses are counted by their rate-limit key (name+tag@ and Gmail
+  dots fold together). Advisory locks serialise count-then-insert.
+- Alarms (log warnings): a network locked out of an address, an address switching to long codes, and
+  SPRAY_ALARM wrong codes across the site within an hour.
 - Texts only go to mobile numbers in the allowed regions.
 - The answer never tells whether an account exists: starting a sign-in doesn't look at accounts, and adding an
   identifier that another account uses sends that address a notice instead of a code, with the same answer.
-
-A challenge whose delivery failed is never usable (expires_at == created_at): it counts against the limits but
-neither triggers the resend cooldown nor uses the text budget."""
+- A challenge whose delivery failed is never usable (expires_at == created_at): it counts against the limits but
+  neither triggers the resend cooldown nor uses the text budget.
+- When an account is deleted its challenges stay, anonymised (anonymise()): the limits keep counting them, so
+  deleting the account and signing up again refills nothing."""
 
 from __future__ import annotations
 
@@ -30,9 +40,10 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from html import escape
+from typing import Literal
 from urllib.parse import urlsplit
 
-from sqlalchemy import ColumnElement, delete, select, update
+from sqlalchemy import ColumnElement, and_, delete, func, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -40,9 +51,10 @@ from app.core.errors import ApiError, invalid, rate_limited
 from app.core.time import utcnow
 from app.models import Channel, OtpChallenge, OtpPurpose, User
 from app.schemas.auth import OtpChallengeOut
-from app.services import mailer, sms
+from app.services import mailer, outbox, sms
 from app.services.identifiers import (
     Kind,
+    anon_identifier,
     channel_for,
     destination_hint,
     email_rate_key_sql,
@@ -56,10 +68,16 @@ from app.services.ratelimit import human_wait, in_ip_bucket, ip_bucket, lock, wi
 
 log = logging.getLogger("dsba.otp")
 
+Flow = Literal["sign_in", "step_up", "add_identifier"]
+
 HOUR = timedelta(hours=1)
 DAY = timedelta(days=1)
-FAILED_CODES_PER_DAY = 15  # wrong codes for one address in 24 h before it is locked (finding 9)
+FAILED_CODES_PER_DAY = 15  # wrong codes for an address from one network in 24 h before that network is locked out
+LONG_CODES_AFTER = 15  # wrong codes for an address from anywhere in 24 h before its codes become long
+SPRAY_ALARM = 200  # wrong codes across the site within an hour: someone is guessing at many addresses
 KEEP_CHALLENGES = timedelta(days=2)  # older rows serve no limit any more and hold personal data: deleted
+LONG_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # no 0/O, 1/I/L
+LONG_CODE_LENGTH = 10
 
 
 def sms_regions() -> list[str]:
@@ -72,6 +90,20 @@ def sms_regions() -> list[str]:
 
 def new_code() -> str:
     return f"{secrets.randbelow(1_000_000):06d}"
+
+
+def new_long_code() -> str:
+    return "".join(secrets.choice(LONG_CODE_ALPHABET) for _ in range(LONG_CODE_LENGTH))
+
+
+def shown(code: str) -> str:
+    """A code as people read it: '123456', or a long one as 'ABCDE-FGH23'."""
+    return code if len(code) != LONG_CODE_LENGTH else f"{code[:5]}-{code[5:]}"
+
+
+def canonical_code(typed: str) -> str:
+    """What was typed, as codes are hashed: digits as they are; a long code in capitals without the dash or space."""
+    return typed.strip().upper().replace("-", "").replace(" ", "")
 
 
 def code_hash(challenge_id: uuid.UUID, code: str) -> str:
@@ -87,6 +119,18 @@ def too_many_attempts() -> ApiError:
     return ApiError(429, "too_many_attempts", "Too many wrong tries for this code. Ask for a new one.")
 
 
+def _purpose(flow: Flow) -> OtpPurpose:
+    return OtpPurpose.add_identifier if flow == "add_identifier" else OtpPurpose.sign_in
+
+
+def _bound_to(flow: Flow, user_id: uuid.UUID | None) -> ColumnElement[bool]:
+    """The challenges a flow may check: sign-in codes belong to no account; the others to the signed-in one."""
+    purpose = OtpChallenge.purpose == _purpose(flow)
+    if flow == "sign_in":
+        return and_(purpose, OtpChallenge.user_id.is_(None))
+    return and_(purpose, OtpChallenge.user_id == user_id)
+
+
 # ── starting a challenge ─────────────────────────────────────────────────────────────────────
 
 
@@ -94,13 +138,17 @@ def prepare(raw: str) -> tuple[Kind, str]:
     """Normalises what the person typed (422 invalid_identifier) and refuses numbers we don't text (422
     sms_unavailable: landlines, toll-free and premium numbers, and countries outside the allowed regions)."""
     kind, identifier = normalize_identifier(raw)
+    check_textable(kind, identifier)
+    return kind, identifier
+
+
+def check_textable(kind: Kind, identifier: str) -> None:
     if kind == "phone" and not sms_capable(identifier, sms_regions()):
         raise invalid(
             "identifier",
             "We can't send a code to this number. Use your email address instead.",
             code="sms_unavailable",
         )
-    return kind, identifier
 
 
 def start(
@@ -108,27 +156,29 @@ def start(
     *,
     kind: Kind,
     identifier: str,
-    purpose: OtpPurpose,
+    flow: Flow,
     ip: str | None,
     user: User | None = None,
     taken: Callable[[], bool] | None = None,
 ) -> OtpChallengeOut:
-    """Checks the limits, stores a challenge and sends its code. `user` is set when a signed-in user adds an
-    identifier. When `taken()` says that another account uses the identifier, the address gets a notice instead
+    """Checks the limits, stores a challenge and sends its code. `user` is the signed-in account (step-up, adding an
+    identifier). When `taken()` says that another account uses the identifier, the address gets a notice instead
     of a code; everything else (the row, the limits, the answer) is the same."""
+    if flow != "sign_in" and user is None:
+        raise ValueError(f"the {flow} flow needs the signed-in user")
     s = get_settings()
     now = utcnow()
     channel = channel_for(kind)
-    _check_limits(db, kind=kind, identifier=identifier, channel=channel, ip=ip, user=user, now=now)
+    long_code = _check_limits(db, kind=kind, identifier=identifier, channel=channel, ip=ip, user=user, now=now)
     in_use = taken() if taken is not None else False
     db.execute(delete(OtpChallenge).where(OtpChallenge.created_at < now - KEEP_CHALLENGES))
-    challenge, code = _add_challenge(db, purpose, channel, identifier, ip, user, now)
+    challenge, code = _add_challenge(db, _purpose(flow), channel, identifier, ip, user, now, long_code=long_code)
     db.commit()  # the row exists before the code can arrive
     try:
         if in_use:
             _deliver_in_use_notice(kind, identifier)
         else:
-            _deliver(kind, identifier, code, purpose)
+            _deliver(kind, identifier, code, flow)
     except DeliveryError:
         challenge.expires_at = challenge.created_at  # never usable, and the next try needs no cooldown
         db.commit()
@@ -151,6 +201,7 @@ def start(
         destination_hint=destination_hint(kind, identifier),
         expires_in=s.otp_ttl_seconds,
         resend_after=s.otp_resend_seconds,
+        code_format="long" if long_code else "digits",
     )
 
 
@@ -162,9 +213,11 @@ def _add_challenge(
     ip: str | None,
     user: User | None,
     now: datetime,
+    *,
+    long_code: bool,
 ) -> tuple[OtpChallenge, str]:
     cid = uuid.uuid4()
-    code = new_code()
+    code = new_long_code() if long_code else new_code()
     challenge = OtpChallenge(
         id=cid,
         purpose=purpose,
@@ -182,15 +235,18 @@ def _add_challenge(
 
 
 def same_address(kind: Kind, identifier: str) -> ColumnElement[bool]:
-    """Challenges for this address, or for an address with the same rate-limit key."""
+    """Challenges for this address, for an address with the same rate-limit key, and those a deleted account left
+    behind for it (anonymised)."""
+    anon = OtpChallenge.identifier == anon_identifier(kind, identifier)
     if kind == "email":
-        return email_rate_key_sql(OtpChallenge.identifier) == rate_key(kind, identifier)
-    return OtpChallenge.identifier == identifier
+        return or_(email_rate_key_sql(OtpChallenge.identifier) == rate_key(kind, identifier), anon)
+    return or_(OtpChallenge.identifier == identifier, anon)
 
 
 def _check_limits(
     db: Session, *, kind: Kind, identifier: str, channel: Channel, ip: str | None, user: User | None, now: datetime
-) -> None:
+) -> bool:
+    """Raises 429 rate_limited (or sms_unavailable) when a limit is reached. -> True when the code must be long."""
     s = get_settings()
     # Always in this order (address, IP, user, texts), so concurrent requests cannot deadlock.
     lock(db, f"otp:id:{rate_key(kind, identifier)}")
@@ -202,6 +258,7 @@ def _check_limits(
 
     delivered = OtpChallenge.expires_at > OtpChallenge.created_at  # failed deliveries don't count here
     address = same_address(kind, identifier)
+    network = in_ip_bucket(OtpChallenge.ip, ip)
     created = OtpChallenge.created_at
     waits: list[tuple[int, str]] = []
 
@@ -210,22 +267,23 @@ def _check_limits(
         if wait:
             waits.append((wait, message))
 
+    # An address, from anywhere: these only slow down (an hour at most), so nobody can lock its owner out.
     check([address, delivered], 1, timedelta(seconds=s.otp_resend_seconds), "Wait {} before asking for another code.")
-    too_many_here = "Too many codes were sent to this address. Try again in {}."
-    check([address], s.otp_max_per_identifier_per_hour, HOUR, too_many_here)
-    check([address], s.otp_max_per_identifier_per_day, DAY, too_many_here)
     check(
-        [in_ip_bucket(OtpChallenge.ip, ip)],
-        s.otp_max_per_ip_per_hour,
-        HOUR,
-        "Too many codes were asked for from your network. Try again in {}.",
+        [address], s.otp_max_per_identifier_per_hour, HOUR, "Too many codes were sent to this address. Try again in {}."
+    )
+    # An address from one network, and one network: what one place can do.
+    from_here = "Too many codes were asked for this address from your network. Try again in {}."
+    check([address, network], s.otp_max_per_identifier_per_day, DAY, from_here)
+    check(
+        [network], s.otp_max_per_ip_per_hour, HOUR, "Too many codes were asked for from your network. Try again in {}."
     )
     if user is not None:
-        mine = [OtpChallenge.user_id == user.id, OtpChallenge.purpose == OtpPurpose.add_identifier]
+        mine = [OtpChallenge.user_id == user.id]
         check(mine, s.otp_max_per_identifier_per_hour, HOUR, "You've asked for too many codes. Try again in {}.")
-    wait = _failed_codes_wait(db, address, now)
+    wait = _locked_for(db, [address, network], now)
     if wait:
-        waits.append((wait, "Too many wrong codes were entered for this address. Try again in {}."))
+        waits.append((wait, "Too many wrong codes were entered for this address from your network. Try again in {}."))
     if waits:
         wait, message = max(waits)
         raise rate_limited(wait, message.format(human_wait(wait)))
@@ -236,17 +294,17 @@ def _check_limits(
             if window_wait(db, created, texts, limit=limit, window=window, now=now):
                 log.warning("SMS budget reached (%d per %s): codes by text are paused", limit, window)
                 raise ApiError(429, "sms_unavailable", "We can't send texts right now. Use your email address instead.")
+    return _wrong_codes(db, [address], now) >= LONG_CODES_AFTER
 
 
-def _failed_codes_wait(db: Session, address: ColumnElement[bool], now: datetime) -> int:
-    """Seconds this address stays locked after FAILED_CODES_PER_DAY wrong codes in 24 h (0 when it isn't).
-
-    Tries on codes that were used to sign in don't count: a successful sign-in closes every open code."""
-    rows = (
+def _failures(db: Session, where: Sequence[ColumnElement[bool]], now: datetime) -> list[tuple[datetime, int]]:
+    """(created_at, attempts) of the open challenges matching `where` from the last 24 h, oldest first: their tries
+    were all wrong (a right one closes every open code for the address)."""
+    return list(
         db.execute(
             select(OtpChallenge.created_at, OtpChallenge.attempts)
             .where(
-                address,
+                *where,
                 OtpChallenge.consumed_at.is_(None),
                 OtpChallenge.attempts > 0,
                 OtpChallenge.created_at > now - DAY,
@@ -256,10 +314,19 @@ def _failed_codes_wait(db: Session, address: ColumnElement[bool], now: datetime)
         .tuples()
         .all()
     )
+
+
+def _wrong_codes(db: Session, where: Sequence[ColumnElement[bool]], now: datetime) -> int:
+    return sum(attempts for _, attempts in _failures(db, where, now))
+
+
+def _locked_for(db: Session, where: Sequence[ColumnElement[bool]], now: datetime) -> int:
+    """Seconds left of the lock FAILED_CODES_PER_DAY wrong codes put on `where` (0: not locked)."""
+    rows = _failures(db, where, now)
     total = sum(attempts for _, attempts in rows)
     if total < FAILED_CODES_PER_DAY:
         return 0
-    for created_at, attempts in rows:  # oldest first: the address opens again once enough of them leave the window
+    for created_at, attempts in rows:  # oldest first: it opens again once enough of them leave the window
         total -= attempts
         if total < FAILED_CODES_PER_DAY:
             return max(1, math.ceil((created_at + DAY - now).total_seconds()))
@@ -276,38 +343,43 @@ class Verified:
 
 
 def verify(
-    db: Session, *, challenge_id: uuid.UUID, code: str, purpose: OtpPurpose, user_id: uuid.UUID | None = None
+    db: Session, *, challenge_id: uuid.UUID, code: str, flow: Flow, user_id: uuid.UUID | None = None
 ) -> Verified:
     """Checks a code. On success the challenge is consumed in the session (the caller commits with its change).
 
     Errors: invalid_code (422, attempts left in the message), code_expired (410: unknown, expired, used, retired,
-    issued for another purpose or, when adding an identifier, for another user), too_many_attempts (429)."""
+    or sent for another flow or another account), too_many_attempts (429)."""
     s = get_settings()
     now = utcnow()
-    conditions = [
-        OtpChallenge.id == challenge_id,
-        OtpChallenge.purpose == purpose,
-        OtpChallenge.consumed_at.is_(None),
-        OtpChallenge.expires_at > now,
-        OtpChallenge.attempts < s.otp_max_attempts,
-    ]
-    if purpose == OtpPurpose.add_identifier:
-        conditions.append(OtpChallenge.user_id == user_id)
     row = (
         db.execute(
             update(OtpChallenge)
-            .where(*conditions)
+            .where(
+                OtpChallenge.id == challenge_id,
+                _bound_to(flow, user_id),
+                OtpChallenge.consumed_at.is_(None),
+                OtpChallenge.expires_at > now,
+                OtpChallenge.attempts < s.otp_max_attempts,
+            )
             .values(attempts=OtpChallenge.attempts + 1)
-            .returning(OtpChallenge.attempts, OtpChallenge.code_hash, OtpChallenge.identifier, OtpChallenge.channel)
+            .returning(
+                OtpChallenge.attempts,
+                OtpChallenge.code_hash,
+                OtpChallenge.identifier,
+                OtpChallenge.channel,
+                OtpChallenge.ip,
+            )
         )
         .tuples()
         .one_or_none()
     )
     db.commit()  # the try counts even when what follows fails
     if row is None:
-        raise _unusable(db, challenge_id, purpose, user_id, now)
-    attempts, stored_hash, identifier, channel = row
-    if not hmac.compare_digest(stored_hash, code_hash(challenge_id, code)):
+        raise _unusable(db, challenge_id, flow, user_id, now)
+    attempts, stored_hash, identifier, channel, ip = row
+    kind = kind_for(Channel(channel))
+    if not hmac.compare_digest(stored_hash, code_hash(challenge_id, canonical_code(code))):
+        _alarms(db, kind, identifier, str(ip) if ip is not None else None, now)
         left = s.otp_max_attempts - attempts
         if left <= 0:
             raise too_many_attempts()
@@ -327,36 +399,52 @@ def verify(
         .where(OtpChallenge.identifier == identifier, OtpChallenge.consumed_at.is_(None))
         .values(consumed_at=now)
     )
-    return Verified(kind=kind_for(Channel(channel)), identifier=identifier)
+    return Verified(kind=kind, identifier=identifier)
 
 
-def _unusable(
-    db: Session, challenge_id: uuid.UUID, purpose: OtpPurpose, user_id: uuid.UUID | None, now: datetime
-) -> ApiError:
+def _unusable(db: Session, challenge_id: uuid.UUID, flow: Flow, user_id: uuid.UUID | None, now: datetime) -> ApiError:
     found = (
         db.execute(
-            select(
-                OtpChallenge.purpose,
-                OtpChallenge.user_id,
-                OtpChallenge.consumed_at,
-                OtpChallenge.expires_at,
-                OtpChallenge.attempts,
-            ).where(OtpChallenge.id == challenge_id)
+            select(OtpChallenge.consumed_at, OtpChallenge.expires_at, OtpChallenge.attempts).where(
+                OtpChallenge.id == challenge_id, _bound_to(flow, user_id)
+            )
         )
         .tuples()
         .one_or_none()
     )
-    if found is None:
+    if found is None:  # unknown, or another flow's or another account's: nothing to say about it
         return code_expired()
-    found_purpose, owner, consumed_at, expires_at, attempts = found
-    if found_purpose != purpose or (purpose == OtpPurpose.add_identifier and owner != user_id):
-        return code_expired()
+    consumed_at, expires_at, attempts = found
     if consumed_at is None and expires_at > now and attempts >= get_settings().otp_max_attempts:
         return too_many_attempts()
     return code_expired()
 
 
-# ── messages ────────────────────────────────────────────────────────────────────────────────
+def _alarms(db: Session, kind: Kind, identifier: str, ip: str | None, now: datetime) -> None:
+    """After a wrong code: warns when it locks a network out of the address, when it makes the address's codes long,
+    and at every SPRAY_ALARM wrong codes across the site within an hour (someone guessing at many addresses)."""
+    hint = destination_hint(kind, identifier)
+    address = same_address(kind, identifier)
+    if _wrong_codes(db, [address, in_ip_bucket(OtpChallenge.ip, ip)], now) == FAILED_CODES_PER_DAY:
+        log.warning(
+            "codes for %s are locked for one network (%s) after %d wrong codes",
+            hint,
+            ip_bucket(ip),
+            FAILED_CODES_PER_DAY,
+        )
+    if _wrong_codes(db, [address], now) == LONG_CODES_AFTER:
+        log.warning("codes for %s are long now: %d wrong codes in 24 hours", hint, LONG_CODES_AFTER)
+    tried, signed_in = db.execute(
+        select(func.coalesce(func.sum(OtpChallenge.attempts), 0), func.count(OtpChallenge.consumed_at)).where(
+            OtpChallenge.created_at > now - HOUR
+        )
+    ).one()
+    wrong = int(tried) - int(signed_in)
+    if wrong > 0 and wrong % SPRAY_ALARM == 0:
+        log.warning("%d wrong sign-in codes across the site in the last hour", wrong)
+
+
+# ── what goes out ───────────────────────────────────────────────────────────────────────────
 
 
 def _minutes() -> str:
@@ -364,18 +452,31 @@ def _minutes() -> str:
     return f"{n} minute{'s' if n != 1 else ''}"
 
 
-def email_content(code: str, purpose: OtpPurpose) -> tuple[str, str, str]:
+LONG_NOTE = "This code is longer than usual because wrong codes were entered for this address recently."
+
+
+def email_content(code: str, flow: Flow) -> tuple[str, str, str]:
     """-> (subject, text, html) of the email that carries a code."""
     s = get_settings()
-    subject = f"Your DSBA Hub code: {code}"
-    if purpose == OtpPurpose.sign_in:
+    base = s.web_base_url.rstrip("/")
+    written = shown(code)
+    subject = f"Your DSBA Hub code: {written}"
+    if flow == "sign_in":
         use = "Enter it on the sign-in page to continue."
         ignore = "If you didn't try to sign in, you can ignore this email."
+    elif flow == "step_up":
+        use = "Enter it to confirm it's you before you change how you sign in or delete your account."
+        ignore = (
+            "If you didn't ask for this, someone may be signed in to your account: open Your account and sign out "
+            f"the devices you don't recognise ({base}/account)."
+        )
     else:
         use = "Enter it to add this email address to your account."
         ignore = "If you didn't ask for this, you can ignore this email."
     expiry = f"It expires in {_minutes()}."
-    text = f"Your DSBA Hub code is {code}.\n\n{use} {expiry}\n\n{ignore}\n\nDSBA Hub\n{s.web_base_url}\n"
+    note = f"\n\n{LONG_NOTE} Type it with or without the dash." if len(code) == LONG_CODE_LENGTH else ""
+    text = f"Your DSBA Hub code is {written}.\n\n{use} {expiry}{note}\n\n{ignore}\n\nDSBA Hub\n{s.web_base_url}\n"
+    note_html = f'<p style="margin:0 0 12px;font-size:14px;line-height:1.5">{escape(LONG_NOTE)}</p>' if note else ""
     html = (
         '<!doctype html><html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
@@ -385,8 +486,9 @@ def email_content(code: str, purpose: OtpPurpose) -> tuple[str, str, str]:
         '<div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px">'
         '<p style="margin:0 0 8px;font-size:15px">Your DSBA Hub code is</p>'
         '<p style="margin:0 0 20px;font-size:32px;font-weight:700;letter-spacing:6px;'
-        f'font-family:ui-monospace,Menlo,Consolas,monospace">{escape(code)}</p>'
+        f'font-family:ui-monospace,Menlo,Consolas,monospace">{escape(written)}</p>'
         f'<p style="margin:0 0 12px;font-size:15px;line-height:1.5">{escape(use)} {escape(expiry)}</p>'
+        f"{note_html}"
         f'<p style="margin:0;font-size:13px;line-height:1.5;color:#59636e">{escape(ignore)}</p>'
         "</div>"
         '<p style="max-width:480px;margin:16px auto 0;font-size:12px;color:#59636e;text-align:center">'
@@ -398,14 +500,15 @@ def email_content(code: str, purpose: OtpPurpose) -> tuple[str, str, str]:
 
 def sms_text(code: str) -> str:
     """The text that carries a code, ending with the WebOTP line browsers use to fill the code in."""
-    text = f"Your DSBA Hub code is {code}. It expires in {_minutes()}."
+    written = shown(code)
+    text = f"Your DSBA Hub code is {written}. It expires in {_minutes()}."
     host = urlsplit(get_settings().web_base_url).hostname
-    return f"{text}\n\n@{host} #{code}" if host else text
+    return f"{text}\n\n@{host} #{written}" if host else text
 
 
-def _deliver(kind: Kind, identifier: str, code: str, purpose: OtpPurpose) -> None:
+def _deliver(kind: Kind, identifier: str, code: str, flow: Flow) -> None:
     if kind == "email":
-        subject, text, html = email_content(code, purpose)
+        subject, text, html = email_content(code, flow)
         mailer.send_email(identifier, subject, text, html)
     else:
         sms.send_sms(identifier, sms_text(code))
@@ -429,20 +532,56 @@ def _deliver_in_use_notice(kind: Kind, identifier: str) -> None:
         )
 
 
-def send_notice(kind: Kind, to: str, text: str) -> None:
-    """Best effort: tells an email address or phone number about a change to the account's sign-in details."""
-    footer = "If this wasn't you, contact a student rep."
+ACCOUNT_NOTICE_SUBJECT = "Your DSBA Hub account changed"
+
+
+def queue_notice(db: Session, kind: Kind, to: str, text: str, user_id: uuid.UUID) -> bool:
+    """A security notice about the account (always sent, no switch). An email goes through the outbox, in the
+    caller's transaction. -> True when it is a text, to send with send_text_notice() once the change is committed."""
+    if kind == "phone":
+        return sms_capable(to, sms_regions())
+    base = get_settings().web_base_url.rstrip("/")
+    body = (
+        f"{text} If this wasn't you, sign in to DSBA Hub and check Your account: {base}/account\n\nDSBA Hub\n{base}\n"
+    )
+    outbox.queue(db, to=to, subject=ACCOUNT_NOTICE_SUBJECT, body=body, kind=outbox.ACCOUNT_NOTICE, user_id=user_id)
+    return False
+
+
+def send_text_notice(to: str, text: str) -> None:
+    """Best effort: a security notice by text."""
     try:
-        if kind == "email":
-            body = f"{text} {footer}\n\nDSBA Hub\n{get_settings().web_base_url}\n"
-            mailer.send_email(to, "Your DSBA Hub account changed", body)
-        elif sms_capable(to, sms_regions()):
-            sms.send_sms(to, f"DSBA Hub: {text} {footer}")
+        sms.send_sms(to, f"DSBA Hub: {text} If this wasn't you, sign in and check Your account.")
     except DeliveryError:
-        log.warning("an account notice to %s was not sent", destination_hint(kind, to))
+        log.warning("an account notice to %s was not sent", destination_hint("phone", to))
 
 
-def forget_identifiers(db: Session, identifiers: Sequence[str]) -> None:
-    """Deletes the challenges of these addresses (account deletion: each row holds the address)."""
-    if identifiers:
-        db.execute(delete(OtpChallenge).where(OtpChallenge.identifier.in_(list(identifiers))))
+def anonymise(db: Session, user: User) -> int:
+    """Before an account is deleted: its challenges, and those for its addresses, lose the address (replaced by
+    anon_identifier()) and the link to the account, and stop working, but stay for the limits until the sweep.
+    -> how many rows."""
+    addresses = [a for a in (user.email, user.phone) if a]
+    rows = (
+        db.execute(
+            select(OtpChallenge.id, OtpChallenge.identifier, OtpChallenge.channel).where(
+                or_(OtpChallenge.user_id == user.id, OtpChallenge.identifier.in_(addresses))
+            )
+        )
+        .tuples()
+        .all()
+    )
+    now = utcnow()
+    by_address: dict[tuple[str, Channel], list[uuid.UUID]] = {}
+    for cid, identifier, channel in rows:
+        by_address.setdefault((identifier, Channel(channel)), []).append(cid)
+    for (identifier, channel), ids in by_address.items():
+        db.execute(
+            update(OtpChallenge)
+            .where(OtpChallenge.id.in_(ids))
+            .values(
+                identifier=anon_identifier(kind_for(channel), identifier),
+                user_id=None,
+                expires_at=func.least(OtpChallenge.expires_at, now),
+            )
+        )
+    return len(rows)

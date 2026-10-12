@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, SmallInteger, String, func, text
+from sqlalchemy import CheckConstraint, ForeignKey, Index, SmallInteger, String, text
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -53,7 +53,6 @@ class User(Base):
     )
     preferences: Mapped[dict[str, Any]] = mapped_column(default=dict, server_default=text("'{}'::jsonb"))
     created_at: Mapped[datetime] = created_ts()
-    updated_at: Mapped[datetime | None] = mapped_column(onupdate=func.now())
     last_seen_at: Mapped[datetime | None]
 
 

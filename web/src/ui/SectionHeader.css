@@ -4,3 +4,9 @@
 h3.ui-section-header__title { font-size: var(--fs-16); }
 .ui-section-header__desc { margin-top: 4px; color: var(--ink-2); font-size: var(--fs-14); }
 .ui-section-header__action { flex: 0 0 auto; display: flex; gap: var(--sp-8); align-items: center; }
+/* Phones: the action goes under the title instead of squeezing it into a narrow column (UX review UX-14). */
+@media (max-width: 699px) {
+  .ui-section-header { flex-wrap: wrap; align-items: flex-start; }
+  .ui-section-header__text { flex: 1 1 100%; }
+  .ui-section-header__action { flex-wrap: wrap; }
+}

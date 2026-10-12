@@ -19,15 +19,17 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from botocore.exceptions import ClientError
-from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.core.errors import ApiError, conflict, not_found, rate_limited
+from app.core.errors import ApiError, conflict, not_found
+from app.core.links import media_path
 from app.core.security import is_moderator
 from app.core.time import utcnow
 from app.models import ForumReply, ForumThread, PostStatus, Upload, UploadPurpose, UploadStatus, User
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
+from app.services import ratelimit
+from app.services.forum.visibility import can_read_thread
 from app.services.storage import INCOMING_PREFIX, Storage, error_code, get_storage, safe_file_name
 
 UPLOADS_PER_HOUR = 20
@@ -49,7 +51,9 @@ class FileType:
 
 _OOXML = (b"PK\x03\x04",)  # docx, xlsx, pptx are zip files
 _OLE = (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1",)  # doc, xls, ppt
+_PNG = FileType("image/png", (), (b"\x89PNG\r\n\x1a\n",))
 _JPEG = FileType("image/jpeg", ("image/jpg", "image/pjpeg"), (b"\xff\xd8\xff",))
+_WEBP = FileType("image/webp", (), (b"RIFF",))  # plus "WEBP" at offset 8, see _looks_right
 
 # Never add image/svg+xml, text/html, XML or JavaScript types: PDFs and raster images are shown inline.
 LIBRARY_TYPES: dict[str, FileType] = {
@@ -65,12 +69,17 @@ LIBRARY_TYPES: dict[str, FileType] = {
     "r": FileType("text/x-r", ("text/x-r-source", "text/plain", "application/octet-stream")),
     "txt": FileType("text/plain"),
     "csv": FileType("text/csv", ("application/csv", "application/vnd.ms-excel", "text/plain")),
-}
-IMAGE_TYPES: dict[str, FileType] = {
-    "png": FileType("image/png", (), (b"\x89PNG\r\n\x1a\n",)),
+    # Pictures (decision D9): a photo of a whiteboard, a scanned page. Previewed inline, like PDFs.
+    "png": _PNG,
     "jpg": _JPEG,
     "jpeg": _JPEG,
-    "webp": FileType("image/webp", (), (b"RIFF",)),  # plus "WEBP" at offset 8, see _looks_right
+    "webp": _WEBP,
+}
+IMAGE_TYPES: dict[str, FileType] = {
+    "png": _PNG,
+    "jpg": _JPEG,
+    "jpeg": _JPEG,
+    "webp": _WEBP,
     "gif": FileType("image/gif", (), (b"GIF87a", b"GIF89a")),
 }
 ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
@@ -81,9 +90,6 @@ ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
 IMAGE_CONTENT_TYPES = frozenset(t.content_type for t in IMAGE_TYPES.values())
 
 # The paths media_url() hands out, as a post refers to them (the forum attaches images it finds this way).
-MEDIA_PATH_RE = re.compile(
-    r"/api/v1/media/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?![0-9a-zA-Z/])"
-)
 
 
 # ── names and types ──────────────────────────────────────────────────────────────────────────
@@ -129,7 +135,7 @@ def limit_bytes(purpose: UploadPurpose) -> int:
 
 
 def media_url(upload_id: uuid.UUID) -> str:
-    return f"/api/v1/media/{upload_id}"
+    return media_path(upload_id)
 
 
 def _final_key(up: Upload) -> str:
@@ -158,22 +164,29 @@ def _unsupported(purpose: UploadPurpose) -> ApiError:
     if purpose == UploadPurpose.forum_image:
         msg = "Use a PNG, JPEG, WebP or GIF image."
     else:
-        msg = "Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file."
+        msg = (
+            "Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, "
+            "or a JPG, PNG or WebP picture."
+        )
     return ApiError(422, "unsupported_type", msg, fields={"fileName": msg})
 
 
 def check_rate(db: Session, user: User) -> None:
-    """20 uploads per user per hour (rows in the window, whatever became of them)."""
-    since = utcnow() - timedelta(hours=1)
-    count, oldest = db.execute(
-        select(func.count(), func.min(Upload.created_at)).where(Upload.user_id == user.id, Upload.created_at > since)
-    ).one()
-    if count >= UPLOADS_PER_HOUR:
-        wait = int((oldest + timedelta(hours=1) - utcnow()).total_seconds()) + 1 if oldest else 3600
-        raise rate_limited(wait, "You've uploaded a lot in the last hour. Try again later.")
+    """UPLOADS_PER_HOUR per person (rows in the window, whatever became of them). Holds the person's upload lock
+    until the transaction ends: the caller inserts the new row in it."""
+    ratelimit.enforce(
+        db,
+        f"uploads:{user.id}",
+        Upload.created_at,
+        [Upload.user_id == user.id],
+        limit=UPLOADS_PER_HOUR,
+        window=timedelta(hours=1),
+        message="You've uploaded a lot in the last hour. Try again in {}.",
+    )
 
 
 def create_upload(db: Session, user: User, body: UploadCreate, storage: Storage | None = None) -> PresignedUpload:
+    """The upload row (pending) and its presigned POST. The caller commits."""
     purpose = UploadPurpose(body.purpose)
     name = clean_file_name(body.file_name)
     ft = file_type_for(name, purpose)
@@ -199,7 +212,6 @@ def create_upload(db: Session, user: User, body: UploadCreate, storage: Storage 
     db.add(up)
     st = storage or get_storage()
     post = st.presigned_post(up.storage_key, ft.content_type, body.size_bytes)
-    db.commit()
     return PresignedUpload(
         upload_id=upload_id,
         url=post["url"],
@@ -223,9 +235,14 @@ def _looks_right(ft: FileType, head: bytes) -> bool:
     return any(head.startswith(m) for m in ft.magic)
 
 
-def _mismatch(st: Storage, key: str) -> ApiError:
+def _mismatch(st: Storage, key: str, file_name: str) -> ApiError:
+    """The file isn't what its name says (or not the size the browser announced): it is deleted. The message
+    speaks of the name a student chose, not of anything 'declared' (student test ST-7)."""
     st.delete(key)
-    return ApiError(422, "mismatch", "This file doesn't match what was declared. Choose the file again.")
+    ext = extension(file_name)
+    what = f"a real .{ext} file" if ext else "the file it says it is"
+    msg = f"This isn't {what}: what's inside doesn't match its name. Save or export it again, or choose another file."
+    return ApiError(422, "mismatch", msg)
 
 
 def _not_uploaded(message: str = "The file hasn't arrived yet. Upload it again.") -> ApiError:
@@ -233,6 +250,7 @@ def _not_uploaded(message: str = "The file hasn't arrived yet. Upload it again."
 
 
 def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Storage | None = None) -> UploadOut:
+    """Checks what arrived and moves it to its final key. The caller commits."""
     up = db.get(Upload, upload_id)
     if up is None or up.user_id != user.id:
         raise not_found("This upload doesn't exist.")
@@ -247,7 +265,7 @@ def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Stor
     if info is None:
         raise _not_uploaded()
     if ft is None or not 1 <= info.size <= max_size or media_type(info.content_type) != up.content_type:
-        raise _mismatch(st, incoming)
+        raise _mismatch(st, incoming, up.file_name)
 
     # Copy first, then check the copy: no presigned policy can write a final key, so what passes here is exactly
     # what will be served, even if the uploader re-POSTs to incoming/ meanwhile (security review, SEC-13). Where the
@@ -265,12 +283,11 @@ def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Stor
     stored = st.head(final)
     head = st.read_head(final, SNIFF_BYTES)
     if stored is None or head is None or not 1 <= stored.size <= max_size or not _looks_right(ft, head):
-        raise _mismatch(st, final)
+        raise _mismatch(st, final, up.file_name)
     up.storage_key = final
     up.size_bytes = stored.size
     up.status = UploadStatus.uploaded
     up.completed_at = utcnow()
-    db.commit()
     return to_out(up)
 
 
@@ -300,9 +317,10 @@ def media_redirect_url(
 
 
 def can_view_image(db: Session, up: Upload, viewer: User | None) -> bool:
-    """Its uploader and moderators always. Everyone else while it is attached to a visible post: the thread, or the
-    reply and a thread that isn't hidden. Not before it is posted (the composer previews from the file itself), and
-    not once the post is hidden, deleted or gone, or no longer shows it."""
+    """Its uploader and moderators always. Everyone else while it is attached to a post they can read that still
+    shows it: a visible thread, or a visible reply in a thread they can open. The author of a hidden thread can read
+    it (decision D3), so they see its pictures, the other replies' too. Not before it is posted (the composer
+    previews from the file itself), and not once the post is deleted or gone, or no longer shows it."""
     if is_moderator(viewer) or (viewer is not None and up.user_id == viewer.id):
         return True
     if up.status != UploadStatus.attached:
@@ -312,8 +330,10 @@ def can_view_image(db: Session, up: Upload, viewer: User | None) -> bool:
         if reply is None or reply.status != PostStatus.visible:
             return False
         thread = db.get(ForumThread, reply.thread_id)
-        return thread is not None and thread.status != PostStatus.hidden
+        return thread is not None and can_read_thread(thread, viewer)
     if up.thread_id is not None:
         thread = db.get(ForumThread, up.thread_id)
-        return thread is not None and thread.status == PostStatus.visible
+        if thread is None or thread.status == PostStatus.deleted:
+            return False
+        return thread.status == PostStatus.visible or can_read_thread(thread, viewer)
     return False

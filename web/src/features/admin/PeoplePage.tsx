@@ -1,47 +1,30 @@
 // /admin/people (admins): find an account, change its role, suspend or lift a suspension; and the activity log.
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowClockwise, ClockCounterClockwise, Prohibit, UserCheck, UsersThree, WarningCircle } from '@phosphor-icons/react';
-import { ApiError, errorMessage } from '../../api/errors';
+import { useMemo, useState } from 'react';
+import { ClockCounterClockwise, Prohibit, UserCheck, UserGear, UsersThree } from '@phosphor-icons/react';
+import { errorMessage } from '../../api/errors';
 import type { AdminUser, AdminUserPage } from '../../api/types';
 import { RoleGate, roleLabel, useAuth } from '../../auth';
 import { formatPhone } from '../../auth/identifiers';
-import { useQueryParam, useToast } from '../../state';
+import { useDebouncedValue, useQueryParam, useToast } from '../../state';
 import {
-  Avatar, Badge, Button, CohortBadge, EmptyState, Modal, Page, PageHeader, Panel, SearchField, Select, Skeleton, TabPanel, Tabs, formatDate, timeAgo,
+  Avatar, Badge, Button, CohortBadge, ConfirmDialog, EmptyState, Page, PageHeader, Panel, QueryError, SearchField, Select, Skeleton, TabPanel, Tabs, formatDate, timeAgo,
 } from '../../ui';
 import { auditActor, describeAudit } from './audit';
 import { ADMIN_USERS_KEY, useAudit, usePeople, useUpdatePerson, type Role } from './api';
+import { RoleDialog } from './RoleDialog';
+import { roleWithArticle } from './roles';
 import './PeoplePage.css';
 
-const ROLES: Role[] = ['student', 'moderator', 'admin'];
 const ROLE_FILTERS = [
   { value: '', label: 'Everyone' },
   { value: 'student', label: 'Students' },
   { value: 'moderator', label: 'Student reps' },
   { value: 'admin', label: 'Admins' },
 ];
-const ROLE_POWERS: Record<Role, string> = {
-  student: 'They can post, vote and upload like every student, and lose any moderation powers.',
-  moderator: 'Student reps moderate the forum and the library, and edit the calendar and the newsletter.',
-  admin: 'Admins can do everything student reps can, and also manage people and roles.',
-};
+type Change = { role: Role } | { status: 'active' | 'suspended' };
+type Pending = { person: AdminUser; change: Change } | null;
 
-type Pending = { person: AdminUser; change: { role: Role } | { status: 'active' | 'suspended' } } | null;
-
-function problem(e: unknown): string {
-  if (e instanceof ApiError && e.code === 'network') return 'Couldn’t reach the Hub. Check your connection and try again.';
-  return errorMessage(e);
-}
-
-function useDebounced<T>(value: T, ms: number): T {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const t = setTimeout(() => setV(value), ms);
-    return () => clearTimeout(t);
-  }, [value, ms]);
-  return v;
-}
 
 function displayName(p: AdminUser): string {
   return p.displayName || 'No name yet';
@@ -49,7 +32,7 @@ function displayName(p: AdminUser): string {
 
 // ── People ───────────────────────────────────────────────────────────────────────────────────
 
-function PersonRow({ p, isSelf, onChange }: { p: AdminUser; isSelf: boolean; onChange: (change: { role: Role } | { status: 'active' | 'suspended' }) => void }) {
+function PersonRow({ p, isSelf, onRole, onStatus }: { p: AdminUser; isSelf: boolean; onRole: () => void; onStatus: (status: 'active' | 'suspended') => void }) {
   const suspended = p.status === 'suspended';
   const ids = [p.email, p.phone ? formatPhone(p.phone) : null].filter(Boolean).join(' · ');
   return (
@@ -77,15 +60,14 @@ function PersonRow({ p, isSelf, onChange }: { p: AdminUser; isSelf: boolean; onC
         {p.year ? <CohortBadge year={p.year} size="sm" /> : <span className="people-muted">None</span>}
       </td>
       <td className="people-cell people-cell--role" data-label="Role">
-        <Select
-          label={`Role of ${displayName(p)}`}
-          hideLabel
-          value={p.role}
-          disabled={isSelf}
-          onChange={(e) => onChange({ role: e.target.value as Role })}
-          options={ROLES.map((r) => ({ value: r, label: roleLabel(r) }))}
-          className="people-role"
-        />
+        <span className="people-role">
+          <span className="people-role__name">{roleLabel(p.role)}</span>
+          {isSelf ? null : (
+            <Button size="sm" variant="ghost" leadingIcon={UserGear} onClick={onRole} aria-label={`Change the role of ${displayName(p)}`}>
+              Change
+            </Button>
+          )}
+        </span>
       </td>
       <td className="people-cell people-cell--seen" data-label="Last seen">
         {p.lastSeenAt ? (
@@ -99,11 +81,11 @@ function PersonRow({ p, isSelf, onChange }: { p: AdminUser; isSelf: boolean; onC
       </td>
       <td className="people-cell people-cell--actions">
         {isSelf ? null : suspended ? (
-          <Button size="sm" leadingIcon={UserCheck} onClick={() => onChange({ status: 'active' })} aria-label={`Lift the suspension of ${displayName(p)}`}>
+          <Button size="sm" leadingIcon={UserCheck} onClick={() => onStatus('active')} aria-label={`Lift the suspension of ${displayName(p)}`}>
             Lift suspension
           </Button>
         ) : (
-          <Button size="sm" variant="ghost" leadingIcon={Prohibit} onClick={() => onChange({ status: 'suspended' })} aria-label={`Suspend ${displayName(p)}`}>
+          <Button size="sm" variant="ghost" leadingIcon={Prohibit} onClick={() => onStatus('suspended')} aria-label={`Suspend ${displayName(p)}`}>
             Suspend
           </Button>
         )}
@@ -117,17 +99,26 @@ function People() {
   const { push } = useToast();
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
-  const q = useDebounced(search.trim(), 300);
+  const q = useDebouncedValue(search.trim(), 300);
   const people = usePeople(q, (role || null) as Role | null, true);
   const update = useUpdatePerson();
-  const [pending, setPending] = useState<Pending>(null);
+  const [pending, setPendingState] = useState<Pending>(null);
+  const [roleFor, setRoleForState] = useState<AdminUser | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+  const setPending = (next: Pending) => {
+    setProblem(null);
+    setPendingState(next);
+  };
+  const setRoleFor = (next: AdminUser | null) => {
+    setProblem(null);
+    setRoleForState(next);
+  };
 
   const list = useMemo(() => people.data?.pages.flatMap((p) => p.items) ?? [], [people.data]);
   const total = people.data?.pages[0]?.total ?? 0;
 
-  const confirm = () => {
-    if (!pending) return;
-    const { person, change } = pending;
+  const apply = (person: AdminUser, change: Change, done: () => void) => {
+    setProblem(null);
     update.mutate(
       { id: person.id, change },
       {
@@ -135,34 +126,18 @@ function People() {
           const name = displayName(p);
           push({
             tone: 'success',
-            title: 'role' in change ? `${name} is now ${change.role === 'admin' ? 'an admin' : change.role === 'moderator' ? 'a student rep' : 'a student'}` : change.status === 'suspended' ? `${name} is suspended` : `${name} can post again`,
+            title: 'role' in change ? `${name} is now ${roleWithArticle(change.role)}` : change.status === 'suspended' ? `${name} is suspended` : `${name} can post again`,
             body: 'They get a notification.',
           });
-          setPending(null);
+          done();
         },
-        onError: (err) => push({ tone: 'alert', title: 'Nothing changed', body: problem(err) }),
+        onError: (err) => setProblem(errorMessage(err)),
       },
     );
   };
 
   const pendingName = pending ? displayName(pending.person) : '';
-  const dialog = !pending
-    ? null
-    : 'role' in pending.change
-      ? {
-          title: `Make ${pendingName} ${pending.change.role === 'admin' ? 'an admin' : pending.change.role === 'moderator' ? 'a student rep' : 'a student'}?`,
-          body: ROLE_POWERS[pending.change.role],
-          action: pending.change.role === 'student' ? 'Make student' : pending.change.role === 'admin' ? 'Make admin' : 'Make student rep',
-          danger: false,
-        }
-      : pending.change.status === 'suspended'
-        ? {
-            title: `Suspend ${pendingName}?`,
-            body: 'They can still sign in and read, but can’t post, upload or react until you lift it. Student reps and admins also lose their powers while suspended.',
-            action: 'Suspend',
-            danger: true,
-          }
-        : { title: `Lift ${pendingName}’s suspension?`, body: 'They can post, upload and react again.', action: 'Lift suspension', danger: false };
+  const suspending = !!pending && 'status' in pending.change && pending.change.status === 'suspended';
 
   return (
     <>
@@ -190,17 +165,7 @@ function People() {
             ))}
           </div>
         ) : people.isError ? (
-          <EmptyState
-            size="sm"
-            icon={WarningCircle}
-            title="People didn’t load"
-            body={problem(people.error)}
-            action={
-              <Button size="sm" leadingIcon={ArrowClockwise} onClick={() => void people.refetch()} loading={people.isFetching}>
-                Try again
-              </Button>
-            }
-          />
+          <QueryError error={people.error} title="People didn’t load" onRetry={() => void people.refetch()} retrying={people.isFetching} size="sm" panel={false} />
         ) : list.length === 0 ? (
           <EmptyState
             size="sm"
@@ -236,7 +201,13 @@ function People() {
             </thead>
             <tbody>
               {list.map((p) => (
-                <PersonRow key={p.id} p={p} isSelf={p.id === me?.id} onChange={(change) => setPending({ person: p, change })} />
+                <PersonRow
+                  key={p.id}
+                  p={p}
+                  isSelf={p.id === me?.id}
+                  onRole={() => setRoleFor(p)}
+                  onStatus={(status) => setPending({ person: p, change: { status } })}
+                />
               ))}
             </tbody>
           </table>
@@ -250,24 +221,28 @@ function People() {
         </div>
       ) : null}
 
-      <Modal
+      <RoleDialog
+        person={roleFor ? { id: roleFor.id, name: displayName(roleFor), role: roleFor.role } : null}
+        busy={update.isPending}
+        error={roleFor ? problem : null}
+        onSave={(role) => roleFor && apply(roleFor, { role }, () => setRoleFor(null))}
+        onClose={() => setRoleFor(null)}
+      />
+      <ConfirmDialog
         open={pending !== null}
-        onClose={() => setPending(null)}
-        title={dialog?.title ?? ''}
-        size="sm"
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setPending(null)} disabled={update.isPending}>
-              Cancel
-            </Button>
-            <Button variant={dialog?.danger ? 'danger' : 'primary'} onClick={confirm} loading={update.isPending}>
-              {dialog?.action}
-            </Button>
-          </>
+        title={suspending ? `Suspend ${pendingName}?` : `Lift ${pendingName}’s suspension?`}
+        body={
+          suspending
+            ? 'They can still sign in and read, but can’t post, upload or react until you lift it. Student reps and admins also lose their powers while suspended. They get a notification.'
+            : 'They can post, upload and react again. They get a notification.'
         }
-      >
-        <p className="people-dialog">{dialog?.body} They get a notification.</p>
-      </Modal>
+        confirmLabel={suspending ? 'Suspend' : 'Lift suspension'}
+        tone={suspending ? 'danger' : 'primary'}
+        busy={update.isPending}
+        error={pending ? problem : null}
+        onConfirm={() => pending && apply(pending.person, pending.change, () => setPending(null))}
+        onClose={() => setPending(null)}
+      />
     </>
   );
 }
@@ -306,21 +281,7 @@ function Activity() {
     );
   }
   if (audit.isError) {
-    return (
-      <Panel padding="none">
-        <EmptyState
-          size="sm"
-          icon={WarningCircle}
-          title="Activity didn’t load"
-          body={problem(audit.error)}
-          action={
-            <Button size="sm" leadingIcon={ArrowClockwise} onClick={() => void audit.refetch()} loading={audit.isFetching}>
-              Try again
-            </Button>
-          }
-        />
-      </Panel>
-    );
+    return <QueryError error={audit.error} title="Activity didn’t load" onRetry={() => void audit.refetch()} retrying={audit.isFetching} size="sm" />;
   }
   if (!entries.length) {
     return (

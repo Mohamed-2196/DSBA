@@ -1,6 +1,5 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { PostHogProvider } from 'posthog-js/react';
 // Self-hosted fonts (no Google Fonts): Schibsted Grotesk (UI), Newsreader (editorial), JetBrains Mono (code/keys).
 import '@fontsource-variable/schibsted-grotesk/wght.css';
 import '@fontsource-variable/schibsted-grotesk/wght-italic.css';
@@ -17,19 +16,20 @@ import './styles/tokens.css';
 import './styles/base.css';
 import App from './App';
 
-// Product analytics only when a key is configured (VITE_POSTHOG_KEY); nothing is sent in development.
-const posthogKey = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
 const root = document.getElementById('root');
 if (!root) throw new Error('#root is missing from index.html');
 
 createRoot(root).render(
   <StrictMode>
-    {posthogKey ? (
-      <PostHogProvider apiKey={posthogKey} options={{ api_host: 'https://us.i.posthog.com' }}>
-        <App />
-      </PostHogProvider>
-    ) : (
-      <App />
-    )}
+    <App />
   </StrictMode>,
 );
+
+// Product analytics only when the build has a key (VITE_POSTHOG_KEY): the SDK then loads on its own, after the app,
+// with privacy-safe settings (lib/analytics.ts). Without a key nothing is loaded or sent.
+const posthogKey = import.meta.env.VITE_POSTHOG_KEY;
+if (posthogKey) {
+  import('./lib/analytics')
+    .then(({ startAnalytics }) => startAnalytics(posthogKey, import.meta.env.VITE_POSTHOG_HOST))
+    .catch(() => undefined); // analytics never gets in the way of the app
+}

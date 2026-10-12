@@ -1,16 +1,26 @@
 from __future__ import annotations
 
+import re
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from datetime import timedelta
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from app.models import AuditEntry, LibraryItem, Module, Notification, Upload, User
-from tests.content.conftest import API, DOCX, PDF
+from app import cli
+from app.core.time import utcnow
+from app.models import AuditEntry, ItemStatus, LibraryItem, Module, Notification, Upload, User, UserStatus
+from app.services import library
+from tests.content.conftest import API, DOCX, PDF, PNG
+
+JPG = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01" + b"\x00" * 48
+WEBP = b"RIFF\x24\x00\x00\x00WEBPVP8 " + b"\x00" * 48
 
 Clients = Callable[..., TestClient]
 Share = Callable[..., dict[str, Any]]
@@ -127,15 +137,15 @@ def test_upload_review_publish_download_star_delete(
     assert them.delete(item_url(item, "/star")).json() == {"starred": False}
     assert them.delete(item_url(item, "/star")).json() == {"starred": False}
 
-    # delete: not someone else's; the uploader's own goes, file and all
+    # delete: not someone else's; the uploader's own goes at once (the file a week later, with the daily sweep)
     key = db.scalar(select(LibraryItem.storage_key).where(LibraryItem.id == uuid.UUID(item["id"])))
     assert key is not None
     assert storage.head(key) is not None
     assert them.delete(item_url(item)).status_code == 403
     assert guest.delete(item_url(item)).status_code == 401
     assert me.delete(item_url(item)).status_code == 204
-    assert storage.head(key) is None
-    assert db.scalar(select(Upload).where(Upload.storage_key == key)) is None
+    assert storage.head(key) is not None  # nothing serves it any more: see test_the_sweep_deletes_...
+    assert guest.get(item_url(item, "/download"), follow_redirects=False).status_code == 404
     assert guest.get(item_url(item)).status_code == 404
     assert me.get(item_url(item)).status_code == 404  # gone for its uploader too
     assert me.delete(item_url(item)).status_code == 404
@@ -196,7 +206,9 @@ def test_creating_an_item_needs_a_finished_upload_of_your_own(
     image = upload_file(me, purpose="forum_image", name="a.png", content_type="image/png", body=b"\x89PNG\r\n\x1a\n")
     assert create(image["uploadId"]).status_code == 422
     done = upload_file(me)
-    assert create(done["uploadId"], moduleId="no-such-module").status_code == 422
+    assert create(done["uploadId"], moduleId="no-such-module").json()["error"]["fields"] == {
+        "moduleId": "Pick a module from the list."
+    }
     assert create(done["uploadId"], title="ab").status_code == 422  # titles are 3-200 characters
     assert create(done["uploadId"], kind="memes").status_code == 422
     assert create(done["uploadId"]).status_code == 201
@@ -252,11 +264,17 @@ def test_moderators_remove_files_and_it_is_audited(
     rep = client_for(moderator)
     rep.post(item_url(item, "/review"), json={"decision": "publish"})
     key = db.scalar(select(LibraryItem.storage_key).where(LibraryItem.id == uuid.UUID(item["id"])))
+    assert key is not None
     assert rep.delete(item_url(item)).status_code == 204
-    assert storage.head(key) is None
-    assert "library.remove" in audit_actions(db)
+    assert storage.head(key) is not None  # deleted by the daily sweep a week later (SEC-14)
+    entry = db.scalar(select(AuditEntry).where(AuditEntry.action == "library.remove"))
+    assert entry is not None
+    assert (entry.target_type, entry.target_id) == ("library_item", item["id"])
+    assert (entry.data["title"], entry.data["was"]) == ("Chapter 3 notes", "published")
     assert rep.get(item_url(item)).json()["status"] == "removed"
-    assert rep.post(item_url(item, "/review"), json={"decision": "publish"}).json()["error"]["code"] == "removed"
+    assert (
+        rep.post(item_url(item, "/review"), json={"decision": "publish"}).json()["error"]["code"] == "post_unavailable"
+    )
     assert client_for().get(item_url(item, "/download"), follow_redirects=False).status_code == 404
 
 
@@ -388,3 +406,210 @@ def test_a_title_used_twice_gets_its_own_address(client_for: Clients, moderator:
 
 def test_pdf_constant_is_a_pdf() -> None:
     assert PDF.startswith(b"%PDF-")
+
+
+def key_of(db: Session, item: dict[str, Any]) -> str | None:
+    return db.scalar(select(LibraryItem.storage_key).where(LibraryItem.id == uuid.UUID(item["id"])))
+
+
+# ── pictures (decision D9) ───────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    ("name", "content_type", "body", "fmt", "stored"),
+    [
+        ("whiteboard.png", "image/png", PNG, "PNG", "image/png"),
+        ("Scan 1.JPG", "image/jpeg", JPG, "JPG", "image/jpeg"),
+        ("slide.jpeg", "image/jpg", JPG, "JPG", "image/jpeg"),
+        ("photo.webp", "image/webp", WEBP, "WEBP", "image/webp"),
+    ],
+)
+def test_pictures_are_shared_reviewed_and_previewed_inline(
+    client_for: Clients,
+    student: User,
+    moderator: User,
+    share_file: Share,
+    name: str,
+    content_type: str,
+    body: bytes,
+    fmt: str,
+    stored: str,
+) -> None:
+    item = share_file(
+        client_for(student), title="Whiteboard after the lecture", name=name, content_type=content_type, body=body
+    )
+    assert (item["format"], item["contentType"], item["status"]) == (fmt, stored, "pending")
+    rep = client_for(moderator)
+    r = rep.get(item_url(item, "/file"))  # the rep looks at it before publishing
+    assert r.status_code == 200, r.text
+    params = parse_qs(urlparse(r.json()["url"]).query)
+    assert params["response-content-type"] == [stored]
+    assert params["response-content-disposition"][0].startswith("inline;")
+    rep.post(item_url(item, "/review"), json={"decision": "publish"})
+    location = rep.get(item_url(item, "/download"), follow_redirects=False).headers["location"]
+    assert parse_qs(urlparse(location).query)["response-content-disposition"][0].startswith("attachment;")
+
+
+# ── who may write (student test ST-8) ────────────────────────────────────────────────────────
+
+
+def test_a_suspended_account_or_one_without_a_profile_cannot_star_or_remove(
+    client_for: Clients, make_user: Callable[..., User], moderator: User, share_file: Share, db: Session
+) -> None:
+    shared = share_file(client_for(moderator), title="Shared by a rep")
+    sam = make_user(name="Sam")
+    c = client_for(sam)
+    own = share_file(c, title="Sam's notes")
+    assert c.put(item_url(shared, "/star")).json() == {"starred": True}
+    sam.status = UserStatus.suspended
+    db.commit()
+    for r in (c.put(item_url(shared, "/star")), c.delete(item_url(shared, "/star")), c.delete(item_url(own))):
+        assert r.status_code == 403
+        assert r.json()["error"]["message"] == "Your account is suspended. Contact a student rep."
+    assert c.get(item_url(shared)).json()["starred"] is True  # reading still works
+    assert c.get(item_url(own)).json()["status"] == "pending"
+    nameless = client_for(make_user(name=None))
+    r = nameless.put(item_url(shared, "/star"))
+    assert (r.status_code, r.json()["error"]["message"]) == (403, "Finish your profile first.")
+
+
+# ── what waits for review, and for how long (security review SEC-14) ─────────────────────────
+
+
+def presign_library(client: TestClient) -> Any:
+    payload = {"purpose": "library", "fileName": "more.pdf", "contentType": "application/pdf", "sizeBytes": 100}
+    return client.post(f"{API}/uploads", json=payload)
+
+
+def test_a_student_has_at_most_ten_files_waiting_for_review(
+    client_for: Clients,
+    student: User,
+    moderator: User,
+    share_file: Share,
+    upload_file: Upload_,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assert library.MAX_PENDING == 10
+    monkeypatch.setattr(library, "MAX_PENDING", 2)  # the same rule, with fewer uploads
+    me, rep = client_for(student), client_for(moderator)
+    early = upload_file(me)  # uploaded while there was room
+    first = share_file(me, title="First notes")
+    share_file(me, title="Second notes")
+
+    # refused before the file travels...
+    r = presign_library(me)
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "too_many_pending")
+    assert r.json()["error"]["message"] == (
+        "You have 2 files waiting for review. Share more once a student rep has looked at them."
+    )
+    # ...and when an item is made from an upload that got in earlier
+    third = {"uploadId": early["uploadId"], "title": "Third notes", "kind": "notes"}
+    r = me.post(f"{API}/library/items", json=third)
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "too_many_pending")
+    # forum pictures are not held up
+    image = {"purpose": "forum_image", "fileName": "a.png", "contentType": "image/png", "sizeBytes": 100}
+    assert me.post(f"{API}/uploads", json=image).status_code == 201
+
+    # once a rep has looked at one, there is room again
+    rep.post(item_url(first, "/review"), json={"decision": "reject"})
+    assert me.post(f"{API}/library/items", json=third).status_code == 201
+    assert presign_library(me).json()["error"]["code"] == "too_many_pending"
+    # reps' files are published at once: nothing of theirs waits
+    for i in range(3):
+        assert share_file(rep, title=f"Rep file {i}")["status"] == "published"
+
+
+def test_the_sweep_deletes_rejected_and_removed_files_after_a_week(
+    client_for: Clients,
+    student: User,
+    moderator: User,
+    share_file: Share,
+    storage: Any,
+    db: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    me, rep = client_for(student), client_for(moderator)
+    rejected = share_file(me, title="Rejected notes")
+    removed = share_file(me, title="Removed notes")
+    published = share_file(me, title="Published notes")
+    recent = share_file(me, title="Rejected this week")
+    rep.post(item_url(rejected, "/review"), json={"decision": "reject", "note": "This is a copyrighted textbook."})
+    rep.post(item_url(recent, "/review"), json={"decision": "reject"})
+    rep.post(item_url(published, "/review"), json={"decision": "publish"})
+    assert me.delete(item_url(removed)).status_code == 204
+    keys = {name: key_of(db, item) for name, item in (("rejected", rejected), ("removed", removed))}
+    kept = [key_of(db, published), key_of(db, recent)]
+    assert all(keys.values())
+    assert all(kept)
+    week_ago = utcnow() - library.FILE_GRACE - timedelta(hours=1)
+    old = [uuid.UUID(rejected["id"]), uuid.UUID(removed["id"])]
+    db.execute(update(LibraryItem).where(LibraryItem.id.in_(old)).values(updated_at=week_ago))
+    db.commit()
+
+    @contextmanager
+    def same_session() -> Iterator[Session]:
+        yield db
+
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: same_session)
+    cli.sweep()  # the daily command (app/cli.py) does it
+    db.expire_all()
+    for key in keys.values():
+        assert key is not None
+        assert storage.head(key) is None
+        assert db.scalar(select(Upload).where(Upload.storage_key == key)) is None
+    assert all(storage.head(k) is not None for k in kept if k)  # published, or rejected less than a week ago
+
+    # the item stays, without a file: its uploader still reads why it was rejected
+    row = db.get(LibraryItem, uuid.UUID(rejected["id"]))
+    assert row is not None
+    assert (row.status, row.storage_key) == (ItemStatus.rejected, None)
+    assert me.get(item_url(rejected)).json()["reviewNote"] == "This is a copyrighted textbook."
+    r = rep.post(item_url(rejected, "/review"), json={"decision": "publish"})
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "file_gone")
+    assert rep.get(item_url(rejected, "/download"), follow_redirects=False).status_code == 404
+    assert rep.get(item_url(rejected, "/file")).json()["error"]["code"] == "no_preview"
+    assert library.sweep_files(db, storage) == 0  # nothing left to do
+
+
+# ── the activity log (student test ST-9) ─────────────────────────────────────────────────────
+
+
+def test_the_activity_log_names_every_file(
+    client_for: Clients, student: User, moderator: User, share_file: Share, modules: dict[str, Module], db: Session
+) -> None:
+    me, rep = client_for(student), client_for(moderator)
+    a = share_file(me, title="Notes A")
+    b = share_file(me, title="Notes B")
+    rep.post(item_url(a, "/review"), json={"decision": "publish", "note": "Thanks"})
+    rep.post(item_url(b, "/review"), json={"decision": "reject", "note": "Blurry"})
+    rep.patch(item_url(a), json={"title": "Notes A (revised)", "moduleId": "economics"})
+    rep.delete(item_url(a))
+    share_file(rep, title="Rep's sheet")
+    link(rep, title="Past exams folder")
+    rows = list(db.scalars(select(AuditEntry).where(AuditEntry.target_type == "library_item").order_by(AuditEntry.id)))
+    assert [(e.action, e.data["title"]) for e in rows] == [
+        ("library.publish", "Notes A"),
+        ("library.reject", "Notes B"),
+        ("library.edit", "Notes A (revised)"),
+        ("library.remove", "Notes A (revised)"),
+        ("library.publish", "Rep's sheet"),
+        ("library.link", "Past exams folder"),
+    ]
+    assert (rows[0].data["note"], rows[1].data["note"]) == ("Thanks", "Blurry")
+    assert rows[2].data["fields"] == ["module_id", "title", "year"]
+    assert rows[3].data["was"] == "published"
+    assert rows[4].data["own"] is True
+    assert rows[5].data["url"] == "https://drive.google.com/drive/folders/abc"
+    assert all(e.data["actorName"] == "Maryam Rep" for e in rows)
+
+
+def test_titles_without_latin_letters_get_a_short_id(
+    client_for: Clients, moderator: User, modules: dict[str, Module]
+) -> None:
+    """Decision D8: an Arabic title gives 'ec2020-x3k9q2' (or 'f-x3k9q2' without a module), never 'file-2'."""
+    rep = client_for(moderator)
+    with_module = link(rep, title="أسئلة الامتحانات السابقة", moduleId="econometrics").json()["slug"]
+    without = link(rep, title="ملخص الفصل الثالث").json()["slug"]
+    assert re.fullmatch(r"ec2020-[a-z0-9]{6}", with_module), with_module
+    assert re.fullmatch(r"f-[a-z0-9]{6}", without), without
+    assert link(rep, title="Past exams سابقة", moduleId="econometrics").json()["slug"] == "ec2020-past-exams"

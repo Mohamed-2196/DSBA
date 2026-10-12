@@ -15,6 +15,7 @@ from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
+from app.core.time import BAHRAIN, bahrain_today
 from app.models import (
     CalendarEvent,
     ForumThread,
@@ -27,7 +28,9 @@ from app.models import (
 )
 from app.schemas.misc import SearchHit, SearchResults, SearchType
 from app.services import library as lib
-from app.services.calendar import BAHRAIN, TYPE_LABELS, bahrain_today, cohort_label
+from app.services.calendar import TYPE_LABELS, cohort_label
+from app.services.forum.taxonomy import CATEGORY_BY_ID
+from app.services.forum.text import to_plain_text  # a post reads the same in search as in the forum (CQ-6)
 from app.services.newsletter import issue_text
 
 WORD_RE = re.compile(r"[^\W_]+")
@@ -47,13 +50,6 @@ MODULE_ALIASES: dict[str, tuple[str, ...]] = {
     "python": ("programming",),
     "sql": ("programming",),
     "ba": ("business analytics",),
-}
-CATEGORY_LABELS = {
-    "year-1": "Year 1",
-    "year-2": "Year 2",
-    "year-3": "Year 3",
-    "study-groups": "Study groups",
-    "general": "General",
 }
 
 
@@ -92,25 +88,7 @@ def _starts_word(column: Any, word: str) -> ColumnElement[bool]:
     return func.coalesce(column, "").op("~*")(pattern)
 
 
-# ── plain text and snippets ──────────────────────────────────────────────────────────────────
-
-_MD_RULES: tuple[tuple[re.Pattern[str], str], ...] = (
-    (re.compile(r"```[^\n]*\n?"), " "),  # code fences (the code itself stays)
-    (re.compile(r"!\[([^\]]*)\]\([^)]*\)"), r"\1"),  # images -> alt text
-    (re.compile(r"\[([^\]]+)\]\([^)]*\)"), r"\1"),  # links -> their text
-    (re.compile(r"<[^>]{0,200}>"), " "),  # stray tags
-    (re.compile(r"^\s{0,3}(?:#{1,6}|>|[-*+]|\d{1,3}[.)])\s+", re.M), ""),  # headings, quotes, list markers
-    (re.compile(r"(\*\*|__|~~|==|`)"), ""),  # emphasis and code markers
-    (re.compile(r"(?<![\w*])\*(?=\S)([^*\n]+)(?<=\S)\*(?![\w*])"), r"\1"),  # *italic*
-)
-
-
-def plain_text(markdown: str) -> str:
-    """Markdown (forum posts, newsletter copy) as one line of plain text."""
-    s = markdown or ""
-    for rx, repl in _MD_RULES:
-        s = rx.sub(repl, s)
-    return re.sub(r"\s+", " ", s).strip()
+# ── snippets ─────────────────────────────────────────────────────────────────────────────────
 
 
 def snippet(text: str | None, terms: list[str], radius: int = SNIPPET_RADIUS) -> str | None:
@@ -160,13 +138,14 @@ def _threads(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int)
     hits = []
     for r in rows:
         replies = f"{r.reply_count} {'reply' if r.reply_count == 1 else 'replies'}"
-        where = r.unit_code or CATEGORY_LABELS.get(r.category)
+        category = CATEGORY_BY_ID.get(r.category)
+        where = r.unit_code or (category.label if category else None)
         hits.append(
             SearchHit(
                 type="thread",
                 id=str(r.id),
                 title=r.title,
-                snippet=snippet(plain_text(r.body), terms),
+                snippet=snippet(to_plain_text(r.body, image_alt=True), terms),
                 url=f"/forum/{r.slug}",
                 meta=" · ".join(p for p in (where, replies) if p),
                 date=r.last_activity_at,
@@ -283,7 +262,7 @@ def _events(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
         details = ", ".join(p for p in (e.time, e.place) if p) or None
         if e.sample:
             details = f"{details}. " if details else ""
-            details += "Sample date, not confirmed yet."
+            details += "Not confirmed yet."
         hits.append(
             SearchHit(
                 type="event",

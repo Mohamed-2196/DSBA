@@ -1,7 +1,12 @@
-"""Signed-in browsers. The dsba_session cookie holds a random token; its row only holds the token's SHA-256.
+"""Signed-in browsers. The session cookie holds a random token; its row only holds the token's SHA-256.
 
-Sign-in always makes a new session (the browser's previous one is revoked) and a new CSRF cookie; sign-out revokes
-the row and also replaces the CSRF cookie. A user keeps at most MAX_LIVE sessions (security review finding 16)."""
+Sign-in always makes a new session (the browser's previous one is revoked); core.security's CSRF middleware gives
+the browser the CSRF cookie bound to it, and a fresh one when the session cookie is cleared. A user keeps at most
+MAX_LIVE sessions (security review finding 16).
+
+Step-up (round 2, decision D2): changing or removing an email address or phone number, and deleting the account,
+need a session that started less than STEP_UP_WINDOW ago: a sign-in, or a renewal after a code sent to one of the
+account's own identifiers (POST /me/step-up). A session alone, however old, is not enough."""
 
 from __future__ import annotations
 
@@ -13,15 +18,16 @@ from sqlalchemy import delete, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.core.security import _set_csrf_cookie, hash_token, new_token, set_session_cookie
+from app.core.errors import ApiError
+from app.core.security import client_ip, hash_token, new_token, set_session_cookie
 from app.core.time import utcnow
 from app.models import User, UserSession
 from app.schemas.auth import SessionInfo
-from app.services.ratelimit import request_ip
 
 USER_AGENT_MAX = 300
 MAX_LIVE = 20  # live sessions per user; the least recently used ones beyond that are revoked
-CSRF_TOKEN_BYTES = 24  # as core.security makes them
+RETENTION = timedelta(days=30)  # ended sessions are kept this long (who signed in from where), as `cli sweep` does
+STEP_UP_WINDOW = timedelta(minutes=10)
 
 
 def create(db: Session, user: User, request: Request, response: Response) -> UserSession:
@@ -35,7 +41,7 @@ def create(db: Session, user: User, request: Request, response: Response) -> Use
         created_at=now,
         last_seen_at=now,
         expires_at=now + timedelta(days=get_settings().session_days),
-        ip=request_ip(request),
+        ip=client_ip(request),
         user_agent=user_agent(request),
     )
     db.add(sess)
@@ -43,15 +49,23 @@ def create(db: Session, user: User, request: Request, response: Response) -> Use
     return sess
 
 
+def renew(db: Session, user: User, current: UserSession | None, request: Request, response: Response) -> UserSession:
+    """Replaces this browser's session with a new one (sign-in, step-up): revokes the old row, creates the new one,
+    tidies up and keeps the user under MAX_LIVE sessions. The caller commits."""
+    if current is not None:
+        revoke(current)
+    db.flush()
+    purge(db, user.id, utcnow())
+    sess = create(db, user, request, response)
+    db.flush()
+    cap(db, user.id)
+    return sess
+
+
 def user_agent(request: Request) -> str | None:
     raw = request.headers.get("user-agent", "")
     cleaned = "".join(ch for ch in raw if ch.isprintable())[:USER_AGENT_MAX].strip()
     return cleaned or None
-
-
-def rotate_csrf(response: Response) -> None:
-    """A fresh dsba_csrf cookie (at sign-in and sign-out). The web app reads the cookie before every request."""
-    _set_csrf_cookie(response, new_token(CSRF_TOKEN_BYTES))
 
 
 def revoke(sess: UserSession) -> None:
@@ -74,11 +88,12 @@ def cap(db: Session, user_id: uuid.UUID) -> None:
 
 
 def purge(db: Session, user_id: uuid.UUID, now: datetime) -> None:
-    """Deletes the user's sessions that can never be used again (expired or revoked)."""
+    """Deletes the user's sessions that ended (expired or revoked) more than RETENTION ago."""
+    ended = now - RETENTION
     db.execute(
         delete(UserSession).where(
             UserSession.user_id == user_id,
-            or_(UserSession.expires_at <= now, UserSession.revoked_at.is_not(None)),
+            or_(UserSession.expires_at < ended, UserSession.revoked_at < ended),
         )
     )
 
@@ -92,6 +107,24 @@ def live(db: Session, user_id: uuid.UUID) -> list[UserSession]:
         .order_by(func.coalesce(UserSession.last_seen_at, UserSession.created_at).desc(), UserSession.id)
     )
     return list(db.scalars(q))
+
+
+def step_up_left(sess: UserSession | None) -> int:
+    """Seconds this session may still change identifiers or delete the account without another code (0: none)."""
+    if sess is None:
+        return 0
+    left = sess.created_at + STEP_UP_WINDOW - utcnow()
+    return max(0, int(left.total_seconds()))
+
+
+def require_step_up(sess: UserSession | None) -> None:
+    """403 step_up_required unless this session started less than STEP_UP_WINDOW ago (decision D2)."""
+    if step_up_left(sess) <= 0:
+        raise ApiError(
+            403,
+            "step_up_required",
+            "For your security, confirm it's you first: we'll send a code to your email address or phone number.",
+        )
 
 
 def info(sess: UserSession, current: UserSession | None) -> SessionInfo:

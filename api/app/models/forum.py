@@ -22,7 +22,6 @@ class PostStatus(enum.StrEnum):
 class ForumThread(Base):
     __tablename__ = "forum_threads"
     __table_args__ = (
-        Index("ix_forum_threads_status_activity", "status", "last_activity_at"),
         Index("ix_forum_threads_category", "category"),
         Index("ix_forum_threads_module", "module_id"),
         Index("ix_forum_threads_author", "author_id"),
@@ -48,6 +47,9 @@ class ForumThread(Base):
     reply_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")  # visible replies
     created_at: Mapped[datetime] = created_ts()
     edited_at: Mapped[datetime | None]
+    # When its text was deleted (by its author or a rep). Set while it is hidden, unhiding it gives a deleted thread
+    # (security review SEC-15); the row itself says so, not the audit log (code quality review CQ-14).
+    deleted_at: Mapped[datetime | None]
     last_activity_at: Mapped[datetime] = created_ts()
     search_vector: Mapped[str] = mapped_column(
         TSVECTOR,
@@ -63,6 +65,7 @@ class ForumReply(Base):
     __tablename__ = "forum_replies"
     __table_args__ = (
         Index("ix_forum_replies_thread_created", "thread_id", "created_at"),
+        Index("ix_forum_replies_parent", "parent_id"),  # the replies to a reply (ON DELETE CASCADE)
         Index("ix_forum_replies_author", "author_id"),
         Index("ix_forum_replies_search", "search_vector", postgresql_using="gin"),
     )
@@ -77,6 +80,7 @@ class ForumReply(Base):
     vote_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = created_ts()
     edited_at: Mapped[datetime | None]
+    deleted_at: Mapped[datetime | None]  # as ForumThread.deleted_at
     search_vector: Mapped[str] = mapped_column(
         TSVECTOR, Computed("to_tsvector('simple', coalesce(body, ''))", persisted=True)
     )

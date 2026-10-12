@@ -35,6 +35,8 @@
   font-variant-numeric: tabular-nums;
 }
 .otp__field .ui-control__input::placeholder { letter-spacing: 0.42em; }
+/* A long code (10 letters and digits, ABCDE-FGH23) needs less spacing to fit a phone. */
+.otp__field--long .ui-control__input { padding-inline: 12px calc(12px - 0.18em); letter-spacing: 0.18em; }
 
 /* Profile step: the cohort choice as a row of cards. */
 .signin-cohorts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-8); border: 0; padding: 0; margin: 0; min-width: 0; }

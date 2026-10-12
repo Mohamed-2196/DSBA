@@ -1,12 +1,19 @@
+"""The seed loader. Expectations come from the seed files themselves (code quality review CQ-7): a rep's request to
+add a date or fix a title changes the data, never these tests. What is tested is how the files are loaded: once,
+completely, without the prototype's leftovers, and never over what moderators changed since."""
+
 from __future__ import annotations
 
+import datetime as dt
 from collections import Counter
 from collections.abc import Callable
+from typing import Any, get_args
 
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.text import slugify
 from app.models import (
     CalendarEvent,
     ContentDoc,
@@ -16,9 +23,13 @@ from app.models import (
     LibraryItem,
     Module,
     NewsletterIssue,
+    Role,
     User,
 )
-from app.seed.loader import load_all, module_links, read
+from app.schemas.calendar import EventType
+from app.schemas.career import CareerDoc
+from app.schemas.newsletter import IssueCover, IssueSection
+from app.seed.loader import V1_PUBLISHED_AT, load_all, module_links, read, seed_issue
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
@@ -28,151 +39,237 @@ def count(db: Session, model: type) -> int:
     return db.scalar(select(func.count()).select_from(model)) or 0
 
 
-def test_seed_loads_everything_once(db: Session) -> None:
-    expected_links = sum(len(list(module_links(m))) for m in read("modules"))
-    first = load_all(db)
+def expected_links() -> int:
+    return sum(len(list(module_links(m))) for m in read("modules"))
+
+
+def first_load(db: Session) -> dict[str, int]:
+    report = load_all(db)
     db.commit()
-    assert first == {"modules": 16, "calendar": 66, "newsletter": 2, "career": 1, "library": expected_links}
-    assert expected_links == 51
-    assert (count(db, Module), count(db, CalendarEvent), count(db, NewsletterIssue), count(db, ContentDoc)) == (
-        16,
-        66,
-        2,
-        1,
-    )
-    assert count(db, LibraryItem) == expected_links
+    return report
+
+
+# ── the files ────────────────────────────────────────────────────────────────────────────────
+
+
+def test_the_seed_files_hold_together() -> None:
+    """What the loader relies on, checked on the files (no database)."""
+    modules = read("modules")
+    module_ids = [m["id"] for m in modules]
+    assert len(set(module_ids)) == len(module_ids)
+    assert all(m["year"] in (1, 2, 3) for m in modules)
+
+    events = read("calendar")
+    event_ids = [e["id"] for e in events]
+    assert len(set(event_ids)) == len(event_ids)
+    for e in events:
+        assert e["type"] in get_args(EventType), e["id"]
+        assert e.get("moduleId") in (None, *module_ids), e["id"]
+        start = dt.date.fromisoformat(e["date"])
+        assert e.get("endDate") is None or dt.date.fromisoformat(e["endDate"]) >= start, e["id"]
+
+    issues = read("newsletter")
+    assert len({i["slug"] for i in issues}) == len(issues)
+    for raw in issues:
+        body = seed_issue(raw)  # fits the API's schema (raises if not)
+        assert [s.id for s in body.sections] == [s["id"] for s in raw["sections"]]
+
+    career = CareerDoc.model_validate(read("career"))
+    assert set(career.module_refs()) <= set(module_ids)
+
+
+def test_module_links_rules() -> None:
+    """How a v1 module's resources become library links (synthetic modules: the rules, not the content)."""
+    module: dict[str, Any] = {
+        "id": "some-module",
+        "name": "Some Module",
+        "unitCode": "AB1234",
+        "resources": {
+            "materials": "https://drive.example.com/materials",
+            "exercises": "https://drive.example.com/exercises",
+            "exercisesNote": "Weekly problem sets.",
+            "vle": "https://drive.example.com/papers",
+            "olderExams": "https://drive.example.com/papers",
+            "cheatSheet": "http://insecure.example.com/sheet",
+        },
+        "notes": [
+            {"name": "\U0001f9fd\U0001f34d Patrick: Business Edition", "url": "https://drive.example.com/patrick"},
+            {"name": "Mahdi", "author": "Mahdi", "url": "https://drive.example.com/mahdi"},
+            {"name": "Revision pack", "author": "Sara", "url": "https://drive.example.com/pack"},
+            {"name": "Same folder again", "url": "https://drive.example.com/materials"},
+            {"name": "", "url": "https://drive.example.com/nameless"},
+            {"name": "No link"},
+        ],
+    }
+    links = list(module_links(module))
+    assert [(link.kind, link.title, link.url.rsplit("/", 1)[1], link.author_name) for link in links] == [
+        ("course-materials", "Course materials", "materials", None),
+        ("exercises", "Exercises", "exercises", None),
+        ("past-paper", "VLE and older exams", "papers", None),  # one folder for both: one link
+        ("notes", "Patrick: Business Edition", "patrick", None),  # emoji dropped
+        ("notes", "Mahdi's notes", "mahdi", "Mahdi"),
+        ("notes", "Revision pack", "pack", "Sara"),
+    ]  # http:// and repeated links are left out, and notes without a name or a link
+    descriptions = [link.description for link in links]
+    assert descriptions[0] == "The books and study guide for AB1234, in the shared folder."
+    assert descriptions[1] == "Weekly problem sets."
+    assert descriptions[3:] == ["Shared by a student.", "Shared by Mahdi.", "Shared by Sara."]
+
+    module["resources"] = {
+        "vle": "https://a.example.com/vle",
+        "olderExams": "https://a.example.com/old",
+        "exercises": "https://a.example.com/x",
+    }
+    assert [(link.kind, link.title, link.description) for link in module_links({**module, "notes": []})] == [
+        ("exercises", "Exercises", "Practice questions for this module."),
+        ("vle-materials", "VLE materials", "Papers and material from the VLE."),
+        ("past-paper", "Past exams", "Older papers from earlier sittings."),
+    ]
+
+
+# ── loading ──────────────────────────────────────────────────────────────────────────────────
+
+
+def test_seed_loads_everything_once(db: Session) -> None:
+    files = {name: len(read(name)) for name in ("modules", "calendar", "newsletter")}
+    links = expected_links()
+    assert first_load(db) == {**files, "career": 1, "library": links}
+    totals = (count(db, Module), count(db, CalendarEvent), count(db, NewsletterIssue), count(db, ContentDoc))
+    assert totals == (files["modules"], files["calendar"], files["newsletter"], 1)
+    assert count(db, LibraryItem) == links
 
     # run it again: modules are refreshed, nothing else is added
-    second = load_all(db)
+    again = load_all(db)
     db.commit()
-    assert second == {"modules": 16, "calendar": 0, "newsletter": 0, "career": 0, "library": 0}
-    assert count(db, CalendarEvent) == 66
-    assert count(db, LibraryItem) == expected_links
-
-
-def test_seeded_content_is_shaped_for_the_app(db: Session) -> None:
-    load_all(db)
-    db.commit()
-
-    # calendar: ids, sample flags, modules
-    events = {e.id: e for e in db.scalars(select(CalendarEvent))}
-    sample = events["2026-10-11-advanced-stats-inferential-revision"]
-    assert (sample.sample, sample.year, sample.module_id, sample.unit_code) == (
-        True,
-        2,
-        "advanced-stats-inferential",
-        "ST2134",
+    assert again == {"modules": files["modules"], "calendar": 0, "newsletter": 0, "career": 0, "library": 0}
+    assert (count(db, CalendarEvent), count(db, NewsletterIssue), count(db, LibraryItem)) == (
+        files["calendar"],
+        files["newsletter"],
+        links,
     )
-    speech = events["2026-10-05-speech-day-event"]
-    assert (speech.time, speech.place, speech.year, speech.sample) == ("12:30 PM", "Auditorium", None, False)
-    assert sum(e.sample for e in events.values()) == 18
 
-    # newsletter: drafts, sections as written but without the prototype's made-up reaction counts
+
+def test_seeded_content_is_what_the_files_say(db: Session) -> None:
+    first_load(db)
+
+    # calendar: every date as written
+    events = {e.id: e for e in db.scalars(select(CalendarEvent))}
+    for e in read("calendar"):
+        row = events[e["id"]]
+        assert (row.date.isoformat(), row.end_date.isoformat() if row.end_date else None) == (
+            e["date"],
+            e.get("endDate"),
+        )
+        assert (row.title, row.type, row.year, row.time, row.place) == (
+            e["title"],
+            e["type"],
+            e.get("year"),
+            e.get("time"),
+            e.get("place"),
+        )
+        assert (row.module_id, row.unit_code, row.sample) == (
+            e.get("moduleId"),
+            e.get("unitCode"),
+            bool(e.get("sample")),
+        )
+
+    # newsletter: drafts in the API's shape, without the prototype's made-up reaction counts
     issues = {i.slug: i for i in db.scalars(select(NewsletterIssue))}
-    assert set(issues) == {"pilot", "launch-edition"}
-    launch = issues["launch-edition"]
-    assert launch.status == IssueStatus.draft
-    assert launch.published_at is None
-    assert launch.editors == ["Hawra T.", "Zainab K.", "Hussain M."]
-    assert launch.cover["tone"] == "navy"
-    assert [s["id"] for s in launch.sections][:3] == ["cfa", "student-council", "speech-day"]
-    assert all("reactions" not in s for i in issues.values() for s in i.sections)
-    assert launch.sections[0]["figure"]["src"] == "demo/news/cfa-research-challenge.jpg"
+    for raw in read("newsletter"):
+        issue = issues[raw["slug"]]
+        assert (issue.status, issue.published_at, issue.created_by) == (IssueStatus.draft, None, None)
+        assert (issue.title, issue.number, issue.date.isoformat()) == (raw["title"], raw["number"], raw["date"])
+        assert (issue.dek, issue.summary) == (raw.get("dek") or "", raw.get("summary") or "")
+        assert issue.editors == raw["editors"]
+        assert [s["id"] for s in issue.sections] == [s["id"] for s in raw["sections"]]
+        assert all("reactions" not in s for s in issue.sections)
+        assert all(IssueSection.model_validate(s) for s in issue.sections)
+        assert IssueCover.model_validate(issue.cover)
 
-    # career: the whole document
+    # career: the document, stored in the API's shape
     career = db.get(ContentDoc, "career")
     assert career is not None
-    assert career.data == read("career")
+    assert career.data == CareerDoc.model_validate(read("career")).model_dump(mode="json", by_alias=True)
 
-    # library: published links for the module and its year
+    # library: one published link per module resource, in the module and its year, dated before anything uploaded
     items = list(db.scalars(select(LibraryItem)))
     assert all(i.source == ItemSource.link and i.status == ItemStatus.published for i in items)
-    assert all(i.url and i.url.startswith("https://") and i.published_at for i in items)
-    by_slug = {i.slug: i for i in items}
-    materials = by_slug["st2133-course-materials"]
-    assert (materials.kind, materials.title, materials.module_id, materials.year) == (
-        "course-materials",
-        "Course materials",
-        "advanced-stats-distribution",
-        2,
-    )
-    # one folder for the VLE and older exams: one past-paper link, not two
-    st2133 = [i for i in items if i.module_id == "advanced-stats-distribution"]
-    assert Counter(i.kind for i in st2133) == {"course-materials": 1, "past-paper": 1, "notes": 1}
-    assert by_slug["st2133-vle-and-older-exams"].title == "VLE and older exams"
-    ec1002 = Counter(i.kind for i in items if i.module_id == "economics")
-    assert ec1002 == {"course-materials": 1, "exercises": 1, "vle-materials": 1, "past-paper": 1, "notes": 2}
-    assert by_slug["ec1002-past-exams"].title == "Past exams"
-    assert by_slug["st2195-cheat-sheet"].kind == "cheat-sheet"
-    # notes: "<Author>'s notes", or the note's own name (emoji dropped), credited to the author
-    mahdi = by_slug["ec1002-mahdis-notes"]
-    assert (mahdi.title, mahdi.author_name, mahdi.kind) == ("Mahdi's notes", "Mahdi", "notes")
-    assert by_slug["mn1178-patrick-business-edition"].title == "Patrick: Business Edition"
-    assert by_slug["mn1178-patrick-business-edition"].author_name is None
-    assert by_slug["st2133-mohamed-study-guide"].author_name == "Mohamed"
-    # the same note shared in two modules is in both
-    assert {"st1215-product-and-sigma-notation", "st2134-product-and-sigma-notation"} <= set(by_slug)
-    # Year 3 modules have no code: their slug uses the module id
-    assert by_slug["machine-learning-vle-materials"].year == 3
+    assert all(i.published_at == V1_PUBLISHED_AT for i in items)
+    assert len({i.slug for i in items}) == len(items)
+    by_place = {(i.module_id, i.url): i for i in items}
+    modules = {m.id: m for m in db.scalars(select(Module))}
+    for spec in read("modules"):
+        module = modules[spec["id"]]
+        for link in module_links(spec):
+            item = by_place[(module.id, link.url)]
+            assert (item.kind, item.title, item.description, item.author_name) == (
+                link.kind,
+                link.title,
+                link.description,
+                link.author_name,
+            )
+            assert item.year == module.year
+            assert item.slug.startswith(slugify(module.unit_code or module.id))
 
 
 def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, make_user: Callable[..., User]) -> None:
-    from app.models import Role
-
-    load_all(db)
-    db.commit()
+    first_load(db)
     rep = client_for(make_user(name="Rep", role=Role.moderator))
+    events = [e["id"] for e in read("calendar")]
+    edited_event, deleted_event = events[0], events[1]
+    slugs = [i["slug"] for i in read("newsletter")]
+    assert len(slugs) >= 2, "this test edits one seeded issue and deletes another"
+    edited_issue, deleted_issue = slugs[0], slugs[1]
+    links = list(db.scalars(select(LibraryItem).order_by(LibraryItem.slug)))
+    renamed, removed, moved = links[0], links[1], links[2]
+    elsewhere = next(m for m in db.scalars(select(Module)) if m.id != moved.module_id)
 
-    # edit and delete calendar dates; delete an issue; edit and remove library links
-    assert rep.patch(f"{API}/calendar/events/2026-10-05-speech-day-event", json={"place": "Hall 2"}).status_code == 200
-    assert rep.delete(f"{API}/calendar/events/2026-10-06-hub-launch-event").status_code == 204
-    pilot = db.scalar(select(NewsletterIssue).where(NewsletterIssue.slug == "pilot"))
-    assert pilot is not None
-    assert rep.delete(f"{API}/newsletter/issues/{pilot.id}").status_code == 204
-    launch = db.scalar(select(NewsletterIssue).where(NewsletterIssue.slug == "launch-edition"))
-    assert launch is not None
-    assert rep.patch(f"{API}/newsletter/issues/{launch.id}", json={"editors": ["Real Editor"]}).status_code == 200
-    materials = db.scalar(select(LibraryItem).where(LibraryItem.slug == "ec1002-course-materials"))
-    removed = db.scalar(select(LibraryItem).where(LibraryItem.slug == "ec1002-exercises"))
-    moved = db.scalar(select(LibraryItem).where(LibraryItem.slug == "ec1002-past-exams"))
-    assert materials is not None
-    assert removed is not None
-    assert moved is not None
-    assert rep.patch(f"{API}/library/items/{materials.id}", json={"title": "Books and study guide"}).status_code == 200
+    # edit and delete calendar dates; edit and delete issues; edit, remove and move library links
+    assert rep.patch(f"{API}/calendar/events/{edited_event}", json={"place": "Hall 2"}).status_code == 200
+    assert rep.delete(f"{API}/calendar/events/{deleted_event}").status_code == 204
+    issue_ids = {i.slug: i.id for i in db.scalars(select(NewsletterIssue))}
+    assert rep.delete(f"{API}/newsletter/issues/{issue_ids[deleted_issue]}").status_code == 204
+    r = rep.patch(f"{API}/newsletter/issues/{issue_ids[edited_issue]}", json={"editors": ["Real Editor"]})
+    assert r.status_code == 200
+    assert rep.patch(f"{API}/library/items/{renamed.id}", json={"title": "Books and study guide"}).status_code == 200
     assert rep.delete(f"{API}/library/items/{removed.id}").status_code == 204
-    assert rep.patch(f"{API}/library/items/{moved.id}", json={"moduleId": "econometrics"}).status_code == 200
+    assert rep.patch(f"{API}/library/items/{moved.id}", json={"moduleId": elsewhere.id}).status_code == 200
+    career = {**read("career"), "checkedOn": "1 January 2027"}
+    admin = client_for(make_user(name="Admin", role=Role.admin))
+    assert admin.put(f"{API}/career", json=career).status_code == 200
 
     again = load_all(db)
     db.commit()
-    assert again == {"modules": 16, "calendar": 0, "newsletter": 0, "career": 0, "library": 0}
-    speech = db.get(CalendarEvent, "2026-10-05-speech-day-event")
-    assert speech is not None
-    assert speech.place == "Hall 2"
-    assert db.get(CalendarEvent, "2026-10-06-hub-launch-event") is None
-    assert db.scalar(select(NewsletterIssue).where(NewsletterIssue.slug == "pilot")) is None
-    db.refresh(launch)
-    assert launch.editors == ["Real Editor"]
-    db.refresh(materials)
-    assert materials.title == "Books and study guide"
-    db.refresh(removed)
+    assert again == {"modules": len(read("modules")), "calendar": 0, "newsletter": 0, "career": 0, "library": 0}
+    edited = db.get(CalendarEvent, edited_event)
+    assert edited is not None
+    assert edited.place == "Hall 2"
+    assert db.get(CalendarEvent, deleted_event) is None
+    assert db.scalar(select(NewsletterIssue).where(NewsletterIssue.slug == deleted_issue)) is None
+    kept = db.scalar(select(NewsletterIssue).where(NewsletterIssue.slug == edited_issue))
+    assert kept is not None
+    db.refresh(kept)
+    assert kept.editors == ["Real Editor"]
+    for item in (renamed, removed, moved):
+        db.refresh(item)
+    assert renamed.title == "Books and study guide"
     assert removed.status == ItemStatus.removed
-    assert count(db, LibraryItem) == 51
+    assert moved.module_id == elsewhere.id
+    assert count(db, LibraryItem) == expected_links()  # no copy of the moved or removed link
+    doc = db.get(ContentDoc, "career")
+    assert doc is not None
+    db.refresh(doc)
+    assert doc.data["checkedOn"] == "1 January 2027"
 
 
 def test_the_seeded_library_is_public(db: Session, client_for: Clients) -> None:
-    load_all(db)
-    db.commit()
+    first_load(db)
     guest = client_for()
-    page = guest.get(f"{API}/library/items", params={"module_id": "business", "sort": "title"}).json()
-    assert [i["title"] for i in page["items"]] == [
-        "Course materials",
-        "Exercises",
-        "Feras full revision",
-        "Past exams",
-        "Patrick: Business Edition",
-        "VLE materials",
-    ]
+    spec = next(m for m in read("modules") if list(module_links(m)))
+    page = guest.get(f"{API}/library/items", params={"module_id": spec["id"], "limit": 100}).json()
+    assert Counter(i["title"] for i in page["items"]) == Counter(link.title for link in module_links(spec))
+    years = {m["id"]: m["year"] for m in read("modules")}
+    by_year = Counter(str(years[m["id"]]) for m in read("modules") for _ in module_links(m))
     facets = guest.get(f"{API}/library/facets").json()
-    assert facets["total"] == 51
-    assert facets["byYear"] == {"1": 22, "2": 17, "3": 12}
+    assert (facets["total"], facets["byYear"]) == (expected_links(), dict(by_year))
     assert guest.get(f"{API}/newsletter/issues").json() == []  # drafts until a moderator publishes them

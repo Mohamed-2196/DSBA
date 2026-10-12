@@ -11,3 +11,7 @@
 }
 .ui-boundary__icon { font-size: 18px; color: var(--alert); }
 .ui-boundary__retry { color: var(--cobalt); font-weight: var(--fw-semibold); text-decoration: underline; text-underline-offset: 0.18em; }
+
+@media (pointer: coarse) {
+  .ui-boundary__retry { display: inline-flex; align-items: center; min-height: 44px; }
+}

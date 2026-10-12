@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
 from app.models import AuditEntry, ItemSource, ItemStatus, LibraryItem, PostStatus, Report, Role, User, UserStatus
-from app.services import forum
+from app.services import reports
 from tests.community.helpers import API, new_reply, new_thread, notifications_for, set_thread
 
 Client = Callable[..., TestClient]
@@ -40,7 +40,8 @@ def library_item(db: Session, uploader: User, status: ItemStatus = ItemStatus.pu
 
 def report(client: TestClient, target_type: str, target_id: str, **fields: str) -> int:
     body = {"targetType": target_type, "targetId": target_id, "reason": "spam", **fields}
-    return client.post(f"{API}/reports", json=body).status_code
+    code: int = client.post(f"{API}/reports", json=body).status_code
+    return code
 
 
 def test_report_flow(client_for: Client, student: User, classmate: User, moderator: User, db: Session) -> None:
@@ -204,7 +205,7 @@ def test_two_reports_at_once(
         db.add(Report(reporter_id=student.id, target_type="thread", target_id=uuid.UUID(t["id"]), reason="spam"))
         db.flush()
 
-    monkeypatch.setattr(forum, "check_rate", racing_twin)
+    monkeypatch.setattr(reports, "enforce", racing_twin)
     r = client_for(student).post(f"{API}/reports", json={"targetType": "thread", "targetId": t["id"], "reason": "spam"})
     assert r.status_code == 409
     assert r.json()["error"]["code"] == "already_reported"

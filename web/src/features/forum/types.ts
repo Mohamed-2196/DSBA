@@ -1,9 +1,9 @@
 // Shapes of the forum feature. API models (ThreadSummary, ThreadDetail, Reply, UserPublic, ...) come from
 // src/api/types; these are the forum's own view and filter types around them.
 import type { ReportCreate, ReportOut, Reply, ThreadSummary } from '../../api/types';
+import type { CohortYear } from '../../state';
 
 export type CategoryId = ThreadSummary['category'];
-export type CohortYear = 1 | 2 | 3;
 export type ThreadSort = 'hot' | 'new' | 'top';
 export type ReplyOrder = 'top' | 'oldest';
 

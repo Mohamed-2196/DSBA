@@ -171,3 +171,9 @@
   .forum-filters__chips { margin: -3px calc(-1 * var(--content-pad)) -3px -3px; padding-right: var(--content-pad); }
   .forum-side { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Touch screens: 44px targets (UX review UX-11) */
+@media (pointer: coarse) {
+  .forum-live__link, .forum-side__link { display: inline-flex; align-items: center; min-height: 44px; }
+  .forum-cat { min-height: 48px; }
+}

@@ -75,7 +75,7 @@ def test_parallel_wrong_codes_get_five_tries_in_all(
     own_connections: sessionmaker[Session], challenge: uuid.UUID
 ) -> None:
     def wrong(s: Session) -> str:
-        otp.verify(s, challenge_id=challenge, code="000000", purpose=OtpPurpose.sign_in)
+        otp.verify(s, challenge_id=challenge, code="000000", flow="sign_in")
         return "ok"
 
     results = _race(own_connections, wrong)
@@ -89,7 +89,7 @@ def test_parallel_wrong_codes_get_five_tries_in_all(
 
 def test_parallel_right_codes_sign_in_once(own_connections: sessionmaker[Session], challenge: uuid.UUID) -> None:
     def right(s: Session) -> str:
-        otp.verify(s, challenge_id=challenge, code=CODE, purpose=OtpPurpose.sign_in)
+        otp.verify(s, challenge_id=challenge, code=CODE, flow="sign_in")
         s.commit()  # as the handler does, with the new session
         return "ok"
 

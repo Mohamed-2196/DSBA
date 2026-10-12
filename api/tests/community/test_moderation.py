@@ -65,10 +65,13 @@ def test_hidden_threads_exist_only_for_reps(
     t = new_thread(client_for(student), title="Hidden from students")
     m = client_for(moderator)
     assert m.post(f"{API}/forum/threads/{t['id']}/moderate", json={"status": "hidden"}).status_code == 200
-    for viewer in (client_for(), client_for(student), client_for(classmate)):
+    for viewer in (client_for(), client_for(classmate)):
         assert viewer.get(f"{API}/forum/threads/{t['slug']}").status_code == 404
         assert viewer.get(f"{API}/forum/threads/{t['id']}/related").status_code == 404
         assert viewer.get(f"{API}/forum/threads").json()["total"] == 0
+    # its author can still open it (decision D3), but it isn't listed for them and they can't change it
+    assert client_for(student).get(f"{API}/forum/threads/{t['slug']}").json()["status"] == "hidden"
+    assert client_for(student).get(f"{API}/forum/threads").json()["total"] == 0
     assert client_for(student).delete(f"{API}/forum/threads/{t['id']}").status_code == 404
     seen = m.get(f"{API}/forum/threads/{t['slug']}").json()
     assert (seen["status"], seen["body"]) == ("hidden", "I tried integrating directly.")

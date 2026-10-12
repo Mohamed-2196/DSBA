@@ -5,13 +5,16 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, get_args
 
-from sqlalchemy import BigInteger, ForeignKey, Index, SmallInteger, String, Text, text
+from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, SmallInteger, String, Text, text
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, created_ts, str_enum, uuid_pk
+from app.schemas.notifications import NotificationKind
+
+NOTIFICATION_KINDS: tuple[str, ...] = get_args(NotificationKind)
 
 
 class Notification(Base):
@@ -19,6 +22,9 @@ class Notification(Base):
     __table_args__ = (
         Index("ix_notifications_user_created", "user_id", "created_at"),
         Index("ix_notifications_user_unread", "user_id", postgresql_where=text("read_at IS NULL")),
+        Index("ix_notifications_actor", "actor_id"),  # account deletion (SET NULL)
+        # only the kinds the contract lists (code quality review CQ-10: notify() takes nothing else)
+        CheckConstraint(f"kind IN ({', '.join(repr(k) for k in NOTIFICATION_KINDS)})", name="kind"),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -66,6 +72,8 @@ class Report(Base):
     __tablename__ = "reports"
     __table_args__ = (
         Index("ix_reports_status_created", "status", "created_at"),
+        Index("ix_reports_target", "target_type", "target_id"),  # the reports about a post or a file
+        Index("ix_reports_resolved_by", "resolved_by"),  # account deletion (SET NULL)
         Index(
             "uq_reports_open_per_reporter",
             "reporter_id",
@@ -93,7 +101,10 @@ class AuditEntry(Base):
     """Who did what, for actions that change other people's things (moderation, roles, content edits)."""
 
     __tablename__ = "audit_log"
-    __table_args__ = (Index("ix_audit_log_created", "created_at"),)
+    __table_args__ = (
+        Index("ix_audit_log_created", "created_at"),
+        Index("ix_audit_log_actor", "actor_id"),  # account deletion (SET NULL)
+    )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     actor_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))

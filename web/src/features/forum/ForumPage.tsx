@@ -3,18 +3,19 @@ import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ChatCircle, MagnifyingGlass, Plus, X } from '@phosphor-icons/react';
 import type { ThreadDetail, ThreadSummary } from '../../api/types';
+import { remainingCount } from '../../api/paging';
 import { useAuth } from '../../auth';
-import { Button, Chip, EmptyState, Page, PageHeader, Panel, SearchField, SegmentedControl, TabPanel, Tabs, cx } from '../../ui';
+import { Button, Chip, EmptyState, Page, PageHeader, Panel, QueryError, SearchField, SegmentedControl, TabPanel, Tabs, cx } from '../../ui';
+import { useDebouncedValue } from '../../state';
 import { useModules } from '../../state/modules';
-import { flattenPages, forumKeys, useForumStats, useForumViewerSync, useThreadList, useThreadVote } from './api';
+import { flattenPages, forumKeys, useForumStats, useThreadList, useThreadVote } from './api';
 import { highlightTerms } from './lib/search';
 import { useTaxonomy } from './lib/taxonomy';
-import { useDebouncedValue } from './lib/useDebouncedValue';
 import { useForumFilters } from './lib/useForumFilters';
 import { useScrollFade } from './lib/useScrollFade';
 import type { CategoryId, ThreadListParams, ThreadSort } from './types';
 import { ForumSidebar } from './components/ForumSidebar';
-import { LoadError, LoadMore } from './components/LoadStates';
+import { LoadMore } from './components/LoadMore';
 import { ModuleTag } from './components/ThreadBits';
 import { ThreadRow, ThreadRowSkeletons } from './components/ThreadRow';
 import './components/forum.css';
@@ -31,8 +32,10 @@ interface PostedState {
   posted?: { id: string; slug: string };
 }
 
+/** A count worth showing: a new Hub has many zeros, and "0" next to everything says nothing (UX review UX-17). */
+const shown = (n: number | null | undefined) => (n ? n : undefined);
+
 export default function ForumPage() {
-  useForumViewerSync();
   const { requireAuth } = useAuth();
   const qc = useQueryClient();
   const { getModule } = useModules();
@@ -61,10 +64,11 @@ export default function ForumPage() {
   const list = useThreadList(params);
   const stats = useForumStats();
   // "No replies yet" counts the threads waiting in the current category.
-  const waiting = cohort === 'all' ? stats.data?.noReplies : stats.data?.noRepliesByCategory?.[cohort];
+  const waiting = shown(cohort === 'all' ? stats.data?.noReplies : stats.data?.noRepliesByCategory?.[cohort]);
 
   const loaded = useMemo(() => flattenPages(list.data), [list.data]);
   const total = list.data?.pages[0]?.total ?? 0;
+  const remaining = remainingCount(list.data?.pages);
   const refined = Boolean(q || tag || status || filterModule);
   const searching = filters.q.trim() !== q || (list.isFetching && list.isPlaceholderData);
 
@@ -104,10 +108,7 @@ export default function ForumPage() {
   useScrollFade(tabsRef, '[role="tablist"]', cohort);
   useScrollFade(chipsRef, null, `${cohort}|${tagChips.map((t) => t.id).join()}`);
 
-  const tabs = [
-    { id: 'all', label: 'All', count: stats.data?.total },
-    ...categories.map((c) => ({ id: c.id, label: c.label, count: stats.data ? (stats.data.byCategory[c.id] ?? 0) : undefined })),
-  ];
+  const tabs = [{ id: 'all', label: 'All', count: shown(stats.data?.total) }, ...categories.map((c) => ({ id: c.id, label: c.label, count: shown(stats.data?.byCategory[c.id]) }))];
   const pickCategory = (id: string) => update({ cohort: id, tag: '' });
   const terms = highlightTerms(q);
   const scope = cohort === 'all' ? null : (getCategory(cohort)?.label ?? null);
@@ -127,12 +128,14 @@ export default function ForumPage() {
           </Button>
         }
         meta={
-          stats.data ? (
+          stats.data && (stats.data.repliesToday || stats.data.noReplies) ? (
             <div className="forum-live">
-              <span className="forum-live__live">
-                <span className="forum-live__dot" aria-hidden="true" />
-                <span className="u-tabular">{stats.data.repliesToday}</span> {stats.data.repliesToday === 1 ? 'reply' : 'replies'} today
-              </span>
+              {stats.data.repliesToday ? (
+                <span className="forum-live__live">
+                  <span className="forum-live__dot" aria-hidden="true" />
+                  <span className="u-tabular">{stats.data.repliesToday}</span> {stats.data.repliesToday === 1 ? 'reply' : 'replies'} today
+                </span>
+              ) : null}
               {stats.data.noReplies ? (
                 <button type="button" className="forum-live__link" onClick={() => update({ cohort: 'all', status: 'no-replies', tag: '', q: '' })}>
                   <span className="u-tabular">{stats.data.noReplies}</span> {stats.data.noReplies === 1 ? 'question is' : 'questions are'} waiting for a first reply
@@ -211,7 +214,7 @@ export default function ForumPage() {
               </span>
             </Panel>
           ) : list.isError && !list.data ? (
-            <LoadError error={list.error} onRetry={() => void list.refetch()} />
+            <QueryError error={list.error} title="The forum didn’t load" onRetry={() => void list.refetch()} retrying={list.isFetching} />
           ) : visible.length ? (
             <>
               <Panel as="div" padding="none" className={cx('forum-list-panel', searching && 'is-updating')} aria-busy={searching || undefined}>
@@ -221,10 +224,10 @@ export default function ForumPage() {
                   ))}
                 </ul>
               </Panel>
-              {list.hasNextPage ? (
-                <LoadMore remaining={total - loaded.length} loading={list.isFetchingNextPage} onClick={() => void list.fetchNextPage()} />
+              {list.hasNextPage ? <LoadMore remaining={remaining} loading={list.isFetchingNextPage} onClick={() => void list.fetchNextPage()} /> : null}
+              {list.isFetchNextPageError ? (
+                <QueryError error={list.error} title="More threads didn’t load" onRetry={() => void list.fetchNextPage()} retrying={list.isFetchingNextPage} size="sm" panel={false} />
               ) : null}
-              {list.isError ? <LoadError error={list.error} title="Couldn't load more threads" onRetry={() => void list.refetch()} size="sm" panel={false} /> : null}
             </>
           ) : (
             <Panel as="div" padding="none" className={cx(searching && 'is-updating')}>

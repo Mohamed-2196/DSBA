@@ -5,11 +5,9 @@ import { useAuth } from '../../../auth';
 import { Button, Kbd, cx, modKeyLabel } from '../../../ui';
 import { useCreateReply } from '../api';
 import { authorName } from '../lib/authors';
-import { imageMarkdown, insertBlock, removeImageLines } from '../lib/editing';
-import { useImageUploads } from '../lib/uploads';
+import { useAttachImages } from '../lib/useAttachImages';
 import { AuthorAvatar } from './AuthorAvatar';
 import { AttachmentList } from './ImageAttachments';
-import { useImagePicker } from '../lib/useImagePicker';
 import { MarkdownEditor } from './MarkdownEditor';
 
 const REPLY_MAX = 10_000;
@@ -24,6 +22,10 @@ export interface ReplyComposerProps {
   onCancel?: () => void;
   textareaRef?: RefObject<HTMLTextAreaElement>;
   autoFocus?: boolean;
+  /** told whether there is text not posted yet (the page keeps the composer for it if the thread closes) */
+  onTextChange?: (hasText: boolean) => void;
+  /** the thread stopped taking replies while this was being written: the text stays, to be copied */
+  closed?: boolean;
 }
 
 /**
@@ -31,8 +33,8 @@ export interface ReplyComposerProps {
  * when `parent` is set (replies to a nested reply attach to its parent and mention the person).
  * Guests can write; posting asks them to sign in first and then posts what they wrote.
  */
-export function ReplyComposer({ thread, parent = null, mention = null, onPosted, onCancel, textareaRef, autoFocus = false }: ReplyComposerProps) {
-  const { me, requireAuth } = useAuth();
+export function ReplyComposer({ thread, parent = null, mention = null, onPosted, onCancel, textareaRef, autoFocus = false, onTextChange, closed = false }: ReplyComposerProps) {
+  const { me, status, requireAuth } = useAuth();
   const create = useCreateReply();
   const [body, setBody] = useState(mention ? `@${mention} ` : '');
   const [error, setError] = useState<string | null>(null);
@@ -40,28 +42,24 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
   const inputRef = textareaRef ?? localRef;
   const inline = Boolean(parent);
   const parentName = parent ? authorName(parent.author) : null;
-
-  const uploads = useImageUploads((img) => {
-    setBody((text) => {
-      const el = inputRef.current;
-      return insertBlock(text, el ? el.selectionEnd : text.length, imageMarkdown(img.alt, img.mediaUrl)).text;
-    });
-  });
-  const picker = useImagePicker((file) => uploads.start(file));
-  const attach = () => {
-    if (!requireAuth('Sign in to attach images')) return;
-    picker.open();
-  };
-  // A card is only kept while its picture is still in the text.
-  const cards = uploads.items.filter((u) => u.phase !== 'done' || (u.mediaUrl && body.includes(u.mediaUrl)));
+  const images = useAttachImages({ text: body, setText: setBody, textareaRef: inputRef, gate: () => requireAuth('Sign in to attach images') });
+  const hasText = body.trim().length > 0 && body.trim() !== (mention ? `@${mention}` : '');
+  useEffect(() => {
+    onTextChange?.(hasText);
+  }, [hasText, onTextChange]);
+  // Once the page shows the thread closed, its note says why: the last refusal needn't say it again.
+  useEffect(() => {
+    if (closed) setError(null);
+  }, [closed]);
 
   const send = () => {
+    if (closed) return;
     const text = body.trim();
     if (!text || (mention && text === `@${mention}`)) {
       setError('Write your reply first, then post it.');
       return;
     }
-    if (uploads.busy) {
+    if (images.busy) {
       setError('Wait for the image to finish uploading.');
       return;
     }
@@ -72,13 +70,14 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
         onSuccess: (reply) => {
           setBody('');
           setError(null);
-          uploads.reset();
+          images.reset();
           onPosted?.(reply);
         },
         onError: (e) => {
-          // thread_locked: locked, hidden or deleted since the page loaded (the API says which).
-          if (e instanceof ApiError && e.code === 'thread_locked') setError(e.message || 'This thread can’t take new replies now.');
-          else if (e instanceof ApiError && e.fields.body) setError(e.fields.body);
+          // Locked, hidden or deleted since the page loaded, too many replies in an hour, a reply that went: the
+          // API says which, and what to do (the page re-reads the thread for the first ones).
+          if (e instanceof ApiError && e.fields.body) setError(e.fields.body);
+          else if (e instanceof ApiError && e.fields.parentId) setError(e.fields.parentId);
           else setError(errorMessage(e, "Your reply wasn't posted. Try again."));
         },
       },
@@ -98,6 +97,9 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
     );
   }
 
+  const author = me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, role: me.role } : null;
+  const guest = status === 'guest';
+
   return (
     <form
       className={cx('forum-composer-reply', inline && 'is-inline')}
@@ -108,9 +110,9 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
       }}
       noValidate
     >
-      <AuthorAvatar author={me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, role: me.role } : null} size={inline ? 'sm' : 'md'} className="forum-composer-reply__avatar" />
+      <AuthorAvatar author={author} guest={!author} size={inline ? 'sm' : 'md'} className="forum-composer-reply__avatar" />
       <div className="forum-composer-reply__main">
-        {picker.input}
+        {images.input}
         <MarkdownEditor
           label={inline ? `Reply to ${parentName}` : 'Your reply'}
           hideLabel
@@ -127,35 +129,38 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
           onSubmit={send}
           textareaRef={inputRef}
           autoFocus={autoFocus}
-          onAttachImage={attach}
-          onImageFiles={(files) => {
-            if (!requireAuth('Sign in to attach images')) return;
-            files.forEach((f) => uploads.start(f));
-          }}
+          onAttachImage={closed ? undefined : images.pick}
+          onImageFiles={closed ? undefined : images.addFiles}
           textareaProps={inline ? { dir: 'auto', maxLength: REPLY_MAX } : { 'data-hub': 'reply-input', dir: 'auto', maxLength: REPLY_MAX }}
         />
         <AttachmentList
-          uploads={cards}
-          onRetry={uploads.retry}
+          uploads={images.cards}
+          onRetry={images.retry}
           onRemove={(key) => {
-            const u = uploads.items.find((x) => x.key === key);
-            if (u?.mediaUrl) setBody((text) => removeImageLines(text, u.mediaUrl as string));
-            uploads.remove(key);
+            images.remove(key);
+            requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
           }}
         />
         <div className="forum-composer-reply__actions">
-          <span className="forum-composer-reply__hint" aria-hidden="true">
-            <Kbd>{modKeyLabel()}</Kbd>
-            <Kbd>Enter</Kbd> to post
-          </span>
-          {onCancel ? (
-            <Button variant="ghost" size="sm" onClick={onCancel} disabled={create.isPending}>
-              Cancel
+          {guest ? (
+            // The same promise as "Start a thread" (UX review UX-17): nothing typed is lost to signing in.
+            <span className="forum-composer-reply__guest">You’ll sign in when you post, and your reply goes up right after.</span>
+          ) : (
+            <span className="forum-composer-reply__hint" aria-hidden="true">
+              <Kbd>{modKeyLabel()}</Kbd>
+              <Kbd>Enter</Kbd> to post
+            </span>
+          )}
+          <span className="forum-composer-reply__buttons">
+            {onCancel ? (
+              <Button variant="ghost" size="sm" onClick={onCancel} disabled={create.isPending}>
+                Cancel
+              </Button>
+            ) : null}
+            <Button type="submit" variant="primary" size={inline ? 'sm' : 'md'} loading={create.isPending} disabled={closed} data-hub="post-reply">
+              Post reply
             </Button>
-          ) : null}
-          <Button type="submit" variant="primary" size={inline ? 'sm' : 'md'} loading={create.isPending} data-hub="post-reply">
-            Post reply
-          </Button>
+          </span>
         </div>
       </div>
     </form>

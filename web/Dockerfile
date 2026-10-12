@@ -7,10 +7,13 @@ RUN npm ci --no-audit --no-fund
 COPY . .
 # The API's CSRF cookie in production (DSBA_CSRF_COOKIE, __Host-dsba_csrf by default there): the two must agree.
 ARG VITE_CSRF_COOKIE=__Host-dsba_csrf
-# Analytics stay off without a key (with one, see DSBA_CSP_*_EXTRA in deploy/Caddyfile).
+# Analytics stay off without a key. With one, the CSP needs the PostHog host in DSBA_CSP_CONNECT_EXTRA
+# (docs/backend/DEPLOYMENT.md, section 9); an empty host means https://us.i.posthog.com.
 ARG VITE_POSTHOG_KEY=
+ARG VITE_POSTHOG_HOST=
 ENV VITE_CSRF_COOKIE=${VITE_CSRF_COOKIE} \
-    VITE_POSTHOG_KEY=${VITE_POSTHOG_KEY}
+    VITE_POSTHOG_KEY=${VITE_POSTHOG_KEY} \
+    VITE_POSTHOG_HOST=${VITE_POSTHOG_HOST}
 RUN npx tsc -p tsconfig.json \
     && npx vite build --logLevel warn \
     && node deploy/csp-hashes.mjs dist/index.html > /app/csp-script-hashes

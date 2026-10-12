@@ -83,11 +83,15 @@ function Picture({ src, alt }: { src: string; alt: string }) {
 function BlockView({ block }: { block: Block }) {
   switch (block.type) {
     case 'code':
+      // The label sits above the code, which scrolls sideways inside its box (never the page); the box can take
+      // keyboard focus so it can be scrolled without a mouse.
       return (
-        <pre className="forum-code" dir="ltr">
+        <div className="forum-code" dir="ltr">
           {block.lang ? <span className="forum-code__lang">{block.lang === 'r' ? 'R' : block.lang}</span> : null}
-          <code>{block.text}</code>
-        </pre>
+          <pre className="forum-code__pre" tabIndex={0}>
+            <code>{block.text}</code>
+          </pre>
+        </div>
       );
     case 'ul':
       return (

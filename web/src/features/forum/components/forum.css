@@ -131,10 +131,17 @@
   .forum-row__excerpt { display: none; }
   .forum-row__meta { margin-top: 8px; gap: 6px 10px; }
   .forum-row__stats { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; margin-top: 10px; padding: 0; min-width: 0; }
-  .forum-row .forum-vote { width: 40px; height: 48px; }
+  .forum-row .forum-vote { width: 40px; height: 48px; min-width: 0; }
   .forum-row .forum-tag:nth-of-type(n + 2) { display: none; }
   .forum-row.has-image { grid-template-columns: 40px minmax(0, 1fr) 76px; grid-template-areas: 'vote main thumb' 'vote stats thumb'; }
   .forum-row__thumb { width: 76px; height: 52px; }
+}
+@media (pointer: coarse) {
+  @container forum-list (max-width: 560px) {
+    .forum-row { grid-template-columns: 44px minmax(0, 1fr); }
+    .forum-row.has-image { grid-template-columns: 44px minmax(0, 1fr) 76px; }
+    .forum-row .forum-vote { width: 44px; }
+  }
 }
 
 /* ── Vote ────────────────────────────────────────────────────────────────────── */
@@ -244,16 +251,19 @@
   font-weight: var(--fw-bold);
   line-height: 1;
 }
+/* Nobody signed in yet (a guest's composer): a neutral person, not a question mark. */
+.forum-avatar--ghost.is-guest { color: var(--ink-2); }
 
 /* ── Prose (post bodies) ─────────────────────────────────────────────────────── */
 .forum-prose {
-  max-width: var(--measure);
   color: var(--ink);
   font-size: var(--fs-16);
   line-height: var(--lh-sans);
   overflow-wrap: break-word;
 }
 .forum-prose > * + * { margin-top: 12px; }
+/* Lines of text stay readable (about 72 characters) on any screen; pictures and code may use the post's width. */
+.forum-prose > :is(p, ul, ol, blockquote) { max-width: var(--measure); }
 .forum-prose ul, .forum-prose ol { padding-inline-start: 1.35em; }
 .forum-prose ul { list-style: disc; }
 .forum-prose ol { list-style: decimal; }
@@ -277,27 +287,36 @@
 .forum-figure.is-broken { display: flex; align-items: center; gap: 8px; padding: 12px 14px; color: var(--ink-2); font-size: var(--fs-14); }
 .forum-figure.is-broken svg { flex: 0 0 auto; font-size: 18px; }
 .forum-code {
-  position: relative;
+  display: grid;
+  min-width: 0;
   max-width: 100%;
-  padding: 14px 16px;
-  overflow-x: auto;
   border-radius: var(--r-control);
   background: var(--surface-2);
   color: var(--ink);
+}
+.forum-code__pre {
+  min-width: 0;
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  border-radius: inherit;
   font-size: 13.5px;
   line-height: 1.65;
   tab-size: 2;
 }
+.forum-code__pre:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: 0; }
 .forum-code code { padding: 0; background: none; font-size: inherit; white-space: pre; }
+/* The language, on a line of its own above the code (it never covers a long line). */
 .forum-code__lang {
-  position: absolute;
-  top: 8px;
-  right: 10px;
+  padding: 8px 16px 0;
   color: var(--ink-2);
   font-family: var(--font-sans);
   font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
+  line-height: 1.2;
+  text-align: end;
 }
+.forum-code__lang + .forum-code__pre { padding-top: 6px; }
 
 /* ── Right-to-left text ──────────────────────────────────────────────────────── */
 /* Titles, excerpts, post bodies and replies are dir="auto": the first strong letter of each block decides, so an
@@ -306,9 +325,8 @@
    titles are set tight) cuts the joins and switches ligatures off, so right-to-left text gets none. */
 .forum-row__title, .forum-row__excerpt, .forum-hot__link, .forum-related__link, .forum-thread__title,
 .forum-prose, .forum-prose > * { text-align: start; }
-/* A post with Arabic in it uses the full width of its card, so the text ends on the card's right edge like the actions
-   and labels around it do (the measure is a line length for English). */
-.forum-prose:has(> :dir(rtl)) { max-width: none; }
+/* An Arabic paragraph ends on the card's right edge, like the actions and labels around it (its lines keep the measure). */
+.forum-prose > :is(p, ul, ol, blockquote):dir(rtl) { margin-left: auto; }
 .forum-row__title:dir(rtl), .forum-hot__link:dir(rtl), .forum-related__link:dir(rtl), .forum-thread__title:dir(rtl),
 .forum-prose :dir(rtl), .forum-editor__input:dir(rtl) { letter-spacing: 0; }
 
@@ -334,6 +352,12 @@
 }
 .forum-editor__tools { display: flex; align-items: center; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .forum-editor__tools::-webkit-scrollbar { display: none; }
+.forum-editor__tools[data-fade-end='true'] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
+.forum-editor__tools[data-fade-start='true'] { -webkit-mask-image: linear-gradient(to right, transparent, #000 40px); mask-image: linear-gradient(to right, transparent, #000 40px); }
+.forum-editor__tools[data-fade-start='true'][data-fade-end='true'] {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+}
 .forum-editor__tools .ui-iconbutton { color: var(--ink-2); }
 .forum-editor__sep { flex: 0 0 auto; width: 1px; height: 18px; margin: 0 4px; background: var(--line); }
 .forum-editor__mode { flex: 0 0 auto; }
@@ -418,6 +442,7 @@
 /* Report and the "More actions" menu sit at the end of a post's action row. */
 .forum-report-button.ui-button--ghost { color: var(--ink-2); }
 .forum-report-button.ui-button--ghost:hover { color: var(--ink); }
+.forum-report-button.is-reported.ui-button--ghost { color: var(--ink-3); }
 .forum-post-menu { color: var(--ink-2); }
 
 /* ── Thread fields (composer and edit form: where it lives, module, tags) ───── */
@@ -482,4 +507,14 @@
 @media (prefers-reduced-motion: reduce) {
   .forum-row.is-fresh, .forum-vote__icon.is-popping, .forum-roll > span, .forum-attachment { animation: none !important; }
   .forum-roll__old { display: none; }
+}
+
+/* ── Touch screens: every control is at least 44px (UX review UX-11; the shared buttons, chips and fields already are) ── */
+@media (pointer: coarse) {
+  /* The breadcrumb's links get their height from padding, and the row keeps its place. */
+  .forum-crumbs { margin-top: -11px; margin-bottom: calc(var(--sp-12) - 11px); }
+  .forum-crumbs a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+  .forum-vote { min-width: 44px; min-height: 44px; }
+  .forum-vote--inline { height: 44px; padding-inline: 12px; }
+  .forum-related__link { display: flex; align-items: center; min-height: 44px; }
 }

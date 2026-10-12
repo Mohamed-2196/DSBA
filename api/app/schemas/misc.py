@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Literal
+from typing import Literal
 
+from app.schemas.career import CareerDoc
 from app.schemas.common import ApiModel
 
 SearchType = Literal["thread", "library", "issue", "module", "event"]
@@ -28,9 +29,9 @@ class SearchResults(ApiModel):
 
 
 class CareerContent(ApiModel):
-    """The Career Navigator's content, edited by admins as one document (shapes: web/src/features/career/types)."""
+    """The Career Navigator's content, edited by admins as one document. `data` is None until it is loaded."""
 
-    data: dict[str, Any]
+    data: CareerDoc | None
     updated_at: datetime | None
 
 

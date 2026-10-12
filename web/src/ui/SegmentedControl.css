@@ -41,3 +41,8 @@
 .ui-seg__thumb.has-color { box-shadow: none; }
 .ui-seg__icon { font-size: 17px; }
 .ui-seg__item:focus-visible { outline-offset: 0; }
+
+/* Touch screens: 44px segments (UX review UX-11). */
+@media (pointer: coarse) {
+  .ui-seg__item, .ui-seg--sm .ui-seg__item { height: 44px; min-width: 44px; }
+}

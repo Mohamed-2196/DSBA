@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.time import utcnow
 from app.models import ForumReply, PostStatus, User
 from app.schemas.forum import Category
-from app.services import forum
+from app.services.forum import search, taxonomy, text
 from tests.community.helpers import API, new_reply, new_thread, reply_row, set_thread
 
 Client = Callable[..., TestClient]
@@ -40,7 +40,7 @@ def test_meta(client_for: Client) -> None:
 
 
 def test_categories_match_the_contract() -> None:
-    assert [c.id for c in forum.CATEGORIES] == list(get_args(Category))
+    assert [c.id for c in taxonomy.CATEGORIES] == list(get_args(Category))
 
 
 def test_stats(
@@ -120,28 +120,28 @@ def test_unanswered_counts(client_for: Client, student: User) -> None:
 
 
 def test_excerpts() -> None:
-    assert forum.excerpt("") == ""
+    assert text.excerpt("") == ""
     md = "Look at **this** and *that*, see [the notes](/library/notes) or [VLE](https://vle.example).\n\n```r\nx\n```"
-    assert forum.excerpt(md) == "Look at this and that, see the notes or VLE. …"
-    assert forum.excerpt("Before\n```\nsecret <- 1\n```\nAfter") == "Before … After"  # code never shows
-    assert forum.excerpt("- one\n- two\n\n1. three\n\n> four") == "one two three four"
-    assert forum.excerpt("Inline ![a cat](/api/v1/media/x) picture") == "Inline picture"
-    assert forum.excerpt("# Heading\n\nText") == "Heading Text"
-    assert forum.excerpt("R_f and β_i stay") == "R_f and β_i stay"  # underscores are not italics
+    assert text.excerpt(md) == "Look at this and that, see the notes or VLE. …"
+    assert text.excerpt("Before\n```\nsecret <- 1\n```\nAfter") == "Before … After"  # code never shows
+    assert text.excerpt("- one\n- two\n\n1. three\n\n> four") == "one two three four"
+    assert text.excerpt("Inline ![a cat](/api/v1/media/x) picture") == "Inline picture"
+    assert text.excerpt("# Heading\n\nText") == "Heading Text"
+    assert text.excerpt("R_f and β_i stay") == "R_f and β_i stay"  # underscores are not italics
     long = "word " * 100
-    cut = forum.excerpt(long)
+    cut = text.excerpt(long)
     assert cut.endswith("word…")
     assert len(cut) <= 201
     emoji = "😀" * 250
-    assert forum.excerpt(emoji) == "😀" * 200 + "…"  # never half an emoji
+    assert text.excerpt(emoji) == "😀" * 200 + "…"  # never half an emoji
     arabic = "مرحبا " * 60
-    assert forum.excerpt(arabic).endswith("مرحبا…")
+    assert text.excerpt(arabic).endswith("مرحبا…")
 
 
 def test_first_image_is_an_uploaded_forum_image() -> None:
     image = str(uuid.uuid4())
-    assert forum.first_image(f"![cat](/api/v1/media/{image})") == {"src": f"/api/v1/media/{image}", "alt": "cat"}
-    assert forum.first_image(f"Text ![inline one](/api/v1/media/{image}) text")["alt"] == "inline one"  # type: ignore[index]
+    assert text.first_image(f"![cat](/api/v1/media/{image})") == {"src": f"/api/v1/media/{image}", "alt": "cat"}
+    assert text.first_image(f"Text ![inline one](/api/v1/media/{image}) text")["alt"] == "inline one"  # type: ignore[index]
     for src in (
         "https://example.com/cat.png",  # other sites would see every reader's IP
         "http://example.com/cat.png",
@@ -152,24 +152,24 @@ def test_first_image_is_an_uploaded_forum_image() -> None:
         f"/api/v1/media/{image.upper()}",
         "/api/v1/media/../../etc/passwd",
     ):
-        assert forum.first_image(f"![x]({src})") is None, src
-    assert forum.first_image(f"```\n![x](/api/v1/media/{image})\n```") is None  # inside code
-    assert forum.first_image(f"`![x](/api/v1/media/{image})`") is None
+        assert text.first_image(f"![x]({src})") is None, src
+    assert text.first_image(f"```\n![x](/api/v1/media/{image})\n```") is None  # inside code
+    assert text.first_image(f"`![x](/api/v1/media/{image})`") is None
     second = str(uuid.uuid4())
-    found = forum.first_image(f"![a](https://x.example/a.png)\n\n![b](/api/v1/media/{second})")
+    found = text.first_image(f"![a](https://x.example/a.png)\n\n![b](/api/v1/media/{second})")
     assert found == {"src": f"/api/v1/media/{second}", "alt": "b"}
 
 
 def test_media_references() -> None:
     a, b = uuid.uuid4(), uuid.uuid4()
-    text = f"![x](/api/v1/media/{a}) /api/v1/media/{b} again /api/v1/media/{a} and /api/v1/media/{b}/../c"
-    assert forum.media_ids(text) == [a, b]
+    body = f"![x](/api/v1/media/{a}) /api/v1/media/{b} again /api/v1/media/{a} and /api/v1/media/{b}/../c"
+    assert text.media_ids(body) == [a, b]
 
 
 def test_search_terms() -> None:
-    assert forum.search_terms("How do I find the MGF?") == ["find", "mgf"]
-    assert forum.search_terms("the a an") == ["the", "a", "an"]  # only stop words: keep them
-    assert forum.search_terms("R_f, R and r") == ["r", "f"]
-    assert forum.search_terms("ST2133 st2133") == ["st2133"]
-    assert forum.search_terms("مرحبا بالعالم") == ["مرحبا", "بالعالم"]
-    assert len(forum.search_terms(" ".join(f"word{i}" for i in range(20)))) == 8
+    assert search.search_terms("How do I find the MGF?") == ["find", "mgf"]
+    assert search.search_terms("the a an") == ["the", "a", "an"]  # only stop words: keep them
+    assert search.search_terms("R_f, R and r") == ["r", "f"]
+    assert search.search_terms("ST2133 st2133") == ["st2133"]
+    assert search.search_terms("مرحبا بالعالم") == ["مرحبا", "بالعالم"]
+    assert len(search.search_terms(" ".join(f"word{i}" for i in range(20)))) == 8

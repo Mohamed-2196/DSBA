@@ -6,6 +6,8 @@
 //           reports: create; moderators resolve or dismiss them
 // Votes are optimistic: every cached copy of the thread or reply changes at once, and rolls back with a toast when
 // the server says no. Other writes update the thread they return and mark the lists stale.
+// Who is asking decides the personal fields (voted, isMine, canEdit, hidden posts): signing in or out re-reads or
+// resets every query of the app (auth/queries.ts), the forum's included.
 import {
   keepPreviousData,
   useInfiniteQuery,
@@ -15,13 +17,14 @@ import {
   type InfiniteData,
   type QueryClient,
 } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import { api, call } from '../../api/client';
 import { ApiError, errorMessage } from '../../api/errors';
+import { ADMIN_STATS_KEY } from '../../api/keys';
+import { nextOffset } from '../../api/paging';
 import type {
   Reply,
+  ReplyModeration,
   ReportCreate,
-  ReportPage,
   ThreadCreate,
   ThreadDetail,
   ThreadModeration,
@@ -29,11 +32,11 @@ import type {
   ThreadSummary,
   ThreadUpdate,
 } from '../../api/types';
-import { useAuth } from '../../auth';
+import type { CohortYear } from '../../state';
 import { useToast } from '../../state';
-import { forgetDraftOf, forgetPrototypeForum } from './lib/legacy';
+import { forgetPrototypeForum } from './lib/legacy';
 import { similarQuery } from './lib/search';
-import type { CohortYear, ReportStatus, ThreadListParams } from './types';
+import type { ReportStatus, ThreadListParams } from './types';
 
 forgetPrototypeForum();
 
@@ -74,14 +77,18 @@ export const reportKeys = {
   list: (status: ReportStatus) => ['reports', status] as const,
 };
 
-/** The moderation page's counts (GET /admin/stats, features/moderation): open reports change with every report. */
-const ADMIN_STATS_KEY = ['admin', 'stats'] as const;
-
 /** Everything that lists threads or counts them: stale after a write. */
 const LIST_FAMILIES = new Set(['list', 'hot', 'similar', 'related', 'stats']);
 
 function invalidateLists(qc: QueryClient): Promise<void> {
   return qc.invalidateQueries({ queryKey: forumKeys.all, predicate: (q) => LIST_FAMILIES.has(String(q.queryKey[1])) });
+}
+
+/** The reports queue shows what each reported post is now (Hidden, Deleted), and the moderation page counts it:
+ *  both are stale after a post is hidden, shown again or deleted. */
+function invalidateModeration(qc: QueryClient): void {
+  void qc.invalidateQueries({ queryKey: reportKeys.all });
+  void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
 }
 
 export function isNotFound(e: unknown): boolean {
@@ -153,32 +160,6 @@ function withVote<T extends { voted: boolean; voteCount: number }>(t: T, up: boo
   return t.voted === up ? t : { ...t, voted: up, voteCount: Math.max(0, t.voteCount + (up ? 1 : -1)) };
 }
 
-// ── Who is looking ──────────────────────────────────────────────────────────────────────────────
-// The API answers with personal fields (voted, isMine, canEdit, hidden posts for moderators). The session cookie
-// decides them, so the first answers are right; when someone signs in or out while the app is open, every forum
-// query is read again. One module-level record, so several mounted widgets invalidate once.
-let knownViewer: string | null | undefined;
-
-export function useForumViewerSync(): void {
-  const { me, status } = useAuth();
-  const qc = useQueryClient();
-  const viewer = status === 'loading' ? undefined : (me?.id ?? null);
-  useEffect(() => {
-    if (viewer === undefined) return;
-    if (knownViewer === undefined) {
-      knownViewer = viewer;
-      return;
-    }
-    if (knownViewer !== viewer) {
-      // Signed out: an unfinished thread of that account doesn't stay on the device for the next person.
-      if (typeof knownViewer === 'string') forgetDraftOf(knownViewer);
-      knownViewer = viewer;
-      void qc.invalidateQueries({ queryKey: forumKeys.all });
-      void qc.invalidateQueries({ queryKey: reportKeys.all });
-    }
-  }, [viewer, qc]);
-}
-
 // ── Reads ───────────────────────────────────────────────────────────────────────────────────────
 
 export function useForumMeta() {
@@ -222,10 +203,7 @@ export function useThreadList(params: ThreadListParams, { pageSize = 20, enabled
     queryFn: ({ pageParam, signal }) =>
       call(api.GET('/api/v1/forum/threads', { params: { query: listQuery(params, pageParam, pageSize) }, signal })),
     initialPageParam: 0,
-    getNextPageParam: (last: ThreadPage) => {
-      const next = last.offset + last.items.length;
-      return last.items.length > 0 && next < last.total ? next : undefined;
-    },
+    getNextPageParam: (last: ThreadPage) => nextOffset(last),
     placeholderData: keepPreviousData,
     enabled,
   });
@@ -365,14 +343,17 @@ export function useUpdateThread() {
   });
 }
 
+/** Delete a thread. `stay`: the page stays on it (a rep deleting a hidden thread's text), so it is read again;
+ *  otherwise the page leaves for the list and the thread is only marked stale (no 404 flashes up first). */
 export function useDeleteThread() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ threadId }: { threadId: string; slug: string }) =>
+    mutationFn: ({ threadId }: { threadId: string; slug: string; stay?: boolean }) =>
       call(api.DELETE('/api/v1/forum/threads/{thread_id}', { params: { path: { thread_id: threadId } } })),
-    onSuccess: (_data, { slug }) => {
-      void qc.invalidateQueries({ queryKey: forumKeys.thread(slug), refetchType: 'none' });
+    onSuccess: (_data, { slug, stay = false }) => {
+      void qc.invalidateQueries({ queryKey: forumKeys.thread(slug), refetchType: stay ? 'active' : 'none' });
       void invalidateLists(qc);
+      invalidateModeration(qc);
     },
   });
 }
@@ -390,15 +371,16 @@ export function useAcceptAnswer() {
   });
 }
 
-/** Moderators: pin, lock or hide a thread (and undo it). */
+/** Moderators: pin, lock or hide a thread (and undo it). Hiding can carry a reason, sent to the author. */
 export function useModerateThread() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ threadId, change }: { threadId: string; change: ThreadModeration }) =>
       call(api.POST('/api/v1/forum/threads/{thread_id}/moderate', { params: { path: { thread_id: threadId } }, body: change })),
-    onSuccess: (thread) => {
+    onSuccess: (thread, { change }) => {
       storeThread(qc, thread);
       void invalidateLists(qc);
+      if (change.status) invalidateModeration(qc);
     },
   });
 }
@@ -423,6 +405,12 @@ export function useCreateReply() {
       );
       void invalidateLists(qc);
     },
+    onError: (e) => {
+      // Locked, hidden or deleted since the page loaded: show the thread as it is now.
+      if (e instanceof ApiError && (e.code === 'thread_locked' || e.code === 'post_unavailable')) {
+        void qc.invalidateQueries({ queryKey: forumKeys.threads });
+      }
+    },
   });
 }
 
@@ -444,28 +432,32 @@ export function useDeleteReply() {
       qc.setQueriesData<ThreadDetail>({ queryKey: forumKeys.threads }, (data) => {
         const target = data?.replies.find((r) => r.id === replyId);
         if (!data || !target) return data;
+        // A hidden reply stays hidden, without its text (SEC-15); a visible one becomes a deleted one.
+        const status = target.status === 'hidden' ? 'hidden' : 'deleted';
         return {
           ...data,
-          replies: data.replies.map((r) => (r.id === replyId ? { ...r, status: 'deleted', body: '', canEdit: false } : r)),
+          replies: data.replies.map((r) => (r.id === replyId ? { ...r, status, body: '', canEdit: false } : r)),
           replyCount: Math.max(0, data.replyCount - (target.status === 'visible' ? 1 : 0)),
         };
       });
       void qc.invalidateQueries({ queryKey: forumKeys.threads });
       void invalidateLists(qc);
+      invalidateModeration(qc);
     },
   });
 }
 
-/** Moderators: hide a reply, or show it again. */
+/** Moderators: hide a reply (with a reason for its author, if they give one), or show it again. */
 export function useModerateReply() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ replyId, status }: { replyId: string; status: 'visible' | 'hidden' }) =>
-      call(api.POST('/api/v1/forum/replies/{reply_id}/moderate', { params: { path: { reply_id: replyId } }, body: { status } })),
+    mutationFn: ({ replyId, change }: { replyId: string; change: ReplyModeration }) =>
+      call(api.POST('/api/v1/forum/replies/{reply_id}/moderate', { params: { path: { reply_id: replyId } }, body: change })),
     onSuccess: (reply) => {
       patchReply(qc, reply.id, () => reply);
       void qc.invalidateQueries({ queryKey: forumKeys.threads });
       void invalidateLists(qc);
+      invalidateModeration(qc);
     },
   });
 }
@@ -490,10 +482,7 @@ export function useReports(status: ReportStatus, { pageSize = 20, enabled = true
     queryFn: ({ pageParam, signal }) =>
       call(api.GET('/api/v1/admin/reports', { params: { query: { status, limit: pageSize, offset: pageParam } }, signal })),
     initialPageParam: 0,
-    getNextPageParam: (last: ReportPage) => {
-      const next = last.offset + last.items.length;
-      return last.items.length > 0 && next < last.total ? next : undefined;
-    },
+    getNextPageParam: nextOffset,
     enabled,
   });
 }

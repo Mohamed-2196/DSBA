@@ -26,7 +26,7 @@ export class RouteErrorBoundary extends Component<RouteErrorBoundaryProps, { err
         <Panel padding="none">
           <EmptyState
             icon={WarningCircle}
-            title="This page didn't load"
+            title="This page didn’t load"
             body="Something went wrong while showing this page. The rest of DSBA Hub still works, so try again or head back home."
             action={
               <>

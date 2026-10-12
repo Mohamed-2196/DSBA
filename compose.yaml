@@ -1,6 +1,6 @@
 # Local development stack: Postgres and MinIO keep their data in named volumes, so `docker compose down`
-# (without -v) and restarts lose nothing. Mailpit catches every email the API sends (http://localhost:8025);
-# one-time codes sent by SMS are printed in the API's log (docker compose logs -f api).
+# (without -v) and restarts lose nothing. Mailpit catches every email the API and the mail worker send
+# (http://localhost:8025); one-time codes sent by SMS are printed in the API's log (docker compose logs -f api).
 #
 #   docker compose up --build      then open http://localhost:5173
 #
@@ -43,9 +43,10 @@ services:
     restart: unless-stopped
 
   minio:
-    # MinIO stopped publishing images in October 2025; this is its last official release. Fine for local work.
-    # In production point the API at AWS S3 or a MinIO behind HTTPS (R2 lacks presigned POST: docs/backend/DEPLOYMENT.md).
-    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    # MinIO Inc. stopped publishing images in October 2025 and minio/minio is no longer pullable from Docker Hub.
+    # pgsty/minio is the community-maintained build of the same server (amd64 and arm64, mc included), a drop-in
+    # replacement for local work. Production points the API at AWS S3 instead (docs/backend/DEPLOYMENT.md).
+    image: pgsty/minio:latest
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-dsba}
@@ -102,6 +103,20 @@ services:
     ports:
       - "127.0.0.1:5173:5173"
 
+  mail:
+    # The mail worker: sends the emails the API queues (notification emails, account notices) to Mailpit.
+    build: ./api
+    environment: *api-env
+    command: sh -c "sleep 10; python -m app.cli mail-worker"  # after the API has applied the migrations
+    volumes:
+      - ./api/app:/app/app
+    healthcheck:
+      disable: true
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   backup:
     # A database dump into the bucket every 24 hours (backups/db/, the newest 14 kept). Restore:
     # docs/backend/DEPLOYMENT.md. MinIO without a KMS has no server-side encryption: none here.
@@ -110,6 +125,8 @@ services:
       <<: *api-env
       DSBA_BACKUP_SSE: none
     command: sh -c "sleep 60; while true; do python -m app.cli backup || echo 'backup failed'; sleep 86400; done"
+    healthcheck:
+      disable: true
     depends_on:
       db:
         condition: service_healthy

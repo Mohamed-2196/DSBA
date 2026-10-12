@@ -35,7 +35,7 @@ export function otpErrorMessage(e: unknown): string {
     case 'not_implemented':
       return 'Signing in isn’t available yet. Try again later.';
     case 'invalid_input':
-      if (e.fields.code) return 'Enter the 6-digit code from the message.';
+      if (e.fields.code) return 'Enter the code from the message.';
       if (e.fields.identifier) return 'Enter your email address or phone number.';
       return e.message;
     default: {
@@ -43,4 +43,13 @@ export function otpErrorMessage(e: unknown): string {
       return (!generic && e.message) || FALLBACK[e.code]?.(e) || e.message || 'Something went wrong. Try again.';
     }
   }
+}
+
+/** A problem with the address itself, to show under its field; anything else (no connection, the server, a limit)
+ *  is the form's problem, and the address stays as it was (UX review UX-16). */
+export function isAddressProblem(e: unknown): boolean {
+  return (
+    e instanceof ApiError &&
+    (e.code === 'invalid_identifier' || e.code === 'identifier_unchanged' || (e.code === 'sms_unavailable' && e.status === 422) || !!e.fields.identifier)
+  );
 }

@@ -9,7 +9,6 @@ from typing import Any
 import pytest
 from sqlalchemy import literal, select
 from sqlalchemy.orm import Session
-from starlette.requests import Request
 
 from app.core.errors import ApiError
 from app.core.time import utcnow
@@ -107,24 +106,6 @@ def test_wait_for() -> None:
 )
 def test_human_wait(seconds: int, text: str) -> None:
     assert ratelimit.human_wait(seconds) == text
-
-
-def _request(host: str | None) -> Request:
-    return Request({"type": "http", "headers": [], "client": (host, 1234) if host else None})
-
-
-@pytest.mark.parametrize(
-    ("host", "ip"),
-    [
-        ("203.0.113.9", "203.0.113.9"),
-        ("::ffff:203.0.113.9", "203.0.113.9"),
-        ("2001:DB8::1", "2001:db8::1"),
-        ("testclient", None),
-        (None, None),
-    ],
-)
-def test_request_ip(host: str | None, ip: str | None) -> None:
-    assert ratelimit.request_ip(_request(host)) == ip
 
 
 def test_ip_bucket() -> None:

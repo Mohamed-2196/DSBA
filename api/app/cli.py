@@ -6,8 +6,11 @@ set-role ID ROLE   make the account with this email or phone number a student, m
 backup             pg_dump the database into the backup bucket, encrypted at rest, and keep the newest
                    DSBA_BACKUP_KEEP (docs/backend/DEPLOYMENT.md: where backups go, and how to restore one)
 sweep              delete what is no longer needed: uploads never attached to anything (after a day), sign-in
-                   codes older than two days, and sessions that expired or were revoked more than 30 days ago
+                   codes older than two days, sessions that expired or were revoked more than 30 days ago, and
+                   the files of library items rejected or removed more than a week ago
 setup-bucket       create the bucket if needed and set its CORS and lifecycle rules (production: once)
+mail-worker        send the queued emails (notifications, account notices) with retries; runs until stopped
+                   (--once: until nothing is due). Several can run side by side.
 dev-login ID       development only: print a session token for an account (created if needed)
 
 Nothing here prints a one-time code, and only dev-login prints a token (it refuses to run in production)."""
@@ -16,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import re
 import subprocess
@@ -200,11 +204,14 @@ class SweepReport:
     uploads: int
     challenges: int
     sessions: int
+    files: int = 0  # files of rejected or removed library items
 
 
 def sweep() -> SweepReport:
-    """Deletes uploads never attached to anything (objects first, then rows), old sign-in codes, and sessions that
-    ended long ago. Safe to run at any time and to run again."""
+    """Deletes uploads never attached to anything (objects first, then rows), old sign-in codes, sessions that
+    ended long ago, and the files of library items rejected or removed a week ago. Safe to run at any time and to
+    run again."""
+    from app.services.library import sweep_files
     from app.services.otp import KEEP_CHALLENGES
 
     now = utcnow()
@@ -216,18 +223,22 @@ def sweep() -> SweepReport:
         for up in stale:
             storage.delete(up.storage_key)  # a pending upload's incoming object may never have arrived: still fine
             db.delete(up)
+        files = sweep_files(db, storage, now)  # library files rejected or removed a week ago (security review SEC-14)
         old_codes = delete(OtpChallenge).where(OtpChallenge.created_at < now - KEEP_CHALLENGES)
         challenges = cast(CursorResult[Any], db.execute(old_codes)).rowcount
         ended = now - SESSION_RETENTION
         dead = delete(UserSession).where(or_(UserSession.expires_at < ended, UserSession.revoked_at < ended))
         sessions = cast(CursorResult[Any], db.execute(dead)).rowcount
         db.commit()
-    return SweepReport(uploads=len(stale), challenges=challenges, sessions=sessions)
+    return SweepReport(uploads=len(stale), challenges=challenges, sessions=sessions, files=files)
 
 
 def cmd_sweep(_: argparse.Namespace) -> int:
     r = sweep()
-    print(f"swept {r.uploads} upload(s), {r.challenges} sign-in code(s) and {r.sessions} session(s)")
+    print(
+        f"swept {r.uploads} upload(s), {r.files} library file(s), {r.challenges} sign-in code(s) "
+        f"and {r.sessions} session(s)"
+    )
     return 0
 
 
@@ -237,6 +248,14 @@ def cmd_setup_bucket(_: argparse.Namespace) -> int:
     lifecycle = "set" if storage.ensure_bucket(s.web_origins) else "not supported here: clear incoming/ yourself"
     print(f"bucket {storage.bucket}: CORS for {', '.join(s.web_origins)}; incoming/ expiry {lifecycle}")
     return 0
+
+
+def cmd_mail_worker(args: argparse.Namespace) -> int:
+    """Sends the queued emails until stopped (SIGTERM or Ctrl-C), or with --once until nothing is due."""
+    from app.services.outbox import run_worker
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    return run_worker(get_sessionmaker(), once=args.once, poll_seconds=args.poll)
 
 
 def cmd_dev_login(args: argparse.Namespace) -> int:
@@ -282,6 +301,10 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("backup").set_defaults(fn=cmd_backup)
     sub.add_parser("sweep", aliases=["sweep-uploads"]).set_defaults(fn=cmd_sweep)
     sub.add_parser("setup-bucket").set_defaults(fn=cmd_setup_bucket)
+    mw = sub.add_parser("mail-worker")
+    mw.add_argument("--once", action="store_true", help="stop when nothing is due")
+    mw.add_argument("--poll", type=float, default=5.0, help="seconds to wait when nothing is due (default 5)")
+    mw.set_defaults(fn=cmd_mail_worker)
     dl = sub.add_parser("dev-login")
     dl.add_argument("identifier")
     dl.add_argument("--role", choices=[r.value for r in Role], default=None)

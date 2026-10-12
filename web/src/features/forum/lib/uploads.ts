@@ -6,8 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, call } from '../../../api/client';
 import { ApiError } from '../../../api/errors';
 import type { PresignedUpload } from '../../../api/types';
+import { isMediaPath } from '../../../ui/safeHref';
 import { altFromFileName } from './editing';
-import { isMediaPath } from './links';
 
 export const IMAGE_TYPES: readonly string[] = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 export const IMAGE_ACCEPT = IMAGE_TYPES.join(',');
@@ -47,9 +47,8 @@ function uploadErrorMessage(e: unknown): string {
       case 'too_large':
         return e.message || `That image is too big. The limit is ${MAX_IMAGE_MB} MB.`;
       case 'rate_limited':
-        return e.retryAfter
-          ? `You've uploaded a lot of images. Try again in ${Math.max(1, Math.ceil(e.retryAfter / 60))} min.`
-          : e.message || "You've uploaded a lot of images. Try again later.";
+        // The API says how long to wait ("You've uploaded a lot. Try again in 12 minutes.").
+        return e.message || "You've uploaded a lot of images. Try again later.";
       case 'not_uploaded':
       case 'mismatch':
         return e.message || "The image didn't arrive in one piece. Try again.";

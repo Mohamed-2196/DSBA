@@ -1,6 +1,7 @@
 // Notifications of the signed-in person: newest first, polled every minute while signed in.
 import { useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
+import { nextOffset } from '../../api/paging';
 import type { NotificationOut, NotificationPage } from '../../api/types';
 
 export const NOTIFICATIONS_KEY = ['notifications'] as const;
@@ -14,7 +15,7 @@ export function useNotifications(enabled: boolean) {
     queryKey: NOTIFICATIONS_KEY,
     queryFn: ({ pageParam }) => call(api.GET('/api/v1/notifications', { params: { query: { limit: PAGE_SIZE, offset: pageParam } } })),
     initialPageParam: 0,
-    getNextPageParam: (last) => (last.offset + last.items.length < last.total ? last.offset + last.items.length : undefined),
+    getNextPageParam: nextOffset,
     enabled,
     refetchInterval: enabled ? POLL_MS : false,
     staleTime: 20_000,

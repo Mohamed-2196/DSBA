@@ -67,8 +67,14 @@ class AdminUserPage(Page[AdminUser]):
 
 
 class AdminUserUpdate(ApiModel):
+    """Only the fields sent change. `email` and `phone` are the account-recovery action (security review SEC-9):
+    they replace the account's address (`null` removes it; one must stay), end every session of the account, send
+    a notice to the address that was replaced or removed, and are audited (`user.identifier`)."""
+
     role: Role | None = None
     status: UserStatus | None = None
+    email: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)] | None = None
+    phone: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)] | None = None
 
 
 class AuditOut(ApiModel):

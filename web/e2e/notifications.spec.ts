@@ -49,7 +49,6 @@ test('a reply notification opens the thread and becomes read; mark all as read',
 });
 
 test('ST-4: a reply notification links to the reply itself', async ({ ali }) => {
-  test.fail(true, 'ST-4: reply notifications link to /forum/<slug> without #reply-<id>');
   const notes = await api<{ items: Note[] }>(ali, 'GET', '/api/v1/notifications');
   const reply = notes.body.items.find((n) => n.kind === 'thread_reply' && n.url?.includes(slug));
   expect(reply?.url).toMatch(/#reply-[0-9a-f-]{36}$/);

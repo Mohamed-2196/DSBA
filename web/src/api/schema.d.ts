@@ -33,9 +33,30 @@ export interface paths {
         };
         /**
          * Csrf
-         * @description Sets the dsba_csrf cookie (the middleware does it for any response without one). Call once at start-up.
+         * @description Sets the CSRF cookie (the middleware does it for any response without one). Call once at start-up.
          */
         get: operations["csrf_api_v1_auth_csrf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Session State
+         * @description Who is signed in: `{"me": Me}`, or `{"me": null}` for a guest. Never 401, so a guest's page load logs no
+         *     error (student test ST-10); GET /me still answers 401 when signed out.
+         */
+        get: operations["session_state_api_v1_auth_session_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -55,7 +76,10 @@ export interface paths {
         put?: never;
         /**
          * Start Sign In
-         * @description Send a 6-digit code to an email address or phone number. The same answer whether or not an account exists.
+         * @description Send a code to an email address or phone number. The same answer whether or not an account exists.
+         *
+         *     The code is 6 digits; after many wrong codes for an address it is 10 letters and digits instead
+         *     (`codeFormat: "long"`, written 'ABCDE-FGH23'), which nobody can guess.
          *
          *     Errors: invalid_identifier (422), sms_unavailable (422: a number we don't text; 429: texts paused), rate_limited
          *     (429, with retryAfter), delivery_failed (503: try again or use the other method).
@@ -78,7 +102,8 @@ export interface paths {
         put?: never;
         /**
          * Verify Sign In
-         * @description Check the code; on success the account is created if needed and the session cookie is set.
+         * @description Check the code; on success the account is created if needed and the session cookie is set (with a CSRF
+         *     cookie bound to it: read it again before the next request).
          *
          *     Errors: invalid_code (422, with attempts left in the message), code_expired (410), too_many_attempts (429).
          */
@@ -118,23 +143,23 @@ export interface paths {
         };
         /**
          * Get Me
-         * @description The signed-in user (401 when signed out: the web app treats that as a guest).
+         * @description The signed-in user (401 when signed out). GET /auth/session answers the same without a 401 for guests.
          */
         get: operations["get_me_api_v1_me_get"];
         put?: never;
         post?: never;
         /**
          * Delete Me
-         * @description Delete the account: personal data goes, posts stay as 'deleted user', uploads stay unattributed.
+         * @description Delete the account: personal data goes, posts stay as 'deleted user', published files stay unattributed.
          *
-         *     Errors: storage_unavailable (503: files could not be deleted, nothing changed; try again).
+         *     Errors: step_up_required (403), storage_unavailable (503: files could not be deleted, nothing changed).
          */
         delete: operations["delete_me_api_v1_me_delete"];
         options?: never;
         head?: never;
         /**
          * Update Me
-         * @description Display name, cohort year and notification preferences. Only the fields sent change; `year: null` clears it.
+         * @description Display name, cohort year and email switches. Only the fields sent change; `year: null` clears it.
          *
          *     Errors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).
          */
@@ -150,7 +175,7 @@ export interface paths {
         };
         /**
          * Export Me
-         * @description Everything the Hub stores about the signed-in user, as JSON.
+         * @description Everything the Hub stores about the signed-in user.
          */
         get: operations["export_me_api_v1_me_export_get"];
         put?: never;
@@ -201,6 +226,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/step-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Step Up
+         * @description Send a code to one of the account's own identifiers: `via` "email" or "phone" (by default the email
+         *     address, else the phone number). Check it with POST /me/step-up/verify.
+         *
+         *     Errors: invalid_input (422: the account has no such identifier), sms_unavailable, rate_limited,
+         *     delivery_failed, as for POST /auth/otp.
+         */
+        post: operations["start_step_up_api_v1_me_step_up_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/step-up/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify Step Up
+         * @description Check the code sent by POST /me/step-up. On success this browser gets a new session (and a new CSRF cookie:
+         *     read it again), with which changing identifiers and deleting the account work for `expiresIn` seconds.
+         *
+         *     Errors: invalid_code (422), code_expired (410), too_many_attempts (429).
+         */
+        post: operations["verify_step_up_api_v1_me_step_up_verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/identifiers/otp": {
         parameters: {
             query?: never;
@@ -212,12 +284,13 @@ export interface paths {
         put?: never;
         /**
          * Start Add Identifier
-         * @description Add the other kind of identifier (a phone number to an email account, or the reverse), or change it.
+         * @description Add the other kind of identifier (a phone number to an email account, or the reverse), or change one: a code
+         *     goes to the new address.
          *
          *     The answer is the same whether or not another account uses the identifier: if one does, the address gets a
          *     message saying so instead of a code (so nobody can test which addresses have accounts), and
          *     /me/identifiers/verify answers identifier_taken. Errors: identifier_unchanged (409) when it is already this
-         *     account's, plus those of POST /auth/otp.
+         *     account's, step_up_required (403), plus those of POST /auth/otp.
          */
         post: operations["start_add_identifier_api_v1_me_identifiers_otp_post"];
         delete?: never;
@@ -261,8 +334,10 @@ export interface paths {
         post?: never;
         /**
          * Remove Identifier
-         * @description Remove the email or the phone number; the account must keep at least one (last_identifier, 409).
+         * @description Remove the email address or the phone number; the account must keep at least one (last_identifier, 409).
          *     The account's other sessions are signed out and the removed identifier gets a notice.
+         *
+         *     Errors: step_up_required (403), last_identifier (409).
          */
         delete: operations["remove_identifier_api_v1_me_identifiers__kind__delete"];
         options?: never;
@@ -478,8 +553,12 @@ export interface paths {
         head?: never;
         /**
          * Update User
-         * @description Change a role or suspend an account (audited; an admin cannot change their own role or status: 409
-         *     cannot_change_self). The person gets a notification.
+         * @description Change a role, suspend an account, or recover one (security review SEC-9): replace or remove its email
+         *     address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
+         *     Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
+         *
+         *     Errors: cannot_change_self (409: an admin can't change their own account here; ask another admin),
+         *     identifier_taken (409), last_identifier (409), invalid_identifier (422).
          */
         patch: operations["update_user_api_v1_admin_users__user_id__patch"];
         trace?: never;
@@ -511,7 +590,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Modules */
+        /**
+         * List Modules
+         * @description Every module, in programme order, with its published library count.
+         */
         get: operations["list_modules_api_v1_modules_get"];
         put?: never;
         post?: never;
@@ -557,7 +639,8 @@ export interface paths {
          * Create Item
          * @description Turn a completed upload into a library item: pending for students, published for moderators.
          *
-         *     Errors: not_uploaded (409), already_used (409), invalid_input (422: an unknown module).
+         *     Errors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting
+         *     for review), invalid_input (422: an unknown module).
          */
         post: operations["create_item_api_v1_library_items_post"];
         delete?: never;
@@ -635,7 +718,8 @@ export interface paths {
         post?: never;
         /**
          * Delete Item
-         * @description The uploader or a moderator. The file is deleted from storage.
+         * @description The uploader or a moderator. Nothing serves the file any more; the daily sweep deletes it from storage a week
+         *     later.
          */
         delete: operations["delete_item_api_v1_library_items__item_id__delete"];
         options?: never;
@@ -718,9 +802,10 @@ export interface paths {
         put?: never;
         /**
          * Review
-         * @description Publish or reject a pending upload. Notifies the uploader. Audited.
+         * @description Publish or reject a pending upload. Notifies the uploader. Audited. A rejected file is deleted from storage a
+         *     week later (the item and its note stay).
          *
-         *     Errors: removed (409).
+         *     Errors: removed (409), file_gone (409: publishing a file that was rejected more than a week ago).
          */
         post: operations["review_api_v1_library_items__item_id__review_post"];
         delete?: never;
@@ -741,12 +826,13 @@ export interface paths {
         /**
          * Create Upload
          * @description A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,
-         *     .ppt), notebooks (.ipynb), R scripts (.r), text (.txt) and CSV, up to DSBA_MAX_UPLOAD_MB; forum_image: PNG,
-         *     JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r,
-         *     `application/octet-stream` is accepted too). POST `fields` and then the file as `file` to `url`, then call
-         *     /uploads/{id}/complete. 20 uploads per hour.
+         *     .ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to
+         *     DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the
+         *     declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file
+         *     as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
          *
-         *     Errors: unsupported_type (422), too_large (422), rate_limited (429).
+         *     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
+         *     for review; library only), rate_limited (429).
          */
         post: operations["create_upload_api_v1_uploads_post"];
         delete?: never;
@@ -766,7 +852,8 @@ export interface paths {
         put?: never;
         /**
          * Complete Upload
-         * @description Call after the browser's POST to the bucket succeeded: checks the object exists and matches what was declared.
+         * @description Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and
+         *     first bytes match the file's name.
          *
          *     Errors: not_uploaded (409), mismatch (422; the object is deleted).
          */
@@ -896,7 +983,11 @@ export interface paths {
         };
         /**
          * Get Thread
-         * @description By slug (or id). Replies oldest first; hidden ones only for moderators.
+         * @description By slug or id (a value that reads as an id is looked up as one first). Replies oldest first.
+         *
+         *     Hidden threads and replies are for moderators and for their own author: the author gets them with status
+         *     'hidden' and canModerate false (show them a "hidden by a student rep" banner) and can't change them (canEdit
+         *     false). Everyone else: 404 for a hidden thread; a hidden reply is left out of `replies`.
          */
         get: operations["get_thread_api_v1_forum_threads__slug__get"];
         put?: never;
@@ -919,7 +1010,8 @@ export interface paths {
         post?: never;
         /**
          * Delete Thread
-         * @description The author (or a moderator) deletes the thread: its text goes, its replies stay readable.
+         * @description The author (or a moderator) deletes the thread: its text goes; its title and replies stay listed while it has
+         *     replies. A hidden thread stays hidden (only reps reach it) and unhiding it later gives a deleted thread.
          */
         delete: operations["delete_thread_api_v1_forum_threads__thread_id__delete"];
         options?: never;
@@ -940,7 +1032,7 @@ export interface paths {
         };
         /**
          * Related Threads
-         * @description Same module first, then shared tags and category.
+         * @description Same module first, then shared tags and category. Works on any thread the viewer can open.
          */
         get: operations["related_threads_api_v1_forum_threads__thread_id__related_get"];
         put?: never;
@@ -1004,7 +1096,8 @@ export interface paths {
         put?: never;
         /**
          * Moderate Thread
-         * @description Pin, lock (no new replies) or hide a thread. Audited.
+         * @description Pin, lock (no new replies) or hide a thread. Hiding tells the author (a "system" notification, with `reason`
+         *     when given); unhiding a thread that was deleted while hidden gives a deleted thread. Audited.
          */
         post: operations["moderate_thread_api_v1_forum_threads__thread_id__moderate_post"];
         delete?: never;
@@ -1024,7 +1117,10 @@ export interface paths {
         put?: never;
         /**
          * Create Reply
-         * @description Notifies the thread's author (and the parent reply's author). Errors: thread_locked (409), rate_limited (429).
+         * @description Notifies the thread's author (and the parent reply's author), linking to /forum/<slug>#reply-<id>.
+         *
+         *     Errors: thread_locked (409: locked by a student rep), post_unavailable (409: the thread was deleted or hidden),
+         *     rate_limited (429).
          */
         post: operations["create_reply_api_v1_forum_threads__thread_id__replies_post"];
         delete?: never;
@@ -1045,7 +1141,8 @@ export interface paths {
         post?: never;
         /**
          * Delete Reply
-         * @description The author (or a moderator) deletes a reply: it keeps its place without its text.
+         * @description The author (or a moderator) deletes a reply: it keeps its place without its text, and the notifications about
+         *     it are taken back. A hidden reply stays hidden (only reps reach it).
          */
         delete: operations["delete_reply_api_v1_forum_replies__reply_id__delete"];
         options?: never;
@@ -1083,7 +1180,8 @@ export interface paths {
         put?: never;
         /**
          * Moderate Reply
-         * @description Hide a reply, or show it again. Audited.
+         * @description Hide a reply (its author is told, with `reason` when given; the notifications about it are taken back), or
+         *     show it again (a reply deleted while hidden comes back deleted). Audited.
          */
         post: operations["moderate_reply_api_v1_forum_replies__reply_id__moderate_post"];
         delete?: never;
@@ -1173,8 +1271,8 @@ export interface paths {
         put?: never;
         /**
          * Create Issue
-         * @description A draft. Errors: slug_taken (409), invalid_input (422: every section needs a unique id; links must be
-         *     https://, mailto: or a page of the Hub; at most 40 sections and 256 KB).
+         * @description A draft. Errors: slug_taken (409); invalid_input (422: the content doesn't fit the schema, a link isn't
+         *     https://, mailto: or a page of the Hub, or the issue is over 256 KB of JSON).
          */
         post: operations["create_issue_api_v1_newsletter_issues_post"];
         delete?: never;
@@ -1219,9 +1317,8 @@ export interface paths {
         head?: never;
         /**
          * Update Issue
-         * @description Edit a draft or a published issue (fields that are not sent stay as they are).
-         *
-         *     Errors: slug_taken (409), invalid_input (422).
+         * @description Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are
+         *     replaced as a whole). Errors: slug_taken (409), invalid_input (422).
          */
         patch: operations["update_issue_api_v1_newsletter_issues__issue_id__patch"];
         trace?: never;
@@ -1237,8 +1334,8 @@ export interface paths {
         put?: never;
         /**
          * Publish Issue
-         * @description Publishes the issue and notifies everyone who wants newsletter notifications. Audited.
-         *     Publishing an issue that is already out changes nothing.
+         * @description Publishes the issue and tells every account (in the Hub; by email to those who keep "New newsletter issues"
+         *     on). Audited. Publishing an issue that is already out changes nothing.
          */
         post: operations["publish_issue_api_v1_newsletter_issues__issue_id__publish_post"];
         delete?: never;
@@ -1324,8 +1421,30 @@ export interface paths {
         /**
          * Ics Feed
          * @description An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).
+         *     `type=exam` gives only the exams (the web app's "Download the exams").
          */
         get: operations["ics_feed_api_v1_calendar_feed_ics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/events/{event_id}.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Event Ics
+         * @description One event as an iCalendar file to import ("Add to calendar"): all-day, with a reminder the day before an exam
+         *     or a deadline. Errors: not_found (404).
+         */
+        get: operations["event_ics_api_v1_calendar_events__event_id__ics_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1368,14 +1487,15 @@ export interface paths {
         };
         /**
          * Career
-         * @description The Career Navigator's content (empty until it is loaded).
+         * @description The Career Navigator's content (`data` is null until it is loaded).
          */
         get: operations["career_api_v1_career_get"];
         /**
          * Update Career
          * @description Replace the whole document. Audited.
          *
-         *     Errors: invalid_input (422: over 512 KB, or a link that isn't https://, mailto: or a page of the Hub).
+         *     Errors: invalid_input (422: it doesn't fit the schema, refers to an id it doesn't define or a module that
+         *     doesn't exist, has a link that isn't https:// or a page of the Hub, or is over 512 KB of JSON).
          */
         put: operations["update_career_api_v1_career_put"];
         post?: never;
@@ -1424,39 +1544,24 @@ export interface components {
             /** Sessions */
             sessions: components["schemas"]["SessionInfo"][];
             /** Threads */
-            threads: {
-                [key: string]: unknown;
-            }[];
+            threads: components["schemas"]["ExportThread"][];
             /** Replies */
-            replies: {
-                [key: string]: unknown;
-            }[];
+            replies: components["schemas"]["ExportReply"][];
             /** Libraryitems */
-            libraryItems: {
-                [key: string]: unknown;
-            }[];
+            libraryItems: components["schemas"]["ExportLibraryItem"][];
             /** Stars */
             stars: string[];
             /** Reactions */
-            reactions: {
-                [key: string]: unknown;
-            }[];
-            /** Progress */
-            progress: {
-                [key: string]: unknown;
-            };
+            reactions: components["schemas"]["ExportReaction"][];
+            progress: components["schemas"]["Progress"];
             /** Notifications */
-            notifications: {
-                [key: string]: unknown;
-            }[];
+            notifications: components["schemas"]["ExportNotification"][];
             /** Votes */
-            votes?: {
-                [key: string]: unknown;
-            }[];
+            votes: components["schemas"]["ExportVote"][];
             /** Reports */
-            reports?: {
-                [key: string]: unknown;
-            }[];
+            reports: components["schemas"]["ExportReport"][];
+            /** Emails */
+            emails: components["schemas"]["ExportEmail"][];
         };
         /** AdminStats */
         AdminStats: {
@@ -1517,12 +1622,21 @@ export interface components {
             /** Offset */
             offset: number;
         };
-        /** AdminUserUpdate */
+        /**
+         * AdminUserUpdate
+         * @description Only the fields sent change. `email` and `phone` are the account-recovery action (security review SEC-9):
+         *     they replace the account's address (`null` removes it; one must stay), end every session of the account, send
+         *     a notice to the address that was replaced or removed, and are audited (`user.identifier`).
+         */
         AdminUserUpdate: {
             /** Role */
             role?: ("student" | "moderator" | "admin") | null;
             /** Status */
             status?: ("active" | "suspended") | null;
+            /** Email */
+            email?: string | null;
+            /** Phone */
+            phone?: string | null;
         };
         /** AuditOut */
         AuditOut: {
@@ -1639,16 +1753,284 @@ export interface components {
             sample?: boolean | null;
         };
         /**
+         * CardAside
+         * @description A typographic card beside the copy: a kicker, a short title in a highlight, a line of text.
+         */
+        CardAside: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "card";
+            /** Kicker */
+            kicker: string;
+            /** Title */
+            title: string;
+            /** Text */
+            text: string;
+            /**
+             * Wide
+             * @default false
+             */
+            wide: boolean;
+        };
+        /** CareerCert */
+        CareerCert: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Short */
+            short: string;
+            /** Issuer */
+            issuer: string;
+            /** Mono */
+            mono?: string | null;
+            /** Url */
+            url?: string | null;
+            file?: components["schemas"]["CertFile"] | null;
+            /** Goodfor */
+            goodFor: string;
+            /**
+             * Effort
+             * @enum {integer}
+             */
+            effort: 1 | 2 | 3;
+            /** Effortnote */
+            effortNote: string;
+            /**
+             * Covers
+             * @default []
+             */
+            covers: string[];
+            /** Coversnote */
+            coversNote?: string | null;
+            /**
+             * Roles
+             * @default []
+             */
+            roles: string[];
+        };
+        /** CareerChecklistItem */
+        CareerChecklistItem: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Hint */
+            hint: string;
+            /** Link */
+            link?: (components["schemas"]["ChecklistLesson"] | components["schemas"]["ChecklistCert"] | components["schemas"]["ChecklistForum"]) | null;
+        };
+        /**
          * CareerContent
-         * @description The Career Navigator's content, edited by admins as one document (shapes: web/src/features/career/types).
+         * @description The Career Navigator's content, edited by admins as one document. `data` is None until it is loaded.
          */
         CareerContent: {
-            /** Data */
-            data: {
-                [key: string]: unknown;
-            };
+            data: components["schemas"]["CareerDoc"] | null;
             /** Updatedat */
             updatedAt: string | null;
+        };
+        /** CareerDoc */
+        CareerDoc: {
+            /** Checkedon */
+            checkedOn: string;
+            /** Initialcount */
+            initialCount: number;
+            /** Tracks */
+            tracks: components["schemas"]["CareerTrack"][];
+            offerTypes: components["schemas"]["OfferTypeLabels"];
+            ctaLabel: components["schemas"]["CtaLabels"];
+            /** Employers */
+            employers: components["schemas"]["CareerEmployer"][];
+            featured: components["schemas"]["CareerFeatured"] | null;
+            /** Effortlabel */
+            effortLabel: {
+                [key: string]: string;
+            };
+            /** Certnote */
+            certNote: string;
+            /** Certs */
+            certs: components["schemas"]["CareerCert"][];
+            /** Defaultroleid */
+            defaultRoleId: string;
+            /** Roles */
+            roles: components["schemas"]["CareerRole"][];
+            /** Depthlabel */
+            depthLabel: {
+                [key: string]: string;
+            };
+            /**
+             * Chosen
+             * @default {}
+             */
+            chosen: {
+                [key: string]: "option" | "elective";
+            };
+            /** Skills */
+            skills: {
+                [key: string]: components["schemas"]["CareerSkill"];
+            };
+            /** Checklist */
+            checklist: components["schemas"]["CareerChecklistItem"][];
+            furtherStudy: components["schemas"]["FurtherStudy"] | null;
+            /** Yearhints */
+            yearHints: {
+                [key: string]: string;
+            };
+            /**
+             * Seniors
+             * @default []
+             */
+            seniors: components["schemas"]["CareerSenior"][];
+        };
+        /**
+         * CareerEmployer
+         * @description A real employer with a presence in Bahrain.
+         */
+        CareerEmployer: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Mono */
+            mono: string;
+            /** Sector */
+            sector: string;
+            /**
+             * Offers
+             * @default []
+             */
+            offers: components["schemas"]["CareerOffer"][];
+            /**
+             * Tracks
+             * @default []
+             */
+            tracks: string[];
+            /** Why */
+            why: string;
+            /** Url */
+            url: string;
+            /**
+             * Cta
+             * @enum {string}
+             */
+            cta: "apply" | "programme" | "roles";
+        };
+        /**
+         * CareerFeatured
+         * @description The one competition beside the page title.
+         */
+        CareerFeatured: {
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Title */
+            title: string;
+            /** Organiser */
+            organiser: string;
+            /** Mono */
+            mono: string;
+            logo: components["schemas"]["FeaturedLogo"];
+            /** Badge */
+            badge: string;
+            /** Blurb */
+            blurb: string;
+            /** Note */
+            note: string;
+            /** Url */
+            url: string;
+        };
+        /** CareerOffer */
+        CareerOffer: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "graduate" | "internship" | "careers";
+            /** Name */
+            name?: string | null;
+        };
+        /** CareerRole */
+        CareerRole: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Title */
+            title: string;
+            /** About */
+            about: string;
+            /**
+             * Tools
+             * @default []
+             */
+            tools: string[];
+            /**
+             * Skills
+             * @default []
+             */
+            skills: string[];
+            /** Ask */
+            ask: string;
+            /**
+             * Close
+             * @default {}
+             */
+            close: {
+                [key: string]: components["schemas"]["CloseLesson"] | components["schemas"]["CloseFile"] | components["schemas"]["CloseCert"] | components["schemas"]["CloseForum"] | components["schemas"]["CloseOpps"];
+            };
+        };
+        /**
+         * CareerSenior
+         * @description A Year 3 student or a recent graduate who answers questions.
+         */
+        CareerSenior: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Short */
+            short: string;
+            /** Year */
+            year?: (1 | 2 | 3) | null;
+            /** Badge */
+            badge?: string | null;
+            /** Helps */
+            helps: string;
+            /** Ask */
+            ask: string;
+        };
+        /** CareerSkill */
+        CareerSkill: {
+            /** Name */
+            name: string;
+            /**
+             * Taught
+             * @default []
+             */
+            taught: components["schemas"]["SkillTaught"][];
+            /** Gapnote */
+            gapNote?: string | null;
+            /** Close */
+            close?: (components["schemas"]["CloseLesson"] | components["schemas"]["CloseFile"] | components["schemas"]["CloseCert"] | components["schemas"]["CloseForum"] | components["schemas"]["CloseOpps"]) | null;
+        };
+        /** CareerTrack */
+        CareerTrack: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Short */
+            short: string;
+            /** About */
+            about: string;
+            /**
+             * Modules
+             * @default []
+             */
+            modules: string[];
         };
         /** CategoryOut */
         CategoryOut: {
@@ -1666,6 +2048,16 @@ export interface components {
             /** Blurb */
             blurb: string;
         };
+        /**
+         * CertFile
+         * @description A library file to study from instead of an official page (self-study).
+         */
+        CertFile: {
+            /** Module */
+            module: string;
+            /** Id */
+            id: string;
+        };
         /** Chapter */
         Chapter: {
             /** Title */
@@ -1674,6 +2066,106 @@ export interface components {
             audioUrl?: string | null;
             /** Videos */
             videos: components["schemas"]["Video"][];
+        };
+        /** ChecklistCert */
+        ChecklistCert: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "cert";
+            /** Cert */
+            cert: string;
+            /** Label */
+            label: string;
+        };
+        /** ChecklistForum */
+        ChecklistForum: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "forum";
+            /** To */
+            to: string;
+            /** Label */
+            label: string;
+        };
+        /** ChecklistLesson */
+        ChecklistLesson: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "lesson";
+            /** Module */
+            module: string;
+            /** Chapter */
+            chapter: string;
+            /** Label */
+            label: string;
+        };
+        /** CloseCert */
+        CloseCert: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "cert";
+            /** Cert */
+            cert: string;
+            /** Text */
+            text: string;
+        };
+        /** CloseFile */
+        CloseFile: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "file";
+            /** Module */
+            module: string;
+            /** File */
+            file: string;
+            /** Text */
+            text: string;
+        };
+        /** CloseForum */
+        CloseForum: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "forum";
+            /** To */
+            to: string;
+            /** Text */
+            text: string;
+        };
+        /** CloseLesson */
+        CloseLesson: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "lesson";
+            /** Module */
+            module: string;
+            /** Chapter */
+            chapter: string;
+            /** Text */
+            text: string;
+        };
+        /** CloseOpps */
+        CloseOpps: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "opps";
+            /** Text */
+            text: string;
         };
         /** Contributor */
         Contributor: {
@@ -1687,10 +2179,54 @@ export interface components {
             /** Score */
             score: number;
         };
+        /** CoverLine */
+        CoverLine: {
+            /** Section */
+            section: string;
+            /** Text */
+            text: string;
+        };
+        /**
+         * CtaBlock
+         * @description A button: 'Open the calendar', 'Upload a file'.
+         */
+        CtaBlock: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "cta";
+            /** Label */
+            label: string;
+            /** To */
+            to: string;
+        };
+        /** CtaLabels */
+        CtaLabels: {
+            /** Apply */
+            apply: string;
+            /** Programme */
+            programme: string;
+            /** Roles */
+            roles: string;
+        };
+        /**
+         * DateWindow
+         * @description The dates a deadlines section lists (either end may be open).
+         */
+        DateWindow: {
+            /** From */
+            from?: string | null;
+            /** To */
+            to?: string | null;
+        };
         /** ErrorDetail */
         ErrorDetail: {
-            /** Code */
-            code: string;
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending";
             /** Message */
             message: string;
             /** Fields */
@@ -1703,6 +2239,268 @@ export interface components {
         /** ErrorResponse */
         ErrorResponse: {
             error: components["schemas"]["ErrorDetail"];
+        };
+        /**
+         * ExportEmail
+         * @description An email the Hub sent you, or will send (notifications and account notices; sign-in codes are not kept).
+         */
+        ExportEmail: {
+            /** Kind */
+            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "system") | "account_notice";
+            /** Toaddress */
+            toAddress: string;
+            /** Subject */
+            subject: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "sent" | "failed" | "cancelled";
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Sentat */
+            sentAt: string | null;
+        };
+        /** ExportLibraryItem */
+        ExportLibraryItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "file" | "link";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
+            /** Title */
+            title: string;
+            /** Description */
+            description: string | null;
+            /** Moduleid */
+            moduleId: string | null;
+            /** Year */
+            year: number | null;
+            /** Url */
+            url: string | null;
+            /** Filename */
+            fileName: string | null;
+            /** Contenttype */
+            contentType: string | null;
+            /** Sizebytes */
+            sizeBytes: number | null;
+            /** Examyear */
+            examYear: number | null;
+            /** Zone */
+            zone: string | null;
+            /** Authorname */
+            authorName: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "published" | "rejected" | "removed";
+            /** Reviewnote */
+            reviewNote: string | null;
+            /** Downloadcount */
+            downloadCount: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Publishedat */
+            publishedAt: string | null;
+        };
+        /** ExportNotification */
+        ExportNotification: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "system";
+            /** Title */
+            title: string;
+            /** Body */
+            body: string | null;
+            /** Url */
+            url: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Readat */
+            readAt: string | null;
+        };
+        /** ExportReaction */
+        ExportReaction: {
+            /**
+             * Issueid
+             * Format: uuid
+             */
+            issueId: string;
+            /** Issueslug */
+            issueSlug: string;
+            /** Sectionid */
+            sectionId: string;
+            /** Reaction */
+            reaction: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** ExportReply */
+        ExportReply: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Threadid
+             * Format: uuid
+             */
+            threadId: string;
+            /** Threadslug */
+            threadSlug: string;
+            /** Parentid */
+            parentId: string | null;
+            /** Body */
+            body: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "visible" | "hidden" | "deleted";
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Editedat */
+            editedAt: string | null;
+            /** Votecount */
+            voteCount: number;
+        };
+        /** ExportReport */
+        ExportReport: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Targettype
+             * @enum {string}
+             */
+            targetType: "thread" | "reply" | "library_item";
+            /**
+             * Targetid
+             * Format: uuid
+             */
+            targetId: string;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "spam" | "harassment" | "inappropriate" | "copyright" | "other";
+            /** Note */
+            note: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "resolved" | "dismissed";
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** ExportThread */
+        ExportThread: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Title */
+            title: string;
+            /** Body */
+            body: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "year-1" | "year-2" | "year-3" | "study-groups" | "general";
+            /** Moduleid */
+            moduleId: string | null;
+            /** Tags */
+            tags: string[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "visible" | "hidden" | "deleted";
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Editedat */
+            editedAt: string | null;
+            /** Votecount */
+            voteCount: number;
+            /** Replycount */
+            replyCount: number;
+        };
+        /** ExportVote */
+        ExportVote: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "thread" | "reply";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** FeaturedLogo */
+        FeaturedLogo: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "employer" | "cert";
+            /** Id */
+            id: string;
         };
         /** FileLink */
         FileLink: {
@@ -1752,6 +2550,21 @@ export interface components {
                 };
             };
         };
+        /** FurtherStudy */
+        FurtherStudy: {
+            /** Title */
+            title: string;
+            /** Body */
+            body: string;
+            action: components["schemas"]["FurtherStudyAction"];
+        };
+        /** FurtherStudyAction */
+        FurtherStudyAction: {
+            /** To */
+            to: string;
+            /** Label */
+            label: string;
+        };
         /** Health */
         Health: {
             /**
@@ -1772,7 +2585,30 @@ export interface components {
             /** Version */
             version: string;
         };
-        /** IssueCreate */
+        /**
+         * IssueCover
+         * @description Typographic, or an illustration (`art`, portrait 3:4) with the type over it. A cover shows five lines at most
+         *     (three over an illustration).
+         */
+        IssueCover: {
+            /**
+             * Tone
+             * @default navy
+             * @enum {string}
+             */
+            tone: "navy" | "paper";
+            /** Art */
+            art?: string | null;
+            /**
+             * Lines
+             * @default []
+             */
+            lines: components["schemas"]["CoverLine"][];
+        };
+        /**
+         * IssueCreate
+         * @description A new draft. The whole issue may take 256 KB of JSON.
+         */
         IssueCreate: {
             /** Slug */
             slug: string;
@@ -1785,10 +2621,7 @@ export interface components {
              * Format: date
              */
             date: string;
-            /** Cover */
-            cover?: {
-                [key: string]: unknown;
-            };
+            cover?: components["schemas"]["IssueCover"];
             /**
              * Dek
              * @default
@@ -1802,9 +2635,7 @@ export interface components {
             /** Editors */
             editors?: string[];
             /** Sections */
-            sections?: {
-                [key: string]: unknown;
-            }[];
+            sections?: components["schemas"]["IssueSection"][];
         };
         /** IssueDetail */
         IssueDetail: {
@@ -1824,10 +2655,7 @@ export interface components {
              * Format: date
              */
             date: string;
-            /** Cover */
-            cover: {
-                [key: string]: unknown;
-            };
+            cover: components["schemas"]["IssueCover"];
             /** Dek */
             dek: string;
             /** Summary */
@@ -1842,13 +2670,61 @@ export interface components {
             /** Publishedat */
             publishedAt: string | null;
             /** Sections */
-            sections: {
-                [key: string]: unknown;
-            }[];
+            sections: components["schemas"]["IssueSection"][];
             /** Reactions */
             reactions: {
                 [key: string]: components["schemas"]["ReactionCounts"];
             };
+        };
+        /**
+         * IssueFigure
+         * @description A picture beside a section's copy. Width and height (pixels) reserve its space while it loads; `alt`
+         *     describes it for people who can't see it.
+         */
+        IssueFigure: {
+            /** Src */
+            src: string;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+            /**
+             * Alt
+             * @default
+             */
+            alt: string;
+            /** Caption */
+            caption?: string | null;
+        };
+        /** IssueSection */
+        IssueSection: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Label */
+            label?: string | null;
+            /** Icon */
+            icon?: ("NotePencil" | "ListBullets" | "CalendarCheck" | "Sparkle" | "Megaphone" | "UsersThree" | "Lightbulb" | "Student" | "ChatsCircle" | "Books" | "ChartLineUp" | "Microphone" | "RocketLaunch" | "Newspaper") | null;
+            /** Kind */
+            kind?: ("deadlines" | "forum" | "library") | null;
+            /**
+             * Blocks
+             * @default []
+             */
+            blocks: (components["schemas"]["ParagraphBlock"] | components["schemas"]["ListBlock"] | components["schemas"]["SignoffBlock"] | components["schemas"]["CtaBlock"])[];
+            /**
+             * After
+             * @default []
+             */
+            after: (components["schemas"]["ParagraphBlock"] | components["schemas"]["ListBlock"] | components["schemas"]["SignoffBlock"] | components["schemas"]["CtaBlock"])[];
+            figure?: components["schemas"]["IssueFigure"] | null;
+            /** Aside */
+            aside?: (components["schemas"]["CardAside"] | components["schemas"]["StatsAside"]) | null;
+            window?: components["schemas"]["DateWindow"] | null;
+            fallback?: components["schemas"]["LiveFallback"] | null;
+            /** Estwords */
+            estWords?: number | null;
         };
         /** IssueSummary */
         IssueSummary: {
@@ -1868,10 +2744,7 @@ export interface components {
              * Format: date
              */
             date: string;
-            /** Cover */
-            cover: {
-                [key: string]: unknown;
-            };
+            cover: components["schemas"]["IssueCover"];
             /** Dek */
             dek: string;
             /** Summary */
@@ -1886,7 +2759,10 @@ export interface components {
             /** Publishedat */
             publishedAt: string | null;
         };
-        /** IssueUpdate */
+        /**
+         * IssueUpdate
+         * @description Fields that are not sent stay as they are.
+         */
         IssueUpdate: {
             /** Slug */
             slug?: string | null;
@@ -1896,10 +2772,7 @@ export interface components {
             title?: string | null;
             /** Date */
             date?: string | null;
-            /** Cover */
-            cover?: {
-                [key: string]: unknown;
-            } | null;
+            cover?: components["schemas"]["IssueCover"] | null;
             /** Dek */
             dek?: string | null;
             /** Summary */
@@ -1907,9 +2780,7 @@ export interface components {
             /** Editors */
             editors?: string[] | null;
             /** Sections */
-            sections?: {
-                [key: string]: unknown;
-            }[] | null;
+            sections?: components["schemas"]["IssueSection"][] | null;
         };
         /** LastLesson */
         LastLesson: {
@@ -2101,6 +2972,29 @@ export interface components {
             /** Offset */
             offset: number;
         };
+        /**
+         * ListBlock
+         * @description A bulleted list.
+         */
+        ListBlock: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "list";
+            /** Items */
+            items: string[];
+        };
+        /**
+         * LiveFallback
+         * @description What a live section says when there is nothing to list yet.
+         */
+        LiveFallback: {
+            /** Title */
+            title: string;
+            /** Text */
+            text: string;
+        };
         /** Me */
         Me: {
             /**
@@ -2256,6 +3150,19 @@ export interface components {
             /** Unreadcount */
             unreadCount: number;
         };
+        /** OfferTypeLabel */
+        OfferTypeLabel: {
+            /** Label */
+            label: string;
+            /** Plural */
+            plural: string;
+        };
+        /** OfferTypeLabels */
+        OfferTypeLabels: {
+            graduate: components["schemas"]["OfferTypeLabel"];
+            internship: components["schemas"]["OfferTypeLabel"];
+            careers: components["schemas"]["OfferTypeLabel"];
+        };
         /** Ok */
         Ok: {
             /**
@@ -2282,6 +3189,12 @@ export interface components {
             expiresIn: number;
             /** Resendafter */
             resendAfter: number;
+            /**
+             * Codeformat
+             * @default digits
+             * @enum {string}
+             */
+            codeFormat: "digits" | "long";
         };
         /**
          * OtpStartRequest
@@ -2301,6 +3214,21 @@ export interface components {
             /** Code */
             code: string;
         };
+        /** ParagraphBlock */
+        ParagraphBlock: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "p";
+            /** Text */
+            text: string;
+            /**
+             * Lead
+             * @default false
+             */
+            lead: boolean;
+        };
         /** PostImage */
         PostImage: {
             /** Src */
@@ -2308,24 +3236,67 @@ export interface components {
             /** Alt */
             alt: string;
         };
-        /** Preferences */
+        /**
+         * Preferences
+         * @description Which notifications also come by email, to the account's email address. In the Hub every notification shows
+         *     whatever these say, and account security notices are always emailed.
+         */
         Preferences: {
             /**
+             * Emailreplies
+             * @default true
+             */
+            emailReplies: boolean;
+            /**
+             * Emailansweraccepted
+             * @default true
+             */
+            emailAnswerAccepted: boolean;
+            /**
+             * Emailuploadreviews
+             * @default true
+             */
+            emailUploadReviews: boolean;
+            /**
+             * Emailnewissues
+             * @default true
+             */
+            emailNewIssues: boolean;
+            /**
              * Emailnotifications
+             * @deprecated
              * @default true
              */
             emailNotifications: boolean;
             /**
              * Newsletteremails
+             * @deprecated
              * @default true
              */
             newsletterEmails: boolean;
         };
-        /** PreferencesUpdate */
+        /**
+         * PreferencesUpdate
+         * @description Only the switches sent change.
+         */
         PreferencesUpdate: {
-            /** Emailnotifications */
+            /** Emailreplies */
+            emailReplies?: boolean | null;
+            /** Emailansweraccepted */
+            emailAnswerAccepted?: boolean | null;
+            /** Emailuploadreviews */
+            emailUploadReviews?: boolean | null;
+            /** Emailnewissues */
+            emailNewIssues?: boolean | null;
+            /**
+             * Emailnotifications
+             * @deprecated
+             */
             emailNotifications?: boolean | null;
-            /** Newsletteremails */
+            /**
+             * Newsletteremails
+             * @deprecated
+             */
             newsletterEmails?: boolean | null;
         };
         /**
@@ -2395,8 +3366,11 @@ export interface components {
              * @default 0
              */
             laugh: number;
-            /** Mine */
-            mine?: ("useful" | "love" | "laugh")[];
+            /**
+             * Mine
+             * @default []
+             */
+            mine: ("useful" | "love" | "laugh")[];
         };
         /** Reply */
         Reply: {
@@ -2454,6 +3428,8 @@ export interface components {
              * @enum {string}
              */
             status: "visible" | "hidden";
+            /** Reason */
+            reason?: string | null;
         };
         /** ReplyUpdate */
         ReplyUpdate: {
@@ -2626,16 +3602,94 @@ export interface components {
             /** Current */
             current: boolean;
         };
+        /**
+         * SessionState
+         * @description GET /auth/session: the signed-in user, or null for a guest. Never 401.
+         */
+        SessionState: {
+            me: components["schemas"]["Me"] | null;
+        };
         /** SignInResult */
         SignInResult: {
             user: components["schemas"]["Me"];
             /** Isnewuser */
             isNewUser: boolean;
         };
+        /**
+         * SignoffBlock
+         * @description The editors' sign-off at the end of a story or an issue, shown with their avatars.
+         */
+        SignoffBlock: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "signoff";
+            /** Text */
+            text: string;
+        };
+        /** SkillTaught */
+        SkillTaught: {
+            /** Module */
+            module: string;
+            /**
+             * Depth
+             * @enum {integer}
+             */
+            depth: 0 | 1 | 2 | 3;
+            /** What */
+            what: string;
+        };
         /** StarResult */
         StarResult: {
             /** Starred */
             starred: boolean;
+        };
+        /** StatItem */
+        StatItem: {
+            /** Value */
+            value: string;
+            /** Label */
+            label: string;
+        };
+        /**
+         * StatsAside
+         * @description A few numbers beside the copy.
+         */
+        StatsAside: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "stats";
+            /** Title */
+            title: string;
+            /** Items */
+            items: components["schemas"]["StatItem"][];
+            /** Foot */
+            foot?: string | null;
+            /**
+             * Wide
+             * @default false
+             */
+            wide: boolean;
+        };
+        /**
+         * StepUpResult
+         * @description The browser's session was renewed: changing or removing an identifier and deleting the account work without
+         *     another code for `expires_in` seconds.
+         */
+        StepUpResult: {
+            /** Expiresin */
+            expiresIn: number;
+        };
+        /**
+         * StepUpStart
+         * @description Which of the account's own identifiers gets the code: by default the email address, else the phone number.
+         */
+        StepUpStart: {
+            /** Via */
+            via?: ("email" | "phone") | null;
         };
         /** TagOut */
         TagOut: {
@@ -2740,6 +3794,8 @@ export interface components {
             locked?: boolean | null;
             /** Status */
             status?: ("visible" | "hidden") | null;
+            /** Reason */
+            reason?: string | null;
         };
         /** ThreadPage */
         ThreadPage: {
@@ -2924,18 +3980,56 @@ export type AuditPage = components['schemas']['AuditPage'];
 export type CalendarEventCreate = components['schemas']['CalendarEventCreate'];
 export type CalendarEventOut = components['schemas']['CalendarEventOut'];
 export type CalendarEventUpdate = components['schemas']['CalendarEventUpdate'];
+export type CardAside = components['schemas']['CardAside'];
+export type CareerCert = components['schemas']['CareerCert'];
+export type CareerChecklistItem = components['schemas']['CareerChecklistItem'];
 export type CareerContent = components['schemas']['CareerContent'];
+export type CareerDoc = components['schemas']['CareerDoc'];
+export type CareerEmployer = components['schemas']['CareerEmployer'];
+export type CareerFeatured = components['schemas']['CareerFeatured'];
+export type CareerOffer = components['schemas']['CareerOffer'];
+export type CareerRole = components['schemas']['CareerRole'];
+export type CareerSenior = components['schemas']['CareerSenior'];
+export type CareerSkill = components['schemas']['CareerSkill'];
+export type CareerTrack = components['schemas']['CareerTrack'];
 export type CategoryOut = components['schemas']['CategoryOut'];
+export type CertFile = components['schemas']['CertFile'];
 export type Chapter = components['schemas']['Chapter'];
+export type ChecklistCert = components['schemas']['ChecklistCert'];
+export type ChecklistForum = components['schemas']['ChecklistForum'];
+export type ChecklistLesson = components['schemas']['ChecklistLesson'];
+export type CloseCert = components['schemas']['CloseCert'];
+export type CloseFile = components['schemas']['CloseFile'];
+export type CloseForum = components['schemas']['CloseForum'];
+export type CloseLesson = components['schemas']['CloseLesson'];
+export type CloseOpps = components['schemas']['CloseOpps'];
 export type Contributor = components['schemas']['Contributor'];
+export type CoverLine = components['schemas']['CoverLine'];
+export type CtaBlock = components['schemas']['CtaBlock'];
+export type CtaLabels = components['schemas']['CtaLabels'];
+export type DateWindow = components['schemas']['DateWindow'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
 export type ErrorResponse = components['schemas']['ErrorResponse'];
+export type ExportEmail = components['schemas']['ExportEmail'];
+export type ExportLibraryItem = components['schemas']['ExportLibraryItem'];
+export type ExportNotification = components['schemas']['ExportNotification'];
+export type ExportReaction = components['schemas']['ExportReaction'];
+export type ExportReply = components['schemas']['ExportReply'];
+export type ExportReport = components['schemas']['ExportReport'];
+export type ExportThread = components['schemas']['ExportThread'];
+export type ExportVote = components['schemas']['ExportVote'];
+export type FeaturedLogo = components['schemas']['FeaturedLogo'];
 export type FileLink = components['schemas']['FileLink'];
 export type ForumMeta = components['schemas']['ForumMeta'];
 export type ForumStats = components['schemas']['ForumStats'];
+export type FurtherStudy = components['schemas']['FurtherStudy'];
+export type FurtherStudyAction = components['schemas']['FurtherStudyAction'];
 export type Health = components['schemas']['Health'];
+export type IssueCover = components['schemas']['IssueCover'];
 export type IssueCreate = components['schemas']['IssueCreate'];
 export type IssueDetail = components['schemas']['IssueDetail'];
+export type IssueFigure = components['schemas']['IssueFigure'];
+export type IssueSection = components['schemas']['IssueSection'];
 export type IssueSummary = components['schemas']['IssueSummary'];
 export type IssueUpdate = components['schemas']['IssueUpdate'];
 export type LastLesson = components['schemas']['LastLesson'];
@@ -2946,6 +4040,8 @@ export type LibraryItemCreate = components['schemas']['LibraryItemCreate'];
 export type LibraryItemUpdate = components['schemas']['LibraryItemUpdate'];
 export type LibraryLinkCreate = components['schemas']['LibraryLinkCreate'];
 export type LibraryPage = components['schemas']['LibraryPage'];
+export type ListBlock = components['schemas']['ListBlock'];
+export type LiveFallback = components['schemas']['LiveFallback'];
 export type Me = components['schemas']['Me'];
 export type MeUpdate = components['schemas']['MeUpdate'];
 export type ModuleDetail = components['schemas']['ModuleDetail'];
@@ -2953,10 +4049,13 @@ export type ModuleResources = components['schemas']['ModuleResources'];
 export type ModuleSummary = components['schemas']['ModuleSummary'];
 export type NotificationOut = components['schemas']['NotificationOut'];
 export type NotificationPage = components['schemas']['NotificationPage'];
+export type OfferTypeLabel = components['schemas']['OfferTypeLabel'];
+export type OfferTypeLabels = components['schemas']['OfferTypeLabels'];
 export type Ok = components['schemas']['Ok'];
 export type OtpChallengeOut = components['schemas']['OtpChallengeOut'];
 export type OtpStartRequest = components['schemas']['OtpStartRequest'];
 export type OtpVerifyRequest = components['schemas']['OtpVerifyRequest'];
+export type ParagraphBlock = components['schemas']['ParagraphBlock'];
 export type PostImage = components['schemas']['PostImage'];
 export type Preferences = components['schemas']['Preferences'];
 export type PreferencesUpdate = components['schemas']['PreferencesUpdate'];
@@ -2977,8 +4076,15 @@ export type ReviewDecision = components['schemas']['ReviewDecision'];
 export type SearchHit = components['schemas']['SearchHit'];
 export type SearchResults = components['schemas']['SearchResults'];
 export type SessionInfo = components['schemas']['SessionInfo'];
+export type SessionState = components['schemas']['SessionState'];
 export type SignInResult = components['schemas']['SignInResult'];
+export type SignoffBlock = components['schemas']['SignoffBlock'];
+export type SkillTaught = components['schemas']['SkillTaught'];
 export type StarResult = components['schemas']['StarResult'];
+export type StatItem = components['schemas']['StatItem'];
+export type StatsAside = components['schemas']['StatsAside'];
+export type StepUpResult = components['schemas']['StepUpResult'];
+export type StepUpStart = components['schemas']['StepUpStart'];
 export type TagOut = components['schemas']['TagOut'];
 export type ThreadCreate = components['schemas']['ThreadCreate'];
 export type ThreadDetail = components['schemas']['ThreadDetail'];
@@ -3091,6 +4197,89 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    session_state_api_v1_auth_session_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionState"];
+                };
             };
             /** @description Bad Request */
             400: {
@@ -3547,7 +4736,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Forbidden */
+            /** @description step_up_required: confirm it's you first (POST /me/step-up) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3939,6 +5128,198 @@ export interface operations {
             };
         };
     };
+    start_step_up_api_v1_me_step_up_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StepUpStart"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OtpChallengeOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    verify_step_up_api_v1_me_step_up_verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OtpVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StepUpResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Gone */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     start_add_identifier_api_v1_me_identifiers_otp_post: {
         parameters: {
             query?: never;
@@ -3979,7 +5360,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Forbidden */
+            /** @description step_up_required: confirm it's you first (POST /me/step-up) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -4169,7 +5550,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Forbidden */
+            /** @description step_up_required: confirm it's you first (POST /me/step-up) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -9582,9 +10963,95 @@ export interface operations {
         parameters: {
             query?: {
                 year?: number | null;
+                type?: ("exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term") | null;
             };
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/calendar": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    event_ics_api_v1_calendar_events__event_id__ics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -9927,9 +11394,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    [key: string]: unknown;
-                };
+                "application/json": components["schemas"]["CareerDoc"];
             };
         };
         responses: {

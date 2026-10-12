@@ -1,4 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
+import { removeStored } from '../state/storedValue';
 
 /** The signed-in person (GET /me): Me, or null for a guest. */
 export const ME_KEY = ['me'] as const;
@@ -25,20 +26,22 @@ export async function resetPersonalQueries(qc: QueryClient): Promise<void> {
 }
 
 /**
- * localStorage keys that hold a signed-in person's unfinished work (drafts). They are removed on sign-out and
- * account deletion, because lab and library computers are shared. New per-person keys: start them with 'hub.mine.'.
+ * localStorage keys that hold a signed-in person's own things (recent searches, grades, drafts such as the forum's
+ * 'dsba.forum.draft.v2'). They are removed on sign-out and account deletion, because lab and library computers are
+ * shared. New per-person keys: start them with 'hub.mine.'.
  */
-const PERSONAL_STORAGE_PREFIXES = ['hub.mine.', 'dsba.forum.draft'];
+export const PERSONAL_STORAGE_PREFIXES = ['hub.mine.', 'dsba.forum.draft'] as const;
 
+/** Remove every personal key, and reset every mounted useLocalStorage() holding one (code quality review CQ-1). */
 export function clearPersonalStorage(): void {
+  let doomed: string[] = [];
   try {
-    const doomed: string[] = [];
     for (let i = 0; i < window.localStorage.length; i++) {
       const key = window.localStorage.key(i);
       if (key && PERSONAL_STORAGE_PREFIXES.some((p) => key.startsWith(p))) doomed.push(key);
     }
-    for (const key of doomed) window.localStorage.removeItem(key);
   } catch {
-    /* storage unavailable: nothing was kept */
+    doomed = []; // storage unavailable: nothing was kept
   }
+  for (const key of doomed) removeStored(key);
 }

@@ -51,3 +51,8 @@
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
+
+/* Touch screens: 44px targets (UX review UX-11); the glyph keeps its size. */
+@media (pointer: coarse) {
+  .ui-iconbutton--sm, .ui-iconbutton--md { --ib: 44px; }
+}

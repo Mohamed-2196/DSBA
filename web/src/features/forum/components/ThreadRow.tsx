@@ -63,7 +63,7 @@ export function ThreadRow({ thread, onVote, fresh = false, terms, showModule = t
               Pinned
             </Badge>
           ) : null}
-          {!thread.pinned && isNew(thread.createdAt) ? (
+          {!thread.pinned && !hidden && !deleted && isNew(thread.createdAt) ? (
             <Badge tone="highlight" size="sm">
               New
             </Badge>

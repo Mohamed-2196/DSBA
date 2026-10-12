@@ -22,14 +22,19 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLElement>,
   toggle?: boolean;
   /** internal route → renders <Link> */
   to?: To;
-  /** → <a>; absolute URLs open in a new tab */
+  /** → <a>; absolute URLs open in a new tab (see `external`) */
   href?: string;
+  /** open `href` in a new tab (true) or not (false); default: when the URL is absolute */
+  external?: boolean;
+  /** for `href`: these win over what `external` sets */
+  target?: string;
+  rel?: string;
   download?: boolean | string;
 }
 
 /** Square icon-only button. `label` is required (becomes aria-label). */
 export const IconButton = forwardRef<HTMLElement, IconButtonProps>(function IconButton(
-  { label, icon, variant = 'ghost', size = 'md', badge, tooltip = false, tooltipSide = 'bottom', active = false, toggle = false, to, href, className, type, ...rest },
+  { label, icon, variant = 'ghost', size = 'md', badge, tooltip = false, tooltipSide = 'bottom', active = false, toggle = false, to, href, external, target, rel, className, type, ...rest },
   ref,
 ) {
   if (!label && import.meta.env.DEV) console.warn('IconButton requires a `label`');
@@ -45,10 +50,12 @@ export const IconButton = forwardRef<HTMLElement, IconButtonProps>(function Icon
   if (to) props.to = to;
   if (href) {
     props.href = href;
-    if (/^(https?:)?\/\//.test(href)) {
+    if (external ?? /^(https?:)?\/\//.test(href)) {
       props.target = '_blank';
       props.rel = 'noopener noreferrer';
     }
+    if (target !== undefined) props.target = target;
+    if (rel !== undefined) props.rel = rel;
   }
   const btn = (
     <Comp {...props}>

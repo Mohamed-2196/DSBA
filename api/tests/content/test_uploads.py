@@ -11,10 +11,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 
+from app.core.links import MEDIA_PATH
 from app.core.time import utcnow
 from app.models import Upload, User, UserStatus
 from app.services.storage import safe_file_name
-from app.services.uploads import MEDIA_PATH_RE
 from tests.content.conftest import API, DOCX, PDF, PNG, browser_post
 
 Clients = Callable[..., TestClient]
@@ -51,7 +51,9 @@ def test_presign_pins_type_size_and_a_throwaway_key(client_for: Clients, student
         ("library", "malware.exe", "application/octet-stream"),
         ("library", "page.html", "text/html"),
         ("library", "notes.pdf", "image/png"),  # the extension must match the type
-        ("library", "photo.png", "image/png"),  # images are forum-only
+        ("library", "photo.png", "image/jpeg"),
+        ("library", "animation.gif", "image/gif"),  # pictures in the library: JPG, PNG and WebP only
+        ("library", "drawing.svg", "image/svg+xml"),
         ("library", "noextension", "application/pdf"),
         ("forum_image", "drawing.svg", "image/svg+xml"),
         ("forum_image", "page.html", "text/html"),
@@ -65,6 +67,11 @@ def test_unsupported_types_are_refused(
     r = presign(client_for(student), purpose=purpose, fileName=name, contentType=content_type)
     assert r.status_code == 422
     assert r.json()["error"]["code"] == "unsupported_type"
+    if purpose == "library":
+        assert r.json()["error"]["fields"] == {
+            "fileName": "Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, "
+            "or a JPG, PNG or WebP picture."
+        }
 
 
 @pytest.mark.parametrize(
@@ -79,6 +86,10 @@ def test_unsupported_types_are_refused(
         ("library", "a.ipynb", "application/octet-stream", "application/x-ipynb+json"),
         ("library", "analysis.R", "text/plain", "text/x-r"),
         ("library", "data.csv", "application/vnd.ms-excel", "text/csv"),
+        ("library", "whiteboard.png", "image/png", None),  # decision D9
+        ("library", "scan.JPEG", "image/jpeg", None),
+        ("library", "scan.jpg", "image/jpg", "image/jpeg"),
+        ("library", "slide.webp", "image/webp", None),
         ("forum_image", "a.JPG", "image/jpeg", None),
         ("forum_image", "a.webp", "image/webp", None),
         ("forum_image", "a.gif", "image/gif", None),
@@ -120,7 +131,9 @@ def test_twenty_uploads_per_hour(client_for: Clients, student: User, db: Session
     r = presign(c)
     assert r.status_code == 429
     assert r.json()["error"]["code"] == "rate_limited"
-    assert int(r.headers["Retry-After"]) > 0
+    assert 3500 < int(r.headers["Retry-After"]) <= 3600
+    assert r.json()["error"]["message"].startswith("You've uploaded a lot in the last hour. Try again in ")
+    assert presign(c, purpose="forum_image", fileName="a.png", contentType="image/png").status_code == 429  # one count
     # an hour later the window has moved on
     db.execute(update(Upload).where(Upload.user_id == student.id).values(created_at=utcnow() - timedelta(hours=2)))
     db.commit()
@@ -198,12 +211,51 @@ def test_complete_deletes_a_file_that_does_not_match(
     assert c.post(f"{API}/uploads/{body['uploadId']}/complete").json()["error"]["code"] == "not_uploaded"
 
 
-def test_an_image_that_is_not_an_image_is_refused(client_for: Clients, student: User, storage: Any) -> None:
+@pytest.mark.parametrize("purpose", ["forum_image", "library"])
+def test_an_image_that_is_not_an_image_is_refused(
+    client_for: Clients, student: User, storage: Any, purpose: str
+) -> None:
     c = client_for(student)
-    fake = b"GIF89a-but-actually-a-png"
-    body = presign(c, purpose="forum_image", fileName="a.png", contentType="image/png", sizeBytes=len(fake)).json()
-    browser_post(storage, body["fields"], fake)
-    assert c.post(f"{API}/uploads/{body['uploadId']}/complete").json()["error"]["code"] == "mismatch"
+    for name, fake in (
+        ("a.png", b"GIF89a-but-actually-a-png"),
+        ("b.webp", b"RIFF\x00\x00\x00\x00WAVEfmt "),
+        ("c.jpg", PDF),
+    ):
+        ext = name.rsplit(".", 1)[1]
+        declared = {"png": "image/png", "webp": "image/webp", "jpg": "image/jpeg"}[ext]
+        body = presign(c, purpose=purpose, fileName=name, contentType=declared, sizeBytes=len(fake)).json()
+        browser_post(storage, body["fields"], fake)
+        r = c.post(f"{API}/uploads/{body['uploadId']}/complete")
+        assert r.json()["error"] == {
+            "code": "mismatch",
+            "message": f"This isn't a real .{ext} file: what's inside doesn't match its name. "
+            "Save or export it again, or choose another file.",
+        }
+
+
+def test_a_page_renamed_pdf_is_told_in_plain_words(client_for: Clients, student: User, storage: Any) -> None:
+    """Student test ST-7: the student never 'declared' anything; the message says what is wrong with the file."""
+    c = client_for(student)
+    page = b"<html><body>ST2134 past paper</body></html>"
+    body = presign(c, fileName="ST2134 past paper 2024.pdf", sizeBytes=len(page)).json()
+    browser_post(storage, body["fields"], page)
+    r = c.post(f"{API}/uploads/{body['uploadId']}/complete")
+    assert r.status_code == 422
+    assert r.json()["error"]["message"] == (
+        "This isn't a real .pdf file: what's inside doesn't match its name. "
+        "Save or export it again, or choose another file."
+    )
+
+
+def test_library_pictures_never_go_out_through_media(
+    client_for: Clients, student: User, upload_file: Callable[..., dict[str, Any]]
+) -> None:
+    """A library picture waits for review like any file: /media serves forum pictures only."""
+    me = client_for(student)
+    out = upload_file(me, name="whiteboard.png", content_type="image/png", body=PNG)
+    assert (out["status"], out["contentType"], out["mediaUrl"]) == ("uploaded", "image/png", None)
+    for c in (me, client_for()):
+        assert c.get(f"{API}/media/{out['uploadId']}", follow_redirects=False).status_code == 404
 
 
 def test_only_the_uploader_can_complete(client_for: Clients, student: User, other: User, storage: Any) -> None:
@@ -263,7 +315,7 @@ def test_media_paths_are_what_posts_refer_to(
     client_for: Clients, student: User, upload_file: Callable[..., dict[str, Any]]
 ) -> None:
     out = upload_file(client_for(student), purpose="forum_image", name="a.png", content_type="image/png", body=PNG)
-    found = MEDIA_PATH_RE.search(f"![graph]({out['mediaUrl']})")
+    found = MEDIA_PATH.search(f"![graph]({out['mediaUrl']})")
     assert found is not None
     assert found.group(1) == out["uploadId"]
-    assert MEDIA_PATH_RE.search(f"{out['mediaUrl']}/../x") is None
+    assert MEDIA_PATH.search(f"{out['mediaUrl']}/../x") is None

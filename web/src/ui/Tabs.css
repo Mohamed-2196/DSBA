@@ -59,3 +59,7 @@
 }
 
 .ui-tabpanel:focus-visible { outline-offset: 4px; border-radius: var(--r-xs); }
+
+@media (pointer: coarse) {
+  .ui-tabs--pill .ui-tab { height: 44px; }
+}

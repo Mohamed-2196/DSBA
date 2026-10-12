@@ -4,9 +4,7 @@ import { queryClient } from './api/queryClient';
 import { AuthProvider } from './auth';
 import { AppShell } from './shell/AppShell';
 import { AppRoutes } from './routes';
-import { PageLoader } from './shell/PageLoader';
-import { ModulesProvider } from './state/modules';
-import { LoadFailed } from './shell/LoadFailed';
+import { ModulesProvider } from './state/ModulesProvider';
 import { ThemeProvider, ToastProvider, YearProvider } from './state';
 
 export default function App() {
@@ -17,7 +15,8 @@ export default function App() {
           <ToastProvider>
             <BrowserRouter basename={import.meta.env.BASE_URL}>
               <AuthProvider>
-                <ModulesProvider fallback={<PageLoader />} error={(retry) => <LoadFailed onRetry={retry} />}>
+                {/* The catalogue loads alongside: the shell shows at once, and each page waits for it (routes.tsx). */}
+                <ModulesProvider>
                   <AppShell>
                     <AppRoutes />
                   </AppShell>

@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   min-height: 40px;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--control-border);
   border-radius: var(--r-control);
   background: var(--surface);
   transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
@@ -53,7 +53,7 @@
   gap: 10px;
   height: 40px;
   padding: 0 10px 0 12px;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--control-border);
   border-radius: var(--r-control);
   background: var(--surface);
   color: var(--ink-3);
@@ -82,3 +82,10 @@
 .ui-search--button { width: 100%; text-align: left; cursor: pointer; }
 .ui-search--button:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: var(--focus-offset); }
 .ui-search__placeholder { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); font-size: var(--fs-14); }
+
+/* Touch screens: 44px fields (UX review UX-11). */
+@media (pointer: coarse) {
+  .ui-control:not(.ui-control--lg):not(.ui-control--area) { min-height: 44px; }
+  .ui-search:not(.ui-search--lg) { height: 44px; }
+  .ui-search__clear { width: 36px; height: 36px; }
+}

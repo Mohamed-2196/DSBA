@@ -30,6 +30,8 @@ class LibraryItem(Base):
     __table_args__ = (
         Index("ix_library_items_status_published", "status", "published_at"),
         Index("ix_library_items_module", "module_id"),
+        Index("ix_library_items_uploaded_by", "uploaded_by"),  # "Your uploads", account deletion
+        Index("ix_library_items_reviewed_by", "reviewed_by"),  # account deletion (SET NULL)
         Index("ix_library_items_search", "search_vector", postgresql_using="gin"),
     )
 

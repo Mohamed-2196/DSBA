@@ -46,3 +46,9 @@
 
 .ui-button:disabled, .ui-button[aria-disabled='true'] { opacity: .45; cursor: not-allowed; }
 .ui-button.is-loading { opacity: .8; }
+
+/* Touch screens: every button is at least 44px tall (UX review UX-11). */
+@media (pointer: coarse) {
+  .ui-button--sm, .ui-button--md { --btn-h: 44px; }
+  .ui-button { min-width: 44px; }
+}

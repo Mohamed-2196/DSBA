@@ -46,11 +46,11 @@ def test_reply_to_a_thread(client_for: Client, student: User, classmate: User, d
     [n] = notifications_for(db, student)
     assert (n.kind, n.title, n.url, n.actor_id) == (
         "thread_reply",
-        "Ebrahim D. replied to your thread",
-        f"/forum/{t['slug']}",
+        "Ebrahim D. replied to your thread “Where is room 2.14?”",
+        f"/forum/{t['slug']}#reply-{reply['id']}",  # opens at the reply (ST-4)
         classmate.id,
     )
-    assert n.body == "“Where is room 2.14?”"
+    assert n.body == "Second floor, left of the lifts."  # the start of the reply, as plain text (ST-6)
     # replying on your own thread notifies nobody
     new_reply(client_for(student), t["id"], "Thanks!")
     assert len(notifications_for(db, student)) == 1
@@ -98,7 +98,8 @@ def test_reply_parent_rules(client_for: Client, student: User, classmate: User, 
     url = f"{API}/forum/threads/{t['id']}/replies"
 
     def status(parent_id: str) -> int:
-        return s.post(url, json={"body": "A reply", "parentId": parent_id}).status_code
+        code: int = s.post(url, json={"body": "A reply", "parentId": parent_id}).status_code
+        return code
 
     assert status(child["id"]) == 422  # one level only
     assert status(gone["id"]) == 422
@@ -139,11 +140,12 @@ def test_locked_deleted_and_hidden_threads_take_no_replies(
     assert s.delete(f"{API}/forum/threads/{deleted['id']}").status_code == 204
     r = c.post(f"{API}/forum/threads/{deleted['id']}/replies", json={"body": "Still there?"})
     assert r.status_code == 409
-    assert r.json()["error"]["code"] == "thread_locked"
+    assert r.json()["error"]["code"] == "post_unavailable"  # code quality review CQ-10: one code per condition
     hidden = new_thread(s, title="Hidden soon")
     set_thread(db, hidden["id"], status=PostStatus.hidden)
     assert c.post(f"{API}/forum/threads/{hidden['id']}/replies", json={"body": "Hello?"}).status_code == 404
-    assert m.post(f"{API}/forum/threads/{hidden['id']}/replies", json={"body": "Hello?"}).status_code == 409
+    r = m.post(f"{API}/forum/threads/{hidden['id']}/replies", json={"body": "Hello?"})
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "post_unavailable")
 
 
 def test_reply_rate_limit(client_for: Client, student: User, classmate: User, db: Session) -> None:
@@ -223,9 +225,13 @@ def test_hide_and_show_a_reply(
     assert r.json()["status"] == "hidden"
     assert r.json()["body"] == "Rude words"  # kept for the record
     assert thread_row(db, t["id"]).reply_count == 0
-    for viewer in (client_for(), client_for(student), client_for(classmate)):
+    for viewer in (client_for(), client_for(student)):
         assert viewer.get(f"{API}/forum/threads/{t['slug']}").json()["replies"] == []
         assert viewer.delete(f"{API}/forum/replies/{reply['id']}").status_code in (401, 404)
+    # its author still sees it, marked hidden, and can't change it (like a hidden thread, decision D3)
+    own = client_for(classmate).get(f"{API}/forum/threads/{t['slug']}").json()["replies"]
+    assert [(x["status"], x["body"], x["canEdit"]) for x in own] == [("hidden", "Rude words", False)]
+    assert client_for(classmate).delete(f"{API}/forum/replies/{reply['id']}").status_code == 404
     mod_view = m.get(f"{API}/forum/threads/{t['slug']}").json()
     assert [(x["status"], x["body"]) for x in mod_view["replies"]] == [("hidden", "Rude words")]
     assert mod_view["canModerate"] is True

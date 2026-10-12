@@ -13,6 +13,7 @@ import {
 import { Code, ImageSquare, LinkSimple, ListBullets, ListNumbers, Quotes, TextB, TextItalic, type Icon } from '@phosphor-icons/react';
 import { Field, IconButton, SegmentedControl, cx, modKeyLabel } from '../../../ui';
 import { bold, bulletList, code, italic, link, numberedList, quote, type EditFn } from '../lib/editing';
+import { useScrollFade } from '../lib/useScrollFade';
 import { Prose } from './Prose';
 
 type Tool = { id: string; label: string; key?: string; icon: Icon; fn: EditFn } | { sep: string };
@@ -91,7 +92,10 @@ export function MarkdownEditor({
   const ref = textareaRef ?? localRef;
   const [mode, setMode] = useState<EditorMode>('write');
   const nextSel = useRef<[number, number] | null>(null);
+  const toolsRef = useRef<HTMLDivElement>(null);
   const mod = modKeyLabel();
+  // On a narrow screen the tools scroll sideways; the cut-off edge fades, so the rest can be found.
+  useScrollFade(toolsRef);
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -150,7 +154,7 @@ export function MarkdownEditor({
       {(fid, describedBy) => (
         <div className={cx('forum-editor', mode === 'preview' && 'is-preview')}>
           <div className="forum-editor__bar">
-            <div className="forum-editor__tools" role="toolbar" aria-label="Formatting" aria-controls={fid}>
+            <div ref={toolsRef} className="forum-editor__tools" role="toolbar" aria-label="Formatting" aria-controls={fid}>
               {toolList.map((t) =>
                 'sep' in t ? (
                   <span key={t.sep} className="forum-editor__sep" aria-hidden="true" />

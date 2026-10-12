@@ -13,7 +13,7 @@ from app.core.security import DB, ActiveUser, Moderator, client_ip
 from app.routers._base import router_for
 from app.schemas.common import Ok
 from app.schemas.moderation import ReportCreate, ReportOut, ReportPage, ReportResolve
-from app.services import forum
+from app.services import reports
 
 router = router_for("reports")
 
@@ -24,7 +24,7 @@ def create_report(body: ReportCreate, user: ActiveUser, db: DB) -> Ok:
 
     Errors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),
     rate_limited (429)."""
-    forum.create_report(db, user, body)
+    reports.create_report(db, user, body)
     db.commit()
     return Ok()
 
@@ -39,7 +39,7 @@ def list_reports(
 ) -> ReportPage:
     """Open reports oldest first (a queue); closed ones most recently closed first. `reporter` is set for admins only
     (student reps are classmates)."""
-    return forum.list_reports(db, user, status_, limit, offset)
+    return reports.list_reports(db, user, status_, limit, offset)
 
 
 @router.post("/admin/reports/{report_id}/resolve", response_model=ReportOut)
@@ -47,6 +47,6 @@ def resolve_report(report_id: UUID, body: ReportResolve, request: Request, user:
     """Close a report (hiding the post is a separate moderation call). Notifies the reporter. Audited.
 
     Errors: report_closed (409) when it was already closed."""
-    out = forum.resolve_report(db, user, report_id, body, client_ip(request))
+    out = reports.resolve_report(db, user, report_id, body, client_ip(request))
     db.commit()
     return out

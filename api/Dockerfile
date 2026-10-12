@@ -17,8 +17,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+# requirements.txt is uv.lock exported with every file's hash (uv export --no-dev --format requirements-txt -o
+# requirements.txt): pip installs exactly those files or fails, and fails on any dependency the file doesn't pin.
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --require-hashes -r requirements.txt
 
 COPY alembic.ini ./
 COPY migrations ./migrations

@@ -32,3 +32,7 @@
   .shell-topbar__year { display: inline-flex; margin-right: 2px; }
   .shell-topbar__actions { gap: 2px; }
 }
+
+@media (pointer: coarse) {
+  .shell-topbar__brand { align-items: center; min-height: 44px; }
+}

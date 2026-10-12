@@ -30,3 +30,9 @@
 .yr-dot--y1 { --c: var(--y1); }
 .yr-dot--y2 { --c: var(--y2); }
 .yr-dot--y3 { --c: var(--y3); }
+
+/* Touch screens: a 44px target around the compact pill (UX review UX-11); the pill keeps its look. */
+@media (pointer: coarse) {
+  .yr-compact { position: relative; }
+  .yr-compact::after { content: ''; position: absolute; inset: -6px -2px; }
+}

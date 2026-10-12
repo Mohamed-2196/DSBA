@@ -16,7 +16,7 @@ Clients = Callable[..., TestClient]
 
 
 def _status(c: TestClient, media: str) -> int:
-    return c.get(media, follow_redirects=False).status_code
+    return int(c.get(media, follow_redirects=False).status_code)  # TestClient's methods are untyped
 
 
 def _upload(db: Session, media: str) -> Upload:
@@ -132,4 +132,20 @@ def test_an_image_follows_only_its_uploaders_posts(
     assert author.delete(f"{API}/forum/threads/{mine['id']}").status_code == 204
     up = _upload(db, media)
     assert (up.status, up.thread_id) == (UploadStatus.uploaded, as_uuid(mine["id"]))  # the sweep will take it
+    assert _status(client_for(), media) == 404
+
+
+def test_the_author_of_a_hidden_thread_sees_its_pictures(
+    client_for: Clients, storage: Any, student: User, classmate: User, moderator: User, make_user: Callable[..., User]
+) -> None:
+    """Decision D3: the author can still read a hidden thread, so its pictures load for them, the replies' too."""
+    asker = client_for(student)
+    t = new_thread(asker, "Is this right?")
+    replier = client_for(classmate)
+    media = image(replier, storage)
+    new_reply(replier, t["id"], f"![working]({media})")
+    rep = client_for(moderator)
+    assert rep.post(f"{API}/forum/threads/{t['id']}/moderate", json={"status": "hidden"}).status_code == 200
+    assert _status(asker, media) == 302  # the thread's author reads the thread, pictures included
+    assert _status(client_for(make_user(name="Someone Else")), media) == 404
     assert _status(client_for(), media) == 404

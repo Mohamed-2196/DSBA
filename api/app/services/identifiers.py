@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import logging
 from collections.abc import Iterable
 from typing import Literal
@@ -65,6 +67,17 @@ def email_rate_key_sql(column: ColumnElement[str] | InstrumentedAttribute[str]) 
         (domain.in_(GMAIL_DOMAINS), func.replace(local, ".", "") + f"@{GMAIL_DOMAINS[0]}"),
         else_=local + "@" + domain,
     )
+
+
+ANON_PREFIX = "~"  # no email address or phone number starts with it
+
+
+def anon_identifier(kind: Kind, identifier: str) -> str:
+    """What a deleted account's sign-in rows keep instead of the address: a keyed hash of its rate-limit key, so the
+    limits still count them (deleting and signing up again refills nothing) while the address itself is gone."""
+    key = get_settings().secret_key.get_secret_value().encode()
+    digest = hmac.new(key, f"otp-anon:{rate_key(kind, identifier)}".encode(), hashlib.sha256).hexdigest()
+    return f"{ANON_PREFIX}{kind}:{digest[:40]}"
 
 
 def channel_for(kind: Kind) -> Channel:

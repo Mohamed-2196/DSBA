@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { GithubLogo, MagnifyingGlass } from '@phosphor-icons/react';
+import { Link, useLocation } from 'react-router-dom';
+import { MagnifyingGlass, UploadSimple } from '@phosphor-icons/react';
 import { Button, ErrorBoundary, IconButton, HubLogo, SearchField, cx } from '../ui';
-import { CONTRIBUTE_URL } from '../data/people';
 import { openCommandPalette } from '../features/search/public';
 import { NotificationsMenu } from '../features/notifications/public';
 import { YearSwitcher } from './YearSwitcher';
 import { ProfileMenu } from './ProfileMenu';
+import { useStartUpload } from './upload';
 import './TopBar.css';
 
 function useScrolled(threshold = 4): boolean {
@@ -20,9 +20,13 @@ function useScrolled(threshold = 4): boolean {
   return scrolled;
 }
 
-/** Sticky top bar: search (opens ⌘K palette), notifications, Contribute. Mobile: brand + year + icons + account. */
+/** Sticky top bar: search (opens ⌘K palette), notifications, Upload a file. Mobile: brand + year + icons + account. */
 export function TopBar() {
   const scrolled = useScrolled();
+  const startUpload = useStartUpload();
+  // The library has its own Upload button: one is enough.
+  const { pathname } = useLocation();
+  const onLibrary = pathname === '/library';
   return (
     <header className={cx('shell-topbar', scrolled && 'is-scrolled')} data-hub="topbar">
       <div className="shell-topbar__inner">
@@ -44,9 +48,11 @@ export function TopBar() {
           <ErrorBoundary name="NotificationsMenu" fallback={null}>
             <NotificationsMenu />
           </ErrorBoundary>
-          <Button className="shell-topbar__contribute" href={CONTRIBUTE_URL} leadingIcon={GithubLogo} data-hub="contribute">
-            Contribute
-          </Button>
+          {onLibrary ? null : (
+            <Button className="shell-topbar__contribute" leadingIcon={UploadSimple} onClick={() => startUpload()} data-hub="contribute">
+              Upload a file
+            </Button>
+          )}
           <span className="shell-topbar__profile">
             <ProfileMenu placement="topbar" />
           </span>

@@ -49,7 +49,7 @@ def clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def production(**changes: Any) -> Settings:
     values = {k: v for k, v in {**GOOD, **changes}.items() if v is not REMOVE}
-    return Settings(_env_file=None, **values)  # type: ignore[call-arg]
+    return Settings(_env_file=None, **values)
 
 
 def test_good_production_settings_start() -> None:
@@ -115,7 +115,7 @@ def test_minio_behind_https_and_texts_turned_off_are_fine() -> None:
 
 def test_nothing_set_names_every_problem_at_once() -> None:
     with pytest.raises(ConfigError) as e:
-        check(Settings(_env_file=None, env="production"))  # type: ignore[call-arg]
+        check(Settings(_env_file=None, env="production"))
     message = str(e.value)
     assert message.startswith("DSBA Hub won't start in production until these settings are fixed:")
     for name in ("DSBA_SECRET_KEY", "DSBA_DATABASE_URL", "DSBA_WEB_ORIGINS", "DSBA_S3_ENDPOINT_URL"):
@@ -126,10 +126,10 @@ def test_nothing_set_names_every_problem_at_once() -> None:
 
 
 def test_development_settings_are_not_checked_but_wildcard_origins_never_pass() -> None:
-    assert Settings(_env_file=None).problems() == []  # type: ignore[call-arg]
+    assert Settings(_env_file=None).problems() == []
     for origins in ("*", "https://hub.example.com,*", "https://*.example.com"):
         with pytest.raises(ValidationError, match="can't contain"):
-            Settings(_env_file=None, web_origins=origins)  # type: ignore[call-arg]
+            Settings(_env_file=None, web_origins=origins)
 
 
 def test_docs_and_schema_are_off_in_production(monkeypatch: pytest.MonkeyPatch, client: TestClient) -> None:

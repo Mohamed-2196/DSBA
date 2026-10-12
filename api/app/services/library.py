@@ -5,21 +5,21 @@ moderators, removed ones only by moderators; everyone else gets a 404, as if the
 
 from __future__ import annotations
 
-import secrets
+import logging
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Any, Literal
 
 from sqlalchemy import Select, case, delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.core.errors import ApiError, conflict, forbidden, invalid, not_found, unauthenticated
 from app.core.security import is_moderator
-from app.core.text import slugify, unique_slug
+from app.core.text import has_latin, insert_with_unique_slug, short_id, slugify
 from app.core.time import utcnow
 from app.models import (
     ItemSource,
@@ -34,10 +34,19 @@ from app.models import (
 )
 from app.schemas.library import FileLink, LibraryFacets, LibraryItemCreate, LibraryItemUpdate, LibraryLinkCreate
 from app.schemas.library import LibraryItem as LibraryItemOut
-from app.services import audit
+from app.schemas.notifications import NotificationKind
+from app.services import ratelimit
+from app.services.accounts import public_user
+from app.services.content import apply_patch, record
+from app.services.modules import require_module
 from app.services.notify import notify
 from app.services.storage import INLINE_TYPES, Storage, get_storage
 from app.services.uploads import extension, serve_type
+
+log = logging.getLogger("dsba.library")
+
+MAX_PENDING = 10  # files one student may have waiting for review (security review SEC-14)
+FILE_GRACE = timedelta(days=7)  # a rejected or removed file stays in the bucket this long, then the sweep deletes it
 
 KIND_LABELS: dict[str, str] = {
     "past-paper": "Past paper",
@@ -138,12 +147,6 @@ def get_visible(db: Session, ref: str | uuid.UUID, user: User | None) -> Library
 # ── output ───────────────────────────────────────────────────────────────────────────────────
 
 
-def _public(u: User | None) -> dict[str, Any] | None:
-    if u is None or not u.display_name:
-        return None
-    return {"id": u.id, "display_name": u.display_name, "year": u.year, "role": u.role.value}
-
-
 def to_out(db: Session, items: Sequence[LibraryItem], user: User | None) -> list[LibraryItemOut]:
     """Items as this person sees them (uploader, star, edit rights, review note), in one query per relation."""
     uploader_ids = {i.uploaded_by for i in items if i.uploaded_by}
@@ -180,7 +183,7 @@ def to_out(db: Session, items: Sequence[LibraryItem], user: User | None) -> list
                     "exam_year": i.exam_year,
                     "zone": i.zone,
                     "author_name": i.author_name,
-                    "uploaded_by": _public(users.get(i.uploaded_by)) if i.uploaded_by else None,
+                    "uploaded_by": public_user(users.get(i.uploaded_by)) if i.uploaded_by else None,
                     "status": i.status.value,
                     "review_note": i.review_note if (mine or moderator) else None,
                     "download_count": i.download_count,
@@ -297,39 +300,40 @@ def facets(db: Session) -> LibraryFacets:
 # ── creating, editing, removing ──────────────────────────────────────────────────────────────
 
 
-def _module(db: Session, module_id: str | None) -> Module | None:
-    if module_id is None:
-        return None
-    m = db.get(Module, module_id)
-    if m is None:
-        raise invalid("moduleId", "This module doesn't exist.")
-    return m
-
-
-def item_slug(db: Session, title: str, module: Module | None) -> str:
-    """A free slug from the title, led by the module's code when the title doesn't start with it
-    ('st2133-past-paper-2024-zone-a')."""
+def _slug_text(title: str, module: Module | None) -> str:
+    """What an item's slug is made from: the title, led by the module's code when the title doesn't start with it
+    ('st2133-past-paper-2024-zone-a'). A title without Latin letters gives a short id instead (decision D8):
+    'st2133-x3k9q2', or 'f-x3k9q2' without a module."""
     code = (module.unit_code or module.id) if module else None
+    if not has_latin(title):
+        return f"{code or 'f'} {short_id()}"
     text = title.replace("\u2019", "").replace("'", "")
     if code and not slugify(text).startswith(slugify(code)):
         text = f"{code} {text}"
-    return unique_slug(db, LibraryItem.slug, text, fallback="file")
+    return text
 
 
-def insert_with_slug(db: Session, item: LibraryItem, module: Module | None) -> None:
-    """Adds the item with a free slug. Two uploads with the same title at the same moment can both see a slug as
-    free: the loser retries with a short random suffix instead of failing."""
-    base = item_slug(db, item.title, module)
-    for attempt in range(3):
-        item.slug = base if attempt == 0 else f"{base}-{secrets.token_hex(2)}"
-        try:
-            with db.begin_nested():
-                db.add(item)
-                db.flush()
-        except IntegrityError:
-            continue
+def pending_count(db: Session, user: User) -> int:
+    return (
+        db.scalar(
+            select(func.count()).where(LibraryItem.uploaded_by == user.id, LibraryItem.status == ItemStatus.pending)
+        )
+        or 0
+    )
+
+
+def check_pending_room(db: Session, user: User, *, lock: bool = False) -> None:
+    """At most MAX_PENDING of a student's files wait for review at once (security review SEC-14); moderators'
+    files are published at once. With `lock`, parallel requests by the same person count one after the other."""
+    if is_moderator(user):
         return
-    raise conflict("slug_taken", "Try again in a moment.")
+    if lock:
+        ratelimit.lock(db, f"library-pending:{user.id}")
+    if pending_count(db, user) >= MAX_PENDING:
+        raise conflict(
+            "too_many_pending",
+            f"You have {MAX_PENDING} files waiting for review. Share more once a student rep has looked at them.",
+        )
 
 
 def create_from_upload(db: Session, user: User, body: LibraryItemCreate, ip: str | None = None) -> LibraryItem:
@@ -344,7 +348,8 @@ def create_from_upload(db: Session, user: User, body: LibraryItemCreate, ip: str
         raise conflict("not_uploaded", "The file hasn't finished uploading.")
     if up.status == UploadStatus.attached:
         raise conflict("already_used", "This file is already in the library.")
-    module = _module(db, body.module_id)
+    module = require_module(db, body.module_id)
+    check_pending_room(db, user, lock=True)
     now = utcnow()
     moderator = is_moderator(user)
     item = LibraryItem(
@@ -367,10 +372,10 @@ def create_from_upload(db: Session, user: User, body: LibraryItemCreate, ip: str
         reviewed_by=user.id if moderator else None,
         reviewed_at=now if moderator else None,
     )
-    insert_with_slug(db, item, module)
+    insert_with_unique_slug(db, item, LibraryItem.slug, _slug_text(item.title, module), fallback="file")
     up.status = UploadStatus.attached
     if moderator:
-        audit.record(db, user, "library.publish", "library_item", item.id, {"title": item.title, "own": True}, ip=ip)
+        record(db, user, "library.publish", "library_item", item.id, item.title, ip, own=True)
     return item
 
 
@@ -382,7 +387,7 @@ def create_link(db: Session, user: User, body: LibraryLinkCreate, ip: str | None
         raise invalid("url", "Remove the user name and password from the link.")
     if len(url) > LINK_MAX:
         raise invalid("url", "This link is too long.")
-    module = _module(db, body.module_id)
+    module = require_module(db, body.module_id)
     now = utcnow()
     item = LibraryItem(
         source=ItemSource.link,
@@ -399,62 +404,55 @@ def create_link(db: Session, user: User, body: LibraryLinkCreate, ip: str | None
         reviewed_by=user.id,
         reviewed_at=now,
     )
-    insert_with_slug(db, item, module)
-    audit.record(db, user, "library.link", "library_item", item.id, {"title": item.title, "url": url}, ip=ip)
+    insert_with_unique_slug(db, item, LibraryItem.slug, _slug_text(item.title, module), fallback="link")
+    record(db, user, "library.link", "library_item", item.id, item.title, ip, url=url)
     return item
 
 
+EDITABLE = ("title", "kind", "year", "description", "exam_year", "zone", "author_name")
+CLEARABLE = ("year", "description", "exam_year", "zone", "author_name")
+
+
 def apply_update(db: Session, user: User, item: LibraryItem, body: LibraryItemUpdate, ip: str | None) -> None:
+    """The uploader while the item waits for review, moderators always. Moving it to another module moves it to that
+    module's year too, unless `year` is sent."""
     if not can_edit(item, user):
         raise forbidden("You can edit your upload only while it waits for review.")
     sent = body.model_fields_set
-    changes: dict[str, Any] = {}
-    for field in ("title", "kind"):  # required columns: null means "leave as it is"
-        value = getattr(body, field)
-        if field in sent and value is not None and value != getattr(item, field):
-            changes[field] = value
-    if "module_id" in sent and body.module_id != item.module_id:
-        module = _module(db, body.module_id)
-        changes["module_id"] = module.id if module else None
-        if "year" not in sent and module is not None:
-            changes["year"] = module.year
-    for field in ("year", "description", "exam_year", "zone", "author_name"):
-        if field in sent:
-            value = getattr(body, field)
-            if value == "":  # an emptied text field clears it
-                value = None
-            if value != getattr(item, field):
-                changes[field] = value
-    for field, value in changes.items():
-        setattr(item, field, value)
-    if changes and item.uploaded_by != user.id:
-        audit.record(db, user, "library.edit", "library_item", item.id, {"fields": sorted(changes)}, ip=ip)
+    module = require_module(db, body.module_id) if "module_id" in sent else None
+    changed = apply_patch(item, body, EDITABLE, clearable=CLEARABLE)
+    if "module_id" in sent and (module.id if module else None) != item.module_id:
+        item.module_id = module.id if module else None
+        changed.append("module_id")
+        if module is not None and "year" not in sent and item.year != module.year:
+            item.year = module.year
+            changed.append("year")
+    if changed and item.uploaded_by != user.id:
+        record(db, user, "library.edit", "library_item", item.id, item.title, ip, fields=sorted(changed))
 
 
-def remove(db: Session, user: User, item: LibraryItem, ip: str | None, storage: Storage | None = None) -> None:
-    """The uploader or a moderator. Files leave the bucket at once; the row stays as `removed` (reports and the
-    audit log keep pointing at it, and the seed never brings a removed link back)."""
+def remove(db: Session, user: User, item: LibraryItem, ip: str | None) -> None:
+    """The uploader or a moderator. The row stays as `removed` (reports and the audit log keep pointing at it, and
+    the seed never brings a removed link back); nothing serves its file any more, and the daily sweep deletes the
+    file from the bucket after FILE_GRACE (sweep_files)."""
     mine = item.uploaded_by == user.id
     if not (mine or is_moderator(user)):
         raise forbidden("Only the person who shared this file or a student rep can remove it.")
     if item.status == ItemStatus.removed:
         return
-    if item.source == ItemSource.file and item.storage_key:
-        (storage or get_storage()).delete(item.storage_key)
-        db.execute(delete(Upload).where(Upload.storage_key == item.storage_key))
     previous = item.status
     item.status = ItemStatus.removed
     if not mine:
-        audit.record(
-            db, user, "library.remove", "library_item", item.id, {"title": item.title, "was": previous.value}, ip=ip
-        )
+        record(db, user, "library.remove", "library_item", item.id, item.title, ip, was=previous.value)
 
 
 def review(
     db: Session, user: User, item: LibraryItem, decision: Literal["publish", "reject"], note: str | None, ip: str | None
 ) -> None:
     if item.status == ItemStatus.removed:
-        raise conflict("removed", "This file was removed.")
+        raise conflict("post_unavailable", "This file was removed.")
+    if decision == "publish" and item.source == ItemSource.file and not item.storage_key:
+        raise conflict("file_gone", "This file was deleted after it was rejected. Ask for it to be shared again.")
     now = utcnow()
     previous = item.status
     item.status = ItemStatus.published if decision == "publish" else ItemStatus.rejected
@@ -463,10 +461,9 @@ def review(
     item.review_note = note or None
     item.reviewed_by = user.id
     item.reviewed_at = now
-    audit.record(
-        db, user, f"library.{decision}", "library_item", item.id, {"title": item.title, "note": note or None}, ip=ip
-    )
+    record(db, user, f"library.{decision}", "library_item", item.id, item.title, ip, note=note or None)
     if item.uploaded_by is not None and item.status != previous:
+        kind: NotificationKind
         if decision == "publish":
             kind, title = "upload_published", f"Your file is in the library: {item.title}"
         else:
@@ -481,6 +478,32 @@ def review(
             actor=user,
             data={"itemId": str(item.id)},
         )
+
+
+def sweep_files(db: Session, storage: Storage | None = None, now: datetime | None = None) -> int:
+    """For the daily sweep: deletes from the bucket the files of items rejected or removed more than FILE_GRACE ago
+    (security review SEC-14), with their upload rows; the item rows stay, without a file. -> how many files.
+    The caller commits. Safe to run again: a file already gone is skipped."""
+    cutoff = (now or utcnow()) - FILE_GRACE
+    decided = func.coalesce(LibraryItem.updated_at, LibraryItem.reviewed_at, LibraryItem.created_at)
+    items = db.scalars(
+        select(LibraryItem).where(
+            LibraryItem.source == ItemSource.file,
+            LibraryItem.status.in_([ItemStatus.rejected, ItemStatus.removed]),
+            LibraryItem.storage_key.is_not(None),
+            decided < cutoff,
+        )
+    ).all()
+    st = storage or get_storage()
+    for item in items:
+        if item.storage_key is None:
+            continue
+        st.delete(item.storage_key)
+        db.execute(delete(Upload).where(Upload.storage_key == item.storage_key))
+        item.storage_key = None
+    if items:
+        log.info("deleted %d rejected or removed library file(s)", len(items))
+    return len(items)
 
 
 # ── files and stars ──────────────────────────────────────────────────────────────────────────
@@ -528,14 +551,3 @@ def set_star(db: Session, user: User, item: LibraryItem, on: bool) -> bool:
     else:
         db.execute(delete(LibraryStar).where(LibraryStar.user_id == user.id, LibraryStar.item_id == item.id))
     return on
-
-
-def published_count_by_module(db: Session, module_id: str | None = None) -> dict[str, int]:
-    q = (
-        select(LibraryItem.module_id, func.count())
-        .where(LibraryItem.status == ItemStatus.published, LibraryItem.module_id.is_not(None))
-        .group_by(LibraryItem.module_id)
-    )
-    if module_id is not None:
-        q = q.where(LibraryItem.module_id == module_id)
-    return {str(mid): int(n) for mid, n in db.execute(q).all()}

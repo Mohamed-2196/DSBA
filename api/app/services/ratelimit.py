@@ -1,7 +1,10 @@
 """Rate limits kept in the database: count the recent rows of a table in a time window (no Redis).
 
 Count-then-insert is serialised with transaction-scoped advisory locks (`lock`), always taken in the same order
-by every caller, so a burst of parallel requests cannot all pass the same count."""
+by every caller, so a burst of parallel requests cannot all pass the same count. For a simple limit ("20 uploads
+per user per hour") use `enforce()`, which does both; the sign-in codes (services/otp.py) combine several.
+
+The client's address for a per-IP limit comes from core.security.client_ip."""
 
 from __future__ import annotations
 
@@ -11,21 +14,15 @@ from collections.abc import Sequence
 from datetime import datetime, timedelta
 from typing import Any
 
-from fastapi import Request
 from sqlalchemy import ColumnElement, select, text
 from sqlalchemy import cast as sql_cast
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import InstrumentedAttribute, Session
 
-from app.core.security import client_ip
+from app.core.errors import rate_limited
+from app.core.time import utcnow
 
 IPV6_BUCKET_PREFIX = 64  # one IPv6 client usually holds a whole /64
-
-
-def request_ip(request: Request) -> str | None:
-    """The client's IP address, or None when it isn't known: core.security.client_ip, which reads X-Forwarded-For
-    only from DSBA_TRUSTED_PROXIES (security review, finding 1)."""
-    return client_ip(request)
 
 
 def ip_bucket(ip: str | None) -> str | None:
@@ -90,3 +87,25 @@ def human_wait(seconds: int) -> str:
         return f"{minutes} minute{'s' if minutes != 1 else ''}"
     hours = math.ceil(seconds / 3600)
     return f"{hours} hour{'s' if hours != 1 else ''}"
+
+
+def enforce(
+    db: Session,
+    key: str,
+    created_at: InstrumentedAttribute[datetime],
+    where: Sequence[ColumnElement[bool]],
+    *,
+    limit: int,
+    window: timedelta,
+    message: str,
+) -> None:
+    """At most `limit` rows matching `where` per `window`, or 429 rate_limited with Retry-After. Takes the advisory
+    lock `key` first (held until the transaction ends), so parallel requests count one after the other: insert the
+    new row in the same transaction. `message` may hold '{}' for the wait ('Try again in {}.').
+
+        enforce(db, f"uploads:{user.id}", Upload.created_at, [Upload.user_id == user.id],
+                limit=20, window=timedelta(hours=1), message="You've uploaded a lot. Try again in {}.")"""
+    lock(db, key)
+    wait = window_wait(db, created_at, where, limit=limit, window=window, now=utcnow())
+    if wait:
+        raise rate_limited(wait, message.format(human_wait(wait)) if "{}" in message else message)

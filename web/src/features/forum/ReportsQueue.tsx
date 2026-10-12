@@ -5,16 +5,17 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowBendUpLeft, ArrowSquareOut, ChatCircleText, CheckCircle, FileText, Flag, XCircle } from '@phosphor-icons/react';
 import { ApiError, errorMessage } from '../../api/errors';
+import { remainingCount } from '../../api/paging';
 import { useAuth } from '../../auth';
-import { Badge, Button, EmptyState, Modal, Panel, Skeleton, TabPanel, Tabs, TextArea, timeAgo } from '../../ui';
+import { Badge, Button, EmptyState, Modal, Panel, QueryError, Skeleton, TabPanel, Tabs, TextArea, timeAgo } from '../../ui';
 import { useToast } from '../../state';
-import { useForumViewerSync, useReports, useResolveReport } from './api';
+import { useReports, useResolveReport } from './api';
 import { authorName } from './lib/authors';
 import { safeLink } from './lib/links';
 import { reasonLabel } from './lib/reports';
 import type { ReportOut } from '../../api/types';
 import type { ReportStatus, ReportTargetStatus, ReportTargetType } from './types';
-import { LoadError, LoadMore } from './components/LoadStates';
+import { LoadMore } from './components/LoadMore';
 import './components/dialogs.css';
 import './ReportsQueue.css';
 
@@ -228,7 +229,6 @@ function ReportList({ status }: { status: ReportStatus }) {
   const reports = useReports(status);
   const [decision, setDecision] = useState<{ report: ReportOut; status: 'resolved' | 'dismissed' } | null>(null);
   const items = useMemo(() => flatten(reports.data?.pages), [reports.data]);
-  const total = reports.data?.pages[0]?.total ?? 0;
 
   if (reports.isPending) {
     return (
@@ -258,7 +258,7 @@ function ReportList({ status }: { status: ReportStatus }) {
         <EmptyState icon={Flag} title="Only student reps and admins see reports" body="Ask an admin if you should have access." />
       </Panel>
     ) : (
-      <LoadError error={reports.error} title="Couldn't load the reports" onRetry={() => void reports.refetch()} />
+      <QueryError error={reports.error} title="The reports didn’t load" onRetry={() => void reports.refetch()} retrying={reports.isFetching} />
     );
   }
   if (!items.length) {
@@ -283,7 +283,10 @@ function ReportList({ status }: { status: ReportStatus }) {
         </ul>
       </Panel>
       {reports.hasNextPage ? (
-        <LoadMore noun="reports" remaining={total - items.length} loading={reports.isFetchingNextPage} onClick={() => void reports.fetchNextPage()} />
+        <LoadMore noun="reports" remaining={remainingCount(reports.data?.pages)} loading={reports.isFetchingNextPage} onClick={() => void reports.fetchNextPage()} />
+      ) : null}
+      {reports.isFetchNextPageError ? (
+        <QueryError error={reports.error} title="More reports didn’t load" onRetry={() => void reports.fetchNextPage()} retrying={reports.isFetchingNextPage} size="sm" panel={false} />
       ) : null}
       <DecideDialog decision={decision} onClose={() => setDecision(null)} />
     </>
@@ -292,7 +295,6 @@ function ReportList({ status }: { status: ReportStatus }) {
 
 /** The moderators' list of reports: open, resolved and dismissed. */
 export function ReportsQueue() {
-  useForumViewerSync();
   const { isModerator, status: authStatus } = useAuth();
   const [status, setStatus] = useState<ReportStatus>('open');
   const open = useReports('open', { enabled: isModerator });
@@ -312,7 +314,7 @@ export function ReportsQueue() {
         idBase="reports"
         label="Reports by status"
         className="forum-reports__tabs"
-        tabs={STATUSES.map((s) => ({ id: s.id, label: s.label, count: s.id === 'open' ? openCount : undefined }))}
+        tabs={STATUSES.map((s) => ({ id: s.id, label: s.label, count: s.id === 'open' && openCount ? openCount : undefined }))}
         value={status}
         onChange={(id: string) => setStatus(STATUSES.find((s) => s.id === id)?.id ?? 'open')}
       />

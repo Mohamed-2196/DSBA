@@ -86,7 +86,7 @@ def test_accept_an_answer(client_for: Client, student: User, classmate: User, db
     assert detail["replies"][0]["accepted"] is True
     accepted = [n for n in notifications_for(db, classmate) if n.kind == "answer_accepted"]
     assert len(accepted) == 1
-    assert accepted[0].url == f"/forum/{t['slug']}"
+    assert accepted[0].url == f"/forum/{t['slug']}#reply-{answer['id']}"
     assert accepted[0].actor_id == student.id
     assert s.post(url, json={"replyId": answer["id"]}).status_code == 200  # again: no second notification
     assert len([n for n in notifications_for(db, classmate) if n.kind == "answer_accepted"]) == 1

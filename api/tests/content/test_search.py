@@ -1,38 +1,69 @@
+"""Site-wide search. The module catalogue comes from the seed; everything else is made here, so editing the seeded
+calendar, library or newsletter never breaks these tests (code quality review CQ-7)."""
+
 from __future__ import annotations
 
+import datetime as dt
 from collections.abc import Callable
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
 from app.models import (
+    CalendarEvent,
     ForumThread,
     IssueStatus,
     ItemSource,
     ItemStatus,
     LibraryItem,
+    Module,
     NewsletterIssue,
     PostStatus,
     User,
 )
-from app.seed.loader import load_all
-from app.services.search import plain_text, snippet, words
+from app.services.forum.text import to_plain_text
+from app.services.search import snippet, words
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
+ST2133 = "advanced-stats-distribution"
+
+
+def _link(slug: str, title: str, kind: str, module_id: str = ST2133, year: int = 2) -> LibraryItem:
+    return LibraryItem(
+        slug=slug,
+        source=ItemSource.link,
+        kind=kind,
+        title=title,
+        module_id=module_id,
+        year=year,
+        url=f"https://drive.example.com/{slug}",
+        status=ItemStatus.published,
+        published_at=utcnow(),
+    )
+
+
+def _issue(slug: str, number: int, title: str, date: dt.date, text: str, status: IssueStatus) -> NewsletterIssue:
+    return NewsletterIssue(
+        slug=slug,
+        number=number,
+        title=title,
+        date=date,
+        cover={"tone": "navy", "lines": []},
+        dek="The first issue of the year.",
+        summary="",
+        editors=["The editors"],
+        sections=[{"id": "story", "title": "Our story", "blocks": [{"type": "p", "text": text, "lead": False}]}],
+        status=status,
+        published_at=utcnow() if status == IssueStatus.published else None,
+    )
 
 
 @pytest.fixture
-def content(db: Session, student: User) -> None:
-    load_all(db)
-    launch = db.scalar(select(NewsletterIssue).where(NewsletterIssue.slug == "launch-edition"))
-    assert launch is not None
-    launch.status = IssueStatus.published
-    launch.published_at = utcnow()
+def content(db: Session, student: User, modules: dict[str, Module]) -> None:
     db.add_all(
         [
             ForumThread(
@@ -40,7 +71,7 @@ def content(db: Session, student: User) -> None:
                 title="How do I find the MGF of a gamma distribution?",
                 body="I keep getting **stuck** on [question 3](https://example.com/q3). Any `tips` for the *MGF*?",
                 category="year-2",
-                module_id="advanced-stats-distribution",
+                module_id=ST2133,
                 author_id=student.id,
                 reply_count=1,
             ),
@@ -60,6 +91,37 @@ def content(db: Session, student: User) -> None:
                 status=ItemStatus.pending,
                 uploaded_by=student.id,
             ),
+            _link("st2133-course-materials", "Course materials", "course-materials"),
+            _link("st2133-past-exams", "Past exams", "past-paper"),
+            _link("st2133-saras-notes", "Sara's notes", "notes"),
+            _link("ec1002-course-materials", "Course materials", "course-materials", "economics", 1),
+            CalendarEvent(
+                id="2026-10-30-advanced-stats-distribution-exam",
+                date=dt.date(2026, 10, 30),
+                title="ST2133 Distribution Theory (October exam)",
+                type="exam",
+                year=2,
+                module_id=ST2133,
+                unit_code="ST2133",
+            ),
+            CalendarEvent(
+                id="2026-12-01-machine-learning-mock",
+                date=dt.date(2026, 12, 1),
+                title="Machine Learning mock exam",
+                type="mock",
+                year=3,
+                module_id="machine-learning",
+                sample=True,
+            ),
+            _issue(
+                "launch-edition",
+                1,
+                "Launch edition",
+                dt.date(2026, 10, 6),
+                "Our team reached the final of the CFA Research Challenge in Dubai.",
+                IssueStatus.published,
+            ),
+            _issue("pilot", 0, "The pilot", dt.date(2026, 9, 1), "Testing testing, one two.", IssueStatus.draft),
         ]
     )
     db.commit()
@@ -148,16 +210,39 @@ def test_module_aliases_prefixes_and_types(content: None, client_for: Clients) -
     assert guest.get(f"{API}/search", params={"q": "x", "limit": 21}).status_code == 422
 
 
-def test_sample_dates_say_so(content: None, client_for: Clients) -> None:
+def test_dates_not_confirmed_yet_say_so(content: None, client_for: Clients) -> None:
     hits = search(client_for(), "machine learning mock", types=["event"])["events"]
     assert titles(hits) == ["Machine Learning mock exam"]
-    assert hits[0]["snippet"] == "Sample date, not confirmed yet."
+    assert hits[0]["snippet"] == "Not confirmed yet."  # not "sample date" (ui-ux review UX-13)
+
+
+def test_thread_snippets_read_as_in_the_forum(db: Session, content: None, student: User, client_for: Clients) -> None:
+    """One way to turn a post into plain text (code quality review CQ-6): the forum's. And a thread without a module
+    is placed by its category's label, from the forum's taxonomy."""
+    body = (
+        "## Revision plan\n\n![timetable](/api/v1/media/0b5a3f4e-8c1d-4c55-9a51-3d1c1c2b9e10)\n\n"
+        "1. Read *chapter 4*\n2. Try the ==quiz== at [the VLE](https://vle.example.com)\n\n```r\nsummary(fit)\n```"
+    )
+    db.add(
+        ForumThread(
+            slug="zebrafinch-revision-plan",
+            title="Zebrafinch revision plan",
+            body=body,
+            category="study-groups",
+            author_id=student.id,
+        )
+    )
+    db.commit()
+    hit = search(client_for(), "zebrafinch")["threads"][0]
+    assert hit["meta"] == "Study groups · 0 replies"
+    assert hit["snippet"] == snippet(to_plain_text(body, image_alt=True), ["zebrafinch"])
+    assert "timetable" in hit["snippet"]  # a picture leaves its description
+    assert "##" not in hit["snippet"]
+    assert "](" not in hit["snippet"]
 
 
 def test_text_helpers() -> None:
     assert words("ST2133: what's the MGF?!") == ["st2133", "what", "s", "the", "mgf"]
-    md = "# Title\n\n> quote\n- item one\n![graph](/api/v1/media/x) see [docs](https://x.y) and `code`"
-    assert plain_text(md) == "Title quote item one graph see docs and code"
     text = "word " * 50 + "needle " + "word " * 50
     cut = snippet(text, ["needle"], radius=20)
     assert cut is not None

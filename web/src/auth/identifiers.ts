@@ -49,3 +49,9 @@ export function identifierHint(raw: string): string {
   if (c.kind === 'phone' && !c.error) return c.phone ? `We’ll text a 6-digit code to ${c.phone}.` : 'We’ll text you a 6-digit code.';
   return 'We’ll send you a 6-digit code. No password needed.';
 }
+
+/** An address as the person typed it, for "Sent to …" (a typo shows), with a Bahraini number written out. */
+export function displayIdentifier(raw: string): string {
+  const check = checkIdentifier(raw);
+  return check.kind === 'phone' && check.phone ? check.phone : raw.trim();
+}

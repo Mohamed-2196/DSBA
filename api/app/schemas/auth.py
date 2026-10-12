@@ -6,10 +6,19 @@ from uuid import UUID
 
 from pydantic import Field, StringConstraints, WithJsonSchema
 
-from app.schemas.common import ApiModel, Role, UserStatus, Year
+from app.schemas.common import ApiModel, PostStatus, Role, UserStatus, Year
+from app.schemas.forum import Category
+from app.schemas.library import ItemStatus, LibraryKind
+from app.schemas.moderation import ReportReason, ReportTarget
+from app.schemas.modules import Progress
+from app.schemas.notifications import NotificationKind
 
 Identifier = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)]
-Code = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^\d{6}$")]
+# A 6-digit code, or the long one sent instead once wrong codes were tried for an address: 10 letters and digits,
+# written 'ABCDE-FGH23' (any case; the dash, or a space, may be left out).
+Code = Annotated[
+    str, StringConstraints(strip_whitespace=True, pattern=r"^(?:\d{6}|[A-Za-z0-9]{5}[- ]?[A-Za-z0-9]{5})$")
+]
 # 2-40 characters after trimming: letters (any script), digits, spaces and . ' -. The documented schema says so;
 # the rule itself is applied by PATCH /me, so that every bad name answers 422 invalid_display_name.
 DisplayName = Annotated[str, WithJsonSchema({"type": "string", "maxLength": 40, "minLength": 2})]
@@ -27,6 +36,9 @@ class OtpChallengeOut(ApiModel):
     destination_hint: str  # 'm•••@gmail.com' / '+973 •••• ••12'
     expires_in: int  # seconds
     resend_after: int  # seconds until another code can be requested for this address
+    # 'digits': 6 digits. 'long': 10 letters and digits ('ABCDE-FGH23'), sent instead after wrong codes were tried
+    # for this address (nobody can guess it); typed in any case, with or without the dash.
+    code_format: Literal["digits", "long"] = "digits"
 
 
 class OtpVerifyRequest(ApiModel):
@@ -35,13 +47,30 @@ class OtpVerifyRequest(ApiModel):
 
 
 class Preferences(ApiModel):
-    email_notifications: bool = True  # replies, accepted answers, upload reviews
-    newsletter_emails: bool = True  # a new issue is out
+    """Which notifications also come by email, to the account's email address. In the Hub every notification shows
+    whatever these say, and account security notices are always emailed."""
+
+    email_replies: bool = True  # someone replied to your thread or to your reply
+    email_answer_accepted: bool = True  # your reply was accepted as the answer
+    email_upload_reviews: bool = True  # a student rep published or rejected your upload
+    email_new_issues: bool = True  # a new issue of The DSBA Newsletter is out
+    # Deprecated, until the web app uses the four switches above: emailNotifications is "replies, accepted answers
+    # and upload reviews are all on"; newsletterEmails is emailNewIssues.
+    email_notifications: bool = Field(default=True, deprecated=True)
+    newsletter_emails: bool = Field(default=True, deprecated=True)
 
 
 class PreferencesUpdate(ApiModel):
-    email_notifications: bool | None = None
-    newsletter_emails: bool | None = None
+    """Only the switches sent change."""
+
+    email_replies: bool | None = None
+    email_answer_accepted: bool | None = None
+    email_upload_reviews: bool | None = None
+    email_new_issues: bool | None = None
+    # Deprecated: sets emailReplies, emailAnswerAccepted and emailUploadReviews together.
+    email_notifications: bool | None = Field(default=None, deprecated=True)
+    # Deprecated: sets emailNewIssues.
+    newsletter_emails: bool | None = Field(default=None, deprecated=True)
 
 
 class Me(ApiModel):
@@ -62,12 +91,31 @@ class SignInResult(ApiModel):
     is_new_user: bool
 
 
+class SessionState(ApiModel):
+    """GET /auth/session: the signed-in user, or null for a guest. Never 401."""
+
+    me: Me | None
+
+
 class MeUpdate(ApiModel):
     """Fields that are not sent stay as they are; `year: null` clears the cohort."""
 
     display_name: DisplayName | None = None
     year: Year | None = None
     preferences: PreferencesUpdate | None = None
+
+
+class StepUpStart(ApiModel):
+    """Which of the account's own identifiers gets the code: by default the email address, else the phone number."""
+
+    via: Literal["email", "phone"] | None = None
+
+
+class StepUpResult(ApiModel):
+    """The browser's session was renewed: changing or removing an identifier and deleting the account work without
+    another code for `expires_in` seconds."""
+
+    expires_in: int
 
 
 class SessionInfo(ApiModel):
@@ -79,17 +127,116 @@ class SessionInfo(ApiModel):
     current: bool
 
 
+# ── the account export ──────────────────────────────────────────────────────────────────────
+
+
+class ExportThread(ApiModel):
+    id: UUID
+    slug: str
+    title: str
+    body: str
+    category: Category
+    module_id: str | None
+    tags: list[str]
+    status: PostStatus
+    created_at: datetime
+    edited_at: datetime | None
+    vote_count: int
+    reply_count: int
+
+
+class ExportReply(ApiModel):
+    id: UUID
+    thread_id: UUID
+    thread_slug: str
+    parent_id: UUID | None
+    body: str
+    status: PostStatus
+    created_at: datetime
+    edited_at: datetime | None
+    vote_count: int
+
+
+class ExportLibraryItem(ApiModel):
+    id: UUID
+    slug: str
+    source: Literal["file", "link"]
+    kind: LibraryKind
+    title: str
+    description: str | None
+    module_id: str | None
+    year: int | None
+    url: str | None
+    file_name: str | None
+    content_type: str | None
+    size_bytes: int | None
+    exam_year: int | None
+    zone: str | None
+    author_name: str | None
+    status: ItemStatus
+    review_note: str | None
+    download_count: int
+    created_at: datetime
+    published_at: datetime | None
+
+
+class ExportReaction(ApiModel):
+    issue_id: UUID
+    issue_slug: str
+    section_id: str
+    reaction: str
+    created_at: datetime
+
+
+class ExportVote(ApiModel):
+    type: Literal["thread", "reply"]
+    id: UUID
+    created_at: datetime
+
+
+class ExportReport(ApiModel):
+    id: UUID
+    target_type: ReportTarget
+    target_id: UUID
+    reason: ReportReason
+    note: str | None
+    status: Literal["open", "resolved", "dismissed"]
+    created_at: datetime
+
+
+class ExportNotification(ApiModel):
+    id: UUID
+    kind: NotificationKind
+    title: str
+    body: str | None
+    url: str | None
+    created_at: datetime
+    read_at: datetime | None
+
+
+class ExportEmail(ApiModel):
+    """An email the Hub sent you, or will send (notifications and account notices; sign-in codes are not kept)."""
+
+    kind: NotificationKind | Literal["account_notice"]
+    to_address: str
+    subject: str
+    status: Literal["pending", "sent", "failed", "cancelled"]
+    created_at: datetime
+    sent_at: datetime | None
+
+
 class AccountExport(ApiModel):
     """Everything the Hub stores about the signed-in user (GET /me/export)."""
 
     user: Me
     sessions: list[SessionInfo]
-    threads: list[dict[str, object]]
-    replies: list[dict[str, object]]
-    library_items: list[dict[str, object]]
-    stars: list[str]
-    reactions: list[dict[str, object]]
-    progress: dict[str, object]
-    notifications: list[dict[str, object]]
-    votes: list[dict[str, object]] = Field(default_factory=list)  # forum upvotes: {type: thread|reply, id, createdAt}
-    reports: list[dict[str, object]] = Field(default_factory=list)  # reports this person filed
+    threads: list[ExportThread]
+    replies: list[ExportReply]
+    library_items: list[ExportLibraryItem]
+    stars: list[UUID]  # library items
+    reactions: list[ExportReaction]
+    progress: Progress
+    notifications: list[ExportNotification]
+    votes: list[ExportVote]  # forum upvotes
+    reports: list[ExportReport]  # reports this person filed
+    emails: list[ExportEmail]

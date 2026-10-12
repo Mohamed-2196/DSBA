@@ -11,7 +11,7 @@
   height: 24px;
   margin: 0;
   border-radius: var(--r-pill);
-  background: var(--line-strong);
+  background: var(--control-border);
   cursor: pointer;
   appearance: none;
   transition: background-color var(--dur-fast) var(--ease);
@@ -34,3 +34,10 @@
 .ui-switch__input:checked:hover:not(:disabled) { background: var(--cobalt-hover); }
 .ui-switch__input:disabled { opacity: .45; cursor: not-allowed; }
 .ui-switch__input:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: var(--focus-offset); }
+
+/* Touch screens: the whole row is the switch's target, at least 44px tall (UX review UX-11). Tapping it toggles
+   the switch through its label. */
+@media (pointer: coarse) {
+  .ui-switch { position: relative; min-height: 44px; }
+  .ui-switch__label::after { content: ''; position: absolute; inset: 0; }
+}

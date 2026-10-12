@@ -5,6 +5,8 @@ Idempotent: running it again adds what is missing and never overwrites what mode
 Something a moderator deleted stays deleted: calendar events and newsletter issues are looked up in the audit log
 (calendar.delete, newsletter.delete), and removed library items keep their row with status `removed`.
 Modules are the exception: they have no editing API, so the seed file is their source of truth (upsert).
+Newsletter issues and the career document go through the schemas the API checks writes with, and are stored in
+the same shape: a seed file that doesn't fit them fails loudly instead of loading content the app can't show.
 Owner: content agent (modules section by the lead)."""
 
 from __future__ import annotations
@@ -24,13 +26,15 @@ from app.models import (
     AuditEntry,
     CalendarEvent,
     ContentDoc,
-    IssueStatus,
     ItemSource,
     ItemStatus,
     LibraryItem,
     Module,
     NewsletterIssue,
 )
+from app.schemas.career import CareerDoc
+from app.schemas.newsletter import IssueCreate
+from app.services import content, newsletter
 
 DATA = Path(__file__).parent / "data"
 
@@ -98,9 +102,11 @@ def load_calendar(db: Session) -> int:
 # ── newsletter ───────────────────────────────────────────────────────────────────────────────
 
 
-def _section(s: dict[str, Any]) -> dict[str, Any]:
-    """A section as written, minus the prototype's made-up reaction counts (real ones are newsletter_reactions)."""
-    return {k: v for k, v in s.items() if k != "reactions"}
+def seed_issue(raw: dict[str, Any]) -> IssueCreate:
+    """An issue as the prototype wrote it, checked against the API's schema, without the prototype's made-up
+    reaction counts (real ones are newsletter_reactions)."""
+    sections = [{k: v for k, v in s.items() if k != "reactions"} for s in raw.get("sections") or []]
+    return IssueCreate.model_validate({**raw, "sections": sections})
 
 
 def load_newsletter(db: Session) -> int:
@@ -112,24 +118,11 @@ def load_newsletter(db: Session) -> int:
     }
     skip = set(db.scalars(select(NewsletterIssue.slug))) | deleted
     n = 0
-    for i in read("newsletter"):
-        if i["slug"] in skip:
+    for raw in read("newsletter"):
+        if raw["slug"] in skip:
             continue
-        db.add(
-            NewsletterIssue(
-                slug=i["slug"],
-                number=i["number"],
-                title=i["title"],
-                date=dt.date.fromisoformat(i["date"]),
-                cover=i.get("cover") or {},
-                dek=i.get("dek") or "",
-                summary=i.get("summary") or "",
-                editors=list(i.get("editors") or []),
-                sections=[_section(s) for s in i.get("sections") or []],
-                status=IssueStatus.draft,
-            )
-        )
-        skip.add(i["slug"])
+        db.add(newsletter.new_draft(seed_issue(raw)))
+        skip.add(raw["slug"])
         n += 1
     db.flush()
     return n
@@ -139,9 +132,11 @@ def load_newsletter(db: Session) -> int:
 
 
 def load_career(db: Session) -> int:
-    if db.get(ContentDoc, "career") is not None:
+    """Once: after that, the document is the admins' (PUT /career)."""
+    if db.get(ContentDoc, content.CAREER_KEY) is not None:
         return 0
-    db.add(ContentDoc(key="career", data=read("career")))
+    doc = CareerDoc.model_validate(read("career"))
+    db.add(ContentDoc(key=content.CAREER_KEY, data=content.stored_career(doc)))
     db.flush()
     return 1
 

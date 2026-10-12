@@ -126,3 +126,13 @@
 .shell-rail.is-collapsed .shell-rail__links ul { grid-template-columns: 1fr; }
 .shell-rail.is-collapsed .shell-ext { grid-template-rows: auto; width: 48px; height: 44px; padding: 0; }
 .shell-profile--compact { width: auto; padding: 4px; border-radius: 999px; }
+
+@media (pointer: coarse) {
+  .shell-profile--compact { padding: 6px; }
+}
+
+/* Touch screens: 44px rows and a 44px brand target (UX review UX-11). */
+@media (pointer: coarse) {
+  .shell-nav__item { height: 44px; }
+  .shell-brand { min-width: 44px; min-height: 44px; justify-content: center; }
+}

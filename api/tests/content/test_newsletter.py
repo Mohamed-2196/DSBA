@@ -1,6 +1,11 @@
+"""The newsletter: typed issues (code quality review CQ-4, decision D5), size limits (security review SEC-6),
+publishing to every account (decision D1), reactions, the activity log (student test ST-9) and two reps saving the
+same address at once (CQ-14)."""
+
 from __future__ import annotations
 
 import datetime as dt
+import uuid
 from collections.abc import Callable
 from typing import Any
 
@@ -9,14 +14,17 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import AuditEntry, Notification, User
-from app.seed.loader import load_newsletter
-from app.services.newsletter import LINK_RULE
+from app.core.links import LINK_RULE, PICTURE_RULE
+from app.models import AuditEntry, EmailOutbox, NewsletterIssue, Notification, User
+from app.seed.loader import load_newsletter, read
+from app.services import newsletter as svc
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
 
 ISSUES = f"{API}/newsletter/issues"
+MEDIA = "/api/v1/media/0b5a3f4e-8c1d-4c55-9a51-3d1c1c2b9e10"
+BLOCK_TYPES = {"p", "list", "signoff", "cta"}
 
 
 def new_issue(**extra: Any) -> dict[str, Any]:
@@ -25,17 +33,34 @@ def new_issue(**extra: Any) -> dict[str, Any]:
         "number": 2,
         "title": "The October issue",
         "date": "2026-10-20",
-        "cover": {"tone": "paper"},
+        "cover": {"tone": "paper", "lines": [{"section": "exams", "text": "The October session"}]},
         "dek": "Exams, a new study room and the forum's best answers.",
         "summary": "Everything for the October session.",
         "editors": ["Hawra T."],
         "sections": [
-            {"id": "exams", "label": "Exams", "title": "The October session", "blocks": [{"type": "p", "text": "Hi"}]},
-            {"id": "study-room", "label": "Campus", "title": "A new study room", "blocks": []},
+            {
+                "id": "exams",
+                "label": "Exams",
+                "icon": "CalendarCheck",
+                "title": "The October session",
+                "blocks": [{"type": "p", "text": "Hi", "lead": True}],
+            },
+            {"id": "study-room", "label": "Campus", "title": "A new study room"},
         ],
     }
     body.update(extra)
     return body
+
+
+def one_section(**section: Any) -> dict[str, Any]:
+    """An issue with one section ('a'), made of `section`."""
+    return new_issue(cover={}, sections=[{"id": "a", "title": "A", **section}])
+
+
+def fields(r: Any) -> dict[str, str]:
+    assert r.status_code == 422, r.text
+    out: dict[str, str] = r.json()["error"]["fields"]
+    return out
 
 
 @pytest.fixture
@@ -44,20 +69,161 @@ def seeded(db: Session) -> None:
     db.commit()
 
 
-def test_seeded_issues_are_drafts_for_moderators_only(
+# ── reading ──────────────────────────────────────────────────────────────────────────────────
+
+
+def test_seeded_issues_are_typed_drafts_for_moderators_only(
     seeded: None, client_for: Clients, student: User, moderator: User
 ) -> None:
+    newest_first = sorted(read("newsletter"), key=lambda i: (i["date"], i["number"]), reverse=True)
     for c in (client_for(), client_for(student)):
         assert c.get(ISSUES).json() == []
         assert c.get(ISSUES, params={"include_drafts": True}).json() == []
-        assert c.get(f"{ISSUES}/launch-edition").status_code == 404
+        assert c.get(f"{ISSUES}/{newest_first[0]['slug']}").status_code == 404
     rep = client_for(moderator)
     assert rep.get(ISSUES).json() == []
     drafts = rep.get(ISSUES, params={"include_drafts": True}).json()
-    assert [(i["slug"], i["status"]) for i in drafts] == [("launch-edition", "draft"), ("pilot", "draft")]
-    detail = rep.get(f"{ISSUES}/launch-edition").json()
-    assert [s["id"] for s in detail["sections"]][:2] == ["cfa", "student-council"]
-    assert detail["reactions"]["cfa"] == {"useful": 0, "love": 0, "laugh": 0, "mine": []}
+    assert [(i["slug"], i["status"]) for i in drafts] == [(i["slug"], "draft") for i in newest_first]
+    for raw in newest_first:
+        detail = rep.get(f"{ISSUES}/{raw['slug']}").json()
+        ids = [s["id"] for s in raw["sections"]]
+        assert [s["id"] for s in detail["sections"]] == ids  # every section fits the schema: none left out
+        assert set(detail["reactions"]) == set(ids)
+        assert all(r == {"useful": 0, "love": 0, "laugh": 0, "mine": []} for r in detail["reactions"].values())
+        assert all("reactions" not in s for s in detail["sections"])  # the prototype's made-up counts stay out
+        assert {b["type"] for s in detail["sections"] for b in s["blocks"] + s["after"]} <= BLOCK_TYPES
+        assert detail["cover"]["tone"] in ("navy", "paper")
+
+
+def test_an_issue_reads_back_in_its_typed_shape(client_for: Clients, moderator: User, db: Session) -> None:
+    rep = client_for(moderator)
+    issue = rep.post(ISSUES, json=new_issue()).json()
+    assert issue["cover"] == {
+        "tone": "paper",
+        "art": None,
+        "lines": [{"section": "exams", "text": "The October session"}],
+    }
+    exams, room = issue["sections"]
+    assert exams["blocks"] == [{"type": "p", "text": "Hi", "lead": True}]
+    assert (exams["icon"], exams["kind"], exams["figure"], exams["aside"], exams["after"]) == (
+        "CalendarCheck",
+        None,
+        None,
+        None,
+        [],
+    )
+    assert (room["blocks"], room["icon"]) == ([], None)
+    # stored as camelCase JSON in the same shape, without empty optional fields
+    row = db.get(NewsletterIssue, uuid.UUID(issue["id"]))
+    assert row is not None
+    assert row.sections[1] == {
+        "id": "study-room",
+        "title": "A new study room",
+        "label": "Campus",
+        "blocks": [],
+        "after": [],
+    }
+    assert row.cover == {"tone": "paper", "lines": [{"section": "exams", "text": "The October session"}]}
+
+
+def test_every_part_an_issue_can_hold(client_for: Clients, moderator: User) -> None:
+    """The closed set a form-based editor offers (decision D5): paragraphs, lists, sign-offs and buttons; a figure,
+    a card or a few numbers beside the copy; live sections listing deadlines, forum threads or library files."""
+    story = {
+        "id": "speech-day",
+        "label": "Campus",
+        "icon": "Megaphone",
+        "title": "Speech Day",
+        "figure": {"src": MEDIA, "width": 1200, "height": 800, "alt": "The hall", "caption": "Photo: the BIBF"},
+        "aside": {
+            "type": "stats",
+            "title": "In numbers",
+            "items": [{"value": "120+", "label": "graduates"}],
+            "foot": "Source: the programme office",
+        },
+        "blocks": [
+            {"type": "p", "text": "**Well done** to *everyone* who ==graduated==.", "lead": True},
+            {"type": "list", "items": ["Gowns at 9", "Photos at 12 ([map](/calendar))"]},
+            {"type": "cta", "label": "See the calendar", "to": "/calendar?date=2026-10-05"},
+            {"type": "signoff", "text": "The editors"},
+        ],
+    }
+    card = {
+        "id": "council",
+        "title": "Student council",
+        "aside": {"type": "card", "kicker": "Vote", "title": "Elections", "text": "Polls open Sunday.", "wide": True},
+    }
+    deadlines = {
+        "id": "deadlines",
+        "title": "Coming up",
+        "kind": "deadlines",
+        "window": {"from": "2026-10-20", "to": "2026-11-30"},
+        "after": [{"type": "p", "text": "Dates can move: check the calendar."}],
+        "estWords": 120,
+    }
+    forum = {
+        "id": "forum",
+        "title": "From the forum",
+        "kind": "forum",
+        "fallback": {"title": "Quiet week", "text": "Nothing new yet."},
+    }
+    body = new_issue(
+        cover={
+            "tone": "navy",
+            "art": "brand/newsletter-cover.jpg",
+            "lines": [{"section": "speech-day", "text": "Hats off"}],
+        },
+        sections=[story, card, deadlines, forum, {"id": "library", "title": "New in the library", "kind": "library"}],
+    )
+    r = client_for(moderator).post(ISSUES, json=body)
+    assert r.status_code == 201, r.text
+    out = r.json()
+    assert [s["id"] for s in out["sections"]] == ["speech-day", "council", "deadlines", "forum", "library"]
+    assert out["sections"][0]["figure"]["caption"] == "Photo: the BIBF"
+    assert out["sections"][0]["aside"]["items"] == [{"value": "120+", "label": "graduates"}]
+    assert out["sections"][2]["window"] == {"from": "2026-10-20", "to": "2026-11-30"}
+    assert out["sections"][3]["fallback"] == {"title": "Quiet week", "text": "Nothing new yet."}
+
+
+def test_what_doesnt_fit_the_schema_is_refused(client_for: Clients, moderator: User, db: Session) -> None:
+    rep = client_for(moderator)
+    assert set(fields(rep.post(ISSUES, json=new_issue(sections=[{"label": "x"}])))) == {
+        "sections.0.id",
+        "sections.0.title",
+    }
+    twice = new_issue(sections=[{"id": "a", "title": "A"}, {"id": "a", "title": "B"}])
+    assert fields(rep.post(ISSUES, json=twice)) == {"sections": "Two sections have the same id: “a”."}
+    assert "sections.0.id" in fields(rep.post(ISSUES, json=one_section(id="Not An Id")))
+    assert "slug" in fields(rep.post(ISSUES, json=new_issue(slug="Bad Slug")))
+    # the block and aside types are a closed set; an error inside one names its type
+    assert "sections.0.blocks.0" in fields(rep.post(ISSUES, json=one_section(blocks=[{"type": "html", "text": "x"}])))
+    assert "sections.0.aside" in fields(rep.post(ISSUES, json=one_section(aside={"type": "quote", "text": "x"})))
+    assert set(fields(rep.post(ISSUES, json=one_section(blocks=[{"type": "list", "items": []}])))) == {
+        "sections.0.blocks.0.list.items"
+    }
+    assert "sections.0.icon" in fields(rep.post(ISSUES, json=one_section(icon="Skull")))
+    assert "sections.0.kind" in fields(rep.post(ISSUES, json=one_section(kind="cohorts")))
+    figure = {"src": "brand/x.jpg", "alt": "x"}  # no size: the reader would jump while it loads
+    assert set(fields(rep.post(ISSUES, json=one_section(figure=figure)))) == {
+        "sections.0.figure.width",
+        "sections.0.figure.height",
+    }
+    backwards = {"from": "2026-11-01", "to": "2026-10-01"}
+    assert fields(rep.post(ISSUES, json=one_section(kind="deadlines", window=backwards))) == {
+        "sections.0.window": "The last day can't be before the first."
+    }
+    assert "cover.tone" in fields(rep.post(ISSUES, json=new_issue(cover={"tone": "pink"})))
+    # what isn't in the schema is dropped, never stored
+    extra = one_section(blocks=[{"type": "p", "text": "Hi", "html": "<script>alert(1)</script>"}], onclick="x")
+    issue = rep.post(ISSUES, json=extra).json()
+    row = db.get(NewsletterIssue, uuid.UUID(issue["id"]))
+    assert row is not None
+    assert row.sections == [
+        {"id": "a", "title": "A", "blocks": [{"type": "p", "text": "Hi", "lead": False}], "after": []}
+    ]
+
+
+# ── writing ──────────────────────────────────────────────────────────────────────────────────
 
 
 def test_moderators_write_issues(client_for: Clients, student: User, moderator: User, db: Session) -> None:
@@ -71,40 +237,189 @@ def test_moderators_write_issues(client_for: Clients, student: User, moderator: 
     assert client_for(student).post(ISSUES, json=new_issue(slug="other")).status_code == 403
     assert client_for().post(ISSUES, json=new_issue(slug="other")).status_code == 401
     assert rep.post(ISSUES, json=new_issue()).json()["error"]["code"] == "slug_taken"
-    assert rep.post(ISSUES, json=new_issue(slug="Bad Slug")).status_code == 422
-    no_id = new_issue(slug="no-ids", sections=[{"label": "x"}])
-    assert rep.post(ISSUES, json=no_id).json()["error"]["fields"] == {
-        "sections.0.id": "Give each section an id: lower-case letters, digits and dashes."
-    }
-    twice = new_issue(slug="twice", sections=[{"id": "a"}, {"id": "a"}])
-    assert rep.post(ISSUES, json=twice).status_code == 422
 
     other = rep.post(ISSUES, json=new_issue(slug="november-issue", number=3)).json()
-    r = rep.patch(f"{ISSUES}/{issue['id']}", json={"title": "The October issue (updated)", "dek": "New dek"})
+    url = f"{ISSUES}/{issue['id']}"
+    r = rep.patch(url, json={"title": "The October issue (updated)", "dek": "New dek"})
     assert (r.json()["title"], r.json()["dek"], r.json()["slug"]) == (
         "The October issue (updated)",
         "New dek",
-        issue["slug"],
+        "october-issue",
     )
-    assert rep.patch(f"{ISSUES}/{issue['id']}", json={"slug": "november-issue"}).json()["error"]["code"] == "slug_taken"
-    assert rep.patch(f"{ISSUES}/{issue['id']}", json={"slug": "october"}).json()["slug"] == "october"
-    assert client_for(student).patch(f"{ISSUES}/{issue['id']}", json={"title": "x"}).status_code == 403
+    assert rep.patch(url, json={"slug": "november-issue"}).json()["error"]["code"] == "slug_taken"
+    assert rep.patch(url, json={"slug": "october"}).json()["slug"] == "october"
+    # the dek and the summary can be emptied (null or ""); the other fields can't
+    emptied = rep.patch(url, json={"dek": None, "summary": "", "title": None}).json()
+    assert (emptied["dek"], emptied["summary"], emptied["title"]) == ("", "", "The October issue (updated)")
+    # sections and the cover are replaced as a whole
+    r = rep.patch(url, json={"sections": [{"id": "only", "title": "Only this"}], "cover": {"tone": "navy"}})
+    assert [s["id"] for s in r.json()["sections"]] == ["only"]
+    assert r.json()["cover"] == {"tone": "navy", "art": None, "lines": []}
+    # a refused edit leaves the issue as it was
+    assert rep.patch(url, json={"title": "Changed", "sections": [{"id": "x"}]}).status_code == 422
+    assert rep.get(f"{ISSUES}/october").json()["title"] == "The October issue (updated)"
+    assert client_for(student).patch(url, json={"title": "x"}).status_code == 403
 
     assert client_for(student).delete(f"{ISSUES}/{other['id']}").status_code == 403
     assert rep.delete(f"{ISSUES}/{other['id']}").status_code == 204
     assert rep.get(f"{ISSUES}/november-issue").status_code == 404
-    actions = list(db.scalars(select(AuditEntry.action)))
-    assert {"newsletter.create", "newsletter.update", "newsletter.delete"} <= set(actions)
+    assert rep.delete(f"{ISSUES}/{other['id']}").status_code == 404
 
 
-def test_publishing_notifies_readers_once(
+def test_the_activity_log_names_the_issue(client_for: Clients, moderator: User, db: Session) -> None:
+    """Every audit row about an issue carries its title (student test ST-9) and its address."""
+    rep = client_for(moderator)
+    issue = rep.post(ISSUES, json=new_issue()).json()
+    rep.patch(f"{ISSUES}/{issue['id']}", json={"title": "The October issue, revised", "dek": "Shorter"})
+    rep.patch(f"{ISSUES}/{issue['id']}", json={"dek": "Shorter"})  # no change: nothing to log
+    rep.delete(f"{ISSUES}/{issue['id']}")
+    rows = list(db.scalars(select(AuditEntry).where(AuditEntry.target_id == issue["id"]).order_by(AuditEntry.id)))
+    assert [(e.action, e.target_type, e.data["title"], e.data["slug"]) for e in rows] == [
+        ("newsletter.create", "newsletter_issue", "The October issue", "october-issue"),
+        ("newsletter.update", "newsletter_issue", "The October issue, revised", "october-issue"),
+        ("newsletter.delete", "newsletter_issue", "The October issue, revised", "october-issue"),
+    ]
+    assert rows[1].data["fields"] == ["title", "dek"]
+    assert rows[2].data["status"] == "draft"
+    assert all(e.data["actorName"] == "Maryam Rep" for e in rows)
+
+
+def test_two_reps_saving_the_same_address_get_409_not_500(
+    client_for: Clients, moderator: User, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Both requests see the address as free (code quality review CQ-14): the insert decides."""
+    rep = client_for(moderator)
+    first = rep.post(ISSUES, json=new_issue()).json()
+    other = rep.post(ISSUES, json=new_issue(slug="other-issue")).json()
+    monkeypatch.setattr(svc, "check_slug_free", lambda *_args, **_kwargs: None)
+    r = rep.post(ISSUES, json=new_issue())
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "slug_taken")
+    r = rep.patch(f"{ISSUES}/{other['id']}", json={"slug": first["slug"], "title": "Renamed"})
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "slug_taken")
+    assert rep.get(f"{ISSUES}/other-issue").json()["title"] == "The October issue"  # left as it was
+
+
+# ── size limits ──────────────────────────────────────────────────────────────────────────────
+
+
+def test_issue_size_limits(client_for: Clients, moderator: User) -> None:
+    """Every text has a limit (security review SEC-6), and the whole issue at most 256 KB."""
+    rep = client_for(moderator)
+    assert set(fields(rep.post(ISSUES, json=new_issue(dek="x" * 2001)))) == {"dek"}
+    assert set(fields(rep.post(ISSUES, json=new_issue(summary="x" * 2001)))) == {"summary"}
+    assert set(fields(rep.post(ISSUES, json=new_issue(editors=["Ed"] * 13)))) == {"editors"}
+    assert set(fields(rep.post(ISSUES, json=new_issue(editors=["x" * 81])))) == {"editors.0"}
+    assert set(fields(rep.post(ISSUES, json=new_issue(title="x" * 161)))) == {"title"}
+    too_long = one_section(blocks=[{"type": "p", "text": "x" * 4001}])
+    assert set(fields(rep.post(ISSUES, json=too_long))) == {"sections.0.blocks.0.p.text"}
+    assert set(
+        fields(rep.post(ISSUES, json=new_issue(sections=[{"id": f"s{i}", "title": "S"} for i in range(41)])))
+    ) == {"sections"}
+    lines = [{"section": "a", "text": "x"}] * 6
+    assert set(fields(rep.post(ISSUES, json=new_issue(cover={"lines": lines})))) == {"cover.lines"}
+    # parts that each fit, but too many of them
+    chunk = [{"type": "p", "text": "x" * 4000}] * 35
+    huge = new_issue(sections=[{"id": "a", "title": "A", "blocks": chunk}, {"id": "b", "title": "B", "blocks": chunk}])
+    assert fields(rep.post(ISSUES, json=huge)) == {"sections": svc.TOO_LONG}
+    issue = rep.post(ISSUES, json=new_issue()).json()
+    assert fields(rep.patch(f"{ISSUES}/{issue['id']}", json={"sections": huge["sections"]})) == {
+        "sections": svc.TOO_LONG
+    }
+    assert (
+        rep.post(ISSUES, json=new_issue(slug="at-the-limits", dek="x" * 2000, editors=["x" * 80] * 12)).status_code
+        == 201
+    )
+
+
+# ── links and pictures ───────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "javascript:alert(1)",
+        "JavaScript:alert(1)",
+        "data:text/html,<script>alert(1)</script>",
+        "//evil.example/signin",
+        "/\\evil.example/signin",
+        "http://example.com/plain-http",
+        "https://user:pass@example.com/",
+        "../../api/v1/admin",
+        "#top",
+    ],
+)
+def test_links_in_issues_must_be_safe(client_for: Clients, moderator: User, bad: str) -> None:
+    rep = client_for(moderator)
+    in_text = one_section(blocks=[{"type": "p", "text": f"Read [this]({bad}) now."}])
+    assert fields(rep.post(ISSUES, json=in_text)) == {"sections.0.blocks.0.p.text": LINK_RULE}
+    in_list = one_section(blocks=[{"type": "list", "items": ["fine", f"[x]({bad})"]}])
+    assert fields(rep.post(ISSUES, json=in_list)) == {"sections.0.blocks.0.list.items.1": LINK_RULE}
+    button = one_section(blocks=[{"type": "cta", "label": "Open", "to": bad}])
+    assert fields(rep.post(ISSUES, json=button)) == {"sections.0.blocks.0.cta.to": LINK_RULE}
+    in_card = one_section(aside={"type": "card", "kicker": "K", "title": "T", "text": f"[x]({bad})"})
+    assert fields(rep.post(ISSUES, json=in_card)) == {"sections.0.aside.card.text": LINK_RULE}
+    assert fields(rep.post(ISSUES, json=new_issue(dek=f"See [here]({bad})"))) == {"dek": LINK_RULE}
+    issue = rep.post(ISSUES, json=new_issue()).json()
+    assert fields(rep.patch(f"{ISSUES}/{issue['id']}", json={"summary": f"[x]({bad})"})) == {"summary": LINK_RULE}
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "https://tracker.example.com/pixel.gif",  # another host would log every reader's address
+        "http://example.com/a.jpg",
+        "javascript:alert(1)",
+        "//evil.example/a.png",
+        "../secret.png",
+        "/api/v1/media/not-an-id",
+    ],
+)
+def test_pictures_come_from_the_hub(client_for: Clients, moderator: User, bad: str) -> None:
+    rep = client_for(moderator)
+    figure = {"src": bad, "width": 4, "height": 3, "alt": "x"}
+    assert fields(rep.post(ISSUES, json=one_section(figure=figure))) == {"sections.0.figure.src": PICTURE_RULE}
+    assert fields(rep.post(ISSUES, json=new_issue(cover={"art": bad}))) == {"cover.art": PICTURE_RULE}
+
+
+def test_safe_links_and_the_seeded_issues_pass(seeded: None, client_for: Clients, moderator: User) -> None:
+    rep = client_for(moderator)
+    good = new_issue(
+        cover={"tone": "navy", "art": "brand/newsletter-cover.jpg"},
+        sections=[
+            {
+                "id": "a",
+                "title": "A",
+                "figure": {"src": "demo/news/speech-day.jpg", "width": 1600, "height": 900, "alt": "Speech Day"},
+                "blocks": [
+                    {"type": "p", "text": "See [the calendar](/calendar), [the portal](https://my.london.ac.uk/x)."},
+                    {"type": "p", "text": "Write to [the editors](mailto:news@example.com)."},
+                    {"type": "cta", "label": "Upload", "to": "https://my.london.ac.uk/upload"},
+                ],
+            },
+            {"id": "b", "title": "B", "figure": {"src": MEDIA, "width": 4, "height": 3}},
+        ],
+    )
+    assert rep.post(ISSUES, json=good).status_code == 201
+    # every seeded issue, sent back as the API gave it, is accepted unchanged
+    for raw in read("newsletter"):
+        issue = rep.get(f"{ISSUES}/{raw['slug']}").json()
+        r = rep.patch(f"{ISSUES}/{issue['id']}", json={"cover": issue["cover"], "sections": issue["sections"]})
+        assert r.status_code == 200, r.text
+        assert (r.json()["cover"], r.json()["sections"]) == (issue["cover"], issue["sections"])
+
+
+# ── publishing and reactions ─────────────────────────────────────────────────────────────────
+
+
+def test_publishing_tells_every_account_once(
     client_for: Clients, make_user: Callable[..., User], moderator: User, db: Session
 ) -> None:
+    """Decision D1: the notification in the Hub reaches everyone but the publisher, whatever their email switches;
+    the email goes to those with an address who keep "New newsletter issues" on."""
     keen = make_user(name="Keen")
     quiet = make_user(name="Quiet")
-    quiet.preferences = {"newsletter_emails": False}
-    default = make_user(name="Default")
-    default.preferences = {"email_notifications": False}
+    quiet.preferences = {"email_new_issues": False}
+    phone_only = make_user(email=None, phone="+97333123456", name="Phone Only")
     db.commit()
 
     rep = client_for(moderator)
@@ -112,19 +427,27 @@ def test_publishing_notifies_readers_once(
     assert client_for().get(f"{ISSUES}/{issue['slug']}").status_code == 404
 
     r = rep.post(f"{ISSUES}/{issue['id']}/publish")
-    assert r.status_code == 200
+    assert r.status_code == 200, r.text
     assert r.json()["status"] == "published"
     assert r.json()["publishedAt"] is not None
 
     notes = list(db.scalars(select(Notification)))
-    assert {n.user_id for n in notes} == {keen.id, default.id}  # not the publisher, not who opted out
-    n = notes[0]
-    assert (n.kind, n.url, n.actor_id) == ("new_issue", "/newsletter/october-issue", moderator.id)
-    assert n.title == "New issue of The DSBA Newsletter: The October issue"
-    assert n.body == issue["dek"]
+    assert {n.user_id for n in notes} == {keen.id, quiet.id, phone_only.id}  # not the publisher
+    for n in notes:
+        assert (n.kind, n.url, n.actor_id) == ("new_issue", "/newsletter/october-issue", moderator.id)
+        assert n.title == "New issue of The DSBA Newsletter: The October issue"
+        assert n.body == issue["dek"]
+        assert n.data == {"issueId": issue["id"], "slug": "october-issue"}
+    emails = list(db.scalars(select(EmailOutbox)))
+    assert [(e.user_id, e.kind, e.to_address) for e in emails] == [(keen.id, "new_issue", keen.email)]
+    assert emails[0].notification_id == next(n.id for n in notes if n.user_id == keen.id)
     entry = db.scalar(select(AuditEntry).where(AuditEntry.action == "newsletter.publish"))
     assert entry is not None
-    assert entry.data["notified"] == 2
+    assert (entry.data["notified"], entry.data["title"], entry.data["slug"]) == (
+        3,
+        "The October issue",
+        "october-issue",
+    )
 
     # public now, newest first
     older = rep.post(ISSUES, json=new_issue(slug="september", number=1, date="2026-09-20")).json()
@@ -134,7 +457,7 @@ def test_publishing_notifies_readers_once(
     # publishing again changes nothing and tells nobody
     again = rep.post(f"{ISSUES}/{issue['id']}/publish").json()["publishedAt"]
     assert dt.datetime.fromisoformat(again) == dt.datetime.fromisoformat(r.json()["publishedAt"])
-    assert len(list(db.scalars(select(Notification)))) == 4
+    assert len(list(db.scalars(select(Notification)))) == 6
     assert client_for(keen).post(f"{ISSUES}/{issue['id']}/publish").status_code == 403
 
 
@@ -146,7 +469,7 @@ def test_reactions(client_for: Clients, student: User, other: User, moderator: U
 
     assert me.put(f"{url}/useful").status_code == 404  # a draft: not for readers
     assert rep.put(f"{url}/useful").json()["error"]["code"] == "not_published"
-    rep.post(f"{ISSUES}/{issue['id']}/publish")
+    assert rep.post(f"{ISSUES}/{issue['id']}/publish").status_code == 200
 
     assert client_for().put(f"{url}/useful").status_code == 401
     assert me.put(f"{url}/useful").json() == {"useful": 1, "love": 0, "laugh": 0, "mine": ["useful"]}
@@ -165,59 +488,17 @@ def test_reactions(client_for: Clients, student: User, other: User, moderator: U
     assert me.delete(f"{url}/useful").json()["useful"] == 1
 
 
-@pytest.mark.parametrize(
-    "bad",
-    [
-        "javascript:alert(1)",
-        "JavaScript:alert(1)",
-        "data:text/html,<script>alert(1)</script>",
-        "//evil.example/signin",
-        "/\\evil.example/signin",
-        "http://example.com/plain-http",
-        "https://user:pass@example.com/",
-        "../../api/v1/admin",
-    ],
-)
-def test_links_in_issues_must_be_safe(client_for: Clients, moderator: User, bad: str) -> None:
-    rep = client_for(moderator)
-    in_text = new_issue(sections=[{"id": "a", "blocks": [{"type": "p", "text": f"Read [this]({bad}) now."}]}])
-    r = rep.post(ISSUES, json=in_text)
-    assert r.status_code == 422
-    assert r.json()["error"]["fields"] == {"sections.0.blocks.0.text": LINK_RULE}
-    in_figure = new_issue(sections=[{"id": "a", "figure": {"src": bad, "alt": "x"}}])
-    assert rep.post(ISSUES, json=in_figure).json()["error"]["fields"] == {"sections.0.figure.src": LINK_RULE}
-    in_cover = new_issue(cover={"tone": "navy", "art": bad})
-    assert rep.post(ISSUES, json=in_cover).json()["error"]["fields"] == {"cover.art": LINK_RULE}
-    assert rep.post(ISSUES, json=new_issue(dek=f"See [here]({bad})")).status_code == 422
-    issue = rep.post(ISSUES, json=new_issue()).json()
-    assert rep.patch(f"{ISSUES}/{issue['id']}", json={"summary": f"[x]({bad})"}).status_code == 422
-
-
-def test_safe_links_and_the_seeded_issues_pass(seeded: None, client_for: Clients, moderator: User, db: Session) -> None:
-    rep = client_for(moderator)
-    good = new_issue(
-        cover={"tone": "navy", "art": "brand/newsletter-cover.jpg"},
-        sections=[
-            {
-                "id": "a",
-                "figure": {"src": "demo/news/speech-day.jpg", "alt": "Speech Day"},
-                "blocks": [
-                    {"type": "p", "text": "See [the calendar](/calendar), [the portal](https://my.london.ac.uk/x)."},
-                    {"type": "p", "text": "Write to [the editors](mailto:news@example.com) or [jump](#a)."},
-                ],
-            }
-        ],
-    )
-    assert rep.post(ISSUES, json=good).status_code == 201
-    # the seeded issues, sent back as they are, are accepted
-    launch = rep.get(f"{ISSUES}/launch-edition").json()
-    r = rep.patch(f"{ISSUES}/{launch['id']}", json={"cover": launch["cover"], "sections": launch["sections"]})
-    assert r.status_code == 200, r.text
-
-
-def test_issue_size_limits(client_for: Clients, moderator: User) -> None:
-    rep = client_for(moderator)
-    huge = new_issue(sections=[{"id": "a", "blocks": [{"type": "p", "text": "x" * (256 * 1024)}]}])
-    assert rep.post(ISSUES, json=huge).json()["error"]["fields"] == {"sections": "This issue is too long."}
-    many = new_issue(sections=[{"id": f"s{i}"} for i in range(41)])
-    assert rep.post(ISSUES, json=many).status_code == 422
+def test_stored_sections_that_no_longer_fit_are_left_out(
+    client_for: Clients, moderator: User, db: Session, caplog: pytest.LogCaptureFixture
+) -> None:
+    """An issue written before the schema existed still opens: a section that doesn't fit is skipped and logged."""
+    issue = client_for(moderator).post(ISSUES, json=new_issue()).json()
+    row = db.get(NewsletterIssue, uuid.UUID(issue["id"]))
+    assert row is not None
+    row.sections = [*row.sections, {"id": "old", "title": "Old", "blocks": [{"type": "qa", "items": []}]}]
+    row.cover = {"tone": "sepia"}
+    db.commit()
+    detail = client_for(moderator).get(f"{ISSUES}/{issue['slug']}").json()
+    assert [s["id"] for s in detail["sections"]] == ["exams", "study-room"]
+    assert detail["cover"] == {"tone": "navy", "art": None, "lines": []}
+    assert "doesn't fit the schema" in caplog.text

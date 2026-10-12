@@ -1,11 +1,9 @@
 import { Link } from 'react-router-dom';
 import { ArrowFatUp, ChatsCircle } from '@phosphor-icons/react';
-import { Button, EmptyState, Panel, Skeleton, timeAgo } from '../../ui';
-import { useYear } from '../../state';
+import { Button, EmptyState, Panel, QueryError, Skeleton, timeAgo } from '../../ui';
+import { normalizeYear, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { useForumViewerSync, useHotThreads } from './api';
-import { isCohortYear } from './lib/taxonomy';
-import { LoadError } from './components/LoadStates';
+import { useHotThreads } from './api';
 import { ModuleTag, PlaceBadge, ReplyCount } from './components/ThreadBits';
 import './components/forum.css';
 import './HotThreads.css';
@@ -17,10 +15,9 @@ export interface HotThreadsProps {
 
 /** Home widget: the n hottest threads for the student's year (plus forum-wide ones). */
 export function HotThreads({ n = 5 }: HotThreadsProps) {
-  useForumViewerSync();
   const { year } = useYear();
   const { getModule } = useModules();
-  const hot = useHotThreads({ n, year: isCohortYear(year) ? year : null });
+  const hot = useHotThreads({ n, year: normalizeYear(year) });
 
   if (hot.isPending) {
     return (
@@ -44,7 +41,7 @@ export function HotThreads({ n = 5 }: HotThreadsProps) {
     );
   }
 
-  if (hot.isError) return <LoadError size="sm" title="Couldn't load the forum" error={hot.error} onRetry={() => void hot.refetch()} />;
+  if (hot.isError) return <QueryError size="sm" title="The forum didn’t load" error={hot.error} onRetry={() => void hot.refetch()} retrying={hot.isFetching} />;
 
   if (!hot.data.length) {
     return (

@@ -13,14 +13,13 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from email.message import Message
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from urllib.parse import parse_qs
 
 import httpx
 import pytest
 from pydantic import SecretStr
 
-from app.models import OtpPurpose
 from app.services import mailer, otp, sms
 from app.services.mailer import DeliveryError
 
@@ -62,7 +61,7 @@ def test_smtp_backend_sends_the_message(set_option: SetOption, smtp_server: tupl
     set_option("email_backend", "smtp")
     set_option("smtp_host", "127.0.0.1")
     set_option("smtp_port", port)
-    subject, text, html = otp.email_content("123456", OtpPurpose.sign_in)
+    subject, text, html = otp.email_content("123456", "sign_in")
     mailer.send_email("student@example.com", subject, text, html)
     [envelope] = received
     assert envelope.rcpt_tos == ["student@example.com"]
@@ -70,7 +69,11 @@ def test_smtp_backend_sends_the_message(set_option: SetOption, smtp_server: tupl
     assert msg["Subject"] == "Your DSBA Hub code: 123456"
     assert msg["From"] == "DSBA Hub <no-reply@dsba-hub.local>"
     assert msg["Auto-Submitted"] == "auto-generated"
-    parts = {p.get_content_type(): p.get_payload(decode=True).decode() for p in msg.walk() if not p.is_multipart()}
+    parts = {
+        p.get_content_type(): cast(bytes, p.get_payload(decode=True)).decode()
+        for p in msg.walk()
+        if not p.is_multipart()
+    }
     assert "Your DSBA Hub code is 123456." in parts["text/plain"]
     assert "123456" in parts["text/html"]
 

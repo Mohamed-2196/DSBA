@@ -79,19 +79,27 @@ function unlockScroll() {
   saved = null;
 }
 
-// ── Layer stack: only the top-most overlay/menu reacts to Esc ──────────────
-const layers: object[] = [];
-export function useLayer(open: boolean, onEscape?: (e: KeyboardEvent) => void): void {
+// ── Layer stack: only the top-most overlay/menu reacts to Esc and traps Tab ──────────────
+export interface Layer {
+  /** the overlay's panel: focus goes there when an overlay on top of it closes without an opener to return to */
+  panel?: RefObject<HTMLElement>;
+}
+const layers: Layer[] = [];
+const isTopLayer = (layer: Layer | null): boolean => !!layer && layers[layers.length - 1] === layer;
+
+export function useLayer(open: boolean, onEscape?: (e: KeyboardEvent) => void, panelRef?: RefObject<HTMLElement>): RefObject<Layer | null> {
   const escRef = useRef(onEscape);
+  const layerRef = useRef<Layer | null>(null);
   useEffect(() => {
     escRef.current = onEscape;
   });
   useEffect(() => {
     if (!open) return undefined;
-    const token = {};
+    const token: Layer = { panel: panelRef };
     layers.push(token);
+    layerRef.current = token;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape' || layers[layers.length - 1] !== token) return;
+      if (e.key !== 'Escape' || !isTopLayer(token)) return;
       e.preventDefault();
       escRef.current?.(e);
     };
@@ -100,8 +108,39 @@ export function useLayer(open: boolean, onEscape?: (e: KeyboardEvent) => void): 
       document.removeEventListener('keydown', onKey);
       const i = layers.indexOf(token);
       if (i >= 0) layers.splice(i, 1);
+      layerRef.current = null;
     };
+    // panelRef is a ref object: stable for the overlay's life.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+  return layerRef;
+}
+
+function canTakeFocus(el: Element | null): el is HTMLElement | SVGElement {
+  return (
+    !!el &&
+    typeof (el as HTMLElement).focus === 'function' &&
+    document.contains(el) &&
+    el.getClientRects().length > 0 &&
+    !el.matches(':disabled') &&
+    !el.closest('[inert]')
+  );
+}
+
+/**
+ * Where focus goes when an overlay closes: back to what opened it; when that is gone or can't take focus (Sign in
+ * became the account button, a busy button is disabled), the overlay underneath, then the account button, then the
+ * main content, never <body> (UX review UX-9).
+ */
+function restoreFocus(opener: Element | null): void {
+  if (canTakeFocus(opener)) {
+    opener.focus({ preventScroll: true });
+    if (document.activeElement === opener) return;
+  }
+  const below = layers[layers.length - 1]?.panel?.current ?? null;
+  const profile = [...document.querySelectorAll('[data-hub="profile"]')].find(canTakeFocus) ?? null;
+  const target = [below, profile, document.getElementById('main')].find(canTakeFocus);
+  target?.focus({ preventScroll: true });
 }
 
 interface OverlayOptions {
@@ -119,10 +158,11 @@ interface OverlayOptions {
  * (so no focus ring lands on the close button when a dialog opens on page load; Tab reaches the controls).
  */
 export function useOverlay({ open, onClose, panelRef, initialFocusRef, lock = true }: OverlayOptions): void {
-  useLayer(open, () => onClose?.());
+  const layer = useLayer(open, () => onClose?.(), panelRef);
   useEffect(() => {
     if (!open) return undefined;
-    const opener = document.activeElement as HTMLElement | SVGElement | null;
+    const opener = document.activeElement;
+    const panelAtOpen = panelRef.current;
     if (lock) lockScroll();
     const raf = requestAnimationFrame(() => {
       const panel = panelRef.current;
@@ -131,7 +171,8 @@ export function useOverlay({ open, onClose, panelRef, initialFocusRef, lock = tr
       target.focus({ preventScroll: true });
     });
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
+      // Only the top-most overlay keeps Tab inside itself: one opened on top of another owns the keyboard.
+      if (e.key !== 'Tab' || !isTopLayer(layer.current)) return;
       const panel = panelRef.current;
       if (!panel) return;
       const items = getFocusable(panel);
@@ -156,9 +197,12 @@ export function useOverlay({ open, onClose, panelRef, initialFocusRef, lock = tr
       cancelAnimationFrame(raf);
       document.removeEventListener('keydown', onKey);
       if (lock) unlockScroll();
-      if (opener && typeof opener.focus === 'function' && document.contains(opener)) opener.focus({ preventScroll: true });
+      // Leave focus alone if the closing action already moved it somewhere on purpose.
+      const active = document.activeElement;
+      if (active && active !== document.body && panelAtOpen && !panelAtOpen.contains(active)) return;
+      restoreFocus(opener);
     };
-  }, [open, lock, panelRef, initialFocusRef]);
+  }, [open, lock, panelRef, initialFocusRef, layer]);
 }
 
 /** Keep something mounted for `duration` ms after it closes so it can animate out. */

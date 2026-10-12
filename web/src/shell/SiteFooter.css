@@ -22,3 +22,10 @@ a.shell-footer__name:hover { color: var(--cobalt); text-decoration: underline; }
 @media (max-width: 699px) {
   .shell-footer__inner { padding-bottom: var(--sp-32); }
 }
+
+/* Touch screens: the footer's links get 44px rows (UX review UX-11). */
+@media (pointer: coarse) {
+  .shell-footer__links { gap: 0 var(--sp-24); }
+  .shell-footer__links a, .shell-footer__brand, a.shell-footer__name { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+  .shell-footer__people { row-gap: var(--sp-8); }
+}

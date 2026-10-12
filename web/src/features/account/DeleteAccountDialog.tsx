@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash, WarningCircle } from '@phosphor-icons/react';
-import { ApiError } from '../../api/errors';
+import { errorMessage } from '../../api/errors';
 import { ME_KEY, clearPersonalStorage, resetPersonalQueries } from '../../auth';
 import { useToast } from '../../state';
 import { Button, Modal, TextField } from '../../ui';
@@ -42,13 +42,7 @@ export function DeleteAccountDialog({ open, onClose }: { open: boolean; onClose:
       await resetPersonalQueries(qc);
       push({ tone: 'success', title: 'Your account is deleted', body: 'Thanks for being part of DSBA Hub.' });
     } catch (err) {
-      setError(
-        err instanceof ApiError && err.code === 'network'
-          ? 'Couldn’t reach the Hub. Check your connection and try again.'
-          : err instanceof ApiError
-            ? err.message
-            : 'Something went wrong. Try again.',
-      );
+      setError(errorMessage(err));
     } finally {
       setBusy(false);
     }

@@ -21,3 +21,8 @@
 .ui-chip__count { color: var(--ink-3); font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); }
 .ui-chip.is-selected { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .ui-chip.is-selected .ui-chip__count { color: color-mix(in srgb, var(--paper) 70%, transparent); }
+
+/* Touch screens: 44px chips (UX review UX-11). */
+@media (pointer: coarse) {
+  .ui-chip, .ui-chip--sm { height: 44px; min-width: 44px; justify-content: center; }
+}

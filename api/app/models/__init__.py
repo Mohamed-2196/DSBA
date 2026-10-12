@@ -6,6 +6,7 @@ from app.models.content import CalendarEvent, ContentDoc, Module
 from app.models.forum import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVote
 from app.models.library import ItemSource, ItemStatus, LibraryItem, LibraryStar, Upload, UploadPurpose, UploadStatus
 from app.models.newsletter import IssueStatus, NewsletterIssue, NewsletterReaction
+from app.models.outbox import EmailOutbox, OutboxStatus
 from app.models.user import Channel, OtpChallenge, OtpPurpose, Role, User, UserSession, UserStatus
 
 __all__ = [
@@ -14,6 +15,7 @@ __all__ = [
     "CalendarEvent",
     "Channel",
     "ContentDoc",
+    "EmailOutbox",
     "ForumReply",
     "ForumThread",
     "IssueStatus",
@@ -29,6 +31,7 @@ __all__ = [
     "Notification",
     "OtpChallenge",
     "OtpPurpose",
+    "OutboxStatus",
     "PostStatus",
     "ReplyVote",
     "Report",

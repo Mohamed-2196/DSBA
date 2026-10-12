@@ -1,6 +1,7 @@
 // The prototype kept a pretend forum in the browser (localStorage 'dsba.forum.v1': "your" threads, votes and replies,
 // plus the launch film's 'hub.forum.hidden'). The forum now lives on the server: forget those, once per page load.
-// An unfinished draft is the one thing worth keeping: it moves to the composer's current key.
+// An unfinished draft is the one thing worth keeping: it moves to the composer's current key. (Signing out removes
+// that key with the other personal ones: auth/queries.ts PERSONAL_STORAGE_PREFIXES has 'dsba.forum.draft'.)
 
 const OLD_STORE = 'dsba.forum.v1';
 const OLD_FILM_HOOK = 'hub.forum.hidden';
@@ -27,16 +28,5 @@ export function forgetPrototypeForum(): void {
     for (const key of [OLD_STORE, OLD_FILM_HOOK, OLD_DRAFT]) ls.removeItem(key);
   } catch {
     /* storage unavailable or an unreadable old draft: nothing to keep */
-  }
-}
-
-/** Remove the composer's draft when it belongs to this account (on sign-out). */
-export function forgetDraftOf(userId: string): void {
-  try {
-    const raw = window.localStorage.getItem(DRAFT_KEY);
-    const owner = raw ? (JSON.parse(raw) as { owner?: unknown } | null)?.owner : undefined;
-    if (owner === userId) window.localStorage.removeItem(DRAFT_KEY);
-  } catch {
-    /* storage unavailable or unreadable: nothing to remove */
   }
 }

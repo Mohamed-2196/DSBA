@@ -35,8 +35,9 @@ export function useUpdatePreferences() {
       const before = qc.getQueryData<Me | null>(ME_KEY);
       if (before) {
         const next = { ...before.preferences };
-        if (preferences.emailNotifications != null) next.emailNotifications = preferences.emailNotifications;
-        if (preferences.newsletterEmails != null) next.newsletterEmails = preferences.newsletterEmails;
+        for (const [key, on] of Object.entries(preferences) as [keyof Me['preferences'], boolean | null | undefined][]) {
+          if (on != null) next[key] = on;
+        }
         qc.setQueryData<Me>(ME_KEY, { ...before, preferences: next });
       }
       return { before };

@@ -20,6 +20,7 @@
   flex-direction: column;
   width: 100%;
   max-height: min(86vh, 900px);
+  max-height: min(86dvh, 900px);
   border: 1px solid var(--line);
   border-radius: var(--r-feature);
   background: var(--surface);
@@ -99,9 +100,20 @@
 
 @media (max-width: 699px) {
   .ui-modal { place-items: end center; padding: var(--sp-8); }
-  .ui-modal__panel { max-height: 92vh; }
+  .ui-modal__panel { max-height: 92vh; max-height: 92dvh; }
   .ui-modal__header { padding: var(--sp-16) var(--sp-16) 0; }
   .ui-modal__body { padding: var(--sp-12) var(--sp-16) var(--sp-16); }
   .ui-modal__footer { padding: var(--sp-12) var(--sp-16); }
   .ui-drawer__body { padding: var(--sp-12) var(--sp-16) var(--sp-24); }
+}
+
+/* Short screens (a phone on its side, a small laptop with the keyboard open): the dialog takes the height it can,
+   with tighter padding, and its body scrolls between the title and the actions. */
+@media (max-height: 560px) {
+  .ui-modal { padding: var(--sp-8); }
+  .ui-modal__panel { max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); }
+  .ui-modal__header { padding: var(--sp-16) 20px 0; }
+  .ui-modal__body { padding: var(--sp-12) 20px var(--sp-16); }
+  .ui-modal__footer { padding: 10px 20px; }
+  .ui-drawer--bottom .ui-drawer__panel { max-height: 94vh; max-height: 94dvh; }
 }

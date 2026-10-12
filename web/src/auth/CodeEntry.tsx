@@ -1,6 +1,9 @@
-// The 6-digit code step, shared by sign-in and by adding an email or phone number to an account.
+// The code step, shared by sign-in, by adding or changing an email or phone number, and by "confirm it's you".
+// A code is 6 digits; after many wrong codes for an address it is 10 letters and digits (codeFormat "long",
+// written ABCDE-FGH23), which nobody can guess (decision D4).
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ApiError } from '../api/errors';
+import { CODE_LENGTH as LENGTH, normalizeCode, type CodeFormat } from './codes';
 import { otpErrorMessage, waitText } from './otpErrors';
 import type { OtpChallengeOut } from '../api/types';
 import { Button, TextField } from '../ui';
@@ -10,8 +13,13 @@ interface OtpCredentialLike {
   code?: string;
 }
 
+/** The long code as it is written in the message: ABCDE-FGH23. */
+function display(code: string, format: CodeFormat): string {
+  return format === 'long' && code.length > 5 ? `${code.slice(0, 5)}-${code.slice(5)}` : code;
+}
+
 /** Android Chrome can read the code from the text message itself (WebOTP); elsewhere this does nothing. */
-function useWebOtp(enabled: boolean, onCode: (code: string) => void, resetKey: string) {
+function useWebOtp(enabled: boolean, format: CodeFormat, onCode: (code: string) => void, resetKey: string) {
   const onCodeRef = useRef(onCode);
   onCodeRef.current = onCode;
   useEffect(() => {
@@ -21,14 +29,14 @@ function useWebOtp(enabled: boolean, onCode: (code: string) => void, resetKey: s
     navigator.credentials
       .get(options)
       .then((cred) => {
-        const code = (cred as OtpCredentialLike | null)?.code?.replace(/\D/g, '').slice(0, 6);
-        if (code && code.length === 6) onCodeRef.current(code);
+        const code = normalizeCode((cred as OtpCredentialLike | null)?.code ?? '', format);
+        if (code.length === LENGTH[format]) onCodeRef.current(code);
       })
       .catch(() => {
         /* dismissed, aborted or unsupported: the person types the code */
       });
     return () => ac.abort();
-  }, [enabled, resetKey]);
+  }, [enabled, format, resetKey]);
 }
 
 /**
@@ -56,14 +64,16 @@ export interface CodeEntryProps {
   onVerify: (code: string) => Promise<unknown>;
   /** ask for a new code; the parent swaps in the new challenge */
   onResend: () => Promise<unknown>;
-  /** go back to the email or number */
-  onBack: () => void;
+  /** go back to the email or number (no button without it) */
+  onBack?: () => void;
   backLabel?: string;
   submitLabel?: string;
 }
 
-/** One paste-friendly input for the code, Verify, Resend (with a countdown) and a way back. */
+/** One paste-friendly input for the code, Verify, "Send a new code" (after a countdown) and a way back. */
 export function CodeEntry({ challenge, receivedAt, onVerify, onResend, onBack, backLabel = 'Use a different email or number', submitLabel = 'Verify' }: CodeEntryProps) {
+  const format: CodeFormat = challenge.codeFormat ?? 'digits';
+  const length = LENGTH[format];
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [stuck, setStuck] = useState<Stuck>(null);
@@ -96,8 +106,8 @@ export function CodeEntry({ challenge, receivedAt, onVerify, onResend, onBack, b
 
   const verify = async (value: string) => {
     if (busyRef.current) return;
-    if (value.length !== 6) {
-      setError('Enter the 6-digit code from the message.');
+    if (value.length !== length) {
+      setError(format === 'long' ? 'Enter the 10 letters and digits from the message.' : 'Enter the 6-digit code from the message.');
       inputRef.current?.focus();
       return;
     }
@@ -133,6 +143,7 @@ export function CodeEntry({ challenge, receivedAt, onVerify, onResend, onBack, b
 
   useWebOtp(
     challenge.channel === 'sms',
+    format,
     (received) => {
       setCode(received);
       void verify(received);
@@ -142,33 +153,37 @@ export function CodeEntry({ challenge, receivedAt, onVerify, onResend, onBack, b
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (stuck === 'other') onBack();
+    if (stuck === 'other') onBack?.();
     else if (stuck === 'new-code') void resend();
     else void verify(code);
   };
+
+  const lasts = `It works for ${waitText(challenge.expiresIn)}.`;
+  const hint = notice ?? (challenge.channel === 'email' ? `${lasts} Not there? Check your spam folder.` : lasts);
 
   return (
     <form className="signin__form" onSubmit={onSubmit} noValidate>
       <TextField
         ref={inputRef}
-        label="6-digit code"
-        className="otp__field"
+        label={format === 'long' ? 'Code (10 letters and digits)' : '6-digit code'}
+        className={format === 'long' ? 'otp__field otp__field--long' : 'otp__field'}
         size="lg"
-        value={code}
+        value={display(code, format)}
         onChange={(e) => {
-          const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
-          setCode(digits);
+          const next = normalizeCode(e.target.value, format);
+          setCode(next);
           setNotice(null);
           if (error && !dead) setError(null);
-          if (digits.length === 6 && digits !== code && !dead) void verify(digits);
+          if (next.length === length && next !== code && !dead) void verify(next);
         }}
-        inputMode="numeric"
+        inputMode={format === 'long' ? 'text' : 'numeric'}
         autoComplete="one-time-code"
-        pattern="[0-9]*"
+        autoCapitalize={format === 'long' ? 'characters' : 'off'}
+        pattern={format === 'long' ? undefined : '[0-9]*'}
         autoCorrect="off"
         spellCheck={false}
         error={error}
-        hint={notice ?? `It works for ${waitText(challenge.expiresIn)}.`}
+        hint={hint}
         data-autofocus
       />
       <div className="visually-hidden" aria-live="polite">
@@ -186,22 +201,20 @@ export function CodeEntry({ challenge, receivedAt, onVerify, onResend, onBack, b
       </Button>
       {stuck === 'other' ? null : (
         <div className="signin__links">
-          {dead ? (
-            <span className="signin__wait">{wait > 0 ? `You can ask for a new code in ${clock(wait)}.` : null}</span>
-          ) : (
-            <Button variant="ghost" size="sm" onClick={() => void resend()} disabled={wait > 0 || busy !== null} loading={busy === 'resend'}>
-              {wait > 0 ? (
-                <>
-                  Resend code in <span className="u-tabular">{clock(wait)}</span>
-                </>
-              ) : (
-                'Resend code'
-              )}
+          {wait > 0 ? (
+            <span className="signin__wait" aria-live="off">
+              You can ask for a new code in {clock(wait)}.
+            </span>
+          ) : dead ? null : (
+            <Button variant="ghost" size="sm" onClick={() => void resend()} disabled={busy !== null} loading={busy === 'resend'}>
+              Send a new code
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onBack} disabled={busy !== null}>
-            {backLabel}
-          </Button>
+          {onBack ? (
+            <Button variant="ghost" size="sm" onClick={onBack} disabled={busy !== null}>
+              {backLabel}
+            </Button>
+          ) : null}
         </div>
       )}
     </form>

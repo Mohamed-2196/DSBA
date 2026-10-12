@@ -1,30 +1,165 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api, call } from '../api/client';
 import { ApiError } from '../api/errors';
 import type { Me } from '../api/types';
-import { useAccountYearSync } from '../state';
+import { useAccountYearSync, useToast } from '../state';
 import { AuthContext, type AuthValue, type SignInRequest } from './context';
 import { ME_KEY, clearPersonalStorage, resetPersonalQueries } from './queries';
+import { createSessionGuard } from './sessionGuard';
 import { SignInDialog } from './SignInDialog';
+import { StepUpDialog } from './StepUpDialog';
 
-async function fetchMe(): Promise<Me | null> {
-  try {
-    return await call(api.GET('/api/v1/me'));
-  } catch (e) {
-    if (e instanceof ApiError && e.status === 401) return null; // a guest
-    throw e;
-  }
+/** The API's CSRF cookie (as in api/client.ts): signing in and stepping up replace it. */
+const CSRF_COOKIE: string = import.meta.env.VITE_CSRF_COOKIE || 'dsba_csrf';
+
+function readCsrfCookie(): string | null {
+  const hit = document.cookie.split('; ').find((c) => c.startsWith(`${CSRF_COOKIE}=`));
+  return hit ? decodeURIComponent(hit.slice(CSRF_COOKIE.length + 1)) : null;
+}
+
+interface SignInState {
+  reason?: string;
+  resumes: boolean;
+  /** the session ended under someone signed in: they sign in again, and the page stays as it was meanwhile */
+  reauth: boolean;
+}
+
+/** A sign-in request, and whether it came from a session that ended (the session guard). */
+interface Waiting extends SignInRequest {
+  reauth?: boolean;
+}
+
+interface StepUpState {
+  purpose: string;
+  resolve: (ok: boolean) => void;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
-  const meQuery = useQuery({ queryKey: ME_KEY, queryFn: fetchMe, staleTime: 60_000 });
-  const [request, setRequest] = useState<SignInRequest | null>(null);
-  const me = meQuery.data ?? null;
+  const { push } = useToast();
+  const [signIn, setSignIn] = useState<SignInState | null>(null);
+  const [stepUp, setStepUpState] = useState<StepUpState | null>(null);
+  const stepUpRef = useRef<StepUpState | null>(null);
+  const setStepUp = useCallback((next: StepUpState | null) => {
+    stepUpRef.current = next;
+    setStepUpState(next);
+  }, []);
+  // Everyone waiting for the sign-in dialog: its success runs every onSuccess once, closing it every onCancel.
+  const waitingRef = useRef<Waiting[]>([]);
+  // The account whose session ended, so a burst of refusals tells the person once.
+  const endedRef = useRef<string | null>(null);
+  const reauthPending = () => waitingRef.current.some((r) => r.reauth);
+
+  const openRequest = useCallback((req: Waiting) => {
+    waitingRef.current.push(req);
+    setSignIn((prev) => ({
+      reason: req.reason ?? prev?.reason,
+      resumes: waitingRef.current.some((r) => !!r.onSuccess),
+      reauth: waitingRef.current.some((r) => r.reauth),
+    }));
+  }, []);
+  const openSignIn = useCallback((req: SignInRequest = {}) => openRequest(req), [openRequest]);
+
+  /** Show a guest, so Sign in comes back; keep their drafts (not their account's cached data). */
+  const showGuest = useCallback(() => {
+    qc.setQueryData(ME_KEY, null);
+    void resetPersonalQueries(qc);
+  }, [qc]);
+
+  const onSignedIn = useCallback(() => {
+    const waiting = waitingRef.current;
+    waitingRef.current = [];
+    setSignIn(null);
+    for (const r of waiting) r.onSuccess?.();
+  }, []);
+  const onDismissed = useCallback(() => {
+    const waiting = waitingRef.current;
+    waitingRef.current = [];
+    setSignIn(null);
+    // Not signing in again after the session ended: from now on this is a guest.
+    if (waiting.some((r) => r.reauth) && qc.getQueryData(ME_KEY)) showGuest();
+    for (const r of waiting) r.onCancel?.();
+  }, [qc, showGuest]);
+
+  /** The session ended while the app showed someone signed in (signed out on another device, expired). After an
+   *  action, the sign-in dialog opens next and says so, and the page stays as it is until the person signs in
+   *  again or closes it (so the action carries on into the same screen). After a read: a guest, told quietly. */
+  const sessionEnded = useCallback(
+    ({ userId, write }: { userId: string; write: boolean }) => {
+      if (write || reauthPending() || endedRef.current === userId) return;
+      endedRef.current = userId;
+      showGuest();
+      push({
+        tone: 'info',
+        title: 'You were signed out',
+        body: 'Sign in again to carry on.',
+        duration: 10_000,
+        action: { label: 'Sign in', onClick: () => openRequest({}) },
+      });
+    },
+    [push, openRequest, showGuest],
+  );
+  const sessionEndedRef = useRef(sessionEnded);
+  sessionEndedRef.current = sessionEnded;
+
+  // Who is signed in: GET /auth/session never answers 401, so a guest's page load logs no error (ST-10). Read
+  // again whenever the tab comes back (UX-1): a session ended elsewhere shows here without a reload.
+  const sessionQuery = useQuery({
+    queryKey: ME_KEY,
+    queryFn: async (): Promise<Me | null> => {
+      const before = qc.getQueryData<Me | null>(ME_KEY) ?? null;
+      const { me } = await call(api.GET('/api/v1/auth/session'));
+      // Signing in again after a session ended: keep the page as it was until that is done.
+      if (before && !me && reauthPending()) return before;
+      if (before && !me) queueMicrotask(() => sessionEndedRef.current({ userId: before.id, write: false }));
+      else if (before && me && before.id !== me.id) void resetPersonalQueries(qc); // another tab switched accounts
+      return me ?? null;
+    },
+    staleTime: 60_000,
+    refetchOnWindowFocus: true,
+  });
+  const me = sessionQuery.data ?? null;
+  useEffect(() => {
+    if (me) endedRef.current = null;
+  }, [me]);
 
   // A signed-in student's cohort is the year the Hub shows by default.
   useAccountYearSync(me?.year ?? null);
+
+  // Every API call goes through the session guard: a 401 on an action asks the person to sign in again and then
+  // sends it again (UX-1); a 403 step_up_required asks for a code first (D2).
+  useEffect(() => {
+    const guard = createSessionGuard({
+      currentUserId: () => qc.getQueryData<Me | null>(ME_KEY)?.id ?? null,
+      sessionEnded: (info) => sessionEndedRef.current(info),
+      signIn: (reason) =>
+        new Promise<string | null>((resolve) =>
+          openRequest({
+            reason,
+            reauth: qc.getQueryData<Me | null>(ME_KEY) != null,
+            onSuccess: () => resolve(qc.getQueryData<Me | null>(ME_KEY)?.id ?? null),
+            onCancel: () => resolve(null),
+          }),
+        ),
+      stepUp: (purpose) => new Promise<boolean>((resolve) => setStepUp({ purpose, resolve })),
+      csrfToken: readCsrfCookie,
+      send: (request) => fetch(request),
+    });
+    api.use(guard);
+    return () => api.eject(guard);
+  }, [qc, openRequest, setStepUp]);
+
+  const finishStepUp = useCallback(
+    (ok: boolean) => {
+      const current = stepUpRef.current;
+      setStepUp(null);
+      // A step-up renews this browser's session: the account page's device list changes.
+      if (ok) void qc.invalidateQueries({ queryKey: ['account'] });
+      current?.resolve(ok);
+    },
+    [qc, setStepUp],
+  );
 
   const refresh = useCallback(async () => {
     await qc.invalidateQueries({ queryKey: ME_KEY });
@@ -38,20 +173,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // the session cookie would still work, so don't pretend.
       if (!(e instanceof ApiError && e.status === 401)) throw e;
     }
+    endedRef.current = null;
     qc.setQueryData(ME_KEY, null);
     // Everything personal (stars, votes, notifications, drafts) is forgotten; what is on screen is re-read as a guest.
     clearPersonalStorage();
     await resetPersonalQueries(qc);
   }, [qc]);
 
-  const openSignIn = useCallback((req: SignInRequest = {}) => setRequest(req), []);
-  const closeSignIn = useCallback(() => setRequest(null), []);
-
   const value = useMemo<AuthValue>(() => {
     const ready = !!me && !me.needsProfile;
     return {
       me,
-      status: meQuery.isPending ? 'loading' : me ? 'signed-in' : 'guest',
+      status: sessionQuery.isPending ? 'loading' : me ? 'signed-in' : 'guest',
       isModerator: me?.role === 'moderator' || me?.role === 'admin',
       isAdmin: me?.role === 'admin',
       refresh,
@@ -59,16 +192,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       openSignIn,
       requireAuth: (reason, onSuccess) => {
         if (ready) return true;
-        setRequest({ reason, onSuccess });
+        openRequest({ reason, onSuccess });
         return false;
       },
     };
-  }, [me, meQuery.isPending, refresh, signOut, openSignIn]);
+  }, [me, sessionQuery.isPending, refresh, signOut, openSignIn, openRequest]);
 
   return (
     <AuthContext.Provider value={value}>
       {children}
-      <SignInDialog request={request} onClose={closeSignIn} />
+      <SignInDialog
+        open={signIn !== null}
+        reason={signIn?.reason}
+        resumes={signIn?.resumes}
+        reauth={signIn?.reauth}
+        onDone={onSignedIn}
+        onDismiss={onDismissed}
+      />
+      <StepUpDialog purpose={stepUp?.purpose ?? null} me={me} onDone={finishStepUp} />
     </AuthContext.Provider>
   );
 }

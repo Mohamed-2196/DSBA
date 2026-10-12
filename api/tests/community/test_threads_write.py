@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import AuditEntry, PostStatus, UploadStatus, User, UserStatus
+from app.models import AuditEntry, PostStatus, Upload, UploadStatus, User, UserStatus
 from tests.community.helpers import API, make_upload, new_reply, new_thread, set_thread, thread_row
 
 Client = Callable[..., TestClient]
@@ -161,5 +161,4 @@ def test_images_follow_the_body(client_for: Client, student: User, classmate: Us
     assert second.status == UploadStatus.attached
     assert shared.status == UploadStatus.attached  # still in the other post
     assert c.delete(f"{API}/forum/threads/{t['id']}").status_code == 204
-    db.refresh(second)
-    assert second.status == UploadStatus.uploaded
+    assert db.scalar(select(Upload.status).where(Upload.id == second.id)) == UploadStatus.uploaded

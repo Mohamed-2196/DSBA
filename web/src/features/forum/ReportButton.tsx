@@ -1,6 +1,7 @@
 // "Report" for a thread, a reply or a library item: a small dialog (reason + optional note) -> POST /reports.
-// Guests are asked to sign in first. Reporting the same thing twice is answered kindly (already_reported).
-// Used by the forum on threads and replies, and by the library on files (features/forum/public.ts).
+// Guests are asked to sign in first. Once sent, the button says "Reported" (while the app is open), and reporting the
+// same thing again is answered kindly (already_reported). Used by the forum on threads and replies, and by the library
+// on files (features/forum/public.ts).
 import { useId, useState } from 'react';
 import { Flag } from '@phosphor-icons/react';
 import { ApiError, errorMessage } from '../../api/errors';
@@ -23,15 +24,24 @@ export interface ReportButtonProps {
 
 const NOTE_MAX = 1000;
 
+// What this person reported while the app is open, by account: the button then reads "Reported" (the student test
+// found it kept saying "Report", so only a second try told them). The server keeps the real record (already_reported).
+const sent = new Set<string>();
+const sentKey = (viewer: string | null | undefined, type: ReportTargetType, id: string) => `${viewer ?? ''}|${type}|${id}`;
+
 export interface ReportDialogProps {
   open: boolean;
   onClose: () => void;
   targetType: ReportTargetType;
   targetId: string;
+  /** this person reported it already (the dialog says so) */
+  already?: boolean;
+  /** the report was sent, or had been sent before */
+  onReported?: () => void;
 }
 
-/** The dialog behind ReportButton (the forum's post menus open it too). */
-export function ReportDialog({ open, onClose, targetType, targetId }: ReportDialogProps) {
+/** The dialog behind ReportButton. */
+export function ReportDialog({ open, onClose, targetType, targetId, already = false, onReported }: ReportDialogProps) {
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -60,11 +70,13 @@ export function ReportDialog({ open, onClose, targetType, targetId }: ReportDial
       {
         onSuccess: () => {
           close();
+          onReported?.();
           push({ title: 'Report sent', body: 'Thank you. A student rep will look at it.', tone: 'success' });
         },
         onError: (e) => {
           if (e instanceof ApiError && e.code === 'already_reported') {
             close();
+            onReported?.();
             push({ title: `You've already reported this ${noun}`, body: 'A student rep will look at it soon. No need to report it again.', tone: 'info' });
             return;
           }
@@ -105,6 +117,11 @@ export function ReportDialog({ open, onClose, targetType, targetId }: ReportDial
         }}
         noValidate
       >
+        {already ? (
+          <p className="forum-report__already" role="note">
+            You reported this {noun} already. A student rep will look at it; there’s no need to report it again.
+          </p>
+        ) : null}
         <fieldset className="forum-report__reasons" aria-describedby={error ? `r${uid}-err` : undefined}>
           <legend className="forum-report__legend">What’s wrong with it?</legend>
           {REPORT_REASONS.map((r, i) => (
@@ -146,27 +163,40 @@ export function ReportDialog({ open, onClose, targetType, targetId }: ReportDial
   );
 }
 
-/** A quiet "Report" button and its dialog. */
+/** A quiet "Report" button and its dialog; "Reported" once this person has reported it. */
 export function ReportButton({ targetType, targetId, label = 'Report', className }: ReportButtonProps) {
-  const { requireAuth } = useAuth();
+  const { me, requireAuth } = useAuth();
   const [open, setOpen] = useState(false);
+  const [, setSentCount] = useState(0);
   const noun = NOUN[targetType];
+  const key = sentKey(me?.id, targetType, targetId);
+  const reported = sent.has(key);
   return (
     <>
       <Button
         variant="ghost"
         size="sm"
-        leadingIcon={Flag}
-        className={cx('forum-report-button', className)}
+        leadingIcon={reported ? <Flag weight="fill" /> : Flag}
+        className={cx('forum-report-button', reported && 'is-reported', className)}
         onClick={() => {
           if (!requireAuth(`Sign in to report this ${noun}`, () => setOpen(true))) return;
           setOpen(true);
         }}
         data-hub="report-button"
       >
-        {label}
+        {reported ? 'Reported' : label}
       </Button>
-      <ReportDialog open={open} onClose={() => setOpen(false)} targetType={targetType} targetId={targetId} />
+      <ReportDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        targetType={targetType}
+        targetId={targetId}
+        already={reported}
+        onReported={() => {
+          sent.add(key);
+          setSentCount((n) => n + 1);
+        }}
+      />
     </>
   );
 }

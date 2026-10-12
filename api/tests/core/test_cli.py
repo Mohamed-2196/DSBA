@@ -17,10 +17,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import cli
+from app.config import get_settings
 from app.core.time import utcnow
 from app.models import (
     AuditEntry,
     Channel,
+    ItemSource,
+    ItemStatus,
+    LibraryItem,
     OtpChallenge,
     OtpPurpose,
     Role,
@@ -30,7 +34,7 @@ from app.models import (
     User,
     UserSession,
 )
-from app.services.storage import INCOMING_RULE_ID, Storage
+from app.services.storage import INCOMING_RULE_ID, Storage, s3_client
 from tests.core.conftest import SetOption
 
 
@@ -133,7 +137,7 @@ def test_backup_goes_to_its_own_bucket_with_its_own_key_encrypted_and_pruned(
     set_option("backup_secret_access_key", SecretStr("backup-writer-secret"))
     set_option("backup_keep", 2)
     used: list[dict[str, Any]] = []
-    real_client = cli.s3_client
+    real_client = s3_client
 
     def spy(*args: Any, **kwargs: Any) -> Any:
         used.append(kwargs)
@@ -172,17 +176,17 @@ def test_backup_goes_to_its_own_bucket_with_its_own_key_encrypted_and_pruned(
 
 def test_backup_without_its_own_settings_uses_the_main_bucket(storage: Storage, set_option: SetOption) -> None:
     set_option("backup_sse", "none")
-    target = cli.backup_target(cli.get_settings())
+    target = cli.backup_target(get_settings())
     assert (target.bucket, target.prefix, target.separate) == (storage.bucket, "backups/db/", False)
-    assert cli.encryption_args(cli.get_settings()) == {}
+    assert cli.encryption_args(get_settings()) == {}
     set_option("backup_sse", "aws:kms")
     set_option("backup_kms_key_id", "key-123")
-    assert cli.encryption_args(cli.get_settings()) == {"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": "key-123"}
+    assert cli.encryption_args(get_settings()) == {"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": "key-123"}
 
 
 def test_pg_dump_gets_the_password_in_its_environment_only(set_option: SetOption) -> None:
     set_option("database_url", "postgresql+psycopg://dsba:s3cret@db.internal:6543/hub?sslmode=require")
-    cmd, env = cli.pg_dump_command(cli.get_settings(), "/tmp/out.sql.gz")  # noqa: S108 - a name, not a file
+    cmd, env = cli.pg_dump_command(get_settings(), "/tmp/out.sql.gz")  # noqa: S108 - a name, not a file
     assert not any("s3cret" in part for part in cmd)
     assert (env["PGHOST"], env["PGPORT"], env["PGUSER"], env["PGPASSWORD"]) == ("db.internal", "6543", "dsba", "s3cret")
     assert (env["PGDATABASE"], env["PGSSLMODE"]) == ("hub", "require")
@@ -211,3 +215,32 @@ def test_setup_bucket_sets_cors_and_the_incoming_rule(storage: Storage, capsys: 
     assert any(r.get("ID") == INCOMING_RULE_ID for r in rules)
     cors = storage.client.get_bucket_cors(Bucket=storage.bucket)["CORSRules"]
     assert set(cors[0]["AllowedMethods"]) == {"GET", "POST", "HEAD"}
+
+
+def test_the_sweep_reports_the_library_files_it_deleted(
+    same_session: Session, storage: Storage, make_user: Callable[..., User], capsys: pytest.CaptureFixture[str]
+) -> None:
+    db, owner, now = same_session, make_user(), utcnow()
+    key = f"library/{uuid.uuid4()}/old.pdf"
+    storage.client.put_object(Bucket=storage.bucket, Key=key, Body=b"%PDF-1.4", ContentType="application/pdf")
+    item = LibraryItem(
+        slug=f"old-{uuid.uuid4().hex[:6]}",
+        source=ItemSource.file,
+        kind="notes",
+        title="Turned down a while ago",
+        storage_key=key,
+        file_name="old.pdf",
+        content_type="application/pdf",
+        size_bytes=8,
+        uploaded_by=owner.id,
+        status=ItemStatus.rejected,
+        created_at=now - timedelta(days=9),
+        reviewed_at=now - timedelta(days=8),
+    )
+    db.add(item)
+    db.commit()
+    assert cli.main(["sweep"]) == 0
+    assert "1 library file(s)" in capsys.readouterr().out
+    assert storage.head(key) is None
+    db.refresh(item)
+    assert item.storage_key is None  # the item stays, without its file

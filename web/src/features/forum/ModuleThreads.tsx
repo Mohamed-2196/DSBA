@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { ChatsCircle, Plus } from '@phosphor-icons/react';
+import { remainingCount } from '../../api/paging';
 import type { ThreadSummary } from '../../api/types';
 import { useAuth } from '../../auth';
-import { Button, EmptyState, Panel } from '../../ui';
+import { Button, EmptyState, Panel, QueryError } from '../../ui';
 import { useModules } from '../../state/modules';
-import { flattenPages, useForumViewerSync, useThreadList, useThreadVote } from './api';
-import { LoadError, LoadMore } from './components/LoadStates';
+import { flattenPages, useThreadList, useThreadVote } from './api';
+import { LoadMore } from './components/LoadMore';
 import { ThreadRow, ThreadRowSkeletons } from './components/ThreadRow';
 import './components/forum.css';
 import './HotThreads.css';
@@ -16,7 +17,6 @@ export interface ModuleThreadsProps {
 
 /** Module page "Discussion" tab: this module's threads + "Ask about this module". */
 export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
-  useForumViewerSync();
   const { requireAuth } = useAuth();
   const { getModule } = useModules();
   const mod = getModule(moduleId);
@@ -46,7 +46,7 @@ export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
   }
 
   if (list.isError && !list.data) {
-    return <LoadError error={list.error} title={`Couldn't load the threads about ${name}`} onRetry={() => void list.refetch()} />;
+    return <QueryError error={list.error} title={`The threads about ${name} didn’t load`} onRetry={() => void list.refetch()} retrying={list.isFetching} />;
   }
 
   if (!threads.length) {
@@ -88,7 +88,10 @@ export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
           ))}
         </ul>
       </Panel>
-      {list.hasNextPage ? <LoadMore remaining={total - threads.length} loading={list.isFetchingNextPage} onClick={() => void list.fetchNextPage()} /> : null}
+      {list.hasNextPage ? <LoadMore remaining={remainingCount(list.data?.pages)} loading={list.isFetchingNextPage} onClick={() => void list.fetchNextPage()} /> : null}
+      {list.isFetchNextPageError ? (
+        <QueryError error={list.error} title="More threads didn’t load" onRetry={() => void list.fetchNextPage()} retrying={list.isFetchingNextPage} size="sm" panel={false} />
+      ) : null}
     </section>
   );
 }

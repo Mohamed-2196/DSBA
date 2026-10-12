@@ -21,10 +21,12 @@ export {
   type SearchFieldProps,
 } from './Field';
 export { Modal, Drawer, type ModalProps, type DrawerProps } from './Modal';
+export { ConfirmDialog, type ConfirmDialogProps } from './ConfirmDialog';
 export { Menu, type MenuProps, type MenuItem, type MenuAction, type MenuApi } from './Menu';
 export { Tooltip, type TooltipProps, type TooltipSide } from './Tooltip';
 export { Toaster } from './Toaster';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
+export { QueryError, type QueryErrorProps } from './QueryError';
 export { Skeleton, type SkeletonProps } from './Skeleton';
 export { ProgressRing, type ProgressRingProps } from './ProgressRing';
 export { Sparkline, type SparklineProps } from './Sparkline';
@@ -42,5 +44,5 @@ export { ModuleIcon, type ModuleIconProps } from './ModuleIcon';
 export { BrandLogo, ProgrammeLockup, type BrandLogoProps, type BrandLogoName, type ProgrammeLockupProps } from './BrandLogo';
 export { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
 export { cx, initials, modKeyLabel, timeAgo, formatDate, type DateInput } from './utils';
-export { safeHref, safeInternalPath, type SafeHref } from './safeHref';
+export { safeHref, safeInternalPath, isMediaPath, type SafeHref } from './safeHref';
 export type { IconSource } from './internal';

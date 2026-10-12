@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 
 from app.core.security import client_ip
 from app.models import AuditEntry, OtpChallenge, User
-from app.services import ratelimit
 from tests.core.conftest import BrowserAt, SetOption
 from tests.core.helpers import API, new_thread
 
@@ -65,12 +64,11 @@ def test_forwarded_for_counts_only_from_a_trusted_proxy(
 ) -> None:
     set_option("trusted_proxies", [ipaddress.ip_network("10.0.0.0/24"), ipaddress.ip_network("2001:db8:1::/48")])
     assert client_ip(_request(peer, *forwarded)) == expected
-    assert ratelimit.request_ip(_request(peer, *forwarded)) == expected
 
 
 def _start(c: TestClient, identifier: str, forwarded: str | None = None) -> int:
     headers = {"X-Forwarded-For": forwarded} if forwarded else {}
-    return c.post(f"{API}/auth/otp", json={"identifier": identifier}, headers=headers).status_code
+    return int(c.post(f"{API}/auth/otp", json={"identifier": identifier}, headers=headers).status_code)
 
 
 def _challenge_ips(db: Session, prefix: str) -> set[str | None]:

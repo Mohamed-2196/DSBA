@@ -1,13 +1,14 @@
 import { useMemo, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarBlank, ChatsCircle, Plus, UsersThree } from '@phosphor-icons/react';
-import type { ModuleSummary, ThreadDetail, UserPublic } from '../../../api/types';
+import type { ModuleSummary, ThreadDetail } from '../../../api/types';
 import { Button, CohortBadge, ModuleIcon, Skeleton, formatDate, timeAgo } from '../../../ui';
 import { cohortTextColor } from '../../../state';
 import { useModules } from '../../../state/modules';
 import { daysUntil, useNextExamForModule } from '../../calendar/public';
 import { useRelatedThreads } from '../api';
 import { authorName } from '../lib/authors';
+import { participants, takesReplies } from '../lib/replies';
 import { useTaxonomy } from '../lib/taxonomy';
 import type { ForumCategory } from '../types';
 import { AuthorAvatar } from './AuthorAvatar';
@@ -91,9 +92,11 @@ function RelatedThreads({ threadId }: { threadId: string }) {
             </Link>
             <span className="forum-related__meta">
               <ReplyCount count={t.replyCount} answered={t.answered} />
-              <span className="u-tabular">
-                {t.voteCount} {t.voteCount === 1 ? 'vote' : 'votes'}
-              </span>
+              {t.voteCount > 0 ? (
+                <span className="u-tabular">
+                  {t.voteCount} {t.voteCount === 1 ? 'vote' : 'votes'}
+                </span>
+              ) : null}
             </span>
           </li>
         ))}
@@ -108,12 +111,9 @@ export function ThreadSidebar({ thread }: { thread: ThreadDetail }) {
   const { getCategory } = useTaxonomy();
   const module = getModule(thread.moduleId);
   const category = getCategory(thread.category);
-  const { people, last } = useMemo(() => {
-    const visible = thread.replies.filter((r) => r.status === 'visible');
-    const seen = new Map<string, UserPublic>();
-    for (const u of [thread.author, ...visible.map((r) => r.author)]) if (u && !seen.has(u.id)) seen.set(u.id, u);
-    return { people: [...seen.values()], last: visible.length ? visible[visible.length - 1] : null };
-  }, [thread.author, thread.replies]);
+  // Who replied: the thread's author only counts when they replied too (student test ST-11).
+  const { people, count, last } = useMemo(() => participants(thread.replies), [thread.replies]);
+  const replies = thread.replyCount === 1 ? 'reply' : 'replies';
 
   return (
     <aside className="forum-tside" aria-label="About this thread">
@@ -134,14 +134,20 @@ export function ThreadSidebar({ thread }: { thread: ThreadDetail }) {
         {last ? (
           <>
             <p className="forum-tside__facts">
-              <span className="u-tabular">{thread.replyCount}</span> {thread.replyCount === 1 ? 'reply' : 'replies'} from{' '}
-              <span className="u-tabular">{people.length}</span> {people.length === 1 ? 'person' : 'people'}
-              <span className="visually-hidden">: {people.map((p) => authorName(p)).join(', ')}</span>
+              <span className="u-tabular">{thread.replyCount}</span> {replies} from{' '}
+              {count === 1 && people.length === 1 ? (
+                authorName(people[0])
+              ) : (
+                <>
+                  <span className="u-tabular">{count}</span> {count === 1 ? 'person' : 'people'}
+                  <span className="visually-hidden">: {people.map((p) => authorName(p)).join(', ')}</span>
+                </>
+              )}
             </p>
             <p className="forum-tside__facts">Last reply {timeAgo(last.createdAt)}</p>
           </>
         ) : (
-          <p className="forum-tside__facts">No replies yet. If you know the answer, be the first to help.</p>
+          <p className="forum-tside__facts">{takesReplies(thread) ? 'No replies yet. If you know the answer, be the first to help.' : 'No replies.'}</p>
         )}
       </section>
 

@@ -3,13 +3,11 @@ import type { ThreadDetail, ThreadUpdate } from '../../../api/types';
 import { ApiError, errorMessage } from '../../../api/errors';
 import { Button, TextField } from '../../../ui';
 import { useUpdateThread } from '../api';
-import { imageMarkdown, insertBlock, removeImageLines } from '../lib/editing';
-import { useImageUploads } from '../lib/uploads';
+import { usePlacementRules, type Placement } from '../lib/placement';
+import { useAttachImages } from '../lib/useAttachImages';
 import { AttachmentList } from './ImageAttachments';
-import { useImagePicker } from '../lib/useImagePicker';
 import { MarkdownEditor } from './MarkdownEditor';
 import { CategorySelect, ModuleSelect, TagPicker } from './ThreadFields';
-import { usePlacementRules, type Placement } from '../lib/placement';
 import './dialogs.css';
 
 const TITLE_MIN = 5;
@@ -28,18 +26,13 @@ export function ThreadEditForm({ thread, onDone }: { thread: ThreadDetail; onDon
   const [tags, setTags] = useState<string[]>(thread.tags);
   const [errors, setErrors] = useState<Errors>({});
   const bodyRef = useRef<HTMLTextAreaElement>(null);
-
-  const uploads = useImageUploads((img) => {
-    setBody((text) => insertBlock(text, bodyRef.current ? bodyRef.current.selectionEnd : text.length, imageMarkdown(img.alt, img.mediaUrl)).text);
-  });
-  const picker = useImagePicker((file) => uploads.start(file));
-  const cards = uploads.items.filter((u) => u.phase !== 'done' || (u.mediaUrl && body.includes(u.mediaUrl)));
+  const images = useAttachImages({ text: body, setText: setBody, textareaRef: bodyRef });
 
   const save = () => {
     const t = title.trim();
     const next: Errors = {};
     if (t.length < TITLE_MIN) next.title = `Make the title at least ${TITLE_MIN} characters long.`;
-    if (uploads.busy) next.form = 'Wait for the image to finish uploading.';
+    if (images.busy) next.form = 'Wait for the image to finish uploading.';
     if (Object.keys(next).length) {
       setErrors(next);
       return;
@@ -59,13 +52,13 @@ export function ThreadEditForm({ thread, onDone }: { thread: ThreadDetail; onDon
       { threadId: thread.id, patch },
       {
         onSuccess: (updated) => {
-          uploads.reset();
+          images.reset();
           onDone(updated);
         },
         onError: (e) => {
-          if (e instanceof ApiError && Object.keys(e.fields).length) {
-            const f = e.fields;
-            setErrors({ title: f.title, body: f.body, category: f.category, moduleId: f.moduleId, tags: f.tags, form: f.title || f.body || f.category || f.moduleId || f.tags ? undefined : e.message });
+          const f = e instanceof ApiError ? e.fields : {};
+          if (f.title || f.body || f.category || f.moduleId || f.tags) {
+            setErrors({ title: f.title, body: f.body, category: f.category, moduleId: f.moduleId, tags: f.tags });
           } else {
             setErrors({ form: errorMessage(e, "Your changes weren't saved. Try again.") });
           }
@@ -98,10 +91,17 @@ export function ThreadEditForm({ thread, onDone }: { thread: ThreadDetail; onDon
       />
       <div className="forum-composer__row">
         <CategorySelect value={place.category} error={errors.category} onChange={(id) => setPlace((p) => rules.withCategory(p, id))} />
-        <ModuleSelect value={place.moduleId} error={errors.moduleId} onChange={(id) => setPlace((p) => rules.withModule(p, id))} />
+        <ModuleSelect
+          value={place.moduleId}
+          error={errors.moduleId}
+          onChange={(id) => {
+            setPlace((p) => rules.withModule(p, id));
+            if (errors.moduleId) setErrors((x) => ({ ...x, moduleId: undefined }));
+          }}
+        />
       </div>
       <TagPicker value={tags} onChange={setTags} error={errors.tags} />
-      {picker.input}
+      {images.input}
       <MarkdownEditor
         label="Details"
         value={body}
@@ -113,17 +113,16 @@ export function ThreadEditForm({ thread, onDone }: { thread: ThreadDetail; onDon
         rows={7}
         onSubmit={save}
         textareaRef={bodyRef}
-        onAttachImage={picker.open}
-        onImageFiles={(files) => files.forEach((f) => uploads.start(f))}
+        onAttachImage={images.pick}
+        onImageFiles={images.addFiles}
         textareaProps={{ dir: 'auto', maxLength: BODY_MAX }}
       />
       <AttachmentList
-        uploads={cards}
-        onRetry={uploads.retry}
+        uploads={images.cards}
+        onRetry={images.retry}
         onRemove={(key) => {
-          const u = uploads.items.find((x) => x.key === key);
-          if (u?.mediaUrl) setBody((text) => removeImageLines(text, u.mediaUrl as string));
-          uploads.remove(key);
+          images.remove(key);
+          requestAnimationFrame(() => bodyRef.current?.focus({ preventScroll: true }));
         }}
       />
       {errors.form ? (

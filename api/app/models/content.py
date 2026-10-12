@@ -39,6 +39,7 @@ class CalendarEvent(Base):
     __tablename__ = "calendar_events"
     __table_args__ = (
         Index("ix_calendar_events_date", "date"),
+        Index("ix_calendar_events_created_by", "created_by"),  # account deletion (SET NULL)
         CheckConstraint("year IS NULL OR year BETWEEN 1 AND 3", name="year_range"),
         CheckConstraint("end_date IS NULL OR end_date >= date", name="end_after_start"),
     )

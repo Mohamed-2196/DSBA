@@ -6,6 +6,8 @@ export interface SignInRequest {
   reason?: string;
   /** Runs once the person is signed in with a complete profile (e.g. retry the vote they tried). */
   onSuccess?: () => void;
+  /** Runs when the person closes the dialog without signing in. */
+  onCancel?: () => void;
 }
 
 export type AuthStatus = 'loading' | 'guest' | 'signed-in';

@@ -6,13 +6,10 @@ from uuid import UUID
 
 from fastapi import Request, Response, status
 
-from app.core.security import DB, ActiveUser, Moderator, OptionalUser, is_moderator
-from app.models import IssueStatus, NewsletterIssue
+from app.core.security import DB, ActiveUser, Moderator, OptionalUser, client_ip, is_moderator
 from app.routers._base import router_for
 from app.schemas.newsletter import IssueCreate, IssueDetail, IssueSummary, IssueUpdate, Reaction, ReactionCounts
-from app.services import audit
 from app.services import newsletter as svc
-from app.services.ratelimit import request_ip
 
 router = router_for("newsletter")
 
@@ -31,91 +28,36 @@ def get_issue(slug: str, db: DB, user: OptionalUser) -> IssueDetail:
 
 @router.post("/newsletter/issues", response_model=IssueDetail, status_code=status.HTTP_201_CREATED)
 def create_issue(body: IssueCreate, request: Request, user: Moderator, db: DB) -> IssueDetail:
-    """A draft. Errors: slug_taken (409), invalid_input (422: every section needs a unique id; links must be
-    https://, mailto: or a page of the Hub; at most 40 sections and 256 KB)."""
-    svc.check_slug_free(db, body.slug)
-    svc.check_issue_content(sections=body.sections, cover=body.cover, dek=body.dek, summary=body.summary)
-    issue = NewsletterIssue(
-        slug=body.slug,
-        number=body.number,
-        title=body.title,
-        date=body.date,
-        cover=body.cover,
-        dek=body.dek,
-        summary=body.summary,
-        editors=body.editors,
-        sections=body.sections,
-        status=IssueStatus.draft,
-        created_by=user.id,
-    )
-    db.add(issue)
-    db.flush()
-    audit.record(
-        db,
-        user,
-        "newsletter.create",
-        "newsletter_issue",
-        issue.id,
-        {"slug": issue.slug, "title": issue.title},
-        request_ip(request),
-    )
+    """A draft. Errors: slug_taken (409); invalid_input (422: the content doesn't fit the schema, a link isn't
+    https://, mailto: or a page of the Hub, or the issue is over 256 KB of JSON)."""
+    issue = svc.create_issue(db, user, body, client_ip(request))
     db.commit()
     return svc.to_detail(db, issue, user)
 
 
 @router.patch("/newsletter/issues/{issue_id}", response_model=IssueDetail)
 def update_issue(issue_id: UUID, body: IssueUpdate, request: Request, user: Moderator, db: DB) -> IssueDetail:
-    """Edit a draft or a published issue (fields that are not sent stay as they are).
-
-    Errors: slug_taken (409), invalid_input (422)."""
+    """Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are
+    replaced as a whole). Errors: slug_taken (409), invalid_input (422)."""
     issue = svc.get_by_id(db, issue_id)
-    sent = body.model_fields_set
-    if body.slug is not None and body.slug != issue.slug:
-        svc.check_slug_free(db, body.slug, issue.id)
-    svc.check_issue_content(sections=body.sections, cover=body.cover, dek=body.dek, summary=body.summary)
-    changed = []
-    for field in ("slug", "number", "title", "date", "cover", "dek", "summary", "editors", "sections"):
-        value = getattr(body, field)
-        if field in sent and value is not None and value != getattr(issue, field):
-            setattr(issue, field, value)
-            changed.append(field)
-    if changed:
-        audit.record(
-            db,
-            user,
-            "newsletter.update",
-            "newsletter_issue",
-            issue.id,
-            {"slug": issue.slug, "title": issue.title, "fields": changed},
-            request_ip(request),
-        )
+    svc.update_issue(db, user, issue, body, client_ip(request))
     db.commit()
     return svc.to_detail(db, issue, user)
 
 
 @router.post("/newsletter/issues/{issue_id}/publish", response_model=IssueDetail)
 def publish_issue(issue_id: UUID, request: Request, user: Moderator, db: DB) -> IssueDetail:
-    """Publishes the issue and notifies everyone who wants newsletter notifications. Audited.
-    Publishing an issue that is already out changes nothing."""
+    """Publishes the issue and tells every account (in the Hub; by email to those who keep "New newsletter issues"
+    on). Audited. Publishing an issue that is already out changes nothing."""
     issue = svc.get_by_id(db, issue_id)
-    svc.publish(db, user, issue, request_ip(request))
+    svc.publish(db, user, issue, client_ip(request))
     db.commit()
     return svc.to_detail(db, issue, user)
 
 
 @router.delete("/newsletter/issues/{issue_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_issue(issue_id: UUID, request: Request, user: Moderator, db: DB) -> Response:
-    issue = svc.get_by_id(db, issue_id)
-    audit.record(
-        db,
-        user,
-        "newsletter.delete",
-        "newsletter_issue",
-        issue.id,
-        {"slug": issue.slug, "title": issue.title, "status": issue.status.value},
-        request_ip(request),
-    )
-    db.delete(issue)
+    svc.delete_issue(db, user, svc.get_by_id(db, issue_id), client_ip(request))
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

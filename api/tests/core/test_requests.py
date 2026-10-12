@@ -13,10 +13,10 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from app.core.errors import field_name
+from app.core.links import LINK_RULE
 from app.models import AuditEntry, ItemSource, LibraryItem, User
 from app.seed.loader import V1_PUBLISHED_AT, load_library, load_modules
 from app.services.audit import record
-from app.services.newsletter import LINK_RULE
 from app.services.notify import hub_path, notify
 from tests.core.helpers import API, new_thread, share_pdf
 
@@ -90,7 +90,7 @@ def test_newsletter_buttons_link_only_to_safe_places(client_for: Clients, modera
     rep = client_for(moderator)
     r = rep.post(f"{API}/newsletter/issues", json=issue("javascript:alert(1)"))
     assert r.status_code == 422
-    assert r.json()["error"]["fields"] == {"sections.0.blocks.0.to": LINK_RULE}
+    assert r.json()["error"]["fields"] == {"sections.0.blocks.0.cta.to": LINK_RULE}  # the block's type is in the path
     assert rep.post(f"{API}/newsletter/issues", json=issue("/calendar")).status_code == 201
 
 
@@ -184,4 +184,4 @@ def test_newsletter_links_with_whitespace_or_backslashes_are_refused(
     }
     r = client_for(moderator).post(f"{API}/newsletter/issues", json=issue)
     assert r.status_code == 422
-    assert r.json()["error"]["fields"] == {"sections.0.blocks.0.to": LINK_RULE}
+    assert r.json()["error"]["fields"] == {"sections.0.blocks.0.cta.to": LINK_RULE}  # the block's type is in the path

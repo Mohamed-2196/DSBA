@@ -3,7 +3,10 @@
 // Public-repo rule: never invent quotes or content attributed to real tutors or staff.
 
 export const REPO_URL = 'https://github.com/Mohamed-2196/DSBA';
-export const CONTRIBUTE_URL = `${REPO_URL}/issues/new`;
+/** Where a problem with the Hub itself is reported (About's "Report a problem", decision D6). */
+export const REPORT_PROBLEM_URL = `${REPO_URL}/issues/new`;
+/** @deprecated Contribute means upload now (decision D6): link to the library upload instead. */
+export const CONTRIBUTE_URL = REPORT_PROBLEM_URL;
 export const MYCLASS_URL = 'https://myclass.bibf.com';
 export const UOL_PORTAL_URL = 'https://my.london.ac.uk/group/student';
 export const LAUNCH_YEAR = 2024;
@@ -102,28 +105,3 @@ export const NOTE_CONTRIBUTORS: NoteContributor[] = [
     ],
   },
 ];
-
-// ── Prototype leftovers, still imported by features/noora/brain.js and features/about/StyleGuidePage.jsx ──
-// Delete both once those files read the signed-in person from useAuth().me (and the style guide uses sample
-// names of its own). Nothing else may import them.
-
-/** @deprecated Prototype demo person. Use the API's UserPublic (author, uploader) instead. */
-export interface DemoPerson {
-  id: string;
-  name: string;
-  year?: 1 | 2 | 3;
-  role?: string;
-}
-
-/** @deprecated Seeded demo students of the prototype. Use real people from the API. */
-export const DUMMY_STUDENTS: DemoPerson[] = [
-  { id: 'ali-h', name: 'Ali H.', year: 2 },
-  { id: 'fatima-a', name: 'Fatima A.', year: 1 },
-  { id: 'hussain-m', name: 'Hussain M.', year: 3 },
-  { id: 'zainab-k', name: 'Zainab K.', year: 2 },
-  { id: 'ahmed-j', name: 'Ahmed J.', year: 1 },
-  { id: 'noor-e', name: 'Noor E.', year: 2 },
-];
-
-/** @deprecated The prototype's fake signed-in user. Use useAuth().me. */
-export const CURRENT_USER: DemoPerson = { id: 'me', name: 'Mohamed Alnooh', role: 'Student rep' };

@@ -18,6 +18,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.core.headers import ERROR_HEADERS
+from app.schemas.common import ErrorCode
 
 log = logging.getLogger("dsba.errors")
 _CONTROL_CHARACTERS = re.compile(r"[\x00-\x1f\x7f]")
@@ -27,7 +28,7 @@ class ApiError(Exception):
     def __init__(
         self,
         status: int,
-        code: str,
+        code: ErrorCode,
         message: str,
         *,
         fields: dict[str, str] | None = None,
@@ -53,11 +54,11 @@ def forbidden(message: str = "You can't do this.") -> ApiError:
     return ApiError(403, "forbidden", message)
 
 
-def conflict(code: str, message: str) -> ApiError:
+def conflict(code: ErrorCode, message: str) -> ApiError:
     return ApiError(409, code, message)
 
 
-def invalid(field: str, message: str, code: str = "invalid_input") -> ApiError:
+def invalid(field: str, message: str, code: ErrorCode = "invalid_input") -> ApiError:
     return ApiError(422, code, message, fields={field: message})
 
 
@@ -65,7 +66,7 @@ def rate_limited(retry_after: int, message: str = "Too many requests. Try again 
     return ApiError(429, "rate_limited", message, retry_after=max(1, int(retry_after)))
 
 
-def _body(code: str, message: str, **extra: Any) -> dict[str, Any]:
+def _body(code: ErrorCode, message: str, **extra: Any) -> dict[str, Any]:
     err: dict[str, Any] = {"code": code, "message": message}
     err.update({k: v for k, v in extra.items() if v is not None})
     return {"error": err}
@@ -84,7 +85,7 @@ def field_name(loc: Sequence[object]) -> str:
     return ".".join(parts) or "request"
 
 
-_STATUS_CODES = {
+_STATUS_CODES: dict[int, ErrorCode] = {
     400: "bad_request",
     401: "unauthenticated",
     403: "forbidden",

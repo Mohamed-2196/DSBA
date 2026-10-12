@@ -26,7 +26,7 @@ from app.models import (
     User,
     UserStatus,
 )
-from tests.accounts.conftest import API
+from tests.accounts.conftest import API, Deliver, Outbox
 
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
@@ -255,3 +255,76 @@ def test_audit_log(client_for: ClientFor, make_user: MakeUser, admin: User) -> N
     }
     assert set(first) == {"id", "actor", "action", "targetType", "targetId", "data", "createdAt"}
     assert len(c.get(f"{API}/admin/audit", params={"limit": 1}).json()["items"]) == 1
+
+
+def test_the_log_names_an_account_without_a_name_by_its_masked_address(
+    client_for: ClientFor, make_user: MakeUser, admin: User, db: Session
+) -> None:
+    """UX-15: every account action in the activity log names its target, even before the person picked a name."""
+    nameless = make_user(email="nameless@example.com", name=None)
+    client_for(admin).patch(f"{API}/admin/users/{nameless.id}", json={"status": "suspended"})
+    entry = db.scalar(select(AuditEntry).where(AuditEntry.target_id == str(nameless.id)))
+    assert entry is not None
+    assert entry.data["targetName"] == "n•••@example.com"
+
+
+# ── account recovery (security review SEC-9) ─────────────────────────────────────────────────
+
+
+def test_an_admin_gives_an_account_back_its_email(
+    client_for: ClientFor, make_user: MakeUser, admin: User, db: Session, outbox: Outbox, deliver: Deliver
+) -> None:
+    owner = make_user(email="taken-over@example.com", phone="+97333123493", name="Lost Student")
+    hijacked = client_for(owner)
+    r = client_for(admin).patch(f"{API}/admin/users/{owner.id}", json={"email": "Back@Example.com"})
+    assert r.status_code == 200, r.text
+    assert r.json()["email"] == "back@example.com"
+    assert hijacked.get(f"{API}/me").status_code == 401  # every session of the account ended
+    entry = db.scalar(select(AuditEntry).where(AuditEntry.action == "user.identifier"))
+    assert entry is not None
+    assert entry.actor_id == admin.id
+    assert entry.data == {
+        "kind": "email",
+        "from": "t•••@example.com",
+        "to": "b•••@example.com",
+        "actorName": "Head Admin",
+        "targetName": "Lost Student",
+    }
+    note = db.scalar(select(Notification).where(Notification.user_id == owner.id))
+    assert note is not None
+    assert note.title == "An admin changed the email address on your account"
+    deliver()
+    [notice] = outbox.to("taken-over@example.com")
+    assert "changed to b•••@example.com" in notice.text
+
+
+def test_an_admin_removes_a_phone_number(
+    client_for: ClientFor, make_user: MakeUser, admin: User, outbox: Outbox
+) -> None:
+    owner = make_user(email="keeps@example.com", phone="+97333123494")
+    c = client_for(admin)
+    r = c.patch(f"{API}/admin/users/{owner.id}", json={"phone": None})
+    assert r.status_code == 200, r.text
+    assert r.json()["phone"] is None
+    r = c.patch(f"{API}/admin/users/{owner.id}", json={"email": None})
+    assert r.status_code == 409
+    assert r.json()["error"]["code"] == "last_identifier"
+    [text] = outbox.to("+97333123494")  # a text goes at once, after the change is saved
+    assert "removed from your DSBA Hub account" in text.text
+
+
+def test_recovery_errors(client_for: ClientFor, make_user: MakeUser, admin: User) -> None:
+    owner = make_user(email="owner@example.com")
+    make_user(email="other-owner@example.com")
+    c = client_for(admin)
+    r = c.patch(f"{API}/admin/users/{owner.id}", json={"email": "other-owner@example.com"})
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "identifier_taken")
+    r = c.patch(f"{API}/admin/users/{owner.id}", json={"email": "+97333123495"})
+    assert (r.status_code, r.json()["error"]["code"]) == (422, "invalid_identifier")
+    r = c.patch(f"{API}/admin/users/{owner.id}", json={"phone": "not a number"})
+    assert (r.status_code, r.json()["error"]["code"]) == (422, "invalid_identifier")
+    r = c.patch(f"{API}/admin/users/{admin.id}", json={"email": "me-again@example.com"})
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "cannot_change_self")
+    assert c.patch(f"{API}/admin/users/{owner.id}", json={"email": "owner@example.com"}).status_code == 200  # no change
+    rep = client_for(make_user(role=Role.moderator))
+    assert rep.patch(f"{API}/admin/users/{owner.id}", json={"email": "x@example.com"}).status_code == 403

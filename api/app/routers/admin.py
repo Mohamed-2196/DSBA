@@ -7,11 +7,12 @@ from uuid import UUID
 
 from fastapi import Request
 from sqlalchemy import ColumnElement, Select, func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
 
-from app.core.errors import conflict, not_found
+from app.core.errors import conflict, invalid, not_found
 from app.core.pagination import Limit, Offset
-from app.core.security import DB, Admin, Moderator
+from app.core.security import DB, Admin, Moderator, client_ip
 from app.models import (
     AuditEntry,
     ForumReply,
@@ -26,12 +27,14 @@ from app.models import (
 )
 from app.models import Role as UserRole
 from app.routers._base import router_for
-from app.schemas.common import Role
+from app.schemas.common import ErrorResponse, Role
 from app.schemas.moderation import AdminStats, AdminUser, AdminUserPage, AdminUserUpdate, AuditOut, AuditPage
+from app.services import accounts, sessions
 from app.services.accounts import public_user
 from app.services.audit import record
+from app.services.identifiers import Kind, destination_hint, normalize_identifier
 from app.services.notify import notify
-from app.services.ratelimit import request_ip
+from app.services.otp import send_text_notice
 
 router = router_for("admin")
 
@@ -120,35 +123,102 @@ def list_users(
     return AdminUserPage(items=[admin_user(u) for u in users], total=total, limit=limit, offset=offset)
 
 
-@router.patch("/admin/users/{user_id}", response_model=AdminUser)
+@router.patch(
+    "/admin/users/{user_id}",
+    response_model=AdminUser,
+    responses={409: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+)
 def update_user(user_id: UUID, body: AdminUserUpdate, request: Request, user: Admin, db: DB) -> AdminUser:
-    """Change a role or suspend an account (audited; an admin cannot change their own role or status: 409
-    cannot_change_self). The person gets a notification."""
+    """Change a role, suspend an account, or recover one (security review SEC-9): replace or remove its email
+    address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
+    Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
+
+    Errors: cannot_change_self (409: an admin can't change their own account here; ask another admin),
+    identifier_taken (409), last_identifier (409), invalid_identifier (422)."""
     target = db.get(User, user_id)
     if target is None:
         raise not_found("This account doesn't exist.")
     new_role = UserRole(body.role) if body.role is not None else None
     new_status = UserStatus(body.status) if body.status is not None else None
-    if new_role is None and new_status is None:
+    recovery: dict[Kind, str | None] = {}
+    if "email" in body.model_fields_set:
+        recovery["email"] = body.email
+    if "phone" in body.model_fields_set:
+        recovery["phone"] = body.phone
+    if new_role is None and new_status is None and not recovery:
         return admin_user(target)
     if target.id == user.id:
-        raise conflict("cannot_change_self", "You can't change your own role or status. Ask another admin.")
-    ip = request_ip(request)
-    # names as they were: the ids go NULL when an account is deleted (security review finding 21)
-    names = {"actorName": user.display_name, "targetName": target.display_name}
+        raise conflict("cannot_change_self", "You can't change your own account here. Ask another admin.")
+    ip = client_ip(request)
     if new_role is not None and new_role != target.role:
-        record(db, user, "user.role", "user", target.id, {"from": target.role.value, "to": new_role.value, **names}, ip)
+        record(db, user, "user.role", "user", target.id, {"from": target.role.value, "to": new_role.value}, ip)
         target.role = new_role
         title, body_text = ROLE_NOTICES[new_role]
         notify(db, target.id, "system", title, body=body_text, actor=user)
     if new_status is not None and new_status != target.status:
-        change = {"from": target.status.value, "to": new_status.value, **names}
-        record(db, user, "user.status", "user", target.id, change, ip)
+        record(db, user, "user.status", "user", target.id, {"from": target.status.value, "to": new_status.value}, ip)
         target.status = new_status
         title, body_text = STATUS_NOTICES[new_status]
         notify(db, target.id, "system", title, body=body_text, actor=user)
+    notices = [n for kind, raw in recovery.items() if (n := _recover(db, user, target, kind, raw, ip)) is not None]
     db.commit()
+    for to, message in notices:
+        send_text_notice(to, message)
     return admin_user(target)
+
+
+def _recover(db: DB, admin: User, target: User, kind: Kind, raw: str | None, ip: str | None) -> tuple[str, str] | None:
+    """Puts `raw` (None: removes) as the target's email address or phone number. -> a text notice to send after
+    the commit, if any."""
+    label = accounts.LABELS[kind]
+    current, other = (target.email, target.phone) if kind == "email" else (target.phone, target.email)
+    value: str | None = None
+    if raw is not None:
+        found, value = normalize_identifier(raw)
+        if found != kind:
+            raise invalid(
+                kind,
+                f"Enter a {'valid email address' if kind == 'email' else 'phone number'}.",
+                code="invalid_identifier",
+            )
+        if value == current:
+            return None
+        owner = accounts.find_user(db, kind, value)
+        if owner is not None and owner.id != target.id:
+            raise conflict("identifier_taken", f"Another account already uses this {label}.")
+    elif current is None:
+        return None
+    elif other is None:
+        raise conflict("last_identifier", "The account needs at least one way to sign in.")
+    change = accounts.set_identifier(target, kind, value)
+    try:
+        with db.begin_nested():
+            db.flush()
+    except IntegrityError:  # taken a moment ago
+        raise conflict("identifier_taken", f"Another account already uses this {label}.") from None
+    record(
+        db,
+        admin,
+        "user.identifier",
+        "user",
+        target.id,
+        {
+            "kind": kind,
+            "from": destination_hint(kind, change.before) if change.before else None,
+            "to": destination_hint(kind, value) if value else None,
+        },
+        ip,
+    )
+    sessions.revoke_others(db, target.id, keep=None)
+    notify(
+        db,
+        target.id,
+        "system",
+        f"An admin changed the {label} on your account",
+        body="Your account was signed out everywhere. Sign in with your current email address or phone number.",
+        actor=admin,
+    )
+    return accounts.queue_identifier_notice(db, target, change)
 
 
 @router.get("/admin/audit", response_model=AuditPage)

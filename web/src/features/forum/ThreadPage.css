@@ -72,6 +72,8 @@
 .forum-reply__edited { color: var(--ink-2); font-size: var(--fs-12); }
 .forum-reply__name.is-muted { color: var(--ink-2); font-weight: var(--fw-semibold); }
 .forum-reply__gone { margin-top: 4px; color: var(--ink-2); font-size: var(--fs-14); font-style: italic; }
+/* Your own reply after a student rep hid it (decision D3) */
+.forum-reply__note { margin-top: 8px; padding: 8px 12px; border-radius: var(--r-control); background: var(--alert-soft); color: var(--alert-strong); font-size: var(--fs-14); font-weight: var(--fw-medium); line-height: 1.45; }
 
 /* Moderators see hidden replies, marked and muted; a deleted reply keeps its place for the replies under it. */
 .forum-reply.is-hidden { background: color-mix(in srgb, var(--alert) 5%, var(--surface)); }
@@ -109,7 +111,10 @@
 .forum-composer-reply { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 14px; }
 .forum-composer-reply.is-inline { grid-template-columns: 24px minmax(0, 1fr); gap: 10px; padding: 10px 0 6px; }
 .forum-composer-reply__main { min-width: 0; }
-.forum-composer-reply__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.forum-composer-reply__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 12px; margin-top: 10px; }
+.forum-composer-reply__buttons { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-left: auto; }
+/* A guest's line where the shortcut hint goes: they sign in when they post (UX review UX-17). */
+.forum-composer-reply__guest { flex: 1 1 220px; min-width: 0; color: var(--ink-2); font-size: var(--fs-12); line-height: 1.45; }
 .forum-composer-reply__hint { display: inline-flex; align-items: center; gap: 3px; margin-right: auto; color: var(--ink-2); font-size: var(--fs-12); }
 .forum-composer-reply__hint .ui-kbd + .ui-kbd { margin-left: 0; }
 .forum-composer-reply__hint .ui-kbd:last-of-type { margin-right: 4px; }
@@ -170,4 +175,11 @@
   .forum-composer-reply__hint { display: none; }
   .forum-tside { grid-template-columns: minmax(0, 1fr); }
   .forum-tside__card { grid-row: auto; }
+}
+
+/* Touch screens: 44px targets (UX review UX-11) */
+@media (pointer: coarse) {
+  @container forum-page (max-width: 640px) {
+    .forum-op__vote .forum-vote { height: 44px; }
+  }
 }

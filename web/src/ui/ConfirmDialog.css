@@ -1,0 +1,16 @@
+/* ConfirmDialog: the question's body, optional extra content, and the last try's problem above the buttons. */
+.ui-confirm { display: grid; gap: var(--sp-16); }
+.ui-confirm__body { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; overflow-wrap: anywhere; }
+.ui-confirm__body p { margin: 0; }
+.ui-confirm__body p + p { margin-top: var(--sp-8); }
+.ui-confirm__body strong { color: var(--ink); }
+.ui-confirm__error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--r-control);
+  background: var(--alert-soft);
+  color: var(--alert-strong);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  line-height: 1.45;
+}

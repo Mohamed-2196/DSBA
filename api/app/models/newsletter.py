@@ -22,7 +22,10 @@ class IssueStatus(enum.StrEnum):
 
 class NewsletterIssue(Base):
     __tablename__ = "newsletter_issues"
-    __table_args__ = (Index("ix_newsletter_issues_search", "search_vector", postgresql_using="gin"),)
+    __table_args__ = (
+        Index("ix_newsletter_issues_search", "search_vector", postgresql_using="gin"),
+        Index("ix_newsletter_issues_created_by", "created_by"),  # account deletion (SET NULL)
+    )
 
     id: Mapped[uuid.UUID] = uuid_pk()
     slug: Mapped[str] = mapped_column(SLUG, unique=True)

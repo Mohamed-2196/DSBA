@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import re
 from collections.abc import Callable
 from typing import Any
 
@@ -9,8 +10,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.time import bahrain_today
 from app.models import AuditEntry, CalendarEvent, Module, User
-from app.services.calendar import bahrain_today, ics_fold, ics_text
+from app.services.calendar import ics_fold, ics_text
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
@@ -128,7 +130,7 @@ def test_ics_feed(client_for: Clients, events: dict[str, CalendarEvent], today: 
     def event_lines(uid: str) -> dict[str, str]:
         start = lines.index(f"UID:{uid}@dsba-hub")
         end = lines.index("END:VEVENT", start)
-        out = {}
+        out: dict[str, str] = {}
         for line in lines[start:end]:
             key, _, value = line.partition(":")
             out.setdefault(key, value)
@@ -141,7 +143,8 @@ def test_ics_feed(client_for: Clients, events: dict[str, CalendarEvent], today: 
     assert mock["DTSTART;VALUE=DATE"] == day(3)
     assert mock["DTEND;VALUE=DATE"] == day(4)  # exclusive: the next day
     assert mock["SUMMARY"] == "ST2134 Statistical Inference mock exam"  # led by the unit code
-    assert "Sample date" in mock["DESCRIPTION"]
+    assert "Not confirmed yet. Check with the programme office" in mock["DESCRIPTION"]  # not "sample" (UX-13)
+    assert "ample" not in mock["DESCRIPTION"]
     assert "Module: ST2134 Advanced Statistics: Statistical Inference." in mock["DESCRIPTION"].replace("\\n", "\n")
     assert mock["DTSTAMP"].endswith("Z")
     exam = event_lines("mt1186-exam")
@@ -188,7 +191,9 @@ def test_moderators_edit_the_calendar(
     again = rep.post(EVENTS, json={**body, "year": None}).json()
     assert again["id"] == "2026-12-03-distribution-theory-mock-exam-2"
     assert again["year"] is None
-    assert rep.post(EVENTS, json={**body, "moduleId": "nope"}).status_code == 422
+    assert rep.post(EVENTS, json={**body, "moduleId": "nope"}).json()["error"]["fields"] == {
+        "moduleId": "Pick a module from the list."  # the same words as the forum and the library (CQ-6)
+    }
     assert rep.post(EVENTS, json={**body, "endDate": "2026-12-01"}).json()["error"]["fields"] == {
         "endDate": "The last day can't be before the first."
     }
@@ -205,7 +210,9 @@ def test_moderators_edit_the_calendar(
         None,
         True,
     )
-    assert rep.patch(url, json={"date": "2026-12-10"}).status_code == 422  # after its last day
+    assert rep.patch(url, json={"date": "2026-12-10", "title": "Moved"}).status_code == 422  # after its last day
+    db.expire_all()
+    assert (rep.get(EVENTS, params={"from": "2026-12-03", "to": "2026-12-03"}).json()[0]["title"]) == "ST2133 mock exam"
     assert rep.patch(url, json={"moduleId": "mathematics"}).json()["unitCode"] == "MT1186"
     assert rep.patch(url, json={"moduleId": None}).json()["unitCode"] is None
     assert client_for(student).patch(url, json={"title": "Cancelled!"}).status_code == 403
@@ -215,7 +222,78 @@ def test_moderators_edit_the_calendar(
     assert rep.delete(url).status_code == 204
     assert rep.delete(url).status_code == 404
     assert db.get(CalendarEvent, created["id"]) is None
-    actions = list(
-        db.scalars(select(AuditEntry.action).where(AuditEntry.target_id == created["id"]).order_by(AuditEntry.id))
-    )
-    assert actions == ["calendar.create", "calendar.update", "calendar.update", "calendar.update", "calendar.delete"]
+    rows = list(db.scalars(select(AuditEntry).where(AuditEntry.target_id == created["id"]).order_by(AuditEntry.id)))
+    assert [e.action for e in rows] == [
+        "calendar.create",
+        "calendar.update",
+        "calendar.update",
+        "calendar.update",
+        "calendar.delete",
+    ]
+    # the activity log names the date (student test ST-9)
+    assert [e.data["title"] for e in rows] == [
+        "Distribution Theory mock exam",
+        "ST2133 mock exam",
+        "ST2133 mock exam",
+        "ST2133 mock exam",
+        "ST2133 mock exam",
+    ]
+    assert rows[1].data["fields"] == ["end_date", "place", "title", "sample"]
+    assert rows[2].data["fields"] == ["module_id", "unit_code"]
+    assert rows[-1].data["date"] == "2026-12-03"
+
+
+# The test's one session still holds the event that took the id; in the app each request has its own session.
+@pytest.mark.filterwarnings("ignore:New instance .* conflicts with persistent instance")
+def test_two_reps_adding_the_same_date_at_once_both_get_one(
+    client_for: Clients, moderator: User, modules: dict[str, Module], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Both requests see the same id as free (code quality review CQ-14): the second one retries with a suffix
+    instead of failing with a 500."""
+    import secrets
+
+    import app.core.text as text
+
+    rep = client_for(moderator)
+    body = {"date": "2026-12-03", "title": "Mock exam", "type": "mock"}
+    first = rep.post(EVENTS, json=body).json()
+    monkeypatch.setattr(text, "unique_slug", lambda *_args, **_kwargs: first["id"])  # "free", as it was a moment ago
+    r = rep.post(EVENTS, json=body)
+    assert r.status_code == 201, r.text
+    assert r.json()["id"].startswith(f"{first['id']}-")
+    assert len(r.json()["id"]) == len(first["id"]) + 5  # '-' and four hex digits
+
+    # when every try collides, the answer is 409 retry, never a 500
+    monkeypatch.setattr(secrets, "token_hex", lambda _n: "beef")
+    rep.post(EVENTS, json=body)  # takes '<id>-beef'
+    r = rep.post(EVENTS, json=body)
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "retry")
+
+
+def test_an_event_without_latin_letters_gets_a_short_id(client_for: Clients, moderator: User) -> None:
+    """Decision D8: the date and a short id ('2026-12-04-x3k9q2'), not the bare date."""
+    r = client_for(moderator).post(EVENTS, json={"date": "2026-12-04", "title": "امتحان تجريبي", "type": "mock"})
+    assert r.status_code == 201, r.text
+    assert re.fullmatch(r"2026-12-04-[a-z0-9]{6}", r.json()["id"]), r.json()["id"]
+
+
+def test_one_event_as_a_file_and_the_exams_feed(client_for: Clients, moderator: User) -> None:
+    """Code quality review CQ-5: "Add to calendar" and "Download the exams" come from the API."""
+    rep = client_for(moderator)
+    exam = rep.post(EVENTS, json={"date": "2026-12-10", "title": "Statistics exam", "type": "exam"}).json()
+    rep.post(EVENTS, json={"date": "2026-12-11", "title": "Study group", "type": "event"})
+    r = client_for().get(f"{EVENTS}/{exam['id']}.ics")
+    assert r.status_code == 200, r.text
+    assert r.headers["content-type"] == "text/calendar; charset=utf-8"
+    assert r.headers["content-disposition"] == f'attachment; filename="{exam["id"]}.ics"'
+    assert r.text.count("BEGIN:VEVENT") == 1
+    assert f"UID:{exam['id']}@dsba-hub" in r.text
+    assert "DTSTART;VALUE=DATE:20261210" in r.text
+    assert "BEGIN:VALARM" in r.text  # a reminder the day before an exam
+    assert "REFRESH-INTERVAL" not in r.text  # a file to import, not a subscription
+    assert client_for().get(f"{EVENTS}/no-such-event.ics").status_code == 404
+
+    feed = client_for().get(f"{API}/calendar/feed.ics", params={"type": "exam"}).text
+    assert "Statistics exam" in feed
+    assert "Study group" not in feed
+    assert "REFRESH-INTERVAL" in feed

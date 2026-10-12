@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../auth';
+import { ModulesGate } from '../state/ModulesProvider';
 import { ErrorBoundary, Toaster } from '../ui';
 import { CommandPalette } from '../features/search/public';
 import { Onboarding } from '../features/onboarding/public';
@@ -33,19 +34,22 @@ export function AppShell({ children }: { children?: ReactNode }) {
         <SiteFooter />
       </div>
       <MobileNav />
-      {/* Feature-owned overlays: isolated so a crash in one can't take down the app. */}
-      <ErrorBoundary name="CommandPalette" fallback={null}>
-        <CommandPalette />
-      </ErrorBoundary>
-      {/* Onboarding asks for a year when none is chosen: wait until we know whether a signed-in cohort sets it. */}
-      {status !== 'loading' ? (
-        <ErrorBoundary name="Onboarding" fallback={null}>
-          <Onboarding />
+      {/* Feature-owned overlays: isolated so a crash in one can't take down the app, and mounted once the module
+          catalogue they use is there. */}
+      <ModulesGate>
+        <ErrorBoundary name="CommandPalette" fallback={null}>
+          <CommandPalette />
         </ErrorBoundary>
-      ) : null}
-      <ErrorBoundary name="MiniNoora" fallback={null}>
-        <MiniNoora />
-      </ErrorBoundary>
+        {/* Onboarding asks for a year when none is chosen: wait until we know whether a signed-in cohort sets it. */}
+        {status !== 'loading' ? (
+          <ErrorBoundary name="Onboarding" fallback={null}>
+            <Onboarding />
+          </ErrorBoundary>
+        ) : null}
+        <ErrorBoundary name="MiniNoora" fallback={null}>
+          <MiniNoora />
+        </ErrorBoundary>
+      </ModulesGate>
       <Toaster />
     </div>
   );

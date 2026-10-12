@@ -3,11 +3,10 @@
 //   brand/dsba-logo.png        his DSBA wordmark, blue on transparent (light surfaces)
 //   brand/dsba-logo-white.png  the same wordmark in white (dark surfaces)
 //   brand/dsba-icon.png        a square app tile cut from the wordmark's "D" (avatars, favicon)
-//   brand/newsletter-cover.jpg his cover illustration for the launch issue: 3:4, no text, plain bands
-//                              at the top and bottom for the nameplate and the cover lines
+//   brand/newsletter-cover.jpg his cover illustration for the launch issue (the issue's content links it)
 //
-// To swap any of them, replace the file and keep the names. Set a constant to null to fall back: no logo
-// at all (ui/HubLogo.tsx prints the name as text), or the typographic newsletter cover.
+// To swap any of them, replace the file and keep the names. Set HUB_LOGO to null to fall back to no logo at
+// all (ui/HubLogo.tsx prints the name as text).
 
 export interface HubLogoArt {
   light: string;
@@ -26,9 +25,6 @@ export const HUB_LOGO: HubLogoArt | null = {
 
 /** Path of the square logo tile under public/, or null while there is no logo. */
 export const HUB_LOGO_SRC: string | null = HUB_LOGO ? HUB_LOGO.icon : null;
-
-/** Path of the launch issue's cover illustration under public/, or null for the typographic cover. */
-export const NEWSLETTER_COVER_ART: string | null = 'brand/newsletter-cover.jpg';
 
 /** A path under public/ as a URL the app can load (the app is served from a sub-path), or null. */
 export const brandAssetUrl = (path: string | null | undefined): string | null => (path ? import.meta.env.BASE_URL + path : null);

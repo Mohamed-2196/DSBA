@@ -2,9 +2,9 @@
 //   paragraphs, **bold**, *italic*, `code`, ``` fenced blocks, "- " and "1. " lists, "> " quotes,
 //   [links](/inside/the/app | https://… | mailto:…) and a picture on a line of its own: ![what it shows](/api/v1/media/<id>)
 // Parsing yields a tiny AST of plain strings. <Prose> turns it into React elements, so user text is only ever a React
-// child (escaped by React) and never HTML. Link targets and picture sources are checked by lib/links.ts: anything
-// that is not allowed stays plain text.
-import { isMediaPath } from './links';
+// child (escaped by React) and never HTML. Link targets are checked when they are rendered (lib/links.ts safeLink) and
+// picture sources here (isMediaPath): anything that is not allowed stays plain text.
+import { isMediaPath } from '../../../ui/safeHref';
 
 export type InlineToken =
   | { type: 'text'; text: string }

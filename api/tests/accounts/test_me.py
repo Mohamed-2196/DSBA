@@ -7,7 +7,7 @@ import json
 import uuid
 from collections.abc import Callable
 from datetime import timedelta
-from typing import Any
+from typing import Any, TypeVar
 
 import pytest
 from botocore.exceptions import ClientError
@@ -43,8 +43,9 @@ from app.models import (
     UserSession,
     UserStatus,
 )
+from app.services.identifiers import anon_identifier
 from app.services.storage import Storage
-from tests.accounts.conftest import API, Outbox, SignIn, start, wrong
+from tests.accounts.conftest import API, Deliver, Outbox, SignIn, start, wrong
 
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
@@ -52,6 +53,16 @@ MakeUser = Callable[..., User]
 
 def _fresh(db: Session, model: Any, ident: Any) -> Any:
     return db.get(model, ident, populate_existing=True)
+
+
+T = TypeVar("T")
+
+
+def _row(db: Session, model: type[T], ident: object) -> T:
+    """The row, which must exist."""
+    found = db.get(model, ident)
+    assert found is not None, f"no {model.__name__} {ident}"
+    return found
 
 
 # ── who am I ────────────────────────────────────────────────────────────────────────────────
@@ -70,7 +81,7 @@ def test_guests_get_401_everywhere(client: TestClient) -> None:
         ("DELETE", "/me/identifiers/phone"),
     ]
     for method, path in calls:
-        body = {"identifier": "a@b.com"} if path.endswith("/otp") else None
+        body: dict[str, object] | None = {"identifier": "a@b.com"} if path.endswith("/otp") else None
         if path.endswith("/verify"):
             body = {"challengeId": str(uuid.uuid4()), "code": "123456"}
         if method == "PATCH":
@@ -78,6 +89,19 @@ def test_guests_get_401_everywhere(client: TestClient) -> None:
         r = client.request(method, f"{API}{path}", json=body)
         assert r.status_code == 401, (method, path, r.text)
         assert r.json()["error"]["code"] == "unauthenticated"
+
+
+def test_session_state_never_answers_401(client_for: ClientFor, make_user: MakeUser) -> None:
+    """Student test ST-10: GET /auth/session is 200 for guests too, so a guest's page load logs no error."""
+    r = client_for().get(f"{API}/auth/session")
+    assert r.status_code == 200
+    assert r.json() == {"me": None}
+    user = make_user(email="session@example.com", name="Noor Session")
+    c = client_for(user)
+    r = c.get(f"{API}/auth/session")
+    assert r.status_code == 200
+    assert r.json()["me"] == c.get(f"{API}/me").json()
+    assert r.headers["cache-control"] == "no-store"
 
 
 def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
@@ -94,7 +118,14 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
         "phone": None,
         "needsProfile": False,
         "createdAt": r.json()["createdAt"],
-        "preferences": {"emailNotifications": True, "newsletterEmails": True},
+        "preferences": {
+            "emailReplies": True,
+            "emailAnswerAccepted": True,
+            "emailUploadReviews": True,
+            "emailNewIssues": True,
+            "emailNotifications": True,
+            "newsletterEmails": True,
+        },
     }
 
 
@@ -160,6 +191,41 @@ def test_display_names_that_dont(client_for: ClientFor, make_user: MakeUser, typ
     assert set(err["fields"]) == {"displayName"}
 
 
+@pytest.mark.parametrize(
+    "typed",
+    [
+        "\u0410dmin",  # Cyrillic A
+        "Student R\u0435p",  # Cyrillic e
+        "DSB\u0410 Team",  # Cyrillic A
+        "\u0391dmin",  # Greek Alpha
+        "Adm\u0131n",  # dotless i
+        "Adm1n Sara",  # a digit for a letter
+        "M0derator",
+        "Adrnin",  # r + n reads as m
+        "B\u0456BF Team",  # Cyrillic i
+        "\u0410\u0434m\u0456n",  # Cyrillic and Latin mixed in one word
+    ],
+)
+def test_look_alike_staff_names_are_refused(client_for: ClientFor, make_user: MakeUser, typed: str) -> None:
+    """Security review SEC-11: letters from other alphabets that look like the staff words don't get past the rule."""
+    r = client_for(make_user(name="Before")).patch(f"{API}/me", json={"displayName": typed})
+    assert r.status_code == 422, r.text
+    assert r.json()["error"]["code"] == "invalid_display_name"
+
+
+@pytest.mark.parametrize(
+    "typed",
+    [
+        "\u041c\u0430\u0440\u0438\u044f \u0418\u0432\u0430\u043d\u043e\u0432\u0430",
+        "\u03a3\u03bf\u03c6\u03af\u03b1 P.",
+        "Ali 2",
+    ],
+)
+def test_names_in_one_alphabet_per_word_are_fine(client_for: ClientFor, make_user: MakeUser, typed: str) -> None:
+    r = client_for(make_user()).patch(f"{API}/me", json={"displayName": typed})
+    assert r.status_code == 200, r.text
+
+
 def test_staff_may_use_staff_words(client_for: ClientFor, make_user: MakeUser) -> None:
     rep = make_user(role=Role.moderator)
     r = client_for(rep).patch(f"{API}/me", json={"displayName": "Sara (student rep)".replace("(", "").replace(")", "")})
@@ -177,15 +243,47 @@ def test_year(client_for: ClientFor, make_user: MakeUser) -> None:
     assert r.json()["error"]["code"] == "invalid_input"
 
 
-def test_preferences(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+def _switches(**off: bool) -> dict[str, bool]:
+    """The preferences as the API shows them: every switch on except those given."""
+    new = {"emailReplies": True, "emailAnswerAccepted": True, "emailUploadReviews": True, "emailNewIssues": True}
+    new.update(off)
+    return {
+        **new,
+        "emailNotifications": new["emailReplies"] and new["emailAnswerAccepted"] and new["emailUploadReviews"],
+        "newsletterEmails": new["emailNewIssues"],
+    }
+
+
+def test_preferences_one_switch_per_kind_of_email(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+    """Decision D1: one switch per kind of email; only what is off is stored (unset means on)."""
+    user = make_user()
+    c = client_for(user)
+    r = c.patch(f"{API}/me", json={"preferences": {"emailNewIssues": False}})
+    assert r.status_code == 200, r.text
+    assert r.json()["preferences"] == _switches(emailNewIssues=False)
+    r = c.patch(f"{API}/me", json={"preferences": {"emailReplies": False, "emailNewIssues": None}})
+    assert r.json()["preferences"] == _switches(emailReplies=False, emailNewIssues=False)  # null: unchanged
+    assert c.get(f"{API}/me").json()["preferences"] == _switches(emailReplies=False, emailNewIssues=False)
+    assert _fresh(db, User, user.id).preferences == {"email_replies": False, "email_new_issues": False}
+    r = c.patch(f"{API}/me", json={"preferences": {"emailReplies": True, "emailNewIssues": True}})
+    assert r.json()["preferences"] == _switches()
+
+
+def test_the_old_preference_fields_still_work(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+    """emailNotifications and newsletterEmails (deprecated) set the switches they stand for."""
     user = make_user()
     c = client_for(user)
     r = c.patch(f"{API}/me", json={"preferences": {"newsletterEmails": False}})
-    assert r.json()["preferences"] == {"emailNotifications": True, "newsletterEmails": False}
-    r = c.patch(f"{API}/me", json={"preferences": {"emailNotifications": False, "newsletterEmails": None}})
-    assert r.json()["preferences"] == {"emailNotifications": False, "newsletterEmails": False}
-    assert c.get(f"{API}/me").json()["preferences"] == {"emailNotifications": False, "newsletterEmails": False}
-    assert _fresh(db, User, user.id).preferences == {"email_notifications": False, "newsletter_emails": False}
+    assert r.json()["preferences"] == _switches(emailNewIssues=False)
+    r = c.patch(f"{API}/me", json={"preferences": {"emailNotifications": False}})
+    off = _switches(emailReplies=False, emailAnswerAccepted=False, emailUploadReviews=False, emailNewIssues=False)
+    assert r.json()["preferences"] == off
+    # one switch back on: the old field reads "off" until all three are on
+    r = c.patch(f"{API}/me", json={"preferences": {"emailReplies": True}})
+    assert r.json()["preferences"]["emailNotifications"] is False
+    # the new field wins over the old one sent with it
+    r = c.patch(f"{API}/me", json={"preferences": {"emailNotifications": True, "emailUploadReviews": False}})
+    assert r.json()["preferences"] == _switches(emailUploadReviews=False, emailNewIssues=False)
 
 
 def test_a_suspended_account_keeps_its_name(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
@@ -255,7 +353,7 @@ def test_cannot_revoke_someone_elses_session(client_for: ClientFor, make_user: M
 # ── adding, changing and removing identifiers ───────────────────────────────────────────────
 
 
-def test_add_a_phone_number(client_for: ClientFor, make_user: MakeUser, outbox: Outbox) -> None:
+def test_add_a_phone_number(client_for: ClientFor, make_user: MakeUser, outbox: Outbox, deliver: Deliver) -> None:
     user = make_user(email="adds@example.com")
     c = client_for(user)
     r = c.post(f"{API}/me/identifiers/otp", json={"identifier": "3312 3459"})
@@ -267,13 +365,20 @@ def test_add_a_phone_number(client_for: ClientFor, make_user: MakeUser, outbox: 
     assert r.status_code == 200, r.text
     assert r.json()["phone"] == "+97333123459"
     assert r.json()["email"] == "adds@example.com"
+    assert outbox.to("adds@example.com") == []  # an email notice goes through the outbox
+    assert deliver() == 1
     [notice] = outbox.to("adds@example.com")
     assert "A phone number (+973 •••• ••59) was added" in notice.text
     assert "If this wasn't you" in notice.text
 
 
 def test_change_the_email_address(
-    client_for: ClientFor, make_user: MakeUser, outbox: Outbox, sign_in: SignIn, age: Callable[..., None]
+    client_for: ClientFor,
+    make_user: MakeUser,
+    outbox: Outbox,
+    sign_in: SignIn,
+    age: Callable[..., None],
+    deliver: Deliver,
 ) -> None:
     user = make_user(email="old@example.com", phone="+97333123460")
     c = client_for(user)
@@ -284,7 +389,8 @@ def test_change_the_email_address(
     r = c.post(f"{API}/me/identifiers/verify", json={"challengeId": r.json()["challengeId"], "code": mail.code})
     assert r.status_code == 200
     assert r.json()["email"] == "new@example.com"
-    [notice] = outbox.to("old@example.com")
+    deliver()
+    [notice] = outbox.to("old@example.com")  # sent although the account no longer has that address
     assert "changed to n•••@example.com" in notice.text
     age(31)
     assert sign_in("new@example.com")[1]["user"]["id"] == str(user.id)
@@ -454,6 +560,21 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
     assert data["reports"][0]["note"] == "Ads"
     assert list(data["progress"]["watched"]) == [f"{module.id}:0:0"]
     assert [n["title"] for n in data["notifications"]] == ["Someone replied"]
+    assert data["emails"] == []
+    assert set(data) == {  # code quality review CQ-4: a typed export, every section on purpose
+        "user",
+        "sessions",
+        "threads",
+        "replies",
+        "libraryItems",
+        "stars",
+        "reactions",
+        "progress",
+        "notifications",
+        "votes",
+        "reports",
+        "emails",
+    }
     text = json.dumps(data)
     for private in ("someone-else@example.com", "+97333123471", "Their answer", "Not mine"):
         assert private not in text
@@ -562,12 +683,12 @@ def test_delete_the_account(
     db.expire_all()
     assert db.get(User, ids["user"]) is None
     # posts stay, without an author; their votes are taken back
-    assert db.get(ForumThread, mine.id).author_id is None
-    assert db.get(ForumReply, my_reply.id).author_id is None
-    assert db.get(ForumThread, theirs.id).vote_count == 0
-    assert db.get(ForumReply, their_reply.id).vote_count == 0
+    assert _row(db, ForumThread, mine.id).author_id is None
+    assert _row(db, ForumReply, my_reply.id).author_id is None
+    assert _row(db, ForumThread, theirs.id).vote_count == 0
+    assert _row(db, ForumReply, their_reply.id).vote_count == 0
     # the library: published and removed items stay unattributed; pending and rejected ones go with their files
-    assert db.get(LibraryItem, published.id).uploaded_by is None
+    assert _row(db, LibraryItem, published.id).uploaded_by is None
     assert db.get(LibraryItem, removed.id) is not None
     assert db.get(LibraryItem, ids["pending"]) is None
     assert db.get(LibraryItem, ids["rejected"]) is None
@@ -579,15 +700,21 @@ def test_delete_the_account(
         assert db.get(Upload, ids[gone]) is None
     assert storage.head(loose.storage_key) is None
     assert storage.head(picture.storage_key) is None
-    assert db.get(Upload, kept_upload.id).user_id is None
+    assert _row(db, Upload, kept_upload.id).user_id is None
     # everything personal is gone, other people's records lose the link
     for model in (UserSession, LibraryStar, NewsletterReaction, LessonView, ThreadVote, ReplyVote):
-        assert db.scalars(select(model).where(model.user_id == ids["user"])).all() == []  # type: ignore[attr-defined]
+        assert db.scalars(select(model).where(model.user_id == ids["user"])).all() == []
     assert db.scalars(select(Notification).where(Notification.user_id == ids["user"])).all() == []
-    assert db.get(Notification, sent.id).actor_id is None
-    assert db.get(Report, report.id).reporter_id is None
-    assert db.get(AuditEntry, entry.id).actor_id is None
-    assert db.get(OtpChallenge, challenge.id) is None
+    assert _row(db, Notification, sent.id).actor_id is None
+    assert _row(db, Report, report.id).reporter_id is None
+    assert _row(db, AuditEntry, entry.id).actor_id is None
+    # the sign-in code stays for the rate limits, without the address and unusable (student test, security note)
+    kept = db.get(OtpChallenge, challenge.id)
+    assert kept is not None
+    assert kept.identifier == anon_identifier("email", "bye@example.com")
+    assert "bye" not in kept.identifier
+    assert kept.user_id is None
+    assert kept.expires_at <= utcnow()
     assert db.get(User, other.id) is not None
 
 

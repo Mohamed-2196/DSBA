@@ -16,7 +16,8 @@ from sqlalchemy.orm import Session
 from app.core.security import hash_token
 from app.core.time import utcnow
 from app.models import AuditEntry, OtpChallenge, OtpPurpose, Role, User, UserSession
-from app.services import mailer, ratelimit
+from app.routers import auth as auth_router
+from app.services import mailer
 from app.services.mailer import DeliveryError
 from tests.accounts.conftest import API, Outbox, SignIn, logout, start, verify, wrong
 
@@ -39,8 +40,9 @@ def test_sign_in_by_email_creates_an_account(client_for: ClientFor, outbox: Outb
     r = start(c, "  Mariam.Ali@Gmail.com ")
     assert r.status_code == 202, r.text
     body = r.json()
-    assert set(body) == {"challengeId", "channel", "destinationHint", "expiresIn", "resendAfter"}
+    assert set(body) == {"challengeId", "channel", "destinationHint", "expiresIn", "resendAfter", "codeFormat"}
     assert body["channel"] == "email"
+    assert body["codeFormat"] == "digits"
     assert body["destinationHint"] == "m•••@gmail.com"
     assert body["expiresIn"] == 600
     assert body["resendAfter"] == 30
@@ -59,7 +61,14 @@ def test_sign_in_by_email_creates_an_account(client_for: ClientFor, outbox: Outb
     assert me["displayName"] is None
     assert me["role"] == "student"
     assert me["status"] == "active"
-    assert me["preferences"] == {"emailNotifications": True, "newsletterEmails": True}
+    assert me["preferences"] == {
+        "emailReplies": True,
+        "emailAnswerAccepted": True,
+        "emailUploadReviews": True,
+        "emailNewIssues": True,
+        "emailNotifications": True,
+        "newsletterEmails": True,
+    }
 
     cookie = next(h for h in r.headers.get_list("set-cookie") if h.startswith("dsba_session="))
     assert "HttpOnly" in cookie
@@ -315,7 +324,7 @@ def test_codes_per_ip_per_hour(
     set_option: Callable[[str, Any], None],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(ratelimit, "client_ip", lambda request, settings=None: request.headers.get("x-test-ip"))
+    monkeypatch.setattr(auth_router, "client_ip", lambda request: request.headers.get("x-test-ip"))
     set_option("otp_max_per_ip_per_hour", 3)
     c = client_for()
     here = {"x-test-ip": "203.0.113.7"}
@@ -335,14 +344,13 @@ def test_ipv6_clients_are_counted_by_their_64(
     set_option: Callable[[str, Any], None],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(ratelimit, "client_ip", lambda request, settings=None: request.headers.get("x-test-ip"))
+    monkeypatch.setattr(auth_router, "client_ip", lambda request: request.headers.get("x-test-ip"))
     set_option("otp_max_per_ip_per_hour", 2)
     c = client_for()
 
     def from_ip(ip: str, n: int) -> int:
-        return c.post(
-            f"{API}/auth/otp", json={"identifier": f"v6-{n}@example.com"}, headers={"x-test-ip": ip}
-        ).status_code
+        r = c.post(f"{API}/auth/otp", json={"identifier": f"v6-{n}@example.com"}, headers={"x-test-ip": ip})
+        return int(r.status_code)
 
     assert from_ip("2001:db8:1:2::1", 1) == 202
     assert from_ip("2001:db8:1:2:aaaa::9", 2) == 202
@@ -519,22 +527,27 @@ def test_sign_in_rotates_the_session(sign_in: SignIn, db: Session, age: Callable
     assert c.get(f"{API}/me").status_code == 401
 
 
-def test_sign_in_deletes_dead_sessions(sign_in: SignIn, make_user: Callable[..., User], db: Session) -> None:
+def test_sign_in_deletes_sessions_that_ended_long_ago(
+    sign_in: SignIn, make_user: Callable[..., User], db: Session
+) -> None:
+    """Ended sessions stay 30 days (who signed in from where, as the sweep keeps them), then go at the next sign-in."""
     user = make_user(email="tidy@example.com")
     now = utcnow()
-    expired = UserSession(user_id=user.id, token_hash=hash_token("x1"), expires_at=now - timedelta(seconds=1))
-    revoked = UserSession(
-        user_id=user.id, token_hash=hash_token("x2"), expires_at=now + timedelta(days=1), revoked_at=now
+    month = timedelta(days=31)
+    old_expired = UserSession(user_id=user.id, token_hash=hash_token("x1"), expires_at=now - month)
+    old_revoked = UserSession(
+        user_id=user.id, token_hash=hash_token("x2"), expires_at=now + timedelta(days=1), revoked_at=now - month
     )
+    recent = UserSession(user_id=user.id, token_hash=hash_token("x4"), expires_at=now - timedelta(days=2))
     live = UserSession(user_id=user.id, token_hash=hash_token("x3"), expires_at=now + timedelta(days=1))
-    db.add_all([expired, revoked, live])
+    db.add_all([old_expired, old_revoked, recent, live])
     db.commit()
     sign_in("tidy@example.com")
     hashes = set(db.scalars(select(UserSession.token_hash).where(UserSession.user_id == user.id)))
     assert hash_token("x1") not in hashes
     assert hash_token("x2") not in hashes
-    assert hash_token("x3") in hashes
-    assert len(hashes) == 2  # the live one and the new one
+    assert {hash_token("x3"), hash_token("x4")} <= hashes
+    assert len(hashes) == 3  # the live one, the recently ended one and the new one
 
 
 def test_new_session_records_the_browser(sign_in: SignIn, db: Session) -> None:

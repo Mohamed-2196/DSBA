@@ -1,4 +1,5 @@
 import { DotsThree, ShieldCheck, SignIn, SignOut, UserCircle, UserCirclePlus, UsersThree } from '@phosphor-icons/react';
+import { errorMessage } from '../api/errors';
 import { accountLine, useAuth } from '../auth';
 import { useToast } from '../state';
 import { Avatar, Button, IconButton, Menu, Skeleton, cx, type MenuItem } from '../ui';
@@ -57,8 +58,8 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
     try {
       await signOut();
       push({ tone: 'success', title: 'You’re signed out' });
-    } catch {
-      push({ tone: 'alert', title: 'Couldn’t sign you out', body: 'Check your connection and try again.' });
+    } catch (e) {
+      push({ tone: 'alert', title: 'Couldn’t sign you out', body: errorMessage(e) });
     }
   };
 

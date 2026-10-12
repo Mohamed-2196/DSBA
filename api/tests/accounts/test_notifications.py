@@ -6,7 +6,9 @@ import uuid
 from collections.abc import Callable
 from datetime import timedelta
 
+import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
@@ -108,7 +110,10 @@ def test_mark_all_read(client_for: ClientFor, make_user: MakeUser, db: Session) 
     assert client_for(other).get(f"{API}/notifications").json()["unreadCount"] == 1
 
 
-def test_unknown_kinds_show_as_system(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+def test_the_database_takes_only_known_kinds(make_user: MakeUser, db: Session) -> None:
+    """Code quality review CQ-10: notify() takes a NotificationKind, and the database refuses anything else, so the
+    list never meets a kind the contract doesn't have."""
     user = make_user()
-    _notify(db, user, "From the future", 1, kind="something_new")
-    assert client_for(user).get(f"{API}/notifications").json()["items"][0]["kind"] == "system"
+    with pytest.raises(IntegrityError):
+        _notify(db, user, "From the future", 1, kind="something_new")
+    db.rollback()

@@ -72,3 +72,9 @@ a.forum-reports__target:hover { color: var(--cobalt); text-decoration: underline
   .forum-reports__icon { width: 32px; height: 32px; font-size: 17px; }
   .forum-reports__actions { grid-column: 2; justify-content: flex-start; }
 }
+
+/* Touch screens: the post's link is a 44px target (UX review UX-11) */
+@media (pointer: coarse) {
+  /* Padding on an inline link grows what a finger can hit without moving the lines around it. */
+  a.forum-reports__target { padding-block: 12px; }
+}

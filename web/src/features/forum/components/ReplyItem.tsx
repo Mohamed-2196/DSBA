@@ -3,61 +3,72 @@ import { ArrowBendUpLeft, CheckCircle, Eye, EyeSlash, PencilSimple, Trash } from
 import type { Reply, ThreadDetail } from '../../../api/types';
 import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
-import { Badge, Button, CohortBadge, cx, timeAgo } from '../../../ui';
+import { Badge, Button, CohortBadge, ConfirmDialog, cx, timeAgo } from '../../../ui';
 import { useToast } from '../../../state';
 import { ReportButton } from '../ReportButton';
-import { useAcceptAnswer, useDeleteReply, useModerateReply, useReplyVote, useUpdateReply } from '../api';
+import { useAcceptAnswer, useDeleteReply, useModerateReply, useReplyVote } from '../api';
 import { authorName, postYear, roleFlair, sameAuthor } from '../lib/authors';
+import { readOnlyFor, textDeleted } from '../lib/replies';
 import { AuthorAvatar } from './AuthorAvatar';
-import { ConfirmDialog } from './ConfirmDialog';
-import { MarkdownEditor } from './MarkdownEditor';
+import { HideDialog } from './HideDialog';
 import { PostMenu } from './PostMenu';
 import { Prose } from './Prose';
+import { ReplyEditForm } from './ReplyEditForm';
 import { AuthorFlair } from './ThreadBits';
 import { VoteButton } from './VoteButton';
-
-const REPLY_MAX = 10_000;
 
 export interface ReplyItemProps {
   reply: Reply;
   thread: ThreadDetail;
   nested?: boolean;
+  /** replies sit under this one (deleting it leaves them under a "Deleted reply" note) */
+  hasReplies?: boolean;
   /** arrived while the page was open: animates in with a "New" mark */
   fresh?: boolean;
   /** the reply a link pointed at (#reply-<id>): briefly marked */
   targeted?: boolean;
-  /** start a reply to this one (absent when the thread is locked) */
+  /** start a reply to this one (absent when the thread takes no replies) */
   onReply?: (reply: Reply) => void;
   /** nested replies and the inline composer, under a top-level reply */
   children?: ReactNode;
 }
 
 /**
- * One reply: byline, body, vote / reply / accept actions, report, and a menu for its author (edit, delete) and
- * for moderators (hide). A deleted reply keeps its place, so the replies under it still make sense.
+ * One reply: byline, body, vote / reply / accept actions, report, and a menu for its author (edit, delete) and for
+ * moderators (hide, with a reason for the author). A deleted reply keeps its place, so the replies under it still make
+ * sense. A hidden reply shows to moderators and to its own author, marked (decision D3).
  * The body is right-to-left or left-to-right per paragraph (see Prose), so an Arabic reply sits right-aligned.
  */
-export function ReplyItem({ reply, thread, nested = false, fresh = false, targeted = false, onReply, children }: ReplyItemProps) {
+export function ReplyItem({ reply, thread, nested = false, hasReplies = false, fresh = false, targeted = false, onReply, children }: ReplyItemProps) {
   const { requireAuth } = useAuth();
   const { push } = useToast();
   const vote = useReplyVote();
   const accept = useAcceptAnswer();
-  const update = useUpdateReply();
   const remove = useDeleteReply();
   const moderate = useModerateReply();
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(reply.body);
-  const [editError, setEditError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [hiding, setHiding] = useState(false);
 
+  const mod = thread.canModerate;
   const deleted = reply.status === 'deleted';
   const hidden = reply.status === 'hidden';
+  // Hidden with its text deleted (SEC-15): unhiding brings it back deleted.
+  const gone = textDeleted(reply, mod);
   const accepted = reply.accepted || thread.acceptedReplyId === reply.id;
   const isOp = sameAuthor(reply.author, thread.author);
   const name = authorName(reply.author);
   const year = postYear(reply.authorYear, reply.author);
   // The thread's author (or a moderator) accepts a top-level reply by someone else.
   const canAccept = thread.canAccept && !nested && !deleted && !hidden && !isOp;
+  // Your own reply, hidden by a rep: you still see it, marked, and nothing on it can change.
+  const hiddenFromOthers = hidden && !mod;
+  // A hidden thread is only in front of the reps and its author: no votes or reports there.
+  const threadHidden = thread.status === 'hidden';
+  const canReport = !reply.isMine && reply.status === 'visible' && !threadHidden;
+  // The author of a hidden thread reads it with nothing they can change, their own replies in it included (the API
+  // turns every write there down).
+  const canChange = reply.canEdit && !readOnlyFor(thread);
 
   const toggleVote = () => {
     const up = !reply.voted;
@@ -80,32 +91,26 @@ export function ReplyItem({ reply, thread, nested = false, fresh = false, target
     );
   };
 
-  const saveEdit = () => {
-    const text = draft.trim();
-    if (!text) {
-      setEditError('A reply needs some text. To remove it, delete it instead.');
-      return;
-    }
-    update.mutate(
-      { replyId: reply.id, body: text },
+  const hide = (reason: string | null) => {
+    moderate.mutate(
+      { replyId: reply.id, change: { status: 'hidden', reason } },
       {
         onSuccess: () => {
-          setEditing(false);
-          setEditError(null);
+          setHiding(false);
+          push({ title: 'Reply hidden', body: 'Only student reps can see it now. Resolve the report in Moderation if there is one.', tone: 'success' });
         },
-        onError: (e) => setEditError(errorMessage(e, "Your changes weren't saved. Try again.")),
       },
     );
   };
 
-  const setVisibility = (status: 'visible' | 'hidden') => {
+  const unhide = () => {
     moderate.mutate(
-      { replyId: reply.id, status },
+      { replyId: reply.id, change: { status: 'visible' } },
       {
-        onSuccess: () =>
+        onSuccess: (r) =>
           push(
-            status === 'hidden'
-              ? { title: 'Reply hidden', body: 'Only student reps can see it now. Resolve the report in Moderation if there is one.', tone: 'success' }
+            r.status === 'deleted'
+              ? { title: 'Reply shown as deleted', body: 'Its text was deleted while it was hidden, so it keeps its place without it.', tone: 'info' }
               : { title: 'Reply visible again', tone: 'success' },
           ),
         onError: (e) => push({ title: "That didn't work", body: errorMessage(e), tone: 'alert' }),
@@ -119,7 +124,7 @@ export function ReplyItem({ reply, thread, nested = false, fresh = false, target
       data-hub="reply"
       data-reply-id={reply.id}
       id={`reply-${reply.id}`}
-      aria-label={deleted ? 'Deleted reply' : `${accepted ? 'Accepted answer' : 'Reply'} by ${name}`}
+      aria-label={deleted ? 'Deleted reply' : `${accepted ? 'Accepted answer' : hidden ? 'Hidden reply' : 'Reply'} by ${name}`}
     >
       <AuthorAvatar author={deleted ? null : reply.author} size={nested ? 'sm' : 'md'} className="forum-reply__avatar" />
       <div className="forum-reply__main">
@@ -144,7 +149,7 @@ export function ReplyItem({ reply, thread, nested = false, fresh = false, target
           <time className="forum-reply__time" dateTime={reply.createdAt}>
             {timeAgo(reply.createdAt)}
           </time>
-          {reply.editedAt && !deleted ? (
+          {reply.editedAt && !deleted && !gone ? (
             <span className="forum-reply__edited" title={`Edited ${new Date(reply.editedAt).toLocaleString('en-GB')}`}>
               edited
             </span>
@@ -167,58 +172,32 @@ export function ReplyItem({ reply, thread, nested = false, fresh = false, target
           ) : null}
         </header>
 
+        {hiddenFromOthers ? (
+          <p className="forum-reply__note" role="note">
+            A student rep hid your reply. Only you and the student reps can see it.
+          </p>
+        ) : null}
+
         {deleted ? (
           <p className="forum-reply__gone">This reply was deleted.</p>
+        ) : gone ? (
+          <p className="forum-reply__gone">Its text was deleted while it was hidden. Unhiding it brings it back as a deleted reply.</p>
         ) : editing ? (
-          <div className="forum-edit">
-            <MarkdownEditor
-              label="Edit your reply"
-              hideLabel
-              value={draft}
-              onChange={(v) => {
-                setDraft(v);
-                if (editError) setEditError(null);
-              }}
-              error={editError}
-              rows={3}
-              tools="basic"
-              preview={false}
-              autoFocus
-              onSubmit={saveEdit}
-              textareaProps={{ dir: 'auto', maxLength: REPLY_MAX }}
-            />
-            <div className="forum-edit__actions">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setEditing(false);
-                  setDraft(reply.body);
-                  setEditError(null);
-                }}
-                disabled={update.isPending}
-              >
-                Cancel
-              </Button>
-              <Button variant="primary" size="sm" onClick={saveEdit} loading={update.isPending}>
-                Save changes
-              </Button>
-            </div>
-          </div>
+          <ReplyEditForm reply={reply} onDone={() => setEditing(false)} />
         ) : (
           <Prose text={reply.body} className="forum-reply__body" />
         )}
 
-        {!deleted && !editing ? (
+        {!deleted && !editing && !hiddenFromOthers ? (
           <footer className="forum-reply__actions">
-            <VoteButton layout="inline" count={reply.voteCount} voted={reply.voted} onToggle={toggleVote} disabled={hidden} />
+            {gone ? null : <VoteButton layout="inline" count={reply.voteCount} voted={reply.voted} onToggle={toggleVote} disabled={hidden || threadHidden} />}
             {onReply && !hidden ? (
               <Button variant="ghost" size="sm" leadingIcon={ArrowBendUpLeft} onClick={() => onReply(reply)}>
                 Reply
               </Button>
             ) : null}
-            {hidden && thread.canModerate ? (
-              <Button variant="ghost" size="sm" leadingIcon={Eye} onClick={() => setVisibility('visible')} loading={moderate.isPending}>
+            {hidden && mod ? (
+              <Button variant="ghost" size="sm" leadingIcon={Eye} onClick={unhide} loading={moderate.isPending}>
                 Unhide
               </Button>
             ) : null}
@@ -228,27 +207,19 @@ export function ReplyItem({ reply, thread, nested = false, fresh = false, target
               </Button>
             ) : null}
             <span className="forum-reply__end">
-              {!reply.isMine ? <ReportButton targetType="reply" targetId={reply.id} /> : null}
+              {canReport ? <ReportButton targetType="reply" targetId={reply.id} /> : null}
               <PostMenu
                 label="More actions for this reply"
                 groups={[
                   [
-                    reply.canEdit && {
-                      id: 'edit',
-                      label: 'Edit',
-                      icon: PencilSimple,
-                      onSelect: () => {
-                        setDraft(reply.body);
-                        setEditing(true);
-                      },
-                    },
-                    reply.canEdit && { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setConfirmDelete(true) },
+                    canChange && { id: 'edit', label: 'Edit', icon: PencilSimple, onSelect: () => setEditing(true) },
+                    canChange && { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setConfirmDelete(true) },
                   ],
                   [
-                    thread.canModerate &&
+                    mod &&
                       (hidden
-                        ? { id: 'unhide', label: 'Unhide reply', icon: Eye, onSelect: () => setVisibility('visible') }
-                        : { id: 'hide', label: 'Hide reply', icon: EyeSlash, onSelect: () => setVisibility('hidden') }),
+                        ? { id: 'unhide', label: gone ? 'Unhide as deleted' : 'Unhide reply', icon: Eye, onSelect: unhide }
+                        : { id: 'hide', label: 'Hide reply', icon: EyeSlash, onSelect: () => setHiding(true) }),
                   ],
                 ]}
               />
@@ -258,13 +229,31 @@ export function ReplyItem({ reply, thread, nested = false, fresh = false, target
         {children}
       </div>
 
+      <HideDialog
+        open={hiding}
+        what="reply"
+        author={reply.author}
+        busy={moderate.isPending}
+        error={hiding && moderate.isError ? errorMessage(moderate.error, "The reply wasn't hidden. Try again.") : null}
+        onConfirm={hide}
+        onClose={() => {
+          setHiding(false);
+          moderate.reset();
+        }}
+      />
+
       <ConfirmDialog
         open={confirmDelete}
+        tone="danger"
         title="Delete this reply?"
         body={
-          <>
-            Its text will be removed for everyone. {children ? 'Replies to it stay, under a "deleted" note.' : 'This can’t be undone.'}
-          </>
+          hidden ? (
+            <p>Its text is deleted for good. The reply stays hidden; if you unhide it later, it comes back as a deleted reply.</p>
+          ) : (
+            <p>
+              Its text is deleted for everyone.{hasReplies ? ' The replies to it stay, under a “Deleted reply” note.' : ''} This can’t be undone.
+            </p>
+          )
         }
         confirmLabel="Delete reply"
         busy={remove.isPending}

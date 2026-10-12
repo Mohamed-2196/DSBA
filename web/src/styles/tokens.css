@@ -86,6 +86,11 @@
   --highlight-shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 40' preserveAspectRatio='none'%3E%3Cpath fill='%23FFE14A' d='M4.5 7.2C38 4.6 74 6.1 112 4.2c30-1.4 58 .6 84.6-1.1l2.2 7.1-2.4 9.2 2.6 11.6c-28.9 3.1-61.4 1.4-94.2 2.9-34.4 1.6-66.1-.6-101.2 2.3L.8 27.5l2.9-9.6L1.9 9.4z'/%3E%3Cpath fill='%23F5C400' fill-opacity='.22' d='M4 30.6c34-2.2 66-.5 98-2.1 32-1.5 64-.1 95.8-1.9l.9 4.6c-28.9 3.1-61.4 1.4-94.2 2.9-34.4 1.6-66.1-.6-101.2 2.3l-.4-3.1z'/%3E%3C/svg%3E");
 }
 
+/* Big screens: somewhat wider pages (text keeps its own measure in ch). Beyond that the shell stops growing
+   (shell/AppShell.css), so lines never get endless. */
+@media (min-width: 1800px) {
+  :root { --content-max: 1320px; --content-max-wide: 1600px; }
+}
 @media (max-width: 1099px) {
   :root { --content-pad: 32px; }
 }
@@ -119,6 +124,7 @@
 
   /* Derived */
   --line-strong: #C6D3E6;              /* input/chip borders, scrollbar thumb */
+  --control-border: #7F90AD;           /* text fields, selects, switches: 3.23:1 on surface, 3.01:1 on paper (WCAG 1.4.11) */
   --highlight-ink: #0A1F44;            /* text sitting on a highlighter mark (both themes) */
   --alert-strong: #C81E43;             /* alert as small text / danger fill (AA) */
   --alert-ink: #FFFFFF;                /* text on an --alert-strong fill */
@@ -170,6 +176,7 @@
 
   /* Derived */
   --line-strong: #2F477E;
+  --control-border: #5670A6;           /* 3.45:1 on surface, 3.77:1 on paper */
   --highlight-ink: #0A1F44;
   --alert-strong: #FF6B81;
   --alert-ink: #07122B;

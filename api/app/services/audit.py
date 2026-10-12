@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import valid_ip
 from app.models import AuditEntry, User
+from app.services.identifiers import destination_hint
 
 
 def record(
@@ -24,14 +25,14 @@ def record(
 
     `data` keeps a snapshot of names, since ids go NULL when an account is deleted and titles change afterwards
     (security review, finding 21): `actorName`, the actor's display name, and for actions on an account
-    (target_type 'user') `targetName`. Values the caller passes win. An `ip` that isn't an IP address is stored
-    as none."""
+    (target_type 'user') `targetName` (UX-15): its display name, or its masked address while it has none. Values
+    the caller passes win. An `ip` that isn't an IP address is stored as none."""
     snapshot = dict(data or {})
     if actor is not None:
         snapshot.setdefault("actorName", actor.display_name)
     if target_type == "user" and "targetName" not in snapshot:
         target = _user(db, target_id)
-        snapshot["targetName"] = target.display_name if target is not None else None
+        snapshot["targetName"] = person_name(target) if target is not None else None
     db.add(
         AuditEntry(
             actor_id=actor.id if actor else None,
@@ -42,6 +43,16 @@ def record(
             ip=valid_ip(ip),
         )
     )
+
+
+def person_name(user: User) -> str | None:
+    """How the log names an account: its display name, or its masked address ('s•••@example.com') when it has none
+    yet (a new account, or one that never finished signing up)."""
+    if user.display_name:
+        return user.display_name
+    if user.email:
+        return destination_hint("email", user.email)
+    return destination_hint("phone", user.phone) if user.phone else None
 
 
 def _user(db: Session, user_id: object | None) -> User | None:

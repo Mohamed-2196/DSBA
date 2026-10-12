@@ -11,18 +11,13 @@ import { formatPhone } from '../../auth/identifiers';
 import { PageLoader } from '../../shell/PageLoader';
 import { useToast } from '../../state';
 import {
-  Badge, Button, Divider, EmptyState, Modal, Page, PageHeader, PageSection, Panel, SectionHeader, Skeleton, Switch, TextField, formatDate, timeAgo,
+  Badge, Button, ConfirmDialog, Divider, EmptyState, Page, PageHeader, PageSection, Panel, QueryError, SectionHeader, Skeleton, Switch, TextField, formatDate, timeAgo,
 } from '../../ui';
 import { downloadAccountData, useRemoveIdentifier, useRevokeSessions, useSessions, useUpdateMe, useUpdatePreferences, type IdentifierKind } from './api';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { describeDevice } from './device';
 import { IdentifierDialog } from './IdentifierDialog';
 import './AccountPage.css';
-
-function problem(e: unknown): string {
-  if (e instanceof ApiError && e.code === 'network') return 'Couldn’t reach the Hub. Check your connection and try again.';
-  return errorMessage(e);
-}
 
 // ── Profile ──────────────────────────────────────────────────────────────────────────────────
 
@@ -56,7 +51,7 @@ function ProfileSection({ me }: { me: Me }) {
         onSuccess: () => push({ tone: 'success', title: 'Profile saved' }),
         onError: (err) => {
           if (err instanceof ApiError && err.fields.displayName) setNameError(err.fields.displayName);
-          else push({ tone: 'alert', title: 'Your profile wasn’t saved', body: problem(err) });
+          else push({ tone: 'alert', title: 'Your profile wasn’t saved', body: errorMessage(err) });
         },
       },
     );
@@ -103,7 +98,12 @@ function SignInMethods({ me }: { me: Me }) {
   const { push } = useToast();
   const remove = useRemoveIdentifier();
   const [editing, setEditing] = useState<IdentifierKind | null>(null);
-  const [removing, setRemoving] = useState<IdentifierKind | null>(null);
+  const [removing, setRemovingState] = useState<IdentifierKind | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+  const setRemoving = (kind: IdentifierKind | null) => {
+    setRemoveError(null);
+    setRemovingState(kind);
+  };
   const [lastEdited, setLastEdited] = useState<IdentifierKind>('email');
   const value = (kind: IdentifierKind) => (kind === 'email' ? me.email : me.phone ? formatPhone(me.phone) : null);
   const both = !!me.email && !!me.phone;
@@ -167,78 +167,77 @@ function SignInMethods({ me }: { me: Me }) {
           {row('phone')}
         </ul>
       </Panel>
-      <p className="acct-note">{both ? 'Sign in with either one.' : 'Add the other one too, so you can still sign in if you lose access to this one.'}</p>
+      <p className="acct-note">
+        {both ? 'Sign in with either one.' : 'Add the other one too, so you can still sign in if you lose access to this one.'} To change or remove
+        one, we may first send a code to confirm it’s you.
+      </p>
       <IdentifierDialog kind={editing} current={editing ? value(editing) : value(lastEdited)} onClose={() => setEditing(null)} />
-      <Modal
+      <ConfirmDialog
         open={removing !== null}
-        onClose={() => setRemoving(null)}
         title={`Remove your ${removing === 'phone' ? 'phone number' : 'email address'}?`}
-        size="sm"
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setRemoving(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              loading={remove.isPending}
-              onClick={() => {
-                if (!removing) return;
-                remove.mutate(removing, {
-                  onSuccess: () => {
-                    push({
-                      tone: 'success',
-                      title: removing === 'phone' ? 'Phone number removed' : 'Email address removed',
-                      body: 'To be safe, your other devices were signed out.',
-                    });
-                    setRemoving(null);
-                  },
-                  onError: (err) => push({ tone: 'alert', title: 'Nothing was removed', body: problem(err) }),
-                });
-              }}
-            >
-              Remove
-            </Button>
-          </>
+        confirmLabel="Remove"
+        tone="danger"
+        busy={remove.isPending}
+        error={removeError}
+        onClose={() => setRemoving(null)}
+        onConfirm={() => {
+          if (!removing) return;
+          setRemoveError(null);
+          remove.mutate(removing, {
+            onSuccess: () => {
+              push({
+                tone: 'success',
+                title: removing === 'phone' ? 'Phone number removed' : 'Email address removed',
+                body: 'To be safe, your other devices were signed out.',
+              });
+              setRemoving(null);
+            },
+            onError: (err) => setRemoveError(errorMessage(err)),
+          });
+        }}
+        body={
+          <p>
+            You’ll sign in with your {other === 'email' ? 'email address' : 'phone number'}
+            {otherValue ? (
+              <>
+                , <strong>{otherValue}</strong>,
+              </>
+            ) : null}{' '}
+            from now on. Your other devices will be signed out.
+          </p>
         }
-      >
-        <p className="acct-dialog-text">
-          You’ll sign in with your {other === 'email' ? 'email address' : 'phone number'}
-          {otherValue ? (
-            <>
-              , <strong>{otherValue}</strong>,
-            </>
-          ) : null}{' '}
-          from now on. Your other devices will be signed out.
-        </p>
-      </Modal>
+      />
     </>
   );
 }
 
 // ── Emails ───────────────────────────────────────────────────────────────────────────────────
 
+type EmailSwitch = 'emailReplies' | 'emailAnswerAccepted' | 'emailUploadReviews' | 'emailNewIssues';
+
+/** One switch per kind of email (decision D1); the notification in the Hub shows whatever they say. */
+const EMAIL_SWITCHES: { key: EmailSwitch; label: string; description: string }[] = [
+  { key: 'emailReplies', label: 'Replies', description: 'When someone replies to your thread or to one of your replies.' },
+  { key: 'emailAnswerAccepted', label: 'Accepted answers', description: 'When the person who asked marks your reply as the answer.' },
+  { key: 'emailUploadReviews', label: 'Your uploads', description: 'When a student rep publishes a file you uploaded, or decides not to.' },
+  { key: 'emailNewIssues', label: 'New newsletter issues', description: 'When a new issue of The DSBA Newsletter is out.' },
+];
+
 function EmailPreferences({ me }: { me: Me }) {
   const { push } = useToast();
   const update = useUpdatePreferences();
   const save = (patch: Parameters<typeof update.mutate>[0]) =>
-    update.mutate(patch, { onError: (err) => push({ tone: 'alert', title: 'Your choice wasn’t saved', body: problem(err) }) });
+    update.mutate(patch, { onError: (err) => push({ tone: 'alert', title: 'Your choice wasn’t saved', body: errorMessage(err) }) });
   return (
     <Panel className="acct-switches">
-      <Switch
-        label="Replies and reviews"
-        description="When someone replies to you, accepts your answer, or a student rep reviews your upload."
-        checked={me.preferences.emailNotifications}
-        onChange={(on) => save({ emailNotifications: on })}
-      />
-      <Divider />
-      <Switch
-        label="New newsletter issues"
-        description="When a new issue of The DSBA Newsletter is out."
-        checked={me.preferences.newsletterEmails}
-        onChange={(on) => save({ newsletterEmails: on })}
-      />
       {!me.email ? <p className="acct-note acct-note--inset">These go to your email address. Add one above to get them.</p> : null}
+      {EMAIL_SWITCHES.map((s, i) => (
+        <div key={s.key} className="acct-switches__item">
+          {i > 0 ? <Divider /> : null}
+          <Switch label={s.label} description={s.description} checked={me.preferences[s.key]} onChange={(on) => save({ [s.key]: on })} />
+        </div>
+      ))}
+      <p className="acct-note acct-note--inset">We always email you when how you sign in changes, so you’d know if it wasn’t you.</p>
     </Panel>
   );
 }
@@ -294,7 +293,7 @@ function Sessions() {
   const signOut = (ids: string[], many: boolean) =>
     revoke.mutate(ids, {
       onSuccess: () => push({ tone: 'success', title: many ? 'Signed out of your other devices' : 'That device is signed out' }),
-      onError: (err) => push({ tone: 'alert', title: 'Couldn’t sign that out', body: problem(err) }),
+      onError: (err) => push({ tone: 'alert', title: 'Couldn’t sign that out', body: errorMessage(err) }),
     });
 
   return (
@@ -322,16 +321,13 @@ function Sessions() {
             ))}
           </ul>
         ) : sessions.isError ? (
-          <EmptyState
-            size="sm"
-            icon={WarningCircle}
+          <QueryError
+            error={sessions.error}
             title="Your devices didn’t load"
-            body={problem(sessions.error)}
-            action={
-              <Button size="sm" onClick={() => void sessions.refetch()} loading={sessions.isFetching}>
-                Try again
-              </Button>
-            }
+            onRetry={() => void sessions.refetch()}
+            retrying={sessions.isFetching}
+            size="sm"
+            panel={false}
           />
         ) : list.length === 0 ? (
           <EmptyState size="sm" icon={Monitor} title="No devices" body="Devices you sign in on show up here." />
@@ -358,7 +354,7 @@ function YourData() {
     try {
       await downloadAccountData();
     } catch (err) {
-      push({ tone: 'alert', title: 'Your data didn’t download', body: problem(err) });
+      push({ tone: 'alert', title: 'Your data didn’t download', body: errorMessage(err) });
     } finally {
       setDownloading(false);
     }
@@ -368,7 +364,10 @@ function YourData() {
       <div className="acct-data__item">
         <div className="acct-data__text">
           <h3 className="acct-data__title">Download your data</h3>
-          <p>Everything the Hub keeps about you, as a JSON file: your profile, devices, posts, uploads, stars, reactions, progress and notifications.</p>
+          <p>
+            Everything the Hub keeps about you, as a JSON file: your profile, devices, posts, votes, reports, uploads, stars, reactions, progress,
+            notifications and the emails we sent you.
+          </p>
         </div>
         <Button leadingIcon={DownloadSimple} onClick={() => void download()} loading={downloading}>
           Download
@@ -433,12 +432,12 @@ export default function AccountPage() {
       </PageSection>
 
       <PageSection aria-labelledby="acct-signin">
-        <SectionHeader id="acct-signin" title="How you sign in" description="We send a 6-digit code to one of these each time you sign in." />
+        <SectionHeader id="acct-signin" title="How you sign in" description="We send a code to one of these each time you sign in." />
         <SignInMethods me={me} />
       </PageSection>
 
       <PageSection aria-labelledby="acct-emails">
-        <SectionHeader id="acct-emails" title="Emails" description="Notifications always show in the Hub. Choose what we also email you." />
+        <SectionHeader id="acct-emails" title="Emails" description="Every notification shows in the Hub. Choose which ones we also email you." />
         <EmailPreferences me={me} />
       </PageSection>
 

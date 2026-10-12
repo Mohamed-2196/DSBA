@@ -1,12 +1,11 @@
 // Bell + dropdown in the top bar: the signed-in person's notifications from the API (hidden for guests).
 import { Link } from 'react-router-dom';
-import {
-  ArrowClockwise, Bell, ChatsCircle, Check, Checks, FileArrowUp, FileX, Newspaper, SealCheck, ShieldCheck, WarningCircle, type Icon,
-} from '@phosphor-icons/react';
+import { Bell, ChatsCircle, Check, Checks, FileArrowUp, FileX, Newspaper, SealCheck, ShieldCheck, type Icon } from '@phosphor-icons/react';
+import { errorMessage } from '../../api/errors';
 import type { NotificationOut } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
-import { Button, EmptyState, HubLogo, IconButton, Menu, Skeleton, Tooltip, cx, safeInternalPath, timeAgo } from '../../ui';
+import { Button, EmptyState, HubLogo, IconButton, Menu, QueryError, Skeleton, Tooltip, cx, safeInternalPath, timeAgo } from '../../ui';
 import { useMarkAllRead, useMarkRead, useNotifications } from './api';
 import './NotificationsMenu.css';
 
@@ -61,11 +60,11 @@ function Row({ n, onOpen, onMarkRead }: { n: NotificationOut; onOpen: () => void
   return (
     <li className={cx('notif-item', unread && 'is-unread')}>
       {to ? (
-        <Link to={to} className="notif-item__link" onClick={onOpen}>
+        <Link to={to} className="notif-item__link" onClick={onOpen} data-roving>
           {content}
         </Link>
       ) : (
-        <button type="button" className="notif-item__link" onClick={onOpen}>
+        <button type="button" className="notif-item__link" onClick={onOpen} data-roving>
           {content}
         </button>
       )}
@@ -97,7 +96,7 @@ export function NotificationsMenu() {
   };
   const readAll = () =>
     markAll.mutate(undefined, {
-      onError: () => push({ tone: 'alert', title: 'Couldn’t mark them as read', body: 'Check your connection and try again.' }),
+      onError: (e) => push({ tone: 'alert', title: 'Couldn’t mark them as read', body: errorMessage(e) }),
     });
 
   return (
@@ -130,16 +129,13 @@ export function NotificationsMenu() {
               ))}
             </ul>
           ) : query.isError && !items.length ? (
-            <EmptyState
+            <QueryError
+              error={query.error}
+              title="Your notifications didn’t load"
+              onRetry={() => void query.refetch()}
+              retrying={query.isFetching}
               size="sm"
-              icon={WarningCircle}
-              title="Notifications didn’t load"
-              body="Check your connection and try again."
-              action={
-                <Button size="sm" leadingIcon={ArrowClockwise} onClick={() => void query.refetch()} loading={query.isFetching}>
-                  Try again
-                </Button>
-              }
+              panel={false}
             />
           ) : !items.length ? (
             <EmptyState size="sm" icon={Bell} title="No notifications yet" body="Replies to your threads, accepted answers and reviews of your uploads show up here." />

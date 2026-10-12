@@ -1,13 +1,15 @@
 # Deploying DSBA Hub
 
-Production runs on one server with Docker Compose (`compose.prod.yaml`): Caddy in front, the API, PostgreSQL and
-two daily jobs. Files live in an S3 bucket outside the server. Local development uses `compose.yaml` instead.
+Production runs on one server with Docker Compose (`compose.prod.yaml`): Caddy in front, the API, PostgreSQL, the
+mail worker and two daily jobs. Files live in an S3 bucket outside the server. Local development uses
+`compose.yaml` instead.
 
 ```
 browser ──https──▶ web (Caddy: TLS, the built app, /api/* proxied, security headers, 1 MB body cap)
    │                  └──▶ api (FastAPI, no published port) ──▶ db (PostgreSQL 17, volume pgdata)
    └──presigned POST/GET──▶ bucket (AWS S3, or MinIO behind HTTPS)
-backup (daily): pg_dump ──▶ backup bucket (its own key)      sweep (daily): uploads, codes, sessions
+mail: the email outbox (in db) ──SMTP──▶ your mail relay
+backup (daily): pg_dump ──▶ backup bucket (its own key)      sweep (daily): uploads, codes, sessions, old files
 ```
 
 ## 1. Before you start
@@ -15,7 +17,8 @@ backup (daily): pg_dump ──▶ backup bucket (its own key)      sweep (daily)
 - A server with Docker and the Compose plugin, ports 80 and 443 open, and a DNS name pointing at it
   (`DSBA_DOMAIN`, e.g. `hub.example.com`). Caddy gets and renews the certificate itself.
 - An S3 bucket for files and a second bucket for backups (section 3).
-- An SMTP account for sign-in codes (any provider's relay), and a Twilio account if codes go out by text too.
+- An SMTP account for sign-in codes and notification emails (any provider's relay), and a Twilio account if codes
+  go out by text too.
 
 ## 2. Settings
 
@@ -97,6 +100,14 @@ overwrites what moderators changed).
 **Health:** `GET /api/v1/health` (the API image's healthcheck uses it); logs with
 `docker compose -f compose.prod.yaml logs -f api`. Logs carry no sign-in codes, tokens or full phone numbers.
 
+**Emails.** Sign-in codes are sent while the person waits. Everything else (notification emails, account
+notices) goes into the `email_outbox` table with the change it is about, and the `mail` service
+(`python -m app.cli mail-worker`) sends it: a failed send is retried with growing waits (30 s, 1 min, 2 min, ... up
+to 6 hours) and given up after 8 tries, with a warning in its log (`docker compose -f compose.prod.yaml logs -f
+mail`). Several workers may run (`docker compose -f compose.prod.yaml up -d --scale mail=2`): each email is claimed
+by one. Sent, failed and cancelled emails are deleted after 30 days. An email is cancelled when its time comes if
+the person turned that switch off, changed their address or deleted the account.
+
 ## 5. Client addresses and the proxy
 
 Per-IP limits (sign-in codes above all), sessions and the audit log use the client's address. The API takes it from
@@ -130,8 +141,8 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-<theme sc
   from the built page when the image is built (`web/deploy/csp-hashes.mjs`), so it always matches. `javascript:`
   links can't run either, whichever renderer lets one through.
 - `style-src 'unsafe-inline'`: React sets inline `style` attributes; styles can't run script.
-- Turning analytics on (`VITE_POSTHOG_KEY` at build time) needs `DSBA_CSP_SCRIPT_EXTRA=https://us-assets.i.posthog.com`
-  and `DSBA_CSP_CONNECT_EXTRA=https://us.i.posthog.com`.
+- Turning analytics on needs the PostHog host in `connect-src` (`DSBA_CSP_CONNECT_EXTRA`) and nothing else
+  (section 9).
 - Hashed assets (`/assets/*`) are cached for a year; everything else revalidates, so a deploy shows at once.
 - Request bodies to `/api/*` are capped at 1 MB (413 above that). Files never pass through the API.
 
@@ -202,6 +213,32 @@ The `sweep` service runs `python -m app.cli sweep` when it starts and every 24 h
 - uploads never attached to anything (a library item or a forum post) a day after they were made: the object, then
   the row;
 - sign-in codes older than two days (the longest rate-limit window is a day);
-- sessions that expired or were revoked more than 30 days ago.
+- sessions that expired or were revoked more than 30 days ago;
+- the files of library items rejected or removed more than a week ago (the item stays, without its file).
 
 `python -m app.cli sweep-uploads` is the old name of the same command.
+
+## 9. Analytics (optional)
+
+PostHog is off unless the web image is built with a project key. Without one the SDK is not even downloaded. To turn
+it on, set in `.env` (here with PostHog's EU cloud; without `VITE_POSTHOG_HOST` it is the US one,
+`https://us.i.posthog.com`, and that is the host the CSP needs):
+
+```
+VITE_POSTHOG_KEY=phc_...
+VITE_POSTHOG_HOST=https://eu.i.posthog.com
+DSBA_CSP_CONNECT_EXTRA=https://eu.i.posthog.com
+```
+
+and rebuild the web image (`docker compose -f compose.prod.yaml up -d --build web`). The SDK then loads in a chunk of
+its own after the app and sends only page views and page leaves, to that host only (`web/src/lib/analytics.ts`):
+
+- no autocapture of clicks or inputs, no session recordings, surveys, heatmaps, exceptions or remote feature flags
+  (nothing PostHog's side can turn on later), and no scripts from PostHog's CDN, so `script-src` needs no exception;
+- no cookies (it keeps its random visitor id in `localStorage`), anonymous visitors only (the app never calls
+  `identify`), and nothing at all from browsers that send Do Not Track or Global Privacy Control;
+- URLs without their query string or hash (search terms stay in the browser), and no page titles (a thread's title
+  is what a student wrote).
+
+In the PostHog project settings, also turn on **Discard client IP data**. Use a new project: the key of an old one
+is in the repository's history (security review SEC-8).

@@ -49,6 +49,8 @@
   font-weight: var(--fw-medium);
   text-decoration: none;
 }
+button.shell-more__item { width: 100%; text-align: left; }
+.shell-more__item:hover { background: var(--surface-2); }
 .shell-more__item svg { font-size: 20px; color: var(--ink-2); }
 .shell-more__item.is-active { background: var(--surface-2); }
 .shell-more__item.is-active svg { color: var(--cobalt); }

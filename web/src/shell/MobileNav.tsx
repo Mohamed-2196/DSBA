@@ -1,21 +1,21 @@
 import { createElement, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { ArrowUpRight, DotsThreeOutline, GithubLogo, Info } from '@phosphor-icons/react';
+import { ArrowUpRight, DotsThreeOutline, Info, UploadSimple } from '@phosphor-icons/react';
 import { Divider, Drawer, HubMark, cx } from '../ui';
-import { CONTRIBUTE_URL } from '../data/people';
 import { EXTERNAL_LINKS, MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav';
 import { YearSwitcher } from './YearSwitcher';
 import { ThemeToggle } from './ThemeToggle';
+import { useStartUpload } from './upload';
 import './MobileNav.css';
 
 const TABS = NAV.filter((n) => MOBILE_TAB_IDS.includes(n.id));
 const MORE = NAV.filter((n) => MORE_IDS.includes(n.id));
-const MORE_LINKS = [...EXTERNAL_LINKS, { id: 'contribute', label: 'Contribute a resource', href: CONTRIBUTE_URL, icon: GithubLogo }];
 
 /** Bottom tab bar (< 700px): Home, Modules, Library, Forum, More (drawer with the rest). */
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
+  const startUpload = useStartUpload();
   const moreActive = [...MORE.map((m) => m.to), '/about', '/styleguide'].some((p) => pathname.startsWith(p));
   const close = () => setOpen(false);
   return (
@@ -68,6 +68,20 @@ export function MobileNav() {
               </li>
             ))}
             <li>
+              <button
+                type="button"
+                className="shell-more__item"
+                onClick={() => {
+                  close();
+                  startUpload();
+                }}
+                data-hub="more-upload"
+              >
+                <UploadSimple aria-hidden="true" />
+                <span>Upload a file</span>
+              </button>
+            </li>
+            <li>
               <Link to="/about" onClick={close} className="shell-more__item">
                 <Info aria-hidden="true" />
                 <span>About DSBA Hub</span>
@@ -76,7 +90,7 @@ export function MobileNav() {
           </ul>
           <Divider />
           <ul role="list" className="shell-more__list">
-            {MORE_LINKS.map((item) => (
+            {EXTERNAL_LINKS.map((item) => (
               <li key={item.id}>
                 <a href={item.href} target="_blank" rel="noopener noreferrer" className="shell-more__item">
                   {createElement(item.icon, { 'aria-hidden': true })}

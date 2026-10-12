@@ -24,7 +24,9 @@ def new_thread(client: TestClient, **fields: Any) -> dict[str, Any]:
     return data
 
 
-def new_reply(client: TestClient, thread_id: str, body: str = "Try the worked example first.", **fields: Any) -> dict:
+def new_reply(
+    client: TestClient, thread_id: str, body: str = "Try the worked example first.", **fields: Any
+) -> dict[str, Any]:
     r = client.post(f"{API}/forum/threads/{thread_id}/replies", json={"body": body, **fields})
     assert r.status_code == 201, r.text
     data: dict[str, Any] = r.json()

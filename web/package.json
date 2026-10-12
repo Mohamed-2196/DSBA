@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
     "lint": "eslint .",
+    "test": "vitest run",
     "api:types": "openapi-typescript ../api/openapi.json -o src/api/schema.d.ts --root-types --root-types-no-schema-prefix",
     "e2e": "playwright test"
   },
@@ -20,10 +21,10 @@
     "@phosphor-icons/react": "^2.1.10",
     "@tanstack/react-query": "^5.104.1",
     "openapi-fetch": "^0.14.1",
-    "posthog-js": "^1.430.3",
+    "posthog-js": "^1.438.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0"
+    "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
@@ -31,7 +32,7 @@
     "@types/node": "^22.20.5",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.3",
+    "@vitejs/plugin-react": "^5.2.0",
     "eslint": "^9.13.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
@@ -40,6 +41,7 @@
     "openapi-typescript": "^7.13.0",
     "typescript": "~5.9",
     "typescript-eslint": "^8.71.1",
-    "vite": "^5.4.10"
+    "vite": "^7.3.7",
+    "vitest": "^5.0.4"
   }
 }

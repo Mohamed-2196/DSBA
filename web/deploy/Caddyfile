@@ -8,8 +8,9 @@
 #   DSBA_API_UPSTREAM        where the API listens (default api:8000)
 #   DSBA_CSP_SCRIPT_HASHES   set by the image (web/Dockerfile): the hashes of index.html's inline scripts
 #   DSBA_CSP_SCRIPT_EXTRA, DSBA_CSP_CONNECT_EXTRA
-#                            more sources when the build turns analytics on (VITE_POSTHOG_KEY):
-#                            https://us-assets.i.posthog.com and https://us.i.posthog.com
+#                            more sources for script-src and connect-src. A build with analytics on
+#                            (VITE_POSTHOG_KEY) needs its PostHog host in DSBA_CSP_CONNECT_EXTRA only, e.g.
+#                            https://us.i.posthog.com: it loads no script from PostHog
 {
 	admin off
 }
