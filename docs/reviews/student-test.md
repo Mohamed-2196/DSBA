@@ -3,6 +3,10 @@
 Tester: student tester. Status: **done** (10 October 2026). Stack under test: the shared dev API `:8000`, my web dev
 server `:5178`, the freshly seeded dev database (shared with the other reviewers while I tested).
 
+**Re-review round (13 October 2026):** a by-hand pass in every role, a step-up e2e test and the suite again: see
+[the last section](#re-review-round-by-hand-in-every-role-13-october-2026). ST-1 to ST-12 are all fixed; ST-13 to
+ST-18 are new (no blockers, no majors). Final run: 46 passed, 0 failed, 0 skipped.
+
 **Round 3 (13 October 2026):** the e2e suite now runs against the Docker stack with one command,
 `scripts/e2e.sh`. What changed, the status of ST-1 to ST-12 and the latest results are in
 [Round 3](#round-3-the-suite-on-the-docker-stack-13-october-2026) at the end. The by-hand findings below are from
@@ -416,6 +420,12 @@ Afterwards, `scripts/e2e.sh --restore` put the API back on SMTP and the console,
 
 ## Re-review round: by hand in every role (13 October 2026)
 
+**Summary.** Every feature works for a guest, students in Years 1 to 3, a rep and an admin, on a desktop and a
+390×844 phone, with Arabic names and text. All twelve earlier findings are fixed, and round 3's three changes hold.
+No blocker and no major. The new findings are mostly one theme: **a double click does the thing twice** (a thread or
+a reply, a rep's "Publish" on an upload, and "Publish and notify everyone", which emails every student twice:
+ST-13, ST-14, ST-16). Then posting offline gives no feedback (ST-17), and two nits (ST-15, ST-18).
+
 Scope: `docs/STATUS.md`, "Next", item 2. Code under test: `feature/backend`, from `75626cd` (round 3 merged) to `a36795a` (with `round3/no-legacy`, which
 landed while I tested; the stack runs from the main checkout), on the
 shared Docker stack (compose project `dsba-hub`, normal mail backends: codes from Mailpit and the API's log). Browser:
@@ -504,6 +514,26 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
 | People: finding Noor, suspending her (the dialog says what it does), lifting it | works |
 | Activity | names the issue: "Fatima R4 Rep published the newsletter issue “Revision week, r4 tviy”" (**ST-9 fixed**). It also shows ST-14's and ST-16's double entries. |
 
+### Earlier findings
+
+| ID | Severity | Status | How I know |
+|---|---|---|---|
+| ST-1 | minor | **fixed** | Sara starred a Year 1 file and found it under Starred; e2e "ST-1" passes. |
+| ST-2 | major | **fixed** | The rep's ST2133 event with the cohort left alone is a Year 2 event; e2e "ST-2" passes. |
+| ST-3 | minor | **fixed** | Poisson, normal and Laplace MGF questions each get their own answer; the Laplace steps only for Laplace. |
+| ST-4 | minor | **fixed** | Sara's notification opens `#reply-<id>` with the reply in view; e2e "ST-4" passes. |
+| ST-5 | minor | **fixed** | Noor opens her hidden thread with the notice and has the "A student rep hid your thread" notification. |
+| ST-6 | nit | **fixed** | Ali deleted his duplicate reply and Sara's notification about it went; the other quotes the reply. |
+| ST-7 | nit | **fixed** | "This isn't a real .pdf file: what's inside doesn't match its name…", with the form kept. |
+| ST-8 | nit | **fixed** | Suspended Noor's star: `403` "Your account is suspended. Contact a student rep." |
+| ST-9 | nit | **fixed** | Activity: "published the newsletter issue “Revision week, r4 tviy”". |
+| ST-10 | nit | **fixed** | (round 3) guests ask `GET /auth/session`, which answers 200. |
+| ST-11 | nit | **fixed** | "1 reply from Ali R4 Test" on Sara's thread. |
+| ST-12 | nit | **fixed** | With a reply: "Its text is deleted, but its title and its reply stay in the forum, so the reply can still be read." Without: "It is removed from the forum and its text is deleted." |
+
+Round 3's changes: the editor's leave guard asks on links, ⌘K and Back; Mini Noora's hint has a 44 px close button
+that keeps her quiet for good; a new guest sees one year across Home. All three hold.
+
 ### New findings
 
 #### ST-13 (minor) A double click on "Post thread" posts the thread twice
@@ -520,19 +550,22 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
   Sara got two notifications.
 - Fix: return early from `send()` while a post is in flight, with a ref (as `StepUpDialog` does with
   `sendingRef`). The API could also refuse the same title from the same author within a minute.
+- e2e: `forum.spec.ts` "ST-13: a double click on "Post reply" posts one reply" fails as expected (`test.fail`).
 - Screenshot: `r4-forum-04-posted.png`.
 
-#### ST-14 (minor) Publishing an upload twice tells the uploader twice, by notification and by email
+#### ST-14 (minor) A double click on "Publish" tells the uploader twice, by notification and by email
 
 - Owner: content (`services/library.py`, the review) and frontend-library (`UploadsQueue`)
-- Steps: as a rep, Moderation → Uploads to review. Double-click **Publish** on a file. Or send
-  `POST /api/v1/library/items/{id}/review {"decision": "publish"}` twice.
-- Expected: the second press does nothing; the uploader hears once.
-- Actual: both answer `200`. For each of the nine files Fatima published, Ali has two "Your file is in the library: …"
-  notifications and two emails (Mailpit), and the activity log has two `library.publish` entries. Reviewing an item
-  that is already published runs the whole review again.
-- Fix: in the API, publishing a published item (or rejecting a rejected one) changes nothing and notifies nobody,
-  or answers `409`. In the queue, ignore a second press while the first is in flight (as for ST-13).
+- Steps: as a rep, Moderation → Uploads to review. Double-click **Publish** on a file.
+- Expected: one review; the uploader hears once.
+- Actual: two `POST /api/v1/library/items/{id}/review` requests, both `200`. For each of the nine files Fatima
+  published this way, Ali has two "Your file is in the library: …" notifications and two emails (Mailpit), and the
+  activity log has two "published" lines. Both requests find the file still pending, so both notify. A second
+  publish sent a moment later doesn't notify again, but it still writes a second activity line.
+- Fix: publish with a conditional update (`WHERE status <> 'published'`) or lock the row, and notify and log only
+  when it changed. In the queue, ignore a second press while the first is in flight (as for ST-13).
+- e2e: `library.spec.ts` "ST-14: two publishes at once tell the uploader once" sends two publishes together and
+  fails as expected (`test.fail`).
 
 #### ST-15 (nit) Old Office files are labelled DOCX, XLSX and PPTX
 
@@ -577,3 +610,52 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
 - Actual: the keystroke is refused and "0 to 100" flashes, though 72 is in range. Phones set to Arabic often type
   these digits.
 - Fix: map ٠–٩ (and ۰–۹) to 0–9 before checking, as the comma already becomes a point.
+
+### The suite
+
+**New test: step-up** (`web/e2e/stepup.spec.ts`, three tests). Nothing covered "Confirm it’s you" before changing
+an address. Sara's session is aged 11 minutes in the database first (a new `ageSessions()` in `support.ts`, through a
+new `E2E_PSQL` setting that defaults to `psql` in the `db` container), so she meets the dialog as a student who signed
+in yesterday:
+
+1. She changes her email: the code goes to her current address, a wrong one says "4 tries left", the right one lets
+   the change carry on by itself, the new address gets its code, and the old one gets "Your DSBA Hub account
+   changed".
+2. She changes her phone number and picks "Text my phone instead": the code comes by text, the new number gets its
+   own, and the old number is told by text.
+3. She closes "Confirm it’s you" while removing her phone: nothing changes, and the dialog says why. Her session's
+   age is then put back, so the teardown deletes her account without a code. (Sara's account has asked for about
+   ten codes by then, and the per-account limit would refuse the teardown's step-up for an hour: "You've asked for
+   too many codes. Try again in 56 minutes.")
+
+`support.ts` also gains `mailedSince()` for notices from the mail worker.
+
+**Expected failures added:** `forum.spec.ts` "ST-13: a double click on "Post reply" posts one reply" and
+`library.spec.ts` "ST-14: two publishes at once tell the uploader once" (`test.fail`, with the finding's ID). No
+existing test needed a change: `accounts.spec.ts` already reads `emailNewIssues` since `round3/no-legacy`.
+
+**Runs** (`scripts/e2e.sh` from the `round3/review-student` worktree, Google Chrome, one worker):
+
+| Run | What ran | Passed | Failed | Skipped | Did not run | Time |
+|---|---|---|---|---|---|---|
+| 1 | The whole suite with the new tests | 39 | 2 | 0 | 5 | 6.0 min |
+| 2 | `library.spec.ts` and `stepup.spec.ts` after fixing my tests | 16 | 1 (teardown) | 0 | 1 | 4.9 min |
+| | The teardown alone (twice; see below) | 2 | 0 | 0 | 0 | 2 s |
+| 3 | **The whole suite, final** | **46** | **0** | **0** | **0** | 2.9 min |
+
+- **Run 1:** two of my new tests were wrong, not the app. My first ST-14 test sent a second publish after the first
+  had finished, which only adds an activity line (the bug needs two requests at once). The phone step-up test
+  expected the email code, but within 30 s of the last code to that address the dialog says "Wait 24 seconds…" and
+  offers "Text my phone instead", which is right. Both fixed; the library tests after ST-14 hadn't run.
+- **Run 2:** all new tests passed; the teardown couldn't delete Sara because her aged session needed a step-up and
+  her account had run out of codes. I made her session young again in the database and ran the teardown alone,
+  which cleaned up; the cancel test now restores the age itself.
+- **Run 3:** 46 passed, counting the two expected failures (ST-13 and ST-14 reproduced). Then
+  `scripts/e2e.sh --restore`, run from the main checkout: `api` and `mail` are back on Mailpit and the log, from the
+  main checkout. **`web` still runs from this worktree** (`/Users/mohamed/dsba-rev-student/web`), because the e2e mode
+  recreated it there and `--restore` doesn't touch it. Recreate it from the main checkout before removing the
+  worktree.
+
+Codes I asked for by hand: 9 (Sara's sign-up 2, Ali's 1, step-ups 3, new addresses 2, Noor's cancelled step-up 1).
+
+**Final: 46 passed, 0 failed, 0 skipped.**

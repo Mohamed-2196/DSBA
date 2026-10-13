@@ -230,3 +230,15 @@ test('D9: a photo of notes is checked, reviewed and shown on its page', async ({
   expect(shown.headers()['content-type']).toBe('image/png');
   expect(shown.headers()['content-disposition']).toMatch(/^inline/);
 });
+
+test('ST-14: two publishes at once tell the uploader once', async ({ rep, ali, run }) => {
+  test.fail(true, 'ST-14: both requests find the file unpublished, so both notify (a double click on "Publish")');
+  // The CSV the rep turned down earlier: two publishes sent together, as a double click sends them.
+  const csv = (await api<{ items: Item[] }>(ali, 'GET', `/api/v1/library/items?mine=true&q=${run.tag}`)).body.items.find((i) => i.title === titles(run.tag).csv);
+  const published = async () =>
+    (await api<{ items: { kind: string; title: string }[] }>(ali, 'GET', '/api/v1/notifications?limit=50')).body.items.filter((n) => n.kind === 'upload_published' && n.title.endsWith(titles(run.tag).csv)).length;
+  expect(await published()).toBe(0);
+  const answers = await Promise.all([1, 2].map(() => api(rep, 'POST', `/api/v1/library/items/${csv?.id}/review`, { decision: 'publish' })));
+  expect(answers.map((a) => a.status)).toEqual([200, 200]);
+  expect(await published()).toBe(1);
+});

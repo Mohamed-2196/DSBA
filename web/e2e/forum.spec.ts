@@ -109,6 +109,19 @@ test('Ali answers and votes; Sara replies to his answer, accepts it and edits he
   expect(kinds).toContain('reply_reply');
 });
 
+test('ST-13: a double click on "Post reply" posts one reply', async ({ ali, run }) => {
+  test.fail(true, 'ST-13: each click posts, so a double click posts the reply twice');
+  await ali.goto(`/forum/${slug}`);
+  const text = `Same answer, sent with a double tap (${run.tag}).`;
+  await ali.locator('[data-hub="reply-input"]').fill(text);
+  await ali.locator('[data-hub="post-reply"]').last().dblclick();
+  await expect(reply(ali, text)).toBeVisible();
+  await expect.poll(async () => (await api<{ replies: unknown[] }>(ali, 'GET', `/api/v1/forum/threads/${slug}`)).body.replies.length).toBeGreaterThan(0);
+  const replies = (await api<{ replies: { id: string; body: string }[] }>(ali, 'GET', `/api/v1/forum/threads/${slug}`)).body.replies.filter((r) => r.body === text);
+  for (const r of replies) await api(ali, 'DELETE', `/api/v1/forum/replies/${r.id}`); // the other tests count on the thread as it was
+  expect(replies).toHaveLength(1);
+});
+
 test('Ali deletes a reply; Sara reports an off-topic one, and reporting twice is answered kindly', async ({ ali, sara }) => {
   await ali.goto(`/forum/${slug}`);
   await postReply(ali, 'Sorry, wrong thread.');
