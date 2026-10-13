@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowFatUp, ChatsCircle } from '@phosphor-icons/react';
 import { Button, EmptyState, Panel, QueryError, Skeleton, timeAgo } from '../../ui';
-import { normalizeYear, useYear } from '../../state';
+import { normalizeYear, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { useHotThreads } from './api';
 import { ModuleTag, PlaceBadge, ReplyCount } from './components/ThreadBits';
@@ -11,13 +11,15 @@ import './HotThreads.css';
 export interface HotThreadsProps {
   /** how many threads (default 5) */
   n?: number;
+  /** the cohort whose threads to show (plus forum-wide ones); null for every cohort. Default: the cohort browsed */
+  year?: CohortYear | null;
 }
 
 /** Home widget: the n hottest threads for the student's year (plus forum-wide ones). */
-export function HotThreads({ n = 5 }: HotThreadsProps) {
-  const { year } = useYear();
+export function HotThreads({ n = 5, year: forYear }: HotThreadsProps) {
+  const { year: browsed } = useYear();
   const { getModule } = useModules();
-  const hot = useHotThreads({ n, year: normalizeYear(year) });
+  const hot = useHotThreads({ n, year: forYear === undefined ? normalizeYear(browsed) : forYear });
 
   if (hot.isPending) {
     return (
@@ -71,9 +73,11 @@ export function HotThreads({ n = 5 }: HotThreadsProps) {
               <span className="u-tabular">{t.voteCount}</span>
             </span>
             <div className="forum-hot__main">
-              <Link to={`/forum/${t.slug}`} className="forum-hot__link" dir="auto">
-                {t.title}
-              </Link>
+              <p className="forum-hot__title" dir="auto">
+                <Link to={`/forum/${t.slug}`} className="forum-hot__link">
+                  {t.title}
+                </Link>
+              </p>
               <div className="forum-hot__meta">
                 {t.moduleId && getModule(t.moduleId) ? <ModuleTag module={getModule(t.moduleId)} /> : <PlaceBadge thread={t} />}
                 <time dateTime={t.createdAt}>{timeAgo(t.createdAt)}</time>

@@ -16,6 +16,14 @@ export function modKeyLabel(): string {
   return /Mac|iPhone|iPad|iPod/i.test(navigator.platform || '') || /Macintosh|Mac OS X|iPhone|iPad/.test(navigator.userAgent || '') ? '⌘' : 'Ctrl';
 }
 
+const counts = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 0 });
+
+/** A count as the Hub shows it: '7', '1,234', '12,345' (thousands separated, as everywhere in en-GB). Show it with
+ *  tabular figures (Badge, Tabs and Chip counts have them) so a count that changes doesn't shift its neighbours. */
+export function formatCount(n: number): string {
+  return counts.format(n);
+}
+
 export type DateInput = Date | string | number;
 
 /** Relative time: '2h ago', '3d ago', 'just now', or a short date for > 30 days. */

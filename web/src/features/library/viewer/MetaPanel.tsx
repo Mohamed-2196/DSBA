@@ -2,13 +2,14 @@ import { ArrowSquareOut, DownloadSimple, GoogleDriveLogo } from '@phosphor-icons
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { formatSize } from '../../../api/uploads';
+import { hostOf } from '../../../lib/share';
 import { cohortTextColor } from '../../../state';
 import { useModules } from '../../../state/modules';
-import { Button, CohortBadge, Kbd, Skeleton, cx, formatDate, timeAgo } from '../../../ui';
+import { Button, CohortBadge, Count, Kbd, Skeleton, cx, formatDate, timeAgo } from '../../../ui';
 import { downloadHref, itemPath, openLinkHref, useLibraryList } from '../api';
 import type { LinkState } from '../components/FileCard';
 import { FileThumb } from '../components/FileThumb';
-import { addedAt, examLabel, linkHost, linkPlace, sizeLabel } from '../display';
+import { addedAt, examLabel, linkPlace, sizeLabel } from '../display';
 import { formatOf, kindLabel } from '../kinds';
 import type { LibraryItem } from '../types';
 
@@ -68,7 +69,7 @@ export function MetaPanel({ item, linkState, className, id }: { item: LibraryIte
   const exam = examLabel(item);
   const who = item.uploadedBy;
   const isLink = item.source === 'link';
-  const host = linkHost(item.url);
+  const host = hostOf(item.url);
   return (
     <aside id={id} className={cx('lib-meta', className)} data-hub="file-meta" aria-label="File details">
       {m ? (
@@ -109,7 +110,7 @@ export function MetaPanel({ item, linkState, className, id }: { item: LibraryIte
           </>
         )}
         <Row label={isLink ? 'Opened' : 'Downloads'}>
-          <span className="u-tabular">{item.downloadCount.toLocaleString('en-GB')}</span>
+          <Count value={item.downloadCount} />
           {isLink ? (item.downloadCount === 1 ? ' time' : ' times') : null}
         </Row>
       </dl>

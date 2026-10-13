@@ -2,7 +2,7 @@
 // Every primitive is rendered (light + dark) on /styleguide.
 export { Button, type ButtonProps, type ButtonVariant, type ButtonSize } from './Button';
 export { IconButton, type IconButtonProps } from './IconButton';
-export { Badge, CohortBadge, type BadgeProps, type BadgeTone, type CohortBadgeProps } from './Badge';
+export { Badge, CohortBadge, Count, type BadgeProps, type BadgeTone, type CohortBadgeProps } from './Badge';
 export { Chip, type ChipProps } from './Chip';
 export { Avatar, type AvatarProps, type AvatarSize } from './Avatar';
 export { Tabs, TabPanel, type TabsProps, type TabItem, type TabPanelProps } from './Tabs';
@@ -43,6 +43,6 @@ export { Switch, type SwitchProps } from './Switch';
 export { ModuleIcon, type ModuleIconProps } from './ModuleIcon';
 export { BrandLogo, ProgrammeLockup, type BrandLogoProps, type BrandLogoName, type ProgrammeLockupProps } from './BrandLogo';
 export { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
-export { cx, initials, modKeyLabel, timeAgo, formatDate, type DateInput } from './utils';
+export { cx, initials, modKeyLabel, timeAgo, formatDate, formatCount, type DateInput } from './utils';
 export { safeHref, safeInternalPath, isMediaPath, type SafeHref } from './safeHref';
 export type { IconSource } from './internal';

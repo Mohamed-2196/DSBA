@@ -3,8 +3,8 @@
 import { ArrowClockwise, Flag, Tray, WarningCircle } from '@phosphor-icons/react';
 import type { AdminStats } from '../../api/types';
 import { RoleGate } from '../../auth';
-import { ReportsQueue } from '../forum/ReportsQueue';
-import { UploadsQueue } from '../library/UploadsQueue';
+import { ReportsQueue } from '../forum/public';
+import { UploadsQueue } from '../library/public';
 import { useQueryParam } from '../../state';
 import { Button, ErrorBoundary, Page, PageHeader, Skeleton, TabPanel, Tabs } from '../../ui';
 import { useAdminStats } from './api';

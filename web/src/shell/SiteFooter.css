@@ -17,7 +17,7 @@
 .shell-footer__name { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); text-decoration: none; }
 a.shell-footer__name:hover { color: var(--cobalt); text-decoration: underline; }
 .shell-footer__role { color: var(--ink-2); font-size: var(--fs-12); }
-.shell-footer__legal { display: grid; gap: 4px; max-width: 72ch; color: var(--ink-2); font-size: var(--fs-12); }
+.shell-footer__legal { display: grid; gap: 4px; max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-12); }
 
 @media (max-width: 699px) {
   .shell-footer__inner { padding-bottom: var(--sp-32); }

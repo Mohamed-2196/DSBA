@@ -120,7 +120,7 @@ export default function HomePage() {
                 }
               />
               <ErrorBoundary name="HotThreads">
-                <HotThreads n={4} />
+                <HotThreads n={4} year={activeYear} />
               </ErrorBoundary>
             </PageSection>
             <PageSection className="home-sec home-sec--library" aria-labelledby="home-library">
@@ -164,7 +164,7 @@ export default function HomePage() {
                 }
               />
               <ErrorBoundary name="UpcomingEvents">
-                <UpcomingEvents n={4} />
+                <UpcomingEvents n={4} year={activeYear} />
               </ErrorBoundary>
             </PageSection>
             <PageSection className="home-sec home-sec--exams" aria-labelledby="home-news">

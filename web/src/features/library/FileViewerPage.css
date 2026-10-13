@@ -51,7 +51,7 @@
 }
 .lib-status--rejected { background: var(--alert-soft); }
 .lib-status--removed { background: var(--surface-2); }
-.lib-status__text { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-8) var(--sp-12); min-width: 0; max-width: 80ch; }
+.lib-status__text { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-8) var(--sp-12); min-width: 0; max-width: var(--measure); }
 .lib-status__text p { flex: 1 1 320px; margin: 0; color: var(--ink); font-size: var(--fs-14); line-height: 1.5; overflow-wrap: anywhere; }
 .lib-status__actions { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
 .lib-status__review { min-width: min(100%, 320px); }

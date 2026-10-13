@@ -3,7 +3,8 @@
 // are drawn (lib/links.ts), so a link the API let through by mistake never becomes a button.
 import { useQuery } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
-import type { CareerDoc, ModuleDetail } from '../../api/types';
+import type { CareerDoc } from '../../api/types';
+import { moduleDetailQuery } from '../modules/public';
 
 export const CAREER_KEY = ['career'] as const;
 
@@ -20,12 +21,7 @@ export function useCareer() {
   });
 }
 
-/** A module with its chapters (for links straight to a lesson). Shares its cache entry with other features. */
+/** A module with its chapters (for links straight to a lesson): the modules feature's one cache entry for it. */
 export function useModuleDetail(moduleId: string | null | undefined) {
-  return useQuery({
-    queryKey: ['modules', 'detail', moduleId ?? ''] as const,
-    queryFn: (): Promise<ModuleDetail> => call(api.GET('/api/v1/modules/{module_id}', { params: { path: { module_id: moduleId ?? '' } } })),
-    enabled: !!moduleId,
-    staleTime: Infinity,
-  });
+  return useQuery({ ...moduleDetailQuery(moduleId ?? ''), enabled: !!moduleId });
 }

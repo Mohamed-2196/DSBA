@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LibraryItem } from '../../api/types';
-import { addedAt, cardMeta, downloadsLabel, examLabel, isNew, linkHost, linkPlace, moduleTag, sizeLabel, statusInfo } from './display';
+import { addedAt, cardMeta, downloadsLabel, examLabel, isNew, linkPlace, moduleTag, sizeLabel, statusInfo } from './display';
 
 const DAY = 24 * 3600 * 1000;
 const NOW = Date.parse('2026-10-12T12:00:00Z');
@@ -59,13 +59,12 @@ describe('labels', () => {
   });
 
   it('says where a link leads', () => {
-    expect(linkHost('https://www.example.com/a')).toBe('example.com');
-    expect(linkHost('javascript:alert(1)')).toBeNull();
-    expect(linkHost('not a url')).toBeNull();
     expect(linkPlace({ url: 'https://drive.google.com/drive/folders/x' })).toBe('Google Drive');
     expect(linkPlace({ url: 'https://docs.google.com/document/d/x' })).toBe('Google Drive');
     expect(linkPlace({ url: 'https://vle.example.ac.uk/x' })).toBe('vle.example.ac.uk');
     expect(linkPlace({ url: null })).toBe('another site');
+    expect(linkPlace({ url: 'javascript:alert(1)' })).toBe('another site');
+    expect(linkPlace({ url: 'https://www.example.com/a' })).toBe('example.com');
   });
 
   it('gives a file’s format and size, and a link’s place', () => {

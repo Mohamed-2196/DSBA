@@ -11,7 +11,6 @@
   letter-spacing: 0;
   white-space: nowrap;
   vertical-align: middle;
-  font-variant-numeric: tabular-nums;
 }
 .ui-badge--sm { height: 18px; padding: 0 7px; gap: 4px; }
 .ui-badge__icon { font-size: 13px; }
@@ -40,3 +39,8 @@
 .ui-cohort--soft { background: color-mix(in srgb, var(--c) 13%, var(--surface)); color: var(--ink); }
 .ui-cohort--solid { background: var(--c); color: var(--c-on); }
 .ui-cohort--dot { background: transparent; padding: 0; color: var(--ink-2); }
+
+/* A count (Count): tabular digits, the separator at its usual width. Words in a badge keep the usual figures: a
+   tabular comma or full stop is as wide as a digit and would read as 'Oct , in 6 days'. */
+.ui-count { font-variant-numeric: tabular-nums; }
+.ui-count__sep { font-variant-numeric: normal; }

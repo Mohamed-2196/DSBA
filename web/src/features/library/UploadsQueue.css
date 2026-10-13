@@ -1,7 +1,7 @@
 /* Moderators' review queue for library uploads. */
 .lib-queue { display: grid; gap: var(--sp-16); }
 .lib-queue__h { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-12); font-size: var(--fs-20); font-weight: var(--fw-bold); }
-.lib-queue__intro { max-width: 72ch; margin-top: var(--sp-4); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.lib-queue__intro { max-width: var(--measure); margin-top: var(--sp-4); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
 .lib-queue__list { margin: 0; padding: 0; list-style: none; }
 .lib-queue__row {
   display: grid;
@@ -27,7 +27,7 @@
 .lib-queue__file { min-width: 0; overflow-wrap: anywhere; }
 .lib-queue__by { color: var(--ink-2); font-size: var(--fs-14); }
 .lib-queue__by strong { color: var(--ink); font-weight: var(--fw-semibold); }
-.lib-queue__desc { max-width: 72ch; margin-top: var(--sp-4); color: var(--ink); font-size: var(--fs-14); line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }
+.lib-queue__desc { max-width: var(--measure); margin-top: var(--sp-4); color: var(--ink); font-size: var(--fs-14); line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }
 .lib-queue__links { display: flex; flex-wrap: wrap; gap: var(--sp-4); margin: var(--sp-4) 0 0 calc(-1 * var(--sp-12)); }
 .lib-queue__actions { min-width: 220px; }
 .lib-queue__picture-link { display: block; border-radius: 4px; }

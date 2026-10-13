@@ -72,7 +72,7 @@
   .mod-head__name { max-width: none; font-size: var(--fs-25); }
   .mod-head__plate { width: 60px; height: 60px; border-radius: var(--r-panel); font-size: 32px; }
 }
-.mod-head__desc { margin-top: var(--sp-16); max-width: 64ch; color: var(--ink-2); font-size: var(--fs-16); }
+.mod-head__desc { margin-top: var(--sp-16); max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-16); }
 .mod-head__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8) var(--sp-12); margin-top: var(--sp-16); }
 .mod-head__counts { color: var(--ink-2); font-size: var(--fs-14); }
 
@@ -131,7 +131,7 @@
 }
 .mod-res__icon { flex: 0 0 auto; margin-top: -1px; color: var(--mc); font-size: 22px; }
 .mod-res__body { display: grid; gap: var(--sp-12); min-width: 0; margin: 0; }
-.mod-res__desc { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; padding-top: 1px; }
+.mod-res__desc { max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; padding-top: 1px; }
 
 /* v1's own note about the exercises, set as a margin annotation. */
 .mod-res__note {

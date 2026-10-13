@@ -7,7 +7,7 @@ import { loadProblem } from '../../api/errors';
 import { MagnifyingGlass, X } from '@phosphor-icons/react';
 import { useDebouncedValue, useLocalStorage, useTheme, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { HubMark, Kbd, Modal, cx } from '../../ui';
+import { Count, HubMark, Kbd, Modal, cx } from '../../ui';
 import { hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
 import { useSearch } from './api';
 import { tokenize } from './match';
@@ -298,7 +298,7 @@ export function CommandPalette() {
                   Clear
                 </button>
               ) : g.total > 0 ? (
-                <span className="cmdk-group__count u-tabular">{g.total}</span>
+                <span className="cmdk-group__count"><Count value={g.total} /></span>
               ) : null}
             </div>
             {g.items.map((item, i) => {

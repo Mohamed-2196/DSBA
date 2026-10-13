@@ -1,7 +1,7 @@
 // Public interface of the forum feature. Other features import from here only.
 //
-//   <HotThreads n={5} />                 Home widget: the n hottest threads for the student's year (plus forum-wide ones).
-//                                         Has its own loading, empty and error states.
+//   <HotThreads n={5} year? />           Home widget: the n hottest threads for the student's year (plus forum-wide ones).
+//                                         Has its own loading, empty and error states. `year` overrides the browsed one.
 //   <ModuleThreads moduleId="…" />       the module page's Discussion tab: the module's threads, "Ask about this module".
 //   useHotThreads({ n, year })            UseQueryResult<ThreadSummary[]>: the hottest threads (pinned ones left out) for a
 //                                         cohort plus forum-wide ones; year null → every cohort. Links: /forum/<slug>.

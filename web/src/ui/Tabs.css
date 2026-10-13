@@ -38,6 +38,7 @@
   left: 0;
   bottom: 0;
   height: 2px;
+  pointer-events: none; /* it sits on the tab's bottom edge: a tap there still reaches the tab */
   border-radius: 2px;
   background: var(--cobalt);
   transition: transform var(--dur) var(--ease), width var(--dur) var(--ease);
@@ -52,6 +53,7 @@
   bottom: 3px;
   left: 0;
   z-index: -1;
+  pointer-events: none;
   border-radius: 8px;
   background: var(--thumb-bg);
   box-shadow: var(--thumb-shadow);
@@ -60,6 +62,8 @@
 
 .ui-tabpanel:focus-visible { outline-offset: 4px; border-radius: var(--r-xs); }
 
+/* Touch screens: every tab is at least 44px each way, a short one ('All') included. */
 @media (pointer: coarse) {
+  .ui-tab { min-width: 44px; justify-content: center; }
   .ui-tabs--pill .ui-tab { height: 44px; }
 }

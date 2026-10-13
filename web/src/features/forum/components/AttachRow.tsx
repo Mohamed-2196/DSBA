@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { ImageSquare } from '@phosphor-icons/react';
+import { UPLOAD_RULES } from '../../../api/uploads';
 import { Button } from '../../../ui';
-import { MAX_IMAGE_MB } from '../lib/uploads';
 import type { AttachImages } from '../lib/useAttachImages';
 import { AttachmentList } from './ImageAttachments';
 
@@ -22,7 +22,7 @@ export function AttachRow({ images }: { images: AttachImages }) {
         {images.cards.length ? 'Attach another image' : 'Attach image'}
       </Button>
       <span className="forum-composer__attach-note">
-        A photo of the question or your working. PNG, JPEG, WebP or GIF, up to {MAX_IMAGE_MB} MB. It goes into your post where the cursor is.
+        A photo of the question or your working. {UPLOAD_RULES.forum_image.summary} It goes into your post where the cursor is.
       </span>
     </div>
   );

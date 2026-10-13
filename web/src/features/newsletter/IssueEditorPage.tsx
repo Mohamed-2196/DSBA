@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import { PencilSimple } from '@phosphor-icons/react';
 import { isApiError } from '../../api/errors';
-import { useAuth } from '../../auth';
+import { holdsRole, useAuth } from '../../auth';
 import { useDocumentTitle } from '../../state';
 import { Button, EmptyState, Page, Panel, QueryError, Skeleton } from '../../ui';
 import { useIssueDetail } from './api';
@@ -41,12 +41,16 @@ function Notice({ title, body, action }: { title: string; body: string; action: 
 
 export default function IssueEditorPage() {
   const { slug } = useParams();
-  const { status, isModerator, openSignIn } = useAuth();
+  const { me, status, isModerator, openSignIn } = useAuth();
   const q = useIssueDetail(isModerator ? slug : undefined);
   useDocumentTitle('Edit issue');
 
   if (status === 'loading') return <EditorSkeleton />;
   if (!isModerator) {
+    // A suspended rep has no powers (as the API decides): say why rather than "only student reps".
+    if (me?.status === 'suspended' && holdsRole(me, 'moderator')) {
+      return <Notice title="Your account is suspended" body="While it is, you can’t edit the newsletter. Contact an admin." action={<Button to="/newsletter">Go to the newsletter</Button>} />;
+    }
     return status === 'guest' ? (
       <Notice
         title="Only student reps can edit the newsletter"

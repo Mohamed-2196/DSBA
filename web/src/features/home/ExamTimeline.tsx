@@ -144,7 +144,7 @@ function Trace({ session, intro, today }: { session: ExamSession | null; intro: 
               <Link
                 key={e.id}
                 to={to}
-                className={cx('home-trace__label', 'u-code', b.isNext && 'is-next')}
+                className={cx('home-trace__label', 'u-code', b.isNext && 'is-next', b.level > 0 && 'is-upper')}
                 style={{ left: b.x, bottom: H - (b.top - lift), ...(intro && !b.isNext ? { animationDelay: `${delay}ms` } : null) }}
                 aria-label={`${examName(e)}, ${e.type === 'mock' ? 'mock exam' : e.type === 'exam' ? 'exam' : e.title} on ${formatLongDay(e.when)}, ${inDays(e.days)}`}
               >

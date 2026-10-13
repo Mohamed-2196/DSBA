@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ChatCircleText, Plus } from '@phosphor-icons/react';
 import type { Reply, ThreadDetail } from '../../api/types';
+import { appUrl, copyText } from '../../lib/share';
 import { Button, EmptyState, Page, Panel, QueryError, Skeleton } from '../../ui';
 import { useDocumentTitle, useToast } from '../../state';
 import { isNotFound, useThread } from './api';
@@ -90,18 +91,6 @@ function ThreadSkeleton() {
   );
 }
 
-/** Copy this thread's address. */
-async function copyThreadLink(slug: string): Promise<boolean> {
-  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-  const url = `${window.location.origin}${base}/forum/${slug}`;
-  try {
-    await navigator.clipboard.writeText(url);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 interface ThreadViewProps {
   thread: ThreadDetail;
   reload: () => Promise<unknown>;
@@ -139,8 +128,8 @@ function ThreadView({ thread, reload, unavailable }: ThreadViewProps) {
   };
 
   const copyLink = async () => {
-    if (await copyThreadLink(thread.slug)) push({ title: 'Link copied', body: 'Paste it anywhere to share this thread.', tone: 'success' });
-    else push({ title: "Couldn't copy the link", body: 'Copy it from the address bar instead.', tone: 'alert' });
+    if (await copyText(appUrl(`/forum/${thread.slug}`))) push({ title: 'Link copied', body: 'Paste it anywhere to share this thread.', tone: 'success' });
+    else push({ title: 'Couldn’t copy the link', body: 'Copy it from the address bar instead.', tone: 'alert' });
   };
 
   return (

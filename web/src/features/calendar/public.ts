@@ -1,7 +1,8 @@
 // Public API of the calendar feature. Other features import from here only.
 //
-//   <UpcomingEvents n={5} />                 compact "coming up" list for the student's cohort (Home, forum sidebar);
+//   <UpcomingEvents n={5} year? />           compact "coming up" list for the student's cohort (Home, forum sidebar);
 //                                            each row links to /calendar?event=<id>. Has its own loading/empty/error states.
+//                                            `year` overrides the browsed cohort (Home passes the year its other panels show).
 //   useUpcomingEvents({ n, year })           UseQueryResult<CalendarEvent[]>: the next n dates from today for a cohort
 //                                            (plus everyone-dates); year null → every cohort.
 //   useNextExamForModule(moduleId)           UseQueryResult<CalendarEvent | null>: the module's next exam, null when none.

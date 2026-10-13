@@ -1,5 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { cx, renderIcon, type IconSource } from './internal';
+import { Count } from './Badge';
 import './Chip.css';
 
 export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange' | 'color'> {
@@ -36,7 +37,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       {color ? <span className="ui-chip__dot" style={{ background: color }} aria-hidden="true" /> : null}
       {renderIcon(icon, { className: 'ui-chip__icon' })}
       <span>{children}</span>
-      {count != null ? <span className="ui-chip__count">{count}</span> : null}
+      {count != null ? <span className="ui-chip__count"><Count value={count} /></span> : null}
     </button>
   );
 });

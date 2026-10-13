@@ -42,15 +42,33 @@ describe('describeAudit', () => {
     expect(describeAudit(entry('user.role', { from: 'student', to: 'moderator' }, 'user'))).toBe('changed a role from student to student rep');
   });
 
+  it('sums up a run of the Drive import', () => {
+    const run = (data: Record<string, unknown>) => describeAudit({ ...entry('library.import', { via: 'cli', from: 'google-drive', ...data }), actor: null } as AuditOut);
+    expect(run({ imported: 12, skipped: 0, failed: 0, refusedFolders: [], stopped: null })).toBe('imported 12 files from Google Drive');
+    expect(run({ imported: 1, skipped: 3, failed: 1, refusedFolders: [{ module: 'ST2133', link: 'x', folder: 'y' }], stopped: null })).toBe(
+      'imported 1 file from Google Drive (3 skipped, 1 failed, a folder it couldn’t open)',
+    );
+    expect(run({ imported: 1234, skipped: 0, failed: 0, refusedFolders: [{}, {}], stopped: 'interrupted' })).toBe(
+      'imported 1,234 files from Google Drive (2 folders it couldn’t open, stopped early)',
+    );
+    expect(run({})).toBe('imported 0 files from Google Drive');
+  });
+
   it('still says something for an action it doesn’t know', () => {
     expect(describeAudit(entry('library.archive', { title: 'Old notes' }))).toBe('library archive “Old notes”');
   });
 });
 
 describe('auditActor', () => {
-  it('is the account, the name it had, or the Hub', () => {
+  it('is the account, or the name it had then', () => {
     expect(auditActor(entry('forum.thread.hide', {}))).toBe('Hassan A.');
     expect(auditActor({ ...entry('forum.thread.hide', { actorName: 'Old name' }), actor: null } as AuditOut)).toBe('Old name');
-    expect(auditActor({ ...entry('user.role', {}), actor: null } as AuditOut)).toBe('The Hub');
+  });
+
+  it('is the Hub for what ran on the server, and a deleted user otherwise', () => {
+    expect(auditActor({ ...entry('library.import', { via: 'cli', imported: 3 }), actor: null } as AuditOut)).toBe('The Hub');
+    expect(auditActor({ ...entry('user.role', { via: 'bootstrap', to: 'admin' }), actor: null } as AuditOut)).toBe('The Hub');
+    expect(auditActor({ ...entry('forum.thread.hide', {}), actor: null } as AuditOut)).toBe('A deleted user');
+    expect(auditActor({ ...entry('user.role', { from: 'student', to: 'moderator' }), actor: null } as AuditOut)).toBe('A deleted user');
   });
 });

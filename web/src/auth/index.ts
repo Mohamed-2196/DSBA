@@ -4,3 +4,4 @@ export type { AuthStatus, AuthValue, SignInRequest } from './context';
 export { useAuth } from './useAuth';
 export { roleLabel, accountLine, type Role } from './labels';
 export { RoleGate, type RoleGateProps } from './RoleGate';
+export { canAdminister, canModerate, holdsRole } from './roles';

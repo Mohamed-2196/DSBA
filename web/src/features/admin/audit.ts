@@ -1,6 +1,7 @@
 // The audit log in plain words: "hid a thread: “Week 3 notes”".
 import type { AuditOut } from '../../api/types';
 import { roleLabel, type Role } from '../../auth/labels';
+import { formatCount } from '../../ui';
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v : null);
 const quoted = (v: unknown): string => {
@@ -20,6 +21,20 @@ const reported = (d: Record<string, unknown>): string => {
   const title = quoted(d.title);
   if (!title) return 'a post';
   return `${REPORTED[str(d.targetType) ?? ''] ?? 'the post'}${title}`;
+};
+
+/** One run of the Drive import (python -m app.cli import-drive): what it brought in, and what it couldn't. */
+const count = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : 0);
+const driveImport = (d: Record<string, unknown>): string => {
+  const n = count(d.imported);
+  const folders = Array.isArray(d.refusedFolders) ? d.refusedFolders.length : 0;
+  const notes = [
+    count(d.skipped) ? `${formatCount(count(d.skipped))} skipped` : null,
+    count(d.failed) ? `${formatCount(count(d.failed))} failed` : null,
+    folders ? `${folders === 1 ? 'a folder' : `${formatCount(folders)} folders`} it couldn’t open` : null,
+    str(d.stopped) ? 'stopped early' : null,
+  ].filter((note): note is string => note !== null);
+  return `imported ${formatCount(n)} ${n === 1 ? 'file' : 'files'} from Google Drive${notes.length ? ` (${notes.join(', ')})` : ''}`;
 };
 
 /** An admin's identifier change (account recovery): data.from and data.to are masked ("s•••@example.com"). */
@@ -65,6 +80,7 @@ const ACTIONS: Record<string, Describe> = {
   'library.link': (d) => `added a link to the library:${quoted(d.title)}`,
   'library.edit': (d) => `edited${quoted(d.title) || ' a library file'}`,
   'library.remove': (d) => `removed${quoted(d.title) || ' a library file'}`,
+  'library.import': driveImport,
   'calendar.create': (d) => `added an event:${quoted(d.title)}`,
   'calendar.update': (d) => `edited an event${quoted(d.title)}`,
   'calendar.delete': (d) => `deleted an event${quoted(d.title)}`,
@@ -86,7 +102,9 @@ export function describeAudit(entry: AuditOut, nameOf: (userId: string) => strin
   return `${entry.action.replace(/[._]+/g, ' ')}${quoted(entry.data?.title)}`;
 }
 
-/** Who did it: the account, the name it had then, or the Hub itself. */
+/** Who did it: the account, the name it had then, or the Hub itself for what ran on the server: a command
+ *  (`via: 'cli'`) or the server's own settings (`via: 'bootstrap'`). */
 export function auditActor(entry: AuditOut): string {
-  return entry.actor?.displayName ?? str(entry.data?.actorName) ?? (entry.action === 'user.role' ? 'The Hub' : 'A deleted user');
+  const byTheHub = entry.data?.via === 'cli' || entry.data?.via === 'bootstrap';
+  return entry.actor?.displayName ?? str(entry.data?.actorName) ?? (byTheHub ? 'The Hub' : 'A deleted user');
 }

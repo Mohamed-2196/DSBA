@@ -38,7 +38,7 @@
 .career-score__headline strong { font-weight: var(--fw-heavy); }
 .career-score__sub { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.4; }
 
-.career-fit__about { max-width: 68ch; color: var(--ink); font-size: var(--fs-16); line-height: 1.5; }
+.career-fit__about { max-width: var(--measure); color: var(--ink); font-size: var(--fs-16); line-height: 1.5; }
 
 .career-tools__label { margin-bottom: var(--sp-8); color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
 .career-tools__list { display: flex; flex-wrap: wrap; gap: var(--sp-8); list-style: none; }

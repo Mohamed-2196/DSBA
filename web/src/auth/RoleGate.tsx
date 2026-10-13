@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { House, ShieldCheck, SignIn, WarningCircle } from '@phosphor-icons/react';
 import { PageLoader } from '../shell/PageLoader';
 import { Button, EmptyState, Page, PageHeader, Panel } from '../ui';
+import { holdsRole } from './roles';
 import { useAuth } from './useAuth';
 
 export type Need = 'signed-in' | 'moderator' | 'admin';
@@ -49,25 +50,9 @@ export function RoleGate({ need, title, description, children }: RoleGateProps) 
       </Notice>
     );
   }
-  if (need === 'signed-in') return <>{children}</>;
-  const allowed = need === 'admin' ? isAdmin : isModerator;
-  if (!allowed) {
-    return (
-      <Notice title={title} description={description}>
-        <EmptyState
-          icon={ShieldCheck}
-          title={FOR_WHOM[need]}
-          body="It isn’t available on your account. If you think you need it, ask an admin."
-          action={
-            <Button to="/" leadingIcon={House}>
-              Go to Home
-            </Button>
-          }
-        />
-      </Notice>
-    );
-  }
-  if (me.status === 'suspended') {
+  if (need === 'signed-in' || (need === 'admin' ? isAdmin : isModerator)) return <>{children}</>;
+  // A rep or an admin whose account is suspended has no powers (as the API decides): tell them why.
+  if (me.status === 'suspended' && holdsRole(me, need)) {
     return (
       <Notice title={title} description={description}>
         <EmptyState
@@ -83,5 +68,18 @@ export function RoleGate({ need, title, description, children }: RoleGateProps) 
       </Notice>
     );
   }
-  return <>{children}</>;
+  return (
+    <Notice title={title} description={description}>
+      <EmptyState
+        icon={ShieldCheck}
+        title={FOR_WHOM[need]}
+        body="It isn’t available on your account. If you think you need it, ask an admin."
+        action={
+          <Button to="/" leadingIcon={House}>
+            Go to Home
+          </Button>
+        }
+      />
+    </Notice>
+  );
 }

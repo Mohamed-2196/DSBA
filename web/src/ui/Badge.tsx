@@ -1,5 +1,6 @@
-import type { HTMLAttributes, ReactNode } from 'react';
+import { Fragment, type HTMLAttributes, type ReactNode } from 'react';
 import { cx, renderIcon, type IconSource } from './internal';
+import { formatCount } from './utils';
 import { cohortLabel, normalizeYear, COHORTS } from '../state/cohort';
 import './Badge.css';
 
@@ -15,12 +16,34 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   children?: ReactNode;
 }
 
-/** Small status label (pill). */
+/**
+ * A count: tabular digits, so a count that changes doesn't nudge what's beside it, and thousands separated ('1,234').
+ * The separator has its normal width: this typeface's tabular comma is as wide as a digit and reads as '1 , 234'.
+ */
+export function Count({ value }: { value: number }) {
+  const [first, ...rest] = formatCount(value).split(',');
+  return (
+    <span className="ui-count">
+      {first}
+      {rest.map((group, i) => (
+        <Fragment key={i}>
+          <span className="ui-count__sep">,</span>
+          {group}
+        </Fragment>
+      ))}
+    </span>
+  );
+}
+
+/** Small status label (pill). A number is shown as a count (Count); words keep the typeface's usual figures. */
 export function Badge({ tone = 'neutral', size = 'md', icon, className, children, ...rest }: BadgeProps) {
+  const label = typeof children === 'number' ? <Count value={children} /> : children;
   return (
     <span className={cx('ui-badge', `ui-badge--${tone}`, `ui-badge--${size}`, className)} {...rest}>
       {renderIcon(icon, { className: 'ui-badge__icon' })}
-      {children}
+      {/* One box for the words: written in pieces ('Exam {date}, {when}'), each piece would otherwise be a flex item
+          of its own, and the gap would open before the comma. */}
+      {label != null && label !== false && label !== '' ? <span className="ui-badge__label">{label}</span> : null}
     </span>
   );
 }

@@ -2,10 +2,11 @@ import { ArrowSquareOut, DownloadSimple, FilePdf, MagnifyingGlassMinus, Magnifyi
 import { useState } from 'react';
 import { isApiError } from '../../../api/errors';
 import { formatSize } from '../../../api/uploads';
+import { hostOf } from '../../../lib/share';
 import { Button, HubMark, cx } from '../../../ui';
 import { downloadHref, openLinkHref, useFileLink } from '../api';
 import { FileThumb } from '../components/FileThumb';
-import { linkHost, linkPlace } from '../display';
+import { linkPlace } from '../display';
 import { formatOf, previewKind } from '../kinds';
 import type { LibraryItem } from '../types';
 
@@ -44,7 +45,7 @@ function NoPreview({ item, problem }: { item: LibraryItem; problem?: boolean }) 
   const fmt = formatOf(item);
   if (item.source === 'link') {
     const place = linkPlace(item);
-    const host = linkHost(item.url);
+    const host = hostOf(item.url);
     return (
       <div className="lib-nopreview" data-hub="file-nopreview">
         <FileThumb item={item} size="grid" />

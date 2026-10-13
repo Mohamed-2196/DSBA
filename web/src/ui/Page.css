@@ -21,7 +21,7 @@
   line-height: 1.08;
   letter-spacing: var(--tracking-head);
 }
-.ui-page-header__desc { margin-top: var(--sp-8); max-width: 64ch; color: var(--ink-2); font-size: var(--fs-16); }
+.ui-page-header__desc { margin-top: var(--sp-8); max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-16); }
 .ui-page-header__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); margin-top: var(--sp-16); }
 .ui-page-header__actions { flex: 0 0 auto; display: flex; flex-wrap: wrap; gap: var(--sp-8); }
 

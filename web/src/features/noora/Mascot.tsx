@@ -1,4 +1,6 @@
 import { forwardRef, useState, type ButtonHTMLAttributes, type CSSProperties } from 'react';
+import { X } from '@phosphor-icons/react';
+import { IconButton } from '../../ui';
 import type { Point, Side } from './layout';
 import { POSES, poseUrl, type Figure, type Pose } from './sprites';
 import './Mascot.css';
@@ -27,14 +29,20 @@ export interface MascotProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   chatId: string | undefined;
   /** show the first-visit speech bubble, on this side of her */
   hint: Side | null;
+  /** the bubble's words were pressed: open the chat */
   onHintClick: () => void;
+  /** the bubble's close button: it has done its job */
+  onHintClose: () => void;
 }
 
 /**
  * Mini Noora herself: a button that shows one full-body sprite. It only draws; where she is and which pose she is
  * in are decided by MiniNoora.tsx. Every other prop (pointer, key and focus handlers) goes on the button.
  */
-export const Mascot = forwardRef<HTMLButtonElement, MascotProps>(function Mascot({ point, size, pose, mirrored, state, tilt, open, chatId, hint, onHintClick, ...handlers }, ref) {
+export const Mascot = forwardRef<HTMLButtonElement, MascotProps>(function Mascot(
+  { point, size, pose, mirrored, state, tilt, open, chatId, hint, onHintClick, onHintClose, ...handlers },
+  ref,
+) {
   // A pose is shown only once its image has arrived, so she never blinks out while one is still loading.
   const [arrived, setArrived] = useState<ReadonlySet<Pose>>(() => new Set());
   const shown: Pose = arrived.has(pose) ? pose : 'idle';
@@ -59,9 +67,12 @@ export const Mascot = forwardRef<HTMLButtonElement, MascotProps>(function Mascot
       }
     >
       {hint ? (
-        <button type="button" className="noora__hint" data-side={hint} onClick={onHintClick}>
-          {HINT}
-        </button>
+        <div className="noora__hint" data-side={hint} data-hub="noora-hint">
+          <button type="button" className="noora__hint-text" onClick={onHintClick}>
+            {HINT}
+          </button>
+          <IconButton size="sm" icon={X} label="Close the hint" onClick={onHintClose} className="noora__hint-close" />
+        </div>
       ) : null}
       <button
         ref={ref}

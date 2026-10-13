@@ -1,6 +1,6 @@
 .about { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sp-48); align-items: start; }
 .about__main { min-width: 0; }
-.about__prose { display: grid; gap: var(--sp-16); max-width: 68ch; color: var(--ink); font-size: var(--fs-16); }
+.about__prose { display: grid; gap: var(--sp-16); max-width: var(--measure); color: var(--ink); font-size: var(--fs-16); }
 
 .about__people { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-8) var(--sp-24); }
 .about__person { display: flex; align-items: center; gap: var(--sp-12); padding: var(--sp-12) 0; border-bottom: 1px solid var(--line); }
@@ -16,7 +16,7 @@ a.about__name:hover { color: var(--cobalt); text-decoration: underline; }
 .about__note-name { font-weight: var(--fw-semibold); }
 .about__note-mods { margin-left: auto; color: var(--ink-2); text-align: right; }
 
-.about__disclaimer { max-width: 68ch; color: var(--ink-2); }
+.about__disclaimer { max-width: var(--measure); color: var(--ink-2); }
 
 .about__aside { display: grid; gap: var(--sp-16); position: sticky; top: calc(var(--topbar-h) + var(--sp-16)); }
 .about__aside-title { font-size: var(--fs-16); font-weight: var(--fw-bold); letter-spacing: -0.01em; }
