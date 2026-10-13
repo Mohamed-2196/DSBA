@@ -119,7 +119,7 @@ const SOON_COVER: CoverIssue = {
 };
 
 /** No issue is out yet: what the newsletter will be, and how to get the first one. */
-function ComingSoon({ isModerator, hasDrafts }: { isModerator: boolean; hasDrafts: boolean }) {
+function ComingSoon({ manages, hasDrafts }: { manages: boolean; hasDrafts: boolean }) {
   return (
     <section className="nl-feature nl-feature--soon" data-hub="newsletter-empty" aria-labelledby="nl-soon-title">
       <div className="nl-feature__cover nl-soon__cover">
@@ -135,7 +135,7 @@ function ComingSoon({ isModerator, hasDrafts }: { isModerator: boolean; hasDraft
         </h2>
         <p className="nl-feature__dek">News from the programme, written by DSBA students for DSBA students.</p>
         <p className="nl-feature__summary">
-          {isModerator
+          {manages
             ? hasDrafts
               ? 'Nothing is published yet. Check a draft above, then publish it: everyone who wants to hear about new issues gets a notification.'
               : 'Nothing is published yet. Start a new issue above: it stays a draft until you publish it.'
@@ -252,13 +252,14 @@ function NewsletterSkeleton() {
 
 export default function NewsletterPage() {
   useDocumentTitle('The DSBA Newsletter');
-  const { isModerator } = useAuth();
-  const list = useIssues({ includeDrafts: isModerator });
+  const { can } = useAuth();
+  const manages = can('newsletter.manage');
+  const list = useIssues({ includeDrafts: manages });
   const [creating, setCreating] = useState(false);
 
   const all = list.data;
   const published = useMemo(() => (all ?? []).filter((i) => i.status === 'published'), [all]);
-  const drafts = useMemo(() => (isModerator ? (all ?? []).filter((i) => i.status === 'draft') : []), [all, isModerator]);
+  const drafts = useMemo(() => (manages ? (all ?? []).filter((i) => i.status === 'draft') : []), [all, manages]);
   // The covers and read times need each issue's sections: read the details of the issues on the page.
   const details = useIssueDetails(published.slice(0, 12).map((i) => i.slug));
   const cards = published.map((summary) => toCard(summary, details.find((d) => d.data?.slug === summary.slug)?.data));
@@ -269,7 +270,7 @@ export default function NewsletterPage() {
     <Page className="nl-index">
       <Masthead first={cards[cards.length - 1]} latest={latest} />
 
-      {isModerator && all ? <Drafts drafts={drafts} onNew={() => setCreating(true)} /> : null}
+      {manages && all ? <Drafts drafts={drafts} onNew={() => setCreating(true)} /> : null}
 
       {list.isPending ? (
         <NewsletterSkeleton />
@@ -278,7 +279,7 @@ export default function NewsletterPage() {
       ) : latest ? (
         <LatestFeature issue={latest} />
       ) : (
-        <ComingSoon isModerator={isModerator} hasDrafts={drafts.length > 0} />
+        <ComingSoon manages={manages} hasDrafts={drafts.length > 0} />
       )}
 
       {cards.length ? (
@@ -302,7 +303,7 @@ export default function NewsletterPage() {
         <SubscribeBox variant="band" className="nl-soon__subscribe" />
       ) : null}
 
-      {isModerator ? <NewIssueDialog open={creating} nextNumber={nextNumber} onClose={() => setCreating(false)} /> : null}
+      {manages ? <NewIssueDialog open={creating} nextNumber={nextNumber} onClose={() => setCreating(false)} /> : null}
     </Page>
   );
 }

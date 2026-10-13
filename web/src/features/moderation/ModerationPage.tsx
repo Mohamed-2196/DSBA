@@ -1,8 +1,8 @@
-// /moderation (student reps and admins): what needs a look, in two queues. The queues themselves belong to
+// /moderation (people with forum.moderate or library.manage): what needs a look, in two queues. The queues themselves belong to
 // the forum (reports) and the library (uploads); this page frames them with the counts from GET /admin/stats.
 import { ArrowClockwise, Flag, Tray, WarningCircle } from '@phosphor-icons/react';
 import type { AdminStats } from '../../api/types';
-import { RoleGate } from '../../auth';
+import { Gate } from '../../auth';
 import { ReportsQueue } from '../forum/public';
 import { UploadsQueue } from '../library/public';
 import { useQueryParam } from '../../state';
@@ -12,7 +12,8 @@ import './ModerationPage.css';
 
 const compact = new Intl.NumberFormat('en-GB', { notation: 'compact', maximumFractionDigits: 1 });
 const whole = new Intl.NumberFormat('en-GB');
-const fmt = (n: number) => (n >= 10_000 ? compact.format(n) : whole.format(n));
+// A count is null while its feature is switched off.
+const fmt = (n: number | null) => (n === null ? 'Off' : n >= 10_000 ? compact.format(n) : whole.format(n));
 
 // The two queue counts come first; the others are context, hidden on phones so the first report shows (UX-17).
 const TILES: { key: keyof AdminStats; label: string; queue?: true }[] = [
@@ -78,8 +79,8 @@ function ModerationScreen() {
 
 export default function ModerationPage() {
   return (
-    <RoleGate need="moderator" title="Moderation" description="Reports and uploads waiting for a student rep.">
+    <Gate title="Moderation" description="Reports and uploads waiting for review." anyBox={['forum.moderate', 'library.manage']}>
       <ModerationScreen />
-    </RoleGate>
+    </Gate>
   );
 }

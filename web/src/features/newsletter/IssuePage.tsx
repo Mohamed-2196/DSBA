@@ -121,7 +121,8 @@ function ModeratorBar({ issue }: { issue: Issue }) {
 function IssueReader({ issue }: { issue: Issue }) {
   const no = issueNo(issue.number);
   useDocumentTitle(`${issue.title}, The DSBA Newsletter ${no}`);
-  const { isModerator } = useAuth();
+  const { can } = useAuth();
+  const manages = can('newsletter.manage');
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const [sectionParam, setSectionParam] = useQueryParam('section');
   const [active, setActive] = useState(issue.sections[0]?.id);
@@ -194,7 +195,7 @@ function IssueReader({ issue }: { issue: Issue }) {
 
   return (
     <Page className="nl-issue">
-      {isModerator ? <ModeratorBar issue={issue} /> : null}
+      {manages ? <ModeratorBar issue={issue} /> : null}
       <header className="nl-issue__head" data-hub="issue-masthead">
         <RunningHead issue={issue} share={!draft} />
         <div className="nl-issue__hero">
@@ -240,7 +241,7 @@ function IssueReader({ issue }: { issue: Issue }) {
         </div>
       ) : (
         <Panel padding="none" className="nl-issue__empty">
-          <EmptyState icon={Newspaper} title="This issue has no stories yet" body={isModerator ? 'Add its sections in the editor.' : 'Come back soon.'} action={isModerator ? <Button to={`/newsletter/${issue.slug}/edit`}>Open the editor</Button> : null} />
+          <EmptyState icon={Newspaper} title="This issue has no stories yet" body={manages ? 'Add its sections in the editor.' : 'Come back soon.'} action={manages ? <Button to={`/newsletter/${issue.slug}/edit`}>Open the editor</Button> : null} />
         </Panel>
       )}
 
