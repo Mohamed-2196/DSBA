@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
-import { Badge, Button, EmptyState, IconButton, Panel, QueryError, Skeleton, timeAgo } from '../../ui';
+import { Badge, Button, EmptyState, IconButton, Panel, QueryError, Skeleton, formatCount, timeAgo } from '../../ui';
 import { downloadHref, itemPath, openLinkHref, useLibraryList } from './api';
 import type { LinkState } from './components/FileCard';
 import { FileThumb } from './components/FileThumb';
@@ -131,7 +131,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
         ))}
         {total > LIMIT ? (
           <p className="lib-mf__more">
-            <Link to={libraryHref}>See all {total} files in the library</Link>
+            <Link to={libraryHref}>See all {formatCount(total)} files in the library</Link>
           </p>
         ) : null}
       </div>
@@ -144,7 +144,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
         <p className="lib-mf__sum">
           {files.data ? (
             <>
-              <strong className="u-tabular">{total}</strong> {total === 1 ? 'file' : 'files'} for {name}, shared by students and the course
+              <strong className="u-tabular">{formatCount(total)}</strong> {total === 1 ? 'file' : 'files'} for {name}, shared by students and the course
             </>
           ) : (
             <Skeleton width={220} height={18} />

@@ -5,7 +5,7 @@ import { ChatCircle, MagnifyingGlass, Plus, X } from '@phosphor-icons/react';
 import type { ThreadDetail, ThreadSummary } from '../../api/types';
 import { remainingCount } from '../../api/paging';
 import { useAuth } from '../../auth';
-import { Button, EmptyState, Page, PageHeader, Panel, QueryError, TabPanel, cx } from '../../ui';
+import { Button, EmptyState, Page, PageHeader, Panel, QueryError, TabPanel, cx, formatCount } from '../../ui';
 import { useDebouncedValue } from '../../state';
 import { useModules } from '../../state/modules';
 import { flattenPages, forumKeys, useForumStats, useThreadList, useThreadVote } from './api';
@@ -95,12 +95,12 @@ export default function ForumPage() {
               {stats.data.repliesToday ? (
                 <span className="forum-live__live">
                   <span className="forum-live__dot" aria-hidden="true" />
-                  <span className="u-tabular">{stats.data.repliesToday}</span> {stats.data.repliesToday === 1 ? 'reply' : 'replies'} today
+                  <span className="u-tabular">{formatCount(stats.data.repliesToday)}</span> {stats.data.repliesToday === 1 ? 'reply' : 'replies'} today
                 </span>
               ) : null}
               {stats.data.noReplies ? (
                 <button type="button" className="forum-live__link" onClick={() => update({ cohort: 'all', status: 'no-replies', tag: '', q: '' })}>
-                  <span className="u-tabular">{stats.data.noReplies}</span> {stats.data.noReplies === 1 ? 'question is' : 'questions are'} waiting for a first reply
+                  <span className="u-tabular">{formatCount(stats.data.noReplies)}</span> {stats.data.noReplies === 1 ? 'question is' : 'questions are'} waiting for a first reply
                 </button>
               ) : null}
             </div>

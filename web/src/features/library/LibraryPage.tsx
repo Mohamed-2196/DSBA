@@ -23,7 +23,7 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import { BREAKPOINTS, cohortLabel, normalizeYear, useDebouncedValue, useDocumentTitle, useMediaQuery, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, Chip, Count, EmptyState, Kbd, Menu, Page, PageHeader, PageSection, QueryError, SearchField, SegmentedControl, Skeleton, cx, timeAgo } from '../../ui';
+import { Badge, Button, Chip, Count, EmptyState, Kbd, Menu, Page, PageHeader, PageSection, QueryError, SearchField, SegmentedControl, Skeleton, cx, formatCount, timeAgo } from '../../ui';
 import { itemPath, useLibraryFacets, useLibraryList, useLibraryPages } from './api';
 import { FileCard, type LinkState } from './components/FileCard';
 import { FileTable } from './components/FileTable';
@@ -411,7 +411,7 @@ export default function LibraryPage() {
         meta={
           yearTotal != null ? (
             <span className="lib-head-meta">
-              <strong className="u-tabular">{yearTotal}</strong> {yearTotal === 1 ? 'file' : 'files'} {yearLabel ? `for ${yearLabel}` : 'across all years'}
+              <strong className="u-tabular">{formatCount(yearTotal)}</strong> {yearTotal === 1 ? 'file' : 'files'} {yearLabel ? `for ${yearLabel}` : 'across all years'}
             </span>
           ) : (
             <Skeleton width={140} height={18} />
@@ -477,7 +477,7 @@ export default function LibraryPage() {
           <p className="lib-count" aria-live="polite">
             {list.data ? (
               <>
-                <strong className="u-tabular">{total}</strong> {total === 1 ? 'file' : 'files'}
+                <strong className="u-tabular">{formatCount(total)}</strong> {total === 1 ? 'file' : 'files'}
                 {mineOnly ? <span> you uploaded</span> : null}
                 {starredOnly ? <span> starred</span> : null}
                 {context ? <span> in {context}</span> : null}

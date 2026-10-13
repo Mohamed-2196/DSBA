@@ -2,6 +2,7 @@
 // (day keys, today in Bahrain, weekdays, month names, formats) come from src/lib/dates.ts, the one home every area
 // shares (code quality review CQ-5).
 import { addDays, daysUntil, isWeekend, monthName, startOfDay } from '../../lib/dates';
+import { countOf } from '../../ui';
 
 /** A month of a year; m is 0-based. */
 export interface MonthRef {
@@ -68,14 +69,13 @@ export function monthMatrix({ y, m }: MonthRef): Date[][] {
 }
 
 // ── Distances ───────────────────────────────────────────────────────────────────────────────────
-const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`;
 
 /** A day count in weeks: 17 → '2 weeks and 3 days', 14 → '2 weeks'. Under a week → null (nothing to add). */
 export function weeksAndDays(days: number): string | null {
   if (days < 7) return null;
   const w = Math.floor(days / 7);
   const d = days % 7;
-  return d ? `${plural(w, 'week')} and ${plural(d, 'day')}` : plural(w, 'week');
+  return d ? `${countOf(w, 'week')} and ${countOf(d, 'day')}` : countOf(w, 'week');
 }
 
 export interface DaysBreakdown {
@@ -111,8 +111,8 @@ export function daysBreakdown(from: Date, to: Date): DaysBreakdown {
 export function breakdownLabel({ days, weekdays, weekendDays, weekends }: DaysBreakdown): string | null {
   if (days < 2) return null;
   const parts: string[] = [];
-  if (weekdays) parts.push(plural(weekdays, 'weekday'));
-  if (weekendDays) parts.push(weekendDays === weekends * 2 ? plural(weekends, 'weekend') : plural(weekendDays, 'weekend day'));
+  if (weekdays) parts.push(countOf(weekdays, 'weekday'));
+  if (weekendDays) parts.push(weekendDays === weekends * 2 ? countOf(weekends, 'weekend') : countOf(weekendDays, 'weekend day'));
   return parts.join(' and ');
 }
 

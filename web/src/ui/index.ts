@@ -43,6 +43,6 @@ export { Switch, type SwitchProps } from './Switch';
 export { ModuleIcon, type ModuleIconProps } from './ModuleIcon';
 export { BrandLogo, ProgrammeLockup, type BrandLogoProps, type BrandLogoName, type ProgrammeLockupProps } from './BrandLogo';
 export { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
-export { cx, initials, modKeyLabel, timeAgo, formatDate, formatCount, type DateInput } from './utils';
+export { cx, initials, modKeyLabel, timeAgo, formatDate, formatCount, countOf, type DateInput } from './utils';
 export { safeHref, safeInternalPath, isMediaPath, type SafeHref } from './safeHref';
 export type { IconSource } from './internal';
