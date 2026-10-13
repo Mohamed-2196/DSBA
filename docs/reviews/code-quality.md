@@ -53,11 +53,11 @@ reviewed on `round3/review-quality`. Left alone, because the approved access wor
 | CQ-21 | minor | Two script and doc commands that don't do what they say (**fixed** `8f6bffe`) |
 | CQ-22 | minor | The web app hard-codes the upload limits the API reads from settings (open: needs a choice between serving the rules and fixed limits) |
 | CQ-23 | minor | Small helpers written again in several places (**fixed** `5a19218` `countOf`, `ce0674f` `useCopyLink`, `e4b805f` `clip`, one `import_key`, one exam-year range) |
-| CQ-24 | minor | Logic left in the notifications and `me` routers; a service that commits (**mostly fixed** `e4b805f`: `services/notifications.py`, `delete_account` leaves the commit to the router; `accounts.change_identifier` waits for the access work, which changes `routers/me.py`) |
-| CQ-25 | minor | API names and lookups to settle before release (CQ-16, now as renames) (**mostly fixed** `e4b805f`, `a690ee4`: `limit` not `n`, reads by slug only, the forum list's query type from the schema; `POST /reports` still answers `Ok`, left for the access work, which changes that router) |
-| CQ-26 | minor | Test fixtures declared three times; the e2e suite restates API shapes by hand (open: the fixtures go with the access work's `make_user`; the typed e2e `api()` needs a run of the suite) |
+| CQ-24 | minor | Logic left in the notifications and `me` routers; a service that commits (**fixed**: `services/notifications.py`, `accounts.change_identifier`, `delete_account` leaves the commit to the router) |
+| CQ-25 | minor | API names and lookups to settle before release (CQ-16, now as renames) (**fixed**: `limit` not `n`, reads by slug only, the forum list's query type from the schema, `POST /reports` answers 204) |
+| CQ-26 | minor | Test fixtures declared three times; the e2e suite restates API shapes by hand (open: the three persona sets differ in names and modules that tests rely on; the typed e2e `api()` needs a run of the suite) |
 | CQ-27 | minor | Pure modules without Vitest tests, grade arithmetic among them |
-| CQ-28 | minor | knip has no config, so dead public exports and barrel bypasses go unnoticed (**mostly fixed** `ebeaf58`: `web/knip.json`, knip in `check.sh` and CI, the public exports trimmed; `auth/queries.ts`'s import and `AuthProvider`'s `['account']` key wait for the access work) |
+| CQ-28 | minor | knip has no config, so dead public exports and barrel bypasses go unnoticed (**fixed**: `web/knip.json`, knip in `check.sh`, the public exports trimmed, `ACCOUNT_KEY` in `src/api/keys.ts`, `auth` imports the state barrel) |
 | CQ-29 | minor | Typing nits in the API: one avoidable `type: ignore`, library kinds passed as `str` (**fixed** `e4b805f`) |
 
 What rounds 2 and 3 added was checked as asked. Most of it is good work, and it led to no finding:
