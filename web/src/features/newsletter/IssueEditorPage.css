@@ -17,7 +17,7 @@
 .nl-ed-wide { grid-column: 1 / -1; }
 .nl-ed-stack { display: grid; gap: var(--sp-16); min-width: 0; }
 .nl-ed-start { justify-self: start; }
-.nl-ed-note { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; max-width: 68ch; }
+.nl-ed-note { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; max-width: var(--measure); }
 .nl-ed-count { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .nl-ed-count.is-over { color: var(--alert-strong); font-weight: var(--fw-semibold); }
 .nl-ed-error { color: var(--alert-strong); font-size: var(--fs-14); font-weight: var(--fw-semibold); line-height: 1.4; }

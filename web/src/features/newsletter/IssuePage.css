@@ -155,7 +155,7 @@
 .nl-figure__caption { margin-top: var(--sp-12); max-width: 56ch; font-size: var(--fs-14); line-height: 1.5; color: var(--ink-2); }
 
 /* Reading text */
-.nl-p { max-width: 66ch; font-family: var(--font-serif); font-size: var(--fs-20); line-height: var(--lh-serif); color: var(--ink); }
+.nl-p { max-width: var(--measure-serif); font-family: var(--font-serif); font-size: var(--fs-20); line-height: var(--lh-serif); color: var(--ink); }
 .nl-p a, .nl-list a, .nl-aside a, .nl-figure__caption a, .nl-signoff a { color: var(--cobalt); }
 .nl-p--lead::first-letter {
   float: left;
@@ -166,7 +166,7 @@
   line-height: 0.8;
   color: var(--ink);
 }
-.nl-list { display: grid; gap: var(--sp-16); max-width: 66ch; list-style: none; font-family: var(--font-serif); font-size: var(--fs-20); line-height: var(--lh-serif); }
+.nl-list { display: grid; gap: var(--sp-16); max-width: var(--measure-serif); list-style: none; font-family: var(--font-serif); font-size: var(--fs-20); line-height: var(--lh-serif); }
 .nl-list > li { position: relative; padding-left: 28px; }
 .nl-list > li::before { content: ''; position: absolute; left: 2px; top: 0.82em; width: 14px; height: 2px; border-radius: 2px; background: var(--cobalt); }
 .nl-list strong { font-weight: 650; }
@@ -339,7 +339,7 @@
   font-style: italic;
   color: var(--ink-2);
 }
-.nl-issue__end p { flex: 1 1 320px; }
+.nl-issue__end p { flex: 1 1 320px; max-width: var(--measure-serif); }
 .nl-issue__end-mark { flex: 0 0 auto; }
 
 .nl-pager { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-24); margin-top: var(--sp-96); }

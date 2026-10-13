@@ -99,7 +99,7 @@
   text-wrap: balance;
 }
 .mod-row__desc {
-  max-width: 62ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-14);
   line-height: 1.5;

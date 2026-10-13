@@ -32,7 +32,7 @@
 .home-hero__title .ui-highlight { white-space: nowrap; }
 .home-hero__detail {
   margin-top: var(--sp-8);
-  max-width: 60ch;
+  max-width: var(--measure);
   color: var(--ink-2);
   font-size: var(--fs-16);
 }

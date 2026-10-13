@@ -265,10 +265,10 @@
   overflow-wrap: break-word;
 }
 .forum-prose > * + * { margin-top: 12px; }
-/* Lines of text stay readable on any screen, at about 75 characters (in this typeface the design system's 72ch measure
-   holds 85 to 95); pictures and code may use the post's width. */
+/* Lines of text stay readable on any screen, at about 75 characters (the design system's --measure); pictures and
+   code may use the post's width. */
 .forum-prose > :is(p, ul, ol, blockquote) { max-width: var(--forum-measure, 58ch); }
-.forum-page, .forum-hot, .forum-modthreads { --forum-measure: min(var(--measure), 58ch); }
+.forum-page, .forum-hot, .forum-modthreads { --forum-measure: var(--measure); }
 .forum-prose ul, .forum-prose ol { padding-inline-start: 1.35em; }
 .forum-prose ul { list-style: disc; }
 .forum-prose ol { list-style: decimal; }

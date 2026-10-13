@@ -137,7 +137,7 @@
   white-space: nowrap;
   pointer-events: none;
 }
-.grades-chart__rulecap { margin-top: 2px; color: var(--ink-2); font-size: var(--fs-12); line-height: 1.5; }
+.grades-chart__rulecap { margin-top: 2px; max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-12); line-height: 1.5; }
 .grades-chart__rulecap strong { color: var(--ink); }
 .grades-legend { width: 100%; margin-top: var(--sp-16); font-size: var(--fs-14); }
 .grades-legend th,
@@ -278,7 +278,7 @@
 .grades-how { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--sp-32); align-items: start; }
 .grades-how__col { min-width: 0; }
 .grades-steps { display: grid; gap: 10px; margin-bottom: var(--sp-32); padding: 0; list-style: none; counter-reset: grades-step; }
-.grades-steps li { position: relative; padding-left: 38px; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.55; counter-increment: grades-step; }
+.grades-steps li { position: relative; max-width: calc(var(--measure) + 38px); padding-left: 38px; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.55; counter-increment: grades-step; }
 .grades-steps li strong { color: var(--ink); }
 .grades-steps li::before {
   content: counter(grades-step);
@@ -314,7 +314,7 @@
 .grades-table--bands tbody th { width: auto; white-space: nowrap; }
 .grades-table--bands tbody th .grades-swatch { margin-right: 10px; }
 .grades-table--bands td { white-space: nowrap; }
-.grades-how__note { margin-top: var(--sp-12); max-width: 72ch; color: var(--ink-2); font-size: var(--fs-12); line-height: 1.5; }
+.grades-how__note { margin-top: var(--sp-12); max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-12); line-height: 1.5; }
 
 /* ── Mobile sticky result ──────────────────────────────────────────────────────────────────── */
 .grades-sticky {
