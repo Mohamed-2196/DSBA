@@ -1,12 +1,10 @@
-// DSBA Hub: the people and links behind the site. The v1 footer contributors and the students who shared
-// notes in v1 are real people; they are credited on the footer and the About page.
+// DSBA Hub: the people and links behind the site. The contributors and the students who shared notes are real
+// people; they are credited on the footer and the About page.
 // Public-repo rule: never invent quotes or content attributed to real tutors or staff.
 
 export const REPO_URL = 'https://github.com/Mohamed-2196/DSBA';
 /** Where a problem with the Hub itself is reported (About's "Report a problem", decision D6). */
 export const REPORT_PROBLEM_URL = `${REPO_URL}/issues/new`;
-/** @deprecated Contribute means upload now (decision D6): link to the library upload instead. */
-export const CONTRIBUTE_URL = REPORT_PROBLEM_URL;
 export const MYCLASS_URL = 'https://myclass.bibf.com';
 export const UOL_PORTAL_URL = 'https://my.london.ac.uk/group/student';
 export const LAUNCH_YEAR = 2024;
@@ -18,19 +16,16 @@ export interface Contributor {
   id: string;
   name: string;
   role: string;
-  /** the exact v1 string */
-  v1Role: string;
   affiliation: string | null;
   url: string | null;
 }
 
-/** v1 footer contributors, in v1 order. */
+/** The footer's contributors, in the footer's order. */
 export const CONTRIBUTORS: Contributor[] = [
   {
     id: 'mohamed-alnooh',
     name: 'Mohamed Alnooh',
     role: 'Creator and maintainer',
-    v1Role: 'Creator & maintainer',
     affiliation: null,
     url: 'https://github.com/Mohamed-2196',
   },
@@ -38,7 +33,6 @@ export const CONTRIBUTORS: Contributor[] = [
     id: 'feras-alsadadi',
     name: 'Feras Alsadadi',
     role: 'Historical past exams',
-    v1Role: 'Historical past exams',
     affiliation: null,
     url: null,
   },
@@ -46,7 +40,6 @@ export const CONTRIBUTORS: Contributor[] = [
     id: 'yaser-alghsara',
     name: 'Yaser Alghsara',
     role: 'Lecture recordings',
-    v1Role: 'BIBF faculty — lecture recordings',
     affiliation: 'BIBF faculty',
     url: null,
   },
@@ -54,7 +47,6 @@ export const CONTRIBUTORS: Contributor[] = [
     id: 'sayed-hasan-kadhem',
     name: 'Dr. Sayed Hasan Kadhem',
     role: 'Lecture recordings',
-    v1Role: 'BIBF faculty — lecture recordings',
     affiliation: 'BIBF faculty',
     url: null,
   },
@@ -66,7 +58,7 @@ export interface NoteContributor {
   notes: { moduleId: string; name: string; url: string }[];
 }
 
-/** Students who shared notes in v1 (from v1's module data), in order of first appearance. */
+/** Students who shared notes (from the modules' notes), in order of first appearance. */
 export const NOTE_CONTRIBUTORS: NoteContributor[] = [
   {
     id: 'mahdi',

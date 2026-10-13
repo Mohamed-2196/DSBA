@@ -41,7 +41,7 @@ test('on a shared computer, someone else’s guest progress can be left out when
   await expect(prompt).toContainText('someone marked 1 lesson as watched on this computer');
   await prompt.getByRole('button', { name: 'Leave it out' }).click();
   await expect(prompt).toHaveCount(0);
-  expect(await page.evaluate(() => window.localStorage.getItem('hub.lessons.v1'))).toBeNull();
+  expect(await page.evaluate(() => window.localStorage.getItem('hub.lessons'))).toBeNull();
   const after = await api<{ watched: Record<string, string> }>(page, 'GET', '/api/v1/me/progress');
   expect(after.body.watched).toEqual(before.body.watched);
   await page.reload();

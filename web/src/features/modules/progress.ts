@@ -1,11 +1,11 @@
 // Lesson progress. Signed in: kept by the API (/me/progress…), with optimistic updates. Guests: kept in this
-// browser (localStorage 'hub.lessons.v1'). After signing in, the student is asked once whether that progress is
+// browser (localStorage 'hub.lessons'). After signing in, the student is asked once whether that progress is
 // theirs (ImportProgressPrompt): computers at BIBF are shared, so it may be someone else's.
 //   state.watched  { '<module id>:<chapter>:<video>': watchedAt (ms) }
 //   state.last     { [moduleId]: { c, v, at (ms) } }  the lesson last opened (played or marked) in each module;
 //                  it drives "Pick up where you left off" and Home's Continue learning.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { errorMessage } from '../../api/errors';
 import type { Chapter, ModuleDetail, Progress, ProgressImport, Video } from '../../api/types';
 import { useAuth } from '../../auth';
@@ -33,19 +33,16 @@ export function isEmptyProgress(s: ProgressState): boolean {
 
 // ── Shapes: the browser's store and the API ───────────────────────────────────
 
-export const GUEST_PROGRESS_KEY = 'hub.lessons.v1';
+export const GUEST_PROGRESS_KEY = 'hub.lessons';
 const KEY_RE = /^[a-z0-9-]{1,64}:\d{1,3}:\d{1,3}$/;
 const MODULE_RE = /^[a-z0-9-]{1,64}$/;
 const isRecord = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
 const isIndex = (x: unknown): x is number => Number.isInteger(x) && (x as number) >= 0 && (x as number) < 1000;
 const isTime = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
 
-/**
- * What the browser has stored, as progress (malformed entries dropped). The prototype wrote a made-up history
- * for its demo (marked `demo: true`): that isn't anyone's progress, so it reads as empty.
- */
+/** What the browser has stored, as progress (malformed entries dropped). */
 export function normalizeStored(raw: unknown): ProgressState {
-  if (!isRecord(raw) || raw.demo === true) return EMPTY_PROGRESS;
+  if (!isRecord(raw)) return EMPTY_PROGRESS;
   const watched: Record<string, number> = {};
   if (isRecord(raw.watched)) {
     for (const [k, t] of Object.entries(raw.watched)) if (KEY_RE.test(k) && isTime(t)) watched[k] = t;
@@ -235,12 +232,6 @@ export interface ProgressApi {
 export function useGuestProgress(): ProgressApi & { clear: () => void } {
   const [raw, setRaw] = useLocalStorage<unknown>(GUEST_PROGRESS_KEY, null);
   const state = useMemo(() => normalizeStored(raw), [raw]);
-
-  // The prototype's demo history isn't anyone's progress: drop it.
-  const isDemo = isRecord(raw) && raw.demo === true;
-  useEffect(() => {
-    if (isDemo) setRaw(undefined);
-  }, [isDemo, setRaw]);
 
   const write = useCallback(
     (fn: (s: ProgressState) => ProgressState) =>

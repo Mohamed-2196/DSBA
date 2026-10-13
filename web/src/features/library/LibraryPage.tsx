@@ -41,8 +41,6 @@ const DEFAULT_SORT: LibrarySort = 'popular';
 // A search lists the best matches first, unless the student picks another order.
 const SEARCH_SORT: LibrarySort = 'relevance';
 const SORTS: Record<LibrarySort, string> = { relevance: 'Best match', popular: 'Most downloaded', new: 'Newest', title: 'Name, A to Z' };
-// Links from before the API (?sort=downloads) keep working.
-const LEGACY_SORTS: Record<string, LibrarySort> = { downloads: 'popular', newest: 'new', az: 'title' };
 
 const KIND_ICONS: Partial<Record<LibraryKind, Icon>> = {
   'past-paper': Exam,
@@ -86,7 +84,7 @@ function readSort(raw: string | null, searching: boolean): LibrarySort {
   const fallback = searching ? SEARCH_SORT : DEFAULT_SORT;
   if (raw === 'relevance') return searching ? 'relevance' : DEFAULT_SORT;
   if (raw === 'new' || raw === 'popular' || raw === 'title') return raw;
-  return (raw && LEGACY_SORTS[raw]) || fallback;
+  return fallback;
 }
 
 /** The shelf: files published in the last 7 days (for the year being browsed). */

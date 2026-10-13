@@ -4,7 +4,7 @@ import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
 import { Button, Skeleton, cx } from '../../../ui';
-import { useNewsletterEmails } from '../api';
+import { useNewIssueEmails } from '../api';
 import './SubscribeBox.css';
 
 export interface SubscribeBoxProps {
@@ -14,14 +14,14 @@ export interface SubscribeBoxProps {
 }
 
 /**
- * Hearing about new issues: the account's newsletter preference (PATCH /api/v1/me, `newsletterEmails`). Publishing
- * an issue notifies everyone who hasn't turned it off; for now that is a notification in the Hub (no email yet), so
- * the copy promises being told, not an email. Guests are asked to sign in first.
+ * Hearing about new issues: the account's `emailNewIssues` switch (PATCH /api/v1/me), the same one as "New newsletter
+ * issues" on Your account. It decides the email; the notification in the Hub comes either way (decision D1). Guests
+ * are asked to sign in first.
  */
 export function SubscribeBox({ variant = 'panel', className }: SubscribeBoxProps) {
   const { me, status, requireAuth } = useAuth();
   const { push } = useToast();
-  const news = useNewsletterEmails();
+  const news = useNewIssueEmails();
 
   const set = (on: boolean) =>
     news.mutate(on, {
@@ -35,7 +35,7 @@ export function SubscribeBox({ variant = 'panel', className }: SubscribeBoxProps
     });
 
   const ready = status === 'signed-in' && !!me && !me.needsProfile;
-  const on = ready && me.preferences.newsletterEmails;
+  const on = ready && me.preferences.emailNewIssues;
 
   let title = 'Hear about new issues';
   let body = 'Sign in and we’ll let you know when a new issue is out. No timetable: only when there’s news worth your time.';

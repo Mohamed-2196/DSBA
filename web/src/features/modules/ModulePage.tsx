@@ -313,8 +313,8 @@ export default function ModulePage() {
   const { moduleId = '' } = useParams();
   const { search } = useLocation();
   const { getModule, getModuleByUnitCode } = useModules();
-  // Links from v1 ('/modules/advanced_stats_distribution', '/modules/Business') and unit codes ('/modules/ST2133') still work.
-  const m = getModule(moduleId) ?? getModule(moduleId.toLowerCase().replace(/_/g, '-')) ?? getModuleByUnitCode(moduleId.toUpperCase());
+  // A unit code ('/modules/ST2133') works as an address too, and leads to the module's own one.
+  const m = getModule(moduleId) ?? getModuleByUnitCode(moduleId.toUpperCase());
   useDocumentTitle(m ? (m.unitCode ? `${m.unitCode} ${m.name}` : m.name) : 'Module not found');
 
   if (!m) {

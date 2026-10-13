@@ -3,7 +3,7 @@
 //   GET  /api/v1/newsletter/issues/{slug}                        one issue with its sections and reactions
 //   POST/PATCH/DELETE …/issues[/{id}], POST …/{id}/publish       moderators
 //   PUT/DELETE …/{id}/sections/{section}/reactions/{reaction}    signed in (optimistic)
-// The newsletter email preference lives on the account: PATCH /api/v1/me { preferences: { newsletterEmails } }.
+// The email about new issues is an account preference: PATCH /api/v1/me { preferences: { emailNewIssues } }.
 import { useMutation, useQueries, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import type { IssueCreate, IssueDetail, IssueSummary, IssueUpdate, Me, ReactionCounts } from '../../api/types';
@@ -26,8 +26,7 @@ const STALE = 60_000;
 const byNewest = (a: IssueSummary, b: IssueSummary): number => b.number - a.number || b.date.localeCompare(a.date);
 
 // ── Issues as the pages use them (stable functions, so TanStack Query memoises what they select) ──────
-// The API types the cover and the sections (CQ-4) and leaves out a stored section that no longer fits, so the
-// detail is used as it comes.
+// The API types the cover and the sections (CQ-4), so the detail is used as it comes.
 
 /** An issue as the reader uses it: the detail, plus the read time. */
 export function toIssue(detail: IssueDetail): Issue {
@@ -195,15 +194,15 @@ export function useReact() {
 
 // ── The email preference ───────────────────────────────────────────────────────────────────────
 
-/** Turn newsletter emails on or off for the signed-in account (optimistic on /me). */
-export function useNewsletterEmails() {
+/** Turn emails about new issues on or off for the signed-in account (optimistic on /me). */
+export function useNewIssueEmails() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (on: boolean) => call(api.PATCH('/api/v1/me', { body: { preferences: { newsletterEmails: on } } })),
+    mutationFn: (on: boolean) => call(api.PATCH('/api/v1/me', { body: { preferences: { emailNewIssues: on } } })),
     onMutate: async (on) => {
       await qc.cancelQueries({ queryKey: ME_KEY });
       const prev = qc.getQueryData<Me | null>(ME_KEY);
-      if (prev) qc.setQueryData<Me>(ME_KEY, { ...prev, preferences: { ...prev.preferences, newsletterEmails: on } });
+      if (prev) qc.setQueryData<Me>(ME_KEY, { ...prev, preferences: { ...prev.preferences, emailNewIssues: on } });
       return { prev };
     },
     onError: (_err, _on, ctx) => {
