@@ -189,7 +189,7 @@ def test_switching_off_uploads_leaves_the_library_readable(
     set_feature("library.uploads", "off")
     assert off(client_for(student).post(f"{API}/uploads", json=PDF_UPLOAD))
     assert off(client_for(student).post(f"{API}/library/items", json={}))
-    assert client_for(student).get(f"{API}/library/items/{published['id']}").status_code == 200
+    assert client_for(student).get(f"{API}/library/items/{published['slug']}").status_code == 200
     assert client_for(student).post(f"{API}/uploads", json=PNG_UPLOAD).status_code == 201  # forum pictures still go
     assert client_for(boss).post(f"{API}/uploads", json=PDF_UPLOAD).status_code == 201
 
