@@ -13,6 +13,7 @@ from uuid import UUID
 from fastapi import Request, Response, status
 from sqlalchemy.exc import IntegrityError
 
+from app.core.access import ADMIN, REP
 from app.core.errors import ApiError, conflict, forbidden, invalid, not_found
 from app.core.security import DB, CurrentSession, CurrentUser, clear_session_cookie, client_ip
 from app.models import UserSession, UserStatus
@@ -55,7 +56,8 @@ def update_me(body: MeUpdate, user: CurrentUser, db: DB) -> Me:
     if "display_name" in sent:
         if body.display_name is None:
             raise invalid("displayName", "Enter a display name.", code="invalid_display_name")
-        name = accounts.clean_display_name(body.display_name, staff=access.access_of(user).badge is not None)
+        staff = any(slug in (ADMIN, REP) for slug in access.access_of(user).slugs)  # Admin and Rep holders only
+        name = accounts.clean_display_name(body.display_name, staff=staff)
         if name != user.display_name:
             if user.status == UserStatus.suspended:
                 raise forbidden("Your account is suspended, so your name can't change. Contact a student rep.")

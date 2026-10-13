@@ -20,7 +20,7 @@ from app.core.time import utcnow
 from app.models import AccessRole, AuditEntry, RoleBox, RoleGrant, User
 from app.schemas.access import BoxOut, FeatureOut, RoleCatalogue, RoleCreate, RoleOut, RoleUpdate, SwitchUpdate
 from app.services import access, ratelimit
-from app.services.accounts import reads_as_staff, skeleton
+from app.services.accounts import characters_problem, looks, plain_text, reads_as_staff
 from app.services.audit import record
 from app.services.notify import notify
 
@@ -105,17 +105,23 @@ def _check_name(db: Session, name: str, *, other_than: uuid.UUID | None = None) 
         raise invalid("name", "Another role already has this name.")
 
 
-def _check_badge(db: Session, badge: str | None, role: AccessRole | None = None) -> None:
-    """A badge can't pass for staff unless it is Admin's or Rep's, and two roles never show the same badge, look-alike
-    letters included (security review AD-4)."""
+def _clean_badge(db: Session, badge: str | None, role: AccessRole | None = None) -> str | None:
+    """The badge as it is kept (plain_text()), or 422 on `badge` (security review AD-4):
+    - only the characters a name may hold, so nothing invisible hides a staff word;
+    - nothing that reads as a staff word, except on Admin and Rep;
+    - never what another role's badge looks like."""
     if badge is None:
-        return
-    if (role is None or role.slug not in STAFF_ROLES) and reads_as_staff(badge):
+        return None
+    plain = plain_text(badge)
+    if (problem := characters_problem(plain)) is not None:
+        raise invalid("badge", problem)
+    if (role is None or role.slug not in STAFF_ROLES) and reads_as_staff(plain):
         raise invalid("badge", "This badge is kept for the Hub's staff. Choose another one.")
     others = db.execute(select(AccessRole.id, AccessRole.badge).where(AccessRole.badge.is_not(None))).tuples()
-    looks = skeleton(badge)
-    if any(skeleton(shown) == looks for role_id, shown in others if shown and (role is None or role_id != role.id)):
+    seen = looks(plain)
+    if any(looks(shown) == seen for role_id, shown in others if shown and (role is None or role_id != role.id)):
         raise invalid("badge", "Another role already shows this badge.")
+    return plain
 
 
 def _check_boxes(role: AccessRole, boxes: Sequence[str]) -> None:
@@ -133,12 +139,12 @@ def create_role(db: Session, admin: User, body: RoleCreate, ip: str | None) -> A
     """A new role, last in the order. Its slug comes from its name."""
     limit_changes(db, admin)
     _check_name(db, body.name)
-    _check_badge(db, body.badge)
+    badge = _clean_badge(db, body.badge)
     position = (db.scalar(select(func.max(AccessRole.position))) or 0) + 1
     role = AccessRole(
         slug=unique_slug(db, AccessRole.slug, body.name, fallback="role"),
         name=body.name,
-        badge=body.badge,
+        badge=badge,
         position=position,
     )
     try:
@@ -170,9 +176,9 @@ def update_role(db: Session, admin: User, role_id: uuid.UUID, body: RoleUpdate, 
     if "name" in sent and body.name is not None and body.name != role.name:
         _check_name(db, body.name, other_than=role.id)
         changes["name"] = body.name
-    if "badge" in sent and body.badge != role.badge:
-        _check_badge(db, body.badge, role)
-        changes["badge"] = body.badge
+    badge = _clean_badge(db, body.badge, role) if "badge" in sent else role.badge
+    if badge != role.badge:
+        changes["badge"] = badge
     if "position" in sent and body.position is not None and body.position != role.position:
         changes["position"] = body.position
     boxes = sorted(set(body.boxes)) if "boxes" in sent and body.boxes is not None else None

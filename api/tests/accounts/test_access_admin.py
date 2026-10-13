@@ -421,11 +421,31 @@ def test_badges_cant_pass_for_staff(client_for: ClientFor, boss: User, db: Sessi
     badge."""
     c = client_for(boss)
     staff = {"badge": "This badge is kept for the Hub's staff. Choose another one."}
-    for badge in ("Admin", "Student rep", "\N{GREEK CAPITAL LETTER ALPHA}dmin", "ADM1N", "Moderator", "DSBA team"):
+    for badge in (
+        "Admin",
+        "Student rep",
+        "Adrnin",
+        "ADM1N",
+        "Moderator",
+        "DSBA team",
+        "\N{FULLWIDTH LATIN CAPITAL LETTER A}dmin",
+    ):
         r = c.post(f"{API}/admin/roles", json={"name": "Helpers", "badge": badge})
         assert (r.status_code, r.json()["error"]["fields"]) == (422, staff), badge
-    taken = c.post(f"{API}/admin/roles", json={"name": "Helpers", "badge": "content"})
-    assert taken.json()["error"]["fields"] == {"badge": "Another role already shows this badge."}
+    mixed = c.post(f"{API}/admin/roles", json={"name": "Helpers", "badge": "\N{GREEK CAPITAL LETTER ALPHA}dmin"})
+    assert mixed.json()["error"]["fields"] == {"badge": "Write each word in one alphabet."}
+    invisible = {"badge": "Use only letters, digits, spaces, dots (.), apostrophes (') and hyphens (-)."}
+    for badge in (
+        "Ad\N{ZERO WIDTH SPACE}min",
+        "Ad\N{SOFT HYPHEN}min",
+        "Stu\N{ZERO WIDTH JOINER}dent rep",
+        "Hel\N{RIGHT-TO-LEFT OVERRIDE}per",
+    ):
+        r = c.post(f"{API}/admin/roles", json={"name": "Helpers", "badge": badge})
+        assert (r.status_code, r.json()["error"]["fields"]) == (422, invisible), ascii(badge)
+    for badge in ("content", "\N{FULLWIDTH LATIN CAPITAL LETTER C}ontent", "C0ntent"):
+        taken = c.post(f"{API}/admin/roles", json={"name": "Helpers", "badge": badge})
+        assert taken.json()["error"]["fields"] == {"badge": "Another role already shows this badge."}, ascii(badge)
     made = c.post(f"{API}/admin/roles", json={"name": "Helpers", "badge": "Helper"})
     assert made.status_code == 201, made.text
     renamed = c.patch(f"{API}/admin/roles/{made.json()['id']}", json={"version": 1, "badge": "Admin team"})

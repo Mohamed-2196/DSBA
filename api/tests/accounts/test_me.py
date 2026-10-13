@@ -232,6 +232,18 @@ def test_staff_may_use_staff_words(client_for: ClientFor, make_user: MakeUser) -
     assert r.json()["displayName"] == "Sara student rep"
 
 
+def test_a_badge_alone_does_not_allow_staff_names(
+    client_for: ClientFor, make_user: MakeUser, make_role: Callable[..., Any]
+) -> None:
+    """Only Admin and Rep holders may use staff words in their names; a custom role's badge doesn't allow it."""
+    make_role("helpers", badge="Helper")
+    helper = make_user(name="Before", roles=("student", "helpers"))
+    r = client_for(helper).patch(f"{API}/me", json={"displayName": "Admin"})
+    assert (r.status_code, r.json()["error"]["code"]) == (422, "invalid_display_name")
+    admin = make_user(name="Before", roles=("student", "admin"))
+    assert client_for(admin).patch(f"{API}/me", json={"displayName": "Admin Sara"}).status_code == 200
+
+
 def test_year(client_for: ClientFor, make_user: MakeUser) -> None:
     c = client_for(make_user(year=2))
     assert c.patch(f"{API}/me", json={"year": 3}).json()["year"] == 3

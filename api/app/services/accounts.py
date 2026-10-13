@@ -231,33 +231,53 @@ def _bad_name(message: str) -> ApiError:
 
 
 def clean_display_name(raw: str, *, staff: bool = False) -> str:
-    """NFKC, trimmed and single-spaced. 2-40 characters: letters in any script (with their combining marks),
-    digits, spaces and . ' - , with at least one letter. Control and format characters (bidi controls, zero-width
-    characters) and everything else are refused; so is a word that mixes Latin, Cyrillic or Greek letters, and, in
-    a non-staff name, anything that reads as one of STAFF_WORDS once look-alike letters are mapped (skeleton()).
-    Raises invalid_display_name (422)."""
-    name = " ".join(unicodedata.normalize("NFKC", raw).translate(NAME_LOOKALIKES).split())
+    """NFKC, trimmed and single-spaced. 2-40 characters that pass characters_problem(), and, in a non-staff name,
+    nothing that reads as one of STAFF_WORDS (reads_as_staff()). Raises invalid_display_name (422)."""
+    name = plain_text(raw)
     if not NAME_MIN <= len(name) <= NAME_MAX:
         raise _bad_name(f"Use {NAME_MIN} to {NAME_MAX} characters.")
-    for ch in name:
-        category = unicodedata.category(ch)
-        if not (category[0] in "LM" or category == "Nd" or ch in NAME_PUNCTUATION):
-            raise _bad_name("Use only letters, digits, spaces, dots (.), apostrophes (') and hyphens (-).")
-    if not any(unicodedata.category(ch)[0] == "L" for ch in name):
-        raise _bad_name("Include at least one letter.")
-    if unicodedata.category(name[0])[0] == "M":
-        raise _bad_name("Start with a letter or a digit.")
-    if _mixes_scripts(name):
-        raise _bad_name("Write each word in one alphabet.")
+    if (problem := characters_problem(name)) is not None:
+        raise _bad_name(problem)
     if not staff and reads_as_staff(name):
         raise _bad_name("This name is kept for the Hub's staff. Choose another one.")
     return name
 
 
+def plain_text(raw: str) -> str:
+    """`raw` as names and badges are kept: NFKC, typographic apostrophes and hyphens made plain, trimmed and
+    single-spaced."""
+    return " ".join(unicodedata.normalize("NFKC", raw).translate(NAME_LOOKALIKES).split())
+
+
+def characters_problem(text: str) -> str | None:
+    """What's wrong with the characters of a name or a badge (plain_text()), or None. Allowed: letters in any script
+    with their combining marks, digits, spaces and . ' -, with at least one letter. Control and format characters
+    (bidi controls, zero-width characters, soft hyphens) and everything else are refused; so is a word that mixes
+    Latin, Cyrillic or Greek letters."""
+    for ch in text:
+        category = unicodedata.category(ch)
+        if not (category[0] in "LM" or category == "Nd" or ch in NAME_PUNCTUATION):
+            return "Use only letters, digits, spaces, dots (.), apostrophes (') and hyphens (-)."
+    if not any(unicodedata.category(ch)[0] == "L" for ch in text):
+        return "Include at least one letter."
+    if unicodedata.category(text[0])[0] == "M":
+        return "Start with a letter or a digit."
+    if _mixes_scripts(text):
+        return "Write each word in one alphabet."
+    return None
+
+
+def looks(text: str) -> str:
+    """What `text` looks like on screen: NFKC, without control or format characters, then skeleton(). Two badges
+    that look the same compare equal."""
+    visible = "".join(ch for ch in unicodedata.normalize("NFKC", text) if unicodedata.category(ch) not in ("Cc", "Cf"))
+    return skeleton(visible)
+
+
 def reads_as_staff(text: str) -> bool:
     """Whether `text` reads as one of STAFF_WORDS once look-alike letters are mapped (names, and roles' badges)."""
-    plain = skeleton(unicodedata.normalize("NFKC", text))
-    return any(word in plain for word in STAFF_WORDS)
+    seen = looks(text)
+    return any(word in seen for word in STAFF_WORDS)
 
 
 # ── signing in ──────────────────────────────────────────────────────────────────────────────
