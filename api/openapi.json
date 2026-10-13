@@ -3515,7 +3515,7 @@
           "library"
         ],
         "summary": "Create Item",
-        "description": "Turn a completed upload into a library item: pending for students, published for library managers.\n\nErrors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting\nfor review), invalid_input (422: an unknown module).",
+        "description": "Turn a completed upload into a library item: pending for students, published for library managers.\n\nErrors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting\nfor review), invalid_input (422: an unknown module), feature_off (404: library uploads are switched off).",
         "operationId": "create_item_api_v1_library_items_post",
         "requestBody": {
           "required": true,
@@ -4641,7 +4641,7 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum\npicture).",
+        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum\npicture), feature_off (404: the library, its uploads or the forum is switched off).",
         "operationId": "create_upload_api_v1_uploads_post",
         "requestBody": {
           "content": {
@@ -4743,7 +4743,7 @@
           "uploads"
         ],
         "summary": "Complete Upload",
-        "description": "Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and\nfirst bytes match the file's name.\n\nErrors: not_uploaded (409), mismatch (422; the object is deleted).",
+        "description": "Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and\nfirst bytes match the file's name.\n\nErrors: not_uploaded (409), mismatch (422; the object is deleted), feature_off (404: the upload's feature was\nswitched off since it started).",
         "operationId": "complete_upload_api_v1_uploads__upload_id__complete_post",
         "parameters": [
           {

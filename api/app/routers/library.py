@@ -8,9 +8,9 @@ from uuid import UUID
 from fastapi import Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 
-from app.core.access import Box
+from app.core.access import Box, Feature
 from app.core.pagination import Limit, Offset, YearParam
-from app.core.security import DB, ActiveUser, OptionalUser, client_ip, requires
+from app.core.security import DB, ActiveUser, OptionalUser, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.library import (
@@ -29,7 +29,7 @@ from app.schemas.library import (
 from app.services import library as svc
 from app.services.search import text_query
 
-router = router_for("library")
+router = router_for("library", needs_feature(Feature.library))
 Uploader = Annotated[User, requires(Box.library_upload)]
 LibraryManager = Annotated[User, requires(Box.library_manage)]
 
@@ -76,12 +76,17 @@ def get_item(item: str, db: DB, user: OptionalUser) -> LibraryItem:
     return svc.one_out(db, svc.get_visible(db, item, user), user)
 
 
-@router.post("/library/items", response_model=LibraryItem, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/library/items",
+    response_model=LibraryItem,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[needs_feature(Feature.library_uploads)],
+)
 def create_item(body: LibraryItemCreate, request: Request, user: Uploader, db: DB) -> LibraryItem:
     """Turn a completed upload into a library item: pending for students, published for library managers.
 
     Errors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting
-    for review), invalid_input (422: an unknown module)."""
+    for review), invalid_input (422: an unknown module), feature_off (404: library uploads are switched off)."""
     item = svc.create_from_upload(db, user, body, client_ip(request))
     db.commit()
     return svc.one_out(db, item, user)

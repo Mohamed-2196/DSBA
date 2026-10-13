@@ -643,7 +643,7 @@ export interface paths {
          * @description Turn a completed upload into a library item: pending for students, published for library managers.
          *
          *     Errors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting
-         *     for review), invalid_input (422: an unknown module).
+         *     for review), invalid_input (422: an unknown module), feature_off (404: library uploads are switched off).
          */
         post: operations["create_item_api_v1_library_items_post"];
         delete?: never;
@@ -836,7 +836,7 @@ export interface paths {
          *
          *     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
          *     for review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum
-         *     picture).
+         *     picture), feature_off (404: the library, its uploads or the forum is switched off).
          */
         post: operations["create_upload_api_v1_uploads_post"];
         delete?: never;
@@ -859,7 +859,8 @@ export interface paths {
          * @description Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and
          *     first bytes match the file's name.
          *
-         *     Errors: not_uploaded (409), mismatch (422; the object is deleted).
+         *     Errors: not_uploaded (409), mismatch (422; the object is deleted), feature_off (404: the upload's feature was
+         *     switched off since it started).
          */
         post: operations["complete_upload_api_v1_uploads__upload_id__complete_post"];
         delete?: never;
