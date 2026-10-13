@@ -303,7 +303,51 @@ CQ-16 suggested aliases; with no compatibility to keep, these are now plain rena
 - **Fix:** annotate `ERRORS`, and type the kinds as `LibraryKind` end to end, so mypy catches a typo in the import's
   kind mapping.
 
-<!-- summary -->
+## Summary
+
+The codebase has moved a long way since round 1:
+- Of the 18 earlier findings, 13 are fixed and 4 mostly fixed (CQ-7, CQ-9, CQ-17, CQ-18). Only CQ-16, the API
+  naming, is still open.
+- The duplication that defined round 1 is gone: one upload pipeline, one confirm dialog, one date module, one rate
+  limiter, one `public_user`.
+- The contract is typed end to end. The forum service is a package. The shell no longer waits on `/modules`.
+- Every check passes: 652 API tests, 347 Vitest tests, mypy strict on `app` and `tests`, the drift tests, the build.
+- List endpoints stay at a fixed number of statements as the data grows.
+- Rounds 2 and 3 added the Drive import, `seed-real.sh`, the data router, the e2e harness and the CQ-15 migration.
+  They are well structured and tested.
+
+This round found **no blocker, 1 major and 10 minor findings**. The major one is a shared helper that turns any
+database integrity error into "try again" (CQ-19, reproduced). The no-compatibility clean-up worked: no aliases,
+storage migrations or deprecated fields are left. What remains of the rule is comments: 8 that narrate where code
+came from, and about 290 review-ID references (CQ-20).
+
+### Top five changes worth making, in order
+
+1. **CQ-19: retry `insert_with_unique_slug` only on the slug's own unique constraint.** Re-raise everything else.
+   Today a CHECK or foreign key violation, in the library, the calendar or the Drive import, reaches the person
+   as a 409 "try again" and is never logged. A small change with two tests.
+2. **CQ-20: take the history and the review IDs out of the comments.**
+   - Delete the 8 "Split out of …" lines and the "one copy for every area" phrasing.
+   - Replace review IDs with the reason in words.
+   - Keep review IDs out of route docstrings, which are public in `/api/v1/docs`.
+
+   This is CLAUDE.md's own rule. Have the access work's baseline migration describe the schema only.
+3. **CQ-28: commit a `web/knip.json` and run knip in `scripts/check.sh`.** Then fix the 20 real lines: one dead
+   function, the `public.ts` exports no feature uses, the bypassed `src/state` and `src/ui` barrels, and the
+   `['account']` key, which belongs in `src/api/keys.ts`. After that, dead code is caught on every push instead of
+   once per review.
+4. **CQ-27: add Vitest tests for `grades/whatif.ts`, then `calendar/queries.ts` and `calendar/dates.ts`, then
+   `career/lib/fit.ts`.** These are pure modules whose answers students act on: the marks they need, and their
+   next exam.
+5. **CQ-25 (with CQ-22): settle the API's names before release, while renaming is still free.**
+   - `n` becomes `limit`.
+   - The forum, library and calendar query types are derived from the generated schema.
+   - `POST /reports` returns the report.
+   - Reads go by slug only.
+   - The upload rules are served by the API, not copied into the web app.
+
+The rest (CQ-21, CQ-23, CQ-24, CQ-26 and CQ-29) are small, local fixes. Do each when its file is next touched.
+CQ-26's personas belong with the access plan's `make_user` rewrite.
 
 ---
 
