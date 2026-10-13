@@ -43,6 +43,14 @@ def test_a_suspended_account_keeps_its_roles_but_loses_its_boxes(make_user: Make
     assert access.boxes_of(rep) == frozenset()
     assert not access.is_admin(boss)
     assert access.access_of(rep).badge == "Student rep"  # the role stays, the powers go
+    shown = accounts.public_user(rep)
+    assert shown is not None
+    assert shown.badge is None  # and nobody sees a badge it no longer stands for
+    rep.status = UserStatus.active
+    db.commit()
+    restored = accounts.public_user(rep)
+    assert restored is not None
+    assert restored.badge == "Student rep"
 
 
 def test_changes_apply_at_once(make_user: MakeUser, give_roles: Callable[..., None]) -> None:

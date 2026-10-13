@@ -121,8 +121,8 @@ UNNAMED = "Student"  # an account without a display name yet (it can't post unti
 
 def public_user(user: User | None) -> UserPublic | None:
     """How a person appears next to what they did, everywhere in the Hub: name, cohort and badge, never their email
-    or phone number. None for a deleted account ("deleted user"). The one serialiser for UserPublic (code quality
-    review CQ-6): areas import this rather than writing their own."""
+    or phone number. A suspended account shows no badge. None for a deleted account ("deleted user"). The one
+    serialiser for UserPublic (code quality review CQ-6): areas import this rather than writing their own."""
     if user is None:
         return None
     return UserPublic.model_validate(
@@ -130,7 +130,7 @@ def public_user(user: User | None) -> UserPublic | None:
             "id": user.id,
             "display_name": user.display_name or UNNAMED,
             "year": user.year,  # 1-3 or none: the database checks it
-            "badge": access.access_of(user).badge,
+            "badge": access.access_of(user).badge if access.is_active(user) else None,  # suspended: no boxes, no badge
         }
     )
 
