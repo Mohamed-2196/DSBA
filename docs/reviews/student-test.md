@@ -480,12 +480,16 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
 |---|---|
 | Moderation: the report, hiding the thread (with the optional reason), resolving with a note, locking Sara's thread | works |
 | Reviewing Ali's uploads: publishing nine, rejecting the PPT with a note | works, but **double-clicking "Publish" notifies twice** (ST-14). |
+| A new newsletter issue: "New issue", a double click on "Create draft" | one draft (the address must be unique), and the editor opens. |
+| The editor: a story with Arabic text, then leaving without saving | "Leave without saving?" opens for a sidebar link, for a ⌘K result and for Back; Cancel keeps the edits. Saving lets them through. Round 3's leave guard holds everywhere I tried. |
+| **Double-clicking "Publish and notify everyone"** | **bug ST-16**: every account is notified and emailed twice. |
 
 ### Admin (Maryam)
 
 | What | Result |
 |---|---|
 | People: finding Noor, suspending her (the dialog says what it does), lifting it | works |
+| Activity | names the issue: "Fatima R4 Rep published the newsletter issue “Revision week, r4 tviy”" (**ST-9 fixed**). It also shows ST-14's and ST-16's double entries. |
 
 ### New findings
 
@@ -524,3 +528,17 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
   the cards and the file page say DOCX while the download is a `.doc`. A student with an old Office version may
   think the file won't open. Suggestion: `DOC`, `XLS` and `PPT` (the web app already names them "Word document" and
   so on).
+
+#### ST-16 (minor, every account) A double click on "Publish and notify everyone" tells everyone twice
+
+- Owner: content (`services/newsletter.py`, `publish`) and frontend-content (the publish dialog)
+- Steps: as a rep, open a draft issue → **Publish** → double-click **Publish and notify everyone**.
+- Expected: one publish, one notification and at most one email per student.
+- Actual: two `POST …/publish` requests. Both find the issue still a draft, so both notify every account: Ali and
+  Noor each have two "New issue of The DSBA Newsletter: Revision week, r4 tviy" notifications and two emails in
+  Mailpit, and the activity log has two "published the newsletter issue" lines. A third publish a moment later
+  answers `200` and sends nothing, so the service's "Publishing a published issue changes nothing" check works but
+  isn't safe against two requests at once. One slip by a rep emails the whole programme twice, and that can't be
+  taken back.
+- Fix: lock the row (`SELECT … FOR UPDATE`) or publish with a conditional update (`WHERE status = 'draft'`) and
+  notify only when a row changed. In the dialog, ignore the second press while the first is in flight.
