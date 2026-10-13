@@ -90,9 +90,16 @@ The lead merges them.
 1. **Done: the e2e suite on Docker.** `scripts/e2e.sh` runs it in about 3 minutes. It passed 41/41 twice.
    - Three tests were updated for deliberate round 2 changes.
    - Open: no test covers step-up before changing an email or phone number.
-2. **Re-review round.** The security, code-quality and UI/UX reviewers check that their findings are fixed and
-   review what round 2 added. The student tester re-tests every feature as a guest, a student in each year, a rep
-   and an admin. Run all four in the background, in parallel.
+2. **Done: the re-review round (2026-10-13).** No blockers. The findings are in `docs/reviews/`:
+   - **Security:** SEC-16 to SEC-20, and AD-1 to AD-9, which are adopted into the access work.
+   - **Code quality:** CQ-19 to CQ-29. CQ-19 and CQ-21 are fixed.
+   - **UI/UX:** UX-18 to UX-27.
+   - **Student test:** ST-13 to ST-18, 46/46 e2e, and a new step-up test.
+   - **Queued after the access work, as a polish branch:**
+     - double clicks that act twice: ST-13, ST-14 and ST-16 (publish with a guard), and ST-17 (offline posting);
+     - UX-18 to UX-22 and the CQ minors;
+     - SEC-17, SEC-18 and SEC-20;
+     - `scripts/e2e.sh --restore` should also put `web` back on the main checkout.
 3. **Done: the Drive import and `scripts/seed-real.sh`** (DEPLOYMENT.md section 10).
    - Migration 0005 adds `library_items.import_key`, so a removed file never comes back.
    - Imported files are `source=file`.
