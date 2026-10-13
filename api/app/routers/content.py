@@ -6,8 +6,8 @@ from typing import Annotated
 
 from fastapi import Query, Request
 
-from app.core.access import Box
-from app.core.security import DB, OptionalUser, client_ip, requires
+from app.core.access import Box, Feature
+from app.core.security import DB, OptionalUser, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.career import CareerDoc
@@ -18,13 +18,13 @@ from app.services.search import run_search
 router = router_for("content")
 
 
-@router.get("/career", response_model=CareerContent)
+@router.get("/career", response_model=CareerContent, dependencies=[needs_feature(Feature.career)])
 def career(db: DB) -> CareerContent:
     """The Career Navigator's content (`data` is null until it is loaded)."""
     return svc.career(db)
 
 
-@router.put("/career", response_model=CareerContent)
+@router.put("/career", response_model=CareerContent, dependencies=[needs_feature(Feature.career)])
 def update_career(
     body: CareerDoc, request: Request, user: Annotated[User, requires(Box.career_edit)], db: DB
 ) -> CareerContent:
