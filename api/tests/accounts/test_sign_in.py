@@ -37,25 +37,25 @@ def _challenge(db: Session, challenge_id: str) -> OtpChallenge:
 
 def test_sign_in_by_email_creates_an_account(client_for: ClientFor, outbox: Outbox, db: Session) -> None:
     c = client_for()
-    r = start(c, "  Mariam.Ali@Gmail.com ")
+    r = start(c, "  Sara.Student@Example.com ")
     assert r.status_code == 202, r.text
     body = r.json()
     assert set(body) == {"challengeId", "channel", "destinationHint", "expiresIn", "resendAfter", "codeFormat"}
     assert body["channel"] == "email"
     assert body["codeFormat"] == "digits"
-    assert body["destinationHint"] == "m•••@gmail.com"
+    assert body["destinationHint"] == "s•••@example.com"
     assert body["expiresIn"] == 600
     assert body["resendAfter"] == 30
     [mail] = outbox
     assert mail.channel == "email"
-    assert mail.to == "mariam.ali@gmail.com"
+    assert mail.to == "sara.student@example.com"
 
     r = verify(c, body["challengeId"], mail.code)
     assert r.status_code == 200, r.text
     result = r.json()
     assert result["isNewUser"] is True
     me = result["user"]
-    assert me["email"] == "mariam.ali@gmail.com"
+    assert me["email"] == "sara.student@example.com"
     assert me["phone"] is None
     assert me["needsProfile"] is True
     assert me["displayName"] is None

@@ -219,8 +219,6 @@ The `sweep` service runs `python -m app.cli sweep` when it starts and every 24 h
 - sessions that expired or were revoked more than 30 days ago;
 - the files of library items rejected or removed more than a week ago (the item stays, without its file).
 
-`python -m app.cli sweep-uploads` is the old name of the same command.
-
 ## 9. Analytics (optional)
 
 PostHog is off unless the web image is built with a project key. Without one the SDK is not even downloaded. To turn
