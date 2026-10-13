@@ -5,7 +5,7 @@ import { errorMessage } from '../../../api/errors';
 import { useToast } from '../../../state';
 import { Button, ConfirmDialog, IconButton, type ButtonSize } from '../../../ui';
 import { useDeleteIssue, usePublishIssue } from '../api';
-import { issueNo } from '../lib/text';
+import { issueNo, publishedNote } from '../lib/text';
 
 interface ActionIssue {
   id: string;
@@ -23,9 +23,9 @@ export function PublishButton({ issue, size = 'md', onPublished }: { issue: Acti
     publish.mutate(
       { id: issue.id, slug: issue.slug },
       {
-        onSuccess: () => {
+        onSuccess: (published) => {
           setAsking(false);
-          push({ tone: 'success', title: `Issue ${no} is out`, body: 'It’s on the newsletter page, and everyone who wants newsletter notifications has been told.' });
+          push({ tone: 'success', ...publishedNote(no, published.emailed) });
           onPublished?.();
         },
       },
