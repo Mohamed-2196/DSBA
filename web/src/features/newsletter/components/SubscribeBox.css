@@ -20,6 +20,10 @@
 .nl-subscribe__manage { margin-top: var(--sp-8); font-size: var(--fs-14); font-weight: var(--fw-medium); }
 .nl-subscribe__manage a { color: var(--ink-2); }
 .nl-subscribe__manage a:hover { color: var(--ink); }
+/* Touch screens: a 44px target, the text where it was (the extra height is padding, taken back with margins). */
+@media (pointer: coarse) {
+  .nl-subscribe__manage a { display: inline-flex; align-items: center; min-height: 44px; margin-block: -13px; }
+}
 .nl-subscribe__action { display: flex; align-items: center; min-width: 0; }
 .nl-subscribe__submit { width: 100%; }
 .nl-subscribe__done { display: flex; flex: 1 1 auto; align-items: center; justify-content: space-between; gap: var(--sp-12); flex-wrap: wrap; }
