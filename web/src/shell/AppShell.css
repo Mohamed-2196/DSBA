@@ -41,3 +41,11 @@
   .shell .shell-rail-col { display: none; }
   .shell-main { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
 }
+
+/* "Off for others" above a page an admin opens while its feature is off for everyone else. */
+.route-off-for-others {
+  width: 100%;
+  max-width: calc(var(--content-max-wide) + 2 * var(--content-pad));
+  margin: 0 auto calc(-1 * var(--sp-16));
+  padding: var(--sp-16) var(--content-pad) 0;
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ApiError, NETWORK_MESSAGE, SERVER_MESSAGE, errorMessage, isApiError, isNetworkError, loadProblem, toApiError } from './errors';
+import { ApiError, NETWORK_MESSAGE, SERVER_MESSAGE, errorMessage, isApiError, isFeatureOff, isNetworkError, loadProblem, toApiError } from './errors';
 
 const response = (status: number) => new Response(null, { status });
 
@@ -71,5 +71,13 @@ describe('loadProblem', () => {
       'Only admins can see this.',
     );
     expect(loadProblem(toApiError(response(404), undefined))).toBe(SERVER_MESSAGE);
+  });
+});
+
+describe('isFeatureOff', () => {
+  it('recognises a switched-off feature', () => {
+    expect(isFeatureOff(new ApiError({ status: 404, code: 'feature_off', message: 'This part of the hub is switched off right now.' }))).toBe(true);
+    expect(isFeatureOff(new ApiError({ status: 404, code: 'not_found', message: 'Not here.' }))).toBe(false);
+    expect(isFeatureOff(new Error('feature_off'))).toBe(false);
   });
 });

@@ -1,9 +1,11 @@
 import { createElement } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { ArrowUpRight } from '@phosphor-icons/react';
+import { useAuth } from '../auth';
 import { BREAKPOINTS, useMediaQuery } from '../state';
 import { Badge, BrandLogo, HubLogo, HubMark, Tooltip, cx } from '../ui';
 import { EXTERNAL_LINKS, NAV, type ExternalLink, type NavItem as NavConfig } from './nav';
+import { visibleNav } from './visibility';
 import { YearSwitcher } from './YearSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import { ProfileMenu } from './ProfileMenu';
@@ -69,6 +71,7 @@ function ExternalItem({ item, collapsed }: { item: ExternalLink; collapsed: bool
 /** Left rail: brand, year switcher, nav, external links, theme, account. Icon-only at 700–1099px. */
 export function Sidebar() {
   const collapsed = useMediaQuery(BREAKPOINTS.tablet);
+  const { featureOn } = useAuth();
   return (
     // The column wrapper runs the full page height (surface + border); the rail inside is sticky.
     <div className="shell-rail-col">
@@ -85,7 +88,7 @@ export function Sidebar() {
 
         <nav className="shell-nav" aria-label="Main">
           <ul role="list">
-            {NAV.map((item) => (
+            {visibleNav(NAV, featureOn).map((item) => (
               <li key={item.id}>
                 <NavItem item={item} collapsed={collapsed} />
               </li>

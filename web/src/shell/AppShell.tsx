@@ -15,7 +15,7 @@ import './AppShell.css';
 /** App frame: rail + sticky top bar + content (+ footer), mobile tab bar, and global overlays. */
 export function AppShell({ children }: { children?: ReactNode }) {
   const { pathname } = useLocation();
-  const { status } = useAuth();
+  const { status, featureOn } = useAuth();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
@@ -46,9 +46,11 @@ export function AppShell({ children }: { children?: ReactNode }) {
             <Onboarding />
           </ErrorBoundary>
         ) : null}
-        <ErrorBoundary name="MiniNoora" fallback={null}>
-          <MiniNoora />
-        </ErrorBoundary>
+        {featureOn('noora') ? (
+          <ErrorBoundary name="MiniNoora" fallback={null}>
+            <MiniNoora />
+          </ErrorBoundary>
+        ) : null}
       </ModulesGate>
       <Toaster />
     </div>

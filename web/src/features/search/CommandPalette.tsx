@@ -4,6 +4,7 @@
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadProblem } from '../../api/errors';
+import { useAuth } from '../../auth';
 import { MagnifyingGlass, X } from '@phosphor-icons/react';
 import { useDebouncedValue, useLocalStorage, useTheme, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
@@ -33,6 +34,7 @@ export function CommandPalette() {
   const { theme, toggleTheme } = useTheme();
   const { getModule, getModulesForYear } = useModules();
   const nooraHidden = useMiniNooraHidden();
+  const { featureOn } = useAuth();
   const { push } = useToast();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -85,8 +87,9 @@ export function CommandPalette() {
         results: search.data,
         getModule,
         getModulesForYear,
+        isOn: featureOn,
       }),
-    [query, year, activeYear, theme, nooraHidden, expanded, recent, search.data, getModule, getModulesForYear],
+    [query, year, activeYear, theme, nooraHidden, expanded, recent, search.data, getModule, getModulesForYear, featureOn],
   );
   // Until the API has answered the words typed, "nothing found" would be premature.
   const searching = results.empty && waiting;

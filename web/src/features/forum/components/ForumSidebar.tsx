@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowFatUp, ChatsCircle, CheckCircle, HandHeart, MagnifyingGlass, ShieldCheck, Tag, UsersThree } from '@phosphor-icons/react';
+import { useAuth } from '../../../auth';
 import { Count, ErrorBoundary, Skeleton, cx } from '../../../ui';
 import { useModules } from '../../../state/modules';
 import { UpcomingEvents } from '../../calendar/public';
@@ -44,6 +45,7 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
   const { categories } = useTaxonomy();
   const { getModulesForYear } = useModules();
   const people = stats?.topContributors ?? [];
+  const { featureOn } = useAuth();
   return (
     <aside className="forum-side" data-hub="forum-sidebar" aria-label="Forum overview">
       <section className="forum-side__block" aria-labelledby="forum-side-cats">
@@ -107,19 +109,21 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
         </section>
       ) : null}
 
-      <section className="forum-side__block" aria-labelledby="forum-side-dates">
-        <div className="forum-side__head">
-          <h2 id="forum-side-dates" className="forum-side__title">
-            Coming up
-          </h2>
-          <Link to="/calendar" className="forum-side__link">
-            Calendar
-          </Link>
-        </div>
-        <ErrorBoundary name="UpcomingEvents">
-          <UpcomingEvents n={3} />
-        </ErrorBoundary>
-      </section>
+      {featureOn('calendar') ? (
+        <section className="forum-side__block" aria-labelledby="forum-side-dates">
+          <div className="forum-side__head">
+            <h2 id="forum-side-dates" className="forum-side__title">
+              Coming up
+            </h2>
+            <Link to="/calendar" className="forum-side__link">
+              Calendar
+            </Link>
+          </div>
+          <ErrorBoundary name="UpcomingEvents">
+            <UpcomingEvents n={3} />
+          </ErrorBoundary>
+        </section>
+      ) : null}
 
       <section className="forum-side__block" aria-labelledby="forum-side-rules">
         <h2 id="forum-side-rules" className="forum-side__title">

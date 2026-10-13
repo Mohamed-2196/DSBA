@@ -1,27 +1,30 @@
 import { createElement, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ArrowUpRight, DotsThreeOutline, Info, UploadSimple } from '@phosphor-icons/react';
+import { useAuth } from '../auth';
 import { Divider, Drawer, HubMark, cx } from '../ui';
 import { EXTERNAL_LINKS, MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav';
+import { visibleNav } from './visibility';
 import { YearSwitcher } from './YearSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import { useStartUpload } from './upload';
 import './MobileNav.css';
-
-const TABS = NAV.filter((n) => MOBILE_TAB_IDS.includes(n.id));
-const MORE = NAV.filter((n) => MORE_IDS.includes(n.id));
 
 /** Bottom tab bar (< 700px): Home, Modules, Library, Forum, More (drawer with the rest). */
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const startUpload = useStartUpload();
-  const moreActive = [...MORE.map((m) => m.to), '/about', '/styleguide'].some((p) => pathname.startsWith(p));
+  const { featureOn } = useAuth();
+  const nav = visibleNav(NAV, featureOn);
+  const tabs = nav.filter((n) => MOBILE_TAB_IDS.includes(n.id));
+  const more = nav.filter((n) => MORE_IDS.includes(n.id));
+  const moreActive = [...more.map((m) => m.to), '/about', '/styleguide'].some((p) => pathname.startsWith(p));
   const close = () => setOpen(false);
   return (
     <>
       <nav className="shell-tabbar" aria-label="Main">
-        {TABS.map((item) => (
+        {tabs.map((item) => (
           <NavLink key={item.id} to={item.to} end={item.end} className={({ isActive }) => cx('shell-tabbar__item', isActive && 'is-active')} data-hub={`tab-${item.id}`}>
             {({ isActive }) => (
               <>
@@ -59,7 +62,7 @@ export function MobileNav() {
         <div className="shell-more">
           <YearSwitcher hookId="year-switcher-more" />
           <ul role="list" className="shell-more__list">
-            {MORE.map((item) => (
+            {more.map((item) => (
               <li key={item.id}>
                 <NavLink to={item.to} onClick={close} className={({ isActive }) => cx('shell-more__item', isActive && 'is-active')}>
                   {createElement(item.icon, { 'aria-hidden': true })}

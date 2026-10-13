@@ -1,6 +1,7 @@
 // Navigation config for the shell (rail, mobile tab bar, More drawer).
 import { Books, Calculator, CalendarDots, ChatsCircle, Compass, GraduationCap, House, Newspaper, SquaresFour, Bank, type Icon } from '@phosphor-icons/react';
 import { MYCLASS_URL, UOL_PORTAL_URL } from '../data/people';
+import type { Feature } from '../auth';
 import type { BrandLogoName } from '../ui';
 
 export interface NavItem {
@@ -12,6 +13,8 @@ export interface NavItem {
   end?: boolean;
   /** a "New" badge (rail) or dot (icon rail, tab bar) */
   isNew?: boolean;
+  /** shown only while this feature is on for the person */
+  feature?: Feature;
 }
 
 export interface ExternalLink {
@@ -26,13 +29,13 @@ export interface ExternalLink {
 export const NAV: NavItem[] = [
   { id: 'home', label: 'Home', to: '/', icon: House, end: true },
   { id: 'modules', label: 'Modules', to: '/modules', icon: SquaresFour },
-  { id: 'library', label: 'Library', to: '/library', icon: Books },
-  { id: 'newsletter', label: 'Newsletter', to: '/newsletter', icon: Newspaper },
-  { id: 'forum', label: 'Forum', to: '/forum', icon: ChatsCircle, isNew: true },
+  { id: 'library', label: 'Library', to: '/library', icon: Books, feature: 'library' },
+  { id: 'newsletter', label: 'Newsletter', to: '/newsletter', icon: Newspaper, feature: 'newsletter' },
+  { id: 'forum', label: 'Forum', to: '/forum', icon: ChatsCircle, isNew: true, feature: 'forum' },
   // No isNew: "Career Navigator" + the New badge + the active mark is 266px in the 232px rail, which widens the whole nav grid.
-  { id: 'career', label: 'Career Navigator', to: '/career', icon: Compass },
-  { id: 'calendar', label: 'Calendar', to: '/calendar', icon: CalendarDots },
-  { id: 'grades', label: 'Grades', to: '/grades', icon: Calculator },
+  { id: 'career', label: 'Career Navigator', to: '/career', icon: Compass, feature: 'career' },
+  { id: 'calendar', label: 'Calendar', to: '/calendar', icon: CalendarDots, feature: 'calendar' },
+  { id: 'grades', label: 'Grades', to: '/grades', icon: Calculator, feature: 'grades' },
 ];
 
 export const EXTERNAL_LINKS: ExternalLink[] = [

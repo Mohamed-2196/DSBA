@@ -61,7 +61,7 @@ export default function IssueEditorPage() {
   const { slug } = useParams();
   useDocumentTitle('Edit issue');
   return (
-    <Gate title="Edit issue" box="newsletter.manage" feature="newsletter">
+    <Gate title="Edit issue" box="newsletter.manage">
       <IssueEditor slug={slug} />
     </Gate>
   );
