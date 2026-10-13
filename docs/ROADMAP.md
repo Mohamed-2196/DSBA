@@ -14,7 +14,7 @@ router change and the e2e harness.
 | --- | --- | --- | --- |
 | R-1 | Roles that each unlock more | spec ready for Mohamed's review | — |
 | R-2 | Requests from students | to design | R-1 |
-| R-3 | A better calendar | to design | — |
+| R-3 | A better calendar | done (round4/calendar, merged 2026-10-13) | — |
 | R-4 | A study board | to design | R-3, for deadlines |
 | R-5 | Notes | to design | — |
 | R-6 | Noora sees what you see | to design | R-5, and the AI decision |

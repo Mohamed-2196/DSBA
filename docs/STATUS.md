@@ -31,34 +31,18 @@ deployed yet.
 
 ## In flight
 
-**Round 3.** Started 2026-10-12, about 23:55. Three agents work in parallel, each on its own branch and worktree.
-The lead merges them.
+**Round 4.** Each builder on its own branch and worktree; one review per branch, just before it merges.
 
-| Branch | Agent | Worktree | Covers ("Next" below) |
+| Branch | Agent | Worktree | Covers |
 | --- | --- | --- | --- |
-| `round3/e2e-docker` | student-tester | removed | 1: merged 2026-10-13 |
-| `round3/drive-import` | api-builder | removed | 3 and CQ-15: merged 2026-10-13, checks green on the merge |
-| `round3/web-leftovers` | web-builder | removed | 4 and 5: merged 2026-10-13 |
-| `round3/student-ideas` | student-user | removed | 24 ideas in `docs/ideas.md`: merged 2026-10-13 |
+| `round4/access` | SDD, task by task | `../dsba-access` | R-1 roles and R-10 feature switches: API done, web Task 7 (e2e) running; then one final review and a fix wave with the must-fix minors |
+| `round4/calendar` | web-builder | removed | R-3 calendar redesign: merged 2026-10-13 (`2ffd145`) |
+| `round4/polish` | web-builder | `../dsba-polish` | ST-13, ST-14, ST-16, ST-17, UX-18 to UX-22, SEC-17, SEC-18, SEC-20, the CQ minors, `e2e.sh --restore` restores web |
 
-- **The access API plan** (R-1 and R-10) is being written in the background, into
-  `docs/superpowers/plans/2026-10-13-access-api.md`. The web plan follows once `round3/web-leftovers` is merged.
-
-- **Round 3 is complete.** Everything is merged and checked: the API checks, the web checks, and the e2e suite on
-  the merged code.
-
-**After round 3.** Started 2026-10-13, each agent on its own branch and worktree:
-
-| Branch | Agent | Covers |
-| --- | --- | --- |
-| `round3/no-legacy` | general-purpose | 7: no backward compatibility (deprecated preferences, old storage keys, history in comments) |
-| `round3/review-security` | security-reviewer | 2: re-check SEC findings, review rounds 2 and 3, and the access design before it's built |
-| `round3/review-uiux` | ui-ux-reviewer | 2: re-check UX findings, review rounds 2 and 3 at all sizes, notes for R-3 and R-7 |
-| `round3/review-student` | student-tester | 2: the by-hand pass in every role, the suite, a step-up e2e test |
-
-- The code-quality re-review starts once `round3/no-legacy` is merged.
-- **Paused 2026-10-13, about 11:00:** every agent hit the account's usage limit, which resets at 12:00. Resume each
-  one with SendMessage; their work so far is in their worktrees.
+- **Round 3 is complete**, and so is the re-review round after it.
+- **R-3 open points:** events have no zone, so the calendar answers per year only; every exam reads "Time not set
+  yet" until reps add times; Mini Noora still covers parts of the page (R-7). The e2e suite runs on it with the
+  access merge.
 - **The Docker stack** runs from the main checkout (compose project `dsba-hub`), on its normal mail backends.
   - `scripts/e2e.sh` switches it to e2e mode, and `--restore` switches it back.
   - Nobody runs `docker compose down`: the API's pytest uses its Postgres.
