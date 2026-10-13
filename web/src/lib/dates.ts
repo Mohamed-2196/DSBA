@@ -177,3 +177,9 @@ export const formatMonthShort = (date: Date): string => monthShort(date.getMonth
 export const formatMonthLong = (date: Date): string => monthName(date.getMonth());
 /** 'October 2026' */
 export const formatMonthYear = (date: Date): string => `${monthName(date.getMonth())} ${date.getFullYear()}`;
+
+/** '09:05', '14:30': a moment's time of day on this device, 24-hour (a chat message's time). */
+export const formatClock = (at: Date | number): string => {
+  const d = typeof at === 'number' ? new Date(at) : at;
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
