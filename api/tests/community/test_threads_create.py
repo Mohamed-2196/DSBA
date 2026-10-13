@@ -243,17 +243,17 @@ def test_a_slug_never_stands_in_for_an_id(client_for: Client, student: User, cla
     guest = client_for()
     assert guest.get(f"{API}/forum/threads/{original['id']}").json()["id"] == original["id"]
     assert guest.get(f"{API}/forum/threads/{copycat['slug']}").json()["id"] == copycat["id"]
-    # a slug from before this rule that spells another thread's id: the id wins (the reverse can't happen)
-    legacy = ForumThread(
+    # a slug written straight to the table that spells another thread's id: the id still wins
+    impostor = ForumThread(
         slug=original["id"],
-        title="Old impostor",
+        title="Impostor",
         body="",
         category="general",
         author_id=classmate.id,
         created_at=utcnow(),
         last_activity_at=utcnow(),
     )
-    db.add(legacy)
+    db.add(impostor)
     db.commit()
     assert guest.get(f"{API}/forum/threads/{original['id']}").json()["id"] == original["id"]
-    assert guest.get(f"{API}/forum/threads/{legacy.id}").json()["title"] == "Old impostor"
+    assert guest.get(f"{API}/forum/threads/{impostor.id}").json()["title"] == "Impostor"

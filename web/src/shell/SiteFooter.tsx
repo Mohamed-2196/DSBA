@@ -5,7 +5,7 @@ import { ProgrammeLockup, HubLogo } from '../ui';
 import { UPLOAD_PATH, useStartUpload } from './upload';
 import './SiteFooter.css';
 
-/** Footer inside the content column: v1 contributors, links, disclaimer, copyright. */
+/** Footer inside the content column: contributors, links, disclaimer, copyright. */
 export function SiteFooter() {
   const { status, me } = useAuth();
   const startUpload = useStartUpload();

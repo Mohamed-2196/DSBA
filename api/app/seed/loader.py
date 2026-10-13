@@ -1,5 +1,5 @@
-"""Loads the reference content exported from the prototype (app/seed/data/*.json, exported once from the prototype
-at commit 350b0d8).
+"""Loads the reference content in app/seed/data/*.json: modules, calendar dates, newsletter issues, the Career
+Navigator document and the library's links.
 
 Idempotent: running it again adds what is missing and never overwrites what moderators changed through the API.
 Something a moderator deleted stays deleted: calendar events and newsletter issues are looked up in the audit log
@@ -7,7 +7,7 @@ Something a moderator deleted stays deleted: calendar events and newsletter issu
 Modules are the exception: they have no editing API, so the seed file is their source of truth (upsert).
 Newsletter issues and the career document go through the schemas the API checks writes with, and are stored in
 the same shape: a seed file that doesn't fit them fails loudly instead of loading content the app can't show.
-Owner: content agent (modules section by the lead)."""
+Owner: content agent."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ from app.models import (
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCreate
 from app.services import content, newsletter
-from app.services.library import V1_PUBLISHED_AT
+from app.services.library import REFERENCE_PUBLISHED_AT
 
 DATA = Path(__file__).parent / "data"
 
@@ -104,10 +104,8 @@ def load_calendar(db: Session) -> int:
 
 
 def seed_issue(raw: dict[str, Any]) -> IssueCreate:
-    """An issue as the prototype wrote it, checked against the API's schema, without the prototype's made-up
-    reaction counts (real ones are newsletter_reactions)."""
-    sections = [{k: v for k, v in s.items() if k != "reactions"} for s in raw.get("sections") or []]
-    return IssueCreate.model_validate({**raw, "sections": sections})
+    """An issue from the seed file, checked against the API's schema."""
+    return IssueCreate.model_validate(raw)
 
 
 def load_newsletter(db: Session) -> int:
@@ -142,7 +140,7 @@ def load_career(db: Session) -> int:
     return 1
 
 
-# ── library: the v1 links of each module ─────────────────────────────────────────────────────
+# ── library: the links of each module ────────────────────────────────────────────────────────
 
 
 @dataclass(frozen=True)
@@ -164,7 +162,7 @@ def _clean_name(name: str) -> str:
 
 
 def module_links(m: dict[str, Any]) -> Iterator[SeedLink]:
-    """A module's v1 resources and students' notes as library links, each URL once per module."""
+    """A module's shared folders and students' notes as library links, each URL once per module."""
     r: dict[str, Any] = m.get("resources") or {}
     code = m.get("unitCode") or m["name"]
     links: list[SeedLink] = []
@@ -250,7 +248,7 @@ def load_library(db: Session) -> int:
                 url=link.url,
                 author_name=link.author_name,
                 status=ItemStatus.published,
-                published_at=V1_PUBLISHED_AT,  # before anything shared through the new library
+                published_at=REFERENCE_PUBLISHED_AT,  # before anything students share
             )
             db.add(item)
             db.flush()

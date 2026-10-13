@@ -37,7 +37,7 @@ WORD_RE = re.compile(r"[^\W_]+")
 SNIPPET_RADIUS = 80
 ALL_TYPES: tuple[SearchType, ...] = ("thread", "library", "issue", "module", "event")
 
-# What students type for modules (from the prototype's search palette).
+# What students type for modules: other names that find them.
 MODULE_ALIASES: dict[str, tuple[str, ...]] = {
     "stats": ("statistic",),
     "stat": ("statistic",),

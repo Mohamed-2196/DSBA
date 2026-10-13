@@ -14,18 +14,7 @@ import './GradesPage.css';
 // Marks live only in this browser's localStorage: the calculator never sends them to the server. The key starts
 // with 'hub.mine.', so signing out clears them (shared lab computers: security review, finding 23).
 const STORAGE_KEY = 'hub.mine.grades';
-const LEGACY_KEY = 'hub.grades';
 
-// Marks saved before the move keep working: they go to the new key once.
-try {
-  const old = window.localStorage.getItem(LEGACY_KEY);
-  if (old !== null) {
-    if (window.localStorage.getItem(STORAGE_KEY) === null) window.localStorage.setItem(STORAGE_KEY, old);
-    window.localStorage.removeItem(LEGACY_KEY);
-  }
-} catch {
-  /* storage unavailable */
-}
 const SLOTS: readonly ChoiceSlot[] = ['year2Option', 'elective1', 'elective2'];
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);

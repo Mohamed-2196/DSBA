@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ThemeContext, type Theme } from './contexts';
 
-const KEY = 'theme'; // v1 key; raw 'light' | 'dark' (not JSON)
+const KEY = 'theme'; // raw 'light' | 'dark' (not JSON): index.html reads it before the first paint
 
 function initialTheme(): Theme {
   try {

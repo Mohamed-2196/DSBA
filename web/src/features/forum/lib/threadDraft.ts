@@ -4,6 +4,8 @@ import type { CategoryId } from '../types';
 import { isCategoryId } from './categories';
 import { TITLE_MAX } from './threadForm';
 
+export const DRAFT_KEY = 'hub.mine.forum.draft';
+
 /** What the composer holds. */
 export interface ThreadForm {
   title: string;

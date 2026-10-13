@@ -49,7 +49,7 @@ def year_condition(year: int) -> ColumnElement[bool]:
 
 
 def hot_expr(now: datetime) -> ColumnElement[Any]:
-    """(votes + 1.5 * replies) / (age in hours + 2)^1.5, as the prototype ranks threads."""
+    """How hot a thread is: (votes + 1.5 * replies) / (age in hours + 2)^1.5."""
     hours = func.greatest(extract("epoch", literal(now, DateTime(timezone=True)) - ForumThread.created_at) / 3600, 0)
     return (ForumThread.vote_count + 1.5 * ForumThread.reply_count) / func.power(hours + 2, 1.5)
 
@@ -134,7 +134,7 @@ def hot_threads(db: Session, viewer: User | None, n: int, year: int | None) -> l
 
 
 def related_threads(db: Session, viewer: User | None, t: ForumThread, n: int) -> list[ThreadSummary]:
-    """Same module first, then shared tags and category (the prototype's relatedThreads): a score of at least 3."""
+    """Same module first, then shared tags and category: a score of at least 3."""
     now = utcnow()
     year = thread_year(db, t)
     score: ColumnElement[Any] = case((ForumThread.category == t.category, 2), else_=0) + func.least(2, hot_expr(now))

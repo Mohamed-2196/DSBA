@@ -61,21 +61,21 @@ describe('clearPersonalStorage', () => {
   });
 
   it('removes drafts and every personal key, and keeps the device settings', () => {
-    storage.setItem('dsba.forum.draft.v2', '{"title":"Resit appeal"}');
+    storage.setItem('hub.mine.forum.draft', '{"title":"Resit appeal"}');
     storage.setItem('hub.mine.grades', '{"st1131":70}');
     storage.setItem(RECENT, '["mgf"]');
     storage.setItem('theme', 'dark');
     storage.setItem('selectedYear', '"2"');
-    storage.setItem('hub.lessons.v1', '{}');
+    storage.setItem('hub.lessons', '{}');
 
     clearPersonalStorage();
 
-    expect(storage.getItem('dsba.forum.draft.v2')).toBeNull();
+    expect(storage.getItem('hub.mine.forum.draft')).toBeNull();
     expect(storage.getItem('hub.mine.grades')).toBeNull();
     expect(storage.getItem(RECENT)).toBeNull();
     expect(storage.getItem('theme')).toBe('dark');
     expect(storage.getItem('selectedYear')).toBe('"2"');
-    expect(storage.getItem('hub.lessons.v1')).toBe('{}');
+    expect(storage.getItem('hub.lessons')).toBe('{}');
   });
 
   it('does nothing when storage is unavailable', () => {

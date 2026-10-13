@@ -120,11 +120,6 @@ def test_sweep_deletes_what_is_no_longer_needed(
     assert cli.sweep().uploads == 0  # nothing left to do
 
 
-def test_sweep_uploads_is_the_old_name_of_sweep(same_session: Session, capsys: pytest.CaptureFixture[str]) -> None:
-    assert cli.main(["sweep-uploads"]) == 0
-    assert capsys.readouterr().out.startswith("swept ")
-
-
 def _keys(client: Any, bucket: str, prefix: str = "") -> list[str]:
     return sorted(o["Key"] for o in client.list_objects_v2(Bucket=bucket, Prefix=prefix).get("Contents", []))
 

@@ -23,7 +23,7 @@ CAREER = f"{API}/career"
 
 
 def doc(**changes: Any) -> dict[str, Any]:
-    """The seeded document (as the prototype wrote it), with top-level changes."""
+    """The seeded document, with top-level changes."""
     d: dict[str, Any] = copy.deepcopy(read("career"))
     d.update(changes)
     return d

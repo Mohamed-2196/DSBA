@@ -2,19 +2,17 @@
 (for search).
 
 An issue's cover and sections are typed (app/schemas/newsletter.py): writes are validated there, links included
-(app/schemas/links.py), and stored as JSON in that shape. Reads parse the stored JSON with the same models; a part
-written before the schema existed that no longer fits is left out (and logged) rather than breaking the issue.
+(app/schemas/links.py), and stored as JSON in that shape. Reads parse the stored JSON with the same models.
 Services leave the commit to the handler."""
 
 from __future__ import annotations
 
-import logging
 import re
 import uuid
 from collections.abc import Sequence
 from typing import Any
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
@@ -42,8 +40,6 @@ from app.schemas.newsletter import (
 )
 from app.services.content import apply_patch, record
 from app.services.notify import notify_all
-
-log = logging.getLogger("dsba.newsletter")
 
 REACTIONS = ("useful", "love", "laugh")
 MAX_ISSUE_BYTES = 256 * 1024  # the whole issue as JSON (security review SEC-6); the launch edition is about 8 KB
@@ -80,21 +76,11 @@ def get_by_id(db: Session, issue_id: uuid.UUID) -> NewsletterIssue:
 
 
 def read_cover(issue: NewsletterIssue) -> IssueCover:
-    try:
-        return IssueCover.model_validate(issue.cover or {})
-    except ValidationError:
-        log.warning("issue %s: its cover doesn't fit the schema; showing a plain cover", issue.slug)
-        return IssueCover()
+    return IssueCover.model_validate(issue.cover or {})
 
 
 def read_sections(issue: NewsletterIssue) -> list[IssueSection]:
-    sections: list[IssueSection] = []
-    for i, raw in enumerate(issue.sections or []):
-        try:
-            sections.append(IssueSection.model_validate(raw))
-        except ValidationError:
-            log.warning("issue %s: section %d doesn't fit the schema; left out", issue.slug, i)
-    return sections
+    return [IssueSection.model_validate(raw) for raw in issue.sections or []]
 
 
 def section_ids(issue: NewsletterIssue) -> list[str]:

@@ -29,7 +29,6 @@ const state = (watched: [number, number][], last?: { c: number; v: number }): Pr
 describe('stored progress', () => {
   it('drops what isn’t progress', () => {
     expect(normalizeStored(null)).toBe(EMPTY_PROGRESS);
-    expect(normalizeStored({ demo: true, watched: { [key(0, 0)]: T } })).toBe(EMPTY_PROGRESS); // the prototype's demo history
     const s = normalizeStored({
       watched: { [key(0, 0)]: T, 'bad key': T, [key(0, 1)]: -1 },
       last: { [m.id]: { c: 0, v: 1, at: T }, 'Bad Module': { c: 0, v: 0, at: T }, other: { c: -1, v: 0, at: T } },

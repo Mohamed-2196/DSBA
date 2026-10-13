@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#07122B" media="(prefers-color-scheme: dark)" />
     <title>DSBA Hub</title>
     <script>
-      // Apply the saved theme before first paint (v1 key: localStorage.theme = 'light' | 'dark').
+      // Apply the saved theme before first paint (localStorage.theme = 'light' | 'dark', as ThemeProvider writes it).
       (function () {
         try {
           var t = localStorage.getItem('theme');

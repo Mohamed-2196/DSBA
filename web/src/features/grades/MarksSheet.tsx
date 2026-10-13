@@ -23,7 +23,7 @@ function sanitize(value: string): string | null {
 }
 
 export interface MarksSheetProps {
-  /** 13 raw values in v1 order */
+  /** 13 raw values in subject order */
   marks: string[];
   picks: Picks;
   yearOneAverage: number | null;

@@ -1,4 +1,4 @@
-// The pictures an issue may use for now: files of the app itself (web/public). An image uploaded for an issue would
+// The pictures the editor offers: files of the app itself (web/public). An image uploaded for an issue would
 // be invisible to readers (the API serves uploaded images only with a forum post) and swept after a day, so the editor
 // offers these only. Width and height are the files' own, so a picture reserves its space while it loads.
 import type { FigureDraft } from '../lib/draft';
@@ -25,7 +25,7 @@ export const appPicture = (src: string | null | undefined): AppPicture | undefin
 
 /**
  * The pictures to choose from: the app's own (only covers, for a cover), plus the one the issue already uses when it
- * isn't among them (an uploaded image from before), so opening the editor never drops it.
+ * isn't among them (an uploaded image, which the API accepts), so opening the editor never drops it.
  */
 export function pictureChoices(current: Pick<FigureDraft, 'src' | 'width' | 'height'> | null, { cover = false }: { cover?: boolean } = {}): AppPicture[] {
   const list = APP_PICTURES.filter((p) => !cover || p.cover);

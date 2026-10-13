@@ -101,7 +101,7 @@ function Composer() {
   const titleRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
-  // Tags the server doesn't know (an old draft) are dropped once the list has loaded.
+  // Tags the server doesn't know (a stored draft can hold any) are dropped once the list has loaded.
   useEffect(() => {
     if (!knownTags.length) return;
     setForm((f) => {

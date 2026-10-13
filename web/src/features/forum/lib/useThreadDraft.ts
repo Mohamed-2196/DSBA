@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocalStorage } from '../../../state';
-import { DRAFT_KEY } from './legacy';
-import { draftOwner, hasText, type ThreadDraft, type ThreadForm } from './threadDraft';
+import { DRAFT_KEY, draftOwner, hasText, type ThreadDraft, type ThreadForm } from './threadDraft';
 
 export interface ThreadDraftOptions {
   /** who is writing: an account id, or null for a guest */

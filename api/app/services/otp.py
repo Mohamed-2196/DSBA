@@ -1,7 +1,7 @@
 """One-time codes: signing in, confirming it's you (step-up), and adding an email address or phone number.
 
 The rules (ARCHITECTURE.md security baseline; docs/reviews/security-design.md findings 2, 3, 9, 15 and 20;
-docs/reviews/security.md SEC-2; round 2 decisions D2 and D4):
+docs/reviews/security.md SEC-2; decisions D2 and D4):
 
 - A code is 6 digits from `secrets`. Only HMAC-SHA256(secret key, "<challenge id>:<code>") is stored.
 - It expires after DSBA_OTP_TTL_SECONDS and works once. Each try is counted atomically BEFORE the comparison (and

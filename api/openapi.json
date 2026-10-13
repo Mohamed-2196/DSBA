@@ -14917,18 +14917,6 @@
             "type": "boolean",
             "title": "Emailnewissues",
             "default": true
-          },
-          "emailNotifications": {
-            "type": "boolean",
-            "title": "Emailnotifications",
-            "default": true,
-            "deprecated": true
-          },
-          "newsletterEmails": {
-            "type": "boolean",
-            "title": "Newsletteremails",
-            "default": true,
-            "deprecated": true
           }
         },
         "type": "object",
@@ -14980,30 +14968,6 @@
               }
             ],
             "title": "Emailnewissues"
-          },
-          "emailNotifications": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Emailnotifications",
-            "deprecated": true
-          },
-          "newsletterEmails": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Newsletteremails",
-            "deprecated": true
           }
         },
         "type": "object",

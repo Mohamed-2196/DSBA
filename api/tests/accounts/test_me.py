@@ -123,8 +123,6 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
             "emailAnswerAccepted": True,
             "emailUploadReviews": True,
             "emailNewIssues": True,
-            "emailNotifications": True,
-            "newsletterEmails": True,
         },
     }
 
@@ -245,13 +243,7 @@ def test_year(client_for: ClientFor, make_user: MakeUser) -> None:
 
 def _switches(**off: bool) -> dict[str, bool]:
     """The preferences as the API shows them: every switch on except those given."""
-    new = {"emailReplies": True, "emailAnswerAccepted": True, "emailUploadReviews": True, "emailNewIssues": True}
-    new.update(off)
-    return {
-        **new,
-        "emailNotifications": new["emailReplies"] and new["emailAnswerAccepted"] and new["emailUploadReviews"],
-        "newsletterEmails": new["emailNewIssues"],
-    }
+    return {"emailReplies": True, "emailAnswerAccepted": True, "emailUploadReviews": True, "emailNewIssues": True} | off
 
 
 def test_preferences_one_switch_per_kind_of_email(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
@@ -267,23 +259,6 @@ def test_preferences_one_switch_per_kind_of_email(client_for: ClientFor, make_us
     assert _fresh(db, User, user.id).preferences == {"email_replies": False, "email_new_issues": False}
     r = c.patch(f"{API}/me", json={"preferences": {"emailReplies": True, "emailNewIssues": True}})
     assert r.json()["preferences"] == _switches()
-
-
-def test_the_old_preference_fields_still_work(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
-    """emailNotifications and newsletterEmails (deprecated) set the switches they stand for."""
-    user = make_user()
-    c = client_for(user)
-    r = c.patch(f"{API}/me", json={"preferences": {"newsletterEmails": False}})
-    assert r.json()["preferences"] == _switches(emailNewIssues=False)
-    r = c.patch(f"{API}/me", json={"preferences": {"emailNotifications": False}})
-    off = _switches(emailReplies=False, emailAnswerAccepted=False, emailUploadReviews=False, emailNewIssues=False)
-    assert r.json()["preferences"] == off
-    # one switch back on: the old field reads "off" until all three are on
-    r = c.patch(f"{API}/me", json={"preferences": {"emailReplies": True}})
-    assert r.json()["preferences"]["emailNotifications"] is False
-    # the new field wins over the old one sent with it
-    r = c.patch(f"{API}/me", json={"preferences": {"emailNotifications": True, "emailUploadReviews": False}})
-    assert r.json()["preferences"] == _switches(emailUploadReviews=False, emailNewIssues=False)
 
 
 def test_a_suspended_account_keeps_its_name(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:

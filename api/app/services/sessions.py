@@ -4,7 +4,7 @@ Sign-in always makes a new session (the browser's previous one is revoked); core
 the browser the CSRF cookie bound to it, and a fresh one when the session cookie is cleared. A user keeps at most
 MAX_LIVE sessions (security review finding 16).
 
-Step-up (round 2, decision D2): changing or removing an email address or phone number, and deleting the account,
+Step-up (decision D2): changing or removing an email address or phone number, and deleting the account,
 need a session that started less than STEP_UP_WINDOW ago: a sign-in, or a renewal after a code sent to one of the
 account's own identifiers (POST /me/step-up). A session alone, however old, is not enough."""
 

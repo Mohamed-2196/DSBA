@@ -26,11 +26,11 @@ export async function resetPersonalQueries(qc: QueryClient): Promise<void> {
 }
 
 /**
- * localStorage keys that hold a signed-in person's own things (recent searches, grades, drafts such as the forum's
- * 'dsba.forum.draft.v2'). They are removed on sign-out and account deletion, because lab and library computers are
- * shared. New per-person keys: start them with 'hub.mine.'.
+ * localStorage keys that hold a signed-in person's own things (recent searches, grades, the forum's unfinished
+ * thread). They are removed on sign-out and account deletion, because lab and library computers are shared. Every
+ * per-person key starts with 'hub.mine.'.
  */
-export const PERSONAL_STORAGE_PREFIXES = ['hub.mine.', 'dsba.forum.draft'] as const;
+export const PERSONAL_STORAGE_PREFIXES = ['hub.mine.'] as const;
 
 /** Remove every personal key, and reset every mounted useLocalStorage() holding one (code quality review CQ-1). */
 export function clearPersonalStorage(): void {

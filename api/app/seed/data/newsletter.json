@@ -52,12 +52,7 @@
             "type": "signoff",
             "text": "Hawra, Zainab and Hussain"
           }
-        ],
-        "reactions": {
-          "useful": 9,
-          "love": 14,
-          "laugh": 1
-        }
+        ]
       },
       {
         "id": "what-to-expect",
@@ -81,12 +76,7 @@
               "**One more thing**: usually a chart. Occasionally a pun."
             ]
           }
-        ],
-        "reactions": {
-          "useful": 12,
-          "love": 6,
-          "laugh": 2
-        }
+        ]
       },
       {
         "id": "october",
@@ -98,12 +88,7 @@
             "type": "p",
             "text": "Ten papers, from EC1002 Introduction to Economics on 19 October to ST2195 Programming for Data Science on 6 November. Every date is in the [calendar](/calendar)."
           }
-        ],
-        "reactions": {
-          "useful": 21,
-          "love": 2,
-          "laugh": 0
-        }
+        ]
       },
       {
         "id": "feedback",
@@ -115,15 +100,9 @@
             "type": "p",
             "text": "What would make you open The DSBA Newsletter when it lands? What should we never do again? Reply to the email or find any of us in the corridor. The best answer gets its own section."
           }
-        ],
-        "reactions": {
-          "useful": 4,
-          "love": 11,
-          "laugh": 3
-        }
+        ]
       }
-    ],
-    "importAs": "draft"
+    ]
   },
   {
     "slug": "launch-edition",
@@ -194,12 +173,7 @@
             "type": "p",
             "text": "Interested? ==Ask the programme office how to join.== There are [more opportunities](/career) in Career Navigator."
           }
-        ],
-        "reactions": {
-          "useful": 18,
-          "love": 7,
-          "laugh": 0
-        }
+        ]
       },
       {
         "id": "student-council",
@@ -223,12 +197,7 @@
             "type": "p",
             "text": "The nominees made their case in person, at Speech Day, which is the next story. If one of them is in your class, tell them well done."
           }
-        ],
-        "reactions": {
-          "useful": 2,
-          "love": 31,
-          "laugh": 0
-        }
+        ]
       },
       {
         "id": "speech-day",
@@ -256,12 +225,7 @@
             "type": "p",
             "text": "The winners were announced on 5 October, from 12:30 to 2:00 PM in the Auditorium. Congratulations to every nominee."
           }
-        ],
-        "reactions": {
-          "useful": 4,
-          "love": 46,
-          "laugh": 1
-        }
+        ]
       },
       {
         "id": "launch",
@@ -312,12 +276,7 @@
             "type": "p",
             "text": "One honest note: DSBA Hub does not replace your email, the VLE, [MyClass](https://myclass.bibf.com), the [UoL student portal](https://my.london.ac.uk/group/student) or the WhatsApp groups. It gives them one place to start."
           }
-        ],
-        "reactions": {
-          "useful": 37,
-          "love": 29,
-          "laugh": 2
-        }
+        ]
       },
       {
         "id": "deadlines",
@@ -335,12 +294,7 @@
             "text": "Ten papers between 19 October and 6 November: four for Year 1, six for Year 2. Dates come from the DSBA calendar as of 6 October. Your personal timetable and exam centre details are on the [UoL student portal](https://my.london.ac.uk/group/student)."
           }
         ],
-        "estWords": 90,
-        "reactions": {
-          "useful": 88,
-          "love": 9,
-          "laugh": 0
-        }
+        "estWords": 90
       },
       {
         "id": "forum",
@@ -358,12 +312,7 @@
           "title": "The forum opens today",
           "text": "Ask the question you have been saving. How do you find the MGF of a gamma distribution? Which past papers repeat? Who wants a study group for EC2020? Your cohort can reply, and vote up the answers that help."
         },
-        "estWords": 60,
-        "reactions": {
-          "useful": 22,
-          "love": 18,
-          "laugh": 4
-        }
+        "estWords": 60
       },
       {
         "id": "library",
@@ -387,14 +336,8 @@
             "text": "Hawra, Zainab and Hussain, for the editorial team"
           }
         ],
-        "estWords": 50,
-        "reactions": {
-          "useful": 41,
-          "love": 25,
-          "laugh": 0
-        }
+        "estWords": 50
       }
-    ],
-    "importAs": "draft"
+    ]
   }
 ]

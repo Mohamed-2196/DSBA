@@ -4,9 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ADMIN_STATS_KEY } from '../../api/keys';
 
-/** Kept for the areas that import it from here; the key's home is src/api/keys.ts. */
-export { ADMIN_STATS_KEY };
-
 export function useAdminStats() {
   return useQuery({
     queryKey: ADMIN_STATS_KEY,

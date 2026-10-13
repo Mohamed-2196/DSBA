@@ -13,7 +13,7 @@ const BAND_FLOOR_FOR: Record<TargetKind, string> = { first: 'first-class', upper
 const AVG_BAR: Partial<Record<TargetKind, number>> = { first: 65, upper: 56, lower: 47 };
 const fmt = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ''));
 
-/** Classification marks that come only from entered fields (v1 counts a blank as 0; we don't draw those). */
+/** Classification marks that come only from entered fields (classify() counts a blank as 0; those aren't drawn). */
 function shownMarks(result: Classification, blanks: number[]): ClassificationMark[] {
   const blank = new Set(blanks);
   return result.marks.filter((m) => !m.source.some((i) => blank.has(i)));
@@ -54,7 +54,7 @@ export function ResultHero({ marks, picks, result }: ResultHeroProps) {
     body = <Targets marks={marks} />;
   } else if (state === 'resit') {
     big = CLASS_SHORT.resit;
-    name = RESULT.resit; // v1's sentence, verbatim
+    name = RESULT.resit; // the result string, as classify() gives it
     body = <Resit marks={marks} result={result} nameOf={nameOf} />;
   } else {
     big = CLASS_SHORT[result.kind];

@@ -3262,18 +3262,6 @@ export interface components {
              * @default true
              */
             emailNewIssues: boolean;
-            /**
-             * Emailnotifications
-             * @deprecated
-             * @default true
-             */
-            emailNotifications: boolean;
-            /**
-             * Newsletteremails
-             * @deprecated
-             * @default true
-             */
-            newsletterEmails: boolean;
         };
         /**
          * PreferencesUpdate
@@ -3288,16 +3276,6 @@ export interface components {
             emailUploadReviews?: boolean | null;
             /** Emailnewissues */
             emailNewIssues?: boolean | null;
-            /**
-             * Emailnotifications
-             * @deprecated
-             */
-            emailNotifications?: boolean | null;
-            /**
-             * Newsletteremails
-             * @deprecated
-             */
-            newsletterEmails?: boolean | null;
         };
         /**
          * PresignedUpload

@@ -1,7 +1,7 @@
 """The Drive import: the files in the library's Google Drive folders become library files (python -m app.cli
 import-drive; scripts/seed-real.sh runs it after the migrations and the seed).
 
-For every published link item that points at a Drive folder (the v1 Hub's course materials, exercises, VLE material,
+For every published link item that points at a Drive folder (the course materials, exercises, VLE material,
 past papers and students' notes):
   1. walk the folder: its files, then its subfolders, shortcuts to files and folders followed, each folder once;
   2. plan each file: the library's type comes from its name (Google Docs and Slides are exported as PDF, Sheets as

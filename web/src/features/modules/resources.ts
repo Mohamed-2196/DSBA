@@ -1,4 +1,4 @@
-// A module's shared folders (v1's subject card), as labelled entries for the Overview tab.
+// A module's shared folders, as labelled entries for the Overview tab.
 // Links are the course's Google Drive folders and always open in a new tab.
 import { BookOpenText, Exam, Notepad, PencilSimpleLine, type Icon } from '@phosphor-icons/react';
 import type { ModuleDetail } from '../../api/types';
@@ -34,7 +34,7 @@ const safe = (url: string | null | undefined): string | null => {
   }
 };
 
-/** Resource entries in v1's order, plus `missing`: plain names of what nobody has shared yet. */
+/** Resource entries (materials first), plus `missing`: plain names of what nobody has shared yet. */
 export function buildResources(m: Pick<ModuleDetail, 'unitCode' | 'name' | 'resources'>): { entries: ResourceEntry[]; missing: string[] } {
   const r = m.resources;
   const materials = safe(r.materials);

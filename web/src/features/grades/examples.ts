@@ -1,4 +1,4 @@
-// Example records for "Try an example" and ?example=<id> links (marks in v1 subject order:
+// Example records for "Try an example" and ?example=<id> links (marks in subject order:
 // EC1002, MT1186, MN1178, ST1215, ST2134, ST2133, ST2187, ST2195, Year 2 option, Market research,
 // Machine learning, Elective 1, Elective 2). Invented numbers, no real student.
 import type { Picks } from './classify';

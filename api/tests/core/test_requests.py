@@ -17,7 +17,7 @@ from app.core.links import LINK_RULE
 from app.models import AuditEntry, ItemSource, LibraryItem, User
 from app.seed.loader import load_library, load_modules
 from app.services.audit import record
-from app.services.library import V1_PUBLISHED_AT
+from app.services.library import REFERENCE_PUBLISHED_AT
 from app.services.notify import hub_path, notify
 from tests.core.helpers import API, new_thread, share_pdf
 
@@ -125,7 +125,7 @@ def test_seeded_links_were_published_before_anything_shared_since(db: Session) -
     assert load_library(db) > 0
     db.commit()
     dates = set(db.scalars(select(LibraryItem.published_at).where(LibraryItem.source == ItemSource.link)))
-    assert dates == {V1_PUBLISHED_AT}
+    assert dates == {REFERENCE_PUBLISHED_AT}
 
 
 # ── notifications link only inside the Hub (finding 18) ─────────────────────────────────────

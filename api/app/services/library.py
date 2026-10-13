@@ -47,10 +47,10 @@ log = logging.getLogger("dsba.library")
 
 MAX_PENDING = 10  # files one student may have waiting for review (security review SEC-14)
 FILE_GRACE = timedelta(days=7)  # a rejected or removed file stays in the bucket this long, then the sweep deletes it
-# When the v1 Hub's material counts as published (its links, from the seed, and the files the Drive import brings in
-# from their folders): before anything shared through the new library, so "newest first" lists real uploads above it
-# instead of the time of the seed or the import.
-V1_PUBLISHED_AT = datetime(2026, 9, 1, tzinfo=UTC)
+# When the reference material counts as published (the seeded links, and the files the Drive import brings in from
+# their folders): before anything students share, so "newest first" lists their uploads above it whenever the seed
+# or the import ran.
+REFERENCE_PUBLISHED_AT = datetime(2026, 9, 1, tzinfo=UTC)
 
 KIND_LABELS: dict[str, str] = {
     "past-paper": "Past paper",
@@ -429,7 +429,7 @@ def create_imported(
     author_name: str | None = None,
 ) -> LibraryItem:
     """A file the server put in the bucket itself, after checking it (the Drive import): published at once, without
-    an uploader (the import is audited as a whole), in its module's year, dated with the v1 Hub's material, and served
+    an uploader (the import is audited as a whole), in its module's year, dated with the reference material, and served
     as the allowlist's type for its name. The caller commits."""
     item = LibraryItem(
         source=ItemSource.file,
@@ -447,7 +447,7 @@ def create_imported(
         author_name=author_name or None,
         import_key=import_key,
         status=ItemStatus.published,
-        published_at=V1_PUBLISHED_AT,
+        published_at=REFERENCE_PUBLISHED_AT,
     )
     insert_with_unique_slug(db, item, LibraryItem.slug, _slug_text(item.title, module), fallback="file")
     return item

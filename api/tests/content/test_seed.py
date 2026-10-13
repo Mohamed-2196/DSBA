@@ -1,6 +1,6 @@
 """The seed loader. Expectations come from the seed files themselves (code quality review CQ-7): a rep's request to
 add a date or fix a title changes the data, never these tests. What is tested is how the files are loaded: once,
-completely, without the prototype's leftovers, and never over what moderators changed since."""
+completely, and never over what moderators changed since."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ from app.schemas.calendar import EventType
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCover, IssueSection
 from app.seed.loader import load_all, module_links, read, seed_issue
-from app.services.library import V1_PUBLISHED_AT
+from app.services.library import REFERENCE_PUBLISHED_AT
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
@@ -80,7 +80,7 @@ def test_the_seed_files_hold_together() -> None:
 
 
 def test_module_links_rules() -> None:
-    """How a v1 module's resources become library links (synthetic modules: the rules, not the content)."""
+    """How a module's resources become library links (synthetic modules: the rules, not the content)."""
     module: dict[str, Any] = {
         "id": "some-module",
         "name": "Some Module",
@@ -174,7 +174,7 @@ def test_seeded_content_is_what_the_files_say(db: Session) -> None:
             bool(e.get("sample")),
         )
 
-    # newsletter: drafts in the API's shape, without the prototype's made-up reaction counts
+    # newsletter: drafts in the API's shape
     issues = {i.slug: i for i in db.scalars(select(NewsletterIssue))}
     for raw in read("newsletter"):
         issue = issues[raw["slug"]]
@@ -183,7 +183,6 @@ def test_seeded_content_is_what_the_files_say(db: Session) -> None:
         assert (issue.dek, issue.summary) == (raw.get("dek") or "", raw.get("summary") or "")
         assert issue.editors == raw["editors"]
         assert [s["id"] for s in issue.sections] == [s["id"] for s in raw["sections"]]
-        assert all("reactions" not in s for s in issue.sections)
         assert all(IssueSection.model_validate(s) for s in issue.sections)
         assert IssueCover.model_validate(issue.cover)
 
@@ -195,7 +194,7 @@ def test_seeded_content_is_what_the_files_say(db: Session) -> None:
     # library: one published link per module resource, in the module and its year, dated before anything uploaded
     items = list(db.scalars(select(LibraryItem)))
     assert all(i.source == ItemSource.link and i.status == ItemStatus.published for i in items)
-    assert all(i.published_at == V1_PUBLISHED_AT for i in items)
+    assert all(i.published_at == REFERENCE_PUBLISHED_AT for i in items)
     assert len({i.slug for i in items}) == len(items)
     by_place = {(i.module_id, i.url): i for i in items}
     modules = {m.id: m for m in db.scalars(select(Module))}

@@ -34,11 +34,8 @@ import type {
 } from '../../api/types';
 import type { CohortYear } from '../../state';
 import { useToast } from '../../state';
-import { forgetPrototypeForum } from './lib/legacy';
 import { similarQuery } from './lib/search';
 import type { ReportStatus, ThreadListParams } from './types';
-
-forgetPrototypeForum();
 
 // ── Keys ────────────────────────────────────────────────────────────────────────────────────────
 // ['forum', <family>, ...]. The family says what the cached data looks like:

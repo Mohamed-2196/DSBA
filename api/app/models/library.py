@@ -1,5 +1,5 @@
-"""The library: files (stored in S3: uploaded by students, or imported from the v1 Google Drive folders) and links
-(the v1 Drive folders themselves), plus stars."""
+"""The library: files (stored in S3: uploaded by students, or imported from the programme's Google Drive folders) and
+links (the Drive folders themselves, and other resources kept elsewhere), plus stars."""
 
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ class LibraryItem(Base):
 
 # The lists: a status (published, or a moderator's queue), newest first by coalesce(published_at, created_at)
 # (services/library.py list_items). An index on the expression, so the sort is read from it (code quality review
-# CQ-15: the old (status, published_at) only ever served the status).
+# CQ-15).
 Index(
     "ix_library_items_status_newest",
     LibraryItem.status,

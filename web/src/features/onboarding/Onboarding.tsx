@@ -1,4 +1,4 @@
-// First visit, redesigned for round 2 (decision D7): the page a link leads to always shows. While no year is
+// First visit (decision D7): the page a link leads to always shows. While no year is
 // chosen, a small prompt in the corner asks for one, with "I'm not a student" and "Sign in" beside it (YearPrompt);
 // the three-step tour of what's new opens only when asked for (Tour). The year is saved the moment it is picked
 // (in this browser, and on the account of a signed-in student without one).

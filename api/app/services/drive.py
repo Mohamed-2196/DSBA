@@ -337,11 +337,9 @@ class ServiceAccount(Credential):
     label = "the service account"
 
     def __init__(self, path: str, http: httpx.Client) -> None:
-        try:
-            from google.auth.exceptions import GoogleAuthError
-            from google.oauth2 import service_account
-        except ImportError:  # an API image built before the import existed
-            raise DriveFatalError("The service account needs the google-auth package: rebuild the API image.") from None
+        from google.auth.exceptions import GoogleAuthError
+        from google.oauth2 import service_account
+
         try:
             load = service_account.Credentials.from_service_account_file
             self._credentials = load(path, scopes=[SCOPE])  # type: ignore[no-untyped-call]

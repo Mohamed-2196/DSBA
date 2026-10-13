@@ -25,11 +25,11 @@ test('Ali edits his name and cohort, and his email preferences', async ({ ali, r
   await ali.getByRole('button', { name: 'Save profile' }).click();
   await expect.poll(async () => (await api<{ displayName: string; year: number }>(ali, 'GET', '/api/v1/me')).body).toMatchObject({ displayName: run.ali.name, year: 1 });
 
-  const newsletterEmails = ali.getByRole('switch', { name: /New newsletter issues/ });
-  await newsletterEmails.click();
-  await expect.poll(async () => (await api<{ preferences: { newsletterEmails: boolean } }>(ali, 'GET', '/api/v1/me')).body.preferences.newsletterEmails).toBe(false);
-  await newsletterEmails.click();
-  await expect.poll(async () => (await api<{ preferences: { newsletterEmails: boolean } }>(ali, 'GET', '/api/v1/me')).body.preferences.newsletterEmails).toBe(true);
+  const newIssues = ali.getByRole('switch', { name: /New newsletter issues/ });
+  await newIssues.click();
+  await expect.poll(async () => (await api<{ preferences: { emailNewIssues: boolean } }>(ali, 'GET', '/api/v1/me')).body.preferences.emailNewIssues).toBe(false);
+  await newIssues.click();
+  await expect.poll(async () => (await api<{ preferences: { emailNewIssues: boolean } }>(ali, 'GET', '/api/v1/me')).body.preferences.emailNewIssues).toBe(true);
 });
 
 test('the account page lists this device, and "Download your data" gives everything as JSON', async ({ ali, run }) => {
