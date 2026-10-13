@@ -9,9 +9,10 @@
 #     going to Mailpit, and texts as .txt files in api/var/sms instead of the API's log. The suite reads its codes
 #     there. api/var/ is git-ignored.
 #   - Every request reaches the API through the web container's proxy, so the whole suite comes from one address.
-#     The per-network code limit (30 an hour) and the site's text budget (50 an hour) would stop the 3rd or 4th run
-#     in an hour, so they are raised. The per-address and per-account limits stay as they are: the suite checks
-#     some of them, and each run signs up new students.
+#     A run asks for 5 to 7 codes, 3 of them by text, and even a run of one spec signs the students up first. The
+#     per-network limit (30 codes an hour) would stop the fifth or sixth run in an hour, and the site's text budget
+#     (50 an hour, 300 a day) an afternoon of reruns, so both are raised. The per-address and per-account limits
+#     stay as they are: each run signs up new students, and the suite checks the wait before a new code.
 
 x-e2e-mail: &e2e-mail
   DSBA_EMAIL_BACKEND: file
