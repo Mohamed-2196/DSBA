@@ -15,6 +15,7 @@ import { Field, IconButton, SegmentedControl, cx, modKeyLabel } from '../../../u
 import { bold, bulletList, code, italic, link, numberedList, quote, type EditFn } from '../lib/editing';
 import { useScrollFade } from '../lib/useScrollFade';
 import { Prose } from './Prose';
+import './forum.css';
 
 type Tool = { id: string; label: string; key?: string; icon: Icon; fn: EditFn } | { sep: string };
 

@@ -71,7 +71,7 @@ function ExternalItem({ item, collapsed }: { item: ExternalLink; collapsed: bool
 /** Left rail: brand, year switcher, nav, external links, theme, account. Icon-only at 700–1099px. */
 export function Sidebar() {
   const collapsed = useMediaQuery(BREAKPOINTS.tablet);
-  const { featureOn } = useAuth();
+  const { featureOn, me } = useAuth();
   return (
     // The column wrapper runs the full page height (surface + border); the rail inside is sticky.
     <div className="shell-rail-col">
@@ -88,7 +88,7 @@ export function Sidebar() {
 
         <nav className="shell-nav" aria-label="Main">
           <ul role="list">
-            {visibleNav(NAV, featureOn).map((item) => (
+            {visibleNav(NAV, featureOn, !!me).map((item) => (
               <li key={item.id}>
                 <NavItem item={item} collapsed={collapsed} />
               </li>

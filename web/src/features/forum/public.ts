@@ -7,6 +7,8 @@
 //                                         cohort plus forum-wide ones; year null → every cohort. Links: /forum/<slug>.
 //   <ReportButton targetType targetId />  "Report" + its dialog for a thread, a reply or a library item ('library_item').
 //   <ReportsQueue />                      the moderators' list of reports (resolve, dismiss, open the post).
+//   <MarkdownEditor … />                  the forum's Markdown textarea: toolbar, ⌘B / ⌘I, an optional Write / Preview toggle.
+//   <Prose text="…" />                    renders the forum's Markdown (lib/markdown.ts) as React elements, never HTML.
 //   useStartsThreads()                    true when a "Start a thread" link belongs on the page (the forum is on and the
 //                                         person may post; a guest signs in when they post).
 //
@@ -20,3 +22,7 @@ export { ReportButton } from './ReportButton';
 export type { ReportButtonProps } from './ReportButton';
 export { ReportsQueue } from './ReportsQueue';
 export { useStartsThreads } from './lib/posting';
+export { MarkdownEditor } from './components/MarkdownEditor';
+export type { MarkdownEditorProps } from './components/MarkdownEditor';
+export { Prose } from './components/Prose';
+export type { ProseProps } from './components/Prose';

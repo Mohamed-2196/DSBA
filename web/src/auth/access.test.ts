@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { badgeOf, canDo, featureIsOn, holdsAdmin, isActiveAdmin, managerBoxes, offForOthers, offerOf, offered, showsUpload, type AccessMe } from './access';
 
 const role = (slug: string, badge: string | null = null) => ({ id: `id-${slug}`, slug, name: slug, badge });
-const ALL = ['forum', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora'] as const;
+const ALL = ['forum', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora', 'notes'] as const;
 
 const student: AccessMe = { status: 'active', roles: [role('student')], boxes: ['forum.post', 'library.upload', 'newsletter.react', 'reports.create'], features: [...ALL] };
 const rep: AccessMe = { status: 'active', roles: [role('rep', 'Student rep'), role('student')], boxes: ['forum.post', 'forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'stats.view'], features: [...ALL] };
