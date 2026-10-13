@@ -137,6 +137,9 @@
   .forum-row__thumb { width: 76px; height: 52px; }
 }
 @media (pointer: coarse) {
+  /* The row takes the tap (the title link's ::after); the link's own box is 44px too. Vertical padding on an inline
+     box changes nothing around it. */
+  .forum-row__link { padding-block: 13px; }
   @container forum-list (max-width: 560px) {
     .forum-row { grid-template-columns: 44px minmax(0, 1fr); }
     .forum-row.has-image { grid-template-columns: 44px minmax(0, 1fr) 76px; }
@@ -325,11 +328,11 @@
    Arabic thread sits right-aligned inside the same left-to-right layout, and English is unchanged. The vote gutter,
    author line, badges and counts around it stay left-to-right. Arabic letters join, and any tracking (headings and
    titles are set tight) cuts the joins and switches ligatures off, so right-to-left text gets none. */
-.forum-row__title, .forum-row__excerpt, .forum-hot__link, .forum-related__link, .forum-thread__title,
+.forum-row__title, .forum-row__excerpt, .forum-hot__title, .forum-related__link, .forum-thread__title,
 .forum-prose, .forum-prose > * { text-align: start; }
 /* An Arabic paragraph ends on the card's right edge, like the actions and labels around it (its lines keep the measure). */
 .forum-prose > :is(p, ul, ol, blockquote):dir(rtl) { margin-left: auto; }
-.forum-row__title:dir(rtl), .forum-hot__link:dir(rtl), .forum-related__link:dir(rtl), .forum-thread__title:dir(rtl),
+.forum-row__title:dir(rtl), .forum-hot__title:dir(rtl), .forum-related__link:dir(rtl), .forum-thread__title:dir(rtl),
 .forum-prose :dir(rtl), .forum-editor__input:dir(rtl) { letter-spacing: 0; }
 
 /* ── Markdown editor ─────────────────────────────────────────────────────────── */

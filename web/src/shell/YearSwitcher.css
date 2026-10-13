@@ -31,8 +31,19 @@
 .yr-dot--y2 { --c: var(--y2); }
 .yr-dot--y3 { --c: var(--y3); }
 
-/* Touch screens: a 44px target around the compact pill (UX review UX-11); the pill keeps its look. */
+/* Touch screens: the button is a 44px target (UX review UX-11) and the 32px pill is drawn inside it, so it keeps its
+   look. The focus ring goes round the pill, 2px off it, as everywhere else. */
 @media (pointer: coarse) {
-  .yr-compact { position: relative; }
-  .yr-compact::after { content: ''; position: absolute; inset: -6px -2px; }
+  .yr-compact { position: relative; z-index: 0; height: 44px; background: none; }
+  .yr-compact::before {
+    content: '';
+    position: absolute;
+    inset: 6px 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--c);
+    transition: background-color var(--dur) var(--ease);
+  }
+  .yr-compact:focus-visible { outline: none; }
+  .yr-compact:focus-visible::before { box-shadow: 0 0 0 var(--focus-offset) var(--surface), 0 0 0 calc(var(--focus-offset) + var(--focus-width)) var(--focus-color); }
 }

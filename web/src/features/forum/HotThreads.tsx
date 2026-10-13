@@ -71,9 +71,11 @@ export function HotThreads({ n = 5 }: HotThreadsProps) {
               <span className="u-tabular">{t.voteCount}</span>
             </span>
             <div className="forum-hot__main">
-              <Link to={`/forum/${t.slug}`} className="forum-hot__link" dir="auto">
-                {t.title}
-              </Link>
+              <p className="forum-hot__title" dir="auto">
+                <Link to={`/forum/${t.slug}`} className="forum-hot__link">
+                  {t.title}
+                </Link>
+              </p>
               <div className="forum-hot__meta">
                 {t.moduleId && getModule(t.moduleId) ? <ModuleTag module={getModule(t.moduleId)} /> : <PlaceBadge thread={t} />}
                 <time dateTime={t.createdAt}>{timeAgo(t.createdAt)}</time>

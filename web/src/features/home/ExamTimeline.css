@@ -105,9 +105,13 @@
 .home-trace__label.is-next:hover { background: transparent; }
 .home-trace__label.is-next .ui-highlight { padding: 0 0.3em; }
 .home-trace__label:focus-visible { outline-offset: 0; }
-/* Touch screens: a 44px row to tap, the text where it was (the extra height is padding, pulled back up). */
+/* Touch screens: a 44px target with the text where it was. A label hangs from its bottom edge (`bottom` is set
+   inline), so the extra padding is taken back with a negative bottom margin. Labels of the lower row grow
+   downwards (over the trace) and labels of the upper row upwards, so a label never covers its neighbour's target.
+   18px of text + 3px + 23px = 44px; the text stays 2px above the edge it hangs from, as with a mouse. */
 @media (pointer: coarse) {
-  .home-trace__label { padding-block: 13px; margin-top: -11px; }
+  .home-trace__label { padding-block: 3px 23px; margin-bottom: -21px; }
+  .home-trace__label.is-upper { padding-block: 23px 3px; margin-bottom: -1px; }
 }
 
 /* ── The one orchestrated moment (first Home load only) ─────────────── */

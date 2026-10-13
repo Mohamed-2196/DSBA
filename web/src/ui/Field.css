@@ -83,9 +83,11 @@
 .ui-search--button:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: var(--focus-offset); }
 .ui-search__placeholder { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); font-size: var(--fs-14); }
 
-/* Touch screens: 44px fields (UX review UX-11). */
+/* Touch screens: 44px fields (UX review UX-11). The search input covers the field's 1px border too, so the whole 44px
+   takes a tap; the clear button is 44px square and reaches the field's right edge. */
 @media (pointer: coarse) {
   .ui-control:not(.ui-control--lg):not(.ui-control--area) { min-height: 44px; }
   .ui-search:not(.ui-search--lg) { height: 44px; }
-  .ui-search__clear { width: 36px; height: 36px; }
+  .ui-search__input { height: calc(100% + 2px); margin-block: -1px; }
+  .ui-search__clear { flex: 0 0 auto; width: 44px; height: 44px; margin-right: -10px; }
 }
