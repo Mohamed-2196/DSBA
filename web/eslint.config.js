@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import pluginQuery from '@tanstack/eslint-plugin-query';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
@@ -8,6 +9,8 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config(
   // src/api/schema.d.ts is generated from the API's OpenAPI document (npm run api:types).
   { ignores: ['dist', 'src/api/schema.d.ts'] },
+  // TanStack Query's own rules: complete query keys, stable clients, no rest-destructuring of results.
+  ...pluginQuery.configs['flat/recommended'],
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     extends: [js.configs.recommended],

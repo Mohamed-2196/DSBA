@@ -19,7 +19,7 @@ MakeUser = Callable[..., User]
 
 
 def _at(value: str) -> datetime:
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    return datetime.fromisoformat(value)  # Python 3.11+ reads the trailing "Z"
 
 
 def _watch(c: TestClient, key: str, watched: bool = True) -> Any:
