@@ -25,11 +25,17 @@ export function openNoora(from: HTMLElement | null = null): void {
 
 /** Close her panel and give the keyboard back to whatever opened it (or to a launcher still on screen). */
 export function closeNoora({ restoreFocus = true }: { restoreFocus?: boolean } = {}): void {
+  const from = opener;
+  opener = null;
   set(false);
   if (!restoreFocus) return;
-  const back = opener?.isConnected && opener.getClientRects().length ? opener : visibleLauncher();
-  opener = null;
-  (back ?? document.getElementById('main'))?.focus({ preventScroll: true });
+  // After the next frame: the laptop's edge tab is only on screen while the panel is closed, so React has to
+  // render the close first.
+  requestAnimationFrame(() => {
+    if (open) return;
+    const back = from?.isConnected && from.getClientRects().length ? from : visibleLauncher();
+    (back ?? document.getElementById('main'))?.focus({ preventScroll: true });
+  });
 }
 
 export function toggleNoora(from: HTMLElement | null = null): void {
