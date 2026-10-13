@@ -3,6 +3,10 @@
 Tester: student tester. Status: **done** (10 October 2026). Stack under test: the shared dev API `:8000`, my web dev
 server `:5178`, the freshly seeded dev database (shared with the other reviewers while I tested).
 
+**Re-review round (13 October 2026):** a by-hand pass in every role, a step-up e2e test and the suite again: see
+[the last section](#re-review-round-by-hand-in-every-role-13-october-2026). ST-1 to ST-12 are all fixed; ST-13 to
+ST-18 are new (no blockers, no majors). Final run: 46 passed, 0 failed, 0 skipped.
+
 **Round 3 (13 October 2026):** the e2e suite now runs against the Docker stack with one command,
 `scripts/e2e.sh`. What changed, the status of ST-1 to ST-12 and the latest results are in
 [Round 3](#round-3-the-suite-on-the-docker-stack-13-october-2026) at the end. The by-hand findings below are from
@@ -413,3 +417,245 @@ Afterwards, `scripts/e2e.sh --restore` put the API back on SMTP and the console,
 `restore.e2e.*@example.com` address arrived in Mailpit. `api`, `mail` and `web` run from the main checkout again.
 
 **Final: 41 passed, 0 failed, 0 skipped**, in two full runs back to back (A and B).
+
+## Re-review round: by hand in every role (13 October 2026)
+
+**Summary.** Every feature works for a guest, students in Years 1 to 3, a rep and an admin, on a desktop and a
+390×844 phone, with Arabic names and text. All twelve earlier findings are fixed, and round 3's three changes hold.
+No blocker and no major. The new findings are mostly one theme: **a double click does the thing twice** (a thread or
+a reply, a rep's "Publish" on an upload, and "Publish and notify everyone", which emails every student twice:
+ST-13, ST-14, ST-16). Then posting offline gives no feedback (ST-17), and two nits (ST-15, ST-18).
+
+Scope: `docs/STATUS.md`, "Next", item 2. Code under test: `feature/backend`, from `75626cd` (round 3 merged) to `a36795a` (with `round3/no-legacy`, which
+landed while I tested; the stack runs from the main checkout), on the
+shared Docker stack (compose project `dsba-hub`, normal mail backends: codes from Mailpit and the API's log). Browser:
+Google Chrome, driven by Playwright scripts (`channel: 'chrome'`). Branch: `round3/review-student`.
+
+Personas, all made up (tag `r4tviy`):
+
+| Persona | Who | How they signed in |
+|---|---|---|
+| Guest | a first visit on a 390×844 phone, and on a desktop | nobody |
+| Sara | Year 2, Arabic display name (سارة المحمود), desktop | her phone, +973 3993 2730: a wrong code, a new code, the old code |
+| Ali | Year 1, 390×844 phone | his email, `ali.e2e.r4tviy@example.com`: a malformed address first |
+| Noor | Year 3, desktop | dev-login, `noor.e2e.r4tviy@example.com` |
+| Fatima | Year 3 student rep | dev-login, `fatima.e2e.r4tviy@example.com` |
+| Maryam | admin | dev-login, `maryam.e2e.r4tviy@example.com` |
+
+Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
+
+### Guest
+
+| What | Result |
+|---|---|
+| Home on a first visit (phone): the year prompt, then "Not now" | works. Hero, "Your modules", "Coming up" and "Hot in the forum" all follow Year 1 (round 3's fix holds). "Not now" lasts for the browser session. |
+| Mini Noora's first-visit hint | works. It waits for the year prompt, then shows with a 44×44 "Close the hint" button. Closing it keeps it away after a reload (`hub.noora.seen`). |
+| The tour after choosing a year (desktop) | works: three steps, then closed. |
+
+### Year 2 student (Sara, by phone)
+
+| What | Result |
+|---|---|
+| Sign up by phone | works. Double-clicking "Send code" sends one request. "That code isn't right. 4 tries left." "Send a new code" after the countdown; the profile step has Year 2 chosen from the first visit. |
+| An Arabic display name | works: "Good morning, سارة", avatar "سا". |
+| A thread with a 371-character title | the field stops at 120 with a "120/120" counter. |
+| A thread with Arabic text and a picture | posts and renders. |
+| **Double-clicking "Post thread"** | **bug ST-13**: two identical threads. |
+| Deleting her duplicate (no replies) | works: "It is removed from the forum and its text is deleted." |
+| Opening Ali's reply notification | works: the link ends in `#reply-<id>` and the reply is in view (ST-4 holds). |
+| Votes, accepting Ali's answer | works. The sidebar says "1 reply from Ali R4 Test": the author isn't counted (**ST-11 fixed**). |
+| The library: search, "Search all years", a star on a Year 1 file, Starred | works |
+| Step-up: adding an email to her phone account in a session over 10 minutes old | works. "Confirm it’s you" opens by itself and texts +973 3993 2730; after that code, the new address gets its own code, and her phone gets "An email address (s•••@example.com) was added…". |
+| "New newsletter issues" off in Your account, then "Tell me about new issues" on the newsletter page | the two stay in step (`emailNewIssues`). |
+| A reaction, double-clicked, and a reload | consistent with the server ("Useful, 1"). |
+
+### Year 1 student (Ali, on a 390×844 phone)
+
+| What | Result |
+|---|---|
+| Sign up by email | works. "Ali.E2E@example" is caught ("That email address doesn’t look right."); capitals and spaces around the address are fine. |
+| **Double-tapping "Post reply"** | **ST-13 again**: two identical replies, and Sara gets two notifications. |
+| Deleting the duplicate reply | works, and Sara's notification about it goes. The other one quotes the reply's start (**ST-6 fixed**). |
+| Reporting Noor's thread as spam with a note | works; the button then reads "Reported" (the round 1 confusion is gone). He is told when the rep acts. |
+| Uploads of every allowed type: PDF, DOCX, XLSX, PPTX, DOC, XLS, PPT, IPYNB, R, TXT, CSV, PNG, JPG | each "Sent for review". After 10 pending files the dialog says "You have 10 files waiting for review…" and offers "See your uploads": by design. Old Office files show as DOCX, XLSX and PPTX (ST-15). |
+| Step-up: changing his email in a session over 10 minutes old | works. The code goes to his current address; a wrong one says "That code isn't right. 4 tries left."; then the new address gets a code, "Your email address is changed", and the old address gets "Your DSBA Hub account changed". |
+| Deleting his account (typing DELETE) | works: signed out, `GET /me` 401, his reply shows as from a deleted account. |
+| Wrong files: `.exe`, `.svg`, 51 MB | refused before anything is sent, with the allowed types or "That file is 51 MB, over the 50 MB limit. Compress it or split it into parts." |
+| An HTML page renamed `.pdf` | "This isn't a real .pdf file: what's inside doesn't match its name. Save or export it again, or choose another file." The title, module and type stay filled in (**ST-7 fixed**). |
+
+### Year 3 student (Noor)
+
+| What | Result |
+|---|---|
+| Her spam thread is hidden by the rep | she can still open it: "A student rep hid this thread. Only you and the student reps can see it…", and her notification says "A student rep hid your thread" (**ST-5 fixed**). Nobody else finds it. |
+| Mini Noora: "how do I find the mgf of a poisson", "mgf of the normal distribution", "…laplace…" | each gets its own formula and the right chapter; the worked Laplace steps only come for Laplace (**ST-3 fixed**). Asked in Arabic ("متى امتحان ST2133؟") she finds the module but not the exam date: she reads English only. |
+| ⌘K search for the rep's event (in English and in Arabic), Sara's thread, the new issue, Ali's CSV | each found at once |
+| The grades calculator with 150, -5 and ٧٢ (Arabic digits) | out-of-range marks are refused with "0 to 100"; Arabic digits are refused the same way (ST-18). |
+| Closing "Confirm it’s you" without a code while adding a phone | the change stops and the form says "For your security, confirm it's you first…": she can try again. |
+| **Posting with no connection** | **bug ST-17**: the button spins with no word about the connection, then posts by itself when it comes back. |
+| Suspended by the admin, she presses a star | `403` "Your account is suspended. Contact a student rep.", shown as a toast (**ST-8 fixed**). |
+
+### Student rep (Fatima)
+
+| What | Result |
+|---|---|
+| Moderation: the report, hiding the thread (with the optional reason), resolving with a note, locking Sara's thread | works |
+| Reviewing Ali's uploads: publishing nine, rejecting the PPT with a note | works, but **double-clicking "Publish" notifies twice** (ST-14). |
+| A new newsletter issue: "New issue", a double click on "Create draft" | one draft (the address must be unique), and the editor opens. |
+| The editor: a story with Arabic text, then leaving without saving | "Leave without saving?" opens for a sidebar link, for a ⌘K result and for Back; Cancel keeps the edits. Saving lets them through. Round 3's leave guard holds everywhere I tried. |
+| **Double-clicking "Publish and notify everyone"** | **bug ST-16**: every account is notified and emailed twice. |
+| The calendar: a module event with Arabic in the title, the cohort left alone, "Add event" double-clicked | one event, Year 2 like its module (ST-2 holds). |
+| A guest on a phone: the calendar, an event, "Add to calendar" | no sideways scroll. The event's `.ics` is a valid all-day event (`text/calendar`, folded lines, the time and place in its notes); "All Year 1 exams" is a valid feed. |
+
+### Admin (Maryam)
+
+| What | Result |
+|---|---|
+| People: finding Noor, suspending her (the dialog says what it does), lifting it | works |
+| Activity | names the issue: "Fatima R4 Rep published the newsletter issue “Revision week, r4 tviy”" (**ST-9 fixed**). It also shows ST-14's and ST-16's double entries. |
+
+### Earlier findings
+
+| ID | Severity | Status | How I know |
+|---|---|---|---|
+| ST-1 | minor | **fixed** | Sara starred a Year 1 file and found it under Starred; e2e "ST-1" passes. |
+| ST-2 | major | **fixed** | The rep's ST2133 event with the cohort left alone is a Year 2 event; e2e "ST-2" passes. |
+| ST-3 | minor | **fixed** | Poisson, normal and Laplace MGF questions each get their own answer; the Laplace steps only for Laplace. |
+| ST-4 | minor | **fixed** | Sara's notification opens `#reply-<id>` with the reply in view; e2e "ST-4" passes. |
+| ST-5 | minor | **fixed** | Noor opens her hidden thread with the notice and has the "A student rep hid your thread" notification. |
+| ST-6 | nit | **fixed** | Ali deleted his duplicate reply and Sara's notification about it went; the other quotes the reply. |
+| ST-7 | nit | **fixed** | "This isn't a real .pdf file: what's inside doesn't match its name…", with the form kept. |
+| ST-8 | nit | **fixed** | Suspended Noor's star: `403` "Your account is suspended. Contact a student rep." |
+| ST-9 | nit | **fixed** | Activity: "published the newsletter issue “Revision week, r4 tviy”". |
+| ST-10 | nit | **fixed** | (round 3) guests ask `GET /auth/session`, which answers 200. |
+| ST-11 | nit | **fixed** | "1 reply from Ali R4 Test" on Sara's thread. |
+| ST-12 | nit | **fixed** | With a reply: "Its text is deleted, but its title and its reply stay in the forum, so the reply can still be read." Without: "It is removed from the forum and its text is deleted." |
+
+Round 3's changes: the editor's leave guard asks on links, ⌘K and Back; Mini Noora's hint has a 44 px close button
+that keeps her quiet for good; a new guest sees one year across Home. All three hold.
+
+### New findings
+
+#### ST-13 (minor) A double click on "Post thread" posts the thread twice
+
+- Owner: frontend-community (`features/forum/NewThreadPage.tsx`, `send`)
+- Steps: as Sara, Forum → Start a thread. Fill in a title, pick a module, add details. Double-click **Post thread**
+  (or double-tap it on a phone, as students do on a slow connection).
+- Expected: one thread. The button shows its spinner after the first click.
+- Actual: two `POST /api/v1/forum/threads` requests and two identical threads,
+  `st2133-mgf-of-a-sum-of-independent-poissons-is-it-the-product` and `…-product-2`. The list shows both, and the
+  header says "2 questions are waiting for a first reply". `send()` calls `create.mutate` without checking
+  `create.isPending`, which only changes on the next render, so the second click gets through.
+- The same happens with a reply: Ali double-tapped **Post reply** on his phone, two identical replies went up and
+  Sara got two notifications.
+- Fix: return early from `send()` while a post is in flight, with a ref (as `StepUpDialog` does with
+  `sendingRef`). The API could also refuse the same title from the same author within a minute.
+- e2e: `forum.spec.ts` "ST-13: a double click on "Post reply" posts one reply" fails as expected (`test.fail`).
+- Screenshot: `r4-forum-04-posted.png`.
+
+#### ST-14 (minor) A double click on "Publish" tells the uploader twice, by notification and by email
+
+- Owner: content (`services/library.py`, the review) and frontend-library (`UploadsQueue`)
+- Steps: as a rep, Moderation → Uploads to review. Double-click **Publish** on a file.
+- Expected: one review; the uploader hears once.
+- Actual: two `POST /api/v1/library/items/{id}/review` requests, both `200`. For each of the nine files Fatima
+  published this way, Ali has two "Your file is in the library: …" notifications and two emails (Mailpit), and the
+  activity log has two "published" lines. Both requests find the file still pending, so both notify. A second
+  publish sent a moment later doesn't notify again, but it still writes a second activity line.
+- Fix: publish with a conditional update (`WHERE status <> 'published'`) or lock the row, and notify and log only
+  when it changed. In the queue, ignore a second press while the first is in flight (as for ST-13).
+- e2e: `library.spec.ts` "ST-14: two publishes at once tell the uploader once" sends two publishes together and
+  fails as expected (`test.fail`).
+
+#### ST-15 (nit) Old Office files are labelled DOCX, XLSX and PPTX
+
+- Owner: content (`services/library.py`, `FORMATS`)
+- Ali uploaded `MT1186 doc r4.doc`, `.xls` and `.ppt`. The API gives them the format `DOCX`, `XLSX` and `PPTX`, so
+  the cards and the file page say DOCX while the download is a `.doc`. A student with an old Office version may
+  think the file won't open. Suggestion: `DOC`, `XLS` and `PPT` (the web app already names them "Word document" and
+  so on).
+
+#### ST-16 (minor, every account) A double click on "Publish and notify everyone" tells everyone twice
+
+- Owner: content (`services/newsletter.py`, `publish`) and frontend-content (the publish dialog)
+- Steps: as a rep, open a draft issue → **Publish** → double-click **Publish and notify everyone**.
+- Expected: one publish, one notification and at most one email per student.
+- Actual: two `POST …/publish` requests. Both find the issue still a draft, so both notify every account: Ali and
+  Noor each have two "New issue of The DSBA Newsletter: Revision week, r4 tviy" notifications and two emails in
+  Mailpit, and the activity log has two "published the newsletter issue" lines. A third publish a moment later
+  answers `200` and sends nothing, so the service's "Publishing a published issue changes nothing" check works but
+  isn't safe against two requests at once. One slip by a rep emails the whole programme twice, and that can't be
+  taken back.
+- Fix: lock the row (`SELECT … FOR UPDATE`) or publish with a conditional update (`WHERE status = 'draft'`) and
+  notify only when a row changed. In the dialog, ignore the second press while the first is in flight.
+
+#### ST-17 (minor) With no connection, posting spins forever, then posts by itself later
+
+- Owner: frontend (the query client's mutations; the forum composer and reply box)
+- Steps: as Noor, write a thread or a reply, turn the connection off (the browser's offline mode), press **Post
+  thread** or **Post reply**.
+- Expected: "You're offline. We'll post it when you're back online" (or "…try again"), so the student knows what
+  is happening.
+- Actual: the button spins with no message. TanStack Query pauses the mutation while offline, so after 10 seconds
+  nothing has changed. When the connection comes back, the post goes up by itself. A student who gives up and
+  reloads in between keeps the saved draft and posts it again: Noor ended up with two copies of
+  "Year 3 ML: which chapters for the mock?".
+- Fix: show the paused state (`mutation.isPaused`) as a message by the button, or set `networkMode: 'always'` for
+  posts so they fail at once with a clear error and the draft stays.
+
+#### ST-18 (nit) The grades calculator refuses Arabic-Indic digits as "0 to 100"
+
+- Owner: frontend-content (`features/grades/MarksSheet.tsx`, `sanitize`)
+- Steps: type ٧٢ (72 on an Arabic keyboard) as a mark.
+- Actual: the keystroke is refused and "0 to 100" flashes, though 72 is in range. Phones set to Arabic often type
+  these digits.
+- Fix: map ٠–٩ (and ۰–۹) to 0–9 before checking, as the comma already becomes a point.
+
+### The suite
+
+**New test: step-up** (`web/e2e/stepup.spec.ts`, three tests). Nothing covered "Confirm it’s you" before changing
+an address. Sara's session is aged 11 minutes in the database first (a new `ageSessions()` in `support.ts`, through a
+new `E2E_PSQL` setting that defaults to `psql` in the `db` container), so she meets the dialog as a student who signed
+in yesterday:
+
+1. She changes her email: the code goes to her current address, a wrong one says "4 tries left", the right one lets
+   the change carry on by itself, the new address gets its code, and the old one gets "Your DSBA Hub account
+   changed".
+2. She changes her phone number and picks "Text my phone instead": the code comes by text, the new number gets its
+   own, and the old number is told by text.
+3. She closes "Confirm it’s you" while removing her phone: nothing changes, and the dialog says why. Her session's
+   age is then put back, so the teardown deletes her account without a code. (Sara's account has asked for about
+   ten codes by then, and the per-account limit would refuse the teardown's step-up for an hour: "You've asked for
+   too many codes. Try again in 56 minutes.")
+
+`support.ts` also gains `mailedSince()` for notices from the mail worker.
+
+**Expected failures added:** `forum.spec.ts` "ST-13: a double click on "Post reply" posts one reply" and
+`library.spec.ts` "ST-14: two publishes at once tell the uploader once" (`test.fail`, with the finding's ID). No
+existing test needed a change: `accounts.spec.ts` already reads `emailNewIssues` since `round3/no-legacy`.
+
+**Runs** (`scripts/e2e.sh` from the `round3/review-student` worktree, Google Chrome, one worker):
+
+| Run | What ran | Passed | Failed | Skipped | Did not run | Time |
+|---|---|---|---|---|---|---|
+| 1 | The whole suite with the new tests | 39 | 2 | 0 | 5 | 6.0 min |
+| 2 | `library.spec.ts` and `stepup.spec.ts` after fixing my tests | 16 | 1 (teardown) | 0 | 1 | 4.9 min |
+| | The teardown alone (twice; see below) | 2 | 0 | 0 | 0 | 2 s |
+| 3 | **The whole suite, final** | **46** | **0** | **0** | **0** | 2.9 min |
+
+- **Run 1:** two of my new tests were wrong, not the app. My first ST-14 test sent a second publish after the first
+  had finished, which only adds an activity line (the bug needs two requests at once). The phone step-up test
+  expected the email code, but within 30 s of the last code to that address the dialog says "Wait 24 seconds…" and
+  offers "Text my phone instead", which is right. Both fixed; the library tests after ST-14 hadn't run.
+- **Run 2:** all new tests passed; the teardown couldn't delete Sara because her aged session needed a step-up and
+  her account had run out of codes. I made her session young again in the database and ran the teardown alone,
+  which cleaned up; the cancel test now restores the age itself.
+- **Run 3:** 46 passed, counting the two expected failures (ST-13 and ST-14 reproduced). Then
+  `scripts/e2e.sh --restore`, run from the main checkout: `api` and `mail` are back on Mailpit and the log, from the
+  main checkout. **`web` still runs from this worktree** (`/Users/mohamed/dsba-rev-student/web`), because the e2e mode
+  recreated it there and `--restore` doesn't touch it. Recreate it from the main checkout before removing the
+  worktree.
+
+Codes I asked for by hand: 9 (Sara's sign-up 2, Ali's 1, step-ups 3, new addresses 2, Noor's cancelled step-up 1).
+
+**Final: 46 passed, 0 failed, 0 skipped.**

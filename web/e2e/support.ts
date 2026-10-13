@@ -12,6 +12,8 @@
 //   E2E_API_DIR    the folder dev-login runs in (default api/)
 //   E2E_DEV_LOGIN  the dev-login command (default "docker compose -p dsba-hub exec -T api python -m app.cli
 //                  dev-login"; without Docker, "uv run --no-sync python -m app.cli dev-login")
+//   E2E_PSQL       runs one SQL statement, given as its last argument (default "docker compose -p dsba-hub exec -T db
+//                  psql -U dsba -d dsba -At -v ON_ERROR_STOP=1 -c"); the step-up test ages a session with it
 //   E2E_STATE_DIR  where sessions and the run's details are kept between projects (default: a temp folder)
 //   E2E_KEEP=1     keep what the run created (no account deletion, no clean-up at the end)
 // The first cloud set-up ran with E2E_BASE_URL=http://127.0.0.1:5178, E2E_MAIL_DIR=/home/claude/devsvc/mail,
@@ -36,6 +38,7 @@ export const env = {
   smsDir: process.env.E2E_SMS_DIR ?? path.join(apiFolder, 'var', 'sms'),
   apiDir: process.env.E2E_API_DIR ?? apiFolder,
   devLogin: process.env.E2E_DEV_LOGIN ?? 'docker compose -p dsba-hub exec -T api python -m app.cli dev-login',
+  psql: process.env.E2E_PSQL ?? 'docker compose -p dsba-hub exec -T db psql -U dsba -d dsba -At -v ON_ERROR_STOP=1 -c',
   stateDir: process.env.E2E_STATE_DIR ?? path.join(os.tmpdir(), `dsba-e2e-${new URL(baseURL).port || 'default'}`),
   keep: process.env.E2E_KEEP === '1',
 };
@@ -132,6 +135,18 @@ export async function waitForCode(kind: 'email' | 'sms', to: string, since: numb
   return code as unknown as string;
 }
 
+/** Whether an email with this subject went to `to` since `since` (notices, not codes: the mail worker sends them). */
+export function mailedSince(to: string, subject: string, since: number): boolean {
+  if (!fs.existsSync(env.mailDir)) return false;
+  return fs
+    .readdirSync(env.mailDir)
+    .filter((f) => f.endsWith('.eml') && fs.statSync(path.join(env.mailDir, f)).mtimeMs >= since - 2000)
+    .some((f) => {
+      const head = fs.readFileSync(path.join(env.mailDir, f), 'utf8').split(/\r?\n\r?\n/)[0];
+      return new RegExp(`^To:.*${to.replace(/[.+]/g, '\\$&')}`, 'im').test(head) && head.includes(`Subject: ${subject}`);
+    });
+}
+
 /** The newest text to an E.164 number (security notices too). */
 export function newestText(e164: string): string {
   const files = fs.readdirSync(env.smsDir).filter((f) => f.includes(e164)).sort();
@@ -153,6 +168,17 @@ export async function devLogin(email: string, opts: { name: string; year: number
   const token = stdout.trim().split('\n').pop()?.trim() ?? '';
   if (!/^[\w-]{20,}$/.test(token)) throw new Error(`dev-login printed no token: ${stdout.slice(0, 200)}`);
   return token;
+}
+
+/** Makes a user's live sessions `minutes` older in the database. Changing an email address or phone number needs
+ * a session under 10 minutes old (decision D2), so an aged session meets the step-up dialog, as a student does who
+ * signed in yesterday. */
+export async function ageSessions(userId: string, minutes: number): Promise<void> {
+  if (!/^[0-9a-f-]{36}$/.test(userId) || !Number.isInteger(minutes)) throw new Error(`ageSessions: bad input ${userId}, ${minutes}`);
+  const [cmd, ...args] = env.psql.split(/\s+/);
+  const sql = `UPDATE user_sessions SET created_at = created_at - interval '${minutes} minutes' WHERE user_id = '${userId}' AND revoked_at IS NULL`;
+  const { stdout } = await run$(cmd, [...args, sql], { cwd: env.apiDir, timeout: 60_000 });
+  if (!/^UPDATE [1-9]/m.test(stdout)) throw new Error(`ageSessions changed no session: ${stdout.slice(0, 200)}`);
 }
 
 /** Every page in the suite hides Mini Noora (her hint covers the bottom-right corner) unless a test wants her,
