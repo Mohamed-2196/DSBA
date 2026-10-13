@@ -46,6 +46,8 @@ test('the admin makes Ali a newsletter manager and back; he is told', async ({ a
   row = await findAli(admin, run.ali.email);
   await row.getByRole('button', { name: /^Change the roles of/ }).click();
   dialog = admin.getByRole('dialog');
+  // The dialog fills in Ali's roles just after it opens: wait for them before changing one.
+  await expect(dialog.getByLabel(/^Newsletter manager/)).toBeChecked();
   await dialog.getByLabel(/^Newsletter manager/).uncheck();
   await dialog.getByRole('button', { name: 'Save roles' }).click();
   await expect(admin.getByText(`${run.ali.name}’s roles are saved`).first()).toBeVisible();
@@ -72,10 +74,10 @@ test('a suspended student can read but not post; lifting it lets him post again'
   await expect(admin.getByText(`${run.ali.name} is suspended`, { exact: true })).toBeVisible();
 
   await ali.goto('/forum/new');
-  await expect(ali.locator('main')).toContainText('Your account is suspended, so you can’t post.');
-  await expect(ali.locator('[data-hub="post-button"]')).toBeDisabled();
+  await expect(ali.locator('[data-hub="cant-post"]')).toContainText('Your account is suspended, so you can’t post in the forum for now.');
+  await expect(ali.locator('[data-hub="post-button"]')).toHaveCount(0);
   await ali.goto(`/forum/${thread.body.slug}`);
-  await expect(ali.locator('main')).toContainText('Your account is suspended, so you can read the forum but not reply.');
+  await expect(ali.locator('[data-hub="cant-post"]')).toContainText('Your account is suspended, so you can’t post in the forum for now.');
   await expect(ali.locator('[data-hub="reply-input"]')).toHaveCount(0);
   const writes: ['PUT' | 'POST', string, unknown][] = [
     ['PUT', `/api/v1/forum/threads/${thread.body.id}/vote`, undefined],
