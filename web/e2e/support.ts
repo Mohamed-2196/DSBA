@@ -240,7 +240,7 @@ export async function roleIdBySlug(admin: Page, slug: string): Promise<string> {
 }
 
 /** Every feature with a switch. */
-export const FEATURES = ['forum', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora', 'notes', 'board', 'requests'] as const;
+export const FEATURES = ['forum', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora', 'noora.ai', 'notes', 'board', 'requests'] as const;
 
 /** Sets a feature's switch (admins only). Every spec that switches something off puts it back in afterAll. */
 export async function setSwitch(admin: Page, feature: (typeof FEATURES)[number], mode: 'off' | 'roles' | 'everyone', roleIds: string[] = []): Promise<void> {
