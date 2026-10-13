@@ -101,3 +101,7 @@ Details are in `docs/backend/ARCHITECTURE.md`.
   - set the API's `DSBA_EMAIL_BACKEND=file` and `DSBA_SMS_BACKEND=file` with their directories mounted.
 
   It's on the list in STATUS.md.
+- On Mohamed's Mac, `npx playwright install` hangs while unpacking Chromium, probably because Node 26 is too new for
+  Playwright 1.56. Don't run it. Use the installed Google Chrome instead:
+  - scripts: `chromium.launch({ channel: 'chrome' })`;
+  - the e2e suite: `E2E_CHROMIUM="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"`.
