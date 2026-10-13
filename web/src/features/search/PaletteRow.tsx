@@ -1,5 +1,4 @@
 // The parts of a palette row: the leading tile or glyph, the title with the query marked, and what trails it.
-// Split out of CommandPalette (code quality review CQ-17).
 import { createElement } from 'react';
 import {
   ArrowSquareOut,
@@ -17,6 +16,7 @@ import {
   GraduationCap,
   House,
   Info,
+  Kanban,
   MagnifyingGlass,
   Moon,
   Newspaper,
@@ -44,6 +44,7 @@ const ICONS: Record<IconName, Icon> = {
   GraduationCap,
   House,
   Info,
+  Kanban,
   Moon,
   Newspaper,
   PencilSimpleLine,

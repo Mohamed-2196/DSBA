@@ -59,6 +59,7 @@
 .mod-lesson { display: grid; gap: var(--sp-16); margin-top: 20px; }
 .mod-lesson__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-16); }
 .mod-lesson__text { min-width: 0; }
+.mod-lesson__acts { display: flex; flex: none; flex-direction: column; align-items: flex-end; gap: var(--sp-8); }
 .mod-lesson__pos {
   display: flex;
   flex-wrap: wrap;
@@ -275,7 +276,7 @@
 }
 @media (max-width: 699px) {
   .mod-lesson__head { flex-direction: column; align-items: stretch; }
-  .mod-watch { align-self: flex-start; }
+  .mod-lesson__acts { flex-direction: row; flex-wrap: wrap; align-items: center; }
   .mod-lesson__title { font-size: var(--fs-20); }
   .mod-lesson__steps { flex: 1 1 100%; }
   .mod-lesson__step { flex: 1 1 0; }

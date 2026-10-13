@@ -127,7 +127,7 @@ def test_year_filter(client_for: Client, student: User, modules: dict[str, Any])
     assert years(1) == {general, group, year1, group1}
     assert years(3) == {general, group, year3}
     assert guest.get(f"{API}/forum/threads", params={"year": 4}).status_code == 422
-    hot2 = guest.get(f"{API}/forum/threads/hot", params={"year": 2, "n": 20}).json()
+    hot2 = guest.get(f"{API}/forum/threads/hot", params={"year": 2, "limit": 20}).json()
     assert set(ids(hot2)) == years(2)
 
 
@@ -215,9 +215,9 @@ def test_hot_threads(client_for: Client, ranked: dict[str, str], db: Session, mo
     assert ids(r.json()) == [ranked["d"], ranked["a"], ranked["b"], ranked["c"]]
     set_thread(db, ranked["d"], pinned=True)  # pinned threads (guidelines) never show here
     set_thread(db, ranked["a"], status=PostStatus.hidden)
-    assert ids(guest.get(f"{API}/forum/threads/hot", params={"n": 1}).json()) == [ranked["b"]]
+    assert ids(guest.get(f"{API}/forum/threads/hot", params={"limit": 1}).json()) == [ranked["b"]]
     assert ranked["a"] not in ids(client_for(moderator).get(f"{API}/forum/threads/hot").json())
-    assert guest.get(f"{API}/forum/threads/hot", params={"n": 21}).status_code == 422
+    assert guest.get(f"{API}/forum/threads/hot", params={"limit": 21}).status_code == 422
 
 
 def test_related_threads(
@@ -238,7 +238,9 @@ def test_related_threads(
     r = client_for().get(f"{API}/forum/threads/{base['id']}/related")
     assert r.status_code == 200
     assert ids(r.json()) == [same_module, same_tag]
-    assert ids(client_for().get(f"{API}/forum/threads/{base['id']}/related", params={"n": 1}).json()) == [same_module]
+    assert ids(client_for().get(f"{API}/forum/threads/{base['id']}/related", params={"limit": 1}).json()) == [
+        same_module
+    ]
     assert client_for().get(f"{API}/forum/threads/{hidden}/related").status_code == 404
     assert client_for().get(f"{API}/forum/threads/00000000-0000-0000-0000-000000000000/related").status_code == 404
 

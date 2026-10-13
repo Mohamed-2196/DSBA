@@ -4,9 +4,11 @@ import { ArrowSquareOut, CalendarBlank, CaretLeft, CaretRight, CheckCircle, Circ
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { ModuleDetail, Video } from '../../api/types';
 import { lessonKey, videoThumbnailUrl } from '../../lib/modules';
+import { useAuth } from '../../auth';
 import { useToast } from '../../state';
 import { Button, ErrorBoundary, HubMark, cx } from '../../ui';
 import { LessonNotes } from '../notes/public';
+import { AddToBoard } from '../board/public';
 import { ChapterList } from './ChapterList';
 import { KIND_SOURCE, chapterLessons, chapterPosition, embedSrc, httpsOnly, kindLabel, lessonPosition, openOriginalLabel, sourceHref } from './lessons';
 import { LessonPoster } from './Poster';
@@ -112,6 +114,7 @@ export function LessonsTab({
   const video = chapter.videos[v];
   const key = lessonKey(m.id, c, v);
   const { push } = useToast();
+  const { featureOn } = useAuth();
   const { state, isWatched, setWatched, markOpened, resetModule, restore } = progress;
   const watched = isWatched(key);
   // Once the student presses play, moving to another lesson keeps playing (they already chose to load it).
@@ -218,6 +221,7 @@ export function LessonsTab({
                   </p>
                 ) : null}
               </div>
+              <div className="mod-lesson__acts">
               <Button
                 className={cx('mod-watch', watched && 'is-on')}
                 aria-pressed={watched}
@@ -228,6 +232,8 @@ export function LessonsTab({
               >
                 {watched ? 'Watched' : 'Mark as watched'}
               </Button>
+              {featureOn('board') ? <AddToBoard link={{ type: 'lesson', id: key }} /> : null}
+              </div>
             </div>
 
             <div className="mod-lesson__nav">

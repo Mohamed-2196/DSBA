@@ -1,6 +1,5 @@
 // Calendar-only date helpers: months as { y, m }, the month grid and countdown labels. Days themselves
-// (day keys, today in Bahrain, weekdays, month names, formats) come from src/lib/dates.ts, the one home every area
-// shares (code quality review CQ-5).
+// (day keys, today in Bahrain, weekdays, month names, formats) come from src/lib/dates.ts.
 import { monthName } from '../../lib/dates';
 
 /** A month of a year; m is 0-based. */
@@ -51,8 +50,6 @@ export const monthOfDate = (date: Date): MonthRef => ({ y: date.getFullYear(), m
 
 /** 'October 2026' */
 export const monthTitle = ({ y, m }: MonthRef): string => `${monthName(m)} ${y}`;
-/** 'October' */
-export const monthLabel = ({ m }: MonthRef): string => monthName(m);
 
 /** Weeks (arrays of 7 local Dates, Sunday first) covering a month. */
 export function monthMatrix({ y, m }: MonthRef): Date[][] {

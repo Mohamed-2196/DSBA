@@ -20,6 +20,7 @@ from app.core.access import ADMIN, STUDENT
 from app.core.errors import ApiError, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
+    BoardCard,
     EmailOutbox,
     ForumReply,
     ForumThread,
@@ -46,6 +47,7 @@ from app.models import (
 from app.schemas.access import RoleSummary
 from app.schemas.auth import (
     AccountExport,
+    ExportBoardCard,
     ExportEmail,
     ExportLibraryItem,
     ExportNotification,
@@ -360,6 +362,26 @@ def set_identifier(user: User, kind: Kind, value: str | None) -> IdentifierChang
     return IdentifierChange(kind=kind, before=before, after=value, other=other)
 
 
+def identifier_taken(kind: Kind) -> ApiError:
+    return ApiError(409, "identifier_taken", f"Another account already uses this {LABELS[kind]}.")
+
+
+def change_identifier(
+    db: Session, user: User, sess: UserSession | None, kind: Kind, value: str | None
+) -> tuple[str, str] | None:
+    """Puts `value` on the account as its email address or phone number (None removes it), signs out the account's
+    other sessions and queues the security notice (the caller commits). 409 identifier_taken when another account
+    took `value` a moment ago. -> (phone number, text) when the notice is a text, to send once committed."""
+    change = set_identifier(user, kind, value)
+    try:
+        with db.begin_nested():
+            db.flush()
+    except IntegrityError:  # taken a moment ago by a parallel request
+        raise identifier_taken(kind) from None
+    sessions.revoke_others(db, user.id, keep=sess)
+    return queue_identifier_notice(db, user, change)
+
+
 def queue_identifier_notice(db: Session, user: User, change: IdentifierChange) -> tuple[str, str] | None:
     """The security notice for a change of identifier (security design finding 15): to the address that was
     replaced or removed, or, for an addition, to the account's other identifier. An email goes through the outbox
@@ -659,6 +681,10 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for e in db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == uid).order_by(EmailOutbox.created_at))
     ]
+    board = [
+        ExportBoardCard.model_validate(c)
+        for c in db.scalars(select(BoardCard).where(BoardCard.user_id == uid).order_by(BoardCard.created_at))
+    ]
     return AccountExport(
         user=me_out(user),
         sessions=[sessions.info(s, current) for s in sessions.live(db, uid)],
@@ -674,6 +700,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         requests=requests,
         me_toos=me_toos,
         emails=emails,
+        board=board,
     )
 
 
@@ -686,7 +713,7 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set NULL); everything
     personal (sessions, notifications, queued emails, progress, stars, votes, me-toos, reactions) cascades; the sign-in
     codes stay, anonymised, until the sweep (the rate limits count them). The last active admin can't leave
-    (409 last_admin)."""
+    (409 last_admin). The caller commits."""
     if access.is_admin(user):
         access.ensure_admins_remain(db, user)
     uid = user.id
@@ -743,4 +770,3 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     # signing up again must refill nothing).
     otp.anonymise(db, user)
     db.execute(delete(User).where(User.id == uid))
-    db.commit()

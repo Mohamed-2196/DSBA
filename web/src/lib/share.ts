@@ -1,4 +1,4 @@
-// Sharing links, the one home for every area (code quality review CQ-5): copying to the clipboard (with a fallback
+// Sharing links: copying to the clipboard (with a fallback
 // for browsers and pages where the Clipboard API is missing or refused), the host a link opens, and the absolute
 // address of a page of the Hub.
 

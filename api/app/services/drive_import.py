@@ -33,8 +33,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
-from app.core.text import clashes_on
+from app.core.text import clashes_on, clip
 from app.models import ItemSource, ItemStatus, LibraryItem, Module, UploadPurpose
+from app.schemas.library import EXAM_YEAR_MAX, EXAM_YEAR_MIN, LibraryKind
 from app.services import audit, exam_names, library
 from app.services.drive import (
     FOLDER,
@@ -83,7 +84,6 @@ REFUSALS = {
     "fileNotDownloadable": "Drive has no way to download it",
     "cannotDownloadFile": "its owner turned off downloads",
 }
-EXAM_YEARS = (1990, 2100)  # what the API accepts for exam_year
 MAX_DEPTH = 12  # folders below the link's own
 NAME_MAX = 255  # LibraryItem.file_name
 TITLE_MAX = 200  # LibraryItem.title
@@ -116,7 +116,7 @@ class Source:
     """A published link item that points at a Drive folder: its files take its kind, module and author."""
 
     module: Module | None
-    kind: str
+    kind: LibraryKind
     title: str
     url: str
     author_name: str | None
@@ -132,6 +132,11 @@ class Source:
         return f"{self.segment} \u00b7 {printable(self.title, 120)}"
 
 
+def import_key(source: Source, file: DriveFile) -> str:
+    """'drive/<module>/<Drive file id>': where an imported item came from, so a rerun skips it."""
+    return f"drive/{source.segment}/{file.id}"
+
+
 @dataclass(frozen=True)
 class Planned:
     """A file the plan imports."""
@@ -144,7 +149,7 @@ class Planned:
     file_type: FileType
     export: str | None  # a Google file: the type it is exported as
     limit: int  # bytes
-    kind: str
+    kind: LibraryKind
     exam_year: int | None = None
     zone: str | None = None
 
@@ -154,7 +159,7 @@ class Planned:
 
     @property
     def import_key(self) -> str:
-        return f"drive/{self.source.segment}/{self.file.id}"
+        return import_key(self.source, self.file)
 
     @property
     def storage_key(self) -> str:
@@ -166,7 +171,7 @@ class Planned:
     def title(self) -> str:
         """The name as Drive shows it, without the extension (the library shows the format next to it)."""
         stem = self.file_name.rsplit(".", 1)[0].strip()
-        return _fit(stem or self.file_name, TITLE_MAX)
+        return clip(stem or self.file_name, TITLE_MAX)
 
     @property
     def description(self) -> str:
@@ -265,18 +270,14 @@ class _SkipError(Exception):
 # ── names ────────────────────────────────────────────────────────────────────────────────────
 
 
-def _fit(text: str, limit: int) -> str:
-    return text if len(text) <= limit else f"{text[: limit - 1].rstrip()}\u2026"
-
-
 def _fit_name(name: str) -> str:
     """At most NAME_MAX characters, the extension kept."""
     if len(name) <= NAME_MAX:
         return name
     stem, dot, ext = name.rpartition(".")
     if not dot or not stem or len(ext) > 10:
-        return _fit(name, NAME_MAX)
-    return f"{_fit(stem, NAME_MAX - len(ext) - 1)}.{ext}"
+        return clip(name, NAME_MAX)
+    return f"{clip(stem, NAME_MAX - len(ext) - 1)}.{ext}"
 
 
 def shown_name(raw: str) -> str:
@@ -495,13 +496,13 @@ def _plan_file(plan: LinkPlan, found: _Found, done: set[str], seen: set[str], up
     if file.size is not None and file.size > limit:
         skip(f"it is over the {_mb(limit)} limit ({_size(file.size)})")
         return
-    import_key = f"drive/{source.segment}/{file.id}"
-    if import_key in done:
+    key = import_key(source, file)
+    if key in done:
         plan.already += 1
         return
-    if import_key in seen:  # the same file again in this module: a shortcut, or a folder linked twice
+    if key in seen:  # the same file again in this module: a shortcut, or a folder linked twice
         return
-    seen.add(import_key)
+    seen.add(key)
     kind, exam_year, zone = source.kind, None, None
     if source.kind == "past-paper":
         kind, exam_year, zone = exam_kind(shown)
@@ -522,12 +523,12 @@ def _plan_file(plan: LinkPlan, found: _Found, done: set[str], seen: set[str], up
     )
 
 
-def exam_kind(name: str) -> tuple[str, int | None, str | None]:
+def exam_kind(name: str) -> tuple[LibraryKind, int | None, str | None]:
     """A past paper's kind ('examiners-report' when its name says so), exam year and zone, read from its name by
     exam_names.exam_meta_from_name. What the name doesn't say, or says implausibly, stays empty."""
     meta = exam_names.exam_meta_from_name(name)
     year = meta.exam_year
-    exam_year = year if isinstance(year, int) and EXAM_YEARS[0] <= year <= EXAM_YEARS[1] else None
+    exam_year = year if isinstance(year, int) and EXAM_YEAR_MIN <= year <= EXAM_YEAR_MAX else None
     zone = meta.zone if meta.zone in ("A", "B") else None
     return ("examiners-report" if meta.examiners_report is True else "past-paper"), exam_year, zone
 

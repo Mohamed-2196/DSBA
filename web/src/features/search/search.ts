@@ -12,6 +12,7 @@ export type GroupId = 'recent' | 'suggested' | 'modules' | 'files' | 'threads' |
 
 export type IconName =
   | 'ArrowsLeftRight'
+  | 'Kanban'
   | 'Bank'
   | 'Books'
   | 'Calculator'
@@ -54,8 +55,6 @@ export type Item =
   | (Base & { kind: 'recent' | 'suggestion'; query: string })
   | (Base & { kind: 'more'; target: GroupId })
   | (Base & { kind: 'fallback'; icon: IconName; to: string; feature: Feature; offer?: OfferId });
-
-export type ItemKind = Item['kind'];
 
 export interface Group {
   id: GroupId;
@@ -107,6 +106,7 @@ export const PAGE_ENTRIES: Item[] = (
       keywords: ['careers', 'jobs', 'roles', 'skills', 'internships', 'graduate', 'opportunities', 'certificates', 'cfa', 'frm', 'cv'],
     },
     { path: '/calendar', feature: 'calendar', title: 'Calendar', icon: 'CalendarDots', keywords: ['exams', 'timetable', 'dates', 'deadlines', 'ics', 'subscribe'] },
+    { path: '/board', feature: 'board', title: 'Study board', icon: 'Kanban', keywords: ['to do', 'todo', 'tasks', 'kanban', 'planner', 'revision plan', 'progress'] },
     { path: '/grades', feature: 'grades', title: 'Grade calculator', icon: 'Calculator', keywords: ['grades', 'gpa', 'classification', 'marks', 'degree'] },
     { path: '/about', title: 'About DSBA Hub', icon: 'Info', keywords: ['contributors', 'disclaimer', 'credits'] },
   ] as const

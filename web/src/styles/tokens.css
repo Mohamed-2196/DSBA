@@ -29,9 +29,9 @@
   --tracking-head: -0.02em;
   --tracking-display: -0.03em;
   /* Longest line of running text: about 75 characters. A ch is the width of a zero, so the count depends on the
-     typeface: 58ch holds about 76 in Schibsted Grotesk, and 54ch about the same in Newsreader (measured). */
-  --measure: 58ch;
-  --measure-serif: 54ch;
+     typeface and the size: 54ch keeps Schibsted Grotesk, small text included, under 76, and 50ch Newsreader. */
+  --measure: 54ch;
+  --measure-serif: 50ch;
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;

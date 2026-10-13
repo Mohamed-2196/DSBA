@@ -34,6 +34,7 @@ import httpx
 from pydantic import SecretStr
 
 from app.config import Settings
+from app.core.text import clip
 
 log = logging.getLogger("dsba.drive")
 
@@ -259,7 +260,7 @@ def printable(text: str, limit: int = 300) -> str:
     `limit` characters."""
     text = "".join(ch if unicodedata.category(ch)[0] != "C" else " " for ch in text)
     text = " ".join(text.split())
-    return text if len(text) <= limit else f"{text[: limit - 1]}\u2026"
+    return clip(text, limit)
 
 
 # ── credentials ──────────────────────────────────────────────────────────────────────────────

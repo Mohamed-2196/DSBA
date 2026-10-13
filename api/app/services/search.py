@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.core.access import Feature
+from app.core.text import clip
 from app.core.time import BAHRAIN, bahrain_today
 from app.models import (
     CalendarEvent,
@@ -111,8 +112,7 @@ def snippet(text: str | None, terms: list[str], radius: int = SNIPPET_RADIUS) ->
     if not hits:
         if len(t) <= radius * 2:
             return t
-        cut = t[: radius * 2]
-        return cut[: cut.rfind(" ")].rstrip(" ,.;:") + "…" if " " in cut else cut + "…"
+        return clip(t, radius * 2 + 1, at_word=True)
     i = min(hits)
     start, end = max(0, i - radius), min(len(t), i + radius)
     if start > 0:

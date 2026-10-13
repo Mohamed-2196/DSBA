@@ -192,7 +192,7 @@ def test_reports_reach_the_people_who_handle_requests(
 ) -> None:
     made = ask(client_for(student))
     report = {"targetType": "request", "targetId": made["id"], "reason": "spam"}
-    assert client_for(classmate).post(f"{API}/reports", json=report).status_code == 201
+    assert client_for(classmate).post(f"{API}/reports", json=report).status_code == 204
     queue = client_for(moderator).get(f"{API}/admin/reports").json()["items"]
     assert [(r["targetType"], r["targetUrl"], r["targetStatus"]) for r in queue] == [
         ("request", f"/requests/{made['id']}", "open")

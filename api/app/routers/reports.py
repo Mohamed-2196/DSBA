@@ -6,14 +6,13 @@ from __future__ import annotations
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import Query, Request, status
+from fastapi import Query, Request, Response, status
 
 from app.core.access import Box
 from app.core.pagination import Limit, Offset
 from app.core.security import DB, client_ip, requires, requires_any
 from app.models import User
 from app.routers._base import router_for
-from app.schemas.common import Ok
 from app.schemas.moderation import ReportCreate, ReportOut, ReportPage, ReportResolve
 from app.services import access, reports
 
@@ -29,8 +28,8 @@ ReportsQueue = Annotated[
 ]
 
 
-@router.post("/reports", response_model=Ok, status_code=status.HTTP_201_CREATED)
-def create_report(body: ReportCreate, user: Annotated[User, requires(Box.reports_create)], db: DB) -> Ok:
+@router.post("/reports", status_code=status.HTTP_204_NO_CONTENT)
+def create_report(body: ReportCreate, user: Annotated[User, requires(Box.reports_create)], db: DB) -> Response:
     """Report a thread, reply, library item or request (one open report per person and target).
 
     Errors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),
@@ -38,7 +37,7 @@ def create_report(body: ReportCreate, user: Annotated[User, requires(Box.reports
     access.require_feature(db, user, reports.TARGET_FEATURES[body.target_type])
     reports.create_report(db, user, body)
     db.commit()
-    return Ok()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/admin/reports", response_model=ReportPage)

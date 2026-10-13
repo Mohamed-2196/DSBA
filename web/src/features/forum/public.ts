@@ -14,15 +14,15 @@
 //
 // Thread links are /forum/<slug>. Searching the forum is GET /api/v1/search (the ⌘K palette).
 export { HotThreads } from './HotThreads';
-export type { HotThreadsProps } from './HotThreads';
+;
 export { ModuleThreads } from './ModuleThreads';
-export type { ModuleThreadsProps } from './ModuleThreads';
+;
 export { useHotThreads } from './api';
 export { ReportButton } from './ReportButton';
-export type { ReportButtonProps } from './ReportButton';
+;
 export { ReportsQueue } from './ReportsQueue';
 export { useStartsThreads } from './lib/posting';
 export { MarkdownEditor } from './components/MarkdownEditor';
-export type { MarkdownEditorProps } from './components/MarkdownEditor';
+;
 export { Prose } from './components/Prose';
-export type { ProseProps } from './components/Prose';
+;

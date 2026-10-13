@@ -5,7 +5,7 @@ import { API_ORIGIN } from '../../../api/client';
 import { isMediaPath } from '../../../ui/safeHref';
 
 // The renderer's rule (ui/safeHref): an app path, or an http(s)/mailto URL; anything else is shown as plain text.
-export { safeHref, type SafeHref } from '../../../ui/safeHref';
+export { safeHref,  } from '../../../ui/safeHref';
 
 // Whitespace, control characters and backslashes are never allowed in a link: browsers drop tabs and newlines
 // ('/\t/host' becomes '//host') and read '\' as '/'.

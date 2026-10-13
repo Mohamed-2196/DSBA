@@ -6,5 +6,4 @@
 //
 // Request links are /requests/<id>.
 export { AskLink } from './AskLink';
-export type { AskLinkProps } from './AskLink';
 export { RequestsQueue } from './RequestsQueue';

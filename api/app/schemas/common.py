@@ -84,6 +84,9 @@ ErrorCode = Literal[
     # notes (R-5)
     "note_changed",  # 409: the note was saved elsewhere (another tab) since this version: load it, or save over it
     "too_many_notes",  # 409: the most notes one student may keep
+    # the study board (R-4)
+    "board_full",  # 409: the board holds as many cards as it may
+    "already_on_board",  # 409: this event, lesson, module or file already has a card
 ]
 
 

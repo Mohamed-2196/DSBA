@@ -1,14 +1,16 @@
 import { LinkSimple, PencilSimple, Trash } from '@phosphor-icons/react';
-import { BREAKPOINTS, useMediaQuery, useToast, type CohortYear } from '../../state';
+import { useAuth } from '../../auth';
+import { AddToBoard } from '../board/public';
+import { BREAKPOINTS, useMediaQuery, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, CohortBadge, cx, Drawer, IconButton, ModuleIcon } from '../../ui';
 import { daysUntil, formatLong, formatMonthYear, formatShort, formatShortYear, parseDay, weekdayOf } from '../../lib/dates';
-import { copyText } from '../../lib/share';
+import { useCopyLink } from '../../lib/useCopyLink';
 import { AddExamsToCalendar, AddToCalendar } from './AddToCalendar';
 import { eventPageUrl } from './api';
 import { countdownLabel } from './dates';
 import { splitTitle, TYPE_BADGE_TONE, typeLabel, whenAndWhere } from './eventMeta';
-import type { CalendarEvent } from './types';
+import type { CalendarEvent, EventType } from './types';
 
 export interface EventDrawerProps {
   event: CalendarEvent | null;
@@ -32,15 +34,8 @@ export interface EventDrawerProps {
  */
 export function EventDrawer({ event, events, today, year, hasExams, onClose, onOpen, onEdit, onDelete }: EventDrawerProps) {
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
-  const { push } = useToast();
-  const copyLink = async (e: CalendarEvent) => {
-    const url = eventPageUrl(e);
-    push(
-      (await copyText(url))
-        ? { tone: 'success', title: 'Link copied', body: 'Anyone with the link sees this date on the DSBA Hub calendar.' }
-        : { tone: 'alert', title: 'Couldn’t copy the link', body: url },
-    );
-  };
+  const copy = useCopyLink();
+  const copyLink = (e: CalendarEvent) => copy(eventPageUrl(e), 'Anyone with the link sees this date on the DSBA Hub calendar.');
   return (
     <Drawer
       open={!!event}
@@ -76,8 +71,12 @@ interface DrawerContentProps {
   examsYear?: CohortYear | null;
 }
 
+// The dates a student works towards: these can go on the study board.
+const BOARD_TYPES: ReadonlySet<EventType> = new Set(['exam', 'mock', 'deadline']);
+
 function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerContentProps) {
   const { getModule } = useModules();
+  const { featureOn } = useAuth();
   const date = parseDay(event.date);
   const end = event.endDate && event.endDate > event.date ? parseDay(event.endDate) : null;
   const days = daysUntil(date, today);
@@ -120,6 +119,8 @@ function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerConten
           {where}
         </p>
       ) : null}
+
+      {featureOn('board') && BOARD_TYPES.has(event.type) ? <AddToBoard link={{ type: 'event', id: event.id }} className="cal-drawer__board" /> : null}
 
       {module ? (
         <section className="cal-drawer__section" aria-labelledby="cal-drawer-module">

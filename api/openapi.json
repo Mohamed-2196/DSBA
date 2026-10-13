@@ -1805,7 +1805,7 @@
           "progress"
         ],
         "summary": "Set Watched",
-        "description": "Mark one lesson watched or not (404 when the module, chapter or video does not exist).",
+        "description": "Mark one lesson watched or not (404 when the module, chapter or video does not exist). A study-board card for\na watched lesson moves to Done.",
         "operationId": "set_watched_api_v1_me_progress_lessons__lesson_key__put",
         "parameters": [
           {
@@ -3641,6 +3641,7 @@
                 "grades",
                 "noora",
                 "notes",
+                "board",
                 "requests"
               ],
               "type": "string",
@@ -4437,22 +4438,22 @@
         }
       }
     },
-    "/api/v1/library/items/{item}": {
+    "/api/v1/library/items/{slug}": {
       "get": {
         "tags": [
           "library"
         ],
         "summary": "Get Item",
-        "description": "By id or slug. Unpublished items: only their uploader and the library's managers.",
-        "operationId": "get_item_api_v1_library_items__item__get",
+        "description": "By slug. Unpublished items: only their uploader and the library's managers.",
+        "operationId": "get_item_api_v1_library_items__slug__get",
         "parameters": [
           {
-            "name": "item",
+            "name": "slug",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Item"
+              "title": "Slug"
             }
           }
         ],
@@ -6221,7 +6222,7 @@
         "operationId": "hot_threads_api_v1_forum_threads_hot_get",
         "parameters": [
           {
-            "name": "n",
+            "name": "limit",
             "in": "query",
             "required": false,
             "schema": {
@@ -6229,7 +6230,7 @@
               "maximum": 20,
               "minimum": 1,
               "default": 5,
-              "title": "N"
+              "title": "Limit"
             }
           },
           {
@@ -6346,7 +6347,7 @@
           "forum"
         ],
         "summary": "Get Thread",
-        "description": "By slug or id (a value that reads as an id is looked up as one first). Replies oldest first.\n\nHidden threads and replies are for moderators and for their own author: the author gets them with status\n'hidden' and canModerate false (show them a \"hidden by a student rep\" banner) and can't change them (canEdit\nfalse). Everyone else: 404 for a hidden thread; a hidden reply is left out of `replies`.",
+        "description": "By slug. Replies oldest first.\n\nHidden threads and replies are for moderators and for their own author: the author gets them with status\n'hidden' and canModerate false (show them a \"hidden by a student rep\" banner) and can't change them (canEdit\nfalse). Everyone else: 404 for a hidden thread; a hidden reply is left out of `replies`.",
         "operationId": "get_thread_api_v1_forum_threads__slug__get",
         "parameters": [
           {
@@ -6672,7 +6673,7 @@
             }
           },
           {
-            "name": "n",
+            "name": "limit",
             "in": "query",
             "required": false,
             "schema": {
@@ -6680,7 +6681,7 @@
               "maximum": 10,
               "minimum": 1,
               "default": 4,
-              "title": "N"
+              "title": "Limit"
             }
           }
         ],
@@ -7864,15 +7865,8 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Ok"
-                }
-              }
-            }
+          "204": {
+            "description": "Successful Response"
           },
           "400": {
             "description": "Bad Request",
@@ -10906,11 +10900,11 @@
           "calendar"
         ],
         "summary": "Upcoming",
-        "description": "The next n events from today (Bahrain time), including any still running today.",
+        "description": "The next `limit` events from today (Bahrain time), including any still running today.",
         "operationId": "upcoming_api_v1_calendar_upcoming_get",
         "parameters": [
           {
-            "name": "n",
+            "name": "limit",
             "in": "query",
             "required": false,
             "schema": {
@@ -10918,7 +10912,7 @@
               "maximum": 60,
               "minimum": 1,
               "default": 5,
-              "title": "N"
+              "title": "Limit"
             }
           },
           {
@@ -11907,6 +11901,522 @@
           }
         }
       }
+    },
+    "/api/v1/board": {
+      "get": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Get Board",
+        "description": "Every card, To do first, each column in its order. Linked things are read as they are now; a thing that's\ngone has a link with no title.",
+        "operationId": "get_board_api_v1_board_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Board"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/board/cards": {
+      "post": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Create Card",
+        "description": "A card at the end of its column; a lesson already watched goes to Done. Errors: board_full (409),\nalready_on_board (409), invalid_input on `link.id` when the thing isn't there (422), rate_limited (429).",
+        "operationId": "create_card_api_v1_board_cards_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoardCardCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardCard"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/board/cards/{card_id}": {
+      "patch": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Update Card",
+        "description": "Fields that are not sent stay; null clears the note or the due date.",
+        "operationId": "update_card_api_v1_board_cards__card_id__patch",
+        "parameters": [
+          {
+            "name": "card_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Card Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoardCardUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardCard"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Delete Card",
+        "operationId": "delete_card_api_v1_board_cards__card_id__delete",
+        "parameters": [
+          {
+            "name": "card_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Card Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/board/cards/{card_id}/place": {
+      "put": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Move Card",
+        "description": "Puts the card in a column, after `afterId` or at the top. Errors: retry (409) when `afterId` is no longer\nin that column.",
+        "operationId": "move_card_api_v1_board_cards__card_id__place_put",
+        "parameters": [
+          {
+            "name": "card_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Card Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoardCardMove"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardCard"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12025,6 +12535,13 @@
             },
             "type": "array",
             "title": "Emails"
+          },
+          "board": {
+            "items": {
+              "$ref": "#/components/schemas/ExportBoardCard"
+            },
+            "type": "array",
+            "title": "Board"
           }
         },
         "type": "object",
@@ -12042,7 +12559,8 @@
           "reports",
           "requests",
           "meToos",
-          "emails"
+          "emails",
+          "board"
         ],
         "title": "AccountExport",
         "description": "Everything the Hub stores about the signed-in user (GET /me/export)."
@@ -12403,6 +12921,339 @@
           "offset"
         ],
         "title": "AuditPage"
+      },
+      "Board": {
+        "properties": {
+          "cards": {
+            "items": {
+              "$ref": "#/components/schemas/BoardCard"
+            },
+            "type": "array",
+            "title": "Cards"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cards",
+          "limit"
+        ],
+        "title": "Board",
+        "description": "Every card, by column, each column in its order."
+      },
+      "BoardCard": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "column": {
+            "type": "string",
+            "enum": [
+              "todo",
+              "doing",
+              "done"
+            ],
+            "title": "Column"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BoardLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "doneAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doneat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "column",
+          "title",
+          "note",
+          "dueDate",
+          "link",
+          "createdAt",
+          "doneAt"
+        ],
+        "title": "BoardCard"
+      },
+      "BoardCardCreate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "column": {
+            "type": "string",
+            "enum": [
+              "todo",
+              "doing",
+              "done"
+            ],
+            "title": "Column",
+            "default": "todo"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BoardLinkIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "BoardCardCreate",
+        "description": "A card at the end of a column. With a link and no title, the card takes the linked thing's title. A lesson\nalready watched starts in Done."
+      },
+      "BoardCardMove": {
+        "properties": {
+          "column": {
+            "type": "string",
+            "enum": [
+              "todo",
+              "doing",
+              "done"
+            ],
+            "title": "Column"
+          },
+          "afterId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Afterid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "column"
+        ],
+        "title": "BoardCardMove",
+        "description": "Puts the card in `column`, right after the card `afterId`, or at the top with null."
+      },
+      "BoardCardUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          }
+        },
+        "type": "object",
+        "title": "BoardCardUpdate",
+        "description": "Fields that are not sent stay; null clears the note or the due date."
+      },
+      "BoardLink": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "event",
+              "lesson",
+              "module",
+              "library_item"
+            ],
+            "title": "Type"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "id",
+          "title",
+          "url",
+          "date"
+        ],
+        "title": "BoardLink"
+      },
+      "BoardLinkIn": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "event",
+              "lesson",
+              "module",
+              "library_item"
+            ],
+            "title": "Type"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 96,
+            "minLength": 1,
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "id"
+        ],
+        "title": "BoardLinkIn",
+        "description": "What a card points at: a calendar event id, a lesson key ('<module>:<chapter>:<video>'), a module id or a\nlibrary item id."
       },
       "BoxOut": {
         "properties": {
@@ -14283,7 +15134,9 @@
               "role_changed",
               "role_in_use",
               "note_changed",
-              "too_many_notes"
+              "too_many_notes",
+              "board_full",
+              "already_on_board"
             ],
             "title": "Code"
           },
@@ -14335,6 +15188,109 @@
           "error"
         ],
         "title": "ErrorResponse"
+      },
+      "ExportBoardCard": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "column": {
+            "type": "string",
+            "enum": [
+              "todo",
+              "doing",
+              "done"
+            ],
+            "title": "Column"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "linkType": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "event",
+                  "lesson",
+                  "module",
+                  "library_item"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linktype"
+          },
+          "linkId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linkid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "doneAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doneat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "column",
+          "title",
+          "note",
+          "dueDate",
+          "linkType",
+          "linkId",
+          "createdAt",
+          "doneAt"
+        ],
+        "title": "ExportBoardCard"
       },
       "ExportEmail": {
         "properties": {
@@ -15113,6 +16069,7 @@
               "grades",
               "noora",
               "notes",
+              "board",
               "requests"
             ],
             "title": "Feature"
@@ -15193,6 +16150,7 @@
                 "grades",
                 "noora",
                 "notes",
+                "board",
                 "requests"
               ]
             },
@@ -16895,6 +17853,7 @@
                 "grades",
                 "noora",
                 "notes",
+                "board",
                 "requests"
               ]
             },
@@ -17736,17 +18695,6 @@
           "careers"
         ],
         "title": "OfferTypeLabels"
-      },
-      "Ok": {
-        "properties": {
-          "ok": {
-            "type": "boolean",
-            "title": "Ok",
-            "default": true
-          }
-        },
-        "type": "object",
-        "title": "Ok"
       },
       "OtpChallengeOut": {
         "properties": {

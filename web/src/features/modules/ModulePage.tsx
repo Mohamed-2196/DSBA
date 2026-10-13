@@ -8,7 +8,7 @@ import type { ModuleDetail, ModuleSummary } from '../../api/types';
 import { COHORTS, cohortColor, useDocumentTitle, useYear } from '../../state';
 import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
-import { Badge, Button, CohortBadge, EmptyState, ErrorBoundary, ModuleIcon, Page, Panel, ProgressRing, QueryError, Skeleton, TabPanel, Tabs } from '../../ui';
+import { Badge, Button, CohortBadge, EmptyState, ErrorBoundary, ModuleIcon, Page, Panel, ProgressRing, QueryError, Skeleton, TabPanel, Tabs, countOf } from '../../ui';
 import { ModuleThreads } from '../forum/public';
 import { ModuleFiles, useLibraryUpload } from '../library/public';
 import { useModule } from './api';
@@ -22,7 +22,6 @@ import { resourceSummary } from './resources';
 import './ModulePage.css';
 
 const RESUME_LABEL: Record<ResumeKind, string> = { resume: 'Resume lesson', next: 'Continue', start: 'Start lesson 1', done: 'Watch again' };
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 function https(url: string | null | undefined): string | null {
   if (!url) return null;
@@ -65,8 +64,8 @@ function ModuleHeader({
   }
 
   const counts = [
-    m.lessonCount ? `${plural(m.chapterCount, 'chapter')}, ${plural(m.lessonCount, 'video lesson')}` : detail ? resourceSummary(detail) : null,
-    m.libraryCount ? `${plural(m.libraryCount, 'file')} in the library` : null,
+    m.lessonCount ? `${countOf(m.chapterCount, 'chapter')}, ${countOf(m.lessonCount, 'video lesson')}` : detail ? resourceSummary(detail) : null,
+    m.libraryCount ? `${countOf(m.libraryCount, 'file')} in the library` : null,
   ].filter(Boolean);
 
   return (

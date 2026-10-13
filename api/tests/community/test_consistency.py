@@ -121,7 +121,7 @@ def test_a_report_closed_by_two_reps_is_told_once(
 ) -> None:
     t = new_thread(client_for(classmate), title="Reported once, closed twice")
     r = client_for(student).post(f"{API}/reports", json={"targetType": "thread", "targetId": t["id"], "reason": "spam"})
-    assert r.status_code == 201
+    assert r.status_code == 204
     report = db.scalar(select(Report))
     assert report is not None
     # another rep closes it first, while this session still holds it as open

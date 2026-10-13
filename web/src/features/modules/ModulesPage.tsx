@@ -9,14 +9,13 @@ import { Link } from 'react-router-dom';
 import type { ModuleSummary } from '../../api/types';
 import { COHORTS, YEARS, cohortColor, normalizeYear, useDocumentTitle, useQueryParam, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, CohortBadge, ModuleIcon, Page, PageHeader, ProgressRing, SegmentedControl, Skeleton, cx } from '../../ui';
+import { Button, CohortBadge, ModuleIcon, Page, PageHeader, ProgressRing, SegmentedControl, Skeleton, cx, countOf } from '../../ui';
 import { prefetchModule } from './api';
 import { useExamsByModule, type ExamInfo } from './exams';
 import { ImportProgressPrompt } from './ImportProgressPrompt';
 import { summaryProgress, useProgress, type Fraction } from './progress';
 import './ModulesPage.css';
 
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 function ModuleRow({
   module: m,
@@ -185,7 +184,7 @@ export default function ModulesPage() {
         meta={
           <>
             <CohortBadge year={viewYear} />
-            <span className="mod-index__fact">{plural(rows.length, 'module')}</span>
+            <span className="mod-index__fact">{countOf(rows.length, 'module')}</span>
             {showProgress ? (
               <span className="mod-index__fact">
                 {ready ? (

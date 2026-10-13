@@ -3,9 +3,10 @@ import { useParams } from 'react-router-dom';
 import { ChatCircleText, Plus } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import type { Reply, ThreadDetail } from '../../api/types';
-import { appUrl, copyText } from '../../lib/share';
+import { appUrl } from '../../lib/share';
+import { useCopyLink } from '../../lib/useCopyLink';
 import { Button, EmptyState, Page, Panel, QueryError, Skeleton } from '../../ui';
-import { useDocumentTitle, useToast } from '../../state';
+import { useDocumentTitle } from '../../state';
 import { isNotFound, useThread } from './api';
 import { authorName } from './lib/authors';
 import { scrollBehavior } from './lib/motion';
@@ -103,7 +104,7 @@ interface ThreadViewProps {
 }
 
 function ThreadView({ thread, reload, unavailable }: ThreadViewProps) {
-  const { push } = useToast();
+  const copy = useCopyLink();
   const moderation = useThreadModeration(thread);
   const [replyingTo, setReplyingTo] = useState<ReplyingTo | null>(null);
   const composerInput = useRef<HTMLTextAreaElement>(null);
@@ -131,10 +132,7 @@ function ThreadView({ thread, reload, unavailable }: ThreadViewProps) {
     });
   };
 
-  const copyLink = async () => {
-    if (await copyText(appUrl(`/forum/${thread.slug}`))) push({ title: 'Link copied', body: 'Paste it anywhere to share this thread.', tone: 'success' });
-    else push({ title: 'Couldn’t copy the link', body: 'Copy it from the address bar instead.', tone: 'alert' });
-  };
+  const copyLink = () => copy(appUrl(`/forum/${thread.slug}`), 'Paste it anywhere to share this thread.');
 
   return (
     <Page className="forum-page forum-thread">

@@ -56,12 +56,14 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("notes", "GET", "/notes"),
     ("notes", "POST", "/notes"),
     ("notes", "GET", f"/notes/{NOTHING}"),
+    ("board", "GET", "/board"),
+    ("board", "POST", "/board/cards"),
     ("requests", "GET", "/requests"),
     ("requests", "GET", f"/requests/{NOTHING}"),
     ("requests", "POST", "/requests"),
 ]
 # Features that arrive switched off (the migrations' switches): the tests switch them on first.
-OFF_AT_FIRST = ("notes", "requests")
+OFF_AT_FIRST = ("notes", "board", "requests")
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
 # paths below it.
@@ -89,6 +91,7 @@ DECIDED_BY_REQUEST: dict[tuple[str, str], str] = {
 }
 # Where each feature's routes live: a route under one of these paths must declare that feature.
 AREAS: dict[str, Feature] = {
+    "/board": Feature.board,
     "/forum": Feature.forum,
     "/media": Feature.forum,
     "/library": Feature.library,
@@ -201,7 +204,7 @@ def test_switching_off_uploads_leaves_the_library_readable(
     set_feature("library.uploads", "off")
     assert off(client_for(student).post(f"{API}/uploads", json=PDF_UPLOAD))
     assert off(client_for(student).post(f"{API}/library/items", json={}))
-    assert client_for(student).get(f"{API}/library/items/{published['id']}").status_code == 200
+    assert client_for(student).get(f"{API}/library/items/{published['slug']}").status_code == 200
     assert client_for(student).post(f"{API}/uploads", json=PNG_UPLOAD).status_code == 201  # forum pictures still go
     assert client_for(boss).post(f"{API}/uploads", json=PDF_UPLOAD).status_code == 201
 
@@ -257,7 +260,7 @@ def test_the_reports_queue_and_the_numbers_follow_the_switches(
     item = share_pdf(client_for(boss), storage)
     for target_type, target_id in (("thread", t["id"]), ("library_item", item["id"])):
         r = reporter.post(f"{API}/reports", json={"targetType": target_type, "targetId": target_id, "reason": "spam"})
-        assert r.status_code == 201, r.text
+        assert r.status_code == 204, r.text
     queue = client_for(rep).get(f"{API}/admin/reports").json()["items"]
     forum_report = next(r["id"] for r in queue if r["targetType"] == "thread")
     set_feature("forum", "off")

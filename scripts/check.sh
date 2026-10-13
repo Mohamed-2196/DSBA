@@ -66,6 +66,7 @@ check_web() {
   check "web: tsc (the app)" npx --no-install tsc -p tsconfig.json
   check "web: tsc (configs and the e2e suite)" npx --no-install tsc -p tsconfig.node.json
   check "web: eslint" npm run --silent lint
+  check "web: knip (unused files, exports and dependencies)" npx --no-install knip
   check "web: unit tests" npm run --silent test
   check "web: schema.d.ts matches api/openapi.json" schema_matches_openapi
   check "web: build" npx --no-install vite build --outDir "$tmp/dist" --emptyOutDir --logLevel warn

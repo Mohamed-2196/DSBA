@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import StringConstraints, WithJsonSchema
 
 from app.schemas.access import BoxKey, FeatureKey, RoleSummary
+from app.schemas.board import BoardColumn, BoardLinkType
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
 from app.schemas.forum import Category
 from app.schemas.library import ItemStatus, LibraryKind
@@ -184,6 +185,18 @@ class ExportReaction(ApiModel):
     created_at: datetime
 
 
+class ExportBoardCard(ApiModel):
+    id: UUID
+    column: BoardColumn
+    title: str
+    note: str | None
+    due_date: date | None
+    link_type: BoardLinkType | None
+    link_id: str | None
+    created_at: datetime
+    done_at: datetime | None
+
+
 class ExportVote(ApiModel):
     type: Literal["thread", "reply"]
     id: UUID
@@ -250,3 +263,4 @@ class AccountExport(ApiModel):
     requests: list[ExportRequest]  # requests this person made
     me_toos: list[UUID]  # requests this person said "me too" to
     emails: list[ExportEmail]
+    board: list[ExportBoardCard]  # study-board cards
