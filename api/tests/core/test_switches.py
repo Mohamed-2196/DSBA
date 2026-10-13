@@ -53,7 +53,15 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("calendar", "POST", "/calendar/events"),
     ("career", "GET", "/career"),
     ("career", "PUT", "/career"),
+    ("notes", "GET", "/notes"),
+    ("notes", "POST", "/notes"),
+    ("notes", "GET", f"/notes/{NOTHING}"),
+    ("requests", "GET", "/requests"),
+    ("requests", "GET", f"/requests/{NOTHING}"),
+    ("requests", "POST", "/requests"),
 ]
+# Features that arrive switched off (the migrations' switches): the tests switch them on first.
+OFF_AT_FIRST = ("notes", "requests")
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
 # paths below it.
@@ -87,6 +95,7 @@ AREAS: dict[str, Feature] = {
     "/newsletter": Feature.newsletter,
     "/calendar": Feature.calendar,
     "/career": Feature.career,
+    "/notes": Feature.notes,
     "/requests": Feature.requests,
 }
 
@@ -151,6 +160,8 @@ def test_a_switched_off_feature_is_gone_except_for_admins(
 ) -> None:
     body: dict[str, Any] | None = {} if method in ("POST", "PUT") else None
     student, boss = make_user(name="Sara Student"), make_user(name="Head Admin", roles=ADMIN)
+    if feature in OFF_AT_FIRST:
+        set_feature(feature, "everyone")
     assert not off(client_for(student).request(method, f"{API}{path}", json=body))
     set_feature(feature, "off")
     assert off(client_for().request(method, f"{API}{path}", json=body))
@@ -283,7 +294,7 @@ def test_a_notification_into_a_switched_off_feature_still_lists(
 def test_me_and_features_list_what_is_on(
     client_for: ClientFor, make_user: MakeUser, set_feature: Callable[..., None], db: Session
 ) -> None:
-    everything = [f.value for f in Feature if f is not Feature.requests]  # requests arrives switched off
+    everything = [f.value for f in Feature if f not in OFF_AT_FIRST]
     student, boss = make_user(name="Sara Student"), make_user(name="Head Admin", roles=ADMIN)
     assert client_for(student).get(f"{API}/me").json()["features"] == everything
     assert client_for().get(f"{API}/features").json() == {"features": everything}

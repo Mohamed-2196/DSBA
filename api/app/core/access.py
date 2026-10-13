@@ -57,6 +57,7 @@ class Feature(enum.StrEnum):
     career = "career"
     grades = "grades"  # the web app's grades calculator: nothing in the API
     noora = "noora"  # Mini Noora, in the web app: nothing in the API
+    notes = "notes"  # each student's private notes
     requests = "requests"
 
 
@@ -131,6 +132,7 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.career: FeatureInfo("Career Navigator", "Career Navigator."),
     Feature.grades: FeatureInfo("Grades calculator", "The grades calculator."),
     Feature.noora: FeatureInfo("Mini Noora", "Mini Noora, the hub's helper."),
+    Feature.notes: FeatureInfo("Notes", "Students' private notes. They're kept, and come back when it's on again."),
     Feature.requests: FeatureInfo("Requests", "Students' requests, their me-toos and the answers."),
 }
 

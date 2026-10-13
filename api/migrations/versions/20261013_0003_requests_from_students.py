@@ -1,7 +1,7 @@
 """requests from students: the requests, their me-toos, the requests.manage box for Rep, and the feature's switch
 
-Revision ID: 0002
-Revises: 0001
+Revision ID: 0003
+Revises: 0002
 Create Date: 2026-10-13 23:59:34
 
 Reports may now name a request, and a status change sends a request_update notification, so both CHECKs widen. The
@@ -16,8 +16,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0002"
-down_revision: str | None = "0001"
+revision: str = "0003"
+down_revision: str | None = "0002"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
