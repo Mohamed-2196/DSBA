@@ -1,5 +1,5 @@
-// "Confirm it's you" (decision D2): changing how an account signs in, or deleting it, needs a code sent to an
-// address the account already has, unless the session is under 10 minutes old. The API answers 403
+// "Confirm it's you" (decision D2): changing how an account signs in, deleting it, or an admin changing access needs
+// a code sent to an address the account already has, unless the session is under 10 minutes old. The API answers 403
 // step_up_required; the session guard opens this dialog, and sends the change again once the code is right.
 import { useEffect, useRef, useState } from 'react';
 import { ArrowClockwise, WarningCircle } from '@phosphor-icons/react';

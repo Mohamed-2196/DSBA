@@ -109,6 +109,15 @@ describe('session guard: step-up (D2)', () => {
     expect(sent[0].headers.get('X-CSRF-Token')).toBe('fresh-token');
   });
 
+  it('asks an admin for a code before a role change, then sends the change again (AD-1)', async () => {
+    const { hooks, run, sent } = setup();
+    const result = await run('PATCH', '/api/v1/admin/roles/r1', refusal(403, 'step_up_required'), { version: 4, name: 'Newsletter team' });
+    expect(hooks.stepUp).toHaveBeenCalledWith('change roles');
+    expect(result?.status).toBe(200);
+    expect(sent[0].method).toBe('PATCH');
+    expect(await sent[0].json()).toEqual({ version: 4, name: 'Newsletter team' });
+  });
+
   it('keeps the refusal when the person gives up', async () => {
     const { run, sent } = setup({ stepUp: vi.fn(async () => false) });
     expect(await run('DELETE', '/api/v1/me', refusal(403, 'step_up_required'))).toBeUndefined();
@@ -127,5 +136,8 @@ describe('session guard: step-up (D2)', () => {
     expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/me/identifiers/phone` })).toBe('remove your phone number');
     expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/me/identifiers/email` })).toBe('remove your email address');
     expect(stepUpPurpose({ method: 'POST', url: `${API}/api/v1/me/identifiers/otp` })).toBe('change how you sign in');
+    expect(stepUpPurpose({ method: 'POST', url: `${API}/api/v1/admin/roles` })).toBe('change roles');
+    expect(stepUpPurpose({ method: 'PATCH', url: `${API}/api/v1/admin/roles/r1` })).toBe('change roles');
+    expect(stepUpPurpose({ method: 'DELETE', url: `${API}/api/v1/admin/roles/r1` })).toBe('change roles');
   });
 });
