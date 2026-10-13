@@ -112,7 +112,7 @@ function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: (
                 <strong>Note from the student rep:</strong> {item.reviewNote}
               </>
             ) : (
-              'A student rep decided not to publish this file.'
+              'This file wasn’t published.'
             )}{' '}
             {/* Rejected files leave storage a week after the review (security review SEC-14). */}
             {item.isMine ? 'This copy is deleted a week after the review: to share a fixed version, upload it as a new file.' : 'Its file is deleted a week after the review.'}

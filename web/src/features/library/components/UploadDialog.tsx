@@ -426,7 +426,7 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
         phase === 'done' || blocked
           ? undefined
           : managesLibrary
-            ? 'Share notes, past papers or guides. As a student rep, your uploads are published straight away.'
+            ? 'Share notes, past papers or guides. Your uploads are published straight away.'
             : 'Share notes, past papers or guides with other students. A student rep checks every upload before it appears.'
       }
       size="md"
