@@ -1,6 +1,6 @@
 // The Roles tab's pure parts: boxes grouped by area for the checkboxes, which boxes a role can't take, and what a
 // save sends.
-import type { BoxOut, RoleOut, RoleUpdate } from '../../api/types';
+import type { AdminUser, BoxOut, RoleOut, RoleUpdate } from '../../api/types';
 import { MANAGER_BOXES, type Box } from '../../auth';
 
 export interface Draft {
@@ -55,4 +55,18 @@ export function roleChanges(role: RoleOut, draft: Draft): RoleUpdate | null {
   const boxes = [...draft.boxes].sort();
   if (boxes.join() !== [...role.boxes].sort().join()) body.boxes = boxes;
   return Object.keys(body).length > 1 ? body : null;
+}
+
+/** The roles ticked in the people list's roles dialog, for the person it is open on (null while closed). */
+export interface Ticks {
+  personId: string | null;
+  ticked: ReadonlySet<string>;
+}
+
+export const ticksOf = (person: AdminUser | null): Ticks => ({ personId: person?.id ?? null, ticked: new Set(person?.roles.map((r) => r.id)) });
+
+/** The ticks for this render: the person's roles when the dialog opens on someone else, otherwise the admin's ticks,
+ *  which a reload of the people list leaves alone. */
+export function followPerson(prev: Ticks, person: AdminUser | null): Ticks {
+  return prev.personId === (person?.id ?? null) ? prev : ticksOf(person);
 }

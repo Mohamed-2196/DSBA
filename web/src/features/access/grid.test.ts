@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { BoxOut, RoleOut } from '../../api/types';
-import { boxClosed, followOpening, groupBoxes, roleChanges, startEditing } from './grid';
+import type { AdminUser, BoxOut, RoleOut } from '../../api/types';
+import { boxClosed, followOpening, followPerson, groupBoxes, roleChanges, startEditing, ticksOf } from './grid';
 
 const box = (key: BoxOut['key'], area: string): BoxOut => ({ key, area, label: key });
 const role: RoleOut = { id: 'r1', slug: 'newsletter-manager', name: 'Newsletter manager', badge: 'Newsletter', position: 3, builtIn: false, locked: false, version: 4, boxes: ['newsletter.manage'], holders: 2 };
@@ -62,5 +62,30 @@ describe('followOpening', () => {
     const after = followOpening(edited, 'r1', newer);
     expect(after).toBe(edited);
     expect(roleChanges(after.base ?? role, after.draft)).toEqual({ version: 4, name: 'Newsletter team' });
+  });
+});
+
+describe('followPerson', () => {
+  const sara: AdminUser = {
+    id: 'u1',
+    displayName: 'Sara',
+    email: null,
+    phone: null,
+    roles: [{ id: 'r0', slug: 'student', name: 'Student', badge: null }],
+    status: 'active',
+    year: 2,
+    createdAt: '2026-10-01T09:00:00Z',
+    lastSeenAt: null,
+  };
+
+  it('ticks the person’s roles from the first render', () => {
+    expect([...followPerson(ticksOf(null), sara).ticked]).toEqual(['r0']);
+    expect([...ticksOf(sara).ticked]).toEqual(['r0']);
+  });
+
+  it('keeps the admin’s ticks when the people list reloads the same person', () => {
+    const mine = { personId: 'u1', ticked: new Set(['r0', 'r1']) };
+    expect(followPerson(mine, { ...sara })).toBe(mine);
+    expect(followPerson(mine, null).personId).toBeNull();
   });
 });

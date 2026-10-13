@@ -1,30 +1,33 @@
 // Which roles one person holds, as checkboxes. Saving sends exactly the ticked roles.
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { errorMessage } from '../../api/errors';
 import type { AdminUser } from '../../api/types';
 import { Button, Modal, QueryError, Skeleton } from '../../ui';
 import { useRoleCatalogue, useSetUserRoles } from './api';
+import { followPerson, ticksOf, type Ticks } from './grid';
 
 export function RolesDialog({ person, onClose, onSaved }: { person: AdminUser | null; onClose: () => void; onSaved: (p: AdminUser) => void }) {
   const uid = useId();
   const catalogue = useRoleCatalogue();
   const save = useSetUserRoles();
-  const [ticked, setTicked] = useState<Set<string>>(new Set());
   const [problem, setProblem] = useState<string | null>(null);
   // Kept while the dialog closes, so its title doesn't change on the way out.
-  const [name, setName] = useState('');
-  useEffect(() => {
-    if (!person) return;
+  const [name, setName] = useState(person ? person.displayName || 'No name yet' : '');
+  // The ticks start from the person's roles when the dialog opens on them, during render, so the first click counts.
+  const [ticks, setTicks] = useState<Ticks>(() => ticksOf(person));
+  const followed = followPerson(ticks, person);
+  if (followed !== ticks) {
+    setTicks(followed);
     setProblem(null);
-    setName(person.displayName || 'No name yet');
-    setTicked(new Set(person.roles.map((r) => r.id)));
-  }, [person]);
+    if (person) setName(person.displayName || 'No name yet');
+  }
+  const { ticked } = followed;
   const toggle = (id: string) =>
-    setTicked((t) => {
-      const next = new Set(t);
+    setTicks((t) => {
+      const next = new Set(t.ticked);
       if (next.has(id)) next.delete(id);
       else next.add(id);
-      return next;
+      return { ...t, ticked: next };
     });
   return (
     <Modal
