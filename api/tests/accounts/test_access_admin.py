@@ -414,8 +414,8 @@ def test_suspending_an_admin_needs_a_recent_step_up(
 
     _step_up(c, outbox, "head@example.com")
     assert c.patch(f"{API}/admin/users/{other.id}", json={"status": "suspended"}).status_code == 200
-    db.refresh(other)
-    assert other.status == UserStatus.suspended
+    db.expire_all()
+    assert db.scalar(select(User.status).where(User.id == other.id)) == UserStatus.suspended
 
 
 def test_the_student_role_holds_student_boxes_only(client_for: ClientFor, boss: User, db: Session) -> None:
