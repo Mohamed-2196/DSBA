@@ -24,7 +24,7 @@ while (($#)); do
   case "$1" in
     --prod) compose_file="$root/compose.prod.yaml" ;;
     -h | --help)
-      sed -n '2,18p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      sed -n '2,/^set -euo/p' "${BASH_SOURCE[0]}" | sed '$d; s/^# \{0,1\}//'
       exit 0
       ;;
     *) import_args+=("$1") ;;
