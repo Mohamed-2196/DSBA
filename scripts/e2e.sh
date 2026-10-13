@@ -18,7 +18,7 @@
 # What it changes in the running stack (compose.e2e.yaml, over compose.yaml):
 #   - It recreates `api` and `mail` (and `web` if its settings differ) with the file backends: emails, sign-in codes
 #     included, are saved in api/var/mail and texts in api/var/sms (git-ignored), where the suite reads its codes.
-#     Mailpit gets nothing while this lasts.
+#     Mailpit gets nothing while this lasts. It restarts `web` when its packages don't match package-lock.json.
 #   - It raises two limits the whole suite would otherwise run into, because every request reaches the API through
 #     the web container's proxy and so comes from one address: codes per network per hour (30) and the site's
 #     texts per hour and day (50 and 300). Per-address and per-account limits are unchanged.
@@ -54,6 +54,15 @@ wait_for() {
   done
 }
 
+# fresh_web_packages: the web container installs its packages only when it starts, so a dependency added since
+# then is missing from its node_modules volume and Vite shows an import error on every page. Restart it then.
+fresh_web_packages() {
+  "${base[@]}" exec -T web npm ls --depth=0 >/dev/null 2>&1 && return 0
+  say "The web container's packages don't match web/package-lock.json: restarting it to install them"
+  "${base[@]}" restart web
+  wait_for "The web app" http://localhost:5173/api/v1/health 300
+}
+
 backend() { "${base[@]}" exec -T api printenv DSBA_EMAIL_BACKEND 2>/dev/null | tr -d '\r' || true; }
 
 # True when Playwright's own Chromium (the browser and its headless shell) is completely installed: each install
@@ -74,6 +83,7 @@ restore() {
   wait_for "The API" http://127.0.0.1:8000/api/v1/health 180
   [[ "$(backend)" != file ]] || fail "the API still writes emails to files."
   wait_for "The web app" http://localhost:5173/api/v1/health 300
+  fresh_web_packages
   echo "Done: emails go to Mailpit (http://localhost:8025), texts to \`docker compose logs api\`."
 }
 
@@ -112,6 +122,7 @@ say "Switching the stack to e2e mode (compose.e2e.yaml)"
 wait_for "The API" http://127.0.0.1:8000/api/v1/health 180
 [[ "$(backend)" == file ]] || fail "the API doesn't write emails to files: check compose.e2e.yaml."
 wait_for "The web app" http://localhost:5173/api/v1/health 300  # the web container installs its packages first
+fresh_web_packages
 
 export E2E_BASE_URL="${E2E_BASE_URL:-http://localhost:5173}"
 export E2E_MAIL_DIR="${E2E_MAIL_DIR:-$mail_dir}"
