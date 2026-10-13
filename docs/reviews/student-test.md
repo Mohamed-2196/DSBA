@@ -416,7 +416,8 @@ Afterwards, `scripts/e2e.sh --restore` put the API back on SMTP and the console,
 
 ## Re-review round: by hand in every role (13 October 2026)
 
-Scope: `docs/STATUS.md`, "Next", item 2. Code under test: `feature/backend` at `75626cd` (round 3 merged), on the
+Scope: `docs/STATUS.md`, "Next", item 2. Code under test: `feature/backend`, from `75626cd` (round 3 merged) to `a36795a` (with `round3/no-legacy`, which
+landed while I tested; the stack runs from the main checkout), on the
 shared Docker stack (compose project `dsba-hub`, normal mail backends: codes from Mailpit and the API's log). Browser:
 Google Chrome, driven by Playwright scripts (`channel: 'chrome'`). Branch: `round3/review-student`.
 
@@ -454,6 +455,9 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
 | Opening Ali's reply notification | works: the link ends in `#reply-<id>` and the reply is in view (ST-4 holds). |
 | Votes, accepting Ali's answer | works. The sidebar says "1 reply from Ali R4 Test": the author isn't counted (**ST-11 fixed**). |
 | The library: search, "Search all years", a star on a Year 1 file, Starred | works |
+| Step-up: adding an email to her phone account in a session over 10 minutes old | works. "Confirm it’s you" opens by itself and texts +973 3993 2730; after that code, the new address gets its own code, and her phone gets "An email address (s•••@example.com) was added…". |
+| "New newsletter issues" off in Your account, then "Tell me about new issues" on the newsletter page | the two stay in step (`emailNewIssues`). |
+| A reaction, double-clicked, and a reload | consistent with the server ("Useful, 1"). |
 
 ### Year 1 student (Ali, on a 390×844 phone)
 
@@ -464,6 +468,8 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
 | Deleting the duplicate reply | works, and Sara's notification about it goes. The other one quotes the reply's start (**ST-6 fixed**). |
 | Reporting Noor's thread as spam with a note | works; the button then reads "Reported" (the round 1 confusion is gone). He is told when the rep acts. |
 | Uploads of every allowed type: PDF, DOCX, XLSX, PPTX, DOC, XLS, PPT, IPYNB, R, TXT, CSV, PNG, JPG | each "Sent for review". After 10 pending files the dialog says "You have 10 files waiting for review…" and offers "See your uploads": by design. Old Office files show as DOCX, XLSX and PPTX (ST-15). |
+| Step-up: changing his email in a session over 10 minutes old | works. The code goes to his current address; a wrong one says "That code isn't right. 4 tries left."; then the new address gets a code, "Your email address is changed", and the old address gets "Your DSBA Hub account changed". |
+| Deleting his account (typing DELETE) | works: signed out, `GET /me` 401, his reply shows as from a deleted account. |
 | Wrong files: `.exe`, `.svg`, 51 MB | refused before anything is sent, with the allowed types or "That file is 51 MB, over the 50 MB limit. Compress it or split it into parts." |
 | An HTML page renamed `.pdf` | "This isn't a real .pdf file: what's inside doesn't match its name. Save or export it again, or choose another file." The title, module and type stay filled in (**ST-7 fixed**). |
 
@@ -472,6 +478,11 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
 | What | Result |
 |---|---|
 | Her spam thread is hidden by the rep | she can still open it: "A student rep hid this thread. Only you and the student reps can see it…", and her notification says "A student rep hid your thread" (**ST-5 fixed**). Nobody else finds it. |
+| Mini Noora: "how do I find the mgf of a poisson", "mgf of the normal distribution", "…laplace…" | each gets its own formula and the right chapter; the worked Laplace steps only come for Laplace (**ST-3 fixed**). Asked in Arabic ("متى امتحان ST2133؟") she finds the module but not the exam date: she reads English only. |
+| ⌘K search for the rep's event (in English and in Arabic), Sara's thread, the new issue, Ali's CSV | each found at once |
+| The grades calculator with 150, -5 and ٧٢ (Arabic digits) | out-of-range marks are refused with "0 to 100"; Arabic digits are refused the same way (ST-18). |
+| Closing "Confirm it’s you" without a code while adding a phone | the change stops and the form says "For your security, confirm it's you first…": she can try again. |
+| **Posting with no connection** | **bug ST-17**: the button spins with no word about the connection, then posts by itself when it comes back. |
 | Suspended by the admin, she presses a star | `403` "Your account is suspended. Contact a student rep.", shown as a toast (**ST-8 fixed**). |
 
 ### Student rep (Fatima)
@@ -483,6 +494,8 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
 | A new newsletter issue: "New issue", a double click on "Create draft" | one draft (the address must be unique), and the editor opens. |
 | The editor: a story with Arabic text, then leaving without saving | "Leave without saving?" opens for a sidebar link, for a ⌘K result and for Back; Cancel keeps the edits. Saving lets them through. Round 3's leave guard holds everywhere I tried. |
 | **Double-clicking "Publish and notify everyone"** | **bug ST-16**: every account is notified and emailed twice. |
+| The calendar: a module event with Arabic in the title, the cohort left alone, "Add event" double-clicked | one event, Year 2 like its module (ST-2 holds). |
+| A guest on a phone: the calendar, an event, "Add to calendar" | no sideways scroll. The event's `.ics` is a valid all-day event (`text/calendar`, folded lines, the time and place in its notes); "All Year 1 exams" is a valid feed. |
 
 ### Admin (Maryam)
 
@@ -542,3 +555,25 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
   taken back.
 - Fix: lock the row (`SELECT … FOR UPDATE`) or publish with a conditional update (`WHERE status = 'draft'`) and
   notify only when a row changed. In the dialog, ignore the second press while the first is in flight.
+
+#### ST-17 (minor) With no connection, posting spins forever, then posts by itself later
+
+- Owner: frontend (the query client's mutations; the forum composer and reply box)
+- Steps: as Noor, write a thread or a reply, turn the connection off (the browser's offline mode), press **Post
+  thread** or **Post reply**.
+- Expected: "You're offline. We'll post it when you're back online" (or "…try again"), so the student knows what
+  is happening.
+- Actual: the button spins with no message. TanStack Query pauses the mutation while offline, so after 10 seconds
+  nothing has changed. When the connection comes back, the post goes up by itself. A student who gives up and
+  reloads in between keeps the saved draft and posts it again: Noor ended up with two copies of
+  "Year 3 ML: which chapters for the mock?".
+- Fix: show the paused state (`mutation.isPaused`) as a message by the button, or set `networkMode: 'always'` for
+  posts so they fail at once with a clear error and the draft stays.
+
+#### ST-18 (nit) The grades calculator refuses Arabic-Indic digits as "0 to 100"
+
+- Owner: frontend-content (`features/grades/MarksSheet.tsx`, `sanitize`)
+- Steps: type ٧٢ (72 on an Arabic keyboard) as a mark.
+- Actual: the keystroke is refused and "0 to 100" flashes, though 72 is in range. Phones set to Arabic often type
+  these digits.
+- Fix: map ٠–٩ (and ۰–۹) to 0–9 before checking, as the comma already becomes a point.
