@@ -8,6 +8,7 @@ import { useAccountYearSync, useToast } from '../state';
 import { canDo, featureIsOn, isActiveAdmin, managerBoxes, offForOthers } from './access';
 import { AuthContext, type AuthValue, type SignInRequest } from './context';
 import { ME_KEY, clearPersonalStorage, resetPersonalQueries } from './queries';
+import { readGuestFeatures } from './guestFeatures';
 import { createSessionGuard } from './sessionGuard';
 import { SignInDialog } from './SignInDialog';
 import { StepUpDialog } from './StepUpDialog';
@@ -125,12 +126,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // The guest list of features. Signed in, /me carries the list; it's fetched for admins too, to mark what's off for
   // others. /features answers a signed-in person with their own list, so it always goes without credentials.
-  const guestFeatures = useQuery({
+  // A guest's pages wait for it (retried once, not three times); if it fails, a guest sees every feature.
+  const featuresQuery = useQuery({
     queryKey: FEATURES_KEY,
     queryFn: async () => (await call(api.GET('/api/v1/features', { credentials: 'omit' }))).features,
     enabled: !sessionQuery.isPending && (!me || isActiveAdmin(me)),
     staleTime: 60_000,
+    retry: 1,
   });
+  const guestFeatures = readGuestFeatures(!!me, featuresQuery);
   useEffect(() => {
     if (me) endedRef.current = null;
   }, [me]);
@@ -195,10 +199,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const ready = !!me && !me.needsProfile;
     return {
       me,
-      status: sessionQuery.isPending ? 'loading' : me ? 'signed-in' : 'guest',
+      status: sessionQuery.isPending || guestFeatures.loading ? 'loading' : me ? 'signed-in' : 'guest',
       can: (box) => canDo(me, box),
-      featureOn: (feature) => featureIsOn(me, guestFeatures.data, feature),
-      offForOthers: (feature) => offForOthers(me, guestFeatures.data, feature),
+      featureOn: (feature) => featureIsOn(me, guestFeatures.list, feature),
+      offForOthers: (feature) => offForOthers(me, guestFeatures.list, feature),
       isAdmin: isActiveAdmin(me),
       manages: managerBoxes(me).length > 0,
       roles: me?.roles ?? [],
@@ -211,7 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       },
     };
-  }, [me, guestFeatures.data, sessionQuery.isPending, refresh, signOut, openSignIn, openRequest]);
+  }, [me, guestFeatures.list, guestFeatures.loading, sessionQuery.isPending, refresh, signOut, openSignIn, openRequest]);
 
   return (
     <AuthContext.Provider value={value}>
