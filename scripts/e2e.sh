@@ -23,7 +23,8 @@
 #     the web container's proxy and so comes from one address: codes per network per hour (30) and the site's
 #     texts per hour and day (50 and 300). Per-address and per-account limits are unchanged.
 #   - db, minio and mailpit are never touched (no stop, no recreate, no `down`).
-# The stack stays in e2e mode after the run, so reruns start at once; `scripts/e2e.sh --restore` undoes it.
+# The recreated containers run the code of the checkout the script is in (a git worktree's, when run from one). The
+# stack stays in e2e mode after the run, so reruns start at once; `scripts/e2e.sh --restore` undoes it.
 #
 # The suite's settings (web/e2e/support.ts) default to this stack; set any of them to override:
 #   E2E_BASE_URL=http://localhost:5173  E2E_MAIL_DIR=<repo>/api/var/mail  E2E_SMS_DIR=<repo>/api/var/sms
