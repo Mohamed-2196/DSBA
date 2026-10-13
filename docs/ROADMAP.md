@@ -20,6 +20,8 @@ router change and the e2e harness.
 | R-6 | Noora sees what you see | to design | R-5, and the AI decision |
 | R-7 | A new Noora | to design | — (pairs well with R-6) |
 | R-8 | Favourite apps | to design | R-3, R-4, R-5 |
+| R-9 | Edit modules and lessons in the app | to design | R-1 |
+| R-10 | Feature flags, switched in the admin UI | designing, with R-1 | — |
 
 ## R-1. Roles that each unlock more
 
@@ -31,6 +33,17 @@ router change and the e2e harness.
   - An admin also manages people and roles and reads the audit log.
 
   The web app gates pages with `RoleGate`. The profile menu adds Moderation for reps and People for admins.
+- **Decided (2026-10-13):**
+  - Access is by feature. There is a fixed list of boxes, one per thing the app can do: publish the newsletter,
+    review uploads, moderate the forum, and so on.
+  - A role is a named set of boxes: Student, Newsletter manager, Content manager, Rep, Admin.
+  - Admins edit roles on a screen: they tick each role's boxes and create new roles. Admin always has every box.
+  - Not contradicted, so assumed:
+    - one person can hold several roles, and gets every box any of them ticks;
+    - the code checks boxes, never role names;
+    - today's reps keep their powers as the Rep role;
+    - a suspended account only reads;
+    - every change to roles goes to the audit log.
 - **First sketch:**
   - A list of what each role may do, decided in one place on the API and sent with `/me`. The UI then shows exactly
     what someone may do, and the API enforces the same list.
@@ -147,3 +160,33 @@ router change and the e2e harness.
   - Notion or Google Docs, to export notes;
   - Google Drive, to save a paper.
 - **Questions for Mohamed:** which apps matter most to DSBA students? The student-user agent's research may help.
+
+## R-9. Edit modules and lessons in the app
+
+- **Found (2026-10-13), while designing R-1:** the only content anyone can edit in the app is Career Navigator.
+  Modules, chapters and lessons come from `api/app/seed/data/modules.json`, so a content manager has nothing to
+  manage there yet.
+- **First sketch:** screens for content managers to add and edit modules, chapters, lessons and videos, with the
+  seed file kept only as the starting content.
+- **Questions for Mohamed:** who keeps lessons up to date today, and how often do they change?
+
+## R-10. Feature flags
+
+- **Asked (2026-10-13):** feature flags, switched in the admin UI, not set in environment variables or code. Is
+  PostHog still working, and could flags work with it?
+- **Today:** there are no flags.
+  - PostHog is wired in: `web/src/main.tsx` loads it when `VITE_POSTHOG_KEY` is set at build time, and its unit
+    tests pass.
+  - It's off until a key is set, and nothing is deployed yet.
+  - Since the security review (SEC-8) it records only page views, anonymously, with PostHog's own feature flags
+    turned off.
+- **Decided:** flags live in the hub, and admins switch them in the admin UI.
+- **First sketch:**
+  - Each feature has a switch: off, on for chosen roles (for example a "Testers" role), or on for everyone.
+    - Existing features: forum, library uploads, newsletter, calendar, Career Navigator, Noora.
+    - New ones too: board, notes, requests.
+  - New features arrive switched off.
+  - The API enforces the switch as well as the UI.
+  - PostHog keeps doing analytics. It can be told which features were on during a visit, still anonymously, to show
+    what gets used.
+- **Designed with R-1,** since they share the admin screen and `/me`.
