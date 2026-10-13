@@ -129,7 +129,7 @@ def public_user(user: User | None) -> UserPublic | None:
         {
             "id": user.id,
             "display_name": user.display_name or UNNAMED,
-            "year": user.year if user.year in (1, 2, 3) else None,
+            "year": user.year,  # 1-3 or none: the database checks it
             "role": user.role.value,
         }
     )

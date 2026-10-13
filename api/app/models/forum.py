@@ -10,7 +10,7 @@ from sqlalchemy import ARRAY, Boolean, Computed, ForeignKey, Index, Integer, Sma
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import SLUG, Base, created_ts, str_enum, uuid_pk
+from app.models.base import SLUG, Base, created_ts, str_enum, uuid_pk, year_range
 
 
 class PostStatus(enum.StrEnum):
@@ -26,6 +26,7 @@ class ForumThread(Base):
         Index("ix_forum_threads_module", "module_id"),
         Index("ix_forum_threads_author", "author_id"),
         Index("ix_forum_threads_search", "search_vector", postgresql_using="gin"),
+        year_range("author_year"),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -68,6 +69,7 @@ class ForumReply(Base):
         Index("ix_forum_replies_parent", "parent_id"),  # the replies to a reply (ON DELETE CASCADE)
         Index("ix_forum_replies_author", "author_id"),
         Index("ix_forum_replies_search", "search_vector", postgresql_using="gin"),
+        year_range("author_year"),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()

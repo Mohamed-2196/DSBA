@@ -46,7 +46,7 @@ def summary_dict(
         "year": year,
         "tags": list(t.tags or []),
         "author": public_user(author),
-        "author_year": t.author_year if t.author_year in (1, 2, 3) else None,
+        "author_year": t.author_year,  # 1-3 or none: the database checks it
         "created_at": t.created_at,
         "last_activity_at": t.last_activity_at,
         "vote_count": t.vote_count,
@@ -76,7 +76,7 @@ def reply_dict(r: ForumReply, author: User | None, t: ForumThread, viewer: User 
         "thread_id": r.thread_id,
         "parent_id": r.parent_id,
         "author": public_user(author),
-        "author_year": r.author_year if r.author_year in (1, 2, 3) else None,
+        "author_year": r.author_year,
         "body": _text(r),
         "created_at": r.created_at,
         "edited_at": r.edited_at,

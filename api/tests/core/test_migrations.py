@@ -12,6 +12,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.engine import make_url
+from sqlalchemy.exc import IntegrityError
 
 from tests.conftest import ADMIN_URL
 
@@ -116,3 +117,60 @@ def test_0004_turns_the_deletion_marker_into_deleted_at(scratch: tuple[Config, E
     with engine.connect() as c:
         bodies = dict(c.execute(text("SELECT slug, body FROM forum_threads")).tuples().all())
     assert bodies["hidden-deleted"] == " "
+
+
+def test_0006_has_the_database_check_kinds_types_reasons_and_cohorts(scratch: tuple[Config, Engine]) -> None:
+    """Code quality review CQ-15: values the contract doesn't list, and cohorts outside 1-3, are refused by the
+    database itself; a report is open unless it says otherwise. Undone by the downgrade."""
+    cfg, engine = scratch
+    command.upgrade(cfg, "0006")
+    ids = {"thread": uuid.uuid4(), "user": uuid.uuid4()}
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO users (id, email) VALUES (:user, 'reporter@example.com')"), ids)
+        c.execute(
+            text(
+                "INSERT INTO forum_threads (id, slug, title, body, category, status) "
+                "VALUES (:thread, 'a-thread', 'A thread', 'Text', 'general', 'visible')"
+            ),
+            ids,
+        )
+        c.execute(
+            text(
+                "INSERT INTO reports (id, reporter_id, target_type, target_id, reason) "
+                "VALUES (gen_random_uuid(), :user, 'thread', :thread, 'spam')"
+            ),
+            ids,
+        )
+        assert c.execute(text("SELECT status FROM reports")).scalar_one() == "open"
+
+    library = "INSERT INTO library_items (id, slug, source, kind, title, status, year) VALUES (gen_random_uuid(), "
+    report = "INSERT INTO reports (id, reporter_id, target_type, target_id, reason, status) VALUES (gen_random_uuid(), "
+    refused = {
+        "ck_library_items_kind": f"{library}'novel', 'file', 'novel', 'A novel', 'pending', NULL)",
+        "ck_library_items_year_range": f"{library}'year-4', 'file', 'notes', 'Notes', 'pending', 4)",
+        "ck_calendar_events_type": "INSERT INTO calendar_events (id, date, title, type) "
+        "VALUES ('a-party', '2026-10-13', 'A party', 'party')",
+        "ck_reports_target_type": f"{report}:user, 'post', :thread, 'spam', 'dismissed')",
+        "ck_reports_reason": f"{report}:user, 'thread', :thread, 'boring', 'dismissed')",
+        "ck_forum_threads_author_year_range": "INSERT INTO forum_threads "
+        "(id, slug, title, body, category, status, author_year) "
+        "VALUES (gen_random_uuid(), 'year-0', 'Year 0', 'Text', 'general', 'visible', 0)",
+        "ck_forum_replies_author_year_range": "INSERT INTO forum_replies (id, thread_id, body, status, author_year) "
+        "VALUES (gen_random_uuid(), :thread, 'Text', 'visible', 9)",
+    }
+    for constraint, statement in refused.items():
+        with pytest.raises(IntegrityError, match=constraint), engine.begin() as c:
+            c.execute(text(statement), ids)
+
+    command.downgrade(cfg, "0005")
+    with engine.begin() as c:  # undone: the same rows go in
+        for statement in refused.values():
+            c.execute(text(statement), ids)
+    with pytest.raises(IntegrityError, match="status"), engine.begin() as c:  # and a report needs its status again
+        c.execute(
+            text(
+                "INSERT INTO reports (id, reporter_id, target_type, target_id, reason) "
+                "VALUES (gen_random_uuid(), :user, 'thread', :thread, 'other')"
+            ),
+            ids,
+        )

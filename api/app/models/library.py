@@ -6,12 +6,14 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
+from typing import get_args
 
 from sqlalchemy import BigInteger, Computed, ForeignKey, Index, Integer, SmallInteger, String, Text, func
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import SLUG, Base, created_ts, str_enum, uuid_pk
+from app.models.base import SLUG, Base, check_in, created_ts, str_enum, uuid_pk, year_range
+from app.schemas.library import LibraryKind
 
 
 class ItemSource(enum.StrEnum):
@@ -29,17 +31,18 @@ class ItemStatus(enum.StrEnum):
 class LibraryItem(Base):
     __tablename__ = "library_items"
     __table_args__ = (
-        Index("ix_library_items_status_published", "status", "published_at"),
         Index("ix_library_items_module", "module_id"),
         Index("ix_library_items_uploaded_by", "uploaded_by"),  # "Your uploads", account deletion
         Index("ix_library_items_reviewed_by", "reviewed_by"),  # account deletion (SET NULL)
         Index("ix_library_items_search", "search_vector", postgresql_using="gin"),
+        check_in("kind", get_args(LibraryKind)),  # code quality review CQ-15
+        year_range(),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
     slug: Mapped[str] = mapped_column(SLUG, unique=True)
     source: Mapped[ItemSource] = mapped_column(str_enum(ItemSource, 8))
-    kind: Mapped[str] = mapped_column(String(32))  # see app/schemas/library.py LibraryKind
+    kind: Mapped[str] = mapped_column(String(32))  # app/schemas/library.py LibraryKind
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[str | None] = mapped_column(Text)
     module_id: Mapped[str | None] = mapped_column(ForeignKey("modules.id", ondelete="SET NULL"))
@@ -74,6 +77,16 @@ class LibraryItem(Base):
             persisted=True,
         ),
     )
+
+
+# The lists: a status (published, or a moderator's queue), newest first by coalesce(published_at, created_at)
+# (services/library.py list_items). An index on the expression, so the sort is read from it (code quality review
+# CQ-15: the old (status, published_at) only ever served the status).
+Index(
+    "ix_library_items_status_newest",
+    LibraryItem.status,
+    func.coalesce(LibraryItem.published_at, LibraryItem.created_at),
+)
 
 
 class LibraryStar(Base):
