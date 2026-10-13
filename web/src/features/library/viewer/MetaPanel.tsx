@@ -22,8 +22,6 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-const ROLE_LABEL: Record<string, string> = { moderator: 'Student rep', admin: 'Admin' };
-
 /** Other published files of the same module. */
 function MoreFromModule({ item, linkState }: { item: LibraryItem; linkState?: LinkState }) {
   const more = useLibraryList({ moduleId: item.moduleId, sort: 'popular' }, { limit: 6, enabled: !!item.moduleId });
@@ -97,7 +95,7 @@ export function MetaPanel({ item, linkState, className, id }: { item: LibraryIte
           {who ? (
             <span className="lib-meta__sub">
               by {who.displayName}
-              {ROLE_LABEL[who.role] ? `, ${ROLE_LABEL[who.role]}` : who.year ? `, Year ${who.year}` : ''}
+              {who.badge ? `, ${who.badge}` : who.year ? `, Year ${who.year}` : ''}
             </span>
           ) : null}
         </Row>

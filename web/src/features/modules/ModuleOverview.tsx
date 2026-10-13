@@ -49,7 +49,7 @@ function ResourceRow({ entry }: { entry: ResourceEntry }) {
   );
 }
 
-function LibraryRow({ count, name, onTab, onUpload }: { count: number; name: string; onTab: (tab: string) => void; onUpload: () => void }) {
+function LibraryRow({ count, name, onTab, onUpload }: { count: number | null; name: string; onTab: (tab: string) => void; onUpload: () => void }) {
   return (
     <div className="mod-res__entry mod-res__entry--library">
       <dt className="mod-res__label">
@@ -220,7 +220,8 @@ export function ModuleOverview({
   module: ModuleDetail;
   state: ProgressState;
   resume: ResumePoint | null;
-  libraryCount: number;
+  /** null while the library is switched off */
+  libraryCount: number | null;
   onOpenLesson: (c: number, v: number) => void;
   onTab: (tab: string) => void;
   /** Open the library's upload dialog for this module (guests sign in first). */

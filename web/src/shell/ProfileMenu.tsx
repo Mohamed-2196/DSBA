@@ -1,6 +1,6 @@
-import { DotsThree, ShieldCheck, SignIn, SignOut, UserCircle, UserCirclePlus, UsersThree } from '@phosphor-icons/react';
+import { DotsThree, SignIn, SignOut, UserCircle, UserCirclePlus } from '@phosphor-icons/react';
 import { errorMessage } from '../api/errors';
-import { accountLine, useAuth } from '../auth';
+import { accountLine, badgeOf, useAuth } from '../auth';
 import { useToast } from '../state';
 import { Avatar, Button, IconButton, Menu, Skeleton, cx, type MenuItem } from '../ui';
 import './ProfileMenu.css';
@@ -17,7 +17,7 @@ interface ProfileMenuProps {
  * button. The line under the name is the person's role when they have one, otherwise their cohort.
  */
 export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenuProps) {
-  const { me, status, isModerator, isAdmin, openSignIn, signOut } = useAuth();
+  const { me, status, openSignIn, signOut } = useAuth();
   const { push } = useToast();
   const inTopbar = placement === 'topbar';
   const small = compact || inTopbar;
@@ -51,7 +51,7 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
   }
 
   const name = me.displayName || 'Your account';
-  const line = me.status === 'suspended' ? 'Account suspended' : me.needsProfile ? 'Finish your profile' : accountLine(me);
+  const line = me.status === 'suspended' ? 'Account suspended' : me.needsProfile ? 'Finish your profile' : accountLine({ badge: badgeOf(me), year: me.year });
   const identity = me.email || me.phone || '';
 
   const onSignOut = async () => {
@@ -74,8 +74,6 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
     },
     ...(me.needsProfile ? [{ id: 'profile', label: 'Finish your profile', icon: UserCirclePlus, onSelect: () => openSignIn() }] : []),
     { id: 'account', label: 'Your account', icon: UserCircle, to: '/account' },
-    ...(isModerator ? [{ id: 'moderation', label: 'Moderation', icon: ShieldCheck, to: '/moderation' }] : []),
-    ...(isAdmin ? [{ id: 'people', label: 'People', icon: UsersThree, to: '/admin/people' }] : []),
     { divider: true },
     { id: 'sign-out', label: 'Sign out', icon: SignOut, onSelect: () => void onSignOut() },
   ];

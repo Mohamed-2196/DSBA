@@ -1,4 +1,4 @@
-// How people appear next to their posts. Authors are UserPublic ({ id, displayName, year, role }) or null when the
+// How people appear next to their posts. Authors are UserPublic ({ id, displayName, year, badge }) or null when the
 // account was deleted.
 import type { UserPublic } from '../../../api/types';
 import type { CohortYear } from '../../../state';
@@ -9,10 +9,9 @@ export function authorName(user: UserPublic | null | undefined): string {
   return user?.displayName?.trim() || DELETED_ACCOUNT;
 }
 
-/** The small pill next to a name that replaces the year: student reps and admins. */
+/** The small pill next to a name that replaces the year: the badge of a role such as Student rep or Admin. */
 export function roleFlair(user: UserPublic | null | undefined): string | null {
-  if (user?.role === 'moderator') return 'Student rep';
-  if (user?.role === 'admin') return 'Admin';
+  if (user?.badge) return user.badge;
   return null;
 }
 

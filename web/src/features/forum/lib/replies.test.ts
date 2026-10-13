@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Reply, UserPublic } from '../../../api/types';
 import { nestReplies, participants, readOnlyFor, replyTargetId, shownReplyIds, takesReplies, textDeleted } from './replies';
 
-const person = (id: string, displayName = id): UserPublic => ({ id, displayName, year: 2, role: 'student' });
+const person = (id: string, displayName = id): UserPublic => ({ id, displayName, year: 2, badge: null });
 let n = 0;
 function reply(over: Partial<Reply> = {}): Reply {
   n += 1;

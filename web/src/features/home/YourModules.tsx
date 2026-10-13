@@ -18,7 +18,7 @@ function metaFor(m: ModuleSummary, watched: number): string {
     if (watched > 0) return `${watched} of ${m.lessonCount} lessons watched`;
     return `${m.lessonCount} ${m.lessonCount === 1 ? 'lesson' : 'lessons'}, ${m.chapterCount} ${m.chapterCount === 1 ? 'chapter' : 'chapters'}`;
   }
-  if (m.libraryCount > 0) return `${m.libraryCount} ${m.libraryCount === 1 ? 'file' : 'files'} in the library`;
+  if (m.libraryCount) return `${m.libraryCount} ${m.libraryCount === 1 ? 'file' : 'files'} in the library`;
   return 'Study guide and resources';
 }
 

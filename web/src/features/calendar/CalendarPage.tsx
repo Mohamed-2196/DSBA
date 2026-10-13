@@ -23,7 +23,8 @@ import './CalendarPage.css';
 export default function CalendarPage() {
   const query = useCalendarEvents();
   const { year } = useYear();
-  const { isModerator } = useAuth();
+  const { can } = useAuth();
+  const manages = can('calendar.manage');
   const [subscribing, setSubscribing] = useState(false);
   const [editing, setEditing] = useState<{ event: CalendarEvent | null } | null>(null);
 
@@ -33,7 +34,7 @@ export default function CalendarPage() {
       <Button leadingIcon={RssSimple} onClick={() => setSubscribing(true)} data-hub="calendar-subscribe-open">
         Subscribe
       </Button>
-      {isModerator ? (
+      {manages ? (
         <Button variant="primary" leadingIcon={Plus} onClick={() => setEditing({ event: null })} data-hub="calendar-add">
           Add event
         </Button>
@@ -49,7 +50,7 @@ export default function CalendarPage() {
       ) : query.isError ? (
         <QueryError error={query.error} title="The calendar didn’t load" onRetry={() => void query.refetch()} retrying={query.isFetching} />
       ) : (
-        <CalendarBody events={query.data} onEdit={isModerator ? (e) => setEditing({ event: e }) : undefined} onAdd={isModerator ? () => setEditing({ event: null }) : undefined} />
+        <CalendarBody events={query.data} onEdit={manages ? (e) => setEditing({ event: e }) : undefined} onAdd={manages ? () => setEditing({ event: null }) : undefined} />
       )}
       <SubscribeDialog open={subscribing} year={year} onClose={() => setSubscribing(false)} />
       <EventEditor editing={editing} onClose={() => setEditing(null)} />

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { Reply, ThreadDetail } from '../../../api/types';
 import { ApiError, errorMessage } from '../../../api/errors';
-import { useAuth } from '../../../auth';
+import { badgeOf, useAuth } from '../../../auth';
 import { Button, Kbd, cx, modKeyLabel } from '../../../ui';
 import { useCreateReply } from '../api';
 import { authorName } from '../lib/authors';
@@ -118,7 +118,7 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
     );
   }
 
-  const author = me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, role: me.role } : null;
+  const author = me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, badge: badgeOf(me) } : null;
   const guest = status === 'guest';
 
   return (

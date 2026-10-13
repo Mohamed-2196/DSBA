@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CaretRight } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { UserPublic } from '../../api/types';
-import { useAuth } from '../../auth';
+import { badgeOf, useAuth } from '../../auth';
 import { Page, PageHeader, Skeleton, TextField, cx } from '../../ui';
 import { useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
@@ -187,7 +187,7 @@ function Composer() {
   };
 
   const suspended = me?.status === 'suspended';
-  const author: UserPublic | null = me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, role: me.role } : null;
+  const author: UserPublic | null = me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, badge: badgeOf(me) } : null;
 
   return (
     <Page className="forum-page forum-new">

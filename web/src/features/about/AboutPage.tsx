@@ -18,8 +18,12 @@ function CoverageLine() {
   const events = useCalendarEvents();
   const chapters = modules.reduce((n, m) => n + m.chapterCount, 0);
   const lessons = modules.reduce((n, m) => n + m.lessonCount, 0);
-  const files = modules.reduce((n, m) => n + m.libraryCount, 0);
-  const parts = [plural(chapters, 'chapter', 'chapters'), plural(lessons, 'lesson', 'lessons'), `${plural(files, 'file', 'files')} in the library`];
+  const parts = [plural(chapters, 'chapter', 'chapters'), plural(lessons, 'lesson', 'lessons')];
+  // The library's count is null while the library is switched off: the sentence leaves it out.
+  if (modules.some((m) => m.libraryCount !== null)) {
+    const files = modules.reduce((n, m) => n + (m.libraryCount ?? 0), 0);
+    parts.push(`${plural(files, 'file', 'files')} in the library`);
+  }
   // The calendar count joins the sentence once it has loaded (and simply stays out if it can't be read).
   if (events.data) parts.push(plural(events.data.length, 'calendar date', 'calendar dates'));
   const last = parts.pop() ?? '';

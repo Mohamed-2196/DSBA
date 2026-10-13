@@ -3,7 +3,7 @@
 // (shell/RouteFrame.tsx), so one broken feature can't take down the rest of the app.
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
-import { RoleGate } from './auth';
+import { Gate, MANAGER_BOXES } from './auth';
 import { RouteFrame, type AppRoute } from './shell/RouteFrame';
 
 const pages: AppRoute[] = [
@@ -30,13 +30,13 @@ const pages: AppRoute[] = [
     path: '/styleguide',
     title: 'Style guide',
     Page: lazy(() => import('./features/about/StyleGuidePage')),
-    // Open in development; in production for student reps and admins only (code quality review CQ-17).
+    // Open in development; in production for people who hold a manager box only (code quality review CQ-17).
     gate: import.meta.env.DEV
       ? undefined
       : (page) => (
-          <RoleGate need="moderator" title="Style guide">
+          <Gate title="Style guide" anyBox={MANAGER_BOXES}>
             {page}
-          </RoleGate>
+          </Gate>
         ),
   },
   { id: 'not-found', path: '*', title: 'Page not found', Page: lazy(() => import('./features/about/NotFoundPage')), modules: false },
