@@ -4,7 +4,8 @@ Navigator document and the library's links.
 Idempotent: running it again adds what is missing and never overwrites what moderators changed through the API.
 Something a moderator deleted stays deleted: calendar events and newsletter issues are looked up in the audit log
 (calendar.delete, newsletter.delete), and removed library items keep their row with status `removed`.
-Modules are the exception: they have no editing API, so the seed file is their source of truth (upsert).
+Modules are starting content only: they load into an empty catalogue, and after that content managers edit them in
+the app (a module they removed stays removed).
 Newsletter issues and the career document go through the schemas the API checks writes with, and are stored in
 the same shape: a seed file that doesn't fit them fails loudly instead of loading content the app can't show.
 Owner: content agent."""
@@ -45,19 +46,25 @@ def read(name: str) -> Any:
 
 
 def load_modules(db: Session) -> int:
+    """Once, into an empty catalogue: after that the modules are the content managers' (/content/modules)."""
+    if db.scalar(select(Module.id).limit(1)) is not None:
+        return 0
     n = 0
     for m in read("modules"):
-        row = db.get(Module, m["id"]) or Module(id=m["id"])
-        row.unit_code = m.get("unitCode")
-        row.name = m["name"]
-        row.short_name = m["shortName"]
-        row.year = m["year"]
-        row.description = m.get("description") or ""
-        row.icon = m.get("icon")
-        row.position = m.get("position", 0)
-        row.resources = m.get("resources") or {}
-        row.chapters = m.get("chapters") or []
-        db.add(row)
+        db.add(
+            Module(
+                id=m["id"],
+                unit_code=m.get("unitCode"),
+                name=m["name"],
+                short_name=m["shortName"],
+                year=m["year"],
+                description=m.get("description") or "",
+                icon=m.get("icon"),
+                position=m.get("position", 0),
+                resources=m.get("resources") or {},
+                chapters=m.get("chapters") or [],
+            )
+        )
         n += 1
     db.flush()
     return n
@@ -268,7 +275,7 @@ SECTIONS: dict[str, Callable[[Session], int]] = {
 
 
 def load_all(db: Session, only: str | None = None) -> dict[str, int]:
-    """-> {section: rows inserted or updated}."""
+    """-> {section: rows inserted}."""
     report: dict[str, int] = {}
     for name, fn in SECTIONS.items():
         if only and name != only:

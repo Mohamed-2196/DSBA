@@ -521,7 +521,7 @@ def test_deleting_a_held_role_is_recorded_with_what_it_gave(
         "name": "Content manager",
         "badge": "Content",
         "position": 4,
-        "boxes": ["calendar.manage", "career.edit"],
+        "boxes": ["calendar.manage", "career.edit", "content.edit"],
         "holders": 1,
         "actorName": "Head Admin",
     }

@@ -21,6 +21,7 @@ BoxKey = Literal[
     "newsletter.manage",
     "calendar.manage",
     "career.edit",
+    "content.edit",
     "requests.manage",
     "stats.view",
     "people.suspend",

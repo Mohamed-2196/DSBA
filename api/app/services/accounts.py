@@ -67,6 +67,7 @@ from app.schemas.notifications import NotificationKind
 from app.services import access, otp, sessions
 from app.services.audit import record
 from app.services.identifiers import Kind, admin_identifiers, destination_hint
+from app.services.modules import visible_chapters
 from app.services.outbox import ACCOUNT_NOTICE
 from app.services.storage import Storage
 
@@ -422,11 +423,11 @@ def lesson_key(module_id: str, chapter: int, video: int) -> str:
 
 
 def lesson_exists(module: Module | None, chapter: int, video: int) -> bool:
-    if module is None or not isinstance(module.chapters, list) or not 0 <= chapter < len(module.chapters):
+    """A lesson students see: the module and the lesson aren't hidden."""
+    if module is None or module.hidden:
         return False
-    entry = module.chapters[chapter]
-    videos = entry.get("videos") if isinstance(entry, dict) else None
-    return isinstance(videos, list) and 0 <= video < len(videos)
+    chapters = visible_chapters(module.chapters)
+    return 0 <= chapter < len(chapters) and 0 <= video < len(chapters[chapter]["videos"])
 
 
 def require_lesson(db: Session, module_id: str, chapter: int, video: int) -> None:
