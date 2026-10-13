@@ -16,7 +16,7 @@ import hashlib
 import hmac
 import ipaddress
 import secrets
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import datetime, timedelta
 from typing import Annotated, Any
 
@@ -28,7 +28,7 @@ from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.config import IPNetwork, Settings, get_settings
-from app.core.access import Box
+from app.core.access import Box, Feature
 from app.core.errors import forbidden, unauthenticated
 from app.core.time import utcnow
 from app.db import get_db
@@ -335,6 +335,28 @@ def requires_admin() -> Any:
         return user
 
     return Depends(dependency)
+
+
+# The dependencies needs_feature() made, and the feature each checks: how a test proves every route declares one.
+_FEATURE_CHECKS: dict[Callable[..., None], Feature] = {}
+
+
+def needs_feature(feature: Feature) -> Any:
+    """A route or router dependency: 404 feature_off unless `feature` is on for this person. Admins see every
+    feature."""
+
+    def dependency(
+        db: Annotated[Session, Depends(get_db)], user: Annotated[User | None, Depends(get_optional_user)]
+    ) -> None:
+        access.require_feature(db, user, feature)
+
+    _FEATURE_CHECKS[dependency] = feature
+    return Depends(dependency)
+
+
+def feature_of(call: Callable[..., Any]) -> Feature | None:
+    """The feature a dependency made by needs_feature() checks, or None for any other callable."""
+    return _FEATURE_CHECKS.get(call)
 
 
 # Shorthands for handler signatures

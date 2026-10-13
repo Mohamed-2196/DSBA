@@ -9544,6 +9544,98 @@
           }
         }
       }
+    },
+    "/api/v1/features": {
+      "get": {
+        "tags": [
+          "features"
+        ],
+        "summary": "Features",
+        "description": "The features on for whoever asks: for a guest, those switched on for everyone. Signed in, the same list as\n/me's `features`.",
+        "operationId": "features_api_v1_features_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeaturesOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12575,6 +12667,32 @@
         ],
         "title": "FeaturedLogo"
       },
+      "FeaturesOut": {
+        "properties": {
+          "features": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "forum",
+                "library",
+                "library.uploads",
+                "newsletter",
+                "calendar",
+                "career",
+                "grades",
+                "noora"
+              ]
+            },
+            "type": "array",
+            "title": "Features"
+          }
+        },
+        "type": "object",
+        "required": [
+          "features"
+        ],
+        "title": "FeaturesOut"
+      },
       "FileLink": {
         "properties": {
           "url": {
@@ -14250,6 +14368,23 @@
             "type": "array",
             "title": "Boxes"
           },
+          "features": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "forum",
+                "library",
+                "library.uploads",
+                "newsletter",
+                "calendar",
+                "career",
+                "grades",
+                "noora"
+              ]
+            },
+            "type": "array",
+            "title": "Features"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -14300,6 +14435,7 @@
           "year",
           "roles",
           "boxes",
+          "features",
           "status",
           "email",
           "phone",

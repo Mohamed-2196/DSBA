@@ -6,7 +6,7 @@ from uuid import UUID
 
 from pydantic import StringConstraints, WithJsonSchema
 
-from app.schemas.access import BoxKey, RoleSummary
+from app.schemas.access import BoxKey, FeatureKey, RoleSummary
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
 from app.schemas.forum import Category
 from app.schemas.library import ItemStatus, LibraryKind
@@ -72,6 +72,7 @@ class Me(ApiModel):
     year: Year | None
     roles: list[RoleSummary]  # in role order: Admin, Rep, then the others
     boxes: list[BoxKey]  # what the person may do now: none while the account is suspended
+    features: list[FeatureKey]  # the features on for this person (admins: every feature)
     status: UserStatus
     email: str | None
     phone: str | None

@@ -7,6 +7,7 @@ from app.routers import (
     auth,
     calendar,
     content,
+    features,
     forum,
     health,
     library,
@@ -35,5 +36,6 @@ for module in (
     newsletter,
     calendar,
     content,
+    features,
 ):
     api_router.include_router(module.router)

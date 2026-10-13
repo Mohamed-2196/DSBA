@@ -330,3 +330,17 @@ def test_two_workers_never_send_the_same_email(
         with own_connections() as s:
             s.execute(delete(EmailOutbox).where(EmailOutbox.to_address.in_(addresses)))
             s.commit()
+
+
+def test_an_email_into_a_switched_off_feature_is_cancelled(
+    make_user: MakeUser, outbox: Outbox, deliver: Deliver, db: Session, set_feature: Callable[..., None]
+) -> None:
+    replied, issued = make_user(email="replied@example.com"), make_user(email="issued@example.com")
+    actor = make_user()
+    notify(db, replied.id, "thread_reply", "Omar replied to your thread", url="/forum/z", actor=actor)
+    notify(db, issued.id, "new_issue", "Issue 4 is out", url="/newsletter/issue-4", actor=actor)
+    db.commit()
+    set_feature("forum", "off")
+    assert deliver() == 2
+    assert [m.to for m in outbox] == ["issued@example.com"]
+    assert [r.status for r in _queued(db, replied)] == [OutboxStatus.cancelled]

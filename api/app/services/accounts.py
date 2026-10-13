@@ -14,7 +14,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 from sqlalchemy import delete, false, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
 from app.core.access import ADMIN, STUDENT
 from app.core.errors import ApiError, invalid, not_found
@@ -103,6 +103,9 @@ def me_out(user: User) -> Me:
             "year": user.year,
             "roles": role_summaries(user),
             "boxes": [b.value for b in sorted(access.boxes_of(user))],
+            "features": [f.value for f in access.features_on(session, user)]
+            if (session := object_session(user))
+            else [],
             "status": user.status.value,
             "email": user.email,
             "phone": user.phone,

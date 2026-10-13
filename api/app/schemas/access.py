@@ -24,6 +24,10 @@ BoxKey = Literal[
 FeatureKey = Literal["forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora"]
 
 
+class FeaturesOut(ApiModel):
+    features: list[FeatureKey]  # the features on for whoever asks
+
+
 class RoleSummary(ApiModel):
     id: UUID
     slug: str

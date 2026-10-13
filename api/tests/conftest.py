@@ -25,6 +25,7 @@ from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
+from app.core.access import SwitchMode
 from app.models import User
 
 ADMIN_URL = os.environ.get("DSBA_TEST_ADMIN_URL", "postgresql+psycopg://dsba:dsba@127.0.0.1:5432/postgres")
@@ -184,6 +185,20 @@ def make_role(db: Session) -> Callable[..., Any]:
         return role
 
     return _make
+
+
+@pytest.fixture
+def set_feature(db: Session) -> Callable[..., None]:
+    """set_feature("forum", "off"), or set_feature("calendar", "roles", ["content-manager"]): a switch, committed."""
+    from app.core.access import Feature
+    from app.services import access
+
+    def _set(feature: str, mode: SwitchMode, roles: Sequence[str] = ()) -> None:
+        ids = [r.id for r in (access.role_by_slug(db, slug) for slug in roles) if r is not None]
+        access.store_switch(db, Feature(feature), mode, ids, by=None)
+        db.commit()
+
+    return _set
 
 
 @pytest.fixture
