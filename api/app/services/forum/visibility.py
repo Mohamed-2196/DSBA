@@ -96,12 +96,8 @@ def as_id(value: str) -> uuid.UUID | None:
 
 
 def thread_by_slug(db: Session, slug: str, viewer: User | None) -> ForumThread:
-    """By slug or id, for reading. A value that reads as an id is looked up as an id first, and no slug ever reads as
-    one (rules.thread_slug), so a slug can't stand in for another thread's id or the reverse (SEC-12)."""
-    thread_id = as_id(slug)
-    t = get_thread(db, thread_id) if thread_id is not None else None
-    if t is None:
-        t = db.scalar(select(ForumThread).where(ForumThread.slug == slug).options(*THREAD_OPTS))
+    """By slug, for reading (every link uses the slug; the routes that act on a thread take its id)."""
+    t = db.scalar(select(ForumThread).where(ForumThread.slug == slug).options(*THREAD_OPTS))
     if t is None or not can_read_thread(t, viewer):
         raise not_found("This thread doesn't exist or was removed.")
     return t

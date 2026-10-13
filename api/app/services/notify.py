@@ -20,6 +20,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from app.core.text import clip
 from app.core.time import utcnow
 from app.models import EmailOutbox, Notification, OutboxStatus, User
 from app.schemas.notifications import NotificationKind
@@ -64,7 +65,7 @@ def email_text(title: str, body: str | None, path: str | None, switch: str) -> s
     lines = [unlink(title)]
     if body:
         quoted = unlink(body)
-        lines.append(quoted if len(quoted) <= BODY_MAX else quoted[: BODY_MAX - 1].rstrip() + "…")
+        lines.append(clip(quoted, BODY_MAX))
     lines += [
         "",
         f"Open it in DSBA Hub: {base}{path or '/'}",

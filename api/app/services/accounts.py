@@ -622,7 +622,7 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     bucket fails, nothing is deleted and the person can try again); pending and rejected library items go;
     published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set NULL); everything
     personal (sessions, notifications, queued emails, progress, stars, votes, reactions) cascades; the sign-in
-    codes stay, anonymised, until the sweep (the rate limits count them)."""
+    codes stay, anonymised, until the sweep (the rate limits count them). The caller commits."""
     uid = user.id
     dropped_items = list(
         db.scalars(
@@ -672,4 +672,3 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     # signing up again must refill nothing).
     otp.anonymise(db, user)
     db.execute(delete(User).where(User.id == uid))
-    db.commit()

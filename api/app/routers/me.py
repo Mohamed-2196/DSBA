@@ -75,6 +75,7 @@ def delete_me(user: CurrentUser, sess: CurrentSession, db: DB) -> Response:
     Errors: step_up_required (403), storage_unavailable (503: files could not be deleted, nothing changed)."""
     sessions.require_step_up(sess)
     accounts.delete_account(db, user, get_storage())
+    db.commit()
     resp = Response(status_code=status.HTTP_204_NO_CONTENT)
     clear_session_cookie(resp)
     return resp

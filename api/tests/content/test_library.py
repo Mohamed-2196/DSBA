@@ -32,6 +32,10 @@ def item_url(item: dict[str, Any], suffix: str = "") -> str:
     return f"{API}/library/items/{item['id']}{suffix}"
 
 
+def read_url(item: dict[str, Any]) -> str:
+    return f"{API}/library/items/{item['slug']}"
+
+
 def link(client: TestClient, **body: Any) -> Any:
     payload = {"url": "https://drive.google.com/drive/folders/abc", "title": "Past exams", "kind": "past-paper"}
     payload.update(body)
@@ -77,10 +81,10 @@ def test_upload_review_publish_download_star_delete(
 
     # pending: only the uploader and moderators see it
     for c in (guest, them):
-        assert c.get(item_url(item)).status_code == 404
+        assert c.get(read_url(item)).status_code == 404
         assert c.get(f"{API}/library/items/{item['slug']}").status_code == 404
         assert c.get(item_url(item, "/download"), follow_redirects=False).status_code == 404
-    assert rep.get(item_url(item)).json()["canEdit"] is True
+    assert rep.get(read_url(item)).json()["canEdit"] is True
     assert guest.get(f"{API}/library/items").json()["total"] == 0
     assert [i["id"] for i in me.get(f"{API}/library/items", params={"mine": True}).json()["items"]] == [item["id"]]
     queue = rep.get(f"{API}/library/items", params={"status": "pending"}).json()
@@ -105,8 +109,8 @@ def test_upload_review_publish_download_star_delete(
     assert seen["reviewNote"] is None
     assert seen["isMine"] is False
     assert seen["canEdit"] is False
-    assert me.get(item_url(item)).json()["reviewNote"] == "Thanks, great scan."
-    assert me.get(item_url(item)).json()["canEdit"] is False  # published: only moderators edit
+    assert me.get(read_url(item)).json()["reviewNote"] == "Thanks, great scan."
+    assert me.get(read_url(item)).json()["canEdit"] is False  # published: only moderators edit
 
     # download: an attachment link, counted in SQL
     r = guest.get(item_url(item, "/download"), follow_redirects=False)
@@ -118,20 +122,20 @@ def test_upload_review_publish_download_star_delete(
     assert "ST2133" in params["response-content-disposition"][0]
     assert params["response-content-type"] == ["application/pdf"]
     them.get(item_url(item, "/download"), follow_redirects=False)
-    assert guest.get(item_url(item)).json()["downloadCount"] == 2
+    assert guest.get(read_url(item)).json()["downloadCount"] == 2
 
     # the viewer's inline link (not counted)
     r = guest.get(item_url(item, "/file"))
     assert r.status_code == 200
     assert parse_qs(urlparse(r.json()["url"]).query)["response-content-disposition"][0].startswith("inline;")
-    assert guest.get(item_url(item)).json()["downloadCount"] == 2
+    assert guest.get(read_url(item)).json()["downloadCount"] == 2
 
     # stars: idempotent, per person
     assert guest.put(item_url(item, "/star")).status_code == 401
     assert them.put(item_url(item, "/star")).json() == {"starred": True}
     assert them.put(item_url(item, "/star")).json() == {"starred": True}
-    assert them.get(item_url(item)).json()["starred"] is True
-    assert me.get(item_url(item)).json()["starred"] is False
+    assert them.get(read_url(item)).json()["starred"] is True
+    assert me.get(read_url(item)).json()["starred"] is False
     assert [i["id"] for i in them.get(f"{API}/library/items", params={"starred": True}).json()["items"]] == [item["id"]]
     assert me.get(f"{API}/library/items", params={"starred": True}).json()["total"] == 0
     assert guest.get(f"{API}/library/items", params={"starred": True}).status_code == 401
@@ -147,8 +151,8 @@ def test_upload_review_publish_download_star_delete(
     assert me.delete(item_url(item)).status_code == 204
     assert storage.head(key) is not None  # nothing serves it any more: see test_the_sweep_deletes_...
     assert guest.get(item_url(item, "/download"), follow_redirects=False).status_code == 404
-    assert guest.get(item_url(item)).status_code == 404
-    assert me.get(item_url(item)).status_code == 404  # gone for its uploader too
+    assert guest.get(read_url(item)).status_code == 404
+    assert me.get(read_url(item)).status_code == 404  # gone for its uploader too
     assert me.delete(item_url(item)).status_code == 404
     assert guest.get(f"{API}/library/items").json()["total"] == 0
     assert me.get(f"{API}/library/items", params={"mine": True}).json()["total"] == 0
@@ -165,8 +169,8 @@ def test_a_rejected_upload_tells_the_uploader_why(
     note = db.scalar(select(Notification).where(Notification.user_id == student.id))
     assert note is not None
     assert (note.kind, note.body) == ("upload_rejected", "This is a copyrighted textbook.")
-    assert me.get(item_url(item)).json()["reviewNote"] == "This is a copyrighted textbook."
-    assert client_for().get(item_url(item)).status_code == 404
+    assert me.get(read_url(item)).json()["reviewNote"] == "This is a copyrighted textbook."
+    assert client_for().get(read_url(item)).status_code == 404
     assert [i["status"] for i in me.get(f"{API}/library/items", params={"mine": True}).json()["items"]] == ["rejected"]
     assert "library.reject" in audit_actions(db)
     # only moderators review
@@ -179,7 +183,7 @@ def test_moderators_publish_their_own_uploads_at_once(
     item = share_file(client_for(moderator), title="Distribution theory cheat sheet", kind="cheat-sheet")
     assert item["status"] == "published"
     assert item["publishedAt"] is not None
-    assert client_for().get(item_url(item)).status_code == 200
+    assert client_for().get(read_url(item)).status_code == 200
     assert db.scalar(select(Notification)) is None  # nobody is told about their own action
     entry = db.scalar(select(AuditEntry).where(AuditEntry.action == "library.publish"))
     assert entry is not None  # it skipped review: on the record
@@ -272,7 +276,7 @@ def test_moderators_remove_files_and_it_is_audited(
     assert entry is not None
     assert (entry.target_type, entry.target_id) == ("library_item", item["id"])
     assert (entry.data["title"], entry.data["was"]) == ("Chapter 3 notes", "published")
-    assert rep.get(item_url(item)).json()["status"] == "removed"
+    assert rep.get(read_url(item)).json()["status"] == "removed"
     assert (
         rep.post(item_url(item, "/review"), json={"decision": "publish"}).json()["error"]["code"] == "post_unavailable"
     )
@@ -325,7 +329,7 @@ def test_moderators_add_https_links(
     guest = client_for()
     r = guest.get(item_url(item, "/download"), follow_redirects=False)
     assert (r.status_code, r.headers["location"]) == (302, "https://drive.google.com/drive/folders/abc")
-    assert guest.get(item_url(item)).json()["downloadCount"] == 1
+    assert guest.get(read_url(item)).json()["downloadCount"] == 1
     assert guest.get(item_url(item, "/file")).json()["error"]["code"] == "no_preview"
     assert link(rep, moduleId="econometrics").json()["slug"] == "ec2020-past-exams-2"
 
@@ -389,12 +393,11 @@ def test_filters_sorts_search_and_facets(
     assert (mods["advanced-stats-distribution"], mods["economics"], mods["statistics"]) == (2, 1, 0)
 
 
-def test_items_are_found_by_id_or_slug(client_for: Clients, moderator: User, share_file: Share) -> None:
+def test_items_are_read_by_slug(client_for: Clients, moderator: User, share_file: Share) -> None:
     item = share_file(client_for(moderator), title="Week 1 slides")
     guest = client_for()
-    assert guest.get(f"{API}/library/items/{item['slug']}").json()["id"] == item["id"]
-    assert guest.get(item_url(item)).json()["slug"] == "week-1-slides"
-    assert guest.get(f"{API}/library/items/{uuid.uuid4()}").status_code == 404
+    assert guest.get(f"{API}/library/items/week-1-slides").json()["id"] == item["id"]
+    assert guest.get(item_url(item)).status_code == 404  # an id is for the routes that act on the item
     assert guest.get(f"{API}/library/items/no-such-slug").status_code == 404
 
 
@@ -467,8 +470,8 @@ def test_a_suspended_account_or_one_without_a_profile_cannot_star_or_remove(
     for r in (c.put(item_url(shared, "/star")), c.delete(item_url(shared, "/star")), c.delete(item_url(own))):
         assert r.status_code == 403
         assert r.json()["error"]["message"] == "Your account is suspended. Contact a student rep."
-    assert c.get(item_url(shared)).json()["starred"] is True  # reading still works
-    assert c.get(item_url(own)).json()["status"] == "pending"
+    assert c.get(read_url(shared)).json()["starred"] is True  # reading still works
+    assert c.get(read_url(own)).json()["status"] == "pending"
     nameless = client_for(make_user(name=None))
     r = nameless.put(item_url(shared, "/star"))
     assert (r.status_code, r.json()["error"]["message"]) == (403, "Finish your profile first.")
@@ -564,7 +567,7 @@ def test_the_sweep_deletes_rejected_and_removed_files_after_a_week(
     row = db.get(LibraryItem, uuid.UUID(rejected["id"]))
     assert row is not None
     assert (row.status, row.storage_key) == (ItemStatus.rejected, None)
-    assert me.get(item_url(rejected)).json()["reviewNote"] == "This is a copyrighted textbook."
+    assert me.get(read_url(rejected)).json()["reviewNote"] == "This is a copyrighted textbook."
     r = rep.post(item_url(rejected, "/review"), json={"decision": "publish"})
     assert (r.status_code, r.json()["error"]["code"]) == (409, "file_gone")
     assert rep.get(item_url(rejected, "/download"), follow_redirects=False).status_code == 404

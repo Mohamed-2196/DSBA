@@ -32,7 +32,14 @@ from app.models import (
     UploadStatus,
     User,
 )
-from app.schemas.library import FileLink, LibraryFacets, LibraryItemCreate, LibraryItemUpdate, LibraryLinkCreate
+from app.schemas.library import (
+    FileLink,
+    LibraryFacets,
+    LibraryItemCreate,
+    LibraryItemUpdate,
+    LibraryKind,
+    LibraryLinkCreate,
+)
 from app.schemas.library import LibraryItem as LibraryItemOut
 from app.schemas.notifications import NotificationKind
 from app.services import ratelimit
@@ -131,14 +138,10 @@ def can_edit(item: LibraryItem, user: User | None) -> bool:
 
 
 def find(db: Session, ref: str | uuid.UUID) -> LibraryItem | None:
-    """By id, else by slug."""
+    """By id (the routes that act on an item), or by slug (reading one: every link uses the slug)."""
     if isinstance(ref, uuid.UUID):
         return db.get(LibraryItem, ref)
-    try:
-        item = db.get(LibraryItem, uuid.UUID(ref))
-    except ValueError:
-        item = None
-    return item or db.scalar(select(LibraryItem).where(LibraryItem.slug == ref))
+    return db.scalar(select(LibraryItem).where(LibraryItem.slug == ref))
 
 
 def get_visible(db: Session, ref: str | uuid.UUID, user: User | None) -> LibraryItem:
@@ -417,7 +420,7 @@ def create_imported(
     db: Session,
     module: Module | None,
     *,
-    kind: str,
+    kind: LibraryKind,
     title: str,
     description: str,
     storage_key: str,

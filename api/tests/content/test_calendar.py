@@ -105,9 +105,9 @@ def test_upcoming_starts_today_in_bahrain(client_for: Clients, events: dict[str,
     guest = client_for()
     up = f"{API}/calendar/upcoming"
     assert ids(guest, up) == ["running-week", "st2134-mock", "mt1186-exam", "break"]  # still running counts
-    assert ids(guest, up, n=2) == ["running-week", "st2134-mock"]
-    assert ids(guest, up, year=1, n=2) == ["running-week", "mt1186-exam"]
-    assert guest.get(up, params={"n": 61}).status_code == 422
+    assert ids(guest, up, limit=2) == ["running-week", "st2134-mock"]
+    assert ids(guest, up, year=1, limit=2) == ["running-week", "mt1186-exam"]
+    assert guest.get(up, params={"limit": 61}).status_code == 422
 
 
 def unfold(text: str) -> list[str]:

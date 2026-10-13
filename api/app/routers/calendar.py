@@ -33,9 +33,11 @@ def list_events(
 
 
 @router.get("/calendar/upcoming", response_model=list[CalendarEventOut])
-def upcoming(db: DB, n: int = Query(default=5, ge=1, le=60), year: YearParam | None = None) -> list[CalendarEventOut]:
-    """The next n events from today (Bahrain time), including any still running today."""
-    return svc.upcoming(db, n, year)
+def upcoming(
+    db: DB, limit: int = Query(default=5, ge=1, le=60), year: YearParam | None = None
+) -> list[CalendarEventOut]:
+    """The next `limit` events from today (Bahrain time), including any still running today."""
+    return svc.upcoming(db, limit, year)
 
 
 @router.get(

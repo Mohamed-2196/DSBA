@@ -5,6 +5,7 @@
 - insert_with_unique_slug(): the one way to insert a row with a slug or id made from its title: a free one, and a
   retry when a parallel request takes it first (a race answers 409 `retry` at worst; any other integrity error is
   raised as it is).
+- clip(): text cut to a length with an ellipsis, at a word if asked.
 - short_id(), has_latin(): titles without Latin letters (Arabic, digits only) get a short id, not 'file-2'
   (decision D8)."""
 
@@ -49,6 +50,20 @@ def unique_slug(db: Session, column: InstrumentedAttribute[str], value: str, fal
     while f"{base}-{n}" in taken:
         n += 1
     return f"{base}-{n}"
+
+
+def clip(text: str, limit: int, *, at_word: bool = False) -> str:
+    """`text` when it fits in `limit` characters, else cut with "…" to `limit` in all. `at_word` cuts at the last
+    space in the second half, and drops the punctuation left before the ellipsis."""
+    if len(text) <= limit:
+        return text
+    cut = text[: limit - 1]
+    if at_word:
+        space = cut.rfind(" ")
+        if space > limit // 2:
+            cut = cut[:space]
+        cut = cut.rstrip(" ,.;:?!")
+    return cut.rstrip() + "\u2026"
 
 
 def has_latin(text: str) -> bool:

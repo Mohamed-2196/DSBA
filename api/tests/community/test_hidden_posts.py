@@ -39,7 +39,6 @@ def test_deleting_a_hidden_thread_keeps_it_hidden(
     # nobody but the reps sees anything of it: guests, its author, the student who replied
     for viewer in (client_for(), s, c):
         assert viewer.get(f"{API}/forum/threads/{t['slug']}").status_code == 404
-        assert viewer.get(f"{API}/forum/threads/{t['id']}").status_code == 404
         assert viewer.get(f"{API}/forum/threads/{t['id']}/related").status_code == 404
         listed = viewer.get(f"{API}/forum/threads").json()
         assert [x["id"] for x in listed["items"]] == [other["id"]]
@@ -108,7 +107,6 @@ def test_the_author_of_a_hidden_thread_can_still_open_it(
     assert (detail["status"], detail["isMine"], detail["body"]) == ("hidden", True, "DM me")
     assert (detail["canEdit"], detail["canAccept"], detail["canModerate"]) == (False, False, False)
     assert [x["id"] for x in detail["replies"]] == [reply["id"]]
-    assert s.get(f"{API}/forum/threads/{t['id']}").status_code == 200
     assert s.get(f"{API}/forum/threads/{t['id']}/related").status_code == 200
     # reading is all: the thread is in the reps' hands
     assert s.patch(f"{API}/forum/threads/{t['id']}", json={"title": "Something else"}).status_code == 404

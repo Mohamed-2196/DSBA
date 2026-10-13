@@ -226,7 +226,7 @@ export function useHotThreads({ n = 5, year = null }: { n?: number; year?: Cohor
   const size = Math.max(1, Math.min(20, Math.round(n)));
   return useQuery({
     queryKey: forumKeys.hot(size, year ?? null),
-    queryFn: ({ signal }) => call(api.GET('/api/v1/forum/threads/hot', { params: { query: { n: size, year: year ?? undefined } }, signal })),
+    queryFn: ({ signal }) => call(api.GET('/api/v1/forum/threads/hot', { params: { query: { limit: size, year: year ?? undefined } }, signal })),
   });
 }
 
@@ -261,7 +261,7 @@ export function useRelatedThreads(threadId: string | null | undefined, n = 4) {
   return useQuery({
     queryKey: forumKeys.related(threadId ?? '', n),
     queryFn: ({ signal }) =>
-      call(api.GET('/api/v1/forum/threads/{thread_id}/related', { params: { path: { thread_id: threadId ?? '' }, query: { n } }, signal })),
+      call(api.GET('/api/v1/forum/threads/{thread_id}/related', { params: { path: { thread_id: threadId ?? '' }, query: { limit: n } }, signal })),
     enabled: !!threadId,
     staleTime: 5 * 60_000,
   });
