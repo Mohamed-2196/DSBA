@@ -7,6 +7,9 @@ export interface EmptyStateProps {
   icon?: IconSource | null;
   /** what's empty, plainly ("No threads yet") */
   title?: ReactNode;
+  /** the title as a heading, when the state is the whole page (focusable from script, for a screen reader) */
+  titleAs?: 'p' | 'h1' | 'h2';
+  titleId?: string;
   /** what to do next */
   body?: ReactNode;
   /** a <Button/> (or several) */
@@ -17,11 +20,15 @@ export interface EmptyStateProps {
 }
 
 /** Empty state that invites action. */
-export function EmptyState({ icon, title, body, action, size = 'md', className, children }: EmptyStateProps) {
+export function EmptyState({ icon, title, titleAs: Title = 'p', titleId, body, action, size = 'md', className, children }: EmptyStateProps) {
   return (
     <div className={cx('ui-empty', `ui-empty--${size}`, className)}>
       {icon ? <div className="ui-empty__icon">{renderIcon(icon, { weight: 'duotone' })}</div> : null}
-      {title ? <p className="ui-empty__title">{title}</p> : null}
+      {title ? (
+        <Title className="ui-empty__title" id={titleId} tabIndex={Title === 'p' ? undefined : -1}>
+          {title}
+        </Title>
+      ) : null}
       {body ? <p className="ui-empty__body">{body}</p> : null}
       {children}
       {action ? <div className="ui-empty__action">{action}</div> : null}

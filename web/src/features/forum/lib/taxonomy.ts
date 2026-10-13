@@ -6,7 +6,7 @@ import { useForumMeta } from '../api';
 import type { ForumCategory, ForumTag } from '../types';
 import { FALLBACK_CATEGORIES, MAX_TAGS_DEFAULT } from './categories';
 
-export { CATEGORY_IDS, categoryForYear, isCategoryId } from './categories';
+export {  categoryForYear,  } from './categories';
 
 export interface Taxonomy {
   categories: readonly ForumCategory[];

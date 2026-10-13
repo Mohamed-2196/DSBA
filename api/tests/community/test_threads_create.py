@@ -53,7 +53,7 @@ def test_create_thread(client_for: Client, student: User, modules: dict[str, Any
     seen = r.json()
     assert seen["body"] == "I tried **integrating** directly."
     assert (seen["voted"], seen["isMine"], seen["canEdit"], seen["canAccept"]) == (False, False, False, False)
-    assert guest.get(f"{API}/forum/threads/{t['id']}").json()["slug"] == t["slug"]
+    assert guest.get(f"{API}/forum/threads/{t['id']}").status_code == 404  # by slug only
     assert guest.get(f"{API}/forum/threads/nope").status_code == 404
 
 
@@ -241,19 +241,5 @@ def test_a_slug_never_stands_in_for_an_id(client_for: Client, student: User, cla
     for t in (copycat, no_dashes, spaced, again):
         assert re.fullmatch(r"t-[a-z0-9]{6}", t["slug"]), t["slug"]
     guest = client_for()
-    assert guest.get(f"{API}/forum/threads/{original['id']}").json()["id"] == original["id"]
     assert guest.get(f"{API}/forum/threads/{copycat['slug']}").json()["id"] == copycat["id"]
-    # a slug written straight to the table that spells another thread's id: the id still wins
-    impostor = ForumThread(
-        slug=original["id"],
-        title="Impostor",
-        body="",
-        category="general",
-        author_id=classmate.id,
-        created_at=utcnow(),
-        last_activity_at=utcnow(),
-    )
-    db.add(impostor)
-    db.commit()
-    assert guest.get(f"{API}/forum/threads/{original['id']}").json()["id"] == original["id"]
-    assert guest.get(f"{API}/forum/threads/{impostor.id}").json()["title"] == "Impostor"
+    assert guest.get(f"{API}/forum/threads/{original['id']}").status_code == 404  # reading goes by slug only

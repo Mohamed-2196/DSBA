@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api, call } from '../api/client';
 import { ApiError } from '../api/errors';
-import { FEATURES_KEY } from '../api/keys';
+import { ACCOUNT_KEY, FEATURES_KEY } from '../api/keys';
 import type { Me } from '../api/types';
 import { useAccountYearSync, useToast } from '../state';
 import { canDo, featureIsOn, isActiveAdmin, managerBoxes, offerOf, offered, offForOthers } from './access';
@@ -170,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const current = stepUpRef.current;
       setStepUp(null);
       // A step-up renews this browser's session: the account page's device list changes.
-      if (ok) void qc.invalidateQueries({ queryKey: ['account'] });
+      if (ok) void qc.invalidateQueries({ queryKey: ACCOUNT_KEY });
       current?.resolve(ok);
     },
     [qc, setStepUp],

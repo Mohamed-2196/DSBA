@@ -4,10 +4,9 @@ import type { LibraryItem, LiveFallback, ThreadSummary } from '../../../../api/t
 import { useStartsThreads } from '../../../forum/public';
 import { libraryItemPath } from '../../../library/public';
 import { useModules } from '../../../../state/modules';
-import { Badge, Button, CohortBadge, Skeleton } from '../../../../ui';
+import { Badge, Button, CohortBadge, Skeleton, countOf } from '../../../../ui';
 import { RichText } from '../RichText';
 
-const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`;
 const NEW_DAYS = 14;
 
 /** Rows standing in for a live list while it loads. */
@@ -64,7 +63,7 @@ export function ForumList({ threads, fallback }: { threads: ThreadSummary[]; fal
           return (
             <li key={t.id}>
               <Link to={`/forum/${encodeURIComponent(t.slug || t.id)}`} className="nl-row">
-                <span className="nl-row__votes" aria-label={plural(t.voteCount, 'vote')}>
+                <span className="nl-row__votes" aria-label={countOf(t.voteCount, 'vote')}>
                   <ArrowFatUp weight="fill" aria-hidden="true" />
                   <span className="u-tabular">{t.voteCount}</span>
                 </span>
@@ -75,7 +74,7 @@ export function ForumList({ threads, fallback }: { threads: ThreadSummary[]; fal
                     {t.year ? <CohortBadge year={t.year} variant="dot" size="sm" /> : null}
                     <span className="nl-row__stat">
                       <ChatCircle aria-hidden="true" />
-                      {plural(t.replyCount, 'reply', 'replies')}
+                      {countOf(t.replyCount, 'reply', 'replies')}
                     </span>
                     {t.author ? <span>{t.author.displayName}</span> : null}
                   </span>

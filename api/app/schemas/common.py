@@ -78,6 +78,9 @@ ErrorCode = Literal[
     "role_locked",  # 409: the Admin role can't change, and a built-in role can't be deleted
     "role_changed",  # 409: another admin changed the role since it was loaded: load it again
     "role_in_use",  # 409: a feature switch is on for this role: change the switch before deleting the role
+    # notes (R-5)
+    "note_changed",  # 409: the note was saved elsewhere (another tab) since this version: load it, or save over it
+    "too_many_notes",  # 409: the most notes one student may keep
 ]
 
 

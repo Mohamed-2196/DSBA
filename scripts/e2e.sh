@@ -5,7 +5,7 @@
 #   scripts/e2e.sh e2e/forum.spec.ts        # one area (the setup project still signs the students up first)
 #   scripts/e2e.sh --headed -g "rep hides"  # anything else goes to `npx playwright test`
 #   E2E_KEEP=1 scripts/e2e.sh               # keep the run's accounts and posts to look at afterwards
-#   scripts/e2e.sh --restore                # put the API back on Mailpit and the log, and stop there
+#   scripts/e2e.sh --restore                # put api, mail and web back on Mailpit, the log and the main checkout
 #
 # Start the stack once with `docker compose up -d --build`, and install the suite's tools once:
 # `cd web && npm ci && npx playwright install chromium`.
@@ -24,7 +24,8 @@
 #     texts per hour and day (50 and 300). Per-address and per-account limits are unchanged.
 #   - db, minio and mailpit are never touched (no stop, no recreate, no `down`).
 # The recreated containers run the code of the checkout the script is in (a git worktree's, when run from one). The
-# stack stays in e2e mode after the run, so reruns start at once; `scripts/e2e.sh --restore` undoes it.
+# stack stays in e2e mode after the run, so reruns start at once; `scripts/e2e.sh --restore` undoes it, from any
+# checkout: api, mail and web go back to the main checkout's code.
 #
 # The suite's settings (web/e2e/support.ts) default to this stack; set any of them to override:
 #   E2E_BASE_URL=http://localhost:5173  E2E_MAIL_DIR=<repo>/api/var/mail  E2E_SMS_DIR=<repo>/api/var/sms
@@ -35,6 +36,8 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 project=dsba-hub  # `name:` in compose.yaml
 base=(docker compose -p "$project" -f "$root/compose.yaml")
 e2e=("${base[@]}" -f "$root/compose.e2e.yaml")
+# The main checkout (the repository's own folder, not a worktree's): where --restore puts the stack back.
+main="$(cd "$(git -C "$root" rev-parse --path-format=absolute --git-common-dir)/.." && pwd)"
 mail_dir="$root/api/var/mail"
 sms_dir="$root/api/var/sms"
 
@@ -66,10 +69,11 @@ playwright_chromium_installed() {
 }
 
 restore() {
-  say "Putting the API and the mail worker back on Mailpit (emails) and the API's log (texts)"
-  "${base[@]}" up -d --no-deps api mail
+  say "Putting api, mail and web back on Mailpit (emails), the API's log (texts) and the code in $main"
+  docker compose -p "$project" -f "$main/compose.yaml" up -d --no-deps api mail web
   wait_for "The API" http://127.0.0.1:8000/api/v1/health 180
   [[ "$(backend)" != file ]] || fail "the API still writes emails to files."
+  wait_for "The web app" http://localhost:5173/api/v1/health 300
   echo "Done: emails go to Mailpit (http://localhost:8025), texts to \`docker compose logs api\`."
 }
 

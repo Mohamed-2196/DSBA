@@ -94,7 +94,7 @@ def test_the_reports_queue_follows_the_boxes(
         made = reporter.post(
             f"{API}/reports", json={"targetType": target_type, "targetId": target["id"], "reason": "spam"}
         )
-        assert made.status_code == 201, made.text
+        assert made.status_code == 204, made.text
     forum, library = holder(frozenset({Box.forum_moderate})), holder(frozenset({Box.library_manage}))
 
     def queue(person: User) -> list[tuple[str, Any]]:
@@ -168,7 +168,7 @@ def test_report_excerpts_stay_with_their_area(
     thread = new_thread(client_for(make_user(name="Sara Student")), "A secret line about the exam")
     reporter = client_for(make_user(name="Omar Reporter"))
     made = reporter.post(f"{API}/reports", json={"targetType": "thread", "targetId": thread["id"], "reason": "spam"})
-    assert made.status_code == 201, made.text
+    assert made.status_code == 204, made.text
     forum, library = holder(frozenset({Box.forum_moderate})), holder(frozenset({Box.library_manage}))
     seen = client_for(forum).get(f"{API}/admin/reports")
     assert [r["targetExcerpt"] for r in seen.json()["items"]] == ["A secret line about the exam"]
@@ -235,7 +235,7 @@ def test_the_open_reports_count_follows_the_queue(
     thread = new_thread(client_for(make_user(name="Sara Student")), "Count me")
     reporter = client_for(make_user(name="Omar Reporter"))
     made = reporter.post(f"{API}/reports", json={"targetType": "thread", "targetId": thread["id"], "reason": "spam"})
-    assert made.status_code == 201, made.text
+    assert made.status_code == 204, made.text
 
     def open_reports(*boxes: Box) -> int:
         count: int = (

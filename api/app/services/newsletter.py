@@ -275,6 +275,7 @@ def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> 
     tells nobody. The cohort gets at most one issue email a day
     (security review AD-8): an issue published within a day of one that was emailed is told in the Hub only.
     Publishing a published issue changes nothing and tells nobody. -> whether this issue went by email."""
+    db.refresh(issue, with_for_update=True)  # two publishes at once: the second finds it published
     if issue.status == IssueStatus.published:
         return False
     now = utcnow()

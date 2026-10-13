@@ -76,7 +76,7 @@ export function Sidebar() {
   const roomy = useMediaQuery('(min-width: 1440px)');
   const noora = useNooraLauncher();
   const collapsed = tablet || (noora.shown && noora.open && !roomy);
-  const { featureOn } = useAuth();
+  const { featureOn, me } = useAuth();
   return (
     // The column wrapper runs the full page height (surface + border); the rail inside is sticky.
     <div className="shell-rail-col">
@@ -93,7 +93,7 @@ export function Sidebar() {
 
         <nav className="shell-nav" aria-label="Main">
           <ul role="list">
-            {visibleNav(NAV, featureOn).map((item) => (
+            {visibleNav(NAV, featureOn, !!me).map((item) => (
               <li key={item.id}>
                 <NavItem item={item} collapsed={collapsed} />
               </li>

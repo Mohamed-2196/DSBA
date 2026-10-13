@@ -1,4 +1,4 @@
-// The one competition on the board, beside the page title. Split out of Opportunities (code quality review CQ-17).
+// The one competition on the board, beside the page title.
 import { ArrowUpRight } from '@phosphor-icons/react';
 import { Badge } from '../../ui';
 import { hostOf } from '../../lib/share';

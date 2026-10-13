@@ -1,5 +1,4 @@
-// The tour's three pictures, built from the real UI vocabulary rather than images. Split out of Onboarding
-// (code quality review CQ-17).
+// The tour's three pictures, built from the real UI vocabulary rather than images.
 import { ArrowFatUp, ArrowSquareOut, ChatsCircle, MagnifyingGlass } from '@phosphor-icons/react';
 import { useModules } from '../../state/modules';
 import { Highlight, ModuleIcon } from '../../ui';

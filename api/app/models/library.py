@@ -42,7 +42,7 @@ class LibraryItem(Base):
     id: Mapped[uuid.UUID] = uuid_pk()
     slug: Mapped[str] = mapped_column(SLUG, unique=True)
     source: Mapped[ItemSource] = mapped_column(str_enum(ItemSource, 8))
-    kind: Mapped[str] = mapped_column(String(32))  # app/schemas/library.py LibraryKind
+    kind: Mapped[LibraryKind] = mapped_column(String(32))
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[str | None] = mapped_column(Text)
     module_id: Mapped[str | None] = mapped_column(ForeignKey("modules.id", ondelete="SET NULL"))

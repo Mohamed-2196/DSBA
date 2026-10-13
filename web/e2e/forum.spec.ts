@@ -110,7 +110,6 @@ test('Ali answers and votes; Sara replies to his answer, accepts it and edits he
 });
 
 test('ST-13: a double click on "Post reply" posts one reply', async ({ ali, run }) => {
-  test.fail(true, 'ST-13: each click posts, so a double click posts the reply twice');
   await ali.goto(`/forum/${slug}`);
   const text = `Same answer, sent with a double tap (${run.tag}).`;
   await ali.locator('[data-hub="reply-input"]').fill(text);

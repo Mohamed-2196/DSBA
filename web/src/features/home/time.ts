@@ -1,5 +1,4 @@
-// Home's own words about time. Days themselves (today in Bahrain, distances, formats) come from src/lib/dates.ts,
-// the one home every area shares (code quality review CQ-5).
+// Home's own words about time. Days themselves (today in Bahrain, distances, formats) come from src/lib/dates.ts.
 
 /** 'Good morning' | 'Good afternoon' | 'Good evening' for the hour on this device. */
 export function greetingFor(date: Date = new Date()): string {

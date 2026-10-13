@@ -1,10 +1,11 @@
 // The signed-in person's account: profile, sign-in methods, sessions, export and deletion.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
+import { ACCOUNT_KEY } from '../../api/keys';
 import type { Me, MeUpdate, PreferencesUpdate, SessionInfo } from '../../api/types';
 import { ME_KEY } from '../../auth';
 
-export const SESSIONS_KEY = ['account', 'sessions'] as const;
+export const SESSIONS_KEY = [...ACCOUNT_KEY, 'sessions'] as const;
 
 export type IdentifierKind = 'email' | 'phone';
 

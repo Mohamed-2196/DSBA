@@ -35,11 +35,17 @@ deployed yet.
 
 | Branch | Agent | Worktree | Covers |
 | --- | --- | --- | --- |
-| `round4/access` | SDD, task by task | `../dsba-access` | R-1 roles and R-10 feature switches: API done, web Task 7 (e2e) running; then one final review and a fix wave with the must-fix minors |
+| `round4/access` | SDD, task by task | removed | R-1 roles and R-10 feature switches: merged 2026-10-13 (`ede6490`); checks green (API 770, web 419) |
+| `round4/notes` | general-purpose | `../dsba-notes` | R-5 notes: private, autosave plus offline draft, Markdown and formulas, attach to a module or lesson |
+| `round4/board` | general-purpose | `../dsba-board` | R-4 study board: private, fixed columns, "Add to my board" from the calendar and lessons |
+| `round4/requests` | general-purpose | `../dsba-requests` | R-2 requests: public with "me too", any rep (`requests.manage`) answers |
+| `round4/noora` | web-builder | `../dsba-noora` | R-7 new Noora: docked panel on laptops, sheet on phones, never covers the page, page-aware suggestions |
 | `round4/calendar` | web-builder | removed | R-3 calendar redesign: merged 2026-10-13 (`2ffd145`) |
 | `round4/polish` | web-builder | `../dsba-polish` | ST-13, ST-14, ST-16, ST-17, UX-18 to UX-22, SEC-17, SEC-18, SEC-20, the CQ minors, `e2e.sh --restore` restores web |
 
 - **Round 3 is complete**, and so is the re-review round after it.
+- **R-2, R-4, R-5, R-7 defaults** (Mohamed approved building all four in parallel, 2026-10-13): the ones in each row
+  above. Each new feature arrives switched off; each builder adds its own migration, re-chained at merge.
 - **R-3 open points:** events have no zone, so the calendar answers per year only; every exam reads "Time not set
   yet" until reps add times; Mini Noora still covers parts of the page (R-7). The e2e suite runs on it with the
   access merge.

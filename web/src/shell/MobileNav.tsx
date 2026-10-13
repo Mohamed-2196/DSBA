@@ -17,8 +17,8 @@ export function MobileNav() {
   const { pathname } = useLocation();
   const startUpload = useStartUpload();
   const uploadShown = useUploadShown();
-  const { featureOn } = useAuth();
-  const nav = visibleNav(NAV, featureOn);
+  const { featureOn, me } = useAuth();
+  const nav = visibleNav(NAV, featureOn, !!me);
   const tabs = nav.filter((n) => MOBILE_TAB_IDS.includes(n.id));
   const more = nav.filter((n) => MORE_IDS.includes(n.id));
   const moreActive = [...more.map((m) => m.to), '/about', '/styleguide'].some((p) => pathname.startsWith(p));

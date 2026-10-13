@@ -51,8 +51,7 @@ def test_report_flow(client_for: Client, student: User, classmate: User, moderat
         f"{API}/reports",
         json={"targetType": "thread", "targetId": t["id"], "reason": "spam", "note": "  Selling essays \x00 "},
     )
-    assert r.status_code == 201, r.text
-    assert r.json() == {"ok": True}
+    assert r.status_code == 204, r.text
     r = c.post(f"{API}/reports", json={"targetType": "thread", "targetId": t["id"], "reason": "other"})
     assert r.status_code == 409
     assert r.json()["error"]["code"] == "already_reported"
@@ -101,7 +100,7 @@ def test_report_flow(client_for: Client, student: User, classmate: User, moderat
     assert m.get(f"{API}/admin/reports", params={"status": "resolved"}).json()["total"] == 1
     # closed reports don't block a new one
     set_thread(db, t["id"], status=PostStatus.visible)
-    assert report(c, "thread", t["id"]) == 201
+    assert report(c, "thread", t["id"]) == 204
 
 
 def test_report_replies_and_library_items(
@@ -111,8 +110,8 @@ def test_report_replies_and_library_items(
     reply = new_reply(client_for(classmate), t["id"], "Rude reply")
     item = library_item(db, classmate)
     c = client_for(student)
-    assert report(c, "reply", reply["id"], reason="harassment") == 201
-    assert report(c, "library_item", str(item.id), reason="copyright") == 201
+    assert report(c, "reply", reply["id"], reason="harassment") == 204
+    assert report(c, "library_item", str(item.id), reason="copyright") == 204
     admin = make_user(name="Admin", roles=("student", "admin"))
     page = client_for(admin).get(f"{API}/admin/reports").json()
     by_type = {x["targetType"]: x for x in page["items"]}
@@ -141,7 +140,7 @@ def test_what_can_be_reported(client_for: Client, student: User, classmate: User
     pending = library_item(db, classmate, ItemStatus.pending)
     missing = str(uuid.uuid4())
     assert report(s, "thread", hidden["id"]) == 404
-    assert report(client_for(moderator), "thread", hidden["id"]) == 201  # reps can see it
+    assert report(client_for(moderator), "thread", hidden["id"]) == 204  # reps can see it
     assert report(s, "reply", gone["id"]) == 404
     assert report(s, "library_item", str(pending.id)) == 404
     for kind in ("thread", "reply", "library_item"):
@@ -187,7 +186,7 @@ def test_the_queue_is_for_reps(
     reporters = [make_user(name=f"Reporter {i}") for i in range(3)]
     threads = [new_thread(client_for(student), title=f"Reported thread {i}") for i in range(3)]
     for who, t in zip(reporters, threads, strict=True):
-        assert report(client_for(who), "thread", t["id"]) == 201
+        assert report(client_for(who), "thread", t["id"]) == 204
     page = client_for(moderator).get(f"{API}/admin/reports", params={"limit": 2, "offset": 1}).json()
     assert page["total"] == 3
     assert [x["targetTitle"] for x in page["items"]] == ["Reported thread 1", "Reported thread 2"]

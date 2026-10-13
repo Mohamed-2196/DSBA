@@ -5,6 +5,7 @@ import { API_ORIGIN } from '../../../api/client';
 import { cx } from '../../../ui';
 import { mediaSrc, safeLink } from '../lib/links';
 import { parseBlocks, parseInline, type Block, type InlineToken } from '../lib/markdown';
+import './forum.css';
 
 // Everything below renders user text as React children (React escapes it): there is no HTML anywhere in this file.
 

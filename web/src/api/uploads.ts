@@ -1,5 +1,5 @@
-// Uploading a file straight to the bucket, for every purpose: library files and pictures in forum posts. The one
-// copy of the pipeline, its limits, accepted types and messages for the whole app (code quality review CQ-5).
+// Uploading a file straight to the bucket, for every purpose: library files and pictures in forum posts.
+// The pipeline, its limits, accepted types and messages.
 //   1. POST /api/v1/uploads { purpose, fileName, contentType, sizeBytes } -> a presigned POST (PresignedUpload)
 //   2. POST a form to its url: every entry of `fields` first, then the file as `file` (XHR for progress; no cookies)
 //   3. POST /api/v1/uploads/{id}/complete -> the API checks what arrived (size, type, first bytes) -> UploadOut

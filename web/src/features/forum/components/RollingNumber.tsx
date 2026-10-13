@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { cx } from '../../../ui';
+import { cx, formatCount } from '../../../ui';
 
 interface Roll {
   value: number;
@@ -30,13 +30,13 @@ export function RollingNumber({ value, className }: { value: number; className?:
 
   return (
     <span className={cx('forum-roll', rolling && 'is-rolling', className)} data-dir={roll.dir}>
-      {rolling ? (
+      {roll.prev !== null ? (
         <span key={`old-${roll.key}`} className="forum-roll__old" aria-hidden="true">
-          {roll.prev}
+          {formatCount(roll.prev)}
         </span>
       ) : null}
       <span key={`new-${roll.key}`} className="forum-roll__new" onAnimationEnd={rolling ? settle : undefined}>
-        {value}
+        {formatCount(value)}
       </span>
     </span>
   );

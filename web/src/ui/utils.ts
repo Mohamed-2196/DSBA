@@ -24,6 +24,11 @@ export function formatCount(n: number): string {
   return counts.format(n);
 }
 
+/** A count with its noun: '1 file', '1,250 files', '3 replies' (`many` defaults to `one` + 's'). */
+export function countOf(n: number, one: string, many = `${one}s`): string {
+  return `${formatCount(n)} ${n === 1 ? one : many}`;
+}
+
 export type DateInput = Date | string | number;
 
 /** Relative time: '2h ago', '3d ago', 'just now', or a short date for > 30 days. */

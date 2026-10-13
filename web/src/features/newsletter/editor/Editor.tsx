@@ -9,7 +9,7 @@ import type { IssueDetail } from '../../../api/types';
 import { errorMessage, isApiError } from '../../../api/errors';
 import { formatDay } from '../../../lib/dates';
 import { useDocumentTitle, useMediaQuery, useToast } from '../../../state';
-import { Badge, Button, ConfirmDialog, Menu, Page, PageHeader, SegmentedControl, cx } from '../../../ui';
+import { Badge, Button, ConfirmDialog, Menu, Page, PageHeader, SegmentedControl, cx, countOf } from '../../../ui';
 import { useUpdateIssue } from '../api';
 import { DeleteIssueButton, PublishButton } from '../components/IssueActions';
 import {
@@ -57,7 +57,6 @@ function reopen(open: ReadonlySet<string>, prev: IssueDraft, next: IssueDraft): 
   return new Set(next.sections.filter((s) => ids.has(s.id)).map((s) => s.key));
 }
 
-const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
 
 /** 'Mon 12 Oct, 21:40' for when a copy was kept. */
 function keptAt(ms: number): string {
@@ -286,7 +285,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
           <h2 id="nl-ed-sections" className="nl-ed-group__title">
             Sections
           </h2>
-          <p className="nl-ed-group__meta">{draft.sections.length ? plural(draft.sections.length, 'section', 'sections') : 'None yet'}</p>
+          <p className="nl-ed-group__meta">{draft.sections.length ? countOf(draft.sections.length, 'section', 'sections') : 'None yet'}</p>
         </div>
         {draft.sections.length ? (
           <ol className="nl-ed-sections">
@@ -338,7 +337,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
           ) : problems ? (
             <>
               <WarningCircle weight="fill" aria-hidden="true" />
-              {plural(problems, 'problem', 'problems')} to fix
+              {countOf(problems, 'problem', 'problems')} to fix
             </>
           ) : dirty ? (
             'Unsaved changes'

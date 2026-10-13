@@ -19,7 +19,7 @@
 .career-featured__link:hover { color: var(--cobalt); }
 .career-featured__go { font-size: 13px; color: var(--ink-2); transition: transform var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
 .career-featured__link:hover .career-featured__go { color: var(--cobalt); transform: translate(1px, -1px); }
-.career-featured__blurb { margin-top: 3px; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.career-featured__blurb { margin-top: 3px; max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
 .career-featured__kind { color: var(--ink); font-weight: var(--fw-semibold); }
 .career-featured__blurb strong { color: var(--ink); font-weight: var(--fw-semibold); }
 .career-featured.career-flash { outline-offset: 2px; }

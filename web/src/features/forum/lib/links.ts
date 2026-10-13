@@ -1,7 +1,7 @@
 // Which URLs user content may point at (docs/reviews/security-design.md, findings 11 and 12; security.md SEC-3).
 //   links:  the app's safeHref(): a path inside the app (never '//host', '/\host' or '/\t/host'), or an absolute
 //           http:, https: or mailto: URL, with no whitespace, control character or backslash anywhere in it
-//   images: only pictures served by the API, exactly /api/v1/media/<uuid> (isMediaPath, the one rule for every area)
+//   images: only pictures served by the API, exactly /api/v1/media/<uuid> (isMediaPath)
 import { apiUrl } from '../../../api/client';
 import { hostOf } from '../../../lib/share';
 import { isMediaPath, safeHref } from '../../../ui/safeHref';
