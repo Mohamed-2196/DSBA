@@ -12,7 +12,7 @@ import re
 import uuid
 from typing import Any
 
-from sqlalchemy import func, insert, literal, not_, select, true
+from sqlalchemy import ColumnElement, func, insert, literal, not_, select, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
 
@@ -110,10 +110,11 @@ def notify_all(
     actor: User | None = None,
     data: dict[str, Any] | None = None,
     email: bool = True,
+    only: ColumnElement[bool] | None = None,
 ) -> int:
-    """One notification for every account except the actor's (one INSERT ... SELECT), and, with `email`, an email for
-    each of them whose switch for `kind` is on (in the same transaction; the caller commits). -> the number of
-    notifications."""
+    """One notification for every account except the actor's, among those matching `only` when given (one INSERT ...
+    SELECT), and, with `email`, an email for each of them whose switch for `kind` is on (in the same transaction; the
+    caller commits). -> the number of notifications."""
     path = hub_path(url)
     # The id comes from the database: a Python-side default would be computed once and repeated on every row.
     readers = select(
@@ -125,7 +126,7 @@ def notify_all(
         literal(path),
         literal(actor.id if actor else None),
         literal(data or {}, JSONB),
-    ).where(User.id != actor.id if actor is not None else true())
+    ).where(User.id != actor.id if actor is not None else true(), only if only is not None else true())
     columns = ["id", "user_id", "kind", "title", "body", "url", "actor_id", "data"]
     conn = db.connection()  # the session's transaction
     notified = conn.execute(

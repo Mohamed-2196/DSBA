@@ -226,7 +226,7 @@ class IssueDetail(IssueSummary):
 
 
 class PublishedIssue(IssueDetail):
-    emailed: bool  # false: told in the Hub only, since an issue email went to the cohort in the last 24 hours
+    emailed: bool  # false: an issue email went to the cohort in the last 24 hours, or the newsletter is off
 
 
 class IssueCreate(ApiModel):

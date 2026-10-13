@@ -19,7 +19,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.core.access import Box
+from app.core.access import Box, Feature
 from app.core.errors import ApiError, conflict, invalid, not_found
 from app.core.links import json_size
 from app.core.time import utcnow
@@ -270,8 +270,9 @@ def delete_issue(db: Session, user: User, issue: NewsletterIssue, ip: str | None
 
 
 def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> bool:
-    """Publishes a draft and tells every account about it (decision D1: the notification in the Hub always comes;
-    an email goes to those who keep "New newsletter issues" on). The cohort gets at most one issue email a day
+    """Publishes a draft and tells every account the newsletter is on for (decision D1: the notification in the Hub
+    always comes; an email goes to those who keep "New newsletter issues" on). With the newsletter switched off, it
+    tells nobody. The cohort gets at most one issue email a day
     (security review AD-8): an issue published within a day of one that was emailed is told in the Hub only.
     Publishing a published issue changes nothing and tells nobody. -> whether this issue went by email."""
     if issue.status == IssueStatus.published:
@@ -286,16 +287,23 @@ def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> 
     emailed = db.scalar(emailed_lately.limit(1)) is None
     issue.status = IssueStatus.published
     issue.published_at = now
-    notified = notify_all(
-        db,
-        "new_issue",
-        f"New issue of The DSBA Newsletter: {issue.title}",
-        body=issue.dek or None,
-        url=f"/newsletter/{issue.slug}",
-        actor=user,
-        data={"issueId": str(issue.id), "slug": issue.slug},
-        email=emailed,
+    readers = access.audience(db, Feature.newsletter)
+    notified = (
+        0
+        if readers is None
+        else notify_all(
+            db,
+            "new_issue",
+            f"New issue of The DSBA Newsletter: {issue.title}",
+            body=issue.dek or None,
+            url=f"/newsletter/{issue.slug}",
+            actor=user,
+            data={"issueId": str(issue.id), "slug": issue.slug},
+            email=emailed,
+            only=readers,
+        )
     )
+    emailed = emailed and notified > 0
     record(
         db,
         user,

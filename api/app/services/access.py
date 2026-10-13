@@ -10,7 +10,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Iterable
 
-from sqlalchemy import delete, select
+from sqlalchemy import ColumnElement, and_, delete, or_, select, true
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session, object_session
 
@@ -154,6 +154,22 @@ def feature_on(db: Session, user: User | None, feature: Feature) -> bool:
 def features_on(db: Session, user: User | None) -> list[Feature]:
     """The features that exist for this person, in the order FEATURES lists them."""
     return [f for f in FEATURES if feature_on(db, user, f)]
+
+
+def audience(db: Session, feature: Feature) -> ColumnElement[bool] | None:
+    """A condition on User for the accounts `feature` is on for, or None when it is off for everyone but admins
+    (who are told nothing about a switched-off feature)."""
+    state = switches(db).get(feature)
+    if state is None or state.mode == "off":
+        return None
+    if state.mode == "everyone":
+        return true()
+    holders = (
+        select(RoleGrant.user_id)
+        .join(AccessRole, AccessRole.id == RoleGrant.role_id)
+        .where(or_(RoleGrant.role_id.in_(state.role_ids), AccessRole.slug == ADMIN))
+    )
+    return and_(User.status == UserStatus.active, User.id.in_(holders))
 
 
 def require_feature(db: Session, user: User | None, feature: Feature) -> None:

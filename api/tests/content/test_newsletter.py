@@ -523,3 +523,30 @@ def test_reactions(client_for: Clients, student: User, other: User, moderator: U
 
     assert me.delete(f"{url}/useful").json() == {"useful": 1, "love": 1, "laugh": 0, "mine": ["love"]}
     assert me.delete(f"{url}/useful").json()["useful"] == 1
+
+
+def test_publishing_tells_only_those_the_newsletter_is_on_for(
+    client_for: Clients,
+    make_user: Callable[..., User],
+    moderator: User,
+    admin: User,
+    set_feature: Callable[..., None],
+    db: Session,
+) -> None:
+    """Switched off, publishing tells nobody; on for some roles, it tells those roles (and admins) only."""
+    student = make_user(name="Sara Student")
+    other_rep = make_user(name="Other Rep", roles=("student", "rep"))
+    boss = client_for(admin)
+    set_feature("newsletter", "off")
+    issue = boss.post(ISSUES, json=new_issue()).json()
+    r = boss.post(f"{ISSUES}/{issue['id']}/publish")
+    assert (r.status_code, r.json()["emailed"]) == (200, False)
+    assert list(db.scalars(select(Notification))) == []
+    assert list(db.scalars(select(EmailOutbox))) == []
+
+    set_feature("newsletter", "roles", ["rep"])
+    later = client_for(moderator).post(ISSUES, json=new_issue(slug="later", number=3)).json()
+    assert client_for(moderator).post(f"{ISSUES}/{later['id']}/publish").status_code == 200
+    told = {n.user_id for n in db.scalars(select(Notification))}
+    assert told == {other_rep.id, admin.id}
+    assert student.id not in told
