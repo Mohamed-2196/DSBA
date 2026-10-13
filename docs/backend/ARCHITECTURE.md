@@ -193,7 +193,9 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   file contents, the film hooks (`hub.forum.hidden`, frozen clocks), and localStorage stores for anything the
   server now keeps. localStorage stays only for guest conveniences: theme, a guest's chosen cohort, and a
   guest's lesson progress, which is imported on sign-in.
-- **Routing** is `BrowserRouter` at `/` (React Router 7, `react-router-dom`; v6 had open-redirect advisories).
+- **Routing** is a data router at `/`: `createBrowserRouter` in `App.tsx`, the page table in `routes.tsx`, React
+  Router 7 (`react-router-dom`; v6 had open-redirect advisories). `useLeaveGuard` blocks navigation away from unsaved
+  edits with `useBlocker`, and reloads with `beforeunload`.
   Keep every existing URL working: `/forum/:slug`, `/library/:idOrSlug`, `/newsletter/:slug`, `/modules/:id`.
   Links from user content go through `ui/safeHref.ts`.
 - **Analytics** (PostHog) load only in a build with `VITE_POSTHOG_KEY` (`src/lib/analytics.ts`): page views only,
