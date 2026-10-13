@@ -3,7 +3,7 @@
 // created. Nothing the run didn't create is touched. E2E_KEEP=1 leaves everything in place.
 import fs from 'node:fs';
 import { test as teardown, expect } from '@playwright/test';
-import { api, env, personaContext, readRun, statePath } from './support';
+import { api, env, personaContext, readRun, statePath, waitForCode } from './support';
 
 teardown.describe.configure({ mode: 'serial' });
 
@@ -14,7 +14,7 @@ teardown('the students download their data and delete their accounts; their post
     if (!fs.existsSync(statePath(who))) continue;
     const ctx = await personaContext(browser, who);
     const page = await ctx.newPage();
-    const me = await api<{ id: string; displayName: string }>(page, 'GET', '/api/v1/me');
+    const me = await api<{ id: string; displayName: string; email: string | null; phone: string | null }>(page, 'GET', '/api/v1/me');
     if (me.status !== 200) {
       await ctx.close();
       continue;
@@ -31,8 +31,18 @@ teardown('the students download their data and delete their accounts; their post
     await expect(dialog).toContainText('Your threads and replies stay, shown as from a deleted user.');
     const word = (await dialog.locator('.u-mono').first().innerText()).trim();
     await dialog.getByRole('textbox').fill(word);
+    const since = Date.now();
     await dialog.getByRole('button', { name: /Delete my account/ }).click();
-    await expect(page.getByText('Your account is deleted')).toBeVisible();
+    // D2: a session that started more than 10 minutes ago confirms it's you first, with a code to the account's
+    // email address (or phone). After the code the deletion goes ahead by itself.
+    const deleted = page.getByText('Your account is deleted');
+    const stepUp = page.locator('[data-hub="step-up"]');
+    await expect(deleted.or(stepUp).first()).toBeVisible();
+    if (await stepUp.isVisible()) {
+      const code = me.body.email ? await waitForCode('email', me.body.email, since) : await waitForCode('sms', me.body.phone ?? '', since);
+      await stepUp.getByLabel('6-digit code').fill(code);
+    }
+    await expect(deleted).toBeVisible();
     expect((await page.request.get('/api/v1/me')).status()).toBe(401);
     await ctx.close();
 

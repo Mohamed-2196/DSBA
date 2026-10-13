@@ -1,0 +1,40 @@
+# The end-to-end suite's settings for the local stack, on top of compose.yaml. scripts/e2e.sh applies it, runs the
+# suite and says how to undo it; on its own:
+#
+#   docker compose -f compose.yaml -f compose.e2e.yaml up -d --no-deps api mail web    # e2e mode
+#   docker compose up -d --no-deps api mail                                            # back to Mailpit
+#
+# What changes while it is applied (development only; production uses compose.prod.yaml):
+#   - Emails (sign-in codes, and the mail worker's notifications) are saved as .eml files in api/var/mail instead of
+#     going to Mailpit, and texts as .txt files in api/var/sms instead of the API's log. The suite reads its codes
+#     there. api/var/ is git-ignored.
+#   - Every request reaches the API through the web container's proxy, so the whole suite comes from one address.
+#     A run asks for 5 to 7 codes, 3 of them by text, and even a run of one spec signs the students up first. With
+#     the per-network limit (30 codes an hour), the run after the fourth to sixth in an hour would be refused, and
+#     the site's text budget (50 an hour, 300 a day) would stop an afternoon of reruns, so both are raised. The
+#     per-address and per-account limits stay as they are: each run signs up new students, and the suite checks
+#     the wait before a new code.
+
+x-e2e-mail: &e2e-mail
+  DSBA_EMAIL_BACKEND: file
+  DSBA_EMAIL_FILE_DIR: /app/var/mail
+
+services:
+  api:
+    environment:
+      <<: *e2e-mail
+      DSBA_SMS_BACKEND: file
+      DSBA_SMS_FILE_DIR: /app/var/sms
+      DSBA_SMS_ALLOWED_REGIONS: BH  # the suite signs up with random +973 mobile numbers
+      DSBA_OTP_MAX_PER_IP_PER_HOUR: "1000"
+      DSBA_SMS_MAX_PER_HOUR: "1000"
+      DSBA_SMS_MAX_PER_DAY: "10000"
+    volumes:
+      - ./api/var/mail:/app/var/mail
+      - ./api/var/sms:/app/var/sms
+
+  mail:
+    environment:
+      <<: *e2e-mail
+    volumes:
+      - ./api/var/mail:/app/var/mail

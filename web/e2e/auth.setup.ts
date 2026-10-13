@@ -55,8 +55,9 @@ setup('Sara signs up with her phone number: wrong code, resend, profile', async 
   await dialog.getByLabel('6-digit code').fill(code1 === '000000' ? '111111' : '000000');
   await expect(dialog).toContainText("That code isn't right. 4 tries left.");
 
-  // Resend after the countdown: a new code, and the first one stops working.
-  const resend = dialog.getByRole('button', { name: 'Resend code', exact: true });
+  // Resend after the countdown: a new code, and the first one stops working. (One name for the action, before and
+  // after a code expires: "Send a new code", UI/UX review.)
+  const resend = dialog.getByRole('button', { name: 'Send a new code', exact: true });
   await expect(resend).toBeEnabled({ timeout: 45_000 });
   const since2 = Date.now();
   const [resp2] = await Promise.all([page.waitForResponse((r) => r.url().endsWith('/api/v1/auth/otp')), resend.click()]);

@@ -1,6 +1,6 @@
 // The admin's People page: find a student, change his role and back, suspend him (he can read but not post),
 // lift it, and see it all in the activity log.
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { api, personaContext, readRun, remember } from './support';
 
@@ -24,18 +24,26 @@ test.afterAll(async ({ browser }) => {
   await ctx.close();
 });
 
+/** "Change" on a person's row opens the role dialog: the roles as radio cards, confirmed in one step (UX-15). The
+ * radio itself is hidden under its card, so the admin clicks the card. */
+async function changeRole(admin: Page, row: Locator, role: 'Student' | 'Student rep', confirm: string) {
+  await row.getByRole('button', { name: /^Change the role of/ }).click();
+  const dialog = admin.getByRole('dialog');
+  await dialog.getByText(role, { exact: true }).click();
+  await expect(dialog.getByRole('radio', { name: role, exact: true })).toBeChecked();
+  await dialog.getByRole('button', { name: confirm, exact: true }).click();
+}
+
 test('the admin makes Ali a student rep and back; he is told', async ({ admin, ali, run }) => {
   let row = await findAli(admin, run.ali.email);
-  await row.getByLabel(/Role of/).selectOption('moderator');
-  await admin.getByRole('dialog').getByRole('button', { name: 'Make student rep' }).click();
+  await changeRole(admin, row, 'Student rep', 'Make student rep');
   await expect(admin.getByText(`${run.ali.name} is now a student rep`, { exact: true })).toBeVisible();
   expect((await api<{ role: string }>(ali, 'GET', '/api/v1/me')).body.role).toBe('moderator');
   await ali.goto('/moderation');
   await expect(ali.locator('main')).toContainText('Open reports');
 
   row = await findAli(admin, run.ali.email);
-  await row.getByLabel(/Role of/).selectOption('student');
-  await admin.getByRole('dialog').getByRole('button', { name: 'Make student' }).click();
+  await changeRole(admin, row, 'Student', 'Make student');
   await expect(admin.getByText(`${run.ali.name} is now a student`, { exact: true })).toBeVisible();
   await ali.goto('/moderation');
   await expect(ali.locator('main')).toContainText('It isn’t available on your account.');

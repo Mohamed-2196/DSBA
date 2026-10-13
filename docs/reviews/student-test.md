@@ -3,6 +3,11 @@
 Tester: student tester. Status: **done** (10 October 2026). Stack under test: the shared dev API `:8000`, my web dev
 server `:5178`, the freshly seeded dev database (shared with the other reviewers while I tested).
 
+**Round 3 (13 October 2026):** the e2e suite now runs against the Docker stack with one command,
+`scripts/e2e.sh`. What changed, the status of ST-1 to ST-12 and the latest results are in
+[Round 3](#round-3-the-suite-on-the-docker-stack-13-october-2026) at the end. The by-hand findings below are from
+10 October; the next by-hand pass is the re-review round.
+
 Personas: **Sara Al-Mahmood** (Year 2, signed up with her phone +973 3612 4587, later added an email),
 **Ali Hasan** (Year 1, signed up with ali.hasan.dsba@example.com on a 390×844 screen), **Noor Al-Sayed** (Year 3,
 signed up by email through an expired code, then deleted her account), **Fatima Ahmed** (Year 3 student rep,
@@ -208,20 +213,25 @@ Files (all mine): `web/playwright.config.ts`, `web/e2e/support.ts` (settings, co
 files made at run time), `web/e2e/fixtures.ts` (a page per persona), `web/e2e/auth.setup.ts`, 11 `*.spec.ts` files
 and `web/e2e/cleanup.teardown.ts`.
 
-How to run (stack up, a web dev server on 5178 or `E2E_BASE_URL`):
+How to run (since round 3; the stack up with `docker compose up -d --build`, then from the repo root):
 
 ```
-cd web
-npx playwright test                       # everything, about 5 minutes
-npx playwright test e2e/forum.spec.ts     # one area (the setup project still runs first)
-E2E_KEEP=1 npx playwright test            # keep the run's accounts and posts to look at afterwards
+scripts/e2e.sh                            # everything, about 3 minutes
+scripts/e2e.sh e2e/forum.spec.ts          # one area (the setup project still runs first)
+E2E_KEEP=1 scripts/e2e.sh                 # keep the run's accounts and posts to look at afterwards
+scripts/e2e.sh --restore                  # afterwards: the API sends mail to Mailpit again
 ```
 
-Settings: `E2E_BASE_URL` (default `http://127.0.0.1:5178`), `E2E_MAIL_DIR` / `E2E_SMS_DIR` (default
-`/home/claude/devsvc/mail|sms`), `E2E_API_DIR` and `E2E_DEV_LOGIN` (how to run dev-login, default
-`uv run --no-sync python -m app.cli dev-login` in `../api`), `E2E_STATE_DIR` (default
-`$TMPDIR/dsba-e2e-<port>`: sessions, run details and `test-results`, so nothing is written into the repo),
-`E2E_KEEP=1`.
+The script puts the stack in e2e mode first (see [Round 3](#round-3-the-suite-on-the-docker-stack-13-october-2026)).
+Once it is, `cd web && npx playwright test` works too.
+
+Settings: `E2E_BASE_URL` (default `http://localhost:5173`, the web container), `E2E_MAIL_DIR` / `E2E_SMS_DIR`
+(default `api/var/mail|sms`), `E2E_API_DIR` and `E2E_DEV_LOGIN` (how to run dev-login, default
+`docker compose -p dsba-hub exec -T api python -m app.cli dev-login`; without Docker,
+`uv run --no-sync python -m app.cli dev-login` in `api/`), `E2E_STATE_DIR` (default `$TMPDIR/dsba-e2e-<port>`:
+sessions, run details and `test-results`, so nothing is written into the repo), `E2E_KEEP=1`, and `E2E_CHROMIUM`
+(a browser to launch instead of Playwright's Chromium). The first cloud set-up used `http://127.0.0.1:5178`,
+`/home/claude/devsvc/mail|sms` and `uv run`: set those variables to run it there again.
 
 How it works:
 
@@ -237,23 +247,26 @@ How it works:
 - **Waits:** the suite has no fixed sleeps. The one exception is the wait the API asks for ("Wait 21 seconds…")
   before signing back in within the 30 s cooldown.
 
-**Result:** `40 passed` on the current stack, in two consecutive full runs (4.7 and 4.6 minutes). That includes the three known-bug tests, which use
-`test.fail(...)`: ST-1 (`library.spec.ts`), ST-2 (`calendar.spec.ts`) and ST-4 (`notifications.spec.ts`). When one of
-these bugs is fixed, its test passes unexpectedly and fails the run, as a reminder to delete the `test.fail` line.
+**Result (10 October):** `40 passed` on the cloud stack, in two consecutive full runs (4.7 and 4.6 minutes). That
+included the three known-bug tests, which used `test.fail(...)`: ST-1 (`library.spec.ts`), ST-2 (`calendar.spec.ts`)
+and ST-4 (`notifications.spec.ts`). When one of these bugs is fixed, its test passes unexpectedly and fails the run,
+as a reminder to delete the `test.fail` line. Round 2 fixed all three and removed the lines. For the latest results,
+see Round 3.
 
 Side effects:
 
-- Each run uses 5 one-time codes (3 texts, 2 emails) out of the 30 per IP per hour.
+- Each run uses 5 one-time codes (3 texts, 2 emails), and 2 more emails when the teardown needs step-up codes (a
+  run longer than 10 minutes). The e2e mode raises the per-network limit of 30 codes an hour (Round 3).
 - Publishing the run's newsletter issue notifies every account in the database that wants newsletter news. The
   teardown deletes the issue, so those notifications then lead to "We couldn't find that issue".
 
-Checks: `npx eslint e2e playwright.config.ts` is clean. `tsc --strict` is clean too, using a scratch tsconfig,
-because `web/tsconfig.json` only includes `src`.
+Checks: `npx eslint e2e playwright.config.ts` is clean, and so is `npx tsc -p tsconfig.node.json`, which now
+includes the suite.
 
 Requests for the lead:
 
-- Type-check the suite in `npm run typecheck`, for example by adding `"e2e/**/*.ts", "playwright.config.ts"` to
-  `tsconfig.node.json` (with `"lib": ["ES2023", "DOM"]`).
+- ~~Type-check the suite in `npm run typecheck`.~~ Done in round 2: `tsconfig.node.json` includes `e2e/**/*.ts` and
+  `playwright.config.ts`.
 - If `outputDir` is ever moved into the repo, add `test-results/` and `playwright-report/` to `.gitignore`.
 
 ## Test data I left in the dev database
@@ -271,3 +284,132 @@ All e2e runs cleaned up after themselves. The stable e2e rep and admin accounts 
 
 Note for the UI/UX reviewer: while resolving my own reports I also resolved the open report on "ux-Hamad A."'s spam
 reply in the ST2195 thread. My note there, "Hid the reply…", is wrong: the reply was not hidden. Sorry about that.
+
+## Round 3: the suite on the Docker stack (13 October 2026)
+
+Scope: `docs/STATUS.md`, "Next", item 1. The e2e suite runs against `docker compose` with one command, the whole
+suite ran, the tests that broke on deliberate round 2 changes are updated, and it ran again straight away. There was
+no by-hand pass this time: the full re-test of every feature as each kind of user comes in the re-review round.
+
+Stack: Docker Desktop on Mohamed's Mac, compose project `dsba-hub`, with `api`, `mail` and `web` mounted from the
+branch `round3/e2e-docker` (code as on `feature/backend`, `fd4bfe5`). Browser: Google Chrome 155, headless, driven by
+Playwright 1.56 (see "Left open").
+
+### The command
+
+```
+scripts/e2e.sh                            # the whole suite, about 3 minutes
+scripts/e2e.sh e2e/forum.spec.ts          # one area; any arguments go on to `npx playwright test`
+E2E_KEEP=1 scripts/e2e.sh                 # keep the run's accounts and posts
+scripts/e2e.sh --restore                  # put the API back on Mailpit and the log
+```
+
+What it changes in the running stack (`compose.e2e.yaml` over `compose.yaml`, applied with
+`up -d --no-deps api mail web`):
+
+- **Mail and texts go to files.** The API and the mail worker save emails, sign-in codes included, as `.eml` files
+  in `api/var/mail`, and the API saves texts as `.txt` files in `api/var/sms`. Both folders are git-ignored and
+  mounted into the containers, and the suite reads its codes there. Mailpit gets nothing until `--restore`.
+- **Two limits are raised.** Every request reaches the API through the web container's Vite proxy, and the
+  development API trusts no proxy, so to the API the whole suite comes from one address: the web container's. So
+  does anyone else using `:5173` at the time. A run asks for 5 to 7 codes, 3 of them by text, and even a run of one
+  spec signs the students up first. With the per-network limit of 30 codes an hour, only four to six runs fit in an
+  hour, and the next is refused ("Too many codes were asked for from your network"). The site's text budget (50 an
+  hour, 300 a day) would stop an afternoon of reruns. So `DSBA_OTP_MAX_PER_IP_PER_HOUR` goes to 1000, and
+  `DSBA_SMS_MAX_PER_HOUR` and `_PER_DAY` to 1000 and 10000.
+- **Everything else keeps its production value.** The per-address and per-account limits, the 30 s wait before a new
+  code and the wrong-code lockout per address and network (D4) are unchanged. Every run signs up new students, and the
+  rep and the admin sign in with dev-login, so none of them builds up across reruns. Production isn't affected:
+  `compose.prod.yaml` trusts only Caddy's address (`DSBA_TRUSTED_PROXIES`) and keeps the default limits.
+- **db, minio and mailpit are never stopped or recreated.** The stack stays in e2e mode after a run, so reruns start
+  at once.
+
+The suite's defaults (`web/e2e/support.ts`) now point at this stack: `E2E_BASE_URL=http://localhost:5173`,
+`E2E_MAIL_DIR=api/var/mail`, `E2E_SMS_DIR=api/var/sms` and
+`E2E_DEV_LOGIN="docker compose -p dsba-hub exec -T api python -m app.cli dev-login"`, which finds the project from
+any folder. The cloud settings still work through the same variables. While it waits for a code, the suite names the
+folder it reads and says how to switch the API to its file backends.
+
+The browser is Playwright's own Chromium when it is completely installed. On a Mac without it, the script sets
+`E2E_CHROMIUM` to `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`, which `playwright.config.ts`
+launches.
+
+### Tests I changed, and why
+
+All three follow deliberate round 2 changes. None of them hides an app bug.
+
+| Test | Change | Why |
+|---|---|---|
+| `auth.setup.ts`, "Sara signs up with her phone number" | The resend button is "Send a new code", not "Resend code" | The UI/UX review asked for one name for the action, before and after a code expires (`e96121a`). Run 1 stopped here, so nothing else ran. |
+| `admin.spec.ts`, "the admin makes Ali a student rep and back" | "Change" on Ali's row, then the "Student rep" (or "Student") card, then "Make student rep" (or "Make student"), instead of a "Role of …" select | UX-15 replaced the select with a dialog of radio cards. The radio sits hidden under its card (opacity 0, no pointer events), so the test clicks the card, as an admin does, and checks that the radio is on. |
+| `cleanup.teardown.ts`, account deletion | If "Confirm it's you" opens, the test reads the step-up code from the mail folder and enters it | Since D2, deleting an account needs a step-up code once the session is over 10 minutes old. A full run takes about 3 minutes, so this only happens on a very slow run. I checked the path on its own (see Results). |
+
+Commit `5c3617d` fixed two setup steps without running them. Both are right and pass in every run:
+- Sara's code step says "Sent to +973 3xxx xxxx." in full (UX-16).
+- The rep confirms "Hide reply" and "Hide thread" in the new dialogs.
+
+### Earlier findings
+
+| ID | Severity | Status | How I know |
+|---|---|---|---|
+| ST-1 | minor | **fixed** | e2e "ST-1: a starred file from another year shows under Starred" passes, with no `test.fail` |
+| ST-2 | major | **fixed** | e2e "ST-2: an event for a Year 2 module added with the default cohort is a Year 2 event" passes |
+| ST-3 | minor | fix merged, to re-test | `ebd3476`: Mini Noora gives the worked Laplace steps only for Laplace (`noora/formulas.ts`). The e2e test only asks for an exam date. |
+| ST-4 | minor | **fixed** | e2e "ST-4: a reply notification links to the reply itself" passes |
+| ST-5 | minor | decided (D3), fix merged, to re-test | `e96121a`: authors see their hidden thread with a notice and are told why. The e2e test checks students and guests, not the author. |
+| ST-6 | nit | fix merged, to re-test | `services/forum/replies.py`: deleting or hiding a reply removes the notifications about it |
+| ST-7 | nit | fix merged, to re-test | The message is now "This isn't a real .pdf file: what's inside doesn't match its name. Save or export it again, or choose another file." The e2e test checks the `mismatch` code. |
+| ST-8 | nit | fix merged, to re-test | Starring now needs an active account (`ActiveUser` in `routers/library.py`) |
+| ST-9 | nit | fix merged, to re-test | The activity log names the issue: "published the newsletter issue “…”" (`admin/audit.ts`) |
+| ST-10 | nit | **fixed** | Guest pages ask `GET /auth/session`, which answers 200. In the API log for runs 1 and 2, the only 401s were the suite's own `GET /me` checks after signing out and after deleting an account. |
+| ST-11 | nit | fix merged, to re-test | `forum/lib/replies.ts` counts the people who replied, so the author no longer counts |
+| ST-12 | nit | fix merged, to re-test | The delete dialog now says "Its text is deleted, but its title and its reply stay in the forum…" |
+
+"To re-test" means a by-hand check in the re-review round. The suite doesn't reach these.
+
+### New findings
+
+None. Every failure in these runs came from a deliberate change, and each test is updated (above). No test
+needed `test.fail`.
+
+### Left open
+
+- **Playwright's Chromium doesn't install on this Mac.** With Node 26.11 and Playwright 1.56, `npx playwright install
+  chromium` stops while unpacking, every time at 624 KB. It leaves `~/Library/Caches/ms-playwright/chromium-1194`
+  half unpacked, without its `INSTALLATION_COMPLETE` marker, and holds a lock that blocks every other install while
+  it hangs. The suite runs in Google Chrome instead. A newer Playwright, or the tools on a Node LTS (22 or 24), may
+  bring the pinned browser back; I didn't try either.
+- **Test locations are wrong under Node 26.** Every Playwright start warns that `module.register()` is deprecated,
+  and the list reporter prints the wrong line for each test (for example `auth.setup.ts:304` for a test at line
+  203). The titles are right, and a failure's code frame shows the right line. Running one test by `file:line` may
+  not pick the test you mean, so use `-g "title"`.
+- **The teardown's step-up branch runs only on a slow run.** I checked it once on its own (Results). Nothing tests
+  step-up before changing an email or phone number.
+- **`CLAUDE.md`, `docs/STATUS.md` and `README.md` still describe the old way.** The lead is updating them. The
+  command and its settings are in `scripts/e2e.sh --help` and above.
+
+### Results
+
+All runs used `scripts/e2e.sh` on the Docker stack, one worker, with Google Chrome 155. "Did not run" means the
+tests after a failure in a serial group or in the setup project. The counts are Playwright's.
+
+| Run | What ran | Passed | Failed | Skipped | Did not run | Time |
+|---|---|---|---|---|---|---|
+| 1 | The whole suite, as it was | 2 | 1 | 0 | 38 | 2.3 min |
+| 2 | The whole suite, after the resend and teardown changes | 38 | 1 | 0 | 2 | 5.7 min |
+| | `admin.spec.ts` alone, after clicking the role card | 10 | 0 | 0 | 0 | 1.4 min |
+| | `accounts.spec.ts` with `E2E_KEEP=1`, keeping two students for the step-up check | 7 | 0 | 2 | 0 | 1.3 min |
+| A | **The whole suite, final** | **41** | **0** | **0** | **0** | 2.9 min |
+| B | **The whole suite again, straight after A** | **41** | **0** | **0** | **0** | 2.8 min |
+| | The teardown alone (`--project=cleanup`), 11 minutes after those students signed in | 2 | 0 | 0 | 0 | 4 s |
+
+- **Run 1:** the setup failed on "Resend code", so no spec ran. The two passes are the teardown, with nothing to
+  clean up.
+- **Run 2:** the admin's role change failed on the hidden radio, and the other two admin tests didn't run.
+- **The teardown run:** it took the step-up path for both students. The API log shows `DELETE /me` 403, then
+  `POST /me/step-up` 202, `POST /me/step-up/verify` 200 and `DELETE /me` 204.
+
+Afterwards, `scripts/e2e.sh --restore` put the API back on SMTP and the console, and a code for a made-up
+`restore.e2e.*@example.com` address arrived in Mailpit. `api`, `mail` and `web` run from the main checkout again.
+
+**Final: 41 passed, 0 failed, 0 skipped**, in two full runs back to back (A and B).
