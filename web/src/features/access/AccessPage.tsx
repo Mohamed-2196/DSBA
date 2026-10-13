@@ -3,7 +3,9 @@ import { ClockCounterClockwise, IdentificationBadge, ToggleRight, UsersThree } f
 import { Gate } from '../../auth';
 import { useQueryParam } from '../../state';
 import { ErrorBoundary, Page, PageHeader, TabPanel, Tabs } from '../../ui';
-import { ActivityLog, PeopleList } from './public';
+import { ActivityLog } from './ActivityLog';
+import { FeaturesTab } from './FeaturesTab';
+import { PeopleList } from './PeopleList';
 import { RolesTab } from './RolesTab';
 import './AccessPage.css';
 
@@ -32,7 +34,9 @@ function AccessScreen() {
         </ErrorBoundary>
       </TabPanel>
       <TabPanel idBase="access" id="features" value={tab} className="access-panel">
-        <ErrorBoundary name="Access:features">{null}</ErrorBoundary>
+        <ErrorBoundary name="Access:features">
+          <FeaturesTab />
+        </ErrorBoundary>
       </TabPanel>
       <TabPanel idBase="access" id="activity" value={tab} className="access-panel">
         <ErrorBoundary name="Access:activity">
