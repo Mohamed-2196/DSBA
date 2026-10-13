@@ -1,6 +1,6 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
-import { CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, Newspaper, Power, Tray, UsersThree, type Icon } from '@phosphor-icons/react';
+import { CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, HandWaving, Newspaper, Power, Tray, UsersThree, type Icon } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { useQueryParam } from '../../state';
@@ -8,6 +8,7 @@ import { Button, EmptyState, ErrorBoundary, Page, PageHeader, Panel, QueryError,
 import { ActivityLog, PeopleList } from '../access/public';
 import { ReportsQueue } from '../forum/public';
 import { UploadsQueue } from '../library/public';
+import { RequestsQueue } from '../requests/public';
 import { useIssues } from '../newsletter/public';
 import { useAdminStats } from './api';
 import { sectionsFor, type SectionId } from './sections';
@@ -16,6 +17,7 @@ import './ManagePage.css';
 const SECTIONS: Record<SectionId, { label: string; icon: Icon }> = {
   reports: { label: 'Reports', icon: Flag },
   uploads: { label: 'Uploads', icon: Tray },
+  requests: { label: 'Requests', icon: HandWaving },
   newsletter: { label: 'Newsletter', icon: Newspaper },
   calendar: { label: 'Calendar', icon: CalendarDots },
   career: { label: 'Career Navigator', icon: Compass },
@@ -27,6 +29,7 @@ const SECTIONS: Record<SectionId, { label: string; icon: Icon }> = {
 const NUMBERS = [
   ['openReports', 'Open reports'],
   ['pendingUploads', 'Uploads to review'],
+  ['openRequests', 'Open requests'],
   ['users', 'People'],
   ['threads', 'Threads'],
   ['replies', 'Replies'],
@@ -89,6 +92,7 @@ function LinkOut({ icon, title, body, to, label }: { icon: Icon; title: string; 
 const BODIES: Record<SectionId, () => ReactNode> = {
   reports: () => <ReportsQueue />,
   uploads: () => <UploadsQueue />,
+  requests: () => <RequestsQueue />,
   newsletter: () => <Drafts />,
   calendar: () => <LinkOut icon={CalendarDots} title="The calendar" body="Add, edit and delete events from the calendar itself." to="/calendar" label="Open the calendar" />,
   career: () => <LinkOut icon={Compass} title="Career Navigator" body="Its content is edited on Career Navigator." to="/career" label="Open Career Navigator" />,
@@ -106,6 +110,7 @@ function ManageScreen() {
   const counts: Partial<Record<SectionId, number | null>> = {
     reports: stats.data?.openReports ?? null,
     uploads: stats.data?.pendingUploads ?? null,
+    requests: stats.data?.openRequests ?? null,
   };
   const [tab, setTab] = useQueryParam('tab', sections[0] ?? 'reports');
   const current = sections.find((id) => id === tab) ?? sections[0];

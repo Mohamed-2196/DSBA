@@ -16,12 +16,13 @@ export const BOX_KEYS = [
   'newsletter.manage',
   'calendar.manage',
   'career.edit',
+  'requests.manage',
   'stats.view',
   'people.suspend',
   'audit.read',
 ] as const satisfies readonly Box[];
 
-export const FEATURE_KEYS = ['forum', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora'] as const satisfies readonly Feature[];
+export const FEATURE_KEYS = ['forum', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora', 'requests'] as const satisfies readonly Feature[];
 
 /** The boxes that open a manager's tool, in the order Manage shows them. */
 export const MANAGER_BOXES = [
@@ -30,6 +31,7 @@ export const MANAGER_BOXES = [
   'newsletter.manage',
   'calendar.manage',
   'career.edit',
+  'requests.manage',
   'stats.view',
   'people.suspend',
   'audit.read',

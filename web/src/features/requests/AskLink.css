@@ -1,0 +1,10 @@
+/* "Can't find it? Ask for it" (AskLink.tsx), on other features' pages. */
+.req-ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4) var(--sp-8);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
