@@ -1926,6 +1926,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/noora/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask Noora
+         * @description Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the
+         *     note or the answer. The note goes only when the student ticked "Include my note".
+         *
+         *     Errors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly
+         *     budget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),
+         *     rate_limited (429: a question a moment ago), invalid_input (422: too long).
+         */
+        post: operations["ask_noora_api_v1_noora_ask_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/noora/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Noora Status
+         * @description Whether her AI answers work for this student now, and how many questions they have left today.
+         */
+        get: operations["noora_status_api_v1_noora_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/noora": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Noora Usage
+         * @description The limits, and the questions, tokens and estimated cost today and this month. Nothing per student.
+         */
+        get: operations["noora_usage_api_v1_admin_noora_get"];
+        /**
+         * Set Noora Limits
+         * @description Set the questions each student may ask a day (0 pauses the AI answers) and the monthly budget in US cents.
+         *     Admins only. Audited (`noora.limits`).
+         */
+        put: operations["set_noora_limits_api_v1_admin_noora_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2757,7 +2827,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -3092,7 +3162,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board" | "requests";
+            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests";
             /** Label */
             label: string;
             /** Hides */
@@ -3118,7 +3188,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board" | "requests")[];
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests")[];
         };
         /** FileLink */
         FileLink: {
@@ -3629,7 +3699,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board" | "requests")[];
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests")[];
             /**
              * Status
              * @enum {string}
@@ -3728,6 +3798,150 @@ export interface components {
             lessonCount: number;
             /** Librarycount */
             libraryCount: number | null;
+        };
+        /**
+         * NooraDoneEvent
+         * @description The answer is complete.
+         */
+        NooraDoneEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "done";
+            /** Questionsleft */
+            questionsLeft: number;
+        };
+        /**
+         * NooraErrorEvent
+         * @description The answer stopped. `code` is noora_unavailable: what came so far may be shown, with a line that it was cut
+         *     off.
+         */
+        NooraErrorEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "error";
+            /**
+             * Code
+             * @default noora_unavailable
+             * @constant
+             */
+            code: "noora_unavailable";
+            /** Message */
+            message: string;
+        };
+        /** NooraLimitsIn */
+        NooraLimitsIn: {
+            /** Dailyquestions */
+            dailyQuestions: number;
+            /** Monthlybudgetcents */
+            monthlyBudgetCents: number;
+        };
+        /**
+         * NooraNote
+         * @description The note open in the editor. Sent only when the student ticks "Include my note" for this question.
+         */
+        NooraNote: {
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Body */
+            body: string;
+        };
+        /**
+         * NooraQuestion
+         * @description A question, and what's on the student's screen. The server looks the module and lesson up itself.
+         */
+        NooraQuestion: {
+            /** Question */
+            question: string;
+            /**
+             * Route
+             * @default /
+             */
+            route: string;
+            /** Year */
+            year?: (1 | 2 | 3) | null;
+            /** Moduleid */
+            moduleId?: string | null;
+            /** Chapter */
+            chapter?: number | null;
+            /** Video */
+            video?: number | null;
+            note?: components["schemas"]["NooraNote"] | null;
+            /** History */
+            history?: components["schemas"]["NooraTurn"][];
+        };
+        /**
+         * NooraStatus
+         * @description Whether her AI answers work for this student now, and how many questions are left today.
+         */
+        NooraStatus: {
+            /** Available */
+            available: boolean;
+            /** Dailyquestions */
+            dailyQuestions: number;
+            /** Questionsleft */
+            questionsLeft: number;
+        };
+        /**
+         * NooraTextEvent
+         * @description More of the answer.
+         */
+        NooraTextEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "text";
+            /** Text */
+            text: string;
+        };
+        /** NooraTotals */
+        NooraTotals: {
+            /** Questions */
+            questions: number;
+            /** Students */
+            students: number;
+            /** Inputtokens */
+            inputTokens: number;
+            /** Outputtokens */
+            outputTokens: number;
+            /** Costcents */
+            costCents: number;
+        };
+        /**
+         * NooraTurn
+         * @description An earlier message of the conversation, so a follow-up question makes sense.
+         */
+        NooraTurn: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "student" | "noora";
+            /** Text */
+            text: string;
+        };
+        /**
+         * NooraUsageOut
+         * @description The limits and the totals, for Manage's numbers. Nothing per student: only counts.
+         */
+        NooraUsageOut: {
+            /** Configured */
+            configured: boolean;
+            /** Model */
+            model: string;
+            /** Dailyquestions */
+            dailyQuestions: number;
+            /** Monthlybudgetcents */
+            monthlyBudgetCents: number;
+            today: components["schemas"]["NooraTotals"];
+            month: components["schemas"]["NooraTotals"];
         };
         /** Note */
         Note: {
@@ -5001,6 +5215,16 @@ export type MeUpdate = components['schemas']['MeUpdate'];
 export type ModuleDetail = components['schemas']['ModuleDetail'];
 export type ModuleResources = components['schemas']['ModuleResources'];
 export type ModuleSummary = components['schemas']['ModuleSummary'];
+export type NooraDoneEvent = components['schemas']['NooraDoneEvent'];
+export type NooraErrorEvent = components['schemas']['NooraErrorEvent'];
+export type NooraLimitsIn = components['schemas']['NooraLimitsIn'];
+export type NooraNote = components['schemas']['NooraNote'];
+export type NooraQuestion = components['schemas']['NooraQuestion'];
+export type NooraStatus = components['schemas']['NooraStatus'];
+export type NooraTextEvent = components['schemas']['NooraTextEvent'];
+export type NooraTotals = components['schemas']['NooraTotals'];
+export type NooraTurn = components['schemas']['NooraTurn'];
+export type NooraUsageOut = components['schemas']['NooraUsageOut'];
 export type Note = components['schemas']['Note'];
 export type NoteCreate = components['schemas']['NoteCreate'];
 export type NotePage = components['schemas']['NotePage'];
@@ -8119,7 +8343,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board" | "requests";
+                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests";
             };
             cookie?: never;
         };
@@ -14708,6 +14932,356 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BoardCard"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ask_noora_api_v1_noora_ask_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NooraQuestion"];
+            };
+        };
+        responses: {
+            /** @description Server-Sent Events: text pieces, then done, or error when the answer stopped. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                    "application/json": components["schemas"]["NooraTextEvent"] | components["schemas"]["NooraDoneEvent"] | components["schemas"]["NooraErrorEvent"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description noora_unavailable (no key) or noora_budget_reached (the month's budget is spent). */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    noora_status_api_v1_noora_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NooraStatus"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    noora_usage_api_v1_admin_noora_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NooraUsageOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    set_noora_limits_api_v1_admin_noora_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NooraLimitsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NooraUsageOut"];
                 };
             };
             /** @description Bad Request */

@@ -23,6 +23,8 @@ x-api-env: &api-env
   DSBA_SMTP_PORT: "1025"
   DSBA_SMS_BACKEND: console
   DSBA_ADMIN_IDENTIFIERS: ${DSBA_ADMIN_IDENTIFIERS:-}
+  DSBA_ANTHROPIC_API_KEY: ${DSBA_ANTHROPIC_API_KEY:-}  # Mini Noora's AI answers (the noora.ai feature)
+  DSBA_NOORA_MODEL: ${DSBA_NOORA_MODEL:-claude-haiku-4-5-20251001}
 
 services:
   db:

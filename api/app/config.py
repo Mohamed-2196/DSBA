@@ -149,6 +149,15 @@ class Settings(BaseSettings):
     google_api_key: SecretStr | None = None
     google_service_account_file: str | None = None
 
+    # Mini Noora's AI answers (the noora.ai feature), through Claude. Without a key she answers from her script only.
+    # The prices (US dollars per million tokens) are the model's list prices: they turn the tokens each answer uses
+    # into the estimated cost that the monthly budget (set by admins in the app) is checked against.
+    anthropic_api_key: SecretStr | None = None
+    noora_model: str = "claude-haiku-4-5-20251001"
+    noora_input_usd_per_mtok: float = Field(default=1.0, ge=0)
+    noora_output_usd_per_mtok: float = Field(default=5.0, ge=0)
+    noora_max_answer_tokens: int = Field(default=700, ge=100, le=4000)
+
     @field_validator(
         "s3_endpoint_url",
         "s3_public_endpoint_url",
@@ -161,6 +170,7 @@ class Settings(BaseSettings):
         "backup_kms_key_id",
         "google_api_key",
         "google_service_account_file",
+        "anthropic_api_key",
         mode="before",
     )
     @classmethod

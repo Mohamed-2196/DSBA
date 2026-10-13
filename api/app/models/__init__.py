@@ -8,6 +8,7 @@ from app.models.content import CalendarEvent, ContentDoc, Module
 from app.models.forum import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVote
 from app.models.library import ItemSource, ItemStatus, LibraryItem, LibraryStar, Upload, UploadPurpose, UploadStatus
 from app.models.newsletter import IssueStatus, NewsletterIssue, NewsletterReaction
+from app.models.noora import NooraLimits, NooraUsage
 from app.models.notes import Note
 from app.models.outbox import EmailOutbox, OutboxStatus
 from app.models.requests import RequestMeToo, RequestStatus, StudentRequest
@@ -36,6 +37,8 @@ __all__ = [
     "Module",
     "NewsletterIssue",
     "NewsletterReaction",
+    "NooraLimits",
+    "NooraUsage",
     "Note",
     "Notification",
     "OtpChallenge",
