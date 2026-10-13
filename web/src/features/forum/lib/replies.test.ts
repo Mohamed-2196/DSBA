@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Reply, UserPublic } from '../../../api/types';
-import { mayChange, nestReplies, participants, readOnlyFor, replyTargetId, shownReplyIds, takesReplies, textDeleted } from './replies';
+import { mayChange, nestReplies, postMenuActions, participants, readOnlyFor, replyTargetId, shownReplyIds, takesReplies, textDeleted } from './replies';
 
 const person = (id: string, displayName = id): UserPublic => ({ id, displayName, year: 2, badge: null });
 let n = 0;
@@ -113,5 +113,13 @@ describe('mayChange', () => {
     expect(mayChange(true, false, false)).toBe(false);
     expect(mayChange(true, true, false)).toBe(true);
     expect(mayChange(false, true, true)).toBe(false);
+  });
+});
+
+describe('postMenuActions', () => {
+  it('keeps Delete for an author without forum.post and takes Edit away', () => {
+    expect(postMenuActions(true, false, false)).toEqual({ edit: false, remove: true });
+    expect(postMenuActions(true, false, true)).toEqual({ edit: true, remove: true });
+    expect(postMenuActions(false, false, true)).toEqual({ edit: false, remove: false });
   });
 });
