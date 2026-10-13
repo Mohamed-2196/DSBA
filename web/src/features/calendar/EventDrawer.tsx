@@ -1,4 +1,6 @@
 import { LinkSimple, PencilSimple, Trash } from '@phosphor-icons/react';
+import { useAuth } from '../../auth';
+import { AddToBoard } from '../board/public';
 import { BREAKPOINTS, useMediaQuery, useToast, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, CohortBadge, cx, Drawer, IconButton, ModuleIcon } from '../../ui';
@@ -8,7 +10,7 @@ import { AddExamsToCalendar, AddToCalendar } from './AddToCalendar';
 import { eventPageUrl } from './api';
 import { countdownLabel } from './dates';
 import { splitTitle, TYPE_BADGE_TONE, typeLabel, whenAndWhere } from './eventMeta';
-import type { CalendarEvent } from './types';
+import type { CalendarEvent, EventType } from './types';
 
 export interface EventDrawerProps {
   event: CalendarEvent | null;
@@ -76,8 +78,12 @@ interface DrawerContentProps {
   examsYear?: CohortYear | null;
 }
 
+// The dates a student works towards: these can go on the study board.
+const BOARD_TYPES: ReadonlySet<EventType> = new Set(['exam', 'mock', 'deadline']);
+
 function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerContentProps) {
   const { getModule } = useModules();
+  const { featureOn } = useAuth();
   const date = parseDay(event.date);
   const end = event.endDate && event.endDate > event.date ? parseDay(event.endDate) : null;
   const days = daysUntil(date, today);
@@ -120,6 +126,8 @@ function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerConten
           {where}
         </p>
       ) : null}
+
+      {featureOn('board') && BOARD_TYPES.has(event.type) ? <AddToBoard link={{ type: 'event', id: event.id }} className="cal-drawer__board" /> : null}
 
       {module ? (
         <section className="cal-drawer__section" aria-labelledby="cal-drawer-module">
