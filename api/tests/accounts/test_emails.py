@@ -344,3 +344,7 @@ def test_an_email_into_a_switched_off_feature_is_cancelled(
     assert deliver() == 2
     assert [m.to for m in outbox] == ["issued@example.com"]
     assert [r.status for r in _queued(db, replied)] == [OutboxStatus.cancelled]
+
+
+def test_every_emailed_kind_names_its_feature() -> None:
+    assert set(mail_outbox.EMAIL_FEATURES) == set(mail_outbox.EMAIL_SWITCHES)
