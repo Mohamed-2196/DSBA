@@ -1,4 +1,54 @@
-# Code quality review (round 1)
+# Code quality review
+
+Two passes live in this file. **Round 3 re-review** (below, at `8c4164d`) re-checks every earlier finding, reviews
+what rounds 2 and 3 added, and adds CQ-19 onwards. **Round 1** (further down, at `525962c`) holds the original
+findings CQ-1 to CQ-18 as they were written; their line numbers refer to that commit.
+
+# Round 3 re-review
+
+Reviewer: code quality. Scope: `feature/backend` at `8c4164d` (round 3 and the no-compatibility clean-up merged),
+reviewed on `round3/review-quality`. Left alone, because the approved access work replaces them: the roles code
+(`core/security.py` role checks, `routers/admin.py`, `features/admin`, `features/moderation`, the bootstrap admin in
+`services/accounts.py`) and the migrations, which the access plan squashes into one baseline
+(`docs/superpowers/plans/2026-10-13-access-*.md`). No application code was changed.
+
+## Checks run
+
+| check | result |
+|---|---|
+| `PATH=/opt/homebrew/opt/libpq/bin:$PATH scripts/check.sh` | **all passed**: uv.lock and requirements.txt in sync, ruff and ruff format clean, mypy strict clean on 150 files (`app` and `tests`), 652 API tests passed (drift and migration tests included), both `tsc` configs clean, ESLint clean, 347 Vitest tests in 36 files passed, `schema.d.ts` matches `openapi.json`, build passed |
+| `npx knip` in `web/` | 3 "unused files" (all false positives, see CQ-27), 86 unused exports (checked by hand: 1 dead function, the rest used only in their own file or re-exported through a barrel nobody imports), 60+ unused exported types (props types re-exported from `src/ui/index.ts`: fine) |
+| `vite build` with source maps | entry chunk 611 KB, 182 KB gzip (round 1: 837 KB / 256 KB). By source size it is mostly React Router, Phosphor icons, React DOM and TanStack Query; PostHog is now a lazy chunk |
+| `type: ignore` in `api/app` | 4, all at untyped library edges (boto3's `LocationConstraint`, two in google-auth, one in `routers/_base.py`, CQ-28) |
+
+## Earlier findings: status
+
+| ID | Status | What is there now |
+|---|---|---|
+| CQ-1 | **fixed** | `removeStored()` (`web/src/state/storedValue.ts:39`) dispatches to every holder; `clearPersonalStorage` uses it (`auth/queries.ts:46`); `useForumViewerSync` and `forgetDraftOf` are gone; `auth/queries.test.ts` covers it. |
+| CQ-2 | **fixed** | One staff rule, one `client_ip()`, typed settings, `Storage` methods; `request_ip`, `rotate_csrf` and the forum's and admin's local checks are gone. |
+| CQ-3 | **fixed** | `services/forum/` is a package of 12 modules (1,794 lines in all, the largest 252); reports moved to `services/reports.py`. The bounded per-author `ILIKE` in `forum/images.py:55,63` stays, as the round 1 recheck accepted. |
+| CQ-4 | **fixed** | Issue sections and covers are discriminated Pydantic unions (`schemas/newsletter.py:114,142`), `CareerContent.data` is `CareerDoc`, `AccountExport` has typed items; `newsletter/types.ts` is 30 lines of aliases over the generated types. Left: `AuditOut.data: dict[str, Any]` (`schemas/moderation.py:86`), which the access work rewrites. |
+| CQ-5 | **fixed** | One `useDebouncedValue`, `ConfirmDialog`, `QueryError`, `nextOffset`, `src/api/uploads.ts`, `src/lib/dates.ts` (Bahrain day), `src/lib/share.ts` (`copyText`, `hostOf`), `isMediaPath`, one `CohortYear`. No `navigator.clipboard` outside `lib/share.ts`. The browser-side `ics.ts` is gone. |
+| CQ-6 | **fixed** | One `public_user`, one rate limiter (`ratelimit.enforce`/`window_wait`), `core/text.insert_with_unique_slug`, `modules.require_module`, `core/time.bahrain_today`, `core/links.MEDIA_PATH`; site search uses the forum's `to_plain_text`. The forum's own search dialect stays and is now written down (`services/forum/search.py:9-11`). |
+| CQ-7 | **mostly fixed** | 36 Vitest files over the pure modules, drift and migration tests (`tests/core/test_drift.py`, `test_migrations.py`), `mypy tests` clean, seed tests compute counts. **Open:** the personas and module fixtures are still declared three times with different names and modules (`tests/content/conftest.py:24-48`, `tests/community/conftest.py:15-54`, `tests/core/conftest.py:65-80`); `community/conftest.py:42` still takes `Callable[..., Any]` and re-annotates. Folded into CQ-26. |
+| CQ-8 | **fixed** | `ControlCharactersMiddleware`, the `DataError` handler and the `Offset` cap; the forum's `_param` and local guards are gone (`forum/text.py:21` only strips control characters out of stored text, which is a different job). |
+| CQ-9 | **fixed** for the content areas | Calendar, newsletter, content and modules routers call services and commit. `uploads.py` no longer commits. **Not re-raised:** `routers/admin.py` and `routers/notifications.py` still query in the handler; admin is replaced by the access work, notifications is CQ-24. |
+| CQ-10 | **fixed** | `NotificationKind` on `notify()`, `ErrorCode = Literal[...]` (`schemas/common.py:32`), `ApiErrorCode` on the web side; `post_unavailable` for removed targets everywhere. |
+| CQ-11 | **fixed** | The library mutations invalidate `MODULES_KEY` exactly (`features/library/api.ts:229-235`). |
+| CQ-12 | **fixed** | PostHog loads only when `VITE_POSTHOG_KEY` is set, through a dynamic import (`main.tsx:30-33`, `lib/analytics.ts:72`). |
+| CQ-13 | **fixed** | Moderation uses `modq-`; the module page's scoping patch is gone. The noora panel keeps raw `#fff` as a local custom property (`noora/ChatPanel.css:27`): acceptable. |
+| CQ-14 | **fixed** | Newsletter inserts in a savepoint and answers 409 (`services/newsletter.py:185-190`), slugs retry through the shared helper, rate limits lock first, and the pre-hide state lives on the row (`models/forum.py:51`), not in the audit log. |
+| CQ-15 | **fixed** | Migrations 0004 and 0006: the unused indexes dropped, the missing ones added (`ix_library_items_status_newest` on the sort expression, `uploads(user_id, created_at)`, `library_items(uploaded_by)`, `forum_replies(parent_id)`, `reports(reporter_id, created_at)`, the `SET NULL` foreign keys), the CHECKs on kind, type, reason and cohort columns, `reports.status` default, `User.updated_at` gone. The models declare the same (`check_in`, `year_range`), and the drift test proves it. Comments in 0006 narrate history: see CQ-21. |
+| CQ-16 | **open** | `n` is still the count on `/forum/threads/hot`, `/forum/threads/{thread_id}/related` and `/calendar/upcoming` (`limit` everywhere else); `ThreadListParams` (`features/forum/types.ts:27`) still redeclares the forum list's query in camelCase; `POST /reports` still answers `Ok`. With no compatibility to keep, the fix is now a rename, not an alias: see CQ-25. |
+| CQ-17 | **mostly fixed** | `ThreadPage`, `CalendarPage` and the issue editor are split; `/styleguide` is gated (`routes.tsx:28-40`); the shell no longer waits for `/modules` (`App.tsx:12-20`, each page waits in `RouteFrame`). **Open:** `library/LibraryPage.tsx` (551 lines) and `account/AccountPage.tsx` (454) are as large as before; `library/components/UploadDialog.tsx` (438) and `newsletter/editor/Editor.tsx` (441) joined them. Minor; split when next touched. |
+| CQ-18 | **mostly fixed** | README, CI (`.github/workflows/ci.yml`), `scripts/check.sh`, the pre-push hook; stray files and dead data gone; `compose.yaml` points at `docs/backend/DEPLOYMENT.md`. **Open:** type-aware lint is still off (`web/eslint.config.js:36` uses `tseslint.configs.recommended`); tracked as standards review S-1. README says Python 3.11+ while `api/.python-version`, the image and CI use 3.12 (CQ-27). |
+
+<!-- new findings -->
+
+---
+
+# Round 1
 
 Reviewer: code quality. Scope: all of `api/` and `web/` at commit `525962c` (the integrated state of `44f4c28` plus
 the Playwright runner), with the backend-core files (`app/core/*`, `config.py`, `db.py`, `services/{storage,notify,audit}.py`,
@@ -7,7 +57,7 @@ No application code was changed. Line numbers refer to `525962c`. Scratch tools 
 `/tmp/claude-0/-home-claude-dsba/331caa53-7cba-5bfe-8500-672e2c76573d/scratchpad/quality/` (route probe, CSS audit,
 knip, typed lint, migration drift, bundle build).
 
-## Summary
+## Round 1 summary
 
 The codebase is in better shape than most first integrations: strict typing holds on both sides (mypy strict on
 `app/`; 0 `any` and 0 non-null assertions in `web/src`), every list endpoint batch-loads its relations (no N+1 found:
