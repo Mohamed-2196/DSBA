@@ -30,529 +30,621 @@
     ],
     "chapters": [
       {
+        "id": "jvnrh7sx",
         "title": "The Economic Problem",
         "videos": [
           {
+            "id": "xfm6xyvy",
             "kind": "youtube",
-            "id": "W9IjktFC9Tg",
+            "videoId": "W9IjktFC9Tg",
             "title": "Y1 1) The Economic Problem (Scarcity & Choice)",
             "channel": "EconplusDal"
           },
           {
+            "id": "yiyjauri",
             "kind": "youtube",
-            "id": "IzccVWouIxM",
+            "videoId": "IzccVWouIxM",
             "title": "Y1 2) Production Possibility Curves - PPCs / PPFs",
             "channel": "EconplusDal"
           },
           {
+            "id": "y9np5u4g",
             "kind": "youtube",
-            "id": "YboSszwySzU",
+            "videoId": "YboSszwySzU",
             "title": "Law of Comparative Advantage",
             "channel": "EconplusDal"
           },
           {
+            "id": "m4wtr2cm",
             "kind": "youtube",
-            "id": "HneRNVtahYw",
+            "videoId": "HneRNVtahYw",
             "title": "Comparative Advantage Practice",
             "channel": "Jacob Clifford"
           },
           {
+            "id": "9hfz2azt",
             "kind": "youtube",
-            "id": "AebGGq5n3Ec",
+            "videoId": "AebGGq5n3Ec",
             "title": "Chapter 3: The Gains From Trade",
             "channel": "DrAzevedoEcon"
           },
           {
+            "id": "uqvim927",
             "kind": "youtube",
-            "id": "YtX6SGw7E3c",
+            "videoId": "YtX6SGw7E3c",
             "title": "Normative and positive statements | Basic economics concepts | AP Macroeconomics | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "7wa6i423",
             "kind": "youtube",
-            "id": "R4Pf1OQQTPY",
+            "videoId": "R4Pf1OQQTPY",
             "title": "Real vs. Nominal Variables",
             "channel": "Paul Ratka"
           }
         ]
       },
       {
+        "id": "3gu4spfp",
         "title": "Supply and Demand",
         "videos": [
           {
+            "id": "egjhs8ri",
             "kind": "youtube",
-            "id": "b1QL1BZ7jJM",
+            "videoId": "b1QL1BZ7jJM",
             "title": "Chapter 4: Supply and Demand - Part 1",
             "channel": "DrAzevedoEcon"
           },
           {
+            "id": "w82tkv7m",
             "kind": "youtube",
-            "id": "JcN4dBoerwc",
+            "videoId": "JcN4dBoerwc",
             "title": "Chapter 4: Supply and Demand - Part 2",
             "channel": "DrAzevedoEcon"
           },
           {
+            "id": "avve4mib",
             "kind": "youtube",
-            "id": "r1Xq9FcxDB8",
+            "videoId": "r1Xq9FcxDB8",
             "title": "Y1 8) Consumer and Producer Surplus",
             "channel": "EconplusDal"
           },
           {
+            "id": "uq9bcmes",
             "kind": "youtube",
-            "id": "aKpsUBbD8jM",
+            "videoId": "aKpsUBbD8jM",
             "title": "Price Ceilings & Price Floors: Microeconomics",
             "channel": "Mr. Sinn"
           },
           {
+            "id": "7n3yb82d",
             "kind": "youtube",
-            "id": "ROF15eoLkrg",
+            "videoId": "ROF15eoLkrg",
             "title": "Consumer/Producer Surplus & Deadweight Loss",
             "channel": "Mr. Sinn"
           }
         ]
       },
       {
+        "id": "tyiz8fqt",
         "title": "Elasticity",
         "videos": [
           {
+            "id": "sg94ctjj",
             "kind": "youtube",
-            "id": "QtQohZw_4Gg",
+            "videoId": "QtQohZw_4Gg",
             "title": "Chapter 5: Elasticity - Part 1",
             "channel": "DrAzevedoEcon"
           },
           {
+            "id": "mjmime6z",
             "kind": "youtube",
-            "id": "AiIN0zXMVFc",
+            "videoId": "AiIN0zXMVFc",
             "title": "Chapter 5: Elasticity - Part 2",
             "channel": "DrAzevedoEcon"
           },
           {
+            "id": "f2ntzjar",
             "kind": "youtube",
-            "id": "hyMohEr3VIk",
+            "videoId": "hyMohEr3VIk",
             "title": "Importance of Elasticity of Demand (Economics)",
             "channel": "RAIS Literature"
           }
         ]
       },
       {
+        "id": "xg9aypby",
         "title": "Consumer Choice",
         "videos": [
           {
+            "id": "2u2zt2ax",
             "kind": "youtube",
-            "id": "iFbnwKv2o7w",
+            "videoId": "iFbnwKv2o7w",
             "title": "Chapter 21: Theory of Consumer Choice - Utility Maximization",
             "channel": "DrAzevedoEcon"
           },
           {
+            "id": "6x87xkj5",
             "kind": "youtube",
-            "id": "TkFJdeF2Ifo",
+            "videoId": "TkFJdeF2Ifo",
             "title": "Consumer Choice theory Part 6: The Budget Constraint",
             "channel": "Elias Muwau"
           },
           {
+            "id": "dmxvbrei",
             "kind": "youtube",
-            "id": "pLhh_D5b_Lg",
+            "videoId": "pLhh_D5b_Lg",
             "title": "Example Income and Subsitution Effects For Normal and Inferior Goods",
             "channel": "Economicsfun"
           }
         ]
       },
       {
+        "id": "tjy8vbcf",
         "title": "The Firm",
         "videos": [
           {
+            "id": "f6v4j8qr",
             "kind": "youtube",
-            "id": "5ISuhZw3PG4",
+            "videoId": "5ISuhZw3PG4",
             "title": "Intermediate Microeconomics: Producer Behavior",
             "channel": "DrAzevedoEcon"
           },
           {
+            "id": "5pu9vqzh",
             "kind": "youtube",
-            "id": "m9bXUYwvx2c",
+            "videoId": "m9bXUYwvx2c",
             "title": "Intermediate Microeconomics: Costs of Production",
             "channel": "DrAzevedoEcon"
           }
         ]
       },
       {
+        "id": "j86yz7hk",
         "title": "Perfect Competition",
         "videos": [
           {
+            "id": "srfbb6wc",
             "kind": "youtube",
-            "id": "k0vSP8ayY0g",
+            "videoId": "k0vSP8ayY0g",
             "title": "Intermediate Microeconomics: Perfect Competition",
             "channel": "DrAzevedoEcon"
           }
         ]
       },
       {
+        "id": "zzcvaauv",
         "title": "Pure Monopoly",
         "videos": [
           {
+            "id": "756wv3tt",
             "kind": "youtube",
-            "id": "E07bl-TUmmY",
+            "videoId": "E07bl-TUmmY",
             "title": "Intermediate Microeconomics: Market Power and Monopoly",
             "channel": "DrAzevedoEcon"
           },
           {
+            "id": "axp753zk",
             "kind": "youtube",
-            "id": "D7vYXago3-A",
+            "videoId": "D7vYXago3-A",
             "title": "Intermediate Microeconomics: Pricing Strategies for Firms with Market Power",
             "channel": "DrAzevedoEcon"
           }
         ]
       },
       {
+        "id": "bibtm6gq",
         "title": "Market structure and Imperfect Competition",
         "videos": [
           {
+            "id": "dnh6fvvq",
             "kind": "youtube",
-            "id": "AoCVu3Tr2tk",
+            "videoId": "AoCVu3Tr2tk",
             "title": "Intermediate Microeconomics: Imperfect Competition - Oligopoly and Monopolistic Competition, Part 1",
             "channel": "DrAzevedoEcon"
           },
           {
+            "id": "pqgfa7gu",
             "kind": "youtube",
-            "id": "ECMD9OAsBmQ",
+            "videoId": "ECMD9OAsBmQ",
             "title": "Intermediate Microeconomics: Imperfect Competition - Oligopoly and Monopolistic Competition, Part 2",
             "channel": "DrAzevedoEcon"
           },
           {
+            "id": "gswm79hf",
             "kind": "youtube",
-            "id": "idFuhMRzr0Y",
+            "videoId": "idFuhMRzr0Y",
             "title": "Intermediate Microeconomics: Imperfect Competition - Oligopoly and Monopolistic Competition, Part 3",
             "channel": "DrAzevedoEcon"
           }
         ]
       },
       {
+        "id": "j9gz9bqm",
         "title": "The Labour Market",
         "videos": [
           {
+            "id": "ep2vx8ix",
             "kind": "youtube",
-            "id": "_2Xi866KB8A",
+            "videoId": "_2Xi866KB8A",
             "title": "Chapter 18: The Market for Factors of Production - Principles of Economics",
             "channel": "DrAzevedoEcon"
           }
         ]
       },
       {
+        "id": "nynrjjzb",
         "title": "Welfare Economics",
         "videos": [
           {
+            "id": "4tek4tw4",
             "kind": "youtube",
-            "id": "PC3qooaF5Xs",
+            "videoId": "PC3qooaF5Xs",
             "title": "10. Welfare Economics",
             "channel": "MIT OpenCourseWare"
           },
           {
+            "id": "hcwi9aj8",
             "kind": "youtube",
-            "id": "osvoVuESEKY",
+            "videoId": "osvoVuESEKY",
             "title": "The Edgeworth Box",
             "channel": "Katherine Silz-Carson"
           }
         ]
       },
       {
+        "id": "kbwa3msw",
         "title": "Introduction to Macroeconomics",
         "videos": [
           {
+            "id": "57kzkfn6",
             "kind": "youtube",
-            "id": "qtNZSbzRP3A",
+            "videoId": "qtNZSbzRP3A",
             "title": "Calculating GDP: Relating the Expenditure, Income, and Value Added Approach (Original Version 2023)",
             "channel": "Econbusters"
           },
           {
+            "id": "rc7b5wec",
             "kind": "youtube",
-            "id": "ZdGnhusKnRU",
+            "videoId": "ZdGnhusKnRU",
             "title": "Measuring GDP using the Income Approach and the Expenditure Approach - HD",
             "channel": "Jason Welker"
           },
           {
+            "id": "ac49byrq",
             "kind": "youtube",
-            "id": "iNfNZ1mIGRE",
+            "videoId": "iNfNZ1mIGRE",
             "title": "Real GDP and the GDP Deflator",
             "channel": "Jason Welker"
           }
         ]
       },
       {
+        "id": "tvwq6cff",
         "title": "Supply-side economics and economic growth",
         "videos": [
           {
+            "id": "btbxqffy",
             "kind": "youtube",
-            "id": "PvfdPfEd-gk",
+            "videoId": "PvfdPfEd-gk",
             "title": "Y1 38) Supply Side Policies (Interventionist and Market Based) - With Evaluation",
             "channel": "EconplusDal"
           },
           {
+            "id": "up4cv92p",
             "kind": "youtube",
-            "id": "ldszxyaFcHk",
+            "videoId": "ldszxyaFcHk",
             "title": "Malthusian Trap",
             "channel": "Phil Ruder"
           },
           {
+            "id": "w95n59ig",
             "kind": "youtube",
-            "id": "E3Niu4E1kbI",
+            "videoId": "E3Niu4E1kbI",
             "title": "Introduction to the Solow Growth Model (ep. 1)",
             "channel": "Economics Alex"
           },
           {
+            "id": "c626besc",
             "kind": "youtube",
-            "id": "EUOcBo-gzdE",
+            "videoId": "EUOcBo-gzdE",
             "title": "How to derive the Solow Growth Model (ep. 2)",
             "channel": "Economics Alex"
           },
           {
+            "id": "tedgk5xv",
             "kind": "youtube",
-            "id": "7yeWBFzGHS4",
+            "videoId": "7yeWBFzGHS4",
             "title": "Solow model #7 - labor augmenting technology",
             "channel": "Steve White"
           },
           {
+            "id": "6k8a2ecx",
             "kind": "youtube",
-            "id": "SAgt0oAv2FI",
+            "videoId": "SAgt0oAv2FI",
             "title": "The Steady State",
             "channel": "Brian Goegan"
           },
           {
+            "id": "wcs735pj",
             "kind": "youtube",
-            "id": "mHP8q-em1wo",
+            "videoId": "mHP8q-em1wo",
             "title": "Endogenous Growth",
             "channel": "Brian Goegan"
           }
         ]
       },
       {
+        "id": "yfigvsjd",
         "title": "Output and aggregate demand (playlist)",
         "videos": [
           {
+            "id": "i48tmq2f",
             "kind": "youtube-playlist",
-            "id": "PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y"
+            "videoId": "PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y"
           }
         ]
       },
       {
+        "id": "tie7ydjt",
         "title": "Money and banking; interest rates and monetary transmission",
         "videos": [
           {
+            "id": "ky5grafb",
             "kind": "youtube",
-            "id": "5dTvjezJz6s",
+            "videoId": "5dTvjezJz6s",
             "title": "Chapter 29 - The Monetary System",
             "channel": "DrAzevedoEcon"
           }
         ]
       },
       {
+        "id": "grazx8hu",
         "title": "Monetary and fiscal policy",
         "videos": [
           {
+            "id": "a92qeyes",
             "kind": "youtube",
-            "id": "FOzxImnSIAw",
+            "videoId": "FOzxImnSIAw",
             "title": "Investment Demand Schedule",
             "channel": "Akshay Kumar"
           },
           {
+            "id": "4swfke5t",
             "kind": "youtube",
-            "id": "m6xo8gxMaCs",
+            "videoId": "m6xo8gxMaCs",
             "title": "Investment and Interest Rate",
             "channel": "Akshay Kumar"
           },
           {
+            "id": "74hvmbd5",
             "kind": "youtube",
-            "id": "Kf8CTCFEldY",
+            "videoId": "Kf8CTCFEldY",
             "title": "Derivation of IS Curve",
             "channel": "Akshay Kumar"
           },
           {
+            "id": "ky7hch3e",
             "kind": "youtube",
-            "id": "1xI0dDf58XM",
+            "videoId": "1xI0dDf58XM",
             "title": "Slope of IS Curve (Part-1)",
             "channel": "Akshay Kumar"
           },
           {
+            "id": "ymjz3htq",
             "kind": "youtube",
-            "id": "0-pksf2Xfl4",
+            "videoId": "0-pksf2Xfl4",
             "title": "Slope of IS Curve (Part-2): Role of Multiplier",
             "channel": "Akshay Kumar"
           },
           {
+            "id": "u4hphmrx",
             "kind": "youtube",
-            "id": "P6JQI0Ki6Tk",
+            "videoId": "P6JQI0Ki6Tk",
             "title": "Position of IS Curve",
             "channel": "Akshay Kumar"
           },
           {
+            "id": "pjz4ikps",
             "kind": "youtube",
-            "id": "V2bj1c2KYkQ",
+            "videoId": "V2bj1c2KYkQ",
             "title": "Demand for Money",
             "channel": "Akshay Kumar"
           },
           {
+            "id": "dhxs8z4c",
             "kind": "youtube",
-            "id": "1nWhiVNXudk",
+            "videoId": "1nWhiVNXudk",
             "title": "Chapter 34: The Influence of Monetary and Fiscal Policy",
             "channel": "DrAzevedoEcon"
           }
         ]
       },
       {
+        "id": "dxsv7nqw",
         "title": "Aggregate demand and Aggregate supply",
         "videos": [
           {
+            "id": "8xkbezmc",
             "kind": "youtube",
-            "id": "xXNrloLHOzI",
+            "videoId": "xXNrloLHOzI",
             "title": "Macro: Unit 2.6 -- Classical v. Keynesian Theories",
             "channel": "You Will Love Economics"
           },
           {
+            "id": "ui6nxvdz",
             "kind": "youtube",
-            "id": "H2rtsMNbkIs",
+            "videoId": "H2rtsMNbkIs",
             "title": "Macro: Unit 2.7 -- Natural Economic Adjustments",
             "channel": "You Will Love Economics"
           },
           {
+            "id": "4d6tm6xa",
             "kind": "youtube",
-            "id": "knRHiexdKe8",
+            "videoId": "knRHiexdKe8",
             "title": "Chapter 33: Aggregate Demand and Aggregate Supply",
             "channel": "DrAzevedoEcon"
           },
           {
+            "id": "ewwzmn9w",
             "kind": "youtube",
-            "id": "efQjQuqzDzM",
+            "videoId": "efQjQuqzDzM",
             "title": "The Taylor Rule and the Fed Funds Rate Target",
             "channel": "BurkeyAcademy"
           }
         ]
       },
       {
+        "id": "emgu6tns",
         "title": "Inflation",
         "videos": [
           {
+            "id": "dhnykmti",
             "kind": "youtube",
-            "id": "dOn2ey5_EYQ",
+            "videoId": "dOn2ey5_EYQ",
             "title": "Macroeconomics - Inflation part 1",
             "channel": "Muhammad Eid Balbaa"
           },
           {
+            "id": "4zpwvitf",
             "kind": "youtube",
-            "id": "eF2Xn7Ww2_M",
+            "videoId": "eF2Xn7Ww2_M",
             "title": "Macroeconomics - Inflation 2",
             "channel": "Muhammad Eid Balbaa"
           },
           {
+            "id": "8b6r4r8z",
             "kind": "youtube",
-            "id": "dE0wIcaCVGE",
+            "videoId": "dE0wIcaCVGE",
             "title": "Macroeconomics - Inflation 3",
             "channel": "Muhammad Eid Balbaa"
           },
           {
+            "id": "2fd82pd4",
             "kind": "youtube",
-            "id": "ABOGxIHVHO4",
+            "videoId": "ABOGxIHVHO4",
             "title": "Macro: Unit 3.6 -- The Phillips Curve",
             "channel": "You Will Love Economics"
           },
           {
+            "id": "t7yvjcew",
             "kind": "youtube",
-            "id": "uNpezr7XFcw",
+            "videoId": "uNpezr7XFcw",
             "title": "Shoeleather & Menu Costs",
             "channel": "Paul Ratka"
           },
           {
+            "id": "vgtdun9x",
             "kind": "youtube",
-            "id": "_TBxupIhsro",
+            "videoId": "_TBxupIhsro",
             "title": "Bracket Creep Explained: The hidden tax cutting into your earnings | Emilie Dye",
             "channel": "Centre for Independent Studies"
           },
           {
+            "id": "47w2ux37",
             "kind": "youtube",
-            "id": "522lWzrot1c",
+            "videoId": "522lWzrot1c",
             "unavailable": true
           }
         ]
       },
       {
+        "id": "4vu5nkk4",
         "title": "Unemployment",
         "videos": [
           {
+            "id": "dhpx8yjt",
             "kind": "youtube",
-            "id": "J-Id_7of0GU",
+            "videoId": "J-Id_7of0GU",
             "title": "Macroeconomics - unemployment 1",
             "channel": "Muhammad Eid Balbaa"
           },
           {
+            "id": "gve96mth",
             "kind": "youtube",
-            "id": "SfL3jefilPo",
+            "videoId": "SfL3jefilPo",
             "title": "Macroeconomics - unemployment 2",
             "channel": "Muhammad Eid Balbaa"
           }
         ]
       },
       {
+        "id": "5ft2435s",
         "title": "Exchange rates and the balance of payments",
         "videos": [
           {
+            "id": "abbpfhmk",
             "kind": "youtube",
-            "id": "EiXYP93hvGQ",
+            "videoId": "EiXYP93hvGQ",
             "title": "Introduction to Exchange Rates and Forex Markets",
             "channel": "Jason Welker"
           },
           {
+            "id": "uuc84mz2",
             "kind": "youtube",
-            "id": "1Gs1KrTBIBM",
+            "videoId": "1Gs1KrTBIBM",
             "title": "The Determinants of Exchange Rates in a Floating Exchange Rate System",
             "channel": "Jason Welker"
           },
           {
+            "id": "a7927c9k",
             "kind": "youtube",
-            "id": "zcyMQ_zuF1w",
+            "videoId": "zcyMQ_zuF1w",
             "title": "The Net Export Effect of Monetary Policy",
             "channel": "Jason Welker"
           },
           {
+            "id": "3qwfwwey",
             "kind": "youtube",
-            "id": "nGvv08etNDI",
+            "videoId": "nGvv08etNDI",
             "title": "Calculating Prices in different Currencies using Exchange Rates",
             "channel": "Jason Welker"
           },
           {
+            "id": "27jkyghy",
             "kind": "youtube",
-            "id": "DGRknAQNWIk",
+            "videoId": "DGRknAQNWIk",
             "title": "Calculating Exchange Rates from Linear Equations - part 1",
             "channel": "Jason Welker"
           },
           {
+            "id": "sbxmqsu6",
             "kind": "youtube",
-            "id": "TuyPLN8VR1M",
+            "videoId": "TuyPLN8VR1M",
             "title": "Balance of Payments - the Current Account",
             "channel": "Jason Welker"
           },
           {
+            "id": "t4rk9sy4",
             "kind": "youtube",
-            "id": "j2-q3Abvrzs",
+            "videoId": "j2-q3Abvrzs",
             "title": "Balance of Payments - the Financial (Capital) Account",
             "channel": "Jason Welker"
           },
           {
+            "id": "ssyictyk",
             "kind": "youtube",
-            "id": "IUwB3xDgmFU",
+            "videoId": "IUwB3xDgmFU",
             "title": "Balance of Payments - the Relationship between the Accounts",
             "channel": "Jason Welker"
           },
           {
+            "id": "6pjyxser",
             "kind": "youtube",
-            "id": "cg17YTtsk2U",
+            "videoId": "cg17YTtsk2U",
             "title": "The relationship between the Current Account Balance and Exchange Rates",
             "channel": "Jason Welker"
           }
         ]
       },
       {
+        "id": "8dzevirm",
         "title": "Open Economy Macroeconomics",
         "videos": [
           {
+            "id": "cq6vvmpf",
             "kind": "youtube",
-            "id": "HSd7ybLJUuw",
+            "videoId": "HSd7ybLJUuw",
             "title": "J-Curve and the Marshall-Lerner Condition",
             "channel": "Jason Welker"
           }
@@ -591,175 +683,207 @@
     ],
     "chapters": [
       {
+        "id": "6r8c733y",
         "title": "Globalisation",
         "videos": [
           {
+            "id": "xc4a333k",
             "kind": "youtube",
-            "id": "aguTvH4Tc-c",
+            "videoId": "aguTvH4Tc-c",
             "title": "chapter1 (1)",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "g8u2nfmy",
         "title": "Political, economic and legal environments",
         "videos": [
           {
+            "id": "a2cxf6dw",
             "kind": "youtube",
-            "id": "k1wbj3aXPsQ",
+            "videoId": "k1wbj3aXPsQ",
             "title": "chapter2 (1)",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "nivt387r",
         "title": "Informal Institutions",
         "videos": [
           {
+            "id": "c29jbfnv",
             "kind": "youtube",
-            "id": "9GFyMXHWo6w",
+            "videoId": "9GFyMXHWo6w",
             "title": "chapter3 (1)",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "uzjmuvcd",
         "title": "International Trade and Investment",
         "videos": [
           {
+            "id": "fymi7wc8",
             "kind": "youtube",
-            "id": "KROTqSzz4BQ",
+            "videoId": "KROTqSzz4BQ",
             "title": "chapter4 (1)",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "x7fewq6r",
         "title": "Multilateral organisations and regional integration",
         "videos": [
           {
+            "id": "228k6t6u",
             "kind": "youtube",
-            "id": "CkhdBMXcu0k",
+            "videoId": "CkhdBMXcu0k",
             "title": "chapter5 (1)",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "f7bedikd",
         "title": "Exchange Rates",
         "videos": [
           {
+            "id": "hd94kj2a",
             "kind": "youtube",
-            "id": "NQXwvmRgIf0",
+            "videoId": "NQXwvmRgIf0",
             "title": "chapter6 (1)",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "4dhhuihn",
         "title": "Overview of Strategy and the Enterprise in International Context",
         "videos": [
           {
+            "id": "6gnvszbc",
             "kind": "youtube",
-            "id": "ldGfvoeq0IA",
+            "videoId": "ldGfvoeq0IA",
             "title": "International Business Strategy (1) (1)",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "s3qgzhaj",
         "title": "Competitive Strategy for International Business",
         "videos": [
           {
+            "id": "fexqz3kw",
             "kind": "youtube",
-            "id": "c0XJDVKBBwc",
+            "videoId": "c0XJDVKBBwc",
             "title": "Competitive Strategy for International Business (1) (1)",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "zc4vwrqj",
         "title": "International Business Strategies: Market Entry and Growth",
         "videos": [
           {
+            "id": "cskdw3vi",
             "kind": "youtube",
-            "id": "SNjn9h3QVUk",
+            "videoId": "SNjn9h3QVUk",
             "title": "International Business Strategies_ Market Entry and Growth (1) (1)",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "j7gsqmv3",
         "title": "International Marketing and R&D Strategy",
         "videos": [
           {
+            "id": "deyre5ry",
             "kind": "youtube",
-            "id": "nG2fesHT0Ss",
+            "videoId": "nG2fesHT0Ss",
             "title": "International-Marketing-Strategy (1)",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "n5et3j85",
         "title": "Global Sourcing and Production",
         "videos": [
           {
+            "id": "jif93nz7",
             "kind": "youtube",
-            "id": "u1pS_hwYkkc",
+            "videoId": "u1pS_hwYkkc",
             "title": "Global-Sourcing-Production-and-O",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "zhirjh9f",
         "title": "Global information systems management",
         "videos": [
           {
+            "id": "uuu4b7zr",
             "kind": "youtube",
-            "id": "ADEyI7AvEcI",
+            "videoId": "ADEyI7AvEcI",
             "title": "Global-IT-Systems-Management-and",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "p96a6t6q",
         "title": "International Project Management",
         "videos": [
           {
+            "id": "me34n26c",
             "kind": "youtube",
-            "id": "ngiDb1ugbnM",
+            "videoId": "ngiDb1ugbnM",
             "title": "International-Project-Management",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "aypy998e",
         "title": "International Human Resource Management",
         "videos": [
           {
+            "id": "q6nv536p",
             "kind": "youtube",
-            "id": "mubdwgK6Ss",
+            "videoId": "mubdwgK6Ss",
             "unavailable": true
           }
         ]
       },
       {
+        "id": "fjdyedyg",
         "title": "International Project Management",
         "videos": [
           {
+            "id": "6z8mmrtu",
             "kind": "youtube",
-            "id": "AQwveBtsuyI",
+            "videoId": "AQwveBtsuyI",
             "title": "International-Project-Management (1).crdownload",
             "channel": "Mohamed Khalil"
           }
         ]
       },
       {
+        "id": "z33gh628",
         "title": "Global Digital Management",
         "videos": [
           {
+            "id": "rmytbuqz",
             "kind": "youtube",
-            "id": "uJSwD5Vzbhk",
+            "videoId": "uJSwD5Vzbhk",
             "title": "Global-Digital-Management-Buildi",
             "channel": "Mohamed Khalil"
           }
@@ -787,520 +911,609 @@
     "notes": [],
     "chapters": [
       {
+        "id": "r8fe2s9j",
         "title": "Functions",
         "videos": [
           {
+            "id": "kwws3w7s",
             "kind": "youtube",
-            "id": "1EGFSefe5II",
+            "videoId": "1EGFSefe5II",
             "title": "Calculus 1 Lecture 0.2: Introduction to Functions.",
             "channel": "Professor Leonard"
           },
           {
+            "id": "w9t3t8rp",
             "kind": "youtube",
-            "id": "KyOQhC8ctxc",
+            "videoId": "KyOQhC8ctxc",
             "title": "Domain and Range Functions & Graphs - Linear, Quadratic, Rational, Logarithmic & Square Root",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "bvivzfd3",
             "kind": "youtube",
-            "id": "f-_UsIP5jyA",
+            "videoId": "f-_UsIP5jyA",
             "title": "Calculus 1 Lecture 0.4: Combining and Composition of Functions",
             "channel": "Professor Leonard"
           },
           {
+            "id": "q4apmwp9",
             "kind": "youtube",
-            "id": "GsIo3B46yjU",
+            "videoId": "GsIo3B46yjU",
             "title": "Inverse Functions - Domain & range- With Fractions, Square Roots, & Graphs",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "abmah8ei",
             "kind": "youtube",
-            "id": "ih01YszlraY",
+            "videoId": "ih01YszlraY",
             "title": "Introduction to Inverse Trigonometric Functions (Precalculus - Trigonometry 17)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "3zpsrgni",
             "kind": "youtube",
-            "id": "bowrJ31ojOg",
+            "videoId": "bowrJ31ojOg",
             "title": "06 - Proving the Logarithm (Log) Rules - Understand Logarithm Rules & Laws of Logs",
             "channel": "Math and Science"
           },
           {
+            "id": "a2nbxd6q",
             "kind": "youtube",
-            "id": "m1OitPmkydY",
+            "videoId": "m1OitPmkydY",
             "title": "Trig Identities",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "ffarktm6",
             "kind": "youtube",
-            "id": "JEIH5HeneXc",
+            "videoId": "JEIH5HeneXc",
             "title": "Applications of Functions in Business and Economics (Part 1 of 3)",
             "channel": "Mr. Kwon"
           }
         ]
       },
       {
+        "id": "w8t2b3p7",
         "title": "Differentiation",
         "videos": [
           {
+            "id": "k8gw8xqw",
             "kind": "youtube",
-            "id": "962lLfW-8Jo",
+            "videoId": "962lLfW-8Jo",
             "title": "Calculus 1 Lecture 2.1: Introduction to the Derivative of a Function",
             "channel": "Professor Leonard"
           },
           {
+            "id": "fsp6fvws",
             "kind": "youtube",
-            "id": "EY6FHX6asU0",
+            "videoId": "EY6FHX6asU0",
             "title": "Calculus 1 Lecture 2.2: Techniques of Differentiation (Finding Derivatives of Functions Easily)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "9tmfcz2t",
             "kind": "youtube",
-            "id": "AvCQQ3X4Nuc",
+            "videoId": "AvCQQ3X4Nuc",
             "title": "Calculus 1 Lecture 2.3: The Product and Quotient Rules for Derivatives of Functions",
             "channel": "Professor Leonard"
           },
           {
+            "id": "nv2hw2c3",
             "kind": "youtube",
-            "id": "qr1WXiq3S3k",
+            "videoId": "qr1WXiq3S3k",
             "title": "Calculus 1 Lecture 2.4: Applications of the Derivative",
             "channel": "Professor Leonard"
           },
           {
+            "id": "etp27g8y",
             "kind": "youtube",
-            "id": "RJJSiNz5oto",
+            "videoId": "RJJSiNz5oto",
             "title": "Calculus 1 Lecture 2.5: Finding Derivatives of Trigonometric Functions",
             "channel": "Professor Leonard"
           },
           {
+            "id": "eqb9ic48",
             "kind": "youtube",
-            "id": "8dr1dZjfhmc",
+            "videoId": "8dr1dZjfhmc",
             "title": "Calculus 1 Lecture 2.6: Discussion of the Chain Rule for Derivatives of Functions",
             "channel": "Professor Leonard"
           },
           {
+            "id": "k2nwpmqj",
             "kind": "youtube",
-            "id": "s7rd9YPJrNc",
+            "videoId": "s7rd9YPJrNc",
             "title": "Higher Order Derivatives",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "87pf8n3c",
             "kind": "youtube",
-            "id": "zmnh448y_ZU",
+            "videoId": "zmnh448y_ZU",
             "title": "Derivatives of Exponential Functions & Logarithmic Differentiation Calculus lnx, e^2x, x^x, x^sinx",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "efa79tzn",
             "kind": "youtube",
-            "id": "FIbpibkywmk",
+            "videoId": "FIbpibkywmk",
             "title": "Linear Approximation, Differentials, Tangent Line, Linearization, f(x), dy, dx - Calculus",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "4b6vqk9z",
             "kind": "youtube",
-            "id": "2g8zJzMViXU",
+            "videoId": "2g8zJzMViXU",
             "title": "Business Calculus - Elasticity Of Demand",
             "channel": "Steve Crow"
           },
           {
+            "id": "ghpagkk6",
             "kind": "youtube",
-            "id": "itkoiNNxNa4",
+            "videoId": "itkoiNNxNa4",
             "title": "Marginal Revenue, Average Cost, Profit, Price & Demand Function - Calculus",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "3sjepq3x",
             "kind": "youtube",
-            "id": "fml0-ELYLaE",
+            "videoId": "fml0-ELYLaE",
             "title": "Continuity and Differentiability",
             "channel": "The Organic Chemistry Tutor"
           }
         ]
       },
       {
+        "id": "35u3dquu",
         "title": "One Variable Optimisation",
         "videos": [
           {
+            "id": "sznxts42",
             "kind": "youtube",
-            "id": "Mx39JbbzEAo",
+            "videoId": "Mx39JbbzEAo",
             "title": "Calculus 1 Lecture 3.1: Increasing/Decreasing and Concavity of Functions",
             "channel": "Professor Leonard"
           },
           {
+            "id": "dms8h56x",
             "kind": "youtube",
-            "id": "nQ6tOORDQ3I",
+            "videoId": "nQ6tOORDQ3I",
             "title": "Calculus 1 Lecture 3.3: The First Derivative Test for Increasing and Decreasing",
             "channel": "Professor Leonard"
           },
           {
+            "id": "5agd4jyi",
             "kind": "youtube",
-            "id": "29GbRaQxtzY",
+            "videoId": "29GbRaQxtzY",
             "title": "Calculus 1 Lecture 3.4: The Second Derivative Test for Concavity of Functions",
             "channel": "Professor Leonard"
           },
           {
+            "id": "utpkdz4k",
             "kind": "youtube",
-            "id": "-PYebK8DKPc",
+            "videoId": "-PYebK8DKPc",
             "title": "Calculus 1 Lecture 3.5: Limits of Functions at Infinity",
             "channel": "Professor Leonard"
           },
           {
+            "id": "fqmdcz6x",
             "kind": "youtube",
-            "id": "8u6woY05aL0",
+            "videoId": "8u6woY05aL0",
             "title": "Calculus 1 Lecture 3.6: How to Sketch Graphs of Functions",
             "channel": "Professor Leonard"
           },
           {
+            "id": "r3e7nwi2",
             "kind": "youtube",
-            "id": "SWZcq_biZLw",
+            "videoId": "SWZcq_biZLw",
             "title": "Calculus 1 Lecture 3.7: Optimization; Max/Min Application Problems",
             "channel": "Professor Leonard"
           },
           {
+            "id": "3zjri5i2",
             "kind": "youtube",
-            "id": "qGCKjuhA4eQ",
+            "videoId": "qGCKjuhA4eQ",
             "title": "Horizontal and Vertical Asymptotes - Slant / Oblique - Holes - Rational Function - Domain & Range",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "g2mcwwuw",
             "kind": "youtube",
-            "id": "JZCg6zmrmDI",
+            "videoId": "JZCg6zmrmDI",
             "title": "Maximum Tax Revenue: Graphs, Algebra, and Analytics",
             "channel": "BurkeyAcademy"
           }
         ]
       },
       {
+        "id": "skkqwgvk",
         "title": "The Art of Integration",
         "videos": [
           {
+            "id": "a8xn5avu",
             "kind": "youtube",
-            "id": "o75AqTInKDU",
+            "videoId": "o75AqTInKDU",
             "title": "Indefinite Integral - Basic Integration Rules, Problems, Formulas, Trig Functions, Calculus",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "i33p74x9",
             "kind": "youtube",
-            "id": "SVrn1tRtZmg",
+            "videoId": "SVrn1tRtZmg",
             "title": "Antiderivatives with Initial Conditions",
             "channel": "Differentiated Calculus"
           },
           {
+            "id": "c338b3fi",
             "kind": "youtube",
-            "id": "aiBD9aI69C8",
+            "videoId": "aiBD9aI69C8",
             "title": "Calculus 1 Lecture 4.2: Integration by Substitution",
             "channel": "Professor Leonard"
           },
           {
+            "id": "hijcrpfx",
             "kind": "youtube",
-            "id": "t3rzxSgvZZk",
+            "videoId": "t3rzxSgvZZk",
             "title": "Integration By Trigonometric Substitution",
             "channel": "Professor Dave Explains"
           },
           {
+            "id": "zaiqrjye",
             "kind": "youtube",
-            "id": "zNU8iK8sGD0",
+            "videoId": "zNU8iK8sGD0",
             "title": "Integration By Parts",
             "channel": "Professor Dave Explains"
           },
           {
+            "id": "tii6fcb2",
             "kind": "youtube",
-            "id": "2I-_SV8cwsw",
+            "videoId": "2I-_SV8cwsw",
             "title": "integration by parts, DI method, VERY EASY",
             "channel": "blackpenredpen"
           },
           {
+            "id": "ry7s5izj",
             "kind": "youtube",
-            "id": "KJGp0pyPoVo",
+            "videoId": "KJGp0pyPoVo",
             "title": "Calculus 2 Lecture 7.4: Integration By Partial Fractions",
             "channel": "Professor Leonard"
           },
           {
+            "id": "7bvnjmdx",
             "kind": "youtube",
-            "id": "qijx9zx3HNQ",
+            "videoId": "qijx9zx3HNQ",
             "title": "weierstrass substitution for integrations, intro",
             "channel": "blackpenredpen"
           },
           {
+            "id": "s4hcgmav",
             "kind": "youtube",
-            "id": "UjTTx2eYrx8",
+            "videoId": "UjTTx2eYrx8",
             "title": "Finding The Area Under The Curve Using Definite Integrals - Calculus",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "qm7irvrv",
             "kind": "youtube",
-            "id": "DcfYmzt4jnY",
+            "videoId": "DcfYmzt4jnY",
             "title": "Solving for Consumer, Producer, and Social Surplus using Integration",
             "channel": "Justin Eloriaga"
           }
         ]
       },
       {
+        "id": "7m3yeibe",
         "title": "Functions of Several Variables",
         "videos": [
           {
+            "id": "qtsyuuct",
             "kind": "youtube",
-            "id": "nIJQPX5kxp4",
+            "videoId": "nIJQPX5kxp4",
             "title": "Calculus 3 Lecture 13.1: Intro to Multivariable Functions (Domain, Sketching, Level Curves)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "4saevsy7",
             "kind": "youtube",
-            "id": "acdX4YamDtU",
+            "videoId": "acdX4YamDtU",
             "title": "Visualizing Multi-variable Functions with Contour Plots",
             "channel": "Dr. Trefor Bazett"
           },
           {
+            "id": "7u84nq8n",
             "kind": "youtube",
-            "id": "CBgn0z0huW8",
+            "videoId": "CBgn0z0huW8",
             "title": "How to Find the Level Curves of z = 12 - 3x - 4y",
             "channel": "The Math Sorcerer"
           },
           {
+            "id": "uvgvgf84",
             "kind": "youtube",
-            "id": "IXuu7szVnN8",
+            "videoId": "IXuu7szVnN8",
             "title": "[Multivariable Calculus] Cross Sections of Quadric Surfaces",
             "channel": "Fgilan"
           },
           {
+            "id": "bxkfbuzu",
             "kind": "youtube",
-            "id": "EkZGBdY0vlg",
+            "videoId": "EkZGBdY0vlg",
             "title": "Calculus 3 Lecture 13.3: Partial Derivatives (Derivatives of Multivariable Functions)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "k3j9vqxb",
             "kind": "youtube",
-            "id": "tXryaM-mTpY",
+            "videoId": "tXryaM-mTpY",
             "title": "Calculus 3 Lecture 13.5: The Chain Rule for Multivariable Functions",
             "channel": "Professor Leonard"
           },
           {
+            "id": "teq4t6xx",
             "kind": "youtube",
-            "id": "OBELQIPH5xY",
+            "videoId": "OBELQIPH5xY",
             "title": "Implicit Differentiation With Partial Derivatives Using The Implicit Function Theorem | Calculus 3",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "bmtj2dnf",
             "kind": "youtube",
-            "id": "J08-L2buigM",
+            "videoId": "J08-L2buigM",
             "title": "Symmetry of second partial derivatives",
             "channel": "Khan Academy"
           },
           {
+            "id": "h49wn79w",
             "kind": "youtube",
-            "id": "fZhHJdPjtYc",
+            "videoId": "fZhHJdPjtYc",
             "title": "Determine if a Function is a Homogeneous Function",
             "channel": "Mathispower4u"
           }
         ]
       },
       {
+        "id": "hk43786w",
         "title": "Multivariate Optimisation",
         "videos": [
           {
+            "id": "kagus3yn",
             "kind": "youtube",
-            "id": "kPL28zgEFk8",
+            "videoId": "kPL28zgEFk8",
             "title": "Calculus 3 Lecture 13.8: Finding Extrema of Functions of 2 Variables (Max and Min)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "rm76bht4",
             "kind": "youtube",
-            "id": "_Ffcr98c7EE",
+            "videoId": "_Ffcr98c7EE",
             "title": "Multi-variable Optimization & the Second Derivative Test",
             "channel": "Dr. Trefor Bazett"
           },
           {
+            "id": "3sd2vvqy",
             "kind": "youtube",
-            "id": "nUfYR5FBGZc",
+            "videoId": "nUfYR5FBGZc",
             "title": "Calculus 3 Lecture 13.9: Constrained Optimization with LaGrange Multipliers",
             "channel": "Professor Leonard"
           },
           {
+            "id": "tbav9wwz",
             "kind": "youtube",
-            "id": "Ob56YXIV3rM",
+            "videoId": "Ob56YXIV3rM",
             "unavailable": true
           }
         ]
       },
       {
+        "id": "hmv8hbuk",
         "title": "Matrices and Linear Equations",
         "videos": [
           {
+            "id": "rri7u5r3",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/a5043fc46d3971f08c145ede6437f67fdeb24b60-1676264200087"
           },
           {
+            "id": "mm6pf6ej",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/4c7c05fd956e4e26aef314c126f07178e416dabe-1676350815340"
           },
           {
+            "id": "ugtqaqjb",
             "kind": "youtube",
-            "id": "TQvxWaQnrqI",
+            "videoId": "TQvxWaQnrqI",
             "title": "Finding Eigenvalues and Eigenvectors",
             "channel": "Professor Dave Explains"
           },
           {
+            "id": "a79b4yuu",
             "kind": "youtube",
-            "id": "WTLl03D4TNA",
+            "videoId": "WTLl03D4TNA",
             "title": "Diagonalization",
             "channel": "Professor Dave Explains"
           }
         ]
       },
       {
+        "id": "2uwhnans",
         "title": "Differential Equations",
         "videos": [
           {
+            "id": "g5a3487z",
             "kind": "youtube",
-            "id": "EWVSxND_iWA",
+            "videoId": "EWVSxND_iWA",
             "title": "Introduction to Differential Equations (Differential Equations 2)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "fyapnh7t",
             "kind": "youtube",
-            "id": "5LkQEOPwqfk",
+            "videoId": "5LkQEOPwqfk",
             "title": "Checking Solutions in Differential Equations (Differential Equations 3)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "rm4qmcbf",
             "kind": "youtube",
-            "id": "HjioXdmwze0",
+            "videoId": "HjioXdmwze0",
             "title": "Introduction to Initial Value Problems (Differential Equations 4)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "pyfwax3q",
             "kind": "youtube",
-            "id": "_4Bq6I68Yn4",
+            "videoId": "_4Bq6I68Yn4",
             "title": "Solving Basic Differential Equations with Integration (Differential Equations 6)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "ccehmb3u",
             "kind": "youtube",
-            "id": "WfX20b-peDw",
+            "videoId": "WfX20b-peDw",
             "title": "Separable Differential Equations (Differential Equations 12)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "cbw2vjc6",
             "kind": "youtube",
-            "id": "ZWXG3c7A_9s",
+            "videoId": "ZWXG3c7A_9s",
             "title": "Separable Equations with Initial Values (Differential Equations 13)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "hqyzkwaq",
             "kind": "youtube",
-            "id": "kATxKuVSc9I",
+            "videoId": "kATxKuVSc9I",
             "title": "Introduction to Linear Differential Equations and Integrating Factors (Differential Equations 15)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "ac8zi8p8",
             "kind": "youtube",
-            "id": "fpQoL5u5ihs",
+            "videoId": "fpQoL5u5ihs",
             "title": "Solving Linear Differential Equations with an Integrating Factor (Differential Equations 16)",
             "channel": "Professor Leonard"
           },
           {
+            "id": "pi5vrep8",
             "kind": "youtube",
-            "id": "UFWAu8Ptth0",
+            "videoId": "UFWAu8Ptth0",
             "title": "2nd order linear homogeneous differential equations 1 | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "z4wgp5v4",
             "kind": "youtube",
-            "id": "SPVqgkOZMAc",
+            "videoId": "SPVqgkOZMAc",
             "title": "2nd order linear homogeneous differential equations 2 | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "sukzewq5",
             "kind": "youtube",
-            "id": "UyCwAFQt4v0",
+            "videoId": "UyCwAFQt4v0",
             "title": "2nd order linear homogeneous differential equations 3 | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "enyabqnj",
             "kind": "youtube",
-            "id": "3uO_uPb9H8w",
+            "videoId": "3uO_uPb9H8w",
             "title": "2nd Order Linear Homogeneous Differential Equations 4 | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "73vncwup",
             "kind": "youtube",
-            "id": "6xEO4BeawzA",
+            "videoId": "6xEO4BeawzA",
             "title": "Complex roots of the characteristic equations 1 | Second order differential equations | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "ngbnuukx",
             "kind": "youtube",
-            "id": "jJyRrIZ595c",
+            "videoId": "jJyRrIZ595c",
             "title": "Complex roots of the characteristic equations 2 | Second order differential equations | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "gzj8nuyt",
             "kind": "youtube",
-            "id": "rGaM6pwqhB0",
+            "videoId": "rGaM6pwqhB0",
             "title": "Complex roots of the characteristic equations 3 | Second order differential equations | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "3yxiq8q3",
             "kind": "youtube",
-            "id": "NW9JfMvIsxw",
+            "videoId": "NW9JfMvIsxw",
             "title": "Repeated roots of the characteristic equation | Second order differential equations | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "junj6vrf",
             "kind": "youtube",
-            "id": "znE4Nq9NJCQ",
+            "videoId": "znE4Nq9NJCQ",
             "title": "Undetermined coefficients 1 | Second order differential equations | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "4p2vusj2",
             "kind": "youtube",
-            "id": "hbJ2o9EUmJ0",
+            "videoId": "hbJ2o9EUmJ0",
             "title": "Undetermined coefficients 2 | Second order differential equations | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "s9fxc2iu",
             "kind": "youtube",
-            "id": "I3vIAzMcm4Y",
+            "videoId": "I3vIAzMcm4Y",
             "title": "Undetermined coefficients 3 | Second order differential equations | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "h8znyhxp",
             "kind": "youtube",
-            "id": "vAepSNDLZRM",
+            "videoId": "vAepSNDLZRM",
             "title": "Undetermined coefficients 4 | Second order differential equations | Khan Academy",
             "channel": "Khan Academy"
           },
           {
+            "id": "i3s5btqa",
             "kind": "youtube",
-            "id": "YavFKipIeio",
+            "videoId": "YavFKipIeio",
             "title": "Solving Systems of Differential Equations by Diagonalization",
             "channel": "Pernotes"
           },
           {
+            "id": "y8dnsf6b",
             "kind": "youtube",
-            "id": "yvFr5D7UAMQ",
+            "videoId": "yvFr5D7UAMQ",
             "title": "A Differential Equation for Supply, Demand and Price of a Commodity",
             "channel": "Mike, the Mathematician"
           }
         ]
       },
       {
+        "id": "d74wxfxt",
         "title": "Difference Equations",
         "videos": [
           {
+            "id": "sfzydyi5",
             "kind": "youtube",
-            "id": "YIoukM31_nI",
+            "videoId": "YIoukM31_nI",
             "title": "First order linear difference equations",
             "channel": "Constantin Bürgi"
           },
           {
+            "id": "6ffq4dkx",
             "kind": "youtube",
-            "id": "Hk8Q0pd5G1s",
+            "videoId": "Hk8Q0pd5G1s",
             "title": "System of two homogeneous first order linear difference equations",
             "channel": "Constantin Bürgi"
           },
           {
+            "id": "wn4nx2d6",
             "kind": "youtube",
-            "id": "yYbmY9N4SNs",
+            "videoId": "yYbmY9N4SNs",
             "title": "System of two homogeneous first oder linear differential equations",
             "channel": "Constantin Bürgi"
           }
@@ -1344,274 +1557,338 @@
     ],
     "chapters": [
       {
+        "id": "935gqnys",
         "title": "Probability Theory",
         "videos": [
           {
+            "id": "fbrp2zbd",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/985fd6c54dbe7e139c1c86a60304c7b18c82f606-1726548801542"
           },
           {
+            "id": "rcet8i4g",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/7b9eb7f7dba2c8737fe8c658c07f0cc83d6b9176-1726736271504"
           },
           {
+            "id": "ub3zs5es",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/f23f058bda0a399f33ed962e9406ad9a2ff955ba-1726981115673"
           },
           {
+            "id": "3fzkr7si",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/97d19cc5cfa22d422046f8c33277c38d567c111e-1727153828299"
           },
           {
+            "id": "jypfz6vw",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/4ea00ab33d08eb7103035f77dd958d783a742395-1727341013389"
           },
           {
+            "id": "epfc92nw",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/1e139c2089d0b1ba102b6ca80ee7a9b21ef67ab4-1727605984348"
           }
         ]
       },
       {
+        "id": "hqnvqdi4",
         "title": "Random Variables",
         "videos": [
           {
+            "id": "web5yyys",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/1ab1ae7381a6fcc1e3d8ea709204fd7e31a085ac-1727778272013"
           },
           {
+            "id": "bcab89kg",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/21023752c3eab8780f489dd8c5298e006878f34b-1727946137711"
           },
           {
+            "id": "6pfn4dbh",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/9d3bac605dea955b6533fde9301faa8e480d0fb8-1728210609891"
           },
           {
+            "id": "7d6sbsmd",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/b3d7809b66aef56d8ab4594f897be4403ff86e17-1728383138486"
           },
           {
+            "id": "cz6rrhu7",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/d1d0f95143107da7ad7b1e95dd9cec11103f40e0-1728550959309"
           },
           {
+            "id": "wzpisinh",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/d26b5547690da25c7c95c9b6f9d883b8f02989db-1728815259448"
           }
         ]
       },
       {
+        "id": "57vcz5gf",
         "title": "Common Distributions of Random Variables",
         "videos": [
           {
+            "id": "4dzcx4cs",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/0754a89ffc88893c6ad0cc4fe7b4439154f7111e-1728988079422"
           },
           {
+            "id": "tiqz6xmi",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/cc8c86ebe35fbbb9b38217614313e2841dcdb44a-1729155587247"
           },
           {
+            "id": "gzv8khbd",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/b4e5534d626065c284710f5249839e6f12d8b62f-1729420169390"
           },
           {
+            "id": "3s8hktxn",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/94ffd40d5ebaa19edef4b22db42c07c279b70fe6-1729592969374"
           },
           {
+            "id": "y3a7n6zr",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/54bb14a2f0aa8f2233027114100b4f7e99153ed7-1729760497898"
           },
           {
+            "id": "izdk8jwv",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/35aa8fdc99ebc6c514900e0d10d6475efc1e6f0c-1730024840073"
           }
         ]
       },
       {
+        "id": "zwvna9b6",
         "title": "Multivariate Random Variables",
         "videos": [
           {
+            "id": "9y3c9gup",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/0df66cc7e53dc62870d4381584838ba7b21d05c8-1730197717513"
           },
           {
+            "id": "ac2s8639",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/846144916551f3653e99f908903680fad1583c41-1730365402967"
           },
           {
+            "id": "tbyzrtii",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/11e2dacc0511c1e020eeef6a222173b7f334b39c-1730630127389"
           },
           {
+            "id": "h4bcbwwf",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/6d39771c4b9fdbcc3c08e75f027352da6009b3f6-1730802627532"
           },
           {
+            "id": "35itdnit",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/16337a65f47375ab28ccb54ad0bdeff14b4b5fa8-1730969965689"
           },
           {
+            "id": "q5dpfeje",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/0ed04dc535441cd50b10300abd8d4e0afba73d1d-1731234443655"
           }
         ]
       },
       {
+        "id": "nycc5z2u",
         "title": "Sampling Distributions of Statistics",
         "videos": [
           {
+            "id": "jmn9wu9j",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/64bddc04337fece09731382d9f340e0219e56235-1731407439809"
           },
           {
+            "id": "sn2hpaeu",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/7c6f164ecef9064640826013840f2d036d13902d-1731574681618"
           },
           {
+            "id": "zjfkpnjd",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/3838daca2e90dfd6281ded175bc56cdd1260bd42-1731839386070"
           },
           {
+            "id": "ih9he8u6",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/1c87689f2c56832f0c2b4a1744c80c563a3aedc7-1732012416076"
           },
           {
+            "id": "d9wn4deu",
             "kind": "youtube",
-            "id": "80ffqpZdKiA",
+            "videoId": "80ffqpZdKiA",
             "title": "What is the Chi-Squared distribution? Extensive video!",
             "channel": "zedstatistics"
           },
           {
+            "id": "2a3p7tyy",
             "kind": "youtube",
-            "id": "UetYS3PaHIo",
+            "videoId": "UetYS3PaHIo",
             "title": "What is the t-distribution? An extensive guide!",
             "channel": "zedstatistics"
           },
           {
+            "id": "9gzmegrx",
             "kind": "youtube",
-            "id": "G_RDxAZJ-ug",
+            "videoId": "G_RDxAZJ-ug",
             "title": "An Introduction to the F Distribution",
             "channel": "jbstatistics"
           },
           {
+            "id": "av98m3xm",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/39b3715d9e88d5df9c391827aadcfa9844b7a264-1732444516154"
           },
           {
+            "id": "efadmp85",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/c0b7acbeb8c3b0ffc38afd3f83b9fc61da015210-1737628152762"
           }
         ]
       },
       {
+        "id": "hhfxb62g",
         "title": "Point Estimation",
         "videos": [
           {
+            "id": "bcsrcag8",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/39b3715d9e88d5df9c391827aadcfa9844b7a264-1732444516154"
           },
           {
+            "id": "y68dpraq",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/faf83674afb98c2c185125de50da28a934eb321e-1732616975026"
           },
           {
+            "id": "8e6e8dty",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/bb09f31166f480a627ecc2a0db1da942d98077ec-1733048490844"
           },
           {
+            "id": "52av8mhm",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/d1369d3c0416edd63fad598b935d1073b1304e8f-1733221687080"
           },
           {
+            "id": "geg66g66",
             "kind": "youtube",
-            "id": "D1hgiAla3KI",
+            "videoId": "D1hgiAla3KI",
             "title": "Proof that the Sample Variance is an Unbiased Estimator of the Population Variance",
             "channel": "jbstatistics"
           }
         ]
       },
       {
+        "id": "9xf4eaw6",
         "title": "Interval Estimation",
         "videos": [
           {
+            "id": "ve33pwc8",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/c035537d6d80583264e9a051ea5a34c5d28654af-1733653795927"
           },
           {
+            "id": "wainhqhm",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/f62fa560cba372898a14413bade50ab996365917-1733826609321"
           }
         ]
       },
       {
+        "id": "9dhn7cfg",
         "title": "Hypothesis Tests",
         "videos": [
           {
+            "id": "nbizmgi8",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/cfd64087a22d227928487362fe4d6c10b7daee0a-1736245614039"
           },
           {
+            "id": "bqfcwfen",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/b334e6e8f6f1416bba7f4233c8c9f028b443ffbd-1736677681258"
           },
           {
+            "id": "wwtgiueq",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/6be55e03b52ca232ecf424cf8623d8b56e440e42-1736850586218"
           },
           {
+            "id": "ggphb3bs",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/c05682f13539e48f8d5130b486e0c3ee5e1155ed-1737282756347"
           },
           {
+            "id": "i39cm34w",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/9a088976eef7fd2ab095f05e71d29deeb4cbb0cc-1737455532609"
           },
           {
+            "id": "jxf9ajsq",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/c0b7acbeb8c3b0ffc38afd3f83b9fc61da015210-1737628152762"
           }
         ]
       },
       {
+        "id": "xt9a3uyv",
         "title": "ANOVA",
         "videos": [
           {
+            "id": "wmrkcukk",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/fffbdb6876b5d7f107ac568dee4d11cad53d656d-1738665051066"
           },
           {
+            "id": "p8pmsrny",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/6e912f7d532e2fbc50da2e22068e401a7bb0e69d-1738837727859"
           }
         ]
       },
       {
+        "id": "6zdqtvng",
         "title": "Linear Regression",
         "videos": [
           {
+            "id": "isk9sprb",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/ba0835a6894106f047020819044cce905bb76a34-1739096839644"
           },
           {
+            "id": "ab7m737v",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/c40967d7c7dea42181a6906aaa922d49f8a4b2be-1739269923481"
           },
           {
+            "id": "98dz7su2",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/ad6cd478b20127be9ab7e58609ae43f7dae284c7-1739442771751"
           },
           {
+            "id": "yyeci2iq",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/427f00e2db559c264111024083de8ff57c262e5e-1739701688696"
           },
           {
+            "id": "8nep7f89",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/71c3d17d81d8b494e1b4964ba47faeff9d12b2df-1740306319710"
           },
           {
+            "id": "9r6476sx",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/de69448ae26c52ed01d9b99dcab3e38fb0a9e14c-1740479374347"
           }
@@ -1645,232 +1922,278 @@
     ],
     "chapters": [
       {
+        "id": "m6nat6ty",
         "title": "Probability Space",
         "videos": [
           {
+            "id": "ik3fr6mt",
             "kind": "youtube",
-            "id": "swa1VRYms3Q",
+            "videoId": "swa1VRYms3Q",
             "title": "Measure Theoretic Probability, Lesson 1",
             "channel": "A Probability Space"
           },
           {
+            "id": "crvr85s7",
             "kind": "youtube",
-            "id": "lsHr3Y9-PCA",
+            "videoId": "lsHr3Y9-PCA",
             "title": "Measure Theoretic Probability, Lesson 3",
             "channel": "A Probability Space"
           },
           {
+            "id": "2urzbse7",
             "kind": "youtube",
-            "id": "V3pnr5gmJC8",
+            "videoId": "V3pnr5gmJC8",
             "title": "Indicator Functions",
             "channel": "Mark Huber"
           },
           {
+            "id": "ykkurarw",
             "kind": "youtube",
-            "id": "DqGUwoz4d4M",
+            "videoId": "DqGUwoz4d4M",
             "title": "Probability spaces and random variables",
             "channel": "Intelligent Systems Lab"
           },
           {
+            "id": "x7wcib3k",
             "kind": "youtube",
-            "id": "ptVgsHPAZ-4",
+            "videoId": "ptVgsHPAZ-4",
             "title": "Probability Properties and Proof",
             "channel": "Schnack314"
           },
           {
+            "id": "5hshzrve",
             "kind": "youtube",
-            "id": "nPK62LCNVcQ",
+            "videoId": "nPK62LCNVcQ",
             "title": "Limits of sequences of sets and continuity of the probability function",
             "channel": "Karl Gregory"
           },
           {
+            "id": "c7i5p2nx",
             "kind": "youtube",
-            "id": "3lmEqp8VhAU",
+            "videoId": "3lmEqp8VhAU",
             "title": "The Fundamental Counting Principle",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "jdsin53s",
             "kind": "youtube",
-            "id": "XJnIdRXUi7A",
+            "videoId": "XJnIdRXUi7A",
             "title": "Permutations and Combinations Tutorial",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "zfrx5g4h",
             "kind": "youtube",
-            "id": "N_QU1BiW6sI",
+            "videoId": "N_QU1BiW6sI",
             "title": "[Chapter 1] #6 Multinomial coefficients",
             "channel": "Jingchen (Monika) Hu"
           }
         ]
       },
       {
+        "id": "77mvh6qf",
         "title": "Random variables and univariate distributions",
         "videos": [
           {
+            "id": "5g82thr5",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/a483453053d6ac20957265a823ac89ab9c8edb3c-1759227993474"
           },
           {
+            "id": "srs6rsix",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/cc3841f28bb22e8ffc2d104a9bf39c246b544574-1759660148886"
           },
           {
+            "id": "asxgkyjn",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/1648368bdc0f24bc6f61bf36007c7430543edde0-1759833227778"
           },
           {
+            "id": "ue3ejasm",
             "kind": "youtube",
-            "id": "mlelI1LA9o4",
+            "videoId": "mlelI1LA9o4",
             "title": "Chebyshev's Inequality ... Made Easy!",
             "channel": "Stats with Brian"
           },
           {
+            "id": "42fmbwfm",
             "kind": "youtube",
-            "id": "GDJFLfmyb20",
+            "videoId": "GDJFLfmyb20",
             "title": "S18.2 Jensen's Inequality",
             "channel": "MIT OpenCourseWare"
           },
           {
+            "id": "3nnn6yi3",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/ba54c40854762ead925585c9db0735e2f7445a40-1760437616715"
           },
           {
+            "id": "kj4tpisj",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/2683716e07fff456fd0f0dd290bc7c4b8b1c76be-1760869720756"
           },
           {
+            "id": "5qgd42g3",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/05767f27ec5c70fa230a2d832f9fe14ea4fb48bb-1761474470137"
           },
           {
+            "id": "5n99vbts",
             "kind": "youtube",
-            "id": "Uks98M-dxqM",
+            "videoId": "Uks98M-dxqM",
             "title": "Discrete Uniform Probability Distribution: Proving Formula & Examples",
             "channel": "Adobe Math Lab"
           },
           {
+            "id": "ikbvnqf5",
             "kind": "youtube",
-            "id": "bT1p5tJwn_0",
+            "videoId": "bT1p5tJwn_0",
             "title": "Introduction to the Bernoulli Distribution",
             "channel": "jbstatistics"
           },
           {
+            "id": "2efh59q9",
             "kind": "youtube",
-            "id": "qIzC1-9PwQo",
+            "videoId": "qIzC1-9PwQo",
             "title": "An Introduction to the Binomial Distribution",
             "channel": "jbstatistics"
           },
           {
+            "id": "7yhykagt",
             "kind": "youtube",
-            "id": "L2KMttDm3aY",
+            "videoId": "L2KMttDm3aY",
             "title": "An Introduction to the Hypergeometric Distribution",
             "channel": "jbstatistics"
           },
           {
+            "id": "5pvk6p35",
             "kind": "youtube",
-            "id": "zq9Oz82iHf0",
+            "videoId": "zq9Oz82iHf0",
             "title": "An Introduction to the Geometric Distribution",
             "channel": "jbstatistics"
           },
           {
+            "id": "gw353rjq",
             "kind": "youtube",
-            "id": "jmqZG6roVqU",
+            "videoId": "jmqZG6roVqU",
             "title": "An Introduction to the Poisson Distribution",
             "channel": "jbstatistics"
           },
           {
+            "id": "cupywb6t",
             "kind": "youtube",
-            "id": "BPlmjp2ymxw",
+            "videoId": "BPlmjp2ymxw",
             "title": "Introduction to the Negative Binomial Distribution",
             "channel": "jbstatistics"
           },
           {
+            "id": "gpe4r5ju",
             "kind": "youtube",
-            "id": "J3KSjZFVbis",
+            "videoId": "J3KSjZFVbis",
             "title": "Probability Exponential Distribution Problems",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "bdzk5c93",
             "kind": "youtube",
-            "id": "gIsoceE4vhg",
+            "videoId": "gIsoceE4vhg",
             "title": "Gamma Distribution Definition",
             "channel": "Lawrence Leemis"
           },
           {
+            "id": "jqb64f9d",
             "kind": "youtube",
-            "id": "juF3r12nM5A",
+            "videoId": "juF3r12nM5A",
             "title": "The Beta distribution in 12 minutes!",
             "channel": "Luis Serrano Academy"
           },
           {
+            "id": "3mhdiva5",
             "kind": "youtube",
-            "id": "TwvXhX3bJJM",
+            "videoId": "TwvXhX3bJJM",
             "title": "Triangular distribution",
             "channel": "Lawrence Leemis"
           },
           {
+            "id": "498zf36x",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/8061cbb90479322d62103f4b3f064c2fab667d9a-1761647247144"
           }
         ]
       },
       {
+        "id": "kyrya42v",
         "title": "Multivariate distributions",
         "videos": [
           {
+            "id": "iyusqzh5",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/b9dc1bf2f965a205a2f3c0027821f0f5bd9123ed-1762079605275"
           },
           {
+            "id": "7t5yej6a",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/2a17a22c8021239d5aed4937458daeed0906dbad-1762251569245"
           },
           {
+            "id": "j88pznz8",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/0132baadaa5fbeee693dedb0b299d7abd7d77b8c-1762684057421"
           },
           {
+            "id": "kq3g3s4q",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/c2751689f4b9bc00460cc20cc140ce383b8783a4-1763461367633"
           },
           {
+            "id": "ypinsugt",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/1cee7a984c7b538fe042ddd6dd1d1ff9937051ea-1763893590458"
           },
           {
+            "id": "deattvdu",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/34f195b7d7e32e99201a175642f59b97af93f66e-1764066564543"
           },
           {
+            "id": "343cqbdk",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/0f456d30b127e87c64e74649ca14200360538049-1764498735170"
           }
         ]
       },
       {
+        "id": "a33wzqx2",
         "title": "Conditional distributions",
         "videos": [
           {
+            "id": "2bxupbgi",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/f87a30882a2600ff31603708bc681d827a3a68a7-1767522306390"
           },
           {
+            "id": "8k39xewg",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/4a69cd645c75a79f239a9edb4e4a26d1c6392965-1767684346156"
           },
           {
+            "id": "rwn29hvx",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/a35983e5b39031697a130d79170343bd55274c6c-1768127579403"
           },
           {
+            "id": "2sa89mwc",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/f5434da4d6eace6365c97e795ed6d8395f0c0455-1768299800348"
           },
           {
+            "id": "3j2buf4v",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/5425af1bea909572f159ffee4d1f767fc38b5c3c-1768732612510"
           },
           {
+            "id": "wp9qdwpi",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/8ed57c5fb6c2242f5900c636c888db5986ee90ac-1768905017112"
           }
@@ -1904,128 +2227,159 @@
     ],
     "chapters": [
       {
+        "id": "79s9wx38",
         "title": "Fundamentals of statistical inference",
         "videos": [
           {
+            "id": "2a4nnpz4",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/6579700419d6e7d39b414c4f1762334cd3738a01-1758094343105"
           },
           {
+            "id": "qqyc68m3",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/16ec2cdc92be0638e03a663e700d908ad8d76b3d-1758526170930"
           },
           {
+            "id": "vqw92h4r",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/095b8e0f5e048b23c31e85ab77fbeedea701e8fe-1758699112579"
           },
           {
+            "id": "ufi933q5",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/1a23bbe21797a4032ab352def11541e8829d4728-1759130706621"
           },
           {
+            "id": "jcwct76p",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/18b5402899f3967fd72278cc95d6e1b0027015f7-1759304024223"
           },
           {
+            "id": "6my34ueb",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/699b293e1c1a500fbbfdb86c91d5bf23100f063a-1759736056977"
           }
         ]
       },
       {
+        "id": "dzzxifwd",
         "title": "Point Estimation",
         "videos": [
           {
+            "id": "fauwuayc",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/51aae53f12067eb44852f58375fd01ec5dc46fc2-1759909188256"
           },
           {
+            "id": "5taenhqg",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/060ed9d0cf13577ba5566bebcff29902a4e7185b-1760944736931"
           },
           {
+            "id": "h6ws5vhw",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/060ed9d0cf13577ba5566bebcff29902a4e7185b-1760947701536"
           },
           {
+            "id": "8xcr263u",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/6e0b0b3a5757cc41580d5d820cb5ad70abd600db-1761118213727"
           },
           {
+            "id": "cw2djixb",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/1f7bb9165cfc8e0ee75f74cf443b84f0d43d0bdf-1761550504858"
           },
           {
+            "id": "r4a8x4tz",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/3299e5d95c1aa9792c4ece751c2f74bbc65b84c2-1762155484211"
           },
           {
+            "id": "zeedad3r",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/7326516e1c782f645f52cd45aab58320646a970e-1762327320486"
           },
           {
+            "id": "c7g8iv3h",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/baab33192d4cc53f1f1c868b7122d224ac88462b-1762770506135"
           },
           {
+            "id": "xawimxzt",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/09492f91a29e36efdbbb4a7e6572b5e96fefb908-1762932320507"
           },
           {
+            "id": "fjgmcb9w",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/79272bdd636fb2ffe16599a9785394f4ccd01d94-1763537702123"
           }
         ]
       },
       {
+        "id": "kd2j4c7n",
         "title": "Confidence Intervals",
         "videos": [
           {
+            "id": "bkvvqvyj",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/b5aa0c3c9aaa507c45bde3592a7278432179cb85-1764671550379"
           },
           {
+            "id": "8jcsxyyc",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/ef972e1f6348e4ee78c314475527732643432844-1764747169559"
           },
           {
+            "id": "qhxkxnp9",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/3987a2b6b738ed2a8c413f50673a5ca2c9a6216e-1765103562492"
           },
           {
+            "id": "2bf2px2r",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/3005c2a91dc59624098fa22bf94ca6d652552350-1765276091322"
           },
           {
+            "id": "e2zr9p6c",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/7a2653d01888da74397572feacff1a096d7e864f-1768202749567"
           },
           {
+            "id": "rqpfd359",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/a84424d20169f5cf2d30dc182f272858abf8b5f3-1768375593767"
           },
           {
+            "id": "xt2wehws",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/5de074e14018931cba4aae308ade2587d5670bb0-1768807464374"
           },
           {
+            "id": "92ssmw8z",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/15ca3aed8cf879048be5d18669f728138aee94bf-1768980618414"
           },
           {
+            "id": "329gx9qz",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/68d6464642431bc61749b8c81a5df5f3ea48e643-1769412459138"
           },
           {
+            "id": "ep9gvt8p",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/0dc6d98edeb745d624887f1cc4a77fe434fb64fa-1769585468937"
           }
         ]
       },
       {
+        "id": "ijvkf6pq",
         "title": "Hypothesis Testing",
         "videos": [
           {
+            "id": "ssa56kjn",
             "kind": "bbb",
             "url": "https://vc.bibf.com/playback/presentation/2.3/324829eb5f32555a0ca7aed9512ab9824b95b0a6-1767597309113"
           }
@@ -2053,286 +2407,336 @@
     "notes": [],
     "chapters": [
       {
+        "id": "dfcvydb2",
         "title": "R for Data Science (full course)",
         "videos": [
           {
+            "id": "p68bbhim",
             "kind": "youtube",
-            "id": "_V8eKsto3Ug",
+            "videoId": "_V8eKsto3Ug",
             "title": "R Programming Tutorial - Learn the Basics of Statistical Computing",
             "channel": "freeCodeCamp.org"
           }
         ]
       },
       {
+        "id": "jr9ntiqc",
         "title": "Python for Data Science (full course)",
         "videos": [
           {
+            "id": "skpj5uj2",
             "kind": "youtube",
-            "id": "wUSDVGivd-8",
+            "videoId": "wUSDVGivd-8",
             "title": "Python for Data Analytics - Full Course for Beginners",
             "channel": "Luke Barousse"
           }
         ]
       },
       {
+        "id": "79mwvkwk",
         "title": "Git (full course)",
         "videos": [
           {
+            "id": "fqfhxcp3",
             "kind": "youtube",
-            "id": "8JJ101D3knE",
+            "videoId": "8JJ101D3knE",
             "title": "Git Tutorial for Beginners: Learn Git in 1 Hour",
             "channel": "Programming with Mosh"
           }
         ]
       },
       {
+        "id": "b6v2akn8",
         "title": "SQL (full course)",
         "videos": [
           {
+            "id": "g5xcmbum",
             "kind": "youtube",
-            "id": "7mz73uXD9DA",
+            "videoId": "7mz73uXD9DA",
             "title": "SQL for Data Analytics - Learn SQL in 4 Hours",
             "channel": "Luke Barousse"
           }
         ]
       },
       {
+        "id": "hxxq954f",
         "title": "Block 1: Intro to Data Science, R, Python & Git",
         "videos": [
           {
+            "id": "uhnv5h8a",
             "kind": "youtube",
-            "id": "K418swtFnik",
+            "videoId": "K418swtFnik",
             "title": "R Markdown TUTORIAL | A powerful tool for LEARNING R (IN 45 MINUTES)",
             "channel": "R for Ecology"
           },
           {
+            "id": "s5t8ra94",
             "kind": "youtube",
-            "id": "DNS7i2m4sB0",
+            "videoId": "DNS7i2m4sB0",
             "unavailable": true
           }
         ]
       },
       {
+        "id": "cdrdx7q4",
         "title": "Block 2: Data Types, Structures & File Formats (R & Python)",
         "videos": [
           {
+            "id": "nmsnqm5y",
             "kind": "youtube",
-            "id": "k0zLwDAQ6Uw",
+            "videoId": "k0zLwDAQ6Uw",
             "title": "BASIC DATA STRUCTURES IN R PROGRAMMING (VECTOR, LIST, DATA FRAME, MATRIX, ARRAY) || R LANGUAGE",
             "channel": "Sundeep Saradhi Kanthety"
           },
           {
+            "id": "9pzqnizg",
             "kind": "youtube",
-            "id": "lLRBYKwP8GQ",
+            "videoId": "lLRBYKwP8GQ",
             "title": "Ultimate Guide to NumPy Arrays - VERY DETAILED TUTORIAL for beginners!",
             "channel": "Python Simplified"
           },
           {
+            "id": "8axtzm6p",
             "kind": "youtube",
-            "id": "vmEHCJofslg",
+            "videoId": "vmEHCJofslg",
             "title": "Complete Python Pandas Data Science Tutorial! (Reading CSV/Excel files, Sorting, Filtering, Groupby)",
             "channel": "Keith Galli"
           },
           {
+            "id": "kcav8pyj",
             "kind": "youtube",
-            "id": "q5uM4VKywbA",
+            "videoId": "q5uM4VKywbA",
             "title": "Python Tutorial: CSV Module - How to Read, Parse, and Write CSV Files",
             "channel": "Corey Schafer"
           }
         ]
       },
       {
+        "id": "jh4w6yes",
         "title": "Block 3: SQL and Databases (SQLite, R, Python)",
         "videos": [
           {
+            "id": "5hw4cnja",
             "kind": "youtube",
-            "id": "h0nxCDiD-zg",
+            "videoId": "h0nxCDiD-zg",
             "title": "SQL Tutorial for Beginners",
             "channel": "Kevin Stratvert"
           },
           {
+            "id": "v5yrmjce",
             "kind": "youtube",
-            "id": "m1KcNV-Zhmc",
+            "videoId": "m1KcNV-Zhmc",
             "title": "Advanced SQL Tutorial | Subqueries",
             "channel": "Alex The Analyst"
           },
           {
+            "id": "cn3u76rw",
             "kind": "youtube",
-            "id": "ZfliyOawJFk",
+            "videoId": "ZfliyOawJFk",
             "title": "Use R & SQLite for Data Analysis",
             "channel": "Bryan Cafferky"
           },
           {
+            "id": "arubvcj5",
             "kind": "youtube",
-            "id": "pd-0G0MigUA",
+            "videoId": "pd-0G0MigUA",
             "title": "Python SQLite Tutorial: Complete Overview - Creating a Database, Table, and Running Queries",
             "channel": "Corey Schafer"
           }
         ]
       },
       {
+        "id": "irsu5f86",
         "title": "Block 4: Programming Concepts in R (Control Flow & Functions)",
         "videos": [
           {
+            "id": "2itguhgh",
             "kind": "youtube",
-            "id": "66AkNi2C5tw",
+            "videoId": "66AkNi2C5tw",
             "title": "Control Structures in R [R18] | If Else | for | while| R Programming",
             "channel": "J's Lab"
           },
           {
+            "id": "kwtz68ep",
             "kind": "youtube",
-            "id": "9lP0uSRnih0",
+            "videoId": "9lP0uSRnih0",
             "title": "CONDITIONAL STATEMENTS IN R PROGRAMMING || Simple IF, IF - ELSE, ELSE - IF Ladder, Nested IF",
             "channel": "Sundeep Saradhi Kanthety"
           },
           {
+            "id": "hnpe4r8w",
             "kind": "youtube",
-            "id": "Xza0pUVHRS4",
+            "videoId": "Xza0pUVHRS4",
             "title": "apply() functions in R Programming| apply() | lapply() | tapply() | sapply()",
             "channel": "J's Lab"
           }
         ]
       },
       {
+        "id": "4c5atm56",
         "title": "Block 5: Variables, Mutability, Aliasing & OOP (Python)",
         "videos": [
           {
+            "id": "zfhjmd2q",
             "kind": "youtube",
-            "id": "RvRKT-jXvko",
+            "videoId": "RvRKT-jXvko",
             "title": "5. Tuples, Lists, Aliasing, Mutability, and Cloning",
             "channel": "MIT OpenCourseWare"
           },
           {
+            "id": "yebtbhu6",
             "kind": "youtube",
-            "id": "5qQQ3yzbKp8",
+            "videoId": "5qQQ3yzbKp8",
             "title": "Programming Terms: Mutable vs Immutable",
             "channel": "Corey Schafer"
           },
           {
+            "id": "eg4tme8q",
             "kind": "youtube",
-            "id": "JeznW_7DlB0",
+            "videoId": "JeznW_7DlB0",
             "title": "Python Object Oriented Programming (OOP) - For Beginners",
             "channel": "Tech With Tim"
           }
         ]
       },
       {
+        "id": "iyjn27be",
         "title": "Block 6: Data Wrangling (R & Python)",
         "videos": [
           {
+            "id": "ns88x6n3",
             "kind": "youtube",
-            "id": "oXImkptBpqc",
+            "videoId": "oXImkptBpqc",
             "title": "Data wrangling with R in 27 minutes",
             "channel": "Equitable Equations"
           },
           {
+            "id": "tszinbcu",
             "kind": "youtube",
-            "id": "sV5lwAJ7vnQ",
+            "videoId": "sV5lwAJ7vnQ",
             "title": "Clean your data with R. R programming for beginners.",
             "channel": "R Programming 101"
           },
           {
+            "id": "jwry9etb",
             "kind": "youtube",
-            "id": "bDhvCp3_lYw",
+            "videoId": "bDhvCp3_lYw",
             "title": "Data Cleaning in Pandas | Python Pandas Tutorials",
             "channel": "Alex The Analyst"
           }
         ]
       },
       {
+        "id": "2654m55h",
         "title": "Block 7-8: Data Visualisation & Web/APIs",
         "videos": [
           {
+            "id": "z75asafp",
             "kind": "youtube",
-            "id": "HPJn1CMvtmI",
+            "videoId": "HPJn1CMvtmI",
             "title": "ggplot for plots and graphs. An introduction to data visualization using R programming",
             "channel": "R Programming 101"
           },
           {
+            "id": "q67eiuz5",
             "kind": "youtube",
-            "id": "oVQBwHQXXhc",
+            "videoId": "oVQBwHQXXhc",
             "title": "Graph Plotting in R with ggplot2 | Data Visualization | Scatter Plots, Histograms, Boxplots and More",
             "channel": "Dr. H Ismail"
           },
           {
+            "id": "n72ii6jq",
             "kind": "youtube",
-            "id": "v3w24XfD5m8",
+            "videoId": "v3w24XfD5m8",
             "title": "Beginning Data Visualization w/ Pandas and Matplotlib",
             "channel": "ButlerU Information Systems"
           },
           {
+            "id": "9a2vpjny",
             "kind": "youtube",
-            "id": "XqIfWkVI3UA",
+            "videoId": "XqIfWkVI3UA",
             "title": "Python Requests Tutorial: HTTP Requests and Web Scraping",
             "channel": "pixegami"
           }
         ]
       },
       {
+        "id": "9q4k2bdt",
         "title": "Block 9: Machine Learning Frameworks",
         "videos": [
           {
+            "id": "n69v2se9",
             "kind": "youtube",
-            "id": "IpGxLWOIZy4",
+            "videoId": "IpGxLWOIZy4",
             "title": "A Friendly Introduction to Machine Learning",
             "channel": "Luis Serrano Academy"
           },
           {
+            "id": "g2f63a35",
             "kind": "youtube",
-            "id": "BR9h47Jtqyw",
+            "videoId": "BR9h47Jtqyw",
             "title": "A friendly introduction to Deep Learning and Neural Networks",
             "channel": "Luis Serrano Academy"
           },
           {
+            "id": "na873qrm",
             "kind": "youtube",
-            "id": "fSytzGwwBVw",
+            "videoId": "fSytzGwwBVw",
             "title": "Machine Learning Fundamentals: Cross Validation",
             "channel": "StatQuest with Josh Starmer"
           },
           {
+            "id": "xtp79ecr",
             "kind": "youtube",
-            "id": "gJo0uNL-5Qw",
+            "videoId": "gJo0uNL-5Qw",
             "title": "Machine Learning Tutorial Python 12 - K Fold Cross Validation",
             "channel": "codebasics"
           },
           {
+            "id": "cybv89rh",
             "kind": "youtube",
-            "id": "SIEaLBXr0rk",
+            "videoId": "SIEaLBXr0rk",
             "title": "Scikit-Learn Full Crash Course - Python Machine Learning",
             "channel": "NeuralNine"
           },
           {
+            "id": "skh56eq7",
             "kind": "youtube",
-            "id": "oXLxQVyvEa8",
+            "videoId": "oXLxQVyvEa8",
             "title": "Machine Learning with caret in R: Part 1",
             "channel": "Econolytics Edge"
           }
         ]
       },
       {
+        "id": "v4yitqqt",
         "title": "Block 10: Software Development & R Packages",
         "videos": [
           {
+            "id": "t7jwk7wg",
             "kind": "youtube",
-            "id": "Fi3_BjVzpqk",
+            "videoId": "Fi3_BjVzpqk",
             "title": "Introduction To Software Development LifeCycle | What Is Software Development? | Simplilearn",
             "channel": "Simplilearn"
           },
           {
+            "id": "dq3je624",
             "kind": "youtube",
-            "id": "8eVXTyIZ1Hs",
+            "videoId": "8eVXTyIZ1Hs",
             "title": "What Is Agile Methodology? | Introduction to Agile Methodology in Six Minutes | Simplilearn",
             "channel": "Simplilearn"
           },
           {
+            "id": "d9dd8unm",
             "kind": "youtube",
-            "id": "79s3z0gIuFU",
+            "videoId": "79s3z0gIuFU",
             "title": "R Package Development 1: Where to Start",
             "channel": "John Muschelli"
           },
           {
+            "id": "heei5nbh",
             "kind": "youtube",
-            "id": "DWkIbk_HE9o",
+            "videoId": "DWkIbk_HE9o",
             "title": "Create R package in 5 minutes with roxygen2",
             "channel": "Dane Van Domelen"
           }
@@ -2366,367 +2770,431 @@
     ],
     "chapters": [
       {
+        "id": "yd2a8pzt",
         "title": "Excel (recommended course)",
         "videos": [
           {
+            "id": "syheisnh",
             "kind": "youtube",
-            "id": "kghcAk7l6eA",
+            "videoId": "kghcAk7l6eA",
             "title": "Introduction to Data Analysis with Excel: 2-Hour Training Tutorial",
             "channel": "Simon Sez IT"
           }
         ]
       },
       {
+        "id": "3qgghfui",
         "title": "Tableau (recommended course)",
         "videos": [
           {
+            "id": "gbjyqvuc",
             "kind": "youtube",
-            "id": "dahrmqT5GD4",
+            "videoId": "dahrmqT5GD4",
             "title": "Tableau Complete Project End-to-End | Like I Do in My Real Projects",
             "channel": "Data with Baraa"
           }
         ]
       },
       {
+        "id": "ngeg4tv9",
         "title": "Block 1: Decision-Making Under Uncertainty and Modelling",
         "videos": [
           {
+            "id": "wwe7s7i3",
             "kind": "youtube",
-            "id": "UgKrQ2ywVfs",
+            "videoId": "UgKrQ2ywVfs",
             "title": "The Monty Hall Problem",
             "channel": "MIT OpenCourseWare"
           },
           {
+            "id": "wb9jeipe",
             "kind": "youtube",
-            "id": "HZGCoVF3YvM",
+            "videoId": "HZGCoVF3YvM",
             "title": "Bayes theorem, the geometry of changing beliefs",
             "channel": "3Blue1Brown"
           },
           {
+            "id": "h68h9uce",
             "kind": "youtube",
-            "id": "M-z74nAun40",
+            "videoId": "M-z74nAun40",
             "unavailable": true
           }
         ]
       },
       {
+        "id": "66fcg48k",
         "title": "Block 2: Descriptive Statistics",
         "videos": [
           {
+            "id": "5mdgmxew",
             "kind": "youtube",
-            "id": "SplCk-t1BeA",
+            "videoId": "SplCk-t1BeA",
             "title": "Descriptive Statistics: FULL Tutorial - Mean, Median, Mode, Variance & SD (With Examples)",
             "channel": "Grad Coach"
           },
           {
+            "id": "z33a3vq3",
             "kind": "youtube",
-            "id": "zjHfAhcU6kE",
+            "videoId": "zjHfAhcU6kE",
             "title": "Mean, Median, and Mode of Grouped Data & Frequency Distribution Tables Statistics",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "xe87x8ib",
             "kind": "youtube",
-            "id": "U0NZu6f5TMI",
+            "videoId": "U0NZu6f5TMI",
             "title": "Skewness - Right, Left & Symmetric Distribution - Mean, Median, & Mode With Boxplots - Statistics",
             "channel": "The Organic Chemistry Tutor"
           }
         ]
       },
       {
+        "id": "xs3z8vxd",
         "title": "Block 3: Exploring Relationships Between Variables",
         "videos": [
           {
+            "id": "3mg6qtk8",
             "kind": "youtube",
-            "id": "Rwc4-MXl8VI",
+            "videoId": "Rwc4-MXl8VI",
             "title": "Understanding Contingency Tables and Crosstabulation, Pt. 1",
             "channel": "Alan Neustadtl"
           },
           {
+            "id": "7yv4vmy2",
             "kind": "youtube",
-            "id": "D7NKvMG8peo",
+            "videoId": "D7NKvMG8peo",
             "title": "Relationship Between Two Variables - Crosstabulation, Scatter Plot and Trendline",
             "channel": "Economics with Sara"
           },
           {
+            "id": "w8usur8a",
             "kind": "youtube",
-            "id": "IujCYxtpszU",
+            "videoId": "IujCYxtpszU",
             "title": "Lecture 21: Covariance and Correlation | Statistics 110",
             "channel": "Harvard University"
           }
         ]
       },
       {
+        "id": "3eqhr6df",
         "title": "Block 5: Probability and Probability Distributions",
         "videos": [
           {
+            "id": "ezpfntnx",
             "kind": "youtube",
-            "id": "94AmzeR9n2w",
+            "videoId": "94AmzeR9n2w",
             "title": "Multiplication & Addition Rule - Probability - Mutually Exclusive & Independent Events",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "qwczvswz",
             "kind": "youtube",
-            "id": "OByl4RJxnKA",
+            "videoId": "OByl4RJxnKA",
             "title": "Bayes' Theorem of Probability With Tree Diagrams & Venn Diagrams",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "q8ezgqhb",
             "kind": "youtube",
-            "id": "-7QG2itL1u4",
+            "videoId": "-7QG2itL1u4",
             "title": "Random Variables and Probability Distributions",
             "channel": "Steve Brunton"
           }
         ]
       },
       {
+        "id": "kdn8e8rj",
         "title": "Block 6: Common Probability Distributions",
         "videos": [
           {
+            "id": "g8s44yxb",
             "kind": "youtube",
-            "id": "CjF_yQ2N638",
+            "videoId": "CjF_yQ2N638",
             "title": "Standard Normal Distribution Tables, Z Scores, Probability & Empirical Rule - Stats",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "7twqz8j8",
             "kind": "youtube",
-            "id": "3PWKQiLK41M",
+            "videoId": "3PWKQiLK41M",
             "title": "Finding The Probability of a Binomial Distribution Plus Mean & Standard Deviation",
             "channel": "The Organic Chemistry Tutor"
           },
           {
+            "id": "9v9izch2",
             "kind": "youtube",
-            "id": "m0o-585xwW0",
+            "videoId": "m0o-585xwW0",
             "title": "Introduction to Poisson Distribution - Probability & Statistics",
             "channel": "The Organic Chemistry Tutor"
           }
         ]
       },
       {
+        "id": "n8qhje9z",
         "title": "Block 7: Decision Trees and EMV",
         "videos": [
           {
+            "id": "3en439px",
             "kind": "youtube",
-            "id": "NQ-mYn9fPag",
+            "videoId": "NQ-mYn9fPag",
             "title": "Decision Analysis 1: Maximax, Maximin, Minimax Regret",
             "channel": "Joshua Emmanuel"
           },
           {
+            "id": "tac353z4",
             "kind": "youtube",
-            "id": "tbv9E9D2BRQ",
+            "videoId": "tbv9E9D2BRQ",
             "title": "Decision Analysis 2: EMV & EVPI - Expected Value & Perfect Information",
             "channel": "Joshua Emmanuel"
           },
           {
+            "id": "5yacr26h",
             "kind": "youtube",
-            "id": "ydvnVw80I_8",
+            "videoId": "ydvnVw80I_8",
             "title": "Decision Analysis 3: Decision Trees",
             "channel": "Joshua Emmanuel"
           },
           {
+            "id": "9gtynuc7",
             "kind": "youtube",
-            "id": "FUY07dvaUuE",
+            "videoId": "FUY07dvaUuE",
             "title": "Decision Analysis 4 (Tree): EVSI - Expected Value of Sample Information",
             "channel": "Joshua Emmanuel"
           }
         ]
       },
       {
+        "id": "f8sx4mp7",
         "title": "Block 8: Sampling and Sampling Distributions",
         "videos": [
           {
+            "id": "43nnujj3",
             "kind": "youtube",
-            "id": "pTuj57uXWlk",
+            "videoId": "pTuj57uXWlk",
             "title": "Types of Sampling Methods (4.1)",
             "channel": "Simple Learning Pro"
           },
           {
+            "id": "25wmmajx",
             "kind": "youtube",
-            "id": "7S7j75d3GM4",
+            "videoId": "7S7j75d3GM4",
             "title": "Sampling Distributions (7.2)",
             "channel": "Simple Learning Pro"
           },
           {
+            "id": "xniew2ya",
             "kind": "youtube",
-            "id": "YAlJCEDH2uY",
+            "videoId": "YAlJCEDH2uY",
             "title": "The Central Limit Theorem, Clearly Explained!!!",
             "channel": "StatQuest with Josh Starmer"
           }
         ]
       },
       {
+        "id": "5z2y7atg",
         "title": "Block 9: Confidence Interval Estimation",
         "videos": [
           {
+            "id": "p3eewrwq",
             "kind": "youtube",
-            "id": "6r5IZCjvIHI",
+            "videoId": "6r5IZCjvIHI",
             "title": "Confidence Interval for a population mean - t distribution",
             "channel": "Joshua Emmanuel"
           },
           {
+            "id": "u78q3x8n",
             "kind": "youtube",
-            "id": "dLEtlteLVJU",
+            "videoId": "dLEtlteLVJU",
             "title": "Confidence Interval for a population proportion | Solved Problems",
             "channel": "Joshua Emmanuel"
           },
           {
+            "id": "mykru9jd",
             "kind": "youtube",
-            "id": "hlM7zdf7zwU",
+            "videoId": "hlM7zdf7zwU",
             "title": "Confidence intervals and margin of error | AP Statistics | Khan Academy",
             "channel": "Khan Academy"
           }
         ]
       },
       {
+        "id": "ipdnhbeh",
         "title": "Block 10: Hypothesis Testing",
         "videos": [
           {
+            "id": "a5qwfem9",
             "kind": "youtube",
-            "id": "VK-rnA3-41c",
+            "videoId": "VK-rnA3-41c",
             "title": "Intro to Hypothesis Testing in Statistics - Hypothesis Testing Statistics Problems & Examples",
             "channel": "Math and Science"
           },
           {
+            "id": "h4cxiwtz",
             "kind": "youtube",
-            "id": "0oc49DyA3hU",
+            "videoId": "0oc49DyA3hU",
             "title": "Hypothesis Testing and The Null Hypothesis, Clearly Explained!!!",
             "channel": "StatQuest with Josh Starmer"
           },
           {
+            "id": "i3xepz8b",
             "kind": "youtube",
-            "id": "UcZwyzwWU7o",
+            "videoId": "UcZwyzwWU7o",
             "title": "Hypothesis Testing - Difference of Two Means - Student's -Distribution & Normal Distribution",
             "channel": "The Organic Chemistry Tutor"
           }
         ]
       },
       {
+        "id": "a4cwudiv",
         "title": "Block 11: Simple Linear Regression",
         "videos": [
           {
+            "id": "bak3nq7a",
             "kind": "youtube",
-            "id": "owI7zxCqNY0",
+            "videoId": "owI7zxCqNY0",
             "title": "Video 1: Introduction to Simple Linear Regression",
             "channel": "dataminingincae"
           },
           {
+            "id": "52a2z655",
             "kind": "youtube",
-            "id": "aq8VU5KLmkY",
+            "videoId": "aq8VU5KLmkY",
             "title": "Introduction to REGRESSION! | SSE, SSR, SST | R-squared | Errors (ε vs. e)",
             "channel": "zedstatistics"
           },
           {
+            "id": "dtekgh69",
             "kind": "youtube",
-            "id": "P8hT5nDai6A",
+            "videoId": "P8hT5nDai6A",
             "title": "Linear Regression Using Least Squares Method - Line of Best Fit Equation",
             "channel": "The Organic Chemistry Tutor"
           }
         ]
       },
       {
+        "id": "sra4myeb",
         "title": "Block 12: Multiple Regression Analysis",
         "videos": [
           {
+            "id": "icvde8fy",
             "kind": "youtube",
-            "id": "EkAQAi3a4js",
+            "videoId": "EkAQAi3a4js",
             "title": "Multiple Regression, Clearly Explained!!!",
             "channel": "StatQuest with Josh Starmer"
           },
           {
+            "id": "uu8rjxfp",
             "kind": "youtube",
-            "id": "G1WX5GiFSWQ",
+            "videoId": "G1WX5GiFSWQ",
             "title": "Multicollinearity (in Regression Analysis)",
             "channel": "numiqo"
           },
           {
+            "id": "wsaxgi5k",
             "kind": "youtube",
-            "id": "S66FZa16RZc",
+            "videoId": "S66FZa16RZc",
             "title": "What are Dummy Variables in Regression?",
             "channel": "numiqo"
           },
           {
+            "id": "4ikprwmy",
             "kind": "youtube",
-            "id": "Cba9LJ9lS8s",
+            "videoId": "Cba9LJ9lS8s",
             "title": "What is Multicollinearity? Extensive video + simulation!",
             "channel": "zedstatistics"
           }
         ]
       },
       {
+        "id": "3kfhijnb",
         "title": "Block 13: Time Series Analysis and Forecasting",
         "videos": [
           {
+            "id": "n94tttw3",
             "kind": "youtube",
-            "id": "GE3JOFwTWVM",
+            "videoId": "GE3JOFwTWVM",
             "title": "What is Time Series Analysis?",
             "channel": "IBM Technology"
           },
           {
+            "id": "4bkjhsse",
             "kind": "youtube",
-            "id": "Wo5YWXDRXv8",
+            "videoId": "Wo5YWXDRXv8",
             "title": "Forecasting: Moving Averages, MAD, MSE, MAPE",
             "channel": "Joshua Emmanuel"
           },
           {
+            "id": "zfnw5dw6",
             "kind": "youtube",
-            "id": "k_HN0wOKDd0",
+            "videoId": "k_HN0wOKDd0",
             "title": "Forecasting: Exponential Smoothing, MSE",
             "channel": "Joshua Emmanuel"
           },
           {
+            "id": "p8dvgfrt",
             "kind": "youtube",
-            "id": "C5J_QSR7ST0",
+            "videoId": "C5J_QSR7ST0",
             "title": "Exponential Smoothing in Excel (Find α) | Use Solver to find smoothing constant alpha",
             "channel": "Joshua Emmanuel"
           }
         ]
       },
       {
+        "id": "zaai4t2u",
         "title": "Block 14: Optimisation Models",
         "videos": [
           {
+            "id": "m53q82wc",
             "kind": "youtube",
-            "id": "soTnusib1l8",
+            "videoId": "soTnusib1l8",
             "title": "Linear Programming: Excel Solver and Sensitivity Analysis Part1",
             "channel": "Professor Charming"
           },
           {
+            "id": "w639hx2i",
             "kind": "youtube",
-            "id": "FzY333RdrBM",
+            "videoId": "FzY333RdrBM",
             "title": "Linear Programming Sensitivity Analysis - Interpreting Excel's Solver Report",
             "channel": "Joshua Emmanuel"
           },
           {
+            "id": "hpg6rprr",
             "kind": "youtube",
-            "id": "J52iRkbrG1k",
+            "videoId": "J52iRkbrG1k",
             "title": "LP Sensitivity Analysis - Reduced Cost, Shadow Price, Optimality, Feasibility -Excel Output",
             "channel": "Joshua Emmanuel"
           },
           {
+            "id": "scg28r8t",
             "kind": "youtube",
-            "id": "uaxOfTIC_pI",
+            "videoId": "uaxOfTIC_pI",
             "title": "Linear Programming - Shadow Price, Slack/Surplus calculations",
             "channel": "Joshua Emmanuel"
           }
         ]
       },
       {
+        "id": "3di898yc",
         "title": "Block 15: Monte Carlo Simulation",
         "videos": [
           {
+            "id": "5tq6ghgs",
             "kind": "youtube",
-            "id": "7TqhmX92P6U",
+            "videoId": "7TqhmX92P6U",
             "title": "What is Monte Carlo Simulation?",
             "channel": "IBM Technology"
           },
           {
+            "id": "tbujrwv2",
             "kind": "youtube",
-            "id": "-Mp4CdDaoUE",
+            "videoId": "-Mp4CdDaoUE",
             "title": "Simulation in Excel Using Probability Distribution & Random Numbers",
             "channel": "Math Queen 👑 Reina De Matemáticas"
           },
           {
+            "id": "u44zyf3z",
             "kind": "youtube",
-            "id": "Eb4jPVdaITg",
+            "videoId": "Eb4jPVdaITg",
             "title": "Basic Excel Business Analytics #66: Monte Carlo Simulation for New Product, 3 Uncertain Variables",
             "channel": "excelisfun"
           }
@@ -2754,88 +3222,104 @@
     "notes": [],
     "chapters": [
       {
+        "id": "6jmn24c5",
         "title": "Nature of Econometrics and Economic Data",
         "videos": [
           {
+            "id": "fzb9zpdz",
             "kind": "youtube",
-            "id": "5lcQN-zbeGE",
+            "videoId": "5lcQN-zbeGE",
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 1: Nature of Econometrics and Economic Data",
             "channel": "youtube-economist"
           }
         ]
       },
       {
+        "id": "mtitgdpr",
         "title": "The Simple Regression Model",
         "videos": [
           {
+            "id": "8ybjgy75",
             "kind": "youtube",
-            "id": "WHas2yaIlcs",
+            "videoId": "WHas2yaIlcs",
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 2: The Simple Regression Model",
             "channel": "youtube-economist"
           }
         ]
       },
       {
+        "id": "48isg7ra",
         "title": "Multiple Regression Analysis: Estimation",
         "videos": [
           {
+            "id": "6974x89a",
             "kind": "youtube",
-            "id": "17nWWWUrUcg",
+            "videoId": "17nWWWUrUcg",
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 3: Multiple Regression Analysis: Estimation",
             "channel": "youtube-economist"
           }
         ]
       },
       {
+        "id": "9xtetwaf",
         "title": "Inference",
         "videos": [
           {
+            "id": "cwbkdhsd",
             "kind": "youtube",
-            "id": "S72V6trrwKY",
+            "videoId": "S72V6trrwKY",
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 4: Inference",
             "channel": "youtube-economist"
           }
         ]
       },
       {
+        "id": "gazw7qiy",
         "title": "OLS Asymptotics",
         "videos": [
           {
+            "id": "xw5q9d82",
             "kind": "youtube",
-            "id": "nORu6KPc7o4",
+            "videoId": "nORu6KPc7o4",
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 5: OLS Asymptotics",
             "channel": "youtube-economist"
           }
         ]
       },
       {
+        "id": "w8jhm9u7",
         "title": "Heteroskedasticity",
         "videos": [
           {
+            "id": "c657nqbk",
             "kind": "youtube",
-            "id": "DMzBRYqAHrE",
+            "videoId": "DMzBRYqAHrE",
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 8: Heteroskedasticity",
             "channel": "youtube-economist"
           }
         ]
       },
       {
+        "id": "s7m9nt7j",
         "title": "Time series",
         "videos": [
           {
+            "id": "3fgvbn25",
             "kind": "youtube",
-            "id": "EhvPfZYJCkE",
+            "videoId": "EhvPfZYJCkE",
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 12: Serial corr. and heterosk. in time series",
             "channel": "youtube-economist"
           }
         ]
       },
       {
+        "id": "kfec5xg7",
         "title": "Instrumental variables estimation",
         "videos": [
           {
+            "id": "edzkgvwu",
             "kind": "youtube",
-            "id": "GsL3OZTIcfo",
+            "videoId": "GsL3OZTIcfo",
             "title": "Wooldridge Econometrics for Economics BSc students Ch. 15/16: Instrumental variables estimation",
             "channel": "youtube-economist"
           }

@@ -4,7 +4,7 @@ from app.models.access import AccessRole, FeatureSwitch, FeatureSwitchRole, Role
 from app.models.activity import AuditEntry, LessonResume, LessonView, Notification, Report, ReportStatus
 from app.models.base import Base
 from app.models.board import BoardCard
-from app.models.content import CalendarEvent, ContentDoc, Module
+from app.models.content import CalendarEvent, Chapter, ContentDoc, Lesson, Module
 from app.models.forum import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVote
 from app.models.library import ItemSource, ItemStatus, LibraryItem, LibraryStar, Upload, UploadPurpose, UploadStatus
 from app.models.newsletter import IssueStatus, NewsletterIssue, NewsletterReaction
@@ -21,6 +21,7 @@ __all__ = [
     "BoardCard",
     "CalendarEvent",
     "Channel",
+    "Chapter",
     "ContentDoc",
     "EmailOutbox",
     "FeatureSwitch",
@@ -30,6 +31,7 @@ __all__ = [
     "IssueStatus",
     "ItemSource",
     "ItemStatus",
+    "Lesson",
     "LessonResume",
     "LessonView",
     "LibraryItem",
