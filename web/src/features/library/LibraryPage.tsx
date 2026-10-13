@@ -20,7 +20,7 @@ import {
 } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../auth';
+import { showsUpload, useAuth } from '../../auth';
 import { BREAKPOINTS, cohortLabel, normalizeYear, useDebouncedValue, useDocumentTitle, useMediaQuery, useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, Chip, Count, EmptyState, Kbd, Menu, Page, PageHeader, PageSection, QueryError, SearchField, SegmentedControl, Skeleton, cx, timeAgo } from '../../ui';
@@ -150,7 +150,9 @@ export default function LibraryPage() {
   useDocumentTitle('Library');
   const location = useLocation();
   const { year: globalYear } = useYear();
-  const { status, requireAuth, openSignIn } = useAuth();
+  const { status, requireAuth, openSignIn, featureOn, mayTry } = useAuth();
+  // Upload shows while the library takes uploads and the person may try (guests sign in first).
+  const uploadShown = showsUpload(featureOn, mayTry);
   const { getModule, getModulesForYear } = useModules();
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
   const [params, update] = useLibraryParams();
@@ -228,8 +230,9 @@ export default function LibraryPage() {
     if (!uploadParam || status === 'loading' || handledUpload.current === location.key) return;
     handledUpload.current = location.key;
     update({ upload: null });
+    if (!uploadShown) return;
     if (requireAuth('Sign in to upload a file', openUpload)) openUpload();
-  }, [uploadParam, status, location.key, requireAuth, update, openUpload]);
+  }, [uploadParam, status, location.key, requireAuth, update, openUpload, uploadShown]);
 
   const yearOptions = [
     { value: 'all' as const, label: isMobile ? 'All' : 'All years' },
@@ -305,9 +308,11 @@ export default function LibraryPage() {
               title="You haven’t uploaded anything yet"
               body="Share your notes, a cheat sheet or a past paper with other students."
               action={
-                <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload}>
-                  Upload a file
-                </Button>
+                uploadShown ? (
+                  <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload}>
+                    Upload a file
+                  </Button>
+                ) : undefined
               }
             />
           )
@@ -318,9 +323,11 @@ export default function LibraryPage() {
             body="Past papers, notes and guides that students share will show up here. Have something useful? Share it."
             action={
               <>
-                <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload}>
-                  Upload a file
-                </Button>
+                {uploadShown ? (
+                  <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload}>
+                    Upload a file
+                  </Button>
+                ) : null}
                 {year ? (
                   <Button variant="ghost" onClick={() => setYear('all')}>
                     See all years
@@ -404,9 +411,11 @@ export default function LibraryPage() {
         title="Library"
         description="Past papers, study guides and students’ notes for every module. Read them here, download them, or share your own."
         actions={
-          <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload} data-hub="upload-button">
-            Upload a file
-          </Button>
+          uploadShown ? (
+            <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload} data-hub="upload-button">
+              Upload a file
+            </Button>
+          ) : undefined
         }
         meta={
           yearTotal != null ? (
@@ -539,13 +548,15 @@ export default function LibraryPage() {
         {results}
       </PageSection>
 
-      <UploadDialog
-        key={upload.key}
-        open={upload.open}
-        onClose={() => setUpload((u) => ({ ...u, open: false }))}
-        defaultModuleId={module?.id ?? null}
-        defaultYear={year}
-      />
+      {uploadShown ? (
+        <UploadDialog
+          key={upload.key}
+          open={upload.open}
+          onClose={() => setUpload((u) => ({ ...u, open: false }))}
+          defaultModuleId={module?.id ?? null}
+          defaultYear={year}
+        />
+      ) : null}
     </Page>
   );
 }

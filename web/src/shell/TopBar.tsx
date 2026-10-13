@@ -6,7 +6,7 @@ import { openCommandPalette } from '../features/search/public';
 import { NotificationsMenu } from '../features/notifications/public';
 import { YearSwitcher } from './YearSwitcher';
 import { ProfileMenu } from './ProfileMenu';
-import { useStartUpload } from './upload';
+import { useStartUpload, useUploadShown } from './upload';
 import './TopBar.css';
 
 function useScrolled(threshold = 4): boolean {
@@ -24,6 +24,7 @@ function useScrolled(threshold = 4): boolean {
 export function TopBar() {
   const scrolled = useScrolled();
   const startUpload = useStartUpload();
+  const uploadShown = useUploadShown();
   // The library has its own Upload button: one is enough.
   const { pathname } = useLocation();
   const onLibrary = pathname === '/library';
@@ -48,7 +49,7 @@ export function TopBar() {
           <ErrorBoundary name="NotificationsMenu" fallback={null}>
             <NotificationsMenu />
           </ErrorBoundary>
-          {onLibrary ? null : (
+          {onLibrary || !uploadShown ? null : (
             <Button className="shell-topbar__contribute" leadingIcon={UploadSimple} onClick={() => startUpload()} data-hub="contribute">
               Upload a file
             </Button>

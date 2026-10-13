@@ -5,6 +5,7 @@ import { ArrowSquareOut, CalendarBlank, CheckCircle, Files, UploadSimple } from 
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
+import { useAuth } from '../../auth';
 import { lessonKey } from '../../lib/modules';
 import { cohortColor } from '../../state';
 import { Button, Panel, SectionHeader, Skeleton, cx, formatDate } from '../../ui';
@@ -49,7 +50,7 @@ function ResourceRow({ entry }: { entry: ResourceEntry }) {
   );
 }
 
-function LibraryRow({ count, name, onTab, onUpload }: { count: number | null; name: string; onTab: (tab: string) => void; onUpload: () => void }) {
+function LibraryRow({ count, name, onTab, onUpload }: { count: number | null; name: string; onTab: (tab: string) => void; onUpload: (() => void) | null }) {
   return (
     <div className="mod-res__entry mod-res__entry--library">
       <dt className="mod-res__label">
@@ -67,11 +68,11 @@ function LibraryRow({ count, name, onTab, onUpload }: { count: number | null; na
             <Button size="sm" leadingIcon={Files} onClick={() => onTab('files')}>
               See {count} {count === 1 ? 'file' : 'files'}
             </Button>
-          ) : (
+          ) : onUpload ? (
             <Button size="sm" leadingIcon={UploadSimple} onClick={onUpload}>
               Upload a file
             </Button>
-          )}
+          ) : null}
         </div>
       </dd>
     </div>
@@ -224,9 +225,11 @@ export function ModuleOverview({
   libraryCount: number | null;
   onOpenLesson: (c: number, v: number) => void;
   onTab: (tab: string) => void;
-  /** Open the library's upload dialog for this module (guests sign in first). */
-  onUpload: () => void;
+  /** Open the library's upload dialog for this module (guests sign in first); null while uploading isn't offered. */
+  onUpload: (() => void) | null;
 }) {
+  const { featureOn } = useAuth();
+  const libraryOn = featureOn('library');
   const { entries, missing } = useMemo(() => buildResources(m), [m]);
   const name = m.unitCode || m.name;
 
@@ -236,11 +239,13 @@ export function ModuleOverview({
         <SectionHeader
           id="mod-res-title"
           title="Resources"
-          description="The module’s shared folders open in a new tab. Files students share are in the library."
+          description={libraryOn ? 'The module’s shared folders open in a new tab. Files students share are in the library.' : 'The module’s shared folders open in a new tab.'}
           action={
-            <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files')} className="mod-ov__files">
-              {libraryCount ? `${libraryCount} ${libraryCount === 1 ? 'file' : 'files'} in the library` : 'Files'}
-            </Button>
+            libraryOn ? (
+              <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files')} className="mod-ov__files">
+                {libraryCount ? `${libraryCount} ${libraryCount === 1 ? 'file' : 'files'} in the library` : 'Files'}
+              </Button>
+            ) : undefined
           }
         />
         <Panel as="div" padding="none" className="mod-res" data-hub="module-resources">
@@ -248,16 +253,18 @@ export function ModuleOverview({
             {entries.map((e) => (
               <ResourceRow key={e.id} entry={e} />
             ))}
-            <LibraryRow count={libraryCount} name={name} onTab={onTab} onUpload={onUpload} />
+            {libraryOn ? <LibraryRow count={libraryCount} name={name} onTab={onTab} onUpload={onUpload} /> : null}
           </dl>
           {missing.length ? (
             <div className="mod-res__missing">
               <p>
                 <span className="mod-res__missing-label">No shared folder yet for</span> {joinAnd(missing)}.
               </p>
-              <Button size="sm" variant="ghost" leadingIcon={UploadSimple} onClick={onUpload}>
-                Upload a file
-              </Button>
+              {onUpload ? (
+                <Button size="sm" variant="ghost" leadingIcon={UploadSimple} onClick={onUpload}>
+                  Upload a file
+                </Button>
+              ) : null}
             </div>
           ) : null}
         </Panel>
@@ -267,7 +274,7 @@ export function ModuleOverview({
         <Panel as="div" padding="none" className="mod-side">
           {resume ? (
             <PickUp module={m} resume={resume} />
-          ) : (
+          ) : onUpload ? (
             <section className="mod-side__section" aria-labelledby="mod-nolessons-title">
               <h2 id="mod-nolessons-title" className="mod-side__title">
                 Have notes for {name}?
@@ -277,9 +284,9 @@ export function ModuleOverview({
                 Upload a file
               </Button>
             </section>
-          )}
+          ) : null}
           {resume ? <ProgressSection module={m} state={state} onOpenLesson={onOpenLesson} onTab={onTab} /> : null}
-          <UpcomingDates module={m} />
+          {featureOn('calendar') ? <UpcomingDates module={m} /> : null}
         </Panel>
       </aside>
     </div>

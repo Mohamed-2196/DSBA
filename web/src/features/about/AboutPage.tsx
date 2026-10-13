@@ -1,5 +1,6 @@
 import { ArrowUpRight, Bank, GithubLogo, GraduationCap, UploadSimple, type Icon } from '@phosphor-icons/react';
 import { CONTRIBUTORS, DISCLAIMER, MYCLASS_URL, NOTE_CONTRIBUTORS, REPORT_PROBLEM_URL, UOL_PORTAL_URL } from '../../data/people';
+import { showsUpload, useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import { Avatar, Button, Page, PageHeader, PageSection, Panel, SectionHeader } from '../../ui';
 import { useCalendarEvents } from '../calendar/public';
@@ -15,7 +16,8 @@ const plural = (n: number, one: string, many: string): string => `${n} ${n === 1
 /** "16 modules across three years, with 100 chapters, 384 lessons, 51 files in the library and 66 calendar dates." */
 function CoverageLine() {
   const { modules } = useModules();
-  const events = useCalendarEvents();
+  const { featureOn } = useAuth();
+  const events = useCalendarEvents({}, { enabled: featureOn('calendar') });
   const chapters = modules.reduce((n, m) => n + m.chapterCount, 0);
   const lessons = modules.reduce((n, m) => n + m.lessonCount, 0);
   const parts = [plural(chapters, 'chapter', 'chapters'), plural(lessons, 'lesson', 'lessons')];
@@ -36,6 +38,7 @@ function CoverageLine() {
 
 export default function AboutPage() {
   const { getModule } = useModules();
+  const { featureOn, mayTry } = useAuth();
   return (
     <Page>
       <PageHeader
@@ -107,13 +110,15 @@ export default function AboutPage() {
 
         <aside className="about__aside" aria-label="Sharing, problems and links">
           {/* Contributing means uploading to the library; GitHub is only where problems are reported (decision D6). */}
-          <Panel padding="md" className="about__contribute">
-            <h2 className="about__aside-title">Got a resource to share?</h2>
-            <p className="about__aside-body">Notes, past papers or a guide: upload it to the library, and a student rep checks it before it goes up.</p>
-            <Button variant="primary" to="/library?upload=1" leadingIcon={UploadSimple} fullWidth data-hub="about-upload">
-              Upload a file
-            </Button>
-          </Panel>
+          {showsUpload(featureOn, mayTry) ? (
+            <Panel padding="md" className="about__contribute">
+              <h2 className="about__aside-title">Got a resource to share?</h2>
+              <p className="about__aside-body">Notes, past papers or a guide: upload it to the library, and a student rep checks it before it goes up.</p>
+              <Button variant="primary" to="/library?upload=1" leadingIcon={UploadSimple} fullWidth data-hub="about-upload">
+                Upload a file
+              </Button>
+            </Panel>
+          ) : null}
           <Panel padding="md" className="about__report">
             <h2 className="about__aside-title">Something wrong with the Hub?</h2>
             <p className="about__aside-body">A broken page, a wrong date or a typo: tell the people who build it.</p>

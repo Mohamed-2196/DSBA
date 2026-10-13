@@ -7,7 +7,7 @@ import { EXTERNAL_LINKS, MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav';
 import { visibleNav } from './visibility';
 import { YearSwitcher } from './YearSwitcher';
 import { ThemeToggle } from './ThemeToggle';
-import { useStartUpload } from './upload';
+import { useStartUpload, useUploadShown } from './upload';
 import './MobileNav.css';
 
 /** Bottom tab bar (< 700px): Home, Modules, Library, Forum, More (drawer with the rest). */
@@ -15,6 +15,7 @@ export function MobileNav() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const startUpload = useStartUpload();
+  const uploadShown = useUploadShown();
   const { featureOn } = useAuth();
   const nav = visibleNav(NAV, featureOn);
   const tabs = nav.filter((n) => MOBILE_TAB_IDS.includes(n.id));
@@ -70,20 +71,22 @@ export function MobileNav() {
                 </NavLink>
               </li>
             ))}
-            <li>
-              <button
-                type="button"
-                className="shell-more__item"
-                onClick={() => {
-                  close();
-                  startUpload();
-                }}
-                data-hub="more-upload"
-              >
-                <UploadSimple aria-hidden="true" />
-                <span>Upload a file</span>
-              </button>
-            </li>
+            {uploadShown ? (
+              <li>
+                <button
+                  type="button"
+                  className="shell-more__item"
+                  onClick={() => {
+                    close();
+                    startUpload();
+                  }}
+                  data-hub="more-upload"
+                >
+                  <UploadSimple aria-hidden="true" />
+                  <span>Upload a file</span>
+                </button>
+              </li>
+            ) : null}
             <li>
               <Link to="/about" onClick={close} className="shell-more__item">
                 <Info aria-hidden="true" />

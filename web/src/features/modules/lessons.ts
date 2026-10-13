@@ -2,6 +2,7 @@
 // per-lesson trace drawn on posters. Titles and channels come with the module's videos from the API.
 import { ChalkboardTeacher, Playlist, YoutubeLogo, type Icon } from '@phosphor-icons/react';
 import type { Chapter, Video } from '../../api/types';
+import type { Feature } from '../../auth';
 import { VIDEO_KIND_LABEL, videoEmbedUrl, videoSourceUrl } from '../../lib/modules';
 import { formatDate } from '../../ui';
 
@@ -146,6 +147,13 @@ export type ModuleTab = (typeof MODULE_TABS)[number];
 
 export function isModuleTab(value: string | null): value is ModuleTab {
   return !!value && (MODULE_TABS as readonly string[]).includes(value);
+}
+
+/** Files belongs to the library and Discussion to the forum: each shows only while its feature is on. */
+export function moduleTabOn(tab: ModuleTab, isOn: (feature: Feature) => boolean): boolean {
+  if (tab === 'files') return isOn('library');
+  if (tab === 'discussion') return isOn('forum');
+  return true;
 }
 
 /** Search string for a module page, e.g. lessonSearch(1, 4) → '?tab=lessons&chapter=1&video=4'. */
