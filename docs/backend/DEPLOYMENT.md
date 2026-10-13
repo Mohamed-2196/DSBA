@@ -90,6 +90,9 @@ docker compose -f compose.prod.yaml run --rm api python -m app.cli seed
 docker compose -f compose.prod.yaml run --rm api python -m app.cli set-role you@example.com admin   # after your first sign-in
 ```
 
+`scripts/seed-real.sh --prod` does the seed and also brings the files of the library's Google Drive folders into the
+library (section 10).
+
 `DSBA_ADMIN_IDENTIFIERS` does the same for the people listed there when they first sign in. `set-role` writes an
 audit row (`user.role`, `via: cli`).
 
@@ -242,3 +245,82 @@ its own after the app and sends only page views and page leaves, to that host on
 
 In the PostHog project settings, also turn on **Discard client IP data**. Use a new project: the key of an old one
 is in the repository's history (security review SEC-8).
+
+## 10. The real content: `scripts/seed-real.sh`
+
+One command fills the install with the real content, in the compose stack:
+
+1. the migrations (`alembic upgrade head`);
+2. the reference content (`python -m app.cli seed`): modules, calendar, newsletter, career and the library's links;
+3. the files in the library's Google Drive folders (`python -m app.cli import-drive`), copied into the bucket as
+   library files.
+
+It is safe to run again. The seed adds only what is missing and never overwrites what reps changed or deleted
+(modules are the exception: the seed file is their source, so they are refreshed). The import skips every file an
+earlier run brought in, even one a rep has removed since.
+
+**The Google API key.** The library's Drive folders are shared with "anyone with the link", so an API key is enough:
+
+1. In the [Google Cloud console](https://console.cloud.google.com/), create a project.
+2. APIs & Services, Library: enable the **Google Drive API**.
+3. APIs & Services, Credentials: create an **API key**, then edit it: under API restrictions, restrict it to the
+   Google Drive API. Under application restrictions, you can also limit it to the server's IP address.
+4. Put it in `.env` next to `compose.prod.yaml`: `DSBA_GOOGLE_API_KEY=...`.
+
+Only the import's own container gets the key: `seed-real.sh` passes it by name (`-e DSBA_GOOGLE_API_KEY`), never on
+a command line, and the API, the mail worker and the daily jobs never hold it. The import sends it in a request
+header, never in a URL, and never prints or logs it.
+
+**A service account (only if a folder needs one).** A folder shared with chosen people only can be shared with a
+service account instead:
+
+1. In the same project, IAM & Admin, Service accounts: create one (it needs no role), then Keys, Add key, JSON.
+2. Copy the key file to the server outside the repository, and let only the container's user (uid 10001) read it:
+   `sudo chown 10001 /etc/dsba/google-importer.json && sudo chmod 400 /etc/dsba/google-importer.json`.
+3. In `.env`: `DSBA_GOOGLE_SERVICE_ACCOUNT_FILE=/etc/dsba/google-importer.json`. `seed-real.sh` mounts it read-only
+   into the import's container.
+4. Share each such folder with the account's email address, as a viewer.
+
+With both set, the key is tried first and the service account takes over where Drive refuses the key. A folder
+limited to BIBF's Google domain can't be shared with an account outside it: the import lists it, and its files have
+to be uploaded through the library by hand.
+
+**First, a dry run:**
+
+```sh
+scripts/seed-real.sh --prod --dry-run
+```
+
+The migrations and the seed still run (both are safe to repeat, and the plan reads the links the seed loads). The
+import then reads every linked folder and prints its plan without downloading anything. Per module and link it shows
+each file it would import (`+`, with its size), what it skips and why (`-`), folders Drive failed to list (`!`),
+folders Drive refused (`x`) and how many files are already in the library (`=`). Then it lists the links that
+aren't folders (single files and Google Docs stay links) and, again, the refused folders with their module and link.
+Check two things:
+
+- **Refused folders:** share each with "anyone with the link" (or with the service account), or leave it as a link.
+- **Past papers:** their exam year and zone come from their file names (`app/services/exam_names.py`). A paper whose
+  name says neither gets neither; it still shows when no year is chosen.
+
+**Then the real run:**
+
+```sh
+scripts/seed-real.sh --prod                # prints the plan, then asks before importing (--yes: doesn't ask)
+scripts/seed-real.sh --prod --limit 20     # or a first batch: check the files in the library, then run it again
+```
+
+The files go to `library/drive/<module>/<Drive file id>/<name>` in the bucket and are in the library at once,
+published, with their link's kind and module; students' notes keep their author. Google Docs and Slides become PDFs,
+and Sheets become XLSX files (Google exports at most 10 MB of a file). The library's rules apply: only its file
+types, at most `DSBA_MAX_UPLOAD_MB` per file (counted while downloading, whatever Drive says), and each file's first
+bytes must match its type. The links stay. Large files go up in parts: the API's key needs nothing more than
+section 3 lists, but give it `s3:AbortMultipartUpload` too, so a failed upload leaves no parts behind.
+
+Drive's quota errors are retried with growing waits. A file that keeps failing is listed at the end: run the command
+again later and it carries on. Each real run is one entry in the audit log ("library import", from the server); a
+dry run, or a run with nothing to import, changes nothing. `--module ID` imports one module's folders only.
+
+Locally, `scripts/seed-real.sh` (without `--prod`) does the same in the `compose.yaml` stack, into MinIO, with the key
+in the `.env` of your checkout. Without the script, the import alone is
+`docker compose -f compose.prod.yaml run --rm -e DSBA_GOOGLE_API_KEY api python -m app.cli import-drive` with
+`--dry-run`, `--module ID`, `--limit N` or `--yes`.
