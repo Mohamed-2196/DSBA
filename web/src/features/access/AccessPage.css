@@ -56,6 +56,7 @@
 .access-features { margin: 0; padding: 0; list-style: none; }
 .access-feature { display: grid; gap: var(--sp-8); padding: var(--sp-16); }
 .access-feature + .access-feature { border-top: 1px solid var(--line); }
+.access-switch { min-width: 0; margin: 0; padding: 0; border: 0; }
 .access-feature h3 { margin: 0; font-size: var(--fs-16); }
 .access-feature p { margin: 0; color: var(--ink-2); max-width: var(--measure); }
 @media (min-width: 1024px) {

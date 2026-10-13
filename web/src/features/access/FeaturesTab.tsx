@@ -22,8 +22,17 @@ function FeatureRow({ f, roles }: { f: FeatureOut; roles: RoleChoice[] }) {
   const [mode, setMode] = useState<SwitchMode>(f.mode);
   const [picked, setPicked] = useState<Set<string>>(new Set(f.roleIds));
   const [problem, setProblem] = useState<string | null>(null);
+  // Follow the saved switch (a refetch, another admin's change) whenever no save of ours is in flight.
+  const saved = `${f.mode}:${[...f.roleIds].sort().join(',')}`;
+  const [shown, setShown] = useState(saved);
+  if (saved !== shown && !set.isPending) {
+    setShown(saved);
+    setMode(f.mode);
+    setPicked(new Set(f.roleIds));
+  }
   const roleName = (id: string) => roles.find((r) => r.id === id)?.name ?? null;
   const send = (nextMode: SwitchMode, ids: Set<string>) => {
+    if (set.isPending) return; // one save at a time, so each answer lands on its own change
     setProblem(null);
     // "Some roles" with none picked waits: the API refuses an empty list.
     if (nextMode === 'roles' && ids.size === 0) return;
@@ -47,15 +56,18 @@ function FeatureRow({ f, roles }: { f: FeatureOut; roles: RoleChoice[] }) {
         <h3>{f.label}</h3>
         <p>Switching it off hides: {f.hides}</p>
       </div>
-      <SegmentedControl
-        label={`${f.label}: who sees it`}
-        options={MODES}
-        value={mode}
-        onChange={(m) => {
-          setMode(m);
-          send(m, picked);
-        }}
-      />
+      <fieldset className="access-switch" disabled={set.isPending}>
+        <SegmentedControl
+          label={`${f.label}: who sees it`}
+          options={MODES}
+          value={mode}
+          onChange={(m) => {
+            if (set.isPending) return;
+            setMode(m);
+            send(m, picked);
+          }}
+        />
+      </fieldset>
       {mode === 'roles' ? (
         <fieldset className="access-area" disabled={set.isPending}>
           <legend>Which roles</legend>
@@ -65,6 +77,7 @@ function FeatureRow({ f, roles }: { f: FeatureOut; roles: RoleChoice[] }) {
                 type="checkbox"
                 checked={picked.has(r.id)}
                 onChange={() => {
+                  if (set.isPending) return;
                   const next = new Set(picked);
                   if (next.has(r.id)) next.delete(r.id);
                   else next.add(r.id);

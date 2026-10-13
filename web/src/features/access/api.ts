@@ -97,6 +97,7 @@ export function useSetUserRoles() {
       call(api.PUT('/api/v1/admin/users/{user_id}/roles', { params: { path: { user_id: id } }, body: { roleIds } })),
     onSuccess: (person) => {
       putPerson(qc, person);
+      void qc.invalidateQueries({ queryKey: ADMIN_USERS_KEY }); // a list filtered by role may drop them
       void qc.invalidateQueries({ queryKey: ACCESS_ROLES_KEY }); // holder counts
     },
   });
