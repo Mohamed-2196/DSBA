@@ -349,7 +349,7 @@ def main(argv: list[str] | None = None) -> int:
     sr.add_argument("role", choices=[r.value for r in Role])
     sr.set_defaults(fn=cmd_set_role)
     sub.add_parser("backup").set_defaults(fn=cmd_backup)
-    sub.add_parser("sweep", aliases=["sweep-uploads"]).set_defaults(fn=cmd_sweep)
+    sub.add_parser("sweep").set_defaults(fn=cmd_sweep)
     sub.add_parser("setup-bucket").set_defaults(fn=cmd_setup_bucket)
     mw = sub.add_parser("mail-worker")
     mw.add_argument("--once", action="store_true", help="stop when nothing is due")

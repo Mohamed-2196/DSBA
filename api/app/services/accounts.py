@@ -70,32 +70,22 @@ NOTIFICATION_KINDS = frozenset(get_args(NotificationKind))
 # ── the signed-in user ───────────────────────────────────────────────────────────────────────
 
 
-# The email switches, one per kind of email (decision D1), and the two older fields, kept until the web app moves on.
+# The email switches, one per kind of email (decision D1).
 EMAIL_SWITCHES = ("email_replies", "email_answer_accepted", "email_upload_reviews", "email_new_issues")
-DEPRECATED_SWITCHES: dict[str, tuple[str, ...]] = {
-    "email_notifications": ("email_replies", "email_answer_accepted", "email_upload_reviews"),
-    "newsletter_emails": ("email_new_issues",),
-}
 
 
 def preferences_of(user: User) -> Preferences:
     """The switches as stored on the account (users.preferences; unset means on)."""
     stored = user.preferences if isinstance(user.preferences, dict) else {}
-    values: dict[str, bool] = {name: stored.get(name) is not False for name in EMAIL_SWITCHES}
-    for old, names in DEPRECATED_SWITCHES.items():
-        values[old] = all(values[name] for name in names)
-    return Preferences.model_validate(values)
+    return Preferences.model_validate({name: stored.get(name) is not False for name in EMAIL_SWITCHES})
 
 
 def update_preferences(user: User, changes: PreferencesUpdate) -> None:
-    """Applies the switches that were sent (a deprecated one sets the switches it stands for; the new ones win)."""
+    """Applies the switches that were sent; a switch sent as null stays as it is."""
     sent = {name: value for name, value in changes.model_dump(exclude_unset=True).items() if value is not None}
     stored = user.preferences if isinstance(user.preferences, dict) else {}
     merged = {name: stored[name] for name in EMAIL_SWITCHES if isinstance(stored.get(name), bool)}
-    for old, names in DEPRECATED_SWITCHES.items():
-        if old in sent:
-            merged.update(dict.fromkeys(names, sent[old]))
-    merged.update({name: sent[name] for name in EMAIL_SWITCHES if name in sent})
+    merged.update(sent)
     user.preferences = merged  # a new dict: JSONB columns don't see changes made in place
 
 

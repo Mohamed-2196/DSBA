@@ -87,10 +87,9 @@ def test_seeded_issues_are_typed_drafts_for_moderators_only(
     for raw in newest_first:
         detail = rep.get(f"{ISSUES}/{raw['slug']}").json()
         ids = [s["id"] for s in raw["sections"]]
-        assert [s["id"] for s in detail["sections"]] == ids  # every section fits the schema: none left out
+        assert [s["id"] for s in detail["sections"]] == ids  # every section, in order
         assert set(detail["reactions"]) == set(ids)
         assert all(r == {"useful": 0, "love": 0, "laugh": 0, "mine": []} for r in detail["reactions"].values())
-        assert all("reactions" not in s for s in detail["sections"])  # the prototype's made-up counts stay out
         assert {b["type"] for s in detail["sections"] for b in s["blocks"] + s["after"]} <= BLOCK_TYPES
         assert detail["cover"]["tone"] in ("navy", "paper")
 
@@ -486,19 +485,3 @@ def test_reactions(client_for: Clients, student: User, other: User, moderator: U
 
     assert me.delete(f"{url}/useful").json() == {"useful": 1, "love": 1, "laugh": 0, "mine": ["love"]}
     assert me.delete(f"{url}/useful").json()["useful"] == 1
-
-
-def test_stored_sections_that_no_longer_fit_are_left_out(
-    client_for: Clients, moderator: User, db: Session, caplog: pytest.LogCaptureFixture
-) -> None:
-    """An issue written before the schema existed still opens: a section that doesn't fit is skipped and logged."""
-    issue = client_for(moderator).post(ISSUES, json=new_issue()).json()
-    row = db.get(NewsletterIssue, uuid.UUID(issue["id"]))
-    assert row is not None
-    row.sections = [*row.sections, {"id": "old", "title": "Old", "blocks": [{"type": "qa", "items": []}]}]
-    row.cover = {"tone": "sepia"}
-    db.commit()
-    detail = client_for(moderator).get(f"{ISSUES}/{issue['slug']}").json()
-    assert [s["id"] for s in detail["sections"]] == ["exams", "study-room"]
-    assert detail["cover"] == {"tone": "navy", "art": None, "lines": []}
-    assert "doesn't fit the schema" in caplog.text

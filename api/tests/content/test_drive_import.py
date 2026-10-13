@@ -34,7 +34,7 @@ from app.services import exam_names
 from app.services.drive import Drive, connect
 from app.services.drive_import import import_from_drive
 from app.services.exam_names import ExamMeta
-from app.services.library import V1_PUBLISHED_AT, sweep_files
+from app.services.library import REFERENCE_PUBLISHED_AT, sweep_files
 from app.services.storage import Storage
 from tests.content.conftest import API
 from tests.content.fake_drive import (
@@ -118,7 +118,7 @@ def link(
         url=url or f"https://drive.google.com/drive/folders/{folder_id}{query}",
         author_name=author,
         status=ItemStatus.published,
-        published_at=V1_PUBLISHED_AT,
+        published_at=REFERENCE_PUBLISHED_AT,
     )
     db.add(item)
     db.commit()
@@ -226,7 +226,7 @@ def test_files_become_published_library_files_of_the_links_kind_module_and_autho
         "drive/statistics/pdf1",
     )
     assert guide.description == "From the Drive folder Course materials."
-    assert (guide.uploaded_by, guide.author_name, guide.published_at) == (None, None, V1_PUBLISHED_AT)
+    assert (guide.uploaded_by, guide.author_name, guide.published_at) == (None, None, REFERENCE_PUBLISHED_AT)
     assert guide.slug.startswith("st1215-subject-guide")
     assert items["Summary.pdf"].description == "From the Drive folder Course materials \u203a Week 1."
     assert (items["Marks.xlsx"].content_type, items["Marks.xlsx"].size_bytes) == (XLSX_TYPE, len(XLSX))

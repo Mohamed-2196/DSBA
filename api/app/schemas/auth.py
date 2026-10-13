@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import Field, StringConstraints, WithJsonSchema
+from pydantic import StringConstraints, WithJsonSchema
 
 from app.schemas.common import ApiModel, PostStatus, Role, UserStatus, Year
 from app.schemas.forum import Category
@@ -54,10 +54,6 @@ class Preferences(ApiModel):
     email_answer_accepted: bool = True  # your reply was accepted as the answer
     email_upload_reviews: bool = True  # a student rep published or rejected your upload
     email_new_issues: bool = True  # a new issue of The DSBA Newsletter is out
-    # Deprecated, until the web app uses the four switches above: emailNotifications is "replies, accepted answers
-    # and upload reviews are all on"; newsletterEmails is emailNewIssues.
-    email_notifications: bool = Field(default=True, deprecated=True)
-    newsletter_emails: bool = Field(default=True, deprecated=True)
 
 
 class PreferencesUpdate(ApiModel):
@@ -67,10 +63,6 @@ class PreferencesUpdate(ApiModel):
     email_answer_accepted: bool | None = None
     email_upload_reviews: bool | None = None
     email_new_issues: bool | None = None
-    # Deprecated: sets emailReplies, emailAnswerAccepted and emailUploadReviews together.
-    email_notifications: bool | None = Field(default=None, deprecated=True)
-    # Deprecated: sets emailNewIssues.
-    newsletter_emails: bool | None = Field(default=None, deprecated=True)
 
 
 class Me(ApiModel):

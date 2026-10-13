@@ -6,11 +6,10 @@ Services leave the commit to the handler (CQ-9)."""
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Iterable
 from typing import Any
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.errors import invalid
@@ -21,8 +20,6 @@ from app.schemas.career import CareerDoc
 from app.schemas.misc import CareerContent
 from app.services import audit
 from app.services.modules import unknown_modules
-
-log = logging.getLogger("dsba.content")
 
 CAREER_KEY = "career"
 CAREER_MAX_BYTES = 512 * 1024  # as JSON; the launch document is about 40 KB
@@ -81,17 +78,11 @@ def record(
 
 
 def career(db: Session) -> CareerContent:
-    """The document, or no data until it is loaded. A stored document that no longer fits the schema (written
-    before it existed) is served as no data rather than breaking the page."""
+    """The document, or no data until it is loaded."""
     doc = db.get(ContentDoc, CAREER_KEY)
     if doc is None:
         return CareerContent(data=None, updated_at=None)
-    try:
-        data: CareerDoc | None = CareerDoc.model_validate(doc.data)
-    except ValidationError:
-        log.warning("the stored %s document doesn't fit its schema: served as no data", doc.key)
-        data = None
-    return CareerContent(data=data, updated_at=doc.updated_at)
+    return CareerContent(data=CareerDoc.model_validate(doc.data), updated_at=doc.updated_at)
 
 
 def stored_career(body: CareerDoc) -> dict[str, Any]:
