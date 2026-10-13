@@ -16,8 +16,6 @@ export const columnLabel = (c: Column): string => COLUMNS.find((x) => x.id === c
 /** Done cards older than this fold into "Show N older". */
 export const FOLD_AFTER_DAYS = 14;
 
-export const isColumn = (value: unknown): value is Column => COLUMNS.some((c) => c.id === value);
-
 /** One column's cards, in order (the board keeps each column's cards in order). */
 export const cardsIn = (cards: readonly BoardCard[], column: Column): BoardCard[] => cards.filter((c) => c.column === column);
 
