@@ -12,7 +12,8 @@ from __future__ import annotations
 
 import os
 import uuid
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
+from typing import Any
 
 import pytest
 from alembic import command
@@ -130,24 +131,57 @@ def storage(settings_env: None):  # type: ignore[no-untyped-def]
 
 @pytest.fixture
 def make_user(db: Session) -> Callable[..., User]:
-    """make_user(email=, phone=, name=, role=, year=) -> a User, committed (an email address is made up if neither
-    identifier is given)."""
-    from app.models import Role
+    """make_user(email=, phone=, name=, roles=, year=) -> a User holding these roles (slugs; Student by default),
+    committed. An email address is made up if neither identifier is given."""
+    from app.services import access
 
     def _make(
         *,
         email: str | None = None,
         phone: str | None = None,
         name: str | None = "Test Student",
-        role: Role = Role.student,
+        roles: Sequence[str] = ("student",),
         year: int | None = 2,
     ) -> User:
         if email is None and phone is None:
             email = f"student-{uuid.uuid4().hex[:8]}@example.com"
-        u = User(email=email, phone=phone, display_name=name, role=role, year=year)
+        u = User(email=email, phone=phone, display_name=name, year=year)
         db.add(u)
         db.commit()
+        access.give(db, u, *roles)
+        db.commit()
         return u
+
+    return _make
+
+
+@pytest.fixture
+def give_roles(db: Session) -> Callable[..., None]:
+    """give_roles(user, "student", "newsletter-manager"): the person now holds exactly these roles (slugs)."""
+    from app.services import access
+
+    def _give(user: User, *slugs: str) -> None:
+        roles = [access.role_by_slug(db, slug) for slug in slugs]
+        access.set_roles(db, user, [r for r in roles if r is not None])
+        db.commit()
+
+    return _give
+
+
+@pytest.fixture
+def make_role(db: Session) -> Callable[..., Any]:
+    """make_role("forum-helpers", Box.forum_moderate, badge="Helper"): a role with these boxes, committed."""
+    from app.models import AccessRole, RoleBox
+    from app.services import access
+
+    def _make(slug: str, *boxes: Any, badge: str | None = None) -> AccessRole:
+        role = AccessRole(slug=slug, name=slug.replace("-", " ").capitalize(), badge=badge, position=50)
+        db.add(role)
+        db.flush()
+        db.add_all(RoleBox(role_id=role.id, box=str(box)) for box in boxes)
+        db.commit()
+        access.forget(db)
+        return role
 
     return _make
 

@@ -6,7 +6,8 @@ from uuid import UUID
 
 from pydantic import StringConstraints
 
-from app.schemas.common import ApiModel, Page, Role, UserPublic, UserStatus, Year
+from app.schemas.access import RoleSummary
+from app.schemas.common import ApiModel, Page, UserPublic, UserStatus, Year
 
 ReportTarget = Literal["thread", "reply", "library_item"]
 ReportReason = Literal["spam", "harassment", "inappropriate", "copyright", "other"]
@@ -55,7 +56,7 @@ class AdminUser(ApiModel):
     display_name: str | None
     email: str | None
     phone: str | None
-    role: Role
+    roles: list[RoleSummary]
     status: UserStatus
     year: Year | None
     created_at: datetime
@@ -67,11 +68,11 @@ class AdminUserPage(Page[AdminUser]):
 
 
 class AdminUserUpdate(ApiModel):
-    """Only the fields sent change. `email` and `phone` are the account-recovery action (security review SEC-9):
-    they replace the account's address (`null` removes it; one must stay), end every session of the account, send
-    a notice to the address that was replaced or removed, and are audited (`user.identifier`)."""
+    """Only the fields sent change. `status` needs people.suspend; only admins suspend or restore an admin. `email`
+    and `phone` are the account-recovery action (security review SEC-9), for admins only: they replace the account's
+    address (`null` removes it; one must stay), end every session of the account, send a notice to the address that
+    was replaced or removed, and are audited (`user.identifier`)."""
 
-    role: Role | None = None
     status: UserStatus | None = None
     email: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)] | None = None
     phone: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)] | None = None

@@ -1,4 +1,4 @@
-"""Moderator and Admin need an active account with a profile (security review, finding 4)."""
+"""Boxes and Admin need an active account with a profile (security review, finding 4)."""
 
 from __future__ import annotations
 
@@ -8,8 +8,9 @@ from typing import Any
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.core.security import is_admin, is_moderator
-from app.models import Role, User, UserStatus
+from app.core.access import Box
+from app.models import User, UserStatus
+from app.services import access
 from tests.core.helpers import API, new_thread, share_pdf
 
 Clients = Callable[..., TestClient]
@@ -20,12 +21,26 @@ def _suspend(db: Session, user: User) -> None:
     db.commit()
 
 
-def test_roles_need_an_active_account(make_user: Callable[..., User]) -> None:
-    rep, boss = make_user(role=Role.moderator), make_user(role=Role.admin)
-    assert [is_moderator(rep), is_moderator(boss), is_admin(boss)] == [True, True, True]
-    assert [is_admin(rep), is_moderator(None), is_moderator(make_user())] == [False, False, False]
-    rep.status = boss.status = UserStatus.suspended
-    assert [is_moderator(rep), is_moderator(boss), is_admin(boss)] == [False, False, False]
+def test_boxes_need_an_active_account(make_user: Callable[..., User], db: Session) -> None:
+    rep, boss = make_user(roles=("student", "rep")), make_user(roles=("student", "admin"))
+    assert [access.can(rep, Box.forum_moderate), access.can(boss, Box.forum_moderate), access.is_admin(boss)] == [
+        True,
+        True,
+        True,
+    ]
+    student = make_user()
+    assert [access.is_admin(rep), access.can(None, Box.forum_moderate), access.can(student, Box.forum_moderate)] == [
+        False,
+        False,
+        False,
+    ]
+    _suspend(db, rep)
+    _suspend(db, boss)
+    assert [access.can(rep, Box.forum_moderate), access.can(boss, Box.forum_moderate), access.is_admin(boss)] == [
+        False,
+        False,
+        False,
+    ]
 
 
 def test_a_suspended_moderator_gets_403_when_moderating(
@@ -59,20 +74,20 @@ def test_a_suspended_moderator_sees_and_removes_only_what_a_student_may(
     assert client_for().get(f"{API}/library/items/{published['id']}").json()["status"] == "published"
 
 
-def test_a_suspended_admin_cannot_change_roles(client_for: Clients, admin: User, student: User, db: Session) -> None:
+def test_a_suspended_admin_cannot_change_accounts(client_for: Clients, admin: User, student: User, db: Session) -> None:
     _suspend(db, admin)
     c = client_for(admin)
-    assert c.patch(f"{API}/admin/users/{student.id}", json={"role": "moderator"}).status_code == 403
+    assert c.patch(f"{API}/admin/users/{student.id}", json={"status": "suspended"}).status_code == 403
     assert c.get(f"{API}/admin/users").status_code == 403
     db.refresh(student)
-    assert student.role == Role.student
+    assert student.status == UserStatus.active
 
 
 def test_staff_finish_their_profile_before_acting(
     client_for: Clients, make_user: Callable[..., User], student: User
 ) -> None:
     t = new_thread(client_for(student), "Lock me")
-    nameless_rep = make_user(name=None, role=Role.moderator)
+    nameless_rep = make_user(name=None, roles=("student", "rep"))
     r = client_for(nameless_rep).post(f"{API}/forum/threads/{t['id']}/moderate", json={"locked": True})
     assert r.status_code == 403
     assert r.json()["error"]["message"] == "Finish your profile first."

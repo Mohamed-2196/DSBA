@@ -16,6 +16,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.access import ADMIN, STUDENT
 from app.core.errors import ApiError, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
@@ -33,7 +34,6 @@ from app.models import (
     Notification,
     ReplyVote,
     Report,
-    Role,
     ThreadVote,
     Upload,
     UploadPurpose,
@@ -41,6 +41,7 @@ from app.models import (
     User,
     UserSession,
 )
+from app.schemas.access import RoleSummary
 from app.schemas.auth import (
     AccountExport,
     ExportEmail,
@@ -58,7 +59,7 @@ from app.schemas.auth import (
 from app.schemas.common import UserPublic
 from app.schemas.modules import Progress, ProgressImport
 from app.schemas.notifications import NotificationKind
-from app.services import otp, sessions
+from app.services import access, otp, sessions
 from app.services.audit import record
 from app.services.identifiers import Kind, admin_identifiers, destination_hint
 from app.services.outbox import ACCOUNT_NOTICE
@@ -89,13 +90,19 @@ def update_preferences(user: User, changes: PreferencesUpdate) -> None:
     user.preferences = merged  # a new dict: JSONB columns don't see changes made in place
 
 
+def role_summaries(user: User) -> list[RoleSummary]:
+    """The person's roles as /me and the people list show them, in role order."""
+    return [RoleSummary(id=r.id, slug=r.slug, name=r.name, badge=r.badge) for r in access.access_of(user).roles]
+
+
 def me_out(user: User) -> Me:
     return Me.model_validate(
         {
             "id": user.id,
             "display_name": user.display_name,
             "year": user.year,
-            "role": user.role.value,
+            "roles": role_summaries(user),
+            "boxes": [b.value for b in sorted(access.boxes_of(user))],
             "status": user.status.value,
             "email": user.email,
             "phone": user.phone,
@@ -110,7 +117,7 @@ UNNAMED = "Student"  # an account without a display name yet (it can't post unti
 
 
 def public_user(user: User | None) -> UserPublic | None:
-    """How a person appears next to what they did, everywhere in the Hub: name, cohort and role, never their email
+    """How a person appears next to what they did, everywhere in the Hub: name, cohort and badge, never their email
     or phone number. None for a deleted account ("deleted user"). The one serialiser for UserPublic (code quality
     review CQ-6): areas import this rather than writing their own."""
     if user is None:
@@ -120,7 +127,7 @@ def public_user(user: User | None) -> UserPublic | None:
             "id": user.id,
             "display_name": user.display_name or UNNAMED,
             "year": user.year,  # 1-3 or none: the database checks it
-            "role": user.role.value,
+            "badge": access.access_of(user).badge,
         }
     )
 
@@ -262,7 +269,6 @@ def user_for_sign_in(db: Session, kind: Kind, identifier: str, ip: str | None) -
             id=uuid.uuid4(),
             email=identifier if kind == "email" else None,
             phone=identifier if kind == "phone" else None,
-            role=Role.student,
             preferences={},
             created_at=now,
         )
@@ -275,12 +281,14 @@ def user_for_sign_in(db: Session, kind: Kind, identifier: str, ip: str | None) -
                 raise
         else:
             user, created = candidate, True
-    if user.role != Role.admin and {user.email, user.phone} & admin_identifiers():
+            access.give(db, user, STUDENT)
+    if not access.access_of(user, db).admin and {user.email, user.phone} & admin_identifiers():
         # a new account has no name yet: the activity log shows its masked address instead (UX-15)
         name = user.display_name or destination_hint(kind, identifier)
-        change = {"from": user.role.value, "to": "admin", "via": "bootstrap", "targetName": name}
-        record(db, None, "user.role", "user", user.id, change, ip)
-        user.role = Role.admin
+        before = access.role_names(user)
+        access.give(db, user, ADMIN)
+        change = {"from": before, "to": access.role_names(user), "via": "bootstrap", "targetName": name}
+        record(db, None, "user.roles", "user", user.id, change, ip)
     user.last_seen_at = now
     return user, created
 

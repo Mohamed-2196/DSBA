@@ -24,12 +24,11 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.core.errors import ApiError, conflict, not_found
 from app.core.links import media_path
-from app.core.security import is_moderator
 from app.core.time import utcnow
 from app.models import ForumReply, ForumThread, PostStatus, Upload, UploadPurpose, UploadStatus, User
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
 from app.services import ratelimit
-from app.services.forum.visibility import can_read_thread
+from app.services.forum.visibility import can_read_thread, moderates
 from app.services.storage import INCOMING_PREFIX, Storage, error_code, get_storage, safe_file_name
 
 UPLOADS_PER_HOUR = 20
@@ -322,7 +321,7 @@ def can_view_image(db: Session, up: Upload, viewer: User | None) -> bool:
     shows it: a visible thread, or a visible reply in a thread they can open. The author of a hidden thread can read
     it (decision D3), so they see its pictures, the other replies' too. Not before it is posted (the composer
     previews from the file itself), and not once the post is deleted or gone, or no longer shows it."""
-    if is_moderator(viewer) or (viewer is not None and up.user_id == viewer.id):
+    if moderates(viewer) or (viewer is not None and up.user_id == viewer.id):
         return True
     if up.status != UploadStatus.attached:
         return False

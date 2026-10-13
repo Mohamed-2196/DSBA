@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Module, Role, User
+from app.models import Module, User
 
 API = "/api/v1"
 PDF = b"%PDF-1.7\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< >>\n%%EOF\n"
@@ -41,12 +41,12 @@ def other(make_user: Callable[..., User]) -> User:
 
 @pytest.fixture
 def moderator(make_user: Callable[..., User]) -> User:
-    return make_user(name="Maryam Rep", role=Role.moderator, year=3)
+    return make_user(name="Maryam Rep", roles=("student", "rep"), year=3)
 
 
 @pytest.fixture
 def admin(make_user: Callable[..., User]) -> User:
-    return make_user(name="Ali Admin", role=Role.admin, year=None)
+    return make_user(name="Ali Admin", roles=("student", "admin"), year=None)
 
 
 def browser_post(storage: Any, fields: dict[str, str], body: bytes, content_type: str | None = None) -> None:

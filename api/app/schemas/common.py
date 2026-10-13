@@ -9,7 +9,6 @@ from pydantic.alias_generators import to_camel
 T = TypeVar("T")
 
 Year = Literal[1, 2, 3]
-Role = Literal["student", "moderator", "admin"]
 UserStatus = Literal["active", "suspended"]
 PostStatus = Literal["visible", "hidden", "deleted"]
 
@@ -73,6 +72,11 @@ ErrorCode = Literal[
     "no_preview",  # 404/409: this file has no preview
     "file_gone",  # 409: the file was deleted after it was rejected
     "too_many_pending",  # 409: ten files already wait for review
+    # access: roles and feature switches (R-1, R-10)
+    "feature_off",  # 404: the feature is switched off for this person (admins see every feature)
+    "last_admin",  # 409: the hub needs at least one active admin
+    "role_locked",  # 409: the Admin role can't change, and a built-in role can't be deleted
+    "role_changed",  # 409: another admin changed the role since it was loaded: load it again
 ]
 
 
@@ -93,7 +97,7 @@ class UserPublic(ApiModel):
     id: UUID
     display_name: str
     year: Year | None
-    role: Role
+    badge: str | None  # their roles' badge ("Student rep", "Admin"...), or None
 
 
 class Ok(ApiModel):

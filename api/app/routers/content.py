@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import Query, Request
 
-from app.core.security import DB, Admin, OptionalUser, client_ip
+from app.core.access import Box
+from app.core.security import DB, OptionalUser, client_ip, requires
+from app.models import User
 from app.routers._base import router_for
 from app.schemas.career import CareerDoc
 from app.schemas.misc import CareerContent, SearchResults, SearchType
@@ -21,7 +25,9 @@ def career(db: DB) -> CareerContent:
 
 
 @router.put("/career", response_model=CareerContent)
-def update_career(body: CareerDoc, request: Request, user: Admin, db: DB) -> CareerContent:
+def update_career(
+    body: CareerDoc, request: Request, user: Annotated[User, requires(Box.career_edit)], db: DB
+) -> CareerContent:
     """Replace the whole document. Audited.
 
     Errors: invalid_input (422: it doesn't fit the schema, refers to an id it doesn't define or a module that

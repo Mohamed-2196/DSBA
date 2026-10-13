@@ -16,9 +16,10 @@ import uuid
 from sqlalchemy import ColumnElement, and_, or_, select
 from sqlalchemy.orm import Session, defer
 
-from app.core.errors import ApiError, conflict, not_found
-from app.core.security import is_moderator
+from app.core.access import BOXES, Box
+from app.core.errors import ApiError, conflict, forbidden, not_found
 from app.models import ForumReply, ForumThread, PostStatus, User
+from app.services import access
 
 # search_vector is for the database's search only: never load it into Python.
 THREAD_OPTS = (defer(ForumThread.search_vector),)
@@ -31,9 +32,22 @@ def gone(post: ForumThread | ForumReply) -> bool:
     return post.status == PostStatus.hidden and post.deleted_at is not None
 
 
+def moderates(user: User | None) -> bool:
+    """Holds forum.moderate with an active account: sees hidden posts, edits and deletes anyone's, hides and locks."""
+    return access.can(user, Box.forum_moderate)
+
+
+def may_change(user: User, mine: bool, other: str) -> None:
+    """The author, while they may post, or anyone who moderates the forum. Otherwise 403: `other` for someone else's
+    post, and the posting message for your own."""
+    if (mine and access.can(user, Box.forum_post)) or moderates(user):
+        return
+    raise forbidden(BOXES[Box.forum_post].refusal if mine else other)
+
+
 def can_see_thread(t: ForumThread, viewer: User | None) -> bool:
     """May see and act on the thread (vote, reply, edit, report...): the rule for everything but reading it."""
-    if t.status == PostStatus.visible or is_moderator(viewer):
+    if t.status == PostStatus.visible or moderates(viewer):
         return True
     return t.status == PostStatus.deleted and t.reply_count > 0
 
@@ -46,7 +60,7 @@ def can_read_thread(t: ForumThread, viewer: User | None) -> bool:
 
 
 def can_see_reply(r: ForumReply, viewer: User | None) -> bool:
-    return r.status != PostStatus.hidden or is_moderator(viewer)
+    return r.status != PostStatus.hidden or moderates(viewer)
 
 
 def can_read_reply(r: ForumReply, viewer: User | None) -> bool:
@@ -62,7 +76,7 @@ def listed(viewer: User | None) -> ColumnElement[bool]:
         ForumThread.status == PostStatus.visible,
         and_(ForumThread.status == PostStatus.deleted, ForumThread.reply_count > 0),
     ]
-    if is_moderator(viewer):
+    if moderates(viewer):
         conds.append(ForumThread.status == PostStatus.hidden)
     return or_(*conds)
 

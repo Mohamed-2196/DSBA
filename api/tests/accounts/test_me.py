@@ -34,7 +34,6 @@ from app.models import (
     OtpPurpose,
     ReplyVote,
     Report,
-    Role,
     ThreadVote,
     Upload,
     UploadPurpose,
@@ -112,7 +111,8 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
         "id": str(user.id),
         "displayName": "Maryam Ali",
         "year": 3,
-        "role": "student",
+        "roles": [{"id": r.json()["roles"][0]["id"], "slug": "student", "name": "Student", "badge": None}],
+        "boxes": ["forum.post", "library.upload", "newsletter.react", "reports.create"],
         "status": "active",
         "email": "me@example.com",
         "phone": None,
@@ -225,7 +225,7 @@ def test_names_in_one_alphabet_per_word_are_fine(client_for: ClientFor, make_use
 
 
 def test_staff_may_use_staff_words(client_for: ClientFor, make_user: MakeUser) -> None:
-    rep = make_user(role=Role.moderator)
+    rep = make_user(roles=("student", "rep"))
     r = client_for(rep).patch(f"{API}/me", json={"displayName": "Sara (student rep)".replace("(", "").replace(")", "")})
     assert r.status_code == 200, r.text
     assert r.json()["displayName"] == "Sara student rep"

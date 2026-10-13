@@ -7,10 +7,11 @@ from uuid import UUID
 from fastapi import status
 from fastapi.responses import RedirectResponse
 
+from app.core.access import Box
 from app.core.security import DB, ActiveUser, OptionalUser
 from app.routers._base import router_for
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
-from app.services import library
+from app.services import access, library
 from app.services import uploads as svc
 
 router = router_for("uploads")
@@ -28,9 +29,13 @@ def create_upload(body: UploadCreate, user: ActiveUser, db: DB) -> PresignedUplo
     as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
 
     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
-    for review; library only), rate_limited (429)."""
+    for review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum
+    picture)."""
     if body.purpose == "library":
+        access.require(user, Box.library_upload)
         library.check_pending_room(db, user)  # before the file travels: create_item checks again
+    else:
+        access.require(user, Box.forum_post)
     presigned = svc.create_upload(db, user, body)
     db.commit()
     return presigned

@@ -144,7 +144,7 @@ export function newestText(e164: string): string {
 const run$ = promisify(execFile);
 
 /** A session token for a rep or an admin (development only: python -m app.cli dev-login). */
-export async function devLogin(email: string, opts: { name: string; year: number; role: 'moderator' | 'admin' }): Promise<string> {
+export async function devLogin(email: string, opts: { name: string; year: number; role: 'rep' | 'admin' }): Promise<string> {
   const [cmd, ...args] = env.devLogin.split(/\s+/);
   const { stdout } = await run$(cmd, [...args, email, '--name', opts.name, '--year', String(opts.year), '--role', opts.role], {
     cwd: env.apiDir,

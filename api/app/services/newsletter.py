@@ -18,9 +18,9 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.access import Box
 from app.core.errors import ApiError, conflict, invalid, not_found
 from app.core.links import json_size
-from app.core.security import is_moderator
 from app.core.time import utcnow
 from app.models import IssueStatus, NewsletterIssue, NewsletterReaction, User
 from app.schemas.newsletter import (
@@ -38,13 +38,14 @@ from app.schemas.newsletter import (
     SignoffBlock,
     StatsAside,
 )
+from app.services import access
 from app.services.content import apply_patch, record
 from app.services.notify import notify_all
 
 REACTIONS = ("useful", "love", "laugh")
 MAX_ISSUE_BYTES = 256 * 1024  # the whole issue as JSON (security review SEC-6); the launch edition is about 8 KB
 TOO_LONG = "This issue is too long: shorten it or split it into two issues."
-# Fields a moderator edits (PATCH), and those that may be emptied (to "": the columns are never null).
+# Fields a newsletter manager edits (PATCH), and those that may be emptied (to "": the columns are never null).
 EDITABLE = ("slug", "number", "title", "date", "cover", "dek", "summary", "editors", "sections")
 BLANK = ("dek", "summary")
 
@@ -58,7 +59,7 @@ def _stored(model: BaseModel) -> Any:
 
 
 def can_see(issue: NewsletterIssue, user: User | None) -> bool:
-    return issue.status == IssueStatus.published or is_moderator(user)
+    return issue.status == IssueStatus.published or access.can(user, Box.newsletter_manage)
 
 
 def get_by_slug(db: Session, slug: str, user: User | None) -> NewsletterIssue:
@@ -301,7 +302,7 @@ def set_reaction(
     db: Session, user: User, issue: NewsletterIssue, section_id: str, reaction: str, on: bool
 ) -> ReactionCounts:
     if issue.status != IssueStatus.published:
-        if is_moderator(user):
+        if access.can(user, Box.newsletter_manage):
             raise ApiError(409, "not_published", "Reactions open when the issue is published.")
         raise not_found("This issue doesn't exist.")
     if section_id not in section_ids(issue):

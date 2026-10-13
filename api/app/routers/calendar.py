@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import datetime as dt
+from typing import Annotated
 
 from fastapi import Query, Request, Response, status
 
+from app.core.access import Box
 from app.core.pagination import YearParam
-from app.core.security import DB, Moderator, client_ip
+from app.core.security import DB, client_ip, requires
+from app.models import User
 from app.routers._base import router_for
 from app.schemas.calendar import CalendarEventCreate, CalendarEventOut, CalendarEventUpdate, EventType
 from app.schemas.common import ErrorResponse
@@ -73,7 +76,9 @@ def event_ics(event_id: str, db: DB) -> Response:
 
 
 @router.post("/calendar/events", response_model=CalendarEventOut, status_code=status.HTTP_201_CREATED)
-def create_event(body: CalendarEventCreate, request: Request, user: Moderator, db: DB) -> CalendarEventOut:
+def create_event(
+    body: CalendarEventCreate, request: Request, user: Annotated[User, requires(Box.calendar_manage)], db: DB
+) -> CalendarEventOut:
     """A new date. The id is '<date>-<slug of the title>'. For a module's event the cohort defaults to the
     module's year; leave `year` out (or null without a module) for everyone."""
     event = svc.create_event(db, user, body, client_ip(request))
@@ -83,7 +88,11 @@ def create_event(body: CalendarEventCreate, request: Request, user: Moderator, d
 
 @router.patch("/calendar/events/{event_id}", response_model=CalendarEventOut)
 def update_event(
-    event_id: str, body: CalendarEventUpdate, request: Request, user: Moderator, db: DB
+    event_id: str,
+    body: CalendarEventUpdate,
+    request: Request,
+    user: Annotated[User, requires(Box.calendar_manage)],
+    db: DB,
 ) -> CalendarEventOut:
     """Fields that are not sent stay as they are; `endDate`, `time`, `place`, `year` and `moduleId` can be
     cleared with null. The id never changes."""
@@ -94,7 +103,9 @@ def update_event(
 
 
 @router.delete("/calendar/events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_event(event_id: str, request: Request, user: Moderator, db: DB) -> Response:
+def delete_event(
+    event_id: str, request: Request, user: Annotated[User, requires(Box.calendar_manage)], db: DB
+) -> Response:
     """Removes the date. Audited (the seed doesn't bring a deleted date back)."""
     svc.delete_event(db, user, svc.get_event(db, event_id), client_ip(request))
     db.commit()

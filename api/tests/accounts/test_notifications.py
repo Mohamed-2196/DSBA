@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
-from app.models import Notification, Role, User
+from app.models import Notification, User
 from tests.accounts.conftest import API
 
 ClientFor = Callable[..., TestClient]
@@ -53,7 +53,7 @@ def test_guests_get_401(client: TestClient) -> None:
 
 def test_list(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     user = make_user()
-    actor = make_user(email="actor@example.com", phone="+97333123480", name="Noor", role=Role.moderator, year=1)
+    actor = make_user(email="actor@example.com", phone="+97333123480", name="Noor", roles=("student", "rep"), year=1)
     _notify(db, user, "Oldest", 30, read=True)
     _notify(db, user, "Middle", 20, actor=actor)
     _notify(db, user, "Newest", 10)
@@ -62,7 +62,7 @@ def test_list(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     assert [n["title"] for n in page["items"]] == ["Newest", "Middle", "Oldest"]
     assert (page["total"], page["unreadCount"], page["limit"], page["offset"]) == (3, 2, 20, 0)
     middle = page["items"][1]
-    assert middle["actor"] == {"id": str(actor.id), "displayName": "Noor", "year": 1, "role": "moderator"}
+    assert middle["actor"] == {"id": str(actor.id), "displayName": "Noor", "year": 1, "badge": "Student rep"}
     assert set(middle) == {"id", "kind", "title", "body", "url", "actor", "createdAt", "readAt"}
     assert page["items"][0]["actor"] is None
     assert page["items"][2]["readAt"] is not None

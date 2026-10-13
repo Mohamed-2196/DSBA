@@ -506,7 +506,7 @@ export interface paths {
         /**
          * Stats
          * @description Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
-         *     for review and open reports.
+         *     for review and the open reports in the viewer's queue.
          */
         get: operations["stats_api_v1_admin_stats_get"];
         put?: never;
@@ -526,8 +526,10 @@ export interface paths {
         };
         /**
          * List Users
-         * @description Search by name, email or phone number (case-insensitive, any part; a phone number may be typed with spaces),
-         *     newest accounts first.
+         * @description Search by name (case-insensitive, any part), newest accounts first. `role`: a role's slug. Only admins search
+         *     and see email addresses and phone numbers (a phone number may be typed with spaces).
+         *
+         *     Errors: invalid (422: no role with this slug).
          */
         get: operations["list_users_api_v1_admin_users_get"];
         put?: never;
@@ -553,12 +555,13 @@ export interface paths {
         head?: never;
         /**
          * Update User
-         * @description Change a role, suspend an account, or recover one (security review SEC-9): replace or remove its email
+         * @description Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email
          *     address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
          *     Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
          *
-         *     Errors: cannot_change_self (409: an admin can't change their own account here; ask another admin),
-         *     identifier_taken (409), last_identifier (409), invalid_identifier (422).
+         *     Errors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,
+         *     and so is suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier
+         *     (422).
          */
         patch: operations["update_user_api_v1_admin_users__user_id__patch"];
         trace?: never;
@@ -637,7 +640,7 @@ export interface paths {
         put?: never;
         /**
          * Create Item
-         * @description Turn a completed upload into a library item: pending for students, published for moderators.
+         * @description Turn a completed upload into a library item: pending for students, published for library managers.
          *
          *     Errors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting
          *     for review), invalid_input (422: an unknown module).
@@ -675,7 +678,7 @@ export interface paths {
         };
         /**
          * Get Item
-         * @description By id or slug. Unpublished items: only their uploader and moderators.
+         * @description By id or slug. Unpublished items: only their uploader and the library's managers.
          */
         get: operations["get_item_api_v1_library_items__item__get"];
         put?: never;
@@ -718,15 +721,15 @@ export interface paths {
         post?: never;
         /**
          * Delete Item
-         * @description The uploader or a moderator. Nothing serves the file any more; the daily sweep deletes it from storage a week
-         *     later.
+         * @description The uploader or a library manager. Nothing serves the file any more; the daily sweep deletes it from storage
+         *     a week later.
          */
         delete: operations["delete_item_api_v1_library_items__item_id__delete"];
         options?: never;
         head?: never;
         /**
          * Update Item
-         * @description The uploader while the item is pending; moderators always.
+         * @description The uploader while the item is pending; library managers always.
          */
         patch: operations["update_item_api_v1_library_items__item_id__patch"];
         trace?: never;
@@ -832,7 +835,8 @@ export interface paths {
          *     as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
          *
          *     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
-         *     for review; library only), rate_limited (429).
+         *     for review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum
+         *     picture).
          */
         post: operations["create_upload_api_v1_uploads_post"];
         delete?: never;
@@ -1222,7 +1226,8 @@ export interface paths {
         };
         /**
          * List Reports
-         * @description Open reports oldest first (a queue); closed ones most recently closed first. `reporter` is set for admins only
+         * @description Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they
+         *     can act on: forum posts with forum.moderate, library files with library.manage. `reporter` is set for admins only
          *     (student reps are classmates).
          */
         get: operations["list_reports_api_v1_admin_reports_get"];
@@ -1247,7 +1252,8 @@ export interface paths {
          * Resolve Report
          * @description Close a report (hiding the post is a separate moderation call). Notifies the reporter. Audited.
          *
-         *     Errors: report_closed (409) when it was already closed.
+         *     Errors: not_found (404) when the report isn't in this person's queue, report_closed (409) when it was already
+         *     closed.
          */
         post: operations["resolve_report_api_v1_admin_reports__report_id__resolve_post"];
         delete?: never;
@@ -1265,7 +1271,8 @@ export interface paths {
         };
         /**
          * List Issues
-         * @description Published issues, newest first (drafts too for moderators who ask for them; ignored for everyone else).
+         * @description Published issues, newest first (drafts too for people who manage the newsletter and ask for them; ignored for
+         *     everyone else).
          */
         get: operations["list_issues_api_v1_newsletter_issues_get"];
         put?: never;
@@ -1290,7 +1297,7 @@ export interface paths {
         };
         /**
          * Get Issue
-         * @description An issue with its sections and the reactions to each section. Drafts: moderators only.
+         * @description An issue with its sections and the reactions to each section. Drafts: for people who manage the newsletter.
          */
         get: operations["get_issue_api_v1_newsletter_issues__slug__get"];
         put?: never;
@@ -1591,11 +1598,8 @@ export interface components {
             email: string | null;
             /** Phone */
             phone: string | null;
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "student" | "moderator" | "admin";
+            /** Roles */
+            roles: components["schemas"]["RoleSummary"][];
             /**
              * Status
              * @enum {string}
@@ -1624,13 +1628,12 @@ export interface components {
         };
         /**
          * AdminUserUpdate
-         * @description Only the fields sent change. `email` and `phone` are the account-recovery action (security review SEC-9):
-         *     they replace the account's address (`null` removes it; one must stay), end every session of the account, send
-         *     a notice to the address that was replaced or removed, and are audited (`user.identifier`).
+         * @description Only the fields sent change. `status` needs people.suspend; only admins suspend or restore an admin. `email`
+         *     and `phone` are the account-recovery action (security review SEC-9), for admins only: they replace the account's
+         *     address (`null` removes it; one must stay), end every session of the account, send a notice to the address that
+         *     was replaced or removed, and are audited (`user.identifier`).
          */
         AdminUserUpdate: {
-            /** Role */
-            role?: ("student" | "moderator" | "admin") | null;
             /** Status */
             status?: ("active" | "suspended") | null;
             /** Email */
@@ -2226,7 +2229,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed";
             /** Message */
             message: string;
             /** Fields */
@@ -3006,11 +3009,10 @@ export interface components {
             displayName: string | null;
             /** Year */
             year: (1 | 2 | 3) | null;
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "student" | "moderator" | "admin";
+            /** Roles */
+            roles: components["schemas"]["RoleSummary"][];
+            /** Boxes */
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read")[];
             /**
              * Status
              * @enum {string}
@@ -3524,6 +3526,20 @@ export interface components {
             /** Note */
             note?: string | null;
         };
+        /** RoleSummary */
+        RoleSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** Badge */
+            badge: string | null;
+        };
         /** SearchHit */
         SearchHit: {
             /**
@@ -3906,11 +3922,8 @@ export interface components {
             displayName: string;
             /** Year */
             year: (1 | 2 | 3) | null;
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "student" | "moderator" | "admin";
+            /** Badge */
+            badge: string | null;
         };
         /** Video */
         Video: {
@@ -4051,6 +4064,7 @@ export type ReportPage = components['schemas']['ReportPage'];
 export type ReportResolve = components['schemas']['ReportResolve'];
 export type ResumeUpdate = components['schemas']['ResumeUpdate'];
 export type ReviewDecision = components['schemas']['ReviewDecision'];
+export type RoleSummary = components['schemas']['RoleSummary'];
 export type SearchHit = components['schemas']['SearchHit'];
 export type SearchResults = components['schemas']['SearchResults'];
 export type SessionInfo = components['schemas']['SessionInfo'];
@@ -6344,7 +6358,7 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string | null;
-                role?: ("student" | "moderator" | "admin") | null;
+                role?: string | null;
                 /** @description Page size */
                 limit?: number;
                 /** @description Items to skip */
@@ -6789,7 +6803,7 @@ export interface operations {
                 sort?: "new" | "popular" | "title" | "relevance";
                 starred?: boolean;
                 mine?: boolean;
-                /** @description Moderators: e.g. pending */
+                /** @description Library managers: e.g. pending */
                 status?: ("pending" | "published" | "rejected" | "removed") | null;
                 /** @description Page size */
                 limit?: number;

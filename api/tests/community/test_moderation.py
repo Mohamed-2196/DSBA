@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import AuditEntry, PostStatus, Role, User, UserStatus
+from app.models import AuditEntry, PostStatus, User, UserStatus
 from tests.community.helpers import API, new_reply, new_thread, thread_row
 
 Client = Callable[..., TestClient]
@@ -50,7 +50,7 @@ def test_only_reps_moderate(
     r = client_for(student).post(url, json={"pinned": True})
     assert r.status_code == 403
     assert r.json()["error"]["code"] == "forbidden"
-    admin = make_user(name="Admin", role=Role.admin)
+    admin = make_user(name="Admin", roles=("student", "admin"))
     assert client_for(admin).post(url, json={"pinned": True}).status_code == 200
     moderator.status = UserStatus.suspended
     db.commit()

@@ -2531,7 +2531,7 @@
           "admin"
         ],
         "summary": "Stats",
-        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review and open reports.",
+        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review and the open reports in the viewer's queue.",
         "operationId": "stats_api_v1_admin_stats_get",
         "responses": {
           "200": {
@@ -2623,7 +2623,7 @@
           "admin"
         ],
         "summary": "List Users",
-        "description": "Search by name, email or phone number (case-insensitive, any part; a phone number may be typed with spaces),\nnewest accounts first.",
+        "description": "Search by name (case-insensitive, any part), newest accounts first. `role`: a role's slug. Only admins search\nand see email addresses and phone numbers (a phone number may be typed with spaces).\n\nErrors: invalid (422: no role with this slug).",
         "operationId": "list_users_api_v1_admin_users_get",
         "parameters": [
           {
@@ -2649,11 +2649,6 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    "student",
-                    "moderator",
-                    "admin"
-                  ],
                   "type": "string"
                 },
                 {
@@ -2782,7 +2777,7 @@
           "admin"
         ],
         "summary": "Update User",
-        "description": "Change a role, suspend an account, or recover one (security review SEC-9): replace or remove its email\naddress or phone number. Only the fields sent change; everything is audited and the person gets a notification.\nRecovery also ends every session of the account and sends a notice to the address that was replaced or removed.\n\nErrors: cannot_change_self (409: an admin can't change their own account here; ask another admin),\nidentifier_taken (409), last_identifier (409), invalid_identifier (422).",
+        "description": "Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email\naddress or phone number. Only the fields sent change; everything is audited and the person gets a notification.\nRecovery also ends every session of the account and sends a notice to the address that was replaced or removed.\n\nErrors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,\nand so is suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier\n(422).",
         "operationId": "update_user_api_v1_admin_users__user_id__patch",
         "parameters": [
           {
@@ -3398,10 +3393,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Moderators: e.g. pending",
+              "description": "Library managers: e.g. pending",
               "title": "Status"
             },
-            "description": "Moderators: e.g. pending"
+            "description": "Library managers: e.g. pending"
           },
           {
             "name": "limit",
@@ -3520,7 +3515,7 @@
           "library"
         ],
         "summary": "Create Item",
-        "description": "Turn a completed upload into a library item: pending for students, published for moderators.\n\nErrors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting\nfor review), invalid_input (422: an unknown module).",
+        "description": "Turn a completed upload into a library item: pending for students, published for library managers.\n\nErrors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting\nfor review), invalid_input (422: an unknown module).",
         "operationId": "create_item_api_v1_library_items_post",
         "requestBody": {
           "required": true,
@@ -3713,7 +3708,7 @@
           "library"
         ],
         "summary": "Get Item",
-        "description": "By id or slug. Unpublished items: only their uploader and moderators.",
+        "description": "By id or slug. Unpublished items: only their uploader and the library's managers.",
         "operationId": "get_item_api_v1_library_items__item__get",
         "parameters": [
           {
@@ -3918,7 +3913,7 @@
           "library"
         ],
         "summary": "Update Item",
-        "description": "The uploader while the item is pending; moderators always.",
+        "description": "The uploader while the item is pending; library managers always.",
         "operationId": "update_item_api_v1_library_items__item_id__patch",
         "parameters": [
           {
@@ -4030,7 +4025,7 @@
           "library"
         ],
         "summary": "Delete Item",
-        "description": "The uploader or a moderator. Nothing serves the file any more; the daily sweep deletes it from storage a week\nlater.",
+        "description": "The uploader or a library manager. Nothing serves the file any more; the daily sweep deletes it from storage\na week later.",
         "operationId": "delete_item_api_v1_library_items__item_id__delete",
         "parameters": [
           {
@@ -4646,7 +4641,7 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429).",
+        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum\npicture).",
         "operationId": "create_upload_api_v1_uploads_post",
         "requestBody": {
           "content": {
@@ -7223,7 +7218,7 @@
           "reports"
         ],
         "summary": "List Reports",
-        "description": "Open reports oldest first (a queue); closed ones most recently closed first. `reporter` is set for admins only\n(student reps are classmates).",
+        "description": "Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they\ncan act on: forum posts with forum.moderate, library files with library.manage. `reporter` is set for admins only\n(student reps are classmates).",
         "operationId": "list_reports_api_v1_admin_reports_get",
         "parameters": [
           {
@@ -7360,7 +7355,7 @@
           "reports"
         ],
         "summary": "Resolve Report",
-        "description": "Close a report (hiding the post is a separate moderation call). Notifies the reporter. Audited.\n\nErrors: report_closed (409) when it was already closed.",
+        "description": "Close a report (hiding the post is a separate moderation call). Notifies the reporter. Audited.\n\nErrors: not_found (404) when the report isn't in this person's queue, report_closed (409) when it was already\nclosed.",
         "operationId": "resolve_report_api_v1_admin_reports__report_id__resolve_post",
         "parameters": [
           {
@@ -7474,7 +7469,7 @@
           "newsletter"
         ],
         "summary": "List Issues",
-        "description": "Published issues, newest first (drafts too for moderators who ask for them; ignored for everyone else).",
+        "description": "Published issues, newest first (drafts too for people who manage the newsletter and ask for them; ignored for\neveryone else).",
         "operationId": "list_issues_api_v1_newsletter_issues_get",
         "parameters": [
           {
@@ -7682,7 +7677,7 @@
           "newsletter"
         ],
         "summary": "Get Issue",
-        "description": "An issue with its sections and the reactions to each section. Drafts: moderators only.",
+        "description": "An issue with its sections and the reactions to each section. Drafts: for people who manage the newsletter.",
         "operationId": "get_issue_api_v1_newsletter_issues__slug__get",
         "parameters": [
           {
@@ -9750,14 +9745,12 @@
             ],
             "title": "Phone"
           },
-          "role": {
-            "type": "string",
-            "enum": [
-              "student",
-              "moderator",
-              "admin"
-            ],
-            "title": "Role"
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/RoleSummary"
+            },
+            "type": "array",
+            "title": "Roles"
           },
           "status": {
             "type": "string",
@@ -9807,7 +9800,7 @@
           "displayName",
           "email",
           "phone",
-          "role",
+          "roles",
           "status",
           "year",
           "createdAt",
@@ -9848,22 +9841,6 @@
       },
       "AdminUserUpdate": {
         "properties": {
-          "role": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "student",
-                  "moderator",
-                  "admin"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Role"
-          },
           "status": {
             "anyOf": [
               {
@@ -9908,7 +9885,7 @@
         },
         "type": "object",
         "title": "AdminUserUpdate",
-        "description": "Only the fields sent change. `email` and `phone` are the account-recovery action (security review SEC-9):\nthey replace the account's address (`null` removes it; one must stay), end every session of the account, send\na notice to the address that was replaced or removed, and are audited (`user.identifier`)."
+        "description": "Only the fields sent change. `status` needs people.suspend; only admins suspend or restore an admin. `email`\nand `phone` are the account-recovery action (security review SEC-9), for admins only: they replace the account's\naddress (`null` removes it; one must stay), end every session of the account, send a notice to the address that\nwas replaced or removed, and are audited (`user.identifier`)."
       },
       "AuditOut": {
         "properties": {
@@ -11838,7 +11815,11 @@
               "mismatch",
               "no_preview",
               "file_gone",
-              "too_many_pending"
+              "too_many_pending",
+              "feature_off",
+              "last_admin",
+              "role_locked",
+              "role_changed"
             ],
             "title": "Code"
           },
@@ -14241,14 +14222,33 @@
             ],
             "title": "Year"
           },
-          "role": {
-            "type": "string",
-            "enum": [
-              "student",
-              "moderator",
-              "admin"
-            ],
-            "title": "Role"
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/RoleSummary"
+            },
+            "type": "array",
+            "title": "Roles"
+          },
+          "boxes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "forum.post",
+                "library.upload",
+                "newsletter.react",
+                "reports.create",
+                "forum.moderate",
+                "library.manage",
+                "newsletter.manage",
+                "calendar.manage",
+                "career.edit",
+                "stats.view",
+                "people.suspend",
+                "audit.read"
+              ]
+            },
+            "type": "array",
+            "title": "Boxes"
           },
           "status": {
             "type": "string",
@@ -14298,7 +14298,8 @@
           "id",
           "displayName",
           "year",
-          "role",
+          "roles",
+          "boxes",
           "status",
           "email",
           "phone",
@@ -15633,6 +15634,42 @@
         ],
         "title": "ReviewDecision"
       },
+      "RoleSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "badge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Badge"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "badge"
+        ],
+        "title": "RoleSummary"
+      },
       "SearchHit": {
         "properties": {
           "type": {
@@ -16790,14 +16827,16 @@
             ],
             "title": "Year"
           },
-          "role": {
-            "type": "string",
-            "enum": [
-              "student",
-              "moderator",
-              "admin"
+          "badge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Role"
+            "title": "Badge"
           }
         },
         "type": "object",
@@ -16805,7 +16844,7 @@
           "id",
           "displayName",
           "year",
-          "role"
+          "badge"
         ],
         "title": "UserPublic",
         "description": "How a person appears next to their posts and uploads."

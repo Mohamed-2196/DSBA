@@ -1,4 +1,4 @@
-"""Sessions, the current user, roles, CSRF and the client's address.
+"""Sessions, the current user, the boxes routes need, CSRF and the client's address.
 
 A signed-in browser holds two cookies, named by DSBA_SESSION_COOKIE and DSBA_CSRF_COOKIE (in production
 __Host-dsba_session and __Host-dsba_csrf: Secure, Path=/, no Domain, so no other host can set them):
@@ -18,7 +18,7 @@ import ipaddress
 import secrets
 from collections.abc import Sequence
 from datetime import datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, Request, Response
 from sqlalchemy import select
@@ -28,10 +28,12 @@ from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.config import IPNetwork, Settings, get_settings
+from app.core.access import Box
 from app.core.errors import forbidden, unauthenticated
 from app.core.time import utcnow
 from app.db import get_db
-from app.models import Role, User, UserSession, UserStatus
+from app.models import User, UserSession, UserStatus
+from app.services import access
 
 UNSAFE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 CSRF_HEADER = "X-CSRF-Token"
@@ -301,28 +303,38 @@ def get_active_user(user: Annotated[User, Depends(get_current_user)]) -> User:
     return user
 
 
-def is_moderator(user: User | None) -> bool:
-    """A student rep or an admin whose account is active. A suspended one has no powers left: they see and do
-    what any student does (security review, finding 4)."""
-    return user is not None and user.role in (Role.moderator, Role.admin) and user.status == UserStatus.active
+def requires(box: Box) -> Any:
+    """A route dependency: an active account with a profile that holds `box`, else 403 with the box's message.
+
+    def publish(..., user: Annotated[User, requires(Box.newsletter_manage)]) -> ..."""
+
+    def dependency(user: Annotated[User, Depends(get_active_user)]) -> User:
+        access.require(user, box)
+        return user
+
+    return Depends(dependency)
 
 
-def is_admin(user: User | None) -> bool:
-    return user is not None and user.role == Role.admin and user.status == UserStatus.active
+def requires_any(*boxes: Box, refusal: str) -> Any:
+    """A route dependency: an active account with a profile that holds at least one of `boxes`, else 403 `refusal`."""
+
+    def dependency(user: Annotated[User, Depends(get_active_user)]) -> User:
+        if not any(access.can(user, box) for box in boxes):
+            raise forbidden(refusal)
+        return user
+
+    return Depends(dependency)
 
 
-def get_moderator(user: Annotated[User, Depends(get_active_user)]) -> User:
-    """A student rep or an admin, active and with a profile (403 otherwise)."""
-    if not is_moderator(user):
-        raise forbidden("Only student reps and admins can do this.")
-    return user
+def requires_admin() -> Any:
+    """A route dependency for the admin-only powers: an active admin with a profile, else 403."""
 
+    def dependency(user: Annotated[User, Depends(get_active_user)]) -> User:
+        if not access.is_admin(user):
+            raise forbidden("Only admins can do this.")
+        return user
 
-def get_admin(user: Annotated[User, Depends(get_active_user)]) -> User:
-    """An admin, active and with a profile (403 otherwise)."""
-    if not is_admin(user):
-        raise forbidden("Only admins can do this.")
-    return user
+    return Depends(dependency)
 
 
 # Shorthands for handler signatures
@@ -330,6 +342,4 @@ DB = Annotated[Session, Depends(get_db)]
 OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
 ActiveUser = Annotated[User, Depends(get_active_user)]
-Moderator = Annotated[User, Depends(get_moderator)]
-Admin = Annotated[User, Depends(get_admin)]
 CurrentSession = Annotated[UserSession | None, Depends(get_current_session)]
