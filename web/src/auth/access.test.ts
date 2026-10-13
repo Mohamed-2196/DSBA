@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { badgeOf, canDo, featureIsOn, holdsAdmin, isActiveAdmin, managerBoxes, offForOthers, type AccessMe } from './access';
+import { badgeOf, canDo, featureIsOn, holdsAdmin, isActiveAdmin, managerBoxes, offForOthers, offerOf, offered, showsUpload, type AccessMe } from './access';
 
 const role = (slug: string, badge: string | null = null) => ({ id: `id-${slug}`, slug, name: slug, badge });
 const ALL = ['forum', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora'] as const;
@@ -64,5 +64,39 @@ describe('switches', () => {
     expect(offForOthers(admin, ['forum'], 'calendar')).toBe(true);
     expect(offForOthers(admin, ['forum', 'calendar'], 'calendar')).toBe(false);
     expect(offForOthers(student, ['forum'], 'calendar')).toBe(false);
+  });
+});
+
+describe('student actions', () => {
+  const ready = (m: AccessMe) => ({ ...m, needsProfile: false });
+  const readerRole: AccessMe = { ...student, roles: [role('reader')], boxes: ['newsletter.react'] };
+
+  it('offers an action to a person who holds its box', () => {
+    expect(offerOf(ready(student), 'forum.post')).toBe('yes');
+    expect(offered('yes')).toBe(true);
+  });
+
+  it('asks a guest, or an account without a profile, to sign in', () => {
+    expect(offerOf(null, 'forum.post')).toBe('sign-in');
+    expect(offerOf({ ...student, needsProfile: true }, 'forum.post')).toBe('sign-in');
+    expect(offered('sign-in')).toBe(true);
+  });
+
+  it('tells a suspended account apart from one whose roles lack the box', () => {
+    expect(offerOf(ready(suspendedRep), 'forum.post')).toBe('suspended');
+    expect(offerOf(ready(readerRole), 'forum.post')).toBe('no');
+    expect(offerOf(ready(readerRole), 'newsletter.react')).toBe('yes');
+    expect(offered('suspended')).toBe(false);
+    expect(offered('no')).toBe(false);
+  });
+});
+
+describe('showsUpload', () => {
+  const on = (...off: string[]) => (f: string) => !off.includes(f);
+  it('shows "Upload a file" while the library and its uploads are on and the person may try', () => {
+    expect(showsUpload(on(), () => true)).toBe(true);
+    expect(showsUpload(on('library.uploads'), () => true)).toBe(false);
+    expect(showsUpload(on('library'), () => true)).toBe(false);
+    expect(showsUpload(on(), (b) => b !== 'library.upload')).toBe(false);
   });
 });

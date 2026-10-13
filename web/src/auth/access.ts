@@ -51,6 +51,29 @@ export function isActiveAdmin(me: Pick<Me, 'roles' | 'status'> | null | undefine
   return !!me && me.status === 'active' && holdsAdmin(me);
 }
 
+/**
+ * How the app offers an action that needs a student box (posting, uploading, reacting, reporting):
+ * - 'yes': the person holds the box;
+ * - 'sign-in': a guest, or an account without a profile yet: the action asks them to sign in first;
+ * - 'suspended': the account is suspended, so it holds no box for now;
+ * - 'no': the account's roles don't include the box.
+ */
+export type Offer = 'yes' | 'sign-in' | 'suspended' | 'no';
+
+export function offerOf(me: (AccessMe & Pick<Me, 'needsProfile'>) | null | undefined, box: Box): Offer {
+  if (!me || me.needsProfile) return 'sign-in';
+  if (canDo(me, box)) return 'yes';
+  return me.status === 'suspended' ? 'suspended' : 'no';
+}
+
+/** The action is shown: the person holds the box, or signing in is the next step. */
+export const offered = (offer: Offer): boolean => offer === 'yes' || offer === 'sign-in';
+
+/** "Upload a file" shows while the library and its uploads are on and the person may try to upload. */
+export function showsUpload(isOn: (feature: Feature) => boolean, mayTry: (box: Box) => boolean): boolean {
+  return isOn('library') && isOn('library.uploads') && mayTry('library.upload');
+}
+
 export function managerBoxes(me: AccessMe | null | undefined): Box[] {
   return MANAGER_BOXES.filter((box) => canDo(me, box));
 }

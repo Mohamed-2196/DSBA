@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import type { Me } from '../api/types';
-import type { Box, Feature } from './access';
+import type { Box, Feature, Offer } from './access';
 
 export interface SignInRequest {
   /** Why sign-in is needed, shown at the top of the dialog ('Sign in to reply'). */
@@ -18,6 +18,10 @@ export interface AuthValue {
   status: AuthStatus;
   /** what /me's boxes allow: nothing while the account is suspended */
   can: (box: Box) => boolean;
+  /** how to offer an action that needs this box (see offerOf) */
+  offer: (box: Box) => Offer;
+  /** the action that needs this box is shown: the person holds it, or is asked to sign in first */
+  mayTry: (box: Box) => boolean;
   /** the feature is on for this person (admins: every feature) */
   featureOn: (feature: Feature) => boolean;
   /** an admin sees this feature, but it isn't on for everyone */

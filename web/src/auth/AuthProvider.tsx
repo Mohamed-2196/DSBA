@@ -5,7 +5,7 @@ import { ApiError } from '../api/errors';
 import { FEATURES_KEY } from '../api/keys';
 import type { Me } from '../api/types';
 import { useAccountYearSync, useToast } from '../state';
-import { canDo, featureIsOn, isActiveAdmin, managerBoxes, offForOthers } from './access';
+import { canDo, featureIsOn, isActiveAdmin, managerBoxes, offerOf, offered, offForOthers } from './access';
 import { AuthContext, type AuthValue, type SignInRequest } from './context';
 import { ME_KEY, clearPersonalStorage, resetPersonalQueries } from './queries';
 import { readGuestFeatures } from './guestFeatures';
@@ -201,6 +201,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       me,
       status: sessionQuery.isPending || guestFeatures.loading ? 'loading' : me ? 'signed-in' : 'guest',
       can: (box) => canDo(me, box),
+      offer: (box) => offerOf(me, box),
+      mayTry: (box) => offered(offerOf(me, box)),
       featureOn: (feature) => featureIsOn(me, guestFeatures.list, feature),
       offForOthers: (feature) => offForOthers(me, guestFeatures.list, feature),
       isAdmin: isActiveAdmin(me),
