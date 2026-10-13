@@ -1639,6 +1639,7 @@ export interface paths {
          * Search
          * @description Threads, library items, newsletter issues, modules and calendar events. Prefix-matches the last word
          *     (for search-as-you-type). Only public things are found: visible threads, published files and issues.
+         *     Features switched off for the viewer are left out.
          */
         get: operations["search_api_v1_search_get"];
         put?: never;

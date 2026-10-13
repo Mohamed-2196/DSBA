@@ -15,6 +15,7 @@ from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
+from app.core.access import Feature
 from app.core.time import BAHRAIN, bahrain_today
 from app.models import (
     CalendarEvent,
@@ -25,8 +26,10 @@ from app.models import (
     Module,
     NewsletterIssue,
     PostStatus,
+    User,
 )
 from app.schemas.misc import SearchHit, SearchResults, SearchType
+from app.services import access
 from app.services import library as lib
 from app.services.calendar import TYPE_LABELS, cohort_label
 from app.services.forum.taxonomy import CATEGORY_BY_ID
@@ -36,6 +39,13 @@ from app.services.newsletter import issue_text
 WORD_RE = re.compile(r"[^\W_]+")
 SNIPPET_RADIUS = 80
 ALL_TYPES: tuple[SearchType, ...] = ("thread", "library", "issue", "module", "event")
+# The feature each type of result belongs to (modules belong to none: the hub itself).
+TYPE_FEATURES: dict[SearchType, Feature] = {
+    "thread": Feature.forum,
+    "library": Feature.library,
+    "issue": Feature.newsletter,
+    "event": Feature.calendar,
+}
 
 # What students type for modules: other names that find them.
 MODULE_ALIASES: dict[str, tuple[str, ...]] = {
@@ -277,8 +287,10 @@ def _events(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
     return hits
 
 
-def run_search(db: Session, q: str, types: list[SearchType] | None, limit: int) -> SearchResults:
-    want = set(types or ALL_TYPES)
+def run_search(db: Session, q: str, types: list[SearchType] | None, limit: int, viewer: User | None) -> SearchResults:
+    want = {
+        t for t in (types or ALL_TYPES) if t not in TYPE_FEATURES or access.feature_on(db, viewer, TYPE_FEATURES[t])
+    }
     terms = words(q)
     tsq = text_query(q)
     results = SearchResults(query=q, threads=[], library=[], issues=[], modules=[], events=[])

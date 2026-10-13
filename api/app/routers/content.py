@@ -46,5 +46,6 @@ def search(
     limit: int = Query(default=5, ge=1, le=20, description="Per type"),
 ) -> SearchResults:
     """Threads, library items, newsletter issues, modules and calendar events. Prefix-matches the last word
-    (for search-as-you-type). Only public things are found: visible threads, published files and issues."""
-    return run_search(db, q, types, limit)
+    (for search-as-you-type). Only public things are found: visible threads, published files and issues.
+    Features switched off for the viewer are left out."""
+    return run_search(db, q, types, limit, user)

@@ -10137,7 +10137,7 @@
           "content"
         ],
         "summary": "Search",
-        "description": "Threads, library items, newsletter issues, modules and calendar events. Prefix-matches the last word\n(for search-as-you-type). Only public things are found: visible threads, published files and issues.",
+        "description": "Threads, library items, newsletter issues, modules and calendar events. Prefix-matches the last word\n(for search-as-you-type). Only public things are found: visible threads, published files and issues.\nFeatures switched off for the viewer are left out.",
         "operationId": "search_api_v1_search_get",
         "parameters": [
           {
