@@ -7,8 +7,9 @@ from uuid import UUID
 from fastapi import status
 from fastapi.responses import RedirectResponse
 
-from app.core.access import Box
-from app.core.security import DB, ActiveUser, OptionalUser
+from app.core.access import Box, Feature
+from app.core.security import DB, ActiveUser, OptionalUser, needs_feature
+from app.models import UploadPurpose
 from app.routers._base import router_for
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
 from app.services import access, library
@@ -30,7 +31,8 @@ def create_upload(body: UploadCreate, user: ActiveUser, db: DB) -> PresignedUplo
 
     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
     for review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum
-    picture)."""
+    picture), feature_off (404: the library, its uploads or the forum is switched off)."""
+    svc.require_features(db, user, UploadPurpose(body.purpose))
     if body.purpose == "library":
         access.require(user, Box.library_upload)
         library.check_pending_room(db, user)  # before the file travels: create_item checks again
@@ -46,13 +48,19 @@ def complete_upload(upload_id: UUID, user: ActiveUser, db: DB) -> UploadOut:
     """Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and
     first bytes match the file's name.
 
-    Errors: not_uploaded (409), mismatch (422; the object is deleted)."""
+    Errors: not_uploaded (409), mismatch (422; the object is deleted), feature_off (404: the upload's feature was
+    switched off since it started)."""
     out = svc.complete_upload(db, user, upload_id)
     db.commit()
     return out
 
 
-@router.get("/media/{upload_id}", response_class=RedirectResponse, status_code=status.HTTP_302_FOUND)
+@router.get(
+    "/media/{upload_id}",
+    response_class=RedirectResponse,
+    status_code=status.HTTP_302_FOUND,
+    dependencies=[needs_feature(Feature.forum)],
+)
 def media(upload_id: UUID, db: DB, user: OptionalUser) -> RedirectResponse:
     """A forum image: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). 404 when
     the post it belongs to is hidden or deleted, except for moderators."""

@@ -7,10 +7,10 @@ from uuid import UUID
 
 from fastapi import Query, Request, Response, status
 
-from app.core.access import Box
+from app.core.access import Box, Feature
 from app.core.errors import unauthenticated
 from app.core.pagination import Limit, Offset, YearParam
-from app.core.security import DB, ActiveUser, CurrentUser, OptionalUser, client_ip, requires
+from app.core.security import DB, ActiveUser, CurrentUser, OptionalUser, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.forum import (
@@ -33,7 +33,7 @@ from app.schemas.forum import (
 )
 from app.services.forum import queries, replies, taxonomy, threads, views, visibility, votes
 
-router = router_for("forum")
+router = router_for("forum", needs_feature(Feature.forum))
 Poster = Annotated[User, requires(Box.forum_post)]  # start threads, reply, vote
 ForumModerator = Annotated[User, requires(Box.forum_moderate)]
 

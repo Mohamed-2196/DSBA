@@ -22,12 +22,13 @@ from botocore.exceptions import ClientError
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from app.core.access import Feature
 from app.core.errors import ApiError, conflict, not_found
 from app.core.links import media_path
 from app.core.time import utcnow
 from app.models import ForumReply, ForumThread, PostStatus, Upload, UploadPurpose, UploadStatus, User
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
-from app.services import ratelimit
+from app.services import access, ratelimit
 from app.services.forum.visibility import can_read_thread, moderates
 from app.services.storage import INCOMING_PREFIX, Storage, error_code, get_storage, safe_file_name
 
@@ -249,11 +250,25 @@ def _not_uploaded(message: str = "The file hasn't arrived yet. Upload it again."
     return conflict("not_uploaded", message)
 
 
+# The features an upload belongs to: all of them must be on for the uploader.
+PURPOSE_FEATURES: dict[UploadPurpose, tuple[Feature, ...]] = {
+    UploadPurpose.library: (Feature.library, Feature.library_uploads),
+    UploadPurpose.forum_image: (Feature.forum,),
+}
+
+
+def require_features(db: Session, user: User, purpose: UploadPurpose) -> None:
+    """404 feature_off unless every feature an upload of `purpose` belongs to is on for the person."""
+    for feature in PURPOSE_FEATURES[purpose]:
+        access.require_feature(db, user, feature)
+
+
 def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Storage | None = None) -> UploadOut:
     """Checks what arrived and moves it to its final key. The caller commits."""
     up = db.get(Upload, upload_id)
     if up is None or up.user_id != user.id:
         raise not_found("This upload doesn't exist.")
+    require_features(db, user, up.purpose)
     if up.status != UploadStatus.pending:
         return to_out(up)  # already checked: a second call returns the stored result
 
