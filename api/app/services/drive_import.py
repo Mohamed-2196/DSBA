@@ -29,9 +29,11 @@ from dataclasses import dataclass, field
 
 from botocore.exceptions import BotoCoreError, ClientError
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
+from app.core.text import clashes_on
 from app.models import ItemSource, ItemStatus, LibraryItem, Module, UploadPurpose
 from app.services import audit, exam_names, library
 from app.services.drive import (
@@ -571,8 +573,10 @@ def run(db: Session, drive: Drive, storage: Storage, plan: Plan, report: Report,
                 author_name=planned.source.author_name,
             )
             db.commit()
-        except ApiError:  # another run saved the same file at the same moment (or a title's slug, three times)
+        except (ApiError, IntegrityError) as e:  # another run saved the same file (or a title's slug, three times)
             db.rollback()
+            if isinstance(e, IntegrityError) and not clashes_on(e, LibraryItem.import_key):
+                raise
             report.failed.append(Skipped(planned.source, planned.where, "it couldn't be saved: run the import again"))
             echo(f"{step}: failed, it couldn't be saved")
             continue

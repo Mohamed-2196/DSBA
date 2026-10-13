@@ -551,6 +551,36 @@ def test_quota_errors_are_waited_out_and_a_file_that_keeps_failing_comes_in_next
     assert sorted(imported(db)) == ["a.pdf", "b.pdf"]
 
 
+def test_a_file_another_run_saves_at_the_same_moment_fails_and_the_run_goes_on(
+    db: Session, storage: Storage, fake: FakeDrive, run: Callable[..., int], out: Lines, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake.folder("mat1", "Materials")
+    fake.file("a1", "a.pdf", "mat1")
+    fake.file("b1", "b.pdf", "mat1")
+    link(db, "statistics", "mat1")
+    put = storage.put_file
+
+    def put_while_another_run_saves_a(key: str, *rest: Any) -> None:
+        put(key, *rest)
+        if "/a1/" in key:  # the other run's row lands between this run's check and its insert
+            db.add(
+                LibraryItem(
+                    slug=f"other-{uuid.uuid4().hex[:6]}",
+                    source=ItemSource.file,
+                    kind="course-materials",
+                    title="a",
+                    import_key="drive/statistics/a1",
+                    status=ItemStatus.published,
+                )
+            )
+            db.commit()
+
+    monkeypatch.setattr(storage, "put_file", put_while_another_run_saves_a)
+    assert run() == 1
+    assert "  statistics: a.pdf: it couldn't be saved: run the import again" in out
+    assert sorted(i.title for i in imported(db).values()) == ["a", "b"]
+
+
 def test_a_bad_key_stops_the_import_before_anything_happens(
     db: Session, storage: Storage, fake: FakeDrive, settings: Settings, modules: dict[str, Module], out: Lines
 ) -> None:

@@ -1,9 +1,10 @@
 """Slugs and plain-text helpers shared by the features.
 
 - slugify(), unique_slug(): a title as an address, free in its column.
+- clashes_on(): whether an IntegrityError is a clash on a column's own unique constraint.
 - insert_with_unique_slug(): the one way to insert a row with a slug or id made from its title: a free one, and a
-  retry when a parallel request takes it first (code quality review CQ-6 and CQ-14: a race answers 409 `retry` at
-  worst, never a 500).
+  retry when a parallel request takes it first (a race answers 409 `retry` at worst; any other integrity error is
+  raised as it is).
 - short_id(), has_latin(): titles without Latin letters (Arabic, digits only) get a short id, not 'file-2'
   (decision D8)."""
 
@@ -12,8 +13,10 @@ from __future__ import annotations
 import re
 import secrets
 import unicodedata
+from typing import Any
 
-from sqlalchemy import select
+from psycopg.errors import UniqueViolation
+from sqlalchemy import Column, PrimaryKeyConstraint, UniqueConstraint, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import InstrumentedAttribute, Session
 
@@ -58,12 +61,28 @@ def short_id() -> str:
     return "".join(secrets.choice(SHORT_ID_ALPHABET) for _ in range(SHORT_ID_LENGTH))
 
 
+def clashes_on(error: IntegrityError, column: InstrumentedAttribute[Any]) -> bool:
+    """Whether `error` is a clash on the constraint that keeps `column` unique on its own (its unique constraint or
+    the primary key), and not some other integrity error: a CHECK, a foreign key, another unique column."""
+    col = column.property.columns[0]
+    assert isinstance(col, Column)
+    names = {
+        constraint.name
+        for constraint in col.table.constraints
+        if isinstance(constraint, UniqueConstraint | PrimaryKeyConstraint) and list(constraint.columns) == [col]
+    }
+    if not names:
+        raise ValueError(f"{col.table.name}.{col.name} has no unique constraint of its own")
+    return isinstance(error.orig, UniqueViolation) and error.orig.diag.constraint_name in names
+
+
 def insert_with_unique_slug(
     db: Session, obj: Base, column: InstrumentedAttribute[str], text: str, *, fallback: str
 ) -> None:
     """Sets `column` on `obj` to a free slug of `text` ('-2', '-3', ... when taken; `fallback` when `text` makes
     none) and inserts it. Two requests can both see a slug as free; the one that loses the race retries with a short
-    random suffix, and after SLUG_TRIES answers 409 `retry`."""
+    random suffix, and after SLUG_TRIES answers 409 `retry`. Any other integrity error (a CHECK, a foreign key, another
+    unique column) is raised as it is."""
     base = unique_slug(db, column, text, fallback=fallback)
     for attempt in range(SLUG_TRIES):
         setattr(obj, column.key, base if attempt == 0 else f"{base}-{secrets.token_hex(2)}")
@@ -71,7 +90,9 @@ def insert_with_unique_slug(
             with db.begin_nested():
                 db.add(obj)
                 db.flush()
-        except IntegrityError:
-            continue
+        except IntegrityError as e:
+            if clashes_on(e, column):
+                continue
+            raise
         return
     raise conflict("retry", "Someone saved something with the same name at the same moment. Try again.")
