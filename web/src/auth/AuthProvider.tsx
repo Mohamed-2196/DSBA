@@ -124,12 +124,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const me = sessionQuery.data ?? null;
 
   // The guest list of features. Signed in, /me carries the list; it's fetched for admins too, to mark what's off for
-  // others. /features answers an admin with their own list (every feature), so theirs goes without credentials.
-  const admin = isActiveAdmin(me);
+  // others. /features answers a signed-in person with their own list, so it always goes without credentials.
   const guestFeatures = useQuery({
     queryKey: FEATURES_KEY,
-    queryFn: async () => (await call(api.GET('/api/v1/features', admin ? { credentials: 'omit' } : {}))).features,
-    enabled: !sessionQuery.isPending && (!me || admin),
+    queryFn: async () => (await call(api.GET('/api/v1/features', { credentials: 'omit' }))).features,
+    enabled: !sessionQuery.isPending && (!me || isActiveAdmin(me)),
     staleTime: 60_000,
   });
   useEffect(() => {

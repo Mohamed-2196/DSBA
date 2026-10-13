@@ -101,14 +101,14 @@ function QueueRow({ item }: { item: LibraryItem }) {
 
 /** The library's review queue for moderators. */
 export function UploadsQueue() {
-  const { moderator: isModerator } = useLibraryAccess();
-  const queue = useLibraryList({ status: 'pending' }, { limit: 100, enabled: isModerator });
+  const { moderator: managesLibrary } = useLibraryAccess();
+  const queue = useLibraryList({ status: 'pending' }, { limit: 100, enabled: managesLibrary });
   const items = useMemo(
     () => [...(queue.data?.items ?? [])].filter((i) => i.status === 'pending').sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
     [queue.data],
   );
 
-  if (!isModerator) return null;
+  if (!managesLibrary) return null;
 
   let body;
   if (queue.isPending) {

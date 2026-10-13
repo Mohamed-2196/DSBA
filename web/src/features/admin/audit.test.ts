@@ -39,7 +39,14 @@ describe('describeAudit', () => {
   it('names the account from the snapshot, else from loaded accounts', () => {
     expect(describeAudit(entry('user.status', { to: 'suspended', targetName: 'Ali H.' }, 'user'))).toBe('suspended Ali H.');
     expect(describeAudit(entry('user.status', { to: 'suspended' }, 'user'), () => 'Zainab K.')).toBe('suspended Zainab K.');
-    expect(describeAudit(entry('user.role', { from: 'student', to: 'moderator' }, 'user'))).toBe('changed a role from student to student rep');
+  });
+
+  it('describes role and switch changes', () => {
+    expect(describeAudit(entry('user.roles', { from: ['Student'], to: ['Rep', 'Student'] }, 'user'), () => 'Ali')).toBe('changed Ali’s roles from Student to Rep, Student');
+    expect(describeAudit(entry('role.create', { name: 'Events team', boxes: [] }))).toBe('created the role “Events team”');
+    expect(describeAudit(entry('role.update', { before: { name: 'A' }, after: { name: 'B' } }))).toBe('changed the role “B”');
+    expect(describeAudit(entry('role.delete', { name: 'Events team', holders: 2 }))).toBe('deleted the role “Events team”');
+    expect(describeAudit(entry('feature.switch', { feature: 'calendar', from: 'everyone', to: 'off', roles: [] }))).toBe('switched calendar off');
   });
 
   it('sums up a run of the Drive import', () => {
@@ -67,8 +74,8 @@ describe('auditActor', () => {
 
   it('is the Hub for what ran on the server, and a deleted user otherwise', () => {
     expect(auditActor({ ...entry('library.import', { via: 'cli', imported: 3 }), actor: null } as AuditOut)).toBe('The Hub');
-    expect(auditActor({ ...entry('user.role', { via: 'bootstrap', to: 'admin' }), actor: null } as AuditOut)).toBe('The Hub');
+    expect(auditActor({ ...entry('user.roles', { via: 'bootstrap', to: ['Admin'] }), actor: null } as AuditOut)).toBe('The Hub');
     expect(auditActor({ ...entry('forum.thread.hide', {}), actor: null } as AuditOut)).toBe('A deleted user');
-    expect(auditActor({ ...entry('user.role', { from: 'student', to: 'moderator' }), actor: null } as AuditOut)).toBe('A deleted user');
+    expect(auditActor({ ...entry('user.roles', { from: ['Student'], to: ['Rep'] }), actor: null } as AuditOut)).toBe('A deleted user');
   });
 });

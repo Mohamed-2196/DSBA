@@ -1,6 +1,5 @@
 // The audit log in plain words: "hid a thread: “Week 3 notes”".
 import type { AuditOut } from '../../api/types';
-import { roleLabel, type Role } from '../../auth/labels';
 import { formatCount } from '../../ui';
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v : null);
@@ -8,7 +7,9 @@ const quoted = (v: unknown): string => {
   const s = str(v);
   return s ? ` “${s.length > 80 ? `${s.slice(0, 79)}…` : s}”` : '';
 };
-const isRole = (v: unknown): v is Role => v === 'student' || v === 'moderator' || v === 'admin';
+const names = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+const list = (v: string[]): string => (v.length ? v.join(', ') : 'no roles');
+const MODES: Record<string, string> = { off: 'off', roles: 'on for some roles', everyone: 'on for everyone' };
 
 /** `name` is the target account's name when we know it. */
 type Describe = (data: Record<string, unknown>, name: string | null) => string;
@@ -41,10 +42,14 @@ const driveImport = (d: Record<string, unknown>): string => {
 const IDENTIFIER_NOUN: Record<string, string> = { email: 'email address', phone: 'phone number' };
 
 const ACTIONS: Record<string, Describe> = {
-  'user.role': (d, name) =>
-    isRole(d.from) && isRole(d.to)
-      ? `changed ${name ? `${name}’s role` : 'a role'} from ${roleLabel(d.from).toLowerCase()} to ${roleLabel(d.to).toLowerCase()}${via(d)}`
-      : `changed ${name ? `${name}’s role` : 'a role'}`,
+  'user.roles': (d, name) => `changed ${name ? `${name}’s roles` : 'someone’s roles'} from ${list(names(d.from))} to ${list(names(d.to))}${via(d)}`,
+  'role.create': (d) => `created the role${quoted(d.name)}`,
+  'role.update': (d) => {
+    const after = typeof d.after === 'object' && d.after !== null ? (d.after as Record<string, unknown>) : {};
+    return `changed the role${quoted(after.name)}`;
+  },
+  'role.delete': (d) => `deleted the role${quoted(d.name)}`,
+  'feature.switch': (d) => `switched ${str(d.feature) ?? 'a feature'} ${MODES[str(d.to) ?? ''] ?? 'to a new setting'}`,
   'user.status': (d, name) =>
     d.to === 'suspended'
       ? `suspended ${name ?? 'an account'}`

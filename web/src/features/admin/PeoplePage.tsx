@@ -1,28 +1,21 @@
-// /admin/people (admins): find an account, change its role, suspend or lift a suspension; and the activity log.
+// /admin/people (admins): find an account, see its roles, suspend or lift a suspension; and the activity log.
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { ClockCounterClockwise, Prohibit, UserCheck, UserGear, UsersThree } from '@phosphor-icons/react';
+import { ClockCounterClockwise, Prohibit, UserCheck, UsersThree } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { AdminUser, AdminUserPage } from '../../api/types';
-import { RoleGate, roleLabel, useAuth } from '../../auth';
+import { Gate, useAuth } from '../../auth';
 import { formatPhone } from '../../auth/identifiers';
 import { useDebouncedValue, useQueryParam, useToast } from '../../state';
 import {
   Avatar, Badge, Button, CohortBadge, ConfirmDialog, EmptyState, Page, PageHeader, Panel, QueryError, SearchField, Select, Skeleton, TabPanel, Tabs, formatDate, timeAgo,
 } from '../../ui';
 import { auditActor, describeAudit } from './audit';
-import { ADMIN_USERS_KEY, useAudit, usePeople, useUpdatePerson, type Role } from './api';
-import { RoleDialog } from './RoleDialog';
-import { roleWithArticle } from './roles';
+import { ADMIN_USERS_KEY, useAudit, usePeople, useUpdatePerson } from './api';
 import './PeoplePage.css';
 
-const ROLE_FILTERS = [
-  { value: '', label: 'Everyone' },
-  { value: 'student', label: 'Students' },
-  { value: 'moderator', label: 'Student reps' },
-  { value: 'admin', label: 'Admins' },
-];
-type Change = { role: Role } | { status: 'active' | 'suspended' };
+const ROLE_FILTERS = [{ value: '', label: 'Everyone' }];
+type Change = { status: 'active' | 'suspended' };
 type Pending = { person: AdminUser; change: Change } | null;
 
 
@@ -32,7 +25,7 @@ function displayName(p: AdminUser): string {
 
 // ── People ───────────────────────────────────────────────────────────────────────────────────
 
-function PersonRow({ p, isSelf, onRole, onStatus }: { p: AdminUser; isSelf: boolean; onRole: () => void; onStatus: (status: 'active' | 'suspended') => void }) {
+function PersonRow({ p, isSelf, onStatus }: { p: AdminUser; isSelf: boolean; onStatus: (status: 'active' | 'suspended') => void }) {
   const suspended = p.status === 'suspended';
   const ids = [p.email, p.phone ? formatPhone(p.phone) : null].filter(Boolean).join(' · ');
   return (
@@ -61,12 +54,7 @@ function PersonRow({ p, isSelf, onRole, onStatus }: { p: AdminUser; isSelf: bool
       </td>
       <td className="people-cell people-cell--role" data-label="Role">
         <span className="people-role">
-          <span className="people-role__name">{roleLabel(p.role)}</span>
-          {isSelf ? null : (
-            <Button size="sm" variant="ghost" leadingIcon={UserGear} onClick={onRole} aria-label={`Change the role of ${displayName(p)}`}>
-              Change
-            </Button>
-          )}
+          <span className="people-role__name">{p.roles.map((r) => r.name).join(', ')}</span>
         </span>
       </td>
       <td className="people-cell people-cell--seen" data-label="Last seen">
@@ -100,18 +88,13 @@ function People() {
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
   const q = useDebouncedValue(search.trim(), 300);
-  const people = usePeople(q, (role || null) as Role | null, true);
+  const people = usePeople(q, role || null, true);
   const update = useUpdatePerson();
   const [pending, setPendingState] = useState<Pending>(null);
-  const [roleFor, setRoleForState] = useState<AdminUser | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const setPending = (next: Pending) => {
     setProblem(null);
     setPendingState(next);
-  };
-  const setRoleFor = (next: AdminUser | null) => {
-    setProblem(null);
-    setRoleForState(next);
   };
 
   const list = useMemo(() => people.data?.pages.flatMap((p) => p.items) ?? [], [people.data]);
@@ -126,7 +109,7 @@ function People() {
           const name = displayName(p);
           push({
             tone: 'success',
-            title: 'role' in change ? `${name} is now ${roleWithArticle(change.role)}` : change.status === 'suspended' ? `${name} is suspended` : `${name} can post again`,
+            title: change.status === 'suspended' ? `${name} is suspended` : `${name} can post again`,
             body: 'They get a notification.',
           });
           done();
@@ -137,7 +120,7 @@ function People() {
   };
 
   const pendingName = pending ? displayName(pending.person) : '';
-  const suspending = !!pending && 'status' in pending.change && pending.change.status === 'suspended';
+  const suspending = !!pending && pending.change.status === 'suspended';
 
   return (
     <>
@@ -205,7 +188,6 @@ function People() {
                   key={p.id}
                   p={p}
                   isSelf={p.id === me?.id}
-                  onRole={() => setRoleFor(p)}
                   onStatus={(status) => setPending({ person: p, change: { status } })}
                 />
               ))}
@@ -221,19 +203,12 @@ function People() {
         </div>
       ) : null}
 
-      <RoleDialog
-        person={roleFor ? { id: roleFor.id, name: displayName(roleFor), role: roleFor.role } : null}
-        busy={update.isPending}
-        error={roleFor ? problem : null}
-        onSave={(role) => roleFor && apply(roleFor, { role }, () => setRoleFor(null))}
-        onClose={() => setRoleFor(null)}
-      />
       <ConfirmDialog
         open={pending !== null}
         title={suspending ? `Suspend ${pendingName}?` : `Lift ${pendingName}’s suspension?`}
         body={
           suspending
-            ? 'They can still sign in and read, but can’t post, upload or react until you lift it. Student reps and admins also lose their powers while suspended. They get a notification.'
+            ? 'They can still sign in and read, but can’t post, upload or react until you lift it. Anything their roles allow is off while they’re suspended too. They get a notification.'
             : 'They can post, upload and react again. They get a notification.'
         }
         confirmLabel={suspending ? 'Suspend' : 'Lift suspension'}
@@ -332,7 +307,7 @@ function PeopleScreen() {
   const [tab, setTab] = useQueryParam('tab', 'people');
   return (
     <Page className="people">
-      <PageHeader title="People" description="Find an account, change its role, or suspend it. Every change is logged under Activity." />
+      <PageHeader title="People" description="Find an account, see its roles, or suspend it. Every change is logged under Activity." />
       <Tabs idBase="people" tabs={TABS} value={tab} onChange={(id) => setTab(id, { replace: true })} label="People and activity" className="people-tabs" />
       <TabPanel idBase="people" id="people" value={tab} className="people-tabpanel">
         <People />
@@ -346,8 +321,8 @@ function PeopleScreen() {
 
 export default function PeoplePage() {
   return (
-    <RoleGate need="admin" title="People" description="Accounts, roles and the activity log.">
+    <Gate title="People" description="Accounts, roles and the activity log." admin>
       <PeopleScreen />
-    </RoleGate>
+    </Gate>
   );
 }

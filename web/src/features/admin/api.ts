@@ -2,16 +2,14 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { nextOffset } from '../../api/paging';
-import type { AdminUser, AdminUserPage, AdminUserUpdate } from '../../api/types';
-
-export type Role = AdminUser['role'];
+import type { AdminUserPage, AdminUserUpdate } from '../../api/types';
 
 export const ADMIN_USERS_KEY = ['admin', 'users'] as const;
 export const AUDIT_KEY = ['admin', 'audit'] as const;
 const PAGE = 20;
 
 
-export function usePeople(q: string, role: Role | null, enabled: boolean) {
+export function usePeople(q: string, role: string | null, enabled: boolean) {
   return useInfiniteQuery({
     queryKey: [...ADMIN_USERS_KEY, { q, role }],
     queryFn: ({ pageParam }) =>
@@ -33,7 +31,7 @@ export function useAudit(enabled: boolean) {
   });
 }
 
-/** Change a role or suspend/unsuspend; every cached list gets the new row, and the activity log is re-read. */
+/** Suspend, unsuspend or change a sign-in address; every cached list gets the new row, and the activity log is re-read. */
 export function useUpdatePerson() {
   const qc = useQueryClient();
   return useMutation({
