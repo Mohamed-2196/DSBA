@@ -13,8 +13,8 @@ interface ProfileMenuProps {
 }
 
 /**
- * Who is signed in, with the account menu (Your account, Moderation, People, Sign out). Guests get a Sign in
- * button. The line under the name is the person's role when they have one, otherwise their cohort.
+ * Who is signed in, with the account menu (Finish your profile when it's missing, Your account, Sign out). Guests
+ * get a Sign in button. The line under the name is the person's badge when they have one, otherwise their cohort.
  */
 export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenuProps) {
   const { me, status, openSignIn, signOut } = useAuth();
