@@ -39,8 +39,7 @@ class NooraQuestion(ApiModel):
     route: str = Field(default="/", max_length=ROUTE_MAX)  # the path and query string the student is on
     year: Year | None = None  # the year the student is browsing (their own year when None)
     module_id: str | None = Field(default=None, max_length=64)
-    chapter: int | None = Field(default=None, ge=0, le=500)
-    video: int | None = Field(default=None, ge=0, le=500)
+    lesson_id: str | None = Field(default=None, max_length=16)
     note: NooraNote | None = None
     history: list[NooraTurn] = Field(default_factory=list, max_length=HISTORY_MAX)
 

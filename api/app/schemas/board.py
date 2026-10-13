@@ -18,8 +18,7 @@ CardNote = Annotated[str, StringConstraints(strip_whitespace=True, max_length=20
 
 
 class BoardLinkIn(ApiModel):
-    """What a card points at: a calendar event id, a lesson key ('<module>:<chapter>:<video>'), a module id or a
-    library item id."""
+    """What a card points at: a calendar event id, a lesson id, a module id or a library item id."""
 
     type: BoardLinkType
     id: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=96)]

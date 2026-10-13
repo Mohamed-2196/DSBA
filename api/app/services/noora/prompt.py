@@ -14,13 +14,14 @@ from __future__ import annotations
 import datetime as dt
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Literal
 
 from anthropic.types import MessageParam, TextBlockParam
 
 from app.core.access import Feature
 from app.models import CalendarEvent, Module
 from app.schemas.noora import NooraNote, NooraTurn
+from app.services.modules import visible_chapters, visible_lessons
 
 RULES = """\
 You are Mini Noora, the helper inside DSBA Hub: the student hub for BIBF's BSc Data Science and Business Analytics \
@@ -51,7 +52,7 @@ PAGES: tuple[tuple[str, str, Feature | None], ...] = (
     ("/modules", "Every module, by year", None),
     ("/modules/<id>", "A module's overview", None),
     ("/modules/<id>?tab=lessons", "A module's lessons (videos by chapter)", None),
-    ("/modules/<id>?tab=lessons&chapter=<c>&video=<v>", "One lesson (both numbers count from 0)", None),
+    ("/modules/<id>/lessons/<lesson id>", "One lesson (its id as the module's lessons list it)", None),
     ("/modules/<id>?tab=files", "A module's files: past papers, notes and guides", Feature.library),
     ("/library", "The library: past papers, notes and guides for every module", Feature.library),
     ("/calendar", "The programme calendar: exams, deadlines and events", Feature.calendar),
@@ -88,35 +89,27 @@ class Screen:
     year: int | None
     route: str
     module: Module | None
-    chapter: int | None
-    video: int | None
+    lesson_id: str | None
     dates: Sequence[CalendarEvent] | None  # None: the calendar is off for the student
 
 
 def _lessons(module: Module) -> list[str]:
     lines: list[str] = []
-    for c, chapter in enumerate(module.chapters or []):
-        if not isinstance(chapter, dict):
-            continue
-        lines.append(f"  Chapter {c}: {chapter.get('title') or f'Chapter {c + 1}'}")
-        for v, video in enumerate(chapter.get("videos") or []):
-            title = video.get("title") if isinstance(video, dict) else None
-            lines.append(f"    video {v}: {title or f'Lesson {v + 1}'}")
+    for c, chapter in enumerate(visible_chapters(module)):
+        lines.append(f"  Chapter {c + 1}: {chapter.title}")
+        for v, lesson in enumerate(visible_lessons(chapter)):
+            lines.append(f"    lesson {lesson.id}: {lesson.title or f'Lesson {v + 1}'}")
     return lines
 
 
-def lesson_title(module: Module, chapter: int | None, video: int | None) -> str | None:
-    """'Chapter title: lesson title' for an open lesson, or None when the numbers point at nothing."""
-    chapters: list[Any] = module.chapters or []
-    if chapter is None or not 0 <= chapter < len(chapters) or not isinstance(chapters[chapter], dict):
-        return None
-    ch = chapters[chapter]
-    videos = ch.get("videos") or []
-    name = str(ch.get("title") or f"Chapter {chapter + 1}")
-    if video is None or not 0 <= video < len(videos):
-        return name
-    title = videos[video].get("title") if isinstance(videos[video], dict) else None
-    return f"{name}: {title or f'Lesson {video + 1}'}"
+def lesson_title(module: Module, lesson_id: str | None) -> str | None:
+    """'Chapter title: lesson title' for the open lesson, or None when the id points at none of the module's lessons
+    students see."""
+    for chapter in visible_chapters(module):
+        for v, lesson in enumerate(visible_lessons(chapter)):
+            if lesson.id == lesson_id:
+                return f"{chapter.title}: {lesson.title or f'Lesson {v + 1}'}"
+    return None
 
 
 def _date_line(e: CalendarEvent) -> str:
@@ -137,9 +130,9 @@ def screen_block(screen: Screen) -> str:
     if m is not None:
         lines.append(f"Open module: {m.unit_code or ''} {m.name} (year {m.year}, id {m.id}). Its lessons:".strip())
         lines.extend(_lessons(m) or ["  (no lessons yet)"])
-        lesson = lesson_title(m, screen.chapter, screen.video)
+        lesson = lesson_title(m, screen.lesson_id)
         if lesson:
-            lines.append(f"Open lesson: chapter {screen.chapter}, video {screen.video}: {lesson}.")
+            lines.append(f"Open lesson: {screen.lesson_id}: {lesson}.")
     if screen.dates is None:
         lines.append("The calendar is switched off: don't give dates.")
     elif screen.dates:

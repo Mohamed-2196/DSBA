@@ -31,7 +31,13 @@ class BoardCard(Base):
             unique=True,
             postgresql_where=text("link_type IS NOT NULL"),
         ),
-        Index("uq_board_cards_user_lesson", "user_id", "lesson_id", unique=True, postgresql_where=text("lesson_id IS NOT NULL")),
+        Index(
+            "uq_board_cards_user_lesson",
+            "user_id",
+            "lesson_id",
+            unique=True,
+            postgresql_where=text("lesson_id IS NOT NULL"),
+        ),
         Index("ix_board_cards_lesson", "lesson_id"),  # removing a lesson (RESTRICT)
         CheckConstraint(
             "CASE WHEN link_type = 'lesson' THEN lesson_id IS NOT NULL AND link_id IS NULL ELSE lesson_id IS NULL END",

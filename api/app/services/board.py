@@ -23,9 +23,8 @@ from app.models import BoardCard, CalendarEvent, ItemStatus, LessonView, Library
 from app.schemas.board import Board, BoardCardCreate, BoardCardMove, BoardCardUpdate, BoardColumn, BoardLink
 from app.schemas.board import BoardCard as BoardCardOut
 from app.services import access, ratelimit
-from app.services.accounts import lesson_key, parse_lesson_key
 from app.services.content import apply_patch
-from app.services.modules import visible_chapters
+from app.services.modules import lesson_name, lesson_path, student_lessons
 
 MAX_CARDS = 500
 CREATE_LIMIT = 120
@@ -51,17 +50,10 @@ def _cards(db: Session, user_id: uuid.UUID, column: str | None = None) -> list[B
     return list(db.scalars(q.order_by(BoardCard.position, BoardCard.created_at)))
 
 
-def _lesson(module: Module, chapter: int, video: int) -> tuple[str, str] | None:
-    """(the lesson's title, its address), or None when the module has no such lesson."""
-    chapters = visible_chapters(module.chapters)
-    if module.hidden or not 0 <= chapter < len(chapters):
-        return None
-    videos = chapters[chapter]["videos"]
-    if not 0 <= video < len(videos):
-        return None
-    entry = videos[video] if isinstance(videos[video], dict) else {}
-    name = entry.get("title") or f"{chapters[chapter].get('title') or f'Chapter {chapter + 1}'}, lesson {video + 1}"
-    return f"{module.short_name}: {name}", f"/modules/{module.id}?tab=lessons&chapter={chapter}&video={video}"
+def link_key(card: BoardCard) -> LinkKey | None:
+    """(type, id) of what the card points at: a lesson's id is `lesson_id`, anything else's `link_id`."""
+    ident = card.lesson_id if card.link_type == "lesson" else card.link_id
+    return (card.link_type, ident) if card.link_type and ident else None
 
 
 def resolve_links(db: Session, user: User | None, keys: Iterable[LinkKey]) -> dict[LinkKey, BoardLink]:
@@ -85,18 +77,16 @@ def resolve_links(db: Session, user: User | None, keys: Iterable[LinkKey]) -> di
                 found["library_item", str(item.id)] = BoardLink(
                     type="library_item", id=str(item.id), title=item.title, url=f"/library/{item.slug}", date=None
                 )
-    lessons = {k: p for k in wanted.get("lesson", ()) if (p := parse_lesson_key(k)) is not None}
-    module_ids = wanted.get("module", set()) | {m for m, _, _ in lessons.values()}
-    if module_ids:
-        modules = {m.id: m for m in db.scalars(select(Module).where(Module.id.in_(module_ids)))}
-        for mid in wanted.get("module", ()):
-            if (module := modules.get(mid)) is not None and not module.hidden:
-                found["module", mid] = BoardLink(
-                    type="module", id=mid, title=module.name, url=f"/modules/{mid}", date=None
-                )
-        for key, (mid, chapter, video) in lessons.items():
-            if (module := modules.get(mid)) is not None and (lesson := _lesson(module, chapter, video)) is not None:
-                found["lesson", key] = BoardLink(type="lesson", id=key, title=lesson[0], url=lesson[1], date=None)
+    if module_ids := wanted.get("module"):
+        for module in db.scalars(select(Module).where(Module.id.in_(module_ids), Module.hidden.is_(False))):
+            found["module", module.id] = BoardLink(
+                type="module", id=module.id, title=module.name, url=f"/modules/{module.id}", date=None
+            )
+    for lesson in student_lessons(db, wanted.get("lesson", ())).values():
+        title = f"{lesson.chapter.module.short_name}: {lesson_name(lesson)}"
+        found["lesson", lesson.id] = BoardLink(
+            type="lesson", id=lesson.id, title=title, url=lesson_path(lesson), date=None
+        )
     return found
 
 
@@ -109,10 +99,9 @@ def _uuid(raw: str) -> uuid.UUID | None:
 
 def _out(card: BoardCard, links: dict[LinkKey, BoardLink]) -> BoardCardOut:
     link = None
-    if card.link_type is not None and card.link_id is not None:
-        key = (card.link_type, card.link_id)
+    if (key := link_key(card)) is not None:
         link = links.get(key) or BoardLink.model_validate(
-            {"type": card.link_type, "id": card.link_id, "title": None, "url": None, "date": None}
+            {"type": key[0], "id": key[1], "title": None, "url": None, "date": None}
         )
     return BoardCardOut.model_validate(
         {
@@ -129,15 +118,15 @@ def _out(card: BoardCard, links: dict[LinkKey, BoardLink]) -> BoardCardOut:
 
 
 def card_out(db: Session, user: User, card: BoardCard) -> BoardCardOut:
-    keys = [(card.link_type, card.link_id)] if card.link_type and card.link_id else []
-    return _out(card, resolve_links(db, user, keys))
+    key = link_key(card)
+    return _out(card, resolve_links(db, user, [key] if key else []))
 
 
 def board_of(db: Session, user: User) -> Board:
     """Every card, To do first, each column in its order."""
     cards = _cards(db, user.id)
     cards.sort(key=lambda c: COLUMNS.index(c.column))  # stable: keeps each column's order
-    links = resolve_links(db, user, [(c.link_type, c.link_id) for c in cards if c.link_type and c.link_id])
+    links = resolve_links(db, user, [k for c in cards if (k := link_key(c)) is not None])
     return Board(cards=[_out(c, links) for c in cards], limit=MAX_CARDS)
 
 
@@ -199,9 +188,7 @@ def _top_of(db: Session, user_id: uuid.UUID, column: str) -> float:
 def _canonical_link(db: Session, user: User, kind: str, raw: str) -> tuple[str, BoardLink]:
     """The link's stored id and what it points at, or 422 on link.id when there's nothing there for `user`."""
     ident = raw
-    if kind == "lesson" and (parsed := parse_lesson_key(raw)) is not None:
-        ident = lesson_key(*parsed)
-    elif kind == "library_item" and (u := _uuid(raw)) is not None:
+    if kind == "library_item" and (u := _uuid(raw)) is not None:
         ident = str(u)
     link = resolve_links(db, user, [(kind, ident)]).get((kind, ident))
     if link is None:
@@ -209,8 +196,8 @@ def _canonical_link(db: Session, user: User, kind: str, raw: str) -> tuple[str, 
     return ident, link
 
 
-def _watched(db: Session, user_id: uuid.UUID, key: str) -> bool:
-    q = select(LessonView.lesson_key).where(LessonView.user_id == user_id, LessonView.lesson_key == key)
+def _watched(db: Session, user_id: uuid.UUID, lesson_id: str) -> bool:
+    q = select(LessonView.lesson_id).where(LessonView.user_id == user_id, LessonView.lesson_id == lesson_id)
     return db.scalar(q) is not None
 
 
@@ -230,21 +217,24 @@ def create_card(db: Session, user: User, body: BoardCardCreate) -> BoardCard:
     if count >= MAX_CARDS:
         raise conflict("board_full", f"Your board holds {MAX_CARDS} cards. Delete some you've finished first.")
     column: str = body.column
-    link_type = link_id = None
+    link_type = link_id = lesson_id = None
     title = body.title
     if body.link is not None:
         link_type = body.link.type
-        link_id, link = _canonical_link(db, user, link_type, body.link.id)
+        ident, link = _canonical_link(db, user, link_type, body.link.id)
+        same = BoardCard.lesson_id == ident if link_type == "lesson" else BoardCard.link_id == ident
         existing = db.scalar(
-            select(BoardCard.id).where(
-                BoardCard.user_id == user.id, BoardCard.link_type == link_type, BoardCard.link_id == link_id
-            )
+            select(BoardCard.id).where(BoardCard.user_id == user.id, BoardCard.link_type == link_type, same)
         )
         if existing is not None:
             raise conflict("already_on_board", "That's already on your board.")
         title = title or (link.title or "")[:200]
-        if link_type == "lesson" and _watched(db, user.id, link_id):
-            column = "done"
+        if link_type == "lesson":
+            lesson_id = ident
+            if _watched(db, user.id, ident):
+                column = "done"
+        else:
+            link_id = ident
     if not title:
         raise invalid("title", "Give the card a title.")
     now = utcnow()
@@ -258,6 +248,7 @@ def create_card(db: Session, user: User, body: BoardCardCreate) -> BoardCard:
         due_date=body.due_date,
         link_type=link_type,
         link_id=link_id,
+        lesson_id=lesson_id,
         created_at=now,
         updated_at=now,
         done_at=now if column == "done" else None,
@@ -289,13 +280,12 @@ def delete_card(db: Session, card: BoardCard) -> None:
 
 def complete_lessons(db: Session, user_id: uuid.UUID) -> None:
     """Moves the cards for lessons `user_id` has watched to the top of Done."""
-    watched = select(LessonView.lesson_key).where(LessonView.user_id == user_id)
+    watched = select(LessonView.lesson_id).where(LessonView.user_id == user_id)
     cards = db.scalars(
         select(BoardCard)
         .where(
             BoardCard.user_id == user_id,
-            BoardCard.link_type == "lesson",
-            BoardCard.link_id.in_(watched),
+            BoardCard.lesson_id.in_(watched),
             BoardCard.column != "done",
         )
         .order_by(BoardCard.position)
