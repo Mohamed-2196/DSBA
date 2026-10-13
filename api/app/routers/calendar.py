@@ -14,11 +14,18 @@ from app.models import User
 from app.routers._base import router_for
 from app.schemas.calendar import CalendarEventCreate, CalendarEventOut, CalendarEventUpdate, EventType
 from app.schemas.common import ErrorResponse
+from app.services import access
 from app.services import calendar as svc
 
 router = router_for("calendar", needs_feature(Feature.calendar))
 
 FEED_CACHE = "public, max-age=900"
+PRIVATE_FEED_CACHE = "private, no-store"
+
+
+def feed_cache(db: DB) -> str:
+    """A shared cache may keep a feed only while the calendar is on for everyone."""
+    return FEED_CACHE if access.on_for_everyone(db, Feature.calendar) else PRIVATE_FEED_CACHE
 
 
 @router.get("/calendar/events", response_model=list[CalendarEventOut])
@@ -56,7 +63,7 @@ def ics_feed(
     return Response(
         content=svc.feed(db, year, type_).encode("utf-8"),
         media_type="text/calendar; charset=utf-8",
-        headers={"Content-Disposition": f'inline; filename="{file_name}"', "Cache-Control": FEED_CACHE},
+        headers={"Content-Disposition": f'inline; filename="{file_name}"', "Cache-Control": feed_cache(db)},
     )
 
 
@@ -71,7 +78,7 @@ def event_ics(event_id: str, db: DB) -> Response:
     return Response(
         content=svc.event_ics(db, event_id).encode("utf-8"),
         media_type="text/calendar; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="{event_id}.ics"', "Cache-Control": FEED_CACHE},
+        headers={"Content-Disposition": f'attachment; filename="{event_id}.ics"', "Cache-Control": feed_cache(db)},
     )
 
 

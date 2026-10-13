@@ -156,6 +156,12 @@ def features_on(db: Session, user: User | None) -> list[Feature]:
     return [f for f in FEATURES if feature_on(db, user, f)]
 
 
+def on_for_everyone(db: Session, feature: Feature) -> bool:
+    """Whether the switch shows `feature` to everyone, guests included: only then may a shared cache keep its pages."""
+    state = switches(db).get(feature)
+    return state is not None and state.mode == "everyone"
+
+
 def audience(db: Session, feature: Feature) -> ColumnElement[bool] | None:
     """A condition on User for the accounts `feature` is on for, or None when it is off for everyone but admins
     (who are told nothing about a switched-off feature)."""
