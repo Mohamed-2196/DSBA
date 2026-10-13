@@ -255,7 +255,7 @@ def sse(event: NooraTextEvent | NooraDoneEvent | NooraErrorEvent) -> str:
 
 def _record(db: Session, p: Prepared, used: Usage | None, *, give_back: bool) -> int:
     """Adds the answer's tokens and cost to today's row (or gives the question back). Returns the questions left."""
-    row = db.get(NooraUsage, p.usage_id, with_for_update=True)
+    row = db.get(NooraUsage, p.usage_id, with_for_update=True, populate_existing=True)
     if row is None:  # the account was deleted meanwhile: nothing to count against
         db.commit()
         return 0
