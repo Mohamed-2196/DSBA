@@ -23,7 +23,8 @@ deployed yet.
 - **Last checks.**
   - The API suite (598 tests) passed at `e96121a`. The API hasn't changed since.
   - `scripts/check.sh web` passed at `5c3617d`.
-  - The end-to-end suite passed 41/41, twice in a row, on Docker (`round3/e2e-docker`, 2026-10-13).
+  - The end-to-end suite passed 41/41 on the merged round 3 (`1274e81`, 2026-10-13).
+  - `scripts/check.sh web` passed on `round3/web-leftovers` at `99bfa3f`: 347 unit tests and the TanStack Query lint.
   - `scripts/check.sh api` passed on `feature/backend` at `401174a`: 655 tests, with the tighter ruff rules.
 - **Removed from this branch:** `launch-film/` (still on `feature/dsba-pulse` and in the history) and an unused
   demo picture.
@@ -37,14 +38,14 @@ The lead merges them.
 | --- | --- | --- | --- |
 | `round3/e2e-docker` | student-tester | removed | 1: merged 2026-10-13 |
 | `round3/drive-import` | api-builder | removed | 3 and CQ-15: merged 2026-10-13, checks green on the merge |
-| `round3/web-leftovers` | web-builder | `../dsba-web` | 4, and 5 on the web side (the data router for the leave guard) |
+| `round3/web-leftovers` | web-builder | removed | 4 and 5: merged 2026-10-13 |
 | `round3/student-ideas` | student-user | removed | 24 ideas in `docs/ideas.md`: merged 2026-10-13 |
 
 - **The access API plan** (R-1 and R-10) is being written in the background, into
   `docs/superpowers/plans/2026-10-13-access-api.md`. The web plan follows once `round3/web-leftovers` is merged.
 
-- **The re-review round (2) waits** until `round3/web-leftovers` is merged too, so the reviewers and the student
-  tester see the finished round rather than a moving target.
+- **Round 3 is complete.** Everything is merged and checked: the API checks, the web checks, and the e2e suite on
+  the merged code.
 - **The Docker stack** runs from the main checkout (compose project `dsba-hub`), on its normal mail backends.
   - `scripts/e2e.sh` switches it to e2e mode, and `--restore` switches it back.
   - Nobody runs `docker compose down`: the API's pytest uses its Postgres.
@@ -87,27 +88,17 @@ The lead merges them.
      - 3 links to single Drive files and 1 Google Doc stay links;
      - `--retire-links` isn't built;
      - `load_modules` must stop overwriting modules before R-9 lands.
-4. **Adopt the shared helpers everywhere** (left over from round 2):
-   - The forum uploads images through `src/api/uploads.ts`: `uploadFile('forum_image', …)`, `checkUpload`,
-     `formatSize`, `canRetryUpload` and `UPLOAD_RULES.forum_image`.
-   - The forum and library copy-link actions use `copyText(appUrl(…))` and `hostOf` from `src/lib/share.ts`.
-   - `career/api.ts` and `noora/knowledge.ts` use `moduleDetailQuery` from `features/modules/public.ts`.
-   - `modules/exams.ts` uses `src/lib/dates.ts` instead of its own `todayKey`.
-   - Three imports bypass `public.ts`:
-     - `library/FileViewerPage` imports `forum/ReportButton`;
-     - `moderation/ModerationPage` imports `forum/ReportsQueue` and `library/UploadsQueue`.
-5. **Small leftovers:**
-   - Touch targets under 44 px on touch screens:
-     - `yr-compact` is 48×32 and `.ui-search__clear` 36×36;
-     - `home-trace__label` is too small;
-     - forum rows are 42 px, and the forum hot links are too small;
-     - the forum `ui-tab` is too small at 1024×768.
-   - `AuthProvider.isModerator` ignores suspension.
-   - The Badge's numbers: check tabular figures and thousands separators.
-   - The newsletter editor's leave guard misses palette navigation and Back. `BrowserRouter` has no `useBlocker`;
-     a data router would.
-   - `--measure` is 72ch, too wide; use 58–60ch.
-   - The CQ-15 index and column nits that remain.
+4. **Done: the shared helpers** are used everywhere (round 3), and features meet only through `public.ts`.
+5. **Done: the small leftovers** (round 3):
+   - 44 px touch targets;
+   - suspended reps have no powers in the web app;
+   - counts with thousands separators;
+   - the data router, whose `useBlocker` covers the editor's leave guard;
+   - `--measure` at 58ch;
+   - the CQ-15 indexes and CHECKs.
+   - Open:
+     - Mini Noora's hint still covers "Continue learning" on phones for up to 12 s, though it can now be closed;
+     - "I'm not a student" still shows Year 1 (Mohamed's call).
 6. **Done: the clean-up (2026-10-13).** Mohamed deleted the eight finished branches on GitHub.
    - The merged ones: `round2/fe-*`, `round3/student-ideas`, `round3/e2e-docker` and `round3/drive-import`.
    - `claude/zen-cerf-7e5mbj`.
