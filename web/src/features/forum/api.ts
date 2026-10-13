@@ -48,7 +48,7 @@ function cleanParams(p: ThreadListParams): ThreadListParams {
   const out: ThreadListParams = { sort: p.sort ?? 'hot' };
   if (p.q?.trim()) out.q = p.q.trim();
   if (p.category) out.category = p.category;
-  if (p.moduleId) out.moduleId = p.moduleId;
+  if (p.module_id) out.module_id = p.module_id;
   if (p.tag) out.tag = p.tag;
   if (p.year) out.year = p.year;
   if (p.unanswered) out.unanswered = true;
@@ -178,19 +178,7 @@ export function useForumStats() {
 }
 
 function listQuery(params: ThreadListParams, offset: number, limit: number) {
-  const p = cleanParams(params);
-  return {
-    q: p.q,
-    category: p.category,
-    module_id: p.moduleId,
-    tag: p.tag,
-    year: p.year,
-    sort: p.sort,
-    unanswered: p.unanswered,
-    mine: p.mine,
-    limit,
-    offset,
-  };
+  return { ...cleanParams(params), limit, offset };
 }
 
 /** A page-by-page thread list (pinned first when not searching, then by `sort`). */
@@ -227,7 +215,7 @@ export function useHotThreads({ n = 5, year = null, enabled = true }: { n?: numb
   return useQuery({
     enabled,
     queryKey: forumKeys.hot(size, year ?? null),
-    queryFn: ({ signal }) => call(api.GET('/api/v1/forum/threads/hot', { params: { query: { n: size, year: year ?? undefined } }, signal })),
+    queryFn: ({ signal }) => call(api.GET('/api/v1/forum/threads/hot', { params: { query: { limit: size, year: year ?? undefined } }, signal })),
   });
 }
 
@@ -262,7 +250,7 @@ export function useRelatedThreads(threadId: string | null | undefined, n = 4) {
   return useQuery({
     queryKey: forumKeys.related(threadId ?? '', n),
     queryFn: ({ signal }) =>
-      call(api.GET('/api/v1/forum/threads/{thread_id}/related', { params: { path: { thread_id: threadId ?? '' }, query: { n } }, signal })),
+      call(api.GET('/api/v1/forum/threads/{thread_id}/related', { params: { path: { thread_id: threadId ?? '' }, query: { limit: n } }, signal })),
     enabled: !!threadId,
     staleTime: 5 * 60_000,
   });

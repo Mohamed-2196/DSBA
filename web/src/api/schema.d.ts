@@ -784,7 +784,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/library/items/{item}": {
+    "/api/v1/library/items/{slug}": {
         parameters: {
             query?: never;
             header?: never;
@@ -793,9 +793,9 @@ export interface paths {
         };
         /**
          * Get Item
-         * @description By id or slug. Unpublished items: only their uploader and the library's managers.
+         * @description By slug. Unpublished items: only their uploader and the library's managers.
          */
-        get: operations["get_item_api_v1_library_items__item__get"];
+        get: operations["get_item_api_v1_library_items__slug__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1103,7 +1103,7 @@ export interface paths {
         };
         /**
          * Get Thread
-         * @description By slug or id (a value that reads as an id is looked up as one first). Replies oldest first.
+         * @description By slug. Replies oldest first.
          *
          *     Hidden threads and replies are for moderators and for their own author: the author gets them with status
          *     'hidden' and canModerate false (show them a "hidden by a student rep" banner) and can't change them (canEdit
@@ -1573,7 +1573,7 @@ export interface paths {
         };
         /**
          * Upcoming
-         * @description The next n events from today (Bahrain time), including any still running today.
+         * @description The next `limit` events from today (Bahrain time), including any still running today.
          */
         get: operations["upcoming_api_v1_calendar_upcoming_get"];
         put?: never;
@@ -3510,14 +3510,6 @@ export interface components {
             internship: components["schemas"]["OfferTypeLabel"];
             careers: components["schemas"]["OfferTypeLabel"];
         };
-        /** Ok */
-        Ok: {
-            /**
-             * Ok
-             * @default true
-             */
-            ok: boolean;
-        };
         /** OtpChallengeOut */
         OtpChallengeOut: {
             /**
@@ -4515,7 +4507,6 @@ export type NotificationOut = components['schemas']['NotificationOut'];
 export type NotificationPage = components['schemas']['NotificationPage'];
 export type OfferTypeLabel = components['schemas']['OfferTypeLabel'];
 export type OfferTypeLabels = components['schemas']['OfferTypeLabels'];
-export type Ok = components['schemas']['Ok'];
 export type OtpChallengeOut = components['schemas']['OtpChallengeOut'];
 export type OtpStartRequest = components['schemas']['OtpStartRequest'];
 export type OtpVerifyRequest = components['schemas']['OtpVerifyRequest'];
@@ -8143,12 +8134,12 @@ export interface operations {
             };
         };
     };
-    get_item_api_v1_library_items__item__get: {
+    get_item_api_v1_library_items__slug__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                item: string;
+                slug: string;
             };
             cookie?: never;
         };
@@ -9524,7 +9515,7 @@ export interface operations {
     hot_threads_api_v1_forum_threads_hot_get: {
         parameters: {
             query?: {
-                n?: number;
+                limit?: number;
                 year?: number | null;
             };
             header?: never;
@@ -9867,7 +9858,7 @@ export interface operations {
     related_threads_api_v1_forum_threads__thread_id__related_get: {
         parameters: {
             query?: {
-                n?: number;
+                limit?: number;
             };
             header?: never;
             path: {
@@ -10833,13 +10824,11 @@ export interface operations {
         };
         responses: {
             /** @description Successful Response */
-            201: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["Ok"];
-                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {
@@ -12387,7 +12376,7 @@ export interface operations {
     upcoming_api_v1_calendar_upcoming_get: {
         parameters: {
             query?: {
-                n?: number;
+                limit?: number;
                 year?: number | null;
             };
             header?: never;

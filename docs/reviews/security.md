@@ -40,9 +40,9 @@ by the API), but it needs a few rules written down before it is built: see "Desi
 | ID | Severity | Owner | Status | Title |
 |---|---|---|---|---|
 | SEC-16 | **major** | accounts (`routers/admin.py`) | open | Admin powers need no step-up: a stolen admin session takes over any account for good |
-| SEC-17 | minor | community, accounts (`services/notify.py`) | open | Notification emails: 60 an hour from one student to one person, quoting their links |
-| SEC-18 | minor | content (`services/newsletter.py`) | open | Publishing an issue mass-emails every account, with no limit |
-| SEC-20 | minor | LEAD (`config.py`) | open | Production settings accept no trusted proxy and the e2e mode's raised limits |
+| SEC-17 | minor | community, accounts (`services/notify.py`) | **fixed** `214aa83`: 10 emails an hour per person, links quoted as "[link]" | Notification emails: 60 an hour from one student to one person, quoting their links |
+| SEC-18 | minor | content (`services/newsletter.py`) | **fixed** `214aa83`: one issue email a day, no links quoted | Publishing an issue mass-emails every account, with no limit |
+| SEC-20 | minor | LEAD (`config.py`) | **fixed** `021db14` | Production settings accept no trusted proxy and the e2e mode's raised limits |
 | SEC-19 | nit | content (`services/library.py`) | open | `?mine=1&status=removed` lists a student's removed files |
 | SEC-14 | minor | content, Mohamed | **partly fixed** | Review queue capped and rejected files swept; no site-wide upload budget yet (product call) |
 | SEC-2 | minor | accounts | **fixed** (residual noted) | Wrong codes lock a network, not the address (D4) |

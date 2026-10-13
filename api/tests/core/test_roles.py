@@ -67,11 +67,11 @@ def test_a_suspended_moderator_sees_and_removes_only_what_a_student_may(
     published = share_pdf(client_for(admin), storage, title="Published by an admin")
     pending = share_pdf(client_for(student), storage, title="Waiting for review")
     rep = client_for(moderator)
-    assert rep.get(f"{API}/library/items/{pending['id']}").status_code == 200
+    assert rep.get(f"{API}/library/items/{pending['slug']}").status_code == 200
     _suspend(db, moderator)
-    assert rep.get(f"{API}/library/items/{pending['id']}").status_code == 404
+    assert rep.get(f"{API}/library/items/{pending['slug']}").status_code == 404
     assert rep.delete(f"{API}/library/items/{published['id']}").status_code == 403
-    assert client_for().get(f"{API}/library/items/{published['id']}").json()["status"] == "published"
+    assert client_for().get(f"{API}/library/items/{published['slug']}").json()["status"] == "published"
 
 
 def test_a_suspended_admin_cannot_change_accounts(client_for: Clients, admin: User, student: User, db: Session) -> None:

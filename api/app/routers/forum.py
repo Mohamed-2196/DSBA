@@ -85,10 +85,10 @@ def list_threads(
 
 @router.get("/forum/threads/hot", response_model=list[ThreadSummary])
 def hot_threads(
-    db: DB, user: OptionalUser, n: int = Query(default=5, ge=1, le=20), year: YearParam | None = None
+    db: DB, user: OptionalUser, limit: int = Query(default=5, ge=1, le=20), year: YearParam | None = None
 ) -> list[ThreadSummary]:
     """The hottest threads (pinned ones excluded), for Home and the newsletter."""
-    return queries.hot_threads(db, user, n, year)
+    return queries.hot_threads(db, user, limit, year)
 
 
 @router.post("/forum/threads", response_model=ThreadDetail, status_code=status.HTTP_201_CREATED)
@@ -103,7 +103,7 @@ def create_thread(body: ThreadCreate, user: Poster, db: DB) -> ThreadDetail:
 
 @router.get("/forum/threads/{slug}", response_model=ThreadDetail)
 def get_thread(slug: str, db: DB, user: OptionalUser) -> ThreadDetail:
-    """By slug or id (a value that reads as an id is looked up as one first). Replies oldest first.
+    """By slug. Replies oldest first.
 
     Hidden threads and replies are for moderators and for their own author: the author gets them with status
     'hidden' and canModerate false (show them a "hidden by a student rep" banner) and can't change them (canEdit
@@ -131,10 +131,10 @@ def delete_thread(thread_id: UUID, request: Request, user: CurrentUser, db: DB) 
 
 @router.get("/forum/threads/{thread_id}/related", response_model=list[ThreadSummary])
 def related_threads(
-    thread_id: UUID, db: DB, user: OptionalUser, n: int = Query(default=4, ge=1, le=10)
+    thread_id: UUID, db: DB, user: OptionalUser, limit: int = Query(default=4, ge=1, le=10)
 ) -> list[ThreadSummary]:
     """Same module first, then shared tags and category. Works on any thread the viewer can open."""
-    return queries.related_threads(db, user, visibility.thread_to_read(db, thread_id, user), n)
+    return queries.related_threads(db, user, visibility.thread_to_read(db, thread_id, user), limit)
 
 
 @router.put("/forum/threads/{thread_id}/vote", response_model=VoteResult)

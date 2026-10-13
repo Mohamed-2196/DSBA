@@ -70,10 +70,10 @@ def facets(db: DB) -> LibraryFacets:
     return svc.facets(db)
 
 
-@router.get("/library/items/{item}", response_model=LibraryItem)
-def get_item(item: str, db: DB, user: OptionalUser) -> LibraryItem:
-    """By id or slug. Unpublished items: only their uploader and the library's managers."""
-    return svc.one_out(db, svc.get_visible(db, item, user), user)
+@router.get("/library/items/{slug}", response_model=LibraryItem)
+def get_item(slug: str, db: DB, user: OptionalUser) -> LibraryItem:
+    """By slug. Unpublished items: only their uploader and the library's managers."""
+    return svc.one_out(db, svc.get_visible(db, slug, user), user)
 
 
 @router.post(

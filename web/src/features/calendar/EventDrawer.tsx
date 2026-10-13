@@ -1,9 +1,9 @@
 import { LinkSimple, PencilSimple, Trash } from '@phosphor-icons/react';
-import { BREAKPOINTS, useMediaQuery, useToast, type CohortYear } from '../../state';
+import { BREAKPOINTS, useMediaQuery, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, CohortBadge, cx, Drawer, IconButton, ModuleIcon } from '../../ui';
 import { daysUntil, formatLong, formatMonthYear, formatShort, formatShortYear, parseDay, weekdayOf } from '../../lib/dates';
-import { copyText } from '../../lib/share';
+import { useCopyLink } from '../../lib/useCopyLink';
 import { AddExamsToCalendar, AddToCalendar } from './AddToCalendar';
 import { eventPageUrl } from './api';
 import { countdownLabel } from './dates';
@@ -32,15 +32,8 @@ export interface EventDrawerProps {
  */
 export function EventDrawer({ event, events, today, year, hasExams, onClose, onOpen, onEdit, onDelete }: EventDrawerProps) {
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
-  const { push } = useToast();
-  const copyLink = async (e: CalendarEvent) => {
-    const url = eventPageUrl(e);
-    push(
-      (await copyText(url))
-        ? { tone: 'success', title: 'Link copied', body: 'Anyone with the link sees this date on the DSBA Hub calendar.' }
-        : { tone: 'alert', title: 'Couldn’t copy the link', body: url },
-    );
-  };
+  const copy = useCopyLink();
+  const copyLink = (e: CalendarEvent) => copy(eventPageUrl(e), 'Anyone with the link sees this date on the DSBA Hub calendar.');
   return (
     <Drawer
       open={!!event}

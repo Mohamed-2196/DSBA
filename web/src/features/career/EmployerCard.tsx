@@ -1,5 +1,5 @@
 // One employer on the board: its logo slot, what it offers, why it is there, the tracks it suits and one button to
-// its own careers or programme page. Split out of Opportunities (code quality review CQ-17).
+// its own careers or programme page.
 import {
   ArrowUpRight,
   Bank,

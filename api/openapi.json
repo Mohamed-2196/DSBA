@@ -4436,22 +4436,22 @@
         }
       }
     },
-    "/api/v1/library/items/{item}": {
+    "/api/v1/library/items/{slug}": {
       "get": {
         "tags": [
           "library"
         ],
         "summary": "Get Item",
-        "description": "By id or slug. Unpublished items: only their uploader and the library's managers.",
-        "operationId": "get_item_api_v1_library_items__item__get",
+        "description": "By slug. Unpublished items: only their uploader and the library's managers.",
+        "operationId": "get_item_api_v1_library_items__slug__get",
         "parameters": [
           {
-            "name": "item",
+            "name": "slug",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Item"
+              "title": "Slug"
             }
           }
         ],
@@ -6220,7 +6220,7 @@
         "operationId": "hot_threads_api_v1_forum_threads_hot_get",
         "parameters": [
           {
-            "name": "n",
+            "name": "limit",
             "in": "query",
             "required": false,
             "schema": {
@@ -6228,7 +6228,7 @@
               "maximum": 20,
               "minimum": 1,
               "default": 5,
-              "title": "N"
+              "title": "Limit"
             }
           },
           {
@@ -6345,7 +6345,7 @@
           "forum"
         ],
         "summary": "Get Thread",
-        "description": "By slug or id (a value that reads as an id is looked up as one first). Replies oldest first.\n\nHidden threads and replies are for moderators and for their own author: the author gets them with status\n'hidden' and canModerate false (show them a \"hidden by a student rep\" banner) and can't change them (canEdit\nfalse). Everyone else: 404 for a hidden thread; a hidden reply is left out of `replies`.",
+        "description": "By slug. Replies oldest first.\n\nHidden threads and replies are for moderators and for their own author: the author gets them with status\n'hidden' and canModerate false (show them a \"hidden by a student rep\" banner) and can't change them (canEdit\nfalse). Everyone else: 404 for a hidden thread; a hidden reply is left out of `replies`.",
         "operationId": "get_thread_api_v1_forum_threads__slug__get",
         "parameters": [
           {
@@ -6671,7 +6671,7 @@
             }
           },
           {
-            "name": "n",
+            "name": "limit",
             "in": "query",
             "required": false,
             "schema": {
@@ -6679,7 +6679,7 @@
               "maximum": 10,
               "minimum": 1,
               "default": 4,
-              "title": "N"
+              "title": "Limit"
             }
           }
         ],
@@ -7863,15 +7863,8 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Ok"
-                }
-              }
-            }
+          "204": {
+            "description": "Successful Response"
           },
           "400": {
             "description": "Bad Request",
@@ -9970,11 +9963,11 @@
           "calendar"
         ],
         "summary": "Upcoming",
-        "description": "The next n events from today (Bahrain time), including any still running today.",
+        "description": "The next `limit` events from today (Bahrain time), including any still running today.",
         "operationId": "upcoming_api_v1_calendar_upcoming_get",
         "parameters": [
           {
-            "name": "n",
+            "name": "limit",
             "in": "query",
             "required": false,
             "schema": {
@@ -9982,7 +9975,7 @@
               "maximum": 60,
               "minimum": 1,
               "default": 5,
-              "title": "N"
+              "title": "Limit"
             }
           },
           {
@@ -16678,17 +16671,6 @@
           "careers"
         ],
         "title": "OfferTypeLabels"
-      },
-      "Ok": {
-        "properties": {
-          "ok": {
-            "type": "boolean",
-            "title": "Ok",
-            "default": true
-          }
-        },
-        "type": "object",
-        "title": "Ok"
       },
       "OtpChallengeOut": {
         "properties": {

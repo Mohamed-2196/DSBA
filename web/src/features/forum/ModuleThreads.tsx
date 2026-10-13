@@ -21,7 +21,7 @@ export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
   const posts = mayTry('forum.post');
   const { getModule } = useModules();
   const mod = getModule(moduleId);
-  const list = useThreadList({ moduleId, sort: 'hot' }, { enabled: !!moduleId });
+  const list = useThreadList({ module_id: moduleId, sort: 'hot' }, { enabled: !!moduleId });
   const vote = useThreadVote();
   const threads = useMemo(() => flattenPages(list.data), [list.data]);
   const total = list.data?.pages[0]?.total ?? 0;

@@ -35,8 +35,6 @@ export const TYPE_BADGE_TONE: Record<EventType, BadgeTone> = {
 
 export const typeLabel = (type: string): string => (isEventType(type) ? EVENT_TYPES[type].label : 'Event');
 
-export type ModuleLookup = (id: string | null | undefined) => ModuleSummary | null;
-
 /**
  * Title split for typographic display: { code: 'ST2134', rest: 'Advanced Statistics: … (October exam)' }.
  * code is null when the event has no unit code or the title doesn't start with it.

@@ -42,12 +42,6 @@ export function cohortTextColor(year: unknown): string {
   return y ? `var(--y${y}-strong)` : 'var(--ink-2)';
 }
 
-/** Text colour to use ON a solid cohort fill (AA). */
-export function cohortOnColor(year: unknown): string {
-  const y = normalizeYear(year);
-  return y ? `var(--on-y${y})` : 'var(--surface)';
-}
-
 /** 'Year 2' (or 'All years' for null). */
 export function cohortLabel(year: unknown): string {
   const y = normalizeYear(year);
