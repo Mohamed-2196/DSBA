@@ -90,7 +90,7 @@ Later features add their own boxes when they're built, for example `requests.han
 2. **Switches.**
    - Each feature has one switch: Off, Some roles or Everyone.
    - A feature is on for you when its switch is Everyone, or Some roles and you hold one of those roles.
-   - Guests get Everyone features only.
+   - Guests, and suspended accounts, get Everyone features only.
    - Admins see every feature, even when it's off, so they can try one before switching it on. The app marks it
      "Off for others".
 3. **Both layers apply.** Publishing an issue needs the newsletter switch on for you and the `newsletter.manage`
@@ -99,6 +99,8 @@ Later features add their own boxes when they're built, for example `requests.han
    - The Admin role can't be edited or deleted, and only an admin can give it.
    - The last active admin can't lose it or be suspended.
    - Someone with `people.suspend` can't suspend an admin or themselves.
+   - Nobody changes their own roles or status. Another admin has to.
+   - Deleting your own thread, reply or library item needs no box.
 5. **Changes apply at once.** The API reads roles and switches from the database on every request. Nothing about
    them is kept in a session.
 6. **Records.**
@@ -114,7 +116,8 @@ Later features add their own boxes when they're built, for example `requests.han
   - `forum`, `library`, `newsletter`, `calendar`, `career`, `grades` and `noora`;
   - `library.uploads`: uploads only, while the library stays readable.
 - **Features without a switch.** Modules and lessons, the home page, accounts and notifications are the hub itself.
-- **The seed** sets every existing feature's switch to Everyone.
+- **The baseline migration** sets every feature's switch to Everyone.
+- **A feature with no switch row** is off.
 - **New features** (the board, notes, requests) arrive with their switch Off.
 
 **When a feature is off for you:**
@@ -137,8 +140,9 @@ Later features add their own boxes when they're built, for example `requests.han
   the code no longer knows is ignored.
 - **Migrations.** Every migration is squashed into one baseline, `0001_initial`, built from the models with these
   tables in it, and the local database is rebuilt. `users.role` and the `Role` enum no longer exist.
-- **Ready-made roles and switches** are created by the seed, so a fresh install and the test database start the
-  same way.
+- **Ready-made roles and switches** come from the baseline migration. Every database needs them: every check reads
+  the roles' boxes, every new account gets Student, and a feature without a switch row is off. `seed` reruns at
+  every start, so it would undo admins' changes.
 
 ### Checks
 - **`app/core/access.py`** holds:
@@ -154,7 +158,8 @@ Later features add their own boxes when they're built, for example `requests.han
 
 ### Shapes
 - **`GET /me`** returns `roles` (id, name, badge), `boxes` and `features`.
-- **`GET /features`** is public. It returns the features switched on for everyone, for guests.
+- **`GET /features`** is public. It returns the features switched on for whoever calls: Everyone features for a guest,
+  and a signed-in person's own list.
 - **`UserPublic`** carries `badge`, a string or null.
 - **Admin endpoints** are CSRF-checked, rate-limited and audited:
   - `GET` and `POST /admin/roles`;
@@ -171,6 +176,7 @@ Later features add their own boxes when they're built, for example `requests.han
   | `feature_off` | 404, the feature is switched off |
   | `last_admin` | 409 |
   | `role_locked` | 409, the Admin role, or deleting a built-in role |
+  | `role_changed` | 409, the role changed since the admin loaded it (it carries a `version`) |
 
 ### The CLI
 - `set-role` and `dev-login --role` take a role slug: student, rep, newsletter-manager, content-manager or admin. The
