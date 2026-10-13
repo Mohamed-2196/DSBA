@@ -34,6 +34,8 @@ from app.models import (
     Notification,
     ReplyVote,
     Report,
+    RequestMeToo,
+    StudentRequest,
     ThreadVote,
     Upload,
     UploadPurpose,
@@ -50,6 +52,7 @@ from app.schemas.auth import (
     ExportReaction,
     ExportReply,
     ExportReport,
+    ExportRequest,
     ExportThread,
     ExportVote,
     Me,
@@ -610,6 +613,27 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for r in db.scalars(select(Report).where(Report.reporter_id == uid).order_by(Report.created_at))
     ]
+    requests = [
+        ExportRequest.model_validate(
+            {
+                "id": r.id,
+                "kind": r.kind,
+                "title": r.title,
+                "details": r.details,
+                "module_id": r.module_id,
+                "status": r.status.value,
+                "reply": r.reply,
+                "removed": r.removed_at is not None,
+                "created_at": r.created_at,
+            }
+        )
+        for r in db.scalars(
+            select(StudentRequest).where(StudentRequest.author_id == uid).order_by(StudentRequest.created_at)
+        )
+    ]
+    me_toos = list(
+        db.scalars(select(RequestMeToo.request_id).where(RequestMeToo.user_id == uid).order_by(RequestMeToo.created_at))
+    )
     notifications = [
         ExportNotification(
             id=n.id,
@@ -647,6 +671,8 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         notifications=notifications,
         votes=votes,
         reports=reports,
+        requests=requests,
+        me_toos=me_toos,
         emails=emails,
     )
 
@@ -658,7 +684,7 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     """Deletes the account. Files that never reached the library and forum pictures go (objects first: if the
     bucket fails, nothing is deleted and the person can try again); pending and rejected library items go;
     published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set NULL); everything
-    personal (sessions, notifications, queued emails, progress, stars, votes, reactions) cascades; the sign-in
+    personal (sessions, notifications, queued emails, progress, stars, votes, me-toos, reactions) cascades; the sign-in
     codes stay, anonymised, until the sweep (the rate limits count them). The last active admin can't leave
     (409 last_admin)."""
     if access.is_admin(user):
@@ -697,7 +723,7 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
         db.execute(delete(Upload).where(Upload.id.in_([u.id for u in dropped_uploads])))
     if dropped_items:
         db.execute(delete(LibraryItem).where(LibraryItem.id.in_([i.id for i in dropped_items])))
-    # Their votes go with the account (cascade), so the counters they added go too.
+    # Their votes and me-toos go with the account (cascade), so the counters they added go too.
     db.execute(
         update(ForumThread)
         .where(ForumThread.id.in_(select(ThreadVote.thread_id).where(ThreadVote.user_id == uid)))
@@ -707,6 +733,11 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
         update(ForumReply)
         .where(ForumReply.id.in_(select(ReplyVote.reply_id).where(ReplyVote.user_id == uid)))
         .values(vote_count=func.greatest(ForumReply.vote_count - 1, 0))
+    )
+    db.execute(
+        update(StudentRequest)
+        .where(StudentRequest.id.in_(select(RequestMeToo.request_id).where(RequestMeToo.user_id == uid)))
+        .values(me_too_count=func.greatest(StudentRequest.me_too_count - 1, 0))
     )
     # The sign-in rows stay, without the addresses, for the rate limits (student test: deleting the account and
     # signing up again must refill nothing).

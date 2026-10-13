@@ -30,7 +30,7 @@ from app.routers._base import SteppedUpAdmin, router_for
 from app.schemas.access import UserRolesUpdate
 from app.schemas.common import ErrorResponse
 from app.schemas.moderation import AdminStats, AdminUser, AdminUserPage, AdminUserUpdate, AuditOut, AuditPage
-from app.services import access, accounts, reports, roles, sessions
+from app.services import access, accounts, reports, requests, roles, sessions
 from app.services.accounts import public_user
 from app.services.audit import record
 from app.services.identifiers import Kind, destination_hint, normalize_identifier
@@ -79,7 +79,8 @@ def _like(text: str) -> str:
 @router.get("/admin/stats", response_model=AdminStats)
 def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats:
     """Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
-    for review and the open reports in the viewer's queue. A feature switched off for the viewer counts None."""
+    for review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle
+    them). A feature switched off for the viewer counts None."""
     n = func.count()
     forum, library = (access.feature_on(db, user, f) for f in (Feature.forum, Feature.library))
     threads = select(n).select_from(ForumThread).where(ForumThread.status == PostStatus.visible)
@@ -93,6 +94,9 @@ def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats
         library_items=_count(db, published) if library else None,
         pending_uploads=_count(db, pending) if library else None,
         open_reports=reports.open_count(db, user),
+        open_requests=requests.open_count(db)
+        if access.can(user, Box.requests_manage) and access.feature_on(db, user, Feature.requests)
+        else None,
     )
 
 

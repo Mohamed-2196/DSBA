@@ -14,6 +14,7 @@ NotificationKind = Literal[
     "upload_rejected",
     "new_issue",  # a newsletter issue was published
     "report_resolved",  # a moderator acted on your report
+    "request_update",  # a request you made or said "me too" to changed status
     "system",
 ]
 

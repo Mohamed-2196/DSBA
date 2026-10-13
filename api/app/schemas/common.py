@@ -62,6 +62,9 @@ ErrorCode = Literal[
     "already_used",  # 409: a picture already belongs to another post
     "already_reported",  # 409
     "report_closed",  # 409
+    # requests
+    "own_request",  # 409: "me too" on your own request
+    "request_closed",  # 409: a done or declined request takes no more me-toos
     # library, uploads, newsletter, calendar
     "slug_taken",  # 409: a rep chose an address another issue has
     "not_published",  # 409: reactions wait for the issue to be published

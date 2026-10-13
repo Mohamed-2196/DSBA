@@ -37,6 +37,7 @@ class Box(enum.StrEnum):
     newsletter_manage = "newsletter.manage"
     calendar_manage = "calendar.manage"
     career_edit = "career.edit"
+    requests_manage = "requests.manage"
     stats_view = "stats.view"
     people_suspend = "people.suspend"
     audit_read = "audit.read"
@@ -56,6 +57,7 @@ class Feature(enum.StrEnum):
     career = "career"
     grades = "grades"  # the web app's grades calculator: nothing in the API
     noora = "noora"  # Mini Noora, in the web app: nothing in the API
+    requests = "requests"
 
 
 class BoxInfo(NamedTuple):
@@ -100,6 +102,11 @@ BOXES: dict[Box, BoxInfo] = {
     Box.career_edit: BoxInfo(
         "Career Navigator", "Edit Career Navigator", "Only people who edit Career Navigator can do this."
     ),
+    Box.requests_manage: BoxInfo(
+        "Requests",
+        "Answer and remove students' requests, and handle reports about them",
+        "Only people who handle requests can do this.",
+    ),
     Box.stats_view: BoxInfo("Hub", "See the hub's numbers", "Only people who can see the hub's numbers can do this."),
     Box.people_suspend: BoxInfo(
         "People",
@@ -124,6 +131,7 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.career: FeatureInfo("Career Navigator", "Career Navigator."),
     Feature.grades: FeatureInfo("Grades calculator", "The grades calculator."),
     Feature.noora: FeatureInfo("Mini Noora", "Mini Noora, the hub's helper."),
+    Feature.requests: FeatureInfo("Requests", "Students' requests, their me-toos and the answers."),
 }
 
 

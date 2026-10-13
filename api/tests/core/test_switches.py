@@ -87,6 +87,7 @@ AREAS: dict[str, Feature] = {
     "/newsletter": Feature.newsletter,
     "/calendar": Feature.calendar,
     "/career": Feature.career,
+    "/requests": Feature.requests,
 }
 
 
@@ -282,7 +283,7 @@ def test_a_notification_into_a_switched_off_feature_still_lists(
 def test_me_and_features_list_what_is_on(
     client_for: ClientFor, make_user: MakeUser, set_feature: Callable[..., None], db: Session
 ) -> None:
-    everything = [f.value for f in Feature]
+    everything = [f.value for f in Feature if f is not Feature.requests]  # requests arrives switched off
     student, boss = make_user(name="Sara Student"), make_user(name="Head Admin", roles=ADMIN)
     assert client_for(student).get(f"{API}/me").json()["features"] == everything
     assert client_for().get(f"{API}/features").json() == {"features": everything}
@@ -291,7 +292,7 @@ def test_me_and_features_list_what_is_on(
     assert client_for(student).get(f"{API}/me").json()["features"] == without_calendar
     assert client_for(student).get(f"{API}/features").json() == {"features": without_calendar}
     assert client_for().get(f"{API}/features").json() == {"features": without_calendar}
-    assert client_for(boss).get(f"{API}/me").json()["features"] == everything
+    assert client_for(boss).get(f"{API}/me").json()["features"] == [f.value for f in Feature]
     db.add(FeatureSwitch(feature="teleport", mode="everyone"))  # a key the code doesn't know
     db.commit()
     access.forget(db)

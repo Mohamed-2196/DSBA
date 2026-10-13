@@ -561,6 +561,8 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
         "notifications",
         "votes",
         "reports",
+        "requests",
+        "meToos",
         "emails",
     }
     text = json.dumps(data)

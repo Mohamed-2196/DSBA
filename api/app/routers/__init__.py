@@ -18,6 +18,7 @@ from app.routers import (
     notifications,
     progress,
     reports,
+    requests,
     uploads,
 )
 
@@ -35,6 +36,7 @@ for module in (
     uploads,
     forum,
     reports,
+    requests,
     newsletter,
     calendar,
     content,

@@ -13,6 +13,7 @@ from app.schemas.library import ItemStatus, LibraryKind
 from app.schemas.moderation import ReportReason, ReportTarget
 from app.schemas.modules import Progress
 from app.schemas.notifications import NotificationKind
+from app.schemas.requests import RequestKind, RequestStatus
 
 Identifier = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)]
 # A 6-digit code, or the long one sent instead once wrong codes were tried for an address: 10 letters and digits,
@@ -199,6 +200,18 @@ class ExportReport(ApiModel):
     created_at: datetime
 
 
+class ExportRequest(ApiModel):
+    id: UUID
+    kind: RequestKind
+    title: str
+    details: str
+    module_id: str | None
+    status: RequestStatus
+    reply: str | None
+    removed: bool
+    created_at: datetime
+
+
 class ExportNotification(ApiModel):
     id: UUID
     kind: NotificationKind
@@ -234,4 +247,6 @@ class AccountExport(ApiModel):
     notifications: list[ExportNotification]
     votes: list[ExportVote]  # forum upvotes
     reports: list[ExportReport]  # reports this person filed
+    requests: list[ExportRequest]  # requests this person made
+    me_toos: list[UUID]  # requests this person said "me too" to
     emails: list[ExportEmail]
