@@ -23,6 +23,18 @@
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
+.manage-stack { display: grid; gap: var(--sp-16); }
+.manage-noora { display: grid; gap: var(--sp-12); }
+.manage-noora__title { margin: 0; font-size: var(--fs-16); font-weight: var(--fw-semibold); }
+.manage-noora__note { max-width: var(--measure); margin: 0; color: var(--ink-2); font-size: var(--fs-14); }
+.manage-noora__form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--sp-12);
+  align-items: start;
+}
+.manage-noora__save { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); grid-column: 1 / -1; }
+.manage-noora__problem { margin: 0; color: var(--alert-strong); font-size: var(--fs-14); }
 .manage-list { margin: 0; padding: var(--sp-8); list-style: none; }
 .manage-tabs { margin-bottom: var(--sp-24); }
 .manage-panel:focus-visible { outline-offset: 4px; border-radius: var(--r-panel); }

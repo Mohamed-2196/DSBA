@@ -58,6 +58,7 @@ class Feature(enum.StrEnum):
     career = "career"
     grades = "grades"  # the web app's grades calculator: nothing in the API
     noora = "noora"  # Mini Noora, in the web app: nothing in the API
+    noora_ai = "noora.ai"  # her answers from Claude (Mini Noora stays scripted without it)
     notes = "notes"  # each student's private notes
     board = "board"  # each student's private study board
     requests = "requests"
@@ -139,6 +140,9 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.career: FeatureInfo("Career Navigator", "Career Navigator."),
     Feature.grades: FeatureInfo("Grades calculator", "The grades calculator."),
     Feature.noora: FeatureInfo("Mini Noora", "Mini Noora, the hub's helper."),
+    Feature.noora_ai: FeatureInfo(
+        "Mini Noora's AI answers", "Her answers from Claude. She answers from her script instead."
+    ),
     Feature.notes: FeatureInfo("Notes", "Students' private notes. They're kept, and come back when it's on again."),
     Feature.board: FeatureInfo("Study board", "Each student's study board, and the add-to-board buttons."),
     Feature.requests: FeatureInfo("Requests", "Students' requests, their me-toos and the answers."),

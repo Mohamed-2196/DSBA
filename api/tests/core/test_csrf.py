@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable, Iterator
 
-import httpx
+import httpx2
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -37,7 +37,7 @@ def browser(app: FastAPI, storage: object) -> Iterator[Callable[..., TestClient]
         c.__exit__(None, None, None)
 
 
-def _set_cookies(r: httpx.Response, name: str) -> list[str]:
+def _set_cookies(r: httpx2.Response, name: str) -> list[str]:
     return [h for h in r.headers.get_list("set-cookie") if h.startswith(f"{name}=")]
 
 

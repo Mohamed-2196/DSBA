@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-import httpx
+import httpx2
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
@@ -16,7 +16,7 @@ from tests.core.helpers import API
 Clients = Callable[..., TestClient]
 
 
-def _assert_protected(r: httpx.Response) -> None:
+def _assert_protected(r: httpx2.Response) -> None:
     assert r.headers["x-content-type-options"] == "nosniff"
     assert r.headers["referrer-policy"] == "no-referrer"
     assert r.headers["x-frame-options"] == "DENY"

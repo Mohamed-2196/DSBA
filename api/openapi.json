@@ -3640,6 +3640,7 @@
                 "career",
                 "grades",
                 "noora",
+                "noora.ai",
                 "notes",
                 "board",
                 "requests"
@@ -13037,6 +13038,422 @@
           }
         }
       }
+    },
+    "/api/v1/noora/ask": {
+      "post": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Ask Noora",
+        "description": "Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the\nnote or the answer. The note goes only when the student ticked \"Include my note\".\n\nErrors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly\nbudget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),\nrate_limited (429: a question a moment ago), invalid_input (422: too long).",
+        "operationId": "ask_noora_api_v1_noora_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NooraQuestion"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Server-Sent Events: text pieces, then done, or error when the answer stopped.",
+            "content": {
+              "text/event-stream": {},
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/NooraTextEvent"
+                    },
+                    {
+                      "$ref": "#/components/schemas/NooraDoneEvent"
+                    },
+                    {
+                      "$ref": "#/components/schemas/NooraErrorEvent"
+                    }
+                  ],
+                  "title": "Response 200 Ask Noora Api V1 Noora Ask Post",
+                  "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                      "text": "#/components/schemas/NooraTextEvent",
+                      "done": "#/components/schemas/NooraDoneEvent",
+                      "error": "#/components/schemas/NooraErrorEvent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "noora_unavailable (no key) or noora_budget_reached (the month's budget is spent).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/noora/status": {
+      "get": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Noora Status",
+        "description": "Whether her AI answers work for this student now, and how many questions they have left today.",
+        "operationId": "noora_status_api_v1_noora_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/noora": {
+      "get": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Noora Usage",
+        "description": "The limits, and the questions, tokens and estimated cost today and this month. Nothing per student.",
+        "operationId": "noora_usage_api_v1_admin_noora_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraUsageOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Set Noora Limits",
+        "description": "Set the questions each student may ask a day (0 pauses the AI answers) and the monthly budget in US cents.\nAdmins only. Audited (`noora.limits`).",
+        "operationId": "set_noora_limits_api_v1_admin_noora_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NooraLimitsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraUsageOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -15831,7 +16248,10 @@
               "note_changed",
               "too_many_notes",
               "board_full",
-              "already_on_board"
+              "already_on_board",
+              "noora_unavailable",
+              "noora_budget_reached",
+              "noora_daily_limit"
             ],
             "title": "Code"
           },
@@ -16763,6 +17183,7 @@
               "career",
               "grades",
               "noora",
+              "noora.ai",
               "notes",
               "board",
               "requests"
@@ -16844,6 +17265,7 @@
                 "career",
                 "grades",
                 "noora",
+                "noora.ai",
                 "notes",
                 "board",
                 "requests"
@@ -18682,6 +19104,7 @@
                 "career",
                 "grades",
                 "noora",
+                "noora.ai",
                 "notes",
                 "board",
                 "requests"
@@ -19476,6 +19899,328 @@
           "libraryCount"
         ],
         "title": "ModuleSummary"
+      },
+      "NooraDoneEvent": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "done",
+            "title": "Type",
+            "default": "done"
+          },
+          "questionsLeft": {
+            "type": "integer",
+            "title": "Questionsleft"
+          }
+        },
+        "type": "object",
+        "required": [
+          "questionsLeft"
+        ],
+        "title": "NooraDoneEvent",
+        "description": "The answer is complete."
+      },
+      "NooraErrorEvent": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "error",
+            "title": "Type",
+            "default": "error"
+          },
+          "code": {
+            "type": "string",
+            "const": "noora_unavailable",
+            "title": "Code",
+            "default": "noora_unavailable"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "NooraErrorEvent",
+        "description": "The answer stopped. `code` is noora_unavailable: what came so far may be shown, with a line that it was cut\noff."
+      },
+      "NooraLimitsIn": {
+        "properties": {
+          "dailyQuestions": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Dailyquestions"
+          },
+          "monthlyBudgetCents": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Monthlybudgetcents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dailyQuestions",
+          "monthlyBudgetCents"
+        ],
+        "title": "NooraLimitsIn"
+      },
+      "NooraNote": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Title",
+            "default": ""
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 20000,
+            "title": "Body"
+          }
+        },
+        "type": "object",
+        "required": [
+          "body"
+        ],
+        "title": "NooraNote",
+        "description": "The note open in the editor. Sent only when the student ticks \"Include my note\" for this question."
+      },
+      "NooraQuestion": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "route": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Route",
+            "default": "/"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "chapter": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 500.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapter"
+          },
+          "video": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 500.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NooraNote"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/NooraTurn"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "NooraQuestion",
+        "description": "A question, and what's on the student's screen. The server looks the module and lesson up itself."
+      },
+      "NooraStatus": {
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "dailyQuestions": {
+            "type": "integer",
+            "title": "Dailyquestions"
+          },
+          "questionsLeft": {
+            "type": "integer",
+            "title": "Questionsleft"
+          }
+        },
+        "type": "object",
+        "required": [
+          "available",
+          "dailyQuestions",
+          "questionsLeft"
+        ],
+        "title": "NooraStatus",
+        "description": "Whether her AI answers work for this student now, and how many questions are left today."
+      },
+      "NooraTextEvent": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "text",
+            "title": "Type",
+            "default": "text"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "NooraTextEvent",
+        "description": "More of the answer."
+      },
+      "NooraTotals": {
+        "properties": {
+          "questions": {
+            "type": "integer",
+            "title": "Questions"
+          },
+          "students": {
+            "type": "integer",
+            "title": "Students"
+          },
+          "inputTokens": {
+            "type": "integer",
+            "title": "Inputtokens"
+          },
+          "outputTokens": {
+            "type": "integer",
+            "title": "Outputtokens"
+          },
+          "costCents": {
+            "type": "number",
+            "title": "Costcents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "questions",
+          "students",
+          "inputTokens",
+          "outputTokens",
+          "costCents"
+        ],
+        "title": "NooraTotals"
+      },
+      "NooraTurn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "student",
+              "noora"
+            ],
+            "title": "Role"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "text"
+        ],
+        "title": "NooraTurn",
+        "description": "An earlier message of the conversation, so a follow-up question makes sense."
+      },
+      "NooraUsageOut": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "dailyQuestions": {
+            "type": "integer",
+            "title": "Dailyquestions"
+          },
+          "monthlyBudgetCents": {
+            "type": "integer",
+            "title": "Monthlybudgetcents"
+          },
+          "today": {
+            "$ref": "#/components/schemas/NooraTotals"
+          },
+          "month": {
+            "$ref": "#/components/schemas/NooraTotals"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured",
+          "model",
+          "dailyQuestions",
+          "monthlyBudgetCents",
+          "today",
+          "month"
+        ],
+        "title": "NooraUsageOut",
+        "description": "The limits and the totals, for Manage's numbers. Nothing per student: only counts."
       },
       "Note": {
         "properties": {

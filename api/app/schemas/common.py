@@ -90,6 +90,10 @@ ErrorCode = Literal[
     # the study board (R-4)
     "board_full",  # 409: the board holds as many cards as it may
     "already_on_board",  # 409: this event, lesson, module or file already has a card
+    # Mini Noora's AI answers (R-6)
+    "noora_unavailable",  # 503: no AI right now (not set up, or Claude failed): she answers from her script
+    "noora_budget_reached",  # 503: the hub's monthly AI budget is spent: she answers from her script
+    "noora_daily_limit",  # 429: the student's questions for today are used up (retryAfter: Bahrain midnight)
 ]
 
 

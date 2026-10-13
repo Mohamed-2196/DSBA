@@ -12,6 +12,7 @@ import { UploadsQueue } from '../library/public';
 import { RequestsQueue } from '../requests/public';
 import { useIssues } from '../newsletter/public';
 import { useAdminStats } from './api';
+import { NooraNumbers } from './NooraNumbers';
 import { sectionsFor, type SectionId } from './sections';
 import './ManagePage.css';
 
@@ -39,6 +40,16 @@ const NUMBERS = [
 ] as const;
 
 function Numbers() {
+  const { featureOn, isAdmin } = useAuth();
+  return (
+    <div className="manage-stack">
+      <HubNumbers />
+      {featureOn('noora.ai') ? <NooraNumbers canEdit={isAdmin} /> : null}
+    </div>
+  );
+}
+
+function HubNumbers() {
   const stats = useAdminStats(true);
   if (stats.isError) return <QueryError error={stats.error} title="The numbers didn’t load" onRetry={() => void stats.refetch()} retrying={stats.isFetching} size="sm" />;
   // A count is null while its feature is switched off, so it isn't shown.

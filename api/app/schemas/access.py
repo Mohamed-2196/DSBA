@@ -36,6 +36,7 @@ FeatureKey = Literal[
     "career",
     "grades",
     "noora",
+    "noora.ai",
     "notes",
     "board",
     "requests",

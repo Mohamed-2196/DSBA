@@ -1,10 +1,19 @@
 import { useLayoutEffect, type RefObject } from 'react';
-import { PaperPlaneRight, Paperclip, X } from '@phosphor-icons/react';
+import { NotePencil, PaperPlaneRight, Paperclip, X } from '@phosphor-icons/react';
 import { IconButton, Tooltip } from '../../ui';
 import { FileChip } from './Attachment';
 import type { Attachment } from './files';
 
 const TALLEST = 132; // px: the box grows with what is typed, up to about five lines
+
+/** "Include my note": the open note goes to her AI with the next question, only when the student ticks it. */
+export interface NoteChoice {
+  title: string;
+  checked: boolean;
+  /** longer than her AI reads: only its first part goes */
+  long: boolean;
+  onChange: (checked: boolean) => void;
+}
 
 export interface ComposerProps {
   /** the text box (ChatPanel focuses it when the chat opens) */
@@ -15,6 +24,8 @@ export interface ComposerProps {
   files: Attachment[];
   /** a line about anything that could not be attached */
   note: string | null;
+  /** the open note, offered to her AI (null: no note open, or her AI is off) */
+  noteChoice?: NoteChoice | null;
   /** she is still answering: Send waits */
   busy: boolean;
   /** files from the picker or the clipboard */
@@ -30,7 +41,7 @@ export interface ComposerProps {
  * Where the student writes: a tray of what is attached, the paperclip, the text box and Send.
  * Controlled by ChatPanel, which also takes files that are dropped on the chat.
  */
-export function Composer({ inputRef, draft, onDraft, files, note, busy, onAttach, onRemove, onSend, onFocus }: ComposerProps) {
+export function Composer({ inputRef, draft, onDraft, files, note, noteChoice = null, busy, onAttach, onRemove, onSend, onFocus }: ComposerProps) {
   const ready = !busy && (draft.trim().length > 0 || files.length > 0);
 
   useLayoutEffect(() => {
@@ -69,6 +80,19 @@ export function Composer({ inputRef, draft, onDraft, files, note, busy, onAttach
             </p>
           ) : null}
         </div>
+      ) : null}
+
+      {noteChoice ? (
+        <label className="nc-include" data-hub="noora-include-note">
+          <input type="checkbox" checked={noteChoice.checked} onChange={(e) => noteChoice.onChange(e.target.checked)} />
+          <NotePencil aria-hidden="true" weight="duotone" />
+          <span className="nc-include__text">
+            Include my note <span className="nc-include__title">“{noteChoice.title}”</span>
+            {noteChoice.checked ? (
+              <span className="nc-include__hint">{noteChoice.long ? 'Its first 20,000 characters go to Claude with this question.' : 'It goes to Claude with this question only.'}</span>
+            ) : null}
+          </span>
+        </label>
       ) : null}
 
       <form
