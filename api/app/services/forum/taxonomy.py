@@ -1,5 +1,5 @@
-"""Where a thread lives: its category (exactly one) and up to three tags, as the prototype defined them
-(web/src/features/forum/data/taxonomy.js). GET /forum/meta serves them and every write is checked against them.
+"""Where a thread lives: its category (exactly one) and up to three tags, from the lists below. GET /forum/meta
+serves them and every write is checked against them.
 Also the cohort a thread belongs to, which follows its category or else its module."""
 
 from __future__ import annotations
@@ -77,7 +77,7 @@ def forum_meta() -> ForumMeta:
 
 def place(category: str | None, module: Module | None, *, module_wins: bool) -> tuple[str, Module | None]:
     """Where a thread lives. A year category that disagrees with the module's year follows the module when the module
-    was the person's choice, and drops the module when the category was (as the prototype's composer does)."""
+    was the person's choice, and drops the module when the category was."""
     if category is None:
         return (category_for_year(module.year) if module else None) or "general", module
     cat = CATEGORY_BY_ID[category]

@@ -28,7 +28,7 @@ class Page(ApiModel, Generic[T]):
 
 
 # Every error code the API answers with (code quality review CQ-10): the web app branches on them, and a typo in
-# either one is now a type error. One code per condition. Messages are for people; codes are for code.
+# either one is a type error. One code per condition. Messages are for people; codes are for code.
 ErrorCode = Literal[
     # any endpoint
     "invalid_input",  # 422: fields says which (a body, query or path value that doesn't fit)

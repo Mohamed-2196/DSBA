@@ -1,4 +1,4 @@
-"""The module catalogue and lessons. Owner: content agent (first version by the lead)."""
+"""The module catalogue and lessons. Owner: content agent."""
 
 from __future__ import annotations
 
