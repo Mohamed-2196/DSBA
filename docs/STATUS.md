@@ -46,6 +46,17 @@ The lead merges them.
 
 - **Round 3 is complete.** Everything is merged and checked: the API checks, the web checks, and the e2e suite on
   the merged code.
+
+**After round 3.** Started 2026-10-13, each agent on its own branch and worktree:
+
+| Branch | Agent | Covers |
+| --- | --- | --- |
+| `round3/no-legacy` | general-purpose | 7: no backward compatibility (deprecated preferences, old storage keys, history in comments) |
+| `round3/review-security` | security-reviewer | 2: re-check SEC findings, review rounds 2 and 3, and the access design before it's built |
+| `round3/review-uiux` | ui-ux-reviewer | 2: re-check UX findings, review rounds 2 and 3 at all sizes, notes for R-3 and R-7 |
+| `round3/review-student` | student-tester | 2: the by-hand pass in every role, the suite, a step-up e2e test |
+
+- The code-quality re-review starts once `round3/no-legacy` is merged.
 - **The Docker stack** runs from the main checkout (compose project `dsba-hub`), on its normal mail backends.
   - `scripts/e2e.sh` switches it to e2e mode, and `--restore` switches it back.
   - Nobody runs `docker compose down`: the API's pytest uses its Postgres.
