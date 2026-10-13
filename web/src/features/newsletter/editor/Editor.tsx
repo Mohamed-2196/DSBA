@@ -165,8 +165,9 @@ export function Editor({ detail }: { detail: IssueDetail }) {
           setShowErrors(false);
           copy.clear();
           push({ tone: 'success', title: 'Saved', body: saved.status === 'published' ? 'Readers see the new version now.' : 'The draft is up to date.' });
-          if (then === 'open') navigate(`/newsletter/${saved.slug}`);
-          else if (saved.slug !== detail.slug) navigate(`/newsletter/${saved.slug}/edit`, { replace: true });
+          // Saved: these navigations leave nothing behind, so the leave guard lets them through.
+          if (then === 'open') guard.bypass(() => void navigate(`/newsletter/${saved.slug}`));
+          else if (saved.slug !== detail.slug) guard.bypass(() => void navigate(`/newsletter/${saved.slug}/edit`, { replace: true }));
         },
         onError: (err) => {
           if (isApiError(err) && err.code === 'slug_taken') {
@@ -385,7 +386,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
               issue={detail}
               onDeleted={() => {
                 copy.clear();
-                navigate('/newsletter', { replace: true });
+                guard.bypass(() => void navigate('/newsletter', { replace: true }));
               }}
             />
             {!published && !dirty ? <PublishButton issue={detail} /> : null}
@@ -418,7 +419,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
       </div>
 
       <ConfirmDialog
-        open={guard.pending !== null}
+        open={guard.asking}
         title="Leave without saving?"
         body={<p>Your changes to issue {no} aren’t saved. This device keeps a copy, so you can restore them the next time you open the editor.</p>}
         confirmLabel="Leave without saving"
