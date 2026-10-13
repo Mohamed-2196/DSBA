@@ -5,7 +5,7 @@ lessons, a library of past papers and notes, a forum, the newsletter, the progra
 search and a grades calculator. Reading is open to everyone. Posting, uploading and personal features need an
 account: a one-time code sent by email or text, with no passwords. The product owner is Mohamed, a DSBA student rep.
 
-Where the work stands and what's next: @docs/STATUS.md
+Where the work stands and what's next: @docs/STATUS.md. Features Mohamed has asked for: `docs/ROADMAP.md`.
 
 ## Working with Mohamed (always)
 

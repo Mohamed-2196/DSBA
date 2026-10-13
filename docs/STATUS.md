@@ -129,9 +129,16 @@ To bring it in:
    - Still on GitHub: `round2/fe-forum`, `round2/fe-library`, `round2/fe-content` (all merged), and
      `claude/zen-cerf-7e5mbj` (in `master` since 2026-09-23).
    - Also `wip/accounts-round2`, which was superseded. Its one unmerged commit is `140fd8e`, if it's ever wanted.
+7. **Round 4: Mohamed's requests** in `docs/ROADMAP.md` (R-1 to R-8): roles, requests, the calendar, a study board,
+   notes, Noora with context, a new Noora and favourite apps.
+   - Each is designed with him first, then built.
+   - R-1 (roles) is being designed now.
+   - Building starts after round 3 is merged.
 
 ## Waiting on Mohamed
 
+- **Roadmap questions:** each feature in `docs/ROADMAP.md` lists what he needs to decide. R-1 (roles) comes
+  first.
 - **Ideas to approve:** the student-user's proposals in `docs/ideas.md`, once its branch is merged.
 - **`exam_meta_from_name()`:** the past-paper name patterns, in `api/app/services/exam_names.py`.
 - **Product calls:**
