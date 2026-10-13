@@ -11,9 +11,13 @@ sweep              delete what is no longer needed: uploads never attached to an
 setup-bucket       create the bucket if needed and set its CORS and lifecycle rules (production: once)
 mail-worker        send the queued emails (notifications, account notices) with retries; runs until stopped
                    (--once: until nothing is due). Several can run side by side.
+import-drive       copy the files of the library's Google Drive folders into the library: prints the plan, asks,
+                   imports, and lists the folders Drive refused (--dry-run: only the plan; --module ID; --limit N
+                   files; --yes: no question). Safe to run again. Needs DSBA_GOOGLE_API_KEY (DEPLOYMENT.md, 10)
 dev-login ID       development only: print a session token for an account (created if needed)
 
-Nothing here prints a one-time code, and only dev-login prints a token (it refuses to run in production)."""
+Nothing here prints a one-time code, and only dev-login prints a token (it refuses to run in production). Nothing
+prints the Google API key."""
 
 from __future__ import annotations
 
@@ -258,6 +262,52 @@ def cmd_mail_worker(args: argparse.Namespace) -> int:
     return run_worker(get_sessionmaker(), once=args.once, poll_seconds=args.poll)
 
 
+def cmd_import_drive(args: argparse.Namespace) -> int:
+    """The Drive import (app/services/drive_import.py), run from the server's shell (scripts/seed-real.sh)."""
+    from app.models import Module
+    from app.services import drive
+    from app.services.drive_import import import_from_drive
+
+    try:
+        client = drive.connect(get_settings())
+    except drive.DriveFatalError as e:
+        print(e.message, file=sys.stderr)
+        return 1
+    with client, get_sessionmaker()() as db:
+        if args.module is not None and db.get(Module, args.module) is None:
+            known = ", ".join(db.scalars(select(Module.id).order_by(Module.id))) or "none yet (run the seed first)"
+            print(f"There is no module {args.module!r}. The modules are: {known}.", file=sys.stderr)
+            return 2
+        return import_from_drive(
+            db,
+            client,
+            get_storage(),
+            module_id=args.module,
+            limit=args.limit,
+            dry_run=args.dry_run,
+            confirm=None if args.yes else _confirm,
+        )
+
+
+def _confirm(question: str) -> bool:
+    try:
+        answer = input(question)
+    except EOFError:  # nobody to answer (no terminal): --yes says it beforehand
+        print()
+        return False
+    return answer.strip().lower() in ("y", "yes")
+
+
+def _positive(value: str) -> int:
+    try:
+        n = int(value)
+    except ValueError:
+        n = 0
+    if n < 1:
+        raise argparse.ArgumentTypeError("a whole number of files, 1 or more")
+    return n
+
+
 def cmd_dev_login(args: argparse.Namespace) -> int:
     from app.core.security import hash_token, new_token
     from app.services.identifiers import normalize_identifier
@@ -305,6 +355,12 @@ def main(argv: list[str] | None = None) -> int:
     mw.add_argument("--once", action="store_true", help="stop when nothing is due")
     mw.add_argument("--poll", type=float, default=5.0, help="seconds to wait when nothing is due (default 5)")
     mw.set_defaults(fn=cmd_mail_worker)
+    di = sub.add_parser("import-drive")
+    di.add_argument("--dry-run", action="store_true", help="print the plan and import nothing")
+    di.add_argument("--module", metavar="ID", default=None, help="only the links of this module")
+    di.add_argument("--limit", metavar="N", type=_positive, default=None, help="import at most N files this run")
+    di.add_argument("--yes", action="store_true", help="import without asking first")
+    di.set_defaults(fn=cmd_import_drive)
     dl = sub.add_parser("dev-login")
     dl.add_argument("identifier")
     dl.add_argument("--role", choices=[r.value for r in Role], default=None)
