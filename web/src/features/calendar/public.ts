@@ -10,8 +10,8 @@
 //
 //   eventDate(e) / dayKeyFromToday(n)        an event's day as a local Date; 'YYYY-MM-DD' n days from today (Bahrain).
 //
-// Deep links into the page: /calendar?event=<id> (opens the event), ?month=YYYY-MM, ?cohort=all,
-// ?types=exam,mock (comma list of event types).
+// Deep links into the page: /calendar?event=<id> (opens the event), ?month=YYYY-MM (the month grid), ?cohort=all,
+// ?types=exam,mock (comma list of event types), ?view=month (phones and tablets: the month instead of the list).
 export { UpcomingEvents } from './UpcomingEvents';
 export type { UpcomingEventsProps } from './UpcomingEvents';
 export { CALENDAR_KEY, feedUrl, useCalendarEvents, useNextExamForModule, useUpcomingEvents } from './api';
