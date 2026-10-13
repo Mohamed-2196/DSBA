@@ -113,17 +113,26 @@ The lead merges them.
    - `claude/zen-cerf-7e5mbj`.
    - `wip/accounts-round2`, whose one unmerged commit was `140fd8e`.
    - From now on, finished branches go as soon as they're merged (CLAUDE.md).
-7. **From the standards review** (`docs/reviews/standards.md`, ranked):
+7. **No backward compatibility** (Mohamed, 2026-10-13: the app isn't released, see CLAUDE.md). A clean-up branch
+   runs once `round3/web-leftovers` is merged:
+   - **API:** remove the deprecated `emailNotifications` and `newsletterEmails` preferences and
+     `DEPRECATED_SWITCHES`. The newsletter's subscribe box then uses `emailNewIssues`.
+   - **Web:** remove the grades calculator's `LEGACY_KEY` storage migration.
+   - **Comments and docstrings** in `api/` and `web/` that narrate history ("v1", "legacy", "deprecated", "used to",
+     "previously", "replaces", "moved from") are rewritten to describe the code as it is. The grades feature has
+     the most.
+   - **Migrations.** The access work (item 9) squashes them into one baseline, and the local database is rebuilt.
+8. **From the standards review** (`docs/reviews/standards.md`, ranked):
    - S-1 typed linting: fix the 24 unhandled or misused promises, then switch to `recommendedTypeChecked`;
    - S-3 re-encode uploaded pictures, so they don't carry the student's location;
    - S-4 `noUncheckedIndexedAccess`, folder by folder;
    - S-5 to S-7: a `Permissions-Policy` header, a Fetch Metadata CSRF layer, malware scanning, and effects that
      copy props into state.
-8. **Round 4: Mohamed's requests** in `docs/ROADMAP.md` (R-1 to R-8): roles, requests, the calendar, a study board,
+9. **Round 4: Mohamed's requests** in `docs/ROADMAP.md` (R-1 to R-8): roles, requests, the calendar, a study board,
    notes, Noora with context, a new Noora and favourite apps.
    - Each is designed with him first, then built.
-   - R-1 (roles) is being designed now.
-   - Building starts after round 3 is merged.
+   - **R-1 and R-10 (access):** the spec is approved and has no compatibility layer. The API plan is being written.
+     The work runs on `round4/access` (API and web together) after round 3 and item 7.
 
 ## Waiting on Mohamed
 
