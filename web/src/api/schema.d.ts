@@ -508,7 +508,8 @@ export interface paths {
         /**
          * Stats
          * @description Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
-         *     for review and the open reports in the viewer's queue. A feature switched off for the viewer counts None.
+         *     for review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle
+         *     them). A feature switched off for the viewer counts None.
          */
         get: operations["stats_api_v1_admin_stats_get"];
         put?: never;
@@ -1322,10 +1323,10 @@ export interface paths {
         put?: never;
         /**
          * Create Report
-         * @description Report a thread, reply or library item (one open report per person and target).
+         * @description Report a thread, reply, library item or request (one open report per person and target).
          *
          *     Errors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),
-         *     rate_limited (429), feature_off (404: the forum or the library is switched off).
+         *     rate_limited (429), feature_off (404: the forum, the library or requests are switched off).
          */
         post: operations["create_report_api_v1_reports_post"];
         delete?: never;
@@ -1344,8 +1345,8 @@ export interface paths {
         /**
          * List Reports
          * @description Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they
-         *     can act on: forum posts with forum.moderate, library files with library.manage, each while its feature is on for
-         *     them. `reporter` is set for admins only (student reps are classmates).
+         *     can act on: forum posts with forum.moderate, library files with library.manage, requests with requests.manage,
+         *     each while its feature is on for them. `reporter` is set for admins only (student reps are classmates).
          */
         get: operations["list_reports_api_v1_admin_reports_get"];
         put?: never;
@@ -1373,6 +1374,125 @@ export interface paths {
          *     closed.
          */
         post: operations["resolve_report_api_v1_admin_reports__report_id__resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Requests
+         * @description Requests, the most wanted first (`sort=me_too`) or the newest first. A signed-in student's own requests come
+         *     first either way; `mine=true` lists only theirs. `q` searches titles and details.
+         */
+        get: operations["list_requests_api_v1_requests_get"];
+        put?: never;
+        /**
+         * Create Request
+         * @description Ask for something. Errors: invalid_input (422: a short title, an unknown module), rate_limited (429: five a
+         *     day).
+         */
+        post: operations["create_request_api_v1_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/similar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Similar Requests
+         * @description Up to five requests that share a word with `q`: the hint shown while a student types a title, so they can
+         *     say "me too" instead of asking again.
+         */
+        get: operations["similar_requests_api_v1_requests_similar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/{request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Request
+         * @description One request. Errors: not_found (404) when there is none or it was removed.
+         */
+        get: operations["get_request_api_v1_requests__request_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Remove Request
+         * @description Remove a request for everyone. Audited (`request.remove`). Errors: not_found (404).
+         */
+        delete: operations["remove_request_api_v1_requests__request_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/{request_id}/me-too": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Add Me Too
+         * @description Say "me too". Saying it twice changes nothing. Errors: not_found (404), own_request (409), request_closed
+         *     (409: done or declined).
+         */
+        put: operations["add_me_too_api_v1_requests__request_id__me_too_put"];
+        post?: never;
+        /**
+         * Take Back Me Too
+         * @description Take back a "me too". Errors: not_found (404), own_request (409).
+         */
+        delete: operations["take_back_me_too_api_v1_requests__request_id__me_too_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/{request_id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Answer Request
+         * @description Set the status (open, planned, done, declined) and the public reply. Declining needs a reply. A new status
+         *     notifies the requester and everyone who said "me too". Audited (`request.status`).
+         *
+         *     Errors: not_found (404), invalid_input (422: declined without a reason).
+         */
+        post: operations["answer_request_api_v1_requests__request_id__answer_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1840,6 +1960,10 @@ export interface components {
             votes: components["schemas"]["ExportVote"][];
             /** Reports */
             reports: components["schemas"]["ExportReport"][];
+            /** Requests */
+            requests: components["schemas"]["ExportRequest"][];
+            /** Metoos */
+            meToos: string[];
             /** Emails */
             emails: components["schemas"]["ExportEmail"][];
             /** Board */
@@ -1862,6 +1986,8 @@ export interface components {
             pendingUploads: number | null;
             /** Openreports */
             openReports: number;
+            /** Openrequests */
+            openRequests: number | null;
         };
         /** AdminUser */
         AdminUser: {
@@ -2069,7 +2195,7 @@ export interface components {
              * Key
              * @enum {string}
              */
-            key: "forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read";
+            key: "forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read";
             /** Area */
             area: string;
             /** Label */
@@ -2631,7 +2757,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board";
             /** Message */
             message: string;
             /** Fields */
@@ -2681,7 +2807,7 @@ export interface components {
          */
         ExportEmail: {
             /** Kind */
-            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "system") | "account_notice";
+            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system") | "account_notice";
             /** Toaddress */
             toAddress: string;
             /** Subject */
@@ -2768,7 +2894,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -2846,7 +2972,7 @@ export interface components {
              * Targettype
              * @enum {string}
              */
-            targetType: "thread" | "reply" | "library_item";
+            targetType: "thread" | "reply" | "library_item" | "request";
             /**
              * Targetid
              * Format: uuid
@@ -2864,6 +2990,39 @@ export interface components {
              * @enum {string}
              */
             status: "open" | "resolved" | "dismissed";
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** ExportRequest */
+        ExportRequest: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "paper" | "fix" | "event" | "feature" | "other";
+            /** Title */
+            title: string;
+            /** Details */
+            details: string;
+            /** Moduleid */
+            moduleId: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "planned" | "done" | "declined";
+            /** Reply */
+            reply: string | null;
+            /** Removed */
+            removed: boolean;
             /**
              * Createdat
              * Format: date-time
@@ -2933,7 +3092,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board";
+            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board" | "requests";
             /** Label */
             label: string;
             /** Hides */
@@ -2959,7 +3118,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board")[];
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board" | "requests")[];
         };
         /** FileLink */
         FileLink: {
@@ -3468,9 +3627,9 @@ export interface components {
             /** Roles */
             roles: components["schemas"]["RoleSummary"][];
             /** Boxes */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board")[];
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board" | "requests")[];
             /**
              * Status
              * @enum {string}
@@ -3697,7 +3856,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -4029,7 +4188,7 @@ export interface components {
              * Targettype
              * @enum {string}
              */
-            targetType: "thread" | "reply" | "library_item";
+            targetType: "thread" | "reply" | "library_item" | "request";
             /**
              * Targetid
              * Format: uuid
@@ -4054,7 +4213,7 @@ export interface components {
              * Targettype
              * @enum {string}
              */
-            targetType: "thread" | "reply" | "library_item";
+            targetType: "thread" | "reply" | "library_item" | "request";
             /**
              * Targetid
              * Format: uuid
@@ -4067,7 +4226,7 @@ export interface components {
             /** Targetexcerpt */
             targetExcerpt?: string | null;
             /** Targetstatus */
-            targetStatus?: ("visible" | "hidden" | "deleted" | "pending" | "published" | "rejected" | "removed") | null;
+            targetStatus?: ("visible" | "hidden" | "deleted" | "pending" | "published" | "rejected" | "removed" | "open" | "planned" | "done" | "declined") | null;
             targetAuthor?: components["schemas"]["UserPublic"] | null;
             /**
              * Reason
@@ -4114,6 +4273,90 @@ export interface components {
             /** Note */
             note?: string | null;
         };
+        /**
+         * RequestAnswer
+         * @description A status and the public reply that goes with it. Declining needs a reply: the reason.
+         */
+        RequestAnswer: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "planned" | "done" | "declined";
+            /** Reply */
+            reply?: string | null;
+        };
+        /** RequestCreate */
+        RequestCreate: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "paper" | "fix" | "event" | "feature" | "other";
+            /** Title */
+            title: string;
+            /**
+             * Details
+             * @default
+             */
+            details: string;
+            /** Moduleid */
+            moduleId?: string | null;
+        };
+        /** RequestOut */
+        RequestOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "paper" | "fix" | "event" | "feature" | "other";
+            /** Title */
+            title: string;
+            /** Details */
+            details: string;
+            /** Moduleid */
+            moduleId: string | null;
+            /** Moduletitle */
+            moduleTitle: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "planned" | "done" | "declined";
+            author: components["schemas"]["UserPublic"] | null;
+            /** Mine */
+            mine: boolean;
+            /** Metoo */
+            meToo: boolean;
+            /** Metoocount */
+            meTooCount: number;
+            /** Reply */
+            reply: string | null;
+            answeredBy: components["schemas"]["UserPublic"] | null;
+            /** Answeredat */
+            answeredAt: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** RequestPage */
+        RequestPage: {
+            /** Items */
+            items: components["schemas"]["RequestOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
         /** ResumeUpdate */
         ResumeUpdate: {
             /** Moduleid */
@@ -4150,7 +4393,7 @@ export interface components {
              * Boxes
              * @default []
              */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
         };
         /** RoleOut */
         RoleOut: {
@@ -4174,7 +4417,7 @@ export interface components {
             /** Version */
             version: number;
             /** Boxes */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Holders */
             holders: number;
         };
@@ -4204,7 +4447,7 @@ export interface components {
             /** Badge */
             badge?: string | null;
             /** Boxes */
-            boxes?: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read")[] | null;
+            boxes?: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[] | null;
             /** Position */
             position?: number | null;
         };
@@ -4289,6 +4532,28 @@ export interface components {
             type: "signoff";
             /** Text */
             text: string;
+        };
+        /** SimilarRequest */
+        SimilarRequest: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "paper" | "fix" | "event" | "feature" | "other";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "planned" | "done" | "declined";
+            /** Metoocount */
+            meTooCount: number;
         };
         /** SkillTaught */
         SkillTaught: {
@@ -4702,6 +4967,7 @@ export type ExportNotification = components['schemas']['ExportNotification'];
 export type ExportReaction = components['schemas']['ExportReaction'];
 export type ExportReply = components['schemas']['ExportReply'];
 export type ExportReport = components['schemas']['ExportReport'];
+export type ExportRequest = components['schemas']['ExportRequest'];
 export type ExportThread = components['schemas']['ExportThread'];
 export type ExportVote = components['schemas']['ExportVote'];
 export type FeatureOut = components['schemas']['FeatureOut'];
@@ -4764,6 +5030,10 @@ export type ReportCreate = components['schemas']['ReportCreate'];
 export type ReportOut = components['schemas']['ReportOut'];
 export type ReportPage = components['schemas']['ReportPage'];
 export type ReportResolve = components['schemas']['ReportResolve'];
+export type RequestAnswer = components['schemas']['RequestAnswer'];
+export type RequestCreate = components['schemas']['RequestCreate'];
+export type RequestOut = components['schemas']['RequestOut'];
+export type RequestPage = components['schemas']['RequestPage'];
 export type ResumeUpdate = components['schemas']['ResumeUpdate'];
 export type ReviewDecision = components['schemas']['ReviewDecision'];
 export type RoleCatalogue = components['schemas']['RoleCatalogue'];
@@ -4777,6 +5047,7 @@ export type SessionInfo = components['schemas']['SessionInfo'];
 export type SessionState = components['schemas']['SessionState'];
 export type SignInResult = components['schemas']['SignInResult'];
 export type SignoffBlock = components['schemas']['SignoffBlock'];
+export type SimilarRequest = components['schemas']['SimilarRequest'];
 export type SkillTaught = components['schemas']['SkillTaught'];
 export type StarResult = components['schemas']['StarResult'];
 export type StatItem = components['schemas']['StatItem'];
@@ -7848,7 +8119,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board";
+                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board" | "requests";
             };
             cookie?: never;
         };
@@ -11243,6 +11514,698 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_requests_api_v1_requests_get: {
+        parameters: {
+            query?: {
+                kind?: ("paper" | "fix" | "event" | "feature" | "other") | null;
+                status?: ("open" | "planned" | "done" | "declined") | null;
+                sort?: "me_too" | "newest";
+                q?: string | null;
+                mine?: boolean;
+                /** @description Page size */
+                limit?: number;
+                /** @description Items to skip */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestPage"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_request_api_v1_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    similar_requests_api_v1_requests_similar_get: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimilarRequest"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_request_api_v1_requests__request_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    remove_request_api_v1_requests__request_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    add_me_too_api_v1_requests__request_id__me_too_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    take_back_me_too_api_v1_requests__request_id__me_too_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    answer_request_api_v1_requests__request_id__answer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestAnswer"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestOut"];
                 };
             };
             /** @description Bad Request */

@@ -116,7 +116,7 @@ function ReportList({ status }: { status: ReportStatus }) {
 /** The moderators' list of reports: open, resolved and dismissed. */
 export function ReportsQueue() {
   const { can, status: authStatus } = useAuth();
-  const handles = can('forum.moderate') || can('library.manage');
+  const handles = can('forum.moderate') || can('library.manage') || can('requests.manage');
   const [status, setStatus] = useState<ReportStatus>('open');
   const open = useReports('open', { enabled: handles });
   const openCount = open.data?.pages[0]?.total;

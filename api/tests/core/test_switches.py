@@ -58,9 +58,12 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("notes", "GET", f"/notes/{NOTHING}"),
     ("board", "GET", "/board"),
     ("board", "POST", "/board/cards"),
+    ("requests", "GET", "/requests"),
+    ("requests", "GET", f"/requests/{NOTHING}"),
+    ("requests", "POST", "/requests"),
 ]
 # Features that arrive switched off (the migrations' switches): the tests switch them on first.
-OFF_AT_FIRST = ("notes", "board")
+OFF_AT_FIRST = ("notes", "board", "requests")
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
 # paths below it.
@@ -96,6 +99,7 @@ AREAS: dict[str, Feature] = {
     "/calendar": Feature.calendar,
     "/career": Feature.career,
     "/notes": Feature.notes,
+    "/requests": Feature.requests,
 }
 
 

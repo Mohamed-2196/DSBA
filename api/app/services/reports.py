@@ -1,9 +1,10 @@
-"""Reports of forum threads, forum replies and library items, and the queues of the people who handle them. Owner:
-community agent.
+"""Reports of forum threads, forum replies, library items and requests, and the queues of the people who handle
+them. Owner: community agent.
 
 A report names its target by type and id. Each person may have one open report per target. Forum reports are for
-people with forum.moderate and library reports for people with library.manage: they resolve or dismiss them (hiding
-the post or removing the file is a separate action), and the reporter is told. Who reported is shown to admins only:
+people with forum.moderate, library reports for people with library.manage and request reports for people with
+requests.manage: they resolve or dismiss them (hiding the post, removing the file or the request is a separate
+action), and the reporter is told. Who reported is shown to admins only:
 student reps are classmates (security review, finding 22)."""
 
 from __future__ import annotations
@@ -22,7 +23,17 @@ from sqlalchemy.orm.attributes import set_committed_value
 from app.core.access import Box, Feature
 from app.core.errors import conflict, not_found
 from app.core.time import utcnow
-from app.models import ForumReply, ForumThread, ItemStatus, LibraryItem, PostStatus, Report, ReportStatus, User
+from app.models import (
+    ForumReply,
+    ForumThread,
+    ItemStatus,
+    LibraryItem,
+    PostStatus,
+    Report,
+    ReportStatus,
+    StudentRequest,
+    User,
+)
 from app.schemas.moderation import ReportCreate, ReportOut, ReportPage, ReportResolve
 from app.services import access
 from app.services.accounts import public_user
@@ -34,7 +45,12 @@ from app.services.ratelimit import enforce
 
 REPORTS_PER_HOUR = 20  # a cap on what lands in the reps' queue (security design review, finding 19)
 ALREADY_REPORTED = "You've already reported this. A student rep will look at it soon."
-TARGET_FEATURES: dict[str, Feature] = {"thread": Feature.forum, "reply": Feature.forum, "library_item": Feature.library}
+TARGET_FEATURES: dict[str, Feature] = {
+    "thread": Feature.forum,
+    "reply": Feature.forum,
+    "library_item": Feature.library,
+    "request": Feature.requests,
+}
 
 
 def _users(db: Session, ids: Iterable[uuid.UUID | None]) -> dict[uuid.UUID, User]:
@@ -96,6 +112,21 @@ def _targets(db: Session, keys: Iterable[tuple[str, uuid.UUID]]) -> dict[tuple[s
                 it.uploaded_by,
                 it.status == ItemStatus.published,
             )
+    if ids.get("request"):
+        for req in db.scalars(
+            select(StudentRequest)
+            .where(StudentRequest.id.in_(ids["request"]))
+            .options(defer(StudentRequest.search_vector))
+        ):
+            removed = req.removed_at is not None
+            out["request", req.id] = _Target(
+                req.title,
+                f"/requests/{req.id}",
+                excerpt(req.details) or None,
+                "removed" if removed else req.status.value,
+                req.author_id,
+                not removed,
+            )
     return out
 
 
@@ -114,6 +145,9 @@ def _reportable(db: Session, kind: str, target_id: uuid.UUID, user: User) -> boo
             and can_see_reply(r, user)
             and can_see_thread(t, user)
         )
+    if kind == "request":
+        req = db.get(StudentRequest, target_id, options=[defer(StudentRequest.search_vector)])
+        return req is not None and req.removed_at is None
     item = db.get(LibraryItem, target_id, options=[defer(LibraryItem.search_vector)])
     return item is not None and item.status == ItemStatus.published
 
@@ -159,13 +193,15 @@ def create_report(db: Session, user: User, data: ReportCreate) -> Report:
 
 
 def _queue(db: Session, user: User) -> list[str]:
-    """The target types this person acts on: forum posts with forum.moderate, library files with library.manage, each
-    while its feature is on for them."""
+    """The target types this person acts on: forum posts with forum.moderate, library files with library.manage,
+    requests with requests.manage, each while its feature is on for them."""
     types: list[str] = []
     if access.can(user, Box.forum_moderate) and access.feature_on(db, user, Feature.forum):
         types += ["thread", "reply"]
     if access.can(user, Box.library_manage) and access.feature_on(db, user, Feature.library):
         types.append("library_item")
+    if access.can(user, Box.requests_manage) and access.feature_on(db, user, Feature.requests):
+        types.append("request")
     return types
 
 
@@ -239,7 +275,12 @@ def list_reports(db: Session, user: User, status: str, limit: int, offset: int) 
     return ReportPage(items=_report_outs(db, reports, user), total=total, limit=limit, offset=offset)
 
 
-_TARGET_WORDS = {"thread": "the thread", "reply": "a reply in", "library_item": "the library file"}
+_TARGET_WORDS = {
+    "thread": "the thread",
+    "reply": "a reply in",
+    "library_item": "the library file",
+    "request": "the request",
+}
 
 
 def resolve_report(db: Session, user: User, report_id: uuid.UUID, data: ReportResolve, ip: str | None) -> ReportOut:

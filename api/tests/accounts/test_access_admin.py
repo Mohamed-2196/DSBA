@@ -126,6 +126,7 @@ def test_editing_a_role_needs_the_version_you_loaded(client_for: ClientFor, boss
         "forum.moderate",
         "library.manage",
         "newsletter.manage",
+        "requests.manage",
         "stats.view",
     ]
     assert entry.data["after"]["boxes"] == ["forum.moderate"]

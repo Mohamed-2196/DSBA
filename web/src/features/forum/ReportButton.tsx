@@ -11,7 +11,7 @@ import type { ReportTargetType } from './types';
 import { ReportDialog } from './components/ReportDialog';
 
 export interface ReportButtonProps {
-  targetType: 'thread' | 'reply' | 'library_item';
+  targetType: ReportTargetType;
   targetId: string;
   /** Visible text; defaults to 'Report'. */
   label?: string;

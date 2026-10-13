@@ -111,7 +111,10 @@ def test_the_reports_queue_follows_the_boxes(
     assert closing.status_code == 404  # not their queue
     neither = client_for(holder(frozenset({Box.career_edit}))).get(f"{API}/admin/reports")
     assert neither.status_code == 403
-    assert neither.json()["error"]["message"] == "Only people who moderate the forum or manage the library can do this."
+    assert (
+        neither.json()["error"]["message"]
+        == "Only people who moderate the forum, manage the library or handle requests can do this."
+    )
 
 
 def test_suspending_without_admin_powers(

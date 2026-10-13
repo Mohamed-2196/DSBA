@@ -1,7 +1,7 @@
 // One report in the moderators' queue (ReportsQueue.tsx): what was reported, why, by whom (admins only), what the
 // post is now, and Resolve / Dismiss while it is open.
 import { Link } from 'react-router-dom';
-import { ArrowBendUpLeft, ArrowSquareOut, ChatCircleText, CheckCircle, FileText, Flag, XCircle } from '@phosphor-icons/react';
+import { ArrowBendUpLeft, ArrowSquareOut, ChatCircleText, CheckCircle, FileText, Flag, HandWaving, XCircle } from '@phosphor-icons/react';
 import type { ReportOut } from '../../../api/types';
 import { Badge, Button, timeAgo } from '../../../ui';
 import { authorName } from '../lib/authors';
@@ -15,6 +15,7 @@ const TARGET: Record<ReportTargetType, { label: string; icon: typeof ChatCircleT
   thread: { label: 'Thread', icon: ChatCircleText },
   reply: { label: 'Reply', icon: ArrowBendUpLeft },
   library_item: { label: 'Library file', icon: FileText },
+  request: { label: 'Request', icon: HandWaving },
 };
 
 const STATUS_BADGE: Partial<Record<ReportTargetStatus, { label: string; tone: 'alert' | 'neutral' | 'outline' }>> = {
@@ -25,9 +26,16 @@ const STATUS_BADGE: Partial<Record<ReportTargetStatus, { label: string; tone: 'a
   pending: { label: 'Waiting for review', tone: 'outline' },
 };
 
+const GONE: Record<ReportTargetType, string> = {
+  thread: 'A post that no longer exists',
+  reply: 'A post that no longer exists',
+  library_item: 'A file that no longer exists',
+  request: 'A request that no longer exists',
+};
+
 /** Where the reported thing is: a page of the app (internal paths only). */
 function TargetLink({ report }: { report: ReportOut }) {
-  const gone = report.targetType === 'library_item' ? 'A file that no longer exists' : 'A post that no longer exists';
+  const gone = GONE[report.targetType];
   const title = report.targetTitle?.trim() || gone;
   const link = report.targetUrl ? safeLink(report.targetUrl) : null;
   if (link?.kind === 'internal') {

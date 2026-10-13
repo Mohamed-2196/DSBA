@@ -21,12 +21,23 @@ BoxKey = Literal[
     "newsletter.manage",
     "calendar.manage",
     "career.edit",
+    "requests.manage",
     "stats.view",
     "people.suspend",
     "audit.read",
 ]
 FeatureKey = Literal[
-    "forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora", "notes", "board"
+    "forum",
+    "library",
+    "library.uploads",
+    "newsletter",
+    "calendar",
+    "career",
+    "grades",
+    "noora",
+    "notes",
+    "board",
+    "requests",
 ]
 
 

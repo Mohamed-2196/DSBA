@@ -34,6 +34,7 @@ import { addedAt, isNew, moduleTag } from './display';
 import { KINDS, KIND_BY_ID, isLibraryKind, type LibraryKind } from './kinds';
 import type { CohortYear, LibraryItem, LibrarySort, LibraryView } from './types';
 import { useStar } from './useStar';
+import { AskLink } from '../requests/public';
 import './LibraryPage.css';
 
 // "New this week" already shows what's recent, so the grid opens on what people use most.
@@ -355,7 +356,9 @@ export default function LibraryPage() {
                 ) : null}
               </>
             }
-          />
+          >
+            <AskLink />
+          </EmptyState>
         )}
       </div>
     );
@@ -546,6 +549,7 @@ export default function LibraryPage() {
         </div>
 
         {results}
+        {items.length ? <AskLink lead="Missing a paper or notes?" /> : null}
       </PageSection>
 
       {uploadShown ? (

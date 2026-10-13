@@ -2531,7 +2531,7 @@
           "admin"
         ],
         "summary": "Stats",
-        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review and the open reports in the viewer's queue. A feature switched off for the viewer counts None.",
+        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle\nthem). A feature switched off for the viewer counts None.",
         "operationId": "stats_api_v1_admin_stats_get",
         "responses": {
           "200": {
@@ -3641,7 +3641,8 @@
                 "grades",
                 "noora",
                 "notes",
-                "board"
+                "board",
+                "requests"
               ],
               "type": "string",
               "title": "Feature"
@@ -7851,7 +7852,7 @@
           "reports"
         ],
         "summary": "Create Report",
-        "description": "Report a thread, reply or library item (one open report per person and target).\n\nErrors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),\nrate_limited (429), feature_off (404: the forum or the library is switched off).",
+        "description": "Report a thread, reply, library item or request (one open report per person and target).\n\nErrors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),\nrate_limited (429), feature_off (404: the forum, the library or requests are switched off).",
         "operationId": "create_report_api_v1_reports_post",
         "requestBody": {
           "content": {
@@ -7946,7 +7947,7 @@
           "reports"
         ],
         "summary": "List Reports",
-        "description": "Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they\ncan act on: forum posts with forum.moderate, library files with library.manage, each while its feature is on for\nthem. `reporter` is set for admins only (student reps are classmates).",
+        "description": "Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they\ncan act on: forum posts with forum.moderate, library files with library.manage, requests with requests.manage,\neach while its feature is on for them. `reporter` is set for admins only (student reps are classmates).",
         "operationId": "list_reports_api_v1_admin_reports_get",
         "parameters": [
           {
@@ -8114,6 +8115,941 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/requests": {
+      "get": {
+        "tags": [
+          "requests"
+        ],
+        "summary": "List Requests",
+        "description": "Requests, the most wanted first (`sort=me_too`) or the newest first. A signed-in student's own requests come\nfirst either way; `mine=true` lists only theirs. `q` searches titles and details.",
+        "operationId": "list_requests_api_v1_requests_get",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "paper",
+                    "fix",
+                    "event",
+                    "feature",
+                    "other"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "open",
+                    "planned",
+                    "done",
+                    "declined"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "me_too",
+                "newest"
+              ],
+              "type": "string",
+              "default": "me_too",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "mine",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Mine"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Page size",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Page size"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "description": "Items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Items to skip"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "requests"
+        ],
+        "summary": "Create Request",
+        "description": "Ask for something. Errors: invalid_input (422: a short title, an unknown module), rate_limited (429: five a\nday).",
+        "operationId": "create_request_api_v1_requests_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/requests/similar": {
+      "get": {
+        "tags": [
+          "requests"
+        ],
+        "summary": "Similar Requests",
+        "description": "Up to five requests that share a word with `q`: the hint shown while a student types a title, so they can\nsay \"me too\" instead of asking again.",
+        "operationId": "similar_requests_api_v1_requests_similar_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SimilarRequest"
+                  },
+                  "title": "Response Similar Requests Api V1 Requests Similar Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/requests/{request_id}": {
+      "get": {
+        "tags": [
+          "requests"
+        ],
+        "summary": "Get Request",
+        "description": "One request. Errors: not_found (404) when there is none or it was removed.",
+        "operationId": "get_request_api_v1_requests__request_id__get",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "requests"
+        ],
+        "summary": "Remove Request",
+        "description": "Remove a request for everyone. Audited (`request.remove`). Errors: not_found (404).",
+        "operationId": "remove_request_api_v1_requests__request_id__delete",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/requests/{request_id}/me-too": {
+      "put": {
+        "tags": [
+          "requests"
+        ],
+        "summary": "Add Me Too",
+        "description": "Say \"me too\". Saying it twice changes nothing. Errors: not_found (404), own_request (409), request_closed\n(409: done or declined).",
+        "operationId": "add_me_too_api_v1_requests__request_id__me_too_put",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "requests"
+        ],
+        "summary": "Take Back Me Too",
+        "description": "Take back a \"me too\". Errors: not_found (404), own_request (409).",
+        "operationId": "take_back_me_too_api_v1_requests__request_id__me_too_delete",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/requests/{request_id}/answer": {
+      "post": {
+        "tags": [
+          "requests"
+        ],
+        "summary": "Answer Request",
+        "description": "Set the status (open, planned, done, declined) and the public reply. Declining needs a reply. A new status\nnotifies the requester and everyone who said \"me too\". Audited (`request.status`).\n\nErrors: not_found (404), invalid_input (422: declined without a reason).",
+        "operationId": "answer_request_api_v1_requests__request_id__answer_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAnswer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestOut"
                 }
               }
             }
@@ -11578,6 +12514,21 @@
             "type": "array",
             "title": "Reports"
           },
+          "requests": {
+            "items": {
+              "$ref": "#/components/schemas/ExportRequest"
+            },
+            "type": "array",
+            "title": "Requests"
+          },
+          "meToos": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Metoos"
+          },
           "emails": {
             "items": {
               "$ref": "#/components/schemas/ExportEmail"
@@ -11606,6 +12557,8 @@
           "notifications",
           "votes",
           "reports",
+          "requests",
+          "meToos",
           "emails",
           "board"
         ],
@@ -11665,6 +12618,17 @@
           "openReports": {
             "type": "integer",
             "title": "Openreports"
+          },
+          "openRequests": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Openrequests"
           }
         },
         "type": "object",
@@ -11674,7 +12638,8 @@
           "replies",
           "libraryItems",
           "pendingUploads",
-          "openReports"
+          "openReports",
+          "openRequests"
         ],
         "title": "AdminStats",
         "description": "A feature's counts are None while it is switched off for the viewer."
@@ -12304,6 +13269,7 @@
               "newsletter.manage",
               "calendar.manage",
               "career.edit",
+              "requests.manage",
               "stats.view",
               "people.suspend",
               "audit.read"
@@ -14151,6 +15117,8 @@
               "already_used",
               "already_reported",
               "report_closed",
+              "own_request",
+              "request_closed",
               "slug_taken",
               "not_published",
               "unsupported_type",
@@ -14338,6 +15306,7 @@
                   "upload_rejected",
                   "new_issue",
                   "report_resolved",
+                  "request_update",
                   "system"
                 ]
               },
@@ -14631,6 +15600,7 @@
               "upload_rejected",
               "new_issue",
               "report_resolved",
+              "request_update",
               "system"
             ],
             "title": "Kind"
@@ -14815,7 +15785,8 @@
             "enum": [
               "thread",
               "reply",
-              "library_item"
+              "library_item",
+              "request"
             ],
             "title": "Targettype"
           },
@@ -14872,6 +15843,88 @@
           "createdAt"
         ],
         "title": "ExportReport"
+      },
+      "ExportRequest": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "paper",
+              "fix",
+              "event",
+              "feature",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "details": {
+            "type": "string",
+            "title": "Details"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "planned",
+              "done",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply"
+          },
+          "removed": {
+            "type": "boolean",
+            "title": "Removed"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "details",
+          "moduleId",
+          "status",
+          "reply",
+          "removed",
+          "createdAt"
+        ],
+        "title": "ExportRequest"
       },
       "ExportThread": {
         "properties": {
@@ -15016,7 +16069,8 @@
               "grades",
               "noora",
               "notes",
-              "board"
+              "board",
+              "requests"
             ],
             "title": "Feature"
           },
@@ -15096,7 +16150,8 @@
                 "grades",
                 "noora",
                 "notes",
-                "board"
+                "board",
+                "requests"
               ]
             },
             "type": "array",
@@ -16776,6 +17831,7 @@
                 "newsletter.manage",
                 "calendar.manage",
                 "career.edit",
+                "requests.manage",
                 "stats.view",
                 "people.suspend",
                 "audit.read"
@@ -16797,7 +17853,8 @@
                 "grades",
                 "noora",
                 "notes",
-                "board"
+                "board",
+                "requests"
               ]
             },
             "type": "array",
@@ -17489,6 +18546,7 @@
               "upload_rejected",
               "new_issue",
               "report_resolved",
+              "request_update",
               "system"
             ],
             "title": "Kind"
@@ -18267,7 +19325,8 @@
             "enum": [
               "thread",
               "reply",
-              "library_item"
+              "library_item",
+              "request"
             ],
             "title": "Targettype"
           },
@@ -18320,7 +19379,8 @@
             "enum": [
               "thread",
               "reply",
-              "library_item"
+              "library_item",
+              "request"
             ],
             "title": "Targettype"
           },
@@ -18373,7 +19433,11 @@
                   "pending",
                   "published",
                   "rejected",
-                  "removed"
+                  "removed",
+                  "open",
+                  "planned",
+                  "done",
+                  "declined"
                 ]
               },
               {
@@ -18550,6 +19614,252 @@
         ],
         "title": "ReportResolve"
       },
+      "RequestAnswer": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "planned",
+              "done",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "RequestAnswer",
+        "description": "A status and the public reply that goes with it. Declining needs a reply: the reason."
+      },
+      "RequestCreate": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "paper",
+              "fix",
+              "event",
+              "feature",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 140,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "details": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Details",
+            "default": ""
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "title"
+        ],
+        "title": "RequestCreate"
+      },
+      "RequestOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "paper",
+              "fix",
+              "event",
+              "feature",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "details": {
+            "type": "string",
+            "title": "Details"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "moduleTitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduletitle"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "planned",
+              "done",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mine": {
+            "type": "boolean",
+            "title": "Mine"
+          },
+          "meToo": {
+            "type": "boolean",
+            "title": "Metoo"
+          },
+          "meTooCount": {
+            "type": "integer",
+            "title": "Metoocount"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply"
+          },
+          "answeredBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "answeredAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answeredat"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "details",
+          "moduleId",
+          "moduleTitle",
+          "status",
+          "author",
+          "mine",
+          "meToo",
+          "meTooCount",
+          "reply",
+          "answeredBy",
+          "answeredAt",
+          "createdAt"
+        ],
+        "title": "RequestOut"
+      },
+      "RequestPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RequestOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "RequestPage"
+      },
       "ResumeUpdate": {
         "properties": {
           "moduleId": {
@@ -18660,6 +19970,7 @@
                 "newsletter.manage",
                 "calendar.manage",
                 "career.edit",
+                "requests.manage",
                 "stats.view",
                 "people.suspend",
                 "audit.read"
@@ -18731,6 +20042,7 @@
                 "newsletter.manage",
                 "calendar.manage",
                 "career.edit",
+                "requests.manage",
                 "stats.view",
                 "people.suspend",
                 "audit.read"
@@ -18842,6 +20154,7 @@
                     "newsletter.manage",
                     "calendar.manage",
                     "career.edit",
+                    "requests.manage",
                     "stats.view",
                     "people.suspend",
                     "audit.read"
@@ -19121,6 +20434,53 @@
         ],
         "title": "SignoffBlock",
         "description": "The editors' sign-off at the end of a story or an issue, shown with their avatars."
+      },
+      "SimilarRequest": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "paper",
+              "fix",
+              "event",
+              "feature",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "planned",
+              "done",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "meTooCount": {
+            "type": "integer",
+            "title": "Metoocount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "kind",
+          "status",
+          "meTooCount"
+        ],
+        "title": "SimilarRequest"
       },
       "SkillTaught": {
         "properties": {

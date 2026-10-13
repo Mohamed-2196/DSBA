@@ -32,6 +32,11 @@ describe('sectionsFor', () => {
     expect(sectionsFor(rep, onlyOn('library', 'career'))).toEqual(['reports', 'uploads', 'career', 'numbers']);
   });
 
+  it('gives people who handle requests the requests and their reports, while requests are on', () => {
+    expect(sectionsFor(holds('requests.manage'), onlyOn('requests'))).toEqual(['reports', 'requests']);
+    expect(sectionsFor(holds('requests.manage'), onlyOn('forum'))).toEqual([]);
+  });
+
   it('drops reports when the only area a person moderates is off', () => {
     expect(sectionsFor(holds('forum.moderate'), onlyOn('library'))).toEqual([]);
   });

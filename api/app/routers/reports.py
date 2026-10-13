@@ -22,17 +22,18 @@ ReportsQueue = Annotated[
     requires_any(
         Box.forum_moderate,
         Box.library_manage,
-        refusal="Only people who moderate the forum or manage the library can do this.",
+        Box.requests_manage,
+        refusal="Only people who moderate the forum, manage the library or handle requests can do this.",
     ),
 ]
 
 
 @router.post("/reports", status_code=status.HTTP_204_NO_CONTENT)
 def create_report(body: ReportCreate, user: Annotated[User, requires(Box.reports_create)], db: DB) -> Response:
-    """Report a thread, reply or library item (one open report per person and target).
+    """Report a thread, reply, library item or request (one open report per person and target).
 
     Errors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),
-    rate_limited (429), feature_off (404: the forum or the library is switched off)."""
+    rate_limited (429), feature_off (404: the forum, the library or requests are switched off)."""
     access.require_feature(db, user, reports.TARGET_FEATURES[body.target_type])
     reports.create_report(db, user, body)
     db.commit()
@@ -48,8 +49,8 @@ def list_reports(
     offset: Offset = 0,
 ) -> ReportPage:
     """Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they
-    can act on: forum posts with forum.moderate, library files with library.manage, each while its feature is on for
-    them. `reporter` is set for admins only (student reps are classmates)."""
+    can act on: forum posts with forum.moderate, library files with library.manage, requests with requests.manage,
+    each while its feature is on for them. `reporter` is set for admins only (student reps are classmates)."""
     return reports.list_reports(db, user, status_, limit, offset)
 
 
