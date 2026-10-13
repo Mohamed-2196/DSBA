@@ -2,11 +2,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api, call } from '../api/client';
 import { ApiError } from '../api/errors';
+import { FEATURES_KEY } from '../api/keys';
 import type { Me } from '../api/types';
 import { useAccountYearSync, useToast } from '../state';
+import { canDo, featureIsOn, isActiveAdmin, managerBoxes, offForOthers } from './access';
 import { AuthContext, type AuthValue, type SignInRequest } from './context';
 import { ME_KEY, clearPersonalStorage, resetPersonalQueries } from './queries';
-import { canAdminister, canModerate } from './roles';
 import { createSessionGuard } from './sessionGuard';
 import { SignInDialog } from './SignInDialog';
 import { StepUpDialog } from './StepUpDialog';
@@ -121,6 +122,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnWindowFocus: true,
   });
   const me = sessionQuery.data ?? null;
+
+  // The guest list of features. Signed in, /me carries the list; it's fetched for admins too, to mark what's off for
+  // others. /features answers an admin with their own list (every feature), so theirs goes without credentials.
+  const admin = isActiveAdmin(me);
+  const guestFeatures = useQuery({
+    queryKey: FEATURES_KEY,
+    queryFn: async () => (await call(api.GET('/api/v1/features', admin ? { credentials: 'omit' } : {}))).features,
+    enabled: !sessionQuery.isPending && (!me || admin),
+    staleTime: 60_000,
+  });
   useEffect(() => {
     if (me) endedRef.current = null;
   }, [me]);
@@ -186,9 +197,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {
       me,
       status: sessionQuery.isPending ? 'loading' : me ? 'signed-in' : 'guest',
-      // As the API decides: the role on an active account (a suspended rep or admin has no powers).
-      isModerator: canModerate(me),
-      isAdmin: canAdminister(me),
+      can: (box) => canDo(me, box),
+      featureOn: (feature) => featureIsOn(me, guestFeatures.data, feature),
+      offForOthers: (feature) => offForOthers(me, guestFeatures.data, feature),
+      isAdmin: isActiveAdmin(me),
+      manages: managerBoxes(me).length > 0,
+      roles: me?.roles ?? [],
       refresh,
       signOut,
       openSignIn,
@@ -198,7 +212,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       },
     };
-  }, [me, sessionQuery.isPending, refresh, signOut, openSignIn, openRequest]);
+  }, [me, guestFeatures.data, sessionQuery.isPending, refresh, signOut, openSignIn, openRequest]);
 
   return (
     <AuthContext.Provider value={value}>

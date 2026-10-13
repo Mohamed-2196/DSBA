@@ -4,3 +4,6 @@
 /** GET /admin/stats: the moderation queue counts. Invalidate it after anything that changes a queue (a report
  *  resolved, an upload published or rejected, a post hidden), so the moderation page and its badges follow. */
 export const ADMIN_STATS_KEY = ['admin', 'stats'] as const;
+
+/** GET /features: the features switched on for whoever asks. Signed in, /me carries the same list. */
+export const FEATURES_KEY = ['features'] as const;

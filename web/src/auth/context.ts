@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import type { Me } from '../api/types';
+import type { Box, Feature } from './access';
 
 export interface SignInRequest {
   /** Why sign-in is needed, shown at the top of the dialog ('Sign in to reply'). */
@@ -15,10 +16,17 @@ export type AuthStatus = 'loading' | 'guest' | 'signed-in';
 export interface AuthValue {
   me: Me | null;
   status: AuthStatus;
-  /** a student rep or an admin whose account is active: a suspended one has no powers (as the API decides) */
-  isModerator: boolean;
-  /** an admin whose account is active */
+  /** what /me's boxes allow: nothing while the account is suspended */
+  can: (box: Box) => boolean;
+  /** the feature is on for this person (admins: every feature) */
+  featureOn: (feature: Feature) => boolean;
+  /** an admin sees this feature, but it isn't on for everyone */
+  offForOthers: (feature: Feature) => boolean;
+  /** holds the Admin role on an active account */
   isAdmin: boolean;
+  /** holds at least one manager box: Manage is open to them */
+  manages: boolean;
+  roles: Me['roles'];
   /** Re-read /me (after a profile change, for instance). */
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
