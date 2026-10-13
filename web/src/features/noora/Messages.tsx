@@ -142,6 +142,11 @@ const NooraMessage = memo(function NooraMessage({ message, shown, isNew, first, 
       {first ? <Face size={32} className="nc-msg__face" /> : <span className="nc-msg__face" aria-hidden="true" />}
       <div className="nc-msg__body">
         <div className="nc-bubble">
+          {message.notice ? (
+            <p className="nc-bubble__notice" data-hub="noora-notice">
+              {message.notice}
+            </p>
+          ) : null}
           <p className="nc-bubble__text">
             {typing ? chars.slice(0, shown).join('') : message.text}
             {typing ? <span className="nc-caret" aria-hidden="true" /> : null}
