@@ -112,7 +112,7 @@
 }
 .req-metoo:hover:not(:disabled) {
   border-color: var(--cobalt);
-  color: var(--cobalt-ink);
+  color: var(--cobalt);
 }
 .req-metoo:focus-visible {
   outline: var(--focus-width) solid var(--focus-color);
@@ -121,7 +121,7 @@
 .req-metoo.is-on {
   border-color: var(--cobalt);
   background: var(--cobalt-soft);
-  color: var(--cobalt-ink);
+  color: var(--cobalt);
 }
 .req-metoo:disabled {
   cursor: default;
@@ -278,7 +278,7 @@
   min-width: 0;
 }
 .req-similar a {
-  color: var(--cobalt-ink);
+  color: var(--cobalt);
   font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
