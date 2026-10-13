@@ -71,9 +71,15 @@ export function useCalendarView(events: CalendarEvent[], today: Date): CalendarV
   const nextExam = useMemo(() => nextExamFor(events, { year, today: todayKey }), [events, year, todayKey]);
   const week = useMemo(() => weekAhead(events, { year, today: todayKey }), [events, year, todayKey]);
   // The top of the page lists the student's week, every type. When the list shows the same cohort and every type,
-  // it starts after that week, so nothing is listed twice.
-  const listFrom = cohortYear === year && types.size === 0 ? addDaysToKey(weekEnd(todayKey), 1) : todayKey;
-  const list = useMemo(() => upcomingFrom(visible, listFrom), [visible, listFrom]);
+  // it starts after that week and leaves out the week's events, so nothing is listed twice.
+  const afterWeek = cohortYear === year && types.size === 0;
+  const listFrom = afterWeek ? addDaysToKey(weekEnd(todayKey), 1) : todayKey;
+  const list = useMemo(() => {
+    const upcoming = upcomingFrom(visible, listFrom);
+    if (!afterWeek) return upcoming;
+    const inWeek = new Set(week.map((e) => e.id));
+    return upcoming.filter((e) => !inWeek.has(e.id));
+  }, [visible, listFrom, afterWeek, week]);
 
   const defaultMonth = useMemo(() => {
     const linked = findEvent(linkedEventRef.current);
