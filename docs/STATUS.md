@@ -55,40 +55,21 @@ The lead merges them.
   - It's a stub for Mohamed to write, because he knows how the real files are named.
   - Until then, imported papers have no year or zone. The import calls it already.
 
-**Standards review.** A cloud session was started for it at 23:40 on 2026-10-12. It hit the account's usage
-limit 33 minutes in and stopped without pushing anything.
-- **Done since, on 2026-10-13:**
-  - item 2, the skills in `.claude/skills/` (README there);
-  - item 3, CLAUDE.md;
-  - item 5, the pre-push hook: `.githooks/pre-push`, turned on with `scripts/install-hooks.sh`. A typical push
-    takes about one to two minutes on a slow machine.
-- **Still open:**
-  - item 1, the audit of the written standards;
-  - item 4, the rest of the README refresh. Its hook section is done.
-
-What Mohamed asked for:
-1. **Audit the standards.** Check the coding standards and quality rules in the docs (`ARCHITECTURE.md`'s
-   conventions and security baseline, the README's checks) against the official sources:
-   - FastAPI, SQLAlchemy 2, Pydantic v2 and Alembic;
-   - OWASP ASVS and the cheat sheets;
-   - react.dev, TanStack Query, the tsconfig strict options, typescript-eslint and ruff.
-
-   Use web search and cite the sources. Fix the docs where they're wrong or vague, and check that the code
-   follows them.
-2. **Port useful skills** into `.claude/skills/`. Look for existing good ones online first (FastAPI, React and
-   others), keep their licence notices, and fit them to this repo. Suggested: `fastapi-endpoint`, `react-feature`,
-   `db-migration`, `e2e-test` and `review-checklist`.
-3. **CLAUDE.md** (done).
-4. **A refreshed README** for a new contributor.
-5. **A pre-push hook** for the standard checks.
-   - It lives at `.githooks/pre-push`, is enabled with `git config core.hooksPath .githooks` through
-     `scripts/install-hooks.sh`, and works on macOS (bash 3.2) and Linux.
-   - It runs only what the pushed commits touch:
-     - `api/**` gets ruff, ruff format, mypy and pytest;
-     - `web/**` gets both tsc projects, ESLint, the unit tests and the schema drift check.
-   - A typical push takes under about two minutes. The full API suite runs with `FULL_CHECKS=1`, and CI runs
-     everything.
-   - `SKIP_CHECKS=1 git push` (or `--no-verify`) skips it in an emergency.
+**Standards review: done 2026-10-13** (in the cloud session, after its own run hit the usage limit).
+- **What's in:**
+  - the audit, in `docs/reviews/standards.md`;
+  - the skills in `.claude/skills/`;
+  - CLAUDE.md;
+  - the README;
+  - the pre-push hook (`scripts/install-hooks.sh`).
+- **Applied in the audit:**
+  - ruff also selects `FAST`, `ASYNC`, `PERF`, `PIE` and `FURB`;
+  - ESLint runs TanStack Query's recommended rules (`@tanstack/eslint-plugin-query`);
+  - `ARCHITECTURE.md`'s development section now describes Docker and the setup without it, instead of the old
+    cloud machine.
+- **For `round3/web-leftovers`.** When it merges, the new query lint may flag a query function that reads
+  something its key doesn't hold. The fix is to add that thing to the key, or, for the query client, use
+  `queryFn: ({ client }) => …`.
 
 ## Next, in order
 
@@ -132,7 +113,13 @@ What Mohamed asked for:
    - `claude/zen-cerf-7e5mbj`.
    - `wip/accounts-round2`, whose one unmerged commit was `140fd8e`.
    - From now on, finished branches go as soon as they're merged (CLAUDE.md).
-7. **Round 4: Mohamed's requests** in `docs/ROADMAP.md` (R-1 to R-8): roles, requests, the calendar, a study board,
+7. **From the standards review** (`docs/reviews/standards.md`, ranked):
+   - S-1 typed linting: fix the 24 unhandled or misused promises, then switch to `recommendedTypeChecked`;
+   - S-3 re-encode uploaded pictures, so they don't carry the student's location;
+   - S-4 `noUncheckedIndexedAccess`, folder by folder;
+   - S-5 to S-7: a `Permissions-Policy` header, a Fetch Metadata CSRF layer, malware scanning, and effects that
+     copy props into state.
+8. **Round 4: Mohamed's requests** in `docs/ROADMAP.md` (R-1 to R-8): roles, requests, the calendar, a study board,
    notes, Noora with context, a new Noora and favourite apps.
    - Each is designed with him first, then built.
    - R-1 (roles) is being designed now.
@@ -155,6 +142,8 @@ What Mohamed asked for:
   - Is it right that the author of a hidden post can read it but not delete it?
   - Should we build a "shared computer" sign-in with a shorter session?
   - Should an "I'm not a student" mode show all years?
+  - Should sessions end after some days without use (standards review S-2)? For example 7–14 days, plus the
+    "shared computer" option with a short session.
   - Newsletter pictures: uploads need an issue id first, so for now the editor offers only the app's own pictures.
 - **To deploy:** a server, a domain, an S3 bucket with its keys, an SMTP account and, for texts, Twilio.
   `docs/backend/DEPLOYMENT.md` has the full list.
