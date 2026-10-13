@@ -1,4 +1,57 @@
-# UI/UX review: DSBA Hub on the real API (round 1)
+# UI/UX review: DSBA Hub on the real API
+
+## Round 3 re-review (13 October 2026)
+
+Reviewer: UI/UX. Build: `feature/backend` at `75626cd` (rounds 2 and 3 merged), on the shared Docker stack
+(`:5173`). No application code was changed.
+
+Method: Playwright 1.56 driving the installed Google Chrome, as a guest (fresh, and with a year picked), Years 1, 2
+and 3, a student rep and an admin (dev-login, made-up `ux3-…@example.com` addresses). Every listed screen was loaded
+at all 16 sizes of the brief with touch emulated (phones also as mobile), and scripted checks ran on each:
+sideways scroll and elements past the viewport, text clipped without an ellipsis, touch targets measured by
+hit-testing outward from each control's centre (so `::before` extensions count), and the longest real line of
+every wrapped text block. Flows were walked by script with screenshots: posting a thread with a photo, uploading a
+past paper and two note pictures, the rep's review, starting, editing and publishing a newsletter issue, and the
+editor's leave guard. Failures (401, 500, offline) were simulated with route interception, never on the API.
+
+Test data I left: the thread "How do I get the variance from an MGF? (ST2133 week 3)" with a photo and one reply,
+three more threads by Huda Al-Mansoori, three published ST2133 uploads (a 2023 Zone A paper, a JPG and a tall PNG
+of notes), and the published issue 02 "Exam season special".
+
+**Note for anyone scripting checks:** in Chrome with touch emulated, a Playwright `fullPage` screenshot drops the
+touch emulation for the rest of that page (`(pointer: coarse)` turns false and controls shrink to 32 px). Measure
+touch targets before taking a full-page screenshot, or on a fresh page.
+
+### Earlier findings
+
+| ID | Was | Now | Evidence |
+|---|---|---|---|
+| UX-1 | major | **fixed** | A 401 on "Post reply" opens "You were signed out. Sign in again to carry on." with focus in the field (`auth/sessionGuard.ts`); `/me` is re-read on focus. |
+| UX-2 | major | **fixed** | Bell → Enter → ArrowDown moves through notifications, Tab reaches "Mark as read" and "Mark all as read", and the last Tab returns to the bell. |
+| UX-3 | major | **fixed** | With unsaved edits, a sidebar link, a ⌘K result and in-app Back all open "Leave without saving?"; Back across documents and reload get the browser's own prompt; "Open the issue" becomes "Save and open"; a local copy is offered as "Restore them". |
+| UX-4 | major | **fixed** | The editor is a form (details, cover, sections with typed blocks, an icon picker) with Edit / Preview on narrow screens. |
+| UX-5 | major | **fixed** | "Upload a file" in the top bar, the More drawer, the footer and ⌘K, all opening the library's upload dialog. |
+| UX-6 | major | **fixed** (D1) | Emails are sent through the outbox; Your account says "Every notification shows in the Hub. Choose which ones we also email you." |
+| UX-7 | minor | **fixed** (D7) | The year prompt is a card over the page with "I'm not a student" and "Sign in". What remains is in the new findings. |
+| UX-8 | minor | **fixed** | `Toaster.css` moves toasts to the top on phones while a modal or drawer is open. |
+| UX-9 | minor | **fixed** | `ui/internal.ts` `restoreFocus()` falls back to the account button, then `#main`. |
+| UX-10 | minor | **fixed** | A 500 reads "The library didn't load. Something went wrong on our side. Try again in a minute."; offline reads "Couldn't reach the Hub. Check your connection and try again." The forum, newsletter and calendar use the same pattern. |
+| UX-11 | minor | **fixed** | Buttons, icon buttons, chips, fields, tabs and switches are 44 px under `(pointer: coarse)`. Leftovers are in the new findings. |
+| UX-12 | minor | **fixed** | The phone upload dialog shows only "Choose a file"; Type no longer drops; a suspended student is told up front. |
+| UX-13 | minor | **fixed** | "Not confirmed yet. Check with the programme office before you plan around it." No "sample date" copy is left. |
+| UX-14 | minor | **fixed** | Section headers wrap below 700 px; "Not added" is `--ink-2`. |
+| UX-15 | minor | **fixed** | Roles change through a "Change" button and a dialog; Activity names the issue, thread, file or event. Wording nits are in the new findings. |
+| UX-16 | minor | **fixed** | Server errors are form alerts, the address is shown in full with "Not there? Check your spam folder.", one name ("Send a new code"), `inputMode="tel"` once a digit is typed. |
+| UX-17 | nit | **mostly fixed** | Fixed: zero counts, guest composer, phone moderation tiles, the earlier smooth scrolls, "Hide Mini Noora" in her chat, `demo/` paths. Open: the library still says "A student rep decided not to publish this file." (`FileViewerPage.tsx:115`, `YourUploads.tsx:59`) where the rest says "Not published", and three new smooth scrolls ignore reduced motion (new findings). |
+| Field borders (WCAG 1.4.11) | — | **fixed** | `--control-border` (3.23:1 light, 3.45:1 dark) is used for fields and selects. |
+
+### New findings
+
+_In progress._
+
+---
+
+# Round 1 (10 October 2026)
 
 Reviewer: UI/UX. Build: `feature/backend` at `525962c` (working tree as of 10 Oct, 20:05), against the shared dev API
 and the lead's web server on `:5173`. No application code was changed.
