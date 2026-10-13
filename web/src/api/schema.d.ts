@@ -373,7 +373,8 @@ export interface paths {
         get?: never;
         /**
          * Set Watched
-         * @description Mark one lesson watched or not (404 when the module, chapter or video does not exist).
+         * @description Mark one lesson watched or not (404 when the module, chapter or video does not exist). A study-board card for
+         *     a watched lesson moves to Done.
          */
         put: operations["set_watched_api_v1_me_progress_lessons__lesson_key__put"];
         post?: never;
@@ -1721,6 +1722,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Board
+         * @description Every card, To do first, each column in its order. Linked things are read as they are now; a thing that's
+         *     gone has a link with no title.
+         */
+        get: operations["get_board_api_v1_board_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/board/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Card
+         * @description A card at the end of its column; a lesson already watched goes to Done. Errors: board_full (409),
+         *     already_on_board (409), invalid_input on `link.id` when the thing isn't there (422), rate_limited (429).
+         */
+        post: operations["create_card_api_v1_board_cards_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/board/cards/{card_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Card */
+        delete: operations["delete_card_api_v1_board_cards__card_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Card
+         * @description Fields that are not sent stay; null clears the note or the due date.
+         */
+        patch: operations["update_card_api_v1_board_cards__card_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/board/cards/{card_id}/place": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Move Card
+         * @description Puts the card in a column, after `afterId` or at the top. Errors: retry (409) when `afterId` is no longer
+         *     in that column.
+         */
+        put: operations["move_card_api_v1_board_cards__card_id__place_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1757,6 +1842,8 @@ export interface components {
             reports: components["schemas"]["ExportReport"][];
             /** Emails */
             emails: components["schemas"]["ExportEmail"][];
+            /** Board */
+            board: components["schemas"]["ExportBoardCard"][];
         };
         /**
          * AdminStats
@@ -1863,6 +1950,118 @@ export interface components {
             limit: number;
             /** Offset */
             offset: number;
+        };
+        /**
+         * Board
+         * @description Every card, by column, each column in its order.
+         */
+        Board: {
+            /** Cards */
+            cards: components["schemas"]["BoardCard"][];
+            /** Limit */
+            limit: number;
+        };
+        /** BoardCard */
+        BoardCard: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Column
+             * @enum {string}
+             */
+            column: "todo" | "doing" | "done";
+            /** Title */
+            title: string;
+            /** Note */
+            note: string | null;
+            /** Duedate */
+            dueDate: string | null;
+            link: components["schemas"]["BoardLink"] | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Doneat */
+            doneAt: string | null;
+        };
+        /**
+         * BoardCardCreate
+         * @description A card at the end of a column. With a link and no title, the card takes the linked thing's title. A lesson
+         *     already watched starts in Done.
+         */
+        BoardCardCreate: {
+            /** Title */
+            title?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Duedate */
+            dueDate?: string | null;
+            /**
+             * Column
+             * @default todo
+             * @enum {string}
+             */
+            column: "todo" | "doing" | "done";
+            link?: components["schemas"]["BoardLinkIn"] | null;
+        };
+        /**
+         * BoardCardMove
+         * @description Puts the card in `column`, right after the card `afterId`, or at the top with null.
+         */
+        BoardCardMove: {
+            /**
+             * Column
+             * @enum {string}
+             */
+            column: "todo" | "doing" | "done";
+            /** Afterid */
+            afterId?: string | null;
+        };
+        /**
+         * BoardCardUpdate
+         * @description Fields that are not sent stay; null clears the note or the due date.
+         */
+        BoardCardUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Duedate */
+            dueDate?: string | null;
+        };
+        /** BoardLink */
+        BoardLink: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "event" | "lesson" | "module" | "library_item";
+            /** Id */
+            id: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string | null;
+            /** Date */
+            date: string | null;
+        };
+        /**
+         * BoardLinkIn
+         * @description What a card points at: a calendar event id, a lesson key ('<module>:<chapter>:<video>'), a module id or a
+         *     library item id.
+         */
+        BoardLinkIn: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "event" | "lesson" | "module" | "library_item";
+            /** Id */
+            id: string;
         };
         /** BoxOut */
         BoxOut: {
@@ -2432,7 +2631,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "note_changed" | "too_many_notes";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board";
             /** Message */
             message: string;
             /** Fields */
@@ -2445,6 +2644,36 @@ export interface components {
         /** ErrorResponse */
         ErrorResponse: {
             error: components["schemas"]["ErrorDetail"];
+        };
+        /** ExportBoardCard */
+        ExportBoardCard: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Column
+             * @enum {string}
+             */
+            column: "todo" | "doing" | "done";
+            /** Title */
+            title: string;
+            /** Note */
+            note: string | null;
+            /** Duedate */
+            dueDate: string | null;
+            /** Linktype */
+            linkType: ("event" | "lesson" | "module" | "library_item") | null;
+            /** Linkid */
+            linkId: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Doneat */
+            doneAt: string | null;
         };
         /**
          * ExportEmail
@@ -2704,7 +2933,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes";
+            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board";
             /** Label */
             label: string;
             /** Hides */
@@ -2730,7 +2959,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes")[];
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board")[];
         };
         /** FileLink */
         FileLink: {
@@ -3241,7 +3470,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes")[];
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board")[];
             /**
              * Status
              * @enum {string}
@@ -4425,6 +4654,13 @@ export type AdminUserPage = components['schemas']['AdminUserPage'];
 export type AdminUserUpdate = components['schemas']['AdminUserUpdate'];
 export type AuditOut = components['schemas']['AuditOut'];
 export type AuditPage = components['schemas']['AuditPage'];
+export type Board = components['schemas']['Board'];
+export type BoardCard = components['schemas']['BoardCard'];
+export type BoardCardCreate = components['schemas']['BoardCardCreate'];
+export type BoardCardMove = components['schemas']['BoardCardMove'];
+export type BoardCardUpdate = components['schemas']['BoardCardUpdate'];
+export type BoardLink = components['schemas']['BoardLink'];
+export type BoardLinkIn = components['schemas']['BoardLinkIn'];
 export type BoxOut = components['schemas']['BoxOut'];
 export type CalendarEventCreate = components['schemas']['CalendarEventCreate'];
 export type CalendarEventOut = components['schemas']['CalendarEventOut'];
@@ -4459,6 +4695,7 @@ export type CtaLabels = components['schemas']['CtaLabels'];
 export type DateWindow = components['schemas']['DateWindow'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
 export type ErrorResponse = components['schemas']['ErrorResponse'];
+export type ExportBoardCard = components['schemas']['ExportBoardCard'];
 export type ExportEmail = components['schemas']['ExportEmail'];
 export type ExportLibraryItem = components['schemas']['ExportLibraryItem'];
 export type ExportNotification = components['schemas']['ExportNotification'];
@@ -7611,7 +7848,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes";
+                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "notes" | "board";
             };
             cookie?: never;
         };
@@ -13077,6 +13314,437 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FeaturesOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_board_api_v1_board_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Board"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_card_api_v1_board_cards_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BoardCardCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardCard"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_card_api_v1_board_cards__card_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_card_api_v1_board_cards__card_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BoardCardUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardCard"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    move_card_api_v1_board_cards__card_id__place_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BoardCardMove"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardCard"];
                 };
             };
             /** @description Bad Request */

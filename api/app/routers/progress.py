@@ -8,7 +8,7 @@ from app.core.security import DB, CurrentUser
 from app.core.time import utcnow
 from app.routers._base import router_for
 from app.schemas.modules import LessonWatchedUpdate, Progress, ProgressImport, ResumeUpdate
-from app.services import accounts
+from app.services import accounts, board
 
 router = router_for("progress")
 LessonKey = Path(pattern=r"^[a-z0-9-]{1,64}:\d{1,3}:\d{1,3}$")
@@ -21,8 +21,11 @@ def get_progress(user: CurrentUser, db: DB) -> Progress:
 
 @router.put("/me/progress/lessons/{lesson_key}", response_model=Progress)
 def set_watched(body: LessonWatchedUpdate, user: CurrentUser, db: DB, lesson_key: str = LessonKey) -> Progress:
-    """Mark one lesson watched or not (404 when the module, chapter or video does not exist)."""
+    """Mark one lesson watched or not (404 when the module, chapter or video does not exist). A study-board card for
+    a watched lesson moves to Done."""
     accounts.set_watched(db, user.id, lesson_key, body.watched)
+    if body.watched:
+        board.complete_lessons(db, user.id)
     db.commit()
     return accounts.progress_of(db, user.id)
 
@@ -48,5 +51,6 @@ def reset_module(module_id: str, user: CurrentUser, db: DB) -> Response:
 def import_progress(body: ProgressImport, user: CurrentUser, db: DB) -> Progress:
     """Merge progress kept in the browser as a guest (unknown lessons are skipped, newest timestamps win)."""
     accounts.import_progress(db, user.id, body)
+    board.complete_lessons(db, user.id)
     db.commit()
     return accounts.progress_of(db, user.id)

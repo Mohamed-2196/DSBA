@@ -1,0 +1,68 @@
+import { CheckCircle, Kanban } from '@phosphor-icons/react';
+import { useNavigate } from 'react-router-dom';
+import type { BoardLinkIn } from '../../api/types';
+import { errorMessage, isApiError } from '../../api/errors';
+import { useAuth } from '../../auth';
+import { useToast } from '../../state';
+import { Button, type ButtonSize } from '../../ui';
+import { useAddCard, useBoard } from './api';
+
+export interface AddToBoardProps {
+  /** what the card points at: a calendar event, a lesson ('<module>:<chapter>:<video>'), a module or a library item */
+  link: BoardLinkIn;
+  size?: ButtonSize;
+  className?: string;
+}
+
+/** "Add to my board" for a thing in the hub, or "On your board" once it's there. The caller gates it with
+ *  featureOn('board'). Guests are asked to sign in first. */
+export function AddToBoard({ link, size = 'sm', className }: AddToBoardProps) {
+  const { status, requireAuth } = useAuth();
+  const signedIn = status === 'signed-in';
+  const board = useBoard({ enabled: signedIn });
+  const add = useAddCard();
+  const toast = useToast();
+  const navigate = useNavigate();
+  const onBoard = board.data?.cards.some((c) => c.link?.type === link.type && c.link.id === link.id) ?? false;
+
+  if (onBoard) {
+    return (
+      <Button size={size} variant="ghost" to="/board" leadingIcon={CheckCircle} className={className} data-hub="board-on">
+        On your board
+      </Button>
+    );
+  }
+
+  const run = () =>
+    add.mutate(
+      { link, column: 'todo' },
+      {
+        onSuccess: (card) =>
+          toast.push({
+            tone: 'success',
+            title: card.column === 'done' ? 'Added to Done on your board' : 'Added to your board',
+            action: { label: 'Open board', onClick: () => void navigate('/board') },
+          }),
+        onError: (e) => {
+          if (isApiError(e) && e.code === 'already_on_board') return; // the board reloads, and this becomes "On your board"
+          toast.push({ tone: 'alert', title: 'It wasn’t added to your board', body: errorMessage(e) });
+        },
+      },
+    );
+
+  return (
+    <Button
+      size={size}
+      leadingIcon={Kanban}
+      loading={add.isPending}
+      className={className}
+      data-hub="board-add"
+      onClick={() => {
+        if (!requireAuth('Sign in to add this to your study board', run)) return;
+        run();
+      }}
+    >
+      Add to my board
+    </Button>
+  );
+}

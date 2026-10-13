@@ -66,7 +66,7 @@ def test_the_baseline_seeds_the_roles_and_every_switch(scratch: tuple[Config, En
         }
         switches = dict(c.execute(text("SELECT feature, mode FROM feature_switches")).tuples().all())
         features = ("forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora")
-        assert switches == dict.fromkeys(features, "everyone") | {"notes": "off"}
+        assert switches == dict.fromkeys(features, "everyone") | {"notes": "off", "board": "off"}
 
 
 def test_the_database_refuses_what_the_contract_does_not_list(scratch: tuple[Config, Engine]) -> None:

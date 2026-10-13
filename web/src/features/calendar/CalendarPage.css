@@ -301,6 +301,7 @@
 .cal-drawer__countdown.is-soon { background: var(--alert-soft); color: var(--alert-strong); }
 .cal-drawer__countdown.is-past { color: var(--ink-2); font-weight: var(--fw-semibold); }
 .cal-drawer__where { margin-top: calc(-1 * var(--sp-12)); padding: 0 var(--sp-24); color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); }
+.cal-drawer__board { align-self: flex-start; }
 .cal-drawer__where.is-unset { color: var(--ink-2); font-weight: var(--fw-medium); }
 .cal-drawer__sample { padding: var(--sp-12) var(--sp-16); border-radius: var(--r-control); background: var(--surface-2); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
 .cal-drawer__sample b { color: var(--ink); font-weight: var(--fw-bold); }
