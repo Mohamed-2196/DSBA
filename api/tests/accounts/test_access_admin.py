@@ -511,3 +511,19 @@ def test_the_last_admin_cant_delete_their_account(
     assert db.get(User, boss.id) is not None
     make_user(name="Second Admin", roles=ADMIN)
     assert c.delete(f"{API}/me").status_code == 204
+
+
+def test_a_role_a_switch_uses_cant_be_deleted(
+    client_for: ClientFor, boss: User, set_feature: Callable[..., None], db: Session
+) -> None:
+    set_feature("calendar", "roles", ["content-manager"])
+    set_feature("career", "roles", ["content-manager", "rep"])
+    c = client_for(boss)
+    refused = c.delete(f"{API}/admin/roles/{role_id(db, 'content-manager')}")
+    assert refused.status_code == 409
+    assert refused.json()["error"]["code"] == "role_in_use"
+    assert "Calendar, Career Navigator" in refused.json()["error"]["message"]
+    assert access.role_by_slug(db, "content-manager") is not None
+    set_feature("calendar", "everyone")
+    set_feature("career", "roles", ["rep"])
+    assert c.delete(f"{API}/admin/roles/{role_id(db, 'content-manager')}").status_code == 204

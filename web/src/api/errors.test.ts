@@ -50,6 +50,12 @@ describe('errorMessage', () => {
     expect(isNetworkError(toApiError(response(502), 'Bad gateway'))).toBe(false);
   });
 
+  it('shows why a role in use cannot be deleted', () => {
+    const message = 'Switched on for this role: Calendar. Change its switch first, then delete the role.';
+    const refused = toApiError(response(409), { error: { code: 'role_in_use', message } });
+    expect([refused.code, errorMessage(refused)]).toEqual(['role_in_use', message]);
+  });
+
   it('uses the fallback for anything that is not an API error', () => {
     expect(errorMessage(new Error('boom'), 'Couldn’t save. Try again.')).toBe('Couldn’t save. Try again.');
     expect(errorMessage(undefined)).toBe('Something went wrong. Try again.');

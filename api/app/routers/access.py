@@ -48,7 +48,7 @@ def update_role(role_id: UUID, body: RoleUpdate, request: Request, user: Stepped
 @router.delete("/admin/roles/{role_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_role(role_id: UUID, request: Request, user: SteppedUpAdmin, db: DB) -> Response:
     """Its holders lose it and are told. Errors: step_up_required (403), role_locked (409: a built-in role),
-    rate_limited (429). Audited."""
+    role_in_use (409: a feature switch is on for it), rate_limited (429). Audited."""
     roles.delete_role(db, user, role_id, client_ip(request))
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

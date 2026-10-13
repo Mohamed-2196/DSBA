@@ -3431,7 +3431,7 @@
           "access"
         ],
         "summary": "Delete Role",
-        "description": "Its holders lose it and are told. Errors: step_up_required (403), role_locked (409: a built-in role),\nrate_limited (429). Audited.",
+        "description": "Its holders lose it and are told. Errors: step_up_required (403), role_locked (409: a built-in role),\nrole_in_use (409: a feature switch is on for it), rate_limited (429). Audited.",
         "operationId": "delete_role_api_v1_admin_roles__role_id__delete",
         "parameters": [
           {
@@ -12710,7 +12710,8 @@
               "feature_off",
               "last_admin",
               "role_locked",
-              "role_changed"
+              "role_changed",
+              "role_in_use"
             ],
             "title": "Code"
           },

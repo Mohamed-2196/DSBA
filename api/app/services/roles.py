@@ -215,6 +215,12 @@ def delete_role(db: Session, admin: User, role_id: uuid.UUID, ip: str | None) ->
         raise not_found("This role doesn't exist.")
     if role.built_in:
         raise conflict("role_locked", "Built-in roles can't be deleted. Take their boxes away instead.")
+    used_by = [FEATURES[f].label for f, state in access.switches(db).items() if role.id in state.role_ids]
+    if used_by:
+        names, switches = ", ".join(sorted(used_by)), "its switch" if len(used_by) == 1 else "their switches"
+        raise conflict(
+            "role_in_use", f"Switched on for this role: {names}. Change {switches} first, then delete the role."
+        )
     holders = db.scalars(select(RoleGrant.user_id).where(RoleGrant.role_id == role.id)).all()
     record(db, admin, "role.delete", "role", role.id, {**_snapshot(db, role), "holders": len(holders)}, ip)
     for user_id in holders:

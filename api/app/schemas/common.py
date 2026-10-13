@@ -77,6 +77,7 @@ ErrorCode = Literal[
     "last_admin",  # 409: the hub needs at least one active admin
     "role_locked",  # 409: the Admin role can't change, and a built-in role can't be deleted
     "role_changed",  # 409: another admin changed the role since it was loaded: load it again
+    "role_in_use",  # 409: a feature switch is on for this role: change the switch before deleting the role
 ]
 
 
