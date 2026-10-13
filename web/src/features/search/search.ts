@@ -50,8 +50,6 @@ export type Item =
   | (Base & { kind: 'more'; target: GroupId })
   | (Base & { kind: 'fallback'; icon: IconName; to: string });
 
-export type ItemKind = Item['kind'];
-
 export interface Group {
   id: GroupId;
   label: string;
