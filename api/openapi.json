@@ -3963,6 +3963,626 @@
         }
       }
     },
+    "/api/v1/content/modules": {
+      "get": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Modules For Editing",
+        "description": "Every module, hidden ones too, by year and then in programme order.",
+        "operationId": "modules_for_editing_api_v1_content_modules_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModuleEditSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Modules For Editing Api V1 Content Modules Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Create Module",
+        "description": "A new, empty module at the end of its year. Its `id` is its address, for good. Audited.\n\nErrors: slug_taken (409), invalid_input (422: a unit code another module has, a link that isn't https://).",
+        "operationId": "create_module_api_v1_content_modules_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModuleCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleEdit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/modules/reorder": {
+      "post": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Reorder Modules",
+        "description": "One year's modules in a new order. Audited. Errors: module_changed (409: they aren't that year's modules).",
+        "operationId": "reorder_modules_api_v1_content_modules_reorder_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModuleOrder"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModuleEditSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Reorder Modules Api V1 Content Modules Reorder Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/modules/{module_id}": {
+      "get": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Module For Editing",
+        "description": "A module as the editor has it: hidden chapters and lessons too, each with its `origin` and video link.",
+        "operationId": "module_for_editing_api_v1_content_modules__module_id__get",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleEdit"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Save Module",
+        "description": "Saves the whole module. What refers to its lessons (progress, notes, study-board cards) follows them when\nthey move or are hidden. Audited, with what changed before and after.\n\nErrors: module_changed (409: someone saved it since `version`, or an `origin` that isn't in it any more),\ncontent_in_use (409: removing a chapter that still has lessons, or a lesson with notes or cards: hide it),\ninvalid_input (422: a video link the app can't embed, a unit code another module has, a link that isn't\nhttps://).",
+        "operationId": "save_module_api_v1_content_modules__module_id__put",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModuleSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleEdit"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Delete Module",
+        "description": "Removes a module nothing refers to. Audited.\n\nErrors: module_changed (409), content_in_use (409: it has lessons, files, threads, notes, cards, requests or\ncalendar dates; hide it instead).",
+        "operationId": "delete_module_api_v1_content_modules__module_id__delete",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/library/items": {
       "get": {
         "tags": [
@@ -13686,6 +14306,7 @@
               "newsletter.manage",
               "calendar.manage",
               "career.edit",
+              "content.edit",
               "requests.manage",
               "stats.view",
               "people.suspend",
@@ -15112,6 +15733,78 @@
         ],
         "title": "Chapter"
       },
+      "ChapterIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 999.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          },
+          "lessons": {
+            "items": {
+              "$ref": "#/components/schemas/LessonIn"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Lessons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "ChapterIn"
+      },
+      "ChapterOut": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "origin": {
+            "type": "integer",
+            "title": "Origin"
+          },
+          "lessons": {
+            "items": {
+              "$ref": "#/components/schemas/LessonOut"
+            },
+            "type": "array",
+            "title": "Lessons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "hidden",
+          "origin",
+          "lessons"
+        ],
+        "title": "ChapterOut"
+      },
       "ChecklistCert": {
         "properties": {
           "kind": {
@@ -15550,6 +16243,8 @@
               "role_locked",
               "role_changed",
               "role_in_use",
+              "module_changed",
+              "content_in_use",
               "note_changed",
               "too_many_notes",
               "board_full",
@@ -17472,6 +18167,140 @@
         ],
         "title": "LastLesson"
       },
+      "LessonIn": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Url"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LessonOrigin"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "LessonIn",
+        "description": "A video lesson: a YouTube video or playlist link, or a class recording on vc.bibf.com."
+      },
+      "LessonOrigin": {
+        "properties": {
+          "chapter": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Chapter"
+          },
+          "video": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Video"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chapter",
+          "video"
+        ],
+        "title": "LessonOrigin",
+        "description": "Where a lesson was in the version loaded: its chapter and video index as stored (ModuleEdit's order)."
+      },
+      "LessonOut": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Url"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
+          },
+          "origin": {
+            "$ref": "#/components/schemas/LessonOrigin"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "youtube-playlist",
+              "bbb"
+            ],
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "origin",
+          "kind"
+        ],
+        "title": "LessonOut"
+      },
       "LessonWatchedUpdate": {
         "properties": {
           "watched": {
@@ -18253,6 +19082,7 @@
                 "newsletter.manage",
                 "calendar.manage",
                 "career.edit",
+                "content.edit",
                 "requests.manage",
                 "stats.view",
                 "people.suspend",
@@ -18389,6 +19219,98 @@
         "title": "MeUpdate",
         "description": "Fields that are not sent stay as they are; `year: null` clears the cohort."
       },
+      "ModuleCreate": {
+        "properties": {
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}[0-9]{4}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Name"
+          },
+          "shortName": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 2,
+            "title": "Shortname"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Description",
+            "default": ""
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "BookOpenText",
+                  "Brain",
+                  "Briefcase",
+                  "ChartBar",
+                  "ChartLineUp",
+                  "ChartScatter",
+                  "Coins",
+                  "Database",
+                  "Function",
+                  "ListChecks",
+                  "Megaphone",
+                  "PresentationChart",
+                  "Scales",
+                  "Sigma",
+                  "Storefront",
+                  "TerminalWindow",
+                  "WaveSine"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "resources": {
+            "$ref": "#/components/schemas/ResourcesIn"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 2,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "shortName",
+          "year",
+          "id"
+        ],
+        "title": "ModuleCreate",
+        "description": "A new module, empty: its chapters come next, in the editor. `id` is its address (/modules/<id>), for good."
+      },
       "ModuleDetail": {
         "properties": {
           "id": {
@@ -18485,6 +19407,241 @@
         ],
         "title": "ModuleDetail"
       },
+      "ModuleEdit": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "shortName": {
+            "type": "string",
+            "title": "Shortname"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "chapterCount": {
+            "type": "integer",
+            "title": "Chaptercount"
+          },
+          "lessonCount": {
+            "type": "integer",
+            "title": "Lessoncount"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "resources": {
+            "$ref": "#/components/schemas/ModuleResources"
+          },
+          "chapters": {
+            "items": {
+              "$ref": "#/components/schemas/ChapterOut"
+            },
+            "type": "array",
+            "title": "Chapters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "unitCode",
+          "name",
+          "shortName",
+          "year",
+          "icon",
+          "hidden",
+          "position",
+          "version",
+          "chapterCount",
+          "lessonCount",
+          "updatedAt",
+          "description",
+          "resources",
+          "chapters"
+        ],
+        "title": "ModuleEdit"
+      },
+      "ModuleEditSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "shortName": {
+            "type": "string",
+            "title": "Shortname"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "chapterCount": {
+            "type": "integer",
+            "title": "Chaptercount"
+          },
+          "lessonCount": {
+            "type": "integer",
+            "title": "Lessoncount"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "unitCode",
+          "name",
+          "shortName",
+          "year",
+          "icon",
+          "hidden",
+          "position",
+          "version",
+          "chapterCount",
+          "lessonCount",
+          "updatedAt"
+        ],
+        "title": "ModuleEditSummary"
+      },
+      "ModuleOrder": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "ids"
+        ],
+        "title": "ModuleOrder",
+        "description": "One year's modules, in their new order: every module of that year, once each."
+      },
       "ModuleResources": {
         "properties": {
           "materials": {
@@ -18556,6 +19713,108 @@
         },
         "type": "object",
         "title": "ModuleResources"
+      },
+      "ModuleSave": {
+        "properties": {
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}[0-9]{4}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Name"
+          },
+          "shortName": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 2,
+            "title": "Shortname"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Description",
+            "default": ""
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "BookOpenText",
+                  "Brain",
+                  "Briefcase",
+                  "ChartBar",
+                  "ChartLineUp",
+                  "ChartScatter",
+                  "Coins",
+                  "Database",
+                  "Function",
+                  "ListChecks",
+                  "Megaphone",
+                  "PresentationChart",
+                  "Scales",
+                  "Sigma",
+                  "Storefront",
+                  "TerminalWindow",
+                  "WaveSine"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "resources": {
+            "$ref": "#/components/schemas/ResourcesIn"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
+          },
+          "chapters": {
+            "items": {
+              "$ref": "#/components/schemas/ChapterIn"
+            },
+            "type": "array",
+            "maxItems": 60,
+            "title": "Chapters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "shortName",
+          "year",
+          "version"
+        ],
+        "title": "ModuleSave",
+        "description": "The whole module as the editor has it. `version` is the one loaded: if someone saved since, 409\nmodule_changed. Lessons and chapters keep their `origin`, so what refers to them (progress, notes, study-board\ncards) follows them when they move."
       },
       "ModuleSummary": {
         "properties": {
@@ -20605,6 +21864,85 @@
         ],
         "title": "RequestPage"
       },
+      "ResourcesIn": {
+        "properties": {
+          "materials": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Materials"
+          },
+          "exercises": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exercises"
+          },
+          "exercisesNote": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exercisesnote"
+          },
+          "vle": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vle"
+          },
+          "olderExams": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Olderexams"
+          },
+          "cheatSheet": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cheatsheet"
+          }
+        },
+        "type": "object",
+        "title": "ResourcesIn",
+        "description": "The module's shared folders: https:// links (empty or null for none)."
+      },
       "ResumeUpdate": {
         "properties": {
           "moduleId": {
@@ -20715,6 +22053,7 @@
                 "newsletter.manage",
                 "calendar.manage",
                 "career.edit",
+                "content.edit",
                 "requests.manage",
                 "stats.view",
                 "people.suspend",
@@ -20787,6 +22126,7 @@
                 "newsletter.manage",
                 "calendar.manage",
                 "career.edit",
+                "content.edit",
                 "requests.manage",
                 "stats.view",
                 "people.suspend",
@@ -20899,6 +22239,7 @@
                     "newsletter.manage",
                     "calendar.manage",
                     "career.edit",
+                    "content.edit",
                     "requests.manage",
                     "stats.view",
                     "people.suspend",

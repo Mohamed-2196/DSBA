@@ -22,6 +22,10 @@ describe('sectionsFor', () => {
     expect(sectionsFor(holds('people.suspend', 'audit.read'))).toEqual(['people', 'activity']);
   });
 
+  it('gives content editors the modules, with no switch to wait for', () => {
+    expect(sectionsFor(holds('content.edit'), onlyOn())).toEqual(['content']);
+  });
+
   it('gives a student nothing', () => {
     expect(sectionsFor(holds('forum.post', 'library.upload'))).toEqual([]);
   });

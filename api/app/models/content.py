@@ -15,8 +15,14 @@ from app.schemas.calendar import EventType
 
 
 class Module(Base):
-    """A module of the programme. Lessons live in `chapters` (JSON): their order is what lesson keys refer to
-    ('<module id>:<chapter index>:<video index>'), so chapters and videos are only ever appended or edited in place."""
+    """A module of the programme. Content managers edit it in the app; app/seed/data/modules.json is only the
+    starting content.
+
+    Lessons live in `chapters` (JSON), in the order the editors set, each chapter and video with an optional
+    `hidden` flag. Lesson keys ('<module id>:<chapter index>:<video index>') count in the order students see: the
+    visible chapters first, then the hidden ones, and the same for the videos in a chapter
+    (app/services/modules.py `in_key_order`). A save that moves, hides or removes lessons moves what refers to them
+    to the new keys (app/services/module_editor.py). `version` grows with every save: a stale one gets 409."""
 
     __tablename__ = "modules"
     __table_args__ = (CheckConstraint("year BETWEEN 1 AND 3", name="year_range"),)
@@ -31,8 +37,10 @@ class Module(Base):
     resources: Mapped[dict[str, Any]] = mapped_column(default=dict)  # materials, exercises, vle, olderExams, ...
     chapters: Mapped[list[Any]] = mapped_column(
         default=list
-    )  # [{title, audioUrl?, videos: [{kind, id?, url?, title?}]}]
+    )  # [{title, audioUrl?, hidden?, videos: [{kind, id?, url?, title?, channel?, unavailable?, hidden?}]}]
     position: Mapped[int] = mapped_column(Integer, default=0)
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # left out of students' views
+    version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     updated_at: Mapped[datetime | None] = mapped_column(onupdate=func.now())
 
 

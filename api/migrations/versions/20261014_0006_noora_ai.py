@@ -1,7 +1,7 @@
 """Mini Noora's AI answers: the limits admins set, each student's usage per day, and the feature's switch
 
 Revision ID: 0006
-Revises: 0004
+Revises: 0005
 Create Date: 2026-10-14 12:00:00
 
 The feature arrives switched off: an admin switches it on from the Access screen once the API holds a key.
@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0006"
-down_revision: str | None = "0004"
+down_revision: str | None = "0005"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

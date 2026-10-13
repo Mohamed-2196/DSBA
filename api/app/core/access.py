@@ -37,6 +37,7 @@ class Box(enum.StrEnum):
     newsletter_manage = "newsletter.manage"
     calendar_manage = "calendar.manage"
     career_edit = "career.edit"
+    content_edit = "content.edit"
     requests_manage = "requests.manage"
     stats_view = "stats.view"
     people_suspend = "people.suspend"
@@ -104,6 +105,11 @@ BOXES: dict[Box, BoxInfo] = {
     ),
     Box.career_edit: BoxInfo(
         "Career Navigator", "Edit Career Navigator", "Only people who edit Career Navigator can do this."
+    ),
+    Box.content_edit: BoxInfo(
+        "Modules",
+        "Add, edit, reorder, hide and remove modules, chapters and lessons",
+        "Only people who edit modules and lessons can do this.",
     ),
     Box.requests_manage: BoxInfo(
         "Requests",

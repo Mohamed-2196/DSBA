@@ -740,6 +740,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/content/modules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Modules For Editing
+         * @description Every module, hidden ones too, by year and then in programme order.
+         */
+        get: operations["modules_for_editing_api_v1_content_modules_get"];
+        put?: never;
+        /**
+         * Create Module
+         * @description A new, empty module at the end of its year. Its `id` is its address, for good. Audited.
+         *
+         *     Errors: slug_taken (409), invalid_input (422: a unit code another module has, a link that isn't https://).
+         */
+        post: operations["create_module_api_v1_content_modules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/modules/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reorder Modules
+         * @description One year's modules in a new order. Audited. Errors: module_changed (409: they aren't that year's modules).
+         */
+        post: operations["reorder_modules_api_v1_content_modules_reorder_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/modules/{module_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Module For Editing
+         * @description A module as the editor has it: hidden chapters and lessons too, each with its `origin` and video link.
+         */
+        get: operations["module_for_editing_api_v1_content_modules__module_id__get"];
+        /**
+         * Save Module
+         * @description Saves the whole module. What refers to its lessons (progress, notes, study-board cards) follows them when
+         *     they move or are hidden. Audited, with what changed before and after.
+         *
+         *     Errors: module_changed (409: someone saved it since `version`, or an `origin` that isn't in it any more),
+         *     content_in_use (409: removing a chapter that still has lessons, or a lesson with notes or cards: hide it),
+         *     invalid_input (422: a video link the app can't embed, a unit code another module has, a link that isn't
+         *     https://).
+         */
+        put: operations["save_module_api_v1_content_modules__module_id__put"];
+        post?: never;
+        /**
+         * Delete Module
+         * @description Removes a module nothing refers to. Audited.
+         *
+         *     Errors: module_changed (409), content_in_use (409: it has lessons, files, threads, notes, cards, requests or
+         *     calendar dates; hide it instead).
+         */
+        delete: operations["delete_module_api_v1_content_modules__module_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/library/items": {
         parameters: {
             query?: never;
@@ -2265,7 +2348,7 @@ export interface components {
              * Key
              * @enum {string}
              */
-            key: "forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read";
+            key: "forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read";
             /** Area */
             area: string;
             /** Label */
@@ -2668,6 +2751,31 @@ export interface components {
             /** Videos */
             videos: components["schemas"]["Video"][];
         };
+        /** ChapterIn */
+        ChapterIn: {
+            /** Title */
+            title: string;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
+            /** Origin */
+            origin?: number | null;
+            /** Lessons */
+            lessons?: components["schemas"]["LessonIn"][];
+        };
+        /** ChapterOut */
+        ChapterOut: {
+            /** Title */
+            title: string;
+            /** Hidden */
+            hidden: boolean;
+            /** Origin */
+            origin: number;
+            /** Lessons */
+            lessons: components["schemas"]["LessonOut"][];
+        };
         /** ChecklistCert */
         ChecklistCert: {
             /**
@@ -2827,7 +2935,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -3482,6 +3590,54 @@ export interface components {
              */
             at: string;
         };
+        /**
+         * LessonIn
+         * @description A video lesson: a YouTube video or playlist link, or a class recording on vc.bibf.com.
+         */
+        LessonIn: {
+            /** Url */
+            url: string;
+            /** Title */
+            title?: string | null;
+            /** Channel */
+            channel?: string | null;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
+            origin?: components["schemas"]["LessonOrigin"] | null;
+        };
+        /**
+         * LessonOrigin
+         * @description Where a lesson was in the version loaded: its chapter and video index as stored (ModuleEdit's order).
+         */
+        LessonOrigin: {
+            /** Chapter */
+            chapter: number;
+            /** Video */
+            video: number;
+        };
+        /** LessonOut */
+        LessonOut: {
+            /** Url */
+            url: string;
+            /** Title */
+            title?: string | null;
+            /** Channel */
+            channel?: string | null;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
+            origin: components["schemas"]["LessonOrigin"];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "youtube" | "youtube-playlist" | "bbb";
+        };
         /** LessonWatchedUpdate */
         LessonWatchedUpdate: {
             /** Watched */
@@ -3697,7 +3853,7 @@ export interface components {
             /** Roles */
             roles: components["schemas"]["RoleSummary"][];
             /** Boxes */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
             features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests")[];
             /**
@@ -3729,6 +3885,33 @@ export interface components {
             year?: (1 | 2 | 3) | null;
             preferences?: components["schemas"]["PreferencesUpdate"] | null;
         };
+        /**
+         * ModuleCreate
+         * @description A new module, empty: its chapters come next, in the editor. `id` is its address (/modules/<id>), for good.
+         */
+        ModuleCreate: {
+            /** Unitcode */
+            unitCode?: string | null;
+            /** Name */
+            name: string;
+            /** Shortname */
+            shortName: string;
+            /**
+             * Year
+             * @enum {integer}
+             */
+            year: 1 | 2 | 3;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Icon */
+            icon?: ("BookOpenText" | "Brain" | "Briefcase" | "ChartBar" | "ChartLineUp" | "ChartScatter" | "Coins" | "Database" | "Function" | "ListChecks" | "Megaphone" | "PresentationChart" | "Scales" | "Sigma" | "Storefront" | "TerminalWindow" | "WaveSine") | null;
+            resources?: components["schemas"]["ResourcesIn"];
+            /** Id */
+            id: string;
+        };
         /** ModuleDetail */
         ModuleDetail: {
             /** Id */
@@ -3758,6 +3941,84 @@ export interface components {
             /** Chapters */
             chapters: components["schemas"]["Chapter"][];
         };
+        /** ModuleEdit */
+        ModuleEdit: {
+            /** Id */
+            id: string;
+            /** Unitcode */
+            unitCode: string | null;
+            /** Name */
+            name: string;
+            /** Shortname */
+            shortName: string;
+            /**
+             * Year
+             * @enum {integer}
+             */
+            year: 1 | 2 | 3;
+            /** Icon */
+            icon: string | null;
+            /** Hidden */
+            hidden: boolean;
+            /** Position */
+            position: number;
+            /** Version */
+            version: number;
+            /** Chaptercount */
+            chapterCount: number;
+            /** Lessoncount */
+            lessonCount: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            /** Description */
+            description: string;
+            resources: components["schemas"]["ModuleResources"];
+            /** Chapters */
+            chapters: components["schemas"]["ChapterOut"][];
+        };
+        /** ModuleEditSummary */
+        ModuleEditSummary: {
+            /** Id */
+            id: string;
+            /** Unitcode */
+            unitCode: string | null;
+            /** Name */
+            name: string;
+            /** Shortname */
+            shortName: string;
+            /**
+             * Year
+             * @enum {integer}
+             */
+            year: 1 | 2 | 3;
+            /** Icon */
+            icon: string | null;
+            /** Hidden */
+            hidden: boolean;
+            /** Position */
+            position: number;
+            /** Version */
+            version: number;
+            /** Chaptercount */
+            chapterCount: number;
+            /** Lessoncount */
+            lessonCount: number;
+            /** Updatedat */
+            updatedAt: string | null;
+        };
+        /**
+         * ModuleOrder
+         * @description One year's modules, in their new order: every module of that year, once each.
+         */
+        ModuleOrder: {
+            /**
+             * Year
+             * @enum {integer}
+             */
+            year: 1 | 2 | 3;
+            /** Ids */
+            ids: string[];
+        };
         /** ModuleResources */
         ModuleResources: {
             /** Materials */
@@ -3772,6 +4033,42 @@ export interface components {
             olderExams?: string | null;
             /** Cheatsheet */
             cheatSheet?: string | null;
+        };
+        /**
+         * ModuleSave
+         * @description The whole module as the editor has it. `version` is the one loaded: if someone saved since, 409
+         *     module_changed. Lessons and chapters keep their `origin`, so what refers to them (progress, notes, study-board
+         *     cards) follows them when they move.
+         */
+        ModuleSave: {
+            /** Unitcode */
+            unitCode?: string | null;
+            /** Name */
+            name: string;
+            /** Shortname */
+            shortName: string;
+            /**
+             * Year
+             * @enum {integer}
+             */
+            year: 1 | 2 | 3;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Icon */
+            icon?: ("BookOpenText" | "Brain" | "Briefcase" | "ChartBar" | "ChartLineUp" | "ChartScatter" | "Coins" | "Database" | "Function" | "ListChecks" | "Megaphone" | "PresentationChart" | "Scales" | "Sigma" | "Storefront" | "TerminalWindow" | "WaveSine") | null;
+            resources?: components["schemas"]["ResourcesIn"];
+            /** Version */
+            version: number;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
+            /** Chapters */
+            chapters?: components["schemas"]["ChapterIn"][];
         };
         /** ModuleSummary */
         ModuleSummary: {
@@ -4571,6 +4868,24 @@ export interface components {
             /** Offset */
             offset: number;
         };
+        /**
+         * ResourcesIn
+         * @description The module's shared folders: https:// links (empty or null for none).
+         */
+        ResourcesIn: {
+            /** Materials */
+            materials?: string | null;
+            /** Exercises */
+            exercises?: string | null;
+            /** Exercisesnote */
+            exercisesNote?: string | null;
+            /** Vle */
+            vle?: string | null;
+            /** Olderexams */
+            olderExams?: string | null;
+            /** Cheatsheet */
+            cheatSheet?: string | null;
+        };
         /** ResumeUpdate */
         ResumeUpdate: {
             /** Moduleid */
@@ -4607,7 +4922,7 @@ export interface components {
              * Boxes
              * @default []
              */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
         };
         /** RoleOut */
         RoleOut: {
@@ -4631,7 +4946,7 @@ export interface components {
             /** Version */
             version: number;
             /** Boxes */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Holders */
             holders: number;
         };
@@ -4661,7 +4976,7 @@ export interface components {
             /** Badge */
             badge?: string | null;
             /** Boxes */
-            boxes?: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[] | null;
+            boxes?: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[] | null;
             /** Position */
             position?: number | null;
         };
@@ -5159,6 +5474,8 @@ export type CareerTrack = components['schemas']['CareerTrack'];
 export type CategoryOut = components['schemas']['CategoryOut'];
 export type CertFile = components['schemas']['CertFile'];
 export type Chapter = components['schemas']['Chapter'];
+export type ChapterIn = components['schemas']['ChapterIn'];
+export type ChapterOut = components['schemas']['ChapterOut'];
 export type ChecklistCert = components['schemas']['ChecklistCert'];
 export type ChecklistForum = components['schemas']['ChecklistForum'];
 export type ChecklistLesson = components['schemas']['ChecklistLesson'];
@@ -5201,6 +5518,9 @@ export type IssueSection = components['schemas']['IssueSection'];
 export type IssueSummary = components['schemas']['IssueSummary'];
 export type IssueUpdate = components['schemas']['IssueUpdate'];
 export type LastLesson = components['schemas']['LastLesson'];
+export type LessonIn = components['schemas']['LessonIn'];
+export type LessonOrigin = components['schemas']['LessonOrigin'];
+export type LessonOut = components['schemas']['LessonOut'];
 export type LessonWatchedUpdate = components['schemas']['LessonWatchedUpdate'];
 export type LibraryFacets = components['schemas']['LibraryFacets'];
 export type LibraryItem = components['schemas']['LibraryItem'];
@@ -5212,8 +5532,13 @@ export type ListBlock = components['schemas']['ListBlock'];
 export type LiveFallback = components['schemas']['LiveFallback'];
 export type Me = components['schemas']['Me'];
 export type MeUpdate = components['schemas']['MeUpdate'];
+export type ModuleCreate = components['schemas']['ModuleCreate'];
 export type ModuleDetail = components['schemas']['ModuleDetail'];
+export type ModuleEdit = components['schemas']['ModuleEdit'];
+export type ModuleEditSummary = components['schemas']['ModuleEditSummary'];
+export type ModuleOrder = components['schemas']['ModuleOrder'];
 export type ModuleResources = components['schemas']['ModuleResources'];
+export type ModuleSave = components['schemas']['ModuleSave'];
 export type ModuleSummary = components['schemas']['ModuleSummary'];
 export type NooraDoneEvent = components['schemas']['NooraDoneEvent'];
 export type NooraErrorEvent = components['schemas']['NooraErrorEvent'];
@@ -5258,6 +5583,7 @@ export type RequestAnswer = components['schemas']['RequestAnswer'];
 export type RequestCreate = components['schemas']['RequestCreate'];
 export type RequestOut = components['schemas']['RequestOut'];
 export type RequestPage = components['schemas']['RequestPage'];
+export type ResourcesIn = components['schemas']['ResourcesIn'];
 export type ResumeUpdate = components['schemas']['ResumeUpdate'];
 export type ReviewDecision = components['schemas']['ReviewDecision'];
 export type RoleCatalogue = components['schemas']['RoleCatalogue'];
@@ -8531,6 +8857,522 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ModuleDetail"];
                 };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    modules_for_editing_api_v1_content_modules_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleEditSummary"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_module_api_v1_content_modules_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModuleCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleEdit"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    reorder_modules_api_v1_content_modules_reorder_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModuleOrder"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleEditSummary"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    module_for_editing_api_v1_content_modules__module_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                module_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleEdit"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_module_api_v1_content_modules__module_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                module_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModuleSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleEdit"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_module_api_v1_content_modules__module_id__delete: {
+        parameters: {
+            query: {
+                version: number;
+            };
+            header?: never;
+            path: {
+                module_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {
