@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleSummary } from '../../api/types';
+import { useAuth } from '../../auth';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { ModuleIcon, cx } from '../../ui';
@@ -56,7 +57,7 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
 /** "Your modules": the year's modules as a quick list (unit code, name, progress, next exam). */
 export function YourModules({ year, today }: { year: CohortYear; today: Date }) {
   const { getModulesForYear } = useModules();
-  const exams = useCalendarEvents({ from: dayKey(today), type: 'exam' });
+  const exams = useCalendarEvents({ from: dayKey(today), type: 'exam' }, { enabled: useAuth().featureOn('calendar') });
   const nextExam = (moduleId: string): NextExam | null => {
     const e = (exams.data ?? []).find((ev) => ev.moduleId === moduleId && !ev.sample);
     if (!e) return null;

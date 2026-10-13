@@ -17,8 +17,9 @@ import { AuthorAvatar } from './AuthorAvatar';
 import { ReplyCount } from './ThreadBits';
 
 function ModuleCard({ module }: { module: ModuleSummary }) {
-  const exam = useNextExamForModule(module.id).data ?? null;
-  const posts = useAuth().mayTry('forum.post');
+  const { featureOn, mayTry } = useAuth();
+  const exam = useNextExamForModule(module.id, { enabled: featureOn('calendar') }).data ?? null;
+  const posts = mayTry('forum.post');
   const days = exam ? daysUntil(exam.date) : null;
   return (
     <section className="forum-tside__card" aria-label="Module" style={{ '--forum-c': cohortTextColor(module.year) } as CSSProperties}>

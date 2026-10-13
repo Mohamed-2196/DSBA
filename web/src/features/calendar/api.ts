@@ -64,12 +64,12 @@ export function useUpcomingEvents({ n = 5, year = null }: { n?: number; year?: C
 }
 
 /** The next exam (today or later) for a module; data is null when none is on the calendar. */
-export function useNextExamForModule(moduleId: string | null | undefined) {
+export function useNextExamForModule(moduleId: string | null | undefined, { enabled = true }: { enabled?: boolean } = {}) {
   const from = dayKeyFromToday();
   return useQuery({
     queryKey: [...calendarKeys.events({ moduleId: moduleId ?? null, type: 'exam', from }), 'next'] as const,
     queryFn: async () => (await fetchEvents({ moduleId, type: 'exam', from }))[0] ?? null,
-    enabled: !!moduleId,
+    enabled: enabled && !!moduleId,
     staleTime: STALE,
   });
 }
