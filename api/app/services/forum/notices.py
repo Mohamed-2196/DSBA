@@ -15,6 +15,7 @@ import uuid
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
+from app.core.text import clip
 from app.models import EmailOutbox, ForumReply, ForumThread, Notification, OutboxStatus, User
 from app.services.forum.text import excerpt
 from app.services.notify import notify
@@ -31,12 +32,7 @@ def reply_url(t: ForumThread, reply_id: uuid.UUID) -> str:
 
 def _title(t: ForumThread) -> str:
     """The thread's title in quotes, cut at a word when it is long."""
-    title = t.title
-    if len(title) > TITLE_LENGTH:
-        cut = title[:TITLE_LENGTH]
-        space = cut.rfind(" ")
-        title = (cut[:space] if space > TITLE_LENGTH // 2 else cut).rstrip(" ,.;:?!") + "…"
-    return f"“{title}”"
+    return f"“{clip(t.title, TITLE_LENGTH + 1, at_word=True)}”"
 
 
 def reply_posted(db: Session, t: ForumThread, r: ForumReply, parent: ForumReply | None, actor: User) -> None:

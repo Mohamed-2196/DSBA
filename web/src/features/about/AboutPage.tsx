@@ -2,7 +2,7 @@ import { ArrowUpRight, Bank, GithubLogo, GraduationCap, UploadSimple, type Icon 
 import { CONTRIBUTORS, DISCLAIMER, MYCLASS_URL, NOTE_CONTRIBUTORS, REPORT_PROBLEM_URL, UOL_PORTAL_URL } from '../../data/people';
 import { showsUpload, useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
-import { Avatar, Button, Page, PageHeader, PageSection, Panel, SectionHeader } from '../../ui';
+import { Avatar, Button, Page, PageHeader, PageSection, Panel, SectionHeader, countOf } from '../../ui';
 import { useCalendarEvents } from '../calendar/public';
 import './AboutPage.css';
 
@@ -11,7 +11,6 @@ const LINKS: { label: string; note: string; href: string; icon: Icon }[] = [
   { label: 'UoL student portal', note: 'Exam entries, results and your student record', href: UOL_PORTAL_URL, icon: Bank },
 ];
 
-const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
 
 /** "16 modules across three years, with 100 chapters, 384 lessons, 51 files in the library and 66 calendar dates." */
 function CoverageLine() {
@@ -20,18 +19,18 @@ function CoverageLine() {
   const events = useCalendarEvents({}, { enabled: featureOn('calendar') });
   const chapters = modules.reduce((n, m) => n + m.chapterCount, 0);
   const lessons = modules.reduce((n, m) => n + m.lessonCount, 0);
-  const parts = [plural(chapters, 'chapter', 'chapters'), plural(lessons, 'lesson', 'lessons')];
+  const parts = [countOf(chapters, 'chapter', 'chapters'), countOf(lessons, 'lesson', 'lessons')];
   // The library's count is null while the library is switched off: the sentence leaves it out.
   if (modules.some((m) => m.libraryCount !== null)) {
     const files = modules.reduce((n, m) => n + (m.libraryCount ?? 0), 0);
-    parts.push(`${plural(files, 'file', 'files')} in the library`);
+    parts.push(`${countOf(files, 'file', 'files')} in the library`);
   }
   // The calendar count joins the sentence once it has loaded (and simply stays out if it can't be read).
-  if (events.data) parts.push(plural(events.data.length, 'calendar date', 'calendar dates'));
+  if (events.data) parts.push(countOf(events.data.length, 'calendar date', 'calendar dates'));
   const last = parts.pop() ?? '';
   return (
     <p>
-      Right now it covers {plural(modules.length, 'module', 'modules')} across three years, with {parts.join(', ')} and {last}.
+      Right now it covers {countOf(modules.length, 'module', 'modules')} across three years, with {parts.join(', ')} and {last}.
     </p>
   );
 }

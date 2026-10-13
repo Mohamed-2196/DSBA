@@ -13,9 +13,10 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import set_committed_value
 
 from app.core.links import LINK_RULE, PICTURE_RULE
-from app.models import AuditEntry, EmailOutbox, NewsletterIssue, Notification, User
+from app.models import AuditEntry, EmailOutbox, IssueStatus, NewsletterIssue, Notification, User
 from app.seed.loader import load_newsletter, read
 from app.services import newsletter as svc
 from tests.content.conftest import API
@@ -458,6 +459,36 @@ def test_publishing_tells_every_account_once(
     assert dt.datetime.fromisoformat(again) == dt.datetime.fromisoformat(r.json()["publishedAt"])
     assert len(list(db.scalars(select(Notification)))) == 6
     assert client_for(keen).post(f"{ISSUES}/{issue['id']}/publish").status_code == 403
+
+
+def test_a_publish_reads_the_issue_again_so_two_at_once_notify_once(
+    client_for: Clients, make_user: Callable[..., User], moderator: User, db: Session
+) -> None:
+    """Student test ST-16: a double click on "Publish and notify everyone". The second request loaded the issue as
+    a draft; the lock makes it read the row again, find it published, and tell nobody."""
+    make_user()
+    rep = client_for(moderator)
+    issue = rep.post(ISSUES, json=new_issue()).json()
+    assert rep.post(f"{ISSUES}/{issue['id']}/publish").status_code == 200
+    stale = db.get(NewsletterIssue, uuid.UUID(issue["id"]))
+    assert stale is not None
+    set_committed_value(stale, "status", IssueStatus.draft)  # what the second request saw
+    assert svc.publish(db, moderator, stale, None) is False
+    assert len(list(db.scalars(select(Notification)))) == 1
+    assert len(list(db.scalars(select(AuditEntry).where(AuditEntry.action == "newsletter.publish")))) == 1
+
+
+def test_issue_emails_quote_no_links(
+    client_for: Clients, make_user: Callable[..., User], moderator: User, db: Session
+) -> None:
+    """Security review SEC-18: the email quotes the issue's lead without its links."""
+    reader = make_user()
+    rep = client_for(moderator)
+    issue = rep.post(ISSUES, json=new_issue(dek="Read it at https://evil.example/login or www.evil.example")).json()
+    rep.post(f"{ISSUES}/{issue['id']}/publish")
+    [email] = db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == reader.id)).all()
+    assert "evil.example" not in email.body
+    assert "Read it at [link] or [link]" in email.body
 
 
 def test_one_issue_email_a_day(

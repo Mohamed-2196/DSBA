@@ -6,7 +6,8 @@ import type { ModuleDetail, Video } from '../../api/types';
 import { lessonKey, videoThumbnailUrl } from '../../lib/modules';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
-import { Button, HubMark, cx } from '../../ui';
+import { Button, ErrorBoundary, HubMark, cx } from '../../ui';
+import { LessonNotes } from '../notes/public';
 import { AddToBoard } from '../board/public';
 import { ChapterList } from './ChapterList';
 import { KIND_SOURCE, chapterLessons, chapterPosition, embedSrc, httpsOnly, kindLabel, lessonPosition, openOriginalLabel, sourceHref } from './lessons';
@@ -271,6 +272,10 @@ export function LessonsTab({
                 </audio>
               </div>
             ) : null}
+
+            <ErrorBoundary name="LessonNotes" resetKey={key}>
+              <LessonNotes moduleId={m.id} chapter={c} video={v} />
+            </ErrorBoundary>
           </div>
         </div>
 

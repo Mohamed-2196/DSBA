@@ -26,7 +26,7 @@ BoxKey = Literal[
     "audit.read",
 ]
 FeatureKey = Literal[
-    "forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora", "board"
+    "forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora", "notes", "board"
 ]
 
 

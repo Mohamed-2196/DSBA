@@ -8,6 +8,8 @@ from pydantic import Field, HttpUrl, StringConstraints
 
 from app.schemas.common import ApiModel, Page, UserPublic, Year
 
+EXAM_YEAR_MIN, EXAM_YEAR_MAX = 1990, 2100  # the exam years a past paper may give
+
 LibraryKind = Literal[
     "past-paper",
     "examiners-report",
@@ -77,7 +79,7 @@ class LibraryItemCreate(ApiModel):
     module_id: str | None = None
     year: Year | None = None
     description: Description | None = None
-    exam_year: int | None = Field(default=None, ge=1990, le=2100)
+    exam_year: int | None = Field(default=None, ge=EXAM_YEAR_MIN, le=EXAM_YEAR_MAX)
     zone: Literal["A", "B"] | None = None
     author_name: AuthorName | None = None
 
@@ -100,7 +102,7 @@ class LibraryItemUpdate(ApiModel):
     module_id: str | None = None
     year: Year | None = None
     description: Description | None = None
-    exam_year: int | None = Field(default=None, ge=1990, le=2100)
+    exam_year: int | None = Field(default=None, ge=EXAM_YEAR_MIN, le=EXAM_YEAR_MAX)
     zone: Literal["A", "B"] | None = None
     author_name: AuthorName | None = None
 

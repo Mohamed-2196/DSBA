@@ -38,9 +38,10 @@ def test_reviewing_comes_from_the_box_through_any_role(
     give_roles(librarian, "student", "library-team")
     give_roles(helper, "student", "forum-helpers")
     url = f"{API}/library/items/{pending['id']}"
-    assert client_for(helper).get(url).status_code == 404  # a pending file is for the library's managers
+    read = f"{API}/library/items/{pending['slug']}"
+    assert client_for(helper).get(read).status_code == 404  # a pending file is for the library's managers
     assert client_for(helper).post(f"{url}/review", json={"decision": "publish"}).status_code == 403
-    assert client_for(librarian).get(url).status_code == 200
+    assert client_for(librarian).get(read).status_code == 200
     assert client_for(librarian).post(f"{url}/review", json={"decision": "publish"}).status_code == 200
-    assert client_for().get(url).status_code == 200
+    assert client_for().get(read).status_code == 200
     assert share_pdf(client_for(librarian), storage, title="Straight in")["status"] == "published"

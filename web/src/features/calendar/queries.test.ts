@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { whenAndWhere } from './eventMeta';
-import { eventDays, filterEvents, groupByMonth, listOrder, nextExamFor, upcomingFrom, weekAhead, weekEnd } from './queries';
+import { eventDays, filterEvents, groupByDay, groupByMonth, listOrder, nextExamFor, upcomingFrom, weekAhead, weekEnd } from './queries';
 import type { CalendarEvent } from './types';
 
 let seq = 0;
@@ -120,5 +120,25 @@ describe('whenAndWhere', () => {
   it('says nothing for anything else without a time or place', () => {
     expect(whenAndWhere({ type: 'deadline', time: null, place: null })).toBeNull();
     expect(whenAndWhere({ type: 'mock', time: '4:00 PM', place: null })).toBe('4:00 PM');
+  });
+});
+
+describe('eventDays and groupByDay', () => {
+  it('lists every day of an event that spans days, across the end of a month', () => {
+    expect(eventDays({ date: '2026-05-30', endDate: '2026-06-02' })).toEqual(['2026-05-30', '2026-05-31', '2026-06-01', '2026-06-02']);
+  });
+
+  it('gives the date alone without an end date, or with one that is not after it', () => {
+    expect(eventDays({ date: '2026-05-31', endDate: null })).toEqual(['2026-05-31']);
+    expect(eventDays({ date: '2026-05-31', endDate: '2026-05-31' })).toEqual(['2026-05-31']);
+    expect(eventDays({ date: '2026-05-31', endDate: '2026-05-01' })).toEqual(['2026-05-31']);
+  });
+
+  it('puts a multi-day event under each of its days', () => {
+    const week = ev('2026-05-29', { endDate: '2026-06-01', type: 'revision' });
+    const exam = ev('2026-05-31');
+    const byDay = groupByDay([week, exam]);
+    expect([...byDay.keys()]).toEqual(['2026-05-29', '2026-05-30', '2026-05-31', '2026-06-01']);
+    expect(ids(byDay.get('2026-05-31') ?? [])).toEqual([week.id, exam.id]);
   });
 });

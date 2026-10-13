@@ -16,7 +16,7 @@ export { useRecentFiles } from './api';
 export { itemPath as libraryItemPath } from './api';
 export { kindLabel as libraryKindLabel } from './kinds';
 export { UploadsQueue } from './UploadsQueue';
-export type { LibraryItem } from './types';
+;
 
 const LazyModuleFiles = lazy(() => import('./ModuleFiles'));
 const LazyUploadDialog = lazy(() => import('./components/UploadDialog').then((m) => ({ default: m.UploadDialog })));

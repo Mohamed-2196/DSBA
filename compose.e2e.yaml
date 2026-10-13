@@ -2,7 +2,7 @@
 # suite and says how to undo it; on its own:
 #
 #   docker compose -f compose.yaml -f compose.e2e.yaml up -d --no-deps api mail web    # e2e mode
-#   docker compose up -d --no-deps api mail                                            # back to Mailpit
+#   docker compose up -d --no-deps api mail web    # back to Mailpit (from the main checkout: scripts/e2e.sh --restore)
 #
 # What changes while it is applied (development only; production uses compose.prod.yaml):
 #   - Emails (sign-in codes, and the mail worker's notifications) are saved as .eml files in api/var/mail instead of

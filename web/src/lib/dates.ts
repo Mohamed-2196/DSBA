@@ -1,4 +1,4 @@
-// Calendar days, the one home for every area (code quality review CQ-5).
+// Calendar days: keys, today in Bahrain, distances and formats.
 //
 // A day on the calendar, an issue date or an exam is a DayKey: 'YYYY-MM-DD', with no time and no time zone. In code
 // a day is a Date at local midnight of that day (parseDay), so its year, month and date read back as written,
@@ -173,7 +173,5 @@ export const formatShortYear = (date: Date): string => formatDay(date, { weekday
 export const formatDayMonth = (date: Date): string => formatDay(date, { month: 'short', year: false });
 /** 'Oct' */
 export const formatMonthShort = (date: Date): string => monthShort(date.getMonth());
-/** 'October' */
-export const formatMonthLong = (date: Date): string => monthName(date.getMonth());
 /** 'October 2026' */
 export const formatMonthYear = (date: Date): string => `${monthName(date.getMonth())} ${date.getFullYear()}`;

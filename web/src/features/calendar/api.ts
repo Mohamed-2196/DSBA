@@ -58,7 +58,7 @@ export function useUpcomingEvents({ n = 5, year = null }: { n?: number; year?: C
   return useQuery({
     queryKey: calendarKeys.upcoming(size, year ?? null),
     queryFn: async () =>
-      sortEvents(await call(api.GET('/api/v1/calendar/upcoming', { params: { query: { n: size, year: year ?? undefined } } }))),
+      sortEvents(await call(api.GET('/api/v1/calendar/upcoming', { params: { query: { limit: size, year: year ?? undefined } } }))),
     staleTime: STALE,
   });
 }

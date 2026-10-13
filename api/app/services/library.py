@@ -33,7 +33,14 @@ from app.models import (
     UploadStatus,
     User,
 )
-from app.schemas.library import FileLink, LibraryFacets, LibraryItemCreate, LibraryItemUpdate, LibraryLinkCreate
+from app.schemas.library import (
+    FileLink,
+    LibraryFacets,
+    LibraryItemCreate,
+    LibraryItemUpdate,
+    LibraryKind,
+    LibraryLinkCreate,
+)
 from app.schemas.library import LibraryItem as LibraryItemOut
 from app.schemas.notifications import NotificationKind
 from app.services import access, ratelimit
@@ -143,14 +150,10 @@ def can_edit(item: LibraryItem, user: User | None) -> bool:
 
 
 def find(db: Session, ref: str | uuid.UUID) -> LibraryItem | None:
-    """By id, else by slug."""
+    """By id (the routes that act on an item), or by slug (reading one: every link uses the slug)."""
     if isinstance(ref, uuid.UUID):
         return db.get(LibraryItem, ref)
-    try:
-        item = db.get(LibraryItem, uuid.UUID(ref))
-    except ValueError:
-        item = None
-    return item or db.scalar(select(LibraryItem).where(LibraryItem.slug == ref))
+    return db.scalar(select(LibraryItem).where(LibraryItem.slug == ref))
 
 
 def get_visible(db: Session, ref: str | uuid.UUID, user: User | None) -> LibraryItem:
@@ -430,7 +433,7 @@ def create_imported(
     db: Session,
     module: Module | None,
     *,
-    kind: str,
+    kind: LibraryKind,
     title: str,
     description: str,
     storage_key: str,
@@ -506,13 +509,19 @@ def remove(db: Session, user: User, item: LibraryItem, ip: str | None) -> None:
 def review(
     db: Session, user: User, item: LibraryItem, decision: Literal["publish", "reject"], note: str | None, ip: str | None
 ) -> None:
+    """Publishes or rejects an item. The row is locked first, so two reviews at once act one after the other; a
+    review that changes nothing (the same decision and note again) writes no activity and tells nobody."""
+    db.refresh(item, with_for_update=True)
     if item.status == ItemStatus.removed:
         raise conflict("post_unavailable", "This file was removed.")
     if decision == "publish" and item.source == ItemSource.file and not item.storage_key:
         raise conflict("file_gone", "This file was deleted after it was rejected. Ask for it to be shared again.")
+    status = ItemStatus.published if decision == "publish" else ItemStatus.rejected
+    if item.status == status and item.review_note == (note or None):
+        return
     now = utcnow()
     previous = item.status
-    item.status = ItemStatus.published if decision == "publish" else ItemStatus.rejected
+    item.status = status
     if decision == "publish" and item.published_at is None:
         item.published_at = now
     item.review_note = note or None

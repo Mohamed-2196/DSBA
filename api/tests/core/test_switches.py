@@ -53,11 +53,14 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("calendar", "POST", "/calendar/events"),
     ("career", "GET", "/career"),
     ("career", "PUT", "/career"),
+    ("notes", "GET", "/notes"),
+    ("notes", "POST", "/notes"),
+    ("notes", "GET", f"/notes/{NOTHING}"),
     ("board", "GET", "/board"),
     ("board", "POST", "/board/cards"),
 ]
-# The features the migrations add switched off.
-OFF_AT_START = {"board"}
+# Features that arrive switched off (the migrations' switches): the tests switch them on first.
+OFF_AT_FIRST = ("notes", "board")
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
 # paths below it.
@@ -92,6 +95,7 @@ AREAS: dict[str, Feature] = {
     "/newsletter": Feature.newsletter,
     "/calendar": Feature.calendar,
     "/career": Feature.career,
+    "/notes": Feature.notes,
 }
 
 
@@ -155,7 +159,7 @@ def test_a_switched_off_feature_is_gone_except_for_admins(
 ) -> None:
     body: dict[str, Any] | None = {} if method in ("POST", "PUT") else None
     student, boss = make_user(name="Sara Student"), make_user(name="Head Admin", roles=ADMIN)
-    if feature in OFF_AT_START:
+    if feature in OFF_AT_FIRST:
         set_feature(feature, "everyone")
     assert not off(client_for(student).request(method, f"{API}{path}", json=body))
     set_feature(feature, "off")
@@ -196,7 +200,7 @@ def test_switching_off_uploads_leaves_the_library_readable(
     set_feature("library.uploads", "off")
     assert off(client_for(student).post(f"{API}/uploads", json=PDF_UPLOAD))
     assert off(client_for(student).post(f"{API}/library/items", json={}))
-    assert client_for(student).get(f"{API}/library/items/{published['id']}").status_code == 200
+    assert client_for(student).get(f"{API}/library/items/{published['slug']}").status_code == 200
     assert client_for(student).post(f"{API}/uploads", json=PNG_UPLOAD).status_code == 201  # forum pictures still go
     assert client_for(boss).post(f"{API}/uploads", json=PDF_UPLOAD).status_code == 201
 
@@ -252,7 +256,7 @@ def test_the_reports_queue_and_the_numbers_follow_the_switches(
     item = share_pdf(client_for(boss), storage)
     for target_type, target_id in (("thread", t["id"]), ("library_item", item["id"])):
         r = reporter.post(f"{API}/reports", json={"targetType": target_type, "targetId": target_id, "reason": "spam"})
-        assert r.status_code == 201, r.text
+        assert r.status_code == 204, r.text
     queue = client_for(rep).get(f"{API}/admin/reports").json()["items"]
     forum_report = next(r["id"] for r in queue if r["targetType"] == "thread")
     set_feature("forum", "off")
@@ -289,17 +293,16 @@ def test_a_notification_into_a_switched_off_feature_still_lists(
 def test_me_and_features_list_what_is_on(
     client_for: ClientFor, make_user: MakeUser, set_feature: Callable[..., None], db: Session
 ) -> None:
-    everything = [f.value for f in Feature]
-    on_at_start = [f for f in everything if f not in OFF_AT_START]
+    everything = [f.value for f in Feature if f not in OFF_AT_FIRST]
     student, boss = make_user(name="Sara Student"), make_user(name="Head Admin", roles=ADMIN)
-    assert client_for(student).get(f"{API}/me").json()["features"] == on_at_start
-    assert client_for().get(f"{API}/features").json() == {"features": on_at_start}
+    assert client_for(student).get(f"{API}/me").json()["features"] == everything
+    assert client_for().get(f"{API}/features").json() == {"features": everything}
     set_feature("calendar", "off")
-    without_calendar = [f for f in on_at_start if f != "calendar"]
+    without_calendar = [f for f in everything if f != "calendar"]
     assert client_for(student).get(f"{API}/me").json()["features"] == without_calendar
     assert client_for(student).get(f"{API}/features").json() == {"features": without_calendar}
     assert client_for().get(f"{API}/features").json() == {"features": without_calendar}
-    assert client_for(boss).get(f"{API}/me").json()["features"] == everything
+    assert client_for(boss).get(f"{API}/me").json()["features"] == [f.value for f in Feature]
     db.add(FeatureSwitch(feature="teleport", mode="everyone"))  # a key the code doesn't know
     db.commit()
     access.forget(db)

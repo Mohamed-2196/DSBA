@@ -13,7 +13,7 @@ from datetime import timedelta
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import Engine, create_engine, delete, select
+from sqlalchemy import Engine, create_engine, delete, select, update
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
 
@@ -22,6 +22,7 @@ from app.core.time import utcnow
 from app.models import EmailOutbox, Notification, OutboxStatus, User
 from app.schemas.notifications import NotificationKind
 from app.services import mailer
+from app.services import notify as notify_mod
 from app.services import outbox as mail_outbox
 from app.services.mailer import DeliveryError
 from app.services.notify import notify, notify_all
@@ -330,6 +331,31 @@ def test_two_workers_never_send_the_same_email(
         with own_connections() as s:
             s.execute(delete(EmailOutbox).where(EmailOutbox.to_address.in_(addresses)))
             s.commit()
+
+
+def test_reply_emails_quote_no_links_and_stop_after_ten_an_hour(
+    client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    """Security review SEC-17: replying over and over can't flood a classmate's inbox, and a reply can't put a link
+    in an email from the Hub's own address. The notifications in the Hub all come."""
+    author = make_user(name="Sara Author")
+    thread = new_thread(client_for(author), "Which chapters are on the ST2133 mock?", "ST2133 mock")
+    replier = client_for(make_user(name="Omar Replier"))
+    new_reply(replier, thread["id"], "Your code expired, sign in at https://dsba-hub-login.example/code now.")
+    [first] = _queued(db, author)
+    assert "dsba-hub-login" not in first.body
+    assert "Your code expired, sign in at [link] now." in first.body
+
+    for i in range(1, 12):
+        new_reply(replier, thread["id"], f"Reply number {i} with dsba-hub-login.example/code")
+    assert len(_queued(db, author)) == notify_mod.EMAIL_MAX_PER_HOUR
+    assert len(_notifications(db, author)) == 12
+    assert all("dsba-hub-login" not in row.body for row in _queued(db, author))
+
+    # an hour on, emails come again
+    db.execute(update(EmailOutbox).values(created_at=EmailOutbox.created_at - timedelta(hours=1)))
+    new_reply(replier, thread["id"], "One more, an hour later.")
+    assert len(_queued(db, author)) == notify_mod.EMAIL_MAX_PER_HOUR + 1
 
 
 def test_an_email_into_a_switched_off_feature_is_cancelled(

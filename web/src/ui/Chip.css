@@ -18,7 +18,7 @@
 .ui-chip:hover { border-color: var(--ink-3); color: var(--ink); }
 .ui-chip__icon { font-size: 16px; }
 .ui-chip__dot { width: 8px; height: 8px; border-radius: var(--r-pill); }
-.ui-chip__count { color: var(--ink-3); font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); }
+.ui-chip__count { color: var(--ink-2); font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); }
 .ui-chip.is-selected { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .ui-chip.is-selected .ui-chip__count { color: color-mix(in srgb, var(--paper) 70%, transparent); }
 

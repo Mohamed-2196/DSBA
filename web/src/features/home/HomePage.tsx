@@ -5,9 +5,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SignIn } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
-import { useYear } from '../../state';
+import { COHORTS, YEARS, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, CohortBadge, ErrorBoundary, Page, PageSection, ProgrammeLockup, SectionHeader } from '../../ui';
+import { Button, CohortBadge, ErrorBoundary, Menu, Page, PageSection, ProgrammeLockup, SectionHeader } from '../../ui';
 import { UpcomingEvents, useCalendarEvents } from '../calendar/public';
 import { HotThreads } from '../forum/public';
 import { ContinueLearning } from '../modules/public';
@@ -41,7 +41,7 @@ function useOnboardingOpen(): boolean {
 const firstNameOf = (name: string | null | undefined): string | null => name?.trim().split(/\s+/)[0] || null;
 
 export default function HomePage() {
-  const { activeYear } = useYear();
+  const { year, setYear, activeYear } = useYear();
   const { me, status, openSignIn, featureOn } = useAuth();
   const calendarOn = featureOn('calendar');
   const { getModule } = useModules();
@@ -71,7 +71,26 @@ export default function HomePage() {
       <header className="home-greeting" data-hub="home-greeting">
         <p className="home-greeting__meta">
           <time dateTime={todayIs}>{formatLongDay(today)}</time>
-          <CohortBadge year={activeYear} />
+          {year ? (
+            <CohortBadge year={year} />
+          ) : (
+            // No year chosen yet: Year 1 is what the page shows, not the person's own year.
+            <>
+              <span className="home-greeting__showing">
+                Showing <CohortBadge year={activeYear} />
+              </span>
+              <Menu
+                align="start"
+                label="Pick your year"
+                items={YEARS.map((y) => ({ id: `y${y}`, label: COHORTS[y].label, icon: <span className={`yr-dot yr-dot--y${y}`} />, onSelect: () => setYear(y) }))}
+                trigger={
+                  <Button size="sm" variant="ghost" data-hub="home-pick-year">
+                    Pick your year
+                  </Button>
+                }
+              />
+            </>
+          )}
         </p>
         <h1 className="home-greeting__title">
           {greetingFor(now)}

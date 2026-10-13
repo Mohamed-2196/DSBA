@@ -133,12 +133,12 @@ export function useLibraryFacets() {
   });
 }
 
-/** One item, by id or slug. */
-export function useLibraryItem(idOrSlug: string | undefined) {
+/** One item, by its slug. */
+export function useLibraryItem(slug: string | undefined) {
   return useQuery({
-    queryKey: libraryKeys.item(idOrSlug ?? ''),
-    queryFn: ({ signal }) => call(api.GET('/api/v1/library/items/{item}', { params: { path: { item: idOrSlug ?? '' } }, signal })),
-    enabled: !!idOrSlug,
+    queryKey: libraryKeys.item(slug ?? ''),
+    queryFn: ({ signal }) => call(api.GET('/api/v1/library/items/{slug}', { params: { path: { slug: slug ?? '' } }, signal })),
+    enabled: !!slug,
   });
 }
 
@@ -171,8 +171,8 @@ export function openLinkHref(item: Pick<LibraryItem, 'id'>): string {
 }
 
 /** The item's page in the app. */
-export function itemPath(item: Pick<LibraryItem, 'id' | 'slug'>): string {
-  return `/library/${encodeURIComponent(item.slug || item.id)}`;
+export function itemPath(item: Pick<LibraryItem, 'slug'>): string {
+  return `/library/${encodeURIComponent(item.slug)}`;
 }
 
 // ── Cache helpers ─────────────────────────────────────────────────────────────

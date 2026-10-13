@@ -76,6 +76,13 @@ def test_good_production_settings_start() -> None:
         ({"web_origins": "https://hub.example.com,http://hub.example.com"}, "'http://hub.example.com': every origin"),
         ({"web_base_url": "http://hub.example.com"}, "DSBA_WEB_BASE_URL must be the app's https://"),
         ({"trusted_proxies": "0.0.0.0/0"}, "DSBA_TRUSTED_PROXIES trusts every address"),
+        ({"trusted_proxies": ""}, "DSBA_TRUSTED_PROXIES is empty"),
+        ({"otp_max_attempts": 6}, "DSBA_OTP_MAX_ATTEMPTS must be at most 5"),
+        ({"otp_max_per_ip_per_hour": 1000}, "DSBA_OTP_MAX_PER_IP_PER_HOUR is above its default (30)"),
+        ({"otp_max_per_identifier_per_hour": 6}, "DSBA_OTP_MAX_PER_IDENTIFIER_PER_HOUR is above its default"),
+        ({"otp_max_per_identifier_per_day": 11}, "DSBA_OTP_MAX_PER_IDENTIFIER_PER_DAY is above its default"),
+        ({"sms_max_per_hour": 1000}, "DSBA_SMS_MAX_PER_HOUR is above its default (50)"),
+        ({"sms_max_per_day": 10000}, "DSBA_SMS_MAX_PER_DAY is above its default (300)"),
         ({"s3_bucket": ""}, "DSBA_S3_BUCKET is empty"),
         ({"s3_access_key_id": "dsba"}, "DSBA_S3_ACCESS_KEY_ID and DSBA_S3_SECRET_ACCESS_KEY must be set"),
         ({"s3_secret_access_key": "dsba-dev-secret"}, "DSBA_S3_ACCESS_KEY_ID and DSBA_S3_SECRET_ACCESS_KEY"),
@@ -111,6 +118,15 @@ def test_minio_behind_https_and_texts_turned_off_are_fine() -> None:
         sms_allowed_regions="",
     )
     assert s.problems() == []
+
+
+def test_raised_limits_pass_only_on_purpose_and_lower_ones_always() -> None:
+    raised = {"otp_max_per_ip_per_hour": 1000, "sms_max_per_hour": 1000, "sms_max_per_day": 10000}
+    assert len(production(**raised).problems()) == 3
+    assert production(**raised, allow_raised_limits=True).problems() == []
+    assert production(otp_max_per_ip_per_hour=10, sms_max_per_day=50, otp_max_attempts=3).problems() == []
+    # on purpose or not, more wrong tries per code make codes guessable
+    assert len(production(otp_max_attempts=1000, allow_raised_limits=True).problems()) == 1
 
 
 def test_nothing_set_names_every_problem_at_once() -> None:

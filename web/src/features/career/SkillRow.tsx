@@ -1,5 +1,4 @@
 // One skill of a role: the module that teaches it or, for a gap, why it is a gap and the one thing to do about it.
-// Split out of RoleFit (code quality review CQ-17).
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Certificate, ChatsCircle, FileText, PlayCircle, Trophy, type Icon } from '@phosphor-icons/react';

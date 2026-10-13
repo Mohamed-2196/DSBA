@@ -46,7 +46,7 @@
 .acct-row__value.is-empty { color: var(--ink-2); font-style: italic; }
 .acct-row__actions { display: flex; flex: 0 0 auto; gap: var(--sp-4); }
 
-.acct-note { margin-top: var(--sp-8); color: var(--ink-2); font-size: var(--fs-12); }
+.acct-note { margin-top: var(--sp-8); max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-12); }
 .acct-note--inset { margin-top: 0; }
 
 /* Emails */

@@ -1,21 +1,15 @@
 // The study board (R-4): it arrives switched off. With it on, a student adds a card, moves it with the card's menu,
 // adds an exam from the calendar, and finds it on the board. The switch goes back off afterwards.
-import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { api, personaContext } from './support';
+import { api, personaContext, setSwitch } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-async function boardSwitch(admin: Page, mode: 'off' | 'everyone') {
-  const r = await api(admin, 'PUT', '/api/v1/admin/features/board', { mode, roleIds: [] });
-  expect(r.status, `switch board ${mode}`).toBe(200);
-}
-
 test('the board is off for students until an admin switches it on', async ({ sara, admin }) => {
-  await boardSwitch(admin, 'off');
+  await setSwitch(admin, 'board', 'off');
   await sara.goto('/board');
   await expect(sara.getByText('This part of the hub is switched off right now.')).toBeVisible();
-  await boardSwitch(admin, 'everyone');
+  await setSwitch(admin, 'board', 'everyone');
 });
 
 test('a student adds a card, moves it, and adds an exam from the calendar', async ({ sara }) => {
@@ -48,6 +42,6 @@ test('a student adds a card, moves it, and adds an exam from the calendar', asyn
 test.afterAll(async ({ browser }) => {
   // Switched back off for the rest of the run: the board arrives off.
   const ctx = await personaContext(browser, 'admin');
-  await boardSwitch(await ctx.newPage(), 'off');
+  await setSwitch(await ctx.newPage(), 'board', 'off');
   await ctx.close();
 });

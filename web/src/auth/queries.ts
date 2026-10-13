@@ -1,5 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { removeStored } from '../state/storedValue';
+import { removeStored } from '../state';
 
 /** The signed-in person (GET /me): Me, or null for a guest. */
 export const ME_KEY = ['me'] as const;
