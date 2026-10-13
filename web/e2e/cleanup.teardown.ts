@@ -1,11 +1,23 @@
-// Runs after every spec (project "cleanup", the setup project's teardown). The run's two students download their
-// data and delete their accounts (their posts stay, as from a deleted account); then the rep removes what the run
-// created. Nothing the run didn't create is touched. E2E_KEEP=1 leaves everything in place.
+// Runs after every spec (project "cleanup", the setup project's teardown). Every feature is switched back on for
+// everyone, so an interrupted run never leaves one off. The run's two students download their data and delete their
+// accounts (their posts stay, as from a deleted account); then the rep removes what the run created. Nothing the run
+// didn't create is touched. E2E_KEEP=1 leaves the accounts and posts in place.
 import fs from 'node:fs';
 import { test as teardown, expect } from '@playwright/test';
-import { api, env, personaContext, readRun, statePath, waitForCode } from './support';
+import { api, env, FEATURES, personaContext, readRun, statePath, waitForCode } from './support';
 
 teardown.describe.configure({ mode: 'serial' });
+
+teardown('every feature is switched back on for everyone', async ({ browser }) => {
+  if (!fs.existsSync(statePath('admin'))) return;
+  const ctx = await personaContext(browser, 'admin');
+  const page = await ctx.newPage();
+  for (const feature of FEATURES) {
+    const r = await api(page, 'PUT', `/api/v1/admin/features/${feature}`, { mode: 'everyone', roleIds: [] });
+    expect(r.status, `switch ${feature} on`).toBe(200);
+  }
+  await ctx.close();
+});
 
 teardown('the students download their data and delete their accounts; their posts stay as a deleted account', async ({ browser }) => {
   teardown.skip(env.keep, 'E2E_KEEP=1');

@@ -84,8 +84,9 @@ setup('Sara signs up with her phone number: wrong code, resend, profile', async 
   await expect(page.getByText('Welcome to DSBA Hub, Sara')).toBeVisible();
   await expect(page.getByRole('heading', { name: /Sara/ })).toBeVisible();
 
-  const me = await api<{ phone: string; year: number; displayName: string; role: string }>(page, 'GET', '/api/v1/me');
-  expect(me.body).toMatchObject({ phone: run.sara.e164, year: 2, displayName: run.sara.name, role: 'student' });
+  const me = await api<{ phone: string; year: number; displayName: string; roles: { slug: string }[] }>(page, 'GET', '/api/v1/me');
+  expect(me.body).toMatchObject({ phone: run.sara.e164, year: 2, displayName: run.sara.name });
+  expect(me.body.roles.map((r) => r.slug)).toEqual(['student']);
   await ctx.storageState({ path: statePath('sara') });
   await ctx.close();
 });
