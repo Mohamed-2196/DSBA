@@ -11,10 +11,9 @@ from typing import Any, Literal
 from uuid import UUID
 
 from fastapi import Request, Response, status
-from sqlalchemy.exc import IntegrityError
 
 from app.core.access import ADMIN, REP
-from app.core.errors import ApiError, conflict, forbidden, invalid, not_found
+from app.core.errors import conflict, forbidden, invalid, not_found
 from app.core.security import DB, CurrentSession, CurrentUser, clear_session_cookie, client_ip
 from app.models import UserSession, UserStatus
 from app.routers._base import router_for
@@ -31,7 +30,6 @@ from app.schemas.auth import (
 )
 from app.schemas.common import ErrorResponse
 from app.services import access, accounts, otp, sessions
-from app.services.identifiers import Kind
 from app.services.storage import get_storage
 
 router = router_for("me")
@@ -147,10 +145,6 @@ def verify_step_up(
 # ── identifiers ─────────────────────────────────────────────────────────────────────────────
 
 
-def _taken(kind: Kind) -> ApiError:
-    return conflict("identifier_taken", f"Another account already uses this {accounts.LABELS[kind]}.")
-
-
 @router.post(
     "/me/identifiers/otp",
     response_model=OtpChallengeOut,
@@ -191,15 +185,8 @@ def verify_add_identifier(body: OtpVerifyRequest, user: CurrentUser, sess: Curre
     kind, identifier = verified.kind, verified.identifier
     other = accounts.find_user(db, kind, identifier)
     if other is not None and other.id != user.id:
-        raise _taken(kind)
-    change = accounts.set_identifier(user, kind, identifier)
-    try:
-        with db.begin_nested():
-            db.flush()
-    except IntegrityError:  # taken a moment ago by a parallel request
-        raise _taken(kind) from None
-    sessions.revoke_others(db, user.id, keep=sess)
-    text_notice = accounts.queue_identifier_notice(db, user, change)
+        raise accounts.identifier_taken(kind)
+    text_notice = accounts.change_identifier(db, user, sess, kind, identifier)
     db.commit()
     if text_notice is not None:
         otp.send_text_notice(*text_notice)
@@ -218,9 +205,7 @@ def remove_identifier(kind: Literal["email", "phone"], user: CurrentUser, sess: 
     if other is None:
         raise conflict("last_identifier", "You need at least one way to sign in. Add the other one first.")
     sessions.require_step_up(sess)
-    change = accounts.set_identifier(user, kind, None)
-    sessions.revoke_others(db, user.id, keep=sess)
-    text_notice = accounts.queue_identifier_notice(db, user, change)
+    text_notice = accounts.change_identifier(db, user, sess, kind, None)
     db.commit()
     if text_notice is not None:
         otp.send_text_notice(*text_notice)

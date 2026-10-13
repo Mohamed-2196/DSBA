@@ -7862,15 +7862,8 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Ok"
-                }
-              }
-            }
+          "204": {
+            "description": "Successful Response"
           },
           "400": {
             "description": "Bad Request",
@@ -15760,17 +15753,6 @@
           "careers"
         ],
         "title": "OfferTypeLabels"
-      },
-      "Ok": {
-        "properties": {
-          "ok": {
-            "type": "boolean",
-            "title": "Ok",
-            "default": true
-          }
-        },
-        "type": "object",
-        "title": "Ok"
       },
       "OtpChallengeOut": {
         "properties": {

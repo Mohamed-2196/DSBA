@@ -3345,14 +3345,6 @@ export interface components {
             internship: components["schemas"]["OfferTypeLabel"];
             careers: components["schemas"]["OfferTypeLabel"];
         };
-        /** Ok */
-        Ok: {
-            /**
-             * Ok
-             * @default true
-             */
-            ok: boolean;
-        };
         /** OtpChallengeOut */
         OtpChallengeOut: {
             /**
@@ -4345,7 +4337,6 @@ export type NotificationOut = components['schemas']['NotificationOut'];
 export type NotificationPage = components['schemas']['NotificationPage'];
 export type OfferTypeLabel = components['schemas']['OfferTypeLabel'];
 export type OfferTypeLabels = components['schemas']['OfferTypeLabels'];
-export type Ok = components['schemas']['Ok'];
 export type OtpChallengeOut = components['schemas']['OtpChallengeOut'];
 export type OtpStartRequest = components['schemas']['OtpStartRequest'];
 export type OtpVerifyRequest = components['schemas']['OtpVerifyRequest'];
@@ -10663,13 +10654,11 @@ export interface operations {
         };
         responses: {
             /** @description Successful Response */
-            201: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["Ok"];
-                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {

@@ -357,6 +357,26 @@ def set_identifier(user: User, kind: Kind, value: str | None) -> IdentifierChang
     return IdentifierChange(kind=kind, before=before, after=value, other=other)
 
 
+def identifier_taken(kind: Kind) -> ApiError:
+    return ApiError(409, "identifier_taken", f"Another account already uses this {LABELS[kind]}.")
+
+
+def change_identifier(
+    db: Session, user: User, sess: UserSession | None, kind: Kind, value: str | None
+) -> tuple[str, str] | None:
+    """Puts `value` on the account as its email address or phone number (None removes it), signs out the account's
+    other sessions and queues the security notice (the caller commits). 409 identifier_taken when another account
+    took `value` a moment ago. -> (phone number, text) when the notice is a text, to send once committed."""
+    change = set_identifier(user, kind, value)
+    try:
+        with db.begin_nested():
+            db.flush()
+    except IntegrityError:  # taken a moment ago by a parallel request
+        raise identifier_taken(kind) from None
+    sessions.revoke_others(db, user.id, keep=sess)
+    return queue_identifier_notice(db, user, change)
+
+
 def queue_identifier_notice(db: Session, user: User, change: IdentifierChange) -> tuple[str, str] | None:
     """The security notice for a change of identifier (security design finding 15): to the address that was
     replaced or removed, or, for an addition, to the account's other identifier. An email goes through the outbox

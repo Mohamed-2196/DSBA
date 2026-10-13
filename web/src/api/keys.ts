@@ -5,6 +5,9 @@
  *  resolved, an upload published or rejected, a post hidden), so Manage and its tab counts follow. */
 export const ADMIN_STATS_KEY = ['admin', 'stats'] as const;
 
+/** Everything on Your account (its sessions, …): refreshed after signing in again or stepping up. */
+export const ACCOUNT_KEY = ['account'] as const;
+
 /** GET /features: the features switched on for whoever asks. Signed in, /me carries the same list. */
 export const FEATURES_KEY = ['features'] as const;
 
