@@ -9,6 +9,27 @@ export interface Draft {
   boxes: ReadonlySet<Box>;
 }
 
+/** The role editor's state: which opening it belongs to ('new', a role's id, or null while closed), the role as it
+ *  was when the draft started, and the draft. */
+export interface Editing {
+  opening: string | null;
+  base: RoleOut | null;
+  draft: Draft;
+}
+
+export const draftOf = (role: RoleOut | null): Draft => ({ name: role?.name ?? '', badge: role?.badge ?? '', boxes: new Set(role?.boxes ?? []) });
+
+/** A fresh draft from `role`, for the dialog opening on it or for "Load it again". */
+export const startEditing = (opening: string | null, role: RoleOut | null): Editing => ({ opening, base: role, draft: draftOf(role) });
+
+/** The editor's state for this render: a fresh draft when the dialog opens, or opens on another role; otherwise the
+ *  same state. A newer version of the role loading in the background never resets the admin's unsaved draft, and
+ *  saves send the version the draft started from, so a change someone else made meanwhile comes back as
+ *  role_changed instead of being overwritten. */
+export function followOpening(prev: Editing, opening: string | null, role: RoleOut | null): Editing {
+  return prev.opening === opening ? prev : startEditing(opening, role);
+}
+
 export function groupBoxes(boxes: BoxOut[]): { area: string; boxes: BoxOut[] }[] {
   const groups: { area: string; boxes: BoxOut[] }[] = [];
   for (const b of boxes) {

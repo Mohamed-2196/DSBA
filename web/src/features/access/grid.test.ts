@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { BoxOut, RoleOut } from '../../api/types';
-import { boxClosed, groupBoxes, roleChanges } from './grid';
+import { boxClosed, followOpening, groupBoxes, roleChanges, startEditing } from './grid';
 
 const box = (key: BoxOut['key'], area: string): BoxOut => ({ key, area, label: key });
 const role: RoleOut = { id: 'r1', slug: 'newsletter-manager', name: 'Newsletter manager', badge: 'Newsletter', position: 3, builtIn: false, locked: false, version: 4, boxes: ['newsletter.manage'], holders: 2 };
@@ -43,5 +43,24 @@ describe('boxClosed', () => {
   it('leaves every box open on other roles and on a new one', () => {
     expect(boxClosed(role, 'forum.moderate')).toBe(false);
     expect(boxClosed(null, 'forum.moderate')).toBe(false);
+  });
+});
+
+describe('followOpening', () => {
+  it('starts a draft when the dialog opens, and on another role', () => {
+    const closed = startEditing(null, null);
+    const opened = followOpening(closed, 'r1', role);
+    expect([opened.base, opened.draft.name]).toEqual([role, 'Newsletter manager']);
+    expect(followOpening(opened, 'r0', student).draft.name).toBe('Student');
+    expect(followOpening(opened, null, null).opening).toBeNull();
+  });
+
+  it('keeps the unsaved draft when a newer version of the role loads', () => {
+    const opened = followOpening(startEditing(null, null), 'r1', role);
+    const edited = { ...opened, draft: { ...opened.draft, name: 'Newsletter team' } };
+    const newer = { ...role, version: 5, badge: 'News' };
+    const after = followOpening(edited, 'r1', newer);
+    expect(after).toBe(edited);
+    expect(roleChanges(after.base ?? role, after.draft)).toEqual({ version: 4, name: 'Newsletter team' });
   });
 });

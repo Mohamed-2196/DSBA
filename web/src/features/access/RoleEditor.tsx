@@ -1,12 +1,12 @@
 // One role in a dialog: its name, its badge and its boxes by area. Admin is shown read-only; Student's manager boxes
-// can't be ticked. When someone else saved the role first, the dialog says so and loads what's there now.
+// can't be ticked. When someone else saved the role first, the dialog says so and offers to load what's there now.
 import { useId, useState } from 'react';
 import { ApiError, errorMessage } from '../../api/errors';
 import type { BoxOut, RoleOut } from '../../api/types';
 import type { Box } from '../../auth';
 import { Button, Modal, TextField } from '../../ui';
 import { useCreateRole, useUpdateRole } from './api';
-import { boxClosed, groupBoxes, roleChanges, type Draft } from './grid';
+import { boxClosed, followOpening, groupBoxes, roleChanges, startEditing, type Draft, type Editing } from './grid';
 
 const STALE = 'Someone else changed this role. Load it again and redo your change.';
 const STUDENT_NOTE = 'Every new account gets Student, so it holds student boxes only.';
@@ -16,8 +16,6 @@ interface Problems {
   badge?: string;
   other?: string;
 }
-
-const draftOf = (role: RoleOut | null): Draft => ({ name: role?.name ?? '', badge: role?.badge ?? '', boxes: new Set(role?.boxes ?? []) });
 
 export interface RoleEditorProps {
   /** the role to edit, as the catalogue has it now; null: a new role */
@@ -32,19 +30,24 @@ export function RoleEditor({ role, boxes, open, onClose, onSaved }: RoleEditorPr
   const uid = useId();
   const create = useCreateRole();
   const update = useUpdateRole();
-  const [draft, setDraft] = useState<Draft>(() => draftOf(role));
   const [problems, setProblems] = useState<Problems>({});
 
-  // The draft follows the role each time the dialog opens, and again when a newer version of the role loads (after
-  // a stale save), so the admin redoes their change on what's there now. The problems stay until the next opening.
+  // The draft starts from the role each time the dialog opens and stays until it is saved or discarded: a background
+  // reload of the role leaves it alone. After a stale save, "Load it again" starts over from what's there now.
   const opening = open ? (role?.id ?? 'new') : null;
-  const version = role?.version ?? 0;
-  const [loaded, setLoaded] = useState<{ opening: string | null; version: number }>({ opening: null, version: 0 });
-  if (loaded.opening !== opening || loaded.version !== version) {
-    if (loaded.opening !== opening) setProblems({});
-    if (opening) setDraft(draftOf(role));
-    setLoaded({ opening, version });
+  const [editing, setEditing] = useState<Editing>(() => startEditing(null, null));
+  const followed = followOpening(editing, opening, role);
+  if (followed !== editing) {
+    setProblems({});
+    setEditing(followed);
   }
+  const { base, draft } = followed;
+  const setDraft = (change: (d: Draft) => Draft) => setEditing((e) => ({ ...e, draft: change(e.draft) }));
+  const stale = problems.other === STALE && role !== null && base !== null && role.version !== base.version;
+  const loadAgain = () => {
+    setProblems({});
+    setEditing(startEditing(opening, role));
+  };
 
   const locked = !!role?.locked;
   const student = role?.slug === 'student';
@@ -67,19 +70,19 @@ export function RoleEditor({ role, boxes, open, onClose, onSaved }: RoleEditorPr
 
   const save = () => {
     setProblems({});
-    if (!role) {
+    if (!base) {
       create.mutate(
         { name: draft.name.trim(), badge: draft.badge.trim() || null, boxes: [...draft.boxes].sort() },
         { onSuccess: (r) => onSaved(r.name), onError: fail },
       );
       return;
     }
-    const body = roleChanges(role, draft);
+    const body = roleChanges(base, draft);
     if (!body) {
       onClose();
       return;
     }
-    update.mutate({ id: role.id, body }, { onSuccess: (r) => onSaved(r.name), onError: fail });
+    update.mutate({ id: base.id, body }, { onSuccess: (r) => onSaved(r.name), onError: fail });
   };
 
   return (
@@ -147,6 +150,11 @@ export function RoleEditor({ role, boxes, open, onClose, onSaved }: RoleEditorPr
           <p className="access-problem" role="alert">
             {problems.other}
           </p>
+        ) : null}
+        {stale ? (
+          <Button size="sm" onClick={loadAgain}>
+            Load it again
+          </Button>
         ) : null}
       </div>
     </Modal>
