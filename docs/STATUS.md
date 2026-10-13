@@ -127,11 +127,11 @@ What Mohamed asked for:
      a data router would.
    - `--measure` is 72ch, too wide; use 58–60ch.
    - The CQ-15 index and column nits that remain.
-6. **Clean-up.** Mohamed approved deleting finished branches (2026-10-13). Auto mode blocks `git push --delete`,
-   so he runs the command himself or allows it in his settings.
-   - Still on GitHub: `round2/fe-forum`, `round2/fe-library`, `round2/fe-content` and `round3/student-ideas` (all
-     merged), and `claude/zen-cerf-7e5mbj` (in `master` since 2026-09-23).
-   - Also `wip/accounts-round2`, which was superseded. Its one unmerged commit is `140fd8e`, if it's ever wanted.
+6. **Done: the clean-up (2026-10-13).** Mohamed deleted the eight finished branches on GitHub.
+   - The merged ones: `round2/fe-*`, `round3/student-ideas`, `round3/e2e-docker` and `round3/drive-import`.
+   - `claude/zen-cerf-7e5mbj`.
+   - `wip/accounts-round2`, whose one unmerged commit was `140fd8e`.
+   - From now on, finished branches go as soon as they're merged (CLAUDE.md).
 7. **Round 4: Mohamed's requests** in `docs/ROADMAP.md` (R-1 to R-8): roles, requests, the calendar, a study board,
    notes, Noora with context, a new Noora and favourite apps.
    - Each is designed with him first, then built.
