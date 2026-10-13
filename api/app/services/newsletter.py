@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 import uuid
 from collections.abc import Sequence
+from datetime import timedelta
 from typing import Any
 
 from pydantic import BaseModel
@@ -22,7 +23,7 @@ from app.core.errors import ApiError, conflict, invalid, not_found
 from app.core.links import json_size
 from app.core.security import is_moderator
 from app.core.time import utcnow
-from app.models import IssueStatus, NewsletterIssue, NewsletterReaction, User
+from app.models import EmailOutbox, IssueStatus, NewsletterIssue, NewsletterReaction, User
 from app.schemas.newsletter import (
     CardAside,
     CtaBlock,
@@ -47,6 +48,8 @@ TOO_LONG = "This issue is too long: shorten it or split it into two issues."
 # Fields a moderator edits (PATCH), and those that may be emptied (to "": the columns are never null).
 EDITABLE = ("slug", "number", "title", "date", "cover", "dek", "summary", "editors", "sections")
 BLANK = ("dek", "summary")
+# The cohort gets at most one issue email in this time; an issue published sooner is announced in the Hub only.
+ISSUE_EMAIL_EVERY = timedelta(days=1)
 
 
 def _stored(model: BaseModel) -> Any:
@@ -268,12 +271,20 @@ def delete_issue(db: Session, user: User, issue: NewsletterIssue, ip: str | None
 
 def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> int:
     """Publishes a draft and tells every account about it (decision D1: the notification in the Hub always comes;
-    an email goes to those who keep "New newsletter issues" on). Publishing a published issue changes nothing and
-    tells nobody. -> the number of notifications."""
+    an email goes to those who keep "New newsletter issues" on, at most once in ISSUE_EMAIL_EVERY). Publishing a
+    published issue changes nothing and tells nobody; the row is locked first, so two publishes at once tell
+    everyone once. -> the number of notifications."""
+    db.refresh(issue, with_for_update=True)
     if issue.status == IssueStatus.published:
         return 0
+    now = utcnow()
     issue.status = IssueStatus.published
-    issue.published_at = utcnow()
+    issue.published_at = now
+    emailed_lately = db.scalar(
+        select(EmailOutbox.id)
+        .where(EmailOutbox.kind == "new_issue", EmailOutbox.created_at >= now - ISSUE_EMAIL_EVERY)
+        .limit(1)
+    )
     notified = notify_all(
         db,
         "new_issue",
@@ -282,6 +293,7 @@ def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> 
         url=f"/newsletter/{issue.slug}",
         actor=user,
         data={"issueId": str(issue.id), "slug": issue.slug},
+        email=emailed_lately is None,
     )
     record(
         db,
