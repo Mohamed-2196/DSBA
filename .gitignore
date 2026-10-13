@@ -28,3 +28,4 @@ __pycache__
 # Backend and local stack
 .env
 api/var/
+*.tsbuildinfo
