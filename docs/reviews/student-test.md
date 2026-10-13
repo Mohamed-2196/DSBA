@@ -413,3 +413,56 @@ Afterwards, `scripts/e2e.sh --restore` put the API back on SMTP and the console,
 `restore.e2e.*@example.com` address arrived in Mailpit. `api`, `mail` and `web` run from the main checkout again.
 
 **Final: 41 passed, 0 failed, 0 skipped**, in two full runs back to back (A and B).
+
+## Re-review round: by hand in every role (13 October 2026)
+
+Scope: `docs/STATUS.md`, "Next", item 2. Code under test: `feature/backend` at `75626cd` (round 3 merged), on the
+shared Docker stack (compose project `dsba-hub`, normal mail backends: codes from Mailpit and the API's log). Browser:
+Google Chrome, driven by Playwright scripts (`channel: 'chrome'`). Branch: `round3/review-student`.
+
+Personas, all made up (tag `r4tviy`):
+
+| Persona | Who | How they signed in |
+|---|---|---|
+| Guest | a first visit on a 390×844 phone, and on a desktop | nobody |
+| Sara | Year 2, Arabic display name (سارة المحمود), desktop | her phone, +973 3993 2730: a wrong code, a new code, the old code |
+| Ali | Year 1, 390×844 phone | his email, `ali.e2e.r4tviy@example.com`: a malformed address first |
+| Noor | Year 3, desktop | dev-login, `noor.e2e.r4tviy@example.com` |
+| Fatima | Year 3 student rep | dev-login, `fatima.e2e.r4tviy@example.com` |
+| Maryam | admin | dev-login, `maryam.e2e.r4tviy@example.com` |
+
+Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
+
+### Guest
+
+| What | Result |
+|---|---|
+| Home on a first visit (phone): the year prompt, then "Not now" | works. Hero, "Your modules", "Coming up" and "Hot in the forum" all follow Year 1 (round 3's fix holds). "Not now" lasts for the browser session. |
+| Mini Noora's first-visit hint | works. It waits for the year prompt, then shows with a 44×44 "Close the hint" button. Closing it keeps it away after a reload (`hub.noora.seen`). |
+| The tour after choosing a year (desktop) | works: three steps, then closed. |
+
+### Year 2 student (Sara, by phone)
+
+| What | Result |
+|---|---|
+| Sign up by phone | works. Double-clicking "Send code" sends one request. "That code isn't right. 4 tries left." "Send a new code" after the countdown; the profile step has Year 2 chosen from the first visit. |
+| An Arabic display name | works: "Good morning, سارة", avatar "سا". |
+| A thread with a 371-character title | the field stops at 120 with a "120/120" counter. |
+| A thread with Arabic text and a picture | posts and renders. |
+| **Double-clicking "Post thread"** | **bug ST-13**: two identical threads. |
+
+### New findings
+
+#### ST-13 (minor) A double click on "Post thread" posts the thread twice
+
+- Owner: frontend-community (`features/forum/NewThreadPage.tsx`, `send`)
+- Steps: as Sara, Forum → Start a thread. Fill in a title, pick a module, add details. Double-click **Post thread**
+  (or double-tap it on a phone, as students do on a slow connection).
+- Expected: one thread. The button shows its spinner after the first click.
+- Actual: two `POST /api/v1/forum/threads` requests and two identical threads,
+  `st2133-mgf-of-a-sum-of-independent-poissons-is-it-the-product` and `…-product-2`. The list shows both, and the
+  header says "2 questions are waiting for a first reply". `send()` calls `create.mutate` without checking
+  `create.isPending`, which only changes on the next render, so the second click gets through.
+- Fix: return early from `send()` while a post is in flight, with a ref (as `StepUpDialog` does with
+  `sendingRef`). The API could also refuse the same title from the same author within a minute.
+- Screenshot: `r4-forum-04-posted.png`.
