@@ -10,7 +10,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { isApiError } from '../../api/errors';
 import type { Note } from '../../api/types';
 import { createNote, fetchNote, noteKeys, noteSaved, saveNote, useNote } from './api';
-import { setOpenNote } from './current';
 import { docOf, dropDraft, emptyDoc, isBlank, openNote, readDraft, sameDoc, writeDraft, type NoteDoc } from './draft';
 
 export const SAVE_AFTER = 700;
@@ -203,12 +202,6 @@ export function useNoteEditor(
     };
   }, [flush]);
 
-  // What other parts of the app see as the open note.
-  useEffect(() => {
-    setOpenNote(doc ? { id: idRef.current, ...doc } : null);
-  }, [doc]);
-  useEffect(() => () => setOpenNote(null), []);
-
   const change = useCallback(
     (patch: Partial<NoteDoc>) => {
       const current = docRef.current;
@@ -248,7 +241,6 @@ export function useNoteEditor(
     if (timer.current) clearTimeout(timer.current);
     dropDraft(idRef.current);
     docRef.current = null;
-    setOpenNote(null);
   }, []);
 
   return {
