@@ -506,7 +506,7 @@ export interface paths {
         /**
          * Stats
          * @description Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
-         *     for review and the open reports in the viewer's queue.
+         *     for review and the open reports in the viewer's queue. A feature switched off for the viewer counts None.
          */
         get: operations["stats_api_v1_admin_stats_get"];
         put?: never;
@@ -595,7 +595,7 @@ export interface paths {
         };
         /**
          * List Modules
-         * @description Every module, in programme order, with its published library count.
+         * @description Every module, in programme order, with its published library count (None while the library is off for you).
          */
         get: operations["list_modules_api_v1_modules_get"];
         put?: never;
@@ -1592,18 +1592,21 @@ export interface components {
             /** Emails */
             emails: components["schemas"]["ExportEmail"][];
         };
-        /** AdminStats */
+        /**
+         * AdminStats
+         * @description A feature's counts are None while it is switched off for the viewer.
+         */
         AdminStats: {
             /** Users */
             users: number;
             /** Threads */
-            threads: number;
+            threads: number | null;
             /** Replies */
-            replies: number;
+            replies: number | null;
             /** Libraryitems */
-            libraryItems: number;
+            libraryItems: number | null;
             /** Pendinguploads */
-            pendingUploads: number;
+            pendingUploads: number | null;
             /** Openreports */
             openReports: number;
         };
@@ -3095,7 +3098,7 @@ export interface components {
             /** Lessoncount */
             lessonCount: number;
             /** Librarycount */
-            libraryCount: number;
+            libraryCount: number | null;
             resources: components["schemas"]["ModuleResources"];
             /** Chapters */
             chapters: components["schemas"]["Chapter"][];
@@ -3139,7 +3142,7 @@ export interface components {
             /** Lessoncount */
             lessonCount: number;
             /** Librarycount */
-            libraryCount: number;
+            libraryCount: number | null;
         };
         /** NotificationOut */
         NotificationOut: {

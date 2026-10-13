@@ -11,7 +11,7 @@ from sqlalchemy import ColumnElement, Select, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
 
-from app.core.access import Box
+from app.core.access import Box, Feature
 from app.core.errors import conflict, forbidden, invalid, not_found
 from app.core.pagination import Limit, Offset
 from app.core.security import DB, client_ip, requires
@@ -78,14 +78,19 @@ def _like(text: str) -> str:
 @router.get("/admin/stats", response_model=AdminStats)
 def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats:
     """Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
-    for review and the open reports in the viewer's queue."""
+    for review and the open reports in the viewer's queue. A feature switched off for the viewer counts None."""
     n = func.count()
+    forum, library = (access.feature_on(db, user, f) for f in (Feature.forum, Feature.library))
+    threads = select(n).select_from(ForumThread).where(ForumThread.status == PostStatus.visible)
+    replies = select(n).select_from(ForumReply).where(ForumReply.status == PostStatus.visible)
+    published = select(n).select_from(LibraryItem).where(LibraryItem.status == ItemStatus.published)
+    pending = select(n).select_from(LibraryItem).where(LibraryItem.status == ItemStatus.pending)
     return AdminStats(
         users=_count(db, select(n).select_from(User)),
-        threads=_count(db, select(n).select_from(ForumThread).where(ForumThread.status == PostStatus.visible)),
-        replies=_count(db, select(n).select_from(ForumReply).where(ForumReply.status == PostStatus.visible)),
-        library_items=_count(db, select(n).select_from(LibraryItem).where(LibraryItem.status == ItemStatus.published)),
-        pending_uploads=_count(db, select(n).select_from(LibraryItem).where(LibraryItem.status == ItemStatus.pending)),
+        threads=_count(db, threads) if forum else None,
+        replies=_count(db, replies) if forum else None,
+        library_items=_count(db, published) if library else None,
+        pending_uploads=_count(db, pending) if library else None,
         open_reports=reports.open_count(db, user),
     )
 

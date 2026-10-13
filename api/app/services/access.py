@@ -2,8 +2,8 @@
 rules are in app/core/access.py.
 
 A database session keeps what it loaded (in Session.info), so a request reads a person's roles and the switches once.
-Every change to roles, grants or switches calls forget(). Each request has a session of its own, so a change applies from the next request on
-(spec, rule 5)."""
+Every change to roles, grants or switches calls forget(). Each request has a session of its own, so a change applies
+from the next request on (spec, rule 5)."""
 
 from __future__ import annotations
 

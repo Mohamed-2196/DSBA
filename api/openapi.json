@@ -2531,7 +2531,7 @@
           "admin"
         ],
         "summary": "Stats",
-        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review and the open reports in the viewer's queue.",
+        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review and the open reports in the viewer's queue. A feature switched off for the viewer counts None.",
         "operationId": "stats_api_v1_admin_stats_get",
         "responses": {
           "200": {
@@ -3013,7 +3013,7 @@
           "modules"
         ],
         "summary": "List Modules",
-        "description": "Every module, in programme order, with its published library count.",
+        "description": "Every module, in programme order, with its published library count (None while the library is off for you).",
         "operationId": "list_modules_api_v1_modules_get",
         "parameters": [
           {
@@ -9766,19 +9766,47 @@
             "title": "Users"
           },
           "threads": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Threads"
           },
           "replies": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Replies"
           },
           "libraryItems": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Libraryitems"
           },
           "pendingUploads": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Pendinguploads"
           },
           "openReports": {
@@ -9795,7 +9823,8 @@
           "pendingUploads",
           "openReports"
         ],
-        "title": "AdminStats"
+        "title": "AdminStats",
+        "description": "A feature's counts are None while it is switched off for the viewer."
       },
       "AdminUser": {
         "properties": {
@@ -14549,7 +14578,14 @@
             "title": "Lessoncount"
           },
           "libraryCount": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Librarycount"
           },
           "resources": {
@@ -14710,7 +14746,14 @@
             "title": "Lessoncount"
           },
           "libraryCount": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Librarycount"
           }
         },

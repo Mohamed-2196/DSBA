@@ -93,9 +93,11 @@ class AuditPage(Page[AuditOut]):
 
 
 class AdminStats(ApiModel):
+    """A feature's counts are None while it is switched off for the viewer."""
+
     users: int
-    threads: int
-    replies: int
-    library_items: int
-    pending_uploads: int
+    threads: int | None  # the forum's
+    replies: int | None
+    library_items: int | None  # the library's
+    pending_uploads: int | None
     open_reports: int
