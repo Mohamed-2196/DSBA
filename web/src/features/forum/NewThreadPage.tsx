@@ -198,7 +198,6 @@ function Composer() {
     navigate('/forum');
   };
 
-  const suspended = me?.status === 'suspended';
   const author: UserPublic | null = me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, badge: badgeOf(me) } : null;
 
   return (
@@ -208,11 +207,6 @@ function Composer() {
 
       <div className="forum-new__layout">
         <form className="forum-composer" data-hub="composer" onSubmit={submit} noValidate>
-          {suspended ? (
-            <p className="forum-form-error" role="alert">
-              Your account is suspended, so you can’t post. Contact a student rep if you think this is a mistake.
-            </p>
-          ) : null}
           {restored ? (
             <div className="forum-composer__restored" role="status">
               <span>We kept the draft you started earlier.</span>
@@ -287,7 +281,7 @@ function Composer() {
 
           <AttachRow images={images} />
 
-          <ComposerFooter author={author} checking={authStatus === 'loading'} posting={create.isPending} suspended={suspended} onDiscard={discard} />
+          <ComposerFooter author={author} checking={authStatus === 'loading'} posting={create.isPending} onDiscard={discard} />
         </form>
 
         <ComposerAside similar={similar} module={getModule(form.moduleId)} />

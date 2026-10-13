@@ -195,7 +195,7 @@ function Drafts({ drafts, onNew }: { drafts: IssueSummary[]; onNew: () => void }
             Drafts
             <span className="nl-drafts__count u-tabular">{drafts.length}</span>
           </h2>
-          <p className="nl-drafts__desc">Only student reps see these. Publishing an issue tells everyone it’s out.</p>
+          <p className="nl-drafts__desc">Only people who manage the newsletter see these. Publishing an issue tells everyone it’s out.</p>
         </div>
         <Button variant="primary" leadingIcon={Plus} onClick={onNew} data-hub="issue-new">
           New issue

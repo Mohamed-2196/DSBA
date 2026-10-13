@@ -10,12 +10,11 @@ export interface ComposerFooterProps {
   /** whether someone is signed in isn't known yet */
   checking: boolean;
   posting: boolean;
-  suspended: boolean;
   onDiscard: () => void;
 }
 
 /** The foot of "Start a thread": who posts it, and Discard / Post thread. */
-export function ComposerFooter({ author, checking, posting, suspended, onDiscard }: ComposerFooterProps) {
+export function ComposerFooter({ author, checking, posting, onDiscard }: ComposerFooterProps) {
   return (
     <div className="forum-composer__footer">
       <span className="forum-composer__as">
@@ -39,7 +38,7 @@ export function ComposerFooter({ author, checking, posting, suspended, onDiscard
         <Button variant="ghost" onClick={onDiscard} disabled={posting}>
           Discard
         </Button>
-        <Button type="submit" variant="primary" leadingIcon={PaperPlaneRight} loading={posting} disabled={suspended} data-hub="post-button">
+        <Button type="submit" variant="primary" leadingIcon={PaperPlaneRight} loading={posting} data-hub="post-button">
           Post thread
         </Button>
       </span>

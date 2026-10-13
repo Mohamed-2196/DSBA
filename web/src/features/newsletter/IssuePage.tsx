@@ -106,7 +106,7 @@ function ModeratorBar({ issue }: { issue: Issue }) {
     <div className={cx('nl-modbar', draft && 'is-draft')} data-hub="issue-modbar">
       <p className="nl-modbar__text">
         <Badge tone={draft ? 'highlight' : 'signal'}>{draft ? 'Draft' : 'Published'}</Badge>
-        <span>{draft ? 'Only student reps can see this issue until it’s published.' : `Published${issue.publishedAt ? ` ${formatDay(new Date(issue.publishedAt))}` : ''}. Changes show to everyone as soon as you save them.`}</span>
+        <span>{draft ? 'Only people who manage the newsletter can see this issue until it’s published.' : `Published${issue.publishedAt ? ` ${formatDay(new Date(issue.publishedAt))}` : ''}. Changes show to everyone as soon as you save them.`}</span>
       </p>
       <div className="nl-modbar__actions">
         <Button size="sm" leadingIcon={PencilSimple} to={`/newsletter/${issue.slug}/edit`} data-hub="issue-edit">
