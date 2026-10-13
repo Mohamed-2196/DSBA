@@ -10,7 +10,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Iterable
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session, object_session
 
@@ -197,17 +197,20 @@ def set_roles(db: Session, user: User, roles: Iterable[AccessRole], *, by: User 
 
 
 def ensure_admins_remain(db: Session, losing: User) -> None:
-    """409 last_admin when `losing`, about to lose Admin or be suspended, is the only active admin. It takes a lock
-    first, so two admins demoting each other at the same moment can't both succeed."""
+    """409 last_admin when `losing`, about to lose Admin, be suspended or be deleted, is the only active admin.
+
+    Every such change waits here for the others (security review AD-7): the advisory lock comes first, so the count
+    reads what the change before committed, and the admins' grants stay locked until the transaction ends. Two
+    admins demoting each other, or deleting their accounts, at the same moment can't both succeed."""
     ratelimit.lock(db, "access:admins")
-    others = db.scalar(
-        select(func.count())
-        .select_from(RoleGrant)
+    admins = db.scalars(
+        select(RoleGrant.user_id)
         .join(AccessRole, AccessRole.id == RoleGrant.role_id)
         .join(User, User.id == RoleGrant.user_id)
-        .where(AccessRole.slug == ADMIN, User.status == UserStatus.active, User.id != losing.id)
-    )
-    if not others:
+        .where(AccessRole.slug == ADMIN, User.status == UserStatus.active)
+        .with_for_update(of=RoleGrant)
+    ).all()
+    if not any(user_id != losing.id for user_id in admins):
         raise conflict("last_admin", "The hub needs at least one active admin. Make someone else an admin first.")
 
 

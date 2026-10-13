@@ -72,7 +72,8 @@ def update_me(body: MeUpdate, user: CurrentUser, db: DB) -> Me:
 def delete_me(user: CurrentUser, sess: CurrentSession, db: DB) -> Response:
     """Delete the account: personal data goes, posts stay as 'deleted user', published files stay unattributed.
 
-    Errors: step_up_required (403), storage_unavailable (503: files could not be deleted, nothing changed)."""
+    Errors: step_up_required (403), last_admin (409: the only active admin stays), storage_unavailable (503: files
+    could not be deleted, nothing changed)."""
     sessions.require_step_up(sess)
     accounts.delete_account(db, user, get_storage())
     resp = Response(status_code=status.HTTP_204_NO_CONTENT)

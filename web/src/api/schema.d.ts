@@ -152,7 +152,8 @@ export interface paths {
          * Delete Me
          * @description Delete the account: personal data goes, posts stay as 'deleted user', published files stay unattributed.
          *
-         *     Errors: step_up_required (403), storage_unavailable (503: files could not be deleted, nothing changed).
+         *     Errors: step_up_required (403), last_admin (409: the only active admin stays), storage_unavailable (503: files
+         *     could not be deleted, nothing changed).
          */
         delete: operations["delete_me_api_v1_me_delete"];
         options?: never;

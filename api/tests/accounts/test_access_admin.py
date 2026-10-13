@@ -23,7 +23,7 @@ from app.core.errors import ApiError
 from app.core.time import utcnow
 from app.models import AccessRole, AuditEntry, Notification, RoleBox, User, UserStatus
 from app.schemas.access import RoleUpdate
-from app.services import access, roles
+from app.services import access, accounts, roles
 from tests.accounts.conftest import API, Outbox, sync_csrf
 
 ClientFor = Callable[..., TestClient]
@@ -323,7 +323,26 @@ def test_two_admins_saving_the_same_role_at_once(own_connections: sessionmaker[S
         _clean(own_connections, [boss], race_role)
 
 
-# ── the security review's rules (AD-1, AD-3, AD-4, AD-9) ─────────────────────────────────
+def test_two_last_admins_deleting_their_accounts_at_once_leave_one(
+    own_connections: sessionmaker[Session], storage: Any
+) -> None:
+    """Security review AD-7: deleting your own account is refused while you're the last active admin."""
+    a, b = _people(own_connections, "Admin A", "Admin B")
+
+    def leave(s: Session, i: int) -> None:
+        me = s.get(User, (a, b)[i])
+        assert me is not None
+        accounts.delete_account(s, me, storage)
+
+    try:
+        assert sorted(_race(own_connections, leave)) == ["last_admin", "ok"]
+        with own_connections() as s:
+            assert len([p for p in (s.get(User, a), s.get(User, b)) if p is not None]) == 1
+    finally:
+        _clean(own_connections, [a, b])
+
+
+# ── the security review's rules (AD-1, AD-3, AD-4, AD-7, AD-9) ─────────────────────────────────
 
 
 def _step_up(c: TestClient, outbox: Outbox, to: str) -> None:
@@ -460,3 +479,15 @@ def test_deleting_a_held_role_is_recorded_with_what_it_gave(
         "holders": 1,
         "actorName": "Head Admin",
     }
+
+
+def test_the_last_admin_cant_delete_their_account(
+    client_for: ClientFor, make_user: MakeUser, boss: User, db: Session
+) -> None:
+    """AD-7: the hub keeps at least one active admin, deleting accounts included."""
+    c = client_for(boss)
+    refused = c.delete(f"{API}/me")
+    assert (refused.status_code, refused.json()["error"]["code"]) == (409, "last_admin")
+    assert db.get(User, boss.id) is not None
+    make_user(name="Second Admin", roles=ADMIN)
+    assert c.delete(f"{API}/me").status_code == 204
