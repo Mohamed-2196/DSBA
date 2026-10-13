@@ -166,7 +166,7 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   and rules live in small functions or a `services/<area>.py` you own.
 - **Tests** (pytest) cover each endpoint's happy path, auth (guest / other user / rep), validation
   errors and rate limits. Fixtures from `tests/conftest.py`: `client_for(user=None)` (each call is a separate
-  browser, with CSRF handled), `make_user(email=, phone=, name=, role=, year=)`, `db`, `storage` (moto: a
+  browser, with CSRF handled), `make_user(email=, phone=, name=, roles=, year=)` (`roles` is a sequence of slugs, `("student",)` by default), `db`, `storage` (moto: a
   browser upload in a test is `storage.client.put_object(Bucket=storage.bucket, Key=..., Body=..., ContentType=...)`).
   Run `uv run --no-sync pytest tests/<your area> -q`. Every test run gets its own database. `scripts/check.sh`
   runs everything CI runs (ruff, ruff format, mypy, the whole suite with the drift checks, and the web checks).
@@ -271,7 +271,7 @@ Docker". Either way:
   inline script by hash): `docs/backend/DEPLOYMENT.md`, section 6.
 - Production fails closed: the API refuses to start while any setting is unsafe (`Settings.production_problems`:
   secret key, cookies, origins, proxies, storage, email, SMS) and lists every problem at once.
-- No personal data in public responses: `UserPublic` is `{id, displayName, year, role}`, never an email or a
+- No personal data in public responses: `UserPublic` is `{id, displayName, year, badge}`, never an email or a
   phone number.
 - Errors don't leak internals, and logs carry no codes, tokens or full phone numbers.
 

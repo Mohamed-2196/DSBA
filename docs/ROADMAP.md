@@ -29,7 +29,7 @@ router change and the e2e harness.
 - **Today:** four levels.
   - A guest reads.
   - A student posts, uploads, stars and reacts. Their year is 1–3, or none.
-  - A rep (`moderator`) also moderates the forum and the library and edits the calendar and the newsletter.
+  - A rep (the Rep role) also moderates the forum and the library and edits the calendar and the newsletter.
   - An admin also manages people and roles and reads the audit log.
 
   The web app gates pages with `RoleGate`. The profile menu adds Moderation for reps and People for admins.

@@ -15,7 +15,7 @@ go deeper: `security-reviewer`, `code-quality-reviewer`, `ui-ux-reviewer` and `s
       then read the hits.
 
 ## Security (`docs/backend/ARCHITECTURE.md`, "Security baseline")
-- [ ] Every new object route checks owner or moderator. Hidden, pending and removed things answer 404 to others,
+- [ ] Every new object route checks owner, or a holder of the area's box. Hidden, pending and removed things answer 404 to others,
       and a suspended account has no powers.
 - [ ] Writes that can be abused are rate-limited (`ratelimit.enforce`), and reps' and admins' actions are audited.
 - [ ] Uploads go through the allowlist and the `incoming/` → final copy with its check of the first bytes. Nothing

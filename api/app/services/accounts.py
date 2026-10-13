@@ -141,7 +141,7 @@ NAME_MIN, NAME_MAX = 2, 40
 NAME_PUNCTUATION = frozenset(" .'-")
 # What phones and word processors type in place of the plain characters (NFKC leaves these alone)
 NAME_LOOKALIKES = str.maketrans({"\u2019": "'", "\u2018": "'", "\u2010": "-", "\u2011": "-"})
-# Names that pass for the Hub's staff: only moderators and admins may use them (security review finding 20)
+# Names that pass for the Hub's staff: only holders of Admin or Rep may use them (security review finding 20)
 STAFF_WORDS = ("admin", "moderator", "student rep", "dsba", "bibf")
 # Characters that look like Latin letters or like the letters of STAFF_WORDS, after casefold (from Unicode TR39's
 # confusables; security review SEC-11): Cyrillic, Greek, Armenian, Latin variants and two digits.
