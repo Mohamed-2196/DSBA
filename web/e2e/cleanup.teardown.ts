@@ -12,7 +12,11 @@ teardown('every feature is switched back on for everyone', async ({ browser }) =
   if (!fs.existsSync(statePath('admin'))) return;
   const ctx = await personaContext(browser, 'admin');
   const page = await ctx.newPage();
-  for (const feature of FEATURES) {
+  // Only the ones that aren't on: every switch counts towards the admin's 60 changes in 10 minutes.
+  const now = await api<{ feature: string; mode: string }[]>(page, 'GET', '/api/v1/admin/features');
+  expect(now.status).toBe(200);
+  const on = new Set(now.body.filter((f) => f.mode === 'everyone').map((f) => f.feature));
+  for (const feature of FEATURES.filter((f) => !on.has(f))) {
     const r = await api(page, 'PUT', `/api/v1/admin/features/${feature}`, { mode: 'everyone', roleIds: [] });
     expect(r.status, `switch ${feature} on`).toBe(200);
   }
