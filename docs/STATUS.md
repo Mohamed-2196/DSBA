@@ -37,7 +37,6 @@ The lead merges them.
 | `round3/e2e-docker` | student-tester | `../dsba-e2e` | 1: the e2e suite on Docker, one command, a rerun |
 | `round3/drive-import` | api-builder | `../dsba-drive` | 3: `import-drive`, `scripts/seed-real.sh` and tests; then the CQ-15 nits |
 | `round3/web-leftovers` | web-builder | `../dsba-web` | 4, and 5 on the web side (the data router for the leave guard) |
-| `round3/student-ideas` | student-user | `../dsba-ideas` | Feature ideas in `docs/ideas.md`, for Mohamed to approve |
 
 - **The re-review round (2) waits** until these three are merged, so the reviewers and the student tester see
   the finished round rather than a moving target.
@@ -126,8 +125,8 @@ To bring it in:
    - The CQ-15 index and column nits that remain.
 6. **Clean-up.** Mohamed approved deleting finished branches (2026-10-13). Auto mode blocks `git push --delete`,
    so he runs the command himself or allows it in his settings.
-   - Still on GitHub: `round2/fe-forum`, `round2/fe-library`, `round2/fe-content` (all merged), and
-     `claude/zen-cerf-7e5mbj` (in `master` since 2026-09-23).
+   - Still on GitHub: `round2/fe-forum`, `round2/fe-library`, `round2/fe-content` and `round3/student-ideas` (all
+     merged), and `claude/zen-cerf-7e5mbj` (in `master` since 2026-09-23).
    - Also `wip/accounts-round2`, which was superseded. Its one unmerged commit is `140fd8e`, if it's ever wanted.
 7. **Round 4: Mohamed's requests** in `docs/ROADMAP.md` (R-1 to R-8): roles, requests, the calendar, a study board,
    notes, Noora with context, a new Noora and favourite apps.
@@ -139,7 +138,12 @@ To bring it in:
 
 - **Roadmap questions:** each feature in `docs/ROADMAP.md` lists what he needs to decide. R-1 (roles) comes
   first.
-- **Ideas to approve:** the student-user's proposals in `docs/ideas.md`, once its branch is merged.
+- **Ideas to approve:** 24 proposals in `docs/ideas.md` (IDEA-1 to IDEA-24), merged 2026-10-13.
+- **Content gaps the ideas run found:**
+  - the six Year 3 modules have no unit codes;
+  - none of the 10 October exams has a time or place;
+  - each VLE MCQ window is two one-day events, though events can have an end date;
+  - IS2184 and every Year 3 module have no lessons.
 - **`exam_meta_from_name()`:** the past-paper name patterns, in `api/app/services/exam_names.py`.
 - **Product calls:**
   - Should notification emails stay on by default?
