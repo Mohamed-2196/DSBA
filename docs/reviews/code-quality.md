@@ -17,9 +17,9 @@ reviewed on `round3/review-quality`. Left alone, because the approved access wor
 | check | result |
 |---|---|
 | `PATH=/opt/homebrew/opt/libpq/bin:$PATH scripts/check.sh` | **all passed**: uv.lock and requirements.txt in sync, ruff and ruff format clean, mypy strict clean on 150 files (`app` and `tests`), 652 API tests passed (drift and migration tests included), both `tsc` configs clean, ESLint clean, 347 Vitest tests in 36 files passed, `schema.d.ts` matches `openapi.json`, build passed |
-| `npx knip` in `web/` | 3 "unused files" (all false positives, see CQ-27), 86 unused exports (checked by hand: 1 dead function, the rest used only in their own file or re-exported through a barrel nobody imports), 60+ unused exported types (props types re-exported from `src/ui/index.ts`: fine) |
+| `npx knip` in `web/` | 3 "unused files" (all false positives: Playwright's setup and teardown projects and the Docker build's `deploy/csp-hashes.mjs`), 86 unused exports. Checked by hand: 1 dead function, 19 public or barrel exports nobody imports through the barrel, the rest used only in their own file (CQ-28), 60+ unused exported types (props types re-exported from `src/ui/index.ts`: fine) |
 | `vite build` with source maps | entry chunk 611 KB, 182 KB gzip (round 1: 837 KB / 256 KB). By source size it is mostly React Router, Phosphor icons, React DOM and TanStack Query; PostHog is now a lazy chunk |
-| `type: ignore` in `api/app` | 4, all at untyped library edges (boto3's `LocationConstraint`, two in google-auth, one in `routers/_base.py`, CQ-28) |
+| `type: ignore` in `api/app` | 4, all at untyped library edges (boto3's `LocationConstraint`, two in google-auth, and one in `routers/_base.py` that a type annotation would remove, CQ-29) |
 
 ## Earlier findings: status
 
@@ -39,12 +39,271 @@ reviewed on `round3/review-quality`. Left alone, because the approved access wor
 | CQ-12 | **fixed** | PostHog loads only when `VITE_POSTHOG_KEY` is set, through a dynamic import (`main.tsx:30-33`, `lib/analytics.ts:72`). |
 | CQ-13 | **fixed** | Moderation uses `modq-`; the module page's scoping patch is gone. The noora panel keeps raw `#fff` as a local custom property (`noora/ChatPanel.css:27`): acceptable. |
 | CQ-14 | **fixed** | Newsletter inserts in a savepoint and answers 409 (`services/newsletter.py:185-190`), slugs retry through the shared helper, rate limits lock first, and the pre-hide state lives on the row (`models/forum.py:51`), not in the audit log. |
-| CQ-15 | **fixed** | Migrations 0004 and 0006: the unused indexes dropped, the missing ones added (`ix_library_items_status_newest` on the sort expression, `uploads(user_id, created_at)`, `library_items(uploaded_by)`, `forum_replies(parent_id)`, `reports(reporter_id, created_at)`, the `SET NULL` foreign keys), the CHECKs on kind, type, reason and cohort columns, `reports.status` default, `User.updated_at` gone. The models declare the same (`check_in`, `year_range`), and the drift test proves it. Comments in 0006 narrate history: see CQ-21. |
+| CQ-15 | **fixed** | Migrations 0004 and 0006: the unused indexes dropped, the missing ones added (`ix_library_items_status_newest` on the sort expression, `uploads(user_id, created_at)`, `library_items(uploaded_by)`, `forum_replies(parent_id)`, `reports(reporter_id, created_at)`, the `SET NULL` foreign keys), the CHECKs on kind, type, reason and cohort columns, `reports.status` default, `User.updated_at` gone. The models declare the same (`check_in`, `year_range`), and the drift test proves it. Comments in 0006 narrate history: see CQ-20. |
 | CQ-16 | **open** | `n` is still the count on `/forum/threads/hot`, `/forum/threads/{thread_id}/related` and `/calendar/upcoming` (`limit` everywhere else); `ThreadListParams` (`features/forum/types.ts:27`) still redeclares the forum list's query in camelCase; `POST /reports` still answers `Ok`. With no compatibility to keep, the fix is now a rename, not an alias: see CQ-25. |
 | CQ-17 | **mostly fixed** | `ThreadPage`, `CalendarPage` and the issue editor are split; `/styleguide` is gated (`routes.tsx:28-40`); the shell no longer waits for `/modules` (`App.tsx:12-20`, each page waits in `RouteFrame`). **Open:** `library/LibraryPage.tsx` (551 lines) and `account/AccountPage.tsx` (454) are as large as before; `library/components/UploadDialog.tsx` (438) and `newsletter/editor/Editor.tsx` (441) joined them. Minor; split when next touched. |
-| CQ-18 | **mostly fixed** | README, CI (`.github/workflows/ci.yml`), `scripts/check.sh`, the pre-push hook; stray files and dead data gone; `compose.yaml` points at `docs/backend/DEPLOYMENT.md`. **Open:** type-aware lint is still off (`web/eslint.config.js:36` uses `tseslint.configs.recommended`); tracked as standards review S-1. README says Python 3.11+ while `api/.python-version`, the image and CI use 3.12 (CQ-27). |
+| CQ-18 | **mostly fixed** | README, CI (`.github/workflows/ci.yml`), `scripts/check.sh`, the pre-push hook; stray files and dead data gone; `compose.yaml` points at `docs/backend/DEPLOYMENT.md`. **Open:** type-aware lint is still off (`web/eslint.config.js:36` uses `tseslint.configs.recommended`); tracked as standards review S-1. |
 
-<!-- new findings -->
+## New findings (CQ-19 onwards)
+
+| ID | Severity | Title |
+|---|---|---|
+| CQ-19 | major | `insert_with_unique_slug` reads every integrity error as a slug clash |
+| CQ-20 | minor | Comments still narrate history and cite review IDs |
+| CQ-21 | minor | Two script and doc commands that don't do what they say |
+| CQ-22 | minor | The web app hard-codes the upload limits the API reads from settings |
+| CQ-23 | minor | Small helpers written again in several places |
+| CQ-24 | minor | Logic left in the notifications and `me` routers; a service that commits |
+| CQ-25 | minor | API names and lookups to settle before release (CQ-16, now as renames) |
+| CQ-26 | minor | Test fixtures declared three times; the e2e suite restates API shapes by hand |
+| CQ-27 | minor | Pure modules without Vitest tests, grade arithmetic among them |
+| CQ-28 | minor | knip has no config, so dead public exports and barrel bypasses go unnoticed |
+| CQ-29 | minor | Typing nits in the API: one avoidable `type: ignore`, library kinds passed as `str` |
+
+What rounds 2 and 3 added was checked as asked. Most of it is good work, and it led to no finding:
+- **The Drive client and import** (`services/drive.py`, `services/drive_import.py`): small typed records, one
+  transaction per file, a dry run that changes nothing, refusals collected and not fatal, and 1,104 lines of tests
+  over a fake Drive and moto. The only points are under CQ-19, CQ-23 and CQ-29.
+- **The data router** (`App.tsx`, `routes.tsx`, `shell/RouteFrame.tsx`): one layout route. Each page is lazy, has
+  its own error boundary and waits for the catalogue only if it needs it. `useLeaveGuard` is the router's only
+  blocker, and it lets the editor's own navigations through.
+- **The shared upload and share helpers:** one pipeline (`src/api/uploads.ts`) used by the library dialog and the
+  forum (`forum/lib/uploads.ts`, `useAttachImages`). There is no other `XMLHttpRequest` or `navigator.clipboard` in
+  the app, and no feature reaches into another except through `public.ts` (checked with a script over every
+  import).
+- **The e2e harness** (`compose.e2e.yaml`, `scripts/e2e.sh`): explicit about what it changes, never touches `db`,
+  `minio` or `mailpit`, and puts things back with `--restore`.
+- **The CQ-15 migration** matches the models; the drift test proves it.
+- **No N+1 queries.** A scratch probe (not committed) counted the statements per request at 2 and at 12 rows of
+  data. Every list stays flat: `/forum/threads` 8 then 4, `/library/items` 5, `/notifications` 4,
+  `/admin/reports` 5, `/search` 6, `/me/export` 14.
+- **No backward compatibility.** The deprecated email switches, `DEPRECATED_SWITCHES` and the grades
+  `LEGACY_KEY` are gone, and no API field alias, storage-key migration or redirect is left. Searching for "legacy",
+  "deprecated", "previously", "used to", "moved from", "no longer used" and "v1" in `api/app`, `api/tests`,
+  `web/src`, `web/e2e` and `scripts` finds nothing that narrates history. The leftovers are the comments in CQ-20
+  and the two lookups in CQ-25. Migration 0003 is a data migration of the old preference keys, and
+  `tests/core/test_migrations.py:54-55` tests it; both go in the access work's squash (plan Task 2 rewrites that
+  test).
+
+### CQ-19. `insert_with_unique_slug` reads every integrity error as a slug clash (major)
+
+- **Where:** `api/app/core/text.py:61-77`. Callers: `services/library.py:379,411,452` (uploads, links, the Drive
+  import) and `services/calendar.py:147` (event ids).
+- **What:** the helper catches every `IntegrityError` from the insert as "another request took this slug". It
+  retries with a random suffix three times, then answers 409 `retry`: "Someone saved something with the same name
+  at the same moment. Try again." That includes errors that have nothing to do with the slug:
+  - a CHECK violation (`ck_library_items_kind` and the other CHECKs added in 0006);
+  - a foreign key violation (a module deleted while a rep saves);
+  - another unique column (`library_items.import_key`, which `drive_import.py:574` notes in a comment).
+
+  Reproduced with a scratch test: a `LibraryItem` with `kind="not-a-kind"` passed to the helper comes back as
+  `409 retry`, after three savepoints.
+- **Why it matters:** a real bug, such as a schema that lets a value through which the database refuses, shows up as
+  a message telling the student to try again, which never helps. It isn't logged as an error, so nobody hears of
+  it. It costs three round trips before failing. And the Drive import can't tell a race on `import_key` from a
+  title clash.
+- **Fix:** retry only when the violated constraint is the slug's own:
+  `isinstance(e.orig, psycopg.errors.UniqueViolation) and e.orig.diag.constraint_name == <the column's unique
+  constraint>`. For the calendar id that is the primary key. Re-raise anything else; the error handler then
+  answers 500 and logs it, or the existing `DataError` mapping applies. Add two tests to `tests/core/`: a CHECK
+  violation propagates, and a clash on the slug retries.
+
+### CQ-20. Comments still narrate history and cite review IDs (minor)
+
+- **Where:**
+  - **"Split out of …" comments, 8 files** (history, against CLAUDE.md's rule):
+    - `features/career/{FeaturedCompetition.tsx:1,EmployerCard.tsx:2,SkillRow.tsx:2}`;
+    - `features/calendar/{useCalendarView.ts:2,MonthExtras.tsx:2,CalendarToolbar.tsx:2}`;
+    - `features/search/PaletteRow.tsx:2`;
+    - `features/onboarding/TourArt.tsx:1`.
+  - **"The one copy for every area" comments,** which are the same history in other words:
+    - `ui/ConfirmDialog.tsx:26`, `state/useDebouncedValue.ts:4`;
+    - `lib/dates.ts:1`, `lib/share.ts:1`;
+    - `features/home/time.ts:2`, `features/calendar/dates.ts:2`;
+    - `api/uploads.ts:2`.
+  - **Review references:** about 290 in 159 files under `api/app`, `api/tests`, `web/src` and `web/e2e`, such as
+    "(code quality review CQ-5)", "(security review, finding 5)" or "(UX review UX-3)". They use two numbering
+    schemes for the same security findings: `security-design.md`'s "finding 5" and `security.md`'s "SEC-5".
+  - **Two in the public API docs:** `routers/admin.py`'s docstrings put "security review SEC-9" into
+    `api/openapi.json:2785,9911` and so into `/api/v1/docs`.
+  - **Migration 0006's docstring:** "what 0004 left", "replaces (status, published_at)", "every value the API has
+    ever written". Left alone here, because the squash replaces it.
+- **Why it matters:**
+  - A comment should say why the code is as it is. "Split out of X" says where it came from, which is git's job.
+  - Review IDs point at documents that get renumbered and rewritten (this file now has two rounds). A reader then
+    needs the review to understand the code, and the comment goes stale when the review does.
+- **Fix:**
+  - Delete the "Split out of …" sentences, and reword "the one copy/home for every area" as what the module is
+    for.
+  - Where a review ID stands in for a reason, write the reason in a few words and drop the ID. Keep IDs only in
+    tests that pin a reported bug, where they help.
+  - Take review references out of route docstrings, because they are public.
+  - When the access work writes the baseline migration, its docstring describes the schema only.
+
+### CQ-21. Two script and doc commands that don't do what they say (minor)
+
+- **Where and what:**
+  - `scripts/seed-real.sh:27`: `--help` prints lines 2 to 18 with a fixed `sed -n '2,18p'`, and line 18 is
+    `set -euo pipefail`, so the help ends with that line (tried). `scripts/e2e.sh` does the same job robustly with
+    `sed -n '2,/^set -euo/p' … | sed '$d; …'`.
+  - `scripts/check.sh:11` says the e2e suite runs with `cd web && npm run e2e`, "see README.md". That runs
+    Playwright against whatever is on :5173, without the file mail backends or the raised limits, so the sign-up
+    setup can't read its codes. CLAUDE.md and the README say `scripts/e2e.sh`.
+- **Why it matters:** these are the first commands a new team member copies.
+- **Fix:** use e2e.sh's help pattern in seed-real.sh, and point check.sh's comment at `scripts/e2e.sh`. Every other
+  command checked works: each `python -m app.cli` command and flag that README, CLAUDE.md, ARCHITECTURE.md,
+  DEPLOYMENT.md and the skills name, every `scripts/*.sh` flag, and every `npm run` script.
+
+### CQ-22. The web app hard-codes the upload limits the API reads from settings (minor)
+
+- **Where:** `web/src/api/uploads.ts:39-89`: the type allowlists, `maxMb: 50` and `maxMb: 8`, and the copy "Up to
+  50 MB". The API reads `DSBA_MAX_UPLOAD_MB` and `DSBA_MAX_IMAGE_MB` (`api/app/config.py:111-112`) and its own
+  allowlists (`services/uploads.py`). The file's header says it "mirrors" them.
+- **Why it matters:** a deployer who changes either setting gets a web app that refuses files the API would take, or
+  promises a limit the API then refuses. The first presign already carries `maxBytes`, so the app finds out only
+  after the person has chosen the file. Two allowlists also have to change together every time a type is added
+  (decision D9 added pictures to both).
+- **Fix:** with nothing released, pick one:
+  - serve the rules, with `GET /uploads/rules` returning per purpose the extensions, content types and `maxBytes`,
+    typed in `openapi.json`, and have `UPLOAD_RULES` come from a long-lived query;
+  - or drop the two settings and make the limits constants that the API states in its schema. The messages stay in
+    the web app.
+
+### CQ-23. Small helpers written again in several places (minor)
+
+- **Web:**
+  - **`plural`, six private copies:** `calendar/dates.ts:71`, `about/AboutPage.tsx:13`,
+    `newsletter/editor/Editor.tsx:60`, `modules/ModulePage.tsx:24`, `modules/ModulesPage.tsx:19` and
+    `newsletter/components/sections/LiveLists.tsx:9`. None of them uses `formatCount` (`ui/utils.ts:23`), so
+    "1250 files" shows without the thousands separator that round 3 added elsewhere. Five more call sites format
+    numbers with their own `toLocaleString('en-GB')`. Add `countOf(n, one, many?)` to `ui/utils.ts` on top of
+    `formatCount`, and use it everywhere.
+  - **Copy a link, then show a toast, five times:** `calendar/SubscribeDialog.tsx:33`, `calendar/EventDrawer.tsx:36`,
+    `library/FileViewerPage.tsx:187`, `forum/ThreadPage.tsx:130` and `newsletter/components/ShareActions.tsx:22`.
+    They give three different failure messages: the URL, "Select the link and copy it yourself" and "Copy it from
+    the address bar instead". Add a `useCopyLink()` next to `copyText` that takes the success line, with one
+    failure message.
+- **API:**
+  - **The Drive import builds `import_key` twice:** the `Planned.import_key` property
+    (`services/drive_import.py:153-155`) and the f-string in `_plan_file` (`:496`). Build it in one function.
+  - **`EXAM_YEARS = (1990, 2100)`** (`drive_import.py:84`) restates the `exam_year` bounds of
+    `schemas/library.py:80,103`. Put the bounds in one constant that both use.
+  - **Cutting text with an ellipsis, five ways:** `drive.printable`, `drive_import._fit`, `notify.py:51`,
+    `search.py:105` and `forum/notices.py:38`, each cutting at words or characters differently. Add a
+    `core/text.clip(text, n, at_word=False)`.
+
+### CQ-24. Logic left in the notifications and `me` routers; a service that commits (minor)
+
+- **Where:**
+  - `api/app/routers/notifications.py:39-85`: the list, the unread count, mark-read and mark-all-read are queries and
+    updates in the handlers, with the serialiser `_out` beside them.
+  - `routers/me.py:180-223`: adding and removing an identifier both repeat "set it, flush (409 on a race), sign out
+    the other sessions, queue the notice, commit, send the text".
+  - `services/accounts.py:675`: `delete_account` commits. Every other service leaves that to the handler, and its
+    docstring doesn't say otherwise.
+- **Why it matters:** these are the patterns CQ-9 removed from the content routers. The two identifier handlers have
+  to stay in step on a security-relevant sequence.
+- **Fix:**
+  - Add `services/notifications.py` with `list_page`, `mark_read` and `mark_all_read`.
+  - Add `accounts.change_identifier(db, user, sess, kind, value) -> TextNotice | None`, used by both handlers.
+  - Move the commit out of `delete_account`, or say in its docstring that it commits and why.
+  - `routers/admin.py` is left alone: the access work replaces it.
+
+### CQ-25. API names and lookups to settle before release (minor)
+
+CQ-16 suggested aliases; with no compatibility to keep, these are now plain renames.
+- **Counts:** `n` → `limit` on `/forum/threads/hot`, `/forum/threads/{thread_id}/related` and `/calendar/upcoming`.
+- **Query types:** take the forum list's parameters from the generated schema
+  (`NonNullable<paths['/api/v1/forum/threads']['get']['parameters']['query']>`). Today `ThreadListParams`
+  (`features/forum/types.ts:27-37`) redeclares them in camelCase and `forum/api.ts` maps them by hand. The same goes
+  for the library's and the calendar's filter types.
+- **`POST /reports`** answers `Ok`, and every other create returns what it made. Return `ReportOut`, or 204.
+- **Read by slug or by id:**
+  - `library.find` (`services/library.py:133-141`) tries an id, then a slug.
+  - `forum.thread_by_slug` (`services/forum/visibility.py:97-107`) does the same. Its docstring needs SEC-12 to
+    explain why a slug can't stand in for another thread's id.
+  - Every link the API and the web app make uses the slug: `notices.py`, `reports.py`, `search.py`, the
+    `library.py:521` notification, and `itemPath` (`features/library/api.ts:173-175`). `itemPath`'s
+    `item.slug || item.id` also falls back on a value that is never empty (the column is `NOT NULL`).
+  - Read by slug only, and drop the id path and the fallback. The id-based write routes stay as they are.
+
+### CQ-26. Test fixtures declared three times; the e2e suite restates API shapes by hand (minor)
+
+- **API tests (the open part of CQ-7):** `student`, `moderator`, `admin` and the module fixtures are declared in
+  `tests/content/conftest.py:24-48`, `tests/community/conftest.py:15-54` and `tests/core/conftest.py:65-80`, with
+  different names ("Sara Student" and "Sara M.") and different modules: four hand-made modules in community, the
+  seed's 16 in content. `community/conftest.py:42` takes `Callable[..., Any]` and re-annotates the result. The
+  access plan rewrites `make_user` in `tests/conftest.py` (Task 2). Move the personas and one `modules` fixture
+  there at the same time.
+- **e2e typing:**
+  - `api<T>()` (`web/e2e/support.ts:195-206`) casts the parsed body to whatever `T` the caller names. The specs
+    restate API shapes inline, for example `api<{ preferences: { emailNewIssues: boolean } }>`
+    (`accounts.spec.ts:30,32`).
+  - The specs read `resp.json()` (typed `any`) 10 times (`forum.spec.ts:20,48,89,185`, `calendar.spec.ts:73`,
+    `library.spec.ts`, `auth.setup.ts`).
+  - `support.ts:132` ends with `code as unknown as string`.
+
+  When an API field is renamed, `tsc` still passes and the suite fails three minutes into a Docker run.
+- **Fix:** type `api()` by path and method with `paths` from `src/api/schema.d.ts`, the way openapi-fetch does, or
+  use an openapi-fetch client with Playwright's request context. Replace the `as unknown as string` with a check that
+  throws.
+
+### CQ-27. Pure modules without Vitest tests, grade arithmetic among them (minor)
+
+- **Where:** these modules have no React imports and no tests:
+  - `features/grades/whatif.ts`, 211 lines: `targetsForRemaining`, `improvementPlan`, `holdingFloors` and
+    `resitOutlook`, the marks a student is told they need. Its sibling `classify.ts` is tested.
+  - `features/calendar/queries.ts`: `examsFor`, `nextExam`, `examSession` and `eventDays`.
+  - `features/calendar/dates.ts`: `monthMatrix`, `daysBreakdown` and `gapLabel`.
+  - `features/career/lib/fit.ts`: `evaluateSkill` and the role fit.
+  - `features/modules/lessons.ts`: recording dates and lesson info.
+  - `features/home/session.ts`.
+  - `features/search/search.ts`, 352 lines; the access web plan adds `search.test.ts`.
+- **Why it matters:** a wrong "you need 68 in the exam" or a wrong "next exam" is the kind of bug a student acts on.
+  The modules are pure, so the tests are cheap.
+- **Fix:** add `whatif.test.ts` first, with each target class, a target that can't be reached, blank marks and a resit. Then test the
+  calendar queries, with an exam spanning days and one on the last day of a month, then career fit. Write them the
+  way the 36 existing test files are written.
+
+### CQ-28. knip has no config, so dead public exports and barrel bypasses go unnoticed (minor)
+
+- **What:** with no `web/knip.json`, `npx knip` reports false positives: 3 "unused files", 86 exports and about 60
+  types. Nobody reads it, and it isn't in `scripts/check.sh`. A minimal config
+  (`entry: ["e2e/*.setup.ts", "e2e/*.teardown.ts", "deploy/*.mjs"]`, `ignoreExportsUsedInFile: true`, types
+  excluded) brings the output down to 20 lines, all real:
+  - **Dead code:** `newestText` (`web/e2e/support.ts:136`).
+  - **`public.ts` exports no other feature imports:**
+    - calendar: `CALENDAR_KEY`, `feedUrl`, `useUpcomingEvents` (`features/calendar/public.ts:17`);
+    - modules: `useProgress` and `moduleKeys` (`modules/public.ts:10,13`);
+    - newsletter: `NEWSLETTER_KEY` and `useLatestIssue` (`newsletter/public.ts:5`);
+    - notifications: `NOTIFICATIONS_KEY` (`notifications/public.ts:3`).
+
+    A public surface wider than its use invites the coupling `public.ts` exists to limit.
+  - **Barrels bypassed:** `src/state/index.ts` exports `removeStored`, as CLAUDE.md says, but `auth/queries.ts:2`
+    imports it from `../state/storedValue`. Features import `safeHref`, `isMediaPath` and `initials` from
+    `../../../ui/safeHref` and `ui/utils` rather than from `src/ui`. `auth/index.ts` exports `canModerate`,
+    `canAdminister` and `refreshPersonalQueries`, and nothing imports them from there.
+  - **Related:** `auth/AuthProvider.tsx:159` invalidates the literal key `['account']`, which belongs to
+    `features/account/api.ts:7` (`SESSIONS_KEY`). By `src/api/keys.ts`'s own rule ("more than one area reads or
+    invalidates"), that key belongs in `keys.ts`.
+- **Fix:** commit the config, fix the 20 lines and add `npx knip` as a step in `check.sh` and CI, so CQ-18's dead-code
+  pass doesn't need a reviewer every round. Move the account key to `src/api/keys.ts`.
+
+### CQ-29. Typing nits in the API: one avoidable `type: ignore`, library kinds passed as `str` (minor)
+
+- **Where:**
+  - `api/app/routers/_base.py:12`: `responses=ERRORS  # type: ignore[arg-type]`. The ignore exists only because
+    `ERRORS` is inferred as `dict[int, dict[str, type[ErrorResponse]]]`; annotating it
+    `dict[int | str, dict[str, Any]]` removes it. The other three ignores are at untyped library edges (boto3 and
+    google-auth) and are fine.
+  - `services/drive_import.py`: `Source.kind`, `Planned.kind` and the return of `exam_kind` are `str`.
+  - `services/library.py:416`: `create_imported(kind: str)`. `schemas/library.py:11` already has
+    `LibraryKind = Literal[...]`. Only the 0006 CHECK keeps a wrong kind out, and through CQ-19 a wrong kind
+    reaches the person as a "try again".
+- **Fix:** annotate `ERRORS`, and type the kinds as `LibraryKind` end to end, so mypy catches a typo in the import's
+  kind mapping.
+
+<!-- summary -->
 
 ---
 
