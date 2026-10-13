@@ -7,15 +7,15 @@ from uuid import UUID
 
 from fastapi import Request, Response, status
 
-from app.core.access import Box
-from app.core.security import DB, OptionalUser, client_ip, requires
+from app.core.access import Box, Feature
+from app.core.security import DB, OptionalUser, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.newsletter import IssueCreate, IssueDetail, IssueSummary, IssueUpdate, Reaction, ReactionCounts
 from app.services import access
 from app.services import newsletter as svc
 
-router = router_for("newsletter")
+router = router_for("newsletter", needs_feature(Feature.newsletter))
 NewsletterManager = Annotated[User, requires(Box.newsletter_manage)]
 Reader = Annotated[User, requires(Box.newsletter_react)]  # reacts to issues
 
