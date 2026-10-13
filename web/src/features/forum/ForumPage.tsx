@@ -46,7 +46,7 @@ export default function ForumPage() {
     q: q || undefined,
     category: cohort === 'all' ? undefined : cohort,
     tag: tag || undefined,
-    moduleId: filterModule?.id,
+    module_id: filterModule?.id,
     unanswered: status === 'no-replies' || undefined,
   };
   const list = useThreadList(params);
