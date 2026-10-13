@@ -8,7 +8,7 @@ import { useToast } from '../../../state';
 import { ReportButton } from '../ReportButton';
 import { useAcceptAnswer, useReplyVote } from '../api';
 import { authorName, sameAuthor } from '../lib/authors';
-import { readOnlyFor, textDeleted } from '../lib/replies';
+import { mayChange, readOnlyFor, textDeleted } from '../lib/replies';
 import { useReplyModeration } from '../lib/useReplyModeration';
 import { AuthorAvatar } from './AuthorAvatar';
 import { DeleteReplyDialog } from './DeleteDialogs';
@@ -67,10 +67,10 @@ export function ReplyItem({ reply, thread, nested = false, hasReplies = false, f
   // turns every write there down); and so does everyone once the thread has gone from under the page.
   const frozen = readOnly || readOnlyFor(thread);
   const moderates = thread.canModerate && !readOnly;
-  const canChange = reply.canEdit && !frozen;
+  const canChange = mayChange(reply.canEdit, thread.canModerate, mayTry('forum.post')) && !frozen;
   const canReport = !reply.isMine && reply.status === 'visible' && !threadHidden && !readOnly;
-  // The thread's author (or a moderator) accepts a top-level reply by someone else, with the forum.post box.
-  const canAccept = thread.canAccept && mayTry('forum.post') && !readOnly && !nested && !deleted && !hidden && !isOp;
+  // The thread's author (while they may post) or a moderator accepts a top-level reply by someone else.
+  const canAccept = mayChange(thread.canAccept, thread.canModerate, mayTry('forum.post')) && !readOnly && !nested && !deleted && !hidden && !isOp;
 
   const toggleVote = () => {
     const up = !reply.voted;

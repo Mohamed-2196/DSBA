@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Reply, UserPublic } from '../../../api/types';
-import { nestReplies, participants, readOnlyFor, replyTargetId, shownReplyIds, takesReplies, textDeleted } from './replies';
+import { mayChange, nestReplies, participants, readOnlyFor, replyTargetId, shownReplyIds, takesReplies, textDeleted } from './replies';
 
 const person = (id: string, displayName = id): UserPublic => ({ id, displayName, year: 2, badge: null });
 let n = 0;
@@ -104,5 +104,14 @@ describe('links to a reply (ST-4)', () => {
     const gone = reply({ status: 'deleted', body: '' });
     const hidden = reply({ status: 'hidden', isMine: true });
     expect(shownReplyIds([kept, under, gone, hidden])).toEqual(new Set([kept.id, under.id, hidden.id]));
+  });
+});
+
+describe('mayChange', () => {
+  it('lets the author change a post only while they may post, and a moderator always', () => {
+    expect(mayChange(true, false, true)).toBe(true);
+    expect(mayChange(true, false, false)).toBe(false);
+    expect(mayChange(true, true, false)).toBe(true);
+    expect(mayChange(false, true, true)).toBe(false);
   });
 });

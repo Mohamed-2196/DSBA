@@ -8,7 +8,7 @@ import { useToast } from '../../../state';
 import { ReportButton } from '../ReportButton';
 import { useThreadVote } from '../api';
 import { authorName, postYear, roleFlair } from '../lib/authors';
-import { readOnlyFor, takesReplies, textDeleted } from '../lib/replies';
+import { mayChange, readOnlyFor, takesReplies, textDeleted } from '../lib/replies';
 import type { useThreadModeration } from '../lib/useThreadModeration';
 import { AuthorAvatar } from './AuthorAvatar';
 import { DeleteThreadDialog } from './DeleteDialogs';
@@ -46,6 +46,7 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavaila
   const hidden = thread.status === 'hidden';
   const gone = textDeleted(thread, thread.canModerate);
   const readOnly = readOnlyFor(thread) || unavailable;
+  const canChange = mayChange(thread.canEdit, thread.canModerate, mayTry('forum.post'));
   const year = postYear(thread.authorYear, thread.author);
   // What stands before 'posted' in the byline: a flair (shown as a pill next to the name) replaces the year.
   const byline = roleFlair(thread.author) ? null : year ? `Year ${year}` : null;
@@ -117,8 +118,8 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavaila
               label="More actions for this thread"
               groups={[
                 [
-                  thread.canEdit && { id: 'edit', label: 'Edit', icon: PencilSimple, onSelect: () => setEditing(true) },
-                  thread.canEdit && { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setConfirmDelete(true) },
+                  canChange && { id: 'edit', label: 'Edit', icon: PencilSimple, onSelect: () => setEditing(true) },
+                  canChange && { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setConfirmDelete(true) },
                 ],
                 thread.canModerate
                   ? [
