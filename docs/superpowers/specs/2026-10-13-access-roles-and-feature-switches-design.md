@@ -266,3 +266,21 @@ Add these at the end of `docs/backend/ARCHITECTURE.md`:
 
 API and web change together on one branch, `round4/access`, merged once both are done. The e2e suite moves to the new
 role names and screens on the same branch.
+
+## From the security review (AD-1 to AD-9, adopted 2026-10-13)
+
+The details are in `docs/reviews/security.md`, "Design review: access". Both plans follow these rules:
+- **AD-1.** Every admin-only power needs a recent step-up sign-in: editing roles, giving roles, flipping switches
+  and account recovery. Recovery is refused on an admin's account (SEC-16).
+- **AD-2.** People with `people.suspend` search by name only, and no response gives them an email or a phone number.
+- **AD-3.** The Student role, which every sign-up gets, can never hold a manager box. Only the student-level boxes
+  can be ticked on it.
+- **AD-4.** A custom role's badge can't imitate a staff badge (the staff-words check applies to badges).
+- **AD-5.** Reports are listed and resolved by their area's box, and their excerpts follow the same rule.
+- **AD-6.** Switches also close a feature's side doors: media, uploads, downloads, ICS feeds, stats, reports and
+  queued emails. A test walks the router table and fails on any route that doesn't declare its feature, or declare
+  that it has none.
+- **AD-7.** The last-admin rule takes a row lock, and also stops the last admin from deleting their own account.
+- **AD-8.** `newsletter.manage` sends email to the whole cohort, so publishing is capped at one cohort email a day
+  (SEC-18).
+- **AD-9.** The escalation and suspension cases in the review join the testing list.
