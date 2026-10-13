@@ -1,4 +1,4 @@
-"""The library: uploaded files and links, stars, reviews, and how an item looks to the person asking.
+"""The library: uploaded and imported files and links, stars, reviews, and how an item looks to the person asking.
 
 Visibility: published items are public. Pending and rejected items are seen only by their uploader and by
 moderators, removed ones only by moderators; everyone else gets a 404, as if they did not exist."""
@@ -9,7 +9,7 @@ import logging
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
 from sqlalchemy import Select, case, delete, func, select, update
@@ -47,6 +47,10 @@ log = logging.getLogger("dsba.library")
 
 MAX_PENDING = 10  # files one student may have waiting for review (security review SEC-14)
 FILE_GRACE = timedelta(days=7)  # a rejected or removed file stays in the bucket this long, then the sweep deletes it
+# When the v1 Hub's material counts as published (its links, from the seed, and the files the Drive import brings in
+# from their folders): before anything shared through the new library, so "newest first" lists real uploads above it
+# instead of the time of the seed or the import.
+V1_PUBLISHED_AT = datetime(2026, 9, 1, tzinfo=UTC)
 
 KIND_LABELS: dict[str, str] = {
     "past-paper": "Past paper",
@@ -406,6 +410,46 @@ def create_link(db: Session, user: User, body: LibraryLinkCreate, ip: str | None
     )
     insert_with_unique_slug(db, item, LibraryItem.slug, _slug_text(item.title, module), fallback="link")
     record(db, user, "library.link", "library_item", item.id, item.title, ip, url=url)
+    return item
+
+
+def create_imported(
+    db: Session,
+    module: Module | None,
+    *,
+    kind: str,
+    title: str,
+    description: str,
+    storage_key: str,
+    file_name: str,
+    size_bytes: int,
+    import_key: str,
+    exam_year: int | None = None,
+    zone: str | None = None,
+    author_name: str | None = None,
+) -> LibraryItem:
+    """A file the server put in the bucket itself, after checking it (the Drive import): published at once, without
+    an uploader (the import is audited as a whole), in its module's year, dated with the v1 Hub's material, and served
+    as the allowlist's type for its name. The caller commits."""
+    item = LibraryItem(
+        source=ItemSource.file,
+        kind=kind,
+        title=title,
+        description=description or None,
+        module_id=module.id if module else None,
+        year=module.year if module else None,
+        storage_key=storage_key,
+        file_name=file_name,
+        content_type=serve_type(file_name),
+        size_bytes=size_bytes,
+        exam_year=exam_year,
+        zone=zone,
+        author_name=author_name or None,
+        import_key=import_key,
+        status=ItemStatus.published,
+        published_at=V1_PUBLISHED_AT,
+    )
+    insert_with_unique_slug(db, item, LibraryItem.slug, _slug_text(item.title, module), fallback="file")
     return item
 
 

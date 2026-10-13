@@ -35,6 +35,7 @@ from app.models import (
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCreate
 from app.services import content, newsletter
+from app.services.library import V1_PUBLISHED_AT
 
 DATA = Path(__file__).parent / "data"
 
@@ -143,10 +144,6 @@ def load_career(db: Session) -> int:
 
 # ── library: the v1 links of each module ─────────────────────────────────────────────────────
 
-# When the v1 Hub's links count as published: before anything shared through the new library, so "newest first"
-# lists real uploads above them instead of the seed run's time.
-V1_PUBLISHED_AT = dt.datetime(2026, 9, 1, tzinfo=dt.UTC)
-
 
 @dataclass(frozen=True)
 class SeedLink:
@@ -253,7 +250,7 @@ def load_library(db: Session) -> int:
                 url=link.url,
                 author_name=link.author_name,
                 status=ItemStatus.published,
-                published_at=V1_PUBLISHED_AT,
+                published_at=V1_PUBLISHED_AT,  # before anything shared through the new library
             )
             db.add(item)
             db.flush()

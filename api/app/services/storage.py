@@ -13,7 +13,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any
+from typing import IO, TYPE_CHECKING, Any
 from urllib.parse import quote
 
 import boto3
@@ -237,6 +237,12 @@ class Storage:
     def put_bytes(self, key: str, data: bytes, content_type: str) -> None:
         """Server-side writes (seed files)."""
         self.client.put_object(Bucket=self.bucket, Key=key, Body=data, ContentType=content_type)
+
+    def put_file(self, key: str, body: IO[bytes], content_type: str) -> None:
+        """Server-side writes of a file the server checked itself (the Drive import), from its start, in parts when
+        it is large."""
+        body.seek(0)
+        self.client.upload_fileobj(body, self.bucket, key, ExtraArgs={"ContentType": content_type})
 
     def delete(self, key: str) -> None:
         self.client.delete_object(Bucket=self.bucket, Key=key)

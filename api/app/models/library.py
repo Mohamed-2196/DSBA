@@ -1,4 +1,5 @@
-"""The library: uploaded files (stored in S3) and links (the v1 Google Drive folders), plus stars."""
+"""The library: files (stored in S3: uploaded by students, or imported from the v1 Google Drive folders) and links
+(the v1 Drive folders themselves), plus stars."""
 
 from __future__ import annotations
 
@@ -51,6 +52,10 @@ class LibraryItem(Base):
     exam_year: Mapped[int | None] = mapped_column(SmallInteger)  # past papers and examiners' reports
     zone: Mapped[str | None] = mapped_column(String(8))  # 'A' | 'B'
     author_name: Mapped[str | None] = mapped_column(String(120))  # credited author, as typed by the uploader
+    # Where a file the server imported came from: 'drive/<module>/<Drive file id>' (python -m app.cli import-drive).
+    # A rerun of the import skips it whatever became of the item since: edited, moved, removed, its file swept (the
+    # sweep clears storage_key, so the key can't be what remembers). None for uploads and links.
+    import_key: Mapped[str | None] = mapped_column(String(200), unique=True)
     uploaded_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     status: Mapped[ItemStatus] = mapped_column(str_enum(ItemStatus, 12), default=ItemStatus.pending)
     review_note: Mapped[str | None] = mapped_column(Text)

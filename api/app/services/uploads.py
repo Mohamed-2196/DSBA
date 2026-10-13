@@ -53,7 +53,7 @@ _OOXML = (b"PK\x03\x04",)  # docx, xlsx, pptx are zip files
 _OLE = (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1",)  # doc, xls, ppt
 _PNG = FileType("image/png", (), (b"\x89PNG\r\n\x1a\n",))
 _JPEG = FileType("image/jpeg", ("image/jpg", "image/pjpeg"), (b"\xff\xd8\xff",))
-_WEBP = FileType("image/webp", (), (b"RIFF",))  # plus "WEBP" at offset 8, see _looks_right
+_WEBP = FileType("image/webp", (), (b"RIFF",))  # plus "WEBP" at offset 8, see looks_right
 
 # Never add image/svg+xml, text/html, XML or JavaScript types: PDFs and raster images are shown inline.
 LIBRARY_TYPES: dict[str, FileType] = {
@@ -224,8 +224,9 @@ def create_upload(db: Session, user: User, body: UploadCreate, storage: Storage 
 # ── POST /uploads/{id}/complete ──────────────────────────────────────────────────────────────
 
 
-def _looks_right(ft: FileType, head: bytes) -> bool:
-    """Does the file start the way its type says? (Text types are not checked: they are never shown inline.)"""
+def looks_right(ft: FileType, head: bytes) -> bool:
+    """Does the file start the way its type says? `head` is its first SNIFF_BYTES. (Text types are not checked: they
+    are never shown inline.) Every way a file gets into the bucket checks it: uploads here, the Drive import too."""
     if ft.magic is None:
         return True
     if ft.content_type == "application/pdf":  # the header may follow a few junk bytes
@@ -282,7 +283,7 @@ def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Stor
     st.delete(incoming)
     stored = st.head(final)
     head = st.read_head(final, SNIFF_BYTES)
-    if stored is None or head is None or not 1 <= stored.size <= max_size or not _looks_right(ft, head):
+    if stored is None or head is None or not 1 <= stored.size <= max_size or not looks_right(ft, head):
         raise _mismatch(st, final, up.file_name)
     up.storage_key = final
     up.size_bytes = stored.size
