@@ -57,6 +57,8 @@ The lead merges them.
 | `round3/review-student` | student-tester | 2: the by-hand pass in every role, the suite, a step-up e2e test |
 
 - The code-quality re-review starts once `round3/no-legacy` is merged.
+- **Paused 2026-10-13, about 11:00:** every agent hit the account's usage limit, which resets at 12:00. Resume each
+  one with SendMessage; their work so far is in their worktrees.
 - **The Docker stack** runs from the main checkout (compose project `dsba-hub`), on its normal mail backends.
   - `scripts/e2e.sh` switches it to e2e mode, and `--restore` switches it back.
   - Nobody runs `docker compose down`: the API's pytest uses its Postgres.
@@ -133,8 +135,11 @@ The lead merges them.
 9. **Round 4: Mohamed's requests** in `docs/ROADMAP.md` (R-1 to R-8): roles, requests, the calendar, a study board,
    notes, Noora with context, a new Noora and favourite apps.
    - Each is designed with him first, then built.
-   - **R-1 and R-10 (access):** the spec is approved and has no compatibility layer. The API plan is being written.
-     The work runs on `round4/access` (API and web together) after round 3 and item 7.
+   - **R-1 and R-10 (access):** the spec is approved and has no compatibility layer.
+     - The API plan (`docs/superpowers/plans/2026-10-13-access-api.md`) is approved, to be built subagent-driven.
+     - The web plan is being written.
+     - The work runs on `round4/access` (API and web together) after item 7 and the re-reviews, because Task 2
+       rebuilds the local database.
 
 ## Waiting on Mohamed
 
