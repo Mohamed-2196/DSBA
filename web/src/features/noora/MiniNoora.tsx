@@ -205,6 +205,13 @@ function Noora() {
     return () => clearTimeout(done);
   }, [hinting, setSeen]);
 
+  // Closed from its button: done for good. Focus goes to her, not to the top of the page, when it was on the bubble.
+  const closeHint = () => {
+    const hadFocus = document.activeElement instanceof Element && document.activeElement.closest('.noora__hint') !== null;
+    setSeen(true);
+    if (hadFocus) button.current?.focus();
+  };
+
   // ── Events on her ───────────────────────────────────────────────────────────────────────────────
   const onClick = (e: MouseEvent<HTMLButtonElement>) => {
     if (drag.followsDrag(e)) return; // that click was the end of a drag
@@ -254,6 +261,7 @@ function Noora() {
         chatId={open ? chatId : undefined}
         hint={hint}
         onHintClick={openChat}
+        onHintClose={closeHint}
         onClick={onClick}
         onKeyDown={onKeyDown}
         onPointerEnter={(e: PointerEvent<HTMLButtonElement>) => setHovered(e.pointerType !== 'touch')}

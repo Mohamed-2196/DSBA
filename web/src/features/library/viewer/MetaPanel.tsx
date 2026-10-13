@@ -5,7 +5,7 @@ import { formatSize } from '../../../api/uploads';
 import { hostOf } from '../../../lib/share';
 import { cohortTextColor } from '../../../state';
 import { useModules } from '../../../state/modules';
-import { Button, CohortBadge, Kbd, Skeleton, cx, formatDate, timeAgo } from '../../../ui';
+import { Button, CohortBadge, Count, Kbd, Skeleton, cx, formatDate, timeAgo } from '../../../ui';
 import { downloadHref, itemPath, openLinkHref, useLibraryList } from '../api';
 import type { LinkState } from '../components/FileCard';
 import { FileThumb } from '../components/FileThumb';
@@ -110,7 +110,7 @@ export function MetaPanel({ item, linkState, className, id }: { item: LibraryIte
           </>
         )}
         <Row label={isLink ? 'Opened' : 'Downloads'}>
-          <span className="u-tabular">{item.downloadCount.toLocaleString('en-GB')}</span>
+          <Count value={item.downloadCount} />
           {isLink ? (item.downloadCount === 1 ? ' time' : ' times') : null}
         </Row>
       </dl>

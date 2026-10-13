@@ -827,8 +827,8 @@ export default function StyleGuidePage() {
           {/* ── Labels and people ─────────────────────────────────────── */}
           <Section id="labels" title="Labels and people" description="Badges carry status, cohort badges carry the year, avatars carry a person.">
             <div className="sg-grid sg-grid--2">
-              <Specimen title="Badge" note="tone neutral | cobalt | signal | alert | highlight | navy | outline, size sm | md, icon"
-                code={`<Badge tone="alert">Exam</Badge>  <Badge tone="highlight">New</Badge>`}>
+              <Specimen title="Badge" note="tone neutral | cobalt | signal | alert | highlight | navy | outline, size sm | md, icon; a number is a count (Count: tabular digits, '1,234')"
+                code={`<Badge tone="alert">Exam</Badge>  <Badge tone="highlight">New</Badge>  <Badge tone="cobalt">{1234}</Badge>`}>
                 <Badge>Draft</Badge>
                 <Badge tone="cobalt">Pinned</Badge>
                 <Badge tone="signal">Answered</Badge>
@@ -837,6 +837,7 @@ export default function StyleGuidePage() {
                 <Badge tone="navy">Staff pick</Badge>
                 <Badge tone="outline">PDF</Badge>
                 <Badge tone="signal" size="sm">Live</Badge>
+                <Badge tone="cobalt">{1234}</Badge>
               </Specimen>
               <Specimen title="CohortBadge" note="year, variant soft | solid | dot, short, size"
                 code={`<CohortBadge year={2} />  <CohortBadge year={2} variant="solid" short />`}>

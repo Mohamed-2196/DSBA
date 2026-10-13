@@ -114,26 +114,35 @@
 .noora__pose[data-on] { visibility: visible; }
 .noora__figure[data-mirrored] .noora__pose { transform: scaleX(-1); }
 
-/* First visit: a speech bubble beside her, with an unread dot. It goes once she is clicked or moved. */
+/* First visit: a speech bubble beside her, with an unread dot. It goes once she is clicked or moved, after a while,
+   or with its close button. Pressing the words opens her chat. */
 .noora__hint {
   position: absolute;
   right: calc(100% + 10px);
   bottom: 58%;
+  display: flex;
+  align-items: flex-start;
   width: max-content;
-  max-width: 216px;
-  padding: 10px 14px;
+  max-width: 252px;
   border: 1px solid var(--line);
   border-radius: var(--r-panel) var(--r-panel) var(--r-xs) var(--r-panel);
   background: var(--surface);
   box-shadow: var(--shadow-float);
+  transform-origin: 100% 100%;
+  animation: noora-hint-in var(--dur-slow) var(--ease) both;
+}
+.noora__hint-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 2px 10px 14px;
+  border-radius: inherit;
   color: var(--ink);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
   line-height: 1.4;
   text-align: left;
-  transform-origin: 100% 100%;
-  animation: noora-hint-in var(--dur-slow) var(--ease) both;
 }
+.noora__hint-close { margin: 2px 2px 0 0; }
 .noora__hint[data-side='right'] {
   right: auto;
   left: calc(100% + 10px);

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactNode } from 'react';
 import { cx, renderIcon, type IconSource } from './internal';
-import { formatCount } from './utils';
+import { Count } from './Badge';
 import './Tabs.css';
 
 export interface TabItem<T extends string = string> {
@@ -82,7 +82,7 @@ export function Tabs<T extends string = string>({ tabs, value, onChange, label, 
           >
             {renderIcon(t.icon, { className: 'ui-tab__icon' })}
             <span>{t.label}</span>
-            {t.count != null ? <span className="ui-tab__count">{formatCount(t.count)}</span> : null}
+            {t.count != null ? <span className="ui-tab__count"><Count value={t.count} /></span> : null}
           </button>
         );
       })}

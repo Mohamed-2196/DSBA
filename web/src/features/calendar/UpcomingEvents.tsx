@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarBlank } from '@phosphor-icons/react';
-import { cohortLabel, useYear } from '../../state';
+import { cohortLabel, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, cx, EmptyState, QueryError, Skeleton } from '../../ui';
 import { useUpcomingEvents } from './api';
@@ -15,6 +15,8 @@ import './UpcomingEvents.css';
 export interface UpcomingEventsProps {
   /** How many dates to list (default 5). */
   n?: number;
+  /** The cohort to list (plus everyone-dates); null for every cohort. Default: the cohort the student browses. */
+  year?: CohortYear | null;
 }
 
 /**
@@ -24,8 +26,9 @@ export interface UpcomingEventsProps {
  * Adapts to its container's width (container queries).
  * data-hub="upcoming-events".
  */
-export function UpcomingEvents({ n = 5 }: UpcomingEventsProps) {
-  const { year } = useYear();
+export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
+  const { year: browsed } = useYear();
+  const year = forYear === undefined ? browsed : forYear;
   const { getModule } = useModules();
   const [today] = useState(() => bahrainToday());
   const query = useUpcomingEvents({ n, year });
