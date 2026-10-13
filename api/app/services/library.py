@@ -493,13 +493,19 @@ def remove(db: Session, user: User, item: LibraryItem, ip: str | None) -> None:
 def review(
     db: Session, user: User, item: LibraryItem, decision: Literal["publish", "reject"], note: str | None, ip: str | None
 ) -> None:
+    """Publishes or rejects an item. The row is locked first, so two reviews at once act one after the other; a
+    review that changes nothing (the same decision and note again) writes no activity and tells nobody."""
+    db.refresh(item, with_for_update=True)
     if item.status == ItemStatus.removed:
         raise conflict("post_unavailable", "This file was removed.")
     if decision == "publish" and item.source == ItemSource.file and not item.storage_key:
         raise conflict("file_gone", "This file was deleted after it was rejected. Ask for it to be shared again.")
+    status = ItemStatus.published if decision == "publish" else ItemStatus.rejected
+    if item.status == status and item.review_note == (note or None):
+        return
     now = utcnow()
     previous = item.status
-    item.status = ItemStatus.published if decision == "publish" else ItemStatus.rejected
+    item.status = status
     if decision == "publish" and item.published_at is None:
         item.published_at = now
     item.review_note = note or None

@@ -12,6 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import set_committed_value
 
 from app import cli
 from app.core.time import utcnow
@@ -613,3 +614,29 @@ def test_titles_without_latin_letters_get_a_short_id(
     assert re.fullmatch(r"ec2020-[a-z0-9]{6}", with_module), with_module
     assert re.fullmatch(r"f-[a-z0-9]{6}", without), without
     assert link(rep, title="Past exams سابقة", moduleId="econometrics").json()["slug"] == "ec2020-past-exams"
+
+
+def test_a_second_publish_tells_the_uploader_nothing_and_logs_nothing(
+    client_for: Clients, student: User, moderator: User, share_file: Share, db: Session
+) -> None:
+    """Student test ST-14: a double click on Publish. The review locks the row and re-reads it, so the second request
+    finds the file published, even when it loaded the row before the first one committed."""
+    item = share_file(client_for(student))
+    rep = client_for(moderator)
+    assert rep.post(item_url(item, "/review"), json={"decision": "publish"}).status_code == 200
+    assert rep.post(item_url(item, "/review"), json={"decision": "publish"}).status_code == 200
+
+    # a request that read the row while it was still pending
+    stale = db.get(LibraryItem, uuid.UUID(item["id"]))
+    assert stale is not None
+    set_committed_value(stale, "status", ItemStatus.pending)
+    library.review(db, moderator, stale, "publish", None, None)
+
+    published = db.scalars(select(Notification).where(Notification.kind == "upload_published")).all()
+    assert len(published) == 1
+    assert audit_actions(db).count("library.publish") == 1
+    # a new note on a rejected file is a new review
+    rep.post(item_url(item, "/review"), json={"decision": "reject", "note": "Pages are missing."})
+    rep.post(item_url(item, "/review"), json={"decision": "reject", "note": "Pages are missing."})
+    rep.post(item_url(item, "/review"), json={"decision": "reject", "note": "Page 4 is still missing."})
+    assert audit_actions(db).count("library.reject") == 2

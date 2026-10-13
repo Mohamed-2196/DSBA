@@ -5,7 +5,7 @@ import { errorMessage } from '../../api/errors';
 import type { UserPublic } from '../../api/types';
 import { useAuth } from '../../auth';
 import { Page, PageHeader, Skeleton, TextField, cx } from '../../ui';
-import { useToast, useYear } from '../../state';
+import { useSingleFlight, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { useCreateThread } from './api';
 import { composerPresets } from './lib/composerPresets';
@@ -85,6 +85,7 @@ function Composer() {
   const { getCategory, tags: knownTags, maxTags } = useTaxonomy();
   const rules = usePlacementRules();
   const create = useCreateThread();
+  const post = useSingleFlight(create);
   const viewer = me?.id ?? null;
   const ownYear = me?.year ?? year;
   const defaultCategory = (): CategoryId => categoryForYear(ownYear) ?? 'general';
@@ -141,7 +142,7 @@ function Composer() {
       return;
     }
     if (!requireAuth('Sign in to post your thread', () => sendRef.current())) return;
-    create.mutate(
+    post(
       { title, body: form.body.trim(), category: form.category, moduleId: form.moduleId || null, tags: form.tags },
       {
         onSuccess: (thread) => {

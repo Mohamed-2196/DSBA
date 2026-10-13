@@ -232,7 +232,6 @@ test('D9: a photo of notes is checked, reviewed and shown on its page', async ({
 });
 
 test('ST-14: two publishes at once tell the uploader once', async ({ rep, ali, run }) => {
-  test.fail(true, 'ST-14: both requests find the file unpublished, so both notify (a double click on "Publish")');
   // The CSV the rep turned down earlier: two publishes sent together, as a double click sends them.
   const csv = (await api<{ items: Item[] }>(ali, 'GET', `/api/v1/library/items?mine=true&q=${run.tag}`)).body.items.find((i) => i.title === titles(run.tag).csv);
   const published = async () =>

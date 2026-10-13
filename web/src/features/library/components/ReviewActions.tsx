@@ -1,7 +1,7 @@
 import { Check, X } from '@phosphor-icons/react';
 import { useId, useRef, useState } from 'react';
 import { errorMessage } from '../../../api/errors';
-import { useToast } from '../../../state';
+import { useSingleFlight, useToast } from '../../../state';
 import { Button, TextArea, cx } from '../../../ui';
 import { useReviewItem } from '../api';
 import type { LibraryItem } from '../types';
@@ -12,6 +12,7 @@ export function ReviewActions({ item, onDone, className }: { item: LibraryItem; 
   const uid = useId().replace(/:/g, '');
   const { push } = useToast();
   const review = useReviewItem();
+  const send = useSingleFlight(review);
   const [rejecting, setRejecting] = useState(false);
   const [note, setNote] = useState('');
   const [noteError, setNoteError] = useState<string | null>(null);
@@ -26,7 +27,7 @@ export function ReviewActions({ item, onDone, className }: { item: LibraryItem; 
       noteRef.current?.focus();
       return;
     }
-    review.mutate(
+    send(
       { id: item.id, body: decision === 'publish' ? { decision } : { decision, note: note.trim() } },
       {
         onSuccess: (saved) => {

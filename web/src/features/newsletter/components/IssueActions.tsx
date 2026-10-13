@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { PaperPlaneTilt, Trash } from '@phosphor-icons/react';
 import { errorMessage } from '../../../api/errors';
-import { useToast } from '../../../state';
+import { useSingleFlight, useToast } from '../../../state';
 import { Button, ConfirmDialog, IconButton, type ButtonSize } from '../../../ui';
 import { useDeleteIssue, usePublishIssue } from '../api';
 import { issueNo } from '../lib/text';
@@ -17,10 +17,11 @@ interface ActionIssue {
 export function PublishButton({ issue, size = 'md', onPublished }: { issue: ActionIssue; size?: ButtonSize; onPublished?: () => void }) {
   const { push } = useToast();
   const publish = usePublishIssue();
+  const send = useSingleFlight(publish);
   const [asking, setAsking] = useState(false);
   const no = issueNo(issue.number);
   const confirm = () =>
-    publish.mutate(
+    send(
       { id: issue.id, slug: issue.slug },
       {
         onSuccess: () => {

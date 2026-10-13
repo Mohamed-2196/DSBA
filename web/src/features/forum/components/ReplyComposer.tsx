@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { Reply, ThreadDetail } from '../../../api/types';
 import { ApiError, errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
+import { useSingleFlight } from '../../../state';
 import { Button, Kbd, cx, modKeyLabel } from '../../../ui';
 import { useCreateReply } from '../api';
 import { authorName } from '../lib/authors';
@@ -42,6 +43,7 @@ const isClosedRefusal = (e: unknown, inline: boolean) =>
 export function ReplyComposer({ thread, parent = null, mention = null, onPosted, onCancel, textareaRef, autoFocus = false, onTextChange, closed = false }: ReplyComposerProps) {
   const { me, status, requireAuth } = useAuth();
   const create = useCreateReply();
+  const post = useSingleFlight(create);
   const [body, setBody] = useState(mention ? `@${mention} ` : '');
   const [error, setError] = useState<string | null>(null);
   // The API turned the reply down because the thread closed meanwhile: Post stays off until the page shows why, and
@@ -79,7 +81,7 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
       return;
     }
     if (!requireAuth(inline ? `Sign in to reply to ${parentName}` : 'Sign in to reply', () => sendRef.current())) return;
-    create.mutate(
+    post(
       { threadId: thread.id, body: text, parentId: parent?.id ?? null },
       {
         onSuccess: (reply) => {
