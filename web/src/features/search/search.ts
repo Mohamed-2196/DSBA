@@ -30,6 +30,10 @@ export type IconName =
   | 'Sun'
   | 'UploadSimple';
 
+/** Entries that need more than a switch: starting a thread (the forum.post box) and uploading (both library
+ * switches and the library.upload box). */
+export type OfferId = 'threads' | 'upload';
+
 export type Run = { type: 'theme' } | { type: 'year'; year: 1 | 2 | 3 } | { type: 'noora'; hide: boolean };
 
 interface Base {
@@ -45,11 +49,11 @@ export type Item =
   | (Base & { kind: 'thread'; to: string; meta: string | null })
   | (Base & { kind: 'issue'; to: string; number: number | null })
   | (Base & { kind: 'event'; to: string; when: Date | null; eventType: EventType | null; rel: string | null; past: boolean })
-  | (Base & { kind: 'action'; icon: IconName; keywords: string[]; to?: string; href?: string; run?: Run; feature?: Feature })
+  | (Base & { kind: 'action'; icon: IconName; keywords: string[]; to?: string; href?: string; run?: Run; feature?: Feature; offer?: OfferId })
   | (Base & { kind: 'page'; icon: IconName; keywords: string[]; to: string; feature?: Feature })
   | (Base & { kind: 'recent' | 'suggestion'; query: string })
   | (Base & { kind: 'more'; target: GroupId })
-  | (Base & { kind: 'fallback'; icon: IconName; to: string; feature: Feature });
+  | (Base & { kind: 'fallback'; icon: IconName; to: string; feature: Feature; offer?: OfferId });
 
 export type ItemKind = Item['kind'];
 
@@ -135,7 +139,7 @@ export function buildActions({ year, theme, nooraHidden = false }: { year: numbe
       }),
     );
   return [
-    { id: 'action:new-thread', group: 'actions', kind: 'action', title: 'Start a thread', icon: 'PencilSimpleLine', keywords: ['new thread', 'ask a question', 'post', 'forum'], to: '/forum/new', feature: 'forum' },
+    { id: 'action:new-thread', group: 'actions', kind: 'action', title: 'Start a thread', icon: 'PencilSimpleLine', keywords: ['new thread', 'ask a question', 'post', 'forum'], to: '/forum/new', feature: 'forum', offer: 'threads' },
     // Contributing means uploading to the library (decision D6).
     {
       id: 'action:upload',
@@ -145,7 +149,7 @@ export function buildActions({ year, theme, nooraHidden = false }: { year: numbe
       icon: 'UploadSimple',
       keywords: ['upload', 'share notes', 'share a file', 'past paper', 'contribute', 'add a file'],
       to: '/library?upload=1',
-      feature: 'library.uploads',
+      offer: 'upload',
     },
     ...switches,
     {
@@ -246,6 +250,8 @@ export interface SearchInput {
   getModulesForYear: (year: number) => ModuleSummary[];
   /** Whether a feature is on for the person. */
   isOn: (f: Feature) => boolean;
+  /** Whether "Start a thread" and "Upload a file" belong in front of the person (useStartsThreads, showsUpload). */
+  offers: Record<OfferId, boolean>;
   now?: Date;
 }
 
@@ -270,13 +276,16 @@ export function textOf(query: string): string {
   return query.replace(YEAR_RE, ' ').replace(/\s+/g, ' ').trim();
 }
 
-export function runSearch({ query, year, theme, nooraHidden = false, expanded, recent, results, getModule, getModulesForYear, isOn, now = new Date() }: SearchInput): Results {
+export function runSearch({ query, year, theme, nooraHidden = false, expanded, recent, results, getModule, getModulesForYear, isOn, offers, now = new Date() }: SearchInput): Results {
   const cohortMatch = YEAR_RE.exec(query);
   const cohort = cohortMatch ? Number(cohortMatch[1]) : null;
   const text = textOf(query);
   const tokens = tokenize(text);
-  // The API leaves out switched-off features' hits too; this keeps a cached answer from showing them after a switch flips.
-  const shown = (i: Item) => !(i.kind === 'action' || i.kind === 'page' || i.kind === 'fallback') || !i.feature || isOn(i.feature);
+  const shown = (i: Item) => {
+    if (i.kind !== 'action' && i.kind !== 'page' && i.kind !== 'fallback') return true;
+    if (i.feature && !isOn(i.feature)) return false;
+    return i.kind === 'page' || !i.offer || offers[i.offer];
+  };
   const actions = buildActions({ year, theme, nooraHidden }).filter(shown);
   const pages = PAGE_ENTRIES.filter(shown);
   const off = (feature: Feature) => !isOn(feature);
@@ -315,6 +324,8 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
     actions: [],
     pages: [],
     modules: (results?.modules ?? []).map((h) => toItem(h, 'modules', lookup, now)).filter((i): i is Item => !!i),
+    // The API leaves out switched-off features' hits too; this keeps a cached answer from showing them after a
+    // switch flips.
     files: off('library') ? [] : (results?.library ?? []).map((h) => toItem(h, 'files', lookup, now)).filter((i): i is Item => !!i),
     threads: off('forum') ? [] : (results?.threads ?? []).map((h) => toItem(h, 'threads', lookup, now)).filter((i): i is Item => !!i),
     issues: off('newsletter') ? [] : (results?.issues ?? []).map((h) => toItem(h, 'issues', lookup, now)).filter((i): i is Item => !!i),
@@ -363,7 +374,7 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
         [
           { id: 'fallback:library', kind: 'fallback', group: 'fallback', icon: 'Books', title: `Search the library for “${q}”`, to: `/library?q=${encodeURIComponent(q)}`, feature: 'library' },
           { id: 'fallback:forum', kind: 'fallback', group: 'fallback', icon: 'ChatsCircle', title: `Search the forum for “${q}”`, to: `/forum?q=${encodeURIComponent(q)}`, feature: 'forum' },
-          { id: 'fallback:ask', kind: 'fallback', group: 'fallback', icon: 'PencilSimpleLine', title: `Ask the forum about “${q}”`, to: `/forum/new?title=${encodeURIComponent(q)}`, feature: 'forum' },
+          { id: 'fallback:ask', kind: 'fallback', group: 'fallback', icon: 'PencilSimpleLine', title: `Ask the forum about “${q}”`, to: `/forum/new?title=${encodeURIComponent(q)}`, feature: 'forum', offer: 'threads' },
         ] satisfies Item[]
       ).filter(shown),
       total: 0,

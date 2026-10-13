@@ -12,6 +12,7 @@ const base: SearchInput = {
   getModule: () => null,
   getModulesForYear: () => [],
   isOn: () => true,
+  offers: { threads: true, upload: true },
   now: new Date('2026-10-13T09:00:00+03:00'),
 };
 
@@ -37,10 +38,14 @@ describe('runSearch', () => {
     expect(r).toContain('page:/library');
   });
 
-  it('leaves out the upload action while library uploads are off', () => {
-    const r = ids(runSearch({ ...base, isOn: (f) => f !== 'library.uploads' }));
+  it('offers Start a thread and Upload a file only when the person may do them', () => {
+    const r = ids(runSearch({ ...base, offers: { threads: false, upload: false } }));
+    expect(r).not.toContain('action:new-thread');
     expect(r).not.toContain('action:upload');
+    expect(r).toContain('page:/forum');
     expect(r).toContain('page:/library');
+    const asks = ids(runSearch({ ...base, query: 'zzzz', offers: { threads: false, upload: true }, results: results() }));
+    expect(asks).toEqual(['fallback:library', 'fallback:forum']);
   });
 
   it('leaves out matching actions of switched-off features', () => {
