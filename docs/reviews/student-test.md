@@ -450,6 +450,42 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
 | A thread with a 371-character title | the field stops at 120 with a "120/120" counter. |
 | A thread with Arabic text and a picture | posts and renders. |
 | **Double-clicking "Post thread"** | **bug ST-13**: two identical threads. |
+| Deleting her duplicate (no replies) | works: "It is removed from the forum and its text is deleted." |
+| Opening Ali's reply notification | works: the link ends in `#reply-<id>` and the reply is in view (ST-4 holds). |
+| Votes, accepting Ali's answer | works. The sidebar says "1 reply from Ali R4 Test": the author isn't counted (**ST-11 fixed**). |
+| The library: search, "Search all years", a star on a Year 1 file, Starred | works |
+
+### Year 1 student (Ali, on a 390×844 phone)
+
+| What | Result |
+|---|---|
+| Sign up by email | works. "Ali.E2E@example" is caught ("That email address doesn’t look right."); capitals and spaces around the address are fine. |
+| **Double-tapping "Post reply"** | **ST-13 again**: two identical replies, and Sara gets two notifications. |
+| Deleting the duplicate reply | works, and Sara's notification about it goes. The other one quotes the reply's start (**ST-6 fixed**). |
+| Reporting Noor's thread as spam with a note | works; the button then reads "Reported" (the round 1 confusion is gone). He is told when the rep acts. |
+| Uploads of every allowed type: PDF, DOCX, XLSX, PPTX, DOC, XLS, PPT, IPYNB, R, TXT, CSV, PNG, JPG | each "Sent for review". After 10 pending files the dialog says "You have 10 files waiting for review…" and offers "See your uploads": by design. Old Office files show as DOCX, XLSX and PPTX (ST-15). |
+| Wrong files: `.exe`, `.svg`, 51 MB | refused before anything is sent, with the allowed types or "That file is 51 MB, over the 50 MB limit. Compress it or split it into parts." |
+| An HTML page renamed `.pdf` | "This isn't a real .pdf file: what's inside doesn't match its name. Save or export it again, or choose another file." The title, module and type stay filled in (**ST-7 fixed**). |
+
+### Year 3 student (Noor)
+
+| What | Result |
+|---|---|
+| Her spam thread is hidden by the rep | she can still open it: "A student rep hid this thread. Only you and the student reps can see it…", and her notification says "A student rep hid your thread" (**ST-5 fixed**). Nobody else finds it. |
+| Suspended by the admin, she presses a star | `403` "Your account is suspended. Contact a student rep.", shown as a toast (**ST-8 fixed**). |
+
+### Student rep (Fatima)
+
+| What | Result |
+|---|---|
+| Moderation: the report, hiding the thread (with the optional reason), resolving with a note, locking Sara's thread | works |
+| Reviewing Ali's uploads: publishing nine, rejecting the PPT with a note | works, but **double-clicking "Publish" notifies twice** (ST-14). |
+
+### Admin (Maryam)
+
+| What | Result |
+|---|---|
+| People: finding Noor, suspending her (the dialog says what it does), lifting it | works |
 
 ### New findings
 
@@ -463,6 +499,28 @@ Screenshots: the scratchpad's `shots/r4-*.png` (not committed).
   `st2133-mgf-of-a-sum-of-independent-poissons-is-it-the-product` and `…-product-2`. The list shows both, and the
   header says "2 questions are waiting for a first reply". `send()` calls `create.mutate` without checking
   `create.isPending`, which only changes on the next render, so the second click gets through.
+- The same happens with a reply: Ali double-tapped **Post reply** on his phone, two identical replies went up and
+  Sara got two notifications.
 - Fix: return early from `send()` while a post is in flight, with a ref (as `StepUpDialog` does with
   `sendingRef`). The API could also refuse the same title from the same author within a minute.
 - Screenshot: `r4-forum-04-posted.png`.
+
+#### ST-14 (minor) Publishing an upload twice tells the uploader twice, by notification and by email
+
+- Owner: content (`services/library.py`, the review) and frontend-library (`UploadsQueue`)
+- Steps: as a rep, Moderation → Uploads to review. Double-click **Publish** on a file. Or send
+  `POST /api/v1/library/items/{id}/review {"decision": "publish"}` twice.
+- Expected: the second press does nothing; the uploader hears once.
+- Actual: both answer `200`. For each of the nine files Fatima published, Ali has two "Your file is in the library: …"
+  notifications and two emails (Mailpit), and the activity log has two `library.publish` entries. Reviewing an item
+  that is already published runs the whole review again.
+- Fix: in the API, publishing a published item (or rejecting a rejected one) changes nothing and notifies nobody,
+  or answers `409`. In the queue, ignore a second press while the first is in flight (as for ST-13).
+
+#### ST-15 (nit) Old Office files are labelled DOCX, XLSX and PPTX
+
+- Owner: content (`services/library.py`, `FORMATS`)
+- Ali uploaded `MT1186 doc r4.doc`, `.xls` and `.ppt`. The API gives them the format `DOCX`, `XLSX` and `PPTX`, so
+  the cards and the file page say DOCX while the download is a `.doc`. A student with an old Office version may
+  think the file won't open. Suggestion: `DOC`, `XLS` and `PPT` (the web app already names them "Word document" and
+  so on).
