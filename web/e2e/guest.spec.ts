@@ -16,8 +16,8 @@ const PAGES: [string, RegExp][] = [
   ['/grades', /^Grades$/],
   ['/about', /About DSBA Hub/],
   ['/account', /^Your account$/],
-  ['/moderation', /^Moderation$/],
-  ['/admin/people', /^People$/],
+  ['/manage', /^Manage$/],
+  ['/admin/access', /^Access$/],
 ];
 
 test('every page loads for a guest, without errors', async ({ guest }) => {

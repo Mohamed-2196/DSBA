@@ -1,6 +1,6 @@
 import type { CaptureResult } from 'posthog-js';
 import { describe, expect, it } from 'vitest';
-import { analyticsConfig, DEFAULT_POSTHOG_HOST, scrubEvent, withoutQuery } from './analytics';
+import { analyticsConfig, DEFAULT_POSTHOG_HOST, featuresProperty, prepareEvent, scrubEvent, setVisitFeatures, withoutQuery } from './analytics';
 
 describe('analyticsConfig (security review SEC-8)', () => {
   const config = analyticsConfig();
@@ -26,7 +26,7 @@ describe('analyticsConfig (security review SEC-8)', () => {
     expect(config.persistence).toBe('localStorage');
     expect(config.respect_dnt).toBe(true);
     expect(config.save_referrer).toBe(false);
-    expect(config.before_send).toBe(scrubEvent);
+    expect(config.before_send).toBe(prepareEvent);
   });
 
   it('uses another host when the build names one', () => {
@@ -72,5 +72,39 @@ describe('scrubEvent', () => {
       properties: { title: 'Help with my resit, Sara A – DSBA Hub', $pathname: '/forum/abc' },
     };
     expect(scrubEvent(event)?.properties).toEqual({ $pathname: '/forum/abc' });
+  });
+});
+
+describe('featuresProperty (D13)', () => {
+  it('is the sorted list of known feature keys, and nothing else', () => {
+    expect(featuresProperty(['noora', 'forum', 'forum', 'calendar'])).toEqual(['calendar', 'forum', 'noora']);
+    expect(featuresProperty(['forum', 'newsletter.manage', 'admin'])).toEqual(['forum']);
+    expect(featuresProperty([])).toEqual([]);
+  });
+
+  it('survives the scrub: page views keep it', () => {
+    const event = { event: '$pageview', properties: { features: ['forum'], $current_url: 'https://hub.example.com/forum?q=x' } } as unknown as CaptureResult;
+    expect(scrubEvent(event)?.properties.features).toEqual(['forum']);
+  });
+});
+
+describe('the features list on events (D13)', () => {
+  const page = () => ({ event: '$pageview', properties: { $current_url: 'https://hub.example.com/forum?q=x' } }) as unknown as CaptureResult;
+
+  it('gives every event the current list, and follows setVisitFeatures', () => {
+    setVisitFeatures(['noora', 'forum']);
+    expect(prepareEvent(page())?.properties.features).toEqual(['forum', 'noora']);
+    expect(prepareEvent(page())?.properties.$current_url).toBe('https://hub.example.com/forum');
+    setVisitFeatures([]);
+    expect(prepareEvent(page())?.properties.features).toEqual([]);
+  });
+
+  it('never carries unknown keys', () => {
+    setVisitFeatures(['forum', 'admin', 'newsletter.manage']);
+    expect(prepareEvent(page())?.properties.features).toEqual(['forum']);
+  });
+
+  it('passes a dropped event on as dropped', () => {
+    expect(prepareEvent(null)).toBeNull();
   });
 });

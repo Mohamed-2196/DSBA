@@ -1,8 +1,7 @@
-"""Migrations that move data, checked on a throwaway database: what 0003 does to the email switches (decision D1)."""
+"""The baseline migration, checked on a throwaway database: what it seeds and what the database refuses."""
 
 from __future__ import annotations
 
-import json
 import uuid
 from collections.abc import Iterator
 from pathlib import Path
@@ -40,90 +39,41 @@ def scratch() -> Iterator[tuple[Config, Engine]]:
         admin.dispose()
 
 
-def _preferences(engine: Engine) -> dict[str, dict[str, bool]]:
-    with engine.connect() as c:
-        rows = c.execute(text("SELECT email, preferences FROM users")).tuples()
-        return dict(rows.all())
-
-
-def test_0003_gives_each_kind_of_email_its_own_switch(scratch: tuple[Config, Engine]) -> None:
+def test_the_baseline_seeds_the_roles_and_every_switch(scratch: tuple[Config, Engine]) -> None:
     cfg, engine = scratch
-    command.upgrade(cfg, "0002")
-    before = {
-        "all-on@example.com": {},
-        "no-replies@example.com": {"email_notifications": False},
-        "no-issues@example.com": {"newsletterEmails": False, "theme": True},
-        "nothing@example.com": {"emailNotifications": False, "newsletter_emails": False},
-        "explicit-on@example.com": {"email_notifications": True, "newsletter_emails": True},
-    }
-    with engine.begin() as c:
-        for email, prefs in before.items():
-            c.execute(
-                text("INSERT INTO users (id, email, preferences) VALUES (:id, :email, CAST(:prefs AS jsonb))"),
-                {"id": uuid.uuid4(), "email": email, "prefs": json.dumps(prefs)},
-            )
-    command.upgrade(cfg, "0003")
-    off = {"email_replies": False, "email_answer_accepted": False, "email_upload_reviews": False}
-    assert _preferences(engine) == {
-        "all-on@example.com": {},
-        "no-replies@example.com": off,
-        "no-issues@example.com": {"theme": True, "email_new_issues": False},
-        "nothing@example.com": {**off, "email_new_issues": False},
-        "explicit-on@example.com": {},  # on is the default: nothing to store
-    }
-    command.downgrade(cfg, "0002")
-    assert _preferences(engine) == {
-        "all-on@example.com": {},
-        "no-replies@example.com": {"email_notifications": False},
-        "no-issues@example.com": {"theme": True, "newsletter_emails": False},
-        "nothing@example.com": {"email_notifications": False, "newsletter_emails": False},
-        "explicit-on@example.com": {},
-    }
-
-
-def test_0004_turns_the_deletion_marker_into_deleted_at(scratch: tuple[Config, Engine]) -> None:
-    cfg, engine = scratch
-    command.upgrade(cfg, "0003")
-    rows = {
-        "kept": ("visible", "Text"),
-        "hidden-deleted": ("hidden", " "),
-        "hidden": ("hidden", "Hidden text"),
-        "deleted": ("deleted", ""),
-    }
-    with engine.begin() as c:
-        for slug, (status, body) in rows.items():
-            c.execute(
-                text(
-                    "INSERT INTO forum_threads (id, slug, title, body, category, status) "
-                    "VALUES (:id, :slug, :slug, :body, 'general', :status)"
-                ),
-                {"id": uuid.uuid4(), "slug": slug, "body": body, "status": status},
-            )
-    command.upgrade(cfg, "0004")
+    command.upgrade(cfg, "head")
     with engine.connect() as c:
-        after = {
-            slug: (status, body, deleted_at is not None)
-            for slug, status, body, deleted_at in c.execute(
-                text("SELECT slug, status, body, deleted_at FROM forum_threads")
-            ).tuples()
+        roles = c.execute(text("SELECT slug, name, badge, built_in, locked FROM roles ORDER BY position")).tuples()
+        assert roles.all() == [
+            ("admin", "Admin", "Admin", True, True),
+            ("rep", "Rep", "Student rep", True, False),
+            ("student", "Student", None, True, False),
+            ("newsletter-manager", "Newsletter manager", "Newsletter", False, False),
+            ("content-manager", "Content manager", "Content", False, False),
+        ]
+        boxes = c.execute(
+            text(
+                "SELECT r.slug, string_agg(b.box, ',' ORDER BY b.box) FROM roles r "
+                "LEFT JOIN role_boxes b ON b.role_id = r.id GROUP BY r.slug"
+            )
+        ).tuples()
+        assert dict(boxes.all()) == {
+            "admin": None,
+            "content-manager": "calendar.manage,career.edit",
+            "newsletter-manager": "newsletter.manage",
+            "rep": "calendar.manage,forum.moderate,library.manage,newsletter.manage,stats.view",
+            "student": "forum.post,library.upload,newsletter.react,reports.create",
         }
-    assert after == {
-        "kept": ("visible", "Text", False),
-        "hidden-deleted": ("hidden", "", True),  # hidden, and its text deleted: unhiding gives a deleted thread
-        "hidden": ("hidden", "Hidden text", False),
-        "deleted": ("deleted", "", True),
-    }
-    command.downgrade(cfg, "0003")
-    with engine.connect() as c:
-        bodies = dict(c.execute(text("SELECT slug, body FROM forum_threads")).tuples().all())
-    assert bodies["hidden-deleted"] == " "
+        switches = dict(c.execute(text("SELECT feature, mode FROM feature_switches")).tuples().all())
+        features = ("forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora")
+        assert switches == dict.fromkeys(features, "everyone")
 
 
-def test_0006_has_the_database_check_kinds_types_reasons_and_cohorts(scratch: tuple[Config, Engine]) -> None:
-    """Code quality review CQ-15: values the contract doesn't list, and cohorts outside 1-3, are refused by the
-    database itself; a report is open unless it says otherwise. Undone by the downgrade."""
+def test_the_database_refuses_what_the_contract_does_not_list(scratch: tuple[Config, Engine]) -> None:
+    """Kinds, types, reasons, cohorts and switch modes are checked by the database itself (code quality review
+    CQ-15), and a report is open unless it says otherwise."""
     cfg, engine = scratch
-    command.upgrade(cfg, "0006")
+    command.upgrade(cfg, "head")
     ids = {"thread": uuid.uuid4(), "user": uuid.uuid4()}
     with engine.begin() as c:
         c.execute(text("INSERT INTO users (id, email) VALUES (:user, 'reporter@example.com')"), ids)
@@ -142,7 +92,6 @@ def test_0006_has_the_database_check_kinds_types_reasons_and_cohorts(scratch: tu
             ids,
         )
         assert c.execute(text("SELECT status FROM reports")).scalar_one() == "open"
-
     library = "INSERT INTO library_items (id, slug, source, kind, title, status, year) VALUES (gen_random_uuid(), "
     report = "INSERT INTO reports (id, reporter_id, target_type, target_id, reason, status) VALUES (gen_random_uuid(), "
     refused = {
@@ -157,20 +106,8 @@ def test_0006_has_the_database_check_kinds_types_reasons_and_cohorts(scratch: tu
         "VALUES (gen_random_uuid(), 'year-0', 'Year 0', 'Text', 'general', 'visible', 0)",
         "ck_forum_replies_author_year_range": "INSERT INTO forum_replies (id, thread_id, body, status, author_year) "
         "VALUES (gen_random_uuid(), :thread, 'Text', 'visible', 9)",
+        "ck_feature_switches_mode": "UPDATE feature_switches SET mode = 'maybe' WHERE feature = 'forum'",
     }
     for constraint, statement in refused.items():
         with pytest.raises(IntegrityError, match=constraint), engine.begin() as c:
             c.execute(text(statement), ids)
-
-    command.downgrade(cfg, "0005")
-    with engine.begin() as c:  # undone: the same rows go in
-        for statement in refused.values():
-            c.execute(text(statement), ids)
-    with pytest.raises(IntegrityError, match="status"), engine.begin() as c:  # and a report needs its status again
-        c.execute(
-            text(
-                "INSERT INTO reports (id, reporter_id, target_type, target_id, reason) "
-                "VALUES (gen_random_uuid(), :user, 'thread', :thread, 'other')"
-            ),
-            ids,
-        )

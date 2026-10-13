@@ -114,9 +114,10 @@ export function useLibraryList(query: LibraryQuery, { limit = PAGE_SIZE, enabled
 }
 
 /** The newest published files, optionally for one cohort (Home's "New in the library"). */
-export function useRecentFiles({ n = 6, year = null }: { n?: number; year?: CohortYear | null } = {}) {
+export function useRecentFiles({ n = 6, year = null, enabled = true }: { n?: number; year?: CohortYear | null; enabled?: boolean } = {}) {
   const query: LibraryQuery = { sort: 'new', year };
   return useQuery({
+    enabled,
     queryKey: libraryKeys.list('page', query, n),
     queryFn: ({ signal }) => fetchPage(query, n, 0, signal),
     select: (page: LibraryPage) => page.items,
@@ -225,7 +226,7 @@ async function cancelLibraryRefetches(qc: QueryClient) {
 }
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
-// After a change, what counts published files follows too: the facets, the moderation page's counters
+// After a change, what counts published files follows too: the facets, Manage's counts
 // (ADMIN_STATS_KEY) and each module's file count in the catalogue (MODULES_KEY, exact: not every module's
 // lessons), which the module pages and Home show (code quality review CQ-11).
 

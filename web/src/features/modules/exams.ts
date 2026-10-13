@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { daysUntil, formatDay, inDays, parseDay, today, todayKey, weekdayOf, type DayInput } from '../../lib/dates';
 import type { CohortYear } from '../../state';
+import { useAuth } from '../../auth';
 import { useCalendarEvents, useNextExamForModule, type CalendarEvent } from '../calendar/public';
 
 export interface ExamInfo {
@@ -37,14 +38,14 @@ export function examInfo(event: CalendarEvent | null | undefined, from: DayInput
 
 /** The module's next exam (null while loading, on errors and when none is on the calendar). */
 export function useModuleExam(moduleId: string): ExamInfo | null {
-  const q = useNextExamForModule(moduleId);
+  const q = useNextExamForModule(moduleId, { enabled: useAuth().featureOn('calendar') });
   return useMemo(() => examInfo(q.data), [q.data]);
 }
 
 /** The next exam of every module of a cohort, in one request: moduleId → exam. */
 export function useExamsByModule(year: CohortYear | null): Map<string, ExamInfo> {
   const from = todayKey();
-  const q = useCalendarEvents({ from, type: 'exam', year });
+  const q = useCalendarEvents({ from, type: 'exam', year }, { enabled: useAuth().featureOn('calendar') });
   return useMemo(() => {
     const out = new Map<string, ExamInfo>();
     for (const e of q.data ?? []) {
@@ -60,7 +61,7 @@ export function useExamsByModule(year: CohortYear | null): Map<string, ExamInfo>
 /** The module's dates from today on (exams, mocks, revision sessions, deadlines), oldest first. */
 export function useModuleDates(moduleId: string, n = 4) {
   const from = todayKey();
-  const q = useCalendarEvents({ from, moduleId });
+  const q = useCalendarEvents({ from, moduleId }, { enabled: useAuth().featureOn('calendar') });
   const events = useMemo(() => (q.data ?? []).slice(0, n), [q.data, n]);
   return { events, isPending: q.isPending, isError: q.isError, refetch: q.refetch };
 }

@@ -108,7 +108,7 @@ test('wrong files are refused with a reason', async ({ ali, run }) => {
 
 test('the rep publishes three uploads and rejects one with a note; Ali is told', async ({ rep, ali, run }) => {
   const t = titles(run.tag);
-  await rep.goto('/moderation?tab=uploads');
+  await rep.goto('/manage?tab=uploads');
   const row = (title: string) => rep.locator('[data-hub="upload-review"]').filter({ hasText: title }).first();
   for (const title of [t.pdf, t.docx, t.ipynb]) {
     await row(title).getByRole('button', { name: 'Publish' }).click();
@@ -216,7 +216,7 @@ test('D9: a photo of notes is checked, reviewed and shown on its page', async ({
   remember('items', item.id);
   expect(item.contentType).toBe('image/png');
 
-  await rep.goto('/moderation?tab=uploads');
+  await rep.goto('/manage?tab=uploads');
   const row = rep.locator('[data-hub="upload-review"]').filter({ hasText: title }).first();
   await expect(row.locator('img.lib-queue__picture')).toBeVisible(); // the rep sees the picture itself
   await row.getByRole('button', { name: 'Publish' }).click();

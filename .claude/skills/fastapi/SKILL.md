@@ -15,7 +15,7 @@ description: FastAPI best practices and conventions. Use when working with FastA
 >   `fastapi dev` isn't set up.
 > - **Routes declare `response_model=`,** and schemas extend `ApiModel` (camelCase on the wire). Keep that style.
 > - **Dependencies** are the `Annotated` aliases in `app/core/security.py`: `DB`, `OptionalUser`, `ActiveUser`,
->   `Moderator` and `Admin`.
+>   `requires(box)`, `requires_any` and `requires_admin`.
 > - **Routers stay thin:**
 >   - the logic lives in `app/services`;
 >   - errors come from `app/core/errors.py`;

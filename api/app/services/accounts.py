@@ -14,8 +14,9 @@ from botocore.exceptions import BotoCoreError, ClientError
 from sqlalchemy import delete, false, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
+from app.core.access import ADMIN, STUDENT
 from app.core.errors import ApiError, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
@@ -33,7 +34,6 @@ from app.models import (
     Notification,
     ReplyVote,
     Report,
-    Role,
     ThreadVote,
     Upload,
     UploadPurpose,
@@ -41,6 +41,7 @@ from app.models import (
     User,
     UserSession,
 )
+from app.schemas.access import RoleSummary
 from app.schemas.auth import (
     AccountExport,
     ExportEmail,
@@ -58,7 +59,7 @@ from app.schemas.auth import (
 from app.schemas.common import UserPublic
 from app.schemas.modules import Progress, ProgressImport
 from app.schemas.notifications import NotificationKind
-from app.services import otp, sessions
+from app.services import access, otp, sessions
 from app.services.audit import record
 from app.services.identifiers import Kind, admin_identifiers, destination_hint
 from app.services.outbox import ACCOUNT_NOTICE
@@ -89,13 +90,22 @@ def update_preferences(user: User, changes: PreferencesUpdate) -> None:
     user.preferences = merged  # a new dict: JSONB columns don't see changes made in place
 
 
+def role_summaries(user: User) -> list[RoleSummary]:
+    """The person's roles as /me and the people list show them, in role order."""
+    return [RoleSummary(id=r.id, slug=r.slug, name=r.name, badge=r.badge) for r in access.access_of(user).roles]
+
+
 def me_out(user: User) -> Me:
     return Me.model_validate(
         {
             "id": user.id,
             "display_name": user.display_name,
             "year": user.year,
-            "role": user.role.value,
+            "roles": role_summaries(user),
+            "boxes": [b.value for b in sorted(access.boxes_of(user))],
+            "features": [f.value for f in access.features_on(session, user)]
+            if (session := object_session(user))
+            else [],
             "status": user.status.value,
             "email": user.email,
             "phone": user.phone,
@@ -110,9 +120,9 @@ UNNAMED = "Student"  # an account without a display name yet (it can't post unti
 
 
 def public_user(user: User | None) -> UserPublic | None:
-    """How a person appears next to what they did, everywhere in the Hub: name, cohort and role, never their email
-    or phone number. None for a deleted account ("deleted user"). The one serialiser for UserPublic (code quality
-    review CQ-6): areas import this rather than writing their own."""
+    """How a person appears next to what they did, everywhere in the Hub: name, cohort and badge, never their email
+    or phone number. A suspended account shows no badge. None for a deleted account ("deleted user"). The one
+    serialiser for UserPublic (code quality review CQ-6): areas import this rather than writing their own."""
     if user is None:
         return None
     return UserPublic.model_validate(
@@ -120,7 +130,7 @@ def public_user(user: User | None) -> UserPublic | None:
             "id": user.id,
             "display_name": user.display_name or UNNAMED,
             "year": user.year,  # 1-3 or none: the database checks it
-            "role": user.role.value,
+            "badge": access.access_of(user).badge if access.is_active(user) else None,  # suspended: no boxes, no badge
         }
     )
 
@@ -131,7 +141,7 @@ NAME_MIN, NAME_MAX = 2, 40
 NAME_PUNCTUATION = frozenset(" .'-")
 # What phones and word processors type in place of the plain characters (NFKC leaves these alone)
 NAME_LOOKALIKES = str.maketrans({"\u2019": "'", "\u2018": "'", "\u2010": "-", "\u2011": "-"})
-# Names that pass for the Hub's staff: only moderators and admins may use them (security review finding 20)
+# Names that pass for the Hub's staff: only holders of Admin or Rep may use them (security review finding 20)
 STAFF_WORDS = ("admin", "moderator", "student rep", "dsba", "bibf")
 # Characters that look like Latin letters or like the letters of STAFF_WORDS, after casefold (from Unicode TR39's
 # confusables; security review SEC-11): Cyrillic, Greek, Armenian, Latin variants and two digits.
@@ -221,27 +231,53 @@ def _bad_name(message: str) -> ApiError:
 
 
 def clean_display_name(raw: str, *, staff: bool = False) -> str:
-    """NFKC, trimmed and single-spaced. 2-40 characters: letters in any script (with their combining marks),
-    digits, spaces and . ' - , with at least one letter. Control and format characters (bidi controls, zero-width
-    characters) and everything else are refused; so is a word that mixes Latin, Cyrillic or Greek letters, and, in
-    a non-staff name, anything that reads as one of STAFF_WORDS once look-alike letters are mapped (skeleton()).
-    Raises invalid_display_name (422)."""
-    name = " ".join(unicodedata.normalize("NFKC", raw).translate(NAME_LOOKALIKES).split())
+    """NFKC, trimmed and single-spaced. 2-40 characters that pass characters_problem(), and, in a non-staff name,
+    nothing that reads as one of STAFF_WORDS (reads_as_staff()). Raises invalid_display_name (422)."""
+    name = plain_text(raw)
     if not NAME_MIN <= len(name) <= NAME_MAX:
         raise _bad_name(f"Use {NAME_MIN} to {NAME_MAX} characters.")
-    for ch in name:
-        category = unicodedata.category(ch)
-        if not (category[0] in "LM" or category == "Nd" or ch in NAME_PUNCTUATION):
-            raise _bad_name("Use only letters, digits, spaces, dots (.), apostrophes (') and hyphens (-).")
-    if not any(unicodedata.category(ch)[0] == "L" for ch in name):
-        raise _bad_name("Include at least one letter.")
-    if unicodedata.category(name[0])[0] == "M":
-        raise _bad_name("Start with a letter or a digit.")
-    if _mixes_scripts(name):
-        raise _bad_name("Write each word in one alphabet.")
-    if not staff and any(word in skeleton(name) for word in STAFF_WORDS):
+    if (problem := characters_problem(name)) is not None:
+        raise _bad_name(problem)
+    if not staff and reads_as_staff(name):
         raise _bad_name("This name is kept for the Hub's staff. Choose another one.")
     return name
+
+
+def plain_text(raw: str) -> str:
+    """`raw` as names and badges are kept: NFKC, typographic apostrophes and hyphens made plain, trimmed and
+    single-spaced."""
+    return " ".join(unicodedata.normalize("NFKC", raw).translate(NAME_LOOKALIKES).split())
+
+
+def characters_problem(text: str) -> str | None:
+    """What's wrong with the characters of a name or a badge (plain_text()), or None. Allowed: letters in any script
+    with their combining marks, digits, spaces and . ' -, with at least one letter. Control and format characters
+    (bidi controls, zero-width characters, soft hyphens) and everything else are refused; so is a word that mixes
+    Latin, Cyrillic or Greek letters."""
+    for ch in text:
+        category = unicodedata.category(ch)
+        if not (category[0] in "LM" or category == "Nd" or ch in NAME_PUNCTUATION):
+            return "Use only letters, digits, spaces, dots (.), apostrophes (') and hyphens (-)."
+    if not any(unicodedata.category(ch)[0] == "L" for ch in text):
+        return "Include at least one letter."
+    if unicodedata.category(text[0])[0] == "M":
+        return "Start with a letter or a digit."
+    if _mixes_scripts(text):
+        return "Write each word in one alphabet."
+    return None
+
+
+def looks(text: str) -> str:
+    """What `text` looks like on screen: NFKC, without control or format characters, then skeleton(). Two badges
+    that look the same compare equal."""
+    visible = "".join(ch for ch in unicodedata.normalize("NFKC", text) if unicodedata.category(ch) not in ("Cc", "Cf"))
+    return skeleton(visible)
+
+
+def reads_as_staff(text: str) -> bool:
+    """Whether `text` reads as one of STAFF_WORDS once look-alike letters are mapped (names, and roles' badges)."""
+    seen = looks(text)
+    return any(word in seen for word in STAFF_WORDS)
 
 
 # ── signing in ──────────────────────────────────────────────────────────────────────────────
@@ -262,7 +298,6 @@ def user_for_sign_in(db: Session, kind: Kind, identifier: str, ip: str | None) -
             id=uuid.uuid4(),
             email=identifier if kind == "email" else None,
             phone=identifier if kind == "phone" else None,
-            role=Role.student,
             preferences={},
             created_at=now,
         )
@@ -275,12 +310,14 @@ def user_for_sign_in(db: Session, kind: Kind, identifier: str, ip: str | None) -
                 raise
         else:
             user, created = candidate, True
-    if user.role != Role.admin and {user.email, user.phone} & admin_identifiers():
+            access.give(db, user, STUDENT)
+    if not access.access_of(user, db).admin and {user.email, user.phone} & admin_identifiers():
         # a new account has no name yet: the activity log shows its masked address instead (UX-15)
         name = user.display_name or destination_hint(kind, identifier)
-        change = {"from": user.role.value, "to": "admin", "via": "bootstrap", "targetName": name}
-        record(db, None, "user.role", "user", user.id, change, ip)
-        user.role = Role.admin
+        before = access.role_names(user)
+        access.give(db, user, ADMIN)
+        change = {"from": before, "to": access.role_names(user), "via": "bootstrap", "targetName": name}
+        record(db, None, "user.roles", "user", user.id, change, ip)
     user.last_seen_at = now
     return user, created
 
@@ -622,7 +659,10 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     bucket fails, nothing is deleted and the person can try again); pending and rejected library items go;
     published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set NULL); everything
     personal (sessions, notifications, queued emails, progress, stars, votes, reactions) cascades; the sign-in
-    codes stay, anonymised, until the sweep (the rate limits count them)."""
+    codes stay, anonymised, until the sweep (the rate limits count them). The last active admin can't leave
+    (409 last_admin)."""
+    if access.is_admin(user):
+        access.ensure_admins_remain(db, user)
     uid = user.id
     dropped_items = list(
         db.scalars(

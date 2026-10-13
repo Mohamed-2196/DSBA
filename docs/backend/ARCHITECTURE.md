@@ -33,9 +33,10 @@ DSBA Hub was a front-end prototype: every page ran on demo data in the browser. 
 - **Sign-in:** a phone number **or** an email address gets a 6-digit one-time code. There are no passwords,
   and anyone can create an account. After the first sign-in the person picks a display name and their
   cohort (Year 1/2/3, or none). An account can carry both an email and a phone number.
-- **Roles:** `student` (default), `moderator` (student reps: moderate the forum and library, edit the
-  calendar and newsletter), `admin` (also people and roles). `DSBA_ADMIN_IDENTIFIERS` bootstraps admins.
-  `python -m app.cli set-role` changes a role from the shell.
+- **Roles:** every account holds `student`; `rep` (student reps: moderate the forum and library, edit the
+  calendar and newsletter) and `admin` (also people, roles and switches) come on top, and admins can add custom
+  roles. `DSBA_ADMIN_IDENTIFIERS` bootstraps admins.
+  `python -m app.cli set-role ID ROLE...` sets someone's roles from the shell (slugs, such as `student admin`).
 - **The grades calculator stays in the browser.** Students' marks are not sent to the server (privacy).
 
 ## Layout and ownership
@@ -112,17 +113,16 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
 ## Backend conventions
 
 - Handlers take dependencies from `app.core.security`: `DB`, `OptionalUser`, `CurrentUser` (401 if signed
-  out), `ActiveUser` (also 403 when suspended or without a profile; use it for every write), `Moderator`,
-  `Admin` (both also need an active account with a profile). `is_moderator(user)` covers moderators and admins,
-  and like `is_admin(user)` it is false for a suspended account: a suspended rep sees and does what any student
-  does.
+  out), `ActiveUser` (also 403 when suspended or without a profile; use it for every write), `requires(box)`,
+  `requires_any(...)` and `requires_admin()` (all need an active account with a profile), and `needs_feature(feature)`
+  for the switches. A suspended account holds no boxes: a suspended rep sees and does what any student does.
 - **Path operations are plain `def`.** The database layer (SQLAlchemy with psycopg) is synchronous, so FastAPI runs
   each handler in its threadpool; an `async def` handler would block the event loop while it waits on the
   database. Use `async def` only where everything inside awaits (FastAPI's own skill, `.claude/skills/fastapi`).
 - **Client addresses** (rate limits, sessions, the audit log) come from `app.core.security.client_ip(request)`.
   It reads `X-Forwarded-For` only when the connection comes from `DSBA_TRUSTED_PROXIES` (production: Caddy).
   Never read the header yourself.
-- **Authorization is checked in every write handler.** Owner or moderator, and never trust ids from the
+- **Authorization is checked in every write handler.** Owner or the box's holder, and never trust ids from the
   client. Return 404 (not 403) for things a person may not see, such as hidden posts or someone else's
   pending upload.
 - **Transactions.** The request's session commits only when the handler calls `db.commit()`. Do the whole
@@ -164,9 +164,9 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   `FAST` (dependencies and parameters in `Annotated`), `DTZ` (no naive datetimes), `S` (bandit), `ASYNC`, `PERF`,
   `PIE` and `FURB`; see `[tool.ruff.lint]` in `api/pyproject.toml`. Keep handlers thin: queries
   and rules live in small functions or a `services/<area>.py` you own.
-- **Tests** (pytest) cover each endpoint's happy path, auth (guest / other user / moderator), validation
+- **Tests** (pytest) cover each endpoint's happy path, auth (guest / other user / rep), validation
   errors and rate limits. Fixtures from `tests/conftest.py`: `client_for(user=None)` (each call is a separate
-  browser, with CSRF handled), `make_user(email=, phone=, name=, role=, year=)`, `db`, `storage` (moto: a
+  browser, with CSRF handled), `make_user(email=, phone=, name=, roles=, year=)` (`roles` is a sequence of slugs, `("student",)` by default), `db`, `storage` (moto: a
   browser upload in a test is `storage.client.put_object(Bucket=storage.bucket, Key=..., Body=..., ContentType=...)`).
   Run `uv run --no-sync pytest tests/<your area> -q`. Every test run gets its own database. `scripts/check.sh`
   runs everything CI runs (ruff, ruff format, mypy, the whole suite with the drift checks, and the web checks).
@@ -225,7 +225,7 @@ Docker". Either way:
 | Web | `:5173`. Parallel agents each run their own Vite from their own worktree (`npx vite --port 5174` … `5178`); all pass `/api` to `:8000`. |
 
 - **Sign in without a code** (development only):
-  `cd api && uv run --no-sync python -m app.cli dev-login you@example.com --name "Test Student" --year 2 [--role moderator]`
+  `cd api && uv run --no-sync python -m app.cli dev-login you@example.com --name "Test Student" --year 2 [--role rep]`
   (in Docker: `docker compose exec api python -m app.cli dev-login …`). It prints a token; set it as the
   `dsba_session` cookie for the app's host (Playwright:
   `context.add_cookies([{name:'dsba_session', value: token, domain:'127.0.0.1', path:'/'}])`).
@@ -255,8 +255,8 @@ Docker". Either way:
   In production both cookies are `__Host-` cookies (Secure, `Path=/`, no `Domain`).
 - Client addresses: `client_ip()` trusts `X-Forwarded-For` only from `DSBA_TRUSTED_PROXIES`, so nobody picks
   their own address for the rate limits.
-- Authorization on every object: owner or moderator. Hidden, pending and removed things are 404 to others.
-  A suspended moderator or admin has no powers.
+- Authorization on every object: owner or the box's holder. Hidden, pending and removed things are 404 to others.
+  A suspended rep or admin has no powers.
 - Uploads: allowlisted extensions and types per purpose, size-capped in the presigned policy, uploaded to
   `incoming/` and checked again after the server-side copy to the final key, keys generated by the server.
   Downloads are attachments, except PDF and images, which are shown inline from a short-lived URL. Forum images
@@ -271,7 +271,7 @@ Docker". Either way:
   inline script by hash): `docs/backend/DEPLOYMENT.md`, section 6.
 - Production fails closed: the API refuses to start while any setting is unsafe (`Settings.production_problems`:
   secret key, cookies, origins, proxies, storage, email, SMS) and lists every problem at once.
-- No personal data in public responses: `UserPublic` is `{id, displayName, year, role}`, never an email or a
+- No personal data in public responses: `UserPublic` is `{id, displayName, year, badge}`, never an email or a
   phone number.
 - Errors don't leak internals, and logs carry no codes, tokens or full phone numbers.
 
@@ -318,3 +318,29 @@ questions they raised:
 
 Migrations in round 2: only the accounts builder adds one (0003, the email outbox) in the first wave; the core
 builder adds index changes after it (0004). Nobody else changes `app/models` or `migrations/`.
+
+## Round 4 decisions
+
+- **D11 Access is by boxes, and roles are data.**
+  - A box is one power, such as `newsletter.manage`. The code checks boxes, never role names.
+  - A role is a named set of boxes that admins edit on the Access screen. A person may hold several roles.
+  - Admin holds every box. A few powers stay with Admin and are no box: editing roles, giving roles, flipping
+    switches, account recovery, seeing who reported something, and suspending an admin.
+  - A suspended account holds no boxes. The last active admin can't lose Admin: the check locks the admins' role
+    rows, and deleting your own account is refused while you're the last admin.
+  - Admin powers need a fresh step-up (`step_up_required` otherwise). That covers roles, people's roles, switches,
+    and changing someone's email or phone. Account recovery on an account holding Admin answers 403.
+  - The Student role holds only its four student-level boxes; adding any other answers 422 on `boxes`.
+  - A role's badge passes the staff-words check, and only holders of Admin or Rep may use staff words in names.
+  - Changing your own roles, suspension or account through the admin routes answers 409 `cannot_change_self`.
+  - Without Admin, the people list searches display names only, and no people response carries an email or phone.
+    Reports are listed and resolved by their area's box, and the excerpt shows only to a holder of that box.
+  - Publishing a newsletter issue sends its cohort email only if none went out in the last 24 hours; otherwise it
+    publishes without the email and the response says so.
+- **D12 Feature switches live in the hub.** Each feature is off, on for some roles, or on for everyone, and admins
+  flip it on the Access screen. The API enforces it: a switched-off feature answers 404 `feature_off`, and search
+  leaves it out. Media, uploads, downloads, calendar feeds, stats, reports and queued emails follow their feature
+  too. A test fails on any route that neither declares a feature nor is listed as feature-free. Admins see every
+  feature, so they can try one before switching it on.
+- **D13 PostHog stays anonymous analytics.** Its own feature flags stay off. Switches reach it only as the list of
+  features on during a visit, set by the web app.

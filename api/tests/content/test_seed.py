@@ -23,7 +23,6 @@ from app.models import (
     LibraryItem,
     Module,
     NewsletterIssue,
-    Role,
     User,
 )
 from app.schemas.calendar import EventType
@@ -214,7 +213,7 @@ def test_seeded_content_is_what_the_files_say(db: Session) -> None:
 
 def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, make_user: Callable[..., User]) -> None:
     first_load(db)
-    rep = client_for(make_user(name="Rep", role=Role.moderator))
+    rep = client_for(make_user(name="Rep", roles=("student", "rep")))
     events = [e["id"] for e in read("calendar")]
     edited_event, deleted_event = events[0], events[1]
     slugs = [i["slug"] for i in read("newsletter")]
@@ -235,7 +234,7 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
     assert rep.delete(f"{API}/library/items/{removed.id}").status_code == 204
     assert rep.patch(f"{API}/library/items/{moved.id}", json={"moduleId": elsewhere.id}).status_code == 200
     career = {**read("career"), "checkedOn": "1 January 2027"}
-    admin = client_for(make_user(name="Admin", role=Role.admin))
+    admin = client_for(make_user(name="Admin", roles=("student", "admin")))
     assert admin.put(f"{API}/career", json=career).status_code == 200
 
     again = load_all(db)

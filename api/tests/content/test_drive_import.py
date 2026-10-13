@@ -28,7 +28,7 @@ from sqlalchemy.orm import Session
 from app import cli
 from app.config import Settings, get_settings
 from app.core.time import utcnow
-from app.models import AuditEntry, ItemSource, ItemStatus, LibraryItem, Module, Role, User
+from app.models import AuditEntry, ItemSource, ItemStatus, LibraryItem, Module, User
 from app.services import drive as drive_module
 from app.services import exam_names
 from app.services.drive import Drive, connect
@@ -321,7 +321,7 @@ def test_a_rerun_skips_what_is_there_even_after_a_rep_moved_or_removed_it(
     link(db, "statistics", "mat1")
     assert run() == 0
     first = imported(db)
-    rep = client_for(make_user(name="Maryam Rep", role=Role.moderator))
+    rep = client_for(make_user(name="Maryam Rep", roles=("student", "rep")))
     assert rep.delete(f"{API}/library/items/{first['a.pdf'].id}").status_code == 204
     moved = rep.patch(f"{API}/library/items/{first['b.pdf'].id}", json={"moduleId": "economics", "title": "Moved"})
     assert moved.status_code == 200

@@ -84,8 +84,9 @@ setup('Sara signs up with her phone number: wrong code, resend, profile', async 
   await expect(page.getByText('Welcome to DSBA Hub, Sara')).toBeVisible();
   await expect(page.getByRole('heading', { name: /Sara/ })).toBeVisible();
 
-  const me = await api<{ phone: string; year: number; displayName: string; role: string }>(page, 'GET', '/api/v1/me');
-  expect(me.body).toMatchObject({ phone: run.sara.e164, year: 2, displayName: run.sara.name, role: 'student' });
+  const me = await api<{ phone: string; year: number; displayName: string; roles: { slug: string }[] }>(page, 'GET', '/api/v1/me');
+  expect(me.body).toMatchObject({ phone: run.sara.e164, year: 2, displayName: run.sara.name });
+  expect(me.body.roles.map((r) => r.slug)).toEqual(['student']);
   await ctx.storageState({ path: statePath('sara') });
   await ctx.close();
 });
@@ -204,12 +205,12 @@ setup('the student rep and the admin sign in (dev-login)', async ({ browser }) =
   const run = readRun();
   for (const who of ['rep', 'admin'] as const) {
     const p = run[who];
-    const token = await devLogin(p.email, { name: p.name, year: 3, role: who === 'rep' ? 'moderator' : 'admin' });
+    const token = await devLogin(p.email, { name: p.name, year: 3, role: who === 'rep' ? 'rep' : 'admin' });
     const ctx = await browser.newContext({ baseURL: env.baseURL });
     await ctx.addCookies([{ name: 'dsba_session', value: token, domain: env.host, path: '/' }]);
     const page = await ctx.newPage();
-    const me = await api<{ role: string; status: string }>(page, 'GET', '/api/v1/me');
-    expect(me.body).toMatchObject({ role: who === 'rep' ? 'moderator' : 'admin', status: 'active' });
+    const me = await api<{ roles: { slug: string }[]; status: string }>(page, 'GET', '/api/v1/me');
+    expect(me.body).toMatchObject({ status: 'active', roles: expect.arrayContaining([expect.objectContaining({ slug: who === 'rep' ? 'rep' : 'admin' })]) });
     await ctx.storageState({ path: statePath(who) });
     await ctx.close();
   }

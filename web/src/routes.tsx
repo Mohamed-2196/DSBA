@@ -3,40 +3,40 @@
 // (shell/RouteFrame.tsx), so one broken feature can't take down the rest of the app.
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
-import { RoleGate } from './auth';
+import { Gate, MANAGER_BOXES } from './auth';
 import { RouteFrame, type AppRoute } from './shell/RouteFrame';
 
 const pages: AppRoute[] = [
   { id: 'home', path: '/', title: null, Page: lazy(() => import('./features/home/HomePage')) },
   { id: 'modules', path: '/modules', title: 'Modules', Page: lazy(() => import('./features/modules/ModulesPage')) },
   { id: 'module', path: '/modules/:moduleId', title: 'Module', Page: lazy(() => import('./features/modules/ModulePage')) },
-  { id: 'library', path: '/library', title: 'Library', Page: lazy(() => import('./features/library/LibraryPage')) },
-  { id: 'file', path: '/library/:fileId', title: 'Library', Page: lazy(() => import('./features/library/FileViewerPage')) },
-  { id: 'newsletter', path: '/newsletter', title: 'The DSBA Newsletter', Page: lazy(() => import('./features/newsletter/NewsletterPage')) },
-  { id: 'issue', path: '/newsletter/:slug', title: 'The DSBA Newsletter', Page: lazy(() => import('./features/newsletter/IssuePage')) },
-  { id: 'forum', path: '/forum', title: 'Forum', Page: lazy(() => import('./features/forum/ForumPage')) },
-  { id: 'forum-new', path: '/forum/new', title: 'Start a thread', Page: lazy(() => import('./features/forum/NewThreadPage')) },
-  { id: 'thread', path: '/forum/:threadId', title: 'Forum', Page: lazy(() => import('./features/forum/ThreadPage')) },
-  { id: 'career', path: '/career', title: 'Career Navigator', Page: lazy(() => import('./features/career/CareerPage')) },
-  { id: 'calendar', path: '/calendar', title: 'Calendar', Page: lazy(() => import('./features/calendar/CalendarPage')) },
-  { id: 'grades', path: '/grades', title: 'Grades', Page: lazy(() => import('./features/grades/GradesPage')) },
-  { id: 'issue-edit', path: '/newsletter/:slug/edit', title: 'Edit issue', Page: lazy(() => import('./features/newsletter/IssueEditorPage')) },
+  { id: 'library', path: '/library', title: 'Library', Page: lazy(() => import('./features/library/LibraryPage')), feature: 'library' },
+  { id: 'file', path: '/library/:fileId', title: 'Library', Page: lazy(() => import('./features/library/FileViewerPage')), feature: 'library' },
+  { id: 'newsletter', path: '/newsletter', title: 'The DSBA Newsletter', Page: lazy(() => import('./features/newsletter/NewsletterPage')), feature: 'newsletter' },
+  { id: 'issue', path: '/newsletter/:slug', title: 'The DSBA Newsletter', Page: lazy(() => import('./features/newsletter/IssuePage')), feature: 'newsletter' },
+  { id: 'forum', path: '/forum', title: 'Forum', Page: lazy(() => import('./features/forum/ForumPage')), feature: 'forum' },
+  { id: 'forum-new', path: '/forum/new', title: 'Start a thread', Page: lazy(() => import('./features/forum/NewThreadPage')), feature: 'forum' },
+  { id: 'thread', path: '/forum/:threadId', title: 'Forum', Page: lazy(() => import('./features/forum/ThreadPage')), feature: 'forum' },
+  { id: 'career', path: '/career', title: 'Career Navigator', Page: lazy(() => import('./features/career/CareerPage')), feature: 'career' },
+  { id: 'calendar', path: '/calendar', title: 'Calendar', Page: lazy(() => import('./features/calendar/CalendarPage')), feature: 'calendar' },
+  { id: 'grades', path: '/grades', title: 'Grades', Page: lazy(() => import('./features/grades/GradesPage')), feature: 'grades' },
+  { id: 'issue-edit', path: '/newsletter/:slug/edit', title: 'Edit issue', Page: lazy(() => import('./features/newsletter/IssueEditorPage')), feature: 'newsletter' },
   { id: 'account', path: '/account', title: 'Your account', Page: lazy(() => import('./features/account/AccountPage')), modules: false },
-  { id: 'moderation', path: '/moderation', title: 'Moderation', Page: lazy(() => import('./features/moderation/ModerationPage')) },
-  { id: 'people', path: '/admin/people', title: 'People', Page: lazy(() => import('./features/admin/PeoplePage')), modules: false },
+  { id: 'manage', path: '/manage', title: 'Manage', Page: lazy(() => import('./features/manage/ManagePage')), modules: false },
+  { id: 'access', path: '/admin/access', title: 'Access', Page: lazy(() => import('./features/access/AccessPage')), modules: false },
   { id: 'about', path: '/about', title: 'About', Page: lazy(() => import('./features/about/AboutPage')) },
   {
     id: 'styleguide',
     path: '/styleguide',
     title: 'Style guide',
     Page: lazy(() => import('./features/about/StyleGuidePage')),
-    // Open in development; in production for student reps and admins only (code quality review CQ-17).
+    // Open in development; in production for people who hold a manager box only (code quality review CQ-17).
     gate: import.meta.env.DEV
       ? undefined
       : (page) => (
-          <RoleGate need="moderator" title="Style guide">
+          <Gate title="Style guide" anyBox={MANAGER_BOXES}>
             {page}
-          </RoleGate>
+          </Gate>
         ),
   },
   { id: 'not-found', path: '*', title: 'Page not found', Page: lazy(() => import('./features/about/NotFoundPage')), modules: false },

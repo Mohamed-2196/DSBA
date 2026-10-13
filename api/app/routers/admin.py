@@ -1,8 +1,9 @@
-"""People, roles and the audit log. Owner: accounts agent."""
+"""People, the hub's numbers and the audit log. Owner: accounts agent."""
 
 from __future__ import annotations
 
 import re
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import Request
@@ -10,9 +11,10 @@ from sqlalchemy import ColumnElement, Select, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
 
-from app.core.errors import conflict, invalid, not_found
+from app.core.access import Box, Feature
+from app.core.errors import conflict, forbidden, invalid, not_found
 from app.core.pagination import Limit, Offset
-from app.core.security import DB, Admin, Moderator, client_ip
+from app.core.security import DB, CurrentSession, client_ip, requires
 from app.models import (
     AuditEntry,
     ForumReply,
@@ -20,16 +22,15 @@ from app.models import (
     ItemStatus,
     LibraryItem,
     PostStatus,
-    Report,
-    ReportStatus,
+    RoleGrant,
     User,
     UserStatus,
 )
-from app.models import Role as UserRole
-from app.routers._base import router_for
-from app.schemas.common import ErrorResponse, Role
+from app.routers._base import SteppedUpAdmin, router_for
+from app.schemas.access import UserRolesUpdate
+from app.schemas.common import ErrorResponse
 from app.schemas.moderation import AdminStats, AdminUser, AdminUserPage, AdminUserUpdate, AuditOut, AuditPage
-from app.services import accounts, sessions
+from app.services import access, accounts, reports, roles, sessions
 from app.services.accounts import public_user
 from app.services.audit import record
 from app.services.identifiers import Kind, destination_hint, normalize_identifier
@@ -40,14 +41,6 @@ router = router_for("admin")
 
 SEARCH_MAX = 100
 PHONE_LIKE = re.compile(r"[\d\s()+.-]+")
-ROLE_NOTICES: dict[UserRole, tuple[str, str | None]] = {
-    UserRole.student: ("Your role is now student", None),
-    UserRole.moderator: (
-        "You're now a student rep",
-        "You can moderate the forum and the library, and edit the calendar and the newsletter.",
-    ),
-    UserRole.admin: ("You're now an admin", "You can manage people and roles, and moderate everything."),
-}
 STATUS_NOTICES: dict[UserStatus, tuple[str, str | None]] = {
     UserStatus.active: ("Your account is active again", "You can post, upload and react again."),
     UserStatus.suspended: (
@@ -61,14 +54,15 @@ def _count(db: DB, q: Select[tuple[int]]) -> int:
     return db.scalar(q) or 0
 
 
-def admin_user(u: User) -> AdminUser:
+def admin_user(u: User, *, contacts: bool) -> AdminUser:
+    """A person for the people list. `contacts`: their email address and phone number (admins only)."""
     return AdminUser.model_validate(
         {
             "id": u.id,
             "display_name": u.display_name,
-            "email": u.email,
-            "phone": u.phone,
-            "role": u.role.value,
+            "email": u.email if contacts else None,
+            "phone": u.phone if contacts else None,
+            "roles": accounts.role_summaries(u),
             "status": u.status.value,
             "year": u.year,
             "created_at": u.created_at,
@@ -83,44 +77,62 @@ def _like(text: str) -> str:
 
 
 @router.get("/admin/stats", response_model=AdminStats)
-def stats(user: Moderator, db: DB) -> AdminStats:
+def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats:
     """Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
-    for review and open reports."""
+    for review and the open reports in the viewer's queue. A feature switched off for the viewer counts None."""
     n = func.count()
+    forum, library = (access.feature_on(db, user, f) for f in (Feature.forum, Feature.library))
+    threads = select(n).select_from(ForumThread).where(ForumThread.status == PostStatus.visible)
+    replies = select(n).select_from(ForumReply).where(ForumReply.status == PostStatus.visible)
+    published = select(n).select_from(LibraryItem).where(LibraryItem.status == ItemStatus.published)
+    pending = select(n).select_from(LibraryItem).where(LibraryItem.status == ItemStatus.pending)
     return AdminStats(
         users=_count(db, select(n).select_from(User)),
-        threads=_count(db, select(n).select_from(ForumThread).where(ForumThread.status == PostStatus.visible)),
-        replies=_count(db, select(n).select_from(ForumReply).where(ForumReply.status == PostStatus.visible)),
-        library_items=_count(db, select(n).select_from(LibraryItem).where(LibraryItem.status == ItemStatus.published)),
-        pending_uploads=_count(db, select(n).select_from(LibraryItem).where(LibraryItem.status == ItemStatus.pending)),
-        open_reports=_count(db, select(n).select_from(Report).where(Report.status == ReportStatus.open)),
+        threads=_count(db, threads) if forum else None,
+        replies=_count(db, replies) if forum else None,
+        library_items=_count(db, published) if library else None,
+        pending_uploads=_count(db, pending) if library else None,
+        open_reports=reports.open_count(db, user),
     )
 
 
 @router.get("/admin/users", response_model=AdminUserPage)
 def list_users(
-    user: Admin, db: DB, q: str | None = None, role: Role | None = None, limit: Limit = 20, offset: Offset = 0
+    user: Annotated[User, requires(Box.people_suspend)],
+    db: DB,
+    q: str | None = None,
+    role: str | None = None,
+    limit: Limit = 20,
+    offset: Offset = 0,
 ) -> AdminUserPage:
-    """Search by name, email or phone number (case-insensitive, any part; a phone number may be typed with spaces),
-    newest accounts first."""
+    """Search by name (case-insensitive, any part), newest accounts first. `role`: a role's slug. Only admins search
+    and see email addresses and phone numbers (a phone number may be typed with spaces).
+
+    Errors: invalid (422: no role with this slug)."""
+    contacts = access.is_admin(user)
     where: list[ColumnElement[bool]] = []
     text = (q or "").strip()[:SEARCH_MAX]
     if text:
         pattern = _like(text)
-        matches = [
-            User.display_name.ilike(pattern, escape="\\"),
-            User.email.ilike(pattern, escape="\\"),
-            User.phone.ilike(pattern, escape="\\"),
-        ]
-        digits = re.sub(r"\D", "", text)
-        if len(digits) >= 3 and PHONE_LIKE.fullmatch(text):
-            matches.append(User.phone.like(f"%{digits}%"))
+        matches = [User.display_name.ilike(pattern, escape="\\")]
+        if contacts:
+            matches += [User.email.ilike(pattern, escape="\\"), User.phone.ilike(pattern, escape="\\")]
+            digits = re.sub(r"\D", "", text)
+            if len(digits) >= 3 and PHONE_LIKE.fullmatch(text):
+                matches.append(User.phone.like(f"%{digits}%"))
         where.append(or_(*matches))
     if role is not None:
-        where.append(User.role == UserRole(role))
+        held = access.role_by_slug(db, role)
+        if held is None:
+            raise invalid("role", "There's no role with this name.")
+        where.append(User.id.in_(select(RoleGrant.user_id).where(RoleGrant.role_id == held.id)))
     total = _count(db, select(func.count()).select_from(User).where(*where))
-    users = db.scalars(select(User).where(*where).order_by(User.created_at.desc(), User.id).limit(limit).offset(offset))
-    return AdminUserPage(items=[admin_user(u) for u in users], total=total, limit=limit, offset=offset)
+    query = select(User).where(*where).order_by(User.created_at.desc(), User.id).limit(limit).offset(offset)
+    users = db.scalars(query).all()
+    access.prefetch(db, users)
+    return AdminUserPage(
+        items=[admin_user(u, contacts=contacts) for u in users], total=total, limit=limit, offset=offset
+    )
 
 
 @router.patch(
@@ -128,34 +140,52 @@ def list_users(
     response_model=AdminUser,
     responses={409: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
 )
-def update_user(user_id: UUID, body: AdminUserUpdate, request: Request, user: Admin, db: DB) -> AdminUser:
-    """Change a role, suspend an account, or recover one (security review SEC-9): replace or remove its email
+def update_user(
+    user_id: UUID,
+    body: AdminUserUpdate,
+    request: Request,
+    user: Annotated[User, requires(Box.people_suspend)],
+    sess: CurrentSession,
+    db: DB,
+) -> AdminUser:
+    """Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email
     address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
     Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
+    Recovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding
+    Admin (security review AD-1).
 
-    Errors: cannot_change_self (409: an admin can't change their own account here; ask another admin),
-    identifier_taken (409), last_identifier (409), invalid_identifier (422)."""
+    Errors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,
+    and so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,
+    or suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422)."""
     target = db.get(User, user_id)
     if target is None:
         raise not_found("This account doesn't exist.")
-    new_role = UserRole(body.role) if body.role is not None else None
     new_status = UserStatus(body.status) if body.status is not None else None
     recovery: dict[Kind, str | None] = {}
     if "email" in body.model_fields_set:
         recovery["email"] = body.email
     if "phone" in body.model_fields_set:
         recovery["phone"] = body.phone
-    if new_role is None and new_status is None and not recovery:
-        return admin_user(target)
+    contacts = access.is_admin(user)
+    if new_status is None and not recovery:
+        return admin_user(target, contacts=contacts)
     if target.id == user.id:
         raise conflict("cannot_change_self", "You can't change your own account here. Ask another admin.")
+    if recovery:
+        if not contacts:
+            raise forbidden("Only admins can do this.")
+        if access.access_of(target, db).admin:
+            raise forbidden("An admin's email address and phone number can't be changed here. Take Admin away first.")
+        sessions.require_step_up(sess)
     ip = client_ip(request)
-    if new_role is not None and new_role != target.role:
-        record(db, user, "user.role", "user", target.id, {"from": target.role.value, "to": new_role.value}, ip)
-        target.role = new_role
-        title, body_text = ROLE_NOTICES[new_role]
-        notify(db, target.id, "system", title, body=body_text, actor=user)
     if new_status is not None and new_status != target.status:
+        if access.access_of(target, db).admin:
+            if not contacts:
+                suspend = new_status == UserStatus.suspended
+                raise forbidden("Only admins can suspend an admin." if suspend else "Only admins can restore an admin.")
+            sessions.require_step_up(sess)
+            if new_status == UserStatus.suspended:
+                access.ensure_admins_remain(db, target)
         record(db, user, "user.status", "user", target.id, {"from": target.status.value, "to": new_status.value}, ip)
         target.status = new_status
         title, body_text = STATUS_NOTICES[new_status]
@@ -164,7 +194,7 @@ def update_user(user_id: UUID, body: AdminUserUpdate, request: Request, user: Ad
     db.commit()
     for to, message in notices:
         send_text_notice(to, message)
-    return admin_user(target)
+    return admin_user(target, contacts=contacts)
 
 
 def _recover(db: DB, admin: User, target: User, kind: Kind, raw: str | None, ip: str | None) -> tuple[str, str] | None:
@@ -221,18 +251,38 @@ def _recover(db: DB, admin: User, target: User, kind: Kind, raw: str | None, ip:
     return accounts.queue_identifier_notice(db, target, change)
 
 
+@router.put("/admin/users/{user_id}/roles", response_model=AdminUser)
+def set_user_roles(user_id: UUID, body: UserRolesUpdate, request: Request, user: SteppedUpAdmin, db: DB) -> AdminUser:
+    """The roles the person holds afterwards, exactly. They're told. Errors: step_up_required (403),
+    cannot_change_self (409), last_admin (409: the only active admin keeps Admin), invalid_input (422: a role that
+    doesn't exist), rate_limited (429). Audited."""
+    target = db.get(User, user_id)
+    if target is None:
+        raise not_found("This account doesn't exist.")
+    roles.set_user_roles(db, user, target, body.role_ids, client_ip(request))
+    db.commit()
+    return admin_user(target, contacts=True)
+
+
 @router.get("/admin/audit", response_model=AuditPage)
-def audit_log(user: Admin, db: DB, limit: Limit = 50, offset: Offset = 0) -> AuditPage:
+def audit_log(
+    user: Annotated[User, requires(Box.audit_read)], db: DB, limit: Limit = 50, offset: Offset = 0
+) -> AuditPage:
     """Who did what, newest first."""
     actor = aliased(User)
     total = _count(db, select(func.count()).select_from(AuditEntry))
-    rows = db.execute(
-        select(AuditEntry, actor)
-        .outerjoin(actor, actor.id == AuditEntry.actor_id)
-        .order_by(AuditEntry.created_at.desc(), AuditEntry.id.desc())
-        .limit(limit)
-        .offset(offset)
-    ).tuples()
+    rows = (
+        db.execute(
+            select(AuditEntry, actor)
+            .outerjoin(actor, actor.id == AuditEntry.actor_id)
+            .order_by(AuditEntry.created_at.desc(), AuditEntry.id.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        .tuples()
+        .all()
+    )
+    access.prefetch(db, [a for _, a in rows])
     items = [
         AuditOut.model_validate(
             {

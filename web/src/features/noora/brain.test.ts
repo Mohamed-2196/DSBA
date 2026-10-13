@@ -1,6 +1,7 @@
 // Mini Noora's answers about MGFs (student test ST-3) and exam dates, on a small made-up catalogue.
 import { describe, expect, it, vi } from 'vitest';
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
+import type { Feature } from '../../auth';
 import type { CalendarEvent } from '../calendar/public';
 
 // The brain only needs two small helpers from other features; their component trees stay out of a Node test.
@@ -32,9 +33,12 @@ const detail = {
   ],
 } as unknown as ModuleDetail;
 
-const knowledge = (events: CalendarEvent[] | null = []) => buildKnowledge([ST2133], new Map([[ST2133.id, detail]]), events, 'Sara');
+const knowledge = (events: CalendarEvent[] | null = [], isOn: (f: Feature) => boolean = () => true) =>
+  buildKnowledge([ST2133], new Map([[ST2133.id, detail]]), events, 'Sara', isOn);
 const ask = (text: string, attachments: { kind: 'image' | 'file'; name: string }[] = [], events?: CalendarEvent[] | null, now?: number) =>
   answer({ text, attachments, year: 2 }, knowledge(events), now);
+const askWithout = (off: Feature, text: string) => answer({ text, attachments: [], year: 2 }, knowledge(null, (f) => f !== off));
+const links = (r: { refs: { to: string }[] }) => r.refs.map((x) => x.to);
 const mgfOf = (id: string) => DISTRIBUTIONS.find((d) => d.id === id)?.mgf;
 
 describe('MGF questions (ST-3)', () => {
@@ -91,5 +95,27 @@ describe('exam dates', () => {
 
   it('says so when the calendar is out of reach', () => {
     expect(ask('when is my next exam', [], null).text).toMatch(/^I can’t reach the calendar right now/);
+  });
+});
+
+describe('switched-off features', () => {
+  it('leaves the calendar out of exam answers while it is off', () => {
+    const r = askWithout('calendar', 'when is my next exam');
+    expect(r.text).toBe('The Hub’s calendar is switched off right now, so I can’t check the exam dates for Year 2.');
+    expect(links(r).some((to) => to.startsWith('/calendar'))).toBe(false);
+  });
+
+  it('leaves the library and the Files tab out while the library is off', () => {
+    const files = askWithout('library', 'past papers for ST2133');
+    expect(links(files).some((to) => to.startsWith('/library') || to.includes('tab=files'))).toBe(false);
+    expect(files.text).toMatch(/library is switched off/);
+    const anywhere = askWithout('library', 'past papers');
+    expect(links(anywhere)).toEqual([]);
+    const mgf = askWithout('library', 'how do I find the mgf of the poisson distribution');
+    expect(links(mgf).some((to) => to.startsWith('/library'))).toBe(false);
+  });
+
+  it('points at the library while it is on', () => {
+    expect(links(ask('past papers'))).toEqual(['/library']);
   });
 });

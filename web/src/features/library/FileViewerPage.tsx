@@ -87,7 +87,7 @@ export default function FileViewerPage() {
 
 /** What the uploader (or a moderator) sees above an item that isn't public. */
 function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: () => void; onDelete: () => void }) {
-  const { suspended, moderator: isModerator } = useLibraryAccess();
+  const { suspended, moderator: managesLibrary } = useLibraryAccess();
   const status = statusInfo(item.status);
   if (!status) return null;
   const who = item.uploadedBy?.displayName;
@@ -112,7 +112,7 @@ function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: (
                 <strong>Note from the student rep:</strong> {item.reviewNote}
               </>
             ) : (
-              'A student rep decided not to publish this file.'
+              'This file wasn’t published.'
             )}{' '}
             {/* Rejected files leave storage a week after the review (security review SEC-14). */}
             {item.isMine ? 'This copy is deleted a week after the review: to share a fixed version, upload it as a new file.' : 'Its file is deleted a week after the review.'}
@@ -121,7 +121,7 @@ function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: (
           <p>This file was removed from the library.</p>
         )}
       </div>
-      {item.status === 'pending' && isModerator ? (
+      {item.status === 'pending' && managesLibrary ? (
         <ReviewActions item={item} className="lib-status__review" />
       ) : manage ? (
         <div className="lib-status__actions">
@@ -144,7 +144,7 @@ function FileView({ item }: { item: LibraryItem }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { push } = useToast();
-  const { suspended, moderator: isModerator } = useLibraryAccess();
+  const { suspended, moderator: managesLibrary } = useLibraryAccess();
   const { getModule } = useModules();
   const toggleStar = useStar();
   const isDesktop = useMediaQuery(BREAKPOINTS.desktop);
@@ -162,7 +162,7 @@ function FileView({ item }: { item: LibraryItem }) {
   const isLink = item.source === 'link';
   const metaOpen = isDesktop ? (metaPref ?? wide) : true;
   // The uploader of an item that isn't public manages it from the status banner; a suspended one can't.
-  const canManage = isModerator || (item.isMine && item.status === 'published' && !suspended);
+  const canManage = managesLibrary || (item.isMine && item.status === 'published' && !suspended);
   const status = statusInfo(item.status);
 
   // Esc goes back to where the student came from.
@@ -192,7 +192,7 @@ function FileView({ item }: { item: LibraryItem }) {
 
   const moreItems = [
     ...(item.canEdit ? [{ id: 'edit', label: 'Edit details', icon: PencilSimple, onSelect: () => setDialog('edit') }] : []),
-    ...((item.isMine || isModerator) && item.status !== 'removed'
+    ...((item.isMine || managesLibrary) && item.status !== 'removed'
       ? [{ id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setDialog('delete') }]
       : []),
   ];

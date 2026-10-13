@@ -34,7 +34,6 @@ from app.models import (
     OtpPurpose,
     ReplyVote,
     Report,
-    Role,
     ThreadVote,
     Upload,
     UploadPurpose,
@@ -112,7 +111,9 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
         "id": str(user.id),
         "displayName": "Maryam Ali",
         "year": 3,
-        "role": "student",
+        "roles": [{"id": r.json()["roles"][0]["id"], "slug": "student", "name": "Student", "badge": None}],
+        "boxes": ["forum.post", "library.upload", "newsletter.react", "reports.create"],
+        "features": ["forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora"],
         "status": "active",
         "email": "me@example.com",
         "phone": None,
@@ -225,10 +226,22 @@ def test_names_in_one_alphabet_per_word_are_fine(client_for: ClientFor, make_use
 
 
 def test_staff_may_use_staff_words(client_for: ClientFor, make_user: MakeUser) -> None:
-    rep = make_user(role=Role.moderator)
+    rep = make_user(roles=("student", "rep"))
     r = client_for(rep).patch(f"{API}/me", json={"displayName": "Sara (student rep)".replace("(", "").replace(")", "")})
     assert r.status_code == 200, r.text
     assert r.json()["displayName"] == "Sara student rep"
+
+
+def test_a_badge_alone_does_not_allow_staff_names(
+    client_for: ClientFor, make_user: MakeUser, make_role: Callable[..., Any]
+) -> None:
+    """Only Admin and Rep holders may use staff words in their names; a custom role's badge doesn't allow it."""
+    make_role("helpers", badge="Helper")
+    helper = make_user(name="Before", roles=("student", "helpers"))
+    r = client_for(helper).patch(f"{API}/me", json={"displayName": "Admin"})
+    assert (r.status_code, r.json()["error"]["code"]) == (422, "invalid_display_name")
+    admin = make_user(name="Before", roles=("student", "admin"))
+    assert client_for(admin).patch(f"{API}/me", json={"displayName": "Admin Sara"}).status_code == 200
 
 
 def test_year(client_for: ClientFor, make_user: MakeUser) -> None:

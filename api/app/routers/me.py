@@ -13,8 +13,9 @@ from uuid import UUID
 from fastapi import Request, Response, status
 from sqlalchemy.exc import IntegrityError
 
+from app.core.access import ADMIN, REP
 from app.core.errors import ApiError, conflict, forbidden, invalid, not_found
-from app.core.security import DB, CurrentSession, CurrentUser, clear_session_cookie, client_ip, is_moderator
+from app.core.security import DB, CurrentSession, CurrentUser, clear_session_cookie, client_ip
 from app.models import UserSession, UserStatus
 from app.routers._base import router_for
 from app.schemas.auth import (
@@ -29,7 +30,7 @@ from app.schemas.auth import (
     StepUpStart,
 )
 from app.schemas.common import ErrorResponse
-from app.services import accounts, otp, sessions
+from app.services import access, accounts, otp, sessions
 from app.services.identifiers import Kind
 from app.services.storage import get_storage
 
@@ -55,7 +56,8 @@ def update_me(body: MeUpdate, user: CurrentUser, db: DB) -> Me:
     if "display_name" in sent:
         if body.display_name is None:
             raise invalid("displayName", "Enter a display name.", code="invalid_display_name")
-        name = accounts.clean_display_name(body.display_name, staff=is_moderator(user))
+        staff = any(slug in (ADMIN, REP) for slug in access.access_of(user).slugs)  # Admin and Rep holders only
+        name = accounts.clean_display_name(body.display_name, staff=staff)
         if name != user.display_name:
             if user.status == UserStatus.suspended:
                 raise forbidden("Your account is suspended, so your name can't change. Contact a student rep.")
@@ -72,7 +74,8 @@ def update_me(body: MeUpdate, user: CurrentUser, db: DB) -> Me:
 def delete_me(user: CurrentUser, sess: CurrentSession, db: DB) -> Response:
     """Delete the account: personal data goes, posts stay as 'deleted user', published files stay unattributed.
 
-    Errors: step_up_required (403), storage_unavailable (503: files could not be deleted, nothing changed)."""
+    Errors: step_up_required (403), last_admin (409: the only active admin stays), storage_unavailable (503: files
+    could not be deleted, nothing changed)."""
     sessions.require_step_up(sess)
     accounts.delete_account(db, user, get_storage())
     resp = Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -28,7 +28,8 @@ interface PostedState {
 }
 
 export default function ForumPage() {
-  const { requireAuth } = useAuth();
+  const { requireAuth, mayTry } = useAuth();
+  const posts = mayTry('forum.post');
   const qc = useQueryClient();
   const { getModule } = useModules();
   const { getCategory, tags: allTags } = useTaxonomy();
@@ -85,9 +86,11 @@ export default function ForumPage() {
         title="Forum"
         description="Ask your cohort, share what worked and find people to revise with."
         actions={
-          <Button variant="primary" leadingIcon={Plus} to="/forum/new" data-hub="new-thread-button">
-            Start a thread
-          </Button>
+          posts ? (
+            <Button variant="primary" leadingIcon={Plus} to="/forum/new" data-hub="new-thread-button">
+              Start a thread
+            </Button>
+          ) : undefined
         }
         meta={
           stats.data && (stats.data.repliesToday || stats.data.noReplies) ? (
@@ -170,6 +173,7 @@ export default function ForumPage() {
 
 /** The list is empty: nothing matches the search, or the filters, or there is nothing in the category yet. */
 function NoThreads({ q, refined, scope, cohort, onClear }: { q: string; refined: boolean; scope: string | null; cohort: CategoryId | 'all'; onClear: () => void }) {
+  const posts = useAuth().mayTry('forum.post');
   if (q) {
     return (
       <EmptyState
@@ -178,9 +182,11 @@ function NoThreads({ q, refined, scope, cohort, onClear }: { q: string; refined:
         body="Try fewer words or another category, or ask it as a new thread so your cohort can answer."
         action={
           <>
-            <Button variant="primary" leadingIcon={Plus} to={`/forum/new?title=${encodeURIComponent(q)}`}>
-              Ask it as a thread
-            </Button>
+            {posts ? (
+              <Button variant="primary" leadingIcon={Plus} to={`/forum/new?title=${encodeURIComponent(q)}`}>
+                Ask it as a thread
+              </Button>
+            ) : null}
             <Button onClick={onClear}>Clear filters</Button>
           </>
         }
@@ -194,9 +200,11 @@ function NoThreads({ q, refined, scope, cohort, onClear }: { q: string; refined:
       body={refined ? 'Clear a filter or two, or start the conversation yourself.' : 'Start the first one and your classmates will see it here.'}
       action={
         <>
-          <Button variant="primary" leadingIcon={Plus} to={cohort === 'all' ? '/forum/new' : `/forum/new?category=${cohort}`}>
-            Start a thread
-          </Button>
+          {posts ? (
+            <Button variant="primary" leadingIcon={Plus} to={cohort === 'all' ? '/forum/new' : `/forum/new?category=${cohort}`}>
+              Start a thread
+            </Button>
+          ) : null}
           {refined ? <Button onClick={onClear}>Clear filters</Button> : null}
         </>
       }

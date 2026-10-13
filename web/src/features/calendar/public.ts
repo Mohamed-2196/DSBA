@@ -5,7 +5,7 @@
 //                                            `year` overrides the browsed cohort (Home passes the year its other panels show).
 //   useUpcomingEvents({ n, year })           UseQueryResult<CalendarEvent[]>: the next n dates from today for a cohort
 //                                            (plus everyone-dates); year null → every cohort.
-//   useNextExamForModule(moduleId)           UseQueryResult<CalendarEvent | null>: the module's next exam, null when none.
+//   useNextExamForModule(moduleId, { enabled }) UseQueryResult<CalendarEvent | null>: the module's next exam, null when none.
 //   useCalendarEvents({ from, to, year, moduleId, type })   UseQueryResult<CalendarEvent[]>, oldest first.
 //
 //   eventDate(e) / dayKeyFromToday(n)        an event's day as a local Date; 'YYYY-MM-DD' n days from today (Bahrain).

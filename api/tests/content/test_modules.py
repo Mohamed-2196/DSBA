@@ -7,7 +7,7 @@ from collections.abc import Callable
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models import ItemSource, ItemStatus, LibraryItem, Module
+from app.models import ItemSource, ItemStatus, LibraryItem, Module, User
 from app.seed.loader import read
 from tests.content.conftest import API
 
@@ -60,3 +60,22 @@ def test_a_module_with_its_lessons_and_published_files(
     assert summary == {k: v for k, v in detail.items() if k not in ("resources", "chapters")}
     r = guest.get(f"{API}/modules/no-such-module")
     assert (r.status_code, r.json()["error"]["message"]) == (404, "This module doesn't exist.")
+
+
+def test_library_counts_follow_the_library_switch(
+    client_for: Clients,
+    modules: dict[str, Module],
+    db: Session,
+    set_feature: Callable[..., None],
+    make_user: Callable[..., User],
+) -> None:
+    """With the library off, a module's library count is None for whoever can't see the library."""
+    spec = next(m for m in read("modules") if m.get("chapters"))
+    db.add(_item("published-a", spec["id"], ItemStatus.published))
+    db.commit()
+    set_feature("library", "off")
+    guest = client_for()
+    assert guest.get(f"{API}/modules/{spec['id']}").json()["libraryCount"] is None
+    assert {m["libraryCount"] for m in guest.get(f"{API}/modules").json()} == {None}
+    boss = client_for(make_user(name="Head Admin", roles=("student", "admin")))
+    assert boss.get(f"{API}/modules/{spec['id']}").json()["libraryCount"] == 1  # admins see every feature

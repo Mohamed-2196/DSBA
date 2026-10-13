@@ -1,4 +1,4 @@
-// What the app does when the API says the session is over (401) or too old for an account change (403
+// What the app does when the API says the session is over (401) or too old for an account or admin change (403
 // step_up_required): ask the person, then send the request again, so the action they took carries on
 // (UX review UX-1, decision D2). An openapi-fetch middleware; AuthProvider registers it with real hooks.
 import type { Middleware } from 'openapi-fetch';
@@ -31,6 +31,9 @@ export function stepUpPurpose(request: Pick<Request, 'method' | 'url'>): string 
     return path.endsWith('/phone') ? 'remove your phone number' : 'remove your email address';
   }
   if (path.startsWith('/api/v1/me/identifiers')) return 'change how you sign in';
+  if (path.startsWith('/api/v1/admin/roles')) return 'change roles';
+  if (path.startsWith('/api/v1/admin/users/') && path.endsWith('/roles')) return 'change someone’s roles';
+  if (path.startsWith('/api/v1/admin/features/')) return 'switch a feature';
   return 'make this change';
 }
 

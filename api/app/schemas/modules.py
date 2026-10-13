@@ -42,7 +42,7 @@ class ModuleSummary(ApiModel):
     icon: str | None
     chapter_count: int
     lesson_count: int
-    library_count: int  # published library items for this module
+    library_count: int | None  # published library items for this module; None while the library is off for you
 
 
 class ModuleDetail(ModuleSummary):

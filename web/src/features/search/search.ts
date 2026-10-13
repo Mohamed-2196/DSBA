@@ -1,6 +1,7 @@
 // Query → grouped results for the palette. Content (modules, library items, threads, newsletter issues and
 // calendar dates) comes ranked from the API; the palette adds its own actions, pages and recent searches.
 import type { ModuleSummary, SearchHit, SearchResults } from '../../api/types';
+import type { Feature } from '../../auth';
 import { MYCLASS_URL, REPORT_PROBLEM_URL, UOL_PORTAL_URL } from '../../data/people';
 import { daysBetween, formatLong, isDayKey, parseDay, today } from '../../lib/dates';
 import { safeInternalPath } from '../../ui';
@@ -29,6 +30,10 @@ export type IconName =
   | 'Sun'
   | 'UploadSimple';
 
+/** Entries that need more than a switch: starting a thread (the forum.post box) and uploading (both library
+ * switches and the library.upload box). */
+export type OfferId = 'threads' | 'upload';
+
 export type Run = { type: 'theme' } | { type: 'year'; year: 1 | 2 | 3 } | { type: 'noora'; hide: boolean };
 
 interface Base {
@@ -44,11 +49,11 @@ export type Item =
   | (Base & { kind: 'thread'; to: string; meta: string | null })
   | (Base & { kind: 'issue'; to: string; number: number | null })
   | (Base & { kind: 'event'; to: string; when: Date | null; eventType: EventType | null; rel: string | null; past: boolean })
-  | (Base & { kind: 'action'; icon: IconName; keywords: string[]; to?: string; href?: string; run?: Run })
-  | (Base & { kind: 'page'; icon: IconName; keywords: string[]; to: string })
+  | (Base & { kind: 'action'; icon: IconName; keywords: string[]; to?: string; href?: string; run?: Run; feature?: Feature; offer?: OfferId })
+  | (Base & { kind: 'page'; icon: IconName; keywords: string[]; to: string; feature?: Feature })
   | (Base & { kind: 'recent' | 'suggestion'; query: string })
   | (Base & { kind: 'more'; target: GroupId })
-  | (Base & { kind: 'fallback'; icon: IconName; to: string });
+  | (Base & { kind: 'fallback'; icon: IconName; to: string; feature: Feature; offer?: OfferId });
 
 export type ItemKind = Item['kind'];
 
@@ -86,25 +91,37 @@ const CONTENT_ORDER: readonly GroupId[] = ['modules', 'files', 'threads', 'issue
 
 export const SUGGESTIONS = ['Econometrics', 'Past papers', 'Regression', 'ST2133'];
 
-/** Pages (always available, also the "Go to" list on an empty query). */
+/** Pages (also the "Go to" list on an empty query); runSearch leaves out those of a switched-off feature. */
 export const PAGE_ENTRIES: Item[] = (
   [
     { path: '/', title: 'Home', icon: 'House', keywords: ['dashboard', 'start'] },
     { path: '/modules', title: 'Modules', icon: 'SquaresFour', keywords: ['subjects', 'courses', 'lessons', 'videos', 'chapters'] },
-    { path: '/library', title: 'Library', icon: 'Books', keywords: ['files', 'notes', 'past papers', 'exams', 'study guide', 'documents'] },
-    { path: '/newsletter', title: 'The DSBA newsletter', icon: 'Newspaper', keywords: ['newsletter', 'issues', 'news'] },
-    { path: '/forum', title: 'Forum', icon: 'ChatsCircle', keywords: ['threads', 'questions', 'discussion', 'ask'] },
+    { path: '/library', feature: 'library', title: 'Library', icon: 'Books', keywords: ['files', 'notes', 'past papers', 'exams', 'study guide', 'documents'] },
+    { path: '/newsletter', feature: 'newsletter', title: 'The DSBA newsletter', icon: 'Newspaper', keywords: ['newsletter', 'issues', 'news'] },
+    { path: '/forum', feature: 'forum', title: 'Forum', icon: 'ChatsCircle', keywords: ['threads', 'questions', 'discussion', 'ask'] },
     {
       path: '/career',
+      feature: 'career',
       title: 'Career Navigator',
       icon: 'GraduationCap',
       keywords: ['careers', 'jobs', 'roles', 'skills', 'internships', 'graduate', 'opportunities', 'certificates', 'cfa', 'frm', 'cv'],
     },
-    { path: '/calendar', title: 'Calendar', icon: 'CalendarDots', keywords: ['exams', 'timetable', 'dates', 'deadlines', 'ics', 'subscribe'] },
-    { path: '/grades', title: 'Grade calculator', icon: 'Calculator', keywords: ['grades', 'gpa', 'classification', 'marks', 'degree'] },
+    { path: '/calendar', feature: 'calendar', title: 'Calendar', icon: 'CalendarDots', keywords: ['exams', 'timetable', 'dates', 'deadlines', 'ics', 'subscribe'] },
+    { path: '/grades', feature: 'grades', title: 'Grade calculator', icon: 'Calculator', keywords: ['grades', 'gpa', 'classification', 'marks', 'degree'] },
     { path: '/about', title: 'About DSBA Hub', icon: 'Info', keywords: ['contributors', 'disclaimer', 'credits'] },
   ] as const
-).map((p) => ({ id: `page:${p.path}`, group: 'pages' as const, kind: 'page' as const, title: p.title, icon: p.icon, keywords: [...p.keywords], to: p.path }));
+).map(
+  (p): Item => ({
+    id: `page:${p.path}`,
+    group: 'pages',
+    kind: 'page',
+    title: p.title,
+    icon: p.icon,
+    keywords: [...p.keywords],
+    to: p.path,
+    ...('feature' in p ? { feature: p.feature } : {}),
+  }),
+);
 
 /** Actions depend on the current year, the theme and whether Mini Noora is hidden. */
 export function buildActions({ year, theme, nooraHidden = false }: { year: number | null; theme: 'light' | 'dark'; nooraHidden?: boolean }): Item[] {
@@ -122,7 +139,7 @@ export function buildActions({ year, theme, nooraHidden = false }: { year: numbe
       }),
     );
   return [
-    { id: 'action:new-thread', group: 'actions', kind: 'action', title: 'Start a thread', icon: 'PencilSimpleLine', keywords: ['new thread', 'ask a question', 'post', 'forum'], to: '/forum/new' },
+    { id: 'action:new-thread', group: 'actions', kind: 'action', title: 'Start a thread', icon: 'PencilSimpleLine', keywords: ['new thread', 'ask a question', 'post', 'forum'], to: '/forum/new', feature: 'forum', offer: 'threads' },
     // Contributing means uploading to the library (decision D6).
     {
       id: 'action:upload',
@@ -132,6 +149,7 @@ export function buildActions({ year, theme, nooraHidden = false }: { year: numbe
       icon: 'UploadSimple',
       keywords: ['upload', 'share notes', 'share a file', 'past paper', 'contribute', 'add a file'],
       to: '/library?upload=1',
+      offer: 'upload',
     },
     ...switches,
     {
@@ -143,11 +161,11 @@ export function buildActions({ year, theme, nooraHidden = false }: { year: numbe
       keywords: ['theme', 'dark mode', 'light mode', 'toggle theme', 'appearance', 'night'],
       run: { type: 'theme' },
     },
-    { id: 'action:grades', group: 'actions', kind: 'action', title: 'Calculate my grade', icon: 'Calculator', keywords: ['gpa', 'classification', 'grade calculator', 'marks'], to: '/grades' },
-    { id: 'action:subscribe', group: 'actions', kind: 'action', title: 'Subscribe to the calendar', icon: 'CalendarDots', keywords: ['ics', 'google calendar', 'outlook', 'feed', 'subscribe'], to: '/calendar' },
+    { id: 'action:grades', group: 'actions', kind: 'action', title: 'Calculate my grade', icon: 'Calculator', keywords: ['gpa', 'classification', 'grade calculator', 'marks'], to: '/grades', feature: 'grades' },
+    { id: 'action:subscribe', group: 'actions', kind: 'action', title: 'Subscribe to the calendar', icon: 'CalendarDots', keywords: ['ics', 'google calendar', 'outlook', 'feed', 'subscribe'], to: '/calendar', feature: 'calendar' },
     nooraHidden
-      ? { id: 'action:noora', group: 'actions', kind: 'action', title: 'Show Mini Noora', icon: 'Eye', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot', 'bring back'], run: { type: 'noora', hide: false } }
-      : { id: 'action:noora', group: 'actions', kind: 'action', title: 'Hide Mini Noora', icon: 'EyeSlash', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot'], run: { type: 'noora', hide: true } },
+      ? { id: 'action:noora', group: 'actions', kind: 'action', title: 'Show Mini Noora', icon: 'Eye', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot', 'bring back'], run: { type: 'noora', hide: false }, feature: 'noora' }
+      : { id: 'action:noora', group: 'actions', kind: 'action', title: 'Hide Mini Noora', icon: 'EyeSlash', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot'], run: { type: 'noora', hide: true }, feature: 'noora' },
     { id: 'action:report', group: 'actions', kind: 'action', title: 'Report a problem', icon: 'GithubLogo', keywords: ['bug', 'problem', 'broken', 'feedback', 'github', 'issue'], href: REPORT_PROBLEM_URL },
     { id: 'action:myclass', group: 'actions', kind: 'action', title: 'Open BIBF MyClass', icon: 'GraduationCap', keywords: ['myclass', 'bibf'], href: MYCLASS_URL },
     { id: 'action:uol', group: 'actions', kind: 'action', title: 'Open the UoL student portal', icon: 'Bank', keywords: ['uol', 'university of london', 'portal'], href: UOL_PORTAL_URL },
@@ -230,6 +248,10 @@ export interface SearchInput {
   results: SearchResults | undefined;
   getModule: (id: string) => ModuleSummary | null;
   getModulesForYear: (year: number) => ModuleSummary[];
+  /** Whether a feature is on for the person. */
+  isOn: (f: Feature) => boolean;
+  /** Whether "Start a thread" and "Upload a file" belong in front of the person (useStartsThreads, showsUpload). */
+  offers: Record<OfferId, boolean>;
   now?: Date;
 }
 
@@ -254,12 +276,19 @@ export function textOf(query: string): string {
   return query.replace(YEAR_RE, ' ').replace(/\s+/g, ' ').trim();
 }
 
-export function runSearch({ query, year, theme, nooraHidden = false, expanded, recent, results, getModule, getModulesForYear, now = new Date() }: SearchInput): Results {
+export function runSearch({ query, year, theme, nooraHidden = false, expanded, recent, results, getModule, getModulesForYear, isOn, offers, now = new Date() }: SearchInput): Results {
   const cohortMatch = YEAR_RE.exec(query);
   const cohort = cohortMatch ? Number(cohortMatch[1]) : null;
   const text = textOf(query);
   const tokens = tokenize(text);
-  const actions = buildActions({ year, theme, nooraHidden });
+  const shown = (i: Item) => {
+    if (i.kind !== 'action' && i.kind !== 'page' && i.kind !== 'fallback') return true;
+    if (i.feature && !isOn(i.feature)) return false;
+    return i.kind === 'page' || !i.offer || offers[i.offer];
+  };
+  const actions = buildActions({ year, theme, nooraHidden }).filter(shown);
+  const pages = PAGE_ENTRIES.filter(shown);
+  const off = (feature: Feature) => !isOn(feature);
 
   // Just a cohort: switch to it, or browse its modules.
   if (cohort && !tokens.length) {
@@ -281,7 +310,7 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
       items: actions.filter((a) => a.id === 'action:new-thread' || a.id === 'action:upload' || a.id === 'action:theme' || a.id.startsWith('action:year-')).map((a) => ({ ...a, group: 'quick' })),
       total: 0,
     });
-    groups.push({ id: 'goto', items: PAGE_ENTRIES.filter((p) => p.id !== 'page:/about').map((p) => ({ ...p, group: 'goto' })), total: 0 });
+    groups.push({ id: 'goto', items: pages.filter((p) => p.id !== 'page:/about').map((p) => ({ ...p, group: 'goto' })), total: 0 });
     return finish(groups, 0);
   }
 
@@ -295,10 +324,12 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
     actions: [],
     pages: [],
     modules: (results?.modules ?? []).map((h) => toItem(h, 'modules', lookup, now)).filter((i): i is Item => !!i),
-    files: (results?.library ?? []).map((h) => toItem(h, 'files', lookup, now)).filter((i): i is Item => !!i),
-    threads: (results?.threads ?? []).map((h) => toItem(h, 'threads', lookup, now)).filter((i): i is Item => !!i),
-    issues: (results?.issues ?? []).map((h) => toItem(h, 'issues', lookup, now)).filter((i): i is Item => !!i),
-    events: (results?.events ?? []).map((h) => toItem(h, 'events', lookup, now)).filter((i): i is Item => !!i),
+    // The API leaves out switched-off features' hits too; this keeps a cached answer from showing them after a
+    // switch flips.
+    files: off('library') ? [] : (results?.library ?? []).map((h) => toItem(h, 'files', lookup, now)).filter((i): i is Item => !!i),
+    threads: off('forum') ? [] : (results?.threads ?? []).map((h) => toItem(h, 'threads', lookup, now)).filter((i): i is Item => !!i),
+    issues: off('newsletter') ? [] : (results?.issues ?? []).map((h) => toItem(h, 'issues', lookup, now)).filter((i): i is Item => !!i),
+    events: off('calendar') ? [] : (results?.events ?? []).map((h) => toItem(h, 'events', lookup, now)).filter((i): i is Item => !!i),
   };
   // A cohort in the query narrows the modules to that year.
   if (cohort) content.modules = content.modules.filter((i) => i.kind !== 'module' || i.year === cohort);
@@ -310,7 +341,7 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
       .filter((x) => x.s > 0)
       .sort((a, b) => b.s - a.s || a.i - b.i);
   const actionHits = scored(actions);
-  const pageHits = scored(PAGE_ENTRIES);
+  const pageHits = scored(pages);
   content.actions = actionHits.map((x) => x.e);
   content.pages = pageHits.map((x) => x.e);
   const localBest = Math.max(0, actionHits[0]?.s ?? 0, pageHits[0]?.s ?? 0);
@@ -339,11 +370,13 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
     const q = query.trim();
     groups.push({
       id: 'fallback',
-      items: [
-        { id: 'fallback:library', kind: 'fallback', group: 'fallback', icon: 'Books', title: `Search the library for “${q}”`, to: `/library?q=${encodeURIComponent(q)}` },
-        { id: 'fallback:forum', kind: 'fallback', group: 'fallback', icon: 'ChatsCircle', title: `Search the forum for “${q}”`, to: `/forum?q=${encodeURIComponent(q)}` },
-        { id: 'fallback:ask', kind: 'fallback', group: 'fallback', icon: 'PencilSimpleLine', title: `Ask the forum about “${q}”`, to: `/forum/new?title=${encodeURIComponent(q)}` },
-      ],
+      items: (
+        [
+          { id: 'fallback:library', kind: 'fallback', group: 'fallback', icon: 'Books', title: `Search the library for “${q}”`, to: `/library?q=${encodeURIComponent(q)}`, feature: 'library' },
+          { id: 'fallback:forum', kind: 'fallback', group: 'fallback', icon: 'ChatsCircle', title: `Search the forum for “${q}”`, to: `/forum?q=${encodeURIComponent(q)}`, feature: 'forum' },
+          { id: 'fallback:ask', kind: 'fallback', group: 'fallback', icon: 'PencilSimpleLine', title: `Ask the forum about “${q}”`, to: `/forum/new?title=${encodeURIComponent(q)}`, feature: 'forum', offer: 'threads' },
+        ] satisfies Item[]
+      ).filter(shown),
       total: 0,
     });
     return finish(groups, 0, true);

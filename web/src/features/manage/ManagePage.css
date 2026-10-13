@@ -1,0 +1,32 @@
+/* /manage: tabs for each tool, one panel at a time. The tabs scroll inside their own box on narrow screens. */
+.manage-numbers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--sp-8);
+  margin: 0;
+}
+.manage-number {
+  display: grid;
+  gap: 2px;
+  padding: var(--sp-12) var(--sp-16);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+}
+.manage-number dt { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+.manage-number dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--fs-25);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.manage-list { margin: 0; padding: var(--sp-8); list-style: none; }
+.manage-tabs { margin-bottom: var(--sp-24); }
+.manage-panel:focus-visible { outline-offset: 4px; border-radius: var(--r-panel); }
+
+@media (max-width: 699px) {
+  .manage-number dd { font-size: var(--fs-20); }
+}

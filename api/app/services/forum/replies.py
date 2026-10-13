@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import set_committed_value
 
 from app.core.errors import conflict, forbidden, invalid, not_found
-from app.core.security import is_moderator
 from app.core.time import utcnow
 from app.models import ForumReply, ForumThread, PostStatus, User
 from app.schemas.forum import ReplyCreate
@@ -19,7 +18,7 @@ from app.services.forum import notices
 from app.services.forum.images import attach_images, release_images
 from app.services.forum.rules import audit, bump_thread, change, hide_reason, limit_replies, valid_body
 from app.services.forum.text import media_ids
-from app.services.forum.visibility import REPLY_OPTS, can_see_reply, gone, unavailable
+from app.services.forum.visibility import REPLY_OPTS, can_see_reply, gone, may_change, moderates, unavailable
 
 
 def _counted(db: Session, r: ForumReply, t: ForumThread, before: PostStatus, after: PostStatus) -> None:
@@ -44,7 +43,7 @@ def create_reply(db: Session, user: User, t: ForumThread, data: ReplyCreate) -> 
     if t.status != PostStatus.visible:
         what = "was deleted" if t.status == PostStatus.deleted else "is hidden"
         raise conflict("post_unavailable", f"This thread {what}, so it can't take new replies.")
-    if t.locked and not is_moderator(user):
+    if t.locked and not moderates(user):
         raise conflict("thread_locked", "This thread is locked, so it can't take new replies.")
     body = valid_body(data.body, required=True)
     parent: ForumReply | None = None
@@ -78,8 +77,7 @@ def create_reply(db: Session, user: User, t: ForumThread, data: ReplyCreate) -> 
 
 def update_reply(db: Session, user: User, r: ForumReply, t: ForumThread, body: str, ip: str | None) -> None:
     mine = r.author_id == user.id
-    if not (mine or is_moderator(user)):
-        raise forbidden("You can only edit your own replies.")
+    may_change(user, mine, "You can only edit your own replies.")
     if r.status == PostStatus.deleted or gone(r):
         raise unavailable(PostStatus.deleted)
     new_body = valid_body(body, required=True)
@@ -99,7 +97,7 @@ def delete_reply(db: Session, user: User, r: ForumReply, t: ForumThread, ip: str
     reps reach it), and unhiding it later gives a deleted reply (SEC-15). The notifications about it go (ST-6).
     Idempotent."""
     mine = r.author_id == user.id
-    if not (mine or is_moderator(user)):
+    if not (mine or moderates(user)):
         raise forbidden("You can only delete your own replies.")
     old_body, now = r.body, utcnow()
     before = r.status

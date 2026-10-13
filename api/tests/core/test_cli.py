@@ -27,13 +27,13 @@ from app.models import (
     LibraryItem,
     OtpChallenge,
     OtpPurpose,
-    Role,
     Upload,
     UploadPurpose,
     UploadStatus,
     User,
     UserSession,
 )
+from app.services import access
 from app.services.storage import INCOMING_RULE_ID, Storage, s3_client
 from tests.core.conftest import SetOption
 
@@ -187,20 +187,33 @@ def test_pg_dump_gets_the_password_in_its_environment_only(set_option: SetOption
     assert (env["PGDATABASE"], env["PGSSLMODE"]) == ("hub", "require")
 
 
-def test_set_role_is_audited(
+def test_set_role_gives_exactly_these_roles_and_is_audited(
     same_session: Session, make_user: Callable[..., User], capsys: pytest.CaptureFixture[str]
 ) -> None:
     user = make_user(email="soon.rep@example.com", name="Soon A Rep")
-    assert cli.main(["set-role", "Soon.Rep@Example.com", "moderator"]) == 0
-    assert capsys.readouterr().out == "soon.rep@example.com is now moderator\n"
-    same_session.refresh(user)
-    assert user.role == Role.moderator
-    entry = same_session.scalar(select(AuditEntry).where(AuditEntry.action == "user.role"))
+    assert cli.main(["set-role", "Soon.Rep@Example.com", "student", "rep"]) == 0
+    assert capsys.readouterr().out == "soon.rep@example.com now holds: Rep, Student\n"
+    assert access.access_of(user).slugs == ("rep", "student")
+    entry = same_session.scalar(select(AuditEntry).where(AuditEntry.action == "user.roles"))
     assert entry is not None
     assert entry.actor_id is None
     assert entry.target_id == str(user.id)
-    assert entry.data == {"from": "student", "to": "moderator", "via": "cli", "targetName": "Soon A Rep"}
+    assert entry.data == {"from": ["Student"], "to": ["Rep", "Student"], "via": "cli", "targetName": "Soon A Rep"}
     assert cli.main(["set-role", "nobody@example.com", "admin"]) == 1
+    assert cli.main(["set-role", "soon.rep@example.com", "owner"]) == 1
+    assert "no role called owner" in capsys.readouterr().err
+
+
+def test_set_role_never_leaves_the_hub_without_an_admin(
+    same_session: Session, make_user: Callable[..., User], capsys: pytest.CaptureFixture[str]
+) -> None:
+    boss = make_user(email="only.admin@example.com", name="Only Admin", roles=("student", "admin"))
+    assert cli.main(["set-role", "only.admin@example.com", "student"]) == 1
+    assert "at least one active admin" in capsys.readouterr().err
+    assert access.is_admin(boss)
+    make_user(email="second.admin@example.com", name="Second Admin", roles=("student", "admin"))
+    assert cli.main(["set-role", "only.admin@example.com", "student"]) == 0
+    assert not access.is_admin(boss)
 
 
 def test_setup_bucket_sets_cors_and_the_incoming_rule(storage: Storage, capsys: pytest.CaptureFixture[str]) -> None:

@@ -297,3 +297,20 @@ def test_one_event_as_a_file_and_the_exams_feed(client_for: Clients, moderator: 
     assert "Statistics exam" in feed
     assert "Study group" not in feed
     assert "REFRESH-INTERVAL" in feed
+
+
+def test_feeds_are_cached_publicly_only_while_the_calendar_is_on_for_everyone(
+    client_for: Clients,
+    events: dict[str, CalendarEvent],
+    make_user: Callable[..., User],
+    set_feature: Callable[..., None],
+) -> None:
+    exam = events["past-exam"].id
+    guest = client_for()
+    assert guest.get(f"{API}/calendar/feed.ics").headers["cache-control"] == "public, max-age=900"
+    assert guest.get(f"{API}/calendar/events/{exam}.ics").headers["cache-control"] == "public, max-age=900"
+    set_feature("calendar", "roles", ["content-manager"])
+    manager = client_for(make_user(name="Nadia Manager", roles=("student", "content-manager")))
+    for path in ("/calendar/feed.ics", f"/calendar/events/{exam}.ics"):
+        r = manager.get(f"{API}{path}")
+        assert (r.status_code, r.headers["cache-control"]) == (200, "private, no-store")

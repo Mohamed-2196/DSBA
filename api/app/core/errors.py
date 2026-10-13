@@ -54,6 +54,11 @@ def forbidden(message: str = "You can't do this.") -> ApiError:
     return ApiError(403, "forbidden", message)
 
 
+def feature_off() -> ApiError:
+    """404 feature_off: the feature is switched off for this person (an admin's choice on the Access screen)."""
+    return ApiError(404, "feature_off", "This part of the hub is switched off right now.")
+
+
 def conflict(code: ErrorCode, message: str) -> ApiError:
     return ApiError(409, code, message)
 

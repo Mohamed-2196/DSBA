@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowFatUp, Books, ChatCircle, ChatsCircle, FileText, Plus } from '@phosphor-icons/react';
 import type { LibraryItem, LiveFallback, ThreadSummary } from '../../../../api/types';
+import { useStartsThreads } from '../../../forum/public';
 import { libraryItemPath } from '../../../library/public';
 import { useModules } from '../../../../state/modules';
 import { Badge, Button, CohortBadge, Skeleton } from '../../../../ui';
@@ -32,6 +33,7 @@ export function LiveSkeleton({ rows = 3 }: { rows?: number }) {
 /** From the forum: the hottest threads, or an invitation when there are none. */
 export function ForumList({ threads, fallback }: { threads: ThreadSummary[]; fallback?: LiveFallback | null }) {
   const { getModule } = useModules();
+  const startsThreads = useStartsThreads();
   if (!threads.length) {
     return (
       <div className="nl-live nl-live--empty">
@@ -41,9 +43,11 @@ export function ForumList({ threads, fallback }: { threads: ThreadSummary[]; fal
           </p>
         ) : null}
         <p className="nl-cta">
-          <Button variant="primary" leadingIcon={Plus} to="/forum/new">
-            Start a thread
-          </Button>
+          {startsThreads ? (
+            <Button variant="primary" leadingIcon={Plus} to="/forum/new">
+              Start a thread
+            </Button>
+          ) : null}
           <Button variant="ghost" leadingIcon={ChatsCircle} to="/forum">
             Browse the forum
           </Button>

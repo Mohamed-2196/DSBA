@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { IssueSection } from '../../../api/types';
-import { INLINE_RE, countWords, issueNo, listNames, plainText, readMinutes, sectionLabel, sectionText, slugify } from './text';
+import { INLINE_RE, countWords, issueNo, listNames, plainText, publishedNote, readMinutes, sectionLabel, sectionText, slugify } from './text';
 
 const story: IssueSection = {
   id: 'cfa',
@@ -57,5 +57,15 @@ describe('names and addresses', () => {
     expect([0, 1, 12].map(issueNo)).toEqual(['00', '01', '12']);
     expect(listNames(['Hawra T.'])).toBe('Hawra T.');
     expect(listNames(['Hawra T.', 'Zainab K.', 'Hussain M.'])).toBe('Hawra T., Zainab K. and Hussain M.');
+  });
+});
+
+describe('publishedNote', () => {
+  it('says the cohort was told when the issue was emailed', () => {
+    expect(publishedNote('07', true)).toEqual({ title: 'Issue 07 is out', body: 'It’s on the newsletter page, and everyone who wants newsletter notifications has been told.' });
+  });
+
+  it('says the cohort email waits a day when it wasn’t sent', () => {
+    expect(publishedNote('08', false)).toEqual({ title: 'Issue 08 is out', body: 'Published. The cohort email goes out once a day; the next one can be sent tomorrow.' });
   });
 });

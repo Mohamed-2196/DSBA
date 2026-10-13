@@ -1,8 +1,10 @@
-"""Reports of forum threads, forum replies and library items, and the student reps' queue. Owner: community agent.
+"""Reports of forum threads, forum replies and library items, and the queues of the people who handle them. Owner:
+community agent.
 
-A report names its target by type and id. Each person may have one open report per target; reps resolve or dismiss
-it (hiding the post or removing the file is a separate action), and the reporter is told. Who reported is shown to
-admins only: student reps are classmates (security review, finding 22)."""
+A report names its target by type and id. Each person may have one open report per target. Forum reports are for
+people with forum.moderate and library reports for people with library.manage: they resolve or dismiss them (hiding
+the post or removing the file is a separate action), and the reporter is told. Who reported is shown to admins only:
+student reps are classmates (security review, finding 22)."""
 
 from __future__ import annotations
 
@@ -17,11 +19,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, defer
 from sqlalchemy.orm.attributes import set_committed_value
 
+from app.core.access import Box, Feature
 from app.core.errors import conflict, not_found
-from app.core.security import is_admin
 from app.core.time import utcnow
 from app.models import ForumReply, ForumThread, ItemStatus, LibraryItem, PostStatus, Report, ReportStatus, User
 from app.schemas.moderation import ReportCreate, ReportOut, ReportPage, ReportResolve
+from app.services import access
 from app.services.accounts import public_user
 from app.services.forum.rules import audit
 from app.services.forum.text import clean_body, excerpt
@@ -31,13 +34,16 @@ from app.services.ratelimit import enforce
 
 REPORTS_PER_HOUR = 20  # a cap on what lands in the reps' queue (security design review, finding 19)
 ALREADY_REPORTED = "You've already reported this. A student rep will look at it soon."
+TARGET_FEATURES: dict[str, Feature] = {"thread": Feature.forum, "reply": Feature.forum, "library_item": Feature.library}
 
 
 def _users(db: Session, ids: Iterable[uuid.UUID | None]) -> dict[uuid.UUID, User]:
     wanted = {i for i in ids if i is not None}
     if not wanted:
         return {}
-    return {u.id: u for u in db.scalars(select(User).where(User.id.in_(wanted)))}
+    found = {u.id: u for u in db.scalars(select(User).where(User.id.in_(wanted)))}
+    access.prefetch(db, found.values())
+    return found
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,10 +158,27 @@ def create_report(db: Session, user: User, data: ReportCreate) -> Report:
     return report
 
 
+def _queue(db: Session, user: User) -> list[str]:
+    """The target types this person acts on: forum posts with forum.moderate, library files with library.manage, each
+    while its feature is on for them."""
+    types: list[str] = []
+    if access.can(user, Box.forum_moderate) and access.feature_on(db, user, Feature.forum):
+        types += ["thread", "reply"]
+    if access.can(user, Box.library_manage) and access.feature_on(db, user, Feature.library):
+        types.append("library_item")
+    return types
+
+
+def open_count(db: Session, user: User) -> int:
+    """The open reports in this person's queue (the dashboard's count)."""
+    where = (Report.status == ReportStatus.open, Report.target_type.in_(_queue(db, user)))
+    return db.scalar(select(func.count()).select_from(Report).where(*where)) or 0
+
+
 def _report_outs(db: Session, reports: Sequence[Report], viewer: User) -> list[ReportOut]:
     """Reports for the moderators' queue. Who reported is shown to admins only: student reps are classmates
     (security review, finding 22)."""
-    show_reporter = is_admin(viewer)
+    show_reporter = access.is_admin(viewer)
     targets = _targets(db, ((r.target_type, r.target_id) for r in reports))
     people = _users(
         db,
@@ -190,15 +213,29 @@ def _report_outs(db: Session, reports: Sequence[Report], viewer: User) -> list[R
 
 
 def list_reports(db: Session, user: User, status: str, limit: int, offset: int) -> ReportPage:
-    """Open reports oldest first (a queue); closed ones most recently closed first."""
+    """Open reports oldest first (a queue); closed ones most recently closed first. Only the reports in this person's
+    queue (_queue)."""
     st = ReportStatus(status)
-    total = db.scalar(select(func.count()).select_from(Report).where(Report.status == st)) or 0
+    total = (
+        db.scalar(
+            select(func.count())
+            .select_from(Report)
+            .where(Report.status == st, Report.target_type.in_(_queue(db, user)))
+        )
+        or 0
+    )
     order: list[Any] = (
         [Report.created_at.asc(), Report.id]
         if st == ReportStatus.open
         else [Report.resolved_at.desc().nulls_last(), Report.created_at.desc(), Report.id]
     )
-    reports = db.scalars(select(Report).where(Report.status == st).order_by(*order).limit(limit).offset(offset)).all()
+    reports = db.scalars(
+        select(Report)
+        .where(Report.status == st, Report.target_type.in_(_queue(db, user)))
+        .order_by(*order)
+        .limit(limit)
+        .offset(offset)
+    ).all()
     return ReportPage(items=_report_outs(db, reports, user), total=total, limit=limit, offset=offset)
 
 
@@ -210,7 +247,7 @@ def resolve_report(db: Session, user: User, report_id: uuid.UUID, data: ReportRe
     one conditional UPDATE: when two reps close it at once, the second gets report_closed (code quality review CQ-14)
     and the reporter hears once."""
     report = db.get(Report, report_id)
-    if report is None:
+    if report is None or report.target_type not in _queue(db, user):
         raise not_found("This report doesn't exist.")
     note = clean_body(data.note) if data.note else ""
     values = {

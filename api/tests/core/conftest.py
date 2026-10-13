@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.core.security import hash_token, new_token
 from app.core.time import utcnow
-from app.models import Role, User, UserSession
+from app.models import User, UserSession
 from tests.core.helpers import API
 
 BrowserAt = Callable[..., TestClient]
@@ -73,9 +73,9 @@ def classmate(make_user: Callable[..., User]) -> User:
 
 @pytest.fixture
 def moderator(make_user: Callable[..., User]) -> User:
-    return make_user(name="Maryam Rep", role=Role.moderator, year=3)
+    return make_user(name="Maryam Rep", roles=("student", "rep"), year=3)
 
 
 @pytest.fixture
 def admin(make_user: Callable[..., User]) -> User:
-    return make_user(name="Ali Admin", role=Role.admin, year=None)
+    return make_user(name="Ali Admin", roles=("student", "admin"), year=None)

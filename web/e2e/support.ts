@@ -159,7 +159,7 @@ export function newestText(e164: string): string {
 const run$ = promisify(execFile);
 
 /** A session token for a rep or an admin (development only: python -m app.cli dev-login). */
-export async function devLogin(email: string, opts: { name: string; year: number; role: 'moderator' | 'admin' }): Promise<string> {
+export async function devLogin(email: string, opts: { name: string; year: number; role: 'rep' | 'admin' }): Promise<string> {
   const [cmd, ...args] = env.devLogin.split(/\s+/);
   const { stdout } = await run$(cmd, [...args, email, '--name', opts.name, '--year', String(opts.year), '--role', opts.role], {
     cwd: env.apiDir,
@@ -229,6 +229,23 @@ export async function api<T>(page: Page, method: 'GET' | 'POST' | 'PUT' | 'PATCH
     /* not JSON */
   }
   return { status: r.status(), body: body as T };
+}
+
+/** The id of a role, by its slug (admins only). */
+export async function roleIdBySlug(admin: Page, slug: string): Promise<string> {
+  const r = await api<{ roles: { id: string; slug: string }[] }>(admin, 'GET', '/api/v1/admin/roles');
+  const role = r.body.roles.find((x) => x.slug === slug);
+  if (!role) throw new Error(`No role ${slug}`);
+  return role.id;
+}
+
+/** Every feature with a switch. */
+export const FEATURES = ['forum', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora'] as const;
+
+/** Sets a feature's switch (admins only). Every spec that switches something off puts it back in afterAll. */
+export async function setSwitch(admin: Page, feature: (typeof FEATURES)[number], mode: 'off' | 'roles' | 'everyone', roleIds: string[] = []): Promise<void> {
+  const r = await api(admin, 'PUT', `/api/v1/admin/features/${feature}`, { mode, roleIds });
+  expect(r.status, `switch ${feature} ${mode}`).toBe(200);
 }
 
 // ── small, real test files (made at run time: nothing binary is kept in the repo) ─────────────

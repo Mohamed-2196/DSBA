@@ -1,4 +1,5 @@
-// The moderators' queue of reports (GET /admin/reports), rendered by features/moderation/ModerationPage.
+// The moderators' queue of reports (GET /admin/reports), rendered in the Reports section of
+// features/manage/ManagePage.
 // A report points at a thread, a reply or a library file. The way through: open the post, deal with it there (hide
 // it from its menu, for example), then resolve the report here with a short note; or dismiss it when the post is fine.
 import { useMemo, useState } from 'react';
@@ -44,7 +45,7 @@ function flatten(pages: { items: ReportOut[] }[] | undefined): ReportOut[] {
 function NotForYou() {
   return (
     <Panel padding="none">
-      <EmptyState icon={Flag} title="Only student reps and admins see reports" body="Ask an admin if you should have access." />
+      <EmptyState icon={Flag} title="Reports aren’t on your account" body="Ask an admin if you should have access." />
     </Panel>
   );
 }
@@ -114,12 +115,13 @@ function ReportList({ status }: { status: ReportStatus }) {
 
 /** The moderators' list of reports: open, resolved and dismissed. */
 export function ReportsQueue() {
-  const { isModerator, status: authStatus } = useAuth();
+  const { can, status: authStatus } = useAuth();
+  const handles = can('forum.moderate') || can('library.manage');
   const [status, setStatus] = useState<ReportStatus>('open');
-  const open = useReports('open', { enabled: isModerator });
+  const open = useReports('open', { enabled: handles });
   const openCount = open.data?.pages[0]?.total;
 
-  if (authStatus !== 'loading' && !isModerator) return <NotForYou />;
+  if (authStatus !== 'loading' && !handles) return <NotForYou />;
 
   return (
     <section className="forum-reports" aria-label="Reports" data-hub="reports-queue">
@@ -132,7 +134,7 @@ export function ReportsQueue() {
         onChange={(id: string) => setStatus(STATUSES.find((s) => s.id === id)?.id ?? 'open')}
       />
       <TabPanel idBase="reports" id={status} value={status} className="forum-reports__panel">
-        {isModerator ? <ReportList key={status} status={status} /> : null}
+        {handles ? <ReportList key={status} status={status} /> : null}
       </TabPanel>
     </section>
   );

@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import Query, Request, Response, status
 
+from app.core.access import Box, Feature
 from app.core.errors import unauthenticated
 from app.core.pagination import Limit, Offset, YearParam
-from app.core.security import DB, ActiveUser, CurrentUser, Moderator, OptionalUser, client_ip
+from app.core.security import DB, ActiveUser, CurrentUser, OptionalUser, client_ip, needs_feature, requires
+from app.models import User
 from app.routers._base import router_for
 from app.schemas.forum import (
     AcceptRequest,
@@ -30,7 +33,9 @@ from app.schemas.forum import (
 )
 from app.services.forum import queries, replies, taxonomy, threads, views, visibility, votes
 
-router = router_for("forum")
+router = router_for("forum", needs_feature(Feature.forum))
+Poster = Annotated[User, requires(Box.forum_post)]  # start threads, reply, vote
+ForumModerator = Annotated[User, requires(Box.forum_moderate)]
 
 
 @router.get("/forum/meta", response_model=ForumMeta)
@@ -87,7 +92,7 @@ def hot_threads(
 
 
 @router.post("/forum/threads", response_model=ThreadDetail, status_code=status.HTTP_201_CREATED)
-def create_thread(body: ThreadCreate, user: ActiveUser, db: DB) -> ThreadDetail:
+def create_thread(body: ThreadCreate, user: Poster, db: DB) -> ThreadDetail:
     """The author upvotes their own thread. Forum images in the body (/api/v1/media/<id>) are attached.
 
     Errors: rate_limited (429) after 10 threads in an hour."""
@@ -133,7 +138,7 @@ def related_threads(
 
 
 @router.put("/forum/threads/{thread_id}/vote", response_model=VoteResult)
-def vote_thread(thread_id: UUID, user: ActiveUser, db: DB) -> VoteResult:
+def vote_thread(thread_id: UUID, user: Poster, db: DB) -> VoteResult:
     """Upvote (idempotent). Errors: post_unavailable (409) for deleted and hidden threads."""
     result = votes.vote(db, user, visibility.thread_for(db, thread_id, user), up=True)
     db.commit()
@@ -141,7 +146,7 @@ def vote_thread(thread_id: UUID, user: ActiveUser, db: DB) -> VoteResult:
 
 
 @router.delete("/forum/threads/{thread_id}/vote", response_model=VoteResult)
-def unvote_thread(thread_id: UUID, user: ActiveUser, db: DB) -> VoteResult:
+def unvote_thread(thread_id: UUID, user: Poster, db: DB) -> VoteResult:
     result = votes.vote(db, user, visibility.thread_for(db, thread_id, user), up=False)
     db.commit()
     return result
@@ -158,7 +163,9 @@ def accept_answer(thread_id: UUID, body: AcceptRequest, request: Request, user: 
 
 
 @router.post("/forum/threads/{thread_id}/moderate", response_model=ThreadDetail)
-def moderate_thread(thread_id: UUID, body: ThreadModeration, request: Request, user: Moderator, db: DB) -> ThreadDetail:
+def moderate_thread(
+    thread_id: UUID, body: ThreadModeration, request: Request, user: ForumModerator, db: DB
+) -> ThreadDetail:
     """Pin, lock (no new replies) or hide a thread. Hiding tells the author (a "system" notification, with `reason`
     when given); unhiding a thread that was deleted while hidden gives a deleted thread. Audited."""
     t = visibility.thread_for(db, thread_id, user)
@@ -168,7 +175,7 @@ def moderate_thread(thread_id: UUID, body: ThreadModeration, request: Request, u
 
 
 @router.post("/forum/threads/{thread_id}/replies", response_model=Reply, status_code=status.HTTP_201_CREATED)
-def create_reply(thread_id: UUID, body: ReplyCreate, user: ActiveUser, db: DB) -> Reply:
+def create_reply(thread_id: UUID, body: ReplyCreate, user: Poster, db: DB) -> Reply:
     """Notifies the thread's author (and the parent reply's author), linking to /forum/<slug>#reply-<id>.
 
     Errors: thread_locked (409: locked by a student rep), post_unavailable (409: the thread was deleted or hidden),
@@ -198,7 +205,7 @@ def delete_reply(reply_id: UUID, request: Request, user: CurrentUser, db: DB) ->
 
 
 @router.put("/forum/replies/{reply_id}/vote", response_model=VoteResult)
-def vote_reply(reply_id: UUID, user: ActiveUser, db: DB) -> VoteResult:
+def vote_reply(reply_id: UUID, user: Poster, db: DB) -> VoteResult:
     r, t = visibility.reply_for(db, reply_id, user)
     result = votes.vote(db, user, r, up=True, thread=t)
     db.commit()
@@ -206,7 +213,7 @@ def vote_reply(reply_id: UUID, user: ActiveUser, db: DB) -> VoteResult:
 
 
 @router.delete("/forum/replies/{reply_id}/vote", response_model=VoteResult)
-def unvote_reply(reply_id: UUID, user: ActiveUser, db: DB) -> VoteResult:
+def unvote_reply(reply_id: UUID, user: Poster, db: DB) -> VoteResult:
     r, t = visibility.reply_for(db, reply_id, user)
     result = votes.vote(db, user, r, up=False, thread=t)
     db.commit()
@@ -214,7 +221,7 @@ def unvote_reply(reply_id: UUID, user: ActiveUser, db: DB) -> VoteResult:
 
 
 @router.post("/forum/replies/{reply_id}/moderate", response_model=Reply)
-def moderate_reply(reply_id: UUID, body: ReplyModeration, request: Request, user: Moderator, db: DB) -> Reply:
+def moderate_reply(reply_id: UUID, body: ReplyModeration, request: Request, user: ForumModerator, db: DB) -> Reply:
     """Hide a reply (its author is told, with `reason` when given; the notifications about it are taken back), or
     show it again (a reply deleted while hidden comes back deleted). Audited."""
     r, t = visibility.reply_for(db, reply_id, user)

@@ -1,5 +1,5 @@
 // What Mini Noora reads to answer: every module's chapters and lessons (GET /modules/{id}, one request per module,
-// made once the chat is first opened), the calendar from today on, and the student's first name.
+// made once the chat is first opened), the calendar from today on (while it is on), and the student's first name.
 import { useMemo } from 'react';
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
 import type { ModuleDetail } from '../../api/types';
@@ -32,13 +32,14 @@ export interface KnowledgeState {
 
 export function useKnowledge(): KnowledgeState {
   const { modules } = useModules();
-  const { me, status } = useAuth();
+  const { me, status, featureOn } = useAuth();
+  const calendarOn = featureOn('calendar');
   // The modules feature's cache entry for each module: lessons read here are already there when the student follows
   // one of her links, and the other way round.
   const details = useQueries({ queries: modules.map((m) => moduleDetailQuery(m.id)), combine });
-  const events = useCalendarEvents({ from: dayKeyFromToday() });
+  const events = useCalendarEvents({ from: dayKeyFromToday() }, { enabled: calendarOn });
   const name = status === 'signed-in' ? firstNameOf(me?.displayName) : null;
   const eventList = events.data ?? null;
-  const knowledge = useMemo(() => buildKnowledge(modules, details.byId, eventList, name), [modules, details.byId, eventList, name]);
-  return { knowledge, ready: details.settled && !events.isPending };
+  const knowledge = useMemo(() => buildKnowledge(modules, details.byId, eventList, name, featureOn), [modules, details.byId, eventList, name, featureOn]);
+  return { knowledge, ready: details.settled && (!calendarOn || !events.isPending) };
 }

@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_token
 from app.core.time import utcnow
-from app.models import AuditEntry, OtpChallenge, OtpPurpose, Role, User, UserSession
+from app.models import AuditEntry, OtpChallenge, OtpPurpose, User, UserSession
 from app.routers import auth as auth_router
 from app.services import mailer
 from app.services.mailer import DeliveryError
@@ -59,7 +59,7 @@ def test_sign_in_by_email_creates_an_account(client_for: ClientFor, outbox: Outb
     assert me["phone"] is None
     assert me["needsProfile"] is True
     assert me["displayName"] is None
-    assert me["role"] == "student"
+    assert [r["slug"] for r in me["roles"]] == ["student"]
     assert me["status"] == "active"
     assert me["preferences"] == {
         "emailReplies": True,
@@ -471,16 +471,25 @@ def test_admin_identifiers_become_admins(
     db: Session,
 ) -> None:
     set_option("admin_identifiers", ["Boss@Example.com", "3399 9999", "not valid"])
-    rep = make_user(email="rep@example.com", role=Role.student)
+    rep = make_user(email="rep@example.com", roles=("student",))
     set_option("admin_identifiers", ["Boss@Example.com", "3399 9999", "not valid", "REP@example.com"])
-    assert sign_in("boss@example.com")[1]["user"]["role"] == "admin"
-    assert sign_in("+97333999999")[1]["user"]["role"] == "admin"
-    assert sign_in("plain@example.com")[1]["user"]["role"] == "student"
-    assert sign_in("rep@example.com")[1]["user"]["role"] == "admin"
-    entry = db.scalar(select(AuditEntry).where(AuditEntry.action == "user.role", AuditEntry.target_id == str(rep.id)))
+
+    def slugs(identifier: str) -> list[str]:
+        return [r["slug"] for r in sign_in(identifier)[1]["user"]["roles"]]
+
+    assert slugs("boss@example.com") == ["admin", "student"]
+    assert slugs("+97333999999") == ["admin", "student"]
+    assert slugs("plain@example.com") == ["student"]
+    assert slugs("rep@example.com") == ["admin", "student"]
+    entry = db.scalar(select(AuditEntry).where(AuditEntry.action == "user.roles", AuditEntry.target_id == str(rep.id)))
     assert entry is not None
     assert entry.actor_id is None
-    assert entry.data == {"from": "student", "to": "admin", "via": "bootstrap", "targetName": "Test Student"}
+    assert entry.data == {
+        "from": ["Student"],
+        "to": ["Admin", "Student"],
+        "via": "bootstrap",
+        "targetName": "Test Student",
+    }
 
 
 def test_logout(sign_in: SignIn, db: Session) -> None:

@@ -460,6 +460,44 @@ def test_publishing_tells_every_account_once(
     assert client_for(keen).post(f"{ISSUES}/{issue['id']}/publish").status_code == 403
 
 
+def test_one_issue_email_a_day(
+    client_for: Clients, make_user: Callable[..., User], moderator: User, db: Session
+) -> None:
+    """Security review AD-8 (SEC-18): each published issue reaches everyone in the Hub, but the cohort gets at most
+    one issue email a day; the response says whether this one went by email."""
+    keen = make_user(name="Keen")
+    rep = client_for(moderator)
+    issues = [
+        rep.post(ISSUES, json=new_issue(slug=f"issue-{n}", number=n, title=f"Issue {n}")).json() for n in (1, 2, 3)
+    ]
+
+    def publish(issue: dict[str, Any]) -> dict[str, Any]:
+        r = rep.post(f"{ISSUES}/{issue['id']}/publish")
+        assert r.status_code == 200, r.text
+        body: dict[str, Any] = r.json()
+        return body
+
+    def emails() -> list[str]:
+        return [e.subject for e in db.scalars(select(EmailOutbox).order_by(EmailOutbox.created_at))]
+
+    first = publish(issues[0])
+    assert (first["status"], first["emailed"]) == ("published", True)
+    second = publish(issues[1])
+    assert (second["status"], second["emailed"]) == ("published", False)
+    assert emails() == ["New issue of The DSBA Newsletter: Issue 1"]
+    notes = db.scalars(select(Notification.title).where(Notification.user_id == keen.id)).all()
+    assert sorted(notes) == [f"New issue of The DSBA Newsletter: Issue {n}" for n in (1, 2)]  # in the Hub, both
+    logged = db.scalars(select(AuditEntry).where(AuditEntry.action == "newsletter.publish")).all()
+    assert sorted(e.data["emailed"] for e in logged) == [False, True]
+    assert publish(issues[0])["emailed"] is False  # publishing again sends nothing
+
+    for entry in logged:  # a day later
+        entry.created_at -= dt.timedelta(hours=24, minutes=1)
+    db.commit()
+    assert publish(issues[2])["emailed"] is True
+    assert emails()[-1] == "New issue of The DSBA Newsletter: Issue 3"
+
+
 def test_reactions(client_for: Clients, student: User, other: User, moderator: User) -> None:
     rep = client_for(moderator)
     issue = rep.post(ISSUES, json=new_issue()).json()
@@ -485,3 +523,30 @@ def test_reactions(client_for: Clients, student: User, other: User, moderator: U
 
     assert me.delete(f"{url}/useful").json() == {"useful": 1, "love": 1, "laugh": 0, "mine": ["love"]}
     assert me.delete(f"{url}/useful").json()["useful"] == 1
+
+
+def test_publishing_tells_only_those_the_newsletter_is_on_for(
+    client_for: Clients,
+    make_user: Callable[..., User],
+    moderator: User,
+    admin: User,
+    set_feature: Callable[..., None],
+    db: Session,
+) -> None:
+    """Switched off, publishing tells nobody; on for some roles, it tells those roles (and admins) only."""
+    student = make_user(name="Sara Student")
+    other_rep = make_user(name="Other Rep", roles=("student", "rep"))
+    boss = client_for(admin)
+    set_feature("newsletter", "off")
+    issue = boss.post(ISSUES, json=new_issue()).json()
+    r = boss.post(f"{ISSUES}/{issue['id']}/publish")
+    assert (r.status_code, r.json()["emailed"]) == (200, False)
+    assert list(db.scalars(select(Notification))) == []
+    assert list(db.scalars(select(EmailOutbox))) == []
+
+    set_feature("newsletter", "roles", ["rep"])
+    later = client_for(moderator).post(ISSUES, json=new_issue(slug="later", number=3)).json()
+    assert client_for(moderator).post(f"{ISSUES}/{later['id']}/publish").status_code == 200
+    told = {n.user_id for n in db.scalars(select(Notification))}
+    assert told == {other_rep.id, admin.id}
+    assert student.id not in told

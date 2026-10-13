@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CaretRight } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { UserPublic } from '../../api/types';
-import { useAuth } from '../../auth';
+import { badgeOf, useAuth } from '../../auth';
 import { Page, PageHeader, Skeleton, TextField, cx } from '../../ui';
 import { useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
@@ -22,6 +22,7 @@ import { AttachRow } from './components/AttachRow';
 import { ComposerAside, SimilarInline } from './components/ComposerAside';
 import { ComposerFooter } from './components/ComposerFooter';
 import { MarkdownEditor } from './components/MarkdownEditor';
+import { CantPostNote } from './components/ThreadNotices';
 import { CategorySelect, ModuleSelect, TagPicker } from './components/ThreadFields';
 import './components/forum.css';
 import './components/dialogs.css';
@@ -34,16 +35,27 @@ import './NewThreadPage.css';
  *   ?module=mathematics    the module, by id (or by unit code: ?module=MT1186); a year category that disagrees with the
  *                          module's year follows the module
  *   ?title=...             the title
- * An unfinished thread is kept as a draft on this device (lib/threadDraft.ts) until it is posted or discarded.
+ * An unfinished thread is kept as a draft on this device (lib/threadDraft.ts) until it is posted or discarded. An
+ * account without the forum.post box gets a note in place of the composer.
  */
 export default function NewThreadPage() {
-  const { status } = useAuth();
+  const { status, offer } = useAuth();
   const [params] = useSearchParams();
   // A new preset on the same route starts a fresh composer, and so does another person (lib/useAccountKey.ts).
   const presetKey = ['category', 'module', 'title'].map((k) => params.get(k) || '').join('|');
   const accountKey = useAccountKey();
   // Whose draft to restore depends on who is signed in, so the composer waits for that (usually already known).
   if (status === 'loading') return <ComposerPlaceholder />;
+  const posting = offer('forum.post');
+  if (posting === 'suspended' || posting === 'no') {
+    return (
+      <Page className="forum-page forum-new">
+        <Crumbs />
+        <PageHeader {...HEADER} />
+        <CantPostNote suspended={posting === 'suspended'} />
+      </Page>
+    );
+  }
   return <Composer key={`${presetKey}#${accountKey}`} />;
 }
 
@@ -186,8 +198,7 @@ function Composer() {
     navigate('/forum');
   };
 
-  const suspended = me?.status === 'suspended';
-  const author: UserPublic | null = me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, role: me.role } : null;
+  const author: UserPublic | null = me && !me.needsProfile ? { id: me.id, displayName: me.displayName ?? '', year: me.year, badge: badgeOf(me) } : null;
 
   return (
     <Page className="forum-page forum-new">
@@ -196,11 +207,6 @@ function Composer() {
 
       <div className="forum-new__layout">
         <form className="forum-composer" data-hub="composer" onSubmit={submit} noValidate>
-          {suspended ? (
-            <p className="forum-form-error" role="alert">
-              Your account is suspended, so you can’t post. Contact a student rep if you think this is a mistake.
-            </p>
-          ) : null}
           {restored ? (
             <div className="forum-composer__restored" role="status">
               <span>We kept the draft you started earlier.</span>
@@ -275,7 +281,7 @@ function Composer() {
 
           <AttachRow images={images} />
 
-          <ComposerFooter author={author} checking={authStatus === 'loading'} posting={create.isPending} suspended={suspended} onDiscard={discard} />
+          <ComposerFooter author={author} checking={authStatus === 'loading'} posting={create.isPending} onDiscard={discard} />
         </form>
 
         <ComposerAside similar={similar} module={getModule(form.moduleId)} />

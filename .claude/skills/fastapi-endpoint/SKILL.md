@@ -20,7 +20,7 @@ steps in order, and read a neighbouring endpoint in the same area before writing
 ## 2. Logic: `app/services/<area>.py`
 - **Signature.** Take `db: Session`, the acting `User`, and the parsed body. Return ORM objects or schema
   objects. The service never commits; the router does.
-- **Authorization on every object.** Allow only the owner or a moderator (`is_moderator(user)`). Hidden, pending
+- **Authorization on every object.** Allow only the owner or a holder of the area's box (`access.can(user, Box.x)`). Hidden, pending
   and removed things are `not_found()` for everyone else, never 403: that way nobody learns they exist.
 - **Errors.** Raise from `app/core/errors.py`:
   - `not_found()` and `forbidden()`;
@@ -40,7 +40,7 @@ steps in order, and read a neighbouring endpoint in the same area before writing
 ## 3. Route: `app/routers/<area>.py`
 - **Signature.** Use `router = router_for("<tag>")` (`app/routers/_base.py`), and plain `def`: the database layer
   is synchronous.
-- **Dependencies.** Use the aliases from `app/core/security.py`: `db: DB`, `user: ActiveUser | Moderator | Admin`,
+- **Dependencies.** Use the aliases from `app/core/security.py`: `db: DB`, `user: ActiveUser`, or an alias built with `requires(box)`, `requires_any(...)` or `requires_admin()`; a feature's routes also declare `needs_feature(feature)`,
   `OptionalUser` for public reads.
 - **Body of the route.** Parse, call the service, `db.commit()`, return. Write
   `@router.post("/...", response_model=..., status_code=...)`.

@@ -152,7 +152,8 @@ export interface paths {
          * Delete Me
          * @description Delete the account: personal data goes, posts stay as 'deleted user', published files stay unattributed.
          *
-         *     Errors: step_up_required (403), storage_unavailable (503: files could not be deleted, nothing changed).
+         *     Errors: step_up_required (403), last_admin (409: the only active admin stays), storage_unavailable (503: files
+         *     could not be deleted, nothing changed).
          */
         delete: operations["delete_me_api_v1_me_delete"];
         options?: never;
@@ -506,7 +507,7 @@ export interface paths {
         /**
          * Stats
          * @description Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
-         *     for review and open reports.
+         *     for review and the open reports in the viewer's queue. A feature switched off for the viewer counts None.
          */
         get: operations["stats_api_v1_admin_stats_get"];
         put?: never;
@@ -526,8 +527,10 @@ export interface paths {
         };
         /**
          * List Users
-         * @description Search by name, email or phone number (case-insensitive, any part; a phone number may be typed with spaces),
-         *     newest accounts first.
+         * @description Search by name (case-insensitive, any part), newest accounts first. `role`: a role's slug. Only admins search
+         *     and see email addresses and phone numbers (a phone number may be typed with spaces).
+         *
+         *     Errors: invalid (422: no role with this slug).
          */
         get: operations["list_users_api_v1_admin_users_get"];
         put?: never;
@@ -553,14 +556,39 @@ export interface paths {
         head?: never;
         /**
          * Update User
-         * @description Change a role, suspend an account, or recover one (security review SEC-9): replace or remove its email
+         * @description Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email
          *     address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
          *     Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
+         *     Recovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding
+         *     Admin (security review AD-1).
          *
-         *     Errors: cannot_change_self (409: an admin can't change their own account here; ask another admin),
-         *     identifier_taken (409), last_identifier (409), invalid_identifier (422).
+         *     Errors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,
+         *     and so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,
+         *     or suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422).
          */
         patch: operations["update_user_api_v1_admin_users__user_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set User Roles
+         * @description The roles the person holds afterwards, exactly. They're told. Errors: step_up_required (403),
+         *     cannot_change_self (409), last_admin (409: the only active admin keeps Admin), invalid_input (422: a role that
+         *     doesn't exist), rate_limited (429). Audited.
+         */
+        put: operations["set_user_roles_api_v1_admin_users__user_id__roles_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/admin/audit": {
@@ -583,6 +611,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Roles
+         * @description Every role with its boxes and how many people hold it, and every box with its area and label.
+         */
+        get: operations["list_roles_api_v1_admin_roles_get"];
+        put?: never;
+        /**
+         * Create Role
+         * @description Errors: step_up_required (403), invalid_input (422: another role has this name or badge, or the badge passes
+         *     for staff), rate_limited (429). Audited.
+         */
+        post: operations["create_role_api_v1_admin_roles_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/roles/{role_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Role
+         * @description Its holders lose it and are told. Errors: step_up_required (403), role_locked (409: a built-in role),
+         *     role_in_use (409: a feature switch is on for it), rate_limited (429). Audited.
+         */
+        delete: operations["delete_role_api_v1_admin_roles__role_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Role
+         * @description Send the `version` you loaded. Errors: step_up_required (403), role_locked (409: Admin), role_changed (409:
+         *     changed since you loaded it), invalid_input (422: as for a new role, or a box beyond the student-level ones on
+         *     Student), rate_limited (429). Audited.
+         */
+        patch: operations["update_role_api_v1_admin_roles__role_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/features": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Features */
+        get: operations["list_features_api_v1_admin_features_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/features/{feature}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Feature
+         * @description Off, on for some roles (`roleIds`), or on for everyone. Errors: step_up_required (403), invalid_input (422: no
+         *     roles, or a role that doesn't exist), rate_limited (429). Audited.
+         */
+        put: operations["set_feature_api_v1_admin_features__feature__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/modules": {
         parameters: {
             query?: never;
@@ -592,7 +710,7 @@ export interface paths {
         };
         /**
          * List Modules
-         * @description Every module, in programme order, with its published library count.
+         * @description Every module, in programme order, with its published library count (None while the library is off for you).
          */
         get: operations["list_modules_api_v1_modules_get"];
         put?: never;
@@ -637,10 +755,10 @@ export interface paths {
         put?: never;
         /**
          * Create Item
-         * @description Turn a completed upload into a library item: pending for students, published for moderators.
+         * @description Turn a completed upload into a library item: pending for students, published for library managers.
          *
          *     Errors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting
-         *     for review), invalid_input (422: an unknown module).
+         *     for review), invalid_input (422: an unknown module), feature_off (404: library uploads are switched off).
          */
         post: operations["create_item_api_v1_library_items_post"];
         delete?: never;
@@ -675,7 +793,7 @@ export interface paths {
         };
         /**
          * Get Item
-         * @description By id or slug. Unpublished items: only their uploader and moderators.
+         * @description By id or slug. Unpublished items: only their uploader and the library's managers.
          */
         get: operations["get_item_api_v1_library_items__item__get"];
         put?: never;
@@ -718,15 +836,15 @@ export interface paths {
         post?: never;
         /**
          * Delete Item
-         * @description The uploader or a moderator. Nothing serves the file any more; the daily sweep deletes it from storage a week
-         *     later.
+         * @description The uploader or a library manager. Nothing serves the file any more; the daily sweep deletes it from storage
+         *     a week later.
          */
         delete: operations["delete_item_api_v1_library_items__item_id__delete"];
         options?: never;
         head?: never;
         /**
          * Update Item
-         * @description The uploader while the item is pending; moderators always.
+         * @description The uploader while the item is pending; library managers always.
          */
         patch: operations["update_item_api_v1_library_items__item_id__patch"];
         trace?: never;
@@ -832,7 +950,8 @@ export interface paths {
          *     as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
          *
          *     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
-         *     for review; library only), rate_limited (429).
+         *     for review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum
+         *     picture), feature_off (404: the library, its uploads or the forum is switched off).
          */
         post: operations["create_upload_api_v1_uploads_post"];
         delete?: never;
@@ -855,7 +974,8 @@ export interface paths {
          * @description Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and
          *     first bytes match the file's name.
          *
-         *     Errors: not_uploaded (409), mismatch (422; the object is deleted).
+         *     Errors: not_uploaded (409), mismatch (422; the object is deleted), feature_off (404: the upload's feature was
+         *     switched off since it started).
          */
         post: operations["complete_upload_api_v1_uploads__upload_id__complete_post"];
         delete?: never;
@@ -1204,7 +1324,7 @@ export interface paths {
          * @description Report a thread, reply or library item (one open report per person and target).
          *
          *     Errors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),
-         *     rate_limited (429).
+         *     rate_limited (429), feature_off (404: the forum or the library is switched off).
          */
         post: operations["create_report_api_v1_reports_post"];
         delete?: never;
@@ -1222,8 +1342,9 @@ export interface paths {
         };
         /**
          * List Reports
-         * @description Open reports oldest first (a queue); closed ones most recently closed first. `reporter` is set for admins only
-         *     (student reps are classmates).
+         * @description Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they
+         *     can act on: forum posts with forum.moderate, library files with library.manage, each while its feature is on for
+         *     them. `reporter` is set for admins only (student reps are classmates).
          */
         get: operations["list_reports_api_v1_admin_reports_get"];
         put?: never;
@@ -1247,7 +1368,8 @@ export interface paths {
          * Resolve Report
          * @description Close a report (hiding the post is a separate moderation call). Notifies the reporter. Audited.
          *
-         *     Errors: report_closed (409) when it was already closed.
+         *     Errors: not_found (404) when the report isn't in this person's queue, report_closed (409) when it was already
+         *     closed.
          */
         post: operations["resolve_report_api_v1_admin_reports__report_id__resolve_post"];
         delete?: never;
@@ -1265,7 +1387,8 @@ export interface paths {
         };
         /**
          * List Issues
-         * @description Published issues, newest first (drafts too for moderators who ask for them; ignored for everyone else).
+         * @description Published issues, newest first (drafts too for people who manage the newsletter and ask for them; ignored for
+         *     everyone else).
          */
         get: operations["list_issues_api_v1_newsletter_issues_get"];
         put?: never;
@@ -1290,7 +1413,7 @@ export interface paths {
         };
         /**
          * Get Issue
-         * @description An issue with its sections and the reactions to each section. Drafts: moderators only.
+         * @description An issue with its sections and the reactions to each section. Drafts: for people who manage the newsletter.
          */
         get: operations["get_issue_api_v1_newsletter_issues__slug__get"];
         put?: never;
@@ -1334,8 +1457,9 @@ export interface paths {
         put?: never;
         /**
          * Publish Issue
-         * @description Publishes the issue and tells every account (in the Hub; by email to those who keep "New newsletter issues"
-         *     on). Audited. Publishing an issue that is already out changes nothing.
+         * @description Publishes the issue and tells every account in the Hub. It also goes by email to those who keep "New
+         *     newsletter issues" on, unless an issue email went out in the last 24 hours: `emailed` says which. Audited.
+         *     Publishing an issue that is already out changes nothing.
          */
         post: operations["publish_issue_api_v1_newsletter_issues__issue_id__publish_post"];
         delete?: never;
@@ -1516,8 +1640,30 @@ export interface paths {
          * Search
          * @description Threads, library items, newsletter issues, modules and calendar events. Prefix-matches the last word
          *     (for search-as-you-type). Only public things are found: visible threads, published files and issues.
+         *     Features switched off for the viewer are left out.
          */
         get: operations["search_api_v1_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/features": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Features
+         * @description The features on for whoever asks: for a guest, those switched on for everyone. Signed in, the same list as
+         *     /me's `features`.
+         */
+        get: operations["features_api_v1_features_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1563,18 +1709,21 @@ export interface components {
             /** Emails */
             emails: components["schemas"]["ExportEmail"][];
         };
-        /** AdminStats */
+        /**
+         * AdminStats
+         * @description A feature's counts are None while it is switched off for the viewer.
+         */
         AdminStats: {
             /** Users */
             users: number;
             /** Threads */
-            threads: number;
+            threads: number | null;
             /** Replies */
-            replies: number;
+            replies: number | null;
             /** Libraryitems */
-            libraryItems: number;
+            libraryItems: number | null;
             /** Pendinguploads */
-            pendingUploads: number;
+            pendingUploads: number | null;
             /** Openreports */
             openReports: number;
         };
@@ -1591,11 +1740,8 @@ export interface components {
             email: string | null;
             /** Phone */
             phone: string | null;
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "student" | "moderator" | "admin";
+            /** Roles */
+            roles: components["schemas"]["RoleSummary"][];
             /**
              * Status
              * @enum {string}
@@ -1624,13 +1770,12 @@ export interface components {
         };
         /**
          * AdminUserUpdate
-         * @description Only the fields sent change. `email` and `phone` are the account-recovery action (security review SEC-9):
-         *     they replace the account's address (`null` removes it; one must stay), end every session of the account, send
-         *     a notice to the address that was replaced or removed, and are audited (`user.identifier`).
+         * @description Only the fields sent change. `status` needs people.suspend; only admins suspend or restore an admin. `email`
+         *     and `phone` are the account-recovery action (security review SEC-9), for admins only: they replace the account's
+         *     address (`null` removes it; one must stay), end every session of the account, send a notice to the address that
+         *     was replaced or removed, and are audited (`user.identifier`).
          */
         AdminUserUpdate: {
-            /** Role */
-            role?: ("student" | "moderator" | "admin") | null;
             /** Status */
             status?: ("active" | "suspended") | null;
             /** Email */
@@ -1669,6 +1814,18 @@ export interface components {
             limit: number;
             /** Offset */
             offset: number;
+        };
+        /** BoxOut */
+        BoxOut: {
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read";
+            /** Area */
+            area: string;
+            /** Label */
+            label: string;
         };
         /** CalendarEventCreate */
         CalendarEventCreate: {
@@ -2226,7 +2383,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use";
             /** Message */
             message: string;
             /** Fields */
@@ -2492,6 +2649,25 @@ export interface components {
              */
             createdAt: string;
         };
+        /** FeatureOut */
+        FeatureOut: {
+            /**
+             * Feature
+             * @enum {string}
+             */
+            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora";
+            /** Label */
+            label: string;
+            /** Hides */
+            hides: string;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "off" | "roles" | "everyone";
+            /** Roleids */
+            roleIds: string[];
+        };
         /** FeaturedLogo */
         FeaturedLogo: {
             /**
@@ -2501,6 +2677,11 @@ export interface components {
             kind: "employer" | "cert";
             /** Id */
             id: string;
+        };
+        /** FeaturesOut */
+        FeaturesOut: {
+            /** Features */
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora")[];
         };
         /** FileLink */
         FileLink: {
@@ -3006,11 +3187,12 @@ export interface components {
             displayName: string | null;
             /** Year */
             year: (1 | 2 | 3) | null;
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "student" | "moderator" | "admin";
+            /** Roles */
+            roles: components["schemas"]["RoleSummary"][];
+            /** Boxes */
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read")[];
+            /** Features */
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora")[];
             /**
              * Status
              * @enum {string}
@@ -3064,7 +3246,7 @@ export interface components {
             /** Lessoncount */
             lessonCount: number;
             /** Librarycount */
-            libraryCount: number;
+            libraryCount: number | null;
             resources: components["schemas"]["ModuleResources"];
             /** Chapters */
             chapters: components["schemas"]["Chapter"][];
@@ -3108,7 +3290,7 @@ export interface components {
             /** Lessoncount */
             lessonCount: number;
             /** Librarycount */
-            libraryCount: number;
+            libraryCount: number | null;
         };
         /** NotificationOut */
         NotificationOut: {
@@ -3327,6 +3509,47 @@ export interface components {
                 [key: string]: components["schemas"]["LastLesson"];
             };
         };
+        /** PublishedIssue */
+        PublishedIssue: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Number */
+            number: number;
+            /** Title */
+            title: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            cover: components["schemas"]["IssueCover"];
+            /** Dek */
+            dek: string;
+            /** Summary */
+            summary: string;
+            /** Editors */
+            editors: string[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "published";
+            /** Publishedat */
+            publishedAt: string | null;
+            /** Sections */
+            sections: components["schemas"]["IssueSection"][];
+            /** Reactions */
+            reactions: {
+                [key: string]: components["schemas"]["ReactionCounts"];
+            };
+            /** Emailed */
+            emailed: boolean;
+        };
         /** ReactionCounts */
         ReactionCounts: {
             /**
@@ -3524,6 +3747,81 @@ export interface components {
             /** Note */
             note?: string | null;
         };
+        /** RoleCatalogue */
+        RoleCatalogue: {
+            /** Roles */
+            roles: components["schemas"]["RoleOut"][];
+            /** Boxes */
+            boxes: components["schemas"]["BoxOut"][];
+        };
+        /** RoleCreate */
+        RoleCreate: {
+            /** Name */
+            name: string;
+            /** Badge */
+            badge?: string | null;
+            /**
+             * Boxes
+             * @default []
+             */
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read")[];
+        };
+        /** RoleOut */
+        RoleOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** Badge */
+            badge: string | null;
+            /** Position */
+            position: number;
+            /** Builtin */
+            builtIn: boolean;
+            /** Locked */
+            locked: boolean;
+            /** Version */
+            version: number;
+            /** Boxes */
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read")[];
+            /** Holders */
+            holders: number;
+        };
+        /** RoleSummary */
+        RoleSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** Badge */
+            badge: string | null;
+        };
+        /**
+         * RoleUpdate
+         * @description Only the fields sent change; `badge: null` removes the badge, and `boxes` replaces them as a whole.
+         */
+        RoleUpdate: {
+            /** Version */
+            version: number;
+            /** Name */
+            name?: string | null;
+            /** Badge */
+            badge?: string | null;
+            /** Boxes */
+            boxes?: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read")[] | null;
+            /** Position */
+            position?: number | null;
+        };
         /** SearchHit */
         SearchHit: {
             /**
@@ -3668,6 +3966,19 @@ export interface components {
         StepUpStart: {
             /** Via */
             via?: ("email" | "phone") | null;
+        };
+        /** SwitchUpdate */
+        SwitchUpdate: {
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "off" | "roles" | "everyone";
+            /**
+             * Roleids
+             * @default []
+             */
+            roleIds: string[];
         };
         /** TagOut */
         TagOut: {
@@ -3906,11 +4217,13 @@ export interface components {
             displayName: string;
             /** Year */
             year: (1 | 2 | 3) | null;
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "student" | "moderator" | "admin";
+            /** Badge */
+            badge: string | null;
+        };
+        /** UserRolesUpdate */
+        UserRolesUpdate: {
+            /** Roleids */
+            roleIds: string[];
         };
         /** Video */
         Video: {
@@ -3955,6 +4268,7 @@ export type AdminUserPage = components['schemas']['AdminUserPage'];
 export type AdminUserUpdate = components['schemas']['AdminUserUpdate'];
 export type AuditOut = components['schemas']['AuditOut'];
 export type AuditPage = components['schemas']['AuditPage'];
+export type BoxOut = components['schemas']['BoxOut'];
 export type CalendarEventCreate = components['schemas']['CalendarEventCreate'];
 export type CalendarEventOut = components['schemas']['CalendarEventOut'];
 export type CalendarEventUpdate = components['schemas']['CalendarEventUpdate'];
@@ -3996,7 +4310,9 @@ export type ExportReply = components['schemas']['ExportReply'];
 export type ExportReport = components['schemas']['ExportReport'];
 export type ExportThread = components['schemas']['ExportThread'];
 export type ExportVote = components['schemas']['ExportVote'];
+export type FeatureOut = components['schemas']['FeatureOut'];
 export type FeaturedLogo = components['schemas']['FeaturedLogo'];
+export type FeaturesOut = components['schemas']['FeaturesOut'];
 export type FileLink = components['schemas']['FileLink'];
 export type ForumMeta = components['schemas']['ForumMeta'];
 export type ForumStats = components['schemas']['ForumStats'];
@@ -4040,6 +4356,7 @@ export type PreferencesUpdate = components['schemas']['PreferencesUpdate'];
 export type PresignedUpload = components['schemas']['PresignedUpload'];
 export type Progress = components['schemas']['Progress'];
 export type ProgressImport = components['schemas']['ProgressImport'];
+export type PublishedIssue = components['schemas']['PublishedIssue'];
 export type ReactionCounts = components['schemas']['ReactionCounts'];
 export type Reply = components['schemas']['Reply'];
 export type ReplyCreate = components['schemas']['ReplyCreate'];
@@ -4051,6 +4368,11 @@ export type ReportPage = components['schemas']['ReportPage'];
 export type ReportResolve = components['schemas']['ReportResolve'];
 export type ResumeUpdate = components['schemas']['ResumeUpdate'];
 export type ReviewDecision = components['schemas']['ReviewDecision'];
+export type RoleCatalogue = components['schemas']['RoleCatalogue'];
+export type RoleCreate = components['schemas']['RoleCreate'];
+export type RoleOut = components['schemas']['RoleOut'];
+export type RoleSummary = components['schemas']['RoleSummary'];
+export type RoleUpdate = components['schemas']['RoleUpdate'];
 export type SearchHit = components['schemas']['SearchHit'];
 export type SearchResults = components['schemas']['SearchResults'];
 export type SessionInfo = components['schemas']['SessionInfo'];
@@ -4063,6 +4385,7 @@ export type StatItem = components['schemas']['StatItem'];
 export type StatsAside = components['schemas']['StatsAside'];
 export type StepUpResult = components['schemas']['StepUpResult'];
 export type StepUpStart = components['schemas']['StepUpStart'];
+export type SwitchUpdate = components['schemas']['SwitchUpdate'];
 export type TagOut = components['schemas']['TagOut'];
 export type ThreadCreate = components['schemas']['ThreadCreate'];
 export type ThreadDetail = components['schemas']['ThreadDetail'];
@@ -4073,6 +4396,7 @@ export type ThreadUpdate = components['schemas']['ThreadUpdate'];
 export type UploadCreate = components['schemas']['UploadCreate'];
 export type UploadOut = components['schemas']['UploadOut'];
 export type UserPublic = components['schemas']['UserPublic'];
+export type UserRolesUpdate = components['schemas']['UserRolesUpdate'];
 export type Video = components['schemas']['Video'];
 export type VoteResult = components['schemas']['VoteResult'];
 export type $defs = Record<string, never>;
@@ -6344,7 +6668,7 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string | null;
-                role?: ("student" | "moderator" | "admin") | null;
+                role?: string | null;
                 /** @description Page size */
                 limit?: number;
                 /** @description Items to skip */
@@ -6519,6 +6843,95 @@ export interface operations {
             };
         };
     };
+    set_user_roles_api_v1_admin_users__user_id__roles_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserRolesUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     audit_log_api_v1_admin_audit_get: {
         parameters: {
             query?: {
@@ -6540,6 +6953,520 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditPage"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_roles_api_v1_admin_roles_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleCatalogue"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_role_api_v1_admin_roles_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_role_api_v1_admin_roles__role_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_role_api_v1_admin_roles__role_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_features_api_v1_admin_features_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeatureOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    set_feature_api_v1_admin_features__feature__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SwitchUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeatureOut"];
                 };
             };
             /** @description Bad Request */
@@ -6789,7 +7716,7 @@ export interface operations {
                 sort?: "new" | "popular" | "title" | "relevance";
                 starred?: boolean;
                 mine?: boolean;
-                /** @description Moderators: e.g. pending */
+                /** @description Library managers: e.g. pending */
                 status?: ("pending" | "published" | "rejected" | "removed") | null;
                 /** @description Page size */
                 limit?: number;
@@ -10433,7 +11360,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueDetail"];
+                    "application/json": components["schemas"]["PublishedIssue"];
                 };
             };
             /** @description Bad Request */
@@ -11472,6 +12399,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchResults"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    features_api_v1_features_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeaturesOut"];
                 };
             };
             /** @description Bad Request */

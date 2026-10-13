@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ChatCircleText, Plus } from '@phosphor-icons/react';
+import { useAuth } from '../../auth';
 import type { Reply, ThreadDetail } from '../../api/types';
 import { appUrl, copyText } from '../../lib/share';
 import { Button, EmptyState, Page, Panel, QueryError, Skeleton } from '../../ui';
@@ -28,6 +29,7 @@ export default function ThreadPage() {
   useDocumentTitle(query.data ? query.data.title : notFound ? 'Thread not found' : null);
   const { refetch } = query;
   const reload = useCallback(() => refetch(), [refetch]);
+  const posts = useAuth().mayTry('forum.post');
 
   // A thread on screen that is gone when it is read again (hidden or deleted meanwhile) stays, read-only, with a note.
   if (query.data) return <ThreadView key={query.data.id} thread={query.data} reload={reload} unavailable={notFound} />;
@@ -45,9 +47,11 @@ export default function ThreadPage() {
                 <Button variant="primary" to="/forum">
                   Browse the forum
                 </Button>
-                <Button to="/forum/new" leadingIcon={Plus}>
-                  Start a thread
-                </Button>
+                {posts ? (
+                  <Button to="/forum/new" leadingIcon={Plus}>
+                    Start a thread
+                  </Button>
+                ) : null}
               </>
             }
           />

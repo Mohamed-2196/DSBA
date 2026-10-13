@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 
+from app.core.access import Box, Feature
 from app.core.pagination import Limit, Offset, YearParam
-from app.core.security import DB, ActiveUser, Moderator, OptionalUser, client_ip
+from app.core.security import DB, ActiveUser, OptionalUser, client_ip, needs_feature, requires
+from app.models import User
 from app.routers._base import router_for
 from app.schemas.library import (
     FileLink,
@@ -27,7 +29,9 @@ from app.schemas.library import (
 from app.services import library as svc
 from app.services.search import text_query
 
-router = router_for("library")
+router = router_for("library", needs_feature(Feature.library))
+Uploader = Annotated[User, requires(Box.library_upload)]
+LibraryManager = Annotated[User, requires(Box.library_manage)]
 
 
 @router.get("/library/items", response_model=LibraryPage)
@@ -44,7 +48,7 @@ def list_items(
     ),
     starred: bool = False,
     mine: bool = False,
-    status_: ItemStatus | None = Query(default=None, alias="status", description="Moderators: e.g. pending"),
+    status_: ItemStatus | None = Query(default=None, alias="status", description="Library managers: e.g. pending"),
     limit: Limit = 24,
     offset: Offset = 0,
 ) -> LibraryPage:
@@ -68,23 +72,28 @@ def facets(db: DB) -> LibraryFacets:
 
 @router.get("/library/items/{item}", response_model=LibraryItem)
 def get_item(item: str, db: DB, user: OptionalUser) -> LibraryItem:
-    """By id or slug. Unpublished items: only their uploader and moderators."""
+    """By id or slug. Unpublished items: only their uploader and the library's managers."""
     return svc.one_out(db, svc.get_visible(db, item, user), user)
 
 
-@router.post("/library/items", response_model=LibraryItem, status_code=status.HTTP_201_CREATED)
-def create_item(body: LibraryItemCreate, request: Request, user: ActiveUser, db: DB) -> LibraryItem:
-    """Turn a completed upload into a library item: pending for students, published for moderators.
+@router.post(
+    "/library/items",
+    response_model=LibraryItem,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[needs_feature(Feature.library_uploads)],
+)
+def create_item(body: LibraryItemCreate, request: Request, user: Uploader, db: DB) -> LibraryItem:
+    """Turn a completed upload into a library item: pending for students, published for library managers.
 
     Errors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting
-    for review), invalid_input (422: an unknown module)."""
+    for review), invalid_input (422: an unknown module), feature_off (404: library uploads are switched off)."""
     item = svc.create_from_upload(db, user, body, client_ip(request))
     db.commit()
     return svc.one_out(db, item, user)
 
 
 @router.post("/library/links", response_model=LibraryItem, status_code=status.HTTP_201_CREATED)
-def create_link(body: LibraryLinkCreate, request: Request, user: Moderator, db: DB) -> LibraryItem:
+def create_link(body: LibraryLinkCreate, request: Request, user: LibraryManager, db: DB) -> LibraryItem:
     """A link to a resource kept elsewhere (https only), published at once."""
     item = svc.create_link(db, user, body, client_ip(request))
     db.commit()
@@ -93,7 +102,7 @@ def create_link(body: LibraryLinkCreate, request: Request, user: Moderator, db: 
 
 @router.patch("/library/items/{item_id}", response_model=LibraryItem)
 def update_item(item_id: UUID, body: LibraryItemUpdate, request: Request, user: ActiveUser, db: DB) -> LibraryItem:
-    """The uploader while the item is pending; moderators always."""
+    """The uploader while the item is pending; library managers always."""
     item = svc.get_visible(db, item_id, user)
     svc.apply_update(db, user, item, body, client_ip(request))
     db.commit()
@@ -102,8 +111,8 @@ def update_item(item_id: UUID, body: LibraryItemUpdate, request: Request, user: 
 
 @router.delete("/library/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_item(item_id: UUID, request: Request, user: ActiveUser, db: DB) -> Response:
-    """The uploader or a moderator. Nothing serves the file any more; the daily sweep deletes it from storage a week
-    later."""
+    """The uploader or a library manager. Nothing serves the file any more; the daily sweep deletes it from storage
+    a week later."""
     item = svc.get_visible(db, item_id, user)
     svc.remove(db, user, item, client_ip(request))
     db.commit()
@@ -144,7 +153,7 @@ def unstar(item_id: UUID, user: ActiveUser, db: DB) -> StarResult:
 
 
 @router.post("/library/items/{item_id}/review", response_model=LibraryItem)
-def review(item_id: UUID, body: ReviewDecision, request: Request, user: Moderator, db: DB) -> LibraryItem:
+def review(item_id: UUID, body: ReviewDecision, request: Request, user: LibraryManager, db: DB) -> LibraryItem:
     """Publish or reject a pending upload. Notifies the uploader. Audited. A rejected file is deleted from storage a
     week later (the item and its note stay).
 
