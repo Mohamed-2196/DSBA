@@ -251,3 +251,28 @@ def test_text_helpers() -> None:
     assert "needle" in cut
     assert snippet("short text", ["absent"]) == "short text"
     assert snippet(None, ["x"]) is None
+
+
+def test_search_leaves_out_what_is_switched_off(
+    client_for: Callable[..., TestClient],
+    make_user: Callable[..., User],
+    set_feature: Callable[..., None],
+    db: Session,
+) -> None:
+    from tests.core.helpers import new_thread
+
+    db.add(CalendarEvent(id="2026-11-01-st2133-exam", date=dt.date(2026, 11, 1), title="ST2133 exam", type="exam"))
+    db.commit()
+    student, boss = make_user(name="Sara Student"), make_user(name="Head Admin", roles=("student", "admin"))
+    new_thread(client_for(student), "Past papers please", title="ST2133 revision plan")
+
+    def found(person: User | None) -> tuple[int, int]:
+        r = client_for(person).get(f"{API}/search", params={"q": "ST2133"}).json()
+        return len(r["threads"]), len(r["events"])
+
+    assert found(student) == (1, 1)
+    set_feature("calendar", "off")
+    set_feature("forum", "roles", ["rep"])
+    assert found(student) == (0, 0)
+    assert found(None) == (0, 0)
+    assert found(boss) == (1, 1)  # admins see every feature

@@ -150,7 +150,7 @@ test('Ali deletes a reply; Sara reports an off-topic one, and reporting twice is
 });
 
 test('the rep hides the reply, resolves the report and locks the thread; students see it locked', async ({ rep, sara, ali }) => {
-  await rep.goto('/moderation');
+  await rep.goto('/manage?tab=reports');
   const report = rep.locator('[data-hub="report"]').filter({ hasText: 'WhatsApp group please' }).first();
   await expect(report).toContainText('Something else');
 
@@ -161,7 +161,7 @@ test('the rep hides the reply, resolves the report and locks the thread; student
   await rep.getByRole('dialog').getByRole('button', { name: 'Hide reply' }).click();
   await expect(rep.getByText('Reply hidden')).toBeVisible();
 
-  await rep.goto('/moderation');
+  await rep.goto('/manage?tab=reports');
   await report.getByRole('button', { name: 'Resolve' }).click();
   await rep.getByRole('dialog').getByLabel('Note').fill('Hid the reply: papers go in the library.');
   await rep.getByRole('dialog').locator('[data-hub="report-decide"]').click();

@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Reply, ThreadDetail } from '../../../api/types';
+import { useAuth } from '../../../auth';
 import { Panel, SegmentedControl } from '../../../ui';
 import { nestReplies, takesReplies } from '../lib/replies';
 import type { ReplyOrder } from '../types';
@@ -36,7 +37,8 @@ export function ReplyList({ thread, targetId, replyingTo, onReplyTo, onCancelRep
   const [params, setParams] = useSearchParams();
   const order: ReplyOrder = params.get('order') === 'oldest' ? 'oldest' : 'top';
   const replies = useMemo(() => nestReplies(thread.replies, order, thread.acceptedReplyId), [thread.replies, order, thread.acceptedReplyId]);
-  const canReply = takesReplies(thread) && !unavailable;
+  const { mayTry } = useAuth();
+  const canReply = takesReplies(thread) && !unavailable && mayTry('forum.post');
   const onReply = canReply ? onReplyTo : undefined;
 
   // Replies that arrive while the page is open (yours, or a classmate's on the next refresh) animate in.

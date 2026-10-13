@@ -24,7 +24,7 @@ function item(patch: Partial<LibraryItem> = {}): LibraryItem {
     examYear: null,
     zone: null,
     authorName: null,
-    uploadedBy: { id: 'a5e1c0de-0000-4000-8000-000000000001', displayName: 'Sara A.', year: 2, role: 'student' },
+    uploadedBy: { id: 'a5e1c0de-0000-4000-8000-000000000001', displayName: 'Sara A.', year: 2, badge: null },
     status: 'published',
     reviewNote: null,
     downloadCount: 0,

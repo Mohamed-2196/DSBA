@@ -42,7 +42,8 @@ const firstNameOf = (name: string | null | undefined): string | null => name?.tr
 
 export default function HomePage() {
   const { year, setYear, activeYear } = useYear();
-  const { me, status, openSignIn } = useAuth();
+  const { me, status, openSignIn, featureOn } = useAuth();
+  const calendarOn = featureOn('calendar');
   const { getModule } = useModules();
   const onboarding = useOnboardingOpen();
   const [intro, setIntro] = useState(() => !introPlayed);
@@ -50,8 +51,8 @@ export default function HomePage() {
   // Today in Bahrain, as the API counts it; a new object only when the day changes.
   const todayIs = todayKey(now);
   const today = useMemo(() => parseDay(todayIs), [todayIs]);
-  const calendar = useCalendarEvents({ from: todayIs, to: dayKey(addDays(today, 120)) });
-  const loading = calendar.isPending;
+  const calendar = useCalendarEvents({ from: todayIs, to: dayKey(addDays(today, 120)) }, { enabled: calendarOn });
+  const loading = calendarOn && calendar.isPending;
   const playing = intro && !onboarding && !loading;
 
   useEffect(() => {
@@ -97,7 +98,7 @@ export default function HomePage() {
         </h1>
         {status === 'guest' ? (
           <p className="home-greeting__guest" data-hub="home-signin">
-            <span>Sign in to keep your lesson progress on every device and to post in the forum.</span>
+            <span>{featureOn('forum') ? 'Sign in to keep your lesson progress on every device and to post in the forum.' : 'Sign in to keep your lesson progress on every device.'}</span>
             <Button size="sm" variant="ghost" leadingIcon={SignIn} onClick={() => openSignIn()}>
               Sign in
             </Button>
@@ -106,18 +107,20 @@ export default function HomePage() {
         <ProgrammeLockup className="home-greeting__affil" />
       </header>
 
-      <ErrorBoundary name="ExamTimeline">
-        <ExamTimeline
-          session={session}
-          year={activeYear}
-          intro={playing}
-          today={today}
-          loading={loading}
-          error={calendar.isError ? calendar.error : undefined}
-          onRetry={() => void calendar.refetch()}
-          retrying={calendar.isFetching}
-        />
-      </ErrorBoundary>
+      {calendarOn ? (
+        <ErrorBoundary name="ExamTimeline">
+          <ExamTimeline
+            session={session}
+            year={activeYear}
+            intro={playing}
+            today={today}
+            loading={loading}
+            error={calendar.isError ? calendar.error : undefined}
+            onRetry={() => void calendar.refetch()}
+            retrying={calendar.isFetching}
+          />
+        </ErrorBoundary>
+      ) : null}
 
       <div className="home-body">
         <div className="home-grid">
@@ -128,34 +131,38 @@ export default function HomePage() {
                 <ContinueLearning />
               </ErrorBoundary>
             </PageSection>
-            <PageSection className="home-sec home-sec--threads" aria-labelledby="home-threads">
-              <SectionHeader
-                id="home-threads"
-                title="Hot in the forum"
-                action={
-                  <Button variant="ghost" size="sm" to="/forum">
-                    Open the forum
-                  </Button>
-                }
-              />
-              <ErrorBoundary name="HotThreads">
-                <HotThreads n={4} year={activeYear} />
-              </ErrorBoundary>
-            </PageSection>
-            <PageSection className="home-sec home-sec--library" aria-labelledby="home-library">
-              <SectionHeader
-                id="home-library"
-                title="New in the library"
-                action={
-                  <Button variant="ghost" size="sm" to="/library">
-                    Open the library
-                  </Button>
-                }
-              />
-              <ErrorBoundary name="NewInLibrary">
-                <NewInLibrary year={activeYear} n={5} />
-              </ErrorBoundary>
-            </PageSection>
+            {featureOn('forum') ? (
+              <PageSection className="home-sec home-sec--threads" aria-labelledby="home-threads">
+                <SectionHeader
+                  id="home-threads"
+                  title="Hot in the forum"
+                  action={
+                    <Button variant="ghost" size="sm" to="/forum">
+                      Open the forum
+                    </Button>
+                  }
+                />
+                <ErrorBoundary name="HotThreads">
+                  <HotThreads n={4} year={activeYear} />
+                </ErrorBoundary>
+              </PageSection>
+            ) : null}
+            {featureOn('library') ? (
+              <PageSection className="home-sec home-sec--library" aria-labelledby="home-library">
+                <SectionHeader
+                  id="home-library"
+                  title="New in the library"
+                  action={
+                    <Button variant="ghost" size="sm" to="/library">
+                      Open the library
+                    </Button>
+                  }
+                />
+                <ErrorBoundary name="NewInLibrary">
+                  <NewInLibrary year={activeYear} n={5} />
+                </ErrorBoundary>
+              </PageSection>
+            ) : null}
           </div>
           <div className="home-aside">
             <PageSection className="home-sec home-sec--modules" aria-labelledby="home-modules">
@@ -172,34 +179,38 @@ export default function HomePage() {
                 <YourModules year={activeYear} today={today} />
               </ErrorBoundary>
             </PageSection>
-            <PageSection className="home-sec home-sec--upcoming" aria-labelledby="home-upcoming">
-              <SectionHeader
-                id="home-upcoming"
-                title="Coming up"
-                action={
-                  <Button variant="ghost" size="sm" to="/calendar">
-                    Open calendar
-                  </Button>
-                }
-              />
-              <ErrorBoundary name="UpcomingEvents">
-                <UpcomingEvents n={4} year={activeYear} />
-              </ErrorBoundary>
-            </PageSection>
-            <PageSection className="home-sec home-sec--exams" aria-labelledby="home-news">
-              <SectionHeader
-                id="home-news"
-                title="The DSBA Newsletter"
-                action={
-                  <Button variant="ghost" size="sm" to="/newsletter">
-                    All issues
-                  </Button>
-                }
-              />
-              <ErrorBoundary name="LatestIssueCard">
-                <LatestIssueCard />
-              </ErrorBoundary>
-            </PageSection>
+            {calendarOn ? (
+              <PageSection className="home-sec home-sec--upcoming" aria-labelledby="home-upcoming">
+                <SectionHeader
+                  id="home-upcoming"
+                  title="Coming up"
+                  action={
+                    <Button variant="ghost" size="sm" to="/calendar">
+                      Open calendar
+                    </Button>
+                  }
+                />
+                <ErrorBoundary name="UpcomingEvents">
+                  <UpcomingEvents n={4} year={activeYear} />
+                </ErrorBoundary>
+              </PageSection>
+            ) : null}
+            {featureOn('newsletter') ? (
+              <PageSection className="home-sec home-sec--exams" aria-labelledby="home-news">
+                <SectionHeader
+                  id="home-news"
+                  title="The DSBA Newsletter"
+                  action={
+                    <Button variant="ghost" size="sm" to="/newsletter">
+                      All issues
+                    </Button>
+                  }
+                />
+                <ErrorBoundary name="LatestIssueCard">
+                  <LatestIssueCard />
+                </ErrorBoundary>
+              </PageSection>
+            ) : null}
           </div>
         </div>
       </div>

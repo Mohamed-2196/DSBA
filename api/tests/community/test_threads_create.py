@@ -34,7 +34,7 @@ def test_create_thread(client_for: Client, student: User, modules: dict[str, Any
     assert t["category"] == "year-2"  # the module's year
     assert t["year"] == 2
     assert t["tags"] == ["exam-prep", "past-papers"]
-    assert t["author"] == {"id": str(student.id), "displayName": "Sara M.", "year": 2, "role": "student"}
+    assert t["author"] == {"id": str(student.id), "displayName": "Sara M.", "year": 2, "badge": None}
     assert t["authorYear"] == 2
     assert t["voteCount"] == 1  # the author upvotes their own thread
     assert t["voted"] is True

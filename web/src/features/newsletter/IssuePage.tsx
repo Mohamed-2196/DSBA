@@ -6,6 +6,7 @@ import { useAuth } from '../../auth';
 import { formatDay } from '../../lib/dates';
 import { useDocumentTitle, useMediaQuery, useQueryParam } from '../../state';
 import { Badge, Button, EmptyState, HubLogo, HubMark, Page, Panel, QueryError, Skeleton, cx } from '../../ui';
+import { useStartsThreads } from '../forum/public';
 import { toCard, useIssue, useIssueDetails, useIssues } from './api';
 import { EditorAvatars } from './components/Blocks';
 import { DeleteIssueButton, PublishButton } from './components/IssueActions';
@@ -105,7 +106,7 @@ function ModeratorBar({ issue }: { issue: Issue }) {
     <div className={cx('nl-modbar', draft && 'is-draft')} data-hub="issue-modbar">
       <p className="nl-modbar__text">
         <Badge tone={draft ? 'highlight' : 'signal'}>{draft ? 'Draft' : 'Published'}</Badge>
-        <span>{draft ? 'Only student reps can see this issue until it’s published.' : `Published${issue.publishedAt ? ` ${formatDay(new Date(issue.publishedAt))}` : ''}. Changes show to everyone as soon as you save them.`}</span>
+        <span>{draft ? 'Only people who manage the newsletter can see this issue until it’s published.' : `Published${issue.publishedAt ? ` ${formatDay(new Date(issue.publishedAt))}` : ''}. Changes show to everyone as soon as you save them.`}</span>
       </p>
       <div className="nl-modbar__actions">
         <Button size="sm" leadingIcon={PencilSimple} to={`/newsletter/${issue.slug}/edit`} data-hub="issue-edit">
@@ -121,7 +122,9 @@ function ModeratorBar({ issue }: { issue: Issue }) {
 function IssueReader({ issue }: { issue: Issue }) {
   const no = issueNo(issue.number);
   useDocumentTitle(`${issue.title}, The DSBA Newsletter ${no}`);
-  const { isModerator } = useAuth();
+  const { can } = useAuth();
+  const manages = can('newsletter.manage');
+  const startsThreads = useStartsThreads();
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const [sectionParam, setSectionParam] = useQueryParam('section');
   const [active, setActive] = useState(issue.sections[0]?.id);
@@ -194,7 +197,7 @@ function IssueReader({ issue }: { issue: Issue }) {
 
   return (
     <Page className="nl-issue">
-      {isModerator ? <ModeratorBar issue={issue} /> : null}
+      {manages ? <ModeratorBar issue={issue} /> : null}
       <header className="nl-issue__head" data-hub="issue-masthead">
         <RunningHead issue={issue} share={!draft} />
         <div className="nl-issue__hero">
@@ -232,7 +235,13 @@ function IssueReader({ issue }: { issue: Issue }) {
             <footer className="nl-issue__end">
               <HubLogo variant="tile" size={22} optional decorative className="nl-issue__end-mark" />
               <p>
-                That’s the end of issue {no}. Spotted a mistake, or have a story we should tell? <Link to="/forum/new">Tell us in the forum</Link>.
+                That’s the end of issue {no}.
+                {startsThreads ? (
+                  <>
+                    {' '}
+                    Spotted a mistake, or have a story we should tell? <Link to="/forum/new">Tell us in the forum</Link>.
+                  </>
+                ) : null}
               </p>
               {draft ? null : <ShareActions route={`/newsletter/${issue.slug}`} title={`The DSBA Newsletter ${no}: ${issue.title}`} />}
             </footer>
@@ -240,7 +249,7 @@ function IssueReader({ issue }: { issue: Issue }) {
         </div>
       ) : (
         <Panel padding="none" className="nl-issue__empty">
-          <EmptyState icon={Newspaper} title="This issue has no stories yet" body={isModerator ? 'Add its sections in the editor.' : 'Come back soon.'} action={isModerator ? <Button to={`/newsletter/${issue.slug}/edit`}>Open the editor</Button> : null} />
+          <EmptyState icon={Newspaper} title="This issue has no stories yet" body={manages ? 'Add its sections in the editor.' : 'Come back soon.'} action={manages ? <Button to={`/newsletter/${issue.slug}/edit`}>Open the editor</Button> : null} />
         </Panel>
       )}
 

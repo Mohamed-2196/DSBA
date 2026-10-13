@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 from sqlalchemy.orm import Session
 
-from app.models import Module, Role, User
+from app.models import Module, User
 
 
 @pytest.fixture
@@ -52,5 +52,5 @@ def classmate(make_user: Callable[..., Any]) -> User:
 
 @pytest.fixture
 def moderator(make_user: Callable[..., Any]) -> User:
-    user: User = make_user(name="Student Rep", role=Role.moderator, year=3)
+    user: User = make_user(name="Student Rep", roles=("student", "rep"), year=3)
     return user

@@ -2,7 +2,7 @@
 
 openapi            print the OpenAPI document (the web app generates its types from it)
 seed [--only X]    load the reference content (modules, calendar, newsletter, career, library links)
-set-role ID ROLE   make the account with this email or phone number a student, moderator or admin (audited)
+set-role ID ROLE...  make the account with this email or phone number hold exactly these roles (slugs; audited)
 backup             pg_dump the database into the backup bucket, encrypted at rest, and keep the newest
                    DSBA_BACKUP_KEEP (docs/backend/DEPLOYMENT.md: where backups go, and how to restore one)
 sweep              delete what is no longer needed: uploads never attached to anything (after a day), sign-in
@@ -14,7 +14,8 @@ mail-worker        send the queued emails (notifications, account notices) with 
 import-drive       copy the files of the library's Google Drive folders into the library: prints the plan, asks,
                    imports, and lists the folders Drive refused (--dry-run: only the plan; --module ID; --limit N
                    files; --yes: no question). Safe to run again. Needs DSBA_GOOGLE_API_KEY (DEPLOYMENT.md, 10)
-dev-login ID       development only: print a session token for an account (created if needed)
+dev-login ID       development only: print a session token for an account (created if needed, holding Student;
+                   --role gives one more role)
 
 Nothing here prints a one-time code, and only dev-login prints a token (it refuses to run in production). Nothing
 prints the Google API key."""
@@ -40,7 +41,7 @@ from sqlalchemy.engine import make_url
 from app.config import Settings, get_settings
 from app.core.time import utcnow
 from app.db import get_sessionmaker
-from app.models import OtpChallenge, Role, Upload, UploadStatus, User, UserSession
+from app.models import AccessRole, OtpChallenge, Upload, UploadStatus, User, UserSession
 from app.services.storage import get_storage, s3_client
 
 if TYPE_CHECKING:
@@ -73,6 +74,9 @@ def cmd_seed(args: argparse.Namespace) -> int:
 
 
 def cmd_set_role(args: argparse.Namespace) -> int:
+    from app.core.access import ADMIN
+    from app.core.errors import ApiError
+    from app.services import access
     from app.services.audit import record
     from app.services.identifiers import normalize_identifier
 
@@ -82,12 +86,26 @@ def cmd_set_role(args: argparse.Namespace) -> int:
         if user is None:
             print(f"no account for {ident}: sign in once first", file=sys.stderr)
             return 1
-        role = Role(args.role)
-        if user.role != role:
-            record(db, None, "user.role", "user", user.id, {"from": user.role.value, "to": role.value, "via": "cli"})
-            user.role = role
-            db.commit()
-    print(f"{ident} is now {args.role}")
+        found = {slug: access.role_by_slug(db, slug) for slug in args.roles}
+        wanted = [role for role in found.values() if role is not None]
+        if len(wanted) < len(found):
+            missing = ", ".join(slug for slug, role in found.items() if role is None)
+            known = ", ".join(db.scalars(select(AccessRole.slug).order_by(AccessRole.position)))
+            print(f"no role called {missing}: the roles are {known}", file=sys.stderr)
+            return 1
+        before = access.role_names(user)
+        try:
+            if access.access_of(user, db).admin and all(role.slug != ADMIN for role in wanted):
+                access.ensure_admins_remain(db, user)
+        except ApiError as refused:
+            print(refused.message, file=sys.stderr)
+            return 1
+        access.set_roles(db, user, wanted)
+        after = access.role_names(user)
+        if after != before:
+            record(db, None, "user.roles", "user", user.id, {"from": before, "to": after, "via": "cli"})
+        db.commit()
+    print(f"{ident} now holds: {', '.join(after)}")
     return 0
 
 
@@ -309,7 +327,9 @@ def _positive(value: str) -> int:
 
 
 def cmd_dev_login(args: argparse.Namespace) -> int:
+    from app.core.access import STUDENT
     from app.core.security import hash_token, new_token
+    from app.services import access
     from app.services.identifiers import normalize_identifier
 
     if get_settings().is_production:
@@ -317,16 +337,21 @@ def cmd_dev_login(args: argparse.Namespace) -> int:
         return 1
     kind, ident = normalize_identifier(args.identifier)
     with get_sessionmaker()() as db:
+        if args.role and access.role_by_slug(db, args.role) is None:
+            print(f"no role called {args.role}", file=sys.stderr)
+            return 1
         user = db.scalar(select(User).where((User.email == ident) | (User.phone == ident)))
         if user is None:
             user = User(email=ident if kind == "email" else None, phone=ident if kind == "phone" else None)
             db.add(user)
+            db.flush()
+            access.give(db, user, STUDENT)
         if args.name:
             user.display_name = args.name
         if args.year:
             user.year = args.year
         if args.role:
-            user.role = Role(args.role)
+            access.give(db, user, args.role)
         db.flush()
         token = new_token()
         db.add(UserSession(user_id=user.id, token_hash=hash_token(token), expires_at=utcnow() + timedelta(days=7)))
@@ -346,7 +371,12 @@ def main(argv: list[str] | None = None) -> int:
     sp.set_defaults(fn=cmd_seed)
     sr = sub.add_parser("set-role")
     sr.add_argument("identifier")
-    sr.add_argument("role", choices=[r.value for r in Role])
+    sr.add_argument(
+        "roles",
+        nargs="+",
+        metavar="ROLE",
+        help="role slugs: student, rep, newsletter-manager, content-manager, admin, or one an admin made",
+    )
     sr.set_defaults(fn=cmd_set_role)
     sub.add_parser("backup").set_defaults(fn=cmd_backup)
     sub.add_parser("sweep").set_defaults(fn=cmd_sweep)
@@ -363,7 +393,7 @@ def main(argv: list[str] | None = None) -> int:
     di.set_defaults(fn=cmd_import_drive)
     dl = sub.add_parser("dev-login")
     dl.add_argument("identifier")
-    dl.add_argument("--role", choices=[r.value for r in Role], default=None)
+    dl.add_argument("--role", default=None, metavar="ROLE", help="give this role too (a slug, such as rep or admin)")
     dl.add_argument("--name", default=None)
     dl.add_argument("--year", type=int, choices=[1, 2, 3], default=None)
     dl.set_defaults(fn=cmd_dev_login)

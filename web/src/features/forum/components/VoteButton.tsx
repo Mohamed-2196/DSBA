@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ArrowFatUp } from '@phosphor-icons/react';
+import { useAuth } from '../../../auth';
 import { cx } from '../../../ui';
 import { RollingNumber } from './RollingNumber';
 
@@ -16,18 +17,23 @@ export interface VoteButtonProps {
 
 /**
  * Upvote toggle. The count changes the moment you click (the arrow fills and pops, the number rolls); the
- * request runs behind it and a failure puts it back (see api.ts useThreadVote / useReplyVote).
+ * request runs behind it and a failure puts it back (see api.ts useThreadVote / useReplyVote). An account without
+ * the forum.post box sees the count with the button disabled; guests are asked to sign in when they click.
  */
 export function VoteButton({ count, voted, onToggle, layout = 'stack', size = 'md', disabled = false, className }: VoteButtonProps) {
   const [pops, setPops] = useState(0);
+  const { mayTry } = useAuth();
+  const votes = mayTry('forum.post');
+  const tally = `${count} ${count === 1 ? 'vote' : 'votes'}`;
   return (
     <button
       type="button"
       className={cx('forum-vote', `forum-vote--${layout}`, `forum-vote--${size}`, voted && 'is-voted', className)}
       aria-pressed={voted}
-      aria-label={`Upvote, ${count} ${count === 1 ? 'vote' : 'votes'}`}
+      aria-label={votes ? `Upvote, ${tally}` : `${tally}. Voting isn’t on your account`}
+      title={votes ? undefined : 'Voting isn’t on your account'}
       data-hub="vote"
-      disabled={disabled}
+      disabled={disabled || !votes}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

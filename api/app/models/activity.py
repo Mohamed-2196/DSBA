@@ -115,7 +115,7 @@ class AuditEntry(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     actor_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
-    action: Mapped[str] = mapped_column(String(64))  # 'library.publish', 'user.role', 'forum.hide', ...
+    action: Mapped[str] = mapped_column(String(64))  # 'library.publish', 'user.roles', 'forum.hide', ...
     target_type: Mapped[str | None] = mapped_column(String(32))
     target_id: Mapped[str | None] = mapped_column(String(64))
     data: Mapped[dict[str, Any]] = mapped_column(default=dict, server_default=text("'{}'::jsonb"))

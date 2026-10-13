@@ -28,10 +28,13 @@ export interface ReactionsProps {
 
 /**
  * Per-section reactions, saved on the account (signed in) and counted for everyone. A guest who presses one
- * is asked to sign in first; the reaction is added once they have.
+ * is asked to sign in first; the reaction is added once they have. An account without the newsletter.react box sees
+ * the counts with the buttons disabled.
  */
 export function Reactions({ issueId, issueSlug, sectionId, counts, label, readOnly = false }: ReactionsProps) {
-  const { requireAuth } = useAuth();
+  const { requireAuth, mayTry } = useAuth();
+  const reacts = mayTry('newsletter.react');
+  const pressable = !readOnly && reacts;
   const { push } = useToast();
   const react = useReact();
   const [popped, setPopped] = useState<Reaction | null>(null);
@@ -56,13 +59,13 @@ export function Reactions({ issueId, issueSlug, sectionId, counts, label, readOn
         const on = mine.includes(id);
         const count = counts?.[id] ?? 0;
         return (
-          <Tooltip key={id} label={name} describe={false}>
+          <Tooltip key={id} label={readOnly || reacts ? name : `${name}. Reacting isn’t on your account`} describe={false}>
             <button
               type="button"
               className={cx('nl-reaction', `nl-reaction--${id}`, on && 'is-on', popped === id && 'is-popping')}
               aria-pressed={on}
-              aria-label={`${name}, ${count}`}
-              disabled={readOnly}
+              aria-label={readOnly || reacts ? `${name}, ${count}` : `${name}, ${count}. Reacting isn’t on your account`}
+              disabled={!pressable}
               onClick={() => toggle(id)}
               onAnimationEnd={() => setPopped(null)}
             >

@@ -7,7 +7,7 @@ import { useCopyLink } from '../../lib/useCopyLink';
 import { AddExamsToCalendar, AddToCalendar } from './AddToCalendar';
 import { eventPageUrl } from './api';
 import { countdownLabel } from './dates';
-import { splitTitle, timeAndPlace, TYPE_BADGE_TONE, typeLabel } from './eventMeta';
+import { splitTitle, TYPE_BADGE_TONE, typeLabel, whenAndWhere } from './eventMeta';
 import type { CalendarEvent } from './types';
 
 export interface EventDrawerProps {
@@ -16,8 +16,8 @@ export interface EventDrawerProps {
   events: CalendarEvent[];
   today: Date;
   year: CohortYear | null;
-  /** Upcoming exams for `year`: when there are some, the footer offers all of them as one file. */
-  examCount: number;
+  /** Exams ahead for `year`: the drawer then offers all of them as one file. */
+  hasExams: boolean;
   onClose: () => void;
   onOpen: (e: CalendarEvent) => void;
   /** Moderators: edit and delete. */
@@ -27,10 +27,10 @@ export interface EventDrawerProps {
 
 /**
  * Event details: date, type, cohort, time and place when published, linked module, countdown, and "Add to
- * calendar" (the API's .ics files). Opened from the grid, the agenda, the cards at the top or a ?event=<id> link.
+ * calendar" (the API's .ics files). Opened from the list, the grid, the top of the page or a ?event=<id> link.
  * Moderators also get Edit and Delete.
  */
-export function EventDrawer({ event, events, today, year, examCount, onClose, onOpen, onEdit, onDelete }: EventDrawerProps) {
+export function EventDrawer({ event, events, today, year, hasExams, onClose, onOpen, onEdit, onDelete }: EventDrawerProps) {
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
   const copy = useCopyLink();
   const copyLink = (e: CalendarEvent) => copy(eventPageUrl(e), 'Anyone with the link sees this date on the DSBA Hub calendar.');
@@ -55,7 +55,7 @@ export function EventDrawer({ event, events, today, year, examCount, onClose, on
         ) : null
       }
     >
-      {event ? <DrawerContent event={event} events={events} today={today} onOpen={onOpen} examsYear={examCount > 0 ? year : undefined} /> : null}
+      {event ? <DrawerContent event={event} events={events} today={today} onOpen={onOpen} examsYear={hasExams ? year : undefined} /> : null}
     </Drawer>
   );
 }
@@ -78,7 +78,7 @@ function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerConten
   const { code } = splitTitle(event);
   const sameDay = events.filter((e) => e.date === event.date && e.id !== event.id);
   const related = module ? events.filter((e) => e.moduleId === module.id) : [];
-  const where = timeAndPlace(event);
+  const where = whenAndWhere(event);
 
   return (
     <div className="cal-drawer__content">
@@ -108,7 +108,7 @@ function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerConten
       ) : null}
 
       {where ? (
-        <p className="cal-drawer__where">
+        <p className={cx('cal-drawer__where', event.type === 'exam' && !event.time && 'is-unset')}>
           <span className="visually-hidden">Time and place: </span>
           {where}
         </p>
@@ -183,11 +183,7 @@ function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerConten
       ) : null}
 
       <p className="cal-drawer__note">
-        {event.type === 'exam'
-          ? 'Added as an all-day event. Exam times and venues are not on this calendar.'
-          : where
-            ? 'Added as an all-day event, with the time and place in its notes.'
-            : 'Added as an all-day event.'}
+        {event.time || event.place ? 'Added as an all-day event, with the time and place in its notes.' : 'Added as an all-day event.'}
         {event.type === 'exam' || event.type === 'deadline' ? ' The .ics file includes a reminder at 9:00 the day before.' : ''}
       </p>
       {examsYear !== undefined ? (

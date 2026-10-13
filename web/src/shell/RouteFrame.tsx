@@ -1,7 +1,8 @@
 import { Suspense, useLayoutEffect, type ComponentType, type LazyExoticComponent, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
+import { SwitchedOff, useAuth, type Feature } from '../auth';
 import { ModulesGate } from '../state/ModulesProvider';
-import { Page as PageFrame, QueryError } from '../ui';
+import { Badge, Page as PageFrame, QueryError } from '../ui';
 import { PageLoader } from './PageLoader';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
 
@@ -15,6 +16,8 @@ export interface AppRoute {
   modules?: false;
   /** who may open it (the style guide is a tool for the team, not a page for students) */
   gate?: (page: ReactNode) => ReactNode;
+  /** the feature the page belongs to: off for this person, the page says so */
+  feature?: Feature;
 }
 
 /** A page that can't show because the module catalogue didn't load: the rest of the Hub still works. */
@@ -32,11 +35,24 @@ function CatalogueFailed({ retry, error, retrying }: { retry: () => void; error:
  */
 export function RouteFrame({ route }: { route: AppRoute }) {
   const { pathname } = useLocation();
-  const { id, title, Page, modules, gate } = route;
+  const { id, title, Page, modules, gate, feature } = route;
+  const { status, featureOn, offForOthers } = useAuth();
   // Default tab title. A layout effect, so a page's own useDocumentTitle() (a passive effect) wins.
   useLayoutEffect(() => {
     document.title = title ? `${title} – DSBA Hub` : 'DSBA Hub';
   }, [title, pathname]);
+  if (feature && status !== 'loading' && !featureOn(feature)) {
+    return <SwitchedOff title={title ?? 'DSBA Hub'} />;
+  }
+  // An admin opens every page; this marks one that people without Admin can't open right now.
+  const marker =
+    feature && offForOthers(feature) ? (
+      <p className="route-off-for-others">
+        <Badge tone="alert" size="sm">
+          Off for others
+        </Badge>
+      </p>
+    ) : null;
   const page =
     modules === false ? (
       <Page />
@@ -47,7 +63,10 @@ export function RouteFrame({ route }: { route: AppRoute }) {
     );
   return (
     <RouteErrorBoundary key={pathname} routeId={id}>
-      <Suspense fallback={<PageLoader />}>{gate ? gate(page) : page}</Suspense>
+      <Suspense fallback={<PageLoader />}>
+        {marker}
+        {gate ? gate(page) : page}
+      </Suspense>
     </RouteErrorBoundary>
   );
 }

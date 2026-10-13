@@ -20,6 +20,7 @@ import type { CareerRole } from '../../api/types';
 import { cohortColor, cohortLabel, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, Chip, CohortBadge, PageSection, Panel, ProgressRing, SectionHeader, cx } from '../../ui';
+import { useStartsThreads } from '../forum/public';
 import { useCareerData } from './context';
 import { evaluateRole, type RoleFitResult, type SkillStatus } from './lib/fit';
 import { jumpTo } from './lib/jump';
@@ -70,6 +71,7 @@ export interface RoleFitProps {
 export function RoleFit({ role, onSelect, year }: RoleFitProps) {
   const data = useCareerData();
   const { getModule } = useModules();
+  const startsThreads = useStartsThreads();
   const fit = useMemo(() => evaluateRole(data, getModule, role, year), [data, getModule, role, year]);
   // The skills ease in only when the student picks another role, never on arrival.
   const [swapped, setSwapped] = useState(false);
@@ -158,7 +160,7 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
               </div>
             ) : null}
 
-            {role.ask ? (
+            {startsThreads && role.ask ? (
               <Button variant="secondary" size="sm" leadingIcon={ChatsCircle} to={askLink(role.ask)} className="career-fit__ask">
                 Ask seniors about this role
               </Button>

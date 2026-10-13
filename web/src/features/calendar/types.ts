@@ -30,9 +30,3 @@ export interface EventTypeMeta {
   color: string;
 }
 
-/** The next exam and the rest of its session (see queries.ts getExamOutlook). */
-export interface ExamOutlook {
-  next: CalendarEvent;
-  ahead: CalendarEvent[];
-  started: boolean;
-}

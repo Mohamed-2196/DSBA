@@ -10,13 +10,13 @@ from typing import Any
 from sqlalchemy import ColumnElement, Row, and_, exists, or_, select
 from sqlalchemy.orm import Session
 
-from app.core.security import is_moderator
 from app.models import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVote, User
 from app.schemas.forum import Reply, ThreadDetail, ThreadSummary
+from app.services import access
 from app.services.accounts import public_user
 from app.services.forum.taxonomy import thread_year
 from app.services.forum.text import excerpt, first_image
-from app.services.forum.visibility import REPLY_OPTS, can_read_reply, gone
+from app.services.forum.visibility import REPLY_OPTS, can_read_reply, gone, moderates
 
 
 def _text(post: ForumThread | ForumReply) -> str:
@@ -85,7 +85,7 @@ def reply_dict(r: ForumReply, author: User | None, t: ForumThread, viewer: User 
         "status": r.status.value,
         "accepted": t.accepted_reply_id == r.id,
         "is_mine": mine,
-        "can_edit": _editable(r, mine, is_moderator(viewer)),
+        "can_edit": _editable(r, mine, moderates(viewer)),
     }
 
 
@@ -101,7 +101,7 @@ def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDet
     """The thread with its replies, oldest first. Deleted replies keep their place; hidden ones show for moderators,
     and for their own author (status 'hidden', D3). A hidden thread reaches its author with status 'hidden' (the web
     app shows them a banner) and nothing they can change."""
-    mod = is_moderator(viewer)
+    mod = moderates(viewer)
     mine = viewer is not None and t.author_id == viewer.id
     author = db.get(User, t.author_id) if t.author_id else None
     voted = viewer is not None and bool(
@@ -130,6 +130,7 @@ def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDet
         ).tuples()
         if can_read_reply(r, viewer)
     ]
+    access.prefetch(db, [author, *(a for _, a in rows)])
     my_votes: set[uuid.UUID] = set()
     if viewer is not None and rows:
         my_votes = set(

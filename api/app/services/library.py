@@ -1,7 +1,8 @@
 """The library: uploaded and imported files and links, stars, reviews, and how an item looks to the person asking.
 
-Visibility: published items are public. Pending and rejected items are seen only by their uploader and by
-moderators, removed ones only by moderators; everyone else gets a 404, as if they did not exist."""
+Visibility: published items are public. Pending and rejected items are seen only by their uploader and by people
+who manage the library (library.manage), removed ones only by them; everyone else gets a 404, as if they did not
+exist."""
 
 from __future__ import annotations
 
@@ -17,8 +18,8 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
+from app.core.access import Box
 from app.core.errors import ApiError, conflict, forbidden, invalid, not_found, unauthenticated
-from app.core.security import is_moderator
 from app.core.text import has_latin, insert_with_unique_slug, short_id, slugify
 from app.core.time import utcnow
 from app.models import (
@@ -42,7 +43,7 @@ from app.schemas.library import (
 )
 from app.schemas.library import LibraryItem as LibraryItemOut
 from app.schemas.notifications import NotificationKind
-from app.services import ratelimit
+from app.services import access, ratelimit
 from app.services.accounts import public_user
 from app.services.content import apply_patch, record
 from app.services.modules import require_module
@@ -119,22 +120,33 @@ def kind_label(kind: str) -> str:
 # ── visibility ───────────────────────────────────────────────────────────────────────────────
 
 
+def manages(user: User | None) -> bool:
+    """Holds library.manage with an active account: reviews uploads, sees pending and removed items, edits any item,
+    and publishes their own files without review."""
+    return access.can(user, Box.library_manage)
+
+
 def can_see(item: LibraryItem, user: User | None) -> bool:
-    """Published: everyone. Pending and rejected: the uploader and moderators. Removed: moderators only."""
+    """Published: everyone. Pending and rejected: the uploader and the library's managers. Removed: the library's
+    managers only."""
     if item.status == ItemStatus.published:
         return True
     if user is None:
         return False
-    if is_moderator(user):
+    if manages(user):
         return True
     return item.uploaded_by == user.id and item.status != ItemStatus.removed
 
 
 def can_edit(item: LibraryItem, user: User | None) -> bool:
-    """PATCH: moderators always; the uploader while the item waits for review."""
+    """PATCH: people who manage the library always; the uploader while the item waits for review, if they may
+    upload."""
     if user is None:
         return False
-    return is_moderator(user) or (item.uploaded_by == user.id and item.status == ItemStatus.pending)
+    if manages(user):
+        return True
+    mine = item.uploaded_by == user.id and item.status == ItemStatus.pending
+    return mine and access.can(user, Box.library_upload)
 
 
 def find(db: Session, ref: str | uuid.UUID) -> LibraryItem | None:
@@ -158,6 +170,7 @@ def to_out(db: Session, items: Sequence[LibraryItem], user: User | None) -> list
     """Items as this person sees them (uploader, star, edit rights, review note), in one query per relation."""
     uploader_ids = {i.uploaded_by for i in items if i.uploaded_by}
     users = {u.id: u for u in db.scalars(select(User).where(User.id.in_(uploader_ids)))} if uploader_ids else {}
+    access.prefetch(db, users.values())
     starred: set[uuid.UUID] = set()
     if user is not None and items:
         starred = set(
@@ -167,7 +180,7 @@ def to_out(db: Session, items: Sequence[LibraryItem], user: User | None) -> list
                 )
             )
         )
-    moderator = is_moderator(user)
+    moderator = manages(user)
     out = []
     for i in items:
         mine = user is not None and i.uploaded_by == user.id
@@ -233,12 +246,12 @@ class ListFilters:
 
 def _visible_statuses(user: User | None, f: ListFilters) -> list[ItemStatus]:
     """`mine`: the person's own items in any state but removed (or the one asked for). Otherwise published only,
-    unless a moderator asks for a status (the review queue); `status` from anyone else is ignored."""
+    unless a library manager asks for a status (the review queue); `status` from anyone else is ignored."""
     if f.mine:
         if f.status is not None:
             return [ItemStatus(f.status)]
         return [ItemStatus.pending, ItemStatus.published, ItemStatus.rejected]
-    if f.status is not None and is_moderator(user):
+    if f.status is not None and manages(user):
         return [ItemStatus(f.status)]
     return [ItemStatus.published]
 
@@ -330,9 +343,9 @@ def pending_count(db: Session, user: User) -> int:
 
 
 def check_pending_room(db: Session, user: User, *, lock: bool = False) -> None:
-    """At most MAX_PENDING of a student's files wait for review at once (security review SEC-14); moderators'
+    """At most MAX_PENDING of a student's files wait for review at once (security review SEC-14); library managers'
     files are published at once. With `lock`, parallel requests by the same person count one after the other."""
-    if is_moderator(user):
+    if manages(user):
         return
     if lock:
         ratelimit.lock(db, f"library-pending:{user.id}")
@@ -345,7 +358,7 @@ def check_pending_room(db: Session, user: User, *, lock: bool = False) -> None:
 
 def create_from_upload(db: Session, user: User, body: LibraryItemCreate, ip: str | None = None) -> LibraryItem:
     """A completed upload of the user's own becomes an item: pending for students; published at once (and audited,
-    as it skipped review) for moderators."""
+    as it skipped review) for library managers."""
     up = db.get(Upload, body.upload_id)
     if up is None or up.user_id != user.id:
         raise not_found("This upload doesn't exist.")
@@ -358,7 +371,7 @@ def create_from_upload(db: Session, user: User, body: LibraryItemCreate, ip: str
     module = require_module(db, body.module_id)
     check_pending_room(db, user, lock=True)
     now = utcnow()
-    moderator = is_moderator(user)
+    moderator = manages(user)
     item = LibraryItem(
         source=ItemSource.file,
         kind=body.kind,
@@ -461,8 +474,8 @@ CLEARABLE = ("year", "description", "exam_year", "zone", "author_name")
 
 
 def apply_update(db: Session, user: User, item: LibraryItem, body: LibraryItemUpdate, ip: str | None) -> None:
-    """The uploader while the item waits for review, moderators always. Moving it to another module moves it to that
-    module's year too, unless `year` is sent."""
+    """The uploader while the item waits for review, library managers always. Moving it to another module moves it to
+    that module's year too, unless `year` is sent."""
     if not can_edit(item, user):
         raise forbidden("You can edit your upload only while it waits for review.")
     sent = body.model_fields_set
@@ -479,11 +492,11 @@ def apply_update(db: Session, user: User, item: LibraryItem, body: LibraryItemUp
 
 
 def remove(db: Session, user: User, item: LibraryItem, ip: str | None) -> None:
-    """The uploader or a moderator. The row stays as `removed` (reports and the audit log keep pointing at it, and
+    """The uploader or a library manager. The row stays as `removed` (reports and the audit log keep pointing at it, and
     the seed never brings a removed link back); nothing serves its file any more, and the daily sweep deletes the
     file from the bucket after FILE_GRACE (sweep_files)."""
     mine = item.uploaded_by == user.id
-    if not (mine or is_moderator(user)):
+    if not (mine or manages(user)):
         raise forbidden("Only the person who shared this file or a student rep can remove it.")
     if item.status == ItemStatus.removed:
         return
@@ -565,7 +578,7 @@ def sweep_files(db: Session, storage: Storage | None = None, now: datetime | Non
 def download_url(db: Session, item: LibraryItem, storage: Storage | None = None) -> str:
     """Where /download sends the browser: a short-lived attachment link for files, the stored https URL for links.
     Opening a published item counts as a download (in SQL, in the caller's transaction). A removed item has
-    nothing left to open, even for the moderators who still see its page: 404."""
+    nothing left to open, even for the library managers who still see its page: 404."""
     if item.status == ItemStatus.removed:
         raise not_found("This file was removed.")
     if item.source == ItemSource.link:

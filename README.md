@@ -28,7 +28,7 @@ Codes sent by text appear in the API's log: `docker compose logs -f api`.
 
 The defaults need no `.env`; to change them, copy `.env.example` to `.env`. To make yourself an admin, put your
 email in `DSBA_ADMIN_IDENTIFIERS` before you first sign in, or run
-`docker compose exec api python -m app.cli set-role you@example.com admin` afterwards.
+`docker compose exec api python -m app.cli set-role you@example.com student admin` afterwards.
 
 ## Run it without Docker
 
@@ -45,6 +45,8 @@ uv sync
 uv run --no-sync moto_server -H 127.0.0.1 -p 9000 &    # S3 in memory; or MinIO with the keys dsba / dsba-dev-secret
 uv run --no-sync alembic upgrade head
 uv run --no-sync python -m app.cli seed
+# After the migrations change, rebuild the database: psql -U postgres -c "DROP DATABASE dsba WITH (FORCE)" -c "CREATE DATABASE dsba OWNER dsba",
+# then run alembic upgrade head and seed again.
 uv run --no-sync uvicorn app.main:app --reload --port 8000
 uv run --no-sync python -m app.cli mail-worker          # in another terminal: notification emails
 

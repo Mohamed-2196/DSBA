@@ -1,6 +1,6 @@
-import { DotsThree, ShieldCheck, SignIn, SignOut, UserCircle, UserCirclePlus, UsersThree } from '@phosphor-icons/react';
+import { DotsThree, Key, SignIn, SignOut, UserCircle, UserCirclePlus, Wrench } from '@phosphor-icons/react';
 import { errorMessage } from '../api/errors';
-import { accountLine, useAuth } from '../auth';
+import { accountLine, badgeOf, useAuth } from '../auth';
 import { useToast } from '../state';
 import { Avatar, Button, IconButton, Menu, Skeleton, cx, type MenuItem } from '../ui';
 import './ProfileMenu.css';
@@ -13,11 +13,12 @@ interface ProfileMenuProps {
 }
 
 /**
- * Who is signed in, with the account menu (Your account, Moderation, People, Sign out). Guests get a Sign in
- * button. The line under the name is the person's role when they have one, otherwise their cohort.
+ * Who is signed in, with the account menu (Finish your profile when it's missing, Your account, Manage for people
+ * who hold a manager box, Access for admins, Sign out). Guests get a Sign in button. The line under the name is the
+ * person's badge when they have one, otherwise their cohort.
  */
 export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenuProps) {
-  const { me, status, isModerator, isAdmin, openSignIn, signOut } = useAuth();
+  const { me, status, manages, isAdmin, openSignIn, signOut } = useAuth();
   const { push } = useToast();
   const inTopbar = placement === 'topbar';
   const small = compact || inTopbar;
@@ -51,7 +52,7 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
   }
 
   const name = me.displayName || 'Your account';
-  const line = me.status === 'suspended' ? 'Account suspended' : me.needsProfile ? 'Finish your profile' : accountLine(me);
+  const line = me.status === 'suspended' ? 'Account suspended' : me.needsProfile ? 'Finish your profile' : accountLine({ badge: badgeOf(me), year: me.year });
   const identity = me.email || me.phone || '';
 
   const onSignOut = async () => {
@@ -74,8 +75,8 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
     },
     ...(me.needsProfile ? [{ id: 'profile', label: 'Finish your profile', icon: UserCirclePlus, onSelect: () => openSignIn() }] : []),
     { id: 'account', label: 'Your account', icon: UserCircle, to: '/account' },
-    ...(isModerator ? [{ id: 'moderation', label: 'Moderation', icon: ShieldCheck, to: '/moderation' }] : []),
-    ...(isAdmin ? [{ id: 'people', label: 'People', icon: UsersThree, to: '/admin/people' }] : []),
+    ...(manages ? [{ id: 'manage', label: 'Manage', icon: Wrench, to: '/manage' }] : []),
+    ...(isAdmin ? [{ id: 'access', label: 'Access', icon: Key, to: '/admin/access' }] : []),
     { divider: true },
     { id: 'sign-out', label: 'Sign out', icon: SignOut, onSelect: () => void onSignOut() },
   ];

@@ -101,7 +101,7 @@ def test_stats(
     top = stats["topContributors"]
     assert [x["user"]["displayName"] for x in top] == ["Ebrahim D.", "Student Rep"]
     assert top[0] == {
-        "user": {"id": str(classmate.id), "displayName": "Ebrahim D.", "year": 2, "role": "student"},
+        "user": {"id": str(classmate.id), "displayName": "Ebrahim D.", "year": 2, "badge": None},
         "replies": 1,
         "votes": 2,
         "accepted": 1,

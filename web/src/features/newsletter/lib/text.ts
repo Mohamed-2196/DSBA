@@ -91,3 +91,13 @@ export function slugify(title: string, max = 80): string {
 
 /** The element id of a section in the reader (the ?section= deep link scrolls to it). */
 export const sectionDomId = (id: string): string => `nl-sec-${id}`;
+
+/** The toast after publishing. The API emails the cohort at most once a day (`emailed` false: told in the Hub only). */
+export function publishedNote(no: string, emailed: boolean): { title: string; body: string } {
+  return {
+    title: `Issue ${no} is out`,
+    body: emailed
+      ? 'It’s on the newsletter page, and everyone who wants newsletter notifications has been told.'
+      : 'Published. The cohort email goes out once a day; the next one can be sent tomorrow.',
+  };
+}

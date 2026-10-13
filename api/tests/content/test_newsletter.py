@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import set_committed_value
 
@@ -473,33 +473,60 @@ def test_a_publish_reads_the_issue_again_so_two_at_once_notify_once(
     stale = db.get(NewsletterIssue, uuid.UUID(issue["id"]))
     assert stale is not None
     set_committed_value(stale, "status", IssueStatus.draft)  # what the second request saw
-    assert svc.publish(db, moderator, stale, None) == 0
+    assert svc.publish(db, moderator, stale, None) is False
     assert len(list(db.scalars(select(Notification)))) == 1
     assert len(list(db.scalars(select(AuditEntry).where(AuditEntry.action == "newsletter.publish")))) == 1
 
 
-def test_the_cohort_gets_one_issue_email_a_day(
+def test_issue_emails_quote_no_links(
     client_for: Clients, make_user: Callable[..., User], moderator: User, db: Session
 ) -> None:
-    """Security review SEC-18: a second issue within a day is announced in the Hub only, and the email quotes no
-    links."""
+    """Security review SEC-18: the email quotes the issue's lead without its links."""
     reader = make_user()
     rep = client_for(moderator)
-    first = rep.post(ISSUES, json=new_issue(dek="Read it at https://evil.example/login or www.evil.example")).json()
-    second = rep.post(ISSUES, json=new_issue(slug="extra", number=3)).json()
-    rep.post(f"{ISSUES}/{first['id']}/publish")
-    rep.post(f"{ISSUES}/{second['id']}/publish")
-    notes = db.scalars(select(Notification).where(Notification.user_id == reader.id)).all()
-    assert len(notes) == 2
+    issue = rep.post(ISSUES, json=new_issue(dek="Read it at https://evil.example/login or www.evil.example")).json()
+    rep.post(f"{ISSUES}/{issue['id']}/publish")
     [email] = db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == reader.id)).all()
     assert "evil.example" not in email.body
     assert "Read it at [link] or [link]" in email.body
 
-    # a day later, the next issue is emailed again
-    db.execute(update(EmailOutbox).values(created_at=EmailOutbox.created_at - svc.ISSUE_EMAIL_EVERY))
-    third = rep.post(ISSUES, json=new_issue(slug="november", number=4)).json()
-    rep.post(f"{ISSUES}/{third['id']}/publish")
-    assert len(db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == reader.id)).all()) == 2
+
+def test_one_issue_email_a_day(
+    client_for: Clients, make_user: Callable[..., User], moderator: User, db: Session
+) -> None:
+    """Security review AD-8 (SEC-18): each published issue reaches everyone in the Hub, but the cohort gets at most
+    one issue email a day; the response says whether this one went by email."""
+    keen = make_user(name="Keen")
+    rep = client_for(moderator)
+    issues = [
+        rep.post(ISSUES, json=new_issue(slug=f"issue-{n}", number=n, title=f"Issue {n}")).json() for n in (1, 2, 3)
+    ]
+
+    def publish(issue: dict[str, Any]) -> dict[str, Any]:
+        r = rep.post(f"{ISSUES}/{issue['id']}/publish")
+        assert r.status_code == 200, r.text
+        body: dict[str, Any] = r.json()
+        return body
+
+    def emails() -> list[str]:
+        return [e.subject for e in db.scalars(select(EmailOutbox).order_by(EmailOutbox.created_at))]
+
+    first = publish(issues[0])
+    assert (first["status"], first["emailed"]) == ("published", True)
+    second = publish(issues[1])
+    assert (second["status"], second["emailed"]) == ("published", False)
+    assert emails() == ["New issue of The DSBA Newsletter: Issue 1"]
+    notes = db.scalars(select(Notification.title).where(Notification.user_id == keen.id)).all()
+    assert sorted(notes) == [f"New issue of The DSBA Newsletter: Issue {n}" for n in (1, 2)]  # in the Hub, both
+    logged = db.scalars(select(AuditEntry).where(AuditEntry.action == "newsletter.publish")).all()
+    assert sorted(e.data["emailed"] for e in logged) == [False, True]
+    assert publish(issues[0])["emailed"] is False  # publishing again sends nothing
+
+    for entry in logged:  # a day later
+        entry.created_at -= dt.timedelta(hours=24, minutes=1)
+    db.commit()
+    assert publish(issues[2])["emailed"] is True
+    assert emails()[-1] == "New issue of The DSBA Newsletter: Issue 3"
 
 
 def test_reactions(client_for: Clients, student: User, other: User, moderator: User) -> None:
@@ -527,3 +554,30 @@ def test_reactions(client_for: Clients, student: User, other: User, moderator: U
 
     assert me.delete(f"{url}/useful").json() == {"useful": 1, "love": 1, "laugh": 0, "mine": ["love"]}
     assert me.delete(f"{url}/useful").json()["useful"] == 1
+
+
+def test_publishing_tells_only_those_the_newsletter_is_on_for(
+    client_for: Clients,
+    make_user: Callable[..., User],
+    moderator: User,
+    admin: User,
+    set_feature: Callable[..., None],
+    db: Session,
+) -> None:
+    """Switched off, publishing tells nobody; on for some roles, it tells those roles (and admins) only."""
+    student = make_user(name="Sara Student")
+    other_rep = make_user(name="Other Rep", roles=("student", "rep"))
+    boss = client_for(admin)
+    set_feature("newsletter", "off")
+    issue = boss.post(ISSUES, json=new_issue()).json()
+    r = boss.post(f"{ISSUES}/{issue['id']}/publish")
+    assert (r.status_code, r.json()["emailed"]) == (200, False)
+    assert list(db.scalars(select(Notification))) == []
+    assert list(db.scalars(select(EmailOutbox))) == []
+
+    set_feature("newsletter", "roles", ["rep"])
+    later = client_for(moderator).post(ISSUES, json=new_issue(slug="later", number=3)).json()
+    assert client_for(moderator).post(f"{ISSUES}/{later['id']}/publish").status_code == 200
+    told = {n.user_id for n in db.scalars(select(Notification))}
+    assert told == {other_rep.id, admin.id}
+    assert student.id not in told

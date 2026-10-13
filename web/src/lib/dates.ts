@@ -173,7 +173,5 @@ export const formatShortYear = (date: Date): string => formatDay(date, { weekday
 export const formatDayMonth = (date: Date): string => formatDay(date, { month: 'short', year: false });
 /** 'Oct' */
 export const formatMonthShort = (date: Date): string => monthShort(date.getMonth());
-/** 'October' */
-export const formatMonthLong = (date: Date): string => monthName(date.getMonth());
 /** 'October 2026' */
 export const formatMonthYear = (date: Date): string => `${monthName(date.getMonth())} ${date.getFullYear()}`;

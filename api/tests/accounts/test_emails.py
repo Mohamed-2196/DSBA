@@ -356,3 +356,21 @@ def test_reply_emails_quote_no_links_and_stop_after_ten_an_hour(
     db.execute(update(EmailOutbox).values(created_at=EmailOutbox.created_at - timedelta(hours=1)))
     new_reply(replier, thread["id"], "One more, an hour later.")
     assert len(_queued(db, author)) == notify_mod.EMAIL_MAX_PER_HOUR + 1
+
+
+def test_an_email_into_a_switched_off_feature_is_cancelled(
+    make_user: MakeUser, outbox: Outbox, deliver: Deliver, db: Session, set_feature: Callable[..., None]
+) -> None:
+    replied, issued = make_user(email="replied@example.com"), make_user(email="issued@example.com")
+    actor = make_user()
+    notify(db, replied.id, "thread_reply", "Omar replied to your thread", url="/forum/z", actor=actor)
+    notify(db, issued.id, "new_issue", "Issue 4 is out", url="/newsletter/issue-4", actor=actor)
+    db.commit()
+    set_feature("forum", "off")
+    assert deliver() == 2
+    assert [m.to for m in outbox] == ["issued@example.com"]
+    assert [r.status for r in _queued(db, replied)] == [OutboxStatus.cancelled]
+
+
+def test_every_emailed_kind_names_its_feature() -> None:
+    assert set(mail_outbox.EMAIL_FEATURES) == set(mail_outbox.EMAIL_SWITCHES)

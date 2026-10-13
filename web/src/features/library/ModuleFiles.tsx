@@ -3,7 +3,7 @@
 import { ArrowSquareOut, Books, DownloadSimple, UploadSimple } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../auth';
+import { showsUpload, useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import { Badge, Button, EmptyState, IconButton, Panel, QueryError, Skeleton, formatCount, timeAgo } from '../../ui';
 import { downloadHref, itemPath, openLinkHref, useLibraryList } from './api';
@@ -58,7 +58,8 @@ function FileRow({ item, linkState, onToggleStar }: { item: LibraryItem; linkSta
 export default function ModuleFiles({ moduleId }: { moduleId: string }) {
   const location = useLocation();
   const { getModule } = useModules();
-  const { requireAuth } = useAuth();
+  const { requireAuth, featureOn, mayTry } = useAuth();
+  const uploadShown = showsUpload(featureOn, mayTry);
   const toggleStar = useStar();
   const m = getModule(moduleId);
   const files = useLibraryList({ moduleId, sort: 'title' }, { limit: LIMIT });
@@ -104,9 +105,11 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
           title={`No files for ${name} yet`}
           body="Past papers, notes and guides that students share for this module will show up here."
           action={
-            <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload}>
-              Upload the first one
-            </Button>
+            uploadShown ? (
+              <Button variant="primary" leadingIcon={UploadSimple} onClick={startUpload}>
+                Upload the first one
+              </Button>
+            ) : undefined
           }
         />
       </Panel>
@@ -154,13 +157,17 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
           <Button size="sm" variant="ghost" to={libraryHref}>
             Open in the library
           </Button>
-          <Button size="sm" leadingIcon={UploadSimple} onClick={startUpload}>
-            Upload a file
-          </Button>
+          {uploadShown ? (
+            <Button size="sm" leadingIcon={UploadSimple} onClick={startUpload}>
+              Upload a file
+            </Button>
+          ) : null}
         </div>
       </div>
       {body}
-      <UploadDialog key={upload.key} open={upload.open} onClose={() => setUpload((u) => ({ ...u, open: false }))} defaultModuleId={moduleId} defaultYear={m?.year ?? null} />
+      {uploadShown ? (
+        <UploadDialog key={upload.key} open={upload.open} onClose={() => setUpload((u) => ({ ...u, open: false }))} defaultModuleId={moduleId} defaultYear={m?.year ?? null} />
+      ) : null}
     </div>
   );
 }

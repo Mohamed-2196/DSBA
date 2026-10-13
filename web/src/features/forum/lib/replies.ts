@@ -81,3 +81,16 @@ export function readOnlyFor(thread: Pick<ThreadDetail, 'status' | 'canModerate'>
 export function takesReplies(thread: Pick<ThreadDetail, 'status' | 'locked' | 'canModerate'>): boolean {
   return thread.status === 'visible' && (!thread.locked || thread.canModerate);
 }
+
+/**
+ * Editing and accepting on a post the API lets you change (canEdit, canAccept): the author while they hold the
+ * forum.post box, or anyone who moderates the forum.
+ */
+export function mayChange(allowed: boolean, moderates: boolean, posts: boolean): boolean {
+  return allowed && (moderates || posts);
+}
+
+/** Edit and Delete in a post's menu: deleting your own post needs no box, editing it needs forum.post. */
+export function postMenuActions(canEdit: boolean, moderates: boolean, posts: boolean): { edit: boolean; remove: boolean } {
+  return { edit: mayChange(canEdit, moderates, posts), remove: canEdit };
+}

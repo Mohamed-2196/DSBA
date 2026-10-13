@@ -20,7 +20,7 @@ export function useReplyModeration(reply: Pick<Reply, 'id'>) {
         {
           onSuccess: () => {
             onDone();
-            push({ title: 'Reply hidden', body: 'Only student reps can see it now. Resolve the report in Moderation if there is one.', tone: 'success' });
+            push({ title: 'Reply hidden', body: 'Only student reps can see it now. Resolve the report in Manage if there is one.', tone: 'success' });
           },
         },
       ),

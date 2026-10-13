@@ -40,12 +40,12 @@ test('a rep publishes a draft; Ali is notified, reads it and reacts; a guest rea
   await guest.goto(`/newsletter/${slug}`);
   await expect(guest.getByText('We couldn’t find that issue')).toBeVisible();
   await rep.goto(`/newsletter/${slug}`);
-  await expect(rep.locator('main')).toContainText('Only student reps can see this issue until it’s published.');
+  await expect(rep.locator('main')).toContainText('Only people who manage the newsletter can see this issue until it’s published.');
   await rep.getByRole('button', { name: 'Publish', exact: true }).first().click();
   const confirm = rep.getByRole('dialog');
   await expect(confirm).toContainText('Publish issue 99?');
   await confirm.getByRole('button', { name: 'Publish and notify everyone' }).click();
-  await expect(rep.locator('main')).not.toContainText('Only student reps can see this issue');
+  await expect(rep.locator('main')).not.toContainText('Only people who manage the newsletter can see this issue');
 
   // Ali opens the notification and reacts.
   await ali.goto('/');

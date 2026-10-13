@@ -1,13 +1,18 @@
-// Calendar queries: pure functions over a list of events from the API (oldest first).
-import { addDaysToKey, DAY_MS, parseDay, startOfDay, todayKey, type DayKey } from '../../lib/dates';
-import { appliesTo } from './eventMeta';
-import type { CalendarEvent, EventType, ExamOutlook } from './types';
+// Calendar queries: pure functions over a list of events from the API.
+import { addDaysToKey, parseDay, todayKey, type DayKey } from '../../lib/dates';
+import { appliesTo, TYPE_ORDER } from './eventMeta';
+import type { CalendarEvent, EventType } from './types';
 
 /** Local-midnight Date of an event (dates are calendar days, no time zone). */
 export const eventDate = (e: Pick<CalendarEvent, 'date'>): Date => parseDay(e.date);
 
-/** The day to count from: `from`, or today in Bahrain. */
-const fromTime = (from: Date | number | string | undefined): number => startOfDay(from).getTime();
+/** The last day an event covers: its end date, or its date. */
+export const lastDay = (e: Pick<CalendarEvent, 'date' | 'endDate'>): DayKey => (e.endDate && e.endDate > e.date ? e.endDate : e.date);
+
+const typeRank = (type: EventType): number => {
+  const i = TYPE_ORDER.indexOf(type);
+  return i < 0 ? TYPE_ORDER.length : i;
+};
 
 /** Events by date, oldest first; events on the same day keep the order they came in. */
 export function sortEvents<T extends Pick<CalendarEvent, 'date'>>(events: readonly T[]): T[] {
@@ -17,75 +22,107 @@ export function sortEvents<T extends Pick<CalendarEvent, 'date'>>(events: readon
     .map(({ e }) => e);
 }
 
-/** Events that apply to a cohort (year null → all) and, optionally, a set of types. */
+/**
+ * The order of a list: by date; on the same day confirmed dates come before unconfirmed ones, then the more
+ * important type (exams first, in TYPE_ORDER); ties keep the order they came in.
+ */
+export function listOrder<T extends Pick<CalendarEvent, 'date' | 'sample' | 'type'>>(events: readonly T[]): T[] {
+  return events
+    .map((e, i) => ({ e, i }))
+    .sort((a, b) => a.e.date.localeCompare(b.e.date) || Number(a.e.sample) - Number(b.e.sample) || typeRank(a.e.type) - typeRank(b.e.type) || a.i - b.i)
+    .map(({ e }) => e);
+}
+
+/** Events that apply to a cohort (year null → all) and, optionally, a set of types (empty: every type). */
 export function filterEvents(events: readonly CalendarEvent[], { year, types }: { year?: number | null; types?: ReadonlySet<EventType> } = {}): CalendarEvent[] {
   return events.filter((e) => appliesTo(e, year) && (!types || types.size === 0 || types.has(e.type)));
 }
 
-/** Events from `from` (inclusive, by day), for `year` (+ everyone-events); year null → all. n may be Infinity. */
-export function upcomingFrom(events: readonly CalendarEvent[], { year, from, n = 5 }: { year?: number | null; from?: Date | number | string; n?: number } = {}): CalendarEvent[] {
-  const t = fromTime(from);
-  return events.filter((e) => appliesTo(e, year) && eventDate(e).getTime() >= t).slice(0, n);
+/** Events still to come on `from` (a day key): starting that day or later, or running through it. In list order. */
+export function upcomingFrom(events: readonly CalendarEvent[], from: DayKey): CalendarEvent[] {
+  return listOrder(events.filter((e) => lastDay(e) >= from));
 }
 
-/** Exams for a year (null → every year), oldest first. */
-export function examsFor(events: readonly CalendarEvent[], year: number | null | undefined): CalendarEvent[] {
-  return events.filter((e) => e.type === 'exam' && appliesTo(e, year));
-}
-
-/** The next exam (today or later) for a year; null → any year. */
-export function nextExam(events: readonly CalendarEvent[], { year, from }: { year?: number | null; from?: Date | number } = {}): CalendarEvent | null {
-  const t = fromTime(from);
-  return examsFor(events, year).find((e) => eventDate(e).getTime() >= t) ?? null;
-}
-
-/** Upcoming exams (today or later) for a year. */
-export function upcomingExams(events: readonly CalendarEvent[], { year, from }: { year?: number | null; from?: Date | number } = {}): CalendarEvent[] {
-  const t = fromTime(from);
-  return examsFor(events, year).filter((e) => eventDate(e).getTime() >= t);
+export interface NextExam {
+  /** The first confirmed exam ahead, or the first exam ahead when none is confirmed. */
+  exam: CalendarEvent;
+  /** Unconfirmed exams before it, in order. */
+  unconfirmedBefore: CalendarEvent[];
+  /** How many exams come after it. */
+  after: number;
 }
 
 /**
- * The exam session around an exam: the run of the year's exams with gaps of at most `gapDays`
- * (the October 2026 session for Year 2 is ST2134 on 23 Oct … ST2195 on 6 Nov).
+ * A cohort's next exam from `today` (a day key; year null → every cohort), for the top of the page. Confirmed
+ * dates come first: an unconfirmed exam never takes the place of a confirmed one, it is listed as coming before
+ * it. null when no exam is ahead.
  */
-export function examSession(events: readonly CalendarEvent[], exam: CalendarEvent, { year, gapDays = 21 }: { year?: number | null; gapDays?: number } = {}): CalendarEvent[] {
-  const exams = examsFor(events, year);
-  const i = exams.findIndex((e) => e.id === exam.id);
-  if (i < 0) return [exam];
-  let a = i;
-  let b = i;
-  const gap = (x: CalendarEvent, y: CalendarEvent) => (eventDate(y).getTime() - eventDate(x).getTime()) / DAY_MS;
-  while (a > 0 && gap(exams[a - 1] as CalendarEvent, exams[a] as CalendarEvent) <= gapDays) a -= 1;
-  while (b < exams.length - 1 && gap(exams[b] as CalendarEvent, exams[b + 1] as CalendarEvent) <= gapDays) b += 1;
-  return exams.slice(a, b + 1);
+export function nextExamFor(events: readonly CalendarEvent[], { year, today }: { year: number | null; today: DayKey }): NextExam | null {
+  const ahead = listOrder(events.filter((e) => e.type === 'exam' && appliesTo(e, year) && e.date >= today));
+  const i = Math.max(0, ahead.findIndex((e) => !e.sample));
+  const exam = ahead[i];
+  if (!exam) return null;
+  return { exam, unconfirmedBefore: ahead.slice(0, i), after: ahead.length - i - 1 };
+}
+
+/** The last day of the week ahead: `today` and the `days - 1` days after it. */
+export const weekEnd = (today: DayKey, days = 7): DayKey => addDaysToKey(today, days - 1);
+
+/** What a cohort has on in the week ahead (today and the six days after it), every type, in list order. */
+export function weekAhead(events: readonly CalendarEvent[], { year, today, days = 7 }: { year: number | null; today: DayKey; days?: number }): CalendarEvent[] {
+  const end = weekEnd(today, days);
+  return listOrder(events.filter((e) => appliesTo(e, year) && e.date <= end && lastDay(e) >= today));
+}
+
+export interface DayGroup {
+  key: DayKey;
+  date: Date;
+  events: CalendarEvent[];
+}
+
+export interface MonthGroup {
+  /** 'YYYY-MM' */
+  key: string;
+  y: number;
+  /** 0-based */
+  m: number;
+  days: DayGroup[];
 }
 
 /**
- * What the exam countdown needs, for a year (null → every year): the next exam, the exams of its
- * session that are still to come (the next one first) and whether that session has already started.
- * null when no exam is ahead.
+ * Events (in list order) grouped by month, then by day. An event that started before `from` and is still
+ * running is listed on `from`.
  */
-export function examOutlook(events: readonly CalendarEvent[], { year, from }: { year?: number | null; from?: Date | number } = {}): ExamOutlook | null {
-  const next = nextExam(events, { year, from });
-  if (!next) return null;
-  const t = fromTime(from);
-  const session = examSession(events, next, { year });
-  const ahead = session.filter((e) => eventDate(e).getTime() >= t);
-  return { next, ahead, started: ahead.length < session.length };
+export function groupByMonth(events: readonly CalendarEvent[], from?: DayKey): MonthGroup[] {
+  const shown = events.map((e) => ({ e, key: from && e.date < from ? from : e.date }));
+  shown.sort((a, b) => a.key.localeCompare(b.key));
+  const months: MonthGroup[] = [];
+  for (const { e, key } of shown) {
+    const mk = key.slice(0, 7);
+    let month = months[months.length - 1];
+    if (!month || month.key !== mk) {
+      const date = parseDay(key);
+      month = { key: mk, y: date.getFullYear(), m: date.getMonth(), days: [] };
+      months.push(month);
+    }
+    const day = month.days[month.days.length - 1];
+    if (day && day.key === key) day.events.push(e);
+    else month.days.push({ key, date: parseDay(key), events: [e] });
+  }
+  return months;
 }
 
 /** Every day key ('YYYY-MM-DD') an event covers: its date, through its end date when it has one. */
 export function eventDays(e: Pick<CalendarEvent, 'date' | 'endDate'>): DayKey[] {
-  if (!e.endDate || e.endDate <= e.date) return [e.date];
+  const end = lastDay(e);
   const out: DayKey[] = [];
-  for (let key = e.date; key <= e.endDate && out.length < 120; key = addDaysToKey(key, 1)) out.push(key);
+  for (let key = e.date; key <= end && out.length < 120; key = addDaysToKey(key, 1)) out.push(key);
   return out;
 }
 
 /** Events grouped by the days they cover (a multi-day event appears on each of its days). */
-export function groupByDay(events: readonly CalendarEvent[]): Map<string, CalendarEvent[]> {
-  const map = new Map<string, CalendarEvent[]>();
+export function groupByDay(events: readonly CalendarEvent[]): Map<DayKey, CalendarEvent[]> {
+  const map = new Map<DayKey, CalendarEvent[]>();
   for (const e of events) {
     for (const key of eventDays(e)) {
       const list = map.get(key);

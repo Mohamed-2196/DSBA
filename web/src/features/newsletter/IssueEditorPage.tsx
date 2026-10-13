@@ -1,10 +1,10 @@
-// /newsletter/:slug/edit: student reps edit an issue with forms (decision D5), see editor/Editor.tsx. This page waits
-// for the account and the issue, and says so when the person isn't a rep or the issue isn't there.
+// /newsletter/:slug/edit: people with the newsletter.manage box edit an issue with forms (decision D5), see
+// editor/Editor.tsx. The Gate waits for the account and turns away everyone else; this page waits for the issue.
 import type { ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import { PencilSimple } from '@phosphor-icons/react';
 import { isApiError } from '../../api/errors';
-import { holdsRole, useAuth } from '../../auth';
+import { Gate } from '../../auth';
 import { useDocumentTitle } from '../../state';
 import { Button, EmptyState, Page, Panel, QueryError, Skeleton } from '../../ui';
 import { useIssueDetail } from './api';
@@ -39,32 +39,9 @@ function Notice({ title, body, action }: { title: string; body: string; action: 
   );
 }
 
-export default function IssueEditorPage() {
-  const { slug } = useParams();
-  const { me, status, isModerator, openSignIn } = useAuth();
-  const q = useIssueDetail(isModerator ? slug : undefined);
-  useDocumentTitle('Edit issue');
-
-  if (status === 'loading') return <EditorSkeleton />;
-  if (!isModerator) {
-    // A suspended rep has no powers (as the API decides): say why rather than "only student reps".
-    if (me?.status === 'suspended' && holdsRole(me, 'moderator')) {
-      return <Notice title="Your account is suspended" body="While it is, you can’t edit the newsletter. Contact an admin." action={<Button to="/newsletter">Go to the newsletter</Button>} />;
-    }
-    return status === 'guest' ? (
-      <Notice
-        title="Only student reps can edit the newsletter"
-        body="If you’re a student rep, sign in first."
-        action={
-          <Button variant="primary" onClick={() => openSignIn({ reason: 'Sign in to edit the newsletter' })}>
-            Sign in
-          </Button>
-        }
-      />
-    ) : (
-      <Notice title="Only student reps can edit the newsletter" body="You can read every published issue on the newsletter page." action={<Button to="/newsletter">Go to the newsletter</Button>} />
-    );
-  }
+/** The editor itself, behind the Gate: only someone with newsletter.manage gets here. */
+function IssueEditor({ slug }: { slug: string | undefined }) {
+  const q = useIssueDetail(slug);
   if (q.isPending) return <EditorSkeleton />;
   if (q.isError) {
     if (isApiError(q.error) && q.error.status === 404) {
@@ -78,4 +55,14 @@ export default function IssueEditorPage() {
     );
   }
   return <Editor key={q.data.id} detail={q.data} />;
+}
+
+export default function IssueEditorPage() {
+  const { slug } = useParams();
+  useDocumentTitle('Edit issue');
+  return (
+    <Gate title="Edit issue" box="newsletter.manage">
+      <IssueEditor slug={slug} />
+    </Gate>
+  );
 }

@@ -1,0 +1,13 @@
+/* The activity log: who did what, newest first. */
+.activity-log { display: grid; }
+.activity-log__item { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: start; gap: var(--sp-12); padding: var(--sp-12) var(--sp-16); }
+.activity-log__item + .activity-log__item { border-top: 1px solid var(--line); }
+.activity-log__text { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.activity-log__text strong { color: var(--ink); font-weight: var(--fw-semibold); }
+.activity-log__time { color: var(--ink-2); font-size: var(--fs-12); white-space: nowrap; }
+
+.activity-loading { display: grid; }
+.activity-loading__row { display: flex; align-items: center; gap: var(--sp-12); padding: var(--sp-16); }
+.activity-loading__row + .activity-loading__row { border-top: 1px solid var(--line); }
+.activity-loading__row .ui-skeleton-lines { flex: 1 1 auto; max-width: 320px; }
+.activity-more { display: flex; justify-content: center; margin-top: var(--sp-16); }

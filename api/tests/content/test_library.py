@@ -75,7 +75,7 @@ def test_upload_review_publish_download_star_delete(
     assert item["year"] == 2  # from the module
     assert item["format"] == "PDF"
     assert item["fileName"] == "ST2133 2024 A.pdf"
-    assert item["uploadedBy"] == {"id": str(student.id), "displayName": "Sara Student", "year": 2, "role": "student"}
+    assert item["uploadedBy"] == {"id": str(student.id), "displayName": "Sara Student", "year": 2, "badge": None}
     assert (item["isMine"], item["canEdit"], item["starred"], item["publishedAt"]) == (True, True, False, None)
     assert "email" not in str(item["uploadedBy"]).lower()
 

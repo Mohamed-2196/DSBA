@@ -19,11 +19,11 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.access import Box, Feature
 from app.core.errors import ApiError, conflict, invalid, not_found
 from app.core.links import json_size
-from app.core.security import is_moderator
 from app.core.time import utcnow
-from app.models import EmailOutbox, IssueStatus, NewsletterIssue, NewsletterReaction, User
+from app.models import AuditEntry, IssueStatus, NewsletterIssue, NewsletterReaction, User
 from app.schemas.newsletter import (
     CardAside,
     CtaBlock,
@@ -39,17 +39,17 @@ from app.schemas.newsletter import (
     SignoffBlock,
     StatsAside,
 )
+from app.services import access, ratelimit
 from app.services.content import apply_patch, record
 from app.services.notify import notify_all
 
 REACTIONS = ("useful", "love", "laugh")
 MAX_ISSUE_BYTES = 256 * 1024  # the whole issue as JSON (security review SEC-6); the launch edition is about 8 KB
 TOO_LONG = "This issue is too long: shorten it or split it into two issues."
-# Fields a moderator edits (PATCH), and those that may be emptied (to "": the columns are never null).
+# Fields a newsletter manager edits (PATCH), and those that may be emptied (to "": the columns are never null).
 EDITABLE = ("slug", "number", "title", "date", "cover", "dek", "summary", "editors", "sections")
 BLANK = ("dek", "summary")
-# The cohort gets at most one issue email in this time; an issue published sooner is announced in the Hub only.
-ISSUE_EMAIL_EVERY = timedelta(days=1)
+COHORT_EMAIL_EVERY = timedelta(hours=24)  # at most one issue email to the cohort in this time (security review AD-8)
 
 
 def _stored(model: BaseModel) -> Any:
@@ -61,7 +61,7 @@ def _stored(model: BaseModel) -> Any:
 
 
 def can_see(issue: NewsletterIssue, user: User | None) -> bool:
-    return issue.status == IssueStatus.published or is_moderator(user)
+    return issue.status == IssueStatus.published or access.can(user, Box.newsletter_manage)
 
 
 def get_by_slug(db: Session, slug: str, user: User | None) -> NewsletterIssue:
@@ -269,32 +269,42 @@ def delete_issue(db: Session, user: User, issue: NewsletterIssue, ip: str | None
     db.delete(issue)
 
 
-def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> int:
-    """Publishes a draft and tells every account about it (decision D1: the notification in the Hub always comes;
-    an email goes to those who keep "New newsletter issues" on, at most once in ISSUE_EMAIL_EVERY). Publishing a
-    published issue changes nothing and tells nobody; the row is locked first, so two publishes at once tell
-    everyone once. -> the number of notifications."""
-    db.refresh(issue, with_for_update=True)
+def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> bool:
+    """Publishes a draft and tells every account the newsletter is on for (decision D1: the notification in the Hub
+    always comes; an email goes to those who keep "New newsletter issues" on). With the newsletter switched off, it
+    tells nobody. The cohort gets at most one issue email a day
+    (security review AD-8): an issue published within a day of one that was emailed is told in the Hub only.
+    Publishing a published issue changes nothing and tells nobody. -> whether this issue went by email."""
+    db.refresh(issue, with_for_update=True)  # two publishes at once: the second finds it published
     if issue.status == IssueStatus.published:
-        return 0
+        return False
     now = utcnow()
+    ratelimit.lock(db, "newsletter:cohort-email")  # two issues published at once can't both email
+    emailed_lately = select(AuditEntry.id).where(
+        AuditEntry.action == "newsletter.publish",
+        AuditEntry.created_at > now - COHORT_EMAIL_EVERY,
+        AuditEntry.data.contains({"emailed": True}),
+    )
+    emailed = db.scalar(emailed_lately.limit(1)) is None
     issue.status = IssueStatus.published
     issue.published_at = now
-    emailed_lately = db.scalar(
-        select(EmailOutbox.id)
-        .where(EmailOutbox.kind == "new_issue", EmailOutbox.created_at >= now - ISSUE_EMAIL_EVERY)
-        .limit(1)
+    readers = access.audience(db, Feature.newsletter)
+    notified = (
+        0
+        if readers is None
+        else notify_all(
+            db,
+            "new_issue",
+            f"New issue of The DSBA Newsletter: {issue.title}",
+            body=issue.dek or None,
+            url=f"/newsletter/{issue.slug}",
+            actor=user,
+            data={"issueId": str(issue.id), "slug": issue.slug},
+            email=emailed,
+            only=readers,
+        )
     )
-    notified = notify_all(
-        db,
-        "new_issue",
-        f"New issue of The DSBA Newsletter: {issue.title}",
-        body=issue.dek or None,
-        url=f"/newsletter/{issue.slug}",
-        actor=user,
-        data={"issueId": str(issue.id), "slug": issue.slug},
-        email=emailed_lately is None,
-    )
+    emailed = emailed and notified > 0
     record(
         db,
         user,
@@ -305,15 +315,16 @@ def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> 
         ip,
         slug=issue.slug,
         notified=notified,
+        emailed=emailed,
     )
-    return notified
+    return emailed
 
 
 def set_reaction(
     db: Session, user: User, issue: NewsletterIssue, section_id: str, reaction: str, on: bool
 ) -> ReactionCounts:
     if issue.status != IssueStatus.published:
-        if is_moderator(user):
+        if access.can(user, Box.newsletter_manage):
             raise ApiError(409, "not_published", "Reactions open when the issue is published.")
         raise not_found("This issue doesn't exist.")
     if section_id not in section_ids(issue):

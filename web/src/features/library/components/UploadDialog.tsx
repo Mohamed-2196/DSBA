@@ -58,12 +58,12 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
   const uid = useId().replace(/:/g, '');
   const navigate = useNavigate();
   const { me } = useAuth();
-  const { suspended, moderator: isModerator } = useLibraryAccess();
+  const { suspended, moderator: managesLibrary } = useLibraryAccess();
   const { getModule } = useModules();
   const createItem = useCreateItem();
   // A student may have MAX_PENDING_UPLOADS files waiting for review at once (security review SEC-14).
-  const waiting = useLibraryList({ mine: true, status: 'pending' }, { limit: 1, enabled: open && !!me && !isModerator && !suspended });
-  const full = !isModerator && (waiting.data?.total ?? 0) >= MAX_PENDING_UPLOADS;
+  const waiting = useLibraryList({ mine: true, status: 'pending' }, { limit: 1, enabled: open && !!me && !managesLibrary && !suspended });
+  const full = !managesLibrary && (waiting.data?.total ?? 0) >= MAX_PENDING_UPLOADS;
   const blocked = suspended || full;
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -250,7 +250,7 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
           {phase === 'sending' ? 'Cancel upload' : 'Cancel'}
         </Button>
         <Button variant="primary" type="submit" form={`upload-${uid}`} loading={busy} data-hub="upload-submit">
-          {isModerator ? 'Upload and publish' : 'Send for review'}
+          {managesLibrary ? 'Upload and publish' : 'Send for review'}
         </Button>
       </>
     );
@@ -425,8 +425,8 @@ export function UploadDialog({ open, onClose, defaultModuleId, defaultYear }: Up
       description={
         phase === 'done' || blocked
           ? undefined
-          : isModerator
-            ? 'Share notes, past papers or guides. As a student rep, your uploads are published straight away.'
+          : managesLibrary
+            ? 'Share notes, past papers or guides. Your uploads are published straight away.'
             : 'Share notes, past papers or guides with other students. A student rep checks every upload before it appears.'
       }
       size="md"

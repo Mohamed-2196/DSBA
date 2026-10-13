@@ -1,5 +1,5 @@
 // "Report" for a thread, a reply or a library item, and its dialog (components/ReportDialog.tsx) -> POST /reports.
-// Guests are asked to sign in first. Once sent, the button says "Reported" (while the app is open), and reporting the
+// Guests are asked to sign in first; an account without the reports.create box sees no button. Once sent, the button says "Reported" (while the app is open), and reporting the
 // same thing again is answered kindly (already_reported). Used by the forum on threads and replies, and by the library
 // on files (features/forum/public.ts).
 import { useState } from 'react';
@@ -25,11 +25,12 @@ const sentKey = (viewer: string | null | undefined, type: ReportTargetType, id: 
 
 /** A quiet "Report" button and its dialog; "Reported" once this person has reported it. */
 export function ReportButton({ targetType, targetId, label = 'Report', className }: ReportButtonProps) {
-  const { me, requireAuth } = useAuth();
+  const { me, requireAuth, mayTry } = useAuth();
   const [open, setOpen] = useState(false);
   const [, setSentCount] = useState(0);
   const key = sentKey(me?.id, targetType, targetId);
   const reported = sent.has(key);
+  if (!mayTry('reports.create')) return null;
   return (
     <>
       <Button

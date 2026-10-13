@@ -679,7 +679,7 @@
           "me"
         ],
         "summary": "Delete Me",
-        "description": "Delete the account: personal data goes, posts stay as 'deleted user', published files stay unattributed.\n\nErrors: step_up_required (403), storage_unavailable (503: files could not be deleted, nothing changed).",
+        "description": "Delete the account: personal data goes, posts stay as 'deleted user', published files stay unattributed.\n\nErrors: step_up_required (403), last_admin (409: the only active admin stays), storage_unavailable (503: files\ncould not be deleted, nothing changed).",
         "operationId": "delete_me_api_v1_me_delete",
         "responses": {
           "204": {
@@ -2531,7 +2531,7 @@
           "admin"
         ],
         "summary": "Stats",
-        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review and open reports.",
+        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review and the open reports in the viewer's queue. A feature switched off for the viewer counts None.",
         "operationId": "stats_api_v1_admin_stats_get",
         "responses": {
           "200": {
@@ -2623,7 +2623,7 @@
           "admin"
         ],
         "summary": "List Users",
-        "description": "Search by name, email or phone number (case-insensitive, any part; a phone number may be typed with spaces),\nnewest accounts first.",
+        "description": "Search by name (case-insensitive, any part), newest accounts first. `role`: a role's slug. Only admins search\nand see email addresses and phone numbers (a phone number may be typed with spaces).\n\nErrors: invalid (422: no role with this slug).",
         "operationId": "list_users_api_v1_admin_users_get",
         "parameters": [
           {
@@ -2649,11 +2649,6 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    "student",
-                    "moderator",
-                    "admin"
-                  ],
                   "type": "string"
                 },
                 {
@@ -2782,7 +2777,7 @@
           "admin"
         ],
         "summary": "Update User",
-        "description": "Change a role, suspend an account, or recover one (security review SEC-9): replace or remove its email\naddress or phone number. Only the fields sent change; everything is audited and the person gets a notification.\nRecovery also ends every session of the account and sends a notice to the address that was replaced or removed.\n\nErrors: cannot_change_self (409: an admin can't change their own account here; ask another admin),\nidentifier_taken (409), last_identifier (409), invalid_identifier (422).",
+        "description": "Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email\naddress or phone number. Only the fields sent change; everything is audited and the person gets a notification.\nRecovery also ends every session of the account and sends a notice to the address that was replaced or removed.\nRecovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding\nAdmin (security review AD-1).\n\nErrors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,\nand so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,\nor suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422).",
         "operationId": "update_user_api_v1_admin_users__user_id__patch",
         "parameters": [
           {
@@ -2802,6 +2797,120 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AdminUserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUser"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{user_id}/roles": {
+      "put": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Set User Roles",
+        "description": "The roles the person holds afterwards, exactly. They're told. Errors: step_up_required (403),\ncannot_change_self (409), last_admin (409: the only active admin keeps Admin), invalid_input (422: a role that\ndoesn't exist), rate_limited (429). Audited.",
+        "operationId": "set_user_roles_api_v1_admin_users__user_id__roles_put",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRolesUpdate"
               }
             }
           }
@@ -3012,13 +3121,632 @@
         }
       }
     },
+    "/api/v1/admin/roles": {
+      "get": {
+        "tags": [
+          "access"
+        ],
+        "summary": "List Roles",
+        "description": "Every role with its boxes and how many people hold it, and every box with its area and label.",
+        "operationId": "list_roles_api_v1_admin_roles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleCatalogue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "access"
+        ],
+        "summary": "Create Role",
+        "description": "Errors: step_up_required (403), invalid_input (422: another role has this name or badge, or the badge passes\nfor staff), rate_limited (429). Audited.",
+        "operationId": "create_role_api_v1_admin_roles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/roles/{role_id}": {
+      "patch": {
+        "tags": [
+          "access"
+        ],
+        "summary": "Update Role",
+        "description": "Send the `version` you loaded. Errors: step_up_required (403), role_locked (409: Admin), role_changed (409:\nchanged since you loaded it), invalid_input (422: as for a new role, or a box beyond the student-level ones on\nStudent), rate_limited (429). Audited.",
+        "operationId": "update_role_api_v1_admin_roles__role_id__patch",
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Role Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "access"
+        ],
+        "summary": "Delete Role",
+        "description": "Its holders lose it and are told. Errors: step_up_required (403), role_locked (409: a built-in role),\nrole_in_use (409: a feature switch is on for it), rate_limited (429). Audited.",
+        "operationId": "delete_role_api_v1_admin_roles__role_id__delete",
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Role Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/features": {
+      "get": {
+        "tags": [
+          "access"
+        ],
+        "summary": "List Features",
+        "operationId": "list_features_api_v1_admin_features_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FeatureOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Features Api V1 Admin Features Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/features/{feature}": {
+      "put": {
+        "tags": [
+          "access"
+        ],
+        "summary": "Set Feature",
+        "description": "Off, on for some roles (`roleIds`), or on for everyone. Errors: step_up_required (403), invalid_input (422: no\nroles, or a role that doesn't exist), rate_limited (429). Audited.",
+        "operationId": "set_feature_api_v1_admin_features__feature__put",
+        "parameters": [
+          {
+            "name": "feature",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "forum",
+                "library",
+                "library.uploads",
+                "newsletter",
+                "calendar",
+                "career",
+                "grades",
+                "noora"
+              ],
+              "type": "string",
+              "title": "Feature"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwitchUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/modules": {
       "get": {
         "tags": [
           "modules"
         ],
         "summary": "List Modules",
-        "description": "Every module, in programme order, with its published library count.",
+        "description": "Every module, in programme order, with its published library count (None while the library is off for you).",
         "operationId": "list_modules_api_v1_modules_get",
         "parameters": [
           {
@@ -3398,10 +4126,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Moderators: e.g. pending",
+              "description": "Library managers: e.g. pending",
               "title": "Status"
             },
-            "description": "Moderators: e.g. pending"
+            "description": "Library managers: e.g. pending"
           },
           {
             "name": "limit",
@@ -3520,7 +4248,7 @@
           "library"
         ],
         "summary": "Create Item",
-        "description": "Turn a completed upload into a library item: pending for students, published for moderators.\n\nErrors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting\nfor review), invalid_input (422: an unknown module).",
+        "description": "Turn a completed upload into a library item: pending for students, published for library managers.\n\nErrors: not_uploaded (409), already_used (409), too_many_pending (409: the student already has 10 files waiting\nfor review), invalid_input (422: an unknown module), feature_off (404: library uploads are switched off).",
         "operationId": "create_item_api_v1_library_items_post",
         "requestBody": {
           "required": true,
@@ -3713,7 +4441,7 @@
           "library"
         ],
         "summary": "Get Item",
-        "description": "By slug. Unpublished items: only their uploader and moderators.",
+        "description": "By slug. Unpublished items: only their uploader and the library's managers.",
         "operationId": "get_item_api_v1_library_items__slug__get",
         "parameters": [
           {
@@ -3918,7 +4646,7 @@
           "library"
         ],
         "summary": "Update Item",
-        "description": "The uploader while the item is pending; moderators always.",
+        "description": "The uploader while the item is pending; library managers always.",
         "operationId": "update_item_api_v1_library_items__item_id__patch",
         "parameters": [
           {
@@ -4030,7 +4758,7 @@
           "library"
         ],
         "summary": "Delete Item",
-        "description": "The uploader or a moderator. Nothing serves the file any more; the daily sweep deletes it from storage a week\nlater.",
+        "description": "The uploader or a library manager. Nothing serves the file any more; the daily sweep deletes it from storage\na week later.",
         "operationId": "delete_item_api_v1_library_items__item_id__delete",
         "parameters": [
           {
@@ -4646,7 +5374,7 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429).",
+        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum\npicture), feature_off (404: the library, its uploads or the forum is switched off).",
         "operationId": "create_upload_api_v1_uploads_post",
         "requestBody": {
           "content": {
@@ -4748,7 +5476,7 @@
           "uploads"
         ],
         "summary": "Complete Upload",
-        "description": "Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and\nfirst bytes match the file's name.\n\nErrors: not_uploaded (409), mismatch (422; the object is deleted).",
+        "description": "Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and\nfirst bytes match the file's name.\n\nErrors: not_uploaded (409), mismatch (422; the object is deleted), feature_off (404: the upload's feature was\nswitched off since it started).",
         "operationId": "complete_upload_api_v1_uploads__upload_id__complete_post",
         "parameters": [
           {
@@ -7121,7 +7849,7 @@
           "reports"
         ],
         "summary": "Create Report",
-        "description": "Report a thread, reply or library item (one open report per person and target).\n\nErrors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),\nrate_limited (429).",
+        "description": "Report a thread, reply or library item (one open report per person and target).\n\nErrors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),\nrate_limited (429), feature_off (404: the forum or the library is switched off).",
         "operationId": "create_report_api_v1_reports_post",
         "requestBody": {
           "content": {
@@ -7223,7 +7951,7 @@
           "reports"
         ],
         "summary": "List Reports",
-        "description": "Open reports oldest first (a queue); closed ones most recently closed first. `reporter` is set for admins only\n(student reps are classmates).",
+        "description": "Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they\ncan act on: forum posts with forum.moderate, library files with library.manage, each while its feature is on for\nthem. `reporter` is set for admins only (student reps are classmates).",
         "operationId": "list_reports_api_v1_admin_reports_get",
         "parameters": [
           {
@@ -7360,7 +8088,7 @@
           "reports"
         ],
         "summary": "Resolve Report",
-        "description": "Close a report (hiding the post is a separate moderation call). Notifies the reporter. Audited.\n\nErrors: report_closed (409) when it was already closed.",
+        "description": "Close a report (hiding the post is a separate moderation call). Notifies the reporter. Audited.\n\nErrors: not_found (404) when the report isn't in this person's queue, report_closed (409) when it was already\nclosed.",
         "operationId": "resolve_report_api_v1_admin_reports__report_id__resolve_post",
         "parameters": [
           {
@@ -7474,7 +8202,7 @@
           "newsletter"
         ],
         "summary": "List Issues",
-        "description": "Published issues, newest first (drafts too for moderators who ask for them; ignored for everyone else).",
+        "description": "Published issues, newest first (drafts too for people who manage the newsletter and ask for them; ignored for\neveryone else).",
         "operationId": "list_issues_api_v1_newsletter_issues_get",
         "parameters": [
           {
@@ -7682,7 +8410,7 @@
           "newsletter"
         ],
         "summary": "Get Issue",
-        "description": "An issue with its sections and the reactions to each section. Drafts: moderators only.",
+        "description": "An issue with its sections and the reactions to each section. Drafts: for people who manage the newsletter.",
         "operationId": "get_issue_api_v1_newsletter_issues__slug__get",
         "parameters": [
           {
@@ -7993,7 +8721,7 @@
           "newsletter"
         ],
         "summary": "Publish Issue",
-        "description": "Publishes the issue and tells every account (in the Hub; by email to those who keep \"New newsletter issues\"\non). Audited. Publishing an issue that is already out changes nothing.",
+        "description": "Publishes the issue and tells every account in the Hub. It also goes by email to those who keep \"New\nnewsletter issues\" on, unless an issue email went out in the last 24 hours: `emailed` says which. Audited.\nPublishing an issue that is already out changes nothing.",
         "operationId": "publish_issue_api_v1_newsletter_issues__issue_id__publish_post",
         "parameters": [
           {
@@ -8013,7 +8741,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/IssueDetail"
+                  "$ref": "#/components/schemas/PublishedIssue"
                 }
               }
             }
@@ -9409,7 +10137,7 @@
           "content"
         ],
         "summary": "Search",
-        "description": "Threads, library items, newsletter issues, modules and calendar events. Prefix-matches the last word\n(for search-as-you-type). Only public things are found: visible threads, published files and issues.",
+        "description": "Threads, library items, newsletter issues, modules and calendar events. Prefix-matches the last word\n(for search-as-you-type). Only public things are found: visible threads, published files and issues.\nFeatures switched off for the viewer are left out.",
         "operationId": "search_api_v1_search_get",
         "parameters": [
           {
@@ -9549,6 +10277,98 @@
           }
         }
       }
+    },
+    "/api/v1/features": {
+      "get": {
+        "tags": [
+          "features"
+        ],
+        "summary": "Features",
+        "description": "The features on for whoever asks: for a guest, those switched on for everyone. Signed in, the same list as\n/me's `features`.",
+        "operationId": "features_api_v1_features_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeaturesOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -9679,19 +10499,47 @@
             "title": "Users"
           },
           "threads": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Threads"
           },
           "replies": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Replies"
           },
           "libraryItems": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Libraryitems"
           },
           "pendingUploads": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Pendinguploads"
           },
           "openReports": {
@@ -9708,7 +10556,8 @@
           "pendingUploads",
           "openReports"
         ],
-        "title": "AdminStats"
+        "title": "AdminStats",
+        "description": "A feature's counts are None while it is switched off for the viewer."
       },
       "AdminUser": {
         "properties": {
@@ -9750,14 +10599,12 @@
             ],
             "title": "Phone"
           },
-          "role": {
-            "type": "string",
-            "enum": [
-              "student",
-              "moderator",
-              "admin"
-            ],
-            "title": "Role"
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/RoleSummary"
+            },
+            "type": "array",
+            "title": "Roles"
           },
           "status": {
             "type": "string",
@@ -9807,7 +10654,7 @@
           "displayName",
           "email",
           "phone",
-          "role",
+          "roles",
           "status",
           "year",
           "createdAt",
@@ -9848,22 +10695,6 @@
       },
       "AdminUserUpdate": {
         "properties": {
-          "role": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "student",
-                  "moderator",
-                  "admin"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Role"
-          },
           "status": {
             "anyOf": [
               {
@@ -9908,7 +10739,7 @@
         },
         "type": "object",
         "title": "AdminUserUpdate",
-        "description": "Only the fields sent change. `email` and `phone` are the account-recovery action (security review SEC-9):\nthey replace the account's address (`null` removes it; one must stay), end every session of the account, send\na notice to the address that was replaced or removed, and are audited (`user.identifier`)."
+        "description": "Only the fields sent change. `status` needs people.suspend; only admins suspend or restore an admin. `email`\nand `phone` are the account-recovery action (security review SEC-9), for admins only: they replace the account's\naddress (`null` removes it; one must stay), end every session of the account, send a notice to the address that\nwas replaced or removed, and are audited (`user.identifier`)."
       },
       "AuditOut": {
         "properties": {
@@ -10005,6 +10836,43 @@
           "offset"
         ],
         "title": "AuditPage"
+      },
+      "BoxOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": [
+              "forum.post",
+              "library.upload",
+              "newsletter.react",
+              "reports.create",
+              "forum.moderate",
+              "library.manage",
+              "newsletter.manage",
+              "calendar.manage",
+              "career.edit",
+              "stats.view",
+              "people.suspend",
+              "audit.read"
+            ],
+            "title": "Key"
+          },
+          "area": {
+            "type": "string",
+            "title": "Area"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "area",
+          "label"
+        ],
+        "title": "BoxOut"
       },
       "CalendarEventCreate": {
         "properties": {
@@ -11838,7 +12706,12 @@
               "mismatch",
               "no_preview",
               "file_gone",
-              "too_many_pending"
+              "too_many_pending",
+              "feature_off",
+              "last_admin",
+              "role_locked",
+              "role_changed",
+              "role_in_use"
             ],
             "title": "Code"
           },
@@ -12569,6 +13442,58 @@
         ],
         "title": "ExportVote"
       },
+      "FeatureOut": {
+        "properties": {
+          "feature": {
+            "type": "string",
+            "enum": [
+              "forum",
+              "library",
+              "library.uploads",
+              "newsletter",
+              "calendar",
+              "career",
+              "grades",
+              "noora"
+            ],
+            "title": "Feature"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "hides": {
+            "type": "string",
+            "title": "Hides"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "off",
+              "roles",
+              "everyone"
+            ],
+            "title": "Mode"
+          },
+          "roleIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Roleids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "feature",
+          "label",
+          "hides",
+          "mode",
+          "roleIds"
+        ],
+        "title": "FeatureOut"
+      },
       "FeaturedLogo": {
         "properties": {
           "kind": {
@@ -12593,6 +13518,32 @@
           "id"
         ],
         "title": "FeaturedLogo"
+      },
+      "FeaturesOut": {
+        "properties": {
+          "features": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "forum",
+                "library",
+                "library.uploads",
+                "newsletter",
+                "calendar",
+                "career",
+                "grades",
+                "noora"
+              ]
+            },
+            "type": "array",
+            "title": "Features"
+          }
+        },
+        "type": "object",
+        "required": [
+          "features"
+        ],
+        "title": "FeaturesOut"
       },
       "FileLink": {
         "properties": {
@@ -14241,14 +15192,50 @@
             ],
             "title": "Year"
           },
-          "role": {
-            "type": "string",
-            "enum": [
-              "student",
-              "moderator",
-              "admin"
-            ],
-            "title": "Role"
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/RoleSummary"
+            },
+            "type": "array",
+            "title": "Roles"
+          },
+          "boxes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "forum.post",
+                "library.upload",
+                "newsletter.react",
+                "reports.create",
+                "forum.moderate",
+                "library.manage",
+                "newsletter.manage",
+                "calendar.manage",
+                "career.edit",
+                "stats.view",
+                "people.suspend",
+                "audit.read"
+              ]
+            },
+            "type": "array",
+            "title": "Boxes"
+          },
+          "features": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "forum",
+                "library",
+                "library.uploads",
+                "newsletter",
+                "calendar",
+                "career",
+                "grades",
+                "noora"
+              ]
+            },
+            "type": "array",
+            "title": "Features"
           },
           "status": {
             "type": "string",
@@ -14298,7 +15285,9 @@
           "id",
           "displayName",
           "year",
-          "role",
+          "roles",
+          "boxes",
+          "features",
           "status",
           "email",
           "phone",
@@ -14412,7 +15401,14 @@
             "title": "Lessoncount"
           },
           "libraryCount": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Librarycount"
           },
           "resources": {
@@ -14573,7 +15569,14 @@
             "title": "Lessoncount"
           },
           "libraryCount": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Librarycount"
           }
         },
@@ -15065,6 +16068,106 @@
         ],
         "title": "ProgressImport",
         "description": "Progress kept in the browser before signing in, merged into the account once (newest wins). At most 5000\nwatched lessons and 100 modules (security review, finding 19)."
+      },
+      "PublishedIssue": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "cover": {
+            "$ref": "#/components/schemas/IssueCover"
+          },
+          "dek": {
+            "type": "string",
+            "title": "Dek"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "editors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Editors"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/IssueSection"
+            },
+            "type": "array",
+            "title": "Sections"
+          },
+          "reactions": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ReactionCounts"
+            },
+            "type": "object",
+            "title": "Reactions"
+          },
+          "emailed": {
+            "type": "boolean",
+            "title": "Emailed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "number",
+          "title",
+          "date",
+          "cover",
+          "dek",
+          "summary",
+          "editors",
+          "status",
+          "publishedAt",
+          "sections",
+          "reactions",
+          "emailed"
+        ],
+        "title": "PublishedIssue"
       },
       "ReactionCounts": {
         "properties": {
@@ -15633,6 +16736,280 @@
         ],
         "title": "ReviewDecision"
       },
+      "RoleCatalogue": {
+        "properties": {
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/RoleOut"
+            },
+            "type": "array",
+            "title": "Roles"
+          },
+          "boxes": {
+            "items": {
+              "$ref": "#/components/schemas/BoxOut"
+            },
+            "type": "array",
+            "title": "Boxes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roles",
+          "boxes"
+        ],
+        "title": "RoleCatalogue"
+      },
+      "RoleCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "badge": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 24,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Badge"
+          },
+          "boxes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "forum.post",
+                "library.upload",
+                "newsletter.react",
+                "reports.create",
+                "forum.moderate",
+                "library.manage",
+                "newsletter.manage",
+                "calendar.manage",
+                "career.edit",
+                "stats.view",
+                "people.suspend",
+                "audit.read"
+              ]
+            },
+            "type": "array",
+            "title": "Boxes",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "RoleCreate"
+      },
+      "RoleOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "badge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Badge"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "builtIn": {
+            "type": "boolean",
+            "title": "Builtin"
+          },
+          "locked": {
+            "type": "boolean",
+            "title": "Locked"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "boxes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "forum.post",
+                "library.upload",
+                "newsletter.react",
+                "reports.create",
+                "forum.moderate",
+                "library.manage",
+                "newsletter.manage",
+                "calendar.manage",
+                "career.edit",
+                "stats.view",
+                "people.suspend",
+                "audit.read"
+              ]
+            },
+            "type": "array",
+            "title": "Boxes"
+          },
+          "holders": {
+            "type": "integer",
+            "title": "Holders"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "badge",
+          "position",
+          "builtIn",
+          "locked",
+          "version",
+          "boxes",
+          "holders"
+        ],
+        "title": "RoleOut"
+      },
+      "RoleSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "badge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Badge"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "badge"
+        ],
+        "title": "RoleSummary"
+      },
+      "RoleUpdate": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "badge": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 24,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Badge"
+          },
+          "boxes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "forum.post",
+                    "library.upload",
+                    "newsletter.react",
+                    "reports.create",
+                    "forum.moderate",
+                    "library.manage",
+                    "newsletter.manage",
+                    "calendar.manage",
+                    "career.edit",
+                    "stats.view",
+                    "people.suspend",
+                    "audit.read"
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boxes"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "RoleUpdate",
+        "description": "Only the fields sent change; `badge: null` removes the badge, and `boxes` replaces them as a whole."
+      },
       "SearchHit": {
         "properties": {
           "type": {
@@ -16033,6 +17410,33 @@
         "type": "object",
         "title": "StepUpStart",
         "description": "Which of the account's own identifiers gets the code: by default the email address, else the phone number."
+      },
+      "SwitchUpdate": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "off",
+              "roles",
+              "everyone"
+            ],
+            "title": "Mode"
+          },
+          "roleIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Roleids",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode"
+        ],
+        "title": "SwitchUpdate"
       },
       "TagOut": {
         "properties": {
@@ -16790,14 +18194,16 @@
             ],
             "title": "Year"
           },
-          "role": {
-            "type": "string",
-            "enum": [
-              "student",
-              "moderator",
-              "admin"
+          "badge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Role"
+            "title": "Badge"
           }
         },
         "type": "object",
@@ -16805,10 +18211,27 @@
           "id",
           "displayName",
           "year",
-          "role"
+          "badge"
         ],
         "title": "UserPublic",
         "description": "How a person appears next to their posts and uploads."
+      },
+      "UserRolesUpdate": {
+        "properties": {
+          "roleIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Roleids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roleIds"
+        ],
+        "title": "UserRolesUpdate"
       },
       "Video": {
         "properties": {

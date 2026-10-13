@@ -6,6 +6,7 @@ import { useCallback, useEffect, type ReactNode } from 'react';
 import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
 import { COHORTS, cohortColor, useDocumentTitle, useYear } from '../../state';
+import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import { Badge, Button, CohortBadge, EmptyState, ErrorBoundary, ModuleIcon, Page, Panel, ProgressRing, QueryError, Skeleton, TabPanel, Tabs, countOf } from '../../ui';
 import { ModuleThreads } from '../forum/public';
@@ -14,7 +15,7 @@ import { useModule } from './api';
 import { useModuleExam, type ExamInfo } from './exams';
 import { ImportProgressPrompt } from './ImportProgressPrompt';
 import { LessonsTab } from './LessonsTab';
-import { chapterPosition, indexParam, isModuleTab, type ModuleTab } from './lessons';
+import { chapterPosition, indexParam, isModuleTab, moduleTabOn, type ModuleTab } from './lessons';
 import { ModuleOverview } from './ModuleOverview';
 import { computeModuleProgress, computeResumePoint, isValidLesson, summaryProgress, useProgress, type Fraction, type ResumeKind, type ResumePoint } from './progress';
 import { resourceSummary } from './resources';
@@ -176,8 +177,9 @@ function PanelSkeleton() {
 
 function ModuleView({ summary: m }: { summary: ModuleSummary }) {
   const [params, setParams] = useSearchParams();
+  const { featureOn } = useAuth();
   const rawTab = params.get('tab');
-  const tab: ModuleTab = isModuleTab(rawTab) ? rawTab : 'overview';
+  const tab: ModuleTab = isModuleTab(rawTab) && moduleTabOn(rawTab, featureOn) ? rawTab : 'overview';
   const detailQ = useModule(m.id);
   const detail = detailQ.data;
   const progressApi = useProgress();
@@ -227,12 +229,14 @@ function ModuleView({ summary: m }: { summary: ModuleSummary }) {
     if (tab === 'lessons' && !fromUrl && pinC != null) update({ chapter: pinC, video: pinV ?? 0 });
   }, [tab, fromUrl, pinC, pinV, update]);
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: Info },
-    { id: 'lessons', label: 'Lessons', icon: PlayCircle, count: m.lessonCount || null },
-    { id: 'files', label: 'Files', icon: Files, count: m.libraryCount || null },
-    { id: 'discussion', label: 'Discussion', icon: ChatsCircle },
-  ];
+  const tabs = (
+    [
+      { id: 'overview', label: 'Overview', icon: Info },
+      { id: 'lessons', label: 'Lessons', icon: PlayCircle, count: m.lessonCount || null },
+      { id: 'files', label: 'Files', icon: Files, count: m.libraryCount || null },
+      { id: 'discussion', label: 'Discussion', icon: ChatsCircle },
+    ] as const
+  ).filter((t) => moduleTabOn(t.id, featureOn));
 
   let detailProblem: ReactNode = null;
   if (detailQ.isError) {
@@ -255,9 +259,11 @@ function ModuleView({ summary: m }: { summary: ModuleSummary }) {
           action={
             <>
               <Button onClick={() => setTab('overview')}>See resources</Button>
-              <Button variant="primary" leadingIcon={UploadSimple} onClick={upload.start}>
-                Upload a file
-              </Button>
+              {upload.start ? (
+                <Button variant="primary" leadingIcon={UploadSimple} onClick={upload.start}>
+                  Upload a file
+                </Button>
+              ) : null}
             </>
           }
         />
@@ -291,16 +297,20 @@ function ModuleView({ summary: m }: { summary: ModuleSummary }) {
         <TabPanel idBase="module" id="lessons" value={tab}>
           {lessonsPanel}
         </TabPanel>
-        <TabPanel idBase="module" id="files" value={tab}>
-          <ErrorBoundary name="ModuleFiles" resetKey={m.id}>
-            <ModuleFiles moduleId={m.id} />
-          </ErrorBoundary>
-        </TabPanel>
-        <TabPanel idBase="module" id="discussion" value={tab}>
-          <ErrorBoundary name="ModuleThreads" resetKey={m.id}>
-            <ModuleThreads moduleId={m.id} />
-          </ErrorBoundary>
-        </TabPanel>
+        {moduleTabOn('files', featureOn) ? (
+          <TabPanel idBase="module" id="files" value={tab}>
+            <ErrorBoundary name="ModuleFiles" resetKey={m.id}>
+              <ModuleFiles moduleId={m.id} />
+            </ErrorBoundary>
+          </TabPanel>
+        ) : null}
+        {moduleTabOn('discussion', featureOn) ? (
+          <TabPanel idBase="module" id="discussion" value={tab}>
+            <ErrorBoundary name="ModuleThreads" resetKey={m.id}>
+              <ModuleThreads moduleId={m.id} />
+            </ErrorBoundary>
+          </TabPanel>
+        ) : null}
       </div>
       <ImportProgressPrompt />
       {upload.dialog}

@@ -158,12 +158,12 @@ def test_notifications_keep_only_hub_paths(db: Session, make_user: Callable[...,
 
 def test_audit_rows_keep_the_names_of_who_and_whom(db: Session, make_user: Callable[..., User]) -> None:
     actor, target = make_user(name="Head Admin"), make_user(name="Soon A Rep")
-    record(db, actor, "user.role", "user", target.id, {"from": "student", "to": "moderator"}, "not-an-ip")
+    record(db, actor, "user.status", "user", target.id, {"from": "active", "to": "suspended"}, "not-an-ip")
     record(db, None, "user.status", "user", str(target.id), {"to": "suspended"}, "::ffff:203.0.113.9")
     record(db, actor, "forum.thread.hide", "thread", uuid.uuid4(), {"actorName": "As passed", "title": "T"})
     db.flush()
     rows = list(db.scalars(select(AuditEntry).order_by(AuditEntry.id)))[-3:]
-    assert rows[0].data == {"from": "student", "to": "moderator", "actorName": "Head Admin", "targetName": "Soon A Rep"}
+    assert rows[0].data == {"from": "active", "to": "suspended", "actorName": "Head Admin", "targetName": "Soon A Rep"}
     assert rows[0].ip is None  # not an address: stored as none, never a 500
     assert rows[1].data == {"to": "suspended", "targetName": "Soon A Rep"}  # no actor (the CLI, a bootstrap)
     assert str(rows[1].ip) == "203.0.113.9"

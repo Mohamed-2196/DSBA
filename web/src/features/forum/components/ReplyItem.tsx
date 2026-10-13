@@ -8,7 +8,7 @@ import { useToast } from '../../../state';
 import { ReportButton } from '../ReportButton';
 import { useAcceptAnswer, useReplyVote } from '../api';
 import { authorName, sameAuthor } from '../lib/authors';
-import { readOnlyFor, textDeleted } from '../lib/replies';
+import { mayChange, postMenuActions, readOnlyFor, textDeleted } from '../lib/replies';
 import { useReplyModeration } from '../lib/useReplyModeration';
 import { AuthorAvatar } from './AuthorAvatar';
 import { DeleteReplyDialog } from './DeleteDialogs';
@@ -44,7 +44,7 @@ export interface ReplyItemProps {
  * The body is right-to-left or left-to-right per paragraph (see Prose), so an Arabic reply sits right-aligned.
  */
 export function ReplyItem({ reply, thread, nested = false, hasReplies = false, fresh = false, targeted = false, readOnly = false, onReply, children }: ReplyItemProps) {
-  const { requireAuth } = useAuth();
+  const { requireAuth, mayTry } = useAuth();
   const { push } = useToast();
   const vote = useReplyVote();
   const accept = useAcceptAnswer();
@@ -67,10 +67,10 @@ export function ReplyItem({ reply, thread, nested = false, hasReplies = false, f
   // turns every write there down); and so does everyone once the thread has gone from under the page.
   const frozen = readOnly || readOnlyFor(thread);
   const moderates = thread.canModerate && !readOnly;
-  const canChange = reply.canEdit && !frozen;
+  const actions = postMenuActions(reply.canEdit && !frozen, thread.canModerate, mayTry('forum.post'));
   const canReport = !reply.isMine && reply.status === 'visible' && !threadHidden && !readOnly;
-  // The thread's author (or a moderator) accepts a top-level reply by someone else.
-  const canAccept = thread.canAccept && !readOnly && !nested && !deleted && !hidden && !isOp;
+  // The thread's author (while they may post) or a moderator accepts a top-level reply by someone else.
+  const canAccept = mayChange(thread.canAccept, thread.canModerate, mayTry('forum.post')) && !readOnly && !nested && !deleted && !hidden && !isOp;
 
   const toggleVote = () => {
     const up = !reply.voted;
@@ -145,8 +145,8 @@ export function ReplyItem({ reply, thread, nested = false, hasReplies = false, f
                 label="More actions for this reply"
                 groups={[
                   [
-                    canChange && { id: 'edit', label: 'Edit', icon: PencilSimple, onSelect: () => setEditing(true) },
-                    canChange && { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setConfirmDelete(true) },
+                    actions.edit && { id: 'edit', label: 'Edit', icon: PencilSimple, onSelect: () => setEditing(true) },
+                    actions.remove && { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => setConfirmDelete(true) },
                   ],
                   [
                     moderates &&

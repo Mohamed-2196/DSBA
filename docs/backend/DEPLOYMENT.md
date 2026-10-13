@@ -89,18 +89,18 @@ and images, PDF previews and media from it. With `DSBA_S3_FORCE_PATH_STYLE=false
 docker compose -f compose.prod.yaml up -d --build          # migrate runs first, then the API and Caddy
 docker compose -f compose.prod.yaml run --rm api python -m app.cli setup-bucket
 docker compose -f compose.prod.yaml run --rm api python -m app.cli seed
-docker compose -f compose.prod.yaml run --rm api python -m app.cli set-role you@example.com admin   # after your first sign-in
+docker compose -f compose.prod.yaml run --rm api python -m app.cli set-role you@example.com student admin   # after your first sign-in
 ```
 
 `scripts/seed-real.sh --prod` does the seed and also brings the files of the library's Google Drive folders into the
 library (section 10).
 
-`DSBA_ADMIN_IDENTIFIERS` does the same for the people listed there when they first sign in. `set-role` writes an
-audit row (`user.role`, `via: cli`).
+`DSBA_ADMIN_IDENTIFIERS` gives the Admin role, when they first sign in, to the people listed there. `set-role` sets
+exactly the roles you name, and writes an audit entry.
 
 **Updating:** `git pull && docker compose -f compose.prod.yaml up -d --build`. The `migrate` service applies new
 migrations before the API starts. Run `seed` again after updates that change the reference content (it never
-overwrites what moderators changed).
+overwrites what reps changed).
 
 **Health:** `GET /api/v1/health` (the API image's healthcheck uses it); logs with
 `docker compose -f compose.prod.yaml logs -f api`. Logs carry no sign-in codes, tokens or full phone numbers.

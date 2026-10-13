@@ -12,16 +12,16 @@ router change and the e2e harness.
 
 | # | Feature | Status | Needs first |
 | --- | --- | --- | --- |
-| R-1 | Roles that each unlock more | spec ready for Mohamed's review | — |
-| R-2 | Requests from students | to design | R-1 |
-| R-3 | A better calendar | to design | — |
-| R-4 | A study board | to design | R-3, for deadlines |
-| R-5 | Notes | to design | — |
+| R-1 | Roles that each unlock more | done (merged 2026-10-13) | — |
+| R-2 | Requests from students | building (round4/requests) | R-1 |
+| R-3 | A better calendar | done (round4/calendar, merged 2026-10-13) | — |
+| R-4 | A study board | building (round4/board) | R-3, for deadlines |
+| R-5 | Notes | building (round4/notes) | — |
 | R-6 | Noora sees what you see | to design | R-5, and the AI decision |
-| R-7 | A new Noora | to design | — (pairs well with R-6) |
+| R-7 | A new Noora | building (round4/noora) | — (pairs well with R-6) |
 | R-8 | Favourite apps | to design | R-3, R-4, R-5 |
 | R-9 | Edit modules and lessons in the app | to design | R-1 |
-| R-10 | Feature flags, switched in the admin UI | spec ready for Mohamed's review, with R-1 | — |
+| R-10 | Feature flags, switched in the admin UI | done (merged 2026-10-13) | — |
 
 ## R-1. Roles that each unlock more
 
@@ -29,7 +29,7 @@ router change and the e2e harness.
 - **Today:** four levels.
   - A guest reads.
   - A student posts, uploads, stars and reacts. Their year is 1–3, or none.
-  - A rep (`moderator`) also moderates the forum and the library and edits the calendar and the newsletter.
+  - A rep (the Rep role) also moderates the forum and the library and edits the calendar and the newsletter.
   - An admin also manages people and roles and reads the audit log.
 
   The web app gates pages with `RoleGate`. The profile menu adds Moderation for reps and People for admins.

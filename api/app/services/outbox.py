@@ -7,7 +7,8 @@
 - A failed send is retried with exponential backoff (30 s, 1 min, 2 min, ... up to 6 h, with some jitter), and
   given up after MAX_ATTEMPTS. Logs name the kind and the masked address, never the address or the body.
 - When its turn comes, a notification email is cancelled if the person no longer wants it: the account is gone,
-  its email address changed, or the switch for that kind was turned off.
+  its email address changed, or the switch for that kind was turned off. It is cancelled too when the feature it is
+  about is switched off for the person.
 - Rows that are done are deleted after KEEP_DONE."""
 
 from __future__ import annotations
@@ -27,11 +28,12 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.access import Feature
 from app.core.time import utcnow
 from app.models import EmailOutbox, OutboxStatus, User
 from app.schemas.auth import Preferences
 from app.schemas.notifications import NotificationKind
-from app.services import mailer
+from app.services import access, mailer
 from app.services.identifiers import destination_hint
 from app.services.mailer import DeliveryError
 
@@ -46,6 +48,15 @@ EMAIL_SWITCHES: dict[NotificationKind, str] = {
     "upload_published": "email_upload_reviews",
     "upload_rejected": "email_upload_reviews",
     "new_issue": "email_new_issues",
+}
+# The feature each emailed kind is about: no email goes out about a feature that is off for its reader.
+EMAIL_FEATURES: dict[NotificationKind, Feature] = {
+    "thread_reply": Feature.forum,
+    "reply_reply": Feature.forum,
+    "answer_accepted": Feature.forum,
+    "upload_published": Feature.library,
+    "upload_rejected": Feature.library,
+    "new_issue": Feature.newsletter,
 }
 MAX_ATTEMPTS = 8
 FIRST_RETRY = timedelta(seconds=30)
@@ -104,7 +115,10 @@ def _still_wanted(db: Session, row: EmailOutbox) -> bool:
     user = db.get(User, row.user_id)
     if user is None or user.email != row.to_address:
         return False
-    switch = EMAIL_SWITCHES.get(cast(NotificationKind, row.kind))  # a stored kind: a notification kind
+    kind = cast(NotificationKind, row.kind)  # a stored kind: a notification kind
+    switch, feature = EMAIL_SWITCHES.get(kind), EMAIL_FEATURES.get(kind)
+    if feature is not None and not access.feature_on(db, user, feature):
+        return False
     return switch is None or wants(user, switch)
 
 

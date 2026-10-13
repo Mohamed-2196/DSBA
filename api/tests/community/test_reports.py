@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
-from app.models import AuditEntry, ItemSource, ItemStatus, LibraryItem, PostStatus, Report, Role, User, UserStatus
+from app.models import AuditEntry, ItemSource, ItemStatus, LibraryItem, PostStatus, Report, User, UserStatus
 from app.services import reports
 from tests.community.helpers import API, new_reply, new_thread, notifications_for, set_thread
 
@@ -113,7 +113,7 @@ def test_report_replies_and_library_items(
     c = client_for(student)
     assert report(c, "reply", reply["id"], reason="harassment") == 201
     assert report(c, "library_item", str(item.id), reason="copyright") == 201
-    admin = make_user(name="Admin", role=Role.admin)
+    admin = make_user(name="Admin", roles=("student", "admin"))
     page = client_for(admin).get(f"{API}/admin/reports").json()
     by_type = {x["targetType"]: x for x in page["items"]}
     assert by_type["reply"]["targetUrl"] == f"/forum/{t['slug']}#reply-{reply['id']}"

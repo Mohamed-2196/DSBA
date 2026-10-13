@@ -19,6 +19,7 @@ from app.core.time import (
 )
 from app.models import ForumReply, ForumThread, Module, PostStatus, ReplyVote, ThreadVote, User
 from app.schemas.forum import Contributor, ForumStats, ThreadPage, ThreadSummary
+from app.services import access
 from app.services.accounts import public_user
 from app.services.forum.search import has_tag, search_condition
 from app.services.forum.taxonomy import CATEGORIES, FORUM_WIDE_CATEGORIES, thread_year
@@ -120,6 +121,7 @@ def list_threads(db: Session, viewer: User | None, f: ThreadFilters, sort: Sort,
     )
     order = order_by(sort, utcnow(), pinned_first=search is None)
     rows = db.execute(summary_select(viewer).where(*conds).order_by(*order).limit(limit).offset(offset)).all()
+    access.prefetch(db, [row[1] for row in rows])
     return ThreadPage(items=summaries(rows, viewer), total=total or 0, limit=limit, offset=offset)
 
 
@@ -130,6 +132,7 @@ def hot_threads(db: Session, viewer: User | None, n: int, year: int | None) -> l
         conds.append(year_condition(year))
     order = order_by("hot", utcnow(), pinned_first=False)
     rows = db.execute(summary_select(viewer).where(*conds).order_by(*order).limit(n)).all()
+    access.prefetch(db, [row[1] for row in rows])
     return summaries(rows, viewer)
 
 
@@ -155,6 +158,7 @@ def related_threads(db: Session, viewer: User | None, t: ForumThread, n: int) ->
         .order_by(score.desc(), ForumThread.created_at.desc(), ForumThread.id.desc())
         .limit(n)
     ).all()
+    access.prefetch(db, [row[1] for row in rows])
     return summaries(rows, viewer)
 
 
@@ -244,6 +248,7 @@ def _top_contributors(db: Session, now: datetime) -> list[Contributor]:
         .order_by(score.desc(), per_author.c.replies.desc(), User.display_name, User.id)
         .limit(TOP_CONTRIBUTORS)
     ).all()
+    access.prefetch(db, [row[0] for row in rows])
     return [
         Contributor.model_validate(
             {"user": public_user(u), "replies": n, "votes": int(v), "accepted": a, "score": int(s)}

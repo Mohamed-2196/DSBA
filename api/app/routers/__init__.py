@@ -3,10 +3,12 @@
 from fastapi import APIRouter
 
 from app.routers import (
+    access,
     admin,
     auth,
     calendar,
     content,
+    features,
     forum,
     health,
     library,
@@ -27,6 +29,7 @@ for module in (
     progress,
     notifications,
     admin,
+    access,
     modules,
     library,
     uploads,
@@ -35,5 +38,6 @@ for module in (
     newsletter,
     calendar,
     content,
+    features,
 ):
     api_router.include_router(module.router)

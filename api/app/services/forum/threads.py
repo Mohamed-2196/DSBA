@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import set_committed_value
 
 from app.core.errors import conflict, forbidden, invalid, not_found
-from app.core.security import is_moderator
 from app.core.time import utcnow
 from app.models import ForumReply, ForumThread, PostStatus, ThreadVote, User
 from app.schemas.forum import ThreadCreate, ThreadModeration, ThreadUpdate
@@ -36,6 +35,8 @@ from app.services.forum.visibility import (
     can_see_thread,
     get_thread,
     gone,
+    may_change,
+    moderates,
     unavailable,
 )
 
@@ -83,8 +84,7 @@ def update_thread(db: Session, user: User, t: ForumThread, data: ThreadUpdate, i
     """The author or a moderator edits the thread (its slug stays, so links keep working). A hidden thread is in
     the reps' hands: only they reach it here (visibility.thread_for)."""
     mine = t.author_id == user.id
-    if not (mine or is_moderator(user)):
-        raise forbidden("You can only edit your own threads.")
+    may_change(user, mine, "You can only edit your own threads.")
     if t.status == PostStatus.deleted or gone(t):
         raise unavailable(PostStatus.deleted)
     given = data.model_fields_set
@@ -131,10 +131,10 @@ def delete_thread(db: Session, user: User, thread_id: uuid.UUID, ip: str | None)
     replies. A hidden thread stays hidden (only reps reach it): its text goes, and unhiding it later gives a deleted
     thread, so deleting never shows the public what a rep hid (security review SEC-15). Idempotent."""
     t = get_thread(db, thread_id)
-    if t is None or (t.status == PostStatus.hidden and not is_moderator(user)):
+    if t is None or (t.status == PostStatus.hidden and not moderates(user)):
         raise not_found("This thread doesn't exist or was removed.")
     mine = t.author_id == user.id
-    if not (mine or is_moderator(user)):
+    if not (mine or moderates(user)):
         if not can_see_thread(t, user):
             raise not_found("This thread doesn't exist or was removed.")
         raise forbidden("You can only delete your own threads.")
@@ -154,8 +154,7 @@ def accept_answer(db: Session, user: User, t: ForumThread, reply_id: uuid.UUID |
     """The thread's author (or a moderator) marks a direct reply by someone else as the answer, or clears it. The
     change is one conditional UPDATE, so a double click notifies the reply's author once."""
     mine = t.author_id == user.id
-    if not (mine or is_moderator(user)):
-        raise forbidden("Only the person who asked can accept an answer.")
+    may_change(user, mine, "Only the person who asked can accept an answer.")
     if t.status != PostStatus.visible:
         raise unavailable(t.status)
     if reply_id is None:

@@ -85,7 +85,7 @@ def test_who_may_edit(
     assert entry.data["actorName"] == "Student Rep"
     assert entry.data["title"] == "Edited by a rep"
     # a suspended rep loses the powers
-    suspended_rep = make_user(name="Suspended Rep", role=moderator.role)
+    suspended_rep = make_user(name="Suspended Rep", roles=("student", "rep"))
     suspended_rep.status = UserStatus.suspended
     db.commit()
     assert client_for(suspended_rep).patch(url, json={"title": "Not allowed now"}).status_code == 403

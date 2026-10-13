@@ -14,12 +14,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base, created_ts, str_enum, uuid_pk, year_range
 
 
-class Role(enum.StrEnum):
-    student = "student"
-    moderator = "moderator"  # student reps: moderate the forum and the library, edit the calendar and newsletter
-    admin = "admin"
-
-
 class UserStatus(enum.StrEnum):
     active = "active"
     suspended = "suspended"  # can sign in and read, cannot post, upload or react
@@ -47,7 +41,6 @@ class User(Base):
     phone: Mapped[str | None] = mapped_column(String(20), unique=True)  # E.164, e.g. +97333123456
     display_name: Mapped[str | None] = mapped_column(String(60))  # None until the profile step
     year: Mapped[int | None] = mapped_column(SmallInteger)  # cohort 1-3; None = not a current student
-    role: Mapped[Role] = mapped_column(str_enum(Role), default=Role.student, server_default=Role.student.value)
     status: Mapped[UserStatus] = mapped_column(
         str_enum(UserStatus), default=UserStatus.active, server_default=UserStatus.active.value
     )

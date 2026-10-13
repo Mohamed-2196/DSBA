@@ -17,7 +17,8 @@ export interface ModuleThreadsProps {
 
 /** Module page "Discussion" tab: this module's threads + "Ask about this module". */
 export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
-  const { requireAuth } = useAuth();
+  const { requireAuth, mayTry } = useAuth();
+  const posts = mayTry('forum.post');
   const { getModule } = useModules();
   const mod = getModule(moduleId);
   const list = useThreadList({ module_id: moduleId, sort: 'hot' }, { enabled: !!moduleId });
@@ -57,9 +58,11 @@ export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
           title={`No threads about ${name} yet`}
           body="Ask the first question and your classmates will see it here and in the forum."
           action={
-            <Button variant="primary" leadingIcon={Plus} to={askTo}>
-              Ask about this module
-            </Button>
+            posts ? (
+              <Button variant="primary" leadingIcon={Plus} to={askTo}>
+                Ask about this module
+              </Button>
+            ) : undefined
           }
         />
       </Panel>
@@ -77,9 +80,11 @@ export function ModuleThreads({ moduleId }: ModuleThreadsProps) {
             {answered ? `${answered} answered. ` : ''}Questions, study groups and tips from students taking it.
           </p>
         </div>
-        <Button variant="primary" leadingIcon={Plus} to={askTo}>
-          Ask about this module
-        </Button>
+        {posts ? (
+          <Button variant="primary" leadingIcon={Plus} to={askTo}>
+            Ask about this module
+          </Button>
+        ) : null}
       </div>
       <Panel as="div" padding="none">
         <ul role="list" className="forum-list">

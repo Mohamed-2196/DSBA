@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { ModulesGate } from '../state/ModulesProvider';
 import { ErrorBoundary, Toaster } from '../ui';
+import { AnalyticsFeatures } from './AnalyticsFeatures';
 import { CommandPalette } from '../features/search/public';
 import { Onboarding } from '../features/onboarding/public';
 import { MiniNoora } from '../features/noora/public';
@@ -15,7 +16,7 @@ import './AppShell.css';
 /** App frame: rail + sticky top bar + content (+ footer), mobile tab bar, and global overlays. */
 export function AppShell({ children }: { children?: ReactNode }) {
   const { pathname } = useLocation();
-  const { status } = useAuth();
+  const { status, featureOn } = useAuth();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
@@ -46,11 +47,14 @@ export function AppShell({ children }: { children?: ReactNode }) {
             <Onboarding />
           </ErrorBoundary>
         ) : null}
-        <ErrorBoundary name="MiniNoora" fallback={null}>
-          <MiniNoora />
-        </ErrorBoundary>
+        {featureOn('noora') ? (
+          <ErrorBoundary name="MiniNoora" fallback={null}>
+            <MiniNoora />
+          </ErrorBoundary>
+        ) : null}
       </ModulesGate>
       <Toaster />
+      <AnalyticsFeatures />
     </div>
   );
 }

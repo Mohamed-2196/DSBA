@@ -47,7 +47,7 @@ def published_counts(db: Session, module_id: str | None = None) -> dict[str, int
     return {str(mid): int(n) for mid, n in db.execute(q).all()}
 
 
-def _summary(m: Module, library_count: int) -> dict[str, Any]:
+def _summary(m: Module, library_count: int | None) -> dict[str, Any]:
     return {
         "id": m.id,
         "unit_code": m.unit_code,
@@ -62,17 +62,19 @@ def _summary(m: Module, library_count: int) -> dict[str, Any]:
     }
 
 
-def list_modules(db: Session, year: int | None) -> list[ModuleSummary]:
+def list_modules(db: Session, year: int | None, *, library: bool) -> list[ModuleSummary]:
+    """`library`: whether the library is on for the viewer. Without it, the library counts are None."""
     q = select(Module).order_by(Module.position, Module.id)
     if year is not None:
         q = q.where(Module.year == year)
-    counts = published_counts(db)
-    return [ModuleSummary.model_validate(_summary(m, counts.get(m.id, 0))) for m in db.scalars(q)]
+    counts = published_counts(db) if library else {}
+    return [ModuleSummary.model_validate(_summary(m, counts.get(m.id, 0) if library else None)) for m in db.scalars(q)]
 
 
-def module_detail(db: Session, module_id: str) -> ModuleDetail:
+def module_detail(db: Session, module_id: str, *, library: bool) -> ModuleDetail:
+    """`library`: as for list_modules()."""
     m = db.get(Module, module_id)
     if m is None:
         raise not_found("This module doesn't exist.")
-    count = published_counts(db, m.id).get(m.id, 0)
+    count = published_counts(db, m.id).get(m.id, 0) if library else None
     return ModuleDetail.model_validate({**_summary(m, count), "resources": m.resources, "chapters": m.chapters})

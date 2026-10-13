@@ -1,54 +1,61 @@
-// The admin's People page: find a student, change his role and back, suspend him (he can read but not post),
-// lift it, and see it all in the activity log.
-import type { Locator, Page } from '@playwright/test';
+// The admin's Access screen: give Ali the Newsletter manager role and take it back (he's told, and Manage follows);
+// suspend him (he reads but can't post) and lift it; see it all under Activity.
+import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { api, personaContext, readRun, remember } from './support';
+import { api, personaContext, readRun, remember, roleIdBySlug } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
 async function findAli(admin: Page, email: string) {
-  await admin.goto('/admin/people');
-  await admin.getByLabel('Search people').fill(email);
+  await admin.goto('/admin/access?tab=people');
+  await admin.getByLabel('Search by name, email or phone').fill(email);
   const row = admin.locator('tr').filter({ hasText: email }).first();
   await expect(row).toBeVisible();
   return row;
 }
 
-// Whatever happens, Ali isn't left suspended or a rep for the specs that follow.
+// Whatever happens, Ali ends as a plain, active student for the specs that follow.
 test.afterAll(async ({ browser }) => {
   const ctx = await personaContext(browser, 'admin');
   const page = await ctx.newPage();
-  const found = await api<{ items: { id: string; role: string; status: string }[] }>(page, 'GET', `/api/v1/admin/users?q=${encodeURIComponent(readRun().ali.email)}`);
+  const found = await api<{ items: { id: string; status: string }[] }>(page, 'GET', `/api/v1/admin/users?q=${encodeURIComponent(readRun().ali.email)}`);
   const ali = found.body.items[0];
-  if (ali && (ali.status !== 'active' || ali.role !== 'student')) await api(page, 'PATCH', `/api/v1/admin/users/${ali.id}`, { role: 'student', status: 'active' });
+  if (ali) {
+    await api(page, 'PUT', `/api/v1/admin/users/${ali.id}/roles`, { roleIds: [await roleIdBySlug(page, 'student')] });
+    if (ali.status !== 'active') await api(page, 'PATCH', `/api/v1/admin/users/${ali.id}`, { status: 'active' });
+  }
   await ctx.close();
 });
 
-/** "Change" on a person's row opens the role dialog: the roles as radio cards, confirmed in one step (UX-15). The
- * radio itself is hidden under its card, so the admin clicks the card. */
-async function changeRole(admin: Page, row: Locator, role: 'Student' | 'Student rep', confirm: string) {
-  await row.getByRole('button', { name: /^Change the role of/ }).click();
-  const dialog = admin.getByRole('dialog');
-  await dialog.getByText(role, { exact: true }).click();
-  await expect(dialog.getByRole('radio', { name: role, exact: true })).toBeChecked();
-  await dialog.getByRole('button', { name: confirm, exact: true }).click();
-}
-
-test('the admin makes Ali a student rep and back; he is told', async ({ admin, ali, run }) => {
+test('the admin makes Ali a newsletter manager and back; he is told', async ({ admin, ali, run }) => {
   let row = await findAli(admin, run.ali.email);
-  await changeRole(admin, row, 'Student rep', 'Make student rep');
-  await expect(admin.getByText(`${run.ali.name} is now a student rep`, { exact: true })).toBeVisible();
-  expect((await api<{ role: string }>(ali, 'GET', '/api/v1/me')).body.role).toBe('moderator');
-  await ali.goto('/moderation');
-  await expect(ali.locator('main')).toContainText('Open reports');
+  await row.getByRole('button', { name: /^Change the roles of/ }).click();
+  let dialog = admin.getByRole('dialog');
+  await dialog.getByLabel(/^Newsletter manager/).check();
+  await dialog.getByRole('button', { name: 'Save roles' }).click();
+  await expect(admin.getByText(`${run.ali.name}’s roles are saved`)).toBeVisible();
+  await expect(row).toContainText('Newsletter manager');
+
+  const me = await api<{ roles: { slug: string }[]; boxes: string[] }>(ali, 'GET', '/api/v1/me');
+  expect(me.body.roles.map((r) => r.slug)).toContain('newsletter-manager');
+  expect(me.body.boxes).toContain('newsletter.manage');
+  await ali.goto('/manage');
+  await expect(ali.getByRole('tab', { name: /Newsletter/ })).toBeVisible();
+  await expect(ali.getByRole('tab', { name: /Reports/ })).toHaveCount(0);
 
   row = await findAli(admin, run.ali.email);
-  await changeRole(admin, row, 'Student', 'Make student');
-  await expect(admin.getByText(`${run.ali.name} is now a student`, { exact: true })).toBeVisible();
-  await ali.goto('/moderation');
-  await expect(ali.locator('main')).toContainText('It isn’t available on your account.');
+  await row.getByRole('button', { name: /^Change the roles of/ }).click();
+  dialog = admin.getByRole('dialog');
+  // The dialog fills in Ali's roles just after it opens: wait for them before changing one.
+  await expect(dialog.getByLabel(/^Newsletter manager/)).toBeChecked();
+  await dialog.getByLabel(/^Newsletter manager/).uncheck();
+  await dialog.getByRole('button', { name: 'Save roles' }).click();
+  await expect(admin.getByText(`${run.ali.name}’s roles are saved`).first()).toBeVisible();
+  await expect(dialog).toBeHidden();
+  await ali.goto('/manage');
+  await expect(ali.locator('main')).toContainText('This page isn’t on your account');
   const notes = await api<{ items: { title: string }[] }>(ali, 'GET', '/api/v1/notifications');
-  expect(notes.body.items.map((n) => n.title)).toEqual(expect.arrayContaining(["You're now a student rep", 'Your role is now student']));
+  expect(notes.body.items.filter((n) => n.title === 'Your roles changed').length).toBeGreaterThanOrEqual(2);
 });
 
 test('a suspended student can read but not post; lifting it lets him post again', async ({ admin, ali, sara, run }) => {
@@ -67,10 +74,10 @@ test('a suspended student can read but not post; lifting it lets him post again'
   await expect(admin.getByText(`${run.ali.name} is suspended`, { exact: true })).toBeVisible();
 
   await ali.goto('/forum/new');
-  await expect(ali.locator('main')).toContainText('Your account is suspended, so you can’t post.');
-  await expect(ali.locator('[data-hub="post-button"]')).toBeDisabled();
+  await expect(ali.locator('[data-hub="cant-post"]')).toContainText('Your account is suspended, so you can’t post in the forum for now.');
+  await expect(ali.locator('[data-hub="post-button"]')).toHaveCount(0);
   await ali.goto(`/forum/${thread.body.slug}`);
-  await expect(ali.locator('main')).toContainText('Your account is suspended, so you can read the forum but not reply.');
+  await expect(ali.locator('[data-hub="cant-post"]')).toContainText('Your account is suspended, so you can’t post in the forum for now.');
   await expect(ali.locator('[data-hub="reply-input"]')).toHaveCount(0);
   const writes: ['PUT' | 'POST', string, unknown][] = [
     ['PUT', `/api/v1/forum/threads/${thread.body.id}/vote`, undefined],
@@ -97,9 +104,8 @@ test('a suspended student can read but not post; lifting it lets him post again'
 });
 
 test('the activity log records the role and status changes', async ({ admin, run }) => {
-  await admin.goto('/admin/people');
-  await admin.getByRole('tab', { name: 'Activity' }).click();
+  await admin.goto('/admin/access?tab=activity');
   const log = admin.locator('main');
-  await expect(log).toContainText(run.ali.name);
+  await expect(log).toContainText(`${run.ali.name}’s roles`);
   await expect(log).toContainText(/suspen/i);
 });

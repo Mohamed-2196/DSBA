@@ -11,6 +11,7 @@ from app.core.errors import not_found
 from app.core.time import utcnow
 from app.models import Notification, User
 from app.schemas.notifications import NotificationOut, NotificationPage
+from app.services import access
 from app.services.accounts import public_user
 
 
@@ -37,14 +38,19 @@ def list_page(db: Session, user: User, *, unread: bool, limit: int, offset: int)
     total = db.scalar(select(func.count()).select_from(Notification).where(*shown)) or 0
     unread_count = db.scalar(select(func.count()).select_from(Notification).where(mine, Notification.read_at.is_(None)))
     actor = aliased(User)
-    rows = db.execute(
-        select(Notification, actor)
-        .outerjoin(actor, actor.id == Notification.actor_id)
-        .where(*shown)
-        .order_by(Notification.created_at.desc(), Notification.id.desc())
-        .limit(limit)
-        .offset(offset)
-    ).tuples()
+    rows = (
+        db.execute(
+            select(Notification, actor)
+            .outerjoin(actor, actor.id == Notification.actor_id)
+            .where(*shown)
+            .order_by(Notification.created_at.desc(), Notification.id.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        .tuples()
+        .all()
+    )
+    access.prefetch(db, [a for _, a in rows])
     return NotificationPage(
         items=[_out(n, a) for n, a in rows],
         total=total,

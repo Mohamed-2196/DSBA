@@ -72,51 +72,19 @@ export function chipText(e: CalendarEvent, m: ModuleSummary | null): { code: str
   return { code: e.unitCode, line: whatHappens(e, m) };
 }
 
-/** The most important of a day's events (exams first, then in TYPE_ORDER; ties keep calendar order). */
-export function primaryEvent<T extends Pick<CalendarEvent, 'type'>>(events: readonly T[]): T | undefined {
-  const rank = (e: T): number => {
-    const i = TYPE_ORDER.indexOf(e.type);
-    return i < 0 ? TYPE_ORDER.length : i;
-  };
-  let best: T | undefined;
-  for (const e of events) if (!best || rank(e) < rank(best)) best = e;
-  return best;
-}
-
-const STRIP_WORDS: Partial<Record<EventType, string>> = {
-  mock: 'Mock',
-  revision: 'Revision',
-  deadline: 'Deadline',
-  event: 'Event',
-  break: 'Break',
-  term: 'Term date',
-};
-
-/**
- * The word under a day on the strip: exams by their unit code ('ST2134'), everything else by what
- * it is ('Revision', 'Mock', 'Deadline'…), so a mark is never identified by its colour alone.
- */
-export function stripWord(e: CalendarEvent, m: ModuleSummary | null): string {
-  if (e.type === 'exam') return e.unitCode || m?.shortName || 'Exam';
-  return STRIP_WORDS[e.type] ?? typeLabel(e.type);
-}
-
-const NAMED_BY_MODULE = new Set<EventType>(['exam', 'mock', 'revision']);
-
-/**
- * Text for a date card: { code, name }.
- * An exam, a mock or a revision session reads as code + module ('ST2134', 'Statistical inference'):
- * the card's type line says which of the three it is. Anything else attached to a module keeps its
- * own words ('EC2020', 'Last day of Econometrics MCQ on VLE'). Events without a unit code (Year 3
- * modules, programme events, term dates) read as their title.
- */
-export function cardText(e: CalendarEvent, m: ModuleSummary | null): { code: string | null; name: string } {
-  if (!e.unitCode) return { code: null, name: e.title };
-  return { code: e.unitCode, name: m && NAMED_BY_MODULE.has(e.type) ? m.shortName : splitTitle(e).rest };
-}
-
 /** '12:30 PM, Auditorium' when the organiser published a time or a place, else null. */
 export const timeAndPlace = (e: Pick<CalendarEvent, 'time' | 'place'>): string | null => [e.time, e.place].filter(Boolean).join(', ') || null;
+
+export const TIME_NOT_SET = 'Time not set yet';
+
+/**
+ * The time and place a list shows under an event: '9:00 AM, Exam hall'. An exam always has a line: without a
+ * time it reads 'Time not set yet' (with the place when there is one). Anything else: null without either.
+ */
+export function whenAndWhere(e: Pick<CalendarEvent, 'type' | 'time' | 'place'>): string | null {
+  if (e.type !== 'exam') return timeAndPlace(e);
+  return [e.time || TIME_NOT_SET, e.place].filter(Boolean).join(', ');
+}
 
 /** Screen-reader summary of an event. */
 export function eventSummary(e: CalendarEvent): string {

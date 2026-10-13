@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ApiError, NETWORK_MESSAGE, SERVER_MESSAGE, errorMessage, isApiError, isNetworkError, loadProblem, toApiError } from './errors';
+import { ApiError, NETWORK_MESSAGE, SERVER_MESSAGE, errorMessage, isApiError, isFeatureOff, isNetworkError, loadProblem, toApiError } from './errors';
 
 const response = (status: number) => new Response(null, { status });
 
@@ -50,6 +50,12 @@ describe('errorMessage', () => {
     expect(isNetworkError(toApiError(response(502), 'Bad gateway'))).toBe(false);
   });
 
+  it('shows why a role in use cannot be deleted', () => {
+    const message = 'Switched on for this role: Calendar. Change its switch first, then delete the role.';
+    const refused = toApiError(response(409), { error: { code: 'role_in_use', message } });
+    expect([refused.code, errorMessage(refused)]).toEqual(['role_in_use', message]);
+  });
+
   it('uses the fallback for anything that is not an API error', () => {
     expect(errorMessage(new Error('boom'), 'Couldn’t save. Try again.')).toBe('Couldn’t save. Try again.');
     expect(errorMessage(undefined)).toBe('Something went wrong. Try again.');
@@ -71,5 +77,13 @@ describe('loadProblem', () => {
       'Only admins can see this.',
     );
     expect(loadProblem(toApiError(response(404), undefined))).toBe(SERVER_MESSAGE);
+  });
+});
+
+describe('isFeatureOff', () => {
+  it('recognises a switched-off feature', () => {
+    expect(isFeatureOff(new ApiError({ status: 404, code: 'feature_off', message: 'This part of the hub is switched off right now.' }))).toBe(true);
+    expect(isFeatureOff(new ApiError({ status: 404, code: 'not_found', message: 'Not here.' }))).toBe(false);
+    expect(isFeatureOff(new Error('feature_off'))).toBe(false);
   });
 });

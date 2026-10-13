@@ -81,7 +81,7 @@ function invalidateLists(qc: QueryClient): Promise<void> {
   return qc.invalidateQueries({ queryKey: forumKeys.all, predicate: (q) => LIST_FAMILIES.has(String(q.queryKey[1])) });
 }
 
-/** The reports queue shows what each reported post is now (Hidden, Deleted), and the moderation page counts it:
+/** The reports queue shows what each reported post is now (Hidden, Deleted), and Manage counts it:
  *  both are stale after a post is hidden, shown again or deleted. */
 function invalidateModeration(qc: QueryClient): void {
   void qc.invalidateQueries({ queryKey: reportKeys.all });
@@ -210,9 +210,10 @@ export function flattenPages(data: { pages: ThreadPage[] } | undefined): ThreadS
 }
 
 /** The hottest threads (pinned ones left out) for a cohort plus forum-wide ones; year null: every cohort. */
-export function useHotThreads({ n = 5, year = null }: { n?: number; year?: CohortYear | null } = {}) {
+export function useHotThreads({ n = 5, year = null, enabled = true }: { n?: number; year?: CohortYear | null; enabled?: boolean } = {}) {
   const size = Math.max(1, Math.min(20, Math.round(n)));
   return useQuery({
+    enabled,
     queryKey: forumKeys.hot(size, year ?? null),
     queryFn: ({ signal }) => call(api.GET('/api/v1/forum/threads/hot', { params: { query: { limit: size, year: year ?? undefined } }, signal })),
   });

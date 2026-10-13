@@ -54,6 +54,11 @@ export function isApiError(e: unknown): e is ApiError {
   return e instanceof ApiError;
 }
 
+/** A 404 because the feature is switched off for this person. */
+export function isFeatureOff(e: unknown): boolean {
+  return e instanceof ApiError && e.code === 'feature_off';
+}
+
 /** The request never reached the API (offline, DNS, the server down behind the proxy). */
 export const NETWORK_MESSAGE = 'Couldn’t reach the Hub. Check your connection and try again.';
 /** The API failed, or the app did: not something the person can fix by checking their Wi-Fi (UX review UX-10). */
