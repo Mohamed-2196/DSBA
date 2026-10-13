@@ -12,7 +12,7 @@ router change and the e2e harness.
 
 | # | Feature | Status | Needs first |
 | --- | --- | --- | --- |
-| R-1 | Roles that each unlock more | designing | — |
+| R-1 | Roles that each unlock more | spec ready for Mohamed's review | — |
 | R-2 | Requests from students | to design | R-1 |
 | R-3 | A better calendar | to design | — |
 | R-4 | A study board | to design | R-3, for deadlines |
@@ -21,7 +21,7 @@ router change and the e2e harness.
 | R-7 | A new Noora | to design | — (pairs well with R-6) |
 | R-8 | Favourite apps | to design | R-3, R-4, R-5 |
 | R-9 | Edit modules and lessons in the app | to design | R-1 |
-| R-10 | Feature flags, switched in the admin UI | designing, with R-1 | — |
+| R-10 | Feature flags, switched in the admin UI | spec ready for Mohamed's review, with R-1 | — |
 
 ## R-1. Roles that each unlock more
 
@@ -57,6 +57,7 @@ router change and the e2e harness.
   - Should admins be able to grant single powers to anyone?
   - What should each role see first after signing in?
   - The open call on an "I'm not a student" mode that shows all years belongs here too.
+- **Spec:** `docs/superpowers/specs/2026-10-13-access-roles-and-feature-switches-design.md`, written with R-10.
 
 ## R-2. Requests from students
 
@@ -190,3 +191,4 @@ router change and the e2e harness.
   - PostHog keeps doing analytics. It can be told which features were on during a visit, still anonymously, to show
     what gets used.
 - **Designed with R-1,** since they share the admin screen and `/me`.
+- **Spec:** `docs/superpowers/specs/2026-10-13-access-roles-and-feature-switches-design.md`.
