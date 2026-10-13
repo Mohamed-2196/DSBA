@@ -61,6 +61,8 @@ export interface Reply {
   refs: Ref[];
   /** questions to offer as chips */
   suggestions?: string[];
+  /** a short line above the answer: why it comes from her script, or that it was cut off */
+  notice?: string;
 }
 
 export interface NooraMessage extends Reply {

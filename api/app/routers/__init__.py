@@ -16,6 +16,7 @@ from app.routers import (
     me,
     modules,
     newsletter,
+    noora,
     notes,
     notifications,
     progress,
@@ -45,5 +46,6 @@ for module in (
     content,
     features,
     board,
+    noora,
 ):
     api_router.include_router(module.router)

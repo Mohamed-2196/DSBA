@@ -81,12 +81,19 @@ ErrorCode = Literal[
     "role_locked",  # 409: the Admin role can't change, and a built-in role can't be deleted
     "role_changed",  # 409: another admin changed the role since it was loaded: load it again
     "role_in_use",  # 409: a feature switch is on for this role: change the switch before deleting the role
+    # modules and lessons (R-9)
+    "module_changed",  # 409: another editor saved the module since it was loaded: load it again
+    "content_in_use",  # 409: notes, cards, files or threads refer to it: hide it instead
     # notes (R-5)
     "note_changed",  # 409: the note was saved elsewhere (another tab) since this version: load it, or save over it
     "too_many_notes",  # 409: the most notes one student may keep
     # the study board (R-4)
     "board_full",  # 409: the board holds as many cards as it may
     "already_on_board",  # 409: this event, lesson, module or file already has a card
+    # Mini Noora's AI answers (R-6)
+    "noora_unavailable",  # 503: no AI right now (not set up, or Claude failed): she answers from her script
+    "noora_budget_reached",  # 503: the hub's monthly AI budget is spent: she answers from her script
+    "noora_daily_limit",  # 429: the student's questions for today are used up (retryAfter: Bahrain midnight)
 ]
 
 

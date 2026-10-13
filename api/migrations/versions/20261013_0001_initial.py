@@ -33,7 +33,7 @@ BOXES = {  # Admin holds every box without listing them
     "student": ("forum.post", "library.upload", "newsletter.react", "reports.create"),
     "rep": ("forum.moderate", "library.manage", "newsletter.manage", "calendar.manage", "stats.view"),
     "newsletter-manager": ("newsletter.manage",),
-    "content-manager": ("calendar.manage", "career.edit"),
+    "content-manager": ("calendar.manage", "career.edit", "content.edit"),
 }
 FEATURES = ("forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora")
 

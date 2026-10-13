@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any
 
-import httpx
+import httpx2
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import update
@@ -99,8 +99,8 @@ def set_option(monkeypatch: pytest.MonkeyPatch, settings: Settings) -> Callable[
     return _set
 
 
-def start(c: TestClient, identifier: str) -> httpx.Response:
-    r: httpx.Response = c.post(f"{API}/auth/otp", json={"identifier": identifier})
+def start(c: TestClient, identifier: str) -> httpx2.Response:
+    r: httpx2.Response = c.post(f"{API}/auth/otp", json={"identifier": identifier})
     return r
 
 
@@ -109,14 +109,14 @@ def sync_csrf(c: TestClient) -> None:
     c.headers["X-CSRF-Token"] = c.cookies.get("dsba_csrf") or ""
 
 
-def verify(c: TestClient, challenge_id: str, code: str) -> httpx.Response:
-    r: httpx.Response = c.post(f"{API}/auth/otp/verify", json={"challengeId": challenge_id, "code": code})
+def verify(c: TestClient, challenge_id: str, code: str) -> httpx2.Response:
+    r: httpx2.Response = c.post(f"{API}/auth/otp/verify", json={"challengeId": challenge_id, "code": code})
     sync_csrf(c)
     return r
 
 
-def logout(c: TestClient) -> httpx.Response:
-    r: httpx.Response = c.post(f"{API}/auth/logout")
+def logout(c: TestClient) -> httpx2.Response:
+    r: httpx2.Response = c.post(f"{API}/auth/logout")
     sync_csrf(c)
     return r
 

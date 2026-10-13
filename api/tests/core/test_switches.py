@@ -61,9 +61,12 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("requests", "GET", "/requests"),
     ("requests", "GET", f"/requests/{NOTHING}"),
     ("requests", "POST", "/requests"),
+    ("noora.ai", "GET", "/noora/status"),
+    ("noora.ai", "POST", "/noora/ask"),
+    ("noora.ai", "GET", "/admin/noora"),
 ]
 # Features that arrive switched off (the migrations' switches): the tests switch them on first.
-OFF_AT_FIRST = ("notes", "board", "requests")
+OFF_AT_FIRST = ("notes", "board", "requests", "noora.ai")
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
 # paths below it.
@@ -77,6 +80,7 @@ FEATURE_FREE: dict[str, str] = {
     "/admin/features": "the switches themselves",
     "/admin/audit": "the audit log",
     "/modules": "modules and lessons; their library counts follow the library's switch",
+    "/content/modules": "editing modules and lessons: a manager power, gated by its box",
     "/search": "the hub's search",
     "/features": "which features are on",
 }
@@ -100,6 +104,8 @@ AREAS: dict[str, Feature] = {
     "/career": Feature.career,
     "/notes": Feature.notes,
     "/requests": Feature.requests,
+    "/noora": Feature.noora_ai,
+    "/admin/noora": Feature.noora_ai,
 }
 
 

@@ -25,6 +25,7 @@ from app.schemas.board import BoardCard as BoardCardOut
 from app.services import access, ratelimit
 from app.services.accounts import lesson_key, parse_lesson_key
 from app.services.content import apply_patch
+from app.services.modules import visible_chapters
 
 MAX_CARDS = 500
 CREATE_LIMIT = 120
@@ -52,11 +53,11 @@ def _cards(db: Session, user_id: uuid.UUID, column: str | None = None) -> list[B
 
 def _lesson(module: Module, chapter: int, video: int) -> tuple[str, str] | None:
     """(the lesson's title, its address), or None when the module has no such lesson."""
-    chapters = module.chapters if isinstance(module.chapters, list) else []
-    if not 0 <= chapter < len(chapters) or not isinstance(chapters[chapter], dict):
+    chapters = visible_chapters(module.chapters)
+    if module.hidden or not 0 <= chapter < len(chapters):
         return None
-    videos = chapters[chapter].get("videos")
-    if not isinstance(videos, list) or not 0 <= video < len(videos):
+    videos = chapters[chapter]["videos"]
+    if not 0 <= video < len(videos):
         return None
     entry = videos[video] if isinstance(videos[video], dict) else {}
     name = entry.get("title") or f"{chapters[chapter].get('title') or f'Chapter {chapter + 1}'}, lesson {video + 1}"
@@ -89,7 +90,7 @@ def resolve_links(db: Session, user: User | None, keys: Iterable[LinkKey]) -> di
     if module_ids:
         modules = {m.id: m for m in db.scalars(select(Module).where(Module.id.in_(module_ids)))}
         for mid in wanted.get("module", ()):
-            if (module := modules.get(mid)) is not None:
+            if (module := modules.get(mid)) is not None and not module.hidden:
                 found["module", mid] = BoardLink(
                     type="module", id=mid, title=module.name, url=f"/modules/{mid}", date=None
                 )

@@ -3640,6 +3640,7 @@
                 "career",
                 "grades",
                 "noora",
+                "noora.ai",
                 "notes",
                 "board",
                 "requests"
@@ -3888,6 +3889,626 @@
                 }
               }
             }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/modules": {
+      "get": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Modules For Editing",
+        "description": "Every module, hidden ones too, by year and then in programme order.",
+        "operationId": "modules_for_editing_api_v1_content_modules_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModuleEditSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Modules For Editing Api V1 Content Modules Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Create Module",
+        "description": "A new, empty module at the end of its year. Its `id` is its address, for good. Audited.\n\nErrors: slug_taken (409), invalid_input (422: a unit code another module has, a link that isn't https://).",
+        "operationId": "create_module_api_v1_content_modules_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModuleCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleEdit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/modules/reorder": {
+      "post": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Reorder Modules",
+        "description": "One year's modules in a new order. Audited. Errors: module_changed (409: they aren't that year's modules).",
+        "operationId": "reorder_modules_api_v1_content_modules_reorder_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModuleOrder"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModuleEditSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Reorder Modules Api V1 Content Modules Reorder Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/modules/{module_id}": {
+      "get": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Module For Editing",
+        "description": "A module as the editor has it: hidden chapters and lessons too, each with its `origin` and video link.",
+        "operationId": "module_for_editing_api_v1_content_modules__module_id__get",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleEdit"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Save Module",
+        "description": "Saves the whole module. What refers to its lessons (progress, notes, study-board cards) follows them when\nthey move or are hidden. Audited, with what changed before and after.\n\nErrors: module_changed (409: someone saved it since `version`, or an `origin` that isn't in it any more),\ncontent_in_use (409: removing a chapter that still has lessons, or a lesson with notes or cards: hide it),\ninvalid_input (422: a video link the app can't embed, a unit code another module has, a link that isn't\nhttps://).",
+        "operationId": "save_module_api_v1_content_modules__module_id__put",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModuleSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleEdit"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Delete Module",
+        "description": "Removes a module nothing refers to. Audited.\n\nErrors: module_changed (409), content_in_use (409: it has lessons, files, threads, notes, cards, requests or\ncalendar dates; hide it instead).",
+        "operationId": "delete_module_api_v1_content_modules__module_id__delete",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           },
           "400": {
             "content": {
@@ -12417,6 +13038,422 @@
           }
         }
       }
+    },
+    "/api/v1/noora/ask": {
+      "post": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Ask Noora",
+        "description": "Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the\nnote or the answer. The note goes only when the student ticked \"Include my note\".\n\nErrors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly\nbudget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),\nrate_limited (429: a question a moment ago), invalid_input (422: too long).",
+        "operationId": "ask_noora_api_v1_noora_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NooraQuestion"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Server-Sent Events: text pieces, then done, or error when the answer stopped.",
+            "content": {
+              "text/event-stream": {},
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/NooraTextEvent"
+                    },
+                    {
+                      "$ref": "#/components/schemas/NooraDoneEvent"
+                    },
+                    {
+                      "$ref": "#/components/schemas/NooraErrorEvent"
+                    }
+                  ],
+                  "title": "Response 200 Ask Noora Api V1 Noora Ask Post",
+                  "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                      "text": "#/components/schemas/NooraTextEvent",
+                      "done": "#/components/schemas/NooraDoneEvent",
+                      "error": "#/components/schemas/NooraErrorEvent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "noora_unavailable (no key) or noora_budget_reached (the month's budget is spent).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/noora/status": {
+      "get": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Noora Status",
+        "description": "Whether her AI answers work for this student now, and how many questions they have left today.",
+        "operationId": "noora_status_api_v1_noora_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/noora": {
+      "get": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Noora Usage",
+        "description": "The limits, and the questions, tokens and estimated cost today and this month. Nothing per student.",
+        "operationId": "noora_usage_api_v1_admin_noora_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraUsageOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Set Noora Limits",
+        "description": "Set the questions each student may ask a day (0 pauses the AI answers) and the monthly budget in US cents.\nAdmins only. Audited (`noora.limits`).",
+        "operationId": "set_noora_limits_api_v1_admin_noora_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NooraLimitsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraUsageOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -13269,6 +14306,7 @@
               "newsletter.manage",
               "calendar.manage",
               "career.edit",
+              "content.edit",
               "requests.manage",
               "stats.view",
               "people.suspend",
@@ -14695,6 +15733,78 @@
         ],
         "title": "Chapter"
       },
+      "ChapterIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 999.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          },
+          "lessons": {
+            "items": {
+              "$ref": "#/components/schemas/LessonIn"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Lessons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "ChapterIn"
+      },
+      "ChapterOut": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "origin": {
+            "type": "integer",
+            "title": "Origin"
+          },
+          "lessons": {
+            "items": {
+              "$ref": "#/components/schemas/LessonOut"
+            },
+            "type": "array",
+            "title": "Lessons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "hidden",
+          "origin",
+          "lessons"
+        ],
+        "title": "ChapterOut"
+      },
       "ChecklistCert": {
         "properties": {
           "kind": {
@@ -15133,10 +16243,15 @@
               "role_locked",
               "role_changed",
               "role_in_use",
+              "module_changed",
+              "content_in_use",
               "note_changed",
               "too_many_notes",
               "board_full",
-              "already_on_board"
+              "already_on_board",
+              "noora_unavailable",
+              "noora_budget_reached",
+              "noora_daily_limit"
             ],
             "title": "Code"
           },
@@ -16068,6 +17183,7 @@
               "career",
               "grades",
               "noora",
+              "noora.ai",
               "notes",
               "board",
               "requests"
@@ -16149,6 +17265,7 @@
                 "career",
                 "grades",
                 "noora",
+                "noora.ai",
                 "notes",
                 "board",
                 "requests"
@@ -17050,6 +18167,140 @@
         ],
         "title": "LastLesson"
       },
+      "LessonIn": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Url"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LessonOrigin"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "LessonIn",
+        "description": "A video lesson: a YouTube video or playlist link, or a class recording on vc.bibf.com."
+      },
+      "LessonOrigin": {
+        "properties": {
+          "chapter": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Chapter"
+          },
+          "video": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Video"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chapter",
+          "video"
+        ],
+        "title": "LessonOrigin",
+        "description": "Where a lesson was in the version loaded: its chapter and video index as stored (ModuleEdit's order)."
+      },
+      "LessonOut": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Url"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
+          },
+          "origin": {
+            "$ref": "#/components/schemas/LessonOrigin"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "youtube-playlist",
+              "bbb"
+            ],
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "origin",
+          "kind"
+        ],
+        "title": "LessonOut"
+      },
       "LessonWatchedUpdate": {
         "properties": {
           "watched": {
@@ -17831,6 +19082,7 @@
                 "newsletter.manage",
                 "calendar.manage",
                 "career.edit",
+                "content.edit",
                 "requests.manage",
                 "stats.view",
                 "people.suspend",
@@ -17852,6 +19104,7 @@
                 "career",
                 "grades",
                 "noora",
+                "noora.ai",
                 "notes",
                 "board",
                 "requests"
@@ -17966,6 +19219,98 @@
         "title": "MeUpdate",
         "description": "Fields that are not sent stay as they are; `year: null` clears the cohort."
       },
+      "ModuleCreate": {
+        "properties": {
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}[0-9]{4}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Name"
+          },
+          "shortName": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 2,
+            "title": "Shortname"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Description",
+            "default": ""
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "BookOpenText",
+                  "Brain",
+                  "Briefcase",
+                  "ChartBar",
+                  "ChartLineUp",
+                  "ChartScatter",
+                  "Coins",
+                  "Database",
+                  "Function",
+                  "ListChecks",
+                  "Megaphone",
+                  "PresentationChart",
+                  "Scales",
+                  "Sigma",
+                  "Storefront",
+                  "TerminalWindow",
+                  "WaveSine"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "resources": {
+            "$ref": "#/components/schemas/ResourcesIn"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 2,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "shortName",
+          "year",
+          "id"
+        ],
+        "title": "ModuleCreate",
+        "description": "A new module, empty: its chapters come next, in the editor. `id` is its address (/modules/<id>), for good."
+      },
       "ModuleDetail": {
         "properties": {
           "id": {
@@ -18062,6 +19407,241 @@
         ],
         "title": "ModuleDetail"
       },
+      "ModuleEdit": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "shortName": {
+            "type": "string",
+            "title": "Shortname"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "chapterCount": {
+            "type": "integer",
+            "title": "Chaptercount"
+          },
+          "lessonCount": {
+            "type": "integer",
+            "title": "Lessoncount"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "resources": {
+            "$ref": "#/components/schemas/ModuleResources"
+          },
+          "chapters": {
+            "items": {
+              "$ref": "#/components/schemas/ChapterOut"
+            },
+            "type": "array",
+            "title": "Chapters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "unitCode",
+          "name",
+          "shortName",
+          "year",
+          "icon",
+          "hidden",
+          "position",
+          "version",
+          "chapterCount",
+          "lessonCount",
+          "updatedAt",
+          "description",
+          "resources",
+          "chapters"
+        ],
+        "title": "ModuleEdit"
+      },
+      "ModuleEditSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "shortName": {
+            "type": "string",
+            "title": "Shortname"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "chapterCount": {
+            "type": "integer",
+            "title": "Chaptercount"
+          },
+          "lessonCount": {
+            "type": "integer",
+            "title": "Lessoncount"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "unitCode",
+          "name",
+          "shortName",
+          "year",
+          "icon",
+          "hidden",
+          "position",
+          "version",
+          "chapterCount",
+          "lessonCount",
+          "updatedAt"
+        ],
+        "title": "ModuleEditSummary"
+      },
+      "ModuleOrder": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "ids"
+        ],
+        "title": "ModuleOrder",
+        "description": "One year's modules, in their new order: every module of that year, once each."
+      },
       "ModuleResources": {
         "properties": {
           "materials": {
@@ -18133,6 +19713,108 @@
         },
         "type": "object",
         "title": "ModuleResources"
+      },
+      "ModuleSave": {
+        "properties": {
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}[0-9]{4}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Name"
+          },
+          "shortName": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 2,
+            "title": "Shortname"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Description",
+            "default": ""
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "BookOpenText",
+                  "Brain",
+                  "Briefcase",
+                  "ChartBar",
+                  "ChartLineUp",
+                  "ChartScatter",
+                  "Coins",
+                  "Database",
+                  "Function",
+                  "ListChecks",
+                  "Megaphone",
+                  "PresentationChart",
+                  "Scales",
+                  "Sigma",
+                  "Storefront",
+                  "TerminalWindow",
+                  "WaveSine"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "resources": {
+            "$ref": "#/components/schemas/ResourcesIn"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
+          },
+          "chapters": {
+            "items": {
+              "$ref": "#/components/schemas/ChapterIn"
+            },
+            "type": "array",
+            "maxItems": 60,
+            "title": "Chapters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "shortName",
+          "year",
+          "version"
+        ],
+        "title": "ModuleSave",
+        "description": "The whole module as the editor has it. `version` is the one loaded: if someone saved since, 409\nmodule_changed. Lessons and chapters keep their `origin`, so what refers to them (progress, notes, study-board\ncards) follows them when they move."
       },
       "ModuleSummary": {
         "properties": {
@@ -18217,6 +19899,328 @@
           "libraryCount"
         ],
         "title": "ModuleSummary"
+      },
+      "NooraDoneEvent": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "done",
+            "title": "Type",
+            "default": "done"
+          },
+          "questionsLeft": {
+            "type": "integer",
+            "title": "Questionsleft"
+          }
+        },
+        "type": "object",
+        "required": [
+          "questionsLeft"
+        ],
+        "title": "NooraDoneEvent",
+        "description": "The answer is complete."
+      },
+      "NooraErrorEvent": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "error",
+            "title": "Type",
+            "default": "error"
+          },
+          "code": {
+            "type": "string",
+            "const": "noora_unavailable",
+            "title": "Code",
+            "default": "noora_unavailable"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "NooraErrorEvent",
+        "description": "The answer stopped. `code` is noora_unavailable: what came so far may be shown, with a line that it was cut\noff."
+      },
+      "NooraLimitsIn": {
+        "properties": {
+          "dailyQuestions": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Dailyquestions"
+          },
+          "monthlyBudgetCents": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Monthlybudgetcents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dailyQuestions",
+          "monthlyBudgetCents"
+        ],
+        "title": "NooraLimitsIn"
+      },
+      "NooraNote": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Title",
+            "default": ""
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 20000,
+            "title": "Body"
+          }
+        },
+        "type": "object",
+        "required": [
+          "body"
+        ],
+        "title": "NooraNote",
+        "description": "The note open in the editor. Sent only when the student ticks \"Include my note\" for this question."
+      },
+      "NooraQuestion": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "route": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Route",
+            "default": "/"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "chapter": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 500.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapter"
+          },
+          "video": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 500.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NooraNote"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/NooraTurn"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "NooraQuestion",
+        "description": "A question, and what's on the student's screen. The server looks the module and lesson up itself."
+      },
+      "NooraStatus": {
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "dailyQuestions": {
+            "type": "integer",
+            "title": "Dailyquestions"
+          },
+          "questionsLeft": {
+            "type": "integer",
+            "title": "Questionsleft"
+          }
+        },
+        "type": "object",
+        "required": [
+          "available",
+          "dailyQuestions",
+          "questionsLeft"
+        ],
+        "title": "NooraStatus",
+        "description": "Whether her AI answers work for this student now, and how many questions are left today."
+      },
+      "NooraTextEvent": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "text",
+            "title": "Type",
+            "default": "text"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "NooraTextEvent",
+        "description": "More of the answer."
+      },
+      "NooraTotals": {
+        "properties": {
+          "questions": {
+            "type": "integer",
+            "title": "Questions"
+          },
+          "students": {
+            "type": "integer",
+            "title": "Students"
+          },
+          "inputTokens": {
+            "type": "integer",
+            "title": "Inputtokens"
+          },
+          "outputTokens": {
+            "type": "integer",
+            "title": "Outputtokens"
+          },
+          "costCents": {
+            "type": "number",
+            "title": "Costcents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "questions",
+          "students",
+          "inputTokens",
+          "outputTokens",
+          "costCents"
+        ],
+        "title": "NooraTotals"
+      },
+      "NooraTurn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "student",
+              "noora"
+            ],
+            "title": "Role"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "text"
+        ],
+        "title": "NooraTurn",
+        "description": "An earlier message of the conversation, so a follow-up question makes sense."
+      },
+      "NooraUsageOut": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "dailyQuestions": {
+            "type": "integer",
+            "title": "Dailyquestions"
+          },
+          "monthlyBudgetCents": {
+            "type": "integer",
+            "title": "Monthlybudgetcents"
+          },
+          "today": {
+            "$ref": "#/components/schemas/NooraTotals"
+          },
+          "month": {
+            "$ref": "#/components/schemas/NooraTotals"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured",
+          "model",
+          "dailyQuestions",
+          "monthlyBudgetCents",
+          "today",
+          "month"
+        ],
+        "title": "NooraUsageOut",
+        "description": "The limits and the totals, for Manage's numbers. Nothing per student: only counts."
       },
       "Note": {
         "properties": {
@@ -19860,6 +21864,85 @@
         ],
         "title": "RequestPage"
       },
+      "ResourcesIn": {
+        "properties": {
+          "materials": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Materials"
+          },
+          "exercises": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exercises"
+          },
+          "exercisesNote": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exercisesnote"
+          },
+          "vle": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vle"
+          },
+          "olderExams": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Olderexams"
+          },
+          "cheatSheet": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cheatsheet"
+          }
+        },
+        "type": "object",
+        "title": "ResourcesIn",
+        "description": "The module's shared folders: https:// links (empty or null for none)."
+      },
       "ResumeUpdate": {
         "properties": {
           "moduleId": {
@@ -19970,6 +22053,7 @@
                 "newsletter.manage",
                 "calendar.manage",
                 "career.edit",
+                "content.edit",
                 "requests.manage",
                 "stats.view",
                 "people.suspend",
@@ -20042,6 +22126,7 @@
                 "newsletter.manage",
                 "calendar.manage",
                 "career.edit",
+                "content.edit",
                 "requests.manage",
                 "stats.view",
                 "people.suspend",
@@ -20154,6 +22239,7 @@
                     "newsletter.manage",
                     "calendar.manage",
                     "career.edit",
+                    "content.edit",
                     "requests.manage",
                     "stats.view",
                     "people.suspend",

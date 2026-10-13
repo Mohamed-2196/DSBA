@@ -37,6 +37,7 @@ class Box(enum.StrEnum):
     newsletter_manage = "newsletter.manage"
     calendar_manage = "calendar.manage"
     career_edit = "career.edit"
+    content_edit = "content.edit"
     requests_manage = "requests.manage"
     stats_view = "stats.view"
     people_suspend = "people.suspend"
@@ -57,6 +58,7 @@ class Feature(enum.StrEnum):
     career = "career"
     grades = "grades"  # the web app's grades calculator: nothing in the API
     noora = "noora"  # Mini Noora, in the web app: nothing in the API
+    noora_ai = "noora.ai"  # her answers from Claude (Mini Noora stays scripted without it)
     notes = "notes"  # each student's private notes
     board = "board"  # each student's private study board
     requests = "requests"
@@ -104,6 +106,11 @@ BOXES: dict[Box, BoxInfo] = {
     Box.career_edit: BoxInfo(
         "Career Navigator", "Edit Career Navigator", "Only people who edit Career Navigator can do this."
     ),
+    Box.content_edit: BoxInfo(
+        "Modules",
+        "Add, edit, reorder, hide and remove modules, chapters and lessons",
+        "Only people who edit modules and lessons can do this.",
+    ),
     Box.requests_manage: BoxInfo(
         "Requests",
         "Answer and remove students' requests, and handle reports about them",
@@ -133,6 +140,9 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.career: FeatureInfo("Career Navigator", "Career Navigator."),
     Feature.grades: FeatureInfo("Grades calculator", "The grades calculator."),
     Feature.noora: FeatureInfo("Mini Noora", "Mini Noora, the hub's helper."),
+    Feature.noora_ai: FeatureInfo(
+        "Mini Noora's AI answers", "Her answers from Claude. She answers from her script instead."
+    ),
     Feature.notes: FeatureInfo("Notes", "Students' private notes. They're kept, and come back when it's on again."),
     Feature.board: FeatureInfo("Study board", "Each student's study board, and the add-to-board buttons."),
     Feature.requests: FeatureInfo("Requests", "Students' requests, their me-toos and the answers."),

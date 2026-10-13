@@ -2,13 +2,17 @@
 // that NooraDock.tsx places (docked beside the page on a laptop, a sheet on a phone or tablet). This file is fetched
 // on demand and brings the conversation and her scripted "brain" with it.
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type RefObject } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { matchPath, useLocation } from 'react-router-dom';
 import { ArrowCounterClockwise, ArrowsInLineHorizontal, ArrowsOutLineHorizontal, EyeSlash, TrayArrowDown, X } from '@phosphor-icons/react';
+import type { NooraStatus } from '../../api/types';
 import { useAuth } from '../../auth';
+import { useOpenNote } from '../notes/public';
 import { useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { ConfirmDialog, IconButton, cx } from '../../ui';
-import { Composer } from './Composer';
+import { NOORA_STATUS_KEY, useNooraStatus } from './ai';
+import { Composer, type NoteChoice } from './Composer';
 import type { DockWidth } from './dock';
 import { Face } from './Face';
 import { addFiles, release, releaseAll, type Attachment } from './files';
@@ -16,10 +20,11 @@ import { MessageList } from './Messages';
 import type { Bust } from './sprites';
 import { pageSuggestions } from './suggestions';
 import type { Message } from './types';
-import { useChat, type Pending } from './useChat';
+import { useChat, type ChatAi, type Pending } from './useChat';
 import './ChatPanel.css';
 
 const WAVE = 2400; // ms she waves when the chat opens
+const NOTE_MAX = 20_000; // characters of a note her AI reads (the API's limit)
 
 /** Her expression in the header, from the reply that is on its way (see useChat for `pending`). */
 function faceFor(pending: Pending | null, waving: boolean): Bust {
@@ -38,9 +43,16 @@ function spokenFor(messages: Message[], pending: Pending | null): string {
   if (pending && pending.phase === 'thinking') return pending.label;
   const last = messages[messages.length - 1];
   if (!last || last.from !== 'noora') return '';
+  const notice = last.notice ? `${last.notice} ` : '';
   const where = last.refs.length ? ` Where to look: ${last.refs.map((r) => `${r.code}, ${r.label}`).join('; ')}.` : '';
   const working = (last.steps ?? []).map((s) => s.say).join(' ');
-  return `${last.text}${last.formula ? ` ${last.formula.say}` : ''}${working ? ` ${working}` : ''}${where}`;
+  return `${notice}${last.text}${last.formula ? ` ${last.formula.say}` : ''}${working ? ` ${working}` : ''}${where}`;
+}
+
+/** A number from the address (?chapter=2), or null. */
+function indexParam(params: URLSearchParams, name: string): number | null {
+  const value = Number(params.get(name) ?? Number.NaN);
+  return Number.isInteger(value) && value >= 0 ? value : null;
 }
 
 const carriesFiles = (e: DragEvent): boolean => Array.from(e.dataTransfer.types).includes('Files');
@@ -69,7 +81,54 @@ export interface ChatPanelProps {
 
 export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth, onComposerFocus, onClose, onFollow, onHide }: ChatPanelProps) {
   const { year } = useYear();
-  const { greeting, messages, pending, busy, send, clear } = useChat({ year, calm });
+  const { pathname, search } = useLocation();
+  const { modules } = useModules();
+  const { featureOn, me } = useAuth();
+
+  // Her AI: for signed-in, active students while `noora.ai` is on and it can answer (else her script answers).
+  const aiOn = featureOn('noora.ai') && me?.status === 'active' && !me.needsProfile;
+  const status = useNooraStatus(aiOn);
+  const aiReady = aiOn && status.data?.available !== false;
+  const openNote = useOpenNote();
+  const [withNote, setWithNote] = useState(false);
+  const qc = useQueryClient();
+  const screen = useRef({ pathname, search, year, openNote, withNote });
+  useEffect(() => {
+    screen.current = { pathname, search, year, openNote, withNote };
+  });
+  const ai = useMemo<ChatAi | null>(
+    () =>
+      aiReady
+        ? {
+            modules,
+            question: (text, history) => {
+              const now = screen.current;
+              const params = new URLSearchParams(now.search);
+              const moduleId = matchPath('/modules/:moduleId', now.pathname)?.params.moduleId ?? null;
+              const note = now.withNote && now.openNote ? { title: now.openNote.title, body: now.openNote.body.slice(0, NOTE_MAX) } : null;
+              return {
+                question: text,
+                route: `${now.pathname}${now.search}`.slice(0, 300),
+                year: now.year,
+                moduleId,
+                chapter: moduleId ? indexParam(params, 'chapter') : null,
+                video: moduleId ? indexParam(params, 'video') : null,
+                note,
+                history,
+              };
+            },
+            onAnswered: (left) => qc.setQueryData<NooraStatus>(NOORA_STATUS_KEY, (old) => (old ? { ...old, questionsLeft: left } : old)),
+          }
+        : null,
+    [aiReady, modules, qc],
+  );
+  const { greeting, messages, pending, busy, aiPaused, send, clear } = useChat({ year, calm, ai });
+  const usingAi = ai !== null && !aiPaused;
+  // "Include my note": offered while a note with words in it is open; ticked for one question at a time.
+  const noteChoice: NoteChoice | null =
+    usingAi && openNote && openNote.body.trim()
+      ? { title: openNote.title.trim() || 'Untitled note', checked: withNote, long: openNote.body.length > NOTE_MAX, onChange: setWithNote }
+      : null;
   const [draft, setDraft] = useState('');
   const [files, setFiles] = useState<Attachment[]>([]);
   const [note, setNote] = useState<string | null>(null);
@@ -80,9 +139,6 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
   const input = useRef<HTMLTextAreaElement>(null);
 
   // Questions for the page the student is on.
-  const { pathname } = useLocation();
-  const { modules } = useModules();
-  const { featureOn } = useAuth();
   const pageChips = useMemo(() => pageSuggestions({ pathname, year, modules, isOn: featureOn }), [pathname, year, modules, featureOn]);
 
   // Opening: she waves, and the keyboard goes to the text box. On a sheet it goes to the panel instead, so the
@@ -124,6 +180,7 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
     const text = draft.trim();
     if (!text && !files.length) return;
     if (!send({ text, attachments: files })) return; // she is still answering
+    setWithNote(false); // the note goes with one question only
     setDraft('');
     setFiles([]); // the pictures now belong to the message
     setNote(null);
@@ -166,7 +223,7 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
           </h2>
           <p className="nc-head__sub">
             <span className="nc-head__dot" aria-hidden="true" />
-            Knows your modules
+            {usingAi ? 'Knows your modules and this page' : 'Knows your modules'}
           </p>
         </div>
         <div className="nc-head__actions">
@@ -202,13 +259,18 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
           onDraft={setDraft}
           files={files}
           note={note}
+          noteChoice={noteChoice}
           busy={busy}
           onAttach={attach}
           onRemove={remove}
           onSend={submit}
           onFocus={onComposerFocus}
         />
-        <p className="nc-foot">She answers from the Hub’s modules and calendar. What you send her stays in this browser.</p>
+        <p className="nc-foot" data-hub="noora-foot">
+          {usingAi
+            ? `Answers come from Claude, an AI, and can be wrong. Your questions and notes aren’t stored: only how many you ask.${status.data ? ` ${status.data.questionsLeft} left today.` : ''} Pictures stay in this browser.`
+            : 'She answers from the Hub’s modules and calendar. What you send her stays in this browser.'}
+        </p>
         {/* Always there, shown while files are dragged over the chat. */}
         <div className="nc-drop" data-hub="noora-dropzone" aria-hidden="true">
           <TrayArrowDown weight="duotone" />
