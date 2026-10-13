@@ -3,11 +3,13 @@
 // Used by the reader and by the editor's preview.
 import type { ReactNode } from 'react';
 import type { IssueSection as SectionData, LiveFallback, ReactionCounts } from '../../../api/types';
+import { useAuth } from '../../../auth';
 import { addDaysToKey } from '../../../lib/dates';
 import { ErrorBoundary, cx } from '../../../ui';
 import { useCalendarEvents } from '../../calendar/public';
 import { useHotThreads } from '../../forum/public';
 import { useRecentFiles } from '../../library/public';
+import { liveSectionOn } from '../lib/live';
 import { plainText, sectionDomId, sectionLabel } from '../lib/text';
 import type { Block } from '../types';
 import { Aside, Blocks, Figure } from './Blocks';
@@ -80,10 +82,12 @@ function SectionFrame({ issue, section, readOnly, title = section.title, blocks 
 /** Exams between the section's dates (as of the issue, never "today"), from the calendar. */
 function DeadlinesSection(props: IssueSectionProps) {
   const { issue, section } = props;
+  const on = liveSectionOn('deadlines', useAuth().featureOn);
   const from = section.window?.from ?? issue.date;
   const to = section.window?.to ?? addDaysToKey(from, 90);
-  const q = useCalendarEvents({ from, to, type: 'exam' });
+  const q = useCalendarEvents({ from, to, type: 'exam' }, { enabled: on });
   const exams = q.data ?? [];
+  if (!on) return <SectionFrame {...props} />;
   return (
     <SectionFrame
       {...props}
@@ -101,18 +105,22 @@ function fallbackProps(section: SectionData, empty: boolean): { title: string; b
 
 /** From the forum: hot threads about a module first (study questions, study groups), then the rest. */
 function ForumSection(props: IssueSectionProps) {
-  const q = useHotThreads({ n: 12 });
+  const on = liveSectionOn('forum', useAuth().featureOn);
+  const q = useHotThreads({ n: 12, enabled: on });
   const list = q.data ?? [];
   const threads = [...list.filter((t) => t.moduleId), ...list.filter((t) => !t.moduleId)].slice(0, 4);
   const { title, blocks, fallback } = fallbackProps(props.section, !q.isPending && !threads.length);
+  if (!on) return <SectionFrame {...props} />;
   return <SectionFrame {...props} title={title} blocks={blocks} body={q.isPending ? <LiveSkeleton /> : <ForumList threads={threads} fallback={fallback} />} />;
 }
 
 /** New in the library: the newest published files. */
 function LibrarySection(props: IssueSectionProps) {
-  const q = useRecentFiles({ n: 4 });
+  const on = liveSectionOn('library', useAuth().featureOn);
+  const q = useRecentFiles({ n: 4, enabled: on });
   const files = q.data ?? [];
   const { title, blocks, fallback } = fallbackProps(props.section, !q.isPending && !files.length);
+  if (!on) return <SectionFrame {...props} />;
   return <SectionFrame {...props} title={title} blocks={blocks} body={q.isPending ? <LiveSkeleton /> : <LibraryList files={files} fallback={fallback} />} />;
 }
 

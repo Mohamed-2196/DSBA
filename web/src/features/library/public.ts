@@ -3,7 +3,7 @@
 //   useLibraryUpload({ moduleId, year }) "Upload a file" anywhere: { start, dialog } (render `dialog`; guests sign in
 //                                        first; `start` is null while uploading isn't offered). Decision D6:
 //                                        contributing means uploading to the library.
-//   useRecentFiles({ n, year })         newest published items: { data: LibraryItem[] | undefined, isPending, isError, refetch }
+//   useRecentFiles({ n, year, enabled }) newest published items: { data: LibraryItem[] | undefined, isPending, isError, refetch }
 //   <UploadsQueue />                    moderators' review queue (the /moderation page)
 //   libraryItemPath(item)               '/library/<slug>', the item's page
 //   libraryKindLabel(kind)              'Past paper', 'Students’ notes', …

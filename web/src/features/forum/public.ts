@@ -3,7 +3,7 @@
 //   <HotThreads n={5} year? />           Home widget: the n hottest threads for the student's year (plus forum-wide ones).
 //                                         Has its own loading, empty and error states. `year` overrides the browsed one.
 //   <ModuleThreads moduleId="…" />       the module page's Discussion tab: the module's threads, "Ask about this module".
-//   useHotThreads({ n, year })            UseQueryResult<ThreadSummary[]>: the hottest threads (pinned ones left out) for a
+//   useHotThreads({ n, year, enabled })   UseQueryResult<ThreadSummary[]>: the hottest threads (pinned ones left out) for a
 //                                         cohort plus forum-wide ones; year null → every cohort. Links: /forum/<slug>.
 //   <ReportButton targetType targetId />  "Report" + its dialog for a thread, a reply or a library item ('library_item').
 //   <ReportsQueue />                      the moderators' list of reports (resolve, dismiss, open the post).

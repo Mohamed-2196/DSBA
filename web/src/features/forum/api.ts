@@ -222,9 +222,10 @@ export function flattenPages(data: { pages: ThreadPage[] } | undefined): ThreadS
 }
 
 /** The hottest threads (pinned ones left out) for a cohort plus forum-wide ones; year null: every cohort. */
-export function useHotThreads({ n = 5, year = null }: { n?: number; year?: CohortYear | null } = {}) {
+export function useHotThreads({ n = 5, year = null, enabled = true }: { n?: number; year?: CohortYear | null; enabled?: boolean } = {}) {
   const size = Math.max(1, Math.min(20, Math.round(n)));
   return useQuery({
+    enabled,
     queryKey: forumKeys.hot(size, year ?? null),
     queryFn: ({ signal }) => call(api.GET('/api/v1/forum/threads/hot', { params: { query: { n: size, year: year ?? undefined } }, signal })),
   });

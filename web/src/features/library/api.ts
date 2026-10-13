@@ -114,9 +114,10 @@ export function useLibraryList(query: LibraryQuery, { limit = PAGE_SIZE, enabled
 }
 
 /** The newest published files, optionally for one cohort (Home's "New in the library"). */
-export function useRecentFiles({ n = 6, year = null }: { n?: number; year?: CohortYear | null } = {}) {
+export function useRecentFiles({ n = 6, year = null, enabled = true }: { n?: number; year?: CohortYear | null; enabled?: boolean } = {}) {
   const query: LibraryQuery = { sort: 'new', year };
   return useQuery({
+    enabled,
     queryKey: libraryKeys.list('page', query, n),
     queryFn: ({ signal }) => fetchPage(query, n, 0, signal),
     select: (page: LibraryPage) => page.items,
