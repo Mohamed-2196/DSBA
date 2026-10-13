@@ -5,12 +5,13 @@ from __future__ import annotations
 import datetime as dt
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, get_args
 
 from sqlalchemy import Boolean, CheckConstraint, Date, ForeignKey, Index, Integer, SmallInteger, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, created_ts
+from app.models.base import Base, check_in, created_ts, year_range
+from app.schemas.calendar import EventType
 
 
 class Module(Base):
@@ -40,8 +41,9 @@ class CalendarEvent(Base):
     __table_args__ = (
         Index("ix_calendar_events_date", "date"),
         Index("ix_calendar_events_created_by", "created_by"),  # account deletion (SET NULL)
-        CheckConstraint("year IS NULL OR year BETWEEN 1 AND 3", name="year_range"),
+        year_range(),
         CheckConstraint("end_date IS NULL OR end_date >= date", name="end_after_start"),
+        check_in("type", get_args(EventType)),  # code quality review CQ-15
     )
 
     id: Mapped[str] = mapped_column(String(120), primary_key=True)  # '2025-04-30-economics-exam'
@@ -50,7 +52,7 @@ class CalendarEvent(Base):
     time: Mapped[str | None] = mapped_column(String(40))  # free text, as the organiser published it
     place: Mapped[str | None] = mapped_column(String(120))
     title: Mapped[str] = mapped_column(String(160))
-    type: Mapped[str] = mapped_column(String(16))  # exam | mock | revision | deadline | event | break | term
+    type: Mapped[str] = mapped_column(String(16))  # app/schemas/calendar.py EventType
     year: Mapped[int | None] = mapped_column(SmallInteger)  # None = everyone
     module_id: Mapped[str | None] = mapped_column(ForeignKey("modules.id", ondelete="SET NULL"))
     unit_code: Mapped[str | None] = mapped_column(String(16))

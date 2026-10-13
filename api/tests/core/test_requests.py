@@ -15,8 +15,9 @@ from sqlalchemy.orm import Session
 from app.core.errors import field_name
 from app.core.links import LINK_RULE
 from app.models import AuditEntry, ItemSource, LibraryItem, User
-from app.seed.loader import V1_PUBLISHED_AT, load_library, load_modules
+from app.seed.loader import load_library, load_modules
 from app.services.audit import record
+from app.services.library import V1_PUBLISHED_AT
 from app.services.notify import hub_path, notify
 from tests.core.helpers import API, new_thread, share_pdf
 

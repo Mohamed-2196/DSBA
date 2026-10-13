@@ -131,6 +131,13 @@ class Settings(BaseSettings):
     # Comma-separated emails / phone numbers that become admins when they sign in (bootstrap).
     admin_identifiers: Annotated[list[str], NoDecode] = Field(default_factory=list)
 
+    # The Drive import (`python -m app.cli import-drive`, scripts/seed-real.sh). An API key restricted to the Drive API
+    # reads the folders shared with "anyone with the link"; a service account's JSON key file reads the folders shared
+    # with its email. With both, the key is tried first. The key travels in a request header only and is never
+    # printed or logged.
+    google_api_key: SecretStr | None = None
+    google_service_account_file: str | None = None
+
     @field_validator(
         "s3_endpoint_url",
         "s3_public_endpoint_url",
@@ -141,6 +148,8 @@ class Settings(BaseSettings):
         "backup_access_key_id",
         "backup_secret_access_key",
         "backup_kms_key_id",
+        "google_api_key",
+        "google_service_account_file",
         mode="before",
     )
     @classmethod

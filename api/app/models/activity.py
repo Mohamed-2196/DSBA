@@ -7,11 +7,12 @@ import uuid
 from datetime import datetime
 from typing import Any, get_args
 
-from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, SmallInteger, String, Text, text
+from sqlalchemy import BigInteger, ForeignKey, Index, SmallInteger, String, Text, text
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, created_ts, str_enum, uuid_pk
+from app.models.base import Base, check_in, created_ts, str_enum, uuid_pk
+from app.schemas.moderation import ReportReason, ReportTarget
 from app.schemas.notifications import NotificationKind
 
 NOTIFICATION_KINDS: tuple[str, ...] = get_args(NotificationKind)
@@ -24,7 +25,7 @@ class Notification(Base):
         Index("ix_notifications_user_unread", "user_id", postgresql_where=text("read_at IS NULL")),
         Index("ix_notifications_actor", "actor_id"),  # account deletion (SET NULL)
         # only the kinds the contract lists (code quality review CQ-10: notify() takes nothing else)
-        CheckConstraint(f"kind IN ({', '.join(repr(k) for k in NOTIFICATION_KINDS)})", name="kind"),
+        check_in("kind", NOTIFICATION_KINDS),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -82,15 +83,21 @@ class Report(Base):
             unique=True,
             postgresql_where=text("status = 'open'"),
         ),
+        Index("ix_reports_reporter_created", "reporter_id", "created_at"),  # reports per hour, export, deletion
+        # only what the contract lists (code quality review CQ-15)
+        check_in("target_type", get_args(ReportTarget)),
+        check_in("reason", get_args(ReportReason)),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
     reporter_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
-    target_type: Mapped[str] = mapped_column(String(20))  # thread | reply | library_item
+    target_type: Mapped[str] = mapped_column(String(20))  # app/schemas/moderation.py ReportTarget
     target_id: Mapped[uuid.UUID]
-    reason: Mapped[str] = mapped_column(String(20))  # spam | harassment | inappropriate | copyright | other
+    reason: Mapped[str] = mapped_column(String(20))  # app/schemas/moderation.py ReportReason
     note: Mapped[str | None] = mapped_column(Text)
-    status: Mapped[ReportStatus] = mapped_column(str_enum(ReportStatus, 10), default=ReportStatus.open)
+    status: Mapped[ReportStatus] = mapped_column(
+        str_enum(ReportStatus, 10), default=ReportStatus.open, server_default=ReportStatus.open.value
+    )
     resolved_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     resolved_at: Mapped[datetime | None]
     resolution_note: Mapped[str | None] = mapped_column(Text)

@@ -11,7 +11,7 @@ from sqlalchemy import CheckConstraint, ForeignKey, Index, SmallInteger, String,
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, created_ts, str_enum, uuid_pk
+from app.models.base import Base, created_ts, str_enum, uuid_pk, year_range
 
 
 class Role(enum.StrEnum):
@@ -39,7 +39,7 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         CheckConstraint("email IS NOT NULL OR phone IS NOT NULL", name="has_identifier"),
-        CheckConstraint("year IS NULL OR year BETWEEN 1 AND 3", name="year_range"),
+        year_range(),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -63,6 +63,8 @@ class OtpChallenge(Base):
     __table_args__ = (
         Index("ix_otp_challenges_identifier_created", "identifier", "created_at"),
         Index("ix_otp_challenges_ip_created", "ip", "created_at"),
+        # a signed-in account's codes per hour (step-up, a new address), and anonymise() before a deletion
+        Index("ix_otp_challenges_user_created", "user_id", "created_at"),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
