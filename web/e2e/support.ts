@@ -181,7 +181,7 @@ export async function ageSessions(userId: string, minutes: number): Promise<void
   if (!/^UPDATE [1-9]/m.test(stdout)) throw new Error(`ageSessions changed no session: ${stdout.slice(0, 200)}`);
 }
 
-/** Every page in the suite hides Mini Noora (her hint covers the bottom-right corner) unless a test wants her,
+/** Every page in the suite hides Mini Noora (her launcher and panel change the layout) unless a test wants her,
  * and a guest starts on Year 2 unless the test chooses otherwise (no first-visit dialog). */
 export async function prepareContext(ctx: BrowserContext, { noora = false, year = '2' }: { noora?: boolean; year?: string | null } = {}): Promise<void> {
   await ctx.addInitScript(

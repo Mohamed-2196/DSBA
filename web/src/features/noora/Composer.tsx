@@ -22,13 +22,15 @@ export interface ComposerProps {
   /** take one out of the tray */
   onRemove: (file: Attachment) => void;
   onSend: () => void;
+  /** the text box took focus (the phone sheet goes to full height, above the keyboard) */
+  onFocus?: () => void;
 }
 
 /**
  * Where the student writes: a tray of what is attached, the paperclip, the text box and Send.
  * Controlled by ChatPanel, which also takes files that are dropped on the chat.
  */
-export function Composer({ inputRef, draft, onDraft, files, note, busy, onAttach, onRemove, onSend }: ComposerProps) {
+export function Composer({ inputRef, draft, onDraft, files, note, busy, onAttach, onRemove, onSend, onFocus }: ComposerProps) {
   const ready = !busy && (draft.trim().length > 0 || files.length > 0);
 
   useLayoutEffect(() => {
@@ -103,6 +105,7 @@ export function Composer({ inputRef, draft, onDraft, files, note, busy, onAttach
           enterKeyHint="send"
           autoComplete="off"
           onChange={(e) => onDraft(e.target.value)}
+          onFocus={onFocus}
           onKeyDown={(e) => {
             // Enter sends; Shift+Enter makes a new line. (Not while an input method is still composing.)
             if (e.key !== 'Enter' || e.shiftKey || e.nativeEvent.isComposing) return;

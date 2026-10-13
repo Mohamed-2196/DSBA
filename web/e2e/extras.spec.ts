@@ -38,14 +38,25 @@ test('Mini Noora answers with the date of an exam and where to look', async ({ b
   await prepareContext(ctx, { noora: true, year: '1' });
   const page = await ctx.newPage();
   await page.goto('/');
-  await page.getByRole('button', { name: /^Mini Noora, your study helper/ }).click();
-  const chat = page.getByRole('dialog').filter({ has: page.getByLabel('Message Mini Noora') });
+  const launcher = page.locator('[data-hub="noora-launcher"]:visible');
+  await launcher.click();
+  const chat = page.locator('[data-hub="noora-chat"]');
   await expect(chat).toBeVisible();
+  // Questions for the page she is opened on.
+  await expect(chat.locator('[data-hub="noora-suggestion"]').first()).toBeVisible();
   await chat.getByLabel('Message Mini Noora').fill('When is my EC1002 exam?');
-  await chat.locator('[data-hub="noora-send"]').click();
+  await chat.getByLabel('Message Mini Noora').press('Enter');
   await expect(chat).toContainText(/The next EC1002 Economics exam is on \w+day \d+ \w+/);
-  await expect(chat.getByRole('link').filter({ hasText: /EC1002/ }).first()).toBeVisible();
+  // Her links open the page and, on a laptop, she stays open beside it.
+  await chat.getByRole('link').filter({ hasText: /EC1002/ }).first().click();
+  await expect(page).toHaveURL(/\/(calendar|modules)/);
+  await expect(chat).toBeVisible();
+  // Clearing the chat asks first.
+  await chat.locator('[data-hub="noora-clear"]').click();
+  await page.getByRole('dialog', { name: 'Clear the chat?' }).getByRole('button', { name: 'Clear chat' }).click();
+  await expect(chat.locator('[data-hub="noora-empty"]')).toBeVisible();
   await chat.getByRole('button', { name: 'Close chat' }).click();
-  await expect(chat).toHaveCount(0);
+  await expect(chat).toBeHidden();
+  await expect(launcher).toBeFocused();
   await ctx.close();
 });

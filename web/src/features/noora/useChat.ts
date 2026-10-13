@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { answer, greeting } from './brain';
-import type { Attachment } from './files';
+import { release, type Attachment } from './files';
 import { useKnowledge } from './knowledge';
-import type { Message, MyMessage, NooraMessage, Question } from './types';
+import type { Message, MyMessage, NooraMessage, Question, Reply } from './types';
 
 const BURST_EVERY = 24; // ms between bursts of characters while a reply streams in
 const BURSTS = 60; // a reply takes about this many bursts, however long it is
@@ -32,12 +32,16 @@ export type Pending =
   | { phase: 'done'; reply: NooraMessage };
 
 export interface Chat {
+  /** what she says before anything has been asked (shown as the chat's empty state) */
+  greeting: Reply;
   messages: Message[];
   pending: Pending | null;
   /** she is still answering; send() does nothing until she has finished */
   busy: boolean;
   /** true if the message was taken */
   send: (message: { text: string; attachments?: Attachment[] }) => boolean;
+  /** start again: every message goes, and an answer on its way is dropped */
+  clear: () => void;
 }
 
 /**
@@ -52,9 +56,10 @@ export function useChat({ year, calm }: { year: number | null; calm: boolean }):
     latest.current = knowledge;
   }, [knowledge]);
 
-  const [messages, setMessages] = useState<Message[]>(() => [{ id: 1, from: 'noora', ...greeting(knowledge.name) }]);
+  const hello = useMemo(() => greeting(knowledge.name), [knowledge.name]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [pending, setPending] = useState<Pending | null>(null);
-  const lastId = useRef(1);
+  const lastId = useRef(0);
   const busy = Boolean(pending) && pending?.phase !== 'done';
   const answering = useRef(false);
   useEffect(() => {
@@ -66,7 +71,7 @@ export function useChat({ year, calm }: { year: number | null; calm: boolean }):
       if (answering.current) return false;
       answering.current = true;
       lastId.current += 1;
-      const mine: MyMessage = { id: lastId.current, from: 'me', text, attachments };
+      const mine: MyMessage = { id: lastId.current, from: 'me', at: Date.now(), text, attachments };
       lastId.current += 1;
       const replyId = lastId.current;
       setMessages((list) => [...list, mine]);
@@ -87,7 +92,7 @@ export function useChat({ year, calm }: { year: number | null; calm: boolean }):
       const elapsed = Date.now() - pending.since;
       wait = Math.max(0, (thinkingReady ? pending.wait : Math.max(pending.wait, MAX_WAIT)) - elapsed);
       next = () => {
-        const reply: NooraMessage = { id: replyId, from: 'noora', ...answer(question, latest.current) };
+        const reply: NooraMessage = { id: replyId, from: 'noora', at: Date.now(), ...answer(question, latest.current) };
         setMessages((list) => [...list, reply]);
         setPending(calm ? { phase: 'done', reply } : { phase: 'typing', reply, shown: 0 });
       };
@@ -103,5 +108,17 @@ export function useChat({ year, calm }: { year: number | null; calm: boolean }):
     return () => clearTimeout(timer);
   }, [pending, calm, thinkingReady]);
 
-  return { messages, pending, busy, send };
+  const shown = useRef(messages);
+  useEffect(() => {
+    shown.current = messages;
+  }, [messages]);
+  const clear = useCallback(() => {
+    // The pictures go with the messages that carried them.
+    for (const m of shown.current) if (m.from === 'me') m.attachments.forEach(release);
+    setMessages([]);
+    setPending(null);
+    answering.current = false;
+  }, []);
+
+  return { greeting: hello, messages, pending, busy, send, clear };
 }

@@ -21,6 +21,10 @@
 .shell-topbar__search { flex: 0 1 440px; }
 .shell-topbar__actions { display: flex; align-items: center; gap: var(--sp-8); margin-left: auto; }
 .shell-topbar__search-icon, .shell-topbar__year { display: none; }
+.shell-topbar__noora { display: none; }
+@media (min-width: 700px) and (max-width: 1099px) {
+  .shell-topbar__noora { display: inline-grid; }
+}
 
 @media (max-width: 699px) {
   .shell-topbar { background: var(--surface); border-bottom-color: var(--line); height: 56px; }

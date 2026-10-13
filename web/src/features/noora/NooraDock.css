@@ -1,0 +1,164 @@
+/* Where Mini Noora lives (NooraDock.tsx). She never covers the page: on a laptop her panel is a column of the shell's
+   grid (shell/AppShell.css), so the page narrows to make room; on a phone or tablet it is a sheet from the bottom,
+   above the tab bar. The chat inside is styled by ChatPanel.css. */
+
+/* Her face in a round frame, cut from a bust sprite (each image is placed by sprites.ts → faceCrop). Also used by
+   the launchers in the shell's bars. */
+.nc-face {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-block;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--cobalt-soft);
+}
+.nc-face__img {
+  position: absolute;
+  max-width: none;
+  height: auto;
+  visibility: hidden;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.nc-face__img[data-on] { visibility: visible; }
+
+.nd {
+  --nd-w-narrow: 360px;
+  --nd-w-wide: 460px;
+}
+.nd-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--paper);
+  outline: none;
+}
+.nd-panel[hidden] { display: none; }
+
+/* While the chat's code arrives, and if it fails. */
+.nd-note {
+  flex: 1 1 auto;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--sp-12);
+  padding: var(--sp-24);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  text-align: center;
+}
+
+/* ── Laptops: a column beside the page ───────────────────────────────────────────────────────── */
+.nd--docked {
+  grid-column: 3;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  justify-content: flex-end;
+}
+/* Narrower laptops get the narrow panel whatever was chosen, so the page keeps room. */
+@media (max-width: 1279px) {
+  .nd { --nd-w-wide: 400px; --nd-w-narrow: 340px; }
+}
+.nd--docked .nd-panel {
+  width: var(--nd-w);
+  border-left: 1px solid var(--line);
+  animation: nd-fade var(--dur) var(--ease);
+}
+@keyframes nd-fade { from { opacity: 0; } }
+
+/* Closed: a slim tab at the edge where the panel opens. It is its own narrow column, so it covers nothing. */
+.nd-tab {
+  position: relative;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-8);
+  width: 40px;
+  padding: 6px 0 12px;
+  border: 1px solid var(--line);
+  border-right: 0;
+  border-radius: var(--r-panel) 0 0 var(--r-panel);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), width var(--dur-fast) var(--ease);
+}
+.nd-tab:hover { background: var(--cobalt-soft); color: var(--ink); }
+.nd-tab:focus-visible { outline-offset: -4px; }
+.nd-tab__label { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; letter-spacing: 0.01em; }
+@media (pointer: coarse) {
+  .nd-tab { width: 44px; }
+}
+
+/* ── Phones and tablets: a sheet from the bottom ─────────────────────────────────────────────── */
+.nd--sheet {
+  display: contents;
+  --nd-bottom: 0px;
+  /* Full height leaves a strip of the page above it, so it still reads as a sheet over the page. */
+  --nd-full: calc(100dvh - var(--nd-bottom) - 12px - env(safe-area-inset-top));
+  --nd-half: calc((100dvh - var(--nd-bottom)) * 0.58);
+}
+@media (max-width: 699px) {
+  .nd--sheet { --nd-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
+}
+.nd--sheet .nd-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--nd-bottom);
+  z-index: calc(var(--z-dropdown) + 5); /* over the page, under dialogs (the clear-chat question) and toasts */
+  width: min(100%, 640px);
+  height: calc(var(--nd-half) + var(--nd-grow, 0px));
+  max-height: var(--nd-full);
+  margin-inline: auto;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: var(--r-feature) var(--r-feature) 0 0;
+  box-shadow: var(--shadow-float);
+  transform: translateY(var(--nd-dy, 0px));
+  transition: height var(--dur) var(--ease), transform var(--dur) var(--ease);
+  animation: nd-rise var(--dur-slow) var(--ease);
+}
+.nd--sheet .nd-panel[data-height='full'] { height: calc(var(--nd-full) + var(--nd-grow, 0px)); }
+.nd--sheet .nd-panel.is-dragging { transition: none; }
+.nd--sheet .nd-panel[data-state='closing'] { animation: nd-sink var(--dur) var(--ease) forwards; }
+@keyframes nd-rise { from { transform: translateY(40%); opacity: 0; } }
+@keyframes nd-sink { to { transform: translateY(40%); opacity: 0; } }
+
+.nd-handle {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 24px;
+  touch-action: none;
+  cursor: grab;
+  background: var(--surface);
+}
+.nd-handle:focus-visible { outline-offset: -4px; border-radius: var(--r-feature) var(--r-feature) 0 0; }
+.nd-handle__bar { width: 40px; height: 4px; border-radius: var(--r-pill); background: var(--line-strong); }
+.nd-handle:hover .nd-handle__bar { background: var(--ink-3); }
+@media (pointer: coarse) {
+  /* 44 px to grab, reaching over the header's top padding (ChatPanel.css) so the sheet loses no room to it */
+  .nd-handle { position: relative; z-index: 1; height: 44px; margin-bottom: -16px; background: transparent; }
+  .nd--sheet .nd-panel { background: var(--surface); }
+  .nd--sheet .nd-panel > .nd-note { background: var(--paper); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nd-panel, .nd--sheet .nd-panel, .nd--sheet .nd-panel[data-state='closing'] { animation: none; transition: none; }
+  .nd-tab { transition: none; }
+}
+
+@media print {
+  .nd { display: none; }
+}
