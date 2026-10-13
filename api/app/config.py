@@ -23,6 +23,15 @@ DEV_S3_SECRET = "dsba-dev-secret"  # noqa: S105 - the development emulator's key
 DEV_EMAIL_FROM = "DSBA Hub <no-reply@dsba-hub.local>"
 HOST_PREFIX = "__Host-"  # a cookie only its own host can set: Secure, Path=/ and no Domain
 MIN_SECRET_LENGTH = 32
+OTP_MAX_ATTEMPTS = 5  # wrong tries per code; production refuses more
+# Limits production keeps at their defaults or lower, unless DSBA_ALLOW_RAISED_LIMITS says otherwise.
+RAISABLE_LIMITS = (
+    "otp_max_per_identifier_per_hour",
+    "otp_max_per_identifier_per_day",
+    "otp_max_per_ip_per_hour",
+    "sms_max_per_hour",
+    "sms_max_per_day",
+)
 
 
 class ConfigError(RuntimeError):
@@ -64,7 +73,7 @@ class Settings(BaseSettings):
 
     # One-time codes
     otp_ttl_seconds: int = 600
-    otp_max_attempts: int = 5
+    otp_max_attempts: int = OTP_MAX_ATTEMPTS
     otp_resend_seconds: int = 30
     otp_max_per_identifier_per_hour: int = 5
     otp_max_per_identifier_per_day: int = 10
@@ -93,6 +102,8 @@ class Settings(BaseSettings):
     # Texts the whole site may send (SMS pumping, finding 3). Over budget, codes by text pause; email keeps working.
     sms_max_per_hour: int = 50
     sms_max_per_day: int = 300
+    # Production refuses limits above the defaults (the e2e suite raises them) unless this says it is on purpose.
+    allow_raised_limits: bool = False
 
     # Object storage (S3 API: AWS S3 or MinIO; see docs/backend/DEPLOYMENT.md about Cloudflare R2)
     s3_endpoint_url: str | None = "http://127.0.0.1:9000"  # None = AWS
@@ -247,8 +258,25 @@ class Settings(BaseSettings):
                 add(f"DSBA_WEB_ORIGINS has {origin!r}: every origin must be https://.")
         if not _is_https_url(self.web_base_url):
             add("DSBA_WEB_BASE_URL must be the app's https:// address (emails and texts link to it).")
+        if not self.trusted_proxies:
+            add(
+                "DSBA_TRUSTED_PROXIES is empty: list the reverse proxy's address, or 127.0.0.1/32 if there is no "
+                "proxy. Without it every request seems to come from the proxy, so one person's limits stop everyone."
+            )
         if any(net.prefixlen == 0 for net in self.trusted_proxies):
             add("DSBA_TRUSTED_PROXIES trusts every address: list only the reverse proxy's address or network.")
+
+        # Rate limits
+        if self.otp_max_attempts > OTP_MAX_ATTEMPTS:
+            add(f"DSBA_OTP_MAX_ATTEMPTS must be at most {OTP_MAX_ATTEMPTS}: more lets codes be guessed.")
+        if not self.allow_raised_limits:
+            for name in RAISABLE_LIMITS:
+                default = type(self).model_fields[name].default
+                if getattr(self, name) > default:
+                    add(
+                        f"DSBA_{name.upper()} is above its default ({default}). Set DSBA_ALLOW_RAISED_LIMITS=true if "
+                        "that is on purpose."
+                    )
 
         # Object storage
         if not self.s3_bucket:
