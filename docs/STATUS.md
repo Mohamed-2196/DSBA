@@ -24,7 +24,7 @@ deployed yet.
   - The API suite (598 tests) passed at `e96121a`. The API hasn't changed since.
   - `scripts/check.sh web` passed at `5c3617d`.
   - The end-to-end suite passed 41/41, twice in a row, on Docker (`round3/e2e-docker`, 2026-10-13).
-  - The API suite has 655 tests on `round3/drive-import`. The lead re-runs it on the merged `feature/backend`.
+  - `scripts/check.sh api` passed on `feature/backend` at `401174a`: 655 tests, with the tighter ruff rules.
 - **Removed from this branch:** `launch-film/` (still on `feature/dsba-pulse` and in the history) and an unused
   demo picture.
 
