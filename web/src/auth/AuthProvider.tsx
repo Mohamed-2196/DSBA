@@ -6,6 +6,7 @@ import type { Me } from '../api/types';
 import { useAccountYearSync, useToast } from '../state';
 import { AuthContext, type AuthValue, type SignInRequest } from './context';
 import { ME_KEY, clearPersonalStorage, resetPersonalQueries } from './queries';
+import { canAdminister, canModerate } from './roles';
 import { createSessionGuard } from './sessionGuard';
 import { SignInDialog } from './SignInDialog';
 import { StepUpDialog } from './StepUpDialog';
@@ -185,8 +186,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {
       me,
       status: sessionQuery.isPending ? 'loading' : me ? 'signed-in' : 'guest',
-      isModerator: me?.role === 'moderator' || me?.role === 'admin',
-      isAdmin: me?.role === 'admin',
+      // As the API decides: the role on an active account (a suspended rep or admin has no powers).
+      isModerator: canModerate(me),
+      isAdmin: canAdminister(me),
       refresh,
       signOut,
       openSignIn,

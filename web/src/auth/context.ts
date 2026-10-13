@@ -15,7 +15,9 @@ export type AuthStatus = 'loading' | 'guest' | 'signed-in';
 export interface AuthValue {
   me: Me | null;
   status: AuthStatus;
+  /** a student rep or an admin whose account is active: a suspended one has no powers (as the API decides) */
   isModerator: boolean;
+  /** an admin whose account is active */
   isAdmin: boolean;
   /** Re-read /me (after a profile change, for instance). */
   refresh: () => Promise<void>;
