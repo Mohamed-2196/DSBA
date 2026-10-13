@@ -23,7 +23,8 @@ deployed yet.
 - **Last checks.**
   - The API suite (598 tests) passed at `e96121a`. The API hasn't changed since.
   - `scripts/check.sh web` passed at `5c3617d`.
-  - The end-to-end suite hasn't run since round 2. Two of its setup steps were fixed without being run.
+  - The end-to-end suite passed 41/41, twice in a row, on Docker (`round3/e2e-docker`, 2026-10-13).
+  - The API suite has 655 tests on `round3/drive-import`. The lead re-runs it on the merged `feature/backend`.
 - **Removed from this branch:** `launch-film/` (still on `feature/dsba-pulse` and in the history) and an unused
   demo picture.
 
@@ -34,14 +35,18 @@ The lead merges them.
 
 | Branch | Agent | Worktree | Covers ("Next" below) |
 | --- | --- | --- | --- |
-| `round3/e2e-docker` | student-tester | `../dsba-e2e` | 1: the e2e suite on Docker, one command, a rerun |
-| `round3/drive-import` | api-builder | `../dsba-drive` | 3: `import-drive`, `scripts/seed-real.sh` and tests; then the CQ-15 nits |
+| `round3/e2e-docker` | student-tester | removed | 1: merged 2026-10-13 |
+| `round3/drive-import` | api-builder | `../dsba-drive` until its checks pass on the merge | 3 and CQ-15: merged 2026-10-13 |
 | `round3/web-leftovers` | web-builder | `../dsba-web` | 4, and 5 on the web side (the data router for the leave guard) |
+| `round3/student-ideas` | student-user | removed | 24 ideas in `docs/ideas.md`: merged 2026-10-13 |
+
+- **The access API plan** (R-1 and R-10) is being written in the background, into
+  `docs/superpowers/plans/2026-10-13-access-api.md`. The web plan follows once `round3/web-leftovers` is merged.
 
 - **The re-review round (2) waits** until these three are merged, so the reviewers and the student tester see
   the finished round rather than a moving target.
-- **The Docker stack** runs from the main checkout (compose project `dsba-hub`).
-  - The student tester owns it while round 3 runs: it may recreate `api`, `mail` and `web` with its e2e override.
+- **The Docker stack** runs from the main checkout (compose project `dsba-hub`), on its normal mail backends.
+  - `scripts/e2e.sh` switches it to e2e mode, and `--restore` switches it back.
   - Nobody runs `docker compose down`: the API's pytest uses its Postgres.
 - **The local API environment** uses Python 3.12, pinned in `api/.python-version` to match the image and CI. uv
   had picked 3.15.
@@ -90,18 +95,20 @@ To bring it in:
 
 ## Next, in order
 
-1. **Run the e2e suite on Docker** (student-tester).
-   - `web/e2e/support.ts` defaults to the old cloud dev paths. Make it run against `docker compose`:
-     - the API writes mail and texts to files (`DSBA_EMAIL_BACKEND=file`, `DSBA_SMS_BACKEND=file`, with directories
-       mounted from the host);
-     - set `E2E_BASE_URL=http://localhost:5173`, `E2E_MAIL_DIR`, `E2E_SMS_DIR`, and
-       `E2E_DEV_LOGIN="docker compose exec -T api python -m app.cli dev-login"`.
-   - Add a compose override or a script so it's one command, then run the suite and fix what fails.
+1. **Done: the e2e suite on Docker.** `scripts/e2e.sh` runs it in about 3 minutes. It passed 41/41 twice.
+   - Three tests were updated for deliberate round 2 changes.
+   - Open: no test covers step-up before changing an email or phone number.
 2. **Re-review round.** The security, code-quality and UI/UX reviewers check that their findings are fixed and
    review what round 2 added. The student tester re-tests every feature as a guest, a student in each year, a rep
    and an admin. Run all four in the background, in parallel.
-3. **Import the Google Drive files into the library** (`python -m app.cli import-drive`), and add
-   `scripts/seed-real.sh`, which fills a fresh install with the real content in one command. The plan is below.
+3. **Done: the Drive import and `scripts/seed-real.sh`** (DEPLOYMENT.md section 10).
+   - Migration 0005 adds `library_items.import_key`, so a removed file never comes back.
+   - Imported files are `source=file`.
+   - Only a run with Mohamed's Google key can check the real folders, resource keys and quotas.
+   - Open:
+     - 3 links to single Drive files and 1 Google Doc stay links;
+     - `--retire-links` isn't built;
+     - `load_modules` must stop overwriting modules before R-9 lands.
 4. **Adopt the shared helpers everywhere** (left over from round 2):
    - The forum uploads images through `src/api/uploads.ts`: `uploadFile('forum_image', …)`, `checkUpload`,
      `formatSize`, `canRetryUpload` and `UPLOAD_RULES.forum_image`.

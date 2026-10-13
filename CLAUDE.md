@@ -56,7 +56,7 @@ docker compose up --build                 # the stack: app :5173, API :8000 (/ap
 scripts/check.sh            # everything CI runs (or: scripts/check.sh api | web)
 cd api && uv run --no-sync pytest tests/<area> -q                  # one area; each run makes its own database
 cd web && npm test                                                 # Vitest; name.test.ts next to the module
-cd web && npx playwright test                                      # e2e against a running stack (env in web/e2e/support.ts)
+scripts/e2e.sh                                                     # e2e against the Docker stack (--restore afterwards)
 cd api && uv run --no-sync python -m app.cli openapi > openapi.json && cd ../web && npm run api:types   # after any API shape change
 cd api && uv run --no-sync alembic revision --autogenerate -m "what changed"                          # after any model change; read it
 cd api && uv run --no-sync python -m app.cli dev-login you@example.com --name "Test" --year 2 --role admin   # token for the dsba_session cookie
@@ -96,12 +96,17 @@ Details are in `docs/backend/ARCHITECTURE.md`.
   official image is no longer on Docker Hub). Production uses AWS S3; Cloudflare R2 has no presigned POST.
 - Sign-in codes: in Docker they appear in Mailpit, and texts in `docker compose logs api`. Without Docker, both go to
   the API's log.
-- `web/e2e/support.ts` still defaults to the old cloud dev paths. To run it against Docker:
-  - set `E2E_BASE_URL`, `E2E_MAIL_DIR`, `E2E_SMS_DIR` and `E2E_DEV_LOGIN`;
-  - set the API's `DSBA_EMAIL_BACKEND=file` and `DSBA_SMS_BACKEND=file` with their directories mounted.
-
-  It's on the list in STATUS.md.
+- The e2e suite runs against Docker with `scripts/e2e.sh`. It takes about 3 minutes, and arguments go on to
+  `npx playwright test`.
+  - It applies `compose.e2e.yaml`: the API writes mail and texts to `api/var/`, and two per-network limits go up
+    in e2e mode only.
+  - Afterwards, `scripts/e2e.sh --restore` puts Mailpit back.
+  - Under Node 26, Playwright prints the wrong line numbers, so pick tests with `-g "title"`, not `file:line`.
 - On Mohamed's Mac, `npx playwright install` hangs while unpacking Chromium, probably because Node 26 is too new for
   Playwright 1.56. Don't run it. Use the installed Google Chrome instead:
   - scripts: `chromium.launch({ channel: 'chrome' })`;
-  - the e2e suite: `E2E_CHROMIUM="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"`.
+  - the e2e suite: `scripts/e2e.sh` picks Chrome by itself through `E2E_CHROMIUM`.
+- The API's backup test needs `pg_dump` 17 or newer. On the Mac that's `brew install libpq`, with
+  `/opt/homebrew/opt/libpq/bin` on PATH.
+- Write `api/uv.lock` with CI's uv version, 0.8.17 (`uvx uv@0.8.17 lock`). The Mac's uv 0.13 rewrites the whole
+  file.
