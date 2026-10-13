@@ -18,7 +18,7 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 
 /**
  * A count: tabular digits, so a count that changes doesn't nudge what's beside it, and thousands separated ('1,234').
- * The separator keeps its usual width: this typeface's tabular comma is as wide as a digit and reads as '1 , 234'.
+ * The separator has its normal width: this typeface's tabular comma is as wide as a digit and reads as '1 , 234'.
  */
 export function Count({ value }: { value: number }) {
   const [first, ...rest] = formatCount(value).split(',');

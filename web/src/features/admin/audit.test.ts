@@ -60,15 +60,15 @@ describe('describeAudit', () => {
 });
 
 describe('auditActor', () => {
-  it('is the account, the name it had, or the Hub', () => {
+  it('is the account, or the name it had then', () => {
     expect(auditActor(entry('forum.thread.hide', {}))).toBe('Hassan A.');
     expect(auditActor({ ...entry('forum.thread.hide', { actorName: 'Old name' }), actor: null } as AuditOut)).toBe('Old name');
-    expect(auditActor({ ...entry('user.role', {}), actor: null } as AuditOut)).toBe('The Hub');
   });
 
-  it('is the Hub for what a command on the server did, and a deleted user otherwise', () => {
+  it('is the Hub for what ran on the server, and a deleted user otherwise', () => {
     expect(auditActor({ ...entry('library.import', { via: 'cli', imported: 3 }), actor: null } as AuditOut)).toBe('The Hub');
     expect(auditActor({ ...entry('user.role', { via: 'bootstrap', to: 'admin' }), actor: null } as AuditOut)).toBe('The Hub');
     expect(auditActor({ ...entry('forum.thread.hide', {}), actor: null } as AuditOut)).toBe('A deleted user');
+    expect(auditActor({ ...entry('user.role', { from: 'student', to: 'moderator' }), actor: null } as AuditOut)).toBe('A deleted user');
   });
 });

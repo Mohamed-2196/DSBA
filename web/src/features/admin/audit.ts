@@ -102,9 +102,9 @@ export function describeAudit(entry: AuditOut, nameOf: (userId: string) => strin
   return `${entry.action.replace(/[._]+/g, ' ')}${quoted(entry.data?.title)}`;
 }
 
-/** Who did it: the account, the name it had then, or the Hub itself: a command run on the server (`via: 'cli'`), or
- *  the server's own settings (`via: 'bootstrap'`). */
+/** Who did it: the account, the name it had then, or the Hub itself for what ran on the server: a command
+ *  (`via: 'cli'`) or the server's own settings (`via: 'bootstrap'`). */
 export function auditActor(entry: AuditOut): string {
-  const byTheHub = entry.data?.via === 'cli' || entry.data?.via === 'bootstrap' || (entry.action === 'user.role' && !entry.actor);
+  const byTheHub = entry.data?.via === 'cli' || entry.data?.via === 'bootstrap';
   return entry.actor?.displayName ?? str(entry.data?.actorName) ?? (byTheHub ? 'The Hub' : 'A deleted user');
 }
