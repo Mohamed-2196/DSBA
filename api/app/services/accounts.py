@@ -20,6 +20,7 @@ from app.core.access import ADMIN, STUDENT
 from app.core.errors import ApiError, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
+    BoardCard,
     EmailOutbox,
     ForumReply,
     ForumThread,
@@ -44,6 +45,7 @@ from app.models import (
 from app.schemas.access import RoleSummary
 from app.schemas.auth import (
     AccountExport,
+    ExportBoardCard,
     ExportEmail,
     ExportLibraryItem,
     ExportNotification,
@@ -635,6 +637,10 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for e in db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == uid).order_by(EmailOutbox.created_at))
     ]
+    board = [
+        ExportBoardCard.model_validate(c)
+        for c in db.scalars(select(BoardCard).where(BoardCard.user_id == uid).order_by(BoardCard.created_at))
+    ]
     return AccountExport(
         user=me_out(user),
         sessions=[sessions.info(s, current) for s in sessions.live(db, uid)],
@@ -648,6 +654,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         votes=votes,
         reports=reports,
         emails=emails,
+        board=board,
     )
 
 

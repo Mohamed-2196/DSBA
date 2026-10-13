@@ -6,6 +6,7 @@ from app.routers import (
     access,
     admin,
     auth,
+    board,
     calendar,
     content,
     features,
@@ -39,5 +40,6 @@ for module in (
     calendar,
     content,
     features,
+    board,
 ):
     api_router.include_router(module.router)

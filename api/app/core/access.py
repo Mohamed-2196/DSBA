@@ -48,6 +48,7 @@ STUDENT_BOXES = frozenset({Box.forum_post, Box.library_upload, Box.newsletter_re
 
 
 class Feature(enum.StrEnum):
+    board = "board"  # each student's private study board
     forum = "forum"
     library = "library"
     library_uploads = "library.uploads"  # uploads only: the library stays readable
@@ -116,6 +117,7 @@ class FeatureInfo(NamedTuple):
 
 
 FEATURES: dict[Feature, FeatureInfo] = {
+    Feature.board: FeatureInfo("Study board", "Each student's study board, and the add-to-board buttons."),
     Feature.forum: FeatureInfo("Forum", "Every thread, reply and forum picture."),
     Feature.library: FeatureInfo("Library", "Every file and link in the library, and uploads to it."),
     Feature.library_uploads: FeatureInfo("Library uploads", "Uploading to the library. It stays readable."),

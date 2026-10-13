@@ -25,7 +25,9 @@ BoxKey = Literal[
     "people.suspend",
     "audit.read",
 ]
-FeatureKey = Literal["forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora"]
+FeatureKey = Literal[
+    "board", "forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora"
+]
 
 
 class FeaturesOut(ApiModel):
