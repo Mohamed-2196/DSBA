@@ -17,7 +17,7 @@ export function moduleDetailQuery(id: string) {
   return queryOptions({
     queryKey: moduleKeys.detail(id),
     queryFn: ({ signal }): Promise<ModuleDetail> => call(api.GET('/api/v1/modules/{module_id}', { params: { path: { module_id: id } }, signal })),
-    // Lessons change when the content team edits the seed: rarely.
+    // Lessons change when a content manager saves the module (the editor refreshes this entry): rarely.
     staleTime: 10 * 60_000,
   });
 }

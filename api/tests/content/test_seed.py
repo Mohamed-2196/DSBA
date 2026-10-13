@@ -138,10 +138,10 @@ def test_seed_loads_everything_once(db: Session) -> None:
     assert totals == (files["modules"], files["calendar"], files["newsletter"], 1)
     assert count(db, LibraryItem) == links
 
-    # run it again: modules are refreshed, nothing else is added
+    # run it again: nothing is added, and the modules stay as they are
     again = load_all(db)
     db.commit()
-    assert again == {"modules": files["modules"], "calendar": 0, "newsletter": 0, "career": 0, "library": 0}
+    assert again == {"modules": 0, "calendar": 0, "newsletter": 0, "career": 0, "library": 0}
     assert (count(db, CalendarEvent), count(db, NewsletterIssue), count(db, LibraryItem)) == (
         files["calendar"],
         files["newsletter"],
@@ -239,7 +239,7 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
 
     again = load_all(db)
     db.commit()
-    assert again == {"modules": len(read("modules")), "calendar": 0, "newsletter": 0, "career": 0, "library": 0}
+    assert again == {"modules": 0, "calendar": 0, "newsletter": 0, "career": 0, "library": 0}
     edited = db.get(CalendarEvent, edited_event)
     assert edited is not None
     assert edited.place == "Hall 2"

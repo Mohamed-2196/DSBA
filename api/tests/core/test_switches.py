@@ -77,6 +77,7 @@ FEATURE_FREE: dict[str, str] = {
     "/admin/features": "the switches themselves",
     "/admin/audit": "the audit log",
     "/modules": "modules and lessons; their library counts follow the library's switch",
+    "/content/modules": "editing modules and lessons: a manager power, gated by its box",
     "/search": "the hub's search",
     "/features": "which features are on",
 }

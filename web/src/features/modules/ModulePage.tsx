@@ -9,7 +9,7 @@ import { COHORTS, cohortColor, useDocumentTitle, useYear } from '../../state';
 import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import { Badge, Button, CohortBadge, EmptyState, ErrorBoundary, ModuleIcon, Page, Panel, ProgressRing, QueryError, Skeleton, TabPanel, Tabs, countOf } from '../../ui';
-import { ModuleThreads } from '../forum/public';
+import { ModuleThreads, Prose } from '../forum/public';
 import { ModuleFiles, useLibraryUpload } from '../library/public';
 import { useModule } from './api';
 import { useModuleExam, type ExamInfo } from './exams';
@@ -86,7 +86,11 @@ function ModuleHeader({
             )}
             <span className="mod-head__name">{m.name}</span>
           </h1>
-          <p className="mod-head__desc">{m.description}</p>
+          {m.description ? (
+            <div className="mod-head__desc">
+              <Prose text={m.description} />
+            </div>
+          ) : null}
           <div className="mod-head__meta">
             <CohortBadge year={m.year} />
             {exam ? (

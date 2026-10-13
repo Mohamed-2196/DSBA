@@ -43,6 +43,7 @@ deployed yet.
 | `round4/noora-ai` | general-purpose | `../dsba-ai` | R-6 Noora on Claude (`noora_ai` switch, off at first), migration 0006; needs `DSBA_ANTHROPIC_API_KEY` in .env |
 | `round4/e2e-fix` | student-tester | `../dsba-e2efix` | the e2e run on the merged round 4 failed at phone sign-up setup; root cause and fix |
 | `round4/noora` | web-builder | removed, merged 2026-10-14 (plus KaTeX formulas in forum and notes) | R-7 new Noora: docked panel on laptops, sheet on phones, never covers the page, page-aware suggestions |
+| `round4/content` | general-purpose | `../dsba-content`, pushed, waiting to merge | R-9 edit modules and lessons in Manage (`content.edit`), migration 0005 |
 | `round4/calendar` | web-builder | removed | R-3 calendar redesign: merged 2026-10-13 (`2ffd145`) |
 | `round4/polish` | web-builder | removed, merged 2026-10-14 | ST-13, ST-14, ST-16, ST-17, UX-18 to UX-22, SEC-17, SEC-18, SEC-20, the CQ minors, `e2e.sh --restore` restores web |
 
@@ -104,7 +105,7 @@ deployed yet.
    - Open:
      - 3 links to single Drive files and 1 Google Doc stay links;
      - `--retire-links` isn't built;
-     - `load_modules` must stop overwriting modules before R-9 lands.
+     - `load_modules` now loads only into an empty catalogue (R-9, `round4/content`).
 4. **Done: the shared helpers** are used everywhere (round 3), and features meet only through `public.ts`.
 5. **Done: the small leftovers** (round 3):
    - 44 px touch targets;

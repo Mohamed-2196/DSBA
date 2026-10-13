@@ -226,7 +226,10 @@ def _module_word(word: str) -> ColumnElement[bool]:
 
 def _modules(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
     mods = db.scalars(
-        select(Module).where(and_(*(_module_word(t) for t in terms))).order_by(Module.position, Module.id).limit(limit)
+        select(Module)
+        .where(Module.hidden.is_(False), *(_module_word(t) for t in terms))
+        .order_by(Module.position, Module.id)
+        .limit(limit)
     ).all()
     return [
         SearchHit(
