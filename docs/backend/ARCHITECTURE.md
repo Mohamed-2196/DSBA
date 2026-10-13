@@ -116,6 +116,9 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   `Admin` (both also need an active account with a profile). `is_moderator(user)` covers moderators and admins,
   and like `is_admin(user)` it is false for a suspended account: a suspended rep sees and does what any student
   does.
+- **Path operations are plain `def`.** The database layer (SQLAlchemy with psycopg) is synchronous, so FastAPI runs
+  each handler in its threadpool; an `async def` handler would block the event loop while it waits on the
+  database. Use `async def` only where everything inside awaits (FastAPI's own skill, `.claude/skills/fastapi`).
 - **Client addresses** (rate limits, sessions, the audit log) come from `app.core.security.client_ip(request)`.
   It reads `X-Forwarded-For` only when the connection comes from `DSBA_TRUSTED_PROXIES` (production: Caddy).
   Never read the header yourself.
@@ -157,7 +160,9 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   `websearch_to_tsquery` for full queries, plus a prefix match on the last word for search-as-you-type.
 - **Markdown** is stored raw and rendered by the web app, which must escape HTML. The server limits lengths
   and derives plain-text excerpts.
-- Type everything, tests included (mypy strict: `uv run --no-sync mypy app tests`). Keep handlers thin: queries
+- Type everything, tests included (mypy strict: `uv run --no-sync mypy app tests`). Ruff's rule sets include
+  `FAST` (dependencies and parameters in `Annotated`), `DTZ` (no naive datetimes), `S` (bandit), `ASYNC`, `PERF`,
+  `PIE` and `FURB`; see `[tool.ruff.lint]` in `api/pyproject.toml`. Keep handlers thin: queries
   and rules live in small functions or a `services/<area>.py` you own.
 - **Tests** (pytest) cover each endpoint's happy path, auth (guest / other user / moderator), validation
   errors and rate limits. Fixtures from `tests/conftest.py`: `client_for(user=None)` (each call is a separate
@@ -175,6 +180,12 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
 - **Data.** `api` + `call()` from `src/api/client.ts` inside TanStack Query hooks in `features/<x>/api.ts`
   (query keys as constants, mutations that invalidate or update the cache, optimistic updates for votes and
   stars). Every query has a loading, an empty and an error state, all in the existing design-system style.
+- **TanStack Query's ESLint rules** (`@tanstack/eslint-plugin-query`, `flat/recommended`) run with the lint:
+  everything a query function reads goes in its key. A query function that needs the client takes it from its
+  context (`queryFn: ({ client }) => …`) rather than from a closure.
+- **Effects are for syncing with things outside React** (react.dev, "You Might Not Need an Effect"). Derive values
+  during render, put interaction logic in event handlers, and reset a component's state with a `key` instead of
+  an effect that calls `setState`.
 - **Accounts.** `useAuth()` gives `{ me, status, isModerator, isAdmin, requireAuth, openSignIn, signOut }`.
   Guard actions with `if (!requireAuth('Sign in to reply', retry)) return;`. Never hide public content
   behind sign-in.
@@ -197,28 +208,29 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   `npm test` and `npx vite build --logLevel error`. Look at your pages in a browser (Playwright) on your own
   dev-server port.
 
-## Development environment (already running; don't restart shared services)
+## Development environment
+
+With Docker (the usual setup, Mohamed's Mac): `docker compose up --build`. Without Docker: README, "Run it without
+Docker". Either way:
 
 | what | where |
 |---|---|
-| Postgres 16 | `127.0.0.1:5432`, user `dsba` / `dsba`, database `dsba` (the shared dev DB). Tests create their own databases. |
-| S3 (moto, stands in for MinIO) | `http://127.0.0.1:9000`, bucket `dsba-hub`, keys `dsba` / `dsba-dev-secret` |
-| SMTP sink (stands in for Mailpit) | `127.0.0.1:1025`; each email is saved in `/home/claude/devsvc/mail/*.eml` |
-| SMS (file backend) | each text is saved in `/home/claude/devsvc/sms/` |
-| Shared dev API | `http://127.0.0.1:8000` (`/api/v1/docs`), auto-reloads on changes under `api/app`; log in `/home/claude/devsvc/api.log` |
-| Web dev servers | the lead's at `:5173`; frontend agents run their own: `cd web && npx vite --port <yours>` (accounts 5174, community 5175, library 5176, content 5177, tester 5178). All proxy `/api` to `:8000`. |
+| PostgreSQL | `127.0.0.1:5432`, user `dsba` / `dsba`, database `dsba`. Tests create their own databases (`DSBA_TEST_ADMIN_URL`). |
+| S3 | MinIO in Docker (`http://localhost:9000`, console `:9001`), or moto without Docker; bucket `dsba-hub`, keys `dsba` / `dsba-dev-secret` |
+| Email | Mailpit in Docker (`http://localhost:8025`); without Docker, the API's log (`DSBA_EMAIL_BACKEND=console`) or files (`file`) |
+| Texts | the API's log (`console`) or files (`DSBA_SMS_BACKEND=file`, `DSBA_SMS_FILE_DIR`) |
+| API | `http://127.0.0.1:8000` (`/api/v1/docs`); it reloads when a file under `api/app` changes |
+| Web | `:5173`. Parallel agents each run their own Vite from their own worktree (`npx vite --port 5174` … `5178`); all pass `/api` to `:8000`. |
 
 - **Sign in without a code** (development only):
-  `cd api && uv run --no-sync python -m app.cli dev-login you@example.com --name "Test Student" --year 2 [--role moderator]`.
-  It prints a token; set it as the `dsba_session` cookie for `127.0.0.1` (Playwright:
+  `cd api && uv run --no-sync python -m app.cli dev-login you@example.com --name "Test Student" --year 2 [--role moderator]`
+  (in Docker: `docker compose exec api python -m app.cli dev-login …`). It prints a token; set it as the
+  `dsba_session` cookie for the app's host (Playwright:
   `context.add_cookies([{name:'dsba_session', value: token, domain:'127.0.0.1', path:'/'}])`).
-- **Seed the dev DB:** `uv run --no-sync python -m app.cli seed`.
-- **Notification emails** go out when the mail worker runs: `cd api && uv run --no-sync python -m app.cli
-  mail-worker` (the dev stack starts one; it stops on Ctrl-C). Sign-in codes don't need it.
-- Python: `cd api && uv run --no-sync <cmd>`. Node: `cd web && npx <cmd>`. Playwright and Chromium are
-  installed (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`).
-- The machine has 2 CPUs and others share it. Keep test runs targeted, and don't leave watchers running
-  when you finish (stop the dev servers you started).
+- **Seed the dev DB:** `python -m app.cli seed` (the API also seeds when it starts).
+- **Notification emails** go out when the mail worker runs (`python -m app.cli mail-worker`; Docker starts one).
+  Sign-in codes don't need it.
+- Keep test runs targeted and run long ones in the background; stop the dev servers you started when you finish.
 
 ## Security baseline (builders apply it from the start; the security reviewer checks it)
 
@@ -232,11 +244,13 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   recent confirmation: a session less than 10 minutes old, or a step-up code sent to an identifier the account
   already has (decision D2; `sessions.require_step_up()`). Admins can recover an account
   (`PATCH /admin/users/{id}` with `email`/`phone`, audited).
-- Sessions: a random token in an HttpOnly cookie, stored only as a SHA-256. Rotate on sign-in, revoke on
-  sign-out, and let people revoke other sessions. CSRF: the middleware checks every unsafe request for an
-  `X-CSRF-Token` header equal to the CSRF cookie, and with a session the token must be the one bound to it (an
-  HMAC of the session token: set at sign-in, replaced at sign-out), so a CSRF cookie planted by someone else
-  fails. In production both cookies are `__Host-` cookies (Secure, `Path=/`, no `Domain`).
+- Sessions: a random token (256 bits) in an HttpOnly, SameSite=Lax cookie, stored only as a SHA-256. A session
+  lasts `DSBA_SESSION_DAYS` (30) at most; there is no idle timeout yet (`docs/reviews/standards.md`, S-2). Rotate
+  on sign-in, revoke on sign-out, and let people revoke other sessions. CSRF: the middleware checks every unsafe
+  request for an `X-CSRF-Token` header equal to the CSRF cookie, and with a session the token must be the one bound
+  to it (an HMAC of the session token: set at sign-in, replaced at sign-out), so a CSRF cookie planted by someone
+  else fails. This is OWASP's signed double-submit pattern; SameSite=Lax is defense in depth on top, never instead.
+  In production both cookies are `__Host-` cookies (Secure, `Path=/`, no `Domain`).
 - Client addresses: `client_ip()` trusts `X-Forwarded-For` only from `DSBA_TRUSTED_PROXIES`, so nobody picks
   their own address for the rate limits.
 - Authorization on every object: owner or moderator. Hidden, pending and removed things are 404 to others.

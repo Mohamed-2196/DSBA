@@ -73,6 +73,13 @@ Inside Docker, run the CLI with `docker compose exec api python -m app.cli <comm
 
 Details are in `docs/backend/ARCHITECTURE.md`.
 
+- **Not released yet: no backward compatibility.**
+  - Change schemas, API shapes, URLs and names directly. No shims, deprecated fields, aliases, redirects, data
+    migrations or fallbacks that exist only to keep old behaviour working.
+  - Edit or squash migrations and rebuild the local database whenever that keeps the code simpler.
+  - Comments and docstrings describe the code as it is, never its history: no "v1", "legacy", "deprecated",
+    "used to", "previously", "replaces" or "moved from".
+
 - **API:**
   - Routers stay thin; the logic lives in `app/services`.
   - Errors use the shared envelope with typed codes (`app/core/errors.py`).

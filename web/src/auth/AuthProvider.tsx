@@ -108,13 +108,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // again whenever the tab comes back (UX-1): a session ended elsewhere shows here without a reload.
   const sessionQuery = useQuery({
     queryKey: ME_KEY,
-    queryFn: async (): Promise<Me | null> => {
-      const before = qc.getQueryData<Me | null>(ME_KEY) ?? null;
+    queryFn: async ({ client }): Promise<Me | null> => {
+      const before = client.getQueryData<Me | null>(ME_KEY) ?? null;
       const { me } = await call(api.GET('/api/v1/auth/session'));
       // Signing in again after a session ended: keep the page as it was until that is done.
       if (before && !me && reauthPending()) return before;
       if (before && !me) queueMicrotask(() => sessionEndedRef.current({ userId: before.id, write: false }));
-      else if (before && me && before.id !== me.id) void resetPersonalQueries(qc); // another tab switched accounts
+      else if (before && me && before.id !== me.id) void resetPersonalQueries(client); // another tab switched accounts
       return me ?? null;
     },
     staleTime: 60_000,

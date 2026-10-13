@@ -24,7 +24,7 @@ deployed yet.
   - The API suite (598 tests) passed at `e96121a`. The API hasn't changed since.
   - `scripts/check.sh web` passed at `5c3617d`.
   - The end-to-end suite passed 41/41, twice in a row, on Docker (`round3/e2e-docker`, 2026-10-13).
-  - The API suite has 655 tests on `round3/drive-import`. The lead re-runs it on the merged `feature/backend`.
+  - `scripts/check.sh api` passed on `feature/backend` at `401174a`: 655 tests, with the tighter ruff rules.
 - **Removed from this branch:** `launch-film/` (still on `feature/dsba-pulse` and in the history) and an unused
   demo picture.
 
@@ -55,40 +55,21 @@ The lead merges them.
   - It's a stub for Mohamed to write, because he knows how the real files are named.
   - Until then, imported papers have no year or zone. The import calls it already.
 
-**Standards review.** A cloud session was started for it at 23:40 on 2026-10-12. It hit the account's usage
-limit 33 minutes in and stopped without pushing anything.
-- **Done since, on 2026-10-13:**
-  - item 2, the skills in `.claude/skills/` (README there);
-  - item 3, CLAUDE.md;
-  - item 5, the pre-push hook: `.githooks/pre-push`, turned on with `scripts/install-hooks.sh`. A typical push
-    takes about one to two minutes on a slow machine.
-- **Still open:**
-  - item 1, the audit of the written standards;
-  - item 4, the rest of the README refresh. Its hook section is done.
-
-What Mohamed asked for:
-1. **Audit the standards.** Check the coding standards and quality rules in the docs (`ARCHITECTURE.md`'s
-   conventions and security baseline, the README's checks) against the official sources:
-   - FastAPI, SQLAlchemy 2, Pydantic v2 and Alembic;
-   - OWASP ASVS and the cheat sheets;
-   - react.dev, TanStack Query, the tsconfig strict options, typescript-eslint and ruff.
-
-   Use web search and cite the sources. Fix the docs where they're wrong or vague, and check that the code
-   follows them.
-2. **Port useful skills** into `.claude/skills/`. Look for existing good ones online first (FastAPI, React and
-   others), keep their licence notices, and fit them to this repo. Suggested: `fastapi-endpoint`, `react-feature`,
-   `db-migration`, `e2e-test` and `review-checklist`.
-3. **CLAUDE.md** (done).
-4. **A refreshed README** for a new contributor.
-5. **A pre-push hook** for the standard checks.
-   - It lives at `.githooks/pre-push`, is enabled with `git config core.hooksPath .githooks` through
-     `scripts/install-hooks.sh`, and works on macOS (bash 3.2) and Linux.
-   - It runs only what the pushed commits touch:
-     - `api/**` gets ruff, ruff format, mypy and pytest;
-     - `web/**` gets both tsc projects, ESLint, the unit tests and the schema drift check.
-   - A typical push takes under about two minutes. The full API suite runs with `FULL_CHECKS=1`, and CI runs
-     everything.
-   - `SKIP_CHECKS=1 git push` (or `--no-verify`) skips it in an emergency.
+**Standards review: done 2026-10-13** (in the cloud session, after its own run hit the usage limit).
+- **What's in:**
+  - the audit, in `docs/reviews/standards.md`;
+  - the skills in `.claude/skills/`;
+  - CLAUDE.md;
+  - the README;
+  - the pre-push hook (`scripts/install-hooks.sh`).
+- **Applied in the audit:**
+  - ruff also selects `FAST`, `ASYNC`, `PERF`, `PIE` and `FURB`;
+  - ESLint runs TanStack Query's recommended rules (`@tanstack/eslint-plugin-query`);
+  - `ARCHITECTURE.md`'s development section now describes Docker and the setup without it, instead of the old
+    cloud machine.
+- **For `round3/web-leftovers`.** When it merges, the new query lint may flag a query function that reads
+  something its key doesn't hold. The fix is to add that thing to the key, or, for the query client, use
+  `queryFn: ({ client }) => …`.
 
 ## Next, in order
 
@@ -127,16 +108,31 @@ What Mohamed asked for:
      a data router would.
    - `--measure` is 72ch, too wide; use 58–60ch.
    - The CQ-15 index and column nits that remain.
-6. **Clean-up.** Mohamed approved deleting finished branches (2026-10-13). Auto mode blocks `git push --delete`,
-   so he runs the command himself or allows it in his settings.
-   - Still on GitHub: `round2/fe-forum`, `round2/fe-library`, `round2/fe-content` and `round3/student-ideas` (all
-     merged), and `claude/zen-cerf-7e5mbj` (in `master` since 2026-09-23).
-   - Also `wip/accounts-round2`, which was superseded. Its one unmerged commit is `140fd8e`, if it's ever wanted.
-7. **Round 4: Mohamed's requests** in `docs/ROADMAP.md` (R-1 to R-8): roles, requests, the calendar, a study board,
+6. **Done: the clean-up (2026-10-13).** Mohamed deleted the eight finished branches on GitHub.
+   - The merged ones: `round2/fe-*`, `round3/student-ideas`, `round3/e2e-docker` and `round3/drive-import`.
+   - `claude/zen-cerf-7e5mbj`.
+   - `wip/accounts-round2`, whose one unmerged commit was `140fd8e`.
+   - From now on, finished branches go as soon as they're merged (CLAUDE.md).
+7. **No backward compatibility** (Mohamed, 2026-10-13: the app isn't released, see CLAUDE.md). A clean-up branch
+   runs once `round3/web-leftovers` is merged:
+   - **API:** remove the deprecated `emailNotifications` and `newsletterEmails` preferences and
+     `DEPRECATED_SWITCHES`. The newsletter's subscribe box then uses `emailNewIssues`.
+   - **Web:** remove the grades calculator's `LEGACY_KEY` storage migration.
+   - **Comments and docstrings** in `api/` and `web/` that narrate history ("v1", "legacy", "deprecated", "used to",
+     "previously", "replaces", "moved from") are rewritten to describe the code as it is. The grades feature has
+     the most.
+   - **Migrations.** The access work (item 9) squashes them into one baseline, and the local database is rebuilt.
+8. **From the standards review** (`docs/reviews/standards.md`, ranked):
+   - S-1 typed linting: fix the 24 unhandled or misused promises, then switch to `recommendedTypeChecked`;
+   - S-3 re-encode uploaded pictures, so they don't carry the student's location;
+   - S-4 `noUncheckedIndexedAccess`, folder by folder;
+   - S-5 to S-7: a `Permissions-Policy` header, a Fetch Metadata CSRF layer, malware scanning, and effects that
+     copy props into state.
+9. **Round 4: Mohamed's requests** in `docs/ROADMAP.md` (R-1 to R-8): roles, requests, the calendar, a study board,
    notes, Noora with context, a new Noora and favourite apps.
    - Each is designed with him first, then built.
-   - R-1 (roles) is being designed now.
-   - Building starts after round 3 is merged.
+   - **R-1 and R-10 (access):** the spec is approved and has no compatibility layer. The API plan is being written.
+     The work runs on `round4/access` (API and web together) after round 3 and item 7.
 
 ## Waiting on Mohamed
 
@@ -155,6 +151,8 @@ What Mohamed asked for:
   - Is it right that the author of a hidden post can read it but not delete it?
   - Should we build a "shared computer" sign-in with a shorter session?
   - Should an "I'm not a student" mode show all years?
+  - Should sessions end after some days without use (standards review S-2)? For example 7–14 days, plus the
+    "shared computer" option with a short session.
   - Newsletter pictures: uploads need an issue id first, so for now the editor offers only the app's own pictures.
 - **To deploy:** a server, a domain, an S3 bucket with its keys, an SMTP account and, for texts, Twilio.
   `docs/backend/DEPLOYMENT.md` has the full list.

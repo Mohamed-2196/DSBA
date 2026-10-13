@@ -24,7 +24,10 @@ The API enforces every one of these decisions, and the app shows each person onl
 - **Switches.** Feature switches live in the hub, and admins flip them in the admin UI, not in environment variables
   or code.
 - **PostHog** stays anonymous analytics.
-- **Day one.** Nothing changes for anyone on the day this ships.
+- **No compatibility.** The app isn't released (Mohamed, 2026-10-13).
+  - Schemas, API shapes, URLs and role names change directly, with no legacy fields, aliases, redirects or data
+    migrations.
+  - The migrations are squashed into one baseline, and local databases are rebuilt.
 
 ## Words
 
@@ -35,10 +38,10 @@ The API enforces every one of these decisions, and the app shows each person onl
 
 ## The boxes
 
-Each box replaces checks that exist today. Stars, lesson progress, notifications and a person's own account need no
+Each box takes over the checks listed next to it. Stars, lesson progress, notifications and a person's own account need no
 box: every active signed-in account has them.
 
-| Box | Allows | Replaces today's | Ready-made roles with it |
+| Box | Allows | The checks it takes over | Ready-made roles with it |
 | --- | --- | --- | --- |
 | `forum.post` | start threads, reply, vote, accept an answer; edit and delete your own posts | `ActiveUser` on forum writes | Student |
 | `library.upload` | upload files for review | `ActiveUser` on library uploads | Student |
@@ -60,7 +63,7 @@ Later features add their own boxes when they're built, for example `requests.han
 - give and take away roles;
 - flip switches;
 - change an account's email or phone (account recovery, SEC-9);
-- see who reported something (today `is_admin()` in `services/reports.py`);
+- see who reported something (the check in `services/reports.py`);
 - suspend an admin.
 
 ## Ready-made roles
@@ -76,14 +79,14 @@ Later features add their own boxes when they're built, for example `requests.han
 - **New accounts** get Student. An admin may take it away. A signed-in person with no roles reads, like a guest.
 - **Badges.** A role may show a badge next to its holders' names. A person with several badge roles shows the first
   in role order: Admin, then Rep, then the others in the order admins set. Without a badge, the line under a name
-  shows the cohort, as today.
+  shows the cohort.
 - **Staff names** (finding 20). Names with staff words ("admin", "student rep" and so on) are allowed for people who
-  hold a role with a badge. Today that's reps and admins.
+  hold a role with a badge.
 
 ## Rules
 
 1. **What you may do.** You may do what every box from all your roles allows. Admin has every box. A suspended
-   account has no boxes and reads like a guest, as today (finding 4).
+   account has no boxes and reads like a guest (finding 4).
 2. **Switches.**
    - Each feature has one switch: Off, Some roles or Everyone.
    - A feature is on for you when its switch is Everyone, or Some roles and you hold one of those roles.
@@ -111,7 +114,7 @@ Later features add their own boxes when they're built, for example `requests.han
   - `forum`, `library`, `newsletter`, `calendar`, `career`, `grades` and `noora`;
   - `library.uploads`: uploads only, while the library stays readable.
 - **Features without a switch.** Modules and lessons, the home page, accounts and notifications are the hub itself.
-- **On the day this ships,** every switch is Everyone.
+- **The seed** sets every existing feature's switch to Everyone.
 - **New features** (the board, notes, requests) arrive with their switch Off.
 
 **When a feature is off for you:**
@@ -132,35 +135,34 @@ Later features add their own boxes when they're built, for example `requests.han
   - `feature_switch_roles`: feature, role_id.
 - **Keys.** Box and feature keys are strings checked against the fixed lists in `app/core/access.py`. A stored key
   the code no longer knows is ignored.
-- **The migration.** `users.role` goes away in one Alembic migration, which:
-  - creates the tables;
-  - seeds the ready-made roles and the switches;
-  - moves today's people over: student → Student, moderator → Student + Rep, admin → Student + Admin;
-  - drops the column.
-
-  Its downgrade maps back: Admin → admin, else Rep → moderator, else student.
+- **Migrations.** Every migration is squashed into one baseline, `0001_initial`, built from the models with these
+  tables in it, and the local database is rebuilt. `users.role` and the `Role` enum no longer exist.
+- **Ready-made roles and switches** are created by the seed, so a fresh install and the test database start the
+  same way.
 
 ### Checks
 - **`app/core/access.py`** holds:
   - the `Box` and `Feature` enums;
   - `boxes_for(user)`, `can(user, box)` and `feature_on(user, feature)`;
   - the FastAPI dependencies `requires(box)` and `feature(feature)`.
-- **What they replace:**
-  - `Moderator` and `Admin` on the 18 endpoints that use them;
-  - the 25 inline calls to `is_moderator()` and `is_admin()`.
+- **What goes:**
+  - the `Moderator` and `Admin` dependencies, on the 18 endpoints that use them;
+  - `is_moderator()` and `is_admin()`, with their 25 inline calls.
+
+  Each one becomes the box it stands for.
 - **Loading a person's access.** Their roles and boxes load once per request.
 
 ### Shapes
-- **`GET /me`** adds `roles` (id, name, badge), `boxes` and `features`, and drops `role`.
+- **`GET /me`** returns `roles` (id, name, badge), `boxes` and `features`.
 - **`GET /features`** is public. It returns the features switched on for everyone, for guests.
-- **`UserPublic.role`** becomes `badge`, a string or null.
+- **`UserPublic`** carries `badge`, a string or null.
 - **Admin endpoints** are CSRF-checked, rate-limited and audited:
   - `GET` and `POST /admin/roles`;
   - `PATCH` and `DELETE /admin/roles/{id}`;
   - `PUT /admin/users/{id}/roles`;
   - `GET /admin/features` and `PUT /admin/features/{feature}`.
-- **`PATCH /admin/users/{id}`** keeps `status`, which now needs `people.suspend`, and the account-recovery fields,
-  which stay admin-only. It drops `role`.
+- **`PATCH /admin/users/{id}`** takes `status`, which needs `people.suspend`, and the account-recovery fields,
+  which are admin-only.
 - **Errors:**
 
   | Code | When |
@@ -171,14 +173,14 @@ Later features add their own boxes when they're built, for example `requests.han
   | `role_locked` | 409, the Admin role, or deleting a built-in role |
 
 ### The CLI
-- `set-role` and `dev-login --role` keep accepting student, moderator and admin, mapped to the new roles, so scripts
-  and the e2e suite keep working.
+- `set-role` and `dev-login --role` take a role slug: student, rep, newsletter-manager, content-manager or admin. The
+  e2e suite signs reps in with `--role rep`.
 - `DSBA_ADMIN_IDENTIFIERS` gives the Admin role at sign-in.
 
 ## Web
 
-- **`useAuth()`** gains `can(box)`, `featureOn(feature)` and `roles`, and loses `isModerator` and `isAdmin`.
-  `RoleGate` becomes `Gate`, which takes a `box`, a `feature`, or both.
+- **`useAuth()`** offers `can(box)`, `featureOn(feature)` and `roles`. `Gate` takes a `box`, a `feature`, or both.
+  `isModerator`, `isAdmin` and `RoleGate` go.
 - **Guests** load `/features` once. Signed-in people get theirs from `/me`.
 - **Visibility.** Menus, the home page, the command palette, search results and links show only what's on for the
   person and what they may do.
@@ -188,13 +190,13 @@ Later features add their own boxes when they're built, for example `requests.han
     - newsletter drafts;
     - the calendar and Career Navigator;
     - the hub's numbers.
-  - It replaces `/moderation`, which redirects to it.
+  - `/moderation` goes.
 - **Access** (`/admin/access`) is for admins only, and has three tabs:
   - **Roles:** a grid of roles against boxes, grouped by area, with a "New role" button.
     - Deleting a custom role asks first, and says how many people hold it.
     - On phones the grid shows one role at a time, so nothing scrolls sideways.
-  - **People:** search, then for each person their roles as checkboxes, and suspend or restore. It replaces
-    `/admin/people`, which redirects to it.
+  - **People:** search, then for each person their roles as checkboxes, and suspend or restore. `/admin/people`
+    goes.
   - **Features:** for each feature, Off, Some roles (choose them) or Everyone, with a line on what switching it off
     hides.
 - **Labels.** The line under a name shows the badge, else the cohort.
@@ -237,7 +239,8 @@ Add these at the end of `docs/backend/ARCHITECTURE.md`:
     - the last admin can't be removed or suspended;
     - the Admin role can't be edited or deleted;
     - `people.suspend` can't suspend an admin.
-  - **The migration.** Today's people map correctly, the upgrade and downgrade both run, and the drift check passes.
+  - **The baseline.** It builds the models' schema (the drift check), and the seed creates the ready-made roles and
+    switches.
   - **Shapes, audit and notifications.** `/me`, `/features`, `UserPublic.badge`, the audit entries and the
     notifications.
 - **Web:**
@@ -255,5 +258,5 @@ Add these at the end of `docs/backend/ARCHITECTURE.md`:
 4. The Manage and Access screens.
 5. The PostHog property.
 
-The release keeps every switch on Everyone and every power where it is today. The e2e suite passes, except where it
-read `role`.
+API and web change together on one branch, `round4/access`, merged once both are done. The e2e suite moves to the new
+role names and screens on the same branch.
