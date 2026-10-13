@@ -19,7 +19,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, defer
 from sqlalchemy.orm.attributes import set_committed_value
 
-from app.core.access import Box
+from app.core.access import Box, Feature
 from app.core.errors import conflict, not_found
 from app.core.time import utcnow
 from app.models import ForumReply, ForumThread, ItemStatus, LibraryItem, PostStatus, Report, ReportStatus, User
@@ -34,6 +34,7 @@ from app.services.ratelimit import enforce
 
 REPORTS_PER_HOUR = 20  # a cap on what lands in the reps' queue (security design review, finding 19)
 ALREADY_REPORTED = "You've already reported this. A student rep will look at it soon."
+TARGET_FEATURES: dict[str, Feature] = {"thread": Feature.forum, "reply": Feature.forum, "library_item": Feature.library}
 
 
 def _users(db: Session, ids: Iterable[uuid.UUID | None]) -> dict[uuid.UUID, User]:
@@ -155,19 +156,20 @@ def create_report(db: Session, user: User, data: ReportCreate) -> Report:
     return report
 
 
-def _queue(user: User) -> list[str]:
-    """The target types this person acts on: forum posts with forum.moderate, library files with library.manage."""
+def _queue(db: Session, user: User) -> list[str]:
+    """The target types this person acts on: forum posts with forum.moderate, library files with library.manage, each
+    while its feature is on for them."""
     types: list[str] = []
-    if access.can(user, Box.forum_moderate):
+    if access.can(user, Box.forum_moderate) and access.feature_on(db, user, Feature.forum):
         types += ["thread", "reply"]
-    if access.can(user, Box.library_manage):
+    if access.can(user, Box.library_manage) and access.feature_on(db, user, Feature.library):
         types.append("library_item")
     return types
 
 
 def open_count(db: Session, user: User) -> int:
     """The open reports in this person's queue (the dashboard's count)."""
-    where = (Report.status == ReportStatus.open, Report.target_type.in_(_queue(user)))
+    where = (Report.status == ReportStatus.open, Report.target_type.in_(_queue(db, user)))
     return db.scalar(select(func.count()).select_from(Report).where(*where)) or 0
 
 
@@ -214,7 +216,9 @@ def list_reports(db: Session, user: User, status: str, limit: int, offset: int) 
     st = ReportStatus(status)
     total = (
         db.scalar(
-            select(func.count()).select_from(Report).where(Report.status == st, Report.target_type.in_(_queue(user)))
+            select(func.count())
+            .select_from(Report)
+            .where(Report.status == st, Report.target_type.in_(_queue(db, user)))
         )
         or 0
     )
@@ -225,7 +229,7 @@ def list_reports(db: Session, user: User, status: str, limit: int, offset: int) 
     )
     reports = db.scalars(
         select(Report)
-        .where(Report.status == st, Report.target_type.in_(_queue(user)))
+        .where(Report.status == st, Report.target_type.in_(_queue(db, user)))
         .order_by(*order)
         .limit(limit)
         .offset(offset)
@@ -241,7 +245,7 @@ def resolve_report(db: Session, user: User, report_id: uuid.UUID, data: ReportRe
     one conditional UPDATE: when two reps close it at once, the second gets report_closed (code quality review CQ-14)
     and the reporter hears once."""
     report = db.get(Report, report_id)
-    if report is None or report.target_type not in _queue(user):
+    if report is None or report.target_type not in _queue(db, user):
         raise not_found("This report doesn't exist.")
     note = clean_body(data.note) if data.note else ""
     values = {

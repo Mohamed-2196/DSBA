@@ -1209,7 +1209,7 @@ export interface paths {
          * @description Report a thread, reply or library item (one open report per person and target).
          *
          *     Errors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),
-         *     rate_limited (429).
+         *     rate_limited (429), feature_off (404: the forum or the library is switched off).
          */
         post: operations["create_report_api_v1_reports_post"];
         delete?: never;
@@ -1228,8 +1228,8 @@ export interface paths {
         /**
          * List Reports
          * @description Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they
-         *     can act on: forum posts with forum.moderate, library files with library.manage. `reporter` is set for admins only
-         *     (student reps are classmates).
+         *     can act on: forum posts with forum.moderate, library files with library.manage, each while its feature is on for
+         *     them. `reporter` is set for admins only (student reps are classmates).
          */
         get: operations["list_reports_api_v1_admin_reports_get"];
         put?: never;

@@ -15,7 +15,7 @@ from app.models import User
 from app.routers._base import router_for
 from app.schemas.common import Ok
 from app.schemas.moderation import ReportCreate, ReportOut, ReportPage, ReportResolve
-from app.services import reports
+from app.services import access, reports
 
 router = router_for("reports")
 ReportsQueue = Annotated[
@@ -33,7 +33,8 @@ def create_report(body: ReportCreate, user: Annotated[User, requires(Box.reports
     """Report a thread, reply or library item (one open report per person and target).
 
     Errors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),
-    rate_limited (429)."""
+    rate_limited (429), feature_off (404: the forum or the library is switched off)."""
+    access.require_feature(db, user, reports.TARGET_FEATURES[body.target_type])
     reports.create_report(db, user, body)
     db.commit()
     return Ok()
@@ -48,8 +49,8 @@ def list_reports(
     offset: Offset = 0,
 ) -> ReportPage:
     """Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they
-    can act on: forum posts with forum.moderate, library files with library.manage. `reporter` is set for admins only
-    (student reps are classmates)."""
+    can act on: forum posts with forum.moderate, library files with library.manage, each while its feature is on for
+    them. `reporter` is set for admins only (student reps are classmates)."""
     return reports.list_reports(db, user, status_, limit, offset)
 
 

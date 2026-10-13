@@ -7116,7 +7116,7 @@
           "reports"
         ],
         "summary": "Create Report",
-        "description": "Report a thread, reply or library item (one open report per person and target).\n\nErrors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),\nrate_limited (429).",
+        "description": "Report a thread, reply or library item (one open report per person and target).\n\nErrors: not_found (404) when the target doesn't exist or the reporter can't see it, already_reported (409),\nrate_limited (429), feature_off (404: the forum or the library is switched off).",
         "operationId": "create_report_api_v1_reports_post",
         "requestBody": {
           "content": {
@@ -7218,7 +7218,7 @@
           "reports"
         ],
         "summary": "List Reports",
-        "description": "Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they\ncan act on: forum posts with forum.moderate, library files with library.manage. `reporter` is set for admins only\n(student reps are classmates).",
+        "description": "Open reports oldest first (a queue); closed ones most recently closed first. Each person sees the reports they\ncan act on: forum posts with forum.moderate, library files with library.manage, each while its feature is on for\nthem. `reporter` is set for admins only (student reps are classmates).",
         "operationId": "list_reports_api_v1_admin_reports_get",
         "parameters": [
           {
