@@ -76,6 +76,13 @@ const ENTRIES: Entry[] = [
     chips: (ctx) => ['What is a reduction formula?', 'Where is integration by parts?', 'How do I find the MGF?', nextExam(ctx)],
   },
   {
+    path: '/notes/*',
+    chips: (ctx) => {
+      const [first] = ofYear(ctx);
+      return [whatsIn(first), 'Where is integration by parts?', 'How do I find the MGF?', papersFor(ctx, first)];
+    },
+  },
+  {
     path: '/grades',
     chips: (ctx) => {
       const [a, b] = ofYear(ctx);

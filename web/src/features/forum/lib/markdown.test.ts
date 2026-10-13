@@ -69,3 +69,38 @@ describe('parseInline', () => {
     expect(parseInline('[x](javascript:alert(1))')[0]).toEqual({ type: 'link', text: 'x', href: 'javascript:alert(1' });
   });
 });
+
+describe('formulas', () => {
+  it('reads $…$ in a sentence', () => {
+    expect(parseInline('The MGF is $M(t) = E[e^{tX}]$, see `ST2133`.')).toEqual([
+      { type: 'text', text: 'The MGF is ' },
+      { type: 'math', tex: 'M(t) = E[e^{tX}]' },
+      { type: 'text', text: ', see ' },
+      { type: 'code', text: 'ST2133' },
+      { type: 'text', text: '.' },
+    ]);
+    expect(parseInline('so $x$ is one letter')).toContainEqual({ type: 'math', tex: 'x' });
+  });
+
+  it('leaves prices and lone dollar signs as text', () => {
+    expect(parseInline('It costs $5 or $10 a month')).toEqual([{ type: 'text', text: 'It costs $5 or $10 a month' }]);
+    expect(parseInline('a $ sign and $ another')).toEqual([{ type: 'text', text: 'a $ sign and $ another' }]);
+  });
+
+  it('keeps a formula inside code as code', () => {
+    expect(parseInline('`$x$`')).toEqual([{ type: 'code', text: '$x$' }]);
+  });
+
+  it('reads $$…$$ on one line or across lines', () => {
+    expect(parseBlocks('Before\n$$\\int_0^1 x\\,dx$$\nAfter')).toEqual([
+      { type: 'p', text: 'Before' },
+      { type: 'math', tex: '\\int_0^1 x\\,dx' },
+      { type: 'p', text: 'After' },
+    ]);
+    expect(parseBlocks('$$\n\\frac{a}{b}\n= c\n$$')).toEqual([{ type: 'math', tex: '\\frac{a}{b}\n= c' }]);
+  });
+
+  it('closes an unclosed $$ at the end of the text', () => {
+    expect(parseBlocks('$$\nx^2')).toEqual([{ type: 'math', tex: 'x^2' }]);
+  });
+});

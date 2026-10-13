@@ -43,7 +43,7 @@ const events = [
 const allOn = () => true;
 const ctx = (pathname: string, isOn: (f: Feature) => boolean = allOn) => ({ pathname, year: 2, modules: catalogue, isOn });
 
-const PAGES = ['/', '/modules', `/modules/${DIST.id}`, '/library', '/library/abc', '/calendar', '/forum', '/forum/some-thread', '/forum/new', '/grades', '/career', '/newsletter/issue-1', '/about'];
+const PAGES = ['/', '/modules', `/modules/${DIST.id}`, '/library', '/library/abc', '/calendar', '/forum', '/forum/some-thread', '/forum/new', '/grades', '/notes', '/notes/a-note', '/career', '/newsletter/issue-1', '/about'];
 
 describe('pageSuggestions', () => {
   it('offers three or four different questions on every page', () => {

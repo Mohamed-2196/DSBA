@@ -158,7 +158,7 @@ function Editor({ noteId, readOnly, onCreated }: { noteId: string | null; readOn
           </section>
         ) : null}
       </div>
-      <p className="notes-editor__hint">Only you can see your notes. Markdown works: **bold**, *italic*, `code or formulas`, lists and links.</p>
+      <p className="notes-editor__hint">Only you can see your notes. Markdown works: **bold**, *italic*, `code`, $formulas$, lists and links.</p>
       <ConfirmDialog
         open={confirming}
         title={`Delete “${label}”?`}
