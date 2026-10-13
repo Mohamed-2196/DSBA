@@ -8,7 +8,7 @@
 # Set up once: `cd api && uv sync` and `cd web && npm ci`. The API tests need a PostgreSQL server where they may
 # create databases (DSBA_TEST_ADMIN_URL, default postgresql+psycopg://dsba:dsba@127.0.0.1:5432/postgres;
 # `docker compose up -d db` starts one) and a pg_dump of the same major version or newer. The end-to-end suite is
-# not part of this: it needs the whole stack running (`cd web && npm run e2e`, see README.md).
+# not part of this: it needs the whole stack in Docker (`scripts/e2e.sh`, see README.md).
 #
 # Every check runs even when an earlier one fails; the failures are listed at the end. Nothing in the repository
 # is changed (the build goes to a temporary folder).

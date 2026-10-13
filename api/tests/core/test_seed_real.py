@@ -133,4 +133,6 @@ def test_help_says_what_it_does(setup: Setup) -> None:
     assert done.returncode == 0
     assert done.stdout.startswith("Fills an install with the real content in one go")
     assert "scripts/seed-real.sh --prod" in done.stdout
+    assert done.stdout.rstrip().endswith("docs/backend/DEPLOYMENT.md, section 10.")
+    assert "set -euo" not in done.stdout
     assert setup.calls() == []
