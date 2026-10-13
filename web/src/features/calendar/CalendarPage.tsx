@@ -2,18 +2,15 @@ import { useState } from 'react';
 import { Plus, RssSimple } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
-import { BREAKPOINTS, cohortLabel, useMediaQuery, useQueryParam, useToast, useYear } from '../../state';
-import { Button, ConfirmDialog, cx, Page, PageHeader, PageSection, QueryError, Skeleton } from '../../ui';
+import { cohortLabel, useQueryParam, useToast, useYear } from '../../state';
+import { Button, ConfirmDialog, Page, PageHeader, PageSection, QueryError, Skeleton } from '../../ui';
 import { formatLong, parseDay, today as bahrainToday } from '../../lib/dates';
-import { Agenda } from './Agenda';
 import { useCalendarEvents, useDeleteEvent } from './api';
-import { CalendarToolbar, MONTH_TITLE_ID, TypeFilter } from './CalendarToolbar';
+import { Browse } from './Browse';
 import { monthKey } from './dates';
 import { EventDrawer } from './EventDrawer';
 import { EventFormDialog } from './EventFormDialog';
-import { ContinuesIn, EmptyMonth } from './MonthExtras';
-import { MonthGrid } from './MonthGrid';
-import { NextUp } from './NextUp';
+import { ForYou } from './ForYou';
 import { SubscribeDialog } from './SubscribeDialog';
 import type { CalendarEvent } from './types';
 import { monthOfEvent, useCalendarView } from './useCalendarView';
@@ -27,7 +24,7 @@ export default function CalendarPage() {
   const [subscribing, setSubscribing] = useState(false);
   const [editing, setEditing] = useState<{ event: CalendarEvent | null } | null>(null);
 
-  const description = `Keeps track of everything for ${year ? cohortLabel(year) : 'all three years'}: exams, mocks, revision, deadlines, events and term dates. Add any of them to your own calendar.`;
+  const description = `Exams, deadlines and term dates for ${year ? cohortLabel(year) : 'all three years'}. Add any of them to your own calendar.`;
   const actions = (
     <>
       <Button leadingIcon={RssSimple} onClick={() => setSubscribing(true)} data-hub="calendar-subscribe-open">
@@ -81,15 +78,22 @@ function CalendarSkeleton() {
   return (
     <div className="cal-skeleton" aria-busy="true">
       <span className="visually-hidden">Loading the calendar</span>
-      <div className="cal-next" aria-hidden="true">
-        <Skeleton width="38%" height={18} />
-        <Skeleton width="72%" height={64} style={{ marginTop: 16 }} />
-        <Skeleton width="48%" height={26} style={{ marginTop: 16 }} />
-        <Skeleton height={86} radius={12} style={{ marginTop: 28 }} />
+      <div className="cal-foryou" aria-hidden="true">
+        <div className="cal-card">
+          <Skeleton width="40%" height={16} />
+          <Skeleton width="70%" height={40} style={{ marginTop: 20 }} />
+          <Skeleton width="85%" height={20} style={{ marginTop: 14 }} />
+          <Skeleton width="45%" height={16} style={{ marginTop: 14 }} />
+        </div>
+        <div className="cal-card">
+          <Skeleton width="30%" height={16} />
+          <Skeleton height={56} radius={10} style={{ marginTop: 20 }} />
+          <Skeleton height={56} radius={10} style={{ marginTop: 12 }} />
+        </div>
       </div>
-      <div className="cal-skeleton__month" aria-hidden="true">
-        <Skeleton width={220} height={30} />
-        <Skeleton height={420} radius={16} style={{ marginTop: 20 }} />
+      <div aria-hidden="true">
+        <Skeleton width={180} height={26} />
+        <Skeleton height={320} radius={16} style={{ marginTop: 20 }} />
       </div>
     </div>
   );
@@ -104,12 +108,11 @@ interface CalendarBodyProps {
 
 function CalendarBody({ events, onEdit, onAdd }: CalendarBodyProps) {
   const { push } = useToast();
-  const isMobile = useMediaQuery(BREAKPOINTS.mobile);
   const remove = useDeleteEvent();
   // Today in Bahrain, read once per visit: relative dates stay the same while the page is open.
   const [today] = useState(() => bahrainToday());
   const view = useCalendarView(events, today);
-  const { month, cohortYear, eventId, open, close } = view;
+  const { eventId, open, close } = view;
   const [deleting, setDeleting] = useState<CalendarEvent | null>(null);
 
   const confirmDelete = () => {
@@ -124,45 +127,14 @@ function CalendarBody({ events, onEdit, onAdd }: CalendarBodyProps) {
     });
   };
 
-  const showAllYears = () => {
-    view.setAllYears(true);
-    document.getElementById(MONTH_TITLE_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   return (
     <>
-      <PageSection aria-label="Next up">
-        <NextUp events={events} year={view.year} today={today} onOpen={open} onShowAllYears={showAllYears} />
+      <PageSection>
+        <ForYou year={view.year} nextExam={view.nextExam} week={view.week} today={today} todayKey={view.todayKey} selectedId={eventId} onOpen={open} />
       </PageSection>
 
-      <PageSection className="cal-main" aria-labelledby={MONTH_TITLE_ID}>
-        <CalendarToolbar view={view} />
-        <TypeFilter view={view} />
-        <div className={cx('cal-layout', isMobile && 'cal-layout--agenda')}>
-          <div className="cal-layout__grid">
-            <MonthGrid
-              month={month}
-              events={view.visible}
-              today={today}
-              selectedId={eventId}
-              showCohort={!cohortYear}
-              labelledBy={MONTH_TITLE_ID}
-              compact={isMobile}
-              onOpen={open}
-              onNavigate={view.goMonth}
-            />
-          </div>
-          <Agenda
-            month={month}
-            events={view.monthEvents}
-            today={today}
-            selectedId={eventId}
-            showCohort={!cohortYear}
-            onOpen={open}
-            empty={<EmptyMonth view={view} calendarEmpty={!events.length} onAdd={onAdd} />}
-            footer={<ContinuesIn view={view} />}
-          />
-        </div>
+      <PageSection>
+        <Browse view={view} today={today} calendarEmpty={!events.length} onAdd={onAdd} />
       </PageSection>
 
       <EventDrawer
@@ -170,7 +142,7 @@ function CalendarBody({ events, onEdit, onAdd }: CalendarBodyProps) {
         events={events}
         today={today}
         year={view.year}
-        examCount={view.exams.length}
+        hasExams={!!view.nextExam}
         onClose={close}
         onOpen={view.openAndShow}
         onEdit={onEdit}

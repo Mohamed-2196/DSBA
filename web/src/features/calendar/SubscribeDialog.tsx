@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CalendarPlus, Copy, DownloadSimple } from '@phosphor-icons/react';
-import { cohortColor, cohortLabel, cohortOnColor, normalizeYear, useToast, YEARS, type CohortYear } from '../../state';
+import { cohortLabel, normalizeYear, useToast, YEARS, type CohortYear } from '../../state';
 import { Button, Modal, SegmentedControl, TextField } from '../../ui';
 import { copyText } from '../../lib/share';
 import { feedUrl } from './api';
@@ -68,7 +68,7 @@ export function SubscribeDialog({ open, year, onClose }: SubscribeDialogProps) {
             setChoice(s === '1' || s === '2' || s === '3' ? s : 'all');
           }}
           options={[
-            ...YEARS.map((y) => ({ value: `${y}`, label: cohortLabel(y), color: cohortColor(y), onColor: cohortOnColor(y) })),
+            ...YEARS.map((y) => ({ value: `${y}`, label: cohortLabel(y) })),
             { value: 'all', label: 'All years' },
           ]}
         />
@@ -95,7 +95,7 @@ export function SubscribeDialog({ open, year, onClose }: SubscribeDialogProps) {
             <b>Apple Calendar:</b> use <i>Open in my calendar app</i>, or File, then <i>New Calendar Subscription</i>.
           </li>
         </ul>
-        <p className="cal-subscribe__note">Dates that aren’t confirmed are marked in their notes. Exam times and venues are not included.</p>
+        <p className="cal-subscribe__note">Each date’s notes say whether it’s confirmed, with its time and place once they’re published.</p>
       </div>
     </Modal>
   );

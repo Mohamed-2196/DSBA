@@ -17,20 +17,23 @@ export interface MonthGridProps {
   selectedId: string | null;
   showCohort: boolean;
   labelledBy: string;
-  /** phones: each day is its number and a dot per date (up to three); tapping a day opens its first date */
+  /** phones: each day is its number and a dot per date (up to three); a tap on a day picks it */
   compact?: boolean;
+  /** compact: the day picked, and picking one */
+  selectedDay?: string | null;
+  onSelectDay?: (key: string) => void;
   onOpen: (e: CalendarEvent) => void;
   onNavigate: (month: MonthRef) => void;
 }
 
 /**
  * Month grid (ARIA grid, Sunday first, Fri/Sat weekend). One tab stop: arrow keys move by day/week,
- * Home/End to the week's ends, PageUp/PageDown change month, Enter opens the day's first event.
- * A multi-day event (a break) sits on each of its days. On phones (`compact`) a day shows dots instead of chips
- * and a tap on it opens its first date (the drawer lists the others).
+ * Home/End to the week's ends, PageUp/PageDown change month, Enter opens the day's first event
+ * (in `compact`, picks the day). A multi-day event (a break) sits on each of its days. On phones (`compact`) a day
+ * shows dots instead of chips and a tap on it picks it; the page lists the picked day's dates under the grid.
  * data-hub="calendar-grid" on the grid, "calendar-event" on each event.
  */
-export function MonthGrid({ month, events, today, selectedId, showCohort, labelledBy, compact = false, onOpen, onNavigate }: MonthGridProps) {
+export function MonthGrid({ month, events, today, selectedId, showCohort, labelledBy, compact = false, selectedDay = null, onSelectDay, onOpen, onNavigate }: MonthGridProps) {
   const { y, m } = month;
   const { getModule } = useModules();
   const weeks = useMemo(() => monthMatrix({ y, m }), [y, m]);
@@ -44,7 +47,13 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
   const visibleKeys = weeks.flat().filter(inMonth).map((d) => dayKey(d));
   const firstEventKey = visibleKeys.find((k) => byDay.has(k));
   const activeKey =
-    focusKey && visibleKeys.includes(focusKey) ? focusKey : visibleKeys.includes(todayKey) ? todayKey : (firstEventKey ?? visibleKeys[0]);
+    focusKey && visibleKeys.includes(focusKey)
+      ? focusKey
+      : selectedDay && visibleKeys.includes(selectedDay)
+        ? selectedDay
+        : visibleKeys.includes(todayKey)
+          ? todayKey
+          : (firstEventKey ?? visibleKeys[0]);
 
   useEffect(() => {
     if (!wantFocus.current) return;
@@ -73,6 +82,11 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
       const lastDay = new Date(date.getFullYear(), date.getMonth() + dir + 1, 0).getDate();
       moveTo(new Date(date.getFullYear(), date.getMonth() + dir, Math.min(date.getDate(), lastDay)));
     } else if (e.key === 'Enter' || e.key === ' ') {
+      if (compact && onSelectDay) {
+        e.preventDefault();
+        onSelectDay(dayKey(date));
+        return;
+      }
       const first = byDay.get(dayKey(date))?.[0];
       if (first) {
         e.preventDefault();
@@ -100,8 +114,7 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
             const past = date < today;
             const label = `${formatLong(date)}${isToday ? ', today' : ''}${list.length ? `, ${list.length} event${list.length > 1 ? 's' : ''}: ${list.map(eventSummary).join('; ')}` : ''}`;
             const more = list[MAX_CHIPS];
-            const first = list[0];
-            const selected = !!selectedId && list.some((ev) => ev.id === selectedId);
+            const picked = compact && key === selectedDay;
             return (
               <div
                 key={key}
@@ -110,9 +123,10 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                 tabIndex={key === activeKey ? 0 : -1}
                 aria-label={label}
                 aria-current={isToday ? 'date' : undefined}
-                className={cx('cal-day', outside && 'is-outside', isToday && 'is-today', isWeekend(date) && 'is-weekend', past && 'is-past', list.length > 0 && 'has-events', compact && selected && 'is-selected')}
+                aria-selected={compact ? picked : undefined}
+                className={cx('cal-day', outside && 'is-outside', isToday && 'is-today', isWeekend(date) && 'is-weekend', past && 'is-past', list.length > 0 && 'has-events', picked && 'is-selected')}
                 onKeyDown={(e) => onKeyDown(e, date)}
-                onClick={compact && first ? () => onOpen(first) : undefined}
+                onClick={compact && onSelectDay ? () => onSelectDay(key) : undefined}
                 onFocus={(e) => {
                   if (e.target === e.currentTarget) setFocusKey(key);
                 }}

@@ -1,7 +1,7 @@
-// Calendar-only date helpers: months as { y, m }, the month grid, countdown labels and distances. Days themselves
+// Calendar-only date helpers: months as { y, m }, the month grid and countdown labels. Days themselves
 // (day keys, today in Bahrain, weekdays, month names, formats) come from src/lib/dates.ts, the one home every area
 // shares (code quality review CQ-5).
-import { addDays, daysUntil, isWeekend, monthName, startOfDay } from '../../lib/dates';
+import { monthName } from '../../lib/dates';
 
 /** A month of a year; m is 0-based. */
 export interface MonthRef {
@@ -65,63 +65,4 @@ export function monthMatrix({ y, m }: MonthRef): Date[][] {
     weeks[weeks.length - 1]?.push(new Date(y, m, 1 - lead + i));
   }
   return weeks;
-}
-
-// ── Distances ───────────────────────────────────────────────────────────────────────────────────
-const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`;
-
-/** A day count in weeks: 17 → '2 weeks and 3 days', 14 → '2 weeks'. Under a week → null (nothing to add). */
-export function weeksAndDays(days: number): string | null {
-  if (days < 7) return null;
-  const w = Math.floor(days / 7);
-  const d = days % 7;
-  return d ? `${plural(w, 'week')} and ${plural(d, 'day')}` : plural(w, 'week');
-}
-
-export interface DaysBreakdown {
-  days: number;
-  weekdays: number;
-  weekendDays: number;
-  weekends: number;
-}
-
-/**
- * The days from `from` (included) up to `to` (not included), split the Bahraini way: Sunday to
- * Thursday are weekdays, Friday and Saturday the weekend. `weekends` counts whole weekends only.
- * 6 Oct → 23 Oct 2026: { days: 17, weekdays: 13, weekendDays: 4, weekends: 2 }.
- */
-export function daysBreakdown(from: Date, to: Date): DaysBreakdown {
-  const start = startOfDay(from);
-  const days = Math.max(0, daysUntil(to, start));
-  let weekdays = 0;
-  let weekendDays = 0;
-  let weekends = 0;
-  for (let i = 0; i < days; i += 1) {
-    const d = addDays(start, i);
-    if (!isWeekend(d)) weekdays += 1;
-    else {
-      weekendDays += 1;
-      if (d.getDay() === 6 && i > 0) weekends += 1; // a Saturday whose Friday is counted too
-    }
-  }
-  return { days, weekdays, weekendDays, weekends };
-}
-
-/** '13 weekdays and 2 weekends' (a split weekend is counted in days: '4 weekdays and 1 weekend day'). */
-export function breakdownLabel({ days, weekdays, weekendDays, weekends }: DaysBreakdown): string | null {
-  if (days < 2) return null;
-  const parts: string[] = [];
-  if (weekdays) parts.push(plural(weekdays, 'weekday'));
-  if (weekendDays) parts.push(weekendDays === weekends * 2 ? plural(weekends, 'weekend') : plural(weekendDays, 'weekend day'));
-  return parts.join(' and ');
-}
-
-/**
- * The gap between two things on the calendar, `days` apart: 'Same day' · 'Next day' · '4 days later'.
- * Two exams on consecutive days are 'Back to back' (pass `exams`).
- */
-export function gapLabel(days: number, { exams = false }: { exams?: boolean } = {}): string {
-  if (days <= 0) return 'Same day';
-  if (days === 1) return exams ? 'Back to back' : 'Next day';
-  return `${days} days later`;
 }

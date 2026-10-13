@@ -8,7 +8,7 @@ import { useUpcomingEvents } from './api';
 import { DateLeaf } from './DateLeaf';
 import { daysUntil, formatLong, parseDay, today as bahrainToday } from '../../lib/dates';
 import { countdownShort } from './dates';
-import { splitTitle, typeLabel } from './eventMeta';
+import { splitTitle, typeLabel, whenAndWhere } from './eventMeta';
 import './calendar-shared.css';
 import './UpcomingEvents.css';
 
@@ -103,6 +103,7 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
                     <span>{typeLabel(e.type)}</span>
                     {e.year == null ? <span className="cal-upcoming__all">All years</span> : null}
                     {e.sample ? <span className="cal-upcoming__all">Not confirmed</span> : null}
+                    {e.type === 'exam' ? <span className="cal-upcoming__all">{whenAndWhere(e)}</span> : null}
                     <span className="visually-hidden">, {formatLong(date)}</span>
                   </span>
                 </span>
