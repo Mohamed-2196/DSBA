@@ -18,6 +18,10 @@ Where the work stands and what's next: @docs/STATUS.md. Features Mohamed has ask
 - **Use the team.** Split big work across the agents in `.claude/agents/`, each in the background. Give each its own
   git worktree (`git worktree add ../dsba-<name> -b <branch>`) so agents never move each other's HEAD. Merge their
   branches yourself.
+- **Use the skills.** `.claude/skills/` holds the repo's own skills: `fastapi-endpoint`, `db-migration`,
+  `react-feature`, `e2e-test` and `review-checklist`. It also holds ported ones: FastAPI's official skill, Vercel's
+  React rules, and the debugging, verification, worktree and parallel-agent skills from obra/superpowers. They load
+  when a task matches. Their README lists the sources and licences.
 - **Clean up as you go.** Once a branch is merged or finished, remove its worktree (`git worktree remove`) and
   delete the branch, locally and on GitHub. Mohamed doesn't want them piling up.
 - **Ideas wait for approval.** The `student-user` agent proposes features in `docs/ideas.md`. Build only the ones
@@ -54,6 +58,7 @@ scripts/    check.sh: every check CI runs
 ```sh
 docker compose up --build                 # the stack: app :5173, API :8000 (/api/v1/docs), Mailpit :8025, MinIO console :9001
 scripts/check.sh            # everything CI runs (or: scripts/check.sh api | web)
+scripts/install-hooks.sh    # once per clone: the pre-push hook (SKIP_CHECKS=1 / FULL_CHECKS=1 git push)
 cd api && uv run --no-sync pytest tests/<area> -q                  # one area; each run makes its own database
 cd web && npm test                                                 # Vitest; name.test.ts next to the module
 scripts/e2e.sh                                                     # e2e against the Docker stack (--restore afterwards)

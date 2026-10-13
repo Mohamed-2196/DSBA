@@ -36,15 +36,15 @@ The lead merges them.
 | Branch | Agent | Worktree | Covers ("Next" below) |
 | --- | --- | --- | --- |
 | `round3/e2e-docker` | student-tester | removed | 1: merged 2026-10-13 |
-| `round3/drive-import` | api-builder | `../dsba-drive` until its checks pass on the merge | 3 and CQ-15: merged 2026-10-13 |
+| `round3/drive-import` | api-builder | removed | 3 and CQ-15: merged 2026-10-13, checks green on the merge |
 | `round3/web-leftovers` | web-builder | `../dsba-web` | 4, and 5 on the web side (the data router for the leave guard) |
 | `round3/student-ideas` | student-user | removed | 24 ideas in `docs/ideas.md`: merged 2026-10-13 |
 
 - **The access API plan** (R-1 and R-10) is being written in the background, into
   `docs/superpowers/plans/2026-10-13-access-api.md`. The web plan follows once `round3/web-leftovers` is merged.
 
-- **The re-review round (2) waits** until these three are merged, so the reviewers and the student tester see
-  the finished round rather than a moving target.
+- **The re-review round (2) waits** until `round3/web-leftovers` is merged too, so the reviewers and the student
+  tester see the finished round rather than a moving target.
 - **The Docker stack** runs from the main checkout (compose project `dsba-hub`), on its normal mail backends.
   - `scripts/e2e.sh` switches it to e2e mode, and `--restore` switches it back.
   - Nobody runs `docker compose down`: the API's pytest uses its Postgres.
@@ -55,16 +55,18 @@ The lead merges them.
   - It's a stub for Mohamed to write, because he knows how the real files are named.
   - Until then, imported papers have no year or zone. The import calls it already.
 
-**Standards review.** A separate cloud session started at 23:40 on 2026-10-12. Its job:
-- check the coding standards in the docs against the official sources;
-- add project skills under `.claude/skills/` and write a CLAUDE.md;
-- refresh the README;
-- add a pre-push hook (`.githooks/pre-push`, enabled with `scripts/install-hooks.sh`).
+**Standards review.** A cloud session was started for it at 23:40 on 2026-10-12. It hit the account's usage
+limit 33 minutes in and stopped without pushing anything.
+- **Done since, on 2026-10-13:**
+  - item 2, the skills in `.claude/skills/` (README there);
+  - item 3, CLAUDE.md;
+  - item 5, the pre-push hook: `.githooks/pre-push`, turned on with `scripts/install-hooks.sh`. A typical push
+    takes about one to two minutes on a slow machine.
+- **Still open:**
+  - item 1, the audit of the written standards;
+  - item 4, the rest of the README refresh. Its hook section is done.
 
-It pushes the branch `round3/standards` (or a `claude/...` branch if that name is refused) and writes
-`docs/reviews/standards.md`. Its run appears in Mohamed's scheduled tasks as "DSBA Hub standards review (one-off)".
-
-What Mohamed asked for, so the branch can be checked against it, or the job redone locally if no branch arrives:
+What Mohamed asked for:
 1. **Audit the standards.** Check the coding standards and quality rules in the docs (`ARCHITECTURE.md`'s
    conventions and security baseline, the README's checks) against the official sources:
    - FastAPI, SQLAlchemy 2, Pydantic v2 and Alembic;
@@ -76,7 +78,7 @@ What Mohamed asked for, so the branch can be checked against it, or the job redo
 2. **Port useful skills** into `.claude/skills/`. Look for existing good ones online first (FastAPI, React and
    others), keep their licence notices, and fit them to this repo. Suggested: `fastapi-endpoint`, `react-feature`,
    `db-migration`, `e2e-test` and `review-checklist`.
-3. **CLAUDE.md**, merged with this one.
+3. **CLAUDE.md** (done).
 4. **A refreshed README** for a new contributor.
 5. **A pre-push hook** for the standard checks.
    - It lives at `.githooks/pre-push`, is enabled with `git config core.hooksPath .githooks` through
@@ -87,11 +89,6 @@ What Mohamed asked for, so the branch can be checked against it, or the job redo
    - A typical push takes under about two minutes. The full API suite runs with `FULL_CHECKS=1`, and CI runs
      everything.
    - `SKIP_CHECKS=1 git push` (or `--no-verify`) skips it in an emergency.
-
-To bring it in:
-1. Review the branch and merge it into `feature/backend`.
-2. It started before this CLAUDE.md existed, so merge the two files by hand. Keep "Working with Mohamed", the hard
-   rules and the link to this file.
 
 ## Next, in order
 

@@ -66,10 +66,14 @@ scripts/check.sh          # everything CI runs, for the API and the web app
 scripts/check.sh api      # or one of them: scripts/check.sh web
 ```
 
-That is: the lockfiles, ruff, ruff format, mypy and pytest for the API; tsc, ESLint, the unit tests and a production
-build for the web app; and the drift checks (the migrations build exactly the models' schema and can be undone,
-`api/openapi.json` is what the API serves, and `web/src/api/schema.d.ts` is generated from it). CI
-(`.github/workflows/ci.yml`) runs it on every push and pull request.
+Turn on the pre-push hook once per clone with `scripts/install-hooks.sh`. Before each push it runs the checks for
+what the push changes: the API's lint, types and the tests of the areas touched, and the web app's types, lint and
+unit tests. `SKIP_CHECKS=1 git push` skips it, and `FULL_CHECKS=1 git push` runs everything below.
+
+`scripts/check.sh` runs these: the lockfiles, ruff, ruff format, mypy and pytest for the API; tsc, ESLint, the unit
+tests and a production build for the web app; and the drift checks (the migrations build exactly the models' schema
+and can be undone, `api/openapi.json` is what the API serves, and `web/src/api/schema.d.ts` is generated from it).
+CI (`.github/workflows/ci.yml`) runs it on every push and pull request.
 
 - **API tests:** `cd api && uv run --no-sync pytest tests/community -q` for one area. Each run creates its own
   database on the server named by `DSBA_TEST_ADMIN_URL` (default

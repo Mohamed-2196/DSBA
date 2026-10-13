@@ -1,0 +1,213 @@
+#!/usr/bin/env bash
+# DSBA Hub pre-push hook: checks what a push changes before it leaves your machine.
+#
+#   Turn it on, once per clone:  scripts/install-hooks.sh     (sets core.hooksPath to .githooks)
+#   Skip it in an emergency:     SKIP_CHECKS=1 git push       (or: git push --no-verify)
+#   Run everything:              FULL_CHECKS=1 git push       (scripts/check.sh: the whole API suite and the build)
+#
+# What runs depends on the files the pushed commits change, compared with what the remote already has (a new
+# branch: with where it left feature/backend):
+#   api/**       ruff, ruff format --check, mypy, and the API tests of the areas touched, plus the drift tests
+#   web/**       tsc (the app, then the configs and the e2e suite), ESLint and the unit tests for the changed files
+#   the contract (api/openapi.json, web/src/api/schema.d.ts): the schema drift check
+#   lockfiles    the lockfile checks
+# CI runs everything (scripts/check.sh) on every push anyway; this is the fast first look.
+#
+# Written for bash 3.2 (macOS) and later, with BSD or GNU tools: no associative arrays, mapfile or ${x,,}.
+
+set -u
+
+if [ "${SKIP_CHECKS:-0}" = "1" ]; then
+  echo "pre-push: SKIP_CHECKS=1, so no checks ran. CI still runs them."
+  exit 0
+fi
+
+root=$(git rev-parse --show-toplevel) || exit 1
+remote=${1:-origin}
+
+if [ "${FULL_CHECKS:-0}" = "1" ]; then
+  echo "pre-push: FULL_CHECKS=1, running scripts/check.sh (everything CI runs)."
+  exec "$root/scripts/check.sh"
+fi
+
+# ── what does this push change? ─────────────────────────────────────────────────────────────────────────────
+is_zero() { case "$1" in *[!0]*) return 1 ;; *) return 0 ;; esac; }
+
+base_of_new_branch() {
+  local sha=$1 candidate
+  for candidate in "${CHECKS_BASE:-}" "$remote/feature/backend" "$remote/HEAD"; do
+    [ -n "$candidate" ] || continue
+    git rev-parse --verify --quiet "$candidate^{commit}" >/dev/null || continue
+    git merge-base "$candidate" "$sha" 2>/dev/null && return 0
+  done
+  return 1
+}
+
+changed=""
+everything=0
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+  [ -n "${local_sha:-}" ] || continue
+  is_zero "$local_sha" && continue # deleting a branch: nothing to check
+  base=""
+  if ! is_zero "$remote_sha" && git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
+    base=$remote_sha
+  else
+    base=$(base_of_new_branch "$local_sha") || base=""
+  fi
+  if [ -n "$base" ]; then
+    changed="$changed
+$(git diff --name-only "$base" "$local_sha")"
+  else
+    everything=1 # nothing to compare with: check both sides
+  fi
+done
+
+has() { printf '%s\n' "$changed" | grep -Eq "$1"; }
+
+api=0
+web=0
+contract=0
+api_locks=0
+if [ "$everything" = "1" ]; then
+  api=1
+  web=1
+  contract=1
+fi
+has '^api/' && api=1
+has '^web/' && web=1
+has '^(api/openapi\.json|web/src/api/schema\.d\.ts)$' && contract=1
+has '^api/(pyproject\.toml|uv\.lock|requirements\.txt)$' && api_locks=1
+
+if [ "$api$web$contract$api_locks" = "0000" ]; then
+  echo "pre-push: nothing under api/ or web/ changed, so there is nothing to check."
+  exit 0
+fi
+
+# ── running the checks ──────────────────────────────────────────────────────────────────────────────────────
+started=$(date +%s)
+ran=0
+failed=""
+tmp=$(mktemp -d 2>/dev/null || mktemp -d -t dsba-pre-push)
+trap 'rm -rf "$tmp"' EXIT
+
+check() { # check "name" command args...
+  local name=$1
+  shift
+  printf '\n== %s\n' "$name"
+  ran=$((ran + 1))
+  if ! "$@"; then
+    failed="$failed
+  - $name"
+    echo "FAILED: $name"
+  fi
+}
+
+need() { # need dir/thing "how to get it"
+  if [ ! -e "$root/$1" ]; then
+    echo "pre-push: $1 is missing. $2 (or push with SKIP_CHECKS=1)."
+    exit 1
+  fi
+}
+
+# API tests for the areas a change touches. A changed test file runs itself; anything shared runs the drift tests.
+api_test_targets() {
+  local f
+  printf '%s\n' "$changed" | while IFS= read -r f; do
+    case "$f" in
+      api/tests/conftest.py) echo "tests" ;;
+      api/tests/*.py) [ -f "$root/$f" ] && echo "${f#api/}" ;;
+      api/app/*forum* | api/app/*reports* | api/app/services/notify.py) echo "tests/community" ;;
+      api/app/*library* | api/app/*uploads* | api/app/*newsletter* | api/app/*calendar* | api/app/*content* | \
+        api/app/*modules* | api/app/*search* | api/app/seed/*) echo "tests/content" ;;
+      api/app/*auth* | api/app/*/me.py | api/app/*progress* | api/app/*notifications* | api/app/*admin* | \
+        api/app/*accounts* | api/app/*identifiers* | api/app/*otp* | api/app/*sessions* | api/app/*sms* | \
+        api/app/*mailer* | api/app/*outbox* | api/app/*ratelimit* | api/app/*audit*) echo "tests/accounts" ;;
+      api/app/core/* | api/app/config.py | api/app/db.py | api/app/main.py | api/app/cli.py | api/app/*storage*) echo "tests/core" ;;
+    esac
+    case "$f" in
+      api/app/* | api/migrations/* | api/openapi.json) echo "tests/core/test_drift.py" ;;
+    esac
+  done | sort -u
+}
+
+postgres_up() {
+  (cd "$root/api" && uv run --no-sync python - <<'PY' >/dev/null 2>&1)
+import os
+import psycopg
+
+url = os.environ.get("DSBA_TEST_ADMIN_URL", "postgresql+psycopg://dsba:dsba@127.0.0.1:5432/postgres")
+psycopg.connect(url.replace("+psycopg", ""), connect_timeout=3).close()
+PY
+}
+
+requirements_match_lock() {
+  diff -u <(grep -v '^#' requirements.txt) <(uv export --locked --no-dev --format requirements-txt --no-header --quiet) ||
+    { echo "api/requirements.txt is out of date: cd api && uv export --no-dev --format requirements-txt -o requirements.txt"; return 1; }
+}
+
+schema_matches_openapi() {
+  npx --no-install openapi-typescript ../api/openapi.json -o "$tmp/schema.d.ts" --root-types \
+    --root-types-no-schema-prefix >/dev/null || return 1
+  diff -u src/api/schema.d.ts "$tmp/schema.d.ts" ||
+    { echo "web/src/api/schema.d.ts is out of date: cd web && npm run api:types"; return 1; }
+}
+
+echo "pre-push: checking what this push changes (api: $api, web: $web, contract: $contract, lockfiles: $api_locks)."
+
+if [ "$api" = "1" ] || [ "$api_locks" = "1" ]; then
+  need api/.venv "Run: cd api && uv sync"
+  cd "$root/api" || exit 1
+  if [ "$api_locks" = "1" ]; then
+    check "api: uv.lock matches pyproject.toml" uv lock --check --quiet
+    check "api: requirements.txt matches uv.lock" requirements_match_lock
+  fi
+  if [ "$api" = "1" ]; then
+    check "api: ruff" uv run --no-sync ruff check .
+    check "api: ruff format" uv run --no-sync ruff format --check .
+    check "api: mypy" uv run --no-sync mypy app tests
+    if [ "$everything" = "1" ]; then targets="tests"; else targets=$(api_test_targets | tr '\n' ' '); fi
+    if [ -n "${targets// /}" ]; then
+      if postgres_up; then
+        # shellcheck disable=SC2086 # the targets are separate paths on purpose
+        check "api: pytest $targets" uv run --no-sync pytest -q $targets
+      else
+        echo
+        echo "pre-push: PostgreSQL isn't reachable (DSBA_TEST_ADMIN_URL, default 127.0.0.1:5432), so the API tests"
+        echo "          ($targets) were skipped. Start it with: docker compose up -d db. CI runs them anyway."
+      fi
+    fi
+  fi
+fi
+
+if [ "$web" = "1" ] || [ "$contract" = "1" ]; then
+  need web/node_modules "Run: cd web && npm ci"
+  cd "$root/web" || exit 1
+  if [ "$web" = "1" ]; then
+    check "web: tsc (the app)" npx --no-install tsc -p tsconfig.json
+    check "web: tsc (configs and the e2e suite)" npx --no-install tsc -p tsconfig.node.json
+    lint_all=0
+    has '^web/(package(-lock)?\.json|eslint\.config\.[cm]?js|tsconfig[^/]*\.json)$' && lint_all=1
+    [ "$everything" = "1" ] && lint_all=1
+    sources=$(printf '%s\n' "$changed" | grep -E '^web/.*\.(ts|tsx|js|jsx|mjs|cjs)$' | sed 's#^web/##' |
+      while IFS= read -r f; do [ -f "$f" ] && echo "$f"; done | tr '\n' ' ')
+    if [ "$lint_all" = "1" ]; then
+      check "web: eslint" npm run --silent lint
+      check "web: unit tests" npm run --silent test
+    elif [ -n "${sources// /}" ]; then
+      # shellcheck disable=SC2086
+      check "web: eslint (changed files)" npx --no-install eslint $sources
+      # shellcheck disable=SC2086
+      check "web: unit tests (related to the changed files)" npx --no-install vitest related --run --passWithNoTests $sources
+    fi
+  fi
+  check "web: schema.d.ts matches api/openapi.json" schema_matches_openapi
+fi
+
+elapsed=$(($(date +%s) - started))
+echo
+if [ -n "$failed" ]; then
+  echo "pre-push: $(printf '%s\n' "$failed" | grep -c .) of $ran checks failed (${elapsed}s):$failed"
+  echo "Fix them and push again. To push anyway: SKIP_CHECKS=1 git push (CI will still run everything)."
+  exit 1
+fi
+echo "pre-push: all $ran checks passed (${elapsed}s). CI runs the full set."
