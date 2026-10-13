@@ -1,44 +1,340 @@
-# Security review: the implementation (round 2)
+# Security review: the implementation (round 3 re-review)
 
-Reviewer: security. Scope: everything under `api/` and `web/src` on `feature/backend`, plus `compose*.yaml`,
-`api/Dockerfile`, `web/Dockerfile`, `web/deploy/` and `docs/backend/DEPLOYMENT.md`. Tested live against the shared
-dev stack (API :8000, web :5173, moto S3, SMTP sink, SMS files) with my own accounts (`sec-*`), with Chromium
-(Playwright) for rendering, and in-process for settings. The lead's security changes landed during the review
-(uncommitted, 20:26); everything below was re-tested against them. No application code was changed.
+Reviewer: security. Scope: `feature/backend` at `75626cd` (after the round 3 merge `1274e81`): every earlier finding
+(SEC-1 to SEC-15 here, 1 to 23 in `security-design.md`), what rounds 2 and 3 added (the email outbox and mail worker,
+step-up, lockouts per address and network, the newsletter form editor, pictures in the library and the forum, the
+Drive import, the e2e override, the data router), and the approved access design
+(`docs/superpowers/specs/2026-10-13-access-roles-and-feature-switches-design.md`). No application code was changed.
+
+How it was checked: reading the code; the API suite (727 tests, all passing with `pg_dump` 18 on PATH); proof tests in
+`api/tests/test_sec_review_r3.py` (one per new finding that can be shown in-process; all pass, which means each
+problem is real); live requests against the shared Docker stack only for the upload policy (made-up account
+`sec-r3-policy@example.com`, 4 presigns), and `npm audit` on the lockfile. No limit or lockout was hammered live.
 
 ## Summary
 
-The implementation is in good shape. Every blocker and major of the design review is closed, each confirmed live:
-atomic code attempts (20 parallel wrong codes leave exactly 5 tries), codes bound to their flow and user, the client
-IP taken only from the trusted proxy, suspended reps and admins without powers, production settings that refuse to
-start unsafe, a session-bound CSRF token, uploads copied then checked, pictures served only while their post is
-visible, and a CSP that stops injected script without breaking a page. No payload ran script or led off-site.
-**No blockers. One open major:** a rep who deletes a hidden thread republishes its title and replies (SEC-15).
-Open minors: anyone can lock an account out of sign-in for 24 h (SEC-2), a stolen session keeps the account (SEC-9),
-React Router advisories (SEC-4), no cap on the review queue (SEC-14), PostHog defaults (SEC-8), newsletter sizes
-(SEC-6). SEC-1, SEC-5, SEC-10 and SEC-13 (found this round) are fixed by the lead's changes and verified.
+Round 2 closed almost everything the earlier reviews asked for: hidden threads stay hidden when deleted (SEC-15),
+wrong codes lock a network rather than an address and then switch the address to long codes (SEC-2, D4), changing
+how one signs in needs a fresh session or a step-up code (SEC-9, D2), `safeHref()` refuses the tab and backslash
+forms (SEC-3), the dependencies are clean (SEC-4), newsletter text is capped (SEC-6), the bucket policy is now proven
+on MinIO (SEC-7), PostHog is locked down (SEC-8), look-alike staff names are refused (SEC-11), slugs can't shadow ids
+(SEC-12), and the review queue is capped (SEC-14, in part). The Drive import handles its key and Drive's untrusted
+names and bytes carefully, and nothing in the e2e override can reach `compose.prod.yaml`. The data router has no
+return-to parameter and no open redirect.
+
+**No blockers.** The new problems are about what a trusted account or the email channel can do:
+
+- **SEC-16 (major):** step-up protects an admin's own account but not the admin powers. A stolen admin session,
+  however old, can move any other account (another admin's included) to an address the attacker reads, or make the
+  attacker's own account an admin, for good.
+- **SEC-17 (minor):** one student can make the Hub send another student 60 emails an hour, each quoting the student's
+  own text and links, from the Hub's own address.
+- **SEC-18 (minor):** every published issue emails every account, with no cap: a rep (or, after the access work, any
+  holder of `newsletter.manage`) can mass-mail the whole cohort from the Hub's address as often as they like.
+- **SEC-19 (nit), SEC-20 (minor):** a student's list shows their own removed files; production settings accept an
+  empty `DSBA_TRUSTED_PROXIES` and the e2e mode's raised limits.
+
+The access design is sound in its shape (boxes checked in code, roles as data, admin-only powers, switches enforced
+by the API), but it needs a few rules written down before it is built: see "Design review: access" (AD-1 to AD-9).
 
 | ID | Severity | Owner | Status | Title |
 |---|---|---|---|---|
-| SEC-15 | **major** | community | open | Deleting a hidden thread makes its title and replies public again |
-| SEC-2 | minor | accounts | open | Anyone can lock any account out of sign-in for 24 h, knowing only its email or phone |
-| SEC-4 | minor | LEAD (`web/package.json`) | open | React Router 6.28 has open-redirect advisories; Vite dev-server advisories |
-| SEC-6 | minor | content | open | Newsletter `dek`, `summary` and `editors` have no size limit |
-| SEC-8 | minor | LEAD (`main.tsx`), frontend-accounts | open | PostHog analytics: off today, unsafe defaults when switched on |
-| SEC-9 | minor | accounts | open | A stolen or forgotten session can take the account over for good |
-| SEC-14 | minor | content | open | No cap on what waits for review, and rejected files are never deleted |
-| SEC-3 | nit (was minor) | frontend-accounts | server part fixed | `safeHref()` still accepts `/\t/host` as an internal link |
-| SEC-7 | nit (was minor) | LEAD (deployment) | R2 part fixed | The dev stack can't prove the upload policy |
-| SEC-11 | nit | accounts | open | Staff-name rule is bypassed with look-alike letters ("Аdmin" in Cyrillic) |
-| SEC-12 | nit | community | open | A thread's slug can be another thread's id and shadow it |
-| SEC-1 | major | content, LEAD | **fixed** | Suspended moderators could still remove library files and read pending items and drafts |
-| SEC-5 | minor | content, LEAD | **fixed** | NUL bytes and huge offsets turned reads into 500s |
-| SEC-10 | minor | community, content | **fixed** | Another student's post kept a removed picture public |
-| SEC-13 | minor | content, LEAD | **fixed** | `complete` checked one version of the file and copied another |
+| SEC-16 | **major** | accounts (`routers/admin.py`) | open | Admin powers need no step-up: a stolen admin session takes over any account for good |
+| SEC-17 | minor | community, accounts (`services/notify.py`) | open | Notification emails: 60 an hour from one student to one person, quoting their links |
+| SEC-18 | minor | content (`services/newsletter.py`) | open | Publishing an issue mass-emails every account, with no limit |
+| SEC-20 | minor | LEAD (`config.py`) | open | Production settings accept no trusted proxy and the e2e mode's raised limits |
+| SEC-19 | nit | content (`services/library.py`) | open | `?mine=1&status=removed` lists a student's removed files |
+| SEC-14 | minor | content, Mohamed | **partly fixed** | Review queue capped and rejected files swept; no site-wide upload budget yet (product call) |
+| SEC-2 | minor | accounts | **fixed** (residual noted) | Wrong codes lock a network, not the address (D4) |
+| SEC-3 | nit | frontend-accounts | **fixed** | `safeHref()` refuses whitespace, controls and backslashes and checks the origin |
+| SEC-4 | minor | LEAD | **fixed** | React Router 7.18.4, Vite 7.3.7, `npm audit`: 0; Python installed with `--require-hashes` |
+| SEC-6 | minor | content | **fixed** | `dek`/`summary` 2,000 characters, 12 editors of 80, 256 KB per issue |
+| SEC-7 | nit | LEAD | **fixed** (on MinIO) | Upload policy refuses another key, another type and a bigger body |
+| SEC-8 | minor | LEAD | **fixed** | PostHog: page views only, no autocapture, no recordings, masked, `ip: false` |
+| SEC-9 | minor | accounts | **fixed** (see SEC-16) | Step-up before changing identifiers or deleting the account; admin recovery exists |
+| SEC-11 | nit | accounts | **fixed** (residual nit) | Look-alike letters refused; "A d m i n" and "Ad-min" still pass |
+| SEC-12 | nit | community | **fixed** | A value that reads as an id is looked up as an id first |
+| SEC-15 | major | community | **fixed** | Deleting a hidden post keeps it hidden; unhiding gives a deleted post |
+| SEC-1, 5, 10, 13 | | | **fixed** (still) | Re-checked: code unchanged in substance, their tests pass |
 
 ---
 
-## Findings
+## New findings (round 3)
+
+### SEC-16. Admin powers need no step-up: a stolen admin session takes over any account for good (major)
+
+- **Owner:** accounts. **Where:** `api/app/routers/admin.py:131` `update_user` (role change at `:153`, account
+  recovery `_recover` at `:170`).
+- **What an attacker does:** D2 made a session alone too weak to change how *its own* account signs in, because a
+  lab PC left signed in is the realistic way sessions get stolen. `PATCH /admin/users/{id}` has no such check. Whoever
+  sits at an admin's unlocked browser (sessions last 30 days, no idle timeout) can:
+  - set another admin's email to an inbox they read (account recovery), sign in as that admin, and from there
+    recover the first admin's account too: every admin account is theirs, and the real admins are signed out;
+  - or simply make their own student account an admin, which survives the stolen session being revoked.
+  The victims get a notice, but only after the fact, and nobody else can undo it.
+- **Proof:** `test_sec16_old_admin_session_takes_over_other_accounts_without_step_up`: with a session an hour old,
+  `POST /me/identifiers/otp` answers 403 `step_up_required`, while `PATCH /admin/users/{other admin}
+  {"email": ...}` and `PATCH /admin/users/{student} {"role": "admin"}` both answer 200 and take effect.
+- **Fix:** call `sessions.require_step_up(sess)` in `update_user` whenever the body changes `email`, `phone` or
+  `role` (the web app already handles `step_up_required`). Also refuse account recovery on an admin's account
+  (another admin recovering an admin should go through `set-role` on the server, or need two admins). Test: an
+  admin session older than 10 minutes gets 403 `step_up_required` for each of the three fields, and 200 after
+  `POST /me/step-up/verify`. The access design keeps both powers admin-only, so carry the rule over (AD-1).
+
+### SEC-17. Notification emails: 60 an hour from one student to one person, quoting their links (minor)
+
+- **Owner:** community (rate), accounts (`services/notify.py`). **Where:** `services/notify.py:64` `notify()` queues
+  one email per notification (`:99`); `services/forum/rules.py:28` allows 60 replies an hour; `email_text()` quotes
+  300 characters of the reply.
+- **What an attacker does:** replies to a classmate's thread 60 times an hour (more with a second account: accounts
+  are free). Each reply is an email from the Hub's own address to the thread's author, with the reply's text and
+  links in it; mail apps turn `https://…` into a link. So a student can (a) flood a classmate's inbox, about 1,400
+  emails a day per account, and (b) send phishing ("your code expired, sign in at https://dsba-hub-login.example")
+  that passes SPF and DKIM as the Hub. Spam complaints against the Hub's sending domain also put the sign-in codes,
+  sent from the same domain, at risk for everyone. The person can turn the switch off, but it is on by default.
+- **Proof:** `test_sec17_one_student_sends_sixty_emails_an_hour_to_one_person`: 60 replies queue 60 emails to the
+  thread's author, and the reply's `https://dsba-hub-login.example/code` is in the email body.
+- **Fix:** at most one reply email per thread per recipient until they open it (or a cap of about 10 notification
+  emails per recipient per hour, the rest only in the Hub); quote no links in emails (replace each URL in the
+  excerpt with "[link]"), or quote no body at all ("Ali replied to your thread “…”").
+
+### SEC-18. Publishing an issue mass-emails every account, with no limit (minor)
+
+- **Owner:** content. **Where:** `services/newsletter.py:283` `publish()` calls `notify_all()` (`:291`), which
+  queues an email for every account with "New newsletter issues" on (the default). Creating, publishing and deleting
+  issues has no rate limit.
+- **What an attacker does:** a rep, or whoever holds a rep's session, creates and publishes issue after issue: each
+  is an email to the whole cohort from the Hub's address, with a subject and a 300-character quote they choose. The
+  same spam-reputation risk as SEC-17, at 160 times the scale. The access design gives `newsletter.manage` to a new
+  "Newsletter manager" role too, so more people will hold this power.
+- **Proof:** `test_sec18_a_rep_mass_emails_every_account_per_published_issue`: three issues published in a row queue
+  three emails per account.
+- **Fix:** at most one issue email to the cohort per day (later issues notify in the Hub only), or let only admins
+  publish; quote no links in the email (as SEC-17); audit already records each publish.
+
+### SEC-19. `?mine=1&status=removed` lists a student's removed files (nit)
+
+- **Owner:** content. **Where:** `services/library.py:234` `_visible_statuses()`: with `mine`, any `status` is taken
+  as asked, `removed` included, while `can_see()` keeps removed items for moderators only.
+- **Impact:** small: the student only sees their own files, with the rep's note. It is still a side door past the
+  rule "removed: moderators only", and it would show more if notes ever say more.
+- **Proof:** `test_sec19_uploader_lists_own_removed_item`: the item answers 404 by id but is in the list.
+- **Fix:** with `mine`, accept only `pending`, `published` and `rejected`.
+
+### SEC-20. Production settings accept no trusted proxy and the e2e mode's raised limits (minor)
+
+- **Owner:** LEAD. **Where:** `app/config.py:220` `production_problems()`.
+- **The e2e override itself is fine:** `compose.e2e.yaml` is applied only by `scripts/e2e.sh` on top of
+  `compose.yaml`; `compose.prod.yaml` sets neither the file backends nor the raised limits, and production already
+  refuses the `file` email and text backends. But nothing refuses the raised values if they reach a server some other
+  way (a copied `.env`, an `environment:` line added while debugging): `DSBA_OTP_MAX_PER_IP_PER_HOUR=1000`,
+  `DSBA_SMS_MAX_PER_HOUR=1000`, `DSBA_SMS_MAX_PER_DAY=10000`, even `DSBA_OTP_MAX_ATTEMPTS=1000` start without a word.
+- **No trusted proxy:** with `DSBA_TRUSTED_PROXIES` empty behind Caddy, every request comes from Caddy's address. The
+  per-network limits then become site-wide: one person asking for 30 codes an hour stops everyone's sign-in, and
+  15 wrong codes lock an address for the whole site, which is the SEC-2 attack D4 removed. `compose.prod.yaml` sets
+  it, so this only bites a hand-made deployment.
+- **Proof:** `test_sec20_production_accepts_raised_limits_and_no_trusted_proxy`: `production_problems()` is empty for
+  those settings.
+- **Fix:** in production, refuse an empty `DSBA_TRUSTED_PROXIES` (a deployment without a proxy can list `127.0.0.1/32`
+  on purpose), `otp_max_attempts > 5`, and the OTP and SMS limits above their defaults unless a deliberate
+  `DSBA_ALLOW_RAISED_LIMITS=true` is set.
+
+---
+
+## Earlier findings, re-checked
+
+- **SEC-1 (fixed).** `is_moderator()`/`is_admin()` require an active account; `get_moderator`/`get_admin` depend on
+  `get_active_user` (`core/security.py:304-325`); `tests/core/test_roles.py` passes. The web app now hides powers from
+  a suspended rep too (`627309f`).
+- **SEC-2 (fixed as decided in D4).** `services/otp.py`: 15 wrong codes lock that network (IP or /64) out of that
+  address for a day; 15 from anywhere switch the address to 10-character codes (about 50 bits); `test_lockout.py`
+  passes. *Residual (accepted, not a new finding):* the per-address limit of 5 codes an hour can be spent by anyone,
+  so an attacker rotating networks (IPv6 /64s are cheap) can keep an address waiting an hour at a time and fill its
+  inbox; and 50 texts an hour to random +973 mobiles pause texts for everyone (email keeps working). A one-time
+  sign-in link by email (SEC-2's second fix) would remove the first.
+- **SEC-3 (fixed).** `web/src/ui/safeHref.ts` refuses whitespace (Unicode and zero-width included), control
+  characters and backslashes anywhere, and an internal path must resolve to the probe origin. Search results and
+  notifications use `safeInternalPath()`; the forum, newsletter and career go through `safeHref()`.
+- **SEC-4 (fixed).** `react-router-dom` 7.18.4 (past every advisory listed), `vite` 7.3.7, `rollup` 4.64.5;
+  `npm audit` and `npm audit --omit=dev`: 0 vulnerabilities. `api/requirements.txt` carries hashes and
+  `api/Dockerfile` installs with `--require-hashes`.
+- **SEC-5 (fixed).** Unchanged; `tests/core/test_errors.py` and `test_headers.py` pass.
+- **SEC-6 (fixed).** `Standfirst` 2,000 characters, `editors` at most 12 of 80, `_check_size()` caps the whole issue
+  at 256 KB on create and update (`schemas/newsletter.py`, `services/newsletter.py:170`).
+- **SEC-7 (fixed on MinIO).** Live against the Docker stack's MinIO: a body over the declared size answers 400
+  `EntityTooLarge`, another key and another `Content-Type` 403 `AccessDenied`, the right one 204. Run the same three
+  against the production bucket once it exists (AWS S3 enforces POST policies the same way).
+- **SEC-8 (fixed).** `web/src/lib/analytics.ts`: `autocapture: false`, `disable_session_recording`, no flags or
+  remote config, no CDN scripts, `person_profiles: 'identified_only'` without `identify()`, masked text and
+  attributes, `ip: false`, page views only. Whether to switch it on at all stays Mohamed's call.
+- **SEC-9 (fixed; see SEC-16).** `sessions.require_step_up()` guards adding, changing and removing identifiers and
+  `DELETE /me` (10 minutes after a sign-in or a step-up code to an existing identifier); `test_step_up.py` passes.
+  Admins can recover an account (`PATCH /admin/users/{id}`), audited, all sessions ended, notice to the old address.
+  The admin side has no step-up: SEC-16.
+- **SEC-10 (fixed).** `forum/images.py` attaches only the author's own images; `uploads.can_view_image()` serves
+  others only while the owning post is readable; `test_media.py` passes.
+- **SEC-11 (fixed; nit left).** NFKC, one script per word, a TR39-style skeleton before the staff-word check. Refused:
+  `Аdmin`, `Student Rеp`, `DSBА Team`, `Αdmin`, `Admın`, `Adrnin`, `Adm1n`. Still accepted: `A d m i n`, `Ad-min`,
+  `Mod erator`. Compare the skeleton with spaces, dots, hyphens and apostrophes removed as well. Low risk: the staff
+  pill is shown only for real staff.
+- **SEC-12 (fixed).** `forum/visibility.py:98` looks a UUID up as an id first.
+- **SEC-13 (fixed).** `complete` still copies with `if_match`, then checks the copy (`services/uploads.py:253`).
+- **SEC-14 (partly fixed).** At most 10 pending files per student (`too_many_pending`, under a lock); files of
+  rejected or removed items are deleted by the sweep after a week. The site-wide daily upload budget waits on
+  Mohamed ("Waiting on Mohamed" in STATUS.md).
+- **SEC-15 (fixed).** `forum/threads.py:129` keeps a hidden thread hidden when deleted and `moderate_thread` gives
+  it back as deleted; the same for replies; `test_hidden_posts.py` passes.
+
+The design review's findings 1 to 23 stand as recorded in the round 2 table below, re-checked in the code: still
+fixed, with two still open in part: **10** (backups: SSE only, not encrypted to an offline key, and the default
+`DSBA_BACKUP_KEEP=14` needs a key that can delete) and **19** (now complete: SEC-6 is fixed).
+
+## What rounds 2 and 3 added: checked and sound
+
+- **Email outbox and mail worker** (`services/outbox.py`, `mailer.py`). Rows are queued in the caller's transaction,
+  claimed with `FOR UPDATE SKIP LOCKED`, subjects are folded to one line (no header injection; `email.message` would
+  refuse a line break anyway), bodies are plain text, logs show only masked addresses. A notification email is
+  cancelled when the account is gone, its address changed or the switch is off; the account's queued emails cascade
+  with it. Volume and content are SEC-17 and SEC-18.
+- **Step-up** (`sessions.require_step_up`, `/me/step-up`). Step-up codes are sign-in codes bound to the account
+  (`_bound_to`), so they can't sign anyone in and sign-in codes can't step up; success renews the session (new token,
+  new CSRF cookie). Adding an identifier checks step-up when the code is sent; its code is bound to the account.
+- **Lockouts** (D4): see SEC-2. Attempts are counted atomically before the comparison; only the newest code works;
+  a success closes every open code for the address; deleted accounts' challenges stay, anonymised, for the limits.
+- **Newsletter form editor.** The API types every block (`schemas/newsletter.py`) and checks every link and picture
+  with `core/links.py` (https, mailto or a Hub path; no whitespace, controls or backslashes; pictures only from the
+  app or `/api/v1/media/<id>`, which still applies the forum's visibility per reader). The web editor mirrors the rules
+  and renders through `safeHref()`/`safeImageSrc()`. Its local copy of unsaved edits uses a `hub.mine.` key, which
+  sign-out clears.
+- **Pictures** (D9 and the forum). Library jpg/png/webp are checked by their first bytes after the copy and shown
+  inline only through `preview_link()` (PDF and the allowlisted images); forum images as before. No SVG anywhere.
+- **The Drive import** (`services/drive.py`, `drive_import.py`, `scripts/seed-real.sh`). The key travels only in
+  `X-Goog-Api-Key`, never in a URL (httpx logs URLs); redirects are followed only to Google's API host (with the key)
+  or `*.googleusercontent.com` (without it); `scrub()` takes the key and the service account's token out of every
+  message; the key reaches only the import's own container, passed by name (`-e DSBA_GOOGLE_API_KEY`), never on a
+  command line, and is not in `compose.prod.yaml`'s API environment. Drive's answers are treated as untrusted: ids
+  and resource keys must match `[A-Za-z0-9_-]{1,100}` before they reach a query or header, JSON is read with a cap,
+  downloads are counted against the limit whatever Drive announces, the first bytes are checked with the uploads'
+  own `looks_right()`, the stored type is the allowlist's. Names lose control and format characters; the storage key
+  is `library/drive/<module id>/<file id>/<safe_file_name>`, all three parts checked, so no traversal. Titles and
+  descriptions are React text. Note for operators: the import publishes without review whatever is in the linked
+  folders, so a folder linked by a rep is trusted like a rep's upload; read the plan before answering "y".
+- **The e2e override:** see SEC-20.
+- **The data router.** No `returnTo`/`next` parameter exists; programmatic navigation uses fixed paths, the file
+  viewer's `backTo` comes from history state (not from the URL), the command palette navigates only to
+  `safeInternalPath()` results and opens only fixed external URLs. React Router 7 also keeps `//host` in the path.
+- **Secrets.** `git grep` for keys, tokens and passwords finds only the documented development defaults; `.env` is
+  ignored by git and both Docker builds; `.env.example` holds placeholders.
+
+## Design review: access
+
+Of `docs/superpowers/specs/2026-10-13-access-roles-and-feature-switches-design.md`, before it is built. The shape is
+right: the code checks boxes, never role names; admin-only powers can't be ticked on another role; a suspended
+account has no boxes; switches are enforced by the API and read on every request. These are the rules it still needs
+written into the spec and its testing list. Severities are for the built feature if the rule is missed.
+
+### AD-1. Admin-only powers need a step-up (major; carries SEC-16 over)
+
+Giving and taking roles, editing roles, flipping switches and account recovery are exactly what a stolen admin
+session would use to keep itself in. Require `sessions.require_step_up()` on `PUT /admin/users/{id}/roles`,
+`POST/PATCH/DELETE /admin/roles…`, `PUT /admin/features/{feature}` and the recovery fields of
+`PATCH /admin/users/{id}`, and refuse recovery on an account that holds Admin. **Test:** each answers 403
+`step_up_required` with a session older than 10 minutes.
+
+### AD-2. `people.suspend` must not see contact details through search (major)
+
+The spec gives `people.suspend` "the people list (names, years, roles, no contact details)". Today's
+`GET /admin/users` searches `q` in email and phone (`routers/admin.py:110-117`, substring `ilike`), and `PATCH
+/admin/users/{id}` answers `AdminUser` with `email` and `phone`. If the list keeps that search, a holder finds
+anyone's address one character at a time (`q=a`, `q=al`, ... and watch who stays in the list), or confirms a guess.
+**Rule:** for anyone without Admin, search names only and return a shape without `email`/`phone` from both the list
+and the PATCH. **Test:** a `people.suspend` holder searching a person's exact email gets no match, and no response
+of theirs contains an `@` or a phone number.
+
+### AD-3. What Student (the role every new account gets) may hold (major)
+
+Accounts are free: anyone with an email address gets Student at sign-in. The spec lets admins edit Student's
+boxes, so one wrong tick gives a manager box (`library.manage`: publish without review, see pending files;
+`people.suspend`: suspend anyone; `audit.read`) to every stranger who signs up, at once (rule 5). **Rule:** the role
+given at sign-in may hold only the "contributor" boxes (`forum.post`, `library.upload`, `newsletter.react`,
+`reports.create`, and later ones marked so); the API refuses the others on it (409). **Test:** `PATCH` Student with
+`people.suspend` answers 409.
+
+### AD-4. Badges and staff names on custom roles (minor)
+
+A role "may show a badge", and staff words are allowed in the names of people holding "a role with a badge". An
+admin's custom role badged "Admin" or "Student rep" (or "Αdmin" in Greek) makes its holders look like staff, and lets
+a "Society helper" call themselves "Admin" in the forum. **Rule:** badges are unique, never a built-in role's badge
+or one that reads as a staff word after `skeleton()`; only Admin and Rep holders may use staff words in names.
+
+### AD-5. Reports belong to the area that handles them (minor)
+
+`forum.moderate` handles forum reports and `library.manage` library ones, but today `list_reports` returns every
+report to every moderator and `resolve_report` checks only the role (`services/reports.py`); report cards carry the
+target's excerpt, including the text of hidden posts. **Rule:** list and resolve filter by the target's box
+(`thread`/`reply` need `forum.moderate`, `library_item` needs `library.manage`); the badge counts on `/manage` too.
+**Test:** a `library.manage`-only holder gets no forum report and 404 resolving one.
+
+### AD-6. Switches must close the side doors, not only the feature's own routes (minor)
+
+The testing list checks "every protected endpoint" with the feature off, which leaves out the public GETs and the
+paths that belong to a feature without being under its prefix: `/search` (stated), `/media/{id}` (forum images),
+`POST /uploads` with `forum_image` or `library`, `/library/items/{id}/download` and `/file`,
+`/calendar/feed.ics` and `/events/{id}.ics` (calendar apps poll them), `/modules/{id}` library counts,
+`/admin/stats`, the reports queue and `POST /reports` for a switched-off target, and emails: a notification of a
+switched-off feature already in the outbox (or `notify_all` on publish) still goes out. **Rule and test:** every
+route declares its feature or is on a short reviewed list of feature-less routes; a test walks the router table (as
+this review did) and fails on an undeclared route. The outbox drops emails whose feature is off when their turn
+comes, as it does for a switch turned off.
+
+### AD-7. The last-admin rule needs a lock, and covers deletion (minor)
+
+"The last active admin can't lose it or be suspended" is a check-then-act: two admins removing each other's Admin at
+the same moment both pass the count. And the last admin can still `DELETE /me`, or lose the account to recovery.
+**Rule:** take an advisory lock (`ratelimit.lock(db, "admins")`) around every change that can remove an active admin
+(roles, status, deletion), count inside it, and refuse `DELETE /me` for the last active admin (409 `last_admin`).
+**Test:** two parallel requests, one admin left.
+
+### AD-8. Newsletter publishing is a mass-email power (minor; carries SEC-18 over)
+
+`newsletter.manage` is planned for a new "Newsletter manager" role. With D1, each publish emails every account. Put a
+daily cap on cohort emails (or keep "publish" admin-only and let managers write drafts) before the box spreads.
+
+### AD-9. What the testing list should add
+
+- "No route lets a non-admin gain a box" needs the concrete cases: a holder of every box calling `PUT
+  /admin/users/{self}/roles`, `PATCH /admin/roles/{their own role}`, creating a role and asking for it, and
+  `PATCH /admin/users/{self}` with `status` (all 403).
+- A suspended holder of every box, and a person with no roles, on every write (403) and on hidden posts, pending
+  files and drafts (404), not only on the endpoints that had `Moderator` before: today's 25 inline `is_moderator()`
+  calls are where a missed conversion leaks (`is_moderator()` returning True for a non-moderator was SEC-1).
+- `/me` and `UserPublic` never show another person's roles beyond the badge (`UserPublic.badge` only).
+- Every admin-only and box-granting change is audited with before and after, and the person is notified (rule 6),
+  including role changes made by deleting a role that people hold.
+
+## Top three things to do
+
+1. **Step-up on admin powers (SEC-16, AD-1).** One line in `update_user` today, and the same rule on every admin-only
+   route of the access work. It closes the one path from a stolen session to permanent control of the Hub.
+2. **Write the access rules into the spec before `round4/access` starts (AD-2, AD-3, AD-5, AD-6).** Contact details
+   stay admin-only (no email or phone search for `people.suspend`), the role every sign-up gets can't hold manager
+   boxes, reports follow their area's box, and a router-table test makes every route declare its feature.
+3. **Cap and clean the Hub's emails (SEC-17, SEC-18).** One reply email per thread until it is read, one cohort email
+   per day, no links quoted from students or reps. This protects the sending domain that carries every sign-in code.
+
+Then: SEC-20 (refuse an empty `DSBA_TRUSTED_PROXIES` and raised limits in production), SEC-19, the SEC-11 nit, and the
+open parts of design findings 10 (backups to an offline key) and SEC-14 (the upload budget, Mohamed's call).
+
+**For whoever fixes these:** `api/tests/test_sec_review_r3.py` asserts that each problem exists, so each test fails
+once its finding is fixed. Turn it into the opposite assertion in the area's own tests and delete the file. Not done
+in this review: `pip-audit` (it timed out here; the lockfile is unchanged in substance since round 2's clean run),
+the upload policy on AWS S3 (proved on MinIO), and a browser pass over the new editor (code read only).
+
+---
+
+# Round 2 record (as written then; statuses above supersede it)
+
+## Round 2 findings
 
 ### SEC-1. Suspended moderators could still remove library files and read pending items and drafts (major, fixed)
 
