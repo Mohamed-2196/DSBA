@@ -1,6 +1,6 @@
 import { EnvelopeSimple, LinkSimple, ShareNetwork, WhatsappLogo } from '@phosphor-icons/react';
-import { appUrl, copyText } from '../../../lib/share';
-import { useToast } from '../../../state';
+import { appUrl } from '../../../lib/share';
+import { useCopyLink } from '../../../lib/useCopyLink';
 import { Button, IconButton, Menu, cx } from '../../../ui';
 import { mailUrl, whatsappUrl } from '../lib/links';
 
@@ -16,14 +16,10 @@ export interface ShareActionsProps {
 
 /** "Copy link" + a share menu (WhatsApp, email) for an issue route. */
 export function ShareActions({ route, title, compact = false, className }: ShareActionsProps) {
-  const { push } = useToast();
   const url = appUrl(route);
 
-  const copy = async () => {
-    const ok = await copyText(url);
-    if (ok) push({ title: 'Link copied', body: 'Paste it anywhere to share this issue.', tone: 'success' });
-    else push({ title: 'Couldn’t copy the link', body: 'Copy it from the address bar instead.', tone: 'alert' });
-  };
+  const copyLink = useCopyLink();
+  const copy = () => copyLink(url, 'Paste it anywhere to share this issue.');
 
   return (
     <div className={cx('nl-share', className)}>

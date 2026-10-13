@@ -15,7 +15,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { isApiError } from '../../api/errors';
-import { appUrl, copyText } from '../../lib/share';
+import { appUrl } from '../../lib/share';
+import { useCopyLink } from '../../lib/useCopyLink';
 import { BREAKPOINTS, useDocumentTitle, useMediaQuery, useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, EmptyState, IconButton, Menu, Page, Panel, QueryError, Skeleton, cx, timeAgo } from '../../ui';
@@ -144,6 +145,7 @@ function FileView({ item }: { item: LibraryItem }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { push } = useToast();
+  const copy = useCopyLink();
   const { suspended, moderator: isModerator } = useLibraryAccess();
   const { getModule } = useModules();
   const toggleStar = useStar();
@@ -184,11 +186,7 @@ function FileView({ item }: { item: LibraryItem }) {
       1500,
     );
 
-  const copyLink = async () => {
-    const url = appUrl(itemPath(item));
-    if (await copyText(url)) push({ title: 'Link copied', body: 'Anyone can open this file with it.', tone: 'success' });
-    else push({ title: 'Couldn’t copy the link', body: url, tone: 'alert' });
-  };
+  const copyLink = () => copy(appUrl(itemPath(item)), 'Anyone can open this file with it.');
 
   const moreItems = [
     ...(item.canEdit ? [{ id: 'edit', label: 'Edit details', icon: PencilSimple, onSelect: () => setDialog('edit') }] : []),

@@ -1,5 +1,4 @@
 // What the agenda shows around a month: a month with nothing in it, and "Continues in …" under the last date.
-// Split out of CalendarPage (code quality review CQ-17).
 import type { ReactNode } from 'react';
 import { CalendarBlank, CaretRight, Plus } from '@phosphor-icons/react';
 import { cohortLabel } from '../../state';

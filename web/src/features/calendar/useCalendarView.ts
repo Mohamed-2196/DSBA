@@ -1,5 +1,4 @@
 // What the calendar page shows, from its address: ?month=YYYY-MM, ?cohort=all, ?types=exam,mock and ?event=<id>.
-// Split out of CalendarPage (code quality review CQ-17).
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQueryParam, useYear, type CohortYear } from '../../state';
 import { parseDay } from '../../lib/dates';

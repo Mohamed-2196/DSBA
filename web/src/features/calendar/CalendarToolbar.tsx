@@ -1,5 +1,5 @@
 // Above the month: its name, the arrows, "Today", whose events (the student's year or every year) and the type
-// chips, which are also the colour key. Split out of CalendarPage (code quality review CQ-17).
+// chips, which are also the colour key.
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { cohortColor, cohortLabel, cohortOnColor } from '../../state';
 import { Button, Chip, cx, IconButton, SegmentedControl } from '../../ui';

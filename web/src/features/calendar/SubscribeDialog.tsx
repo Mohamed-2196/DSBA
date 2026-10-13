@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { CalendarPlus, Copy, DownloadSimple } from '@phosphor-icons/react';
-import { cohortColor, cohortLabel, cohortOnColor, normalizeYear, useToast, YEARS, type CohortYear } from '../../state';
+import { cohortColor, cohortLabel, cohortOnColor, normalizeYear, YEARS, type CohortYear } from '../../state';
 import { Button, Modal, SegmentedControl, TextField } from '../../ui';
-import { copyText } from '../../lib/share';
+import { useCopyLink } from '../../lib/useCopyLink';
 import { feedUrl } from './api';
 
 export interface SubscribeDialogProps {
@@ -20,7 +20,7 @@ type Choice = 'all' | `${CohortYear}`;
  * apps and a one-off download.
  */
 export function SubscribeDialog({ open, year, onClose }: SubscribeDialogProps) {
-  const { push } = useToast();
+  const copyLink = useCopyLink();
   const [choice, setChoice] = useState<Choice>(year ? `${year}` : 'all');
   useEffect(() => {
     if (open) setChoice(year ? `${year}` : 'all');
@@ -31,13 +31,7 @@ export function SubscribeDialog({ open, year, onClose }: SubscribeDialogProps) {
   const webcal = url.replace(/^https?:/, 'webcal:');
   const fileName = chosen ? `dsba-hub-year-${chosen}.ics` : 'dsba-hub.ics';
 
-  const copy = async () => {
-    push(
-      (await copyText(url))
-        ? { tone: 'success', title: 'Link copied', body: 'Paste it into your calendar app to subscribe.' }
-        : { tone: 'alert', title: 'Couldn’t copy the link', body: 'Select the link and copy it yourself.' },
-    );
-  };
+  const copy = () => copyLink(url, 'Paste it into your calendar app to subscribe.');
 
   return (
     <Modal

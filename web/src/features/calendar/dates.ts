@@ -1,6 +1,5 @@
 // Calendar-only date helpers: months as { y, m }, the month grid, countdown labels and distances. Days themselves
-// (day keys, today in Bahrain, weekdays, month names, formats) come from src/lib/dates.ts, the one home every area
-// shares (code quality review CQ-5).
+// (day keys, today in Bahrain, weekdays, month names, formats) come from src/lib/dates.ts.
 import { addDays, daysUntil, isWeekend, monthName, startOfDay } from '../../lib/dates';
 import { countOf } from '../../ui';
 

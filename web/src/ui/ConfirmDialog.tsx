@@ -23,7 +23,7 @@ export interface ConfirmDialogProps {
   children?: ReactNode;
 }
 
-/** "Are you sure?" before an action, the one copy for every area (code quality review CQ-5). */
+/** "Are you sure?" before an action: the question, what happens, and the action named as a verb. */
 export function ConfirmDialog({ open, title, body, confirmLabel, tone = 'primary', busy = false, error, onConfirm, onClose, children }: ConfirmDialogProps) {
   const danger = tone === 'danger';
   return (
