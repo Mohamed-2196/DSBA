@@ -14,7 +14,7 @@ from sqlalchemy.orm import aliased
 from app.core.access import Box, Feature
 from app.core.errors import conflict, forbidden, invalid, not_found
 from app.core.pagination import Limit, Offset
-from app.core.security import DB, client_ip, requires
+from app.core.security import DB, CurrentSession, client_ip, requires
 from app.models import (
     AuditEntry,
     ForumReply,
@@ -26,10 +26,11 @@ from app.models import (
     User,
     UserStatus,
 )
-from app.routers._base import router_for
+from app.routers._base import SteppedUpAdmin, router_for
+from app.schemas.access import UserRolesUpdate
 from app.schemas.common import ErrorResponse
 from app.schemas.moderation import AdminStats, AdminUser, AdminUserPage, AdminUserUpdate, AuditOut, AuditPage
-from app.services import access, accounts, reports, sessions
+from app.services import access, accounts, reports, roles, sessions
 from app.services.accounts import public_user
 from app.services.audit import record
 from app.services.identifiers import Kind, destination_hint, normalize_identifier
@@ -144,15 +145,17 @@ def update_user(
     body: AdminUserUpdate,
     request: Request,
     user: Annotated[User, requires(Box.people_suspend)],
+    sess: CurrentSession,
     db: DB,
 ) -> AdminUser:
     """Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email
     address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
     Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
+    It needs a recent step-up, and never applies to an account holding Admin (security review AD-1).
 
     Errors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,
-    and so is suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier
-    (422)."""
+    and so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery),
+    identifier_taken (409), last_identifier (409), invalid_identifier (422)."""
     target = db.get(User, user_id)
     if target is None:
         raise not_found("This account doesn't exist.")
@@ -167,8 +170,12 @@ def update_user(
         return admin_user(target, contacts=contacts)
     if target.id == user.id:
         raise conflict("cannot_change_self", "You can't change your own account here. Ask another admin.")
-    if recovery and not contacts:
-        raise forbidden("Only admins can do this.")
+    if recovery:
+        if not contacts:
+            raise forbidden("Only admins can do this.")
+        if access.access_of(target, db).admin:
+            raise forbidden("An admin's email address and phone number can't be changed here. Take Admin away first.")
+        sessions.require_step_up(sess)
     ip = client_ip(request)
     if new_status is not None and new_status != target.status:
         if access.access_of(target, db).admin:
@@ -240,6 +247,19 @@ def _recover(db: DB, admin: User, target: User, kind: Kind, raw: str | None, ip:
         actor=admin,
     )
     return accounts.queue_identifier_notice(db, target, change)
+
+
+@router.put("/admin/users/{user_id}/roles", response_model=AdminUser)
+def set_user_roles(user_id: UUID, body: UserRolesUpdate, request: Request, user: SteppedUpAdmin, db: DB) -> AdminUser:
+    """The roles the person holds afterwards, exactly. They're told. Errors: step_up_required (403),
+    cannot_change_self (409), last_admin (409: the only active admin keeps Admin), invalid_input (422: a role that
+    doesn't exist), rate_limited (429). Audited."""
+    target = db.get(User, user_id)
+    if target is None:
+        raise not_found("This account doesn't exist.")
+    roles.set_user_roles(db, user, target, body.role_ids, client_ip(request))
+    db.commit()
+    return admin_user(target, contacts=True)
 
 
 @router.get("/admin/audit", response_model=AuditPage)

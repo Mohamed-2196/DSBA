@@ -42,6 +42,11 @@ class Box(enum.StrEnum):
     audit_read = "audit.read"
 
 
+# The boxes Student may hold. Every new account gets Student, so a manager box there would go to anyone who signs up
+# (security review AD-3).
+STUDENT_BOXES = frozenset({Box.forum_post, Box.library_upload, Box.newsletter_react, Box.reports_create})
+
+
 class Feature(enum.StrEnum):
     forum = "forum"
     library = "library"

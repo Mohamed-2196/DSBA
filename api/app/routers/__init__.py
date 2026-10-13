@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app.routers import (
+    access,
     admin,
     auth,
     calendar,
@@ -28,6 +29,7 @@ for module in (
     progress,
     notifications,
     admin,
+    access,
     modules,
     library,
     uploads,

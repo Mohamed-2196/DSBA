@@ -249,9 +249,15 @@ def clean_display_name(raw: str, *, staff: bool = False) -> str:
         raise _bad_name("Start with a letter or a digit.")
     if _mixes_scripts(name):
         raise _bad_name("Write each word in one alphabet.")
-    if not staff and any(word in skeleton(name) for word in STAFF_WORDS):
+    if not staff and reads_as_staff(name):
         raise _bad_name("This name is kept for the Hub's staff. Choose another one.")
     return name
+
+
+def reads_as_staff(text: str) -> bool:
+    """Whether `text` reads as one of STAFF_WORDS once look-alike letters are mapped (names, and roles' badges)."""
+    plain = skeleton(unicodedata.normalize("NFKC", text))
+    return any(word in plain for word in STAFF_WORDS)
 
 
 # ── signing in ──────────────────────────────────────────────────────────────────────────────

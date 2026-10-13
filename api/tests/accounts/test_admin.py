@@ -26,7 +26,7 @@ from app.models import (
     UserStatus,
 )
 from app.services import access
-from tests.accounts.conftest import API, Deliver, Outbox
+from tests.accounts.conftest import API, Deliver, Outbox, sync_csrf
 
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
@@ -307,3 +307,51 @@ def test_recovery_errors(client_for: ClientFor, make_user: MakeUser, admin: User
     assert c.patch(f"{API}/admin/users/{owner.id}", json={"email": "owner@example.com"}).status_code == 200  # no change
     rep = client_for(make_user(roles=("student", "rep")))
     assert rep.patch(f"{API}/admin/users/{owner.id}", json={"email": "x@example.com"}).status_code == 403
+
+
+def test_recovery_needs_a_recent_step_up(
+    client_for: ClientFor,
+    make_user: MakeUser,
+    admin: User,
+    db: Session,
+    older_sessions: Callable[..., None],
+    outbox: Outbox,
+) -> None:
+    """Security review AD-1 (SEC-16): with a session older than the step-up window, an admin can still suspend, but
+    can't change anyone's email address or phone number until a code confirms it's them."""
+    owner = make_user(email="owner@example.com", phone="+97333123496", name="Owner")
+    c = client_for(admin)
+    older_sessions()
+    for body in ({"email": "thief@example.com"}, {"phone": "+97333123497"}, {"phone": None}):
+        r = c.patch(f"{API}/admin/users/{owner.id}", json=body)
+        assert (r.status_code, r.json()["error"]["code"]) == (403, "step_up_required"), body
+    db.refresh(owner)
+    assert (owner.email, owner.phone) == ("owner@example.com", "+97333123496")
+    assert c.patch(f"{API}/admin/users/{owner.id}", json={"status": "suspended"}).status_code == 200
+
+    started = c.post(f"{API}/me/step-up", json={})
+    assert started.status_code == 202, started.text
+    code = outbox.to("head@example.com")[-1].code
+    done = c.post(f"{API}/me/step-up/verify", json={"challengeId": started.json()["challengeId"], "code": code})
+    assert done.status_code == 200, done.text
+    sync_csrf(c)
+    r = c.patch(f"{API}/admin/users/{owner.id}", json={"email": "back@example.com"})
+    assert (r.status_code, r.json()["email"]) == (200, "back@example.com")
+
+
+def test_an_admins_account_is_never_recovered(
+    client_for: ClientFor, make_user: MakeUser, admin: User, db: Session
+) -> None:
+    """Security review AD-1: recovery would hand an admin's account, and every admin power, to whoever reads the new
+    address. An admin changes their own sign-in details, or loses Admin first."""
+    other = make_user(email="second@example.com", name="Second Admin", roles=("student", "admin"))
+    c = client_for(admin)
+    for body in ({"email": "thief@example.com"}, {"phone": "+97333123498"}):
+        r = c.patch(f"{API}/admin/users/{other.id}", json=body)
+        assert r.status_code == 403, body
+        assert r.json()["error"]["message"] == (
+            "An admin's email address and phone number can't be changed here. Take Admin away first."
+        )
+    db.refresh(other)
+    assert (other.email, other.phone) == ("second@example.com", None)
+    assert db.scalar(select(AuditEntry).where(AuditEntry.action == "user.identifier")) is None
