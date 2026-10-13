@@ -13,9 +13,9 @@ interface ProfileMenuProps {
 }
 
 /**
- * Who is signed in, with the account menu (Finish your profile when it's missing, Your account,
- * Manage for people who hold a manager box, Sign out). Guests
- * get a Sign in button. The line under the name is the person's badge when they have one, otherwise their cohort.
+ * Who is signed in, with the account menu (Finish your profile when it's missing, Your account, Manage for people
+ * who hold a manager box, Sign out). Guests get a Sign in button. The line under the name is the person's badge when
+ * they have one, otherwise their cohort.
  */
 export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenuProps) {
   const { me, status, manages, openSignIn, signOut } = useAuth();
