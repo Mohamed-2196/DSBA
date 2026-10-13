@@ -17,10 +17,10 @@ router change and the e2e harness.
 | R-3 | A better calendar | done (round4/calendar, merged 2026-10-13) | — |
 | R-4 | A study board | done (merged 2026-10-14) | R-3, for deadlines |
 | R-5 | Notes | done (merged 2026-10-14) | — |
-| R-6 | Noora sees what you see | to design | R-5, and the AI decision |
+| R-6 | Noora sees what you see | building (round4/noora-ai): Claude via the API, daily cap, budget cap, consent per note | R-5, and the AI decision |
 | R-7 | A new Noora | done (merged 2026-10-14) | — (pairs well with R-6) |
-| R-8 | Favourite apps | to design | R-3, R-4, R-5 |
-| R-9 | Edit modules and lessons in the app | to design | R-1 |
+| R-8 | Favourite apps | on hold (Mohamed, 2026-10-14: none yet) | R-3, R-4, R-5 |
+| R-9 | Edit modules and lessons in the app | building (round4/content): `content.edit` box, seed only fills an empty database | R-1 |
 | R-10 | Feature flags, switched in the admin UI | done (merged 2026-10-13) | — |
 
 ## R-1. Roles that each unlock more
