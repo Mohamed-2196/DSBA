@@ -5,9 +5,10 @@
 // session recordings, surveys, heatmaps or feature flags, nothing loaded from PostHog's CDN, no cookies, anonymous
 // visitors only (never identify() anyone, least of all with an email or a phone number), Do Not Track and Global
 // Privacy Control respected, URLs without their query string or hash (search terms stay in the browser) and no page
-// titles (a thread's title is what a student wrote). In PostHog's project settings, also turn on "Discard client IP
+// titles (a thread's title is what a student wrote). Every event also carries a `features` list of feature keys,
+// held in memory and never stored. In PostHog's project settings, also turn on "Discard client IP
 // data". The CSP needs the API host in connect-src, nothing else (docs/backend/DEPLOYMENT.md).
-import type { CaptureResult, PostHog, PostHogConfig, Properties } from 'posthog-js';
+import type { CaptureResult, PostHogConfig, Properties } from 'posthog-js';
 import { FEATURE_KEYS } from '../auth/access';
 
 export const DEFAULT_POSTHOG_HOST = 'https://us.i.posthog.com';
@@ -64,7 +65,7 @@ export function analyticsConfig(apiHost: string = DEFAULT_POSTHOG_HOST): Partial
     mask_all_element_attributes: true,
     save_referrer: false,
     ip: false,
-    before_send: scrubEvent,
+    before_send: prepareEvent,
   };
 }
 
@@ -74,20 +75,22 @@ export function featuresProperty(on: readonly string[]): string[] {
   return [...new Set(on.filter((f) => known.has(f)))].sort();
 }
 
-let client: PostHog | null = null;
-let pending: string[] | null = null;
+let visitFeatures: string[] = [];
 
-/** Every event from now on carries `features`. Before analytics has started, it's kept until it does. */
+/** The features on right now; every event carries them from here on. Held in memory only, never stored. */
 export function setVisitFeatures(on: readonly string[]): void {
-  const features = featuresProperty(on);
-  if (client) client.register({ features });
-  else pending = features;
+  visitFeatures = featuresProperty(on);
+}
+
+/** Scrubs an event and adds the current features list. */
+export function prepareEvent(event: CaptureResult | null): CaptureResult | null {
+  const scrubbed = scrubEvent(event);
+  if (!scrubbed) return scrubbed;
+  return { ...scrubbed, properties: { ...scrubbed.properties, features: visitFeatures } };
 }
 
 /** Fetches the SDK (its own chunk) and starts it. Call only when the build has a key. */
 export async function startAnalytics(key: string, apiHost?: string): Promise<void> {
   const { default: posthog } = await import('posthog-js');
   posthog.init(key, analyticsConfig(apiHost || DEFAULT_POSTHOG_HOST));
-  client = posthog;
-  if (pending) posthog.register({ features: pending });
 }

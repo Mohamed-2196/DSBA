@@ -4,9 +4,9 @@ import { FEATURE_KEYS, useAuth } from '../auth';
 
 export function AnalyticsFeatures() {
   const { featureOn, status } = useAuth();
-  const on = status === 'loading' ? null : FEATURE_KEYS.filter((f) => featureOn(f)).join(',');
+  const on = status === 'loading' ? '' : FEATURE_KEYS.filter((f) => featureOn(f)).join(',');
   useEffect(() => {
-    if (on === null || !import.meta.env.VITE_POSTHOG_KEY) return;
+    if (!import.meta.env.VITE_POSTHOG_KEY) return;
     void import('../lib/analytics').then(({ setVisitFeatures }) => setVisitFeatures(on ? on.split(',') : [])).catch(() => undefined);
   }, [on]);
   return null;
