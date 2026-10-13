@@ -2884,7 +2884,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "board" | "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora";
+            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "board";
             /** Label */
             label: string;
             /** Hides */
@@ -2910,7 +2910,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("board" | "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora")[];
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "board")[];
         };
         /** FileLink */
         FileLink: {
@@ -3421,7 +3421,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("board" | "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora")[];
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "board")[];
             /**
              * Status
              * @enum {string}
@@ -7687,7 +7687,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "board" | "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora";
+                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "board";
             };
             cookie?: never;
         };

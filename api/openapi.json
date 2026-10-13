@@ -3632,7 +3632,6 @@
             "required": true,
             "schema": {
               "enum": [
-                "board",
                 "forum",
                 "library",
                 "library.uploads",
@@ -3640,7 +3639,8 @@
                 "calendar",
                 "career",
                 "grades",
-                "noora"
+                "noora",
+                "board"
               ],
               "type": "string",
               "title": "Feature"
@@ -14410,7 +14410,6 @@
           "feature": {
             "type": "string",
             "enum": [
-              "board",
               "forum",
               "library",
               "library.uploads",
@@ -14418,7 +14417,8 @@
               "calendar",
               "career",
               "grades",
-              "noora"
+              "noora",
+              "board"
             ],
             "title": "Feature"
           },
@@ -14489,7 +14489,6 @@
             "items": {
               "type": "string",
               "enum": [
-                "board",
                 "forum",
                 "library",
                 "library.uploads",
@@ -14497,7 +14496,8 @@
                 "calendar",
                 "career",
                 "grades",
-                "noora"
+                "noora",
+                "board"
               ]
             },
             "type": "array",
@@ -16189,7 +16189,6 @@
             "items": {
               "type": "string",
               "enum": [
-                "board",
                 "forum",
                 "library",
                 "library.uploads",
@@ -16197,7 +16196,8 @@
                 "calendar",
                 "career",
                 "grades",
-                "noora"
+                "noora",
+                "board"
               ]
             },
             "type": "array",
