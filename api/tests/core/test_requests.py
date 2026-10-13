@@ -111,9 +111,9 @@ def test_removed_items_answer_404_on_download_and_file(
     )
     assert link.status_code == 201
     link_base = f"{API}/library/items/{link.json()['id']}"
-    for url in (base, link_base):
+    for url, slug in ((base, item["slug"]), (link_base, link.json()["slug"])):
         assert rep.delete(url).status_code == 204
-        assert rep.get(url).json()["status"] == "removed"  # moderators still see the record...
+        assert rep.get(f"{API}/library/items/{slug}").json()["status"] == "removed"  # moderators still see it...
     for url in (f"{base}/download", f"{base}/file", f"{link_base}/download"):
         r = rep.get(url, follow_redirects=False)  # ...but nothing to open
         assert r.status_code == 404, url

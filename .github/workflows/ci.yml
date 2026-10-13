@@ -90,5 +90,5 @@ jobs:
         working-directory: web
         run: npm ci --no-audit --no-fund
 
-      - name: Checks (tsc, eslint, knip, unit tests, schema.d.ts drift, build)
+      - name: Checks (tsc, eslint, unit tests, schema.d.ts drift, build)
         run: bash scripts/check.sh web
