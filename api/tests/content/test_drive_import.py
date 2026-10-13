@@ -234,7 +234,7 @@ def test_files_become_published_library_files_of_the_links_kind_module_and_autho
     assert (board.kind, board.author_name, board.module_id, board.year) == ("notes", "Mahdi", "economics", 1)
     assert "Imported 5 files into the library. Skipped: 0. Failed: 0." in out
 
-    stored = storage.client.get_object(Bucket=storage.bucket, Key=guide.storage_key)
+    stored = storage.client.get_object(Bucket=storage.bucket, Key=guide.storage_key or "")
     assert (stored["ContentType"], stored["Body"].read()) == ("application/pdf", PDF)
     assert keys(storage) == sorted(i.storage_key or "" for i in items.values())
 
@@ -272,7 +272,7 @@ def test_past_papers_take_their_exam_year_zone_and_kind_from_the_name(
     said = {
         "ST2133_2021_ZA.pdf": ExamMeta(2021, "A", False),
         "ST2133_2020_ER.pdf": ExamMeta(2020, None, True),
-        "Odd.pdf": ExamMeta(21, "C", False),  # not a year, not a zone: ignored  # type: ignore[arg-type]
+        "Odd.pdf": ExamMeta(21, "C", False),  # type: ignore[arg-type]  # not a year, not a zone: ignored
     }
     asked: list[str] = []
 

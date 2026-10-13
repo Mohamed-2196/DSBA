@@ -29,7 +29,8 @@ from app.models import (
 from app.schemas.calendar import EventType
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCover, IssueSection
-from app.seed.loader import V1_PUBLISHED_AT, load_all, module_links, read, seed_issue
+from app.seed.loader import load_all, module_links, read, seed_issue
+from app.services.library import V1_PUBLISHED_AT
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
