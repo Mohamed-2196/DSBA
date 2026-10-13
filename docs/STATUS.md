@@ -38,7 +38,7 @@ deployed yet.
 | `round4/access` | SDD, task by task | removed | R-1 roles and R-10 feature switches: merged 2026-10-13 (`ede6490`); checks green (API 770, web 419) |
 | `round4/notes` | general-purpose | removed, merged 2026-10-14 | R-5 notes: private, autosave plus offline draft, Markdown and formulas, attach to a module or lesson |
 | `round4/board` | general-purpose | removed, merged 2026-10-14 | R-4 study board: private, fixed columns, "Add to my board" from the calendar and lessons |
-| `round4/requests` | general-purpose | `../dsba-requests` | R-2 requests: public with "me too", any rep (`requests.manage`) answers |
+| `round4/requests` | general-purpose | removed, merged 2026-10-14 | R-2 requests: public with "me too", any rep (`requests.manage`) answers |
 | `round4/noora` | web-builder | removed, merged 2026-10-14 (plus KaTeX formulas in forum and notes) | R-7 new Noora: docked panel on laptops, sheet on phones, never covers the page, page-aware suggestions |
 | `round4/calendar` | web-builder | removed | R-3 calendar redesign: merged 2026-10-13 (`2ffd145`) |
 | `round4/polish` | web-builder | removed, merged 2026-10-14 | ST-13, ST-14, ST-16, ST-17, UX-18 to UX-22, SEC-17, SEC-18, SEC-20, the CQ minors, `e2e.sh --restore` restores web |

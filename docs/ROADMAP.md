@@ -13,7 +13,7 @@ router change and the e2e harness.
 | # | Feature | Status | Needs first |
 | --- | --- | --- | --- |
 | R-1 | Roles that each unlock more | done (merged 2026-10-13) | — |
-| R-2 | Requests from students | building (round4/requests) | R-1 |
+| R-2 | Requests from students | done (merged 2026-10-14) | R-1 |
 | R-3 | A better calendar | done (round4/calendar, merged 2026-10-13) | — |
 | R-4 | A study board | done (merged 2026-10-14) | R-3, for deadlines |
 | R-5 | Notes | done (merged 2026-10-14) | — |
