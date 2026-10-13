@@ -54,6 +54,7 @@ scripts/    check.sh: every check CI runs
 ```sh
 docker compose up --build                 # the stack: app :5173, API :8000 (/api/v1/docs), Mailpit :8025, MinIO console :9001
 scripts/check.sh            # everything CI runs (or: scripts/check.sh api | web)
+scripts/install-hooks.sh    # once per clone: the pre-push hook (SKIP_CHECKS=1 / FULL_CHECKS=1 git push)
 cd api && uv run --no-sync pytest tests/<area> -q                  # one area; each run makes its own database
 cd web && npm test                                                 # Vitest; name.test.ts next to the module
 cd web && npx playwright test                                      # e2e against a running stack (env in web/e2e/support.ts)

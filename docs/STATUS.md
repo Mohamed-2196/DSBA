@@ -33,11 +33,12 @@ deployed yet.
 limit 33 minutes in and stopped without pushing anything.
 - **Done since, on 2026-10-13:**
   - item 2, the skills in `.claude/skills/` (README there);
-  - item 3, CLAUDE.md.
+  - item 3, CLAUDE.md;
+  - item 5, the pre-push hook: `.githooks/pre-push`, turned on with `scripts/install-hooks.sh`. A typical push
+    takes about one to two minutes on a slow machine.
 - **Still open:**
   - item 1, the audit of the written standards;
-  - item 4, the README refresh;
-  - item 5, the pre-push hook.
+  - item 4, the rest of the README refresh. Its hook section is done.
 
 What Mohamed asked for:
 1. **Audit the standards.** Check the coding standards and quality rules in the docs (`ARCHITECTURE.md`'s
