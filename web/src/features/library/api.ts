@@ -226,7 +226,7 @@ async function cancelLibraryRefetches(qc: QueryClient) {
 }
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
-// After a change, what counts published files follows too: the facets, the moderation page's counters
+// After a change, what counts published files follows too: the facets, Manage's counts
 // (ADMIN_STATS_KEY) and each module's file count in the catalogue (MODULES_KEY, exact: not every module's
 // lessons), which the module pages and Home show (code quality review CQ-11).
 

@@ -81,7 +81,7 @@ function invalidateLists(qc: QueryClient): Promise<void> {
   return qc.invalidateQueries({ queryKey: forumKeys.all, predicate: (q) => LIST_FAMILIES.has(String(q.queryKey[1])) });
 }
 
-/** The reports queue shows what each reported post is now (Hidden, Deleted), and the moderation page counts it:
+/** The reports queue shows what each reported post is now (Hidden, Deleted), and Manage counts it:
  *  both are stale after a post is hidden, shown again or deleted. */
 function invalidateModeration(qc: QueryClient): void {
   void qc.invalidateQueries({ queryKey: reportKeys.all });

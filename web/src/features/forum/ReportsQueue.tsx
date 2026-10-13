@@ -1,4 +1,5 @@
-// The moderators' queue of reports (GET /admin/reports), rendered by features/moderation/ModerationPage.
+// The moderators' queue of reports (GET /admin/reports), rendered in the Reports section of
+// features/manage/ManagePage.
 // A report points at a thread, a reply or a library file. The way through: open the post, deal with it there (hide
 // it from its menu, for example), then resolve the report here with a short note; or dismiss it when the post is fine.
 import { useMemo, useState } from 'react';

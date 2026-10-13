@@ -22,7 +22,7 @@ const pages: AppRoute[] = [
   { id: 'grades', path: '/grades', title: 'Grades', Page: lazy(() => import('./features/grades/GradesPage')), feature: 'grades' },
   { id: 'issue-edit', path: '/newsletter/:slug/edit', title: 'Edit issue', Page: lazy(() => import('./features/newsletter/IssueEditorPage')), feature: 'newsletter' },
   { id: 'account', path: '/account', title: 'Your account', Page: lazy(() => import('./features/account/AccountPage')), modules: false },
-  { id: 'moderation', path: '/moderation', title: 'Moderation', Page: lazy(() => import('./features/moderation/ModerationPage')) },
+  { id: 'manage', path: '/manage', title: 'Manage', Page: lazy(() => import('./features/manage/ManagePage')), modules: false },
   { id: 'people', path: '/admin/people', title: 'People', Page: lazy(() => import('./features/admin/PeoplePage')), modules: false },
   { id: 'about', path: '/about', title: 'About', Page: lazy(() => import('./features/about/AboutPage')) },
   {

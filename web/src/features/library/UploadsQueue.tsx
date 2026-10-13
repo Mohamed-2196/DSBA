@@ -1,6 +1,6 @@
 // Moderators: uploads waiting for review (GET /library/items?status=pending), oldest first, each with a
 // preview, a download, Edit details, Publish and Reject (with a note the uploader sees).
-// Rendered by features/moderation/ModerationPage.
+// Rendered in the Uploads section of features/manage/ManagePage.
 import { ArrowSquareOut, CheckCircle, DownloadSimple, Eye, PencilSimple } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';

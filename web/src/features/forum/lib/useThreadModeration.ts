@@ -36,7 +36,7 @@ export function useThreadModeration(thread: Pick<ThreadDetail, 'id'>) {
     hide: (reason: string | null, onDone: () => void) =>
       run(
         { status: 'hidden', reason },
-        { title: 'Thread hidden', body: 'Only student reps can see it now. Resolve the report in Moderation if there is one.' },
+        { title: 'Thread hidden', body: 'Only student reps can see it now. Resolve the report in Manage if there is one.' },
         onDone,
       ),
     unhide: () =>

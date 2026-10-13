@@ -39,7 +39,7 @@ export function HiddenBanner({ thread, onUnhide, unhiding }: HiddenBannerProps) 
         {gone
           ? 'Only student reps and admins can see it. Its text was deleted, so unhiding it brings it back as a deleted thread.'
           : 'Student reps, admins and its author can see it; nobody else.'}{' '}
-        If it was reported, resolve the report in Moderation.
+        If it was reported, resolve the report in Manage.
       </span>
       <Button size="sm" leadingIcon={Eye} loading={unhiding} onClick={onUnhide}>
         {gone ? 'Unhide as deleted' : 'Unhide'}
