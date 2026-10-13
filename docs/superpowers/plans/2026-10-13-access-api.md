@@ -29,6 +29,33 @@ moto; uv; Python 3.12.
   - the migrations are squashed into one baseline.
 - Every task leaves `scripts/check.sh api` green.
 
+## Amendments from the security review (read first)
+
+The spec's section "From the security review" (AD-1 to AD-9) came after this plan was written. Apply each in the task
+named. Each amendment needs its own failing test first, like every other step.
+- **AD-1, Task 4:**
+  - Every admin-only route calls `require_step_up(session)` (`app/services/sessions.py`): roles, people's roles,
+    switches, and `PATCH /admin/users/{id}` when it sends `email` or `phone`.
+  - Account recovery on an account holding Admin answers 403.
+  - Tests: an old session gets `step_up_required`, and a fresh step-up passes.
+- **AD-2, Tasks 2 and 4:** for a viewer without Admin, the people list searches `display_name` only, and no people
+  response carries `email` or `phone`. Test that a search for part of an address finds nobody.
+- **AD-3, Task 4:** `PATCH /admin/roles/{id}` on the Student role refuses any box outside the four student-level ones,
+  with 422 on `boxes`. The baseline seeds it with those four only.
+- **AD-4, Task 4:** a role's `badge` passes the staff-words check in `accounts.clean_display_name`. A custom role
+  can't use "Admin", "Student rep" or a look-alike (422).
+- **AD-5, Task 2:** reports are listed and resolved by their area's box, and a report's excerpt is shown only to a
+  holder of that box.
+- **AD-6, Task 3:** switches also guard media, uploads, downloads, the ICS feeds, stats, reports and queued emails.
+  Add a test that walks `app.routes` and fails on any route that neither declares a feature (`needs_feature`) nor is
+  listed as feature-free.
+- **AD-7, Task 4:** last-admin checks lock the admins' `user_roles` rows (`with_for_update()`), and deleting your own
+  account is refused while you're the last admin. Test it with two threads.
+- **AD-8, Task 4 (newsletter):** publishing an issue sends its cohort email only if none went out in the last 24
+  hours. Otherwise it publishes without the email and says so in the response.
+- **AD-9, every task:** add the escalation and suspension cases from `docs/reviews/security.md` ("Design review:
+  access") to the tests of the task that owns the code.
+
 ## Spec notes
 
 Decisions where the spec was silent, or said too little to build from:
