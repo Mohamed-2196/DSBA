@@ -559,11 +559,12 @@ export interface paths {
          * @description Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email
          *     address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
          *     Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
-         *     It needs a recent step-up, and never applies to an account holding Admin (security review AD-1).
+         *     Recovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding
+         *     Admin (security review AD-1).
          *
          *     Errors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,
-         *     and so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery),
-         *     identifier_taken (409), last_identifier (409), invalid_identifier (422).
+         *     and so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,
+         *     or suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422).
          */
         patch: operations["update_user_api_v1_admin_users__user_id__patch"];
         trace?: never;

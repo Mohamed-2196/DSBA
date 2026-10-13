@@ -393,6 +393,31 @@ def test_admin_changes_need_a_recent_step_up(
     assert not access.feature_on(db, None, Feature.forum)
 
 
+def test_suspending_an_admin_needs_a_recent_step_up(
+    client_for: ClientFor,
+    make_user: MakeUser,
+    boss: User,
+    db: Session,
+    older_sessions: Callable[..., None],
+    outbox: Outbox,
+) -> None:
+    """AD-1: suspending or restoring another admin is an admin power; suspending a student isn't."""
+    other = make_user(name="Other Admin", roles=ADMIN)
+    sara = make_user(name="Sara Student")
+    c = client_for(boss)
+    older_sessions()
+    r = c.patch(f"{API}/admin/users/{other.id}", json={"status": "suspended"})
+    assert (r.status_code, r.json()["error"]["code"]) == (403, "step_up_required")
+    db.refresh(other)
+    assert other.status == UserStatus.active
+    assert c.patch(f"{API}/admin/users/{sara.id}", json={"status": "suspended"}).status_code == 200
+
+    _step_up(c, outbox, "head@example.com")
+    assert c.patch(f"{API}/admin/users/{other.id}", json={"status": "suspended"}).status_code == 200
+    db.refresh(other)
+    assert other.status == UserStatus.suspended
+
+
 def test_the_student_role_holds_student_boxes_only(client_for: ClientFor, boss: User, db: Session) -> None:
     """AD-3: every new account gets Student, so one wrong tick there would give a manager box to anyone who signs
     up."""

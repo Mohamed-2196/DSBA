@@ -151,11 +151,12 @@ def update_user(
     """Suspend or restore an account, or recover one (security review SEC-9): replace or remove its email
     address or phone number. Only the fields sent change; everything is audited and the person gets a notification.
     Recovery also ends every session of the account and sends a notice to the address that was replaced or removed.
-    It needs a recent step-up, and never applies to an account holding Admin (security review AD-1).
+    Recovery, and suspending or restoring an admin, need a recent step-up; recovery never applies to an account holding
+    Admin (security review AD-1).
 
     Errors: cannot_change_self (409), last_admin (409: the only active admin), forbidden (403: recovery is for admins,
-    and so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery),
-    identifier_taken (409), last_identifier (409), invalid_identifier (422)."""
+    and so is suspending or restoring an admin; nobody recovers an admin's account), step_up_required (403: recovery,
+    or suspending or restoring an admin), identifier_taken (409), last_identifier (409), invalid_identifier (422)."""
     target = db.get(User, user_id)
     if target is None:
         raise not_found("This account doesn't exist.")
@@ -182,6 +183,7 @@ def update_user(
             if not contacts:
                 suspend = new_status == UserStatus.suspended
                 raise forbidden("Only admins can suspend an admin." if suspend else "Only admins can restore an admin.")
+            sessions.require_step_up(sess)
             if new_status == UserStatus.suspended:
                 access.ensure_admins_remain(db, target)
         record(db, user, "user.status", "user", target.id, {"from": target.status.value, "to": new_status.value}, ip)
