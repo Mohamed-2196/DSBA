@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.models import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVote, User
 from app.schemas.forum import Reply, ThreadDetail, ThreadSummary
+from app.services import access
 from app.services.accounts import public_user
 from app.services.forum.taxonomy import thread_year
 from app.services.forum.text import excerpt, first_image
@@ -129,6 +130,7 @@ def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDet
         ).tuples()
         if can_read_reply(r, viewer)
     ]
+    access.prefetch(db, [author, *(a for _, a in rows)])
     my_votes: set[uuid.UUID] = set()
     if viewer is not None and rows:
         my_votes = set(

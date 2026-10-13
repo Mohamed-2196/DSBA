@@ -167,6 +167,7 @@ def to_out(db: Session, items: Sequence[LibraryItem], user: User | None) -> list
     """Items as this person sees them (uploader, star, edit rights, review note), in one query per relation."""
     uploader_ids = {i.uploaded_by for i in items if i.uploaded_by}
     users = {u.id: u for u in db.scalars(select(User).where(User.id.in_(uploader_ids)))} if uploader_ids else {}
+    access.prefetch(db, users.values())
     starred: set[uuid.UUID] = set()
     if user is not None and items:
         starred = set(

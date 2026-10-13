@@ -41,7 +41,9 @@ def _users(db: Session, ids: Iterable[uuid.UUID | None]) -> dict[uuid.UUID, User
     wanted = {i for i in ids if i is not None}
     if not wanted:
         return {}
-    return {u.id: u for u in db.scalars(select(User).where(User.id.in_(wanted)))}
+    found = {u.id: u for u in db.scalars(select(User).where(User.id.in_(wanted)))}
+    access.prefetch(db, found.values())
+    return found
 
 
 @dataclass(frozen=True, slots=True)

@@ -269,13 +269,18 @@ def audit_log(
     """Who did what, newest first."""
     actor = aliased(User)
     total = _count(db, select(func.count()).select_from(AuditEntry))
-    rows = db.execute(
-        select(AuditEntry, actor)
-        .outerjoin(actor, actor.id == AuditEntry.actor_id)
-        .order_by(AuditEntry.created_at.desc(), AuditEntry.id.desc())
-        .limit(limit)
-        .offset(offset)
-    ).tuples()
+    rows = (
+        db.execute(
+            select(AuditEntry, actor)
+            .outerjoin(actor, actor.id == AuditEntry.actor_id)
+            .order_by(AuditEntry.created_at.desc(), AuditEntry.id.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        .tuples()
+        .all()
+    )
+    access.prefetch(db, [a for _, a in rows])
     items = [
         AuditOut.model_validate(
             {

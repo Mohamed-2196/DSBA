@@ -15,6 +15,7 @@ from app.core.time import utcnow
 from app.models import Notification, User
 from app.routers._base import router_for
 from app.schemas.notifications import NotificationOut, NotificationPage
+from app.services import access
 from app.services.accounts import public_user
 
 router = router_for("notifications")
@@ -46,14 +47,19 @@ def list_notifications(
     total = db.scalar(select(func.count()).select_from(Notification).where(*shown)) or 0
     unread_count = db.scalar(select(func.count()).select_from(Notification).where(mine, Notification.read_at.is_(None)))
     actor = aliased(User)
-    rows = db.execute(
-        select(Notification, actor)
-        .outerjoin(actor, actor.id == Notification.actor_id)
-        .where(*shown)
-        .order_by(Notification.created_at.desc(), Notification.id.desc())
-        .limit(limit)
-        .offset(offset)
-    ).tuples()
+    rows = (
+        db.execute(
+            select(Notification, actor)
+            .outerjoin(actor, actor.id == Notification.actor_id)
+            .where(*shown)
+            .order_by(Notification.created_at.desc(), Notification.id.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        .tuples()
+        .all()
+    )
+    access.prefetch(db, [a for _, a in rows])
     return NotificationPage(
         items=[_out(n, a) for n, a in rows],
         total=total,
