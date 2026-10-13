@@ -7,16 +7,16 @@ from typing import Annotated
 
 from fastapi import Query, Request, Response, status
 
-from app.core.access import Box
+from app.core.access import Box, Feature
 from app.core.pagination import YearParam
-from app.core.security import DB, client_ip, requires
+from app.core.security import DB, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.calendar import CalendarEventCreate, CalendarEventOut, CalendarEventUpdate, EventType
 from app.schemas.common import ErrorResponse
 from app.services import calendar as svc
 
-router = router_for("calendar")
+router = router_for("calendar", needs_feature(Feature.calendar))
 
 FEED_CACHE = "public, max-age=900"
 
