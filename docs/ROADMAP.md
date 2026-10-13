@@ -76,6 +76,9 @@ router change and the e2e harness.
 
 ## R-3. A better calendar
 
+- **From the UI/UX review (2026-10-13):** see `docs/reviews/ui-ux.md`, "Notes for R-3". On a phone the page runs about
+  3,700 px and shows the same events three times. Students need their next exam and this week's deadlines first.
+
 - **Asked:** the calendar's UI isn't good enough.
 - **Today:** about 2,000 lines in `features/calendar`:
   - a month grid, an agenda, a day strip and an upcoming board;
@@ -135,6 +138,9 @@ router change and the e2e harness.
   - Is it acceptable that a student's note goes to the AI when they ask about it?
 
 ## R-7. A new Noora
+
+- **From the UI/UX review (2026-10-13):** see `docs/reviews/ui-ux.md`, "Notes for R-7". She covers content on Home, the
+  forum, the editor and Activity. She needs a dock that never covers the page.
 
 - **Asked:** Noora's UI is too basic, and needs more effort.
 - **Today:** about 3,300 lines in `features/noora`: a mascot with poses, and a chat panel with a composer, formulas
