@@ -23,14 +23,17 @@ export interface VoteButtonProps {
 export function VoteButton({ count, voted, onToggle, layout = 'stack', size = 'md', disabled = false, className }: VoteButtonProps) {
   const [pops, setPops] = useState(0);
   const { mayTry } = useAuth();
+  const votes = mayTry('forum.post');
+  const tally = `${count} ${count === 1 ? 'vote' : 'votes'}`;
   return (
     <button
       type="button"
       className={cx('forum-vote', `forum-vote--${layout}`, `forum-vote--${size}`, voted && 'is-voted', className)}
       aria-pressed={voted}
-      aria-label={`Upvote, ${count} ${count === 1 ? 'vote' : 'votes'}`}
+      aria-label={votes ? `Upvote, ${tally}` : `${tally}. Voting isn’t on your account`}
+      title={votes ? undefined : 'Voting isn’t on your account'}
       data-hub="vote"
-      disabled={disabled || !mayTry('forum.post')}
+      disabled={disabled || !votes}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

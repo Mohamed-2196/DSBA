@@ -94,7 +94,7 @@ export function CantPostNote({ suspended }: { suspended: boolean }) {
     <p className="forum-notice" role="note" data-hub="cant-post">
       <Prohibit aria-hidden="true" weight="bold" className="forum-notice__icon" />
       <span className="forum-notice__text">
-        {suspended ? 'Your account is suspended, so you can’t post in the forum for now. Contact an admin.' : 'Posting in the forum isn’t on your account. If you think you need it, ask an admin.'}
+        {suspended ? 'Your account is suspended, so you can’t post in the forum for now. Contact a student rep.' : 'Your account can’t post in the forum. Ask an admin if you need to.'}
       </span>
     </p>
   );
