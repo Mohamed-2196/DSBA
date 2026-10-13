@@ -9,7 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isApiError } from '../../api/errors';
 import type { Note } from '../../api/types';
-import { createNote, fetchNote, noteSaved, saveNote, useNote } from './api';
+import { createNote, fetchNote, noteKeys, noteSaved, saveNote, useNote } from './api';
 import { setOpenNote } from './current';
 import { docOf, dropDraft, emptyDoc, isBlank, openNote, readDraft, sameDoc, writeDraft, type NoteDoc } from './draft';
 
@@ -61,7 +61,9 @@ export function useNoteEditor(
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const opened = useRef(false);
   const onCreatedRef = useRef(onCreated);
-  onCreatedRef.current = onCreated;
+  useEffect(() => {
+    onCreatedRef.current = onCreated;
+  });
   const [doc, setDoc] = useState<NoteDoc | null>(() => {
     // A new note opens at once; so does a note with a copy here (the server's answer is checked against it).
     const draft = readDraft(noteId);
@@ -237,7 +239,7 @@ export function useNoteEditor(
     savedRef.current = docOf(theirs);
     show(docOf(theirs));
     dropDraft(idRef.current);
-    qc.setQueryData(['notes', 'one', theirs.id], theirs);
+    qc.setQueryData(noteKeys.one(theirs.id), theirs);
     setTheirs(null);
     setState('saved');
   }, [theirs, qc]);
