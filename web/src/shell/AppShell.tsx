@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { ModulesGate } from '../state/ModulesProvider';
 import { ErrorBoundary, Toaster } from '../ui';
+import { AnalyticsFeatures } from './AnalyticsFeatures';
 import { CommandPalette } from '../features/search/public';
 import { Onboarding } from '../features/onboarding/public';
 import { MiniNoora } from '../features/noora/public';
@@ -53,6 +54,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
         ) : null}
       </ModulesGate>
       <Toaster />
+      <AnalyticsFeatures />
     </div>
   );
 }

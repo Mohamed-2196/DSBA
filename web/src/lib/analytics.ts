@@ -7,7 +7,8 @@
 // Privacy Control respected, URLs without their query string or hash (search terms stay in the browser) and no page
 // titles (a thread's title is what a student wrote). In PostHog's project settings, also turn on "Discard client IP
 // data". The CSP needs the API host in connect-src, nothing else (docs/backend/DEPLOYMENT.md).
-import type { CaptureResult, PostHogConfig, Properties } from 'posthog-js';
+import type { CaptureResult, PostHog, PostHogConfig, Properties } from 'posthog-js';
+import { FEATURE_KEYS } from '../auth/access';
 
 export const DEFAULT_POSTHOG_HOST = 'https://us.i.posthog.com';
 
@@ -67,8 +68,26 @@ export function analyticsConfig(apiHost: string = DEFAULT_POSTHOG_HOST): Partial
   };
 }
 
+/** The features on during a visit, as page views carry them (decision D13): feature keys only, never roles or boxes. */
+export function featuresProperty(on: readonly string[]): string[] {
+  const known = new Set<string>(FEATURE_KEYS);
+  return [...new Set(on.filter((f) => known.has(f)))].sort();
+}
+
+let client: PostHog | null = null;
+let pending: string[] | null = null;
+
+/** Every event from now on carries `features`. Before analytics has started, it's kept until it does. */
+export function setVisitFeatures(on: readonly string[]): void {
+  const features = featuresProperty(on);
+  if (client) client.register({ features });
+  else pending = features;
+}
+
 /** Fetches the SDK (its own chunk) and starts it. Call only when the build has a key. */
 export async function startAnalytics(key: string, apiHost?: string): Promise<void> {
   const { default: posthog } = await import('posthog-js');
   posthog.init(key, analyticsConfig(apiHost || DEFAULT_POSTHOG_HOST));
+  client = posthog;
+  if (pending) posthog.register({ features: pending });
 }

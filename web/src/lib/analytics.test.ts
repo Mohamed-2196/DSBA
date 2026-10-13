@@ -1,6 +1,6 @@
 import type { CaptureResult } from 'posthog-js';
 import { describe, expect, it } from 'vitest';
-import { analyticsConfig, DEFAULT_POSTHOG_HOST, scrubEvent, withoutQuery } from './analytics';
+import { analyticsConfig, DEFAULT_POSTHOG_HOST, featuresProperty, scrubEvent, withoutQuery } from './analytics';
 
 describe('analyticsConfig (security review SEC-8)', () => {
   const config = analyticsConfig();
@@ -72,5 +72,18 @@ describe('scrubEvent', () => {
       properties: { title: 'Help with my resit, Sara A – DSBA Hub', $pathname: '/forum/abc' },
     };
     expect(scrubEvent(event)?.properties).toEqual({ $pathname: '/forum/abc' });
+  });
+});
+
+describe('featuresProperty (D13)', () => {
+  it('is the sorted list of known feature keys, and nothing else', () => {
+    expect(featuresProperty(['noora', 'forum', 'forum', 'calendar'])).toEqual(['calendar', 'forum', 'noora']);
+    expect(featuresProperty(['forum', 'newsletter.manage', 'admin'])).toEqual(['forum']);
+    expect(featuresProperty([])).toEqual([]);
+  });
+
+  it('survives the scrub: page views keep it', () => {
+    const event = { event: '$pageview', properties: { features: ['forum'], $current_url: 'https://hub.example.com/forum?q=x' } } as unknown as CaptureResult;
+    expect(scrubEvent(event)?.properties.features).toEqual(['forum']);
   });
 });
