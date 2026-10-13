@@ -29,16 +29,17 @@ deployed yet.
 
 ## In flight
 
-**Standards review.** A separate cloud session started at 23:40 on 2026-10-12. Its job:
-- check the coding standards in the docs against the official sources;
-- add project skills under `.claude/skills/` and write a CLAUDE.md;
-- refresh the README;
-- add a pre-push hook (`.githooks/pre-push`, enabled with `scripts/install-hooks.sh`).
+**Standards review.** A cloud session was started for it at 23:40 on 2026-10-12. It hit the account's usage
+limit 33 minutes in and stopped without pushing anything.
+- **Done since, on 2026-10-13:**
+  - item 2, the skills in `.claude/skills/` (README there);
+  - item 3, CLAUDE.md.
+- **Still open:**
+  - item 1, the audit of the written standards;
+  - item 4, the README refresh;
+  - item 5, the pre-push hook.
 
-It pushes the branch `round3/standards` (or a `claude/...` branch if that name is refused) and writes
-`docs/reviews/standards.md`. Its run appears in Mohamed's scheduled tasks as "DSBA Hub standards review (one-off)".
-
-What Mohamed asked for, so the branch can be checked against it, or the job redone locally if no branch arrives:
+What Mohamed asked for:
 1. **Audit the standards.** Check the coding standards and quality rules in the docs (`ARCHITECTURE.md`'s
    conventions and security baseline, the README's checks) against the official sources:
    - FastAPI, SQLAlchemy 2, Pydantic v2 and Alembic;
@@ -50,7 +51,7 @@ What Mohamed asked for, so the branch can be checked against it, or the job redo
 2. **Port useful skills** into `.claude/skills/`. Look for existing good ones online first (FastAPI, React and
    others), keep their licence notices, and fit them to this repo. Suggested: `fastapi-endpoint`, `react-feature`,
    `db-migration`, `e2e-test` and `review-checklist`.
-3. **CLAUDE.md**, merged with this one.
+3. **CLAUDE.md** (done).
 4. **A refreshed README** for a new contributor.
 5. **A pre-push hook** for the standard checks.
    - It lives at `.githooks/pre-push`, is enabled with `git config core.hooksPath .githooks` through
@@ -61,11 +62,6 @@ What Mohamed asked for, so the branch can be checked against it, or the job redo
    - A typical push takes under about two minutes. The full API suite runs with `FULL_CHECKS=1`, and CI runs
      everything.
    - `SKIP_CHECKS=1 git push` (or `--no-verify`) skips it in an emergency.
-
-To bring it in:
-1. Review the branch and merge it into `feature/backend`.
-2. It started before this CLAUDE.md existed, so merge the two files by hand. Keep "Working with Mohamed", the hard
-   rules and the link to this file.
 
 ## Next, in order
 

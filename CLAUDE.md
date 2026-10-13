@@ -18,6 +18,10 @@ Where the work stands and what's next: @docs/STATUS.md
 - **Use the team.** Split big work across the agents in `.claude/agents/`, each in the background. Give each its own
   git worktree (`git worktree add ../dsba-<name> -b <branch>`) so agents never move each other's HEAD. Merge their
   branches yourself.
+- **Use the skills.** `.claude/skills/` holds the repo's own skills: `fastapi-endpoint`, `db-migration`,
+  `react-feature`, `e2e-test` and `review-checklist`. It also holds ported ones: FastAPI's official skill, Vercel's
+  React rules, and the debugging, verification, worktree and parallel-agent skills from obra/superpowers. They load
+  when a task matches. Their README lists the sources and licences.
 - **Check in briefly.** Write a line or two when something lands: a branch merged, checks green or red, a decision
   needed. Don't go silent, and don't narrate every step.
 - **Ask only when it matters.** Ask before anything that can't be undone or that he might decide differently:
