@@ -86,11 +86,11 @@ Six personas × the 16 sizes of the brief (phones 360×780, 390×844, 430×932, 
 
 | ID | Severity | Title |
 |---|---|---|
-| UX-18 | minor | Counts that still print without a thousands separator |
-| UX-19 | minor | Chip counts are under AA contrast in the light theme |
-| UX-20 | minor | Lines run past 75 characters: 58ch is loose for small text, and some notes have no measure |
-| UX-21 | minor | A guest without a year, or "not a student", is labelled "Year 1" while the switcher shows none |
-| UX-22 | minor | The app-level error screen has no heading, keeps the old tab title and offers only Reload |
+| UX-18 | minor | Counts that still print without a thousands separator (**fixed** `5a19218`) |
+| UX-19 | minor | Chip counts are under AA contrast in the light theme (**fixed** `5a19218`) |
+| UX-20 | minor | Lines run past 75 characters: 58ch is loose for small text, and some notes have no measure (**fixed** `5a19218`: 54ch and 50ch; the longest lines measured are 74 characters) |
+| UX-21 | minor | A guest without a year, or "not a student", is labelled "Year 1" while the switcher shows none (**fixed** `5a19218`: "Showing Year 1" and "Pick your year") |
+| UX-22 | minor | The app-level error screen has no heading, keeps the old tab title and offers only Reload (**fixed** `5a19218`) |
 | UX-23 | nit | Draft titles on the newsletter page are 32 px touch targets |
 | UX-24 | nit | Activity wording: library actions don't say "library file", and punctuation varies |
 | UX-25 | nit | Editor details: "Cancel" in the leave dialog, and a preview pane the keyboard can't scroll |

@@ -538,6 +538,9 @@ that keeps her quiet for good; a new guest sees one year across Home. All three 
 
 #### ST-13 (minor) A double click on "Post thread" posts the thread twice
 
+- **Fixed** in `e8cf155`: `useSingleFlight` (`src/state`) ignores a second press while a post is in flight, in the
+  thread composer and the reply box. The e2e test no longer carries `test.fail`.
+
 - Owner: frontend-community (`features/forum/NewThreadPage.tsx`, `send`)
 - Steps: as Sara, Forum → Start a thread. Fill in a title, pick a module, add details. Double-click **Post thread**
   (or double-tap it on a phone, as students do on a slow connection).
@@ -554,6 +557,9 @@ that keeps her quiet for good; a new guest sees one year across Home. All three 
 - Screenshot: `r4-forum-04-posted.png`.
 
 #### ST-14 (minor) A double click on "Publish" tells the uploader twice, by notification and by email
+
+- **Fixed** in `e8cf155`: `library.review` locks the row and reads it again, and a review that changes nothing
+  logs and tells nothing; the review buttons ignore a second press. The e2e test no longer carries `test.fail`.
 
 - Owner: content (`services/library.py`, the review) and frontend-library (`UploadsQueue`)
 - Steps: as a rep, Moderation → Uploads to review. Double-click **Publish** on a file.
@@ -577,6 +583,9 @@ that keeps her quiet for good; a new guest sees one year across Home. All three 
 
 #### ST-16 (minor, every account) A double click on "Publish and notify everyone" tells everyone twice
 
+- **Fixed** in `214aa83` (the publish locks the issue and reads it again) and `e8cf155` (the dialog ignores a second
+  press).
+
 - Owner: content (`services/newsletter.py`, `publish`) and frontend-content (the publish dialog)
 - Steps: as a rep, open a draft issue → **Publish** → double-click **Publish and notify everyone**.
 - Expected: one publish, one notification and at most one email per student.
@@ -590,6 +599,9 @@ that keeps her quiet for good; a new guest sees one year across Home. All three 
   notify only when a row changed. In the dialog, ignore the second press while the first is in flight.
 
 #### ST-17 (minor) With no connection, posting spins forever, then posts by itself later
+
+- **Fixed** in `e8cf155`: mutations use `networkMode: 'always'`, so an offline post fails at once with "Couldn’t
+  reach the Hub. Check your connection and try again." and the draft stays.
 
 - Owner: frontend (the query client's mutations; the forum composer and reply box)
 - Steps: as Noor, write a thread or a reply, turn the connection off (the browser's offline mode), press **Post

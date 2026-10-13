@@ -40,7 +40,7 @@ reviewed on `round3/review-quality`. Left alone, because the approved access wor
 | CQ-13 | **fixed** | Moderation uses `modq-`; the module page's scoping patch is gone. The noora panel keeps raw `#fff` as a local custom property (`noora/ChatPanel.css:27`): acceptable. |
 | CQ-14 | **fixed** | Newsletter inserts in a savepoint and answers 409 (`services/newsletter.py:185-190`), slugs retry through the shared helper, rate limits lock first, and the pre-hide state lives on the row (`models/forum.py:51`), not in the audit log. |
 | CQ-15 | **fixed** | Migrations 0004 and 0006: the unused indexes dropped, the missing ones added (`ix_library_items_status_newest` on the sort expression, `uploads(user_id, created_at)`, `library_items(uploaded_by)`, `forum_replies(parent_id)`, `reports(reporter_id, created_at)`, the `SET NULL` foreign keys), the CHECKs on kind, type, reason and cohort columns, `reports.status` default, `User.updated_at` gone. The models declare the same (`check_in`, `year_range`), and the drift test proves it. Comments in 0006 narrate history: see CQ-20. |
-| CQ-16 | **open** | `n` is still the count on `/forum/threads/hot`, `/forum/threads/{thread_id}/related` and `/calendar/upcoming` (`limit` everywhere else); `ThreadListParams` (`features/forum/types.ts:27`) still redeclares the forum list's query in camelCase; `POST /reports` still answers `Ok`. With no compatibility to keep, the fix is now a rename, not an alias: see CQ-25. |
+| CQ-16 | **mostly fixed** (see CQ-25) | `n` is still the count on `/forum/threads/hot`, `/forum/threads/{thread_id}/related` and `/calendar/upcoming` (`limit` everywhere else); `ThreadListParams` (`features/forum/types.ts:27`) still redeclares the forum list's query in camelCase; `POST /reports` still answers `Ok`. With no compatibility to keep, the fix is now a rename, not an alias: see CQ-25. |
 | CQ-17 | **mostly fixed** | `ThreadPage`, `CalendarPage` and the issue editor are split; `/styleguide` is gated (`routes.tsx:28-40`); the shell no longer waits for `/modules` (`App.tsx:12-20`, each page waits in `RouteFrame`). **Open:** `library/LibraryPage.tsx` (551 lines) and `account/AccountPage.tsx` (454) are as large as before; `library/components/UploadDialog.tsx` (438) and `newsletter/editor/Editor.tsx` (441) joined them. Minor; split when next touched. |
 | CQ-18 | **mostly fixed** | README, CI (`.github/workflows/ci.yml`), `scripts/check.sh`, the pre-push hook; stray files and dead data gone; `compose.yaml` points at `docs/backend/DEPLOYMENT.md`. **Open:** type-aware lint is still off (`web/eslint.config.js:36` uses `tseslint.configs.recommended`); tracked as standards review S-1. |
 
@@ -48,17 +48,17 @@ reviewed on `round3/review-quality`. Left alone, because the approved access wor
 
 | ID | Severity | Title |
 |---|---|---|
-| CQ-19 | major | `insert_with_unique_slug` reads every integrity error as a slug clash |
-| CQ-20 | minor | Comments still narrate history and cite review IDs |
-| CQ-21 | minor | Two script and doc commands that don't do what they say |
-| CQ-22 | minor | The web app hard-codes the upload limits the API reads from settings |
-| CQ-23 | minor | Small helpers written again in several places |
-| CQ-24 | minor | Logic left in the notifications and `me` routers; a service that commits |
-| CQ-25 | minor | API names and lookups to settle before release (CQ-16, now as renames) |
-| CQ-26 | minor | Test fixtures declared three times; the e2e suite restates API shapes by hand |
+| CQ-19 | major | `insert_with_unique_slug` reads every integrity error as a slug clash (**fixed** `149c166`) |
+| CQ-20 | minor | Comments still narrate history and cite review IDs (**partly fixed** `ce0674f`: the "Split out of" and "one copy for every area" comments are gone; the review-ID references remain, since most sit in code the access work rewrites) |
+| CQ-21 | minor | Two script and doc commands that don't do what they say (**fixed** `8f6bffe`) |
+| CQ-22 | minor | The web app hard-codes the upload limits the API reads from settings (open: needs a choice between serving the rules and fixed limits) |
+| CQ-23 | minor | Small helpers written again in several places (**fixed** `5a19218` `countOf`, `ce0674f` `useCopyLink`, `e4b805f` `clip`, one `import_key`, one exam-year range) |
+| CQ-24 | minor | Logic left in the notifications and `me` routers; a service that commits (**mostly fixed** `e4b805f`: `services/notifications.py`, `delete_account` leaves the commit to the router; `accounts.change_identifier` waits for the access work, which changes `routers/me.py`) |
+| CQ-25 | minor | API names and lookups to settle before release (CQ-16, now as renames) (**mostly fixed** `e4b805f`, `a690ee4`: `limit` not `n`, reads by slug only, the forum list's query type from the schema; `POST /reports` still answers `Ok`, left for the access work, which changes that router) |
+| CQ-26 | minor | Test fixtures declared three times; the e2e suite restates API shapes by hand (open: the fixtures go with the access work's `make_user`; the typed e2e `api()` needs a run of the suite) |
 | CQ-27 | minor | Pure modules without Vitest tests, grade arithmetic among them |
-| CQ-28 | minor | knip has no config, so dead public exports and barrel bypasses go unnoticed |
-| CQ-29 | minor | Typing nits in the API: one avoidable `type: ignore`, library kinds passed as `str` |
+| CQ-28 | minor | knip has no config, so dead public exports and barrel bypasses go unnoticed (**mostly fixed** `ebeaf58`: `web/knip.json`, knip in `check.sh` and CI, the public exports trimmed; `auth/queries.ts`'s import and `AuthProvider`'s `['account']` key wait for the access work) |
+| CQ-29 | minor | Typing nits in the API: one avoidable `type: ignore`, library kinds passed as `str` (**fixed** `e4b805f`) |
 
 What rounds 2 and 3 added was checked as asked. Most of it is good work, and it led to no finding:
 - **The Drive client and import** (`services/drive.py`, `services/drive_import.py`): small typed records, one
