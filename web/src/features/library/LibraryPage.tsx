@@ -23,7 +23,7 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import { BREAKPOINTS, cohortLabel, normalizeYear, useDebouncedValue, useDocumentTitle, useMediaQuery, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, Chip, EmptyState, Kbd, Menu, Page, PageHeader, PageSection, QueryError, SearchField, SegmentedControl, Skeleton, cx, timeAgo } from '../../ui';
+import { Badge, Button, Chip, EmptyState, Kbd, Menu, Page, PageHeader, PageSection, QueryError, SearchField, SegmentedControl, Skeleton, cx, formatCount, timeAgo } from '../../ui';
 import { itemPath, useLibraryFacets, useLibraryList, useLibraryPages } from './api';
 import { FileCard, type LinkState } from './components/FileCard';
 import { FileTable } from './components/FileTable';
@@ -380,7 +380,7 @@ export default function LibraryPage() {
               Show more
             </Button>
             <span className="lib-more__count">
-              Showing {items.length} of {total}
+              Showing {formatCount(items.length)} of {formatCount(total)}
             </span>
           </div>
         ) : null}

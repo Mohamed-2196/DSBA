@@ -4,7 +4,7 @@ import type { ReactionCounts } from '../../../api/types';
 import { errorMessage } from '../../../api/errors';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
-import { Tooltip, cx } from '../../../ui';
+import { Tooltip, cx, formatCount } from '../../../ui';
 import { useReact } from '../api';
 import type { Reaction } from '../types';
 import './Reactions.css';
@@ -67,7 +67,7 @@ export function Reactions({ issueId, issueSlug, sectionId, counts, label, readOn
               onAnimationEnd={() => setPopped(null)}
             >
               <Glyph className="nl-reaction__icon" weight={on ? 'fill' : 'regular'} aria-hidden="true" />
-              <span className="nl-reaction__count u-tabular">{count}</span>
+              <span className="nl-reaction__count u-tabular">{formatCount(count)}</span>
             </button>
           </Tooltip>
         );

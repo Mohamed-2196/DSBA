@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowFatUp, ChatsCircle, CheckCircle, HandHeart, MagnifyingGlass, ShieldCheck, Tag, UsersThree } from '@phosphor-icons/react';
-import { ErrorBoundary, Skeleton, cx } from '../../../ui';
+import { ErrorBoundary, Skeleton, cx, formatCount } from '../../../ui';
 import { useModules } from '../../../state/modules';
 import { UpcomingEvents } from '../../calendar/public';
 import { authorName } from '../lib/authors';
@@ -68,7 +68,7 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
                     <span className={cx('forum-cat__blurb', codes.length > 0 && 'is-codes')}>{codes.length ? codes.join(' ') : c.blurb}</span>
                   </span>
                   {/* A count only when there is something to count (UX review UX-17: a new Hub is all zeros). */}
-                  <span className="forum-cat__count">{stats ? stats.byCategory[c.id] || null : <Skeleton width={14} height="0.9em" />}</span>
+                  <span className="forum-cat__count">{stats ? (stats.byCategory[c.id] ? formatCount(stats.byCategory[c.id]) : null) : <Skeleton width={14} height="0.9em" />}</span>
                 </button>
               </li>
             );

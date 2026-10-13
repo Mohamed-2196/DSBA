@@ -6,7 +6,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatSize } from '../../api/uploads';
 import { useModules } from '../../state/modules';
-import { Badge, Button, CohortBadge, EmptyState, Panel, QueryError, Skeleton, timeAgo } from '../../ui';
+import { Badge, Button, CohortBadge, EmptyState, Panel, QueryError, Skeleton, formatCount, timeAgo } from '../../ui';
 import { useLibraryAccess } from './access';
 import { downloadHref, itemPath, openLinkHref, useFileLink, useLibraryList } from './api';
 import { EditItemDialog } from './components/EditItemDialog';
@@ -143,7 +143,7 @@ export function UploadsQueue() {
           Library uploads
           {items.length ? (
             <Badge tone="highlight" size="sm">
-              {items.length} waiting
+              {formatCount(items.length)} waiting
             </Badge>
           ) : null}
         </h2>

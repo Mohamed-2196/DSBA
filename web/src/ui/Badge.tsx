@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { cx, renderIcon, type IconSource } from './internal';
+import { formatCount } from './utils';
 import { cohortLabel, normalizeYear, COHORTS } from '../state/cohort';
 import './Badge.css';
 
@@ -15,12 +16,12 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   children?: ReactNode;
 }
 
-/** Small status label (pill). */
+/** Small status label (pill). A number is shown as a count: tabular figures, thousands separated ('1,234'). */
 export function Badge({ tone = 'neutral', size = 'md', icon, className, children, ...rest }: BadgeProps) {
   return (
     <span className={cx('ui-badge', `ui-badge--${tone}`, `ui-badge--${size}`, className)} {...rest}>
       {renderIcon(icon, { className: 'ui-badge__icon' })}
-      {children}
+      {typeof children === 'number' ? formatCount(children) : children}
     </span>
   );
 }
