@@ -87,7 +87,7 @@ const CONTENT_ORDER: readonly GroupId[] = ['modules', 'files', 'threads', 'issue
 
 export const SUGGESTIONS = ['Econometrics', 'Past papers', 'Regression', 'ST2133'];
 
-/** Pages (also the "Go to" list on an empty query); those of a switched-off feature are left out. */
+/** Pages (also the "Go to" list on an empty query); runSearch leaves out those of a switched-off feature. */
 export const PAGE_ENTRIES: Item[] = (
   [
     { path: '/', title: 'Home', icon: 'House', keywords: ['dashboard', 'start'] },

@@ -101,8 +101,9 @@ export function CantPostNote({ suspended }: { suspended: boolean }) {
 }
 
 /**
- * Under the replies: the composer when the thread takes replies and the person may post, otherwise why not. A reply being written when
- * the thread closes (locked, hidden or deleted meanwhile) stays on screen, so its text can be copied.
+ * Under the replies: the composer when the thread takes replies and the person may post, otherwise why not. A reply
+ * being written when the thread closes (locked, hidden or deleted meanwhile) stays on screen, so its text can be
+ * copied.
  */
 export function ThreadCompose({ thread, textareaRef, onPosted, unavailable = false }: ThreadComposeProps) {
   const open = takesReplies(thread) && !unavailable;
