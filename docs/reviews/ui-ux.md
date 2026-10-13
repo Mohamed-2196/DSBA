@@ -45,9 +45,170 @@ touch targets before taking a full-page screenshot, or on a fresh page.
 | UX-17 | nit | **mostly fixed** | Fixed: zero counts, guest composer, phone moderation tiles, the earlier smooth scrolls, "Hide Mini Noora" in her chat, `demo/` paths. Open: the library still says "A student rep decided not to publish this file." (`FileViewerPage.tsx:115`, `YourUploads.tsx:59`) where the rest says "Not published", and three new smooth scrolls ignore reduced motion (new findings). |
 | Field borders (WCAG 1.4.11) | — | **fixed** | `--control-border` (3.23:1 light, 3.45:1 dark) is used for fields and selects. |
 
+### Responsive results
+
+Six personas × the 16 sizes of the brief (phones 360×780, 390×844, 430×932, 844×390; tablets 768×1024, 820×1180,
+1024×768, 1180×820, 1366×1024; laptops 1280×800, 1366×768, 1440×900, 1536×864; monitors 1920×1080, 2560×1440,
+3440×1440), 845 page loads, touch emulated throughout:
+
+- **Sideways scroll: none.** No page scrolls sideways and no visible element reaches past the viewport, at any size,
+  for any persona (Home, modules, a module, the library, a picture, a PDF and a link item, the forum, a thread, the
+  composer, the newsletter, an issue, the editor, the calendar, Career Navigator, grades, About, Your account,
+  moderation, People, the style guide and the 404).
+- **Dialogs on short screens: all fit.** At 844×390, 360×780 and 1024×768 the sign-in, report, add-event, delete
+  account, role and palette dialogs, the notifications popover, the event drawer, the More drawer and Mini Noora's
+  chat stay inside the screen, scroll inside when taller, keep their actions visible, and take focus.
+- **Touch targets: one leftover on a real screen** (UX-23). Every page-level control, menu, popover and dialog
+  measured 44 px or more under touch. The icon rail scrolls at 844×390, so Grades, the theme and the account stay
+  reachable.
+- **Measure:** see UX-20.
+
 ### New findings
 
-_In progress._
+| ID | Severity | Title |
+|---|---|---|
+| UX-18 | minor | Counts that still print without a thousands separator |
+| UX-19 | minor | Chip counts are under AA contrast in the light theme |
+| UX-20 | minor | Lines run past 75 characters: 58ch is loose for small text, and some notes have no measure |
+| UX-21 | minor | A guest without a year, or "not a student", is labelled "Year 1" while the switcher shows none |
+| UX-22 | minor | The app-level error screen has no heading, keeps the old tab title and offers only Reload |
+| UX-23 | nit | Draft titles on the newsletter page are 32 px touch targets |
+| UX-24 | nit | Activity wording: library actions don't say "library file", and punctuation varies |
+| UX-25 | nit | Editor details: "Cancel" in the leave dialog, and a preview pane the keyboard can't scroll |
+| UX-26 | nit | Three smooth scrolls ignore reduced motion; one "decided not to publish" left |
+| UX-27 | nit | Picture uploads get a document thumbnail instead of the picture |
+
+#### UX-18 Counts that still print without a thousands separator (minor)
+
+- **Where:** the forum header, the library and the module's Files tab, all sizes. Checked by feeding large counts
+  through route interception at 360 px and 1440 px.
+- **What a student sees:** tabs, chips, badges and download counts read "12,345" and "1,234,567", but next to them
+  the forum says "1204 replies today" and "3456 questions are waiting for a first reply", and the library says
+  "23456 files". The layout holds; only the format differs.
+- **Where in the code:** `ForumPage.tsx:98` and `:103`, `LibraryPage.tsx:416` and `:482`, `ModuleFiles.tsx:134` and
+  `:147` render the raw number in a `u-tabular` span. `forum/components/RollingNumber.tsx` (votes and reply counts)
+  does the same.
+- **Fix:** use `formatCount()` or `<Count>` from `src/ui` in those six places and inside `RollingNumber`.
+
+#### UX-19 Chip counts are under AA contrast in the light theme (minor)
+
+- **Where:** chips with a count, for example the track chips on Career Navigator; any size, light theme. axe-core
+  flags it (3.63:1 for 14 px text).
+- **What a student sees:** the number beside each chip label is pale grey on white.
+- **Fix:** `.ui-chip__count { color: var(--ink-2); }` in `ui/Chip.css` (7.74:1). Tab counts already use `--ink-2`.
+
+#### UX-20 Lines run past 75 characters (minor)
+
+- **Where:** measured from the longest real line of each wrapped block, at every size.
+- **What a student reads:**
+  - `--measure: 58ch` gives 76–82 characters in practice, not "about 76", because small text and text with short
+    words fit more per `ch`: a thread's post (81 at 768–1180 px), the grades notes (78–80), Career Navigator's notes
+    (76–82), About (76–79). The issue's lead paragraph at `--measure-serif: 54ch` reaches 77.
+  - Some notes have no measure at all: Your account's sign-in note ("Add the other one too, so you can still sign
+    in…", `.acct-note`) runs to 111–132 characters at 768–1180 px, and the module page's files description
+    (`.mod-res__desc`) to 78.
+- **Fix:** `--measure: 54ch` and `--measure-serif: 50ch` (or a separate `--measure-small` for 12–14 px notes), and
+  `max-width: var(--measure)` on `.acct-note` and `.mod-res__desc`. Re-run the line check after the change. (The
+  forum list's one-line excerpts are truncated with an ellipsis, so they are fine.)
+
+#### UX-21 A guest without a year is labelled "Year 1" (minor)
+
+- **Where:** Home, a first visit before a year is picked, or after "I'm not a student"; 390 px and 1440 px.
+- **What a student sees:** the greeting carries a "Year 1" badge and the hero says "EC1002 Economics exam in 6 days",
+  while the year switcher in the top bar (phones) or the sidebar (laptops) shows no year at all. After "I'm not a
+  student" the page keeps saying "Year 1". A Year 2 student who pressed "Not now" reads Year 1's exam as theirs.
+- **Note:** the round 3 fix made Home's widgets agree with each other (all Year 1); what's left is that the page
+  presents a default as the student's own year. Whether "not a student" should show every year is Mohamed's open
+  product call.
+- **Fix:** until a year is chosen, label the badge "Showing Year 1" (or "Year 1 for now"), and put a "Pick your
+  year" link in the hero's subline. If the product call goes to "all years", show that instead.
+
+#### UX-22 The app-level error screen (minor)
+
+- **Where:** `shell/AppCrashed.tsx`, reached by breaking the module catalogue response; 390, 1440 and 3440 px, light
+  and dark.
+- **What a student sees:** a clean card, "DSBA Hub hit a problem. Something went wrong while showing the Hub. Reload
+  the page to carry on." with "Reload the page". It fits every size and both themes. But:
+  - the tab still says "Library – DSBA Hub";
+  - the title is a `<p>` (EmptyState), there is no heading or `main` landmark, and focus stays on `<body>`, so a
+    screen reader user hears nothing;
+  - if the same data breaks again, Reload is a loop with no way out, and there is no brand mark to say where they
+    are.
+- **Fix:** set `document.title = 'Something went wrong – DSBA Hub'`, render the title as an `<h1>` inside `<main>`,
+  focus it on mount, add the HubLogo, and add a second action "Go to Home" (a plain `<a href="/">`, so it reloads).
+
+#### UX-23 Draft titles on the newsletter page are 32 px touch targets (nit)
+
+- **Where:** `/newsletter`, the drafts panel a rep sees; 360, 390 and 430 px with touch.
+- **What a rep runs into:** the draft's title is the only link to it, 32 px tall.
+- **Fix:** `@media (pointer: coarse) { .nl-drafts__name { display: inline-flex; align-items: center; min-height: 44px; } }`
+  in `NewsletterPage.css`, or make the whole draft row the link.
+
+#### UX-24 Activity wording (nit)
+
+- **Where:** People → Activity, all sizes.
+- **What an admin reads:** the round 3 labels name what was acted on, which is the main thing. Two rough edges:
+  - library actions read "published “ST2133 notes”" and "rejected “…”", while newsletter actions say "published the
+    newsletter issue “…”". Next to each other, the library line reads like a newsletter.
+  - Punctuation varies: "added an event: “X”" but "edited an event “X”" and "deleted an event “X”"; "hid a thread:
+    “X”" but "hid a reply in “X”". A thread or event without a title would end in a bare colon.
+- **Fix:** in `features/admin/audit.ts`, "published the library file “X”", "rejected the library file “X”",
+  "removed the library file “X”"; one pattern for events ("added the event “X”", "edited the event “X”"); and
+  drop the colons.
+
+#### UX-25 Editor details (nit)
+
+- **Where:** `/newsletter/<slug>/edit`, rep, 1440 px.
+- "Leave without saving?" offers "Cancel" and "Leave without saving". "Cancel" could mean cancel the edits. Use
+  "Keep editing" (`ConfirmDialog`'s cancel label).
+- The preview pane (`.nl-editor__side`) scrolls on its own but can't take focus, so a keyboard user can't scroll it
+  (axe: scrollable-region-focusable). Give it `tabIndex={0}`, `role="region"` and `aria-label="Preview"`.
+
+#### UX-26 Reduced motion and one old word (nit)
+
+- `GradesPage.tsx:281`, `CalendarPage.tsx:129` and `StyleGuidePage.tsx:185` call `scrollIntoView({ behavior:
+  'smooth' })` whatever `prefers-reduced-motion` says (`base.css` only resets CSS `scroll-behavior`). Use the
+  pattern of `LessonsTab.tsx`: `behavior: reduced ? 'auto' : 'smooth'`.
+- The library still says "A student rep decided not to publish this file." (`FileViewerPage.tsx:115`,
+  `YourUploads.tsx:59`), where every other place says "Not published" (UX-17).
+
+#### UX-27 Picture uploads get a document thumbnail (nit)
+
+- **Where:** the library grid, "New this week" and "More from this module", any size.
+- **What a student sees:** a JPG or PNG of handwritten notes shows the same printed-page card as a PDF, so the one
+  kind of file that could be recognised at a glance isn't. Its own page previews it well (round 2, D9).
+- **Fix:** for `format` jpg, png or webp, draw the card's thumbnail from the picture (the same short-lived inline URL
+  the viewer uses), with the printed card as the fallback.
+
+### For the redesigns (R-3 and R-7)
+
+Not findings: what students most need from the two features being redesigned, from what this pass saw.
+
+**R-3, the calendar.** On a 390 px phone the page is about 3,700 px long and shows the same few events three
+times: the "Next up" board, the upcoming list, the month grid's dots and then the month's agenda. A Year 2 student's
+"Next up" is a mock exam marked "Not confirmed yet", and their first real exam is a line of small print below it.
+What they need first:
+- **One answer at the top: "your next exam" and "what's due this week"**, for their year (and their zone, once
+  events carry it), with confirmed dates first.
+- **Time and place on every exam.** Most events have neither, so the calendar can't replace the timetable yet
+  (content gap noted in STATUS).
+- **One list on phones,** with the month grid as an option rather than a second copy.
+- **The rep's form stays as it is:** it fits 844×390 and scrolls with its actions visible. Keep it.
+- Two contrast leftovers to drop in the redesign: the selected "My year / All years" segment and the "break" and
+  "term" type chips (3.09:1).
+
+**R-7, Noora.** Her chat works at every size (a sheet on phones, a panel beside her elsewhere, fits 844×390, takes
+focus, "Hide Mini Noora" in its header). What gets in students' way is where she stands:
+- **She covers content by default.** At 1440 px she sits over Home's "Your modules" dates; at 1280 px over the
+  forum's reply counts and times (`screens/ux3-noora-covers-forum-l1280.png`); at 390 px over the editor's date
+  picker and the Activity times; at 360 px her hint covers the exam timeline.
+- **Landscape phones get the laptop-size mascot** (the phone size switches at 700 px wide), so at 844×390 she takes
+  about 40% of the screen's height.
+- **On wide monitors she is detached:** at 3440 px the shell is centred at 2000 px, but she stands at the screen's
+  far right edge.
+- What students need: a dock that never covers the page (a button in the top bar or tab bar, or a side panel on
+  laptops); suggestions for the page they are on (the chat already offers "When is my next exam?"); and answers
+  that link into the Hub, which she does today.
 
 ---
 
