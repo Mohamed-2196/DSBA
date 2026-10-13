@@ -1,4 +1,4 @@
-// The degree classification: the v1 rules, checked on whole sets of marks.
+// The degree classification: its rules, checked on whole sets of marks.
 import { describe, expect, it } from 'vitest';
 import { bandOf, classify, gradeDescription, isComplete, isEmpty, normalizeGrades, RESULT, SUBJECT_COUNT, TOTAL_CLASSIFICATION_MARKS } from './classify';
 
@@ -55,7 +55,7 @@ describe('classify', () => {
     expect(c.label).toBe('Resit required for failed subjects to pass the degree');
   });
 
-  it('counts a blank mark as 0, like v1, and does not call the set complete', () => {
+  it('counts a blank mark as 0, and does not call the set complete', () => {
     const c = classify(marks(60, { 12: '' }));
     expect(c.kind).toBe('resit');
     expect(c.complete).toBe(false);
@@ -85,7 +85,7 @@ describe('the helpers', () => {
     expect(normalizeGrades('not a list')).toEqual(Array<string>(SUBJECT_COUNT).fill(''));
   });
 
-  it('puts a mark in its band at the v1 thresholds', () => {
+  it('puts a mark in its band at the class thresholds', () => {
     expect([70, 69.99, 60, 59.5, 50, 40, 39.9].map(bandOf)).toEqual(['first', 'upper', 'upper', 'lower', 'lower', 'third', 'fail']);
     expect([70, 60, 50, 40, 39].map(gradeDescription)).toEqual(['First Class', 'Upper Second Class', 'Lower Second Class', 'Third Class', 'Fail']);
   });

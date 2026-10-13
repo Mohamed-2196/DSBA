@@ -14,8 +14,8 @@ export function addedAt(item: Pick<LibraryItem, 'publishedAt' | 'createdAt'>): s
 }
 
 /**
- * Shared by someone in the last 7 days. Links imported from the old site have no uploader: they were loaded with
- * the library, so they aren't news.
+ * Shared by someone in the last 7 days. Seeded links and imported files have no uploader: they came with the
+ * library, so they aren't news.
  */
 export function isNew(item: Pick<LibraryItem, 'publishedAt' | 'status' | 'uploadedBy'>, now = Date.now()): boolean {
   return item.status === 'published' && !!item.uploadedBy && !!item.publishedAt && now - new Date(item.publishedAt).getTime() < WEEK;

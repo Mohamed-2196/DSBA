@@ -49,7 +49,7 @@
 .career-mod__dot { flex: none; width: 8px; height: 8px; border-radius: var(--r-pill); }
 .career-mod__code { flex: none; font-size: var(--fs-12); }
 .career-mod__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* Touch screens: a 44px row to tap, whatever the text size (requests from frontend-accounts). */
+/* Touch screens: a 44px row to tap, whatever the text size. */
 @media (pointer: coarse) {
   .career-mod { min-height: 44px; }
 }

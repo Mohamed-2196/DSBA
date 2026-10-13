@@ -1,5 +1,5 @@
-// "Change role": the three roles as radio cards, chosen and confirmed in one dialog (UX review UX-15). A native
-// select changed the role, and asked to confirm, on the first arrow key; here arrows only move the choice.
+// "Change role": the three roles as radio cards, chosen and confirmed in one dialog (UX review UX-15). Arrows only
+// move the choice; nothing changes until it is confirmed.
 import { useId, useState } from 'react';
 import { WarningCircle } from '@phosphor-icons/react';
 import { roleLabel } from '../../auth';

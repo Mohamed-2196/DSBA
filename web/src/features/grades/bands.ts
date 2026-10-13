@@ -1,7 +1,7 @@
 // Names and bands used by the grades UI.
 import type { BandId, ClassKind } from './classify';
 
-/** Display names (v1's labels are kept for the verified result; these are for headlines). */
+/** Display names for headlines (the result itself uses classify.ts RESULT). */
 export const CLASS_NAME: Record<ClassKind, string> = {
   first: 'First Class Honours',
   upper: 'Upper Second Class Honours',

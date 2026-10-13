@@ -3,9 +3,9 @@ import { AccountYearContext, YearContext, type YearValue } from './contexts';
 import { normalizeYear, type CohortYear } from './cohort';
 
 // The cohort whose content is shown ("browsed year"):
-//   guest, or signed in without a cohort  the year chosen in this browser (localStorage, v1 key)
+//   guest, or signed in without a cohort  the year chosen in this browser (localStorage)
 //   signed in with a cohort               that cohort; switching to another year lasts for this visit (sessionStorage)
-const KEY = 'selectedYear'; // v1 key; raw '1' | '2' | '3' (v1 wrote year.toString())
+const KEY = 'selectedYear'; // raw '1' | '2' | '3' (not JSON)
 const VISIT_KEY = 'hub.browseYear';
 
 function read(storage: () => Storage, key: string): CohortYear | null {
@@ -79,7 +79,7 @@ export function YearProvider({ children }: { children?: ReactNode }) {
     }
   }, []);
 
-  // activeYear: convenience for views that need a concrete year before onboarding (v1 defaulted to 1).
+  // activeYear: convenience for views that need a concrete year before onboarding (Year 1 until one is chosen).
   const value = useMemo<YearValue>(() => ({ year, setYear, activeYear: year ?? 1 }), [year, setYear]);
   return (
     <AccountYearContext.Provider value={syncAccount}>

@@ -1,13 +1,8 @@
-// DSBA Hub — degree classification, ported from v1 src/legacy/components/gpa/GPACalculator.tsx.
+// DSBA Hub — degree classification.
 //
-// The algorithm is the v1 algorithm, line for line: same 13 subjects in the same order, same
-// weighting, same use of Number() on the raw input strings (so a blank field counts as 0, exactly
-// like v1), same summation order (floating point results are bit-identical), same thresholds and
-// the same result strings.
-//
-// The only difference: v1 returned early on a fail without updating its breakdown/average state
-// (so the screen kept stale numbers). This function always returns a fresh breakdown and average;
-// the classification label is unaffected.
+// 13 subjects in a fixed order, each weighted as the classification counts it. Marks are the raw input
+// strings read with Number(), so a blank field counts as 0. A fail still gets a fresh breakdown and
+// average; the classification label doesn't depend on them.
 //
 // Pure module: no React, no imports. Everything stays in the browser: marks are never sent to the server.
 
@@ -18,7 +13,7 @@ export type BandId = 'first' | 'upper' | 'lower' | 'third' | 'fail';
 
 export interface Subject {
   index: number;
-  v1Name: string;
+  name: string;
   year: 1 | 2 | 3;
   group: 'year1' | 'advancedStats' | 'remaining';
   /** Classification marks the subject contributes (Year 1 counts through its average). */
@@ -27,31 +22,31 @@ export interface Subject {
   choice?: ChoiceSlot;
 }
 
-/** The v1 subject list, in v1 order. `weight` = classification marks the subject contributes. */
+/** The subjects, in the calculator's order. `weight` = classification marks the subject contributes. */
 export const SUBJECTS: Subject[] = [
   // Year 1: the four marks are averaged, and the average counts as 2 classification marks.
-  { index: 0, v1Name: 'Introduction to Economics', year: 1, group: 'year1', moduleId: 'economics' },
-  { index: 1, v1Name: 'Mathematical Methods', year: 1, group: 'year1', moduleId: 'mathematics' },
-  { index: 2, v1Name: 'Business and Management in a Global Context', year: 1, group: 'year1', moduleId: 'business' },
-  { index: 3, v1Name: 'Introduction to Mathematical Statistics', year: 1, group: 'year1', moduleId: 'statistics' },
+  { index: 0, name: 'Introduction to Economics', year: 1, group: 'year1', moduleId: 'economics' },
+  { index: 1, name: 'Mathematical Methods', year: 1, group: 'year1', moduleId: 'mathematics' },
+  { index: 2, name: 'Business and Management in a Global Context', year: 1, group: 'year1', moduleId: 'business' },
+  { index: 3, name: 'Introduction to Mathematical Statistics', year: 1, group: 'year1', moduleId: 'statistics' },
   // Year 2: each Advanced Statistics module counts as 1 mark; the rest count as 2 marks each.
-  { index: 4, v1Name: 'Advanced Statistics: Statistical Inference', year: 2, group: 'advancedStats', weight: 1, moduleId: 'advanced-stats-inferential' },
-  { index: 5, v1Name: 'Advanced Statistics: Distribution Theory', year: 2, group: 'advancedStats', weight: 1, moduleId: 'advanced-stats-distribution' },
-  { index: 6, v1Name: 'Business Analytics: Applied Modelling and Prediction', year: 2, group: 'remaining', weight: 2, moduleId: 'business-analytics' },
-  { index: 7, v1Name: 'Programming for Data Science', year: 2, group: 'remaining', weight: 2, moduleId: 'programming-data-science' },
-  { index: 8, v1Name: 'Abstract Mathematics/Information Systems/Econometrics', year: 2, group: 'remaining', weight: 2, moduleId: null, choice: 'year2Option' },
+  { index: 4, name: 'Advanced Statistics: Statistical Inference', year: 2, group: 'advancedStats', weight: 1, moduleId: 'advanced-stats-inferential' },
+  { index: 5, name: 'Advanced Statistics: Distribution Theory', year: 2, group: 'advancedStats', weight: 1, moduleId: 'advanced-stats-distribution' },
+  { index: 6, name: 'Business Analytics: Applied Modelling and Prediction', year: 2, group: 'remaining', weight: 2, moduleId: 'business-analytics' },
+  { index: 7, name: 'Programming for Data Science', year: 2, group: 'remaining', weight: 2, moduleId: 'programming-data-science' },
+  { index: 8, name: 'Abstract Mathematics/Information Systems/Econometrics', year: 2, group: 'remaining', weight: 2, moduleId: null, choice: 'year2Option' },
   // Year 3
-  { index: 9, v1Name: 'Statistical Methods for Market Research', year: 3, group: 'remaining', weight: 2, moduleId: 'market-research' },
-  { index: 10, v1Name: 'Machine Learning', year: 3, group: 'remaining', weight: 2, moduleId: 'machine-learning' },
-  { index: 11, v1Name: 'Elective1', year: 3, group: 'remaining', weight: 2, moduleId: null, choice: 'elective1' },
-  { index: 12, v1Name: 'Elective2', year: 3, group: 'remaining', weight: 2, moduleId: null, choice: 'elective2' },
+  { index: 9, name: 'Statistical Methods for Market Research', year: 3, group: 'remaining', weight: 2, moduleId: 'market-research' },
+  { index: 10, name: 'Machine Learning', year: 3, group: 'remaining', weight: 2, moduleId: 'machine-learning' },
+  { index: 11, name: 'Elective1', year: 3, group: 'remaining', weight: 2, moduleId: null, choice: 'elective1' },
+  { index: 12, name: 'Elective2', year: 3, group: 'remaining', weight: 2, moduleId: null, choice: 'elective2' },
 ];
 
 export const SUBJECT_COUNT = SUBJECTS.length; // 13
 /** Classification marks when every subject is entered: 2 (Year 1 average) + 1 + 1 + 7 × 2. */
 export const TOTAL_CLASSIFICATION_MARKS = 18;
 
-/** v1 result strings (verbatim). */
+/** The result strings. */
 export const RESULT: Record<ClassKind, string> = {
   first: 'First Class Honours',
   upper: 'Upper Second Class Honours',
@@ -64,7 +59,7 @@ export const RESULT: Record<ClassKind, string> = {
 /** Order of the outcomes, worst to best (for "at least" comparisons in what-if searches). */
 export const RANK: Record<ClassKind, number> = { resit: 0, none: 1, third: 2, lower: 3, upper: 4, first: 5 };
 
-/** v1 getGradeDescription (verbatim thresholds and strings). */
+/** A mark's class, in words. */
 export function gradeDescription(grade: number): string {
   if (grade >= 70) return 'First Class';
   if (grade >= 60) return 'Upper Second Class';
@@ -73,7 +68,7 @@ export function gradeDescription(grade: number): string {
   return 'Fail';
 }
 
-/** Band key for a number. Same thresholds as v1. */
+/** Band key for a number (the thresholds of gradeDescription). */
 export function bandOf(grade: number): BandId {
   if (grade >= 70) return 'first';
   if (grade >= 60) return 'upper';
@@ -82,7 +77,7 @@ export function bandOf(grade: number): BandId {
   return 'fail';
 }
 
-/** Always 13 raw values (v1 kept an array of 13 strings; missing entries behave like v1's ''). */
+/** Always 13 raw values ('' for a missing or unreadable entry). */
 export function normalizeGrades(grades: unknown): string[] {
   const out: string[] = Array<string>(SUBJECT_COUNT).fill('');
   if (Array.isArray(grades)) {
@@ -94,15 +89,12 @@ export function normalizeGrades(grades: unknown): string[] {
   return out;
 }
 
-/**
- * v1 display rule: the result section only showed when every subject had a mark above 0
- * (`grades.every(grade => grade && !isNaN(Number(grade)) && Number(grade) > 0)`).
- */
+/** Every subject has a mark above 0: the whole result can show. */
 export function isComplete(grades: readonly string[]): boolean {
   return grades.every((grade) => grade && !isNaN(Number(grade)) && Number(grade) > 0);
 }
 
-/** v1 "getting started" rule: nothing meaningful entered yet. */
+/** Nothing meaningful entered yet ("getting started"). */
 export function isEmpty(grades: readonly string[]): boolean {
   return grades.every((grade) => !grade || isNaN(Number(grade)) || Number(grade) === 0);
 }
@@ -115,27 +107,27 @@ export interface ClassificationMark {
 
 export interface Classification {
   kind: ClassKind;
-  /** v1 result string */
+  /** the result string */
   label: string;
-  /** a classification mark under 40 (blank fields count as 0, as in v1) */
+  /** a classification mark under 40 (blank fields count as 0) */
   failed: boolean;
-  /** v1's rule for showing the result */
+  /** every subject has a mark (isComplete) */
   complete: boolean;
-  /** v1's "getting started" rule */
+  /** nothing entered yet (isEmpty) */
   empty: boolean;
-  /** classification marks, v1 order */
+  /** classification marks, in subject order */
   marks: ClassificationMark[];
   breakdown: { firstClass: number; upperSecondClass: number; lowerSecondClass: number; thirdClass: number };
-  /** average classification mark (v1: 0 when there are no marks) */
+  /** average classification mark (0 when there are no marks) */
   average: number;
   yearOneAverage: number | null;
 }
 
-/** Classify 13 raw mark strings exactly like v1 ('' = blank). */
+/** Classify 13 raw mark strings ('' = blank). */
 export function classify(input: unknown): Classification {
   const grades = normalizeGrades(input);
 
-  // ── v1 useEffect, line for line ─────────────────────────────────────────────
+  // ── the classification ───────────────────────────────────────────────────────
   const classificationMarks: number[] = [];
   const sources: number[][] = [];
 

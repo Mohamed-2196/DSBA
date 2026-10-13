@@ -18,8 +18,8 @@ export interface ReportButtonProps {
   className?: string;
 }
 
-// What this person reported while the app is open, by account: the button then reads "Reported" (the student test
-// found it kept saying "Report", so only a second try told them). The server keeps the real record (already_reported).
+// What this person reported while the app is open, by account: the button then reads "Reported", so a second try
+// isn't how they learn it was sent (student test). The server keeps the real record (already_reported).
 const sent = new Set<string>();
 const sentKey = (viewer: string | null | undefined, type: ReportTargetType, id: string) => `${viewer ?? ''}|${type}|${id}`;
 

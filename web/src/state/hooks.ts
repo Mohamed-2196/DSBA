@@ -21,7 +21,7 @@ export function useTheme(): ThemeValue {
 
 /**
  * { year: 1|2|3|null, setYear, activeYear }: the cohort whose content is shown. A signed-in student's cohort
- * is the default; a guest's choice is kept in localStorage.selectedYear (v1-compatible raw '1'|'2'|'3').
+ * is the default; a guest's choice is kept in localStorage.selectedYear (raw '1'|'2'|'3').
  * year is null until one is chosen (onboarding shows). activeYear = year ?? 1 for views that need one.
  */
 export function useYear(): YearValue {

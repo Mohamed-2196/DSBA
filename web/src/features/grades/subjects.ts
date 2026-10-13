@@ -1,4 +1,4 @@
-// Display data for the 13 v1 subjects: names and unit codes from the module catalogue, plus the choices a
+// Display data for the 13 subjects: names and unit codes from the module catalogue, plus the choices a
 // student makes (their Year 2 option and two Year 3 electives). Labels only: the classification never
 // depends on these choices.
 import type { ModuleSummary } from '../../api/types';
@@ -12,13 +12,13 @@ interface Option {
   label?: string;
 }
 
-/** v1 "Abstract Mathematics/Information Systems/Econometrics" slot. Abstract Mathematics has no module page (and no code in v1). */
+/** The "Abstract Mathematics/Information Systems/Econometrics" slot. Abstract Mathematics has no module page (and no unit code). */
 export const YEAR2_OPTIONS: Option[] = [
   { value: 'econometrics', moduleId: 'econometrics' },
   { value: 'information-systems', moduleId: 'information-systems' },
   { value: 'abstract-maths', label: 'Abstract Mathematics', moduleId: null },
 ];
-/** Year 3 modules on DSBA Hub that aren't compulsory in the v1 calculator. */
+/** The Year 3 electives: modules on DSBA Hub that aren't compulsory. */
 export const ELECTIVE_OPTIONS: Option[] = ['microeconomics', 'asset-pricing', 'marketing-management', 'further-maths-economists'].map((id) => ({ value: id, moduleId: id }));
 
 const optionLabel = (o: Option, getModule: ModuleLookup): string => (o.moduleId ? (getModule(o.moduleId)?.name ?? o.value) : (o.label ?? o.value));
@@ -54,8 +54,8 @@ export function subjectDisplay(subject: Subject, picks: Picks, getModule: Module
     return { code: null, name, short: name, moduleId: null, placeholder: true };
   }
   const m = getModule(subject.moduleId);
-  return { code: m?.unitCode ?? null, name: m ? m.name : subject.v1Name, short: m ? m.shortName : subject.v1Name, moduleId: m?.id ?? null, placeholder: false };
+  return { code: m?.unitCode ?? null, name: m ? m.name : subject.name, short: m ? m.shortName : subject.name, moduleId: m?.id ?? null, placeholder: false };
 }
 
-/** Rows grouped by year, in v1 order. */
+/** Rows grouped by year, in subject order. */
 export const YEARS: { year: 1 | 2 | 3; subjects: Subject[] }[] = ([1, 2, 3] as const).map((year) => ({ year, subjects: SUBJECTS.filter((s) => s.year === year) }));

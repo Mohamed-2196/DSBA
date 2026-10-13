@@ -16,7 +16,7 @@ export function lessonKey(moduleId: string, chapterIndex: number, videoIndex: nu
 
 const isYoutubeUrl = (s: string) => s.includes('youtube.com') || s.includes('youtu.be');
 
-/** iframe src for a video (the URLs v1 embedded). */
+/** iframe src for a video: a YouTube embed, or the recording's own URL. */
 export function videoEmbedUrl(v: Video | null | undefined): string | null {
   if (!v) return null;
   if (v.kind === 'bbb') return v.url ?? null;

@@ -255,7 +255,7 @@
 .grades-choice__select option { background: var(--surface); color: var(--ink); }
 .grades-choice.is-placeholder .grades-choice__select { color: var(--ink-2); font-weight: var(--fw-medium); }
 .grades-choice__caret { position: absolute; right: 2px; color: var(--ink-2); font-size: 12px; pointer-events: none; }
-/* Touch screens: a 44px control to tap (requests from frontend-accounts). */
+/* Touch screens: a 44px control to tap. */
 @media (pointer: coarse) {
   .grades-choice__select { min-height: 44px; }
 }

@@ -1,5 +1,5 @@
 // "What if" hints for the grade calculator. Every answer here is found by running classify()
-// (the v1 algorithm) on modified marks, so a hint can never disagree with the result it explains.
+// on modified marks, so a hint can never disagree with the result it explains.
 import { classify, normalizeGrades, RANK, SUBJECTS, type ClassKind } from './classify';
 
 export type TargetKind = Exclude<ClassKind, 'none' | 'resit'>;
@@ -190,7 +190,7 @@ export interface ResitOutlook {
 
 /**
  * Complete input with a fail: the subjects that trigger the resit, and what the calculator gives
- * once they are passed with 40. (v1 only checks Year 1 through its average.)
+ * once they are passed with 40. (Year 1 is checked only through its average.)
  */
 export function resitOutlook(grades: unknown): ResitOutlook | null {
   const g = normalizeGrades(grades);
