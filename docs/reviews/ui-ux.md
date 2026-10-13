@@ -22,6 +22,25 @@ of notes), and the published issue 02 "Exam season special".
 touch emulation for the rest of that page (`(pointer: coarse)` turns false and controls shrink to 32 px). Measure
 touch targets before taking a full-page screenshot, or on a fresh page.
 
+### Summary
+
+Rounds 2 and 3 fixed every earlier finding that mattered: all six majors (UX-1 to UX-6) and all ten minors are
+fixed, and UX-17's nits mostly. The responsive pass held up: no sideways scroll, no element off screen and no
+dialog that doesn't fit, across six personas and all 16 sizes, and touch targets are 44 px nearly everywhere.
+The newsletter editor is now a form that works on a phone, and its leave guard catches links, ⌘K, Back and reload.
+No blockers and no majors are new: 5 minors and 5 nits (UX-18 to UX-27), plus notes for the calendar and Noora
+redesigns.
+
+**Top five to fix:**
+1. UX-20: the measure, especially Your account's notes at 111–132 characters a line on tablets.
+2. UX-21: Home calls a guest without a year "Year 1".
+3. UX-22: the app error screen's heading, tab title and way out.
+4. UX-18: the six counts still without separators.
+5. UX-19: chip counts under AA.
+
+Mini Noora covering content (R-7 notes below) affects more students than any of these, but it belongs to the
+redesign.
+
 ### Earlier findings
 
 | ID | Was | Now | Evidence |
@@ -32,17 +51,17 @@ touch targets before taking a full-page screenshot, or on a fresh page.
 | UX-4 | major | **fixed** | The editor is a form (details, cover, sections with typed blocks, an icon picker) with Edit / Preview on narrow screens. |
 | UX-5 | major | **fixed** | "Upload a file" in the top bar, the More drawer, the footer and ⌘K, all opening the library's upload dialog. |
 | UX-6 | major | **fixed** (D1) | Emails are sent through the outbox; Your account says "Every notification shows in the Hub. Choose which ones we also email you." |
-| UX-7 | minor | **fixed** (D7) | The year prompt is a card over the page with "I'm not a student" and "Sign in". What remains is in the new findings. |
+| UX-7 | minor | **fixed** (D7) | The year prompt is a card over the page with "I'm not a student" and "Sign in". What remains is UX-21. |
 | UX-8 | minor | **fixed** | `Toaster.css` moves toasts to the top on phones while a modal or drawer is open. |
 | UX-9 | minor | **fixed** | `ui/internal.ts` `restoreFocus()` falls back to the account button, then `#main`. |
 | UX-10 | minor | **fixed** | A 500 reads "The library didn't load. Something went wrong on our side. Try again in a minute."; offline reads "Couldn't reach the Hub. Check your connection and try again." The forum, newsletter and calendar use the same pattern. |
-| UX-11 | minor | **fixed** | Buttons, icon buttons, chips, fields, tabs and switches are 44 px under `(pointer: coarse)`. Leftovers are in the new findings. |
+| UX-11 | minor | **fixed** | Buttons, icon buttons, chips, fields, tabs and switches are 44 px under `(pointer: coarse)`. One leftover: UX-23. |
 | UX-12 | minor | **fixed** | The phone upload dialog shows only "Choose a file"; Type no longer drops; a suspended student is told up front. |
 | UX-13 | minor | **fixed** | "Not confirmed yet. Check with the programme office before you plan around it." No "sample date" copy is left. |
 | UX-14 | minor | **fixed** | Section headers wrap below 700 px; "Not added" is `--ink-2`. |
-| UX-15 | minor | **fixed** | Roles change through a "Change" button and a dialog; Activity names the issue, thread, file or event. Wording nits are in the new findings. |
+| UX-15 | minor | **fixed** | Roles change through a "Change" button and a dialog; Activity names the issue, thread, file or event. Wording nits: UX-24. |
 | UX-16 | minor | **fixed** | Server errors are form alerts, the address is shown in full with "Not there? Check your spam folder.", one name ("Send a new code"), `inputMode="tel"` once a digit is typed. |
-| UX-17 | nit | **mostly fixed** | Fixed: zero counts, guest composer, phone moderation tiles, the earlier smooth scrolls, "Hide Mini Noora" in her chat, `demo/` paths. Open: the library still says "A student rep decided not to publish this file." (`FileViewerPage.tsx:115`, `YourUploads.tsx:59`) where the rest says "Not published", and three new smooth scrolls ignore reduced motion (new findings). |
+| UX-17 | nit | **mostly fixed** | Fixed: zero counts, guest composer, phone moderation tiles, the earlier smooth scrolls, "Hide Mini Noora" in her chat, `demo/` paths. Open: the library still says "A student rep decided not to publish this file." (`FileViewerPage.tsx:115`, `YourUploads.tsx:59`) where the rest says "Not published", and three new smooth scrolls ignore reduced motion (both in UX-26). |
 | Field borders (WCAG 1.4.11) | — | **fixed** | `--control-border` (3.23:1 light, 3.45:1 dark) is used for fields and selects. |
 
 ### Responsive results
