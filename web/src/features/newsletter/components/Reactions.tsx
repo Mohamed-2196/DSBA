@@ -28,10 +28,12 @@ export interface ReactionsProps {
 
 /**
  * Per-section reactions, saved on the account (signed in) and counted for everyone. A guest who presses one
- * is asked to sign in first; the reaction is added once they have.
+ * is asked to sign in first; the reaction is added once they have. An account without the newsletter.react box sees
+ * the counts with the buttons disabled.
  */
 export function Reactions({ issueId, issueSlug, sectionId, counts, label, readOnly = false }: ReactionsProps) {
-  const { requireAuth } = useAuth();
+  const { requireAuth, mayTry } = useAuth();
+  const pressable = !readOnly && mayTry('newsletter.react');
   const { push } = useToast();
   const react = useReact();
   const [popped, setPopped] = useState<Reaction | null>(null);
@@ -62,7 +64,7 @@ export function Reactions({ issueId, issueSlug, sectionId, counts, label, readOn
               className={cx('nl-reaction', `nl-reaction--${id}`, on && 'is-on', popped === id && 'is-popping')}
               aria-pressed={on}
               aria-label={`${name}, ${count}`}
-              disabled={readOnly}
+              disabled={!pressable}
               onClick={() => toggle(id)}
               onAnimationEnd={() => setPopped(null)}
             >

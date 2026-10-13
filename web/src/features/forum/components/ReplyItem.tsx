@@ -44,7 +44,7 @@ export interface ReplyItemProps {
  * The body is right-to-left or left-to-right per paragraph (see Prose), so an Arabic reply sits right-aligned.
  */
 export function ReplyItem({ reply, thread, nested = false, hasReplies = false, fresh = false, targeted = false, readOnly = false, onReply, children }: ReplyItemProps) {
-  const { requireAuth } = useAuth();
+  const { requireAuth, mayTry } = useAuth();
   const { push } = useToast();
   const vote = useReplyVote();
   const accept = useAcceptAnswer();
@@ -69,8 +69,8 @@ export function ReplyItem({ reply, thread, nested = false, hasReplies = false, f
   const moderates = thread.canModerate && !readOnly;
   const canChange = reply.canEdit && !frozen;
   const canReport = !reply.isMine && reply.status === 'visible' && !threadHidden && !readOnly;
-  // The thread's author (or a moderator) accepts a top-level reply by someone else.
-  const canAccept = thread.canAccept && !readOnly && !nested && !deleted && !hidden && !isOp;
+  // The thread's author (or a moderator) accepts a top-level reply by someone else, with the forum.post box.
+  const canAccept = thread.canAccept && mayTry('forum.post') && !readOnly && !nested && !deleted && !hidden && !isOp;
 
   const toggleVote = () => {
     const up = !reply.voted;

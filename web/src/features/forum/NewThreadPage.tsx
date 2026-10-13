@@ -22,6 +22,7 @@ import { AttachRow } from './components/AttachRow';
 import { ComposerAside, SimilarInline } from './components/ComposerAside';
 import { ComposerFooter } from './components/ComposerFooter';
 import { MarkdownEditor } from './components/MarkdownEditor';
+import { CantPostNote } from './components/ThreadNotices';
 import { CategorySelect, ModuleSelect, TagPicker } from './components/ThreadFields';
 import './components/forum.css';
 import './components/dialogs.css';
@@ -34,16 +35,27 @@ import './NewThreadPage.css';
  *   ?module=mathematics    the module, by id (or by unit code: ?module=MT1186); a year category that disagrees with the
  *                          module's year follows the module
  *   ?title=...             the title
- * An unfinished thread is kept as a draft on this device (lib/threadDraft.ts) until it is posted or discarded.
+ * An unfinished thread is kept as a draft on this device (lib/threadDraft.ts) until it is posted or discarded. An
+ * account without the forum.post box gets a note in place of the composer.
  */
 export default function NewThreadPage() {
-  const { status } = useAuth();
+  const { status, offer } = useAuth();
   const [params] = useSearchParams();
   // A new preset on the same route starts a fresh composer, and so does another person (lib/useAccountKey.ts).
   const presetKey = ['category', 'module', 'title'].map((k) => params.get(k) || '').join('|');
   const accountKey = useAccountKey();
   // Whose draft to restore depends on who is signed in, so the composer waits for that (usually already known).
   if (status === 'loading') return <ComposerPlaceholder />;
+  const posting = offer('forum.post');
+  if (posting === 'suspended' || posting === 'no') {
+    return (
+      <Page className="forum-page forum-new">
+        <Crumbs />
+        <PageHeader {...HEADER} />
+        <CantPostNote suspended={posting === 'suspended'} />
+      </Page>
+    );
+  }
   return <Composer key={`${presetKey}#${accountKey}`} />;
 }
 

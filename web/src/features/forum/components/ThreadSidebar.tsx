@@ -1,6 +1,7 @@
 import { useMemo, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarBlank, ChatsCircle, Plus, UsersThree } from '@phosphor-icons/react';
+import { useAuth } from '../../../auth';
 import type { ModuleSummary, ThreadDetail } from '../../../api/types';
 import { Button, CohortBadge, ModuleIcon, Skeleton, formatDate, timeAgo } from '../../../ui';
 import { cohortTextColor } from '../../../state';
@@ -17,6 +18,7 @@ import { ReplyCount } from './ThreadBits';
 
 function ModuleCard({ module }: { module: ModuleSummary }) {
   const exam = useNextExamForModule(module.id).data ?? null;
+  const posts = useAuth().mayTry('forum.post');
   const days = exam ? daysUntil(exam.date) : null;
   return (
     <section className="forum-tside__card" aria-label="Module" style={{ '--forum-c': cohortTextColor(module.year) } as CSSProperties}>
@@ -39,9 +41,11 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
         ) : null}
       </div>
       <div className="forum-tside__actions is-stacked">
-        <Button size="sm" fullWidth to={`/forum/new?module=${module.id}`} leadingIcon={Plus}>
-          Ask about {module.unitCode || 'this module'}
-        </Button>
+        {posts ? (
+          <Button size="sm" fullWidth to={`/forum/new?module=${module.id}`} leadingIcon={Plus}>
+            Ask about {module.unitCode || 'this module'}
+          </Button>
+        ) : null}
         <Button size="sm" fullWidth variant="ghost" to={`/modules/${module.id}?tab=discussion`} leadingIcon={ChatsCircle}>
           All {module.unitCode || 'module'} threads
         </Button>

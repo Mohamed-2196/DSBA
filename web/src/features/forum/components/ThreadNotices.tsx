@@ -1,9 +1,10 @@
 // What the thread page says about a thread that isn't open to everyone: hidden (to the reps, and to its author),
 // deleted, locked, or gone while the page was open; a link to a reply that isn't there; and the reply composer when
-// the thread takes replies.
+// the thread takes replies and the person may post.
 import { useState, type RefObject } from 'react';
-import { ChatCircleText, Eye, EyeSlash, LockSimple, WarningCircle } from '@phosphor-icons/react';
+import { ChatCircleText, Eye, EyeSlash, LockSimple, Prohibit, WarningCircle } from '@phosphor-icons/react';
 import type { Reply, ThreadDetail } from '../../../api/types';
+import { useAuth } from '../../../auth';
 import { Button } from '../../../ui';
 import { readOnlyFor, takesReplies, textDeleted } from '../lib/replies';
 import { ReplyComposer } from './ReplyComposer';
@@ -87,13 +88,27 @@ function whyClosed(thread: ThreadDetail, unavailable: boolean): string {
   return 'This thread is locked, so new replies are off.';
 }
 
+/** Why an account can't post: suspended, or its roles don't include forum.post. */
+export function CantPostNote({ suspended }: { suspended: boolean }) {
+  return (
+    <p className="forum-notice" role="note" data-hub="cant-post">
+      <Prohibit aria-hidden="true" weight="bold" className="forum-notice__icon" />
+      <span className="forum-notice__text">
+        {suspended ? 'Your account is suspended, so you can’t post in the forum for now. Contact an admin.' : 'Posting in the forum isn’t on your account. If you think you need it, ask an admin.'}
+      </span>
+    </p>
+  );
+}
+
 /**
- * Under the replies: the composer when the thread takes replies, otherwise why it doesn't. A reply being written when
+ * Under the replies: the composer when the thread takes replies and the person may post, otherwise why not. A reply being written when
  * the thread closes (locked, hidden or deleted meanwhile) stays on screen, so its text can be copied.
  */
 export function ThreadCompose({ thread, textareaRef, onPosted, unavailable = false }: ThreadComposeProps) {
   const open = takesReplies(thread) && !unavailable;
   const [unsent, setUnsent] = useState(false);
+  const offer = useAuth().offer('forum.post');
+  if (open && (offer === 'suspended' || offer === 'no')) return <CantPostNote suspended={offer === 'suspended'} />;
   if (!open && !unsent) {
     return (
       <p className="forum-notice" role="note">

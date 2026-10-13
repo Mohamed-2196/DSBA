@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowFatUp, ChatsCircle } from '@phosphor-icons/react';
+import { useAuth } from '../../auth';
 import { Button, EmptyState, Panel, QueryError, Skeleton, timeAgo } from '../../ui';
 import { normalizeYear, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
@@ -19,6 +20,7 @@ export interface HotThreadsProps {
 export function HotThreads({ n = 5, year: forYear }: HotThreadsProps) {
   const { year: browsed } = useYear();
   const { getModule } = useModules();
+  const posts = useAuth().mayTry('forum.post');
   const hot = useHotThreads({ n, year: forYear === undefined ? normalizeYear(browsed) : forYear });
 
   if (hot.isPending) {
@@ -54,9 +56,11 @@ export function HotThreads({ n = 5, year: forYear }: HotThreadsProps) {
           title="No threads yet"
           body="Questions from your cohort will show here."
           action={
-            <Button to="/forum/new" size="sm">
-              Start a thread
-            </Button>
+            posts ? (
+              <Button to="/forum/new" size="sm">
+                Start a thread
+              </Button>
+            ) : undefined
           }
         />
       </Panel>

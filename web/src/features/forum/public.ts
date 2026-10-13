@@ -7,6 +7,8 @@
 //                                         cohort plus forum-wide ones; year null → every cohort. Links: /forum/<slug>.
 //   <ReportButton targetType targetId />  "Report" + its dialog for a thread, a reply or a library item ('library_item').
 //   <ReportsQueue />                      the moderators' list of reports (resolve, dismiss, open the post).
+//   useStartsThreads()                    true when a "Start a thread" link belongs on the page (the forum is on and the
+//                                         person may post; a guest signs in when they post).
 //
 // Thread links are /forum/<slug>. Searching the forum is GET /api/v1/search (the ⌘K palette).
 export { HotThreads } from './HotThreads';
@@ -17,3 +19,4 @@ export { useHotThreads } from './api';
 export { ReportButton } from './ReportButton';
 export type { ReportButtonProps } from './ReportButton';
 export { ReportsQueue } from './ReportsQueue';
+export { useStartsThreads } from './lib/posting';

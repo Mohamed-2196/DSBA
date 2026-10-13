@@ -34,7 +34,7 @@ export interface OriginalPostProps {
  * author (edit, delete) and for the reps (pin, lock, hide with a reason).
  */
 export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavailable = false }: OriginalPostProps) {
-  const { requireAuth } = useAuth();
+  const { requireAuth, mayTry } = useAuth();
   const { push } = useToast();
   const navigate = useNavigate();
   const vote = useThreadVote();
@@ -103,7 +103,7 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavaila
       </div>
       {!editing && !readOnly ? (
         <footer className="forum-op__actions">
-          {takesReplies(thread) ? (
+          {takesReplies(thread) && mayTry('forum.post') ? (
             <Button variant="secondary" size="sm" leadingIcon={ArrowBendUpLeft} onClick={onReply}>
               Reply
             </Button>

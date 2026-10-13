@@ -6,6 +6,7 @@ import { useAuth } from '../../auth';
 import { formatDay } from '../../lib/dates';
 import { useDocumentTitle, useMediaQuery, useQueryParam } from '../../state';
 import { Badge, Button, EmptyState, HubLogo, HubMark, Page, Panel, QueryError, Skeleton, cx } from '../../ui';
+import { useStartsThreads } from '../forum/public';
 import { toCard, useIssue, useIssueDetails, useIssues } from './api';
 import { EditorAvatars } from './components/Blocks';
 import { DeleteIssueButton, PublishButton } from './components/IssueActions';
@@ -123,6 +124,7 @@ function IssueReader({ issue }: { issue: Issue }) {
   useDocumentTitle(`${issue.title}, The DSBA Newsletter ${no}`);
   const { can } = useAuth();
   const manages = can('newsletter.manage');
+  const startsThreads = useStartsThreads();
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const [sectionParam, setSectionParam] = useQueryParam('section');
   const [active, setActive] = useState(issue.sections[0]?.id);
@@ -233,7 +235,13 @@ function IssueReader({ issue }: { issue: Issue }) {
             <footer className="nl-issue__end">
               <HubLogo variant="tile" size={22} optional decorative className="nl-issue__end-mark" />
               <p>
-                That’s the end of issue {no}. Spotted a mistake, or have a story we should tell? <Link to="/forum/new">Tell us in the forum</Link>.
+                That’s the end of issue {no}.
+                {startsThreads ? (
+                  <>
+                    {' '}
+                    Spotted a mistake, or have a story we should tell? <Link to="/forum/new">Tell us in the forum</Link>.
+                  </>
+                ) : null}
               </p>
               {draft ? null : <ShareActions route={`/newsletter/${issue.slug}`} title={`The DSBA Newsletter ${no}: ${issue.title}`} />}
             </footer>
