@@ -10,4 +10,11 @@ describe('visibleNav', () => {
     const nav = [item('home'), item('forum', 'forum'), item('calendar', 'calendar')];
     expect(visibleNav(nav, (f) => f === 'forum').map((n) => n.id)).toEqual(['home', 'forum']);
   });
+
+  it('shows personal items (notes) to signed-in people only', () => {
+    const nav = [item('home'), { ...item('notes', 'notes'), signedIn: true as const }];
+    expect(visibleNav(nav, () => true).map((n) => n.id)).toEqual(['home']);
+    expect(visibleNav(nav, () => true, true).map((n) => n.id)).toEqual(['home', 'notes']);
+    expect(visibleNav(nav, () => false, true).map((n) => n.id)).toEqual(['home']);
+  });
 });
