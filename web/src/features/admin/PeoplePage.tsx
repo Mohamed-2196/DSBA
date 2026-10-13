@@ -11,7 +11,8 @@ import {
   Avatar, Badge, Button, CohortBadge, ConfirmDialog, EmptyState, Page, PageHeader, Panel, QueryError, SearchField, Select, Skeleton, TabPanel, Tabs, formatDate, timeAgo,
 } from '../../ui';
 import { auditActor, describeAudit } from './audit';
-import { ADMIN_USERS_KEY, useAudit, usePeople, useUpdatePerson } from './api';
+import { ADMIN_USERS_KEY } from '../access/public';
+import { useAudit, usePeople, useUpdatePerson } from './api';
 import './PeoplePage.css';
 
 const ROLE_FILTERS = [{ value: '', label: 'Everyone' }];

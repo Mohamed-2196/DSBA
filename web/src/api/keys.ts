@@ -7,3 +7,7 @@ export const ADMIN_STATS_KEY = ['admin', 'stats'] as const;
 
 /** GET /features: the features switched on for whoever asks. Signed in, /me carries the same list. */
 export const FEATURES_KEY = ['features'] as const;
+
+/** The Access screen: the roles catalogue and the feature switches (admins). */
+export const ACCESS_ROLES_KEY = ['admin', 'roles'] as const;
+export const ACCESS_FEATURES_KEY = ['admin', 'features'] as const;

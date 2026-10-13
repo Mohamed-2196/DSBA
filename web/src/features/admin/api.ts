@@ -3,11 +3,9 @@ import { keepPreviousData, useInfiniteQuery, useMutation, useQueryClient, type I
 import { api, call } from '../../api/client';
 import { nextOffset } from '../../api/paging';
 import type { AdminUserPage, AdminUserUpdate } from '../../api/types';
+import { ADMIN_USERS_KEY, AUDIT_KEY } from '../access/public';
 
-export const ADMIN_USERS_KEY = ['admin', 'users'] as const;
-export const AUDIT_KEY = ['admin', 'audit'] as const;
 const PAGE = 20;
-
 
 export function usePeople(q: string, role: string | null, enabled: boolean) {
   return useInfiniteQuery({
