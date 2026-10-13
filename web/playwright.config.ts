@@ -1,6 +1,7 @@
 // End-to-end suite: the app as students, a student rep and an admin use it, against a running stack.
 //
-//   cd web && npx playwright test                 everything (about 5 one-time codes per run, see e2e/README in the report)
+//   scripts/e2e.sh                                from the repo root: puts the Docker stack in e2e mode, then runs this
+//   cd web && npx playwright test                 everything, once the stack is in e2e mode (5 to 7 one-time codes)
 //   npx playwright test e2e/forum.spec.ts         one area (the setup project runs first: it signs the students up)
 //   E2E_KEEP=1 npx playwright test                keep the run's accounts and posts for a look afterwards
 //
@@ -12,7 +13,8 @@ import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 import { env } from './e2e/support';
 
-// Use the runner's own browsers when it has them (PLAYWRIGHT_BROWSERS_PATH); otherwise the machine's Chromium.
+// Use the runner's own browsers when it has them (PLAYWRIGHT_BROWSERS_PATH); otherwise E2E_CHROMIUM when that file
+// exists (scripts/e2e.sh sets it to Google Chrome on a Mac without Playwright's Chromium); otherwise Playwright's own.
 const chromium = process.env.E2E_CHROMIUM ?? '/opt/pw-browsers/chromium';
 const executablePath = !process.env.PLAYWRIGHT_BROWSERS_PATH && fs.existsSync(chromium) ? chromium : undefined;
 

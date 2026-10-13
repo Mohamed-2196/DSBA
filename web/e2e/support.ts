@@ -1,14 +1,21 @@
 // Shared helpers for the end-to-end suite: settings from the environment, one-time codes from the dev mail and
 // SMS folders, dev-login for the rep and the admin, the run's personas, CSRF headers and small test files.
 //
+// The defaults fit the Docker stack in e2e mode: `scripts/e2e.sh` switches the API to its file backends
+// (compose.e2e.yaml) and runs the suite. The file backends write to api/var/mail and api/var/sms, in Docker (where
+// they are mounted) and without it (DSBA_EMAIL_BACKEND=file and DSBA_SMS_BACKEND=file, run from api/).
+//
 // Settings (all optional):
-//   E2E_BASE_URL   the web app (default http://127.0.0.1:5178), which proxies /api to the API
-//   E2E_MAIL_DIR   where the SMTP sink saves emails as .eml (default /home/claude/devsvc/mail)
-//   E2E_SMS_DIR    where the file SMS backend saves texts (default /home/claude/devsvc/sms)
-//   E2E_API_DIR    the api/ folder, where dev-login runs (default ../api next to web/)
-//   E2E_DEV_LOGIN  the dev-login command (default "uv run --no-sync python -m app.cli dev-login")
+//   E2E_BASE_URL   the web app, which proxies /api to the API (default http://localhost:5173, the web container)
+//   E2E_MAIL_DIR   where emails are saved as .eml files (default api/var/mail)
+//   E2E_SMS_DIR    where texts are saved as .txt files named after the number (default api/var/sms)
+//   E2E_API_DIR    the folder dev-login runs in (default api/)
+//   E2E_DEV_LOGIN  the dev-login command (default "docker compose -p dsba-hub exec -T api python -m app.cli
+//                  dev-login"; without Docker, "uv run --no-sync python -m app.cli dev-login")
 //   E2E_STATE_DIR  where sessions and the run's details are kept between projects (default: a temp folder)
 //   E2E_KEEP=1     keep what the run created (no account deletion, no clean-up at the end)
+// The first cloud set-up ran with E2E_BASE_URL=http://127.0.0.1:5178, E2E_MAIL_DIR=/home/claude/devsvc/mail,
+// E2E_SMS_DIR=/home/claude/devsvc/sms and E2E_DEV_LOGIN="uv run --no-sync python -m app.cli dev-login".
 import { execFile } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -19,15 +26,16 @@ import zlib from 'node:zlib';
 import { expect, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:5178';
+const apiFolder = path.resolve(here, '..', '..', 'api');
+const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:5173';
 
 export const env = {
   baseURL,
   host: new URL(baseURL).hostname,
-  mailDir: process.env.E2E_MAIL_DIR ?? '/home/claude/devsvc/mail',
-  smsDir: process.env.E2E_SMS_DIR ?? '/home/claude/devsvc/sms',
-  apiDir: process.env.E2E_API_DIR ?? path.resolve(here, '..', '..', 'api'),
-  devLogin: process.env.E2E_DEV_LOGIN ?? 'uv run --no-sync python -m app.cli dev-login',
+  mailDir: process.env.E2E_MAIL_DIR ?? path.join(apiFolder, 'var', 'mail'),
+  smsDir: process.env.E2E_SMS_DIR ?? path.join(apiFolder, 'var', 'sms'),
+  apiDir: process.env.E2E_API_DIR ?? apiFolder,
+  devLogin: process.env.E2E_DEV_LOGIN ?? 'docker compose -p dsba-hub exec -T api python -m app.cli dev-login',
   stateDir: process.env.E2E_STATE_DIR ?? path.join(os.tmpdir(), `dsba-e2e-${new URL(baseURL).port || 'default'}`),
   keep: process.env.E2E_KEEP === '1',
 };
@@ -93,6 +101,7 @@ export function remember(kind: keyof RunInfo['created'], id: string): void {
 
 function newestCode(kind: 'email' | 'sms', to: string, since: number): string | null {
   const dir = kind === 'email' ? env.mailDir : env.smsDir;
+  if (!fs.existsSync(dir)) return null;
   const files = fs
     .readdirSync(dir)
     .filter((f) => (kind === 'email' ? f.endsWith('.eml') : f.includes(to)))
@@ -117,9 +126,9 @@ function newestCode(kind: 'email' | 'sms', to: string, since: number): string | 
 /** The newest code sent to an email address or an E.164 number since `since` (Date.now() before asking). */
 export async function waitForCode(kind: 'email' | 'sms', to: string, since: number): Promise<string> {
   let code: string | null = null;
-  await expect
-    .poll(() => (code = newestCode(kind, to, since)), { message: `a code by ${kind} for ${to}`, timeout: 20_000, intervals: [250] })
-    .not.toBeNull();
+  const dir = kind === 'email' ? env.mailDir : env.smsDir;
+  const message = `a code by ${kind} for ${to} in ${dir} (is the API on its file backends? scripts/e2e.sh switches it)`;
+  await expect.poll(() => (code = newestCode(kind, to, since)), { message, timeout: 20_000, intervals: [250] }).not.toBeNull();
   return code as unknown as string;
 }
 
