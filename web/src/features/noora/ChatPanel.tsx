@@ -1,36 +1,25 @@
-// Mini Noora's chat: who she is (the header), the conversation, and the composer. It is a dialog but not a modal
-// one: the page beside it stays usable. This file is fetched on demand (see MiniNoora.tsx) and brings the
-// conversation and her scripted "brain" with it.
-import { useCallback, useEffect, useId, useRef, useState, type DragEvent } from 'react';
-import { EyeSlash, TrayArrowDown, X } from '@phosphor-icons/react';
-import { IconButton, cx } from '../../ui';
+// Mini Noora's chat: who she is (the header and its actions), the conversation, and the composer. It fills the panel
+// that NooraDock.tsx places (docked beside the page on a laptop, a sheet on a phone or tablet). This file is fetched
+// on demand and brings the conversation and her scripted "brain" with it.
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type RefObject } from 'react';
+import { useLocation } from 'react-router-dom';
+import { ArrowCounterClockwise, ArrowsInLineHorizontal, ArrowsOutLineHorizontal, EyeSlash, TrayArrowDown, X } from '@phosphor-icons/react';
+import { useAuth } from '../../auth';
+import { useYear } from '../../state';
+import { useModules } from '../../state/modules';
+import { ConfirmDialog, IconButton, cx } from '../../ui';
 import { Composer } from './Composer';
+import type { DockWidth } from './dock';
 import { Face } from './Face';
 import { addFiles, release, releaseAll, type Attachment } from './files';
-import type { ChatPlace } from './layout';
 import { MessageList } from './Messages';
-import type { ChatMood } from './poses';
 import type { Bust } from './sprites';
+import { pageSuggestions } from './suggestions';
 import type { Message } from './types';
 import { useChat, type Pending } from './useChat';
 import './ChatPanel.css';
 
-const CLOSING = 160; // ms the chat takes to fold away (the CSS animation's length)
 const WAVE = 2400; // ms she waves when the chat opens
-
-/** Keep the chat in the page for a moment after it closes, so it can animate out. */
-function usePresence(open: boolean, ms: number): boolean {
-  const [lingering, setLingering] = useState(open);
-  useEffect(() => {
-    if (open) {
-      setLingering(true);
-      return undefined;
-    }
-    const gone = setTimeout(() => setLingering(false), ms);
-    return () => clearTimeout(gone);
-  }, [open, ms]);
-  return open || lingering;
-}
 
 /** Her expression in the header, from the reply that is on its way (see useChat for `pending`). */
 function faceFor(pending: Pending | null, waving: boolean): Bust {
@@ -42,16 +31,6 @@ function faceFor(pending: Pending | null, waving: boolean): Bust {
   if (pending.phase === 'done' && refs.length) return 'winking'; // found it
   if (mood === 'laughing') return 'laughing';
   return mood === 'wave' ? 'wave' : 'neutral';
-}
-
-/** How she should stand meanwhile: talking until the reply is all there, then pleased or sorry for a moment. */
-function poseFor(pending: Pending | null): ChatMood | null {
-  if (!pending) return null;
-  if (pending.phase !== 'done') return 'talking';
-  const { mood, refs } = pending.reply;
-  if (mood === 'sad') return 'sad';
-  if (mood === 'angry') return null; // she has made her point; no little dance after a telling-off
-  return refs.length || mood === 'laughing' ? 'happy' : null;
 }
 
 /** What a screen reader hears: that she is thinking, then the whole reply at once (not letter by letter). */
@@ -67,55 +46,57 @@ function spokenFor(messages: Message[], pending: Pending | null): string {
 const carriesFiles = (e: DragEvent): boolean => Array.from(e.dataTransfer.types).includes('Files');
 
 export interface ChatPanelProps {
-  /** element id (the mascot's aria-controls points at it) */
-  id: string;
   /** shown or not; the conversation is kept while it is closed */
   open: boolean;
-  /** from layout.ts placeChat(): where it goes, and whether it is a phone sheet */
-  place: ChatPlace;
-  /** the year the student is browsing */
-  year: number | null;
+  /** a sheet on a phone or tablet (else docked beside the page) */
+  sheet: boolean;
   /** reduced motion */
   calm: boolean;
-  /** close it and hand the keyboard back to her */
+  /** the panel (focused when a sheet opens, so the keyboard only comes up when the box is tapped) */
+  panelRef: RefObject<HTMLElement>;
+  /** docked: its width and the switch between the two; null on a sheet */
+  width: DockWidth | null;
+  onWidth: (width: DockWidth) => void;
+  /** the composer took focus */
+  onComposerFocus: () => void;
+  /** close it and hand the keyboard back to the launcher */
   onClose: () => void;
-  /** hide her (and the chat) on this device */
+  /** a "Where to look" link was followed */
+  onFollow: () => void;
+  /** hide her on this device */
   onHide: () => void;
-  /** tells MiniNoora how she should stand */
-  onPose: (pose: ChatMood | null) => void;
 }
 
-export default function ChatPanel({ id, open, place, year, calm, onClose, onHide, onPose }: ChatPanelProps) {
-  const { messages, pending, busy, send } = useChat({ year, calm });
+export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth, onComposerFocus, onClose, onFollow, onHide }: ChatPanelProps) {
+  const { year } = useYear();
+  const { greeting, messages, pending, busy, send, clear } = useChat({ year, calm });
   const [draft, setDraft] = useState('');
   const [files, setFiles] = useState<Attachment[]>([]);
   const [note, setNote] = useState<string | null>(null);
   const [dropping, setDropping] = useState(false);
   const [waving, setWaving] = useState(false);
   const [newFrom, setNewFrom] = useState(0);
-  const present = usePresence(open, calm ? 0 : CLOSING);
-  const panel = useRef<HTMLElement>(null);
+  const [confirming, setConfirming] = useState(false);
   const input = useRef<HTMLTextAreaElement>(null);
-  const titleId = useId();
-  const { sheet } = place;
 
-  const pose = poseFor(pending);
-  useEffect(() => {
-    onPose(pose);
-  }, [pose, onPose]);
+  // Questions for the page the student is on.
+  const { pathname } = useLocation();
+  const { modules } = useModules();
+  const { featureOn } = useAuth();
+  const pageChips = useMemo(() => pageSuggestions({ pathname, year, modules, isOn: featureOn }), [pathname, year, modules, featureOn]);
 
-  // Opening: she waves, and the keyboard goes to the text box. On a phone it goes to the sheet instead, so the
+  // Opening: she waves, and the keyboard goes to the text box. On a sheet it goes to the panel instead, so the
   // on-screen keyboard only comes up when the student taps the box.
   useEffect(() => {
     if (!open) return undefined;
-    const frame = requestAnimationFrame(() => (sheet ? panel.current : input.current)?.focus({ preventScroll: true }));
+    const frame = requestAnimationFrame(() => (sheet ? panelRef.current : input.current)?.focus({ preventScroll: true }));
     setWaving(true);
-    const done = setTimeout(() => setWaving(false), WAVE);
+    const done = setTimeout(() => setWaving(false), calm ? 0 : WAVE);
     return () => {
       cancelAnimationFrame(frame);
       clearTimeout(done);
     };
-  }, [open, sheet]);
+  }, [open, sheet, calm, panelRef]);
 
   // Messages that arrive while the chat is open come in with a small entrance. Once it has been closed they are
   // old news: they are simply there when it opens again.
@@ -148,27 +129,16 @@ export default function ChatPanel({ id, open, place, year, calm, onClose, onHide
     setNote(null);
   };
   const suggest = useCallback((text: string) => void send({ text }), [send]);
-  // On a desktop the chat stays open beside the page a link leads to. A phone sheet would hide that page.
-  const follow = useCallback(() => {
-    if (sheet) onClose();
-  }, [sheet, onClose]);
+  const startAgain = () => {
+    clear();
+    setConfirming(false);
+    input.current?.focus({ preventScroll: true });
+  };
 
-  if (!present) return null;
+  const wide = width === 'wide';
   return (
-    <section
-      ref={panel}
-      id={id}
-      role="dialog"
-      aria-labelledby={titleId}
-      tabIndex={-1}
-      className={cx('nc', sheet && 'nc--sheet', dropping && 'is-dropping')}
-      data-state={open ? 'open' : 'closing'}
-      data-side={place.side}
-      data-hub="noora-chat"
-      style={{ left: place.left, top: place.top, width: place.width, height: place.height, transformOrigin: `${place.origin.x}px ${place.origin.y}px` }}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape' && !e.nativeEvent.isComposing) onClose();
-      }}
+    <div
+      className={cx('nc', dropping && 'is-dropping')}
       onDragEnter={(e) => {
         if (carriesFiles(e)) setDropping(true);
       }}
@@ -189,9 +159,9 @@ export default function ChatPanel({ id, open, place, year, calm, onClose, onHide
       }}
     >
       <header className="nc-head">
-        <Face bust={faceFor(pending, waving)} size={40} live className="nc-head__face" />
+        <Face bust={faceFor(pending, waving)} size={36} live className="nc-head__face" />
         <div className="nc-head__text">
-          <h2 id={titleId} className="nc-head__title">
+          <h2 className="nc-head__title">
             Mini Noora
           </h2>
           <p className="nc-head__sub">
@@ -199,14 +169,46 @@ export default function ChatPanel({ id, open, place, year, calm, onClose, onHide
             Knows your modules
           </p>
         </div>
-        <IconButton label="Hide Mini Noora" icon={EyeSlash} size="sm" tooltip className="nc-head__hide" onClick={onHide} data-hub="noora-hide" />
-        <IconButton label="Close chat" icon={X} size="sm" className="nc-head__close" onClick={onClose} />
+        <div className="nc-head__actions">
+          <IconButton
+            label="Clear chat"
+            icon={ArrowCounterClockwise}
+            size="sm"
+            tooltip
+            disabled={!messages.length && !pending}
+            onClick={() => setConfirming(true)}
+            data-hub="noora-clear"
+          />
+          {width ? (
+            <IconButton
+              label={wide ? 'Make the panel narrower' : 'Make the panel wider'}
+              icon={wide ? ArrowsInLineHorizontal : ArrowsOutLineHorizontal}
+              size="sm"
+              tooltip
+              onClick={() => onWidth(wide ? 'narrow' : 'wide')}
+              data-hub="noora-width"
+            />
+          ) : null}
+          <IconButton label="Hide Mini Noora" icon={EyeSlash} size="sm" tooltip onClick={onHide} data-hub="noora-hide" />
+          <IconButton label="Close chat" icon={X} size="sm" tooltip onClick={onClose} data-hub="noora-close" />
+        </div>
       </header>
 
       <div className="nc-body">
-        <MessageList messages={messages} pending={pending} newFrom={newFrom} onSuggest={suggest} onFollow={follow} />
-        <Composer inputRef={input} draft={draft} onDraft={setDraft} files={files} note={note} busy={busy} onAttach={attach} onRemove={remove} onSend={submit} />
-        <p className="nc-foot">Mini Noora is a preview. She answers from the Hub’s modules and calendar, and what you send her stays in this browser.</p>
+        <MessageList greeting={greeting} messages={messages} pending={pending} pageChips={pageChips} newFrom={newFrom} onSuggest={suggest} onFollow={onFollow} />
+        <Composer
+          inputRef={input}
+          draft={draft}
+          onDraft={setDraft}
+          files={files}
+          note={note}
+          busy={busy}
+          onAttach={attach}
+          onRemove={remove}
+          onSend={submit}
+          onFocus={onComposerFocus}
+        />
+        <p className="nc-foot">She answers from the Hub’s modules and calendar. What you send her stays in this browser.</p>
         {/* Always there, shown while files are dragged over the chat. */}
         <div className="nc-drop" data-hub="noora-dropzone" aria-hidden="true">
           <TrayArrowDown weight="duotone" />
@@ -216,6 +218,16 @@ export default function ChatPanel({ id, open, place, year, calm, onClose, onHide
       <p className="visually-hidden" aria-live="polite">
         {spokenFor(messages, pending)}
       </p>
-    </section>
+
+      <ConfirmDialog
+        open={confirming}
+        title="Clear the chat?"
+        body="Your messages and her answers go. You can’t get them back."
+        confirmLabel="Clear chat"
+        tone="danger"
+        onConfirm={startAgain}
+        onClose={() => setConfirming(false)}
+      />
+    </div>
   );
 }

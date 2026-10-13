@@ -2,6 +2,7 @@ import { createElement, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ArrowUpRight, DotsThreeOutline, Info, UploadSimple } from '@phosphor-icons/react';
 import { useAuth } from '../auth';
+import { NooraAvatar, useNooraLauncher } from '../features/noora/public';
 import { Divider, Drawer, HubMark, cx } from '../ui';
 import { EXTERNAL_LINKS, MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav';
 import { visibleNav } from './visibility';
@@ -10,7 +11,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { useStartUpload, useUploadShown } from './upload';
 import './MobileNav.css';
 
-/** Bottom tab bar (< 700px): Home, Modules, Library, Forum, More (drawer with the rest). */
+/** Bottom tab bar (< 700px): Home, Modules, Library, Forum, Mini Noora, More (drawer with the rest). */
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
@@ -22,6 +23,7 @@ export function MobileNav() {
   const more = nav.filter((n) => MORE_IDS.includes(n.id));
   const moreActive = [...more.map((m) => m.to), '/about', '/styleguide'].some((p) => pathname.startsWith(p));
   const close = () => setOpen(false);
+  const noora = useNooraLauncher();
   return (
     <>
       <nav className="shell-tabbar" aria-label="Main">
@@ -41,6 +43,19 @@ export function MobileNav() {
             )}
           </NavLink>
         ))}
+        {noora.shown ? (
+          <button type="button" className={cx('shell-tabbar__item', 'shell-tabbar__noora', noora.open && 'is-active')} aria-label="Ask Mini Noora" onClick={noora.toggle} {...noora.props}>
+            <span className="shell-tabbar__mark" aria-hidden="true">
+              {noora.open ? <HubMark size={6} dot={false} /> : null}
+            </span>
+            <span className="shell-tabbar__icon">
+              <NooraAvatar size={26} />
+            </span>
+            <span className="shell-tabbar__label" aria-hidden="true">
+              Noora
+            </span>
+          </button>
+        ) : null}
         <button
           type="button"
           className={cx('shell-tabbar__item', moreActive && 'is-active')}

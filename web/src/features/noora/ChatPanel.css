@@ -1,88 +1,28 @@
-/* Mini Noora's chat. A floating panel beside her on a desktop, a sheet along the bottom on a phone.
-   Where it goes and how big it is come from JS (layout.js → placeChat); how it looks is here.
-   Colours are the Hub's tokens. The header is the brand blue running into navy with white type:
-   --brand rather than --cobalt, which turns pale in the dark theme and would lose the white. */
+/* Mini Noora's chat (ChatPanel.tsx): it fills the panel that NooraDock.css places. Colours are the Hub's tokens. */
 
-.nc {
-  position: fixed;
-  z-index: calc(var(--z-dropdown) + 5);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--r-feature);
-  background: var(--paper);
-  box-shadow: var(--shadow-float);
-  outline: none;
-  /* It grows out of her (transform-origin is her centre, set inline) and folds back into her. */
-  animation: nc-open var(--dur-slow) var(--ease);
-}
-.nc[data-state='closing'] { animation: nc-close var(--dur-fast) var(--ease) forwards; }
-@keyframes nc-open { from { opacity: 0; transform: scale(0.86); } }
-@keyframes nc-close { to { opacity: 0; transform: scale(0.9); } }
+.nc { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 
-/* ── Header ──────────────────────────────────────────────────────────────────────────────────── */
+/* ── Header: like the top bar beside it ──────────────────────────────────────────────────────── */
 .nc-head {
-  /* white on the brand gradient, in both themes (there is no theme token for it) */
-  --nc-on-head: #fff;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: var(--sp-12);
-  padding: var(--sp-12) var(--sp-12) var(--sp-12) var(--sp-16);
-  background: linear-gradient(135deg, var(--brand), var(--navy));
-  color: var(--nc-on-head);
+  min-height: var(--topbar-h);
+  padding: var(--sp-8) var(--sp-8) var(--sp-8) var(--sp-16);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
 }
-.nc-head__face {
-  background: color-mix(in srgb, var(--nc-on-head) 88%, var(--brand));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nc-on-head) 45%, transparent);
+.nd--sheet .nc-head { min-height: 0; padding-top: 0; }
+@media (pointer: coarse) {
+  .nd--sheet .nc-head { padding-top: 16px; }
 }
+.nc-head__face { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--line-strong); }
 .nc-head__text { flex: 1 1 auto; min-width: 0; }
-.nc-head__title {
-  color: inherit;
-  font-size: var(--fs-16);
-  font-weight: var(--fw-bold);
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-}
-.nc-head__sub {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: color-mix(in srgb, var(--nc-on-head) 84%, transparent);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
-  line-height: 1.4;
-}
-.nc-head__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--r-pill);
-  background: var(--signal);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nc-on-head) 24%, transparent);
-}
-.nc-head :is(.nc-head__close, .nc-head__hide).ui-iconbutton { color: var(--nc-on-head); }
-.nc-head :is(.nc-head__close, .nc-head__hide).ui-iconbutton:hover { background: color-mix(in srgb, var(--nc-on-head) 16%, transparent); color: var(--nc-on-head); }
-.nc-head :is(.nc-head__close, .nc-head__hide).ui-iconbutton:focus-visible { outline-color: var(--nc-on-head); }
-
-/* Her face: a bust sprite in a round frame (each image is placed by sprites.js → faceCrop). */
-.nc-face {
-  position: relative;
-  flex: 0 0 auto;
-  display: inline-block;
-  overflow: hidden;
-  border-radius: var(--r-pill);
-  background: var(--cobalt-soft);
-}
-.nc-face__img {
-  position: absolute;
-  max-width: none;
-  height: auto;
-  visibility: hidden;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-.nc-face__img[data-on] { visibility: visible; }
+.nc-head__title { color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-bold); line-height: 1.25; letter-spacing: -0.01em; }
+.nc-head__sub { display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-medium); line-height: 1.4; }
+.nc-head__dot { width: 8px; height: 8px; border-radius: var(--r-pill); background: var(--signal); }
+.nc-head__actions { flex: 0 0 auto; display: flex; align-items: center; gap: 2px; }
 
 /* Everything under the header. Files dropped anywhere on the chat are taken; this part shows it. */
 .nc-body { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
@@ -93,16 +33,21 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-12);
+  gap: 4px;
   padding: var(--sp-16);
   overflow-y: auto;
   overscroll-behavior: contain;
+  container-type: size;
+  background: var(--paper);
 }
 .nc-msg { flex: 0 0 auto; display: flex; align-items: flex-start; gap: var(--sp-8); }
+/* A new group (the other side speaks) starts with more room above it. */
+.nc-msg.is-first:not(:first-child) { margin-top: var(--sp-12); }
 .nc-msg--me { justify-content: flex-end; }
-.nc-msg__body { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 86%; }
+.nc-msg__face { flex: 0 0 32px; width: 32px; height: 32px; }
+.nc-msg__body { display: flex; flex-direction: column; gap: 4px; min-width: 0; max-width: 86%; }
 /* Her answers carry formulas and links, so they may use the full width. */
-.nc-msg--noora .nc-msg__body { flex: 0 1 auto; align-items: flex-start; max-width: none; }
+.nc-msg--noora .nc-msg__body { flex: 1 1 auto; align-items: flex-start; max-width: none; }
 .nc-msg--me .nc-msg__body { align-items: flex-end; }
 .nc-msg.is-new { animation: nc-arrive var(--dur-slow) var(--ease) both; }
 @keyframes nc-arrive { from { opacity: 0; transform: translateY(8px); } }
@@ -115,18 +60,20 @@
   font-size: var(--fs-14);
   line-height: 1.5;
 }
-.nc-msg--noora .nc-bubble {
-  border: 1px solid var(--line);
-  border-top-left-radius: var(--r-xs);
-  background: var(--surface);
-  color: var(--ink);
+.nc-msg--noora .nc-bubble { border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.nc-msg--noora.is-first .nc-bubble { border-top-left-radius: var(--r-xs); }
+.nc-msg--me .nc-bubble { background: var(--cobalt); color: var(--cobalt-ink); }
+.nc-msg--me.is-first .nc-bubble { border-top-right-radius: var(--r-xs); }
+.nc-bubble__text { max-width: var(--measure); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Time and actions under a message: shown on hover or when the keyboard is in it; always on touch screens. */
+.nc-meta { display: flex; align-items: center; gap: 2px; min-height: 24px; padding-inline: 4px; opacity: 0; transition: opacity var(--dur-fast) var(--ease); }
+.nc-msg:hover .nc-meta, .nc-msg:focus-within .nc-meta { opacity: 1; }
+@media (hover: none) {
+  .nc-meta { opacity: 1; }
 }
-.nc-msg--me .nc-bubble {
-  border-bottom-right-radius: var(--r-xs);
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
-}
-.nc-bubble__text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.nc-time { color: var(--ink-2); font-size: 11px; line-height: 1; }
+.nc-meta .nc-copy.ui-iconbutton { color: var(--ink-2); }
 
 /* While a reply streams in. */
 .nc-caret {
@@ -156,7 +103,45 @@
   40% { opacity: 1; transform: translateY(-3px); }
 }
 
-/* The formula card: a pale inset in her bubble, set in the serif with italic variables. */
+/* ── Before anything is asked ────────────────────────────────────────────────────────────────── */
+.nc-hello { display: flex; flex-direction: column; align-items: center; gap: var(--sp-12); margin: auto 0; padding: var(--sp-8) 0; text-align: center; }
+.nc-hello__pose { width: auto; height: 132px; user-select: none; -webkit-user-drag: none; }
+.nc-hello__text { max-width: 34ch; color: var(--ink); font-size: var(--fs-16); line-height: 1.5; }
+.nc-hello .nc-chips { align-items: center; }
+.nc-hello .nc-chips__list { justify-content: center; }
+/* A short panel (a half-height sheet, a landscape phone) keeps her smaller, or leaves her to the header. */
+@container (max-height: 380px) {
+  .nc-hello__pose { height: 72px; }
+}
+@container (max-height: 300px) {
+  .nc-hello__pose { display: none; }
+}
+
+/* ── Questions to ask with one tap ───────────────────────────────────────────────────────────── */
+.nc-chips { display: flex; flex-direction: column; gap: 6px; }
+.nc-chips--after { margin: var(--sp-8) 0 0 40px; }
+.nc-msg.is-new + .nc-chips--after { animation: nc-arrive var(--dur-slow) var(--ease) 260ms both; }
+.nc-chips__title { display: inline-flex; align-items: center; gap: 4px; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); line-height: 1.3; }
+.nc-chips__title svg { color: var(--cobalt); font-size: 14px; }
+.nc-chips__list { display: flex; flex-wrap: wrap; gap: 6px; }
+.nc-chip {
+  padding: 6px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--cobalt);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+  text-align: left;
+  transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
+}
+.nc-chip:hover { border-color: var(--cobalt); background: var(--cobalt-soft); }
+@media (pointer: coarse) {
+  .nc-chip { min-height: 44px; }
+}
+
+/* ── The formula card: a pale inset in her bubble, set in the serif with italic variables ────────── */
 .nc-formula {
   margin-top: 10px;
   padding: 12px 14px 11px;
@@ -215,67 +200,44 @@
 .nc-int__limits span:first-child { margin-left: 0.5em; }
 .nc-big { display: inline-block; margin: 0 0.06em; font-weight: 300; transform: scaleY(1.9); }
 
-/* "Where to look": each reference is a link with a code (mono, on cobalt) and a label. */
+/* ── "Where to look": a card per place in the Hub ────────────────────────────────────────────── */
 .nc-refs { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
 .nc-refs__title { margin-bottom: 8px; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); line-height: 1.3; }
-.nc-refs__list { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-.nc-refs__list li { max-width: 100%; }
-.nc-ref {
+.nc-cards { display: grid; gap: 6px; }
+.nc-card {
   display: flex;
-  align-items: stretch;
-  max-width: 100%;
-  overflow: hidden;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 10px 6px 6px;
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-pill);
+  border-radius: var(--r-control);
   background: var(--surface);
   color: var(--ink);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
-  line-height: 1.3;
   text-decoration: none;
   transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
 }
-.nc-ref:hover { border-color: var(--cobalt); background: var(--cobalt-soft); }
-.nc-ref:focus-visible { outline-offset: 1px; }
-.nc-ref__code {
-  flex: 0 0 auto;
+a.nc-card:hover { border-color: var(--cobalt); background: var(--cobalt-soft); }
+.nc-card__icon {
+  flex: 0 0 34px;
   display: grid;
   place-items: center;
-  min-width: 30px;
-  padding: 0 8px 0 10px;
-  background: var(--cobalt);
-  color: var(--cobalt-ink);
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  white-space: nowrap;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--cobalt-soft);
+  color: var(--cobalt);
+  font-size: 20px;
 }
-.nc-ref__label { min-width: 0; padding: 6px 12px 6px 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nc-card__text { flex: 1 1 auto; display: grid; min-width: 0; line-height: 1.3; }
+.nc-card__code { color: var(--ink-2); font-family: var(--font-mono); font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nc-card__label { overflow: hidden; font-size: var(--fs-14); font-weight: var(--fw-semibold); text-overflow: ellipsis; white-space: nowrap; }
+.nc-card__go { flex: 0 0 auto; color: var(--ink-3); font-size: 14px; transition: transform var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+a.nc-card:hover .nc-card__go { color: var(--cobalt); transform: translateX(2px); }
 
-/* A new answer unfolds: the formula, then the references one after another. */
+/* A new answer unfolds: the formula, then the cards one after another. */
 .nc-msg.is-new .nc-formula { animation: nc-arrive var(--dur-slow) var(--ease) both; }
 .nc-msg.is-new .nc-refs { animation: nc-arrive var(--dur-slow) var(--ease) 120ms both; }
-.nc-msg.is-new .nc-refs__list li { animation: nc-arrive var(--dur-slow) var(--ease) calc(200ms + var(--i) * 90ms) both; }
-
-/* Questions she offers; a click asks one. */
-.nc-suggest { display: flex; flex-wrap: wrap; gap: 6px; }
-.nc-msg.is-new .nc-suggest { animation: nc-arrive var(--dur-slow) var(--ease) 260ms both; }
-.nc-suggest__chip {
-  padding: 6px 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  color: var(--cobalt);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
-  line-height: 1.3;
-  text-align: left;
-  transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
-}
-.nc-suggest__chip:hover { border-color: var(--cobalt); background: var(--cobalt-soft); }
-@media (pointer: coarse) {
-  .nc-suggest__chip { min-height: 44px; }
-}
+.nc-msg.is-new .nc-cards li { animation: nc-arrive var(--dur-slow) var(--ease) calc(200ms + var(--i) * 90ms) both; }
 
 /* What the student attached: pictures as thumbnails, other files as chips. */
 .nc-shot {
@@ -362,7 +324,7 @@
   min-width: 0;
   min-height: 40px; /* its height follows the text (Composer.tsx) */
   padding: 9px 12px;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--control-border);
   border-radius: var(--r-control);
   background: var(--surface);
   color: var(--ink);
@@ -371,9 +333,6 @@
   resize: none;
   outline: none;
   transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
-}
-@media (pointer: coarse) {
-  .nc-input { min-height: 44px; }
 }
 .nc-input:hover { border-color: var(--ink-3); }
 .nc-input:focus, .nc-input:focus-visible { border-color: var(--cobalt); box-shadow: 0 0 0 3px var(--cobalt-soft); outline: none; }
@@ -391,6 +350,19 @@
   text-align: center;
 }
 
+/* Touch screens and the sheet: 44 px controls, and 16 px type in the box, or iOS zooms the page when it is tapped. */
+@media (pointer: coarse) {
+  .nc-input { min-height: 44px; font-size: var(--fs-16); }
+  .nc-attach { width: 44px; height: 44px; }
+  .nc-compose .nc-send.ui-iconbutton { --ib: 44px; }
+}
+.nd--sheet .nc-input { font-size: var(--fs-16); }
+.nd--sheet .nc-compose { gap: 4px; padding-inline: var(--sp-8); }
+.nd--sheet .nc-foot { padding-bottom: 10px; }
+@media (min-width: 700px) {
+  .nd--sheet .nc-foot { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+}
+
 /* ── Dropping files ──────────────────────────────────────────────────────────────────────────── */
 .nc-drop {
   position: absolute;
@@ -401,7 +373,7 @@
   justify-items: center;
   gap: var(--sp-8);
   border: 2px dashed var(--cobalt);
-  border-radius: var(--r-control) var(--r-control) calc(var(--r-feature) - 6px) calc(var(--r-feature) - 6px);
+  border-radius: var(--r-control);
   background: color-mix(in srgb, var(--cobalt-soft) 94%, transparent);
   color: var(--cobalt);
   font-size: var(--fs-16);
@@ -414,29 +386,8 @@
 .nc-drop svg { font-size: 32px; }
 .nc.is-dropping .nc-drop { visibility: visible; opacity: 1; transition-delay: 0s; }
 
-/* ── Phone: a sheet along the bottom ─────────────────────────────────────────────────────────── */
-.nc--sheet {
-  border-width: 1px 0 0;
-  border-radius: var(--r-feature) var(--r-feature) 0 0;
-  animation-name: nc-rise;
-}
-.nc--sheet[data-state='closing'] { animation-name: nc-sink; }
-@keyframes nc-rise { from { opacity: 0; transform: translateY(32px); } }
-@keyframes nc-sink { to { opacity: 0; transform: translateY(32px); } }
-/* 16px type in the box, or iOS zooms the page when it is tapped. */
-.nc--sheet .nc-input { min-height: 44px; padding: 10px; font-size: var(--fs-16); }
-.nc--sheet .nc-compose { gap: 4px; padding-inline: var(--sp-8); }
-.nc--sheet .nc-attach { width: 44px; height: 44px; }
-.nc--sheet .nc-compose .nc-send.ui-iconbutton { --ib: 44px; }
-.nc--sheet .nc-foot { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
-.nc--sheet .nc-drop { border-radius: var(--r-control); }
-
 @media (prefers-reduced-motion: reduce) {
-  .nc, .nc[data-state='closing'], .nc-msg.is-new, .nc-msg.is-new *, .nc-dots span { animation: none; }
+  .nc-msg.is-new, .nc-msg.is-new *, .nc-msg.is-new + .nc-chips--after, .nc-dots span { animation: none; }
   .nc-dots span { opacity: 0.6; }
-  .nc-drop { transition: none; }
-}
-
-@media print {
-  .nc { display: none; }
+  .nc-drop, .nc-meta, .nc-card__go { transition: none; }
 }

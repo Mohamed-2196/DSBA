@@ -34,6 +34,7 @@ export { HubMark,  } from './HubMark';
 export { HubLogo,  } from './HubLogo';
 export { Highlight,  } from './Highlight';
 export { Kbd,  } from './Kbd';
+export { TeX } from './TeX';
 export { SectionHeader,  } from './SectionHeader';
 export { Divider,  } from './Divider';
 export { Panel,  } from './Panel';

@@ -2,12 +2,13 @@ import { Fragment, useMemo, useState, type HTMLAttributes, type ReactNode } from
 import { Link } from 'react-router-dom';
 import { ArrowSquareOut, ImageBroken } from '@phosphor-icons/react';
 import { API_ORIGIN } from '../../../api/client';
-import { cx } from '../../../ui';
+import { TeX, cx } from '../../../ui';
 import { mediaSrc, safeLink } from '../lib/links';
 import { parseBlocks, parseInline, type Block, type InlineToken } from '../lib/markdown';
 import './forum.css';
 
 // Everything below renders user text as React children (React escapes it): there is no HTML anywhere in this file.
+// Formulas go to <TeX>, which has KaTeX build their markup with trust off.
 
 function withBreaks(text: string, key: string | number): ReactNode {
   const parts = text.split('\n');
@@ -50,6 +51,7 @@ function renderInline(text: string): ReactNode {
         </code>
       );
     }
+    if (t.type === 'math') return <TeX key={i} tex={t.tex} />;
     if (t.type === 'strong') return <strong key={i}>{t.text}</strong>;
     if (t.type === 'em') return <em key={i}>{t.text}</em>;
     if (t.type === 'link') return <LinkToken key={i} token={t} />;
@@ -114,6 +116,8 @@ function BlockView({ block }: { block: Block }) {
       return <blockquote dir="auto">{renderInline(block.text)}</blockquote>;
     case 'image':
       return <Picture src={block.src} alt={block.alt} />;
+    case 'math':
+      return <TeX tex={block.tex} display />;
     default:
       return <p dir="auto">{renderInline(block.text)}</p>;
   }

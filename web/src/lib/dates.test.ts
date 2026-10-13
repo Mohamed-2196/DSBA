@@ -5,6 +5,7 @@ import {
   daysBetween,
   daysUntil,
   dayKey,
+  formatClock,
   formatDay,
   formatDayMonth,
   formatLong,
@@ -111,6 +112,11 @@ describe('words for days', () => {
     expect(formatShortYear(d)).toBe('Fri 25 Sep 2026');
     expect(formatDayMonth(d)).toBe('25 Sep');
     expect(formatMonthYear(d)).toBe('September 2026');
+  });
+
+  it('writes a time of day on the 24-hour clock', () => {
+    expect(formatClock(new Date(2026, 9, 14, 9, 5))).toBe('09:05');
+    expect(formatClock(new Date(2026, 9, 14, 14, 30).getTime())).toBe('14:30');
   });
 
   it('knows the Bahraini weekend', () => {

@@ -66,10 +66,14 @@ export interface Reply {
 export interface NooraMessage extends Reply {
   id: number;
   from: 'noora';
+  /** when it arrived (ms since the epoch) */
+  at: number;
 }
 export interface MyMessage {
   id: number;
   from: 'me';
+  /** when it was sent (ms since the epoch) */
+  at: number;
   text: string;
   attachments: Attachment[];
 }
