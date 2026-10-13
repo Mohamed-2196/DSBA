@@ -6,6 +6,7 @@
 //   answer(question, knowledge, now) → Reply { mood, text, formula?, steps?, refs, suggestions? }
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
 import { daysBetween, formatLongDay, formatShort, today as bahrainToday } from '../../lib/dates';
+import type { Feature } from '../../auth';
 import { eventDate, type CalendarEvent } from '../calendar/public';
 // The modules feature owns the address of a lesson. Using its helper means these links cannot drift.
 import { lessonHref } from '../modules/public';
@@ -64,6 +65,8 @@ export interface Knowledge {
   events: CalendarEvent[] | null;
   /** the student's first name; null for a guest */
   name: string | null;
+  /** whether a feature is on for the student: answers leave out the calendar and the library while they're off */
+  isOn: (feature: Feature) => boolean;
 }
 
 function indexModule(m: ModuleSummary, detail: ModuleDetail | undefined): IndexedModule {
@@ -149,9 +152,10 @@ export function buildKnowledge(
   details: ReadonlyMap<string, ModuleDetail>,
   events: CalendarEvent[] | null,
   name: string | null,
+  isOn: (feature: Feature) => boolean,
 ): Knowledge {
   const modules = catalogue.map((m) => indexModule(m, details.get(m.id)));
-  return { modules, topics: topicsOf(modules), events, name };
+  return { modules, topics: topicsOf(modules), events, name, isOn };
 }
 
 // What a title word may add to a short query word and still be the same word: 'test' finds 'testing',
@@ -310,7 +314,7 @@ function aboutTheMgf(k: Knowledge, said: string, photo: boolean): Reply {
   const refs = [
     m && chapter ? chapterRef(m, chapter) : m && moduleRef(m),
     d && lessonOn(k, d, m),
-    m && { code: 'Library', label: `${m.code ?? m.name} notes and past papers`, to: `/library?module=${encodeURIComponent(m.id)}` },
+    m && k.isOn('library') && { code: 'Library', label: `${m.code ?? m.name} notes and past papers`, to: `/library?module=${encodeURIComponent(m.id)}` },
   ].filter(isRef);
   const first = photo ? `${NO_PHOTOS} ` : '';
   if (d?.id === 'laplace') return { mood: 'happy', text: `${first}The MGF of the Laplace distribution, density k·e^(−λ|x|), step by step:`, steps: LAPLACE_MGF_STEPS, refs };
@@ -389,6 +393,9 @@ function aboutExams(k: Knowledge, said: string, year: number | null, named: Inde
   const today = bahrainToday(now); // the calendar's today
   const what = /\bmocks?\b/.test(said) ? 'mock' : 'exam';
   const whose = named ? named.called : year ? `Year ${year}` : 'the programme';
+  if (!k.isOn('calendar')) {
+    return { mood: 'neutral', text: `The Hub’s calendar is switched off right now, so I can’t check the ${what} dates for ${whose}.`, refs: named ? [moduleRef(named)] : [] };
+  }
   const calendar: Ref = { code: 'Calendar', label: !named && year ? `Year ${year} dates` : 'Every date in one place', to: '/calendar' };
   if (!k.events) {
     return { mood: 'neutral', text: `I can’t reach the calendar right now, so I can’t check the ${what} dates for ${whose}. The calendar page has them all.`, refs: [calendar] };
@@ -424,7 +431,14 @@ function aboutExams(k: Knowledge, said: string, year: number | null, named: Inde
 }
 
 /** Past papers, notes and the like live with each module's files. */
-function aboutFiles(named: IndexedModule | null): Reply {
+function aboutFiles(k: Knowledge, named: IndexedModule | null): Reply {
+  if (!k.isOn('library')) {
+    return {
+      mood: 'neutral',
+      text: 'The Hub’s library is switched off right now. Each module’s page still links to its study guide and past papers.',
+      refs: named ? [moduleRef(named)] : [],
+    };
+  }
   if (named) {
     return {
       mood: 'happy',
@@ -491,7 +505,7 @@ export function answer({ text, attachments, year }: Question, k: Knowledge, now:
   if (THE_FORUM_QUESTION.test(said)) return honest(aboutTheReductionFormula(k));
   if (BY_PARTS.test(said)) return honest(aboutIntegrationByParts(k));
   if (SAYS_THANKS.test(said)) return { mood: 'laughing', text: 'Any time 😄 Good luck with the revision!', refs: [] };
-  if (ABOUT_FILES.test(said)) return honest(aboutFiles(named()));
+  if (ABOUT_FILES.test(said)) return honest(aboutFiles(k, named()));
   if (ABOUT_EXAMS.test(said)) return honest(aboutExams(k, said, year, named(), now));
 
   const found = lookUp(k, text, said, year);
