@@ -8721,7 +8721,7 @@
           "newsletter"
         ],
         "summary": "Publish Issue",
-        "description": "Publishes the issue and tells every account (in the Hub; by email to those who keep \"New newsletter issues\"\non). Audited. Publishing an issue that is already out changes nothing.",
+        "description": "Publishes the issue and tells every account in the Hub. It also goes by email to those who keep \"New\nnewsletter issues\" on, unless an issue email went out in the last 24 hours: `emailed` says which. Audited.\nPublishing an issue that is already out changes nothing.",
         "operationId": "publish_issue_api_v1_newsletter_issues__issue_id__publish_post",
         "parameters": [
           {
@@ -8741,7 +8741,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/IssueDetail"
+                  "$ref": "#/components/schemas/PublishedIssue"
                 }
               }
             }
@@ -16067,6 +16067,106 @@
         ],
         "title": "ProgressImport",
         "description": "Progress kept in the browser before signing in, merged into the account once (newest wins). At most 5000\nwatched lessons and 100 modules (security review, finding 19)."
+      },
+      "PublishedIssue": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "cover": {
+            "$ref": "#/components/schemas/IssueCover"
+          },
+          "dek": {
+            "type": "string",
+            "title": "Dek"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "editors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Editors"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/IssueSection"
+            },
+            "type": "array",
+            "title": "Sections"
+          },
+          "reactions": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ReactionCounts"
+            },
+            "type": "object",
+            "title": "Reactions"
+          },
+          "emailed": {
+            "type": "boolean",
+            "title": "Emailed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "number",
+          "title",
+          "date",
+          "cover",
+          "dek",
+          "summary",
+          "editors",
+          "status",
+          "publishedAt",
+          "sections",
+          "reactions",
+          "emailed"
+        ],
+        "title": "PublishedIssue"
       },
       "ReactionCounts": {
         "properties": {

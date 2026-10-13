@@ -460,6 +460,44 @@ def test_publishing_tells_every_account_once(
     assert client_for(keen).post(f"{ISSUES}/{issue['id']}/publish").status_code == 403
 
 
+def test_one_issue_email_a_day(
+    client_for: Clients, make_user: Callable[..., User], moderator: User, db: Session
+) -> None:
+    """Security review AD-8 (SEC-18): each published issue reaches everyone in the Hub, but the cohort gets at most
+    one issue email a day; the response says whether this one went by email."""
+    keen = make_user(name="Keen")
+    rep = client_for(moderator)
+    issues = [
+        rep.post(ISSUES, json=new_issue(slug=f"issue-{n}", number=n, title=f"Issue {n}")).json() for n in (1, 2, 3)
+    ]
+
+    def publish(issue: dict[str, Any]) -> dict[str, Any]:
+        r = rep.post(f"{ISSUES}/{issue['id']}/publish")
+        assert r.status_code == 200, r.text
+        body: dict[str, Any] = r.json()
+        return body
+
+    def emails() -> list[str]:
+        return [e.subject for e in db.scalars(select(EmailOutbox).order_by(EmailOutbox.created_at))]
+
+    first = publish(issues[0])
+    assert (first["status"], first["emailed"]) == ("published", True)
+    second = publish(issues[1])
+    assert (second["status"], second["emailed"]) == ("published", False)
+    assert emails() == ["New issue of The DSBA Newsletter: Issue 1"]
+    notes = db.scalars(select(Notification.title).where(Notification.user_id == keen.id)).all()
+    assert sorted(notes) == [f"New issue of The DSBA Newsletter: Issue {n}" for n in (1, 2)]  # in the Hub, both
+    logged = db.scalars(select(AuditEntry).where(AuditEntry.action == "newsletter.publish")).all()
+    assert sorted(e.data["emailed"] for e in logged) == [False, True]
+    assert publish(issues[0])["emailed"] is False  # publishing again sends nothing
+
+    for entry in logged:  # a day later
+        entry.created_at -= dt.timedelta(hours=24, minutes=1)
+    db.commit()
+    assert publish(issues[2])["emailed"] is True
+    assert emails()[-1] == "New issue of The DSBA Newsletter: Issue 3"
+
+
 def test_reactions(client_for: Clients, student: User, other: User, moderator: User) -> None:
     rep = client_for(moderator)
     issue = rep.post(ISSUES, json=new_issue()).json()

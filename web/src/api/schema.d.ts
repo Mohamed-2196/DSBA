@@ -1456,8 +1456,9 @@ export interface paths {
         put?: never;
         /**
          * Publish Issue
-         * @description Publishes the issue and tells every account (in the Hub; by email to those who keep "New newsletter issues"
-         *     on). Audited. Publishing an issue that is already out changes nothing.
+         * @description Publishes the issue and tells every account in the Hub. It also goes by email to those who keep "New
+         *     newsletter issues" on, unless an issue email went out in the last 24 hours: `emailed` says which. Audited.
+         *     Publishing an issue that is already out changes nothing.
          */
         post: operations["publish_issue_api_v1_newsletter_issues__issue_id__publish_post"];
         delete?: never;
@@ -3506,6 +3507,47 @@ export interface components {
                 [key: string]: components["schemas"]["LastLesson"];
             };
         };
+        /** PublishedIssue */
+        PublishedIssue: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Number */
+            number: number;
+            /** Title */
+            title: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            cover: components["schemas"]["IssueCover"];
+            /** Dek */
+            dek: string;
+            /** Summary */
+            summary: string;
+            /** Editors */
+            editors: string[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "published";
+            /** Publishedat */
+            publishedAt: string | null;
+            /** Sections */
+            sections: components["schemas"]["IssueSection"][];
+            /** Reactions */
+            reactions: {
+                [key: string]: components["schemas"]["ReactionCounts"];
+            };
+            /** Emailed */
+            emailed: boolean;
+        };
         /** ReactionCounts */
         ReactionCounts: {
             /**
@@ -4312,6 +4354,7 @@ export type PreferencesUpdate = components['schemas']['PreferencesUpdate'];
 export type PresignedUpload = components['schemas']['PresignedUpload'];
 export type Progress = components['schemas']['Progress'];
 export type ProgressImport = components['schemas']['ProgressImport'];
+export type PublishedIssue = components['schemas']['PublishedIssue'];
 export type ReactionCounts = components['schemas']['ReactionCounts'];
 export type Reply = components['schemas']['Reply'];
 export type ReplyCreate = components['schemas']['ReplyCreate'];
@@ -11315,7 +11358,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueDetail"];
+                    "application/json": components["schemas"]["PublishedIssue"];
                 };
             };
             /** @description Bad Request */

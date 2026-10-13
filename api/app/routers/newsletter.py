@@ -11,7 +11,15 @@ from app.core.access import Box, Feature
 from app.core.security import DB, OptionalUser, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import router_for
-from app.schemas.newsletter import IssueCreate, IssueDetail, IssueSummary, IssueUpdate, Reaction, ReactionCounts
+from app.schemas.newsletter import (
+    IssueCreate,
+    IssueDetail,
+    IssueSummary,
+    IssueUpdate,
+    PublishedIssue,
+    Reaction,
+    ReactionCounts,
+)
 from app.services import access
 from app.services import newsletter as svc
 
@@ -52,14 +60,15 @@ def update_issue(issue_id: UUID, body: IssueUpdate, request: Request, user: News
     return svc.to_detail(db, issue, user)
 
 
-@router.post("/newsletter/issues/{issue_id}/publish", response_model=IssueDetail)
-def publish_issue(issue_id: UUID, request: Request, user: NewsletterManager, db: DB) -> IssueDetail:
-    """Publishes the issue and tells every account (in the Hub; by email to those who keep "New newsletter issues"
-    on). Audited. Publishing an issue that is already out changes nothing."""
+@router.post("/newsletter/issues/{issue_id}/publish", response_model=PublishedIssue)
+def publish_issue(issue_id: UUID, request: Request, user: NewsletterManager, db: DB) -> PublishedIssue:
+    """Publishes the issue and tells every account in the Hub. It also goes by email to those who keep "New
+    newsletter issues" on, unless an issue email went out in the last 24 hours: `emailed` says which. Audited.
+    Publishing an issue that is already out changes nothing."""
     issue = svc.get_by_id(db, issue_id)
-    svc.publish(db, user, issue, client_ip(request))
+    emailed = svc.publish(db, user, issue, client_ip(request))
     db.commit()
-    return svc.to_detail(db, issue, user)
+    return PublishedIssue(**dict(svc.to_detail(db, issue, user)), emailed=emailed)
 
 
 @router.delete("/newsletter/issues/{issue_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 import uuid
 from collections.abc import Sequence
+from datetime import timedelta
 from typing import Any
 
 from pydantic import BaseModel
@@ -22,7 +23,7 @@ from app.core.access import Box
 from app.core.errors import ApiError, conflict, invalid, not_found
 from app.core.links import json_size
 from app.core.time import utcnow
-from app.models import IssueStatus, NewsletterIssue, NewsletterReaction, User
+from app.models import AuditEntry, IssueStatus, NewsletterIssue, NewsletterReaction, User
 from app.schemas.newsletter import (
     CardAside,
     CtaBlock,
@@ -38,7 +39,7 @@ from app.schemas.newsletter import (
     SignoffBlock,
     StatsAside,
 )
-from app.services import access
+from app.services import access, ratelimit
 from app.services.content import apply_patch, record
 from app.services.notify import notify_all
 
@@ -48,6 +49,7 @@ TOO_LONG = "This issue is too long: shorten it or split it into two issues."
 # Fields a newsletter manager edits (PATCH), and those that may be emptied (to "": the columns are never null).
 EDITABLE = ("slug", "number", "title", "date", "cover", "dek", "summary", "editors", "sections")
 BLANK = ("dek", "summary")
+COHORT_EMAIL_EVERY = timedelta(hours=24)  # at most one issue email to the cohort in this time (security review AD-8)
 
 
 def _stored(model: BaseModel) -> Any:
@@ -267,14 +269,23 @@ def delete_issue(db: Session, user: User, issue: NewsletterIssue, ip: str | None
     db.delete(issue)
 
 
-def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> int:
+def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> bool:
     """Publishes a draft and tells every account about it (decision D1: the notification in the Hub always comes;
-    an email goes to those who keep "New newsletter issues" on). Publishing a published issue changes nothing and
-    tells nobody. -> the number of notifications."""
+    an email goes to those who keep "New newsletter issues" on). The cohort gets at most one issue email a day
+    (security review AD-8): an issue published within a day of one that was emailed is told in the Hub only.
+    Publishing a published issue changes nothing and tells nobody. -> whether this issue went by email."""
     if issue.status == IssueStatus.published:
-        return 0
+        return False
+    now = utcnow()
+    ratelimit.lock(db, "newsletter:cohort-email")  # two issues published at once can't both email
+    emailed_lately = select(AuditEntry.id).where(
+        AuditEntry.action == "newsletter.publish",
+        AuditEntry.created_at > now - COHORT_EMAIL_EVERY,
+        AuditEntry.data.contains({"emailed": True}),
+    )
+    emailed = db.scalar(emailed_lately.limit(1)) is None
     issue.status = IssueStatus.published
-    issue.published_at = utcnow()
+    issue.published_at = now
     notified = notify_all(
         db,
         "new_issue",
@@ -283,6 +294,7 @@ def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> 
         url=f"/newsletter/{issue.slug}",
         actor=user,
         data={"issueId": str(issue.id), "slug": issue.slug},
+        email=emailed,
     )
     record(
         db,
@@ -294,8 +306,9 @@ def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> 
         ip,
         slug=issue.slug,
         notified=notified,
+        emailed=emailed,
     )
-    return notified
+    return emailed
 
 
 def set_reaction(

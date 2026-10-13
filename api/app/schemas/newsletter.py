@@ -225,6 +225,10 @@ class IssueDetail(IssueSummary):
     reactions: dict[str, ReactionCounts]  # by section id
 
 
+class PublishedIssue(IssueDetail):
+    emailed: bool  # false: told in the Hub only, since an issue email went to the cohort in the last 24 hours
+
+
 class IssueCreate(ApiModel):
     """A new draft. The whole issue may take 256 KB of JSON."""
 
