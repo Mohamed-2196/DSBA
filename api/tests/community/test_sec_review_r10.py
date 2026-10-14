@@ -22,7 +22,8 @@ def test_a_new_account_that_picks_year_3_isnt_listed_as_a_senior(
     me = client_for(make_user(name="New Student", year=1))
     assert me.patch(f"{API}/me", json={"year": 3}).status_code == 200
     mine = me.get(MINE).json()
-    assert mine["eligible"] is False and mine["eligibleFrom"] is not None
+    assert mine["eligible"] is False
+    assert mine["eligibleFrom"] is not None
     body = {"topics": ["internships"], "note": "I did NBB's summer internship. DM me."}
     r = me.put(MINE, json=body)
     assert r.status_code == 403

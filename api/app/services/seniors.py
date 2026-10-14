@@ -1,8 +1,8 @@
 """Seniors who answer (needs the career.seniors feature).
 
-- A Year 3 student whose account is at least 30 days old lists themselves on Your account: the topics they answer on and a line about what they did. They
-  can pause the listing (it is kept, not shown) or remove it. Opt-in only: name, cohort and badge are shown, never
-  contact details.
+- A Year 3 student whose account is at least 30 days old lists themselves on Your account: the topics they answer
+  on and a line about what they did. They can pause the listing (it is kept, not shown) or remove it. Opt-in only:
+  name, cohort and badge are shown, never contact details.
 - Career Navigator's "Ask a senior" panel lists the active, unpaused Year 3 seniors. "Ask" starts a forum thread
   that names the senior (ThreadCreate.senior_id): they get a senior_question notification.
 - The year is the student's own say, so the account's age stands in for a check: someone who signs up and picks
@@ -20,10 +20,10 @@ from sqlalchemy.orm import Session
 
 from app.core.access import Feature
 from app.core.errors import forbidden, invalid
+from app.core.time import utcnow
 from app.models import ForumThread, SeniorProfile, User, UserStatus
 from app.schemas.seniors import MySenior, Senior, SeniorUpdate
 from app.services import access
-from app.core.time import utcnow
 from app.services.accounts import looks, public_user
 from app.services.forum.notices import quoted_title
 from app.services.notify import has_link, notify
