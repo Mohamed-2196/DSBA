@@ -1,5 +1,5 @@
 import { useLayoutEffect, type RefObject } from 'react';
-import { NotePencil, PaperPlaneRight, Paperclip, X } from '@phosphor-icons/react';
+import { Exam, NotePencil, PaperPlaneRight, Paperclip, X } from '@phosphor-icons/react';
 import { IconButton, Tooltip } from '../../ui';
 import { FileChip } from './Attachment';
 import type { Attachment } from './files';
@@ -15,6 +15,14 @@ export interface NoteChoice {
   onChange: (checked: boolean) => void;
 }
 
+/** A past paper's question her AI reads with each question (IDEA-4), until the student takes it off. */
+export interface PaperChoice {
+  title: string;
+  page: number;
+  question: string;
+  onRemove: () => void;
+}
+
 export interface ComposerProps {
   /** the text box (ChatPanel focuses it when the chat opens) */
   inputRef: RefObject<HTMLTextAreaElement>;
@@ -26,6 +34,8 @@ export interface ComposerProps {
   note: string | null;
   /** the open note, offered to her AI (null: no note open, or her AI is off) */
   noteChoice?: NoteChoice | null;
+  /** the paper's question asked about from the file viewer (null: none, or her AI is off) */
+  paperChoice?: PaperChoice | null;
   /** she is still answering: Send waits */
   busy: boolean;
   /** files from the picker or the clipboard */
@@ -41,7 +51,7 @@ export interface ComposerProps {
  * Where the student writes: a tray of what is attached, the paperclip, the text box and Send.
  * Controlled by ChatPanel, which also takes files that are dropped on the chat.
  */
-export function Composer({ inputRef, draft, onDraft, files, note, noteChoice = null, busy, onAttach, onRemove, onSend, onFocus }: ComposerProps) {
+export function Composer({ inputRef, draft, onDraft, files, note, noteChoice = null, paperChoice = null, busy, onAttach, onRemove, onSend, onFocus }: ComposerProps) {
   const ready = !busy && (draft.trim().length > 0 || files.length > 0);
 
   useLayoutEffect(() => {
@@ -93,6 +103,17 @@ export function Composer({ inputRef, draft, onDraft, files, note, noteChoice = n
             ) : null}
           </span>
         </label>
+      ) : null}
+
+      {paperChoice ? (
+        <div className="nc-include nc-paper" data-hub="noora-paper">
+          <Exam aria-hidden="true" weight="duotone" />
+          <span className="nc-include__text">
+            Question {paperChoice.question}, page {paperChoice.page} <span className="nc-include__title">“{paperChoice.title}”</span>
+            <span className="nc-include__hint">That page and the examiners’ report go to Claude with your questions.</span>
+          </span>
+          <IconButton label="Stop asking about this paper" icon={X} size="sm" className="nc-paper__remove" onClick={paperChoice.onRemove} data-hub="noora-paper-remove" />
+        </div>
       ) : null}
 
       <form

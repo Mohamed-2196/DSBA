@@ -171,3 +171,6 @@
   .lib-viewer.is-app .lib-viewer__head, .lib-viewer.is-stacked .lib-viewer__head { padding-top: var(--sp-4); }
 }
 .lib-viewer__board { margin-left: auto; }
+
+/* "Ask Mini Noora about a question": the question and its page. */
+.lib-ask { display: grid; gap: var(--sp-12); }
