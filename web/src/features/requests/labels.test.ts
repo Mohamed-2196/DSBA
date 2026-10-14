@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { kindLabel, meTooLine, needsReply, parseKind, parseSort, parseStatus, statusOf } from './labels';
+import { awaitsAnswer, examYears, kindLabel, meTooLine, needsReply, parseKind, parseSort, parseStatus, statusOf, wantsLine } from './labels';
 
 describe('request labels', () => {
   it('reads kinds, statuses and sorts from the URL, and ignores anything else', () => {
@@ -29,5 +29,21 @@ describe('request labels', () => {
   it('asks for a reason only when declining', () => {
     expect(needsReply('declined')).toBe(true);
     expect(needsReply('planned')).toBe(false);
+  });
+
+  it('names the file a paper request wants', () => {
+    expect(wantsLine({ wantedKind: 'past-paper', examYear: 2019, zone: 'B' })).toBe('Past paper · 2019 · Zone B');
+    expect(wantsLine({ wantedKind: 'notes', examYear: null, zone: null })).toBe('Students’ notes');
+    expect(wantsLine({ wantedKind: null, examYear: null, zone: null })).toBeNull();
+  });
+
+  it('lists exam years newest first and knows when a found file waits for an answer', () => {
+    const years = examYears(new Date(2026, 9, 14));
+    expect(years[0]).toBe(2026);
+    expect(years.at(-1)).toBe(2010);
+    const found = { id: 'x', slug: 'x', title: 'x', kind: 'past-paper' as const, examYear: null, zone: null };
+    expect(awaitsAnswer({ found, status: 'open' })).toBe(true);
+    expect(awaitsAnswer({ found, status: 'done' })).toBe(false);
+    expect(awaitsAnswer({ found: null, status: 'open' })).toBe(false);
   });
 });

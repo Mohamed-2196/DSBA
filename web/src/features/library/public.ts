@@ -7,6 +7,7 @@
 //   <UploadsQueue />                    moderators' review queue (Manage's Uploads section)
 //   libraryItemPath(item)               '/library/<slug>', the item's page
 //   libraryKindLabel(kind)              'Past paper', 'Students’ notes', …
+//   LIBRARY_KINDS, LIBRARY_EXAM_KINDS   every kind in the library's order; the kinds that carry an exam year and zone
 import { createElement, lazy, Suspense, useCallback, useState, type ReactNode } from 'react';
 import { showsUpload, useAuth } from '../../auth';
 import type { CohortYear } from '../../state';
@@ -14,7 +15,7 @@ import { Skeleton } from '../../ui';
 
 export { useRecentFiles } from './api';
 export { itemPath as libraryItemPath } from './api';
-export { kindLabel as libraryKindLabel } from './kinds';
+export { EXAM_KINDS as LIBRARY_EXAM_KINDS, KINDS as LIBRARY_KINDS, kindLabel as libraryKindLabel } from './kinds';
 export { UploadsQueue } from './UploadsQueue';
 ;
 

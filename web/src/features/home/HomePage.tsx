@@ -9,7 +9,7 @@ import { COHORTS, YEARS, useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, CohortBadge, ErrorBoundary, Menu, Page, PageSection, ProgrammeLockup, SectionHeader } from '../../ui';
 import { UpcomingEvents, useCalendarEvents } from '../calendar/public';
-import { HotThreads } from '../forum/public';
+import { HelpBelow, HotThreads } from '../forum/public';
 import { ContinueLearning } from '../modules/public';
 import { LatestIssueCard } from '../newsletter/public';
 import { StartHereCard } from '../start/public';
@@ -153,6 +153,9 @@ export default function HomePage() {
                 </ErrorBoundary>
               </PageSection>
             ) : null}
+            <ErrorBoundary name="HelpBelow" fallback={null}>
+              <HelpBelow />
+            </ErrorBoundary>
             {featureOn('library') ? (
               <PageSection className="home-sec home-sec--library" aria-labelledby="home-library">
                 <SectionHeader

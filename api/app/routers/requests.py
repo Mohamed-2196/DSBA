@@ -14,6 +14,7 @@ from app.core.security import DB, ActiveUser, OptionalUser, client_ip, needs_fea
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.requests import (
+    FoundAnswer,
     RequestAnswer,
     RequestCreate,
     RequestKind,
@@ -63,8 +64,10 @@ def get_request(request_id: UUID, db: DB, viewer: OptionalUser) -> RequestOut:
 
 @router.post("/requests", response_model=RequestOut, status_code=status.HTTP_201_CREATED)
 def create_request(body: RequestCreate, user: ActiveUser, db: DB) -> RequestOut:
-    """Ask for something. Errors: invalid_input (422: a short title, an unknown module), rate_limited (429: five a
-    day)."""
+    """Ask for something. A paper request may name its file (module, `wantedKind`, maybe `examYear` and `zone`), and a
+    date request the unconfirmed event it asks about (`eventId`), so they can close themselves. Errors: invalid_input
+    (422: a short title, an unknown module, a confirmed or unknown date), already_asked (409: the same file asked for
+    again, or a date someone already asked about), rate_limited (429: five a day)."""
     req = svc.create_request(db, user, body)
     db.commit()
     return svc.request_out(db, req, user)
@@ -97,6 +100,23 @@ def answer_request(request_id: UUID, body: RequestAnswer, request: Request, user
     Errors: not_found (404), invalid_input (422: declined without a reason)."""
     req = svc.get_request(db, request_id, lock=True)
     svc.answer(db, user, req, body, client_ip(request))
+    db.commit()
+    return svc.request_out(db, req, user)
+
+
+@router.post(
+    "/requests/{request_id}/found",
+    response_model=RequestOut,
+    dependencies=[needs_feature(Feature.requests_autoclose)],
+)
+def answer_found(request_id: UUID, body: FoundAnswer, request: Request, user: ActiveUser, db: DB) -> RequestOut:
+    """Say whether the file found for a paper request is the one: the requester or someone who handles requests.
+    Yes closes it as done and tells the requester and everyone who said "me too"; no keeps it open for another file.
+    Audited (`request.found`) when a rep answers.
+
+    Errors: not_found (404), forbidden (403: someone else's request), nothing_found (409: no file waiting)."""
+    req = svc.get_request(db, request_id, lock=True)
+    svc.answer_found(db, user, req, body.confirm, client_ip(request))
     db.commit()
     return svc.request_out(db, req, user)
 

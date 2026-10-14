@@ -248,6 +248,54 @@
   display: grid;
   gap: var(--sp-16);
 }
+.req-form__wants {
+  display: grid;
+  gap: var(--sp-12);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.req-form__wants legend {
+  padding: 0;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.req-form__wants-hint {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+}
+.req-form__pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: var(--sp-12);
+}
+.req-detail__wants {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  overflow-wrap: anywhere;
+}
+.req-found__note {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.req-found {
+  display: grid;
+  gap: var(--sp-12);
+  max-width: var(--measure);
+}
+.req-found__h {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.req-found__file {
+  overflow-wrap: anywhere;
+}
+.req-found__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+}
 .req-form__error {
   color: var(--alert-strong);
   font-size: var(--fs-14);

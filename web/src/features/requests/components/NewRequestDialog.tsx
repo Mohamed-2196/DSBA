@@ -1,15 +1,21 @@
 // "New request": a kind, a title, details and an optional module -> POST /requests. While the title is typed,
-// similar requests show under it, so a student can say "me too" instead of asking again.
-import { useState } from 'react';
+// similar requests show under it, so a student can say "me too" instead of asking again. While requests close
+// themselves (requests.autoclose), a paper request can name its file (kind, exam year, zone) and a date request the
+// unconfirmed date it asks about.
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApiError, errorMessage } from '../../../api/errors';
 import type { RequestCreate } from '../../../api/types';
+import { useAuth } from '../../../auth';
+import { formatShort, parseDay } from '../../../lib/dates';
 import { moduleLabel } from '../../../lib/modules';
+import { dayKeyFromToday, useCalendarEvents } from '../../calendar/public';
+import { LIBRARY_EXAM_KINDS, LIBRARY_KINDS } from '../../library/public';
 import { useDebouncedValue, useToast } from '../../../state';
 import { useModulesOptional } from '../../../state/modules';
 import { Badge, Button, Modal, Select, TextArea, TextField } from '../../../ui';
 import { SIMILAR_MIN, useCreateRequest, useSimilarRequests } from '../api';
-import { KINDS, requestPath, statusOf } from '../labels';
+import { examYears, KINDS, requestPath, statusOf } from '../labels';
 import type { RequestKind } from '../types';
 
 const TITLE_MAX = 140;
@@ -46,11 +52,30 @@ function Similar({ title }: { title: string }) {
   );
 }
 
+type WantedKind = NonNullable<RequestCreate['wantedKind']>;
+type Zone = NonNullable<RequestCreate['zone']>;
+
+/** The unconfirmed dates of the next six months, soonest first. */
+function useUnconfirmedDates(enabled: boolean) {
+  const q = useCalendarEvents({ from: dayKeyFromToday(), to: dayKeyFromToday(183) }, { enabled });
+  return useMemo(() => (q.data ?? []).filter((e) => e.sample), [q.data]);
+}
+
 export function NewRequestDialog({ open, onClose, kind: initialKind = null }: NewRequestDialogProps) {
   const [kind, setKind] = useState<RequestKind>(initialKind ?? 'paper');
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
   const [moduleId, setModuleId] = useState('');
+  const [wantedKind, setWantedKind] = useState<WantedKind | ''>('');
+  const [examYear, setExamYear] = useState('');
+  const [zone, setZone] = useState<Zone | ''>('');
+  const [eventId, setEventId] = useState('');
+  const { featureOn } = useAuth();
+  const autoclose = featureOn('requests.autoclose');
+  const names = autoclose && kind === 'paper';
+  const asksDate = autoclose && kind === 'event' && featureOn('calendar');
+  const dates = useUnconfirmedDates(open && asksDate);
+  const examKind = !!wantedKind && LIBRARY_EXAM_KINDS.has(wantedKind);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const create = useCreateRequest();
   const modules = useModulesOptional();
@@ -63,6 +88,10 @@ export function NewRequestDialog({ open, onClose, kind: initialKind = null }: Ne
     setTitle('');
     setDetails('');
     setModuleId('');
+    setWantedKind('');
+    setExamYear('');
+    setZone('');
+    setEventId('');
     setErrors({});
   };
 
@@ -73,11 +102,19 @@ export function NewRequestDialog({ open, onClose, kind: initialKind = null }: Ne
       });
       return;
     }
+    if (names && wantedKind && !moduleId) {
+      setErrors({ moduleId: 'Pick the module the file is for.' });
+      return;
+    }
     const body: RequestCreate = {
       kind,
       title: title.trim(),
       details: details.trim(),
       moduleId: moduleId || null,
+      wantedKind: names && wantedKind ? wantedKind : null,
+      examYear: names && examKind && examYear ? Number(examYear) : null,
+      zone: names && examKind && zone ? zone : null,
+      eventId: asksDate && eventId ? eventId : null,
     };
     create.mutate(body, {
       onSuccess: (made) => {
@@ -171,6 +208,56 @@ export function NewRequestDialog({ open, onClose, kind: initialKind = null }: Ne
               label: moduleLabel(m),
             }))}
             error={errors.moduleId}
+          />
+        ) : null}
+        {names ? (
+          <fieldset className="req-form__wants">
+            <legend>Which file?</legend>
+            <p className="req-form__wants-hint">Optional. Name it and its module, and you’ll hear when it’s in the library.</p>
+            <Select
+              label="Type of file"
+              value={wantedKind}
+              onChange={(e) => setWantedKind(LIBRARY_KINDS.find((k) => k.id === e.target.value)?.id ?? '')}
+              placeholder="Any file"
+              options={LIBRARY_KINDS.map((k) => ({ value: k.id, label: k.label }))}
+              error={errors.wantedKind}
+              data-hub="request-wanted-kind"
+            />
+            {examKind ? (
+              <div className="req-form__pair">
+                <Select
+                  label="Exam year"
+                  value={examYear}
+                  onChange={(e) => setExamYear(e.target.value)}
+                  placeholder="Any year"
+                  options={examYears().map((y) => ({ value: String(y), label: String(y) }))}
+                  error={errors.examYear}
+                />
+                <Select
+                  label="Zone"
+                  value={zone}
+                  onChange={(e) => setZone(e.target.value === 'A' || e.target.value === 'B' ? e.target.value : '')}
+                  placeholder="Any zone"
+                  options={[
+                    { value: 'A', label: 'Zone A' },
+                    { value: 'B', label: 'Zone B' },
+                  ]}
+                  error={errors.zone}
+                />
+              </div>
+            ) : null}
+          </fieldset>
+        ) : null}
+        {asksDate && dates.length ? (
+          <Select
+            label="Which date?"
+            value={eventId}
+            onChange={(e) => setEventId(e.target.value)}
+            placeholder="Not one of these"
+            options={dates.map((d) => ({ value: d.id, label: `${formatShort(parseDay(d.date))} · ${d.title}` }))}
+            hint="Asking whether a date is right? Pick it, and your request closes when a rep confirms it."
+            error={errors.eventId}
+            data-hub="request-event"
           />
         ) : null}
         {errors.form ? (

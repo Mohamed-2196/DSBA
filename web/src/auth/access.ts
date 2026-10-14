@@ -24,7 +24,7 @@ export const BOX_KEYS = [
   'audit.read',
 ] as const satisfies readonly Box[];
 
-export const FEATURE_KEYS = ['forum', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora', 'noora.ai', 'notes', 'board', 'requests', 'summary'] as const satisfies readonly Feature[];
+export const FEATURE_KEYS = ['forum', 'forum.help-below', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora', 'noora.ai', 'notes', 'board', 'requests', 'requests.autoclose', 'summary'] as const satisfies readonly Feature[];
 
 /** The boxes that open a manager's tool, in the order Manage shows them. */
 export const MANAGER_BOXES = [

@@ -65,6 +65,8 @@ ErrorCode = Literal[
     # requests
     "own_request",  # 409: "me too" on your own request
     "request_closed",  # 409: a done or declined request takes no more me-toos
+    "already_asked",  # 409: the same paper asked for again, or a date someone already asked about
+    "nothing_found",  # 409: no file was found for the request to confirm
     # library, uploads, newsletter, calendar
     "slug_taken",  # 409: a rep chose an address another issue has
     "not_published",  # 409: reactions wait for the issue to be published

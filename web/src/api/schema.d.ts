@@ -1480,8 +1480,10 @@ export interface paths {
         put?: never;
         /**
          * Create Request
-         * @description Ask for something. Errors: invalid_input (422: a short title, an unknown module), rate_limited (429: five a
-         *     day).
+         * @description Ask for something. A paper request may name its file (module, `wantedKind`, maybe `examYear` and `zone`), and a
+         *     date request the unconfirmed event it asks about (`eventId`), so they can close themselves. Errors: invalid_input
+         *     (422: a short title, an unknown module, a confirmed or unknown date), already_asked (409: the same file asked for
+         *     again, or a date someone already asked about), rate_limited (429: five a day).
          */
         post: operations["create_request_api_v1_requests_post"];
         delete?: never;
@@ -1577,6 +1579,30 @@ export interface paths {
          *     Errors: not_found (404), invalid_input (422: declined without a reason).
          */
         post: operations["answer_request_api_v1_requests__request_id__answer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/{request_id}/found": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Answer Found
+         * @description Say whether the file found for a paper request is the one: the requester or someone who handles requests.
+         *     Yes closes it as done and tells the requester and everyone who said "me too"; no keeps it open for another file.
+         *     Audited (`request.found`) when a rep answers.
+         *
+         *     Errors: not_found (404), forbidden (403: someone else's request), nothing_found (409: no file waiting).
+         */
+        post: operations["answer_found_api_v1_requests__request_id__found_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3108,7 +3134,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -3384,6 +3410,14 @@ export interface components {
             details: string;
             /** Moduleid */
             moduleId: string | null;
+            /** Wantedkind */
+            wantedKind: ("past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
+            /** Examyear */
+            examYear: number | null;
+            /** Zone */
+            zone: string | null;
+            /** Eventid */
+            eventId: string | null;
             /**
              * Status
              * @enum {string}
@@ -3462,7 +3496,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary";
+            feature: "forum" | "forum.help-below" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary";
             /** Label */
             label: string;
             /** Hides */
@@ -3488,7 +3522,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary")[];
+            features: ("forum" | "forum.help-below" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary")[];
         };
         /** FileLink */
         FileLink: {
@@ -3537,6 +3571,38 @@ export interface components {
                     [key: string]: number;
                 };
             };
+        };
+        /**
+         * FoundAnswer
+         * @description The requester's or a rep's word on the file found for a request: yes closes it as done, no keeps it open.
+         */
+        FoundAnswer: {
+            /** Confirm */
+            confirm: boolean;
+        };
+        /**
+         * FoundItem
+         * @description A published library file that may be what a request asked for.
+         */
+        FoundItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Title */
+            title: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
+            /** Examyear */
+            examYear: number | null;
+            /** Zone */
+            zone: string | null;
         };
         /** FurtherStudy */
         FurtherStudy: {
@@ -4038,7 +4104,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary")[];
+            features: ("forum" | "forum.help-below" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary")[];
             /**
              * Status
              * @enum {string}
@@ -4982,7 +5048,11 @@ export interface components {
             /** Reply */
             reply?: string | null;
         };
-        /** RequestCreate */
+        /**
+         * RequestCreate
+         * @description A paper request may say what it wants (`wanted_kind` with `module_id`, maybe `exam_year` and `zone`), so a
+         *     published file can match it; a date request may name the unconfirmed event it asks about (`event_id`).
+         */
         RequestCreate: {
             /**
              * Kind
@@ -4998,6 +5068,31 @@ export interface components {
             details: string;
             /** Moduleid */
             moduleId?: string | null;
+            /** Wantedkind */
+            wantedKind?: ("past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
+            /** Examyear */
+            examYear?: number | null;
+            /** Zone */
+            zone?: ("A" | "B") | null;
+            /** Eventid */
+            eventId?: string | null;
+        };
+        /**
+         * RequestEvent
+         * @description The date a date request asks about.
+         */
+        RequestEvent: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Sample */
+            sample: boolean;
         };
         /** RequestOut */
         RequestOut: {
@@ -5019,6 +5114,14 @@ export interface components {
             moduleId: string | null;
             /** Moduletitle */
             moduleTitle: string | null;
+            /** Wantedkind */
+            wantedKind: ("past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
+            /** Examyear */
+            examYear: number | null;
+            /** Zone */
+            zone: string | null;
+            event: components["schemas"]["RequestEvent"] | null;
+            found: components["schemas"]["FoundItem"] | null;
             /**
              * Status
              * @enum {string}
@@ -5748,6 +5851,8 @@ export type FeaturesOut = components['schemas']['FeaturesOut'];
 export type FileLink = components['schemas']['FileLink'];
 export type ForumMeta = components['schemas']['ForumMeta'];
 export type ForumStats = components['schemas']['ForumStats'];
+export type FoundAnswer = components['schemas']['FoundAnswer'];
+export type FoundItem = components['schemas']['FoundItem'];
 export type FurtherStudy = components['schemas']['FurtherStudy'];
 export type FurtherStudyAction = components['schemas']['FurtherStudyAction'];
 export type Health = components['schemas']['Health'];
@@ -5821,6 +5926,7 @@ export type ReportPage = components['schemas']['ReportPage'];
 export type ReportResolve = components['schemas']['ReportResolve'];
 export type RequestAnswer = components['schemas']['RequestAnswer'];
 export type RequestCreate = components['schemas']['RequestCreate'];
+export type RequestEvent = components['schemas']['RequestEvent'];
 export type RequestOut = components['schemas']['RequestOut'];
 export type RequestPage = components['schemas']['RequestPage'];
 export type ResourcesIn = components['schemas']['ResourcesIn'];
@@ -8912,7 +9018,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary";
+                feature: "forum" | "forum.help-below" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary";
             };
             cookie?: never;
         };
@@ -13505,6 +13611,95 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["RequestAnswer"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    answer_found_api_v1_requests__request_id__found_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FoundAnswer"];
             };
         };
         responses: {

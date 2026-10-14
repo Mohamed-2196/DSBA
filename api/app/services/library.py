@@ -375,6 +375,13 @@ def check_pending_room(db: Session, user: User, *, lock: bool = False) -> None:
         )
 
 
+def _match_requests(db: Session, item: LibraryItem) -> None:
+    """A newly published item may be what a student asked for (requests.match_published)."""
+    from app.services.requests import match_published  # requests -> search -> library
+
+    match_published(db, item)
+
+
 def create_from_upload(db: Session, user: User, body: LibraryItemCreate, ip: str | None = None) -> LibraryItem:
     """A completed upload of the user's own becomes an item: pending for students; published at once (and audited,
     as it skipped review) for library managers."""
@@ -415,6 +422,7 @@ def create_from_upload(db: Session, user: User, body: LibraryItemCreate, ip: str
     up.status = UploadStatus.attached
     if moderator:
         record(db, user, "library.publish", "library_item", item.id, item.title, ip, own=True)
+        _match_requests(db, item)
     return item
 
 
@@ -445,6 +453,7 @@ def create_link(db: Session, user: User, body: LibraryLinkCreate, ip: str | None
     )
     insert_with_unique_slug(db, item, LibraryItem.slug, _slug_text(item.title, module), fallback="link")
     record(db, user, "library.link", "library_item", item.id, item.title, ip, url=url)
+    _match_requests(db, item)
     return item
 
 
@@ -485,6 +494,7 @@ def create_imported(
         published_at=REFERENCE_PUBLISHED_AT,
     )
     insert_with_unique_slug(db, item, LibraryItem.slug, _slug_text(item.title, module), fallback="file")
+    _match_requests(db, item)
     return item
 
 
@@ -547,6 +557,8 @@ def review(
     item.reviewed_by = user.id
     item.reviewed_at = now
     record(db, user, f"library.{decision}", "library_item", item.id, item.title, ip, note=note or None)
+    if item.status == ItemStatus.published and previous != ItemStatus.published:
+        _match_requests(db, item)
     if item.uploaded_by is not None and item.status != previous:
         kind: NotificationKind
         if decision == "publish":

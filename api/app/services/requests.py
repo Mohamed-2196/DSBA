@@ -3,7 +3,12 @@ add "me too", and people with requests.manage answer with a status and a public 
 
 - Everyone reads the open list; the me-too count orders it, and a signed-in student's own requests come first.
 - A status change tells the requester and everyone who said "me too", while the feature is on for them, and goes to
-  the audit log. So does removing a request, which makes it gone for everyone."""
+  the audit log. So does removing a request, which makes it gone for everyone.
+- Requests that close themselves (IDEA-19, while requests.autoclose is on): a paper request that names its module
+  and library kind is matched with a published file of that module and kind (and its exam year and zone, when the
+  request gives them). The match is conservative and waits: the requester or a rep says yes, which closes the
+  request as done and tells everyone who wanted it, or no, which keeps it open. A date request names an unconfirmed
+  event, and closes when a rep confirms the date."""
 
 from __future__ import annotations
 
@@ -12,17 +17,28 @@ from collections.abc import Sequence
 from datetime import timedelta
 from typing import Any
 
-from sqlalchemy import ColumnElement, delete, func, or_, select, update
+from sqlalchemy import ColumnElement, and_, delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
-from app.core.access import Feature
-from app.core.errors import conflict, invalid, not_found
+from app.core.access import Box, Feature
+from app.core.errors import conflict, forbidden, invalid, not_found
 from app.core.time import utcnow
-from app.models import Module, RequestMeToo, RequestStatus, StudentRequest, User
+from app.models import (
+    CalendarEvent,
+    ItemStatus,
+    LibraryItem,
+    Module,
+    RequestMeToo,
+    RequestStatus,
+    StudentRequest,
+    User,
+)
 from app.schemas.requests import (
+    FoundItem,
     RequestAnswer,
     RequestCreate,
+    RequestEvent,
     RequestKind,
     RequestOut,
     RequestPage,
@@ -76,6 +92,21 @@ def _outs(db: Session, reqs: Sequence[StudentRequest], viewer: User | None) -> l
         if module_ids
         else {}
     )
+    found_ids = {r.found_item_id for r in reqs if r.found_item_id}
+    found = (
+        {
+            i.id: i
+            for i in db.scalars(
+                select(LibraryItem).where(LibraryItem.id.in_(found_ids), LibraryItem.status == ItemStatus.published)
+            )
+        }
+        if found_ids
+        else {}
+    )
+    event_ids = {r.event_id for r in reqs if r.event_id}
+    events = (
+        {e.id: e for e in db.scalars(select(CalendarEvent).where(CalendarEvent.id.in_(event_ids)))} if event_ids else {}
+    )
     mine: set[uuid.UUID] = set()
     if viewer is not None and ids:
         mine = set(
@@ -93,6 +124,11 @@ def _outs(db: Session, reqs: Sequence[StudentRequest], viewer: User | None) -> l
             details=r.details,
             module_id=r.module_id,
             module_title=modules.get(r.module_id) if r.module_id else None,
+            wanted_kind=r.wanted_kind,
+            exam_year=r.exam_year,
+            zone=r.zone,
+            event=_event_out(events.get(r.event_id)) if r.event_id else None,
+            found=_found_out(found.get(r.found_item_id)) if r.found_item_id else None,
             status=r.status.value,
             author=public_user(people.get(r.author_id)) if r.author_id else None,
             mine=viewer is not None and r.author_id == viewer.id,
@@ -105,6 +141,18 @@ def _outs(db: Session, reqs: Sequence[StudentRequest], viewer: User | None) -> l
         )
         for r in reqs
     ]
+
+
+def _event_out(e: CalendarEvent | None) -> RequestEvent | None:
+    return RequestEvent(id=e.id, title=e.title, date=e.date, sample=e.sample) if e is not None else None
+
+
+def _found_out(item: LibraryItem | None) -> FoundItem | None:
+    if item is None:
+        return None
+    return FoundItem(
+        id=item.id, slug=item.slug, title=item.title, kind=item.kind, exam_year=item.exam_year, zone=item.zone
+    )
 
 
 def request_out(db: Session, req: StudentRequest, viewer: User | None) -> RequestOut:
@@ -197,10 +245,47 @@ def _title(value: str) -> str:
     return title
 
 
+def _check_wants(db: Session, user: User, data: RequestCreate) -> None:
+    """What a paper or date request names must fit its kind, and a person asks for the same thing once."""
+    if data.kind != "paper" and (data.wanted_kind or data.exam_year or data.zone):
+        raise invalid("wantedKind", "Only a request for a paper or notes says which file it wants.")
+    if data.kind != "event" and data.event_id:
+        raise invalid("eventId", "Only a request about a date names an event.")
+    if data.wanted_kind and not data.module_id:
+        raise invalid("moduleId", "Pick the module the file is for.")
+    still_open = [StudentRequest.removed_at.is_(None), StudentRequest.status.in_(OPEN_FOR_ME_TOO)]
+    if data.event_id:
+        event = db.get(CalendarEvent, data.event_id)
+        if event is None:
+            raise invalid("eventId", "This date isn't in the calendar any more. Pick another.")
+        if not event.sample:
+            raise invalid("eventId", "This date is already confirmed.")
+        if db.scalar(select(StudentRequest.id).where(*still_open, StudentRequest.event_id == event.id).limit(1)):
+            raise conflict("already_asked", 'Someone already asked about this date. Say "me too" on their request.')
+    if data.wanted_kind:
+        same = db.scalar(
+            select(StudentRequest.id)
+            .where(
+                *still_open,
+                StudentRequest.author_id == user.id,
+                StudentRequest.module_id == data.module_id,
+                StudentRequest.wanted_kind == data.wanted_kind,
+                StudentRequest.exam_year.is_not_distinct_from(data.exam_year),
+                StudentRequest.zone.is_not_distinct_from(data.zone),
+            )
+            .limit(1)
+        )
+        if same:
+            raise conflict("already_asked", "You already asked for this. It's in your requests.")
+
+
 def create_request(db: Session, user: User, data: RequestCreate) -> StudentRequest:
+    """A new request. A paper request that names its file is matched with one already in the library, while
+    requests.autoclose is on for the person."""
     title = _title(data.title)
     details = clean_body(data.details)
     require_module(db, data.module_id)
+    _check_wants(db, user, data)
     enforce(
         db,
         f"requests:{user.id}",
@@ -216,11 +301,24 @@ def create_request(db: Session, user: User, data: RequestCreate) -> StudentReque
         title=title,
         details=details if has_text(details) else "",
         module_id=data.module_id,
+        wanted_kind=data.wanted_kind,
+        exam_year=data.exam_year,
+        zone=data.zone,
+        event_id=data.event_id,
         status=RequestStatus.open,
         created_at=utcnow(),
     )
     db.add(req)
     db.flush()
+    if req.wanted_kind and access.feature_on(db, user, Feature.requests_autoclose):
+        item = db.scalars(
+            select(LibraryItem)
+            .where(LibraryItem.status == ItemStatus.published, *_fits(req))
+            .order_by(LibraryItem.published_at.desc().nulls_last(), LibraryItem.id)
+            .limit(1)
+        ).first()
+        if item is not None:
+            req.found_item_id, req.found_at = item.id, utcnow()
     return req
 
 
@@ -259,7 +357,7 @@ def set_me_too(db: Session, user: User, req: StudentRequest, on: bool) -> None:
 # ── people who handle requests ──────────────────────────────────────────────────────────────
 
 
-def _tell(db: Session, req: StudentRequest, actor: User) -> int:
+def _tell(db: Session, req: StudentRequest, actor: User, body: str | None = None) -> int:
     """Notifies the requester and everyone who said "me too" about the request's new status, each while the feature
     is on for them. -> how many were told."""
     audience = access.audience(db, Feature.requests)
@@ -276,7 +374,7 @@ def _tell(db: Session, req: StudentRequest, actor: User) -> int:
             user_id,
             "request_update",
             f"Request {STATUS_WORDS[req.status]}: {req.title}",
-            body=req.reply,
+            body=body or req.reply,
             url=f"/requests/{req.id}",
             actor=actor,
             data={"requestId": str(req.id), "status": req.status.value},
@@ -316,3 +414,139 @@ def remove(db: Session, user: User, req: StudentRequest, ip: str | None) -> None
     req.removed_at = utcnow()
     req.removed_by = user.id
     record(db, user, "request.remove", "request", req.id, {"title": req.title, "kind": req.kind}, ip)
+
+
+# ── requests that close themselves (IDEA-19) ────────────────────────────────────────────────
+
+
+def _fits(req: StudentRequest) -> list[ColumnElement[bool]]:
+    """Conditions on LibraryItem for a file that is what the paper request asked for: the same module and kind, and
+    its exam year and zone when the request gives them."""
+    fits = [LibraryItem.module_id == req.module_id, LibraryItem.kind == req.wanted_kind]
+    if req.exam_year is not None:
+        fits.append(LibraryItem.exam_year == req.exam_year)
+    if req.zone is not None:
+        fits.append(LibraryItem.zone == req.zone)
+    return fits
+
+
+def _autoclose_audience(db: Session) -> ColumnElement[bool] | None:
+    """The accounts both requests and requests.autoclose are on for, or None when either is off for everyone."""
+    asked, auto = access.audience(db, Feature.requests), access.audience(db, Feature.requests_autoclose)
+    return None if asked is None or auto is None else and_(asked, auto)
+
+
+def match_published(db: Session, item: LibraryItem) -> int:
+    """For the library's publish step: the open paper requests `item` answers, which aren't waiting on another file
+    still in the library, get it as their found file, and their requesters are asked whether it's the one. -> how
+    many requests matched."""
+    if item.status != ItemStatus.published or item.module_id is None:
+        return 0
+    told = _autoclose_audience(db)
+    if told is None:
+        return 0
+    fits: list[ColumnElement[bool]] = [
+        StudentRequest.removed_at.is_(None),
+        StudentRequest.status.in_(OPEN_FOR_ME_TOO),
+        or_(  # not waiting on another file, or that file left the library
+            StudentRequest.found_item_id.is_(None),
+            StudentRequest.found_item_id.in_(select(LibraryItem.id).where(LibraryItem.status != ItemStatus.published)),
+        ),
+        StudentRequest.module_id == item.module_id,
+        StudentRequest.wanted_kind == item.kind,
+        or_(StudentRequest.exam_year.is_(None), StudentRequest.exam_year == item.exam_year),
+        or_(StudentRequest.zone.is_(None), StudentRequest.zone == item.zone),
+    ]
+    reqs = db.scalars(select(StudentRequest).where(*fits).with_for_update(skip_locked=True)).all()
+    now = utcnow()
+    for req in reqs:
+        req.found_item_id, req.found_at = item.id, now
+    authors = {r.author_id for r in reqs if r.author_id}
+    readers = set(db.scalars(select(User.id).where(User.id.in_(authors), told))) if authors else set()
+    for req in reqs:
+        if req.author_id in readers:
+            notify(
+                db,
+                req.author_id,
+                "request_update",
+                f"Is this the file you asked for? {item.title}",
+                body="Say yes to close your request, or no to keep it open.",
+                url=f"/requests/{req.id}",
+                data={"requestId": str(req.id), "foundItemId": str(item.id)},
+            )
+    return len(reqs)
+
+
+def may_confirm(user: User, req: StudentRequest) -> bool:
+    """The requester and the people who handle requests say whether a found file is the one."""
+    return req.author_id == user.id or access.can(user, Box.requests_manage)
+
+
+def answer_found(db: Session, user: User, req: StudentRequest, confirm: bool, ip: str | None) -> None:
+    """Yes closes the request as done and tells everyone who wanted it; no clears the file and keeps the request open.
+    Audited when a rep answers for the requester."""
+    if not may_confirm(user, req):
+        raise forbidden("Only the person who asked, or a student rep, can say whether this is the file.")
+    item = db.get(LibraryItem, req.found_item_id) if req.found_item_id else None
+    if item is None or item.status != ItemStatus.published or req.status not in OPEN_FOR_ME_TOO:
+        raise conflict("nothing_found", "No file is waiting for an answer on this request.")
+    if confirm:
+        before = req.status
+        req.status = RequestStatus.done
+        req.answered_by = user.id
+        req.answered_at = utcnow()
+        db.flush()
+        told = _tell(db, req, user, f"It's in the library: {item.title}")
+        extra: dict[str, Any] = {"from": before.value, "to": req.status.value, "told": told}
+    else:
+        req.found_item_id = req.found_at = None
+        extra = {}
+    if req.author_id != user.id:
+        record(
+            db,
+            user,
+            "request.found",
+            "request",
+            req.id,
+            {"title": req.title, "item": item.title, "confirm": confirm, **extra},
+            ip,
+        )
+
+
+def close_for_date(db: Session, user: User, event: CalendarEvent, reply: str, ip: str | None) -> int:
+    """For the calendar: a rep confirmed `event`, so the open requests asking about it close as done, with `reply`,
+    and everyone who wanted them is told. Audited each. -> how many closed."""
+    if _autoclose_audience(db) is None:
+        return 0
+    reqs = db.scalars(
+        select(StudentRequest)
+        .where(
+            StudentRequest.event_id == event.id,
+            StudentRequest.removed_at.is_(None),
+            StudentRequest.status.in_(OPEN_FOR_ME_TOO),
+        )
+        .with_for_update()
+    ).all()
+    now = utcnow()
+    for req in reqs:
+        before = req.status
+        req.status, req.reply, req.answered_by, req.answered_at = RequestStatus.done, reply, user.id, now
+        db.flush()
+        told = _tell(db, req, user)
+        record(
+            db,
+            user,
+            "request.status",
+            "request",
+            req.id,
+            {
+                "from": before.value,
+                "to": req.status.value,
+                "title": req.title,
+                "kind": req.kind,
+                "told": told,
+                "via": "calendar",
+            },
+            ip,
+        )
+    return len(reqs)

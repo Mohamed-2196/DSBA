@@ -2,6 +2,8 @@
 //
 //   <HotThreads n={5} year? />           Home widget: the n hottest threads for the student's year (plus forum-wide ones).
 //                                         Has its own loading, empty and error states. `year` overrides the browsed one.
+//   <HelpBelow />                         Home section: for a signed-in Year 2 or 3 student, up to three unanswered questions
+//                                         from the years below. Renders nothing while off (forum.help-below), empty or loading.
 //   <ModuleThreads moduleId="…" />       the module page's Discussion tab: the module's threads, "Ask about this module".
 //   useHotThreads({ n, year, enabled })   UseQueryResult<ThreadSummary[]>: the hottest threads (pinned ones left out) for a
 //                                         cohort plus forum-wide ones; year null → every cohort. Links: /forum/<slug>.
@@ -13,6 +15,7 @@
 //                                         person may post; a guest signs in when they post).
 //
 // Thread links are /forum/<slug>. Searching the forum is GET /api/v1/search (the ⌘K palette).
+export { HelpBelow } from './HelpBelow';
 export { HotThreads } from './HotThreads';
 ;
 export { ModuleThreads } from './ModuleThreads';
