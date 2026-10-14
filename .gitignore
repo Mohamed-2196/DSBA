@@ -30,3 +30,4 @@ __pycache__
 api/var/
 *.tsbuildinfo
 .venv
+.claude/settings.local.json
