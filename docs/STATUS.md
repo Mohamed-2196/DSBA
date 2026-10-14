@@ -39,9 +39,11 @@ deployed yet.
 | `round4/notes` | general-purpose | removed, merged 2026-10-14 | R-5 notes: private, autosave plus offline draft, Markdown and formulas, attach to a module or lesson |
 | `round4/board` | general-purpose | removed, merged 2026-10-14 | R-4 study board: private, fixed columns, "Add to my board" from the calendar and lessons |
 | `round4/requests` | general-purpose | removed, merged 2026-10-14 | R-2 requests: public with "me too", any rep (`requests.manage`) answers |
-| `round4/content` | general-purpose | `../dsba-content` | R-9 edit modules and lessons in Manage (`content.edit`), migration 0005 |
-| `round4/noora-ai` | general-purpose | `../dsba-ai` | R-6 Noora on Claude (`noora_ai` switch, off at first), migration 0006; needs `DSBA_ANTHROPIC_API_KEY` in .env |
-| `round4/e2e-fix` | student-tester | `../dsba-e2efix` | the e2e run on the merged round 4 failed at phone sign-up setup; root cause and fix |
+| `round4/content` | general-purpose | removed, merged 2026-10-14 | R-9 edit modules and lessons in Manage (`content.edit`), migration 0005 |
+| `round4/noora-ai` | general-purpose | removed, merged 2026-10-14 | R-6 Noora on Claude (`noora_ai` switch, off at first), migration 0006; needs `DSBA_ANTHROPIC_API_KEY` in .env |
+| `round4/e2e-fix` | student-tester | removed, merged 2026-10-14 | e2e.sh restarts web when packages change; teardown switches on only what's off; Noora focus. Earlier hangs were leftover Playwright processes |
+| `round4/lesson-ids` | general-purpose | removed, merged 2026-10-14 | every lesson and chapter has a stable id; lesson URLs are `/modules/<id>/lessons/<lessonId>`; migrations 0001-0005 edited in place, dev DB rebuilt |
+| `round4/e2e-new-specs` | student-tester | `../dsba-e2e2` | e2e: 56 pass; the two new specs (content editor, Noora without a key) time out |
 | `round4/noora` | web-builder | removed, merged 2026-10-14 (plus KaTeX formulas in forum and notes) | R-7 new Noora: docked panel on laptops, sheet on phones, never covers the page, page-aware suggestions |
 | `round4/content` | general-purpose | `../dsba-content`, pushed, waiting to merge | R-9 edit modules and lessons in Manage (`content.edit`), migration 0005 |
 | `round4/calendar` | web-builder | removed | R-3 calendar redesign: merged 2026-10-13 (`2ffd145`) |
