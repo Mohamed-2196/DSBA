@@ -95,6 +95,9 @@ OFF_AT_FIRST = (
     "requests.done",
 )
 
+# Features that live inside another one, whose routes need it on too.
+INSIDE: dict[str, str] = {"requests.done": "requests"}
+
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
 # paths below it.
 FEATURE_FREE: dict[str, str] = {
@@ -199,8 +202,9 @@ def test_a_switched_off_feature_is_gone_except_for_admins(
 ) -> None:
     body: dict[str, Any] | None = {} if method in ("POST", "PUT") else None
     student, boss = make_user(name="Sara Student"), make_user(name="Head Admin", roles=ADMIN)
-    if feature in OFF_AT_FIRST:
-        set_feature(feature, "everyone")
+    for needed in (INSIDE.get(feature), feature):
+        if needed in OFF_AT_FIRST:
+            set_feature(needed, "everyone")
     assert not off(client_for(student).request(method, f"{API}{path}", json=body))
     set_feature(feature, "off")
     assert off(client_for().request(method, f"{API}{path}", json=body))
