@@ -7,11 +7,12 @@ import uuid
 from datetime import datetime
 from typing import get_args
 
-from sqlalchemy import Computed, ForeignKey, Index, Integer, String, Text, text
+from sqlalchemy import Computed, ForeignKey, Index, Integer, SmallInteger, String, Text, text
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, check_in, created_ts, str_enum, uuid_pk
+from app.schemas.library import LibraryKind
 from app.schemas.requests import RequestKind
 
 
@@ -24,7 +25,11 @@ class RequestStatus(enum.StrEnum):
 
 class StudentRequest(Base):
     """Something a student asked the reps for. A removed request is gone for everyone (the audit log keeps its
-    title)."""
+    title).
+
+    A request that names what it wants can close itself (IDEA-19, app/services/requests.py): a paper request with a
+    module and a library kind (and maybe an exam year and zone) is matched with a file when one is published, and a
+    date request (`event_id`) closes when a rep confirms the date."""
 
     __tablename__ = "requests"
     __table_args__ = (
@@ -32,9 +37,12 @@ class StudentRequest(Base):
         Index("ix_requests_answered_by", "answered_by"),  # account deletion (SET NULL)
         Index("ix_requests_removed_by", "removed_by"),  # account deletion (SET NULL)
         Index("ix_requests_module", "module_id"),  # module deletion (SET NULL)
+        Index("ix_requests_event", "event_id"),  # a confirmed date closes its requests; event deletion (SET NULL)
+        Index("ix_requests_found_item", "found_item_id"),
         Index("ix_requests_queue", "me_too_count", "created_at", postgresql_where=text("removed_at IS NULL")),
         Index("ix_requests_search", "search_vector", postgresql_using="gin"),
         check_in("kind", get_args(RequestKind)),
+        check_in("wanted_kind", get_args(LibraryKind)),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -43,6 +51,15 @@ class StudentRequest(Base):
     title: Mapped[str] = mapped_column(String(140))
     details: Mapped[str] = mapped_column(Text, default="", server_default="")
     module_id: Mapped[str | None] = mapped_column(ForeignKey("modules.id", ondelete="SET NULL"))
+    # What a paper request wants, so a published file can match it.
+    wanted_kind: Mapped[str | None] = mapped_column(String(32))  # app/schemas/library.py LibraryKind
+    exam_year: Mapped[int | None] = mapped_column(SmallInteger)
+    zone: Mapped[str | None] = mapped_column(String(8))  # 'A' | 'B'
+    # The unconfirmed date a date request asks about.
+    event_id: Mapped[str | None] = mapped_column(ForeignKey("calendar_events.id", ondelete="SET NULL"))
+    # A published file that may be what was asked for, until the requester or a rep says yes or no.
+    found_item_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("library_items.id", ondelete="SET NULL"))
+    found_at: Mapped[datetime | None]
     status: Mapped[RequestStatus] = mapped_column(
         str_enum(RequestStatus, 10), default=RequestStatus.open, server_default=RequestStatus.open.value
     )

@@ -287,6 +287,10 @@ class ExportRequest(ApiModel):
     title: str
     details: str
     module_id: str | None
+    wanted_kind: LibraryKind | None
+    exam_year: int | None
+    zone: str | None
+    event_id: str | None
     status: RequestStatus
     reply: str | None
     removed: bool

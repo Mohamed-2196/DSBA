@@ -56,3 +56,12 @@
 @media (pointer: coarse) {
   .forum-hot__link { padding-block: 14px; }
 }
+
+/* Home's "Help the year below": the same rows without votes or counts. */
+.forum-below__lead {
+  padding: 14px 18px 0;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  max-width: var(--measure);
+}
+.forum-hot__row.forum-below__row { grid-template-columns: minmax(0, 1fr); }

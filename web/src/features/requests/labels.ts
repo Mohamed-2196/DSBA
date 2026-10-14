@@ -1,4 +1,6 @@
 // What requests are called on screen: their kinds, their statuses, and the filters in the URL.
+import type { RequestOut } from '../../api/types';
+import { libraryKindLabel } from '../library/public';
 import type { RequestKind, RequestSort, RequestStatus } from './types';
 
 /** A request's page. */
@@ -79,4 +81,21 @@ export function meTooLine(count: number, meToo: boolean): string | null {
 /** The status change a rep is about to make needs a reply: declining says why. */
 export function needsReply(status: RequestStatus): boolean {
   return status === 'declined';
+}
+
+/** What a paper request names: "Past paper · 2019 · Zone B"; null when it names no file. */
+export function wantsLine(r: Pick<RequestOut, 'wantedKind' | 'examYear' | 'zone'>): string | null {
+  if (!r.wantedKind) return null;
+  return [libraryKindLabel(r.wantedKind), r.examYear ? String(r.examYear) : null, r.zone ? `Zone ${r.zone}` : null].filter(Boolean).join(' · ');
+}
+
+/** The exam years a paper request can name: this year back to 2010, newest first. */
+export function examYears(now: Date = new Date()): number[] {
+  const last = now.getFullYear();
+  return Array.from({ length: last - 2010 + 1 }, (_, i) => last - i);
+}
+
+/** A file found for the request is waiting for a yes or no. */
+export function awaitsAnswer(r: Pick<RequestOut, 'found' | 'status'>): boolean {
+  return !!r.found && (r.status === 'open' || r.status === 'planned');
 }

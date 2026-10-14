@@ -80,6 +80,8 @@ def test_the_baseline_seeds_the_roles_and_every_switch(scratch: tuple[Config, En
             "noora.ai": "off",
             "library.questions": "off",
             "summary": "off",
+            "requests.autoclose": "off",
+            "forum.help-below": "off",
         }
 
 

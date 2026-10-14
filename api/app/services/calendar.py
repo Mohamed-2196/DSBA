@@ -177,7 +177,8 @@ def update_event(
 ) -> DateNotice:
     """Fields that are not sent stay; null clears the end date, time, place, cohort or module. The id never changes.
     On a refusal the event is left as it was. With `notify`, a change that matters to students is told to them
-    (tell_students). -> what students were told."""
+    (tell_students). Confirming a date closes the requests asking about it (requests.close_for_date). -> what
+    students were told."""
     before = Before(event.date, event.end_date, event.time, event.place, event.sample)
     module = require_module(db, body.module_id) if "module_id" in body.model_fields_set else None
     changed = apply_patch(event, body, EDITABLE, clearable=CLEARABLE)
@@ -193,8 +194,16 @@ def update_event(
     notice = DateNotice("none", 0)
     if changed and body.notify:
         notice = tell_students(db, user, event, before)
+    closed = 0
+    if before.sample and not event.sample:  # confirmed: the requests asking about it close themselves
+        from app.services import requests as student_requests  # requests -> search -> calendar
+
+        when = _when(event.date, event.end_date, event.time, event.place)
+        closed = student_requests.close_for_date(db, user, event, f"Confirmed: {when}.", ip)
     if changed:
-        extra = {"told": notice.told} if notice.status == "sent" else {}
+        extra: dict[str, int] = {"told": notice.told} if notice.status == "sent" else {}
+        if closed:
+            extra["requestsClosed"] = closed
         record(db, user, "calendar.update", "calendar_event", event.id, event.title, ip, fields=changed, **extra)
     return notice
 

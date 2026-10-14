@@ -85,6 +85,8 @@ OFF_AT_FIRST = (
     "career.seniors",
     "summary",
     "library.questions",
+    "requests.autoclose",
+    "forum.help-below",
 )
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the

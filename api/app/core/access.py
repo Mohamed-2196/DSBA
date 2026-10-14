@@ -52,6 +52,7 @@ STUDENT_BOXES = frozenset({Box.forum_post, Box.library_upload, Box.newsletter_re
 
 class Feature(enum.StrEnum):
     forum = "forum"
+    forum_help_below = "forum.help-below"  # Home's unanswered questions from the years below: nothing in the API
     forum_anonymous = "forum.anonymous"  # posting a thread without your name
     forum_follow = "forum.follow"  # following a thread
     library = "library"
@@ -68,6 +69,7 @@ class Feature(enum.StrEnum):
     notes = "notes"  # each student's private notes
     board = "board"  # each student's private study board
     requests = "requests"
+    requests_autoclose = "requests.autoclose"  # paper and date requests that close themselves
     summary = "summary"  # the Sunday summary email, and its text for a year's group
 
 
@@ -147,6 +149,9 @@ class FeatureInfo(NamedTuple):
 
 FEATURES: dict[Feature, FeatureInfo] = {
     Feature.forum: FeatureInfo("Forum", "Every thread, reply and forum picture."),
+    Feature.forum_help_below: FeatureInfo(
+        "Help the year below", "The unanswered questions from the years below on Home, for Years 2 and 3."
+    ),
     Feature.forum_anonymous: FeatureInfo(
         "Posting without a name", "The option to start a thread without your name. Threads posted so far stay unnamed."
     ),
@@ -172,6 +177,10 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.notes: FeatureInfo("Notes", "Students' private notes. They're kept, and come back when it's on again."),
     Feature.board: FeatureInfo("Study board", "Each student's study board, and the add-to-board buttons."),
     Feature.requests: FeatureInfo("Requests", "Students' requests, their me-toos and the answers."),
+    Feature.requests_autoclose: FeatureInfo(
+        "Requests that close themselves",
+        "Matching paper requests with new files, and closing date requests when a rep confirms the date.",
+    ),
     Feature.summary: FeatureInfo("Sunday summary", "The Sunday summary email, and its text for reps to share."),
 }
 

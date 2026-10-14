@@ -28,6 +28,7 @@ export const FEATURE_KEYS = [
   'forum',
   'forum.anonymous',
   'forum.follow',
+  'forum.help-below',
   'library',
   'library.uploads',
   'library.questions',
@@ -42,6 +43,7 @@ export const FEATURE_KEYS = [
   'notes',
   'board',
   'requests',
+  'requests.autoclose',
   'summary',
 ] as const satisfies readonly Feature[];
 

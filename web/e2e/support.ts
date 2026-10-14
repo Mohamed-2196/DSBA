@@ -247,6 +247,7 @@ export const FEATURES = [
   'forum',
   'forum.anonymous',
   'forum.follow',
+  'forum.help-below',
   'library',
   'library.uploads',
   'library.questions',
@@ -261,6 +262,7 @@ export const FEATURES = [
   'notes',
   'board',
   'requests',
+  'requests.autoclose',
   'summary',
 ] as const;
 

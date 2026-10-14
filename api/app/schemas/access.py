@@ -30,6 +30,7 @@ BoxKey = Literal[
 ]
 FeatureKey = Literal[
     "forum",
+    "forum.help-below",
     "forum.anonymous",
     "forum.follow",
     "library",
@@ -46,6 +47,7 @@ FeatureKey = Literal[
     "notes",
     "board",
     "requests",
+    "requests.autoclose",
     "summary",
 ]
 

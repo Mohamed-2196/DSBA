@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { RequestOut } from '../../../api/types';
 import { Badge, timeAgo } from '../../../ui';
-import { kindLabel, meTooLine, requestPath, statusOf } from '../labels';
+import { awaitsAnswer, kindLabel, meTooLine, requestPath, statusOf } from '../labels';
 import { MeTooButton } from './MeTooButton';
 
 export function RequestCard({ request, children }: { request: RequestOut; children?: ReactNode }) {
@@ -30,6 +30,11 @@ export function RequestCard({ request, children }: { request: RequestOut; childr
           <Badge tone={status.tone} size="sm">
             {status.label}
           </Badge>
+          {awaitsAnswer(request) ? (
+            <Badge tone="highlight" size="sm">
+              File found
+            </Badge>
+          ) : null}
           {request.mine ? (
             <Badge tone="highlight" size="sm">
               Yours

@@ -5,6 +5,7 @@
 //   POST   /api/v1/requests                       ask (signed in, active)
 //   PUT    /api/v1/requests/{id}/me-too           me too; DELETE takes it back
 //   POST   /api/v1/requests/{id}/answer           status + public reply (requests.manage)
+//   POST   /api/v1/requests/{id}/found            yes or no to the file found for it (the requester or requests.manage)
 //   DELETE /api/v1/requests/{id}                  remove (requests.manage)
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData, type QueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
@@ -140,6 +141,25 @@ export function useAnswerRequest() {
         api.POST('/api/v1/requests/{request_id}/answer', {
           params: { path: { request_id: id } },
           body,
+        }),
+      ),
+    onSuccess: (fresh) => {
+      patchRequest(qc, fresh.id, () => fresh);
+      void qc.invalidateQueries({ queryKey: [...REQUESTS_KEY, 'list'] });
+      void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
+    },
+  });
+}
+
+/** Yes or no to the file found for a paper request: yes closes it as done, no keeps it open. */
+export function useAnswerFound() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, confirm }: { id: string; confirm: boolean }) =>
+      call(
+        api.POST('/api/v1/requests/{request_id}/found', {
+          params: { path: { request_id: id } },
+          body: { confirm },
         }),
       ),
     onSuccess: (fresh) => {

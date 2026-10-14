@@ -3633,6 +3633,7 @@
             "schema": {
               "enum": [
                 "forum",
+                "forum.help-below",
                 "forum.anonymous",
                 "forum.follow",
                 "library",
@@ -3649,6 +3650,7 @@
                 "notes",
                 "board",
                 "requests",
+                "requests.autoclose",
                 "summary"
               ],
               "type": "string",
@@ -10039,7 +10041,7 @@
           "requests"
         ],
         "summary": "Create Request",
-        "description": "Ask for something. Errors: invalid_input (422: a short title, an unknown module), rate_limited (429: five a\nday).",
+        "description": "Ask for something. A paper request may name its file (module, `wantedKind`, maybe `examYear` and `zone`), and a\ndate request the unconfirmed event it asks about (`eventId`), so they can close themselves. Errors: invalid_input\n(422: a short title, an unknown module, a confirmed or unknown date), already_asked (409: the same file asked for\nagain, or a date someone already asked about), rate_limited (429: five a day).",
         "operationId": "create_request_api_v1_requests_post",
         "requestBody": {
           "required": true,
@@ -10674,6 +10676,120 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RequestAnswer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/requests/{request_id}/found": {
+      "post": {
+        "tags": [
+          "requests"
+        ],
+        "summary": "Answer Found",
+        "description": "Say whether the file found for a paper request is the one: the requester or someone who handles requests.\nYes closes it as done and tells the requester and everyone who said \"me too\"; no keeps it open for another file.\nAudited (`request.found`) when a rep answers.\n\nErrors: not_found (404), forbidden (403: someone else's request), nothing_found (409: no file waiting).",
+        "operationId": "answer_found_api_v1_requests__request_id__found_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FoundAnswer"
               }
             }
           }
@@ -18584,6 +18700,8 @@
               "report_closed",
               "own_request",
               "request_closed",
+              "already_asked",
+              "nothing_found",
               "slug_taken",
               "not_published",
               "already_voted",
@@ -19623,6 +19741,64 @@
             ],
             "title": "Moduleid"
           },
+          "wantedKind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "past-paper",
+                  "examiners-report",
+                  "exam-solutions",
+                  "subject-guide",
+                  "reading",
+                  "study-guide",
+                  "exercises",
+                  "notes",
+                  "cheat-sheet",
+                  "course-materials",
+                  "vle-materials",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wantedkind"
+          },
+          "examYear": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examyear"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          },
+          "eventId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eventid"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -19661,6 +19837,10 @@
           "title",
           "details",
           "moduleId",
+          "wantedKind",
+          "examYear",
+          "zone",
+          "eventId",
           "status",
           "reply",
           "removed",
@@ -19847,6 +20027,7 @@
             "type": "string",
             "enum": [
               "forum",
+              "forum.help-below",
               "forum.anonymous",
               "forum.follow",
               "library",
@@ -19863,6 +20044,7 @@
               "notes",
               "board",
               "requests",
+              "requests.autoclose",
               "summary"
             ],
             "title": "Feature"
@@ -19935,6 +20117,7 @@
               "type": "string",
               "enum": [
                 "forum",
+                "forum.help-below",
                 "forum.anonymous",
                 "forum.follow",
                 "library",
@@ -19951,6 +20134,7 @@
                 "notes",
                 "board",
                 "requests",
+                "requests.autoclose",
                 "summary"
               ]
             },
@@ -20110,6 +20294,88 @@
         ],
         "title": "ForumStats",
         "description": "Counts over the threads a guest's list shows (visible ones, and deleted ones that still have replies)."
+      },
+      "FoundAnswer": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "title": "Confirm"
+          }
+        },
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "title": "FoundAnswer",
+        "description": "The requester's or a rep's word on the file found for a request: yes closes it as done, no keeps it open."
+      },
+      "FoundItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "past-paper",
+              "examiners-report",
+              "exam-solutions",
+              "subject-guide",
+              "reading",
+              "study-guide",
+              "exercises",
+              "notes",
+              "cheat-sheet",
+              "course-materials",
+              "vle-materials",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "examYear": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examyear"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "kind",
+          "examYear",
+          "zone"
+        ],
+        "title": "FoundItem",
+        "description": "A published library file that may be what a request asked for."
       },
       "FurtherStudy": {
         "properties": {
@@ -21872,6 +22138,7 @@
               "type": "string",
               "enum": [
                 "forum",
+                "forum.help-below",
                 "forum.anonymous",
                 "forum.follow",
                 "library",
@@ -21888,6 +22155,7 @@
                 "notes",
                 "board",
                 "requests",
+                "requests.autoclose",
                 "summary"
               ]
             },
@@ -24891,6 +25159,71 @@
               }
             ],
             "title": "Moduleid"
+          },
+          "wantedKind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "past-paper",
+                  "examiners-report",
+                  "exam-solutions",
+                  "subject-guide",
+                  "reading",
+                  "study-guide",
+                  "exercises",
+                  "notes",
+                  "cheat-sheet",
+                  "course-materials",
+                  "vle-materials",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wantedkind"
+          },
+          "examYear": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2100.0,
+                "minimum": 1990.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examyear"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          },
+          "eventId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eventid"
           }
         },
         "type": "object",
@@ -24898,7 +25231,38 @@
           "kind",
           "title"
         ],
-        "title": "RequestCreate"
+        "title": "RequestCreate",
+        "description": "A paper request may say what it wants (`wanted_kind` with `module_id`, maybe `exam_year` and `zone`), so a\npublished file can match it; a date request may name the unconfirmed event it asks about (`event_id`)."
+      },
+      "RequestEvent": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "sample": {
+            "type": "boolean",
+            "title": "Sample"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "date",
+          "sample"
+        ],
+        "title": "RequestEvent",
+        "description": "The date a date request asks about."
       },
       "RequestOut": {
         "properties": {
@@ -24947,6 +25311,73 @@
               }
             ],
             "title": "Moduletitle"
+          },
+          "wantedKind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "past-paper",
+                  "examiners-report",
+                  "exam-solutions",
+                  "subject-guide",
+                  "reading",
+                  "study-guide",
+                  "exercises",
+                  "notes",
+                  "cheat-sheet",
+                  "course-materials",
+                  "vle-materials",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wantedkind"
+          },
+          "examYear": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examyear"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RequestEvent"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "found": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FoundItem"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "status": {
             "type": "string",
@@ -25027,6 +25458,11 @@
           "details",
           "moduleId",
           "moduleTitle",
+          "wantedKind",
+          "examYear",
+          "zone",
+          "event",
+          "found",
           "status",
           "author",
           "mine",

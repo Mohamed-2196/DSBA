@@ -37,6 +37,7 @@ import type {
 import { useAuth } from '../../auth';
 import type { CohortYear } from '../../state';
 import { useToast } from '../../state';
+import { pickBelow } from './lib/helpBelow';
 import { similarQuery } from './lib/search';
 import type { ReportStatus, ThreadListParams } from './types';
 
@@ -66,6 +67,7 @@ export const forumKeys = {
   lists: [FORUM, 'list'] as const,
   list: (params: ThreadListParams, pageSize: number) => [FORUM, 'list', cleanParams(params), pageSize] as const,
   hot: (n: number, year: CohortYear | null) => [FORUM, 'hot', { n, year }] as const,
+  below: (years: readonly CohortYear[], n: number) => [FORUM, 'below', { years, n }] as const,
   similar: (q: string) => [FORUM, 'similar', q] as const,
   threads: [FORUM, 'thread'] as const,
   thread: (slug: string) => [FORUM, 'thread', slug] as const,
@@ -224,6 +226,25 @@ export function useHotThreads({ n = 5, year = null, enabled = true }: { n?: numb
     enabled,
     queryKey: forumKeys.hot(size, year ?? null),
     queryFn: ({ signal }) => call(api.GET('/api/v1/forum/threads/hot', { params: { query: { limit: size, year: year ?? undefined } }, signal })),
+  });
+}
+
+/** Home's "Help the year below": up to `n` unanswered questions from the cohorts in `years`, newest first. */
+export function useHelpBelow({ years, n = 3, enabled = true }: { years: readonly CohortYear[]; n?: number; enabled?: boolean }) {
+  return useQuery({
+    enabled: enabled && years.length > 0,
+    queryKey: forumKeys.below(years, n),
+    queryFn: async ({ signal }) => {
+      const pages = await Promise.all(
+        years.map((year) => call(api.GET('/api/v1/forum/threads', { params: { query: { year, unanswered: true, sort: 'new', limit: 10 } }, signal }))),
+      );
+      return pickBelow(
+        pages.flatMap((p) => p.items),
+        years,
+        n,
+      );
+    },
+    staleTime: 60_000,
   });
 }
 
