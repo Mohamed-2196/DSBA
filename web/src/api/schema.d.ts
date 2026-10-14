@@ -515,8 +515,8 @@ export interface paths {
          * Stats
          * @description Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
          *     for review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle
-         *     them), and the suggested videos waiting for review (for people who edit modules). A feature switched off for the
-         *     viewer counts None.
+         *     them), the suggested videos waiting for review (for people who edit modules), and the open bug reports (for
+         *     admins). A feature switched off for the viewer counts None.
          */
         get: operations["stats_api_v1_admin_stats_get"];
         put?: never;
@@ -1194,13 +1194,15 @@ export interface paths {
          * Create Upload
          * @description A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,
          *     .ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to
-         *     DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the
-         *     declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file
-         *     as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
+         *     DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; newsletter_image (people who
+         *     manage the newsletter) and bug_screenshot (anyone signed in): PNG, JPEG, WebP up to DSBA_MAX_IMAGE_MB. The
+         *     extension must match the declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST
+         *     `fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
          *
          *     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
-         *     for review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum
-         *     picture), feature_off (404: the library, its uploads or the forum is switched off).
+         *     for review; library only), rate_limited (429), forbidden (403: no library.upload, no forum.post for a forum
+         *     picture, no newsletter.manage for a newsletter picture), feature_off (404: the library, its uploads, the forum
+         *     or the newsletter is switched off).
          */
         post: operations["create_upload_api_v1_uploads_post"];
         delete?: never;
@@ -1242,8 +1244,10 @@ export interface paths {
         };
         /**
          * Media
-         * @description A forum image: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). 404 when
-         *     the post it belongs to is hidden or deleted, except for moderators.
+         * @description A picture: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). Its
+         *     uploader always sees it. A forum image: everyone while its post is visible, moderators always. A newsletter
+         *     picture: everyone once a published issue shows it, people who manage the newsletter always. A bug screenshot:
+         *     admins. 404 otherwise; feature_off while the forum or the newsletter is off for the viewer.
          */
         get: operations["media_api_v1_media__upload_id__get"];
         put?: never;
@@ -2569,6 +2573,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/bug-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report Bug
+         * @description Report a bug, signed in or not. A signed-in reporter may attach a screenshot: an upload of theirs with
+         *     purpose bug_screenshot. Every admin is told in the hub.
+         *
+         *     Errors: invalid_input (422: `pageUrl` isn't a page of the hub; `screenshotUploadId` isn't your unused
+         *     screenshot, or you're signed out), rate_limited (429: 10 an hour, 5 an hour for guests from one network).
+         */
+        post: operations["report_bug_api_v1_bug_reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/bug-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bug Reports
+         * @description The reports with this status (open by default), newest first. `openCount` counts every open report.
+         */
+        get: operations["bug_reports_api_v1_admin_bug_reports_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/bug-reports/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Bug Report
+         * @description Mark a report fixed or won't fix, or open it again. Audited (`bug_report.status`).
+         *
+         *     Errors: not_found (404).
+         */
+        patch: operations["update_bug_report_api_v1_admin_bug_reports__report_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2650,6 +2720,8 @@ export interface components {
             openRequests: number | null;
             /** Pendingsuggestions */
             pendingSuggestions: number | null;
+            /** Openbugreports */
+            openBugReports: number | null;
         };
         /** AdminUser */
         AdminUser: {
@@ -2919,6 +2991,94 @@ export interface components {
             area: string;
             /** Label */
             label: string;
+        };
+        /**
+         * BugReportCreate
+         * @description `pageUrl` is the page the person was on: a path inside the app ('/library/abc?x=1'), or the app's full
+         *     address, which is cut down to its path.
+         */
+        BugReportCreate: {
+            /** Whathappened */
+            whatHappened: string;
+            /**
+             * Expected
+             * @default
+             */
+            expected: string;
+            /** Pageurl */
+            pageUrl: string;
+            /** Appversion */
+            appVersion: string;
+            /**
+             * Browser
+             * @default
+             */
+            browser: string;
+            /** Screenshotuploadid */
+            screenshotUploadId?: string | null;
+        };
+        /** BugReportCreated */
+        BugReportCreated: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
+        /** BugReportOut */
+        BugReportOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "fixed" | "wont_fix";
+            /** Whathappened */
+            whatHappened: string;
+            /** Expected */
+            expected: string;
+            /** Pageurl */
+            pageUrl: string;
+            /** Appversion */
+            appVersion: string;
+            /** Browser */
+            browser: string;
+            reporter: components["schemas"]["UserPublic"] | null;
+            /** Screenshoturl */
+            screenshotUrl: string | null;
+            /** Resolvedat */
+            resolvedAt: string | null;
+            resolvedBy: components["schemas"]["UserPublic"] | null;
+        };
+        /** BugReportPage */
+        BugReportPage: {
+            /** Items */
+            items: components["schemas"]["BugReportOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Opencount */
+            openCount: number;
+        };
+        /** BugReportUpdate */
+        BugReportUpdate: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "fixed" | "wont_fix";
         };
         /** CalendarEventCreate */
         CalendarEventCreate: {
@@ -3681,7 +3841,7 @@ export interface components {
          */
         ExportEmail: {
             /** Kind */
-            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system") | "account_notice";
+            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "bug_report" | "system") | "account_notice";
             /** Toaddress */
             toAddress: string;
             /** Subject */
@@ -3833,7 +3993,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "bug_report" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -4314,8 +4474,8 @@ export interface components {
         };
         /**
          * IssueCover
-         * @description Typographic, or an illustration (`art`, portrait 3:4) with the type over it. A cover shows five lines at most
-         *     (three over an illustration).
+         * @description Typographic, or an illustration (`art`, portrait 3:4, described by `artAlt`) with the type over it. A cover
+         *     shows five lines at most (three over an illustration).
          */
         IssueCover: {
             /**
@@ -4326,6 +4486,8 @@ export interface components {
             tone: "navy" | "paper";
             /** Art */
             art?: string | null;
+            /** Artalt */
+            artAlt?: string | null;
             /**
              * Lines
              * @default []
@@ -4409,7 +4571,8 @@ export interface components {
         };
         /**
          * IssueFigure
-         * @description A picture beside a section's copy. Width and height (pixels) reserve its space while it loads; `alt`
+         * @description A picture beside a section's copy: a file of the web app, or a newsletter picture uploaded for the issue
+         *     (POST /uploads, purpose newsletter_image). Width and height (pixels) reserve its space while it loads; `alt`
          *     describes it for people who can't see it.
          */
         IssueFigure: {
@@ -4419,10 +4582,7 @@ export interface components {
             width: number;
             /** Height */
             height: number;
-            /**
-             * Alt
-             * @default
-             */
+            /** Alt */
             alt: string;
             /** Caption */
             caption?: string | null;
@@ -5354,7 +5514,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "bug_report" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -5613,7 +5773,7 @@ export interface components {
              */
             trackProgress: boolean;
             /** Homeblocks */
-            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "daily_question" | "todo" | "continue" | "modules" | "new" | "help_below" | "newsletter")[] | null;
+            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter")[] | null;
         };
         /**
          * PreferencesUpdate
@@ -5636,7 +5796,7 @@ export interface components {
             /** Trackprogress */
             trackProgress?: boolean | null;
             /** Homeblocks */
-            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "daily_question" | "todo" | "continue" | "modules" | "new" | "help_below" | "newsletter")[] | null;
+            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter")[] | null;
         };
         /**
          * PresignedUpload
@@ -6782,7 +6942,7 @@ export interface components {
              * Purpose
              * @enum {string}
              */
-            purpose: "library" | "forum_image";
+            purpose: "library" | "forum_image" | "newsletter_image" | "bug_screenshot";
             /** Filename */
             fileName: string;
             /** Contenttype */
@@ -6903,6 +7063,11 @@ export type BoardPlan = components['schemas']['BoardPlan'];
 export type BoardPlanCreate = components['schemas']['BoardPlanCreate'];
 export type BoardPlanMade = components['schemas']['BoardPlanMade'];
 export type BoxOut = components['schemas']['BoxOut'];
+export type BugReportCreate = components['schemas']['BugReportCreate'];
+export type BugReportCreated = components['schemas']['BugReportCreated'];
+export type BugReportOut = components['schemas']['BugReportOut'];
+export type BugReportPage = components['schemas']['BugReportPage'];
+export type BugReportUpdate = components['schemas']['BugReportUpdate'];
 export type CalendarEventCreate = components['schemas']['CalendarEventCreate'];
 export type CalendarEventOut = components['schemas']['CalendarEventOut'];
 export type CalendarEventSaved = components['schemas']['CalendarEventSaved'];
@@ -19766,6 +19931,271 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuggestionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    report_bug_api_v1_bug_reports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BugReportCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BugReportCreated"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    bug_reports_api_v1_admin_bug_reports_get: {
+        parameters: {
+            query?: {
+                status?: "open" | "fixed" | "wont_fix";
+                /** @description Page size */
+                limit?: number;
+                /** @description Items to skip */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BugReportPage"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_bug_report_api_v1_admin_bug_reports__report_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BugReportUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BugReportOut"];
                 };
             };
             /** @description Bad Request */

@@ -105,3 +105,4 @@ class AdminStats(ApiModel):
     open_reports: int
     open_requests: int | None  # waiting for an answer; None without requests.manage or while requests are off
     pending_suggestions: int | None  # suggested videos to review; None without content.edit or while they are off
+    open_bug_reports: int | None  # bug reports waiting for an admin; None for everyone else

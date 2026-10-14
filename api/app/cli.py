@@ -238,12 +238,14 @@ class SweepReport:
     challenges: int
     sessions: int
     files: int = 0  # files of rejected or removed library items
+    bug_report_ips: int = 0  # guests' addresses on bug reports, forgotten once the rate limit no longer counts them
 
 
 def sweep() -> SweepReport:
     """Deletes uploads never attached to anything (objects first, then rows), old sign-in codes, sessions that
-    ended long ago, and the files of library items rejected or removed a week ago. Safe to run at any time and to
-    run again."""
+    ended long ago, the files of library items rejected or removed a week ago, and the addresses kept on bug
+    reports. Safe to run at any time and to run again."""
+    from app.services.bugs import clear_old_ips
     from app.services.library import sweep_files
     from app.services.otp import KEEP_CHALLENGES
 
@@ -262,8 +264,11 @@ def sweep() -> SweepReport:
         ended = now - SESSION_RETENTION
         dead = delete(UserSession).where(or_(UserSession.expires_at < ended, UserSession.revoked_at < ended))
         sessions = cast(CursorResult[Any], db.execute(dead)).rowcount
+        bug_report_ips = clear_old_ips(db)
         db.commit()
-    return SweepReport(uploads=len(stale), challenges=challenges, sessions=sessions, files=files)
+    return SweepReport(
+        uploads=len(stale), challenges=challenges, sessions=sessions, files=files, bug_report_ips=bug_report_ips
+    )
 
 
 def cmd_sweep(_: argparse.Namespace) -> int:

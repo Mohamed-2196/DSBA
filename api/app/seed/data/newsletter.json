@@ -112,6 +112,7 @@
     "cover": {
       "tone": "navy",
       "art": "brand/newsletter-cover.jpg",
+      "artAlt": "A study desk in blue and yellow: an open notebook with a bell curve and a scatter plot, a laptop, a calculator, a coffee and a highlighter.",
       "lines": [
         {
           "section": "cfa",

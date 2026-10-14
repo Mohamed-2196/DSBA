@@ -31,7 +31,7 @@ from app.schemas.access import UserRolesUpdate
 from app.schemas.common import ErrorResponse
 from app.schemas.gaps import Gaps
 from app.schemas.moderation import AdminStats, AdminUser, AdminUserPage, AdminUserUpdate, AuditOut, AuditPage
-from app.services import access, accounts, gaps, reports, requests, roles, sessions, suggestions
+from app.services import access, accounts, bugs, gaps, reports, requests, roles, sessions, suggestions
 from app.services.accounts import public_user
 from app.services.audit import record
 from app.services.identifiers import Kind, destination_hint, normalize_identifier
@@ -81,8 +81,8 @@ def _like(text: str) -> str:
 def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats:
     """Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
     for review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle
-    them), and the suggested videos waiting for review (for people who edit modules). A feature switched off for the
-    viewer counts None."""
+    them), the suggested videos waiting for review (for people who edit modules), and the open bug reports (for
+    admins). A feature switched off for the viewer counts None."""
     n = func.count()
     forum, library = (access.feature_on(db, user, f) for f in (Feature.forum, Feature.library))
     threads = select(n).select_from(ForumThread).where(ForumThread.status == PostStatus.visible)
@@ -102,6 +102,7 @@ def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats
         pending_suggestions=suggestions.pending_count(db)
         if access.can(user, Box.content_edit) and access.feature_on(db, user, Feature.video_suggestions)
         else None,
+        open_bug_reports=bugs.open_count(db) if access.is_admin(user) else None,
     )
 
 

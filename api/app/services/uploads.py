@@ -1,12 +1,13 @@
-"""Direct-to-S3 uploads: allowlists, presigned POSTs, checks on `complete`, and forum images.
+"""Direct-to-S3 uploads: allowlists, presigned POSTs, checks on `complete`, and the pictures /media serves.
 
 How a file gets in (docs/reviews/security-design.md, findings 6-8):
   1. POST /uploads checks the name, type and size against the purpose's allowlist and presigns a POST to a
      throwaway key, `incoming/<upload id>`, that only accepts the allowlisted type and the declared size.
   2. The browser POSTs the file straight to the bucket.
   3. POST /uploads/{id}/complete checks what actually arrived (size, type, the file's first bytes), then copies it
-     server-side to its final key, `library/<uuid>/<safe name>` or `forum/<uuid>/<safe name>`, and deletes the
-     incoming object. No presigned policy ever allows writing a final key, so a checked file can't be swapped.
+     server-side to its final key, `<purpose's prefix>/<uuid>/<safe name>` (library/, forum/, newsletter/ or bugs/),
+     and deletes the incoming object. No presigned policy ever allows writing a final key, so a checked file can't
+     be swapped.
 
 `Upload.storage_key` always names where the object is now: the incoming key while pending, the final key after."""
 
@@ -19,14 +20,25 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from botocore.exceptions import ClientError
+from sqlalchemy import Text, cast, or_, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.core.access import Feature
+from app.core.access import Box, Feature
 from app.core.errors import ApiError, conflict, not_found
 from app.core.links import media_path
 from app.core.time import utcnow
-from app.models import ForumReply, ForumThread, PostStatus, Upload, UploadPurpose, UploadStatus, User
+from app.models import (
+    ForumReply,
+    ForumThread,
+    IssueStatus,
+    NewsletterIssue,
+    PostStatus,
+    Upload,
+    UploadPurpose,
+    UploadStatus,
+    User,
+)
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
 from app.services import access, ratelimit
 from app.services.forum.visibility import can_read_thread, moderates
@@ -82,14 +94,32 @@ IMAGE_TYPES: dict[str, FileType] = {
     "webp": _WEBP,
     "gif": FileType("image/gif", (), (b"GIF87a", b"GIF89a")),
 }
+# Newsletter pictures and bug screenshots: still images only.
+PICTURE_TYPES: dict[str, FileType] = {"png": _PNG, "jpg": _JPEG, "jpeg": _JPEG, "webp": _WEBP}
 ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
     UploadPurpose.library: LIBRARY_TYPES,
     UploadPurpose.forum_image: IMAGE_TYPES,
+    UploadPurpose.newsletter_image: PICTURE_TYPES,
+    UploadPurpose.bug_screenshot: PICTURE_TYPES,
 }
 # Shown in the browser (PDF viewer, <img>): storage.INLINE_TYPES. Everything else downloads as an attachment.
 IMAGE_CONTENT_TYPES = frozenset(t.content_type for t in IMAGE_TYPES.values())
-
-# The paths media_url() hands out, as a post refers to them (the forum attaches images it finds this way).
+# The purposes /media serves (as '/api/v1/media/<id>'): pictures, never library files.
+IMAGE_PURPOSES = frozenset({UploadPurpose.forum_image, UploadPurpose.newsletter_image, UploadPurpose.bug_screenshot})
+# Where each purpose's checked files live in the bucket.
+FINAL_PREFIXES: dict[UploadPurpose, str] = {
+    UploadPurpose.library: "library",
+    UploadPurpose.forum_image: "forum",
+    UploadPurpose.newsletter_image: "newsletter",
+    UploadPurpose.bug_screenshot: "bugs",
+}
+# The box an upload of each purpose needs (None: any active account).
+PURPOSE_BOXES: dict[UploadPurpose, Box | None] = {
+    UploadPurpose.library: Box.library_upload,
+    UploadPurpose.forum_image: Box.forum_post,
+    UploadPurpose.newsletter_image: Box.newsletter_manage,
+    UploadPurpose.bug_screenshot: None,
+}
 
 
 # ── names and types ──────────────────────────────────────────────────────────────────────────
@@ -130,7 +160,7 @@ def serve_type(file_name: str | None) -> str:
 
 def limit_bytes(purpose: UploadPurpose) -> int:
     s = get_settings()
-    mb = s.max_image_mb if purpose == UploadPurpose.forum_image else s.max_upload_mb
+    mb = s.max_image_mb if purpose in IMAGE_PURPOSES else s.max_upload_mb
     return mb * 1024 * 1024
 
 
@@ -139,12 +169,11 @@ def media_url(upload_id: uuid.UUID) -> str:
 
 
 def _final_key(up: Upload) -> str:
-    prefix = "forum" if up.purpose == UploadPurpose.forum_image else "library"
-    return f"{prefix}/{uuid.uuid4()}/{safe_file_name(up.file_name)}"
+    return f"{FINAL_PREFIXES[up.purpose]}/{uuid.uuid4()}/{safe_file_name(up.file_name)}"
 
 
 def to_out(up: Upload) -> UploadOut:
-    is_image = up.purpose == UploadPurpose.forum_image and up.status != UploadStatus.pending
+    is_image = up.purpose in IMAGE_PURPOSES and up.status != UploadStatus.pending
     return UploadOut.model_validate(
         {
             "upload_id": up.id,
@@ -163,6 +192,8 @@ def to_out(up: Upload) -> UploadOut:
 def _unsupported(purpose: UploadPurpose) -> ApiError:
     if purpose == UploadPurpose.forum_image:
         msg = "Use a PNG, JPEG, WebP or GIF image."
+    elif purpose in IMAGE_PURPOSES:
+        msg = "Use a PNG, JPEG or WebP image."
     else:
         msg = (
             "Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, "
@@ -254,13 +285,22 @@ def _not_uploaded(message: str = "The file hasn't arrived yet. Upload it again."
 PURPOSE_FEATURES: dict[UploadPurpose, tuple[Feature, ...]] = {
     UploadPurpose.library: (Feature.library, Feature.library_uploads),
     UploadPurpose.forum_image: (Feature.forum,),
+    UploadPurpose.newsletter_image: (Feature.newsletter,),
+    UploadPurpose.bug_screenshot: (),  # bug reports have no switch
 }
 
 
-def require_features(db: Session, user: User, purpose: UploadPurpose) -> None:
+def require_features(db: Session, user: User | None, purpose: UploadPurpose) -> None:
     """404 feature_off unless every feature an upload of `purpose` belongs to is on for the person."""
     for feature in PURPOSE_FEATURES[purpose]:
         access.require_feature(db, user, feature)
+
+
+def require_box(user: User, purpose: UploadPurpose) -> None:
+    """403 unless the person holds the box uploads of `purpose` need."""
+    box = PURPOSE_BOXES[purpose]
+    if box is not None:
+        access.require(user, box)
 
 
 def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Storage | None = None) -> UploadOut:
@@ -312,17 +352,15 @@ def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Stor
 def media_redirect_url(
     db: Session, upload_id: uuid.UUID, viewer: User | None = None, storage: Storage | None = None
 ) -> str:
-    """A short-lived inline link to a forum image; 404 for anything else (library files never go out this way), and
-    for an image that isn't in a visible post, except to its uploader and to moderators (security review, finding 8
-    and SEC-10)."""
+    """A short-lived inline link to a picture: a forum image, a newsletter picture or a bug screenshot. 404 for
+    anything else (library files never go out this way) and for a picture the viewer may not see (can_view_image);
+    feature_off while the picture's feature is off for the viewer."""
     up = db.get(Upload, upload_id)
-    if (
-        up is None
-        or up.purpose != UploadPurpose.forum_image
-        or up.status not in (UploadStatus.uploaded, UploadStatus.attached)
-    ):
+    servable = (UploadStatus.uploaded, UploadStatus.attached)
+    if up is None or up.purpose not in IMAGE_PURPOSES or up.status not in servable:
         raise not_found("This image doesn't exist.")
-    ft = file_type_for(up.file_name, UploadPurpose.forum_image)
+    require_features(db, viewer, up.purpose)
+    ft = file_type_for(up.file_name, up.purpose)
     if ft is None or ft.content_type not in IMAGE_CONTENT_TYPES or up.content_type != ft.content_type:
         raise not_found("This image doesn't exist.")
     if not can_view_image(db, up, viewer):
@@ -332,11 +370,40 @@ def media_redirect_url(
 
 
 def can_view_image(db: Session, up: Upload, viewer: User | None) -> bool:
-    """Its uploader and moderators always. Everyone else while it is attached to a post they can read that still
-    shows it: a visible thread, or a visible reply in a thread they can open. The author of a hidden thread can read
-    it (decision D3), so they see its pictures, the other replies' too. Not before it is posted (the composer
-    previews from the file itself), and not once the post is deleted or gone, or no longer shows it."""
-    if moderates(viewer) or (viewer is not None and up.user_id == viewer.id):
+    """Whether `viewer` may see the picture: its uploader always, and then by purpose (a bug screenshot: admins; a
+    newsletter picture: people who manage the newsletter, and everyone once a published issue shows it; a forum
+    image: see _can_view_forum_image)."""
+    if viewer is not None and up.user_id == viewer.id:
+        return True
+    if up.purpose == UploadPurpose.bug_screenshot:
+        return access.is_admin(viewer)
+    if up.purpose == UploadPurpose.newsletter_image:
+        return access.can(viewer, Box.newsletter_manage) or (
+            up.status == UploadStatus.attached and in_published_issue(db, up.id)
+        )
+    return _can_view_forum_image(db, up, viewer)
+
+
+def in_published_issue(db: Session, upload_id: uuid.UUID) -> bool:
+    """Whether a published issue shows the picture, as its cover art or a section's figure."""
+    path = f"%{media_path(upload_id)}%"
+    found = db.scalar(
+        select(NewsletterIssue.id)
+        .where(
+            NewsletterIssue.status == IssueStatus.published,
+            or_(cast(NewsletterIssue.cover, Text).like(path), cast(NewsletterIssue.sections, Text).like(path)),
+        )
+        .limit(1)
+    )
+    return found is not None
+
+
+def _can_view_forum_image(db: Session, up: Upload, viewer: User | None) -> bool:
+    """Moderators always. Everyone else while it is attached to a post they can read that still shows it: a visible
+    thread, or a visible reply in a thread they can open. The author of a hidden thread can read it (decision D3), so
+    they see its pictures, the other replies' too. Not before it is posted (the composer previews from the file
+    itself), and not once the post is deleted or gone, or no longer shows it."""
+    if moderates(viewer):
         return True
     if up.status != UploadStatus.attached:
         return False
