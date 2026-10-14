@@ -114,7 +114,7 @@ export interface SectionDraft {
   stats: StatsDraft;
   /** deadlines: the dates listed ('' = open) */
   window: { from: string; to: string };
-  /** forum and library: what they say when there is nothing to list */
+  /** forum, library and requests: what they say when there is nothing to list */
   fallback: { title: string; text: string };
   /** words the live list adds to the read time */
   estWords: number | null;
@@ -251,7 +251,7 @@ function asidePayload(s: SectionDraft): Aside | null {
   return null;
 }
 
-const isLiveList = (kind: SectionKind | null): boolean => kind === 'forum' || kind === 'library';
+const isLiveList = (kind: SectionKind | null): boolean => kind === 'forum' || kind === 'library' || kind === 'requests';
 
 /** A section as the API takes it. Nothing is left out, so the API's error paths line up with the draft. */
 export function sectionPayload(s: SectionDraft): IssueSection {
@@ -639,7 +639,7 @@ export function removeSection(d: IssueDraft, key: string): IssueDraft {
 export type NewSection = 'story' | SectionKind;
 
 /** The words a live list adds to the read time (as the launch edition counts them). */
-const LIVE_WORDS: Record<SectionKind, number> = { deadlines: 90, forum: 60, library: 50 };
+const LIVE_WORDS: Record<SectionKind, number> = { deadlines: 90, forum: 60, library: 50, requests: 50 };
 
 const TEMPLATES: Record<NewSection, Pick<SectionDraft, 'label' | 'icon' | 'title'> & { fallback?: SectionDraft['fallback'] }> = {
   story: { label: '', icon: 'NotePencil', title: '' },
@@ -655,6 +655,12 @@ const TEMPLATES: Record<NewSection, Pick<SectionDraft, 'label' | 'icon' | 'title
     icon: 'Books',
     title: 'Fresh in the library',
     fallback: { title: 'Share your notes', text: 'The library gathers every module’s study guides, past papers and the notes students share. Yours could be next.' },
+  },
+  requests: {
+    label: 'You asked, we did',
+    icon: 'Megaphone',
+    title: 'What you asked for, done',
+    fallback: { title: 'Ask the reps for what you need', text: 'Missing a past paper, a fix or a date? [Ask for it](/requests), and say “me too” to what others asked.' },
   },
 };
 

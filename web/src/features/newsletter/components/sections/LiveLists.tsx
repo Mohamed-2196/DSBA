@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { ArrowFatUp, Books, ChatCircle, ChatsCircle, FileText, Plus } from '@phosphor-icons/react';
-import type { LibraryItem, LiveFallback, ThreadSummary } from '../../../../api/types';
+import { ArrowFatUp, Books, ChatCircle, ChatsCircle, CheckCircle, FileText, HandWaving, Plus } from '@phosphor-icons/react';
+import type { LibraryItem, LiveFallback, RequestOut, ThreadSummary } from '../../../../api/types';
 import { useStartsThreads } from '../../../forum/public';
 import { libraryItemPath } from '../../../library/public';
+import { askedBy, requestPath } from '../../../requests/public';
 import { useModules } from '../../../../state/modules';
 import { Badge, Button, CohortBadge, Skeleton, countOf } from '../../../../ui';
 import { RichText } from '../RichText';
@@ -156,6 +157,54 @@ export function LibraryList({ files, fallback }: { files: LibraryItem[]; fallbac
           Open the library
         </Button>
       </p>
+    </div>
+  );
+}
+
+/** You asked, we did: the requests done in the 30 days up to the issue, or an invitation to ask when there are none. */
+export function RequestsList({ requests, fallback }: { requests: RequestOut[]; fallback?: LiveFallback | null }) {
+  const cta = (
+    <p className="nl-cta">
+      <Button leadingIcon={HandWaving} to="/requests">
+        {requests.length ? 'See every request' : 'Ask the reps'}
+      </Button>
+    </p>
+  );
+  if (!requests.length) {
+    return (
+      <div className="nl-live nl-live--empty">
+        {fallback ? (
+          <p className="nl-p">
+            <RichText text={fallback.text} />
+          </p>
+        ) : null}
+        {cta}
+      </div>
+    );
+  }
+  return (
+    <div className="nl-live">
+      <ol role="list" className="nl-rows">
+        {requests.map((r) => (
+          <li key={r.id}>
+            <Link to={requestPath(r.id)} className="nl-row">
+              <span className="nl-row__doc" aria-hidden="true">
+                <CheckCircle weight="duotone" />
+              </span>
+              <span className="nl-row__main">
+                <span className="nl-row__title" dir="auto">
+                  {r.title}
+                </span>
+                <span className="nl-row__meta">
+                  {r.moduleTitle ? <span>{r.moduleTitle}</span> : null}
+                  <span>{askedBy(r.meTooCount)}</span>
+                </span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ol>
+      {cta}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 // One section of an issue: the label, the headline, the copy, a live part (deadlines from the calendar, threads
-// from the forum, files from the library) and the reactions; a picture or a card beside it.
+// from the forum, files from the library, requests done) and the reactions; a picture or a card beside it.
 // Used by the reader and by the editor's preview.
 import type { ReactNode } from 'react';
 import type { IssueSection as SectionData, LiveFallback, PollResult, ReactionCounts } from '../../../api/types';
@@ -9,6 +9,7 @@ import { ErrorBoundary, cx } from '../../../ui';
 import { useCalendarEvents } from '../../calendar/public';
 import { useHotThreads } from '../../forum/public';
 import { useRecentFiles } from '../../library/public';
+import { useDoneRequests } from '../../requests/public';
 import { liveSectionOn } from '../lib/live';
 import { plainText, sectionDomId, sectionLabel } from '../lib/text';
 import type { Block } from '../types';
@@ -16,7 +17,7 @@ import { Aside, Blocks, Figure } from './Blocks';
 import { Reactions } from './Reactions';
 import { sectionIcon } from './sectionIcons';
 import { Deadlines, SessionCalendar } from './sections/Deadlines';
-import { ForumList, LibraryList, LiveSkeleton } from './sections/LiveLists';
+import { ForumList, LibraryList, LiveSkeleton, RequestsList } from './sections/LiveLists';
 
 export interface SectionIssue {
   id: string;
@@ -126,6 +127,16 @@ function LibrarySection(props: IssueSectionProps) {
   return <SectionFrame {...props} title={title} blocks={blocks} body={q.isPending ? <LiveSkeleton /> : <LibraryList files={files} fallback={fallback} />} />;
 }
 
+/** You asked, we did: the requests done in the 30 days up to the issue's date (as of the issue, never "today"). */
+function RequestsSection(props: IssueSectionProps) {
+  const on = liveSectionOn('requests', useAuth().featureOn);
+  const q = useDoneRequests({ until: props.issue.date, limit: 5, enabled: on });
+  const requests = q.data?.items ?? [];
+  const { title, blocks, fallback } = fallbackProps(props.section, !q.isPending && !requests.length);
+  if (!on) return <SectionFrame {...props} />;
+  return <SectionFrame {...props} title={title} blocks={blocks} body={q.isPending ? <LiveSkeleton /> : <RequestsList requests={requests} fallback={fallback} />} />;
+}
+
 export function IssueSection(props: IssueSectionProps) {
   switch (props.section.kind) {
     case 'deadlines':
@@ -134,6 +145,8 @@ export function IssueSection(props: IssueSectionProps) {
       return <ForumSection {...props} />;
     case 'library':
       return <LibrarySection {...props} />;
+    case 'requests':
+      return <RequestsSection {...props} />;
     default:
       return <SectionFrame {...props} />;
   }

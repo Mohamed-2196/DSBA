@@ -1,10 +1,12 @@
 // /requests: what students asked the reps for, the most wanted first. Filters live in the URL (?kind, ?status,
-// ?sort, ?mine). ?new=<kind> opens "New request" with that kind (the library's "Ask for it" links here).
+// ?sort, ?mine). ?new=<kind> opens "New request" with that kind (the library's "Ask for it" links here). "You asked,
+// we did" opens the page while no filter is set.
 import { HandWaving, Plus } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { useQueryParam } from '../../state';
 import { Button, Chip, Count, EmptyState, Page, PageHeader, PageSection, QueryError, SegmentedControl, Select, Skeleton } from '../../ui';
 import { useRequests } from './api';
+import { DoneLately } from './components/DoneLately';
 import { NewRequestDialog } from './components/NewRequestDialog';
 import { RequestCard } from './components/RequestCard';
 import { KINDS, SORTS, STATUSES, parseKind, parseSort, parseStatus } from './labels';
@@ -96,6 +98,7 @@ export default function RequestsPage() {
   return (
     <Page className="req-page">
       <PageHeader title="Requests" description="Ask the reps for a past paper, a fix, a date or a feature. Say “me too” to what you need as well: the most wanted come first." actions={askButton} />
+      {anyFilter ? null : <DoneLately onShowAll={() => setStatus('done', { replace: true })} />}
       <PageSection aria-label="Requests" className="req-browse">
         <div className="req-filters">
           <Select
