@@ -1,4 +1,4 @@
-// Her AI's answers as rich text: the Markdown Claude writes, parsed into plain data that Rich.tsx draws as React
+// Her AI's answers as rich text: the Markdown Claude writes, parsed into plain data that RichText.tsx draws as React
 // elements (so what she writes is only ever text, never HTML). Pure: no React, no network.
 //   blocks   "### " headings, paragraphs, "- " and "1. " lists, "> " quotes, ``` code, | tables |, "---" rules,
 //            and formulas on lines of their own: $$…$$ or \[…\]

@@ -1,4 +1,4 @@
-// Her AI answers as the chat shows them. The answer is Markdown (drawn by Rich.tsx); its links into the Hub,
+// Her AI answers as the chat shows them. The answer is Markdown (drawn by RichText.tsx); its links into the Hub,
 // [text](/path), also become "Where to look" cards under it. Only paths inside the Hub become cards.
 // Pure: no React, no network.
 import type { ModuleSummary } from '../../api/types';

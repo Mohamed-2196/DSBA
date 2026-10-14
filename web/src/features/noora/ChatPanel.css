@@ -22,6 +22,7 @@
 .nc-body { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 
 /* ── The conversation ────────────────────────────────────────────────────────────────────────── */
+.nc-scroll { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .nc-messages {
   flex: 1 1 auto;
   min-height: 0;
@@ -30,9 +31,49 @@
   gap: 18px;
   padding: 18px 18px 14px;
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
+  overflow-anchor: none; /* MessageList decides when the list follows a growing answer */
 }
 .nc-turn { flex: 0 0 auto; min-width: 0; }
+/* Back to the newest message, when the student has scrolled up to read. */
+.nc-jump {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  color: var(--ink);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  transform: translateX(-50%);
+  animation: nc-arrive var(--dur-fast) var(--ease) both;
+}
+.nc-jump:hover { background: var(--surface-2); }
+.nc-jump svg { color: var(--cobalt); }
+@media (pointer: coarse) {
+  .nc-jump { min-height: 44px; padding: 0 16px; }
+}
+
+/* Her AI is paused: said once, plainly, above the conversation. */
+.nc-banner {
+  flex: 0 0 auto;
+  margin: 10px 12px 0;
+  padding: 8px 12px;
+  border-radius: var(--r-control);
+  background: var(--highlight-soft);
+  color: var(--ink);
+  font-size: var(--fs-12);
+  line-height: 1.45;
+}
 .nc-turn.is-new { animation: nc-arrive var(--dur-slow) var(--ease) both; }
 @keyframes nc-arrive { from { opacity: 0; transform: translateY(6px); } }
 
@@ -45,15 +86,88 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-/* Why this answer is from her script, or that it was cut off. */
+/* Why this answer is from her script, that it was cut off or stopped; "Try again" when her AI may answer now. */
 .nc-notice {
-  margin-bottom: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  margin-bottom: 8px;
   padding-left: 10px;
   border-left: 2px solid var(--line-strong);
   color: var(--ink-2);
   font-size: var(--fs-12);
   line-height: 1.45;
 }
+.nc-notice > p { flex: 1 1 18ch; max-width: 62ch; }
+.nc-notice__retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  color: var(--cobalt);
+  font-weight: var(--fw-semibold);
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.nc-notice__retry:hover { background: var(--surface-2); }
+@media (pointer: coarse) {
+  .nc-notice__retry { min-height: 44px; }
+}
+
+/* ── Her AI's answers as rich text (RichText.tsx) ─────────────────────────────────────────────── */
+.nr {
+  max-width: 62ch;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.nr > * + * { margin-top: 0.7em; }
+.nr p { white-space: pre-wrap; }
+.nr .nr-h { margin-top: 1.1em; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); line-height: 1.4; }
+.nr .nr-h:first-child { margin-top: 0; }
+.nr ul, .nr ol { display: grid; gap: 0.3em; padding-left: 1.35em; }
+.nr ul { list-style: disc; }
+.nr ol { list-style: decimal; }
+.nr li { padding-left: 0.15em; white-space: pre-wrap; }
+.nr li::marker { color: var(--ink-3); }
+.nr ol > li::marker { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.nr blockquote { padding-left: 12px; border-left: 2px solid var(--line-strong); color: var(--ink-2); white-space: pre-wrap; }
+.nr hr { border: 0; border-top: 1px solid var(--line); }
+.nr a { color: var(--cobalt); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--cobalt) 40%, transparent); text-underline-offset: 2px; }
+.nr a:hover { text-decoration-color: currentColor; }
+.nr code { font-size: 0.86em; overflow-wrap: anywhere; }
+.nr strong { font-weight: var(--fw-semibold); }
+/* Code: its own scrolling box, so a long line never widens the chat. */
+.nr-code {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.nr-code code { padding: 0; background: none; font-size: inherit; }
+.nr-code__lang { display: block; margin-bottom: 4px; color: var(--ink-2); font-family: var(--font-sans); font-size: 11px; font-weight: var(--fw-semibold); }
+/* A formula on its own line, and a table: they scroll inside themselves when they are wider than the chat. */
+.nr-math { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 4px 2px; }
+.nr-math .ui-tex--display { margin: 0; }
+.nr-math.is-open { color: var(--ink-3); font-family: var(--font-mono); font-size: 12.5px; white-space: pre-wrap; }
+.nr-table { max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-control); }
+.nr-table table { width: 100%; border-collapse: collapse; font-size: var(--fs-12); line-height: 1.45; }
+.nr-table th, .nr-table td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; overflow-wrap: normal; }
+.nr-table th { background: var(--surface-2); color: var(--ink); font-weight: var(--fw-semibold); white-space: nowrap; }
+.nr-table tr:last-child td { border-bottom: 0; }
+.nr-code:focus-visible, .nr-math:focus-visible, .nr-table:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: 2px; }
+.nr > .nc-caret:last-child { margin-top: 0; }
 
 /* The student's question: a quiet line on the right. */
 .nc-turn--me { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-left: 15%; }
@@ -71,7 +185,8 @@
 
 /* Time and copy under an answer: shown on hover or when the keyboard is in it; always on touch screens. */
 .nc-meta { display: flex; align-items: center; gap: 2px; min-height: 24px; margin-top: 4px; margin-left: -6px; opacity: 0; transition: opacity var(--dur-fast) var(--ease); }
-.nc-turn:hover .nc-meta, .nc-turn:focus-within .nc-meta { opacity: 1; }
+/* Her last answer keeps its actions on show. */
+.nc-turn:hover .nc-meta, .nc-turn:focus-within .nc-meta, .nc-meta.is-last { opacity: 1; }
 @media (hover: none) {
   .nc-meta { opacity: 1; }
 }
@@ -89,19 +204,22 @@
   vertical-align: -0.14em;
 }
 
-/* Thinking: a short line that breathes, and what she is doing. */
+/* Thinking: three quiet dots, and what she is doing. */
 .nc-thinking { display: flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: var(--fs-14); }
-.nc-thinking__bar {
-  flex: 0 0 auto;
-  width: 22px;
-  height: 3px;
-  border-radius: var(--r-pill);
+.nc-thinking__dots { flex: 0 0 auto; display: inline-flex; gap: 4px; }
+.nc-thinking__dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
   background: var(--cobalt);
+  opacity: 0.3;
   animation: nc-breathe 1.2s ease-in-out infinite;
 }
+.nc-thinking__dots span:nth-child(2) { animation-delay: 160ms; }
+.nc-thinking__dots span:nth-child(3) { animation-delay: 320ms; }
 @keyframes nc-breathe {
-  0%, 100% { opacity: 0.25; transform: scaleX(0.5); }
-  50% { opacity: 1; transform: none; }
+  0%, 100% { opacity: 0.3; transform: none; }
+  40% { opacity: 1; transform: translateY(-2px); }
 }
 
 /* ── Before anything is asked ────────────────────────────────────────────────────────────────── */
@@ -325,21 +443,51 @@ a.nc-card:hover .nc-card__go { color: var(--cobalt); transform: translateX(2px);
 /* ── Composer: one slim field, small controls under the text ─────────────────────────────────── */
 .nc-composer { flex: 0 0 auto; display: grid; gap: 8px; padding: 10px 12px 8px; }
 
-/* A paper's question being asked about. */
-.nc-context {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 6px 4px 6px 10px;
-  border-radius: var(--r-control);
+/* What her AI can see: small chips, each with a button to take it off. */
+.nc-sees { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.nc-sees > li { min-width: 0; max-width: 100%; }
+.nc-see {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 0 2px 0 9px;
+  border-radius: var(--r-pill);
   background: var(--surface-2);
+  color: var(--ink);
   font-size: var(--fs-12);
-  line-height: 1.4;
+  font-weight: var(--fw-medium);
+  line-height: 1.2;
 }
-.nc-context__icon { flex: 0 0 auto; margin-top: 2px; color: var(--ink-2); font-size: 16px; }
-.nc-context__text { flex: 1 1 auto; display: grid; min-width: 0; padding-top: 1px; }
-.nc-context__title { color: var(--ink); font-weight: var(--fw-semibold); }
-.nc-context__sub { color: var(--ink-2); overflow-wrap: anywhere; }
+.nc-see__icon { flex: 0 0 auto; color: var(--cobalt); font-size: 14px; }
+.nc-see__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nc-see__remove {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-pill);
+  color: var(--ink-2);
+  font-size: 11px;
+}
+.nc-see__remove:hover { background: var(--line); color: var(--ink); }
+.nc-see--off { padding-right: 10px; border: 1px dashed var(--line-strong); background: transparent; color: var(--ink-2); }
+.nc-see--off:hover { background: var(--surface-2); color: var(--ink); }
+@media (pointer: coarse) {
+  .nc-see { min-height: 44px; }
+  .nc-see__remove { width: 44px; height: 44px; margin: -2px -2px -2px 0; }
+}
+
+/* Editing the last question. */
+.nc-editing { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 4px; color: var(--ink-2); font-size: var(--fs-12); }
+.nc-editing__cancel { min-height: 28px; padding: 0 8px; border-radius: var(--r-pill); color: var(--cobalt); font-weight: var(--fw-semibold); }
+.nc-editing__cancel:hover { background: var(--surface-2); }
+@media (pointer: coarse) {
+  .nc-editing__cancel { min-height: 44px; }
+}
 
 .nc-field {
   display: grid;
@@ -350,6 +498,7 @@ a.nc-card:hover .nc-card__go { color: var(--cobalt); transform: translateX(2px);
 }
 .nc-field:hover { border-color: var(--ink-3); }
 .nc-field:focus-within { border-color: var(--cobalt); box-shadow: 0 0 0 3px var(--cobalt-soft); }
+.nc-field.is-over, .nc-field.is-over:focus-within { border-color: var(--alert-strong); box-shadow: 0 0 0 3px var(--alert-soft); }
 .nc-field .nc-tray { padding: 12px 12px 0; }
 .nc-input {
   display: block;
@@ -392,8 +541,34 @@ a.nc-card:hover .nc-card__go { color: var(--cobalt); transform: translateX(2px);
 .nc-toggle { min-width: 0; padding: 0 10px 0 8px; border: 1px solid var(--line-strong); }
 .nc-toggle > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nc-toggle.is-on { border-color: transparent; background: var(--cobalt-soft); color: var(--cobalt); }
-.nc-tools .nc-send { margin-left: auto; border-radius: var(--r-pill); }
-.nc-included { padding: 0 4px; color: var(--ink-2); font-size: var(--fs-12); line-height: 1.4; overflow-wrap: anywhere; }
+.nc-tools__end { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.nc-tools .nc-send { border-radius: var(--r-pill); }
+.nc-count { color: var(--ink-2); font-size: 11px; white-space: nowrap; }
+.nc-count.is-over { color: var(--alert-strong); font-weight: var(--fw-semibold); }
+
+/* ── Recent chats (RecentChats.tsx) ──────────────────────────────────────────────────────────── */
+.nc-recent__head { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; padding: 8px 12px 4px 8px; }
+.nc-recent__title { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); outline: none; }
+.nc-recent__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 12px; }
+.nc-recent__list { display: grid; gap: 2px; }
+.nc-recent__item {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: var(--r-control);
+  text-align: left;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.nc-recent__item:hover { background: var(--surface-2); }
+.nc-recent__item[aria-current] { background: var(--cobalt-soft); }
+.nc-recent__name { overflow: hidden; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-medium); line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.nc-recent__meta { color: var(--ink-2); font-size: var(--fs-12); line-height: 1.3; }
+.nc-recent__empty { display: grid; justify-items: center; gap: 8px; padding: 32px 16px; color: var(--ink-2); font-size: var(--fs-14); text-align: center; }
+.nc-recent__empty svg { color: var(--ink-3); font-size: 32px; }
+.nc-recent__foot { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 8px 12px 12px 16px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 11px; line-height: 1.4; }
+.nc-recent__foot p { flex: 1 1 20ch; }
 
 .nc-foot { flex: 0 0 auto; padding: 0 16px 10px; color: var(--ink-2); font-size: 11px; line-height: 1.45; text-align: center; }
 
@@ -407,7 +582,7 @@ a.nc-card:hover .nc-card__go { color: var(--cobalt); transform: translateX(2px);
 .ncard--sheet .nc-foot { padding-bottom: 8px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .nc-turn.is-new, .nc-turn.is-new *, .nc-turn.is-new ~ .nc-suggest--after, .nc-thinking__bar { animation: none; }
-  .nc-thinking__bar { opacity: 0.6; }
-  .nc-drop, .nc-meta, .nc-card__go, .nc-suggest__go, .nc-field, .nc-tool { transition: none; }
+  .nc-turn.is-new, .nc-turn.is-new *, .nc-turn.is-new ~ .nc-suggest--after, .nc-thinking__dots span, .nc-jump { animation: none; }
+  .nc-thinking__dots span { opacity: 0.6; }
+  .nc-drop, .nc-meta, .nc-card__go, .nc-suggest__go, .nc-field, .nc-tool, .nc-recent__item, .nc-notice__retry { transition: none; }
 }
