@@ -1,5 +1,5 @@
-// Her AI answers as the chat shows them. Claude writes links into the Hub as Markdown, [text](/path); here they
-// become plain words in the answer and "Where to look" cards under it. Only paths inside the Hub become cards.
+// Her AI answers as the chat shows them. The answer is Markdown (drawn by Rich.tsx); its links into the Hub,
+// [text](/path), also become "Where to look" cards under it. Only paths inside the Hub become cards.
 // Pure: no React, no network.
 import type { ModuleSummary } from '../../api/types';
 import { refKind, type RefKind } from './refs';
@@ -29,12 +29,12 @@ function codeFor(to: string, modules: readonly ModuleSummary[]): string {
   return CODE[kind];
 }
 
-/** The answer so far, as it should read while it streams in: links as their words, a half-written one hidden. */
+/** The answer so far, as it should read while it streams in: a link that is still being written is hidden. */
 export function visibleText(partial: string): string {
-  return partial.replace(LINK, '$1').replace(OPEN_LINK, '');
+  return partial.replace(OPEN_LINK, '');
 }
 
-/** Her finished answer: the words (links as plain text), and a card for each place in the Hub it links to. */
+/** Her finished answer: the Markdown, and a card for each place in the Hub it links to. */
 export function replyFromAnswer(answer: string, modules: readonly ModuleSummary[]): Reply {
   const refs: Ref[] = [];
   for (const [, label = '', target = ''] of answer.matchAll(LINK)) {
@@ -42,6 +42,5 @@ export function replyFromAnswer(answer: string, modules: readonly ModuleSummary[
     if (!to || refs.some((r) => r.to === to) || refs.length >= MAX_REFS) continue;
     refs.push({ code: codeFor(to, modules), label: label.trim(), to });
   }
-  const text = answer.replace(LINK, '$1').trim();
-  return { mood: refs.length ? 'happy' : 'neutral', text, refs };
+  return { mood: refs.length ? 'happy' : 'neutral', text: answer.trim(), refs };
 }
