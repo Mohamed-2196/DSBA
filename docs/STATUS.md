@@ -35,16 +35,13 @@ deployed yet.
 and the round 4 security fixes (SEC-21 to SEC-29) are on feature/backend; checks green (API 1040, web 563). Migration
 chain: 0001-0006, 0008 search, 0009 board plans, 0011 alerts, 0010 forum, 0007 papers. New switches start off.
 
-**Round 6** (started 2026-10-14; Mohamed: "start working on the next features", taken as approval of the remaining
-ideas except IDEA-22, which waits for R-8):
+**Round 6: merged 2026-10-14.** IDEA-4 (as "ask Mini Noora about a paper's question"; the forum version in ideas.md
+is still open), IDEA-9, 10, 11, 15, 18, 19, and RTC as a paper variant ("RTC" = Recognised Teaching Centre; not
+necessarily BIBF's, so labelled just "RTC"). Checks green (API 1081, web 591). Migrations: ... 0007, 0012, 0014, 0015.
 
-| Branch | Ideas |
-| --- | --- |
-| `round6/calendar2` | IDEA-10 your papers, IDEA-11 dates that tell you enough, IDEA-18 application dates |
-| `round6/paperq` | IDEA-4 ask Noora about a paper's question |
-| `round6/community2` | IDEA-9 help the year below, IDEA-19 requests that close themselves |
-| `round6/content2` | IDEA-15 videos students suggest |
-| `round6/ideas6` | student-user: the next batch, IDEA-25 on |
+**Round 7** (approved 2026-10-14): IDEA-27 a question a day (`round7/daily`, also Noora's budget default to $25 a
+month), IDEA-36/37 results day and projected class (`round7/results`), IDEA-38/39 you asked, we did, and the reps'
+gaps screen (`round7/reps`). IDEA-25, 26, 28-35 are proposed, not approved.
 
 - **Drive import:** 105 files in. Google blocks the network for "automated queries" after bursts; the importer now
   paces (2 s) and waits the block out, and a re-run picks up the rest. Skipped: 8 IS2184 videos, one 60 MB PDF.
