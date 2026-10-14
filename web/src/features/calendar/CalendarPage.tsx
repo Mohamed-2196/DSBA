@@ -9,7 +9,7 @@ import { useCalendarEvents, useDeleteEvent } from './api';
 import { Browse } from './Browse';
 import { monthKey } from './dates';
 import { EventDrawer } from './EventDrawer';
-import { EventFormDialog } from './EventFormDialog';
+import { EventFormDialog, type DateNotice } from './EventFormDialog';
 import { ForYou } from './ForYou';
 import { SubscribeDialog } from './SubscribeDialog';
 import type { CalendarEvent } from './types';
@@ -55,6 +55,13 @@ export default function CalendarPage() {
   );
 }
 
+/** What the toast adds about the students an edit told. */
+function toldLine(told: DateNotice | undefined): string {
+  if (told?.notice === 'sent') return told.told === 1 ? ' 1 person was told.' : ` ${told.told} people were told.`;
+  if (told?.notice === 'limit') return ' They were told about this event today already, so not again.';
+  return '';
+}
+
 /** The add/edit dialog, then the page moves to what was saved. */
 function EventEditor({ editing, onClose }: { editing: { event: CalendarEvent | null } | null; onClose: () => void }) {
   const { push } = useToast();
@@ -65,11 +72,11 @@ function EventEditor({ editing, onClose }: { editing: { event: CalendarEvent | n
       open={!!editing}
       event={editing?.event ?? null}
       onClose={onClose}
-      onSaved={(saved, created) => {
+      onSaved={(saved, created, told) => {
         onClose();
         setMonthParam(monthKey(monthOfEvent(saved)), { replace: true });
         setEventId(saved.id, { replace: true });
-        push({ tone: 'success', title: created ? 'Event added' : 'Changes saved', body: `${saved.title}, ${formatLong(parseDay(saved.date))}.` });
+        push({ tone: 'success', title: created ? 'Event added' : 'Changes saved', body: `${saved.title}, ${formatLong(parseDay(saved.date))}.${toldLine(told)}` });
       }}
     />
   );

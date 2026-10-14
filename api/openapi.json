@@ -13451,14 +13451,13 @@
             "in": "query",
             "required": true,
             "schema": {
-              "enum": [
-                1,
-                2,
-                3
-              ],
               "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Cohort: 1, 2 or 3",
               "title": "Year"
-            }
+            },
+            "description": "Cohort: 1, 2 or 3"
           }
         ],
         "responses": {

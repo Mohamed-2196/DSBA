@@ -271,7 +271,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** notification fatigue, so only exams, mocks and deadlines, and at most one notice per event a
   day.
 - **How we'd know it worked:** these notifications get opened; fewer "is it still on?" questions.
-- **Status:** proposed.
+- **Status:** built on `round5/alerts`: "Tell Year 2" on the edit form, a `date_changed` notification and a "Date changes" email switch.
 
 ## Revising
 
@@ -395,7 +395,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** at most about 160 emails a week, within a small SMTP plan. It's opt-in, so it doesn't settle
   the open question on email defaults. The WhatsApp text is pasted by a person, with no API.
 - **How we'd know it worked:** visits that arrive with `?from=summary`; how many switch it off.
-- **Status:** proposed.
+- **Status:** built on `round5/alerts`: the `summary` switch (off at first), the mail worker queues it Sunday from 08:00 Bahrain time, `app.cli weekly-summary`, and Manage, Sunday summary for reps.
 
 ## Into students' days
 

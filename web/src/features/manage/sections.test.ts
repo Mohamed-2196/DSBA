@@ -26,6 +26,11 @@ describe('sectionsFor', () => {
     expect(sectionsFor(holds('content.edit'), onlyOn())).toEqual(['content']);
   });
 
+  it('gives the Sunday summary to its box while it is on', () => {
+    expect(sectionsFor(holds('summary.share'), onlyOn('summary'))).toEqual(['summary']);
+    expect(sectionsFor(holds('summary.share'), onlyOn())).toEqual([]);
+  });
+
   it('gives a student nothing', () => {
     expect(sectionsFor(holds('forum.post', 'library.upload'))).toEqual([]);
   });
