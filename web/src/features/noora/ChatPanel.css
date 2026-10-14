@@ -132,9 +132,10 @@
 .nr ul, .nr ol { display: grid; gap: 0.3em; padding-left: 1.35em; }
 .nr ul { list-style: disc; }
 .nr ol { list-style: decimal; }
+.nr ol > li::marker { font-family: var(--font-sans); }
 .nr li { padding-left: 0.15em; white-space: pre-wrap; }
 .nr li::marker { color: var(--ink-3); }
-.nr ol > li::marker { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.nr ol > li::marker { color: var(--ink-2); }
 .nr blockquote { padding-left: 12px; border-left: 2px solid var(--line-strong); color: var(--ink-2); white-space: pre-wrap; }
 .nr hr { border: 0; border-top: 1px solid var(--line); }
 .nr a { color: var(--cobalt); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--cobalt) 40%, transparent); text-underline-offset: 2px; }
@@ -585,4 +586,11 @@ a.nc-card:hover .nc-card__go { color: var(--cobalt); transform: translateX(2px);
   .nc-turn.is-new, .nc-turn.is-new *, .nc-turn.is-new ~ .nc-suggest--after, .nc-thinking__dots span, .nc-jump { animation: none; }
   .nc-thinking__dots span { opacity: 0.6; }
   .nc-drop, .nc-meta, .nc-card__go, .nc-suggest__go, .nc-field, .nc-tool, .nc-recent__item, .nc-notice__retry { transition: none; }
+}
+
+/* A short screen (a phone on its side): the conversation keeps as much room as it can. */
+@media (max-height: 480px) {
+  .nc-composer { gap: 6px; padding-top: 6px; }
+  .nc-foot { overflow: hidden; padding-bottom: 6px; text-overflow: ellipsis; white-space: nowrap; }
+  .nc-banner { margin-top: 6px; padding: 6px 10px; }
 }

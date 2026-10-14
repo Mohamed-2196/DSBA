@@ -75,7 +75,7 @@ test('her answer streams in with a card, and she is told the page and the lesson
   await chat.getByLabel('Message Mini Noora').press('Enter');
   await expect(chat.locator('[data-hub="noora-message"][data-from="noora"]').last()).toContainText('Your next exam is on the calendar.');
   await expect(chat.locator('[data-hub="noora-refs"]').getByRole('link', { name: /calendar/ })).toBeVisible();
-  await expect(chat.locator('[data-hub="noora-foot"]')).toContainText('28 left today');
+  await expect(chat.locator('[data-hub="noora-foot"]')).toContainText('28 of 30 left today');
   const body: unknown = asked[0]?.postDataJSON();
   expect(body).toMatchObject({ question: 'What is this lesson about?', moduleId, lessonId, note: null });
   await ctx.close();
@@ -104,5 +104,34 @@ test('the open note goes only when the student ticks Include my note, for one qu
   // The note is deleted again.
   await page.locator('[data-hub="note-delete"]').click();
   await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+  await ctx.close();
+});
+
+test('an answer can be asked again, and a new chat keeps the last one in Recent chats', async ({ browser }) => {
+  const ctx = await personaContext(browser, 'sara', { noora: true });
+  const page = await ctx.newPage();
+  const asked = await standIn(page);
+  await page.goto('/calendar');
+  const chat = await openNoora(page);
+  await expect(chat.locator('[data-hub="noora-see-page"]')).toContainText('Calendar');
+  await chat.getByLabel('Message Mini Noora').fill('When is my next exam?');
+  await chat.getByLabel('Message Mini Noora').press('Enter');
+  await expect(chat.locator('[data-hub="noora-regenerate"]')).toBeVisible();
+  await chat.locator('[data-hub="noora-regenerate"]').click();
+  await expect.poll(() => asked.length).toBe(2);
+  await expect(chat.locator('[data-hub="noora-message"][data-from="noora"]')).toHaveCount(1);
+  // Taking the page off: the next question goes without it.
+  await chat.locator('[data-hub="noora-see-page"]').getByRole('button', { name: 'Don’t share this page' }).click();
+  await chat.getByLabel('Message Mini Noora').fill('And after that?');
+  await chat.getByLabel('Message Mini Noora').press('Enter');
+  await expect.poll(() => asked.length).toBe(3);
+  expect(asked[2]?.postDataJSON()).toMatchObject({ route: '', moduleId: null });
+  // A new chat, then back to the first from Recent chats.
+  await chat.locator('[data-hub="noora-new"]').click();
+  await expect(chat.locator('[data-hub="noora-empty"]')).toBeVisible();
+  await chat.locator('[data-hub="noora-more"]').click();
+  await page.getByRole('menuitem', { name: 'Recent chats' }).click();
+  await chat.locator('[data-hub="noora-recent-chat"]').filter({ hasText: 'When is my next exam?' }).click();
+  await expect(chat.locator('[data-hub="noora-message"][data-from="me"]').first()).toContainText('When is my next exam?');
   await ctx.close();
 });

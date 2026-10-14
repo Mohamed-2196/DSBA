@@ -377,7 +377,7 @@ export default function ChatPanel({ open, sheet, calm, panelRef, onClose, onFoll
           />
           <p className="nc-foot" data-hub="noora-foot">
             {usingAi
-              ? `Claude, an AI, writes these answers and can be wrong.${status.data ? ` ${status.data.questionsLeft} of ${status.data.dailyQuestions} left today.` : ''} Chats and pictures stay in this browser; the Hub only counts questions.`
+              ? `Answers by Claude, an AI: they can be wrong.${status.data ? ` ${status.data.questionsLeft} of ${status.data.dailyQuestions} left today.` : ''} Chats stay in this browser.`
               : 'She answers from the Hub’s modules and calendar. What you send her stays in this browser.'}
           </p>
           {/* Always there, shown while files are dragged over the chat. */}
