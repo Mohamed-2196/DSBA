@@ -178,7 +178,7 @@ def older_sessions(db: Session) -> Callable[..., None]:
 
 @pytest.fixture
 def module(db: Session) -> Module:
-    """A module with two chapters: lessons test-mod:0:0, test-mod:0:1 and test-mod:1:0."""
+    """A module with two chapters: two lessons, then one (tests.lessons.lesson_id(module, chapter, video))."""
     m_id = f"test-mod-{uuid.uuid4().hex[:6]}"
     m = Module(
         id=m_id,

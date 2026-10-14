@@ -23,7 +23,7 @@ def board_on(set_feature: Callable[..., None]) -> None:
 
 @pytest.fixture
 def module(db: Session) -> Module:
-    """Lessons <id>:0:0 ("Limits"), <id>:0:1 (no title) and <id>:1:0."""
+    """Chapter One: "Limits" and a lesson with no title; chapter Two: one lesson."""
     m_id = f"board-mod-{uuid.uuid4().hex[:6]}"
     m = Module(
         id=m_id,
