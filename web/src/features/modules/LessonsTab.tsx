@@ -3,7 +3,7 @@
 import { ArrowSquareOut, CalendarBlank, CaretLeft, CaretRight, CheckCircle, Circle, Headphones, Warning, WifiSlash } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { ModuleDetail, Video } from '../../api/types';
-import { lessonKey, videoThumbnailUrl } from '../../lib/modules';
+import { videoThumbnailUrl } from '../../lib/modules';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
 import { Button, ErrorBoundary, HubMark, cx } from '../../ui';
@@ -112,7 +112,7 @@ export function LessonsTab({
   const { c, v } = selection;
   const chapter = m.chapters[c];
   const video = chapter.videos[v];
-  const key = lessonKey(m.id, c, v);
+  const key = m.chapters[c].videos[v].id;
   const { push } = useToast();
   const { featureOn } = useAuth();
   const { state, isWatched, setWatched, markOpened, resetModule, restore } = progress;
@@ -154,8 +154,8 @@ export function LessonsTab({
     markOpenedRef.current = markOpened;
   });
   useEffect(() => {
-    if (playing) markOpenedRef.current(m.id, c, v);
-  }, [playing, m.id, c, v]);
+    if (playing) markOpenedRef.current(m.id, key);
+  }, [playing, m.id, key]);
 
   const revealPlayer = useCallback(() => {
     requestAnimationFrame(() => {
@@ -226,7 +226,7 @@ export function LessonsTab({
                 className={cx('mod-watch', watched && 'is-on')}
                 aria-pressed={watched}
                 leadingIcon={watched ? <CheckCircle weight="fill" size={19} /> : <Circle size={19} />}
-                onClick={() => setWatched(m.id, c, v, !watched)}
+                onClick={() => setWatched(m.id, key, !watched)}
                 disabled={!progress.ready}
                 data-hub="lesson-watched"
               >
@@ -274,7 +274,7 @@ export function LessonsTab({
             ) : null}
 
             <ErrorBoundary name="LessonNotes" resetKey={key}>
-              <LessonNotes moduleId={m.id} chapter={c} video={v} />
+              <LessonNotes moduleId={m.id} lessonId={key} />
             </ErrorBoundary>
           </div>
         </div>

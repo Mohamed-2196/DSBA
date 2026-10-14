@@ -30,7 +30,7 @@ function ContinueRow({ item, featured }: { item: Item; featured: boolean }) {
   const when = lastOpenedLabel(at);
   return (
     <Link
-      to={lessonHref(m.id, resume.c, resume.v)}
+      to={lessonHref(m.id, video.id)}
       className={cx('mod-cl__row', featured && 'is-featured')}
       data-module-id={m.id}
       aria-label={`${resume.kind === 'resume' ? 'Resume' : 'Continue'} ${m.unitCode || m.name}: ${ch.title}, ${position.toLowerCase()}. ${progress.pct}% of the module watched.`}

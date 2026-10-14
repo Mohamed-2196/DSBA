@@ -4,10 +4,10 @@ import { ArrowCounterClockwise, CaretDown, Check, CheckCircle, DotsThree, Play, 
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Chapter, ModuleDetail, Video } from '../../api/types';
-import { lessonKey, videoThumbnailUrl } from '../../lib/modules';
+import { videoThumbnailUrl } from '../../lib/modules';
 import { cohortColor } from '../../state';
 import { IconButton, Menu, ProgressRing, cx } from '../../ui';
-import { KIND_ICON, chapterLessons, lessonSearch } from './lessons';
+import { KIND_ICON, chapterLessons, lessonHref } from './lessons';
 import { computeChapterProgress, computeModuleProgress, type ProgressState } from './progress';
 import { useThumbnail } from './thumbs';
 
@@ -161,11 +161,11 @@ export function ChapterList({
                   {chapterLessons(ch).map((info, vi) => {
                     const vid = ch.videos[vi];
                     const current = ci === selC && vi === selV;
-                    const seen = !!state.watched[lessonKey(m.id, ci, vi)];
+                    const seen = !!state.watched[vid.id];
                     return (
                       <li key={vi}>
                         <Link
-                          to={{ search: lessonSearch(ci, vi) }}
+                          to={lessonHref(m.id, vid.id)}
                           replace
                           className={cx('mod-vid', current && 'is-current', seen && 'is-watched', info.unavailable && 'is-unavailable')}
                           aria-current={current ? 'true' : undefined}

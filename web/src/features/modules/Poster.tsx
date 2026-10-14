@@ -5,7 +5,7 @@
 import { Play } from '@phosphor-icons/react';
 import { useMemo, type CSSProperties } from 'react';
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
-import { lessonKey, videoThumbnailUrl } from '../../lib/modules';
+import { videoThumbnailUrl } from '../../lib/modules';
 import { cx } from '../../ui';
 import { KIND_ICON, KIND_SOURCE, chapterLessons, kindLabel, lessonPosition, lessonTrace } from './lessons';
 import { useThumbnail } from './thumbs';
@@ -45,7 +45,7 @@ export function LessonPoster({
   const chapter = m.chapters[c];
   const video = chapter.videos[v];
   const count = chapter.videos.length;
-  const key = lessonKey(m.id, c, v);
+  const key = m.chapters[c].videos[v].id;
   const trace = useMemo(() => lessonTrace(key, { width: W, height: TRACE_H, points: 38, spikeAt: 0.765 }), [key]);
   const thumb = videoThumbnailUrl(video);
   const thumbOk = useThumbnail(thumb) === 'ok';
@@ -105,7 +105,7 @@ export function LessonPoster({
         {count > 1 ? (
           <span className="mod-poster__ticks">
             {chapter.videos.map((_, i) => (
-              <span key={i} className={cx('mod-poster__tick', i === v && 'is-current', isWatched?.(lessonKey(m.id, c, i)) && 'is-watched')} />
+              <span key={i} className={cx('mod-poster__tick', i === v && 'is-current', isWatched?.(m.chapters[c].videos[i].id) && 'is-watched')} />
             ))}
           </span>
         ) : (
@@ -134,7 +134,7 @@ export function MiniPoster({
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }) {
-  const key = lessonKey(m.id, c, v);
+  const key = m.chapters[c].videos[v].id;
   const trace = useMemo(() => lessonTrace(key, { width: 320, height: 64, points: 18, spikeAt: 0.62, noise: 0.08 }), [key]);
   return (
     <span className={cx('mod-mini', `mod-mini--${size}`, className)} data-theme="dark" style={cohortVars(m.year)} aria-hidden="true">
