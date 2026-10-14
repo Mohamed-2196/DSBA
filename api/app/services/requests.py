@@ -386,7 +386,13 @@ def set_me_too(db: Session, user: User, req: StudentRequest, on: bool) -> None:
 def _tell(db: Session, req: StudentRequest, actor: User, body: str | None = None) -> int:
     """Notifies the requester and everyone who said "me too" about the request's new status, each while the feature
     is on for them. -> how many were told."""
-    audience = access.audience(db, Feature.requests)
+    return _tell_within(db, access.audience(db, Feature.requests), req, actor, body)
+
+
+def _tell_within(
+    db: Session, audience: ColumnElement[bool] | None, req: StudentRequest, actor: User, body: str | None = None
+) -> int:
+    """_tell() for the people in `audience` (access.audience() of requests, worked out once for many requests)."""
     if audience is None:
         return 0
     wanted = or_(
@@ -555,11 +561,12 @@ def close_for_date(db: Session, user: User, event: CalendarEvent, reply: str, ip
         .with_for_update()
     ).all()
     now = utcnow()
+    audience = access.audience(db, Feature.requests)
     for req in reqs:
         before = req.status
         req.status, req.reply, req.answered_by, req.answered_at = RequestStatus.done, reply, user.id, now
         db.flush()
-        told = _tell(db, req, user)
+        told = _tell_within(db, audience, req, user)
         record(
             db,
             user,

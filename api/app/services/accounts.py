@@ -15,8 +15,8 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, object_session
 
-from app.core.access import ADMIN, STUDENT
-from app.core.errors import ApiError, conflict, invalid, not_found
+from app.core.access import ADMIN, REP, STUDENT
+from app.core.errors import ApiError, conflict, forbidden, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
     BoardCard,
@@ -50,6 +50,7 @@ from app.models import (
     UploadStatus,
     User,
     UserSession,
+    UserStatus,
     VideoSuggestion,
 )
 from app.schemas.access import RoleSummary
@@ -75,6 +76,7 @@ from app.schemas.auth import (
     ExportVote,
     HomeBlock,
     Me,
+    MeUpdate,
     Preferences,
     PreferencesUpdate,
 )
@@ -140,6 +142,31 @@ def update_preferences(user: User, changes: PreferencesUpdate) -> None:
     if blocks is not None:
         merged["home_blocks"] = list(dict.fromkeys(blocks))
     user.preferences = merged  # a new dict: JSONB columns don't see changes made in place
+
+
+def update_profile(user: User, body: MeUpdate) -> None:
+    """Applies PATCH /me: only the fields sent change. A new year clears the papers (another year's choices), and
+    repeated papers are dropped. Raises invalid_display_name (422), or forbidden (403) for a suspended account's
+    new name."""
+    sent = body.model_fields_set
+    if "display_name" in sent:
+        if body.display_name is None:
+            raise invalid("displayName", "Enter a display name.", code="invalid_display_name")
+        staff = any(slug in (ADMIN, REP) for slug in access.access_of(user).slugs)  # Admin and Rep holders only
+        name = clean_display_name(body.display_name, staff=staff)
+        if name != user.display_name:
+            if user.status == UserStatus.suspended:
+                raise forbidden("Your account is suspended, so your name can't change. Contact a student rep.")
+            user.display_name = name
+    if "year" in sent and body.year != user.year:
+        user.year = body.year
+        user.papers = []
+    if "papers" in sent and body.papers is not None:
+        user.papers = list(dict.fromkeys(body.papers))
+    if "zone" in sent:
+        user.zone = body.zone
+    if "preferences" in sent and body.preferences is not None:
+        update_preferences(user, body.preferences)
 
 
 def require_tracking(user: User) -> None:

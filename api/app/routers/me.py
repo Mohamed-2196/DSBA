@@ -12,10 +12,9 @@ from uuid import UUID
 
 from fastapi import Request, Response, status
 
-from app.core.access import ADMIN, REP
-from app.core.errors import conflict, forbidden, invalid, not_found
+from app.core.errors import conflict, not_found
 from app.core.security import DB, CurrentSession, CurrentUser, clear_session_cookie, client_ip
-from app.models import UserSession, UserStatus
+from app.models import UserSession
 from app.routers._base import router_for
 from app.schemas.auth import (
     AccountExport,
@@ -29,7 +28,7 @@ from app.schemas.auth import (
     StepUpStart,
 )
 from app.schemas.common import ErrorResponse
-from app.services import access, accounts, otp, sessions
+from app.services import accounts, otp, sessions
 from app.services.storage import get_storage
 
 router = router_for("me")
@@ -50,25 +49,7 @@ def update_me(body: MeUpdate, user: CurrentUser, db: DB) -> Me:
     """Display name, cohort year, email switches, papers and zone. Only the fields sent change; `year: null` clears it.
 
     Errors: invalid_display_name (422), forbidden (403: a suspended account can't change its name)."""
-    sent = body.model_fields_set
-    if "display_name" in sent:
-        if body.display_name is None:
-            raise invalid("displayName", "Enter a display name.", code="invalid_display_name")
-        staff = any(slug in (ADMIN, REP) for slug in access.access_of(user).slugs)  # Admin and Rep holders only
-        name = accounts.clean_display_name(body.display_name, staff=staff)
-        if name != user.display_name:
-            if user.status == UserStatus.suspended:
-                raise forbidden("Your account is suspended, so your name can't change. Contact a student rep.")
-            user.display_name = name
-    if "year" in sent and body.year != user.year:
-        user.year = body.year
-        user.papers = []  # another year's choices
-    if "papers" in sent and body.papers is not None:
-        user.papers = list(dict.fromkeys(body.papers))
-    if "zone" in sent:
-        user.zone = body.zone
-    if "preferences" in sent and body.preferences is not None:
-        accounts.update_preferences(user, body.preferences)
+    accounts.update_profile(user, body)
     db.commit()
     return accounts.me_out(user)
 

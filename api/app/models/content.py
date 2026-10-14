@@ -25,6 +25,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, check_in, created_ts, str_enum, uuid_pk, year_range
 from app.schemas.calendar import EventType
+from app.schemas.modules import VideoKind
 
 
 class Module(Base):
@@ -83,7 +84,7 @@ class Lesson(Base):
     __table_args__ = (
         Index("ix_lessons_chapter_position", "chapter_id", "position"),
         Index("ix_lessons_module", "module_id"),
-        check_in("kind", ("youtube", "youtube-playlist", "bbb")),
+        check_in("kind", get_args(VideoKind)),
     )
 
     id: Mapped[str] = mapped_column(String(16), primary_key=True)  # app/services/modules.py new_id()
@@ -120,7 +121,7 @@ class VideoSuggestion(Base):
         Index("ix_video_suggestions_lesson", "lesson_id"),  # lesson deletion (SET NULL)
         Index("ix_video_suggestions_decided_by", "decided_by"),  # account deletion (SET NULL)
         Index("ix_video_suggestions_queue", "created_at", postgresql_where=text("status = 'pending'")),
-        check_in("kind", ("youtube", "youtube-playlist", "bbb")),
+        check_in("kind", get_args(VideoKind)),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()

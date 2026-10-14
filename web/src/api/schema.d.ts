@@ -2384,7 +2384,7 @@ export interface paths {
          * Ask Noora
          * @description Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the
          *     note or the answer. The note goes only when the student ticked "Include my note". With `paper`, the server adds
-         *     that page of the past paper and the examiners' report for its sitting, from the text it read (IDEA-4): 404
+         *     that page of the past paper and the examiners' report for its sitting, from the text it read: 404
          *     not_found unless it is a published past paper, 404 feature_off while the library is off for the student.
          *
          *     Errors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly
@@ -3598,7 +3598,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -4020,6 +4020,10 @@ export interface components {
             status: "open" | "planned" | "done" | "declined";
             /** Reply */
             reply: string | null;
+            /** Founditemid */
+            foundItemId: string | null;
+            /** Foundat */
+            foundAt: string | null;
             /** Removed */
             removed: boolean;
             /**
