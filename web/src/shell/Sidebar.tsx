@@ -1,9 +1,9 @@
 import { createElement } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { ArrowUpRight } from '@phosphor-icons/react';
+import { ArrowSquareOut } from '@phosphor-icons/react';
 import { useAuth } from '../auth';
 import { BREAKPOINTS, useMediaQuery } from '../state';
-import { Badge, BrandLogo, HubLogo, HubMark, Tooltip, cx } from '../ui';
+import { Badge, HubLogo, Tooltip, cx } from '../ui';
 import { EXTERNAL_LINKS, NAV, type ExternalLink, type NavItem as NavConfig } from './nav';
 import { visibleNav } from './visibility';
 import { YearSwitcher } from './YearSwitcher';
@@ -32,7 +32,6 @@ function NavItem({ item, collapsed }: { item: NavConfig; collapsed: boolean }) {
               New
             </Badge>
           ) : null}
-          {isActive ? <HubMark size={10} animate="draw" className="shell-nav__mark" /> : null}
         </>
       )}
     </NavLink>
@@ -47,16 +46,18 @@ function NavItem({ item, collapsed }: { item: NavConfig; collapsed: boolean }) {
 }
 
 function ExternalItem({ item, collapsed }: { item: ExternalLink; collapsed: boolean }) {
-  // Partner sites are shown by their own marks: a small logo tile that opens the site.
   const a = (
-    <a href={item.href} target="_blank" rel="noopener noreferrer" className="shell-ext" aria-label={`${item.label} (opens in a new tab)`}>
-      <span className="shell-ext__logo">
-        <BrandLogo name={item.logo} height={collapsed ? 26 : item.logoHeight} decorative />
-      </span>
-      <span className="shell-ext__label">
-        {item.label}
-        <ArrowUpRight className="shell-ext__arrow" aria-hidden="true" weight="bold" />
-      </span>
+    <a
+      href={item.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="shell-nav__item shell-nav__item--ext"
+      aria-label={`${item.label} (opens in a new tab)`}
+      data-hub={`ext-${item.id}`}
+    >
+      <span className="shell-nav__icon">{createElement(item.icon, { 'aria-hidden': true })}</span>
+      <span className="shell-nav__label">{item.label}</span>
+      <ArrowSquareOut className="shell-nav__out" aria-hidden="true" />
     </a>
   );
   return collapsed ? (
@@ -68,7 +69,11 @@ function ExternalItem({ item, collapsed }: { item: ExternalLink; collapsed: bool
   );
 }
 
-/** Left rail: brand, year switcher, nav, external links, theme, account. Icon-only at 700–1099px. */
+/**
+ * Left rail: the brand and year switcher at the top and the theme and account at the bottom stay put; only the nav
+ * (with the outside links after it) scrolls between them, so the account is always in reach at any zoom. Icon-only
+ * at 700–1099px.
+ */
 export function Sidebar() {
   const collapsed = useMediaQuery(BREAKPOINTS.tablet);
   const { featureOn, me } = useAuth();
@@ -86,26 +91,26 @@ export function Sidebar() {
           <YearSwitcher compact={collapsed} />
         </div>
 
-        <nav className="shell-nav" aria-label="Main">
-          <ul role="list">
-            {visibleNav(NAV, featureOn, !!me).map((item) => (
-              <li key={item.id}>
-                <NavItem item={item} collapsed={collapsed} />
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <div className="shell-rail__scroll">
+          <nav className="shell-nav" aria-label="Main">
+            <ul role="list">
+              {visibleNav(NAV, featureOn, !!me).map((item) => (
+                <li key={item.id}>
+                  <NavItem item={item} collapsed={collapsed} />
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-        <div className="shell-rail__grow" />
-
-        <div className="shell-rail__links">
-          <ul role="list">
-            {EXTERNAL_LINKS.map((item) => (
-              <li key={item.id}>
-                <ExternalItem item={item} collapsed={collapsed} />
-              </li>
-            ))}
-          </ul>
+          <nav className="shell-rail__links" aria-label="Student portals">
+            <ul role="list">
+              {EXTERNAL_LINKS.map((item) => (
+                <li key={item.id}>
+                  <ExternalItem item={item} collapsed={collapsed} />
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
 
         <div className="shell-rail__foot">

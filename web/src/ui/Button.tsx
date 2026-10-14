@@ -1,7 +1,7 @@
 import { forwardRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type ElementType, type MouseEvent, type ReactNode } from 'react';
 import { Link, type To } from 'react-router-dom';
 import { cx, renderIcon, type IconSource } from './internal';
-import { HubMark } from './HubMark';
+import { Spinner } from './Spinner';
 import './Button.css';
 
 const isExternal = (href: string) => /^(https?:)?\/\//.test(href);
@@ -68,7 +68,7 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(function Button(
   if (loading) props['aria-busy'] = true;
   return (
     <Comp {...props}>
-      {loading ? <HubMark size={10} animate="loop" tone="current" dot={false} className="ui-button__icon" /> : renderIcon(leadingIcon, { className: 'ui-button__icon' })}
+      {loading ? <Spinner size={14} className="ui-button__spinner" /> : renderIcon(leadingIcon, { className: 'ui-button__icon' })}
       {children != null && children !== false ? <span className="ui-button__label">{children}</span> : null}
       {renderIcon(trailingIcon, { className: 'ui-button__icon' })}
     </Comp>

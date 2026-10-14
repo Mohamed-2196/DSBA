@@ -45,7 +45,7 @@
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
-.mod-frame__mark { display: inline-flex; color: var(--mc); }
+.mod-frame__loading .ui-spinner { color: var(--mc); }
 
 /* YouTube unreachable */
 .mod-frame--blocked { display: grid; place-items: center; }

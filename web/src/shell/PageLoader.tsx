@@ -1,10 +1,10 @@
-import { HubMark } from '../ui';
+import { Spinner } from '../ui';
 
-/** Suspense fallback for lazy pages: the trace as a loader. */
+/** Suspense fallback for lazy pages. */
 export function PageLoader() {
   return (
     <div className="shell-loader" role="status">
-      <HubMark size={22} animate="loop" />
+      <Spinner size={24} />
       <span className="visually-hidden">Loading page</span>
     </div>
   );

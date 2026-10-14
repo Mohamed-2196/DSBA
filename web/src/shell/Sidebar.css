@@ -8,12 +8,28 @@
   width: var(--rail-w);
   height: 100vh;
   height: 100dvh;
-  padding: 0 var(--sp-16) var(--sp-16);
+  padding: 0 var(--sp-16) var(--sp-12);
+  overflow: hidden;
+}
+
+/* Only the middle scrolls: the brand and year above and the account below stay in view at any zoom. The fades
+   say there is more above or below; they are drawn by the scroll area itself (background-attachment). */
+.shell-rail__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 calc(-1 * var(--sp-8));
+  padding: 2px var(--sp-8) var(--sp-12);
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-width: none;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  background:
+    linear-gradient(var(--surface) 30%, transparent) top / 100% 24px no-repeat local,
+    linear-gradient(transparent, var(--surface) 70%) bottom / 100% 24px no-repeat local,
+    linear-gradient(color-mix(in srgb, var(--ink) 10%, transparent), transparent) top / 100% 10px no-repeat scroll,
+    linear-gradient(transparent, color-mix(in srgb, var(--ink) 10%, transparent)) bottom / 100% 10px no-repeat scroll;
 }
-.shell-rail::-webkit-scrollbar { display: none; }
 
 /* brand */
 .shell-rail__brand { flex: 0 0 auto; display: flex; align-items: center; height: var(--topbar-h); padding: 0 6px; }
@@ -21,7 +37,7 @@
 .shell-brand__name { font-size: 19px; font-weight: var(--fw-heavy); letter-spacing: -0.025em; line-height: 1; white-space: nowrap; }
 
 /* year */
-.shell-rail__year { flex: 0 0 auto; padding: var(--sp-8) 6px var(--sp-24); }
+.shell-rail__year { flex: 0 0 auto; padding: var(--sp-8) 6px var(--sp-16); }
 
 /* nav */
 .shell-nav ul, .shell-rail__links ul { display: grid; gap: 2px; }
@@ -43,12 +59,22 @@
 }
 .shell-nav__item:hover { background: color-mix(in srgb, var(--surface-2) 65%, var(--surface)); color: var(--ink); }
 .shell-nav__item.is-active { background: var(--surface-2); color: var(--ink); font-weight: var(--fw-semibold); }
+/* The active page: a plain bar on the item's leading edge. */
+.shell-nav__item.is-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--cobalt);
+}
 .shell-nav__icon { position: relative; display: grid; place-items: center; width: 22px; font-size: 21px; color: var(--ink-2); transition: color var(--dur-fast) var(--ease); }
 .shell-nav__item:hover .shell-nav__icon { color: var(--ink); }
 .shell-nav__item.is-active .shell-nav__icon { color: var(--cobalt); }
 .shell-nav__label { flex: 1 1 auto; min-width: 0; }
 .shell-nav__new { flex: 0 0 auto; }
-.shell-nav__mark { flex: 0 0 auto; margin-left: 2px; }
 .shell-nav__newdot {
   display: none;
   position: absolute;
@@ -62,34 +88,15 @@
 }
 .shell-nav__tip { display: flex; }
 
-/* partner sites: logo tiles */
-.shell-rail__grow { flex: 1 1 auto; min-height: var(--sp-24); }
-.shell-rail__links { flex: 0 0 auto; padding-top: var(--sp-12); border-top: 1px solid var(--line); }
-.shell-rail__links ul { grid-template-columns: 1fr 1fr; gap: var(--sp-8); }
-.shell-ext {
-  display: grid;
-  grid-template-rows: 44px auto;
-  justify-items: center;
-  align-items: center;
-  gap: 6px;
-  padding: 12px 6px 9px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
-  background: var(--surface);
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
-  text-decoration: none;
-  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
-}
-.shell-ext:hover { border-color: var(--line-strong); background: color-mix(in srgb, var(--surface-2) 55%, var(--surface)); color: var(--ink); }
-.shell-ext__logo { display: grid; place-items: center; }
-.shell-ext__label { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-.shell-ext__arrow { font-size: 11px; color: var(--ink-3); }
-.shell-ext:hover .shell-ext__arrow { color: var(--cobalt); }
+/* student portals: plain links after the nav */
+.shell-rail__links { margin-top: var(--sp-12); padding-top: var(--sp-12); border-top: 1px solid var(--line); }
+.shell-nav__item--ext { font-size: var(--fs-14); height: 38px; }
+.shell-nav__item--ext .shell-nav__icon { font-size: 19px; color: var(--ink-3); }
+.shell-nav__out { flex: 0 0 auto; font-size: 14px; color: var(--ink-3); }
+.shell-nav__item--ext:hover .shell-nav__out { color: var(--cobalt); }
 
 /* foot */
-.shell-rail__foot { flex: 0 0 auto; display: grid; gap: var(--sp-8); margin-top: var(--sp-12); padding-top: var(--sp-12); border-top: 1px solid var(--line); }
+.shell-rail__foot { flex: 0 0 auto; display: grid; gap: var(--sp-4); padding-top: var(--sp-8); border-top: 1px solid var(--line); }
 .shell-theme { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-8); height: 38px; padding-left: 10px; }
 .shell-theme__label { display: inline-flex; align-items: center; gap: 12px; color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-medium); }
 .shell-theme__label svg { font-size: 18px; color: var(--ink-3); }
@@ -116,15 +123,13 @@
 .shell-rail.is-collapsed .shell-brand__name,
 .shell-rail.is-collapsed .shell-nav__label,
 .shell-rail.is-collapsed .shell-nav__new,
-.shell-rail.is-collapsed .shell-nav__mark,
-.shell-rail.is-collapsed .shell-ext__label { display: none; }
+.shell-rail.is-collapsed .shell-nav__out { display: none; }
 .shell-rail.is-collapsed .shell-rail__year { padding: var(--sp-4) 0 var(--sp-16); }
 .shell-rail.is-collapsed .shell-nav__item { justify-content: center; width: 48px; height: 44px; padding: 0; }
 .shell-rail.is-collapsed .shell-nav__newdot { display: block; }
-.shell-rail.is-collapsed .shell-rail__links,
+.shell-rail.is-collapsed .shell-rail__scroll { width: calc(48px + 2 * var(--sp-8)); }
 .shell-rail.is-collapsed .shell-rail__foot { width: 48px; justify-items: center; }
-.shell-rail.is-collapsed .shell-rail__links ul { grid-template-columns: 1fr; }
-.shell-rail.is-collapsed .shell-ext { grid-template-rows: auto; width: 48px; height: 44px; padding: 0; }
+.shell-rail.is-collapsed .shell-nav__item.is-active::before { top: 10px; bottom: 10px; }
 .shell-profile--compact { width: auto; padding: 4px; border-radius: 999px; }
 
 @media (pointer: coarse) {
@@ -133,6 +138,6 @@
 
 /* Touch screens: 44px rows and a 44px brand target (UX review UX-11). */
 @media (pointer: coarse) {
-  .shell-nav__item { height: 44px; }
+  .shell-nav__item, .shell-nav__item--ext { height: 44px; }
   .shell-brand { min-width: 44px; min-height: 44px; justify-content: center; }
 }

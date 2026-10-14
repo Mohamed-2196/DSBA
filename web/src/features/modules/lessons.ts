@@ -1,5 +1,4 @@
-// Lesson helpers for the modules feature: labels, embed URLs, URL params, dates and the deterministic
-// per-lesson trace drawn on posters. Titles and channels come with the module's videos from the API.
+// Lesson helpers for the modules feature: labels, embed URLs, URL params and dates. Titles and channels come with the module's videos from the API.
 import { ChalkboardTeacher, Playlist, YoutubeLogo, type Icon } from '@phosphor-icons/react';
 import type { Chapter, Video } from '../../api/types';
 import type { Feature } from '../../auth';
@@ -178,60 +177,4 @@ export function lastOpenedLabel(at: number | null | undefined, now = Date.now())
   if (days <= 1) return 'yesterday';
   if (days < 14) return `${days} days ago`;
   return formatDate(new Date(at), { day: 'numeric', month: 'short' });
-}
-
-// ── Trace (poster art) ──────────────────────────────────────────────
-function hashString(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-function seeded(seed: number): () => number {
-  let s = seed || 1;
-  return () => {
-    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
-    return s / 4294967296;
-  };
-}
-
-export interface TraceOptions {
-  width?: number;
-  height?: number;
-  points?: number;
-  spikeAt?: number;
-  noise?: number;
-  flat?: number;
-}
-
-/**
- * The brand trace, stretched into a lesson's own time series: quiet noise, one spike.
- * Deterministic per seed (no Math.random at render). Coordinates in a width × height box.
- */
-export function lessonTrace(
-  seed: string,
-  { width = 600, height = 120, points = 36, spikeAt = 0.72, noise = 0.07, flat = 0.06 }: TraceOptions = {},
-): { d: string; end: [number, number]; spike: [number, number] } {
-  const rand = seeded(hashString(String(seed)));
-  const base = height * 0.6;
-  const si = Math.max(3, Math.min(points - 4, Math.round(spikeAt * (points - 1))));
-  const step = width / (points - 1);
-  const pts: [number, number][] = [];
-  let drift = 0;
-  for (let i = 0; i < points; i++) {
-    const x = i === 0 || i === points - 1 ? i * step : i * step + (rand() - 0.5) * step * 0.5;
-    drift = drift * 0.5 + (rand() - 0.5) * noise * height * 2;
-    let y = base + drift;
-    if (x < width * flat) y = base;
-    if (i === si - 1) y = base + noise * height * 0.9;
-    if (i === si) y = height * 0.04;
-    if (i === si + 1) y = height * 0.96;
-    if (i === si + 2) y = base - noise * height * 1.4;
-    pts.push([x, y]);
-  }
-  const d = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
-  return { d, end: pts[pts.length - 1], spike: pts[si] };
 }

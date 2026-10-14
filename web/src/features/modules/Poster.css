@@ -18,33 +18,10 @@
 }
 .mod-poster:focus-visible { outline: 3px solid var(--focus-color); outline-offset: -3px; }
 
-.mod-poster__plot { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
-.mod-poster__grid { fill: none; stroke: var(--ink); stroke-opacity: 0.055; stroke-width: 1; vector-effect: non-scaling-stroke; }
-.mod-poster__axis { fill: none; stroke: var(--ink); stroke-opacity: 0.16; stroke-width: 1; stroke-dasharray: 2 5; vector-effect: non-scaling-stroke; }
-.mod-poster__trace {
-  fill: none;
-  stroke: var(--mc);
-  stroke-width: 2.25;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-}
-
-/* Thumbnail (only when it really loaded): a framed preview under the play button. */
-.mod-poster__thumb {
-  position: absolute;
-  left: 76.5%;
-  top: 45%;
-  width: 38%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border-radius: var(--r-xs);
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent), 0 18px 40px -18px rgba(0, 0, 0, 0.7);
-  animation: mod-poster-fade var(--dur-slow) var(--ease);
-}
+/* The video's own thumbnail (only when it really loaded) fills the poster, dimmed so the type on it reads. */
+.mod-poster__thumb { position: absolute; inset: 0; z-index: -1; animation: mod-poster-fade var(--dur-slow) var(--ease); }
 .mod-poster__thumb img { width: 100%; height: 100%; object-fit: cover; }
-.mod-poster__thumb::after { content: ''; position: absolute; inset: 0; background: color-mix(in srgb, var(--paper) 28%, transparent); }
+.mod-poster__thumb::after { content: ''; position: absolute; inset: 0; background: color-mix(in srgb, var(--paper) 72%, transparent); }
 @keyframes mod-poster-fade { from { opacity: 0; } }
 
 .mod-poster__top {
@@ -143,7 +120,6 @@
   .mod-poster__source { display: none; }
   .mod-poster__kind { height: 24px; padding: 0 9px; }
   .mod-poster__play { left: 80%; top: 50%; }
-  .mod-poster__thumb { display: none; }
   .mod-poster__short { display: none; }
 }
 
@@ -164,9 +140,6 @@
 .mod-mini--sm { width: 96px; border-radius: 8px; }
 .mod-mini--md { width: 136px; }
 .mod-mini--lg { width: 100%; border-radius: 12px; }
-.mod-mini__plot { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; }
-.mod-mini__grid { fill: none; stroke: var(--ink); stroke-opacity: 0.07; vector-effect: non-scaling-stroke; }
-.mod-mini__trace { fill: none; stroke: var(--mc); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .mod-mini__code {
   position: absolute;
   left: 8cqi;

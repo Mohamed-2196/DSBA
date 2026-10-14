@@ -1,0 +1,13 @@
+.ui-spinner {
+  display: inline-block;
+  flex: 0 0 auto;
+  border: 2px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  vertical-align: middle;
+  animation: ui-spin 800ms linear infinite;
+}
+@keyframes ui-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ui-spinner { animation-duration: 2400ms; }
+}

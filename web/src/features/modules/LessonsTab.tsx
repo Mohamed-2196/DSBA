@@ -6,7 +6,7 @@ import type { ModuleDetail, Video } from '../../api/types';
 import { videoThumbnailUrl } from '../../lib/modules';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
-import { Button, ErrorBoundary, HubMark, cx } from '../../ui';
+import { Button, ErrorBoundary, Spinner, cx } from '../../ui';
 import { LessonNotes } from '../notes/public';
 import { AddToBoard } from '../board/public';
 import { ChapterQuestions } from '../library/public';
@@ -27,9 +27,7 @@ function LessonWaiting({ year, video }: { year: number; video: Video }) {
   return (
     <div className="mod-frame" data-theme="dark" style={frameVars(year)}>
       <div className="mod-frame__loading" role="status">
-        <span className="mod-frame__mark">
-          <HubMark size={18} animate="loop" tone="current" />
-        </span>
+        <Spinner size={20} />
         <span>Loading from {KIND_SOURCE[video.kind] ?? 'the original site'}</span>
       </div>
     </div>
@@ -79,9 +77,7 @@ function LessonFrame({ module: m, c, v }: { module: ModuleDetail; c: number; v: 
     <div className="mod-frame" data-theme="dark" style={frameVars(m.year)}>
       {!loaded ? (
         <div className="mod-frame__loading" role="status">
-          <span className="mod-frame__mark">
-            <HubMark size={18} animate="loop" tone="current" />
-          </span>
+          <Spinner size={20} />
           <span>Loading from {KIND_SOURCE[video.kind] ?? 'the original site'}</span>
         </div>
       ) : null}

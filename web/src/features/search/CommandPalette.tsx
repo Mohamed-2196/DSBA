@@ -8,7 +8,7 @@ import { showsUpload, useAuth } from '../../auth';
 import { MagnifyingGlass, X } from '@phosphor-icons/react';
 import { useDebouncedValue, useLocalStorage, useTheme, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Count, HubMark, Kbd, Modal, cx } from '../../ui';
+import { Count, Kbd, Spinner, Modal, cx } from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { askNoora, hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
 import { useSearch } from './api';
@@ -253,7 +253,7 @@ export function CommandPalette() {
           onKeyDown={onKeyDown}
           data-hub="cmdk-input"
         />
-        {waiting ? <HubMark size={9} animate="loop" className="cmdk-field__loading" /> : null}
+        {waiting ? <Spinner size={16} className="cmdk-field__loading" /> : null}
         {query ? (
           <button
             type="button"

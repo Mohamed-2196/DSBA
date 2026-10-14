@@ -143,9 +143,6 @@ export default function AboutPage() {
               ))}
             </ul>
           </Panel>
-          <a href={MYCLASS_URL} target="_blank" rel="noopener noreferrer" className="about__bibf" aria-label="BIBF MyClass">
-            <img src={`${import.meta.env.BASE_URL}BIBF_logo.png`} alt="BIBF" width="120" />
-          </a>
         </aside>
       </div>
     </Page>
