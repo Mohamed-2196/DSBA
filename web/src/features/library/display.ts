@@ -71,3 +71,16 @@ export function statusInfo(status: ItemStatus): StatusInfo | null {
   if (status === 'removed') return { label: 'Removed', tone: 'neutral' };
   return null;
 }
+
+/** Where a search found its words inside the file: 'Page 3: “…the Cramér–Rao bound…”', or just the words. */
+export function matchLine(item: Pick<LibraryItem, 'match'>): string | null {
+  const m = item.match;
+  if (!m) return null;
+  return m.page ? `Page ${m.page}: ${m.snippet}` : m.snippet;
+}
+
+/** ?page= on a file's address: a page number to open the PDF at, or null. */
+export function pageParam(value: string | null): number | null {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 1 && n <= 10_000 ? n : null;
+}

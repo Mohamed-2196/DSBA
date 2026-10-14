@@ -6,7 +6,7 @@ from typing import Literal
 from app.schemas.career import CareerDoc
 from app.schemas.common import ApiModel
 
-SearchType = Literal["thread", "library", "issue", "module", "event"]
+SearchType = Literal["thread", "library", "issue", "module", "lesson", "event"]
 
 
 class SearchHit(ApiModel):
@@ -17,6 +17,7 @@ class SearchHit(ApiModel):
     url: str  # a path inside the web app
     meta: str | None  # e.g. 'ST2133 · Past paper'
     date: datetime | None
+    page: int | None  # a file's page where the words were found (the url opens it there)
 
 
 class SearchResults(ApiModel):
@@ -25,6 +26,7 @@ class SearchResults(ApiModel):
     library: list[SearchHit]
     issues: list[SearchHit]
     modules: list[SearchHit]
+    lessons: list[SearchHit]  # chapters first (opening their first lesson), then videos by title
     events: list[SearchHit]
 
 

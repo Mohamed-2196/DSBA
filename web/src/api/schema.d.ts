@@ -834,7 +834,8 @@ export interface paths {
          * List Items
          * @description Published items for everyone. `starred` and `mine` need a session; `mine` includes pending and rejected.
          *     `q` searches titles, descriptions, authors and file names, plus the module's code and name and the kind
-         *     ("ST2133 past papers"); the last word matches as a prefix.
+         *     ("ST2133 past papers"), and the words inside PDF and Word files (those found only there come after the rest,
+         *     with `match`: the words around them and the page); the last word matches as a prefix.
          */
         get: operations["list_items_api_v1_library_items_get"];
         put?: never;
@@ -3841,6 +3842,7 @@ export interface components {
             isMine: boolean;
             /** Canedit */
             canEdit: boolean;
+            match: components["schemas"]["TextMatch"] | null;
         };
         /**
          * LibraryItemCreate
@@ -5081,7 +5083,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "thread" | "library" | "issue" | "module" | "event";
+            type: "thread" | "library" | "issue" | "module" | "lesson" | "event";
             /** Id */
             id: string;
             /** Title */
@@ -5094,6 +5096,8 @@ export interface components {
             meta: string | null;
             /** Date */
             date: string | null;
+            /** Page */
+            page: number | null;
         };
         /** SearchResults */
         SearchResults: {
@@ -5107,6 +5111,8 @@ export interface components {
             issues: components["schemas"]["SearchHit"][];
             /** Modules */
             modules: components["schemas"]["SearchHit"][];
+            /** Lessons */
+            lessons: components["schemas"]["SearchHit"][];
             /** Events */
             events: components["schemas"]["SearchHit"][];
         };
@@ -5261,6 +5267,16 @@ export interface components {
             id: string;
             /** Label */
             label: string;
+        };
+        /**
+         * TextMatch
+         * @description Where a search's words were found inside the file: the words around them, and the page (PDFs).
+         */
+        TextMatch: {
+            /** Snippet */
+            snippet: string;
+            /** Page */
+            page: number | null;
         };
         /** ThreadCreate */
         ThreadCreate: {
@@ -5720,6 +5736,7 @@ export type StepUpResult = components['schemas']['StepUpResult'];
 export type StepUpStart = components['schemas']['StepUpStart'];
 export type SwitchUpdate = components['schemas']['SwitchUpdate'];
 export type TagOut = components['schemas']['TagOut'];
+export type TextMatch = components['schemas']['TextMatch'];
 export type ThreadCreate = components['schemas']['ThreadCreate'];
 export type ThreadDetail = components['schemas']['ThreadDetail'];
 export type ThreadModeration = components['schemas']['ThreadModeration'];
@@ -15357,7 +15374,7 @@ export interface operations {
             query: {
                 q: string;
                 /** @description Default: all */
-                types?: ("thread" | "library" | "issue" | "module" | "event")[] | null;
+                types?: ("thread" | "library" | "issue" | "module" | "lesson" | "event")[] | null;
                 /** @description Per type */
                 limit?: number;
             };

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useModules } from '../../../state/modules';
 import { Badge } from '../../../ui';
 import { itemPath } from '../api';
-import { cardMeta, moduleTag, statusInfo } from '../display';
+import { cardMeta, matchLine, moduleTag, statusInfo } from '../display';
 import { extensionOf } from '../kinds';
 import type { LibraryItem, LibrarySort } from '../types';
 import { FileThumb, type ThumbSize } from './FileThumb';
@@ -31,6 +31,7 @@ export function FileCard({
   const ext = item.source === 'file' ? extensionOf(item.fileName)?.toLowerCase() : null;
   const status = statusInfo(item.status);
   const titleHasCode = !!code && item.title.toLowerCase().startsWith(code.toLowerCase());
+  const found = matchLine(item);
   return (
     <article className="lib-card" data-hub="file-card">
       <Link to={itemPath(item)} state={linkState} className="lib-card__link">
@@ -39,6 +40,7 @@ export function FileCard({
           {item.title}
           {ext ? <span className="lib-card__ext">.{ext}</span> : null}
         </span>
+        {found ? <span className="lib-card__match">{found}</span> : null}
         {status ? (
           <Badge tone={status.tone} size="sm" className="lib-card__status">
             {status.label}

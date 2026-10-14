@@ -4,6 +4,7 @@ import {
   ArrowSquareOut,
   ArrowsLeftRight,
   Bank,
+  BookOpenText,
   Books,
   Calculator,
   CalendarDots,
@@ -21,6 +22,7 @@ import {
   Moon,
   Newspaper,
   PencilSimpleLine,
+  PlayCircle,
   SquaresFour,
   Sun,
   UploadSimple,
@@ -90,6 +92,8 @@ export function Leading({ item }: { item: Item }) {
           <ModuleIcon moduleId={item.moduleId} />
         </span>
       );
+    case 'lesson':
+      return <span className="cmdk-tile" aria-hidden="true">{item.chapter ? <BookOpenText /> : <PlayCircle />}</span>;
     case 'file':
       return <span className="cmdk-doc" aria-hidden="true" />;
     case 'thread':

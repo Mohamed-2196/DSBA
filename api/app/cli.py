@@ -14,6 +14,10 @@ mail-worker        send the queued emails (notifications, account notices) with 
 import-drive       copy the files of the library's Google Drive folders into the library: prints the plan, asks,
                    imports, and lists the folders Drive refused (--dry-run: only the plan; --module ID; --limit N
                    files; --yes: no question). Safe to run again. Needs DSBA_GOOGLE_API_KEY (DEPLOYMENT.md, 10)
+text-worker        read the words of each newly published PDF and Word file, for search inside papers; runs until
+                   stopped. Several can run side by side.
+extract-texts      read the words of the published files that have none yet (the backfill), then stop (--retry:
+                   read failed and empty files again too; --limit N files)
 dev-login ID       development only: print a session token for an account (created if needed, holding Student;
                    --role gives one more role)
 
@@ -280,6 +284,35 @@ def cmd_mail_worker(args: argparse.Namespace) -> int:
     return run_worker(get_sessionmaker(), once=args.once, poll_seconds=args.poll)
 
 
+def cmd_text_worker(args: argparse.Namespace) -> int:
+    """Reads published files' text until stopped (SIGTERM or Ctrl-C)."""
+    from app.services.paper_text import run_worker
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    return run_worker(get_sessionmaker(), get_storage(), poll_seconds=args.poll)
+
+
+def cmd_extract_texts(args: argparse.Namespace) -> int:
+    """The backfill: reads every published file without text, printing how it went."""
+    from app.models import TextStatus
+    from app.services import paper_text
+
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
+    sessions = get_sessionmaker()
+    with sessions() as db:
+        if args.retry:
+            again = paper_text.forget(db, (TextStatus.failed, TextStatus.empty))
+            db.commit()
+            print(f"reading {again} failed or empty file(s) again")
+        print(f"{paper_text.waiting(db)} file(s) to read")
+    counts = paper_text.drain(sessions, get_storage(), limit=args.limit)
+    print(
+        f"read {sum(counts.values())} file(s): {counts[TextStatus.done]} with text, "
+        f"{counts[TextStatus.empty]} without (scans), {counts[TextStatus.failed]} failed"
+    )
+    return 0
+
+
 def cmd_import_drive(args: argparse.Namespace) -> int:
     """The Drive import (app/services/drive_import.py), run from the server's shell (scripts/seed-real.sh)."""
     from app.models import Module
@@ -391,6 +424,13 @@ def main(argv: list[str] | None = None) -> int:
     di.add_argument("--limit", metavar="N", type=_positive, default=None, help="import at most N files this run")
     di.add_argument("--yes", action="store_true", help="import without asking first")
     di.set_defaults(fn=cmd_import_drive)
+    tw = sub.add_parser("text-worker")
+    tw.add_argument("--poll", type=float, default=10.0, help="seconds to wait when nothing is new (default 10)")
+    tw.set_defaults(fn=cmd_text_worker)
+    et = sub.add_parser("extract-texts")
+    et.add_argument("--retry", action="store_true", help="read failed and empty files again too")
+    et.add_argument("--limit", metavar="N", type=_positive, default=None, help="read at most N files this run")
+    et.set_defaults(fn=cmd_extract_texts)
     dl = sub.add_parser("dev-login")
     dl.add_argument("identifier")
     dl.add_argument("--role", default=None, metavar="ROLE", help="give this role too (a slug, such as rep or admin)")

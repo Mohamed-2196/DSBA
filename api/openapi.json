@@ -4589,7 +4589,7 @@
           "library"
         ],
         "summary": "List Items",
-        "description": "Published items for everyone. `starred` and `mine` need a session; `mine` includes pending and rejected.\n`q` searches titles, descriptions, authors and file names, plus the module's code and name and the kind\n(\"ST2133 past papers\"); the last word matches as a prefix.",
+        "description": "Published items for everyone. `starred` and `mine` need a session; `mine` includes pending and rejected.\n`q` searches titles, descriptions, authors and file names, plus the module's code and name and the kind\n(\"ST2133 past papers\"), and the words inside PDF and Word files (those found only there come after the rest,\nwith `match`: the words around them and the page); the last word matches as a prefix.",
         "operationId": "list_items_api_v1_library_items_get",
         "parameters": [
           {
@@ -12299,6 +12299,7 @@
                       "library",
                       "issue",
                       "module",
+                      "lesson",
                       "event"
                     ],
                     "type": "string"
@@ -18951,6 +18952,16 @@
           "canEdit": {
             "type": "boolean",
             "title": "Canedit"
+          },
+          "match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TextMatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -18979,7 +18990,8 @@
           "publishedAt",
           "starred",
           "isMine",
-          "canEdit"
+          "canEdit",
+          "match"
         ],
         "title": "LibraryItem"
       },
@@ -22577,6 +22589,7 @@
               "library",
               "issue",
               "module",
+              "lesson",
               "event"
             ],
             "title": "Type"
@@ -22626,6 +22639,17 @@
               }
             ],
             "title": "Date"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
           }
         },
         "type": "object",
@@ -22636,7 +22660,8 @@
           "snippet",
           "url",
           "meta",
-          "date"
+          "date",
+          "page"
         ],
         "title": "SearchHit"
       },
@@ -22674,6 +22699,13 @@
             "type": "array",
             "title": "Modules"
           },
+          "lessons": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "type": "array",
+            "title": "Lessons"
+          },
           "events": {
             "items": {
               "$ref": "#/components/schemas/SearchHit"
@@ -22689,6 +22721,7 @@
           "library",
           "issues",
           "modules",
+          "lessons",
           "events"
         ],
         "title": "SearchResults"
@@ -23060,6 +23093,32 @@
           "label"
         ],
         "title": "TagOut"
+      },
+      "TextMatch": {
+        "properties": {
+          "snippet": {
+            "type": "string",
+            "title": "Snippet"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          }
+        },
+        "type": "object",
+        "required": [
+          "snippet",
+          "page"
+        ],
+        "title": "TextMatch",
+        "description": "Where a search's words were found inside the file: the words around them, and the page (PDFs)."
       },
       "ThreadCreate": {
         "properties": {
