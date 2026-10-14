@@ -1,5 +1,5 @@
 import { ArrowUpRight, Bank, GithubLogo, GraduationCap, UploadSimple, type Icon } from '@phosphor-icons/react';
-import { CONTRIBUTORS, DISCLAIMER, MYCLASS_URL, NOTE_CONTRIBUTORS, REPORT_PROBLEM_URL, UOL_PORTAL_URL } from '../../data/people';
+import { CONTRIBUTORS, DISCLAIMER, contributorLine, MYCLASS_URL, NOTE_CONTRIBUTORS, REPORT_PROBLEM_URL, UOL_PORTAL_URL } from '../../data/people';
 import { showsUpload, useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import { Avatar, Button, Page, PageHeader, PageSection, Panel, SectionHeader, countOf } from '../../ui';
@@ -79,7 +79,7 @@ export default function AboutPage() {
                     ) : (
                       <span className="about__name">{c.name}</span>
                     )}
-                    <p className="about__role">{c.affiliation ? `${c.role}, ${c.affiliation}` : c.role}</p>
+                    {contributorLine(c) ? <p className="about__role">{contributorLine(c)}</p> : null}
                   </div>
                 </li>
               ))}

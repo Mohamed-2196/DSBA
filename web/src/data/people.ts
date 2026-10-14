@@ -15,7 +15,8 @@ export const DISCLAIMER =
 export interface Contributor {
   id: string;
   name: string;
-  role: string;
+  /** what they contributed; null until it's agreed */
+  role: string | null;
   affiliation: string | null;
   url: string | null;
 }
@@ -37,20 +38,19 @@ export const CONTRIBUTORS: Contributor[] = [
     url: null,
   },
   {
-    id: 'yaser-alghsara',
-    name: 'Yaser Alghsara',
-    role: 'Lecture recordings',
-    affiliation: 'BIBF faculty',
-    url: null,
-  },
-  {
-    id: 'sayed-hasan-kadhem',
-    name: 'Dr. Sayed Hasan Kadhem',
-    role: 'Lecture recordings',
-    affiliation: 'BIBF faculty',
+    id: 'mohamed-hujairi',
+    name: 'Mohamed Hujairi',
+    role: null,
+    affiliation: null,
     url: null,
   },
 ];
+
+/** The line under a contributor's name: their role, with their affiliation when they have one; null with no role. */
+export function contributorLine(c: Pick<Contributor, 'role' | 'affiliation'>): string | null {
+  if (!c.role) return null;
+  return c.affiliation ? `${c.role}, ${c.affiliation}` : c.role;
+}
 
 export interface NoteContributor {
   id: string;

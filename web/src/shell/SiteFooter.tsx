@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
-import { CONTRIBUTORS, COPYRIGHT_HOLDER, DISCLAIMER, LAUNCH_YEAR, MYCLASS_URL, UOL_PORTAL_URL } from '../data/people';
+import { CONTRIBUTORS, COPYRIGHT_HOLDER, contributorLine, DISCLAIMER, LAUNCH_YEAR, MYCLASS_URL, UOL_PORTAL_URL } from '../data/people';
 import { HubLogo } from '../ui';
 import { UPLOAD_PATH, useStartUpload, useUploadShown } from './upload';
 import './SiteFooter.css';
@@ -53,7 +53,7 @@ export function SiteFooter() {
               ) : (
                 <span className="shell-footer__name">{c.name}</span>
               )}
-              <span className="shell-footer__role">{c.affiliation ? `${c.role}, ${c.affiliation}` : c.role}</span>
+              {contributorLine(c) ? <span className="shell-footer__role">{contributorLine(c)}</span> : null}
             </li>
           ))}
         </ul>
