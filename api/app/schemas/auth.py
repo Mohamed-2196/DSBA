@@ -349,11 +349,9 @@ class AccountExport(ApiModel):
     emails: list[ExportEmail]
     board: list[ExportBoardCard]  # study-board cards
     board_plans: list[ExportBoardPlan]  # revision plans on the study board
-    video_suggestions: list[ExportSuggestion]  # videos this person suggested for lessons
-    created_at: datetime
-
     follows: list[ExportFollow]  # forum threads this person follows
     poll_votes: list[ExportPollVote]  # newsletter poll answers
     senior: ExportSenior | None  # the "Ask a senior" listing
     notes: list[ExportNote]  # private notes
     noora_usage: list[ExportNooraDay]  # Mini Noora's AI questions per day
+    video_suggestions: list[ExportSuggestion]  # videos this person suggested for lessons

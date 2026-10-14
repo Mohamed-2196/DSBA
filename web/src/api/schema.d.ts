@@ -2538,13 +2538,6 @@ export interface components {
             board: components["schemas"]["ExportBoardCard"][];
             /** Boardplans */
             boardPlans: components["schemas"]["ExportBoardPlan"][];
-            /** Videosuggestions */
-            videoSuggestions: components["schemas"]["ExportSuggestion"][];
-            /**
-             * Createdat
-             * Format: date-time
-             */
-            createdAt: string;
             /** Follows */
             follows: components["schemas"]["ExportFollow"][];
             /** Pollvotes */
@@ -2554,6 +2547,8 @@ export interface components {
             notes: components["schemas"]["ExportNote"][];
             /** Noorausage */
             nooraUsage: components["schemas"]["ExportNooraDay"][];
+            /** Videosuggestions */
+            videoSuggestions: components["schemas"]["ExportSuggestion"][];
         };
         /**
          * AdminStats

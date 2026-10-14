@@ -15978,18 +15978,6 @@
             "type": "array",
             "title": "Boardplans"
           },
-          "videoSuggestions": {
-            "items": {
-              "$ref": "#/components/schemas/ExportSuggestion"
-            },
-            "type": "array",
-            "title": "Videosuggestions"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Createdat"
-          },
           "follows": {
             "items": {
               "$ref": "#/components/schemas/ExportFollow"
@@ -16027,6 +16015,13 @@
             },
             "type": "array",
             "title": "Noorausage"
+          },
+          "videoSuggestions": {
+            "items": {
+              "$ref": "#/components/schemas/ExportSuggestion"
+            },
+            "type": "array",
+            "title": "Videosuggestions"
           }
         },
         "type": "object",
@@ -16049,13 +16044,12 @@
           "emails",
           "board",
           "boardPlans",
-          "videoSuggestions",
-          "createdAt",
           "follows",
           "pollVotes",
           "senior",
           "notes",
-          "nooraUsage"
+          "nooraUsage",
+          "videoSuggestions"
         ],
         "title": "AccountExport",
         "description": "Everything the Hub stores about the signed-in user (GET /me/export)."
