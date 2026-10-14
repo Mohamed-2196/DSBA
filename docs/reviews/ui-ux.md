@@ -1,5 +1,292 @@
 # UI/UX review: DSBA Hub on the real API
 
+## Round 10 review (14 October 2026)
+
+Reviewer: UI/UX. Build: `feature/backend` at `6c90aa9` (rounds 5 to 9 merged), on the shared Docker stack
+(`:5173`), every feature switched on. No application code was changed.
+
+Method: Playwright 1.56 driving the installed Google Chrome, signed in by dev-login as Sara (Year 2), a Year 1
+student, Rami (rep, Year 3) and Mohamed (admin). Twenty-one screens at 390×844 (touch, mobile), 820×1180 (touch)
+and 1440×900, light and dark, with scripted checks for sideways scroll, elements past the viewport, touch targets
+under 44 px and page errors; flows walked by script with screenshots: Customize Home, Mini Noora (drag, chat card,
+an answer, chips), ⌘K search into a PDF page, papers by sitting and Time me, Your papers, a request with "me too",
+forum new thread and a thread, Manage (Gaps, Sunday summary, Numbers, Modules editor), lessons, Career Navigator and
+grades examples. Noora's landscape chat was checked at 844×390. Slow and empty answers were simulated with route
+interception, never on the API.
+
+**Caveats.** An e2e run shared the stack: some switches (board, summary, daily question, paper questions) were
+off for parts of the pass, and the data carries "[e2e 0rplyuk]" items. Noora's AI is off locally (no Claude key),
+so her rich answers were seen only in script mode. Test data I left: Sara's request "ST2133 examiners' report for
+2024".
+
+### Summary
+
+The rounds 5–9 work holds up structurally: **no sideways scroll** and no element off screen on any of the 21
+screens at the three sizes in either theme; Customize Home, Your papers, the request form and the module editor
+fit 390×844 and 844×390 with their actions visible and focus inside; dark mode is consistent, and the new lockup,
+app icon, 9 module illustrations, 4 empty-state pictures and Noora's sprites look like real assets.
+
+What falls short of Mohamed's bar is mostly polish and a few real breaks: Your account can crash on load (UX-28),
+Noora's chat has no room on a landscape phone and hides her own answers (UX-29), and reps can't see five of
+Manage's thirteen tabs even on a laptop (UX-30). The rest is placeholder visuals, naming and content tidiness.
+
+**Top ten to fix:**
+1. UX-28 (major): Your account crashes when the module catalogue arrives after the page.
+2. UX-29 (major): Noora's chat: no room in landscape; the AI-off notice and the scroll hide her answer.
+3. UX-30 (major, reps): Manage hides 5 of 13 tabs at 1440 px, 8 on a tablet, 11 on a phone.
+4. UX-31: Noora still parks on content by default on every screen.
+5. UX-32: Home calls an open application "Past"; "New in my modules" is six identical "Course materials".
+6. UX-33: "Your papers" clashes with "Past papers", claims "every Year 2 module", and uses checkboxes for "take one".
+7. UX-34: the module's "Past papers" button leaves for Google Drive; the Hub's own sittings are a tab away.
+8. UX-35: placeholder visuals and third-party logos left (newsletter "01 Coming soon", grades, sidebar crests).
+9. UX-36: search shows duplicate files and raw file names; titles truncate on phones.
+10. UX-37: Time me on phones counts down on a page the student isn't looking at.
+
+### Earlier findings
+
+| ID | Was | Now | Evidence |
+|---|---|---|---|
+| UX-1 to UX-17 | major/minor/nit | **fixed** (as round 3) | Not re-broken: sign-in recovery, menu keyboard paths, editor leave guard, 44 px controls and error copy behave as before. |
+| UX-18 to UX-22 | minor | **fixed** | Separators, chip contrast, measure, "Showing Year 1", the crash screen (title, heading, "Go to Home") all in place; UX-28 lands on that screen. |
+| UX-23 | nit | **open** | Rep's draft titles on `/newsletter` measure 278×31 and 324×31 at 390 px with touch (`NewsletterPage.css:189`). |
+| UX-24 | nit | **partly fixed** | Library lines now say "a library file" only when the title is missing (`access/audit.ts:86-87`); "added an event:" and "hid a thread:" keep their colons. |
+| UX-25 | nit | **open** | The leave dialog still offers "Cancel" (no `cancelLabel`, `newsletter/editor/Editor.tsx:611`); `.nl-editor__side` still has no `tabIndex`/region (`:605`). |
+| UX-26 | nit | **partly fixed** | Calendar respects reduced motion; `GradesPage.tsx:257` and `StyleGuidePage.tsx:185` still force `smooth`; `YourUploads.tsx:59` still says "A student rep decided not to publish this one." |
+| UX-27 | nit | **open** | `FileThumb.tsx` draws no picture; JPG and PNG notes get the printed card (see UX-35). |
+| R-7 Noora notes | — | **partly addressed** | She is draggable and her chat is a card; her default spot still covers content (UX-31) and landscape is cramped (UX-29). |
+
+### Responsive results
+
+- **Sideways scroll: none.** 21 routes × 390, 820, 1440 × light, dark as Sara; Manage, Access, the style guide,
+  requests and the newsletter as the admin. No `scrollWidth > clientWidth`, no visible element past the viewport.
+- **Dialogs on short screens: fit.** Customize Home (374×776 at 390), Your papers (560×374 at 844×390), Ask for
+  something, the search palette and the Time me menu keep their actions in view and take focus; Esc returns focus to
+  the opener. Noora's chat card fits but has no room for the conversation in landscape (UX-29).
+- **Touch targets:** the page-level controls pass. Leftovers: UX-23, Noora's mascot at 40×84 on phones (UX-31),
+  the electives' module title links at 25 px (UX-43).
+- **Long pages:** Career Navigator is 13,800 px at 390 px (UX-38); the calendar 3,900 px.
+
+### New findings
+
+| ID | Severity | Title |
+|---|---|---|
+| UX-28 | major | Your account crashes when the module catalogue loads after the page |
+| UX-29 | major | Mini Noora's chat: no room in landscape, and her answer is hidden behind the notice and the scroll |
+| UX-30 | major | Manage hides most of its 13 tabs, with nothing to show they are there |
+| UX-31 | minor | Mini Noora still stands on content by default; her phone hit area is 40 px wide |
+| UX-32 | minor | Home's blocks: an open application reads "Past", and "New in my modules" repeats "Course materials" |
+| UX-33 | minor | "Your papers": a name that clashes with "Past papers", a wrong summary, and checkboxes for "take one" |
+| UX-34 | minor | The module's "Past papers" button opens Google Drive, not the Hub's papers by sitting |
+| UX-35 | minor | Placeholder visuals and third-party logos left on real screens |
+| UX-36 | minor | Search and the library: duplicate files, raw file names, and titles cut short on phones |
+| UX-37 | minor | Time me on phones counts down out of sight |
+| UX-38 | minor | Career Navigator is 16 screens long on a phone |
+| UX-39 | nit | Section links wrap under their headings on phones and read as captions |
+| UX-40 | nit | Copy: formulas, block names, "script", "0 me too" and others |
+| UX-41 | nit | Module editor: focus, Save out of reach, and an Icon field that does nothing for 9 modules |
+| UX-42 | nit | "Install the app" lives only in Year 1's Start here |
+| UX-43 | nit | Small leftovers: electives links, footer alignment, the library search placeholder |
+
+#### UX-28 Your account crashes when the module catalogue loads after the page (major)
+
+- **Where:** `/account`, any size, any signed-in persona. Seen unprompted at 820×1180 and 1440×900 (2 of 8 direct
+  loads); every time with the catalogue delayed 2.5 s (a phone on campus Wi-Fi). Screenshot:
+  `screens/ux10-account-crash-390.png`.
+- **What a student sees:** "This page didn't load. Something went wrong while showing this page" instead of their
+  account. The console says `useModules() must be used inside <ModulesGate>`.
+- **Why:** the route is `modules: false` (`routes.tsx:30`), so it renders without waiting for the catalogue, but its
+  "Your papers" section calls `usePapers()` → `useModules()` (`features/papers/usePapers.ts`), which throws until the
+  catalogue is there. Board, Manage and the 404 (also `modules: false`) don't crash.
+- **Fix:** wrap the account's Your papers section in its own `<ModulesGate fallback={<Skeleton/>}>`, or drop
+  `modules: false` from the account route. Add an e2e that delays `/api/v1/modules` and loads `/account`.
+
+#### UX-29 Mini Noora's chat: no room in landscape, and her answer is hidden (major)
+
+- **Where:** her chat card; 844×390 (landscape phone) worst, 390×844 too. Screenshot:
+  `screens/ux10-noora-landscape-844.png`.
+- **What a student runs into:**
+  - At 844×390 the card is 302 px tall; the header, the yellow "My AI answers aren't available right now…" notice
+    and the composer take all of it. The conversation shows a 20 px sliver: she can ask but can't read the answer.
+  - The notice stays pinned above the messages on phones too and covers the top of each answer (at 390 px it hides
+    the first line of "Where to look").
+  - After an answer the list scrolls to the bottom (`noora/Messages.tsx:255`, `scrollTo({ top: scrollHeight })`),
+    so a phone shows "Try asking" chips and the composer; the answer's first lines are above the fold.
+  - The footer "She answers from the Hub's modules and calendar. What you send…" is cut with an ellipsis.
+- **Fix:** show the AI-off state once, as a line in the conversation (or a dot and "Script mode" under her name),
+  not a pinned banner; scroll a new answer's *start* into view (`turn.scrollIntoView({ block: 'start' })`), not the
+  list's end; below 480 px of height, open the chat as a full-height sheet and drop the footer note into the "…"
+  menu.
+
+#### UX-30 Manage hides most of its 13 tabs (major, for reps and admins)
+
+- **Where:** `/manage` as the admin. Hidden past the right edge: Suggested videos, Gaps, Numbers, People and
+  Activity at 1440 px; also Sunday summary to Modules at 820 px; everything after Uploads at 390 px. Screenshot:
+  `screens/ux10-manage-tabs-1440.png`.
+- **What a rep runs into:** the tab strip scrolls sideways with no fade, arrow or "More", so Gaps (built in round 6
+  for exactly them) and People look like they don't exist. Reports, Uploads and Requests carry counts; the others
+  don't say whether anything waits.
+- **Fix:** at 1024 px and up, make Manage's sections a vertical list on the left (13 items fit); below that, a
+  `Select` ("Show: Reports (2)") or a grouped sheet. Group them: *Waiting* (Reports, Uploads, Requests, Suggested
+  videos), *Publish* (Newsletter, Calendar, Sunday summary, Career Navigator, Modules), *Look after* (Gaps, Numbers,
+  People, Activity). Keep counts on every waiting item.
+
+#### UX-31 Mini Noora still stands on content by default (minor)
+
+- **Where:** every screen, 390 and 1440 px. At 390 her hint covers the second and third "Coming up" rows on Home;
+  she stands over the thread sort ("Oldest"), the grades bands, the career cards and the Start here arrows. At
+  1440 she covers "Open the library" on Home.
+- **What a student runs into:** she is draggable now, which is good, but nothing says so until the hint, and
+  every new student starts with her on top of the page. Her button at 390 px is 40×84: under 44 px wide.
+- **Fix:** start her in the bottom gutter *above* the tab bar on phones (or tucked half off the right edge, peeking),
+  remember where she's dropped (she does) and her hint only once per account; give `.noora__pose` a 44 px minimum
+  hit area; on pages with a right-hand column at 1440 px, start her in the left of the gutter below the sidebar.
+
+#### UX-32 Home's blocks say the wrong thing or nothing (minor)
+
+- **Where:** Home, Year 3 rep at 1440 px and Sara at 390 px. Screenshot: `screens/ux10-home-y3-1440.png`.
+- **What a student reads:**
+  - "Coming up" lists "Tue 13 Oct NBB EVOLVE applications … **Past**" as its first row, though the window runs to
+    24 October; the calendar's "This week" calls the same event "11 days left".
+  - "New in my modules" is six rows that all read "Course materials · <module> · Course materials · 1 Sept 2026":
+    nothing to open that's new, and no way to tell them apart.
+  - "Help the year below" here, "Help the years below" in Customize Home.
+- **Fix:** for events with an end date, show "Open until 24 Oct" (and sort by end date) instead of "Past"; leave
+  rows whose start is past only if they are still open. In "New in my modules", skip Drive-folder link items and
+  group imports ("12 files added to ST2133"), so each row is something new to open. One name for the block.
+
+#### UX-33 "Your papers" (minor)
+
+- **Where:** the link on Home, Calendar, Electives and Your account, and its dialog; all sizes.
+- **What a student runs into:**
+  - "Papers" is the University's word for modules, but everywhere else in the Hub "papers" means past exam papers.
+    "Your papers: every Year 2 module" next to "Past papers" reads like a filter for exam papers.
+  - It says "every Year 2 module" while Sara hasn't chosen her option, so it claims she sits both EC2020 and IS2184.
+  - "Your option (you take one)" is a set of checkboxes, so two can be ticked.
+  - "The countdown, your modules and the calendar follow them." is hard to parse.
+- **Fix:** call it "Your modules" (button: "Your modules: Year 2, option not picked"), make the option a radio group
+  with "Not decided yet", and write the intro as "Pick the modules you sit. Home's countdown, your modules and the
+  calendar show only these."
+
+#### UX-34 The module's "Past papers" button opens Google Drive (minor)
+
+- **Where:** a module's overview card ("Start lesson 1 · Past papers ↗"), all sizes; on MT1186 it goes to
+  `drive.google.com/drive/folders/…` in a new tab.
+- **What a student runs into:** the Hub now files papers by sitting with their examiners' reports, Time me and
+  questions, but the most visible "Past papers" button skips all of it for a raw Drive folder. The Files tab then
+  shows "Past papers by sitting", "Other papers" and a "Past papers" section holding the Drive link: three headings
+  for one thing.
+- **Fix:** point the button at the Files tab's sittings (`?tab=files#papers`); keep the Drive folder as a quiet
+  "Older exams folder ↗" inside "Other papers", and drop the separate "Past papers" link section.
+
+#### UX-35 Placeholder visuals and third-party logos (minor)
+
+Mohamed's bar is real assets, nothing placeholder. Still on real screens:
+- **Newsletter with no issues:** a fake "01 Coming soon" cover beside a display-size "The first issue" headline
+  (`screens/ux10-newsletter-empty-390.png`). Use the newsletter illustration or a plain empty state with
+  "Get an email when it's out" (the Subscribe action).
+- **Grades before any mark:** "Your result appears here as you type" in 64 px display type, plus 18 empty bars.
+  Show the real empty state: "Type a mark to see your class", and hide the bars until a mark exists.
+- **File thumbnails:** every library card is the same typographic card with the code (UX-27). For PDFs, render the
+  first page once at upload/import; for pictures, the picture.
+- **Logos:** the University of London crest and the MyClass mark sit in the sidebar on every page, in About's
+  "Useful links" and next to BIBF's logo at the bottom of About, though round 8 removed UoL/BIBF logos from Home.
+  Use the Hub's own icons (a building, a cap) with text labels.
+- **Module visuals:** a year's list mixes three styles: Year 2 has five illustrations and IS2184 as a dark code
+  tile; Year 3 is six tan line icons. Until the 7 illustrations arrive, give IS2184 the Year 3 style (one style per
+  missing set), not code text.
+- Requests and the forum use a line icon for their empty state; the other four use pictures. Fine once the two
+  missing illustrations land.
+
+#### UX-36 Search and the library: duplicates, raw names, short titles (minor)
+
+- **Where:** ⌘K and the library; 390 px worst. Screenshot: `screens/ux10-search-dupes-390.png`.
+- **What a student runs into:**
+  - "variance" returns "ST2133 – Advanced Statistics – Distribution Theory – 2021 Examiners Commentaries, Page 11"
+    twice: two library items (`8bc4da34…`, `c5d52bf1…`) for the same file, imported from two folders.
+  - On phones both titles cut to "ST2133 - Advanced Statistics - Dis…", so the part that differs (year, kind) is
+    hidden, and the snippet is PDF soup ("M W ( t ) = exp µt λ − t").
+  - A Year 2 student gets the Year 1 economics textbook first.
+  - Library titles are file names: "calculus-concepts-and-methods_compress", "1. Function Characteristics -
+    workbook (1)", "ST3134 – … 2019" filed under ST2134; examiners' commentaries are typed "Past paper".
+- **Fix:** dedupe on import by content hash; tidy titles at import (drop extensions, "_compress", "(1)"; module
+  code, kind, year, zone); type "Examiners Commentaries" as an examiners' report; rank the student's year first; on
+  phones, let result titles wrap to two lines and lead with what differs ("2021 examiners' report · ST2133").
+
+#### UX-37 Time me on phones counts down out of sight (minor)
+
+- **Where:** a past paper's page at 390 px (`/library/mt1186-exam-paper-may-2026`).
+- **What a student runs into:** "Time me" starts a yellow "0:59:59 left" bar on the Hub's page, but on a phone the
+  paper only opens "in your phone's PDF viewer, in a new tab". She sits the paper in that tab; the timer runs where
+  she can't see it and nothing tells her when time is up.
+- **Fix:** on phones, show the paper inside the Hub under the timer (pdf.js, as on laptops) when the timer runs; and
+  at the end, put the time in the tab title, vibrate (`navigator.vibrate`) and, if allowed, notify.
+
+#### UX-38 Career Navigator is 16 screens long on a phone (minor)
+
+- **Where:** `/career`, 390 px: 13,800 px tall ("Where to apply" 5,000 px, "Certificates and courses" 4,300 px,
+  "Build the skills" 2,100 px).
+- **Fix:** a sticky row of section chips at the top (Apply · Certificates · Skills · Before you apply), show 4
+  employers and 3 certificates per filter with "Show all 26", and collapse each role in "Build the skills" to its
+  summary.
+
+#### UX-39 Section links wrap under their headings on phones (nit)
+
+- **Where:** Home, Calendar, Electives at 390 px: "Open calendar", "Your papers: every Year 2 module", "All
+  modules", "Open the library", "All issues" each drop to a line of their own, indented, in grey.
+- **Fix:** below 700 px keep one short link on the heading's line, right-aligned with an arrow ("All →"), and move
+  "Your papers" into the block's body; or put "See all" at the foot of each block.
+
+#### UX-40 Copy (nit)
+
+- The forum's tips say "Use `backticks` for formulas and code"; the editors say "$formulas$". Say "Put formulas
+  between $ signs, and code in backticks."
+- Noora: "I answer from my script" → "Right now I can only point you to modules, lessons, exams and files in the
+  Hub."
+- A request's own author sees "0 Me too" with "you're already counted": show "1" (the author) or "You asked".
+- Numbers: "Questions per student a day … 0 pauses her AI answers." → "Set to 0 to pause her AI answers."
+- Results day: "Exam entry deadline: not on the calendar yet. Check the calendar →" links to a calendar it says
+  doesn't have it. Say "Not on the calendar yet. Ask your rep." and drop the link.
+- About says "the DSBA Resource Hub"; everywhere else is "DSBA Hub".
+
+#### UX-41 Module editor (nit)
+
+- **Where:** Manage → Modules → a module; 390 and 1440 px.
+- Focus stays on `<body>` after the editor opens: move it to the module's heading.
+- "Undo changes" and "Save" sit at the top of a form that runs through four chapter lists; on a phone they are a
+  long scroll away. Make the action bar sticky at the bottom, as the newsletter editor does.
+- "Icon" offers Phosphor names ("Chart Scatter", "Terminal Window"), but the 9 modules with illustrations show the
+  illustration whatever is picked (`ui/moduleArtSrc.ts`). Show the illustration there with "This module has its
+  own picture", and the picker only for the others.
+
+#### UX-42 "Install the app" lives only in Year 1's Start here (nit)
+
+- `useInstall()` is used only by `start/GuideSteps.tsx`. Years 2 and 3 never see Start here on Home, so they never
+  learn the Hub installs. Add "Install the app" to the account menu and the More drawer where the browser offers it,
+  with the iPhone steps otherwise.
+
+#### UX-43 Small leftovers (nit)
+
+- Electives: the module titles are links 25 px tall under touch ("Microeconomics", "Marketing Management"); give
+  them `min-height: 44px` or make the card the link.
+- Footer: the first contributor ("Mohamed Alnooh") sits about 12 px lower than the other three at 390 and 820 px.
+- Library search placeholder "Search titles, module codes or authors" is cut to "…or autho" at 390 px: "Search
+  files" is enough.
+- Noora's message time ("18:54") is in the monospace font; use the UI font with tabular numbers.
+
+### What works well and should stay
+
+- **Customize Home:** show, hide and reorder with labelled arrow buttons, live "moved to 3 of 9" announcements,
+  focus in and back out to "Customize Home", and the lesson-progress switch where students look for it.
+- **Papers by sitting:** "May 2026 · Paper · Examiners' report · Solutions" rows are the clearest view of past
+  papers the Hub has had; Gaps turns the missing ones into a to-do list for reps.
+- **Search into PDFs:** a result opens the file at the right page, on phones too ("It opens at page 46").
+- **Requests:** a calm form with the kind first, a concrete title example, and a toast that says what happens next.
+- **Dark mode:** consistent across the new screens, with logos on light plates and readable chips.
+- **The lesson progress offer** ("Keep track of what you've watched? Turn on · No thanks") is the right opt-in:
+  one line, under the video, never a modal.
+
+---
+
 ## Round 3 re-review (13 October 2026)
 
 Reviewer: UI/UX. Build: `feature/backend` at `75626cd` (rounds 2 and 3 merged), on the shared Docker stack
