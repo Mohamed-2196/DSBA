@@ -112,7 +112,7 @@ def test_the_module_and_lesson_must_exist(
     client_for: ClientFor, make_user: MakeUser, module: Module, place: dict[str, Any], field: str
 ) -> None:
     values = {"MODULE": ("moduleId", module.id), "LESSON": ("lessonId", lesson_id(module, 0, 0))}
-    body = dict(values.get(k, (k, v)) for k, v in place.items())
+    body: dict[str, Any] = dict(values.get(k, (k, v)) for k, v in place.items())
     r = client_for(make_user()).post(f"{API}/notes", json={"title": "Somewhere", **body})
     assert r.status_code == 422, r.text
     assert field in r.json()["error"]["fields"]
