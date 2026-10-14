@@ -180,6 +180,10 @@ necessarily BIBF's, so labelled just "RTC"). Checks green (API 1081, web 591). M
 
 ## Waiting on Mohamed
 
+- **Module icons (7):** IS2184 and the six Year 3 modules. Mohamed regenerates them from
+  `docs/design/asset-prompts-round2.md`; the next agent reviews and wires them in as `web/public/modules/README.md`
+  describes.
+
 - **Roadmap questions:** each feature in `docs/ROADMAP.md` lists what he needs to decide. R-1 (roles) comes
   first.
 - **Ideas to approve:** 24 proposals in `docs/ideas.md` (IDEA-1 to IDEA-24), merged 2026-10-13.
