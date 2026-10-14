@@ -59,11 +59,13 @@ HomeBlock = Literal[
     "start_here",  # Start here: Year 1's checklist in the first weeks
     "results_day",  # Results day: two weeks from each results date
     "coming_up",  # the next exam and this week's dates
-    "daily_question",  # a past exam question before the next exam
     "todo",  # the study board's To do and In progress cards
     "continue",  # the lessons to pick up (lesson progress on)
     "modules",  # my modules
-    "new",  # new files and threads in my modules
+    "files",  # new files in my modules
+    "forum",  # active threads in my modules
+    "noora",  # the Ask Noora prompt
+    "daily_question",  # a past exam question before the next exam
     "help_below",  # unanswered questions from the years below (Years 2 and 3)
     "newsletter",  # the latest issue of The DSBA Newsletter
 ]
