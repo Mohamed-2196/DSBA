@@ -1,5 +1,6 @@
 .ui-chip {
   display: inline-flex;
+  flex: 0 0 auto; /* in a one-line scrolling row a chip keeps its width instead of squashing */
   align-items: center;
   gap: 7px;
   height: 32px;

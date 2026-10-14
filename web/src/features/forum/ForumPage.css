@@ -48,7 +48,6 @@
   scrollbar-width: none;
 }
 .forum-filters__chips::-webkit-scrollbar { display: none; }
-.forum-filters__chips .ui-chip { flex: 0 0 auto; }
 .forum-filters__sep { flex: 0 0 auto; width: 1px; height: 20px; margin: 0 2px; background: var(--line-strong); }
 /* Fade the cut-off edge of a scrolling row (set by useScrollFade) */
 .forum-filters [data-fade-end='true'] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent); }
