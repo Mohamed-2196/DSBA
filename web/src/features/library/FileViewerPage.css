@@ -172,6 +172,9 @@
 }
 .lib-viewer__board { margin-left: auto; }
 
+/* "Ask Mini Noora about a question": the question and its page. */
+.lib-ask { display: grid; gap: var(--sp-12); }
+
 /* ── Past papers: the sitting, "Time me", questions by topic ───────── */
 .lib-meta__sitting { display: grid; gap: var(--sp-8); }
 .lib-meta__sitting-list { display: grid; gap: var(--sp-4); margin: 0; padding: 0; list-style: none; }

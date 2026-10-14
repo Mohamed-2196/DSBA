@@ -12,11 +12,12 @@ import { useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { ConfirmDialog, IconButton, cx } from '../../ui';
 import { NOORA_STATUS_KEY, useNooraStatus } from './ai';
-import { Composer, type NoteChoice } from './Composer';
+import { Composer, type NoteChoice, type PaperChoice } from './Composer';
 import type { DockWidth } from './dock';
 import { Face } from './Face';
 import { addFiles, release, releaseAll, type Attachment } from './files';
 import { MessageList } from './Messages';
+import { clearPaperAsk, usePaperAsk } from './paper';
 import type { Bust } from './sprites';
 import { pageSuggestions } from './suggestions';
 import type { Message } from './types';
@@ -85,10 +86,11 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
   const aiReady = aiOn && status.data?.available !== false;
   const openNote = useOpenNote();
   const [withNote, setWithNote] = useState(false);
+  const { paper, asked } = usePaperAsk();
   const qc = useQueryClient();
-  const screen = useRef({ pathname, search, year, openNote, withNote });
+  const screen = useRef({ pathname, search, year, openNote, withNote, paper });
   useEffect(() => {
-    screen.current = { pathname, search, year, openNote, withNote };
+    screen.current = { pathname, search, year, openNote, withNote, paper };
   });
   const ai = useMemo<ChatAi | null>(
     () =>
@@ -107,6 +109,7 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
                 moduleId,
                 lessonId: lesson?.lessonId ?? null,
                 note,
+                paper: now.paper ? { itemId: now.paper.itemId, page: now.paper.page, question: now.paper.question } : null,
                 history,
               };
             },
@@ -123,6 +126,14 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
       ? { title: openNote.title.trim() || 'Untitled note', checked: withNote, long: openNote.body.length > NOTE_MAX, onChange: setWithNote }
       : null;
   const [draft, setDraft] = useState('');
+  // A paper's question from the file viewer: it goes with every question until the student takes it off. Asking
+  // about one fills the box once.
+  const paperChoice: PaperChoice | null = usingAi && paper ? { ...paper, onRemove: clearPaperAsk } : null;
+  const [filledFor, setFilledFor] = useState(0);
+  if (asked !== filledFor) {
+    setFilledFor(asked);
+    if (paper) setDraft(`Help me with question ${paper.question}.`);
+  }
   const [files, setFiles] = useState<Attachment[]>([]);
   const [note, setNote] = useState<string | null>(null);
   const [dropping, setDropping] = useState(false);
@@ -181,6 +192,7 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
   const suggest = useCallback((text: string) => void send({ text }), [send]);
   const startAgain = () => {
     clear();
+    clearPaperAsk();
     setConfirming(false);
     input.current?.focus({ preventScroll: true });
   };
@@ -253,6 +265,7 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
           files={files}
           note={note}
           noteChoice={noteChoice}
+          paperChoice={paperChoice}
           busy={busy}
           onAttach={attach}
           onRemove={remove}

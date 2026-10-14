@@ -33,6 +33,7 @@ import { isNew, linkPlace, moduleTag, pageParam, sizeLabel, statusInfo } from '.
 import { KIND_BY_ID, formatOf } from './kinds';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
+import { AskNoora } from './viewer/AskNoora';
 import { paperContext, usePaperSittings } from './papers';
 import { ExamTimer, TimeMeButton } from './viewer/ExamTimer';
 import { MetaPanel } from './viewer/MetaPanel';
@@ -284,6 +285,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           {canManage && moreItems.length ? (
             <Menu align="end" label="More actions" items={moreItems} trigger={<IconButton label="More actions" icon={DotsThree} tooltip={isDesktop} />} />
           ) : null}
+          <AskNoora item={item} page={page} compact={isMobile} />
           {primary}
           {isDesktop ? (
             <>

@@ -2301,7 +2301,9 @@ export interface paths {
         /**
          * Ask Noora
          * @description Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the
-         *     note or the answer. The note goes only when the student ticked "Include my note".
+         *     note or the answer. The note goes only when the student ticked "Include my note". With `paper`, the server adds
+         *     that page of the past paper and the examiners' report for its sitting, from the text it read (IDEA-4): 404
+         *     not_found unless it is a published past paper, 404 feature_off while the library is off for the student.
          *
          *     Errors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly
          *     budget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),
@@ -4775,6 +4777,22 @@ export interface components {
             body: string;
         };
         /**
+         * NooraPaper
+         * @description A past paper's question the student is asking about. The server reads the page's words and the examiners'
+         *     report for the same sitting itself.
+         */
+        NooraPaper: {
+            /**
+             * Itemid
+             * Format: uuid
+             */
+            itemId: string;
+            /** Page */
+            page: number;
+            /** Question */
+            question: string;
+        };
+        /**
          * NooraQuestion
          * @description A question, and what's on the student's screen. The server looks the module and lesson up itself.
          */
@@ -4793,6 +4811,7 @@ export interface components {
             /** Lessonid */
             lessonId?: string | null;
             note?: components["schemas"]["NooraNote"] | null;
+            paper?: components["schemas"]["NooraPaper"] | null;
             /** History */
             history?: components["schemas"]["NooraTurn"][];
         };
@@ -6415,6 +6434,7 @@ export type NooraDoneEvent = components['schemas']['NooraDoneEvent'];
 export type NooraErrorEvent = components['schemas']['NooraErrorEvent'];
 export type NooraLimitsIn = components['schemas']['NooraLimitsIn'];
 export type NooraNote = components['schemas']['NooraNote'];
+export type NooraPaper = components['schemas']['NooraPaper'];
 export type NooraQuestion = components['schemas']['NooraQuestion'];
 export type NooraStatus = components['schemas']['NooraStatus'];
 export type NooraTextEvent = components['schemas']['NooraTextEvent'];
