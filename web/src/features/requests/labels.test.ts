@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { askedBy, awaitsAnswer, examYears, kindLabel, meTooLine, needsReply, parseKind, parseSort, parseStatus, statusOf, wantsLine } from './labels';
+import { askedBy, awaitsAnswer, examYears, kindLabel, meTooLine, meTooOfMine, needsReply, parseKind, parseSort, parseStatus, statusOf, wantsLine } from './labels';
 
 describe('request labels', () => {
   it('reads kinds, statuses and sorts from the URL, and ignores anything else', () => {
@@ -50,5 +50,13 @@ describe('request labels', () => {
     expect(awaitsAnswer({ found, status: 'open' })).toBe(true);
     expect(awaitsAnswer({ found, status: 'done' })).toBe(false);
     expect(awaitsAnswer({ found: null, status: 'open' })).toBe(false);
+  });
+});
+
+describe('meTooOfMine', () => {
+  it('shows the requester they asked, and how many joined them', () => {
+    expect(meTooOfMine(0)).toBe('You asked');
+    expect(meTooOfMine(1)).toBe('You and 1 other');
+    expect(meTooOfMine(4)).toBe('You and 4 others');
   });
 });

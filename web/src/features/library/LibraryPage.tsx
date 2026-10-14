@@ -445,7 +445,7 @@ export default function LibraryPage() {
               className="lib-filters__search"
               value={q}
               onValueChange={(v) => update({ q: v || null })}
-              placeholder="Search titles, module codes or authors"
+              placeholder="Search files"
               label="Search the library"
               shortcut={isMobile ? null : <Kbd>/</Kbd>}
               size="lg"

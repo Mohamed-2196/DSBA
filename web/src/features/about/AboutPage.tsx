@@ -50,8 +50,8 @@ export default function AboutPage() {
             <SectionHeader id="about-what" title="What it is" />
             <div className="about__prose">
               <p>
-                DSBA Hub grew out of the DSBA Resource Hub. It keeps everything the hub offered for each module — books and study guides, notes shared by students,
-                exercises, past exams, cheat sheets and recorded lessons — and adds a forum for all three cohorts, a library you can read without leaving the app,
+                DSBA Hub has what you need for each module — books and study guides, notes shared by students, exercises, past
+                exams, cheat sheets and recorded lessons — with a forum for all three cohorts, a library you can read without leaving the app,
                 lessons that can remember where you stopped, Career Navigator, a full calendar, a degree classification calculator and The DSBA Newsletter.
               </p>
               <CoverageLine />

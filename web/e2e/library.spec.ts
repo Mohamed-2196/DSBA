@@ -174,7 +174,7 @@ test('Sara stars a file and finds it under Starred; search and filters find it',
   await expect(sara.locator('main')).toContainText(t.pdf); // Sara is Year 2, like the file
 
   await guest.goto('/library?year=all');
-  await guest.getByPlaceholder('Search titles, module codes or authors').fill(run.tag);
+  await guest.getByPlaceholder('Search files').fill(run.tag);
   await expect(guest.locator('main')).toContainText(t.pdf);
   await expect(guest.locator('main')).toContainText(t.ipynb);
   await guest.goto(`/library?year=all&module=advanced-stats-distribution&type=notes&q=${run.tag}`);

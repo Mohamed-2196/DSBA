@@ -50,6 +50,8 @@ test('a student asks, a classmate says me too, a rep answers and the student is 
     expect(told.body.items.some((n) => n.url === `/requests/${id}` && n.title.startsWith('Request planned'))).toBe(true);
     await sara.goto(`/requests/${id}`);
     await expect(sara.getByText('Asking the tutor for them this week.')).toBeVisible();
+    // her own request shows that she asked and that Ali joined her, not "0 Me too"
+    await expect(sara.locator('[data-hub="me-too"]').first()).toHaveText('You and 1 other');
   } finally {
     if (id) await api(rep, 'DELETE', `/api/v1/requests/${id}`);
   }
