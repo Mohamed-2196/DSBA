@@ -1,4 +1,4 @@
-// A module's past papers by sitting (the Files tab): each year and session, newest first, with each zone's paper,
+// A module's past papers by sitting (the Files tab): each year and session, newest first, with each zone's paper (zone A, zone B, RTC),
 // its examiners' report and its solutions side by side. Papers without an exam year follow as "Other papers".
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
@@ -6,7 +6,7 @@ import type { LibraryItem, Sitting, SittingZone } from '../../../api/types';
 import { Button, Panel, Skeleton } from '../../../ui';
 import { SittingsDone } from '../../board/public';
 import { itemPath } from '../api';
-import { sittingLabel } from '../display';
+import { RTC_NOTE, sittingLabel, zoneLabel } from '../display';
 import { sittingFiles, usePaperSittings } from '../papers';
 import type { LinkState } from './FileCard';
 import './PaperSittings.css';
@@ -31,7 +31,7 @@ function ZoneFiles({ zone, many, linkState }: { zone: SittingZone; many: boolean
   const files = [...numbered(zone.papers, 'Paper'), ...numbered(zone.reports, 'Examiners’ report'), ...numbered(zone.solutions, 'Solutions')];
   return (
     <div className="lib-sit__zone">
-      {many || zone.zone ? <span className="lib-sit__zone-name">{zone.zone ? `Zone ${zone.zone}` : 'Both zones'}</span> : null}
+      {many || zone.zone ? <span className="lib-sit__zone-name">{zone.zone ? zoneLabel(zone.zone) : 'All zones'}</span> : null}
       <ul role="list" className="lib-sit__files">
         {files.map((f) => (
           <FileLink key={f.item.id} item={f.item} label={f.label} linkState={linkState} />
@@ -103,6 +103,7 @@ export function PaperSittings({
               ))}
             </ul>
           </Panel>
+          {sittings.some((s) => s.zones.some((z) => z.zone === 'RTC')) ? <p className="lib-sit__note">{RTC_NOTE}</p> : null}
           {sittings.length > FIRST ? (
             <div className="lib-sit__more">
               <Button size="sm" variant="ghost" onClick={() => setAll((a) => !a)} aria-expanded={all}>

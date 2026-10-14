@@ -4745,7 +4745,8 @@
                 {
                   "enum": [
                     "A",
-                    "B"
+                    "B",
+                    "RTC"
                   ],
                   "type": "string"
                 },
@@ -21174,7 +21175,8 @@
                 "type": "string",
                 "enum": [
                   "A",
-                  "B"
+                  "B",
+                  "RTC"
                 ]
               },
               {
@@ -21318,7 +21320,8 @@
                 "type": "string",
                 "enum": [
                   "A",
-                  "B"
+                  "B",
+                  "RTC"
                 ]
               },
               {
@@ -25579,7 +25582,8 @@
                 "type": "string",
                 "enum": [
                   "A",
-                  "B"
+                  "B",
+                  "RTC"
                 ]
               },
               {
@@ -25618,7 +25622,7 @@
           "solutions"
         ],
         "title": "SittingZone",
-        "description": "One zone's papers in a sitting, with their examiners' reports and solutions. `zone` None: files for both\nzones, or a sitting with one paper."
+        "description": "One zone's papers in a sitting, with their examiners' reports and solutions: zone A, zone B or RTC (the paper set\nfor Recognised Teaching Centres). `zone` None: files for every zone, or a sitting with one paper."
       },
       "SkillTaught": {
         "properties": {

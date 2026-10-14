@@ -573,7 +573,7 @@ def exam_kind(name: str, folder_kind: LibraryKind) -> ExamKind:
     return ExamKind(
         kind=kind,
         exam_year=exam_year,
-        zone=meta.zone if meta.zone in ("A", "B") else None,
+        zone=meta.zone if meta.zone in ("A", "B", "RTC") else None,
         exam_session=meta.session if exam_year is not None and meta.session in ("may", "october") else None,
     )
 
@@ -785,7 +785,7 @@ def _details(planned: Planned) -> str:
         if planned.exam_year:
             exam += f" {planned.exam_session.capitalize() + ' ' if planned.exam_session else ''}{planned.exam_year}"
         if planned.zone:
-            exam += f", zone {planned.zone}"
+            exam += f", {exam_names.zone_label(planned.zone)}"
         parts.append(exam)
     return f" ({'; '.join(parts)})" if parts else ""
 
@@ -921,7 +921,7 @@ def backfill_exam_meta(db: Session, *, dry_run: bool = False) -> ExamBackfill:
         if after[1] is not None:
             what += f", {(after[2] or '').capitalize()} {after[1]}".replace(",  ", ", ")
         if after[3]:
-            what += f", zone {after[3]}"
+            what += f", {exam_names.zone_label(after[3])}"
         out.changed.append(f"{item.module_id or 'no module'} · {item.title}: {what}")
         if not dry_run:
             item.kind, item.exam_year, item.exam_session, item.zone = after

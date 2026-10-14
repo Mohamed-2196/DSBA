@@ -1,5 +1,5 @@
-"""What a past paper's file name says about it: the year it was sat, its session and zone, and whether it is the
-examiners' report or the worked solutions rather than the paper itself.
+"""What a past paper's file name says about it: the year it was sat, its session and zone (zone A, zone B or RTC), and
+whether it is the examiners' report or the worked solutions rather than the paper itself.
 
 The Drive import (python -m app.cli import-drive) files everything in a module's past-papers folder as a past paper,
 and the papers in its VLE folder too, and reads the rest from each file's name, so the library's sittings and its
@@ -12,8 +12,10 @@ The names the programme's folders use:
 - the VLE: 'MN3141 ZA exam paper - May 2024.pdf', 'MT3095_Commentary_October_2025.pdf',
   'EC1002 ZB Exam paper solutions - May 2025.pdf', 'MT1186 Commentary - May 2026 DRAFT.pdf',
   'ST3189 Exam paper â May 2026.pdf' (an en dash read in the wrong encoding).
-Mocks, preliminary and sample papers belong to no sitting: their names give nothing. 'RTC' papers (a third version
-some modules set) have no zone."""
+- the RTC papers: 'MN3141 RTC Exam paper - May 2025.pdf', 'MN3141 RTC Commentary - May 2026 DRAFT.docx'.
+RTC stands for Recognised Teaching Centre: for some modules the University of London sets a paper for its Recognised
+Teaching Centres beside zone A's and zone B's. That paper is a zone of its own, 'RTC'.
+Mocks, preliminary and sample papers belong to no sitting: their names give nothing."""
 
 from __future__ import annotations
 
@@ -25,7 +27,7 @@ from app.schemas.library import ExamSession, Zone
 
 class ExamMeta(NamedTuple):
     exam_year: int | None  # the year the exam was sat, e.g. 2021
-    zone: Zone | None  # the University of London sets each paper twice, for zone A and zone B
+    zone: Zone | None  # the paper's version: zone A, zone B, or RTC (set for Recognised Teaching Centres)
     examiners_report: bool  # the examiners' report (commentary) on the paper, not the paper
     session: ExamSession | None = None  # the May sitting or the October resits
     solutions: bool = False  # worked solutions to the paper
@@ -44,6 +46,7 @@ _YEAR = re.compile(r"(?<!\d)(19[89]\d|20\d\d)(?!\d)")
 # Two letters that start a word, right before the digits: a module code ('EC2020', 'EC2066'), not a year.
 _CODE_BEFORE = re.compile(r"(?:^|[^a-z])[a-z]{2}$")
 _ZONE = re.compile(r"\bzone\s*-?\s*([ab])\b|\bz([ab])\b")
+_RTC = re.compile(r"\brtc\b")
 
 
 def _clean(name: str) -> str:
@@ -61,13 +64,20 @@ def _years(text: str) -> set[int]:
 
 
 def _zone(text: str) -> Zone | None:
-    """The zone the name gives, if exactly one: 'ZA-ZB' covers both, so it says neither."""
+    """The zone the name gives, if exactly one: 'ZA-ZB' covers both, so it says neither. 'RTC' says the RTC paper."""
+    if _RTC.search(text):
+        return "RTC"
     zones = {(m.group(1) or m.group(2)).upper() for m in _ZONE.finditer(text)}
     if zones == {"A"}:
         return "A"
     if zones == {"B"}:
         return "B"
     return None
+
+
+def zone_label(zone: str) -> str:
+    """'zone A', or 'RTC' for the Recognised Teaching Centre paper."""
+    return "RTC" if zone == "RTC" else f"zone {zone}"
 
 
 def exam_meta_from_name(name: str) -> ExamMeta:

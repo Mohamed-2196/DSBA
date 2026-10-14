@@ -23,6 +23,7 @@
 }
 .lib-sit__file:hover { border-color: var(--ink-3); background: var(--surface-2); }
 .lib-sit__none { margin: 0; color: var(--ink-3); font-size: var(--fs-12); align-self: center; }
+.lib-sit__note { max-width: 75ch; margin: 0; color: var(--ink-2); font-size: var(--fs-12); }
 .lib-sit__more { display: flex; justify-content: center; }
 
 @media (pointer: coarse) {

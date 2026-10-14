@@ -4313,7 +4313,7 @@ export interface components {
             /** Examyear */
             examYear?: number | null;
             /** Zone */
-            zone?: ("A" | "B") | null;
+            zone?: ("A" | "B" | "RTC") | null;
             /** Examsession */
             examSession?: ("may" | "october") | null;
             /** Authorname */
@@ -4334,7 +4334,7 @@ export interface components {
             /** Examyear */
             examYear?: number | null;
             /** Zone */
-            zone?: ("A" | "B") | null;
+            zone?: ("A" | "B" | "RTC") | null;
             /** Examsession */
             examSession?: ("may" | "october") | null;
             /** Authorname */
@@ -5832,12 +5832,12 @@ export interface components {
         };
         /**
          * SittingZone
-         * @description One zone's papers in a sitting, with their examiners' reports and solutions. `zone` None: files for both
-         *     zones, or a sitting with one paper.
+         * @description One zone's papers in a sitting, with their examiners' reports and solutions: zone A, zone B or RTC (the paper set
+         *     for Recognised Teaching Centres). `zone` None: files for every zone, or a sitting with one paper.
          */
         SittingZone: {
             /** Zone */
-            zone: ("A" | "B") | null;
+            zone: ("A" | "B" | "RTC") | null;
             /** Papers */
             papers: components["schemas"]["LibraryItem"][];
             /** Reports */
@@ -10305,7 +10305,7 @@ export interface operations {
                 /** @description relevance: best match first (with q) */
                 sort?: "new" | "popular" | "title" | "relevance";
                 exam_year?: number | null;
-                zone?: ("A" | "B") | null;
+                zone?: ("A" | "B" | "RTC") | null;
                 starred?: boolean;
                 mine?: boolean;
                 /** @description Library managers: e.g. pending */

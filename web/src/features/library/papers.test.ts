@@ -73,6 +73,19 @@ describe('paperContext', () => {
     expect(ctx?.otherPapers).toEqual([{ zone: 'B', item: paperB }]);
   });
 
+  it('pairs an RTC paper with the RTC report and the zones’ papers', () => {
+    const rtc = file('rtc', 'past-paper', 'RTC');
+    const rtcReport = file('rtc-report', 'examiners-report', 'RTC');
+    const sitting: Sitting = {
+      ...MAY_2024,
+      zones: [...MAY_2024.zones.slice(0, 2), { zone: 'RTC', papers: [rtc], reports: [rtcReport], solutions: [] }, MAY_2024.zones[2]],
+    };
+    const ctx = paperContext([sitting], 'rtc');
+    expect(ctx?.reports.map((f) => f.id)).toEqual(['rtc-report', 'report']);
+    expect(ctx?.otherPapers.map((p) => p.zone)).toEqual(['A', 'B']);
+    expect(paperContext([sitting], 'za')?.reports.map((f) => f.id)).toEqual(['report']);
+  });
+
   it('gives a report its papers, and nothing for a file in no sitting', () => {
     expect(paperContext([MAY_2024], 'report')?.otherPapers.map((p) => p.item.id)).toEqual(['za', 'zb']);
     expect(paperContext([MAY_2024], 'elsewhere')).toBeNull();
