@@ -45,8 +45,12 @@ necessarily BIBF's, so labelled just "RTC"). Checks green (API 1081, web 591). M
 - Home is blocks the student can show, hide and reorder; no pulse line, no UoL/BIBF logos.
 - Lesson progress is opt in (`trackProgress`, off by default); turning it off hides saved progress, keeps it.
 - The draggable Mini Noora is back with a compact chat card; the docked column is gone.
-- **Waiting on Mohamed:** the generated assets (Hub lockup, 16 module icons, Noora refresh, spot illustrations) in
-  `web/public/brand/incoming/` per its README; then wire them in.
+- **Round 9: merged 2026-10-14.** Assets reviewed: the Hub lockup (official DSBA logo + traced "Hub"), the DH app
+  icon, 9 of 16 module icons, 4 of 6 empty-state illustrations; Noora's chat matured (rich answers with KaTeX, stop,
+  regenerate, recent chats in the browser, context chips); library chips fixed on phones.
+- **Waiting on Mohamed:** regenerate the rejects from `docs/design/asset-prompts-round2.md` (7 module icons: IS2184
+  and the six Year 3 modules; the board spot; optionally a hand-drawn "Hub" and a Home header). Noora's sprites are
+  final.
 - Test accounts (local): mohamed.admin@example.com (admin), rami.rep@example.com (rep), sara.student@example.com
   (Year 2); codes in Mailpit.
 
