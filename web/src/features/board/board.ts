@@ -1,6 +1,6 @@
-// The study board's rules, kept out of the components so they can be tested: column order, moves, due dates and
-// the folded part of Done.
-import type { BoardCard } from '../../api/types';
+// The study board's rules, kept out of the components so they can be tested: column order, moves, due dates, the
+// folded part of Done, revision plans and past papers.
+import type { BoardCard, BoardPlan } from '../../api/types';
 import { daysBetween, type DayKey } from '../../lib/dates';
 
 export type Column = BoardCard['column'];
@@ -67,8 +67,8 @@ export function nudge(cards: readonly BoardCard[], id: string, by: -1 | 1): stri
   return afterIdAt(cards, id, card.column, to);
 }
 
-/** The day a card is due: its own due date, else its event's last day. */
-export const dueOf = (card: BoardCard): DayKey | null => card.dueDate ?? card.link?.date ?? null;
+/** The day a card is due: its own due date, else the day its revision plan gives it, else its event's last day. */
+export const dueOf = (card: BoardCard): DayKey | null => card.dueDate ?? card.planDate ?? card.link?.date ?? null;
 
 /** Past its due day and not done. */
 export function isOverdue(card: BoardCard, today: DayKey): boolean {
@@ -95,4 +95,47 @@ export function dueLabel(due: DayKey, today: DayKey, formatted: string): string 
   if (days < 0) return `Overdue by ${-days} day${days === -1 ? '' : 's'}`;
   if (days <= 7) return `Due in ${days} days`;
   return `Due ${formatted}`;
+}
+
+/** A past paper from the library. */
+export const isPastPaper = (card: BoardCard): boolean => card.link?.type === 'library_item' && card.link.kind === 'past-paper';
+
+/** "About 4 a day", "1 every 3 days", or what to say once the exam day has come. */
+export function planPace(plan: Pick<BoardPlan, 'left' | 'daysLeft'>): string {
+  if (plan.left === 0) return 'All done.';
+  if (plan.daysLeft <= 0) return 'The exam day has come.';
+  const perDay = plan.left / plan.daysLeft;
+  if (perDay >= 1) return `About ${Math.round(perDay)} a day`;
+  const every = Math.round(plan.daysLeft / plan.left);
+  return every <= 1 ? 'About 1 a day' : `1 every ${every} days`;
+}
+
+/** A sitting: a paper's exam year and zone. Papers without a year count as one sitting each. */
+export interface Paper {
+  id: string;
+  examYear?: number | null;
+  zone?: string | null;
+}
+
+const sittingOf = (p: Paper): string => (p.examYear ? `${p.examYear}-${p.zone ?? ''}` : `item-${p.id}`);
+
+/** How many of the papers' sittings have a paper done, out of how many sittings. */
+export function sittingsDone(papers: readonly Paper[], done: ReadonlySet<string>): { done: number; total: number } {
+  const all = new Set<string>();
+  const finished = new Set<string>();
+  for (const p of papers) {
+    const s = sittingOf(p);
+    all.add(s);
+    if (done.has(p.id)) finished.add(s);
+  }
+  return { done: finished.size, total: all.size };
+}
+
+/** A practice score as typed: a whole or half percentage from 0 to 100, or null when left empty. */
+export function parseScore(raw: string): number | null | undefined {
+  const t = raw.trim().replace(/%$/, '').trim();
+  if (!t) return null;
+  if (!/^\d{1,3}(\.\d)?$/.test(t)) return undefined;
+  const n = Number(t);
+  return n <= 100 ? n : undefined;
 }
