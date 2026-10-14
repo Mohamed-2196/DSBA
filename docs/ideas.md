@@ -233,7 +233,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 
 ## Your papers and your dates
 
-### IDEA-10. R-3: your papers, not just your year
+### IDEA-10. R-3: your papers, not just your year · **built (round 6)**
 
 - **The moment:** Hamad's Home says "then five more exams", counting both Year 2 options, though he takes
   Econometrics. Reem's lists six Year 3 modules; she takes four. Someone sitting a paper from another year doesn't
@@ -247,9 +247,9 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** which papers someone sits, a resit included, is personal: never in public responses, in the
   export, gone on deletion. Without picks, everything works as it does today.
 - **How we'd know it worked:** share of Year 2 and 3 accounts with picks; feeds that use `modules`.
-- **Status:** proposed.
+- **Status:** built on `round6/calendar2`: "Your papers" (option, electives, other years' papers and zone) on the account, or in the browser for guests. Home's countdown and modules, Coming up, the calendar, its feed (`modules=`), role fit, the grades calculator and the library's zone order follow them. A new year clears them.
 
-### IDEA-11. R-3: dates that tell you enough
+### IDEA-11. R-3: dates that tell you enough · **built (round 6)**
 
 - **The moment:** Layla, the day before EC1002: "What time? Which hall? Can I take my calculator?"
 - **The idea:** Exam entries carry the start time, the place, the length and a line on the rules (calculator, what
@@ -261,7 +261,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** reps' upkeep every session, and a wrong time does harm, so show where it came from and when
   it was checked.
 - **How we'd know it worked:** fewer "what time is it?" threads in exam weeks.
-- **Status:** proposed.
+- **Status:** built on `round6/calendar2`: exams carry length and rules, any date its source and when it was checked; windows (the VLE MCQs are now one entry) show "4 days left"; unconfirmed dates say to ask a student rep or the programme office.
 
 ### IDEA-12. R-3: tell people when a date changes · **approved 2026-10-14, building (round 5)**
 
@@ -344,7 +344,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** seniors listed; questions asked through "Ask", and how many get an answer.
 - **Status:** proposed.
 
-### IDEA-18. Application dates on the calendar
+### IDEA-18. Application dates on the calendar · **built (round 6)**
 
 - **The moment:** Hamad: "When do summer internships open? I missed NBB's last year."
 - **The idea:** Opening and closing dates for the programmes on Career Navigator go on the calendar as a Careers
@@ -355,7 +355,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** dates change every year and many employers don't publish them, so only confirmed dates, each
   with its source.
 - **How we'd know it worked:** clicks on employer links in the weeks before closing dates.
-- **Status:** proposed.
+- **Status:** built on `round6/calendar2`: a Careers type, linked to a Career Navigator employer and refused without a source; the employer's card says "Opens in January" or "Closes 30 November". No dates are seeded: none of the employers publishes one yet.
 
 ## Reps and the cohort
 

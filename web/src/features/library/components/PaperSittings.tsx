@@ -7,7 +7,8 @@ import { Button, Panel, Skeleton } from '../../../ui';
 import { SittingsDone } from '../../board/public';
 import { itemPath } from '../api';
 import { sittingLabel } from '../display';
-import { sittingFiles, usePaperSittings } from '../papers';
+import { usePapers } from '../../papers/public';
+import { sittingFiles, usePaperSittings, yourZoneFirst } from '../papers';
 import type { LinkState } from './FileCard';
 import './PaperSittings.css';
 
@@ -27,11 +28,11 @@ function numbered(items: LibraryItem[], label: string): { item: LibraryItem; lab
   return items.map((item, i) => ({ item, label: items.length > 1 ? `${label} ${i + 1}` : label }));
 }
 
-function ZoneFiles({ zone, many, linkState }: { zone: SittingZone; many: boolean; linkState: LinkState }) {
+function ZoneFiles({ zone, many, yours, linkState }: { zone: SittingZone; many: boolean; yours: boolean; linkState: LinkState }) {
   const files = [...numbered(zone.papers, 'Paper'), ...numbered(zone.reports, 'Examiners’ report'), ...numbered(zone.solutions, 'Solutions')];
   return (
     <div className="lib-sit__zone">
-      {many || zone.zone ? <span className="lib-sit__zone-name">{zone.zone ? `Zone ${zone.zone}` : 'Both zones'}</span> : null}
+      {many || zone.zone ? <span className="lib-sit__zone-name">{zone.zone ? `Zone ${zone.zone}${yours ? ', yours' : ''}` : 'Both zones'}</span> : null}
       <ul role="list" className="lib-sit__files">
         {files.map((f) => (
           <FileLink key={f.item.id} item={f.item} label={f.label} linkState={linkState} />
@@ -41,7 +42,7 @@ function ZoneFiles({ zone, many, linkState }: { zone: SittingZone; many: boolean
   );
 }
 
-function SittingRow({ sitting, linkState }: { sitting: Sitting; linkState: LinkState }) {
+function SittingRow({ sitting, zone, linkState }: { sitting: Sitting; zone: SittingZone['zone']; linkState: LinkState }) {
   const many = sitting.zones.length > 1;
   const hasPaper = sitting.zones.some((z) => z.papers.length);
   const hasReport = sitting.zones.some((z) => z.reports.length);
@@ -49,8 +50,8 @@ function SittingRow({ sitting, linkState }: { sitting: Sitting; linkState: LinkS
     <li className="lib-sit">
       <h4 className="lib-sit__when u-tabular">{sittingLabel(sitting.examYear, sitting.session)}</h4>
       <div className="lib-sit__zones">
-        {sitting.zones.map((z) => (
-          <ZoneFiles key={z.zone ?? 'both'} zone={z} many={many} linkState={linkState} />
+        {yourZoneFirst(sitting.zones, zone).map((z) => (
+          <ZoneFiles key={z.zone ?? 'both'} zone={z} many={many} yours={!!zone && z.zone === zone} linkState={linkState} />
         ))}
         {hasPaper && !hasReport ? <p className="lib-sit__none">No examiners’ report yet</p> : null}
       </div>
@@ -72,6 +73,7 @@ export function PaperSittings({
   board: boolean;
 }) {
   const papers = usePaperSittings(moduleId);
+  const { zone } = usePapers();
   const [all, setAll] = useState(false);
   if (papers.isPending) {
     return (
@@ -99,7 +101,7 @@ export function PaperSittings({
           <Panel as="div" padding="none" className="lib-mf__panel">
             <ul role="list" className="lib-sit__list">
               {shown.map((s) => (
-                <SittingRow key={`${s.examYear}-${s.session ?? 'any'}`} sitting={s} linkState={linkState} />
+                <SittingRow key={`${s.examYear}-${s.session ?? 'any'}`} sitting={s} zone={zone} linkState={linkState} />
               ))}
             </ul>
           </Panel>

@@ -6,7 +6,9 @@ import { Button, cx, Menu, Page, PageHeader, PageSection, SectionHeader } from '
 import { CLASS_NAME, CLASS_SHORT } from './bands';
 import { classify, normalizeGrades, type BandId, type ChoiceSlot, type Classification, type Picks } from './classify';
 import { EMPTY_RECORD, EXAMPLES, type GradesRecord } from './examples';
+import { usePapers } from '../papers/public';
 import { MarksSheet } from './MarksSheet';
+import { withPaperPicks } from './subjects';
 import { ResultHero } from './ResultHero';
 import { blankIndexes, improvementPlan } from './whatif';
 import './GradesPage.css';
@@ -44,7 +46,8 @@ export default function GradesPage() {
   const [exampleParam, setExampleParam] = useQueryParam('example');
 
   const marks = record.marks;
-  const picks = record.picks;
+  const { picks: paperPicks } = usePapers();
+  const picks = useMemo(() => withPaperPicks(record.picks, paperPicks), [record.picks, paperPicks]);
   const result = useMemo(() => classify(marks), [marks]);
   const plan = useMemo(() => (blankIndexes(marks).length === 0 && !result.failed && result.kind !== 'first' ? improvementPlan(marks) : null), [marks, result]);
   const aims = useMemo(() => new Map((plan?.changes ?? []).map((c) => [c.index, c.to])), [plan]);
