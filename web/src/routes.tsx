@@ -31,6 +31,7 @@ const pages: AppRoute[] = [
   { id: 'manage', path: '/manage', title: 'Manage', Page: lazy(() => import('./features/manage/ManagePage')), modules: false },
   { id: 'access', path: '/admin/access', title: 'Access', Page: lazy(() => import('./features/access/AccessPage')), modules: false },
   { id: 'board', path: '/board', title: 'Study board', Page: lazy(() => import('./features/board/BoardPage')), feature: 'board', modules: false },
+  { id: 'results-day', path: '/results-day', title: 'Results day', Page: lazy(() => import('./features/start/ResultsDayPage')) },
   { id: 'start-here', path: '/start-here', title: 'Start here', Page: lazy(() => import('./features/start/StartHerePage')) },
   { id: 'about', path: '/about', title: 'About', Page: lazy(() => import('./features/about/AboutPage')) },
   {

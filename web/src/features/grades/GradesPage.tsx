@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowCounterClockwise, CaretDown, Flask, LockSimple } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
+import { UOL_RULES } from '../../data/guides';
 import { BREAKPOINTS, useLocalStorage, useMediaQuery, useQueryParam, useToast } from '../../state';
 import { Button, cx, Menu, Page, PageHeader, PageSection, SectionHeader } from '../../ui';
 import { CLASS_NAME, CLASS_SHORT } from './bands';
 import { classify, normalizeGrades, type BandId, type ChoiceSlot, type Classification, type Picks } from './classify';
+import { readRecord, STORAGE_KEY } from './record';
 import { EMPTY_RECORD, EXAMPLES, type GradesRecord } from './examples';
 import { usePapers } from '../papers/public';
 import { MarksSheet } from './MarksSheet';
@@ -12,28 +14,6 @@ import { withPaperPicks } from './subjects';
 import { ResultHero } from './ResultHero';
 import { blankIndexes, improvementPlan } from './whatif';
 import './GradesPage.css';
-
-// Marks live only in this browser's localStorage: the calculator never sends them to the server. The key starts
-// with 'hub.mine.', so signing out clears them (shared lab computers: security review, finding 23).
-const STORAGE_KEY = 'hub.mine.grades';
-
-const SLOTS: readonly ChoiceSlot[] = ['year2Option', 'elective1', 'elective2'];
-
-const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-
-/** Whatever is stored, as a record of 13 mark strings and the known picks (stored JSON is never trusted). */
-function readRecord(raw: unknown): GradesRecord {
-  if (!isObject(raw)) return { marks: normalizeGrades(null), picks: {} };
-  const picks: Picks = {};
-  const storedPicks = raw.picks;
-  if (isObject(storedPicks)) {
-    for (const slot of SLOTS) {
-      const v = storedPicks[slot];
-      if (typeof v === 'string' && v) picks[slot] = v;
-    }
-  }
-  return { marks: normalizeGrades(raw.marks), picks };
-}
 
 const hasMarks = (rec: GradesRecord): boolean => rec.marks.some((m) => m !== '');
 
@@ -244,9 +224,13 @@ function Rules() {
             ))}
           </tbody>
         </table>
-        <p className="grades-how__note">
-          A study aid built by students, not an official calculation: your classification comes from the
-          University of London.
+        <p className="grades-how__note" data-hub="grades-source">
+          {UOL_RULES.check} The rules are in regulations 8.7 and 8.8 of the{' '}
+          <a href={UOL_RULES.regulations.href} target="_blank" rel="noopener noreferrer">
+            {UOL_RULES.regulations.label}
+            <span className="visually-hidden"> (opens in a new tab)</span>
+          </a>
+          .
         </p>
       </div>
     </div>

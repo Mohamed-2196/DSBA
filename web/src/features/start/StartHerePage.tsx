@@ -3,8 +3,8 @@ import { ArrowSquareOut } from '@phosphor-icons/react';
 import { START_HERE } from '../../data/guides';
 import { Badge, Page, PageHeader, PageSection, Panel, SectionHeader } from '../../ui';
 import { safeHref } from '../../ui/safeHref';
-import { StartHereSteps } from './StartHereSteps';
-import { useStartTicks } from './useStartTicks';
+import { GuideSteps } from './GuideSteps';
+import { useStartTicks } from './useGuideTicks';
 import './StartHere.css';
 
 function Places() {
@@ -36,7 +36,8 @@ function Places() {
 }
 
 export default function StartHerePage() {
-  const { done, total } = useStartTicks();
+  const ticks = useStartTicks();
+  const { done, total } = ticks;
   const n = done.size;
   return (
     <Page className="start-page">
@@ -44,7 +45,7 @@ export default function StartHerePage() {
       <PageSection aria-labelledby="start-steps-title">
         <SectionHeader id="start-steps-title" title="Your first weeks" />
         <Panel as="div" padding="none" radius="feature" className="start-page__panel">
-          <StartHereSteps variant="page" />
+          <GuideSteps steps={START_HERE.steps} ticks={ticks} variant="page" />
         </Panel>
         {n === total ? <p className="start-page__done">All done. Welcome to DSBA.</p> : null}
       </PageSection>

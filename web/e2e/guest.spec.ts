@@ -14,6 +14,7 @@ const PAGES: [string, RegExp][] = [
   ['/calendar', /^Calendar$/],
   ['/career', /^Career Navigator$/],
   ['/career/electives', /^Choosing your Year 3 electives$/],
+  ['/results-day', /^Results day$/],
   ['/start-here', /^Start here$/],
   ['/grades', /^Grades$/],
   ['/about', /About DSBA Hub/],

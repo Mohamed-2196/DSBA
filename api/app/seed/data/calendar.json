@@ -757,5 +757,29 @@
     "time": null,
     "place": null,
     "sample": true
+  },
+  {
+    "id": "2027-01-14-results",
+    "date": "2027-01-14",
+    "title": "UoL results released",
+    "type": "event",
+    "year": null,
+    "moduleId": null,
+    "unitCode": null,
+    "time": null,
+    "place": null,
+    "sample": true
+  },
+  {
+    "id": "2027-08-05-results",
+    "date": "2027-08-05",
+    "title": "UoL results released",
+    "type": "event",
+    "year": null,
+    "moduleId": null,
+    "unitCode": null,
+    "time": null,
+    "place": null,
+    "sample": true
   }
 ]
