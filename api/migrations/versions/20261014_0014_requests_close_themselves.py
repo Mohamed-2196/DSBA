@@ -1,7 +1,7 @@
 """requests close themselves: what a paper or date request wants, the file found for it, and two switches (off)
 
 Revision ID: 0014
-Revises: 0007
+Revises: 0012
 Create Date: 2026-10-14 22:00:00
 
 A paper request names a module, a library kind and maybe an exam year and zone; a published file that fits becomes
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0014"
-down_revision: str | None = "0007"
+down_revision: str | None = "0012"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

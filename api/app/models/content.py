@@ -3,14 +3,27 @@
 from __future__ import annotations
 
 import datetime as dt
+import enum
 import uuid
 from datetime import datetime
 from typing import Any, get_args
 
-from sqlalchemy import Boolean, CheckConstraint, Date, ForeignKey, Index, Integer, SmallInteger, String, Text, func
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Date,
+    ForeignKey,
+    Index,
+    Integer,
+    SmallInteger,
+    String,
+    Text,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, check_in, created_ts, year_range
+from app.models.base import Base, check_in, created_ts, str_enum, uuid_pk, year_range
 from app.schemas.calendar import EventType
 
 
@@ -86,6 +99,47 @@ class Lesson(Base):
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
 
     chapter: Mapped[Chapter] = relationship(back_populates="lessons")
+
+
+class SuggestionStatus(enum.StrEnum):
+    pending = "pending"
+    accepted = "accepted"
+    declined = "declined"
+
+
+class VideoSuggestion(Base):
+    """A video a student suggests for a module's chapter (IDEA-15). It waits in Manage → Suggested videos until a
+    content manager accepts it (it becomes a lesson: `lesson_id`) or declines it with a reason. `chapter_id` is None
+    when the student left the chapter to the editor (a module with no chapters yet)."""
+
+    __tablename__ = "video_suggestions"
+    __table_args__ = (
+        Index("ix_video_suggestions_author_created", "author_id", "created_at"),  # the daily limit, export, deletion
+        Index("ix_video_suggestions_module", "module_id"),
+        Index("ix_video_suggestions_chapter", "chapter_id"),  # chapter deletion (SET NULL)
+        Index("ix_video_suggestions_lesson", "lesson_id"),  # lesson deletion (SET NULL)
+        Index("ix_video_suggestions_decided_by", "decided_by"),  # account deletion (SET NULL)
+        Index("ix_video_suggestions_queue", "created_at", postgresql_where=text("status = 'pending'")),
+        check_in("kind", ("youtube", "youtube-playlist", "bbb")),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    author_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    module_id: Mapped[str] = mapped_column(ForeignKey("modules.id", ondelete="CASCADE"))
+    chapter_id: Mapped[str | None] = mapped_column(ForeignKey("chapters.id", ondelete="SET NULL"))
+    kind: Mapped[str] = mapped_column(String(20))  # as Lesson.kind
+    video_id: Mapped[str | None] = mapped_column(String(64))
+    url: Mapped[str | None] = mapped_column(String(500))
+    title: Mapped[str] = mapped_column(String(200))
+    reason: Mapped[str] = mapped_column(Text, default="", server_default="")  # the student's line on why
+    status: Mapped[SuggestionStatus] = mapped_column(
+        str_enum(SuggestionStatus, 10), default=SuggestionStatus.pending, server_default=SuggestionStatus.pending.value
+    )
+    reply: Mapped[str | None] = mapped_column(Text)  # why it was declined
+    lesson_id: Mapped[str | None] = mapped_column(ForeignKey("lessons.id", ondelete="SET NULL"))
+    decided_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    decided_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = created_ts()
 
 
 class CalendarEvent(Base):

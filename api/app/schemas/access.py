@@ -49,6 +49,7 @@ FeatureKey = Literal[
     "requests",
     "requests.autoclose",
     "summary",
+    "video_suggestions",
 ]
 
 

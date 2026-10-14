@@ -50,6 +50,7 @@ from app.models import (
     UploadStatus,
     User,
     UserSession,
+    VideoSuggestion,
 )
 from app.schemas.access import RoleSummary
 from app.schemas.auth import (
@@ -69,6 +70,7 @@ from app.schemas.auth import (
     ExportReport,
     ExportRequest,
     ExportSenior,
+    ExportSuggestion,
     ExportThread,
     ExportVote,
     Me,
@@ -81,6 +83,7 @@ from app.schemas.notifications import NotificationKind
 from app.services import access, otp, sessions
 from app.services.audit import record
 from app.services.identifiers import Kind, admin_identifiers, destination_hint
+from app.services.module_editor import link_of
 from app.services.modules import student_lesson, student_lessons
 from app.services.outbox import ACCOUNT_NOTICE, wants
 from app.services.storage import Storage
@@ -805,6 +808,23 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         senior=senior,
         notes=notes,
         noora_usage=noora,
+        video_suggestions=[
+            ExportSuggestion(
+                id=s.id,
+                module_id=s.module_id,
+                chapter_id=s.chapter_id,
+                url=link_of(s.kind, s.video_id, s.url),
+                title=s.title,
+                reason=s.reason,
+                status=s.status.value,
+                reply=s.reply,
+                lesson_id=s.lesson_id,
+                created_at=s.created_at,
+            )
+            for s in db.scalars(
+                select(VideoSuggestion).where(VideoSuggestion.author_id == uid).order_by(VideoSuggestion.created_at)
+            )
+        ],
     )
 
 

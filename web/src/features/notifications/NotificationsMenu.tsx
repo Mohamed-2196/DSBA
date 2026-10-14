@@ -1,6 +1,6 @@
 // Bell + dropdown in the top bar: the signed-in person's notifications from the API (hidden for guests).
 import { Link } from 'react-router-dom';
-import { Bell, BellRinging, CalendarDots, ChatsCircle, Check, Checks, FileArrowUp, FileX, HandWaving, Newspaper, SealCheck, ShieldCheck, Student, type Icon } from '@phosphor-icons/react';
+import { Bell, BellRinging, CalendarDots, ChatsCircle, Check, Checks, FileArrowUp, FileX, HandWaving, Newspaper, SealCheck, ShieldCheck, Student, YoutubeLogo, type Icon } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { NotificationOut } from '../../api/types';
 import { useAuth } from '../../auth';
@@ -24,6 +24,7 @@ const KIND_ICON: Record<Exclude<Kind, 'system'>, { icon: Icon; tone: string }> =
   report_resolved: { icon: ShieldCheck, tone: 'forum' },
   request_update: { icon: HandWaving, tone: 'signal' },
   date_changed: { icon: CalendarDots, tone: 'alert' },
+  video_suggestion: { icon: YoutubeLogo, tone: 'signal' },
 };
 
 function KindIcon({ kind }: { kind: Kind }) {

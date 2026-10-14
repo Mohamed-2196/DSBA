@@ -4,7 +4,15 @@ from app.models.access import AccessRole, FeatureSwitch, FeatureSwitchRole, Role
 from app.models.activity import AuditEntry, LessonResume, LessonView, Notification, Report, ReportStatus
 from app.models.base import Base
 from app.models.board import BoardCard, BoardPlan
-from app.models.content import CalendarEvent, Chapter, ContentDoc, Lesson, Module
+from app.models.content import (
+    CalendarEvent,
+    Chapter,
+    ContentDoc,
+    Lesson,
+    Module,
+    SuggestionStatus,
+    VideoSuggestion,
+)
 from app.models.forum import FollowLevel, ForumReply, ForumThread, PostStatus, ReplyVote, ThreadFollow, ThreadVote
 from app.models.library import (
     ItemSource,
@@ -75,6 +83,7 @@ __all__ = [
     "RoleGrant",
     "SeniorProfile",
     "StudentRequest",
+    "SuggestionStatus",
     "TextStatus",
     "ThreadFollow",
     "ThreadVote",
@@ -84,5 +93,6 @@ __all__ = [
     "User",
     "UserSession",
     "UserStatus",
+    "VideoSuggestion",
     "WeeklySummarySent",
 ]

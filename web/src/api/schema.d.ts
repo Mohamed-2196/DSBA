@@ -160,7 +160,7 @@ export interface paths {
         head?: never;
         /**
          * Update Me
-         * @description Display name, cohort year, email switches, papers and zone. Only the fields sent change; `year: null` clears it.
+         * @description Display name, cohort year and email switches. Only the fields sent change; `year: null` clears it.
          *
          *     Errors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).
          */
@@ -509,7 +509,8 @@ export interface paths {
          * Stats
          * @description Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
          *     for review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle
-         *     them). A feature switched off for the viewer counts None.
+         *     them), and the suggested videos waiting for review (for people who edit modules). A feature switched off for the
+         *     viewer counts None.
          */
         get: operations["stats_api_v1_admin_stats_get"];
         put?: never;
@@ -1641,10 +1642,8 @@ export interface paths {
         put?: never;
         /**
          * Create Request
-         * @description Ask for something. A paper request may name its file (module, `wantedKind`, maybe `examYear` and `zone`), and a
-         *     date request the unconfirmed event it asks about (`eventId`), so they can close themselves. Errors: invalid_input
-         *     (422: a short title, an unknown module, a confirmed or unknown date), already_asked (409: the same file asked for
-         *     again, or a date someone already asked about), rate_limited (429: five a day).
+         * @description Ask for something. Errors: invalid_input (422: a short title, an unknown module), rate_limited (429: five a
+         *     day).
          */
         post: operations["create_request_api_v1_requests_post"];
         delete?: never;
@@ -1740,30 +1739,6 @@ export interface paths {
          *     Errors: not_found (404), invalid_input (422: declined without a reason).
          */
         post: operations["answer_request_api_v1_requests__request_id__answer_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/requests/{request_id}/found": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Answer Found
-         * @description Say whether the file found for a paper request is the one: the requester or someone who handles requests.
-         *     Yes closes it as done and tells the requester and everyone who said "me too"; no keeps it open for another file.
-         *     Audited (`request.found`) when a rep answers.
-         *
-         *     Errors: not_found (404), forbidden (403: someone else's request), nothing_found (409: no file waiting).
-         */
-        post: operations["answer_found_api_v1_requests__request_id__found_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2010,9 +1985,7 @@ export interface paths {
         /**
          * Ics Feed
          * @description An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).
-         *     `type=exam` gives only the exams (the web app's "Download the exams"). `modules` (comma-separated module ids,
-         *     up to 20) keeps a module's events to those papers, from any year: the feed of someone's own papers, with
-         *     nothing in the address that says who they are.
+         *     `type=exam` gives only the exams (the web app's "Download the exams").
          */
         get: operations["ics_feed_api_v1_calendar_feed_ics_get"];
         put?: never;
@@ -2410,6 +2383,115 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/video-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suggest Video
+         * @description Suggest a video for a module's chapter (`chapterId` null: the editor picks one). The link must be a YouTube
+         *     video or playlist, or a class recording on vc.bibf.com.
+         *
+         *     Errors: invalid_input (422: an unknown or hidden module or chapter, a link the app can't embed),
+         *     already_a_lesson (409), already_suggested (409: it waits for review), rate_limited (429: five a day).
+         */
+        post: operations["suggest_video_api_v1_video_suggestions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/video-suggestions/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Suggestions
+         * @description Your suggestions, newest first (the latest 50), for one module or all of them.
+         */
+        get: operations["my_suggestions_api_v1_video_suggestions_mine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/video-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Suggestions Queue
+         * @description The review queue: pending suggestions oldest first, decided ones the latest decision first.
+         */
+        get: operations["suggestions_queue_api_v1_content_video_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/video-suggestions/{suggestion_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Suggestion
+         * @description Add the video as a lesson at the end of a chapter: the suggested one, `chapterId`, or a new chapter named
+         *     `newChapter`. The module's version moves on. Tells the student. Audited (`suggestion.accept`).
+         *
+         *     Errors: not_found (404), suggestion_closed (409), already_a_lesson (409), invalid_input (422: no chapter).
+         */
+        post: operations["accept_suggestion_api_v1_content_video_suggestions__suggestion_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/video-suggestions/{suggestion_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline Suggestion
+         * @description Decline with a reason the student sees. Tells the student. Audited (`suggestion.decline`).
+         *
+         *     Errors: not_found (404), suggestion_closed (409), invalid_input (422: no reason).
+         */
+        post: operations["decline_suggestion_api_v1_content_video_suggestions__suggestion_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2467,6 +2549,8 @@ export interface components {
             notes: components["schemas"]["ExportNote"][];
             /** Noorausage */
             nooraUsage: components["schemas"]["ExportNooraDay"][];
+            /** Videosuggestions */
+            videoSuggestions: components["schemas"]["ExportSuggestion"][];
         };
         /**
          * AdminStats
@@ -2487,6 +2571,8 @@ export interface components {
             openReports: number;
             /** Openrequests */
             openRequests: number | null;
+            /** Pendingsuggestions */
+            pendingSuggestions: number | null;
         };
         /** AdminUser */
         AdminUser: {
@@ -2776,21 +2862,11 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term";
+            type: "exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term";
             /** Year */
             year?: (1 | 2 | 3) | null;
             /** Moduleid */
             moduleId?: string | null;
-            /** Duration */
-            duration?: string | null;
-            /** Rules */
-            rules?: string | null;
-            /** Source */
-            source?: string | null;
-            /** Checkedon */
-            checkedOn?: string | null;
-            /** Employerid */
-            employerId?: string | null;
             /**
              * Sample
              * @default false
@@ -2818,23 +2894,13 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term";
+            type: "exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term";
             /** Year */
             year: (1 | 2 | 3) | null;
             /** Moduleid */
             moduleId: string | null;
             /** Unitcode */
             unitCode: string | null;
-            /** Duration */
-            duration: string | null;
-            /** Rules */
-            rules: string | null;
-            /** Source */
-            source: string | null;
-            /** Checkedon */
-            checkedOn: string | null;
-            /** Employerid */
-            employerId: string | null;
             /** Sample */
             sample: boolean;
         };
@@ -2862,23 +2928,13 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term";
+            type: "exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term";
             /** Year */
             year: (1 | 2 | 3) | null;
             /** Moduleid */
             moduleId: string | null;
             /** Unitcode */
             unitCode: string | null;
-            /** Duration */
-            duration: string | null;
-            /** Rules */
-            rules: string | null;
-            /** Source */
-            source: string | null;
-            /** Checkedon */
-            checkedOn: string | null;
-            /** Employerid */
-            employerId: string | null;
             /** Sample */
             sample: boolean;
             /**
@@ -2902,21 +2958,11 @@ export interface components {
             /** Title */
             title?: string | null;
             /** Type */
-            type?: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term") | null;
+            type?: ("exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term") | null;
             /** Year */
             year?: (1 | 2 | 3) | null;
             /** Moduleid */
             moduleId?: string | null;
-            /** Duration */
-            duration?: string | null;
-            /** Rules */
-            rules?: string | null;
-            /** Source */
-            source?: string | null;
-            /** Checkedon */
-            checkedOn?: string | null;
-            /** Employerid */
-            employerId?: string | null;
             /** Sample */
             sample?: boolean | null;
             /**
@@ -3401,7 +3447,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -3470,7 +3516,7 @@ export interface components {
          */
         ExportEmail: {
             /** Kind */
-            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system") | "account_notice";
+            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system") | "account_notice";
             /** Toaddress */
             toAddress: string;
             /** Subject */
@@ -3622,7 +3668,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -3788,14 +3834,6 @@ export interface components {
             details: string;
             /** Moduleid */
             moduleId: string | null;
-            /** Wantedkind */
-            wantedKind: ("past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
-            /** Examyear */
-            examYear: number | null;
-            /** Zone */
-            zone: string | null;
-            /** Eventid */
-            eventId: string | null;
             /**
              * Status
              * @enum {string}
@@ -3819,6 +3857,38 @@ export interface components {
             note: string;
             /** Paused */
             paused: boolean;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** ExportSuggestion */
+        ExportSuggestion: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Moduleid */
+            moduleId: string;
+            /** Chapterid */
+            chapterId: string | null;
+            /** Url */
+            url: string;
+            /** Title */
+            title: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "accepted" | "declined";
+            /** Reply */
+            reply: string | null;
+            /** Lessonid */
+            lessonId: string | null;
             /**
              * Createdat
              * Format: date-time
@@ -3890,7 +3960,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary";
+            feature: "forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary" | "video_suggestions";
             /** Label */
             label: string;
             /** Hides */
@@ -3916,7 +3986,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary")[];
+            features: ("forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary" | "video_suggestions")[];
         };
         /** FileLink */
         FileLink: {
@@ -3981,38 +4051,6 @@ export interface components {
                     [key: string]: number;
                 };
             };
-        };
-        /**
-         * FoundAnswer
-         * @description The requester's or a rep's word on the file found for a request: yes closes it as done, no keeps it open.
-         */
-        FoundAnswer: {
-            /** Confirm */
-            confirm: boolean;
-        };
-        /**
-         * FoundItem
-         * @description A published library file that may be what a request asked for.
-         */
-        FoundItem: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Slug */
-            slug: string;
-            /** Title */
-            title: string;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
-            /** Examyear */
-            examYear: number | null;
-            /** Zone */
-            zone: string | null;
         };
         /** FurtherStudy */
         FurtherStudy: {
@@ -4421,7 +4459,7 @@ export interface components {
             /** Examyear */
             examYear?: number | null;
             /** Zone */
-            zone?: ("A" | "B" | "RTC") | null;
+            zone?: ("A" | "B") | null;
             /** Examsession */
             examSession?: ("may" | "october") | null;
             /** Authorname */
@@ -4442,7 +4480,7 @@ export interface components {
             /** Examyear */
             examYear?: number | null;
             /** Zone */
-            zone?: ("A" | "B" | "RTC") | null;
+            zone?: ("A" | "B") | null;
             /** Examsession */
             examSession?: ("may" | "october") | null;
             /** Authorname */
@@ -4524,7 +4562,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary")[];
+            features: ("forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary" | "video_suggestions")[];
             /**
              * Status
              * @enum {string}
@@ -4542,10 +4580,6 @@ export interface components {
              */
             createdAt: string;
             preferences: components["schemas"]["Preferences"];
-            /** Papers */
-            papers: string[];
-            /** Zone */
-            zone: ("A" | "B") | null;
         };
         /**
          * MeUpdate
@@ -4557,10 +4591,6 @@ export interface components {
             /** Year */
             year?: (1 | 2 | 3) | null;
             preferences?: components["schemas"]["PreferencesUpdate"] | null;
-            /** Papers */
-            papers?: string[] | null;
-            /** Zone */
-            zone?: ("A" | "B") | null;
         };
         /**
          * ModuleCreate
@@ -5067,7 +5097,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -5624,11 +5654,7 @@ export interface components {
             /** Reply */
             reply?: string | null;
         };
-        /**
-         * RequestCreate
-         * @description A paper request may say what it wants (`wanted_kind` with `module_id`, maybe `exam_year` and `zone`), so a
-         *     published file can match it; a date request may name the unconfirmed event it asks about (`event_id`).
-         */
+        /** RequestCreate */
         RequestCreate: {
             /**
              * Kind
@@ -5644,31 +5670,6 @@ export interface components {
             details: string;
             /** Moduleid */
             moduleId?: string | null;
-            /** Wantedkind */
-            wantedKind?: ("past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
-            /** Examyear */
-            examYear?: number | null;
-            /** Zone */
-            zone?: ("A" | "B") | null;
-            /** Eventid */
-            eventId?: string | null;
-        };
-        /**
-         * RequestEvent
-         * @description The date a date request asks about.
-         */
-        RequestEvent: {
-            /** Id */
-            id: string;
-            /** Title */
-            title: string;
-            /**
-             * Date
-             * Format: date
-             */
-            date: string;
-            /** Sample */
-            sample: boolean;
         };
         /** RequestOut */
         RequestOut: {
@@ -5690,14 +5691,6 @@ export interface components {
             moduleId: string | null;
             /** Moduletitle */
             moduleTitle: string | null;
-            /** Wantedkind */
-            wantedKind: ("past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
-            /** Examyear */
-            examYear: number | null;
-            /** Zone */
-            zone: string | null;
-            event: components["schemas"]["RequestEvent"] | null;
-            found: components["schemas"]["FoundItem"] | null;
             /**
              * Status
              * @enum {string}
@@ -5985,12 +5978,12 @@ export interface components {
         };
         /**
          * SittingZone
-         * @description One zone's papers in a sitting, with their examiners' reports and solutions: zone A, zone B or RTC (the paper set
-         *     for Recognised Teaching Centres). `zone` None: files for every zone, or a sitting with one paper.
+         * @description One zone's papers in a sitting, with their examiners' reports and solutions. `zone` None: files for both
+         *     zones, or a sitting with one paper.
          */
         SittingZone: {
             /** Zone */
-            zone: ("A" | "B" | "RTC") | null;
+            zone: ("A" | "B") | null;
             /** Papers */
             papers: components["schemas"]["LibraryItem"][];
             /** Reports */
@@ -6060,6 +6053,103 @@ export interface components {
         StepUpStart: {
             /** Via */
             via?: ("email" | "phone") | null;
+        };
+        /**
+         * SuggestionAccept
+         * @description Where the new lesson goes: `chapter_id` (default: the one suggested), or a new chapter at the end of the module
+         *     named `new_chapter`. `title` replaces the suggested title.
+         */
+        SuggestionAccept: {
+            /** Chapterid */
+            chapterId?: string | null;
+            /** Newchapter */
+            newChapter?: string | null;
+            /** Title */
+            title?: string | null;
+        };
+        /**
+         * SuggestionCreate
+         * @description A YouTube video or playlist link, or a class recording on vc.bibf.com: the links the module editor takes.
+         *     `chapter_id` None leaves the chapter to the editor.
+         */
+        SuggestionCreate: {
+            /** Moduleid */
+            moduleId: string;
+            /** Chapterid */
+            chapterId?: string | null;
+            /** Url */
+            url: string;
+            /** Title */
+            title: string;
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
+        };
+        /**
+         * SuggestionDecline
+         * @description The reason, which the student sees.
+         */
+        SuggestionDecline: {
+            /** Reply */
+            reply: string;
+        };
+        /** SuggestionOut */
+        SuggestionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Moduleid */
+            moduleId: string;
+            /** Moduletitle */
+            moduleTitle: string;
+            /** Chapterid */
+            chapterId: string | null;
+            /** Chaptertitle */
+            chapterTitle: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "youtube" | "youtube-playlist" | "bbb";
+            /** Url */
+            url: string;
+            /** Title */
+            title: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "accepted" | "declined";
+            /** Reply */
+            reply: string | null;
+            /** Lessonid */
+            lessonId: string | null;
+            author: components["schemas"]["UserPublic"] | null;
+            decidedBy: components["schemas"]["UserPublic"] | null;
+            /** Decidedat */
+            decidedAt: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** SuggestionPage */
+        SuggestionPage: {
+            /** Items */
+            items: components["schemas"]["SuggestionOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
         };
         /**
          * SummaryPreview
@@ -6490,6 +6580,7 @@ export type ExportReply = components['schemas']['ExportReply'];
 export type ExportReport = components['schemas']['ExportReport'];
 export type ExportRequest = components['schemas']['ExportRequest'];
 export type ExportSenior = components['schemas']['ExportSenior'];
+export type ExportSuggestion = components['schemas']['ExportSuggestion'];
 export type ExportThread = components['schemas']['ExportThread'];
 export type ExportVote = components['schemas']['ExportVote'];
 export type FeatureOut = components['schemas']['FeatureOut'];
@@ -6500,8 +6591,6 @@ export type FollowRequest = components['schemas']['FollowRequest'];
 export type FollowResult = components['schemas']['FollowResult'];
 export type ForumMeta = components['schemas']['ForumMeta'];
 export type ForumStats = components['schemas']['ForumStats'];
-export type FoundAnswer = components['schemas']['FoundAnswer'];
-export type FoundItem = components['schemas']['FoundItem'];
 export type FurtherStudy = components['schemas']['FurtherStudy'];
 export type FurtherStudyAction = components['schemas']['FurtherStudyAction'];
 export type Health = components['schemas']['Health'];
@@ -6584,7 +6673,6 @@ export type ReportPage = components['schemas']['ReportPage'];
 export type ReportResolve = components['schemas']['ReportResolve'];
 export type RequestAnswer = components['schemas']['RequestAnswer'];
 export type RequestCreate = components['schemas']['RequestCreate'];
-export type RequestEvent = components['schemas']['RequestEvent'];
 export type RequestOut = components['schemas']['RequestOut'];
 export type RequestPage = components['schemas']['RequestPage'];
 export type ResourcesIn = components['schemas']['ResourcesIn'];
@@ -6612,6 +6700,11 @@ export type StatItem = components['schemas']['StatItem'];
 export type StatsAside = components['schemas']['StatsAside'];
 export type StepUpResult = components['schemas']['StepUpResult'];
 export type StepUpStart = components['schemas']['StepUpStart'];
+export type SuggestionAccept = components['schemas']['SuggestionAccept'];
+export type SuggestionCreate = components['schemas']['SuggestionCreate'];
+export type SuggestionDecline = components['schemas']['SuggestionDecline'];
+export type SuggestionOut = components['schemas']['SuggestionOut'];
+export type SuggestionPage = components['schemas']['SuggestionPage'];
 export type SummaryPreview = components['schemas']['SummaryPreview'];
 export type SwitchUpdate = components['schemas']['SwitchUpdate'];
 export type TagOut = components['schemas']['TagOut'];
@@ -9680,7 +9773,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary";
+                feature: "forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary" | "video_suggestions";
             };
             cookie?: never;
         };
@@ -10461,7 +10554,7 @@ export interface operations {
                 /** @description relevance: best match first (with q) */
                 sort?: "new" | "popular" | "title" | "relevance";
                 exam_year?: number | null;
-                zone?: ("A" | "B" | "RTC") | null;
+                zone?: ("A" | "B") | null;
                 starred?: boolean;
                 mine?: boolean;
                 /** @description Library managers: e.g. pending */
@@ -15124,95 +15217,6 @@ export interface operations {
             };
         };
     };
-    answer_found_api_v1_requests__request_id__found_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                request_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FoundAnswer"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RequestOut"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Too Many Requests */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     list_issues_api_v1_newsletter_issues_get: {
         parameters: {
             query?: {
@@ -16433,7 +16437,7 @@ export interface operations {
                 to?: string | null;
                 year?: number | null;
                 module_id?: string | null;
-                type?: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term") | null;
+                type?: ("exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term") | null;
             };
             header?: never;
             path?: never;
@@ -16692,8 +16696,7 @@ export interface operations {
         parameters: {
             query?: {
                 year?: number | null;
-                type?: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term") | null;
-                modules?: string | null;
+                type?: ("exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term") | null;
             };
             header?: never;
             path?: never;
@@ -18678,6 +18681,445 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SummaryPreview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    suggest_video_api_v1_video_suggestions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    my_suggestions_api_v1_video_suggestions_mine_get: {
+        parameters: {
+            query?: {
+                moduleId?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    suggestions_queue_api_v1_content_video_suggestions_get: {
+        parameters: {
+            query?: {
+                status?: "pending" | "accepted" | "declined";
+                /** @description Page size */
+                limit?: number;
+                /** @description Items to skip */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionPage"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    accept_suggestion_api_v1_content_video_suggestions__suggestion_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suggestion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionAccept"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    decline_suggestion_api_v1_content_video_suggestions__suggestion_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suggestion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionDecline"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionOut"];
                 };
             };
             /** @description Bad Request */

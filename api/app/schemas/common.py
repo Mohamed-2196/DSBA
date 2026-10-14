@@ -91,6 +91,10 @@ ErrorCode = Literal[
     # modules and lessons (R-9)
     "module_changed",  # 409: another editor saved the module since it was loaded: load it again
     "content_in_use",  # 409: notes, cards, files or threads refer to it: hide it instead
+    # suggested videos (IDEA-15)
+    "already_a_lesson",  # 409: the module already has this video as a lesson
+    "already_suggested",  # 409: this video already waits for review for the module
+    "suggestion_closed",  # 409: the suggestion was already accepted or declined
     # notes (R-5)
     "note_changed",  # 409: the note was saved elsewhere (another tab) since this version: load it, or save over it
     "too_many_notes",  # 409: the most notes one student may keep

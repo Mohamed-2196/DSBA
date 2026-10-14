@@ -104,3 +104,4 @@ class AdminStats(ApiModel):
     pending_uploads: int | None
     open_reports: int
     open_requests: int | None  # waiting for an answer; None without requests.manage or while requests are off
+    pending_suggestions: int | None  # suggested videos to review; None without content.edit or while they are off

@@ -45,6 +45,7 @@ export const FEATURE_KEYS = [
   'requests',
   'requests.autoclose',
   'summary',
+  'video_suggestions',
 ] as const satisfies readonly Feature[];
 
 /** The boxes that open a manager's tool, in the order Manage shows them. */

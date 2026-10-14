@@ -71,6 +71,7 @@ class Feature(enum.StrEnum):
     requests = "requests"
     requests_autoclose = "requests.autoclose"  # paper and date requests that close themselves
     summary = "summary"  # the Sunday summary email, and its text for a year's group
+    video_suggestions = "video_suggestions"  # students suggest videos for chapters; content managers review them
 
 
 class BoxInfo(NamedTuple):
@@ -182,6 +183,9 @@ FEATURES: dict[Feature, FeatureInfo] = {
         "Matching paper requests with new files, and closing date requests when a rep confirms the date.",
     ),
     Feature.summary: FeatureInfo("Sunday summary", "The Sunday summary email, and its text for reps to share."),
+    Feature.video_suggestions: FeatureInfo(
+        "Suggested videos", "Suggesting videos for lessons, and the queue of suggestions in Manage."
+    ),
 }
 
 

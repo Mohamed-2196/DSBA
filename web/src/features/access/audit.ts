@@ -94,6 +94,8 @@ const ACTIONS: Record<string, Describe> = {
   'newsletter.publish': (d) => `published the newsletter issue${quoted(d.title) || ' (untitled)'}`,
   'newsletter.delete': (d) => `deleted the newsletter issue${quoted(d.title) || ' (untitled)'}`,
   'career.update': () => 'updated the Career Navigator',
+  'suggestion.accept': (d) => `added a suggested video as a lesson:${quoted(d.title)}`,
+  'suggestion.decline': (d) => `declined a suggested video:${quoted(d.title)}`,
 };
 
 /** What happened, as the end of a sentence that starts with who did it. */

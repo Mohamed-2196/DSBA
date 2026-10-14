@@ -85,9 +85,14 @@ def parse_video(url: str) -> dict[str, str] | None:
 
 def video_link(lesson: Lesson) -> str:
     """The link an editor sees for a lesson's video (parse_video() reads it back)."""
-    kind, ident = lesson.kind, lesson.video_id or ""
+    return link_of(lesson.kind, lesson.video_id, lesson.url)
+
+
+def link_of(kind: str, video_id: str | None, url: str | None) -> str:
+    """The link for a stored video ({kind, video_id} or {kind, url}): parse_video() reads it back."""
+    ident = video_id or ""
     if kind == "bbb":
-        return lesson.url or ""
+        return url or ""
     if kind == "youtube-playlist":
         return f"https://www.youtube.com/playlist?list={ident}"
     return ident if ident.startswith("https://") else f"https://www.youtube.com/watch?v={ident}"

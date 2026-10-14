@@ -264,6 +264,7 @@ export const FEATURES = [
   'requests',
   'requests.autoclose',
   'summary',
+  'video_suggestions',
 ] as const;
 
 /** Sets a feature's switch (admins only). Every spec that switches something off puts it back in afterAll. */
