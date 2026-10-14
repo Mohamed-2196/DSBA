@@ -4,7 +4,7 @@ import type { ModuleSummary } from '../../api/types';
 import { useAuth } from '../../auth';
 import type { CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { ModuleIcon, cx } from '../../ui';
+import { ModuleArt, ModuleIcon, cx, moduleArtSrc } from '../../ui';
 import { useCalendarEvents } from '../calendar/public';
 import { useModuleProgress } from '../modules/public';
 import { modulesFor, usePapers } from '../papers/public';
@@ -26,11 +26,16 @@ function metaFor(m: ModuleSummary, watched: number): string {
 
 function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
   const progress = useModuleProgress(m.id);
+  const hasArt = moduleArtSrc(m.id) != null;
   const pct = progress.total > 0 ? Math.round((progress.watched / progress.total) * 100) : 0;
   return (
     <li>
       <Link to={`/modules/${m.id}`} className="home-mods__row" aria-label={`${m.unitCode ? `${m.unitCode} ` : ''}${m.name}${exam ? `, exam ${formatLongDay(exam.date)}` : ''}`}>
-        {m.unitCode ? (
+        {hasArt ? (
+          <span className="home-mods__lead">
+            <ModuleArt moduleId={m.id} className="home-mods__art" />
+          </span>
+        ) : m.unitCode ? (
           <span className="home-mods__code u-code" aria-hidden="true">
             {m.unitCode}
           </span>
@@ -40,7 +45,10 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
           </span>
         )}
         <span className="home-mods__text">
-          <span className="home-mods__name">{m.shortName}</span>
+          <span className="home-mods__name">
+            {hasArt && m.unitCode ? <span className="home-mods__tag u-code">{m.unitCode}</span> : null}
+            {m.shortName}
+          </span>
           <span className="home-mods__meta">{metaFor(m, progress.watched)}</span>
         </span>
         {exam ? (
@@ -55,8 +63,8 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
   );
 }
 
-/** "My modules": the year's modules (your papers, once picked) as a quick list (unit code, name, progress while
- *  tracked, next exam). */
+/** "My modules": the year's modules (your papers, once picked) as a quick list (illustration or unit code, name,
+ *  progress while tracked, next exam). */
 export function YourModules({ year, today }: { year: CohortYear; today: Date }) {
   const { modules: catalogue } = useModules();
   const { papers } = usePapers();

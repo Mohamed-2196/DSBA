@@ -42,6 +42,8 @@ export { Page, PageHeader, PageSection,    } from './Page';
 export { SegmentedControl,   } from './SegmentedControl';
 export { Switch,  } from './Switch';
 export { ModuleIcon,  } from './ModuleIcon';
+export { ModuleArt } from './ModuleArt';
+export { moduleArtSrc } from './moduleArtSrc';
 export { BrandLogo,  type BrandLogoName,  } from './BrandLogo';
 export { ErrorBoundary,  } from './ErrorBoundary';
 export { cx,  modKeyLabel, timeAgo, formatDate, formatCount, countOf,  } from './utils';

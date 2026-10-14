@@ -1,0 +1,14 @@
+/* A module illustration on a light tile. The art's navy strokes need a light ground, so the tile stays light in
+   dark mode too (--art-tile). Size it with --modart-size. */
+.ui-modart {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: var(--modart-size, 48px);
+  height: var(--modart-size, 48px);
+  padding: calc(var(--modart-size, 48px) * 0.08);
+  border-radius: calc(var(--modart-size, 48px) * 0.22);
+  background: var(--art-tile);
+  box-shadow: inset 0 0 0 1px var(--art-tile-stroke);
+}
+.ui-modart__img { display: block; width: 100%; height: 100%; object-fit: contain; }

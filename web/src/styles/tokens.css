@@ -147,6 +147,8 @@
   --thumb-bg: #FFFFFF;                 /* sliding thumb of segmented controls / pill tabs */
   --thumb-shadow: 0 1px 2px rgba(10, 31, 68, .10), 0 0 0 1px var(--line);
   --tile-stroke: transparent;          /* hairline around the navy logo tile (visible in dark) */
+  --art-tile: #EEF3FC;                 /* light ground under module illustrations (both themes) */
+  --art-tile-stroke: #DCE5F2;
   --scrim: rgba(10, 31, 68, .42);
   --focus-color: var(--cobalt);
   --show-on-light: block;              /* theme-conditional display (BrandLogo) */
@@ -199,6 +201,8 @@
   --thumb-bg: #213563;
   --thumb-shadow: none;
   --tile-stroke: rgba(255, 255, 255, .14);
+  --art-tile: #DDE6F7;
+  --art-tile-stroke: transparent;
   --scrim: rgba(2, 8, 20, .62);
   --focus-color: var(--cobalt);
   --show-on-light: none;
