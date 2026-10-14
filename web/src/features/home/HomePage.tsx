@@ -10,6 +10,7 @@ import { useModules } from '../../state/modules';
 import { Button, CohortBadge, ErrorBoundary, Menu, Page, PageSection, ProgrammeLockup, SectionHeader } from '../../ui';
 import { UpcomingEvents, useCalendarEvents } from '../calendar/public';
 import { HelpBelow, HotThreads } from '../forum/public';
+import { DailyQuestion } from '../library/public';
 import { ContinueLearning } from '../modules/public';
 import { LatestIssueCard } from '../newsletter/public';
 import { StartHereCard } from '../start/public';
@@ -133,6 +134,17 @@ export default function HomePage() {
                 <StartHereCard year={activeYear} />
               </div>
             </ErrorBoundary>
+            {session?.kind === 'exams' && session.next.type === 'exam' && session.next.module ? (
+              <ErrorBoundary name="DailyQuestion" fallback={null}>
+                <DailyQuestion
+                  className="home-sec home-sec--daily"
+                  moduleId={session.next.module.id}
+                  moduleName={session.next.module.name}
+                  examDays={session.next.days}
+                  day={todayIs}
+                />
+              </ErrorBoundary>
+            ) : null}
             <PageSection className="home-sec home-sec--continue" aria-labelledby="home-continue">
               <SectionHeader id="home-continue" title="Continue learning" />
               <ErrorBoundary name="ContinueLearning">

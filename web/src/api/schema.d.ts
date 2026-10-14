@@ -4036,7 +4036,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions";
+            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions";
             /** Label */
             label: string;
             /** Hides */
@@ -4062,7 +4062,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions")[];
         };
         /** FileLink */
         FileLink: {
@@ -4670,7 +4670,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions")[];
             /**
              * Status
              * @enum {string}
@@ -9929,7 +9929,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions";
+                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions";
             };
             cookie?: never;
         };

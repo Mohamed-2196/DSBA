@@ -546,7 +546,8 @@ Quick wins are marked **quick win** in the heading: a day or two each.
   gives the group chat something to talk about.
 - **Costs and risks:** hidden while a module has fewer than about ten tags, and while the switch is off.
 - **How we'd know it worked:** opens of the day's question; questions added to boards from it.
-- **Status:** proposed.
+- **Status:** built (round 7, `round7/daily`), behind the switch "A past question a day" (off at first), which also
+  needs "Past questions by topic". "Add to my board" keeps the question's paper.
 
 ### IDEA-28. What last year revised before this exam
 

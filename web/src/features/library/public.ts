@@ -10,6 +10,9 @@
 //   libraryKindLabel(kind)              'Past paper', 'Students’ notes', …
 //   <ChapterQuestions moduleId chapterId />  the Lessons tab's past exam questions tagged with a chapter
 //                                        (render it only while the library.questions feature is on)
+//   <DailyQuestion moduleId moduleName examDays day className />
+//                                        Home's past question a day before the next exam; it gates itself (switches,
+//                                        six weeks, enough tags) and renders nothing otherwise
 //   LIBRARY_KINDS, LIBRARY_EXAM_KINDS   every kind in the library's order; the kinds that carry an exam year and zone
 import { createElement, lazy, Suspense, useCallback, useState, type ReactNode } from 'react';
 import { showsUpload, useAuth } from '../../auth';
@@ -22,7 +25,7 @@ export { EXAM_KINDS as LIBRARY_EXAM_KINDS, KINDS as LIBRARY_KINDS, kindLabel as 
 export { UploadsQueue } from './UploadsQueue';
 export { ChapterQuestions } from './ChapterQuestions';
 export { FlaggedQuestions } from './FlaggedQuestions';
-;
+export { DailyQuestion } from './DailyQuestion';
 
 const LazyModuleFiles = lazy(() => import('./ModuleFiles'));
 const LazyUploadDialog = lazy(() => import('./components/UploadDialog').then((m) => ({ default: m.UploadDialog })));

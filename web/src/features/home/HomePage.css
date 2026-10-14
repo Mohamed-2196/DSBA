@@ -45,6 +45,7 @@
 .home-sec--start { order: 0; }
 .home-sec--start:empty { display: none; }
 .home-sec--continue { order: 1; }
+.home-sec--daily { order: 1; }
 .home-sec--modules { order: 2; }
 .home-sec--upcoming { order: 3; }
 .home-sec--threads { order: 4; }
@@ -55,14 +56,14 @@
 @container home (min-width: 640px) {
   .home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .home-sec--start,
-  .home-sec--continue, .home-sec--threads, .home-sec--below, .home-sec--library, .home-sec--exams { grid-column: 1 / -1; }
+  .home-sec--continue, .home-sec--daily, .home-sec--threads, .home-sec--below, .home-sec--library, .home-sec--exams { grid-column: 1 / -1; }
 }
 @container home (min-width: 900px) {
   .home-grid { grid-template-columns: minmax(0, 1fr) minmax(320px, 372px); gap: var(--sp-48); align-items: start; }
   .home-main, .home-aside { display: flex; flex-direction: column; gap: var(--sp-48); min-width: 0; }
   .home-main { grid-column: 1; }
   .home-aside { grid-column: 2; }
-  .home-sec--continue, .home-sec--threads, .home-sec--below, .home-sec--library, .home-sec--exams { grid-column: auto; }
+  .home-sec--continue, .home-sec--daily, .home-sec--threads, .home-sec--below, .home-sec--library, .home-sec--exams { grid-column: auto; }
 }
 
 /* ── Your modules ──────────────────────────────────────────────────── */

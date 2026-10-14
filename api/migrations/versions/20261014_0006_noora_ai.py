@@ -25,7 +25,7 @@ def upgrade() -> None:
         "noora_limits",
         sa.Column("id", sa.SmallInteger(), nullable=False),
         sa.Column("daily_questions", sa.Integer(), server_default="30", nullable=False),
-        sa.Column("monthly_budget_cents", sa.Integer(), server_default="1000", nullable=False),
+        sa.Column("monthly_budget_cents", sa.Integer(), server_default="2500", nullable=False),
         sa.Column("updated_by", sa.UUID(), nullable=True),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
         sa.CheckConstraint("id = 1", name=op.f("ck_noora_limits_single_row")),
