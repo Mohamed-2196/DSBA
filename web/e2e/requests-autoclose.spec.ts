@@ -1,4 +1,4 @@
-// Requests that close themselves (IDEA-19), end to end: Sara asks for a module's cheat sheet naming the file, a rep
+// Requests that close themselves, end to end: Sara asks for a module's cheat sheet naming the file, a rep
 // adds one to the library, Sara is asked whether it's the one, says yes, and the request is done. Both switches arrive
 // off, so the spec switches them on and back off.
 import { expect, test } from './fixtures';

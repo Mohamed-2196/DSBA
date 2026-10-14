@@ -1,4 +1,4 @@
-"""Suggested videos (IDEA-15): students suggest a video for a chapter; content managers accept it as a lesson or
+"""Suggested videos: students suggest a video for a chapter; content managers accept it as a lesson or
 decline it with a reason; the student is told; the limits, the switch and the audit log."""
 
 from __future__ import annotations

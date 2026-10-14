@@ -10,7 +10,7 @@ import './components/forum.css';
 import './HotThreads.css';
 
 /**
- * Home's "Help the year below" (IDEA-9): for a signed-in Year 2 or Year 3 student, up to three unanswered questions
+ * Home's "Help the year below": for a signed-in Year 2 or Year 3 student, up to three unanswered questions
  * from the years below, newest first. Nothing at all while there are none, while it loads or when it fails: it's an
  * invitation, not a feed.
  */

@@ -1,4 +1,4 @@
-"""What's missing, for the rep (IDEA-39): Manage's Gaps screen, by box and by feature."""
+"""What's missing, for the rep: Manage's Gaps screen, by box and by feature."""
 
 from __future__ import annotations
 

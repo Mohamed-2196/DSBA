@@ -1,4 +1,4 @@
-"""A past paper's question, for Mini Noora (IDEA-4): the student names a question and its page in a past paper, and
+"""A past paper's question, for Mini Noora: the student names a question and its page in a past paper, and
 the server finds the words of that page (and the next, where a question often carries on) and the examiners' report
 for the same sitting, from the text the text worker read (app/services/paper_text.py).
 

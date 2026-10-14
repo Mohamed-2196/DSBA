@@ -1,4 +1,4 @@
-"""Suggested videos (IDEA-15): a student suggests a video for a module's chapter, and content managers accept it
+"""Suggested videos: a student suggests a video for a module's chapter, and content managers accept it
 (it becomes a lesson) or decline it with a reason."""
 
 from __future__ import annotations

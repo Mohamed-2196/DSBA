@@ -574,8 +574,8 @@ def import_progress(db: Session, user_id: uuid.UUID, body: ProgressImport) -> No
 
 
 def export_account(db: Session, user: User, current: UserSession | None) -> AccountExport:
-    """Everything stored about `user` (GET /me/export; code quality review CQ-4: typed, so a field added to a table
-    has to be added here on purpose)."""
+    """Everything stored about `user` (GET /me/export). Typed, so a field added to a table has to be added here on
+    purpose."""
     uid = user.id
     threads = [
         ExportThread(

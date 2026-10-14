@@ -1,4 +1,4 @@
-"""Asking Mini Noora about a past paper's question (IDEA-4): the server adds the page's words and the examiners' report
+"""Asking Mini Noora about a past paper's question: the server adds the page's words and the examiners' report
 for the same sitting, between tags they can't close, and only for published past papers while the library is on."""
 
 from __future__ import annotations

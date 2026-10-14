@@ -46,7 +46,7 @@ class LibraryItem(Base):
         Index("ix_library_items_uploaded_by", "uploaded_by"),  # "Your uploads", account deletion
         Index("ix_library_items_reviewed_by", "reviewed_by"),  # account deletion (SET NULL)
         Index("ix_library_items_search", "search_vector", postgresql_using="gin"),
-        check_in("kind", get_args(LibraryKind)),  # code quality review CQ-15
+        check_in("kind", get_args(LibraryKind)),
         check_in("exam_session", get_args(ExamSession)),
         year_range(),
     )
@@ -93,8 +93,7 @@ class LibraryItem(Base):
 
 
 # The lists: a status (published, or a moderator's queue), newest first by coalesce(published_at, created_at)
-# (services/library.py list_items). An index on the expression, so the sort is read from it (code quality review
-# CQ-15).
+# (services/library.py list_items). An index on the expression, so the sort is read from it.
 Index(
     "ix_library_items_status_newest",
     LibraryItem.status,

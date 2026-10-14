@@ -138,7 +138,7 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
 
 
 def test_your_papers(client_for: ClientFor, make_user: MakeUser) -> None:
-    """IDEA-10: the papers someone sits, kept on the account; a new year clears them."""
+    """The papers someone sits, kept on the account; a new year clears them."""
     c = client_for(make_user(year=2))
     papers = ["econometrics", "statistics", "econometrics"]
     r = c.patch(f"{API}/me", json={"papers": papers})

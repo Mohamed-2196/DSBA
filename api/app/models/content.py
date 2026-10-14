@@ -108,7 +108,7 @@ class SuggestionStatus(enum.StrEnum):
 
 
 class VideoSuggestion(Base):
-    """A video a student suggests for a module's chapter (IDEA-15). It waits in Manage → Suggested videos until a
+    """A video a student suggests for a module's chapter. It waits in Manage → Suggested videos until a
     content manager accepts it (it becomes a lesson: `lesson_id`) or declines it with a reason. `chapter_id` is None
     when the student left the chapter to the editor (a module with no chapters yet)."""
 
@@ -149,7 +149,7 @@ class CalendarEvent(Base):
         Index("ix_calendar_events_created_by", "created_by"),  # account deletion (SET NULL)
         year_range(),
         CheckConstraint("end_date IS NULL OR end_date >= date", name="end_after_start"),
-        check_in("type", get_args(EventType)),  # code quality review CQ-15
+        check_in("type", get_args(EventType)),
     )
 
     id: Mapped[str] = mapped_column(String(120), primary_key=True)  # '2025-04-30-economics-exam'

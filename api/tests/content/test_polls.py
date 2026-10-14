@@ -1,4 +1,4 @@
-"""Polls in newsletter issues (IDEA-20): one vote per student, counts after voting, never who voted."""
+"""Polls in newsletter issues: one vote per student, counts after voting, never who voted."""
 
 from __future__ import annotations
 

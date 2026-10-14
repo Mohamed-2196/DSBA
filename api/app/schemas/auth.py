@@ -113,7 +113,7 @@ class Me(ApiModel):
     needs_profile: bool  # True until a display name is set: the web app asks for it right after sign-in
     created_at: datetime
     preferences: Preferences
-    # The papers this person sits (IDEA-10): their option, electives and papers from other years. Empty: every
+    # The papers this person sits: their option, electives and papers from other years. Empty: every
     # module of their year.
     papers: list[str]
     zone: Zone | None  # the zone whose papers they sit; None: not chosen

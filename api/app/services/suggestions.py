@@ -1,4 +1,4 @@
-"""Suggested videos (IDEA-15): a student suggests a video for a module's chapter, with a title and a line on why;
+"""Suggested videos: a student suggests a video for a module's chapter, with a title and a line on why;
 it waits in Manage → Suggested videos until someone with content.edit accepts it or declines it.
 
 - The link must be one the module editor takes (module_editor.parse_video): a YouTube video or playlist, or a class

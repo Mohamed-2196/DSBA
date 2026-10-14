@@ -4,7 +4,7 @@ Revision ID: 0016
 Revises: 0015
 Create Date: 2026-10-14 23:00:00
 
-Home shows one tagged past question a day from the module of your next exam (IDEA-27). The card lives in the web
+Home shows one tagged past question a day from the module of your next exam. The card lives in the web
 app and reads the past questions the API already serves. It arrives switched off: an admin switches it on from the
 Access screen.
 """

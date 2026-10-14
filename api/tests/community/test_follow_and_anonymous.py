@@ -1,4 +1,4 @@
-"""Following a thread (IDEA-7) and asking without your name (IDEA-8)."""
+"""Following a thread and asking without your name."""
 
 from __future__ import annotations
 

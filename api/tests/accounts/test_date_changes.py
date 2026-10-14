@@ -1,4 +1,4 @@
-"""Telling students when a date changes (IDEA-12): a rep's edit with "Tell Year 2" ticked sends the cohort, and anyone
+"""Telling students when a date changes: a rep's edit with "Tell Year 2" ticked sends the cohort, and anyone
 with the event on their board, a notification, and an email to those who keep "Date changes" on. Only exams, mocks
 and deadlines, and at most once per event a day."""
 

@@ -1,4 +1,4 @@
-// "Help the year below" (IDEA-9): the unanswered questions a Year 2 or Year 3 student could answer.
+// "Help the year below": the unanswered questions a Year 2 or Year 3 student could answer.
 import type { ThreadSummary } from '../../../api/types';
 import type { CohortYear } from '../../../state';
 

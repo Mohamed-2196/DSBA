@@ -1,4 +1,4 @@
-// You asked, we did (IDEA-38) and the Gaps screen (IDEA-39), end to end: Sara asks for something, a rep marks it done,
+// "You asked, we did" and the Gaps screen, end to end: Sara asks for something, a rep marks it done,
 // and it leads "You asked, we did" on /requests; the rep's Gaps tab lists what's missing. requests and
 // requests.done arrive off, so the spec switches them on and back off.
 import { expect, test } from './fixtures';

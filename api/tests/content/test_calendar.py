@@ -324,7 +324,7 @@ def test_feeds_are_cached_publicly_only_while_the_calendar_is_on_for_everyone(
 
 
 def test_a_feed_of_your_own_papers(client_for: Clients, events: dict[str, CalendarEvent], db: Session) -> None:
-    """IDEA-10: `modules` keeps a module's events to those papers, from any year; the rest follow `year`."""
+    """`modules` keeps a module's events to those papers, from any year; the rest follow `year`."""
     db.add(
         CalendarEvent(
             id="other-year-exam",
@@ -364,7 +364,7 @@ def test_a_feed_of_your_own_papers(client_for: Clients, events: dict[str, Calend
 
 
 def test_dates_that_tell_you_enough(client_for: Clients, moderator: User, modules: dict[str, Module]) -> None:
-    """IDEA-11: an exam's length, its rules, and where the date comes from and when it was checked."""
+    """An exam's length, its rules, and where the date comes from and when it was checked."""
     rep = client_for(moderator)
     body = {
         "date": "2026-10-19",
@@ -397,7 +397,7 @@ def test_dates_that_tell_you_enough(client_for: Clients, moderator: User, module
 
 
 def test_careers_dates_need_their_source(client_for: Clients, moderator: User) -> None:
-    """IDEA-18: an application window for a Career Navigator employer, shown only with where it comes from."""
+    """An application window for a Career Navigator employer, shown only with where it comes from."""
     rep = client_for(moderator)
     body = {
         "date": "2026-11-01",

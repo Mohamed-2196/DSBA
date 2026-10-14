@@ -1,4 +1,4 @@
-"""The Sunday summary (IDEA-21): an opt-in email for each year with the week's exams and deadlines, new files, open
+"""The Sunday summary: an opt-in email for each year with the week's exams and deadlines, new files, open
 questions and the newsletter; queued once per person per week by the mail worker on Sunday morning; the same text
 for reps to paste into their year's group."""
 

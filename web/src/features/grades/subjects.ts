@@ -61,7 +61,7 @@ export function subjectDisplay(subject: Subject, picks: Picks, getModule: Module
 export const YEARS: { year: 1 | 2 | 3; subjects: Subject[] }[] = ([1, 2, 3] as const).map((year) => ({ year, subjects: SUBJECTS.filter((s) => s.year === year) }));
 
 /**
- * The calculator's choices filled from the student's papers (IDEA-10) where the calculator has none of its own:
+ * The calculator's choices filled from the student's papers where the calculator has none of its own:
  * the option, and both electives together.
  */
 export function withPaperPicks(picks: Picks, papers: readonly string[]): Picks {

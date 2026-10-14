@@ -1,4 +1,4 @@
-"""What's missing, for the people who fill it (IDEA-39): Manage's Gaps screen. Each part is there for people who hold
+"""What's missing, for the people who fill it: Manage's Gaps screen. Each part is there for people who hold
 its box while its feature is on for them, and None otherwise."""
 
 from __future__ import annotations

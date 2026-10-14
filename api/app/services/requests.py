@@ -4,7 +4,7 @@ add "me too", and people with requests.manage answer with a status and a public 
 - Everyone reads the open list; the me-too count orders it, and a signed-in student's own requests come first.
 - A status change tells the requester and everyone who said "me too", while the feature is on for them, and goes to
   the audit log. So does removing a request, which makes it gone for everyone.
-- Requests that close themselves (IDEA-19, while requests.autoclose is on): a paper request that names its module
+- Requests that close themselves (while requests.autoclose is on): a paper request that names its module
   and library kind is matched with a published file of that module and kind (and its exam year and zone, when the
   request gives them). The match is conservative and waits: the requester or a rep says yes, which closes the
   request as done and tells everyone who wanted it, or no, which keeps it open. A date request names an unconfirmed
@@ -443,7 +443,7 @@ def remove(db: Session, user: User, req: StudentRequest, ip: str | None) -> None
     record(db, user, "request.remove", "request", req.id, {"title": req.title, "kind": req.kind}, ip)
 
 
-# ── requests that close themselves (IDEA-19) ────────────────────────────────────────────────
+# ── requests that close themselves ────────────────────────────────────────────────
 
 
 def _fits(req: StudentRequest) -> list[ColumnElement[bool]]:

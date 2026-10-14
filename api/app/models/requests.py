@@ -27,7 +27,7 @@ class StudentRequest(Base):
     """Something a student asked the reps for. A removed request is gone for everyone (the audit log keeps its
     title).
 
-    A request that names what it wants can close itself (IDEA-19, app/services/requests.py): a paper request with a
+    A request that names what it wants can close itself (app/services/requests.py): a paper request with a
     module and a library kind (and maybe an exam year and zone) is matched with a file when one is published, and a
     date request (`event_id`) closes when a rep confirms the date."""
 

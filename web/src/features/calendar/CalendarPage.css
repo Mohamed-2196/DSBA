@@ -420,7 +420,7 @@
   .cal-subscribe__body .ui-seg__item { flex: 1 1 0; }
 }
 
-/* An exam's length and rules (IDEA-11) */
+/* An exam's length and rules */
 .cal-drawer__facts { display: grid; gap: var(--sp-8); margin: 0; }
 .cal-drawer__facts div { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: var(--sp-12); }
 .cal-drawer__facts dt { color: var(--ink-2); font-size: var(--fs-14); }

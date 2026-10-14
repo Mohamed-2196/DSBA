@@ -1,4 +1,4 @@
-// Asking the cohort (IDEA-7, -8, -20), switched on for the run: Ali asks without his name and Sara sees "A Year 1
+// Asking the cohort, switched on for the run: Ali asks without his name and Sara sees "A Year 1
 // student"; Sara follows his thread and hears when it is answered; a rep's poll takes one vote from Sara and shows
 // her the counts. The switches end off, as they start.
 import { expect, test } from './fixtures';

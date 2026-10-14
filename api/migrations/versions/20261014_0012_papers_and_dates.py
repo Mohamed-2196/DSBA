@@ -4,9 +4,9 @@ Revision ID: 0012
 Revises: 0007
 Create Date: 2026-10-14 21:00:00
 
-`users.papers` and `users.zone` hold the papers a student sits and their zone (IDEA-10). Calendar events gain an exam's length and rules, where a
-date comes from and when it was checked (IDEA-11), and a Careers type linked to a Career Navigator employer
-(IDEA-18), so the type CHECK widens.
+`users.papers` and `users.zone` hold the papers a student sits and their zone. Calendar events gain an exam's length
+and rules, where a date comes from and when it was checked, and a Careers type linked to a Career Navigator employer,
+so the type CHECK widens.
 """
 
 from __future__ import annotations
