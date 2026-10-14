@@ -42,7 +42,7 @@ export { Page, PageHeader, PageSection,    } from './Page';
 export { SegmentedControl,   } from './SegmentedControl';
 export { Switch,  } from './Switch';
 export { ModuleIcon,  } from './ModuleIcon';
-export { BrandLogo, ProgrammeLockup,  type BrandLogoName,  } from './BrandLogo';
+export { BrandLogo,  type BrandLogoName,  } from './BrandLogo';
 export { ErrorBoundary,  } from './ErrorBoundary';
 export { cx,  modKeyLabel, timeAgo, formatDate, formatCount, countOf,  } from './utils';
 export {  safeInternalPath,   } from './safeHref';

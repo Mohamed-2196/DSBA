@@ -14,6 +14,8 @@ import { ChapterList } from './ChapterList';
 import { KIND_SOURCE, chapterLessons, chapterPosition, embedSrc, httpsOnly, kindLabel, lessonPosition, openOriginalLabel, sourceHref } from './lessons';
 import { LessonPoster } from './Poster';
 import { flatLessons, type FlatLesson, type ProgressApi } from './progress';
+import { ProgressOffer } from './ProgressOffer';
+import { useTracking } from './tracking';
 import { useThumbnail, youtubeLooksBlocked } from './thumbs';
 import './Lessons.css';
 
@@ -116,7 +118,8 @@ export function LessonsTab({
   const key = m.chapters[c].videos[v].id;
   const { push } = useToast();
   const { featureOn } = useAuth();
-  const { state, isWatched, setWatched, markOpened, resetModule, restore } = progress;
+  const { state, tracking, isWatched, setWatched, markOpened, resetModule, restore } = progress;
+  const track = useTracking();
   const watched = isWatched(key);
   // Once the student presses play, moving to another lesson keeps playing (they already chose to load it).
   const [playing, setPlaying] = useState(false);
@@ -223,19 +226,23 @@ export function LessonsTab({
                 ) : null}
               </div>
               <div className="mod-lesson__acts">
-              <Button
-                className={cx('mod-watch', watched && 'is-on')}
-                aria-pressed={watched}
-                leadingIcon={watched ? <CheckCircle weight="fill" size={19} /> : <Circle size={19} />}
-                onClick={() => setWatched(m.id, key, !watched)}
-                disabled={!progress.ready}
-                data-hub="lesson-watched"
-              >
-                {watched ? 'Watched' : 'Mark as watched'}
-              </Button>
+              {tracking ? (
+                <Button
+                  className={cx('mod-watch', watched && 'is-on')}
+                  aria-pressed={watched}
+                  leadingIcon={watched ? <CheckCircle weight="fill" size={19} /> : <Circle size={19} />}
+                  onClick={() => setWatched(m.id, key, !watched)}
+                  disabled={!progress.ready}
+                  data-hub="lesson-watched"
+                >
+                  {watched ? 'Watched' : 'Mark as watched'}
+                </Button>
+              ) : null}
               {featureOn('board') ? <AddToBoard link={{ type: 'lesson', id: key }} /> : null}
               </div>
             </div>
+
+            {!tracking && progress.ready ? <ProgressOffer onTurnOn={() => track.set(true)} /> : null}
 
             <div className="mod-lesson__nav">
               <div className="mod-lesson__steps">
@@ -283,7 +290,7 @@ export function LessonsTab({
         </div>
 
         <div className="mod-lessons__aside">
-          <ChapterList module={m} selection={selection} state={state} nowLabel={stage === 'frame' ? 'Playing' : 'Selected'} onReset={onReset} onPick={revealPlayer} />
+          <ChapterList module={m} selection={selection} state={state} tracking={tracking} onTracking={track.set} nowLabel={stage === 'frame' ? 'Playing' : 'Selected'} onReset={onReset} onPick={revealPlayer} />
         </div>
       </div>
     </div>

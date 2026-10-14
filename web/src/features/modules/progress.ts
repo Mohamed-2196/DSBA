@@ -1,5 +1,5 @@
-// Lesson progress. Signed in: kept by the API (/me/progress…), with optimistic updates. Guests: kept in this
-// browser (localStorage 'hub.progress'). After signing in, the student is asked once whether that progress is
+// Lesson progress, kept only while the person tracks it (tracking.ts: opt in). Signed in: kept by the API
+// (/me/progress…), with optimistic updates. Guests: kept in this browser (localStorage 'hub.progress'). After signing in, the student is asked once whether that progress is
 // theirs (ImportProgressPrompt): computers at BIBF are shared, so it may be someone else's.
 //   state.watched  { [lessonId]: { m: module id, at: watchedAt (ms) } }
 //   state.last     { [moduleId]: { l: lesson id, at (ms) } }  the lesson last opened (played or marked) in each
@@ -13,6 +13,7 @@ import { useAuth } from '../../auth';
 import { useLocalStorage, useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import { deleteModuleProgress, fetchProgress, importProgress, progressKey, putResume, putWatched } from './api';
+import { useTracking } from './tracking';
 
 export interface WatchedMark {
   /** the lesson's module */
@@ -228,6 +229,8 @@ export interface ProgressApi {
   /** False while an account's progress is loading (show placeholders, not zeros). */
   ready: boolean;
   mode: 'guest' | 'account';
+  /** The person keeps their progress. Off: the state is empty, writes do nothing, and no progress is shown. */
+  tracking: boolean;
   isWatched: (lessonId: string) => boolean;
   setWatched: (moduleId: string, lessonId: string, on: boolean) => void;
   /** The student pressed play on a lesson. */
@@ -255,6 +258,7 @@ export function useGuestProgress(): ProgressApi & { clear: () => void } {
       state,
       ready: true,
       mode: 'guest' as const,
+      tracking: true,
       isWatched: (lessonId: string) => !!state.watched[lessonId],
       setWatched: (moduleId: string, lessonId: string, on: boolean) => write((s) => withWatched(s, moduleId, lessonId, on, Date.now())),
       markOpened: (moduleId: string, lessonId: string) => write((s) => withOpened(s, moduleId, lessonId, Date.now())),
@@ -307,7 +311,7 @@ async function send(op: Op): Promise<Progress | null> {
   }
 }
 
-function useAccountProgress(userId: string | null): ProgressApi {
+function useAccountProgress(userId: string | null): Omit<ProgressApi, 'tracking'> {
   const qc = useQueryClient();
   const { push } = useToast();
   const key = progressKey(userId ?? '');
@@ -359,23 +363,43 @@ function useAccountProgress(userId: string | null): ProgressApi {
   );
 }
 
+const nothing = () => undefined;
+
+/** Progress while the person doesn't track it: nothing to show, nothing recorded. */
+function untracked(mode: ProgressApi['mode'], ready: boolean): ProgressApi {
+  return {
+    state: EMPTY_PROGRESS,
+    ready,
+    mode,
+    tracking: false,
+    isWatched: () => false,
+    setWatched: nothing,
+    markOpened: nothing,
+    resetModule: (moduleId: string) => ({ moduleId, watched: {}, last: null }),
+    restore: nothing,
+  };
+}
+
 /**
- * Lesson progress for the person using the app: their account's when signed in, this browser's otherwise.
- * While sign-in status is loading, `ready` is false.
+ * Lesson progress for the person using the app: their account's when signed in, this browser's otherwise; empty
+ * while they don't track it. While sign-in status is loading, `ready` is false.
  */
 export function useProgress(): ProgressApi {
   const { me, status } = useAuth();
+  const tracking = useTracking();
   const userId = status === 'signed-in' && me ? me.id : null;
   const guest = useGuestProgress();
-  const account = useAccountProgress(userId);
+  const account = useAccountProgress(tracking.on ? userId : null);
   const loading = status === 'loading';
   return useMemo(() => {
-    if (loading) return { ...guest, state: EMPTY_PROGRESS, ready: false };
-    return userId ? account : guest;
-  }, [loading, userId, account, guest]);
+    if (loading) return untracked('guest', false);
+    if (!tracking.on) return untracked(userId ? 'account' : 'guest', true);
+    return userId ? { ...account, tracking: true } : guest;
+  }, [loading, tracking.on, userId, account, guest]);
 }
 
-/** { watched, total, pct } for one module, from the catalogue's lesson count (no chapters needed). */
+/** { watched, total, pct } for one module, from the catalogue's lesson count (no chapters needed); nothing watched
+ *  while the person doesn't track their progress. */
 export function useModuleProgress(moduleId: string | null | undefined): Fraction {
   const { getModule } = useModules();
   const { state } = useProgress();

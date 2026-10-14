@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { cx } from './internal';
 import './BrandLogo.css';
 
@@ -42,27 +41,5 @@ export function BrandLogo({ name, height = 24, decorative = false, className }: 
       <img className={cx('ui-brandlogo__img', logo.dark && 'ui-brandlogo__img--light')} src={base + logo.light} alt="" width={width} height={height} decoding="async" />
       {logo.dark ? <img className="ui-brandlogo__img ui-brandlogo__img--dark" src={base + logo.dark} alt="" width={width} height={height} decoding="async" /> : null}
     </span>
-  );
-}
-
-export interface ProgrammeLockupProps {
-  size?: 'sm' | 'md' | 'lg';
-  /** an optional line of text under the marks */
-  children?: ReactNode;
-  className?: string;
-}
-
-/** BIBF + University of London side by side, with an optional line of text. */
-export function ProgrammeLockup({ size = 'md', children, className }: ProgrammeLockupProps) {
-  const h = size === 'lg' ? 34 : size === 'sm' ? 18 : 24;
-  return (
-    <div className={cx('ui-lockup', `ui-lockup--${size}`, className)}>
-      <span className="ui-lockup__marks">
-        <BrandLogo name="bibf" height={h} />
-        <span className="ui-lockup__rule" aria-hidden="true" />
-        <BrandLogo name="uol" height={Math.round(h * 1.7)} />
-      </span>
-      {children ? <p className="ui-lockup__text">{children}</p> : null}
-    </div>
   );
 }

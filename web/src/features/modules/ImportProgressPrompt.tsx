@@ -1,11 +1,12 @@
 // After signing in, a student who has lesson progress saved in this browser (from before they signed in) is
 // asked whether it is theirs: lab and library computers at BIBF are shared, so it may be someone else's.
-// "Add to my account" merges it (POST /me/progress/import) and clears the browser's copy; "Leave it out"
+// "Add to my account" merges it (POST /me/progress/import), turning on Track my lesson progress for the account
+// when it is off, and clears the browser's copy; "Leave it out"
 // clears it; closing the dialog asks again on the next visit. Rendered by the pages that show progress.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { errorMessage } from '../../api/errors';
-import { useAuth } from '../../auth';
+import { useAuth, useUpdatePreferences } from '../../auth';
 import { useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, Modal } from '../../ui';
@@ -20,6 +21,7 @@ const notNow = new Set<string>();
 export function ImportProgressPrompt() {
   const { me, status } = useAuth();
   const guest = useGuestProgress();
+  const track = useUpdatePreferences();
   const qc = useQueryClient();
   const { push } = useToast();
   const { getModule } = useModules();
@@ -59,7 +61,9 @@ export function ImportProgressPrompt() {
   const add = () => {
     setBusy(true);
     setError(null);
-    importProgress(toImport(guest.state))
+    const tracking = me?.preferences.trackProgress ? Promise.resolve() : track.mutateAsync({ trackProgress: true });
+    tracking
+      .then(() => importProgress(toImport(guest.state)))
       .then((data) => {
         qc.setQueryData(progressKey(userId), data);
         guest.clear();
@@ -95,6 +99,7 @@ export function ImportProgressPrompt() {
       <p className="mod-import__text">
         Before you signed in, {what}. If that was you, add the progress to your account. If someone else used this computer, leave it
         out.
+        {me?.preferences.trackProgress ? null : ' Adding it turns on Track my lesson progress for your account.'}
       </p>
       {error ? (
         <p className="mod-import__error" role="alert">

@@ -40,6 +40,7 @@ function ModuleHeader({
   detail,
   progress,
   progressReady,
+  tracking,
   resume,
   exam,
   onOpenLesson,
@@ -48,6 +49,7 @@ function ModuleHeader({
   detail: ModuleDetail | undefined;
   progress: Fraction;
   progressReady: boolean;
+  tracking: boolean;
   resume: ResumePoint | null;
   exam: ExamInfo | null;
   onOpenLesson: (c: number, v: number) => void;
@@ -112,25 +114,37 @@ function ModuleHeader({
         <Panel as="div" padding="none" className="mod-head__side">
           {m.lessonCount ? (
             <>
-              <div className="mod-head__progress">
-                <ProgressRing
-                  value={progressReady ? progress.pct : 0}
-                  size={64}
-                  stroke={6}
-                  color={progress.pct === 100 ? 'var(--signal)' : cohortColor(m.year)}
-                  label="Lessons watched"
-                />
-                <div className="mod-head__progress-text">
-                  {progressReady ? (
-                    <p className="mod-head__progress-num">
-                      <b className="u-tabular">{progress.watched}</b> of <span className="u-tabular">{progress.total}</span> lessons watched
-                    </p>
-                  ) : (
-                    <Skeleton width={180} height={18} />
-                  )}
-                  {resumeNote ? <p className="mod-head__progress-note">{resumeNote}</p> : null}
+              {tracking ? (
+                <div className="mod-head__progress">
+                  <ProgressRing
+                    value={progressReady ? progress.pct : 0}
+                    size={64}
+                    stroke={6}
+                    color={progress.pct === 100 ? 'var(--signal)' : cohortColor(m.year)}
+                    label="Lessons watched"
+                  />
+                  <div className="mod-head__progress-text">
+                    {progressReady ? (
+                      <p className="mod-head__progress-num">
+                        <b className="u-tabular">{progress.watched}</b> of <span className="u-tabular">{progress.total}</span> lessons watched
+                      </p>
+                    ) : (
+                      <Skeleton width={180} height={18} />
+                    )}
+                    {resumeNote ? <p className="mod-head__progress-note">{resumeNote}</p> : null}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="mod-head__progress">
+                  <span className="mod-head__nolessons" aria-hidden="true">
+                    <PlayCircle weight="duotone" />
+                  </span>
+                  <div className="mod-head__progress-text">
+                    <p className="mod-head__progress-num">{countOf(m.lessonCount, 'video lesson')}</p>
+                    <p className="mod-head__progress-note">Start with chapter 1, or pick any lesson.</p>
+                  </div>
+                </div>
+              )}
               <div className="mod-head__actions">
                 {resume ? (
                   <Button variant="primary" leadingIcon={Play} onClick={() => onOpenLesson(resume.c, resume.v)} className="mod-head__action">
@@ -197,7 +211,7 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
   const detailQ = useModule(m.id);
   const detail = detailQ.data;
   const progressApi = useProgress();
-  const { state, ready } = progressApi;
+  const { state, ready, tracking } = progressApi;
   const exam = useModuleExam(m.id);
   const progress = detail ? computeModuleProgress(state, detail) : summaryProgress(state, m.id, m.lessonCount);
   const resume = detail && ready ? computeResumePoint(state, detail) : null;
@@ -276,7 +290,7 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
 
   return (
     <Page className={`mod-page mod-page--y${m.year}`}>
-      <ModuleHeader summary={m} detail={detail} progress={progress} progressReady={ready} resume={resume} exam={exam} onOpenLesson={openLesson} />
+      <ModuleHeader summary={m} detail={detail} progress={progress} progressReady={ready} tracking={tracking} resume={resume} exam={exam} onOpenLesson={openLesson} />
 
       <Tabs idBase="module" label="Module sections" className="mod-tabs" data-hub="module-tabs" tabs={tabs} value={tab} onChange={setTab} />
 
@@ -287,6 +301,7 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
               <ModuleOverview
                 module={detail}
                 state={state}
+                tracking={tracking}
                 resume={resume}
                 libraryCount={m.libraryCount}
                 onOpenLesson={openLesson}
