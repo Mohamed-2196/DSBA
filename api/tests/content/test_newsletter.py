@@ -19,13 +19,19 @@ from app.core.links import LINK_RULE, PICTURE_RULE
 from app.models import AuditEntry, EmailOutbox, IssueStatus, NewsletterIssue, Notification, User
 from app.seed.loader import load_newsletter, read
 from app.services import newsletter as svc
-from tests.content.conftest import API
+from tests.content.conftest import API, PNG
+from tests.core.helpers import upload
 
 Clients = Callable[..., TestClient]
 
 ISSUES = f"{API}/newsletter/issues"
-MEDIA = "/api/v1/media/0b5a3f4e-8c1d-4c55-9a51-3d1c1c2b9e10"
 BLOCK_TYPES = {"p", "list", "signoff", "cta"}
+
+
+def newsletter_picture(c: TestClient, storage: Any) -> str:
+    """A newsletter picture uploaded by the signed-in person: -> its /api/v1/media path."""
+    upload_id = upload(c, storage, purpose="newsletter_image", name="a.png", content_type="image/png", body=PNG)
+    return f"/api/v1/media/{upload_id}"
 
 
 def new_issue(**extra: Any) -> dict[str, Any]:
@@ -101,6 +107,7 @@ def test_an_issue_reads_back_in_its_typed_shape(client_for: Clients, moderator: 
     assert issue["cover"] == {
         "tone": "paper",
         "art": None,
+        "artAlt": None,
         "lines": [{"section": "exams", "text": "The October session"}],
     }
     exams, room = issue["sections"]
@@ -126,15 +133,17 @@ def test_an_issue_reads_back_in_its_typed_shape(client_for: Clients, moderator: 
     assert row.cover == {"tone": "paper", "lines": [{"section": "exams", "text": "The October session"}]}
 
 
-def test_every_part_an_issue_can_hold(client_for: Clients, moderator: User) -> None:
+def test_every_part_an_issue_can_hold(client_for: Clients, moderator: User, storage: Any) -> None:
     """The closed set a form-based editor offers (decision D5): paragraphs, lists, sign-offs and buttons; a figure,
     a card or a few numbers beside the copy; live sections listing deadlines, forum threads or library files."""
+    rep = client_for(moderator)
+    media = newsletter_picture(rep, storage)
     story = {
         "id": "speech-day",
         "label": "Campus",
         "icon": "Megaphone",
         "title": "Speech Day",
-        "figure": {"src": MEDIA, "width": 1200, "height": 800, "alt": "The hall", "caption": "Photo: the BIBF"},
+        "figure": {"src": media, "width": 1200, "height": 800, "alt": "The hall", "caption": "Photo: the BIBF"},
         "aside": {
             "type": "stats",
             "title": "In numbers",
@@ -171,11 +180,12 @@ def test_every_part_an_issue_can_hold(client_for: Clients, moderator: User) -> N
         cover={
             "tone": "navy",
             "art": "brand/newsletter-cover.jpg",
+            "artAlt": "A study desk",
             "lines": [{"section": "speech-day", "text": "Hats off"}],
         },
         sections=[story, card, deadlines, forum, {"id": "library", "title": "New in the library", "kind": "library"}],
     )
-    r = client_for(moderator).post(ISSUES, json=body)
+    r = rep.post(ISSUES, json=body)
     assert r.status_code == 201, r.text
     out = r.json()
     assert [s["id"] for s in out["sections"]] == ["speech-day", "council", "deadlines", "forum", "library"]
@@ -254,7 +264,7 @@ def test_moderators_write_issues(client_for: Clients, student: User, moderator: 
     # sections and the cover are replaced as a whole
     r = rep.patch(url, json={"sections": [{"id": "only", "title": "Only this"}], "cover": {"tone": "navy"}})
     assert [s["id"] for s in r.json()["sections"]] == ["only"]
-    assert r.json()["cover"] == {"tone": "navy", "art": None, "lines": []}
+    assert r.json()["cover"] == {"tone": "navy", "art": None, "artAlt": None, "lines": []}
     # a refused edit leaves the issue as it was
     assert rep.patch(url, json={"title": "Changed", "sections": [{"id": "x"}]}).status_code == 422
     assert rep.get(f"{ISSUES}/october").json()["title"] == "The October issue (updated)"
@@ -381,10 +391,12 @@ def test_pictures_come_from_the_hub(client_for: Clients, moderator: User, bad: s
     assert fields(rep.post(ISSUES, json=new_issue(cover={"art": bad}))) == {"cover.art": PICTURE_RULE}
 
 
-def test_safe_links_and_the_seeded_issues_pass(seeded: None, client_for: Clients, moderator: User) -> None:
+def test_safe_links_and_the_seeded_issues_pass(
+    seeded: None, client_for: Clients, moderator: User, storage: Any
+) -> None:
     rep = client_for(moderator)
     good = new_issue(
-        cover={"tone": "navy", "art": "brand/newsletter-cover.jpg"},
+        cover={"tone": "navy", "art": "brand/newsletter-cover.jpg", "artAlt": "A study desk"},
         sections=[
             {
                 "id": "a",
@@ -396,7 +408,11 @@ def test_safe_links_and_the_seeded_issues_pass(seeded: None, client_for: Clients
                     {"type": "cta", "label": "Upload", "to": "https://my.london.ac.uk/upload"},
                 ],
             },
-            {"id": "b", "title": "B", "figure": {"src": MEDIA, "width": 4, "height": 3}},
+            {
+                "id": "b",
+                "title": "B",
+                "figure": {"src": newsletter_picture(rep, storage), "width": 4, "height": 3, "alt": "A graph"},
+            },
         ],
     )
     assert rep.post(ISSUES, json=good).status_code == 201
