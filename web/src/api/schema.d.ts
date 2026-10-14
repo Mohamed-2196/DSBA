@@ -834,7 +834,8 @@ export interface paths {
          * List Items
          * @description Published items for everyone. `starred` and `mine` need a session; `mine` includes pending and rejected.
          *     `q` searches titles, descriptions, authors and file names, plus the module's code and name and the kind
-         *     ("ST2133 past papers"); the last word matches as a prefix.
+         *     ("ST2133 past papers"), and the words inside PDF and Word files (those found only there come after the rest,
+         *     with `match`: the words around them and the page); the last word matches as a prefix.
          */
         get: operations["list_items_api_v1_library_items_get"];
         put?: never;
@@ -1672,7 +1673,8 @@ export interface paths {
         /**
          * Update Issue
          * @description Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are
-         *     replaced as a whole). Errors: slug_taken (409), invalid_input (422).
+         *     replaced as a whole). Errors: slug_taken (409), poll_has_votes (409: a poll's answers changed after it got
+         *     votes), invalid_input (422).
          */
         patch: operations["update_issue_api_v1_newsletter_issues__issue_id__patch"];
         trace?: never;
@@ -1731,7 +1733,8 @@ export interface paths {
         /**
          * Vote In Poll
          * @description One vote per person, and it can't be changed. The counts come back with it. Published issues only.
-         *     Errors: already_voted (409), not_found (404: no such issue or poll), invalid_input (422: no such answer).
+         *     Errors: already_voted (409), poll_closed (409), not_found (404: no such issue or poll), invalid_input (422: no
+         *     such answer).
          */
         put: operations["vote_in_poll_api_v1_newsletter_issues__issue_id__polls__poll_id__vote_put"];
         post?: never;
@@ -1898,7 +1901,9 @@ export interface paths {
         /**
          * Update Event
          * @description Fields that are not sent stay as they are; `endDate`, `time`, `place`, `year` and `moduleId` can be
-         *     cleared with null. The id never changes.
+         *     cleared with null. The id never changes. With `notify`, a new date, time or place of an exam, mock or deadline,
+         *     or its confirmation, is told to its cohort and to those with it on their board: at most once per event a day
+         *     (`notice`: sent, limit or none).
          */
         patch: operations["update_event_api_v1_calendar_events__event_id__patch"];
         trace?: never;
@@ -2105,6 +2110,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/board/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Make Plan
+         * @description Plans a module's revision up to the exam: a card for each lesson not watched yet and a past paper every few
+         *     days. Planning the module again keeps its cards, adds what's missing and takes the new date. Errors:
+         *     invalid_input on `moduleId` or `examDate` (422), board_full (409), rate_limited (429).
+         */
+        post: operations["make_plan_api_v1_board_plans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/board/plans/{module_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Plan
+         * @description Removes the module's plan and its cards still to do; cards done stay. Errors: not_found (404).
+         */
+        delete: operations["delete_plan_api_v1_board_plans__module_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/noora/ask": {
         parameters: {
             query?: never;
@@ -2175,6 +2222,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/summary/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview
+         * @description This week's Sunday summary for `year` (Sunday to Saturday, Bahrain time) as plain text with links, and how
+         *     many people in that year get it by email. Nothing is sent.
+         */
+        get: operations["preview_api_v1_summary_preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2217,6 +2285,8 @@ export interface components {
             emails: components["schemas"]["ExportEmail"][];
             /** Board */
             board: components["schemas"]["ExportBoardCard"][];
+            /** Boardplans */
+            boardPlans: components["schemas"]["ExportBoardPlan"][];
             /** Follows */
             follows: components["schemas"]["ExportFollow"][];
             /** Pollvotes */
@@ -2333,11 +2403,13 @@ export interface components {
         };
         /**
          * Board
-         * @description Every card, by column, each column in its order.
+         * @description Every card, by column, each column in its order, and the revision plans.
          */
         Board: {
             /** Cards */
             cards: components["schemas"]["BoardCard"][];
+            /** Plans */
+            plans: components["schemas"]["BoardPlan"][];
             /** Limit */
             limit: number;
         };
@@ -2360,6 +2432,10 @@ export interface components {
             /** Duedate */
             dueDate: string | null;
             link: components["schemas"]["BoardLink"] | null;
+            /** Planmoduleid */
+            planModuleId: string | null;
+            /** Plandate */
+            planDate: string | null;
             /**
              * Createdat
              * Format: date-time
@@ -2428,6 +2504,10 @@ export interface components {
             url: string | null;
             /** Date */
             date: string | null;
+            /** Kind */
+            kind: ("past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
+            /** Moduleid */
+            moduleId: string | null;
         };
         /**
          * BoardLinkIn
@@ -2442,13 +2522,61 @@ export interface components {
             /** Id */
             id: string;
         };
+        /**
+         * BoardPlan
+         * @description A revision plan for a module: its cards not done yet are spread over the days up to the exam.
+         */
+        BoardPlan: {
+            /** Moduleid */
+            moduleId: string;
+            /** Modulename */
+            moduleName: string;
+            /**
+             * Examdate
+             * Format: date
+             */
+            examDate: string;
+            /** Paperevery */
+            paperEvery: number;
+            /** Left */
+            left: number;
+            /** Done */
+            done: number;
+            /** Daysleft */
+            daysLeft: number;
+        };
+        /**
+         * BoardPlanCreate
+         * @description Plans a module's revision up to `examDate`: a card for each lesson not watched yet and a past paper every
+         *     `paperEvery` days. Planning the same module again keeps its cards, adds what's missing and takes the new date.
+         */
+        BoardPlanCreate: {
+            /** Moduleid */
+            moduleId: string;
+            /**
+             * Examdate
+             * Format: date
+             */
+            examDate: string;
+            /**
+             * Paperevery
+             * @default 3
+             */
+            paperEvery: number;
+        };
+        /** BoardPlanMade */
+        BoardPlanMade: {
+            plan: components["schemas"]["BoardPlan"];
+            /** Added */
+            added: number;
+        };
         /** BoxOut */
         BoxOut: {
             /**
              * Key
              * @enum {string}
              */
-            key: "forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read";
+            key: "forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read";
             /** Area */
             area: string;
             /** Label */
@@ -2515,6 +2643,47 @@ export interface components {
             /** Sample */
             sample: boolean;
         };
+        /**
+         * CalendarEventSaved
+         * @description An edited event, and what its change told students.
+         */
+        CalendarEventSaved: {
+            /** Id */
+            id: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Enddate */
+            endDate: string | null;
+            /** Time */
+            time: string | null;
+            /** Place */
+            place: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term";
+            /** Year */
+            year: (1 | 2 | 3) | null;
+            /** Moduleid */
+            moduleId: string | null;
+            /** Unitcode */
+            unitCode: string | null;
+            /** Sample */
+            sample: boolean;
+            /**
+             * Notice
+             * @enum {string}
+             */
+            notice: "sent" | "limit" | "none";
+            /** Told */
+            told: number;
+        };
         /** CalendarEventUpdate */
         CalendarEventUpdate: {
             /** Date */
@@ -2535,6 +2704,11 @@ export interface components {
             moduleId?: string | null;
             /** Sample */
             sample?: boolean | null;
+            /**
+             * Notify
+             * @default false
+             */
+            notify: boolean;
         };
         /**
          * CardAside
@@ -3012,7 +3186,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "already_voted" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -3048,6 +3222,8 @@ export interface components {
             linkType: ("event" | "lesson" | "module" | "library_item") | null;
             /** Linkid */
             linkId: string | null;
+            /** Planmoduleid */
+            planModuleId: string | null;
             /**
              * Createdat
              * Format: date-time
@@ -3056,13 +3232,30 @@ export interface components {
             /** Doneat */
             doneAt: string | null;
         };
+        /** ExportBoardPlan */
+        ExportBoardPlan: {
+            /** Moduleid */
+            moduleId: string;
+            /**
+             * Examdate
+             * Format: date
+             */
+            examDate: string;
+            /** Paperevery */
+            paperEvery: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
         /**
          * ExportEmail
          * @description An email the Hub sent you, or will send (notifications and account notices; sign-in codes are not kept).
          */
         ExportEmail: {
             /** Kind */
-            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system") | "account_notice";
+            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system") | "account_notice";
             /** Toaddress */
             toAddress: string;
             /** Subject */
@@ -3169,7 +3362,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -3402,7 +3595,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests";
+            feature: "forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary";
             /** Label */
             label: string;
             /** Hides */
@@ -3428,7 +3621,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests")[];
+            features: ("forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary")[];
         };
         /** FileLink */
         FileLink: {
@@ -3871,6 +4064,7 @@ export interface components {
             isMine: boolean;
             /** Canedit */
             canEdit: boolean;
+            match: components["schemas"]["TextMatch"] | null;
         };
         /**
          * LibraryItemCreate
@@ -3995,9 +4189,9 @@ export interface components {
             /** Roles */
             roles: components["schemas"]["RoleSummary"][];
             /** Boxes */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests")[];
+            features: ("forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary")[];
             /**
              * Status
              * @enum {string}
@@ -4515,7 +4709,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -4633,6 +4827,11 @@ export interface components {
             question: string;
             /** Answers */
             answers: string[];
+            /**
+             * Closed
+             * @default false
+             */
+            closed: boolean;
         };
         /**
          * PollResult
@@ -4660,8 +4859,9 @@ export interface components {
         };
         /**
          * Preferences
-         * @description Which notifications also come by email, to the account's email address. In the Hub every notification shows
-         *     whatever these say, and account security notices are always emailed.
+         * @description Which notifications also come by email, to the account's email address, and whether the Sunday summary does.
+         *     In the Hub every notification shows whatever these say, and account security notices are always emailed. Unset
+         *     means the default here.
          */
         Preferences: {
             /**
@@ -4684,6 +4884,16 @@ export interface components {
              * @default true
              */
             emailNewIssues: boolean;
+            /**
+             * Emaildatechanges
+             * @default true
+             */
+            emailDateChanges: boolean;
+            /**
+             * Emailweeklysummary
+             * @default false
+             */
+            emailWeeklySummary: boolean;
         };
         /**
          * PreferencesUpdate
@@ -4698,6 +4908,10 @@ export interface components {
             emailUploadReviews?: boolean | null;
             /** Emailnewissues */
             emailNewIssues?: boolean | null;
+            /** Emaildatechanges */
+            emailDateChanges?: boolean | null;
+            /** Emailweeklysummary */
+            emailWeeklySummary?: boolean | null;
         };
         /**
          * PresignedUpload
@@ -5105,7 +5319,7 @@ export interface components {
              * Boxes
              * @default []
              */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
         };
         /** RoleOut */
         RoleOut: {
@@ -5129,7 +5343,7 @@ export interface components {
             /** Version */
             version: number;
             /** Boxes */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Holders */
             holders: number;
         };
@@ -5159,7 +5373,7 @@ export interface components {
             /** Badge */
             badge?: string | null;
             /** Boxes */
-            boxes?: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[] | null;
+            boxes?: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[] | null;
             /** Position */
             position?: number | null;
         };
@@ -5169,7 +5383,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "thread" | "library" | "issue" | "module" | "event";
+            type: "thread" | "library" | "issue" | "module" | "lesson" | "event";
             /** Id */
             id: string;
             /** Title */
@@ -5182,6 +5396,8 @@ export interface components {
             meta: string | null;
             /** Date */
             date: string | null;
+            /** Page */
+            page: number | null;
         };
         /** SearchResults */
         SearchResults: {
@@ -5195,6 +5411,8 @@ export interface components {
             issues: components["schemas"]["SearchHit"][];
             /** Modules */
             modules: components["schemas"]["SearchHit"][];
+            /** Lessons */
+            lessons: components["schemas"]["SearchHit"][];
             /** Events */
             events: components["schemas"]["SearchHit"][];
         };
@@ -5356,6 +5574,31 @@ export interface components {
             /** Via */
             via?: ("email" | "phone") | null;
         };
+        /**
+         * SummaryPreview
+         * @description A year's Sunday summary for this week, as plain text with links: what the email says above its footer, and
+         *     what a rep pastes into the year's group.
+         */
+        SummaryPreview: {
+            /**
+             * Year
+             * @enum {integer}
+             */
+            year: 1 | 2 | 3;
+            /**
+             * Weekof
+             * Format: date
+             */
+            weekOf: string;
+            /** Subject */
+            subject: string;
+            /** Text */
+            text: string;
+            /** Empty */
+            empty: boolean;
+            /** Subscribers */
+            subscribers: number;
+        };
         /** SwitchUpdate */
         SwitchUpdate: {
             /**
@@ -5375,6 +5618,16 @@ export interface components {
             id: string;
             /** Label */
             label: string;
+        };
+        /**
+         * TextMatch
+         * @description Where a search's words were found inside the file: the words around them, and the page (PDFs).
+         */
+        TextMatch: {
+            /** Snippet */
+            snippet: string;
+            /** Page */
+            page: number | null;
         };
         /** ThreadCreate */
         ThreadCreate: {
@@ -5696,9 +5949,13 @@ export type BoardCardMove = components['schemas']['BoardCardMove'];
 export type BoardCardUpdate = components['schemas']['BoardCardUpdate'];
 export type BoardLink = components['schemas']['BoardLink'];
 export type BoardLinkIn = components['schemas']['BoardLinkIn'];
+export type BoardPlan = components['schemas']['BoardPlan'];
+export type BoardPlanCreate = components['schemas']['BoardPlanCreate'];
+export type BoardPlanMade = components['schemas']['BoardPlanMade'];
 export type BoxOut = components['schemas']['BoxOut'];
 export type CalendarEventCreate = components['schemas']['CalendarEventCreate'];
 export type CalendarEventOut = components['schemas']['CalendarEventOut'];
+export type CalendarEventSaved = components['schemas']['CalendarEventSaved'];
 export type CalendarEventUpdate = components['schemas']['CalendarEventUpdate'];
 export type CardAside = components['schemas']['CardAside'];
 export type CareerCert = components['schemas']['CareerCert'];
@@ -5732,6 +5989,7 @@ export type DateWindow = components['schemas']['DateWindow'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
 export type ErrorResponse = components['schemas']['ErrorResponse'];
 export type ExportBoardCard = components['schemas']['ExportBoardCard'];
+export type ExportBoardPlan = components['schemas']['ExportBoardPlan'];
 export type ExportEmail = components['schemas']['ExportEmail'];
 export type ExportFollow = components['schemas']['ExportFollow'];
 export type ExportLibraryItem = components['schemas']['ExportLibraryItem'];
@@ -5854,8 +6112,10 @@ export type StatItem = components['schemas']['StatItem'];
 export type StatsAside = components['schemas']['StatsAside'];
 export type StepUpResult = components['schemas']['StepUpResult'];
 export type StepUpStart = components['schemas']['StepUpStart'];
+export type SummaryPreview = components['schemas']['SummaryPreview'];
 export type SwitchUpdate = components['schemas']['SwitchUpdate'];
 export type TagOut = components['schemas']['TagOut'];
+export type TextMatch = components['schemas']['TextMatch'];
 export type ThreadCreate = components['schemas']['ThreadCreate'];
 export type ThreadDetail = components['schemas']['ThreadDetail'];
 export type ThreadModeration = components['schemas']['ThreadModeration'];
@@ -8920,7 +9180,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests";
+                feature: "forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary";
             };
             cookie?: never;
         };
@@ -15429,7 +15689,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CalendarEventOut"];
+                    "application/json": components["schemas"]["CalendarEventSaved"];
                 };
             };
             /** @description Bad Request */
@@ -15672,7 +15932,7 @@ export interface operations {
             query: {
                 q: string;
                 /** @description Default: all */
-                types?: ("thread" | "library" | "issue" | "module" | "event")[] | null;
+                types?: ("thread" | "library" | "issue" | "module" | "lesson" | "event")[] | null;
                 /** @description Per type */
                 limit?: number;
             };
@@ -16604,6 +16864,176 @@ export interface operations {
             };
         };
     };
+    make_plan_api_v1_board_plans_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BoardPlanCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardPlanMade"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_plan_api_v1_board_plans__module_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                module_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     ask_noora_api_v1_noora_ask_post: {
         parameters: {
             query?: never;
@@ -16887,6 +17317,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NooraUsageOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preview_api_v1_summary_preview_get: {
+        parameters: {
+            query: {
+                /** @description Cohort: 1, 2 or 3 */
+                year: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryPreview"];
                 };
             };
             /** @description Bad Request */

@@ -260,6 +260,7 @@ export const FEATURES = [
   'notes',
   'board',
   'requests',
+  'summary',
 ] as const;
 
 /** Sets a feature's switch (admins only). Every spec that switches something off puts it back in afterAll. */

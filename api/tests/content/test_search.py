@@ -11,6 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.core.text import snippet
 from app.core.time import utcnow
 from app.models import (
     CalendarEvent,
@@ -25,7 +26,7 @@ from app.models import (
     User,
 )
 from app.services.forum.text import to_plain_text
-from app.services.search import snippet, words
+from app.services.search import words
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
@@ -203,6 +204,7 @@ def test_module_aliases_prefixes_and_types(content: None, client_for: Clients) -
         "library": [],
         "issues": [],
         "modules": [],
+        "lessons": [],
         "events": [],
     }
     assert guest.get(f"{API}/search").status_code == 422

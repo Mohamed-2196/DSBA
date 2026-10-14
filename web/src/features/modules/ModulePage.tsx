@@ -10,6 +10,7 @@ import { COHORTS, cohortColor, useDocumentTitle, useYear } from '../../state';
 import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import { Badge, Button, CohortBadge, EmptyState, ErrorBoundary, ModuleIcon, Page, Panel, ProgressRing, QueryError, Skeleton, TabPanel, Tabs, countOf } from '../../ui';
+import { PlanRevision } from '../board/public';
 import { ModuleThreads, Prose } from '../forum/public';
 import { ModuleFiles, useLibraryUpload } from '../library/public';
 import { useModule } from './api';
@@ -51,6 +52,10 @@ function ModuleHeader({
   onOpenLesson: (c: number, v: number) => void;
 }) {
   const { year } = useYear();
+  const { featureOn } = useAuth();
+  const plan = featureOn('board') ? (
+    <PlanRevision moduleId={m.id} moduleName={m.unitCode || m.shortName || m.name} examDate={exam?.event.date ?? null} className="mod-head__action" />
+  ) : null;
   const r = detail?.resources;
   const pastPapers = https(r?.vle) ?? https(r?.olderExams);
   const studyGuide = https(r?.materials);
@@ -138,6 +143,7 @@ function ModuleHeader({
                     Past papers
                   </Button>
                 ) : null}
+                {plan}
               </div>
             </>
           ) : (
@@ -162,6 +168,7 @@ function ModuleHeader({
                     Past papers
                   </Button>
                 ) : null}
+                {plan}
               </div>
             </>
           )}

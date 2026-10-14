@@ -3647,7 +3647,8 @@
                 "noora.ai",
                 "notes",
                 "board",
-                "requests"
+                "requests",
+                "summary"
               ],
               "type": "string",
               "title": "Feature"
@@ -4593,7 +4594,7 @@
           "library"
         ],
         "summary": "List Items",
-        "description": "Published items for everyone. `starred` and `mine` need a session; `mine` includes pending and rejected.\n`q` searches titles, descriptions, authors and file names, plus the module's code and name and the kind\n(\"ST2133 past papers\"); the last word matches as a prefix.",
+        "description": "Published items for everyone. `starred` and `mine` need a session; `mine` includes pending and rejected.\n`q` searches titles, descriptions, authors and file names, plus the module's code and name and the kind\n(\"ST2133 past papers\"), and the words inside PDF and Word files (those found only there come after the rest,\nwith `match`: the words around them and the page); the last word matches as a prefix.",
         "operationId": "list_items_api_v1_library_items_get",
         "parameters": [
           {
@@ -10183,7 +10184,7 @@
           "newsletter"
         ],
         "summary": "Update Issue",
-        "description": "Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are\nreplaced as a whole). Errors: slug_taken (409), invalid_input (422).",
+        "description": "Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are\nreplaced as a whole). Errors: slug_taken (409), poll_has_votes (409: a poll's answers changed after it got\nvotes), invalid_input (422).",
         "operationId": "update_issue_api_v1_newsletter_issues__issue_id__patch",
         "parameters": [
           {
@@ -10746,7 +10747,7 @@
           "newsletter"
         ],
         "summary": "Vote In Poll",
-        "description": "One vote per person, and it can't be changed. The counts come back with it. Published issues only.\nErrors: already_voted (409), not_found (404: no such issue or poll), invalid_input (422: no such answer).",
+        "description": "One vote per person, and it can't be changed. The counts come back with it. Published issues only.\nErrors: already_voted (409), poll_closed (409), not_found (404: no such issue or poll), invalid_input (422: no\nsuch answer).",
         "operationId": "vote_in_poll_api_v1_newsletter_issues__issue_id__polls__poll_id__vote_put",
         "parameters": [
           {
@@ -12113,7 +12114,7 @@
           "calendar"
         ],
         "summary": "Update Event",
-        "description": "Fields that are not sent stay as they are; `endDate`, `time`, `place`, `year` and `moduleId` can be\ncleared with null. The id never changes.",
+        "description": "Fields that are not sent stay as they are; `endDate`, `time`, `place`, `year` and `moduleId` can be\ncleared with null. The id never changes. With `notify`, a new date, time or place of an exam, mock or deadline,\nor its confirmation, is told to its cohort and to those with it on their board: at most once per event a day\n(`notice`: sent, limit or none).",
         "operationId": "update_event_api_v1_calendar_events__event_id__patch",
         "parameters": [
           {
@@ -12142,7 +12143,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CalendarEventOut"
+                  "$ref": "#/components/schemas/CalendarEventSaved"
                 }
               }
             }
@@ -12540,6 +12541,7 @@
                       "library",
                       "issue",
                       "module",
+                      "lesson",
                       "event"
                     ],
                     "type": "string"
@@ -13632,6 +13634,204 @@
         }
       }
     },
+    "/api/v1/board/plans": {
+      "post": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Make Plan",
+        "description": "Plans a module's revision up to the exam: a card for each lesson not watched yet and a past paper every few\ndays. Planning the module again keeps its cards, adds what's missing and takes the new date. Errors:\ninvalid_input on `moduleId` or `examDate` (422), board_full (409), rate_limited (429).",
+        "operationId": "make_plan_api_v1_board_plans_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoardPlanCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardPlanMade"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/board/plans/{module_id}": {
+      "delete": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Delete Plan",
+        "description": "Removes the module's plan and its cards still to do; cards done stay. Errors: not_found (404).",
+        "operationId": "delete_plan_api_v1_board_plans__module_id__delete",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/noora/ask": {
       "post": {
         "tags": [
@@ -14047,6 +14247,113 @@
           }
         }
       }
+    },
+    "/api/v1/summary/preview": {
+      "get": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Preview",
+        "description": "This week's Sunday summary for `year` (Sunday to Saturday, Bahrain time) as plain text with links, and how\nmany people in that year get it by email. Nothing is sent.",
+        "operationId": "preview_api_v1_summary_preview_get",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Cohort: 1, 2 or 3",
+              "title": "Year"
+            },
+            "description": "Cohort: 1, 2 or 3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -14173,6 +14480,13 @@
             "type": "array",
             "title": "Board"
           },
+          "boardPlans": {
+            "items": {
+              "$ref": "#/components/schemas/ExportBoardPlan"
+            },
+            "type": "array",
+            "title": "Boardplans"
+          },
           "follows": {
             "items": {
               "$ref": "#/components/schemas/ExportFollow"
@@ -14215,6 +14529,7 @@
           "meToos",
           "emails",
           "board",
+          "boardPlans",
           "follows",
           "pollVotes",
           "senior"
@@ -14588,6 +14903,13 @@
             "type": "array",
             "title": "Cards"
           },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/BoardPlan"
+            },
+            "type": "array",
+            "title": "Plans"
+          },
           "limit": {
             "type": "integer",
             "title": "Limit"
@@ -14596,10 +14918,11 @@
         "type": "object",
         "required": [
           "cards",
+          "plans",
           "limit"
         ],
         "title": "Board",
-        "description": "Every card, by column, each column in its order."
+        "description": "Every card, by column, each column in its order, and the revision plans."
       },
       "BoardCard": {
         "properties": {
@@ -14654,6 +14977,29 @@
               }
             ]
           },
+          "planModuleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planmoduleid"
+          },
+          "planDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plandate"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -14680,6 +15026,8 @@
           "note",
           "dueDate",
           "link",
+          "planModuleId",
+          "planDate",
           "createdAt",
           "doneAt"
         ],
@@ -14873,6 +15221,41 @@
               }
             ],
             "title": "Date"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "past-paper",
+                  "examiners-report",
+                  "subject-guide",
+                  "reading",
+                  "study-guide",
+                  "exercises",
+                  "notes",
+                  "cheat-sheet",
+                  "course-materials",
+                  "vle-materials",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
           }
         },
         "type": "object",
@@ -14881,7 +15264,9 @@
           "id",
           "title",
           "url",
-          "date"
+          "date",
+          "kind",
+          "moduleId"
         ],
         "title": "BoardLink"
       },
@@ -14912,6 +15297,97 @@
         "title": "BoardLinkIn",
         "description": "What a card points at: a calendar event id, a lesson id, a module id or a library item id."
       },
+      "BoardPlan": {
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "moduleName": {
+            "type": "string",
+            "title": "Modulename"
+          },
+          "examDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Examdate"
+          },
+          "paperEvery": {
+            "type": "integer",
+            "title": "Paperevery"
+          },
+          "left": {
+            "type": "integer",
+            "title": "Left"
+          },
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          },
+          "daysLeft": {
+            "type": "integer",
+            "title": "Daysleft"
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleId",
+          "moduleName",
+          "examDate",
+          "paperEvery",
+          "left",
+          "done",
+          "daysLeft"
+        ],
+        "title": "BoardPlan",
+        "description": "A revision plan for a module: its cards not done yet are spread over the days up to the exam."
+      },
+      "BoardPlanCreate": {
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Moduleid"
+          },
+          "examDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Examdate"
+          },
+          "paperEvery": {
+            "type": "integer",
+            "maximum": 14.0,
+            "minimum": 1.0,
+            "title": "Paperevery",
+            "default": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleId",
+          "examDate"
+        ],
+        "title": "BoardPlanCreate",
+        "description": "Plans a module's revision up to `examDate`: a card for each lesson not watched yet and a past paper every\n`paperEvery` days. Planning the same module again keeps its cards, adds what's missing and takes the new date."
+      },
+      "BoardPlanMade": {
+        "properties": {
+          "plan": {
+            "$ref": "#/components/schemas/BoardPlan"
+          },
+          "added": {
+            "type": "integer",
+            "title": "Added"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan",
+          "added"
+        ],
+        "title": "BoardPlanMade"
+      },
       "BoxOut": {
         "properties": {
           "key": {
@@ -14928,6 +15404,7 @@
               "career.edit",
               "content.edit",
               "requests.manage",
+              "summary.share",
               "stats.view",
               "people.suspend",
               "audit.read"
@@ -15175,6 +15652,143 @@
         ],
         "title": "CalendarEventOut"
       },
+      "CalendarEventSaved": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "endDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enddate"
+          },
+          "time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time"
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "exam",
+              "mock",
+              "revision",
+              "deadline",
+              "event",
+              "break",
+              "term"
+            ],
+            "title": "Type"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "sample": {
+            "type": "boolean",
+            "title": "Sample"
+          },
+          "notice": {
+            "type": "string",
+            "enum": [
+              "sent",
+              "limit",
+              "none"
+            ],
+            "title": "Notice"
+          },
+          "told": {
+            "type": "integer",
+            "title": "Told"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "date",
+          "endDate",
+          "time",
+          "place",
+          "title",
+          "type",
+          "year",
+          "moduleId",
+          "unitCode",
+          "sample",
+          "notice",
+          "told"
+        ],
+        "title": "CalendarEventSaved",
+        "description": "An edited event, and what its change told students."
+      },
       "CalendarEventUpdate": {
         "properties": {
           "date": {
@@ -15295,6 +15909,11 @@
               }
             ],
             "title": "Sample"
+          },
+          "notify": {
+            "type": "boolean",
+            "title": "Notify",
+            "default": false
           }
         },
         "type": "object",
@@ -16773,6 +17392,8 @@
               "slug_taken",
               "not_published",
               "already_voted",
+              "poll_closed",
+              "poll_has_votes",
               "unsupported_type",
               "too_large",
               "not_uploaded",
@@ -16917,6 +17538,17 @@
             ],
             "title": "Linkid"
           },
+          "planModuleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planmoduleid"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -16944,10 +17576,41 @@
           "dueDate",
           "linkType",
           "linkId",
+          "planModuleId",
           "createdAt",
           "doneAt"
         ],
         "title": "ExportBoardCard"
+      },
+      "ExportBoardPlan": {
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "examDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Examdate"
+          },
+          "paperEvery": {
+            "type": "integer",
+            "title": "Paperevery"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleId",
+          "examDate",
+          "paperEvery",
+          "createdAt"
+        ],
+        "title": "ExportBoardPlan"
       },
       "ExportEmail": {
         "properties": {
@@ -16967,6 +17630,7 @@
                   "new_issue",
                   "report_resolved",
                   "request_update",
+                  "date_changed",
                   "system"
                 ]
               },
@@ -17299,6 +17963,7 @@
               "new_issue",
               "report_resolved",
               "request_update",
+              "date_changed",
               "system"
             ],
             "title": "Kind"
@@ -17852,7 +18517,8 @@
               "noora.ai",
               "notes",
               "board",
-              "requests"
+              "requests",
+              "summary"
             ],
             "title": "Feature"
           },
@@ -17938,7 +18604,8 @@
                 "noora.ai",
                 "notes",
                 "board",
-                "requests"
+                "requests",
+                "summary"
               ]
             },
             "type": "array",
@@ -19279,6 +19946,16 @@
           "canEdit": {
             "type": "boolean",
             "title": "Canedit"
+          },
+          "match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TextMatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -19307,7 +19984,8 @@
           "publishedAt",
           "starred",
           "isMine",
-          "canEdit"
+          "canEdit",
+          "match"
         ],
         "title": "LibraryItem"
       },
@@ -19782,6 +20460,7 @@
                 "career.edit",
                 "content.edit",
                 "requests.manage",
+                "summary.share",
                 "stats.view",
                 "people.suspend",
                 "audit.read"
@@ -19809,7 +20488,8 @@
                 "noora.ai",
                 "notes",
                 "board",
-                "requests"
+                "requests",
+                "summary"
               ]
             },
             "type": "array",
@@ -21234,6 +21914,7 @@
               "new_issue",
               "report_resolved",
               "request_update",
+              "date_changed",
               "system"
             ],
             "title": "Kind"
@@ -21522,6 +22203,11 @@
             "maxItems": 5,
             "minItems": 2,
             "title": "Answers"
+          },
+          "closed": {
+            "type": "boolean",
+            "title": "Closed",
+            "default": false
           }
         },
         "type": "object",
@@ -21629,11 +22315,21 @@
             "type": "boolean",
             "title": "Emailnewissues",
             "default": true
+          },
+          "emailDateChanges": {
+            "type": "boolean",
+            "title": "Emaildatechanges",
+            "default": true
+          },
+          "emailWeeklySummary": {
+            "type": "boolean",
+            "title": "Emailweeklysummary",
+            "default": false
           }
         },
         "type": "object",
         "title": "Preferences",
-        "description": "Which notifications also come by email, to the account's email address. In the Hub every notification shows\nwhatever these say, and account security notices are always emailed."
+        "description": "Which notifications also come by email, to the account's email address, and whether the Sunday summary does.\nIn the Hub every notification shows whatever these say, and account security notices are always emailed. Unset\nmeans the default here."
       },
       "PreferencesUpdate": {
         "properties": {
@@ -21680,6 +22376,28 @@
               }
             ],
             "title": "Emailnewissues"
+          },
+          "emailDateChanges": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emaildatechanges"
+          },
+          "emailWeeklySummary": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emailweeklysummary"
           }
         },
         "type": "object",
@@ -22838,6 +23556,7 @@
                 "career.edit",
                 "content.edit",
                 "requests.manage",
+                "summary.share",
                 "stats.view",
                 "people.suspend",
                 "audit.read"
@@ -22911,6 +23630,7 @@
                 "career.edit",
                 "content.edit",
                 "requests.manage",
+                "summary.share",
                 "stats.view",
                 "people.suspend",
                 "audit.read"
@@ -23024,6 +23744,7 @@
                     "career.edit",
                     "content.edit",
                     "requests.manage",
+                    "summary.share",
                     "stats.view",
                     "people.suspend",
                     "audit.read"
@@ -23067,6 +23788,7 @@
               "library",
               "issue",
               "module",
+              "lesson",
               "event"
             ],
             "title": "Type"
@@ -23116,6 +23838,17 @@
               }
             ],
             "title": "Date"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
           }
         },
         "type": "object",
@@ -23126,7 +23859,8 @@
           "snippet",
           "url",
           "meta",
-          "date"
+          "date",
+          "page"
         ],
         "title": "SearchHit"
       },
@@ -23164,6 +23898,13 @@
             "type": "array",
             "title": "Modules"
           },
+          "lessons": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "type": "array",
+            "title": "Lessons"
+          },
           "events": {
             "items": {
               "$ref": "#/components/schemas/SearchHit"
@@ -23179,6 +23920,7 @@
           "library",
           "issues",
           "modules",
+          "lessons",
           "events"
         ],
         "title": "SearchResults"
@@ -23575,6 +24317,51 @@
         "title": "StepUpStart",
         "description": "Which of the account's own identifiers gets the code: by default the email address, else the phone number."
       },
+      "SummaryPreview": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "weekOf": {
+            "type": "string",
+            "format": "date",
+            "title": "Weekof"
+          },
+          "subject": {
+            "type": "string",
+            "title": "Subject"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "empty": {
+            "type": "boolean",
+            "title": "Empty"
+          },
+          "subscribers": {
+            "type": "integer",
+            "title": "Subscribers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "weekOf",
+          "subject",
+          "text",
+          "empty",
+          "subscribers"
+        ],
+        "title": "SummaryPreview",
+        "description": "A year's Sunday summary for this week, as plain text with links: what the email says above its footer, and\nwhat a rep pastes into the year's group."
+      },
       "SwitchUpdate": {
         "properties": {
           "mode": {
@@ -23619,6 +24406,32 @@
           "label"
         ],
         "title": "TagOut"
+      },
+      "TextMatch": {
+        "properties": {
+          "snippet": {
+            "type": "string",
+            "title": "Snippet"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          }
+        },
+        "type": "object",
+        "required": [
+          "snippet",
+          "page"
+        ],
+        "title": "TextMatch",
+        "description": "Where a search's words were found inside the file: the words around them, and the page (PDFs)."
       },
       "ThreadCreate": {
         "properties": {

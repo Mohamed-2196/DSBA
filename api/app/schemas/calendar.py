@@ -7,6 +7,9 @@ from pydantic import StringConstraints
 
 from app.schemas.common import ApiModel, Year
 
+# What a change told students: "sent" (a notification each), "limit" (they were told about this event today
+# already), "none" (nothing to tell, or not asked to).
+NoticeStatus = Literal["sent", "limit", "none"]
 EventType = Literal["exam", "mock", "revision", "deadline", "event", "break", "term"]
 Short = Annotated[str, StringConstraints(strip_whitespace=True, max_length=120)]
 
@@ -47,3 +50,12 @@ class CalendarEventUpdate(ApiModel):
     year: Year | None = None
     module_id: str | None = None
     sample: bool | None = None
+    # Tell the event's cohort when its date, time or place changes or it is confirmed (exams, mocks and deadlines).
+    notify: bool = False
+
+
+class CalendarEventSaved(CalendarEventOut):
+    """An edited event, and what its change told students."""
+
+    notice: NoticeStatus
+    told: int  # the people notified

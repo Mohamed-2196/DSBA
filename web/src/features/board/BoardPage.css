@@ -11,6 +11,37 @@
 }
 .board-page__switch { margin-bottom: var(--sp-16); }
 
+/* Revision plans: one row per module, above the columns. */
+.board-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: var(--sp-12);
+  margin: 0 0 var(--sp-16);
+  padding: 0;
+  list-style: none;
+}
+.board-plan {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  min-width: 0;
+  padding: var(--sp-12) var(--sp-16);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+}
+.board-plan__icon { flex: none; width: 24px; height: 24px; color: var(--cobalt); }
+.board-plan__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--fs-14);
+}
+.board-plan__text span { color: var(--ink-2); font-size: var(--fs-12); }
+.board-plan__remove { flex: none; }
+
 .board {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -142,6 +173,8 @@
   white-space: pre-line;
 }
 
+.board-card__score { margin: 0; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+
 .board-form { display: flex; flex-direction: column; gap: var(--sp-16); }
 
 /* Touch screens: 44px targets for the title, the menu and the links. */
@@ -149,4 +182,5 @@
   .board-card__open { min-height: 44px; }
   .board-card__menu { min-width: 44px; min-height: 44px; }
   .board-card__link a { display: inline-flex; align-items: center; min-height: 44px; }
+  .board-plan__remove { min-height: 44px; }
 }

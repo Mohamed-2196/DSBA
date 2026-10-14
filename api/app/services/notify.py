@@ -2,11 +2,11 @@
 every account at once (a new newsletter issue).
 
 The notification in the Hub always comes: no email switch can silence it (decision D1). For the kinds that also
-come by email (outbox.EMAIL_SWITCHES: replies, accepted answers, upload reviews, new issues), an email is queued in
-the same transaction when the person has an email address, keeps that switch on and hasn't had EMAIL_MAX_PER_HOUR
-of them in the last hour; the mail worker sends it (app/services/outbox.py). The emails are plain text: what
-happened, a link to it, and a link to the switches. Text that other people wrote is quoted with its links taken
-out, so nobody can send a link from the Hub's own address."""
+come by email (outbox.EMAIL_SWITCHES: replies, accepted answers, upload reviews, new issues, date changes), an email
+is queued in the same transaction when the person has an email address, keeps that switch on and hasn't had
+EMAIL_MAX_PER_HOUR of them in the last hour (security review SEC-17); the mail worker sends it
+(app/services/outbox.py). The emails are plain text: what happened, a link to it, and a link to the switches. Text
+that other people wrote is quoted with its links taken out, so nobody can send a link from the Hub's own address."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import uuid
 from datetime import timedelta
 from typing import Any
 
-from sqlalchemy import ColumnElement, func, insert, literal, not_, select, true
+from sqlalchemy import ColumnElement, Select, func, insert, literal, select, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
 
@@ -24,7 +24,7 @@ from app.core.text import clip
 from app.core.time import utcnow
 from app.models import EmailOutbox, Notification, OutboxStatus, User
 from app.schemas.notifications import NotificationKind
-from app.services.outbox import ACCOUNT_NOTICE, EMAIL_SWITCHES, queue, wants
+from app.services.outbox import ACCOUNT_NOTICE, EMAIL_SWITCHES, queue, wanted_by, wants
 
 URL_MAX = 300  # Notification.url
 # A page of the Hub: '/forum/<slug>', never '//host' or '/\host' (both lead off-site), a scheme, spaces or control
@@ -43,6 +43,8 @@ SWITCH_LABELS: dict[str, str] = {
     "email_answer_accepted": "Accepted answers",
     "email_upload_reviews": "Upload reviews",
     "email_new_issues": "New newsletter issues",
+    "email_date_changes": "Date changes",
+    "email_weekly_summary": "Sunday summary",
 }
 
 
@@ -58,6 +60,18 @@ def unlink(text: str) -> str:
     return " ".join(_LINK.sub(LINK_STANDIN, text).split())
 
 
+def switch_footer(switch: str) -> list[str]:
+    """The lines that end every email a switch governs: why it came, and where to turn it off (no token in the link:
+    the switches are behind sign-in)."""
+    base = get_settings().web_base_url.rstrip("/")
+    return [
+        f"You get these emails because “{SWITCH_LABELS[switch]}” is on in Your account. "
+        f"To turn it off: {base}{SETTINGS_PATH}",
+        "",
+        "DSBA Hub",
+    ]
+
+
 def email_text(title: str, body: str | None, path: str | None, switch: str) -> str:
     """The plain-text email for a notification: what happened, the link to it, the link to the switch. The title and
     the quote carry no links of their own: the only links are the Hub's."""
@@ -70,10 +84,7 @@ def email_text(title: str, body: str | None, path: str | None, switch: str) -> s
         "",
         f"Open it in DSBA Hub: {base}{path or '/'}",
         "",
-        f"You get these emails because “{SWITCH_LABELS[switch]}” is on in Your account. "
-        f"To turn it off: {base}{SETTINGS_PATH}",
-        "",
-        "DSBA Hub",
+        *switch_footer(switch),
     ]
     return "\n".join(lines) + "\n"
 
@@ -112,7 +123,7 @@ def notify(
     switch = EMAIL_SWITCHES.get(kind)
     if switch is not None:
         person = db.get(User, user_id)
-        if person is not None and person.email and wants(person, switch) and not _inbox_full(db, user_id):
+        if person is not None and person.email and wants(person, switch) and not inbox_full(db, user_id):
             db.flush()  # the notification's row first: the email refers to it
             text = email_text(title, body, path, switch)
             queue(
@@ -121,8 +132,8 @@ def notify(
     return n
 
 
-def _inbox_full(db: Session, user_id: uuid.UUID) -> bool:
-    """Whether `user_id` has had EMAIL_MAX_PER_HOUR notification emails queued in the last hour."""
+def inbox_full(db: Session, user_id: uuid.UUID) -> bool:
+    """Whether `user_id` has had EMAIL_MAX_PER_HOUR emails (other than account notices) queued in the last hour."""
     since = utcnow() - timedelta(hours=1)
     sent = db.scalar(
         select(func.count())
@@ -130,6 +141,17 @@ def _inbox_full(db: Session, user_id: uuid.UUID) -> bool:
         .where(EmailOutbox.user_id == user_id, EmailOutbox.kind != ACCOUNT_NOTICE, EmailOutbox.created_at >= since)
     )
     return (sent or 0) >= EMAIL_MAX_PER_HOUR
+
+
+def _full_inboxes() -> Select[tuple[uuid.UUID | None]]:
+    """The accounts inbox_full() is true for, as a subquery."""
+    since = utcnow() - timedelta(hours=1)
+    return (
+        select(EmailOutbox.user_id)
+        .where(EmailOutbox.user_id.is_not(None), EmailOutbox.kind != ACCOUNT_NOTICE, EmailOutbox.created_at >= since)
+        .group_by(EmailOutbox.user_id)
+        .having(func.count() >= EMAIL_MAX_PER_HOUR)
+    )
 
 
 def notify_all(
@@ -145,8 +167,8 @@ def notify_all(
     only: ColumnElement[bool] | None = None,
 ) -> int:
     """One notification for every account except the actor's, among those matching `only` when given (one INSERT ...
-    SELECT), and, with `email`, an email for each of them whose switch for `kind` is on (in the same transaction; the
-    caller commits). -> the number of notifications."""
+    SELECT), and, with `email`, an email for each of them whose switch for `kind` is on and whose inbox isn't full
+    (in the same transaction; the caller commits). -> the number of notifications."""
     path = hub_path(url)
     # The id comes from the database: a Python-side default would be computed once and repeated on every row.
     readers = select(
@@ -172,7 +194,8 @@ def notify_all(
         select(User.id, User.email).where(
             User.id.in_(list(by_user)),
             User.email.is_not(None),
-            not_(User.preferences.contains({switch: False})),
+            wanted_by(switch),
+            User.id.not_in(_full_inboxes()),
         )
     ).all()
     text = email_text(title, body, path, switch)

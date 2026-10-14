@@ -1,7 +1,7 @@
 """forum follows, threads without a name, seniors who answer and newsletter polls, with their four switches
 
 Revision ID: 0010
-Revises: 0006
+Revises: 0011
 Create Date: 2026-10-14 12:00:00
 
 Following a thread and a senior's question send new notifications (followed_reply, followed_answer,
@@ -18,7 +18,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0010"
-down_revision: str | None = "0006"
+down_revision: str | None = "0011"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -31,6 +31,7 @@ KINDS = (
     "new_issue",
     "report_resolved",
     "request_update",
+    "date_changed",
     "system",
 )
 NEW_KINDS = ("followed_reply", "followed_answer", "senior_question")

@@ -23,6 +23,7 @@ from app.routers import (
     reports,
     requests,
     seniors,
+    summary,
     uploads,
 )
 
@@ -49,5 +50,6 @@ for module in (
     features,
     board,
     noora,
+    summary,
 ):
     api_router.include_router(module.router)

@@ -6,8 +6,9 @@
 .lib-mf__tools { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
 .lib-mf__groups { display: grid; gap: var(--sp-32); }
 .lib-mf__group { display: grid; gap: var(--sp-12); }
-.lib-mf__h { display: flex; align-items: baseline; gap: var(--sp-8); color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-bold); }
+.lib-mf__h { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-8); color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-bold); }
 .lib-mf__count { color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-medium); font-variant-numeric: tabular-nums; }
+.lib-mf__sittings { margin-left: auto; color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; }
 .lib-mf__list { margin: 0; padding: 0; list-style: none; }
 .lib-mf__row { display: flex; align-items: center; gap: var(--sp-12); padding: var(--sp-8) var(--sp-8) var(--sp-8) var(--sp-16); border-bottom: 1px solid var(--line); }
 .lib-mf__row:last-child { border-bottom: 0; }

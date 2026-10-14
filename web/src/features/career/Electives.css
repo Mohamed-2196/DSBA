@@ -1,0 +1,86 @@
+/* Choosing your Year 3 electives (electives-, elective-): the cards side by side, and Career Navigator's link to them. */
+
+.electives__note { display: flex; align-items: flex-start; gap: var(--sp-12); padding: var(--sp-12) var(--sp-16); margin-bottom: var(--sp-24); }
+.electives__note svg { flex: none; margin-top: 3px; color: var(--ink-2); font-size: 18px; }
+.electives__note p { max-width: 72ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.electives__count { margin-bottom: var(--sp-16); color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); }
+
+.electives-page { container: electives / inline-size; }
+.electives { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-16); align-items: stretch; }
+/* One, two or four across: never three over one. */
+@container electives (min-width: 600px) { .electives { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container electives (min-width: 1160px) { .electives { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* ── One elective ────────────────────────────────────────────────────────────────────────────── */
+.elective { display: flex; flex-direction: column; min-width: 0; border-top: 4px solid var(--y3); }
+.elective__head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--sp-8) var(--sp-12); padding: var(--sp-24) var(--sp-24) var(--sp-16); }
+.elective__plate {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--y3) 14%, var(--surface));
+  color: var(--y3-strong);
+  font-size: 24px;
+}
+.elective__name { font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: var(--lh-heading); }
+.elective__name a { color: var(--ink); text-decoration: none; }
+.elective__name a:hover { color: var(--cobalt); text-decoration: underline; text-underline-offset: 3px; }
+.elective__desc { grid-column: 1 / -1; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+
+.elective__part { padding: var(--sp-16) var(--sp-24); border-top: 1px solid var(--line); }
+.elective__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--sp-8);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.elective__label svg { color: var(--y3); }
+.elective__skills { list-style: none; display: flex; flex-direction: column; gap: var(--sp-12); }
+.elective__skill { display: flex; flex-direction: column; gap: 2px; }
+.elective__skill-name { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--sp-8); color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); line-height: 1.35; }
+.elective__skill-what, .elective__none { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+
+.elective__roles { list-style: none; display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+.elective__role {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--sp-12);
+  border-radius: var(--r-pill);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.elective__role:hover { background: var(--surface-2); color: var(--cobalt); }
+
+.elective__foot { display: flex; flex-wrap: wrap; gap: var(--sp-4) var(--sp-16); margin-top: auto; padding: var(--sp-12) var(--sp-24) var(--sp-16); border-top: 1px solid var(--line); }
+.elective__link { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; color: var(--cobalt); font-size: var(--fs-14); font-weight: var(--fw-semibold); text-decoration: none; }
+.elective__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+@media (pointer: coarse) {
+  .elective__role, .elective__link { min-height: 44px; }
+}
+@media (max-width: 699px) {
+  .elective__head { padding: var(--sp-16) var(--sp-16) var(--sp-12); }
+  .elective__part { padding: var(--sp-12) var(--sp-16); }
+  .elective__foot { padding: var(--sp-8) var(--sp-16) var(--sp-12); }
+}
+
+/* ── Career Navigator's link ─────────────────────────────────────────────────────────────────── */
+.electives-link { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-12) var(--sp-16); padding: var(--sp-16) var(--sp-24); }
+.electives-link__icon { flex: none; font-size: 28px; color: var(--y3-strong); }
+.electives-link__text { flex: 1 1 320px; min-width: 0; max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.electives-link__text strong { color: var(--ink); font-weight: var(--fw-bold); }
+@media (max-width: 699px) {
+  .electives-link { padding: var(--sp-16); }
+}

@@ -6,9 +6,9 @@
   row unlocks and is sent again later (at least once).
 - A failed send is retried with exponential backoff (30 s, 1 min, 2 min, ... up to 6 h, with some jitter), and
   given up after MAX_ATTEMPTS. Logs name the kind and the masked address, never the address or the body.
-- When its turn comes, a notification email is cancelled if the person no longer wants it: the account is gone,
-  its email address changed, or the switch for that kind was turned off. It is cancelled too when the feature it is
-  about is switched off for the person.
+- When its turn comes, a notification email or a Sunday summary is cancelled if the person no longer wants it: the
+  account is gone, its email address changed, or the switch for that kind was turned off. It is cancelled too when
+  the feature it is about is switched off for the person.
 - Rows that are done are deleted after KEEP_DONE."""
 
 from __future__ import annotations
@@ -22,9 +22,8 @@ from collections.abc import Callable
 from contextlib import AbstractContextManager
 from datetime import datetime, timedelta
 from types import FrameType
-from typing import cast
 
-from sqlalchemy import delete, select
+from sqlalchemy import ColumnElement, delete, not_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -32,7 +31,6 @@ from app.core.access import Feature
 from app.core.time import utcnow
 from app.models import EmailOutbox, OutboxStatus, User
 from app.schemas.auth import Preferences
-from app.schemas.notifications import NotificationKind
 from app.services import access, mailer
 from app.services.identifiers import destination_hint
 from app.services.mailer import DeliveryError
@@ -40,8 +38,10 @@ from app.services.mailer import DeliveryError
 log = logging.getLogger("dsba.outbox")
 
 ACCOUNT_NOTICE = "account_notice"  # security notices: always sent, to the address they were meant for
-# Notification kinds that also come by email, and the switch (a Preferences field) that turns that email off.
-EMAIL_SWITCHES: dict[NotificationKind, str] = {
+WEEKLY_SUMMARY = "weekly_summary"  # the Sunday summary (app/services/summary.py): an email with no notification
+# The kinds that come by email (notification kinds, and the Sunday summary), and the switch (a Preferences field)
+# that turns that email off.
+EMAIL_SWITCHES: dict[str, str] = {
     "thread_reply": "email_replies",
     "reply_reply": "email_replies",
     "answer_accepted": "email_answer_accepted",
@@ -51,9 +51,11 @@ EMAIL_SWITCHES: dict[NotificationKind, str] = {
     "upload_published": "email_upload_reviews",
     "upload_rejected": "email_upload_reviews",
     "new_issue": "email_new_issues",
+    "date_changed": "email_date_changes",
+    WEEKLY_SUMMARY: "email_weekly_summary",
 }
 # The feature each emailed kind is about: no email goes out about a feature that is off for its reader.
-EMAIL_FEATURES: dict[NotificationKind, Feature] = {
+EMAIL_FEATURES: dict[str, Feature] = {
     "thread_reply": Feature.forum,
     "reply_reply": Feature.forum,
     "answer_accepted": Feature.forum,
@@ -63,12 +65,15 @@ EMAIL_FEATURES: dict[NotificationKind, Feature] = {
     "upload_published": Feature.library,
     "upload_rejected": Feature.library,
     "new_issue": Feature.newsletter,
+    "date_changed": Feature.calendar,
+    WEEKLY_SUMMARY: Feature.summary,
 }
 MAX_ATTEMPTS = 8
 FIRST_RETRY = timedelta(seconds=30)
 MAX_RETRY = timedelta(hours=6)
 KEEP_DONE = timedelta(days=30)  # sent, failed and cancelled rows (what an export shows) are deleted after this
 PURGE_EVERY = timedelta(hours=1)
+SUMMARY_EVERY = timedelta(minutes=10)  # how often the worker asks whether the Sunday summary is due
 SUBJECT_MAX = 200
 
 
@@ -77,6 +82,13 @@ def wants(user: User, switch: str) -> bool:
     stored = user.preferences if isinstance(user.preferences, dict) else {}
     value = stored.get(switch, Preferences.model_fields[switch].default)
     return value is not False
+
+
+def wanted_by(switch: str) -> ColumnElement[bool]:
+    """A condition on User: the email switch `switch` is on (as wants(), in SQL)."""
+    if Preferences.model_fields[switch].default is False:
+        return User.preferences.contains({switch: True})
+    return not_(User.preferences.contains({switch: False}))
 
 
 def queue(
@@ -121,8 +133,7 @@ def _still_wanted(db: Session, row: EmailOutbox) -> bool:
     user = db.get(User, row.user_id)
     if user is None or user.email != row.to_address:
         return False
-    kind = cast(NotificationKind, row.kind)  # a stored kind: a notification kind
-    switch, feature = EMAIL_SWITCHES.get(kind), EMAIL_FEATURES.get(kind)
+    switch, feature = EMAIL_SWITCHES.get(row.kind), EMAIL_FEATURES.get(row.kind)
     if feature is not None and not access.feature_on(db, user, feature):
         return False
     return switch is None or wants(user, switch)
@@ -199,8 +210,11 @@ def run_worker(
     poll_seconds: float = 5.0,
     stop: threading.Event | None = None,
 ) -> int:
-    """The mail worker: sends due emails, waits `poll_seconds` when there are none, purges old rows hourly.
-    SIGTERM and SIGINT stop it after the email in hand. With `once`, it stops when nothing is due."""
+    """The mail worker: sends due emails, waits `poll_seconds` when there are none, purges old rows hourly, and on
+    Sunday morning (Bahrain) queues the week's summaries (app/services/summary.py). SIGTERM and SIGINT stop it after
+    the email in hand. With `once`, it stops when nothing is due."""
+    from app.services import summary
+
     stop = stop or threading.Event()
 
     def _stop(signum: int, _frame: FrameType | None) -> None:
@@ -212,8 +226,12 @@ def run_worker(
         signal.signal(signal.SIGINT, _stop)
     log.info("mail worker started")
     last_purge: datetime | None = None
+    last_summary: datetime | None = None
     while not stop.is_set():
         try:
+            if last_summary is None or utcnow() - last_summary > SUMMARY_EVERY:
+                summary.send_due(sessions)
+                last_summary = utcnow()
             if last_purge is None or utcnow() - last_purge > PURGE_EVERY:
                 with sessions() as db:
                     purged = purge(db)

@@ -1,5 +1,5 @@
-# Production: Caddy (TLS, the web app, the API under /api), the API, PostgreSQL, the mail worker, and two daily jobs
-# (backup, sweep).
+# Production: Caddy (TLS, the web app, the API under /api), the API, PostgreSQL, the mail and text workers, and two
+# daily jobs (backup, sweep).
 # Object storage is outside: AWS S3, or MinIO behind HTTPS. Settings come from .env next to this file (see
 # .env.example); compose stops here when a required one is missing, and the API refuses to start while any
 # setting is unsafe for production. docs/backend/DEPLOYMENT.md walks through it.
@@ -148,6 +148,17 @@ services:
     # email in hand.
     <<: *api
     command: python -m app.cli mail-worker
+    healthcheck:
+      disable: true
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  texts:
+    # The text worker: reads the words of each published PDF and Word file once, for search inside papers. Each file
+    # is read in a child process with a time and memory limit.
+    <<: *api
+    command: python -m app.cli text-worker
     healthcheck:
       disable: true
     depends_on:

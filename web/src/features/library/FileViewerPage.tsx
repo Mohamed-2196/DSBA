@@ -13,13 +13,15 @@ import {
 } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { isApiError } from '../../api/errors';
 import { appUrl } from '../../lib/share';
 import { useCopyLink } from '../../lib/useCopyLink';
 import { BREAKPOINTS, useDocumentTitle, useMediaQuery, useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, EmptyState, IconButton, Menu, Page, Panel, QueryError, Skeleton, cx, timeAgo } from '../../ui';
+import { useAuth } from '../../auth';
+import { AddToBoard, PaperDone } from '../board/public';
 import { ReportButton } from '../forum/public';
 import { useLibraryAccess } from './access';
 import { downloadHref, itemPath, libraryKeys, openLinkHref, useLibraryItem } from './api';
@@ -27,7 +29,7 @@ import { DeleteItemDialog, EditItemDialog } from './components/EditItemDialog';
 import type { LinkState } from './components/FileCard';
 import { ReviewActions } from './components/ReviewActions';
 import { StarButton } from './components/StarButton';
-import { isNew, linkPlace, moduleTag, sizeLabel, statusInfo } from './display';
+import { isNew, linkPlace, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
 import { KIND_BY_ID, formatOf } from './kinds';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
@@ -56,6 +58,7 @@ function ViewerSkeleton() {
 
 export default function FileViewerPage() {
   const { fileId } = useParams();
+  const [params] = useSearchParams();
   const item = useLibraryItem(fileId);
   const notFound = item.isError && isApiError(item.error) && (item.error.status === 404 || item.error.status === 422);
   useDocumentTitle(item.data ? item.data.title : notFound ? 'File not found' : null);
@@ -83,7 +86,7 @@ export default function FileViewerPage() {
       </Page>
     );
   }
-  return <FileView key={item.data.id} item={item.data} />;
+  return <FileView key={item.data.id} item={item.data} page={pageParam(params.get('page'))} />;
 }
 
 /** What the uploader (or a moderator) sees above an item that isn't public. */
@@ -140,13 +143,14 @@ function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: (
   );
 }
 
-function FileView({ item }: { item: LibraryItem }) {
+function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   const location = useLocation();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { push } = useToast();
   const copy = useCopyLink();
   const { suspended, moderator: managesLibrary } = useLibraryAccess();
+  const { featureOn } = useAuth();
   const { getModule } = useModules();
   const toggleStar = useStar();
   const isDesktop = useMediaQuery(BREAKPOINTS.desktop);
@@ -244,7 +248,9 @@ function FileView({ item }: { item: LibraryItem }) {
           <span className="lib-viewer__badges">
             {fmt ? <Badge tone="outline">{fmt.tag}</Badge> : <Badge tone="outline">Link</Badge>}
             {isNew(item) ? <Badge tone="highlight">New</Badge> : null}
+            {featureOn('board') && item.kind === 'past-paper' ? <PaperDone itemId={item.id} /> : null}
           </span>
+          {featureOn('board') && item.status === 'published' ? <AddToBoard link={{ type: 'library_item', id: item.id }} className="lib-viewer__board" /> : null}
         </div>
       </header>
 
@@ -284,7 +290,7 @@ function FileView({ item }: { item: LibraryItem }) {
 
       <div className={cx('lib-viewer__body', isDesktop && metaOpen && 'has-meta')}>
         <div className="lib-viewer__canvas" role="region" aria-label={`${item.title}, preview`}>
-          <Preview item={item} compact={isMobile} />
+          <Preview item={item} compact={isMobile} page={page} />
         </div>
         {metaOpen ? <MetaPanel id="lib-file-meta" item={item} linkState={linkState} className={isDesktop ? undefined : 'lib-meta--stacked'} /> : null}
       </div>

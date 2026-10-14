@@ -1,9 +1,9 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
-import { BookOpenText, CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, HandWaving, Newspaper, Power, Tray, UsersThree, type Icon } from '@phosphor-icons/react';
+import { BookOpenText, CalendarCheck, CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, HandWaving, Newspaper, Power, Tray, UsersThree, type Icon } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
-import { useQueryParam } from '../../state';
+import { normalizeYear, useQueryParam } from '../../state';
 import { Button, EmptyState, ErrorBoundary, Page, PageHeader, Panel, QueryError, Skeleton, TabPanel, Tabs, formatCount } from '../../ui';
 import { ActivityLog, PeopleList } from '../access/public';
 import { ReportsQueue } from '../forum/public';
@@ -13,6 +13,7 @@ import { RequestsQueue } from '../requests/public';
 import { useIssues } from '../newsletter/public';
 import { useAdminStats } from './api';
 import { NooraNumbers } from './NooraNumbers';
+import { SundaySummary } from './SundaySummary';
 import { sectionsFor, type SectionId } from './sections';
 import './ManagePage.css';
 
@@ -22,6 +23,7 @@ const SECTIONS: Record<SectionId, { label: string; icon: Icon }> = {
   requests: { label: 'Requests', icon: HandWaving },
   newsletter: { label: 'Newsletter', icon: Newspaper },
   calendar: { label: 'Calendar', icon: CalendarDots },
+  summary: { label: 'Sunday summary', icon: CalendarCheck },
   career: { label: 'Career Navigator', icon: Compass },
   content: { label: 'Modules', icon: BookOpenText },
   numbers: { label: 'Numbers', icon: ChartBar },
@@ -102,12 +104,18 @@ function LinkOut({ icon, title, body, to, label }: { icon: Icon; title: string; 
   );
 }
 
+function SummaryForMe() {
+  const { me } = useAuth();
+  return <SundaySummary defaultYear={normalizeYear(me?.year)} />;
+}
+
 const BODIES: Record<SectionId, () => ReactNode> = {
   reports: () => <ReportsQueue />,
   uploads: () => <UploadsQueue />,
   requests: () => <RequestsQueue />,
   newsletter: () => <Drafts />,
   calendar: () => <LinkOut icon={CalendarDots} title="The calendar" body="Add, edit and delete events from the calendar itself." to="/calendar" label="Open the calendar" />,
+  summary: () => <SummaryForMe />,
   career: () => <LinkOut icon={Compass} title="Career Navigator" body="Its content is edited on Career Navigator." to="/career" label="Open Career Navigator" />,
   content: () => <ModulesEditor />,
   numbers: () => <Numbers />,

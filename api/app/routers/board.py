@@ -1,4 +1,5 @@
-"""The study board (R-4): each signed-in student's private cards. A suspended account reads its board only."""
+"""The study board (R-4): each signed-in student's private cards and revision plans. A suspended account reads its
+board only."""
 
 from __future__ import annotations
 
@@ -9,7 +10,15 @@ from fastapi import Response, status
 from app.core.access import Feature
 from app.core.security import DB, ActiveUser, CurrentUser, needs_feature
 from app.routers._base import router_for
-from app.schemas.board import Board, BoardCard, BoardCardCreate, BoardCardMove, BoardCardUpdate
+from app.schemas.board import (
+    Board,
+    BoardCard,
+    BoardCardCreate,
+    BoardCardMove,
+    BoardCardUpdate,
+    BoardPlanCreate,
+    BoardPlanMade,
+)
 from app.services import board as svc
 
 router = router_for("board", needs_feature(Feature.board))
@@ -54,5 +63,23 @@ def move_card(card_id: uuid.UUID, body: BoardCardMove, user: ActiveUser, db: DB)
 @router.delete("/board/cards/{card_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_card(card_id: uuid.UUID, user: ActiveUser, db: DB) -> Response:
     svc.delete_card(db, svc.get_card(db, user, card_id))
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/board/plans", response_model=BoardPlanMade)
+def make_plan(body: BoardPlanCreate, user: ActiveUser, db: DB) -> BoardPlanMade:
+    """Plans a module's revision up to the exam: a card for each lesson not watched yet and a past paper every few
+    days. Planning the module again keeps its cards, adds what's missing and takes the new date. Errors:
+    invalid_input on `moduleId` or `examDate` (422), board_full (409), rate_limited (429)."""
+    made = svc.make_plan(db, user, body)
+    db.commit()
+    return made
+
+
+@router.delete("/board/plans/{module_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_plan(module_id: str, user: ActiveUser, db: DB) -> Response:
+    """Removes the module's plan and its cards still to do; cards done stay. Errors: not_found (404)."""
+    svc.delete_plan(db, user, module_id)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

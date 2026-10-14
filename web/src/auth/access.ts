@@ -18,6 +18,7 @@ export const BOX_KEYS = [
   'career.edit',
   'content.edit',
   'requests.manage',
+  'summary.share',
   'stats.view',
   'people.suspend',
   'audit.read',
@@ -40,6 +41,7 @@ export const FEATURE_KEYS = [
   'notes',
   'board',
   'requests',
+  'summary',
 ] as const satisfies readonly Feature[];
 
 /** The boxes that open a manager's tool, in the order Manage shows them. */
@@ -51,6 +53,7 @@ export const MANAGER_BOXES = [
   'career.edit',
   'content.edit',
   'requests.manage',
+  'summary.share',
   'stats.view',
   'people.suspend',
   'audit.read',
