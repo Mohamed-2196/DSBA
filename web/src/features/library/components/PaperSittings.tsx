@@ -1,6 +1,6 @@
 // A module's past papers by sitting (the Files tab): each year and session, newest first, with each zone's paper,
 // its examiners' report and its solutions side by side. Papers without an exam year follow as "Other papers".
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { LibraryItem, Sitting, SittingZone } from '../../../api/types';
 import { Button, Panel, Skeleton } from '../../../ui';
@@ -58,7 +58,7 @@ function SittingRow({ sitting, linkState }: { sitting: Sitting; linkState: LinkS
 }
 
 /** The Files tab's past papers. Renders nothing while the module has none. */
-export function PaperSittings({ moduleId, linkState, renderOther }: { moduleId: string; linkState: LinkState; renderOther: (items: LibraryItem[]) => React.ReactNode }) {
+export function PaperSittings({ moduleId, linkState, renderOther }: { moduleId: string; linkState: LinkState; renderOther: (items: LibraryItem[]) => ReactNode }) {
   const papers = usePaperSittings(moduleId);
   const [all, setAll] = useState(false);
   if (papers.isPending) {
