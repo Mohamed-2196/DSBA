@@ -178,6 +178,7 @@ function NoThreads({ q, refined, scope, cohort, onClear }: { q: string; refined:
     return (
       <EmptyState
         icon={MagnifyingGlass}
+        illustration="search"
         title={`No threads match “${q}”`}
         body="Try fewer words or another category, or ask it as a new thread so your cohort can answer."
         action={

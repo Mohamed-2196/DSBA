@@ -87,7 +87,14 @@ async function staticFile(request: Request, event: FetchEvent): Promise<Response
     event.waitUntil(refresh.catch(() => undefined));
     return cached;
   }
-  return refresh;
+  // Offline and never kept here: the shell's precached copy (the offline spot), if there is one.
+  try {
+    return await refresh;
+  } catch (error) {
+    const kept = await caches.match(request);
+    if (kept) return kept;
+    throw error;
+  }
 }
 
 self.addEventListener('install', (event) => {

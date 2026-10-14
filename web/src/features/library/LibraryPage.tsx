@@ -320,6 +320,7 @@ export default function LibraryPage() {
         ) : !anyFilter ? (
           <EmptyState
             icon={Books}
+            illustration="no-notes"
             title={`No files ${yearLabel ? `for ${yearLabel} ` : ''}yet`}
             body="Past papers, notes and guides that students share will show up here. Have something useful? Share it."
             action={
@@ -340,6 +341,7 @@ export default function LibraryPage() {
         ) : (
           <EmptyState
             icon={MagnifyingGlass}
+            illustration="search"
             title="No files match these filters"
             body={
               q

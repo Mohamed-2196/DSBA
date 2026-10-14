@@ -116,10 +116,11 @@ function NotesList() {
       ) : items.length === 0 ? (
         <Panel>
           {filtered ? (
-            <EmptyState icon={MagnifyingGlass} title="No notes match" body="Try other words, or another module." />
+            <EmptyState icon={MagnifyingGlass} illustration="search" title="No notes match" body="Try other words, or another module." />
           ) : (
             <EmptyState
               icon={NotePencil}
+              illustration="no-notes"
               title="No notes yet"
               body="Write down what you learn, with formulas, and find it again here."
               action={
