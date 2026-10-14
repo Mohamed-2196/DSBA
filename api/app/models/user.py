@@ -48,6 +48,7 @@ class User(Base):
     # The papers this person sits, as module ids: their option and electives, and papers from other years (IDEA-10).
     # Empty: every module of their year. Private: only /me and the export show it.
     papers: Mapped[list[str]] = mapped_column(ARRAY(String(64)), default=list, server_default="{}")
+    zone: Mapped[str | None] = mapped_column(String(8))  # the zone's papers they sit (app/schemas/library.py Zone)
     created_at: Mapped[datetime] = created_ts()
     last_seen_at: Mapped[datetime | None]
 

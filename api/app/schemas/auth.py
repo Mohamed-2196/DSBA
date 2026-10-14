@@ -10,7 +10,7 @@ from app.schemas.access import BoxKey, FeatureKey, RoleSummary
 from app.schemas.board import BoardColumn, BoardLinkType
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
 from app.schemas.forum import Category, FollowLevel
-from app.schemas.library import ItemStatus, LibraryKind
+from app.schemas.library import ItemStatus, LibraryKind, Zone
 from app.schemas.moderation import ReportReason, ReportTarget
 from app.schemas.modules import Progress
 from app.schemas.notifications import NotificationKind
@@ -93,6 +93,7 @@ class Me(ApiModel):
     # The papers this person sits (IDEA-10): their option, electives and papers from other years. Empty: every
     # module of their year.
     papers: list[str]
+    zone: Zone | None  # the zone whose papers they sit; None: not chosen
 
 
 class SignInResult(ApiModel):
@@ -115,6 +116,7 @@ class MeUpdate(ApiModel):
     # The whole list (the order is kept, repeats are dropped); [] clears it. A new `year` clears it when no papers
     # are sent with it.
     papers: Annotated[list[PaperId], Field(max_length=MAX_PAPERS)] | None = None
+    zone: Zone | None = None  # null clears it
 
 
 class StepUpStart(ApiModel):

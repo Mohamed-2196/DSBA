@@ -1,10 +1,10 @@
 """papers and dates: a student's papers, an exam's length, rules and source, and careers dates
 
 Revision ID: 0012
-Revises: 0011
+Revises: 0007
 Create Date: 2026-10-14 21:00:00
 
-`users.papers` holds the papers a student sits (IDEA-10). Calendar events gain an exam's length and rules, where a
+`users.papers` and `users.zone` hold the papers a student sits and their zone (IDEA-10). Calendar events gain an exam's length and rules, where a
 date comes from and when it was checked (IDEA-11), and a Careers type linked to a Career Navigator employer
 (IDEA-18), so the type CHECK widens.
 """
@@ -18,7 +18,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0012"
-down_revision: str | None = "0011"
+down_revision: str | None = "0007"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -37,6 +37,7 @@ def upgrade() -> None:
         "users",
         sa.Column("papers", postgresql.ARRAY(sa.String(length=64)), server_default="{}", nullable=False),
     )
+    op.add_column("users", sa.Column("zone", sa.String(length=8), nullable=True))
     op.add_column("calendar_events", sa.Column("duration", sa.String(length=40), nullable=True))
     op.add_column("calendar_events", sa.Column("rules", sa.String(length=300), nullable=True))
     op.add_column("calendar_events", sa.Column("source", sa.String(length=300), nullable=True))
@@ -53,4 +54,5 @@ def downgrade() -> None:
     op.drop_column("calendar_events", "source")
     op.drop_column("calendar_events", "rules")
     op.drop_column("calendar_events", "duration")
+    op.drop_column("users", "zone")
     op.drop_column("users", "papers")

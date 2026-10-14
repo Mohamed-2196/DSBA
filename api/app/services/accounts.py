@@ -132,6 +132,7 @@ def me_out(user: User) -> Me:
             "created_at": user.created_at,
             "preferences": preferences_of(user),
             "papers": list(user.papers or []),
+            "zone": user.zone,
         }
     )
 

@@ -47,7 +47,7 @@ def get_me(user: CurrentUser) -> Me:
 
 @router.patch("/me", response_model=Me)
 def update_me(body: MeUpdate, user: CurrentUser, db: DB) -> Me:
-    """Display name, cohort year, email switches and papers. Only the fields sent change; `year: null` clears it.
+    """Display name, cohort year, email switches, papers and zone. Only the fields sent change; `year: null` clears it.
 
     Errors: invalid_display_name (422), forbidden (403: a suspended account can't change its name)."""
     sent = body.model_fields_set
@@ -65,6 +65,8 @@ def update_me(body: MeUpdate, user: CurrentUser, db: DB) -> Me:
         user.papers = []  # another year's choices
     if "papers" in sent and body.papers is not None:
         user.papers = list(dict.fromkeys(body.papers))
+    if "zone" in sent:
+        user.zone = body.zone
     if "preferences" in sent and body.preferences is not None:
         accounts.update_preferences(user, body.preferences)
     db.commit()

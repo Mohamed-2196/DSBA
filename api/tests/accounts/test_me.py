@@ -131,6 +131,7 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
             "emailWeeklySummary": False,
         },
         "papers": [],
+        "zone": None,
     }
 
 
@@ -146,6 +147,10 @@ def test_your_papers(client_for: ClientFor, make_user: MakeUser) -> None:
     both = c.patch(f"{API}/me", json={"year": 2, "papers": ["abstract-maths"]}).json()
     assert (both["year"], both["papers"]) == (2, ["abstract-maths"])
     assert c.patch(f"{API}/me", json={"papers": []}).json()["papers"] == []
+    assert c.patch(f"{API}/me", json={"zone": "B"}).json()["zone"] == "B"
+    assert c.patch(f"{API}/me", json={"papers": ["statistics"]}).json()["zone"] == "B"  # left as it was
+    assert c.patch(f"{API}/me", json={"zone": None}).json()["zone"] is None
+    assert c.patch(f"{API}/me", json={"zone": "C"}).status_code == 422
     assert c.patch(f"{API}/me", json={"papers": ["Bad Id"]}).status_code == 422
     assert c.patch(f"{API}/me", json={"papers": [f"m{i}" for i in range(21)]}).status_code == 422
 

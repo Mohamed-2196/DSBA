@@ -160,7 +160,7 @@ export interface paths {
         head?: never;
         /**
          * Update Me
-         * @description Display name, cohort year and email switches. Only the fields sent change; `year: null` clears it.
+         * @description Display name, cohort year, email switches, papers and zone. Only the fields sent change; `year: null` clears it.
          *
          *     Errors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).
          */
@@ -1984,7 +1984,9 @@ export interface paths {
         /**
          * Ics Feed
          * @description An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).
-         *     `type=exam` gives only the exams (the web app's "Download the exams").
+         *     `type=exam` gives only the exams (the web app's "Download the exams"). `modules` (comma-separated module ids,
+         *     up to 20) keeps a module's events to those papers, from any year: the feed of someone's own papers, with
+         *     nothing in the address that says who they are.
          */
         get: operations["ics_feed_api_v1_calendar_feed_ics_get"];
         put?: never;
@@ -2746,11 +2748,21 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term";
+            type: "exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term";
             /** Year */
             year?: (1 | 2 | 3) | null;
             /** Moduleid */
             moduleId?: string | null;
+            /** Duration */
+            duration?: string | null;
+            /** Rules */
+            rules?: string | null;
+            /** Source */
+            source?: string | null;
+            /** Checkedon */
+            checkedOn?: string | null;
+            /** Employerid */
+            employerId?: string | null;
             /**
              * Sample
              * @default false
@@ -2778,13 +2790,23 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term";
+            type: "exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term";
             /** Year */
             year: (1 | 2 | 3) | null;
             /** Moduleid */
             moduleId: string | null;
             /** Unitcode */
             unitCode: string | null;
+            /** Duration */
+            duration: string | null;
+            /** Rules */
+            rules: string | null;
+            /** Source */
+            source: string | null;
+            /** Checkedon */
+            checkedOn: string | null;
+            /** Employerid */
+            employerId: string | null;
             /** Sample */
             sample: boolean;
         };
@@ -2812,13 +2834,23 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term";
+            type: "exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term";
             /** Year */
             year: (1 | 2 | 3) | null;
             /** Moduleid */
             moduleId: string | null;
             /** Unitcode */
             unitCode: string | null;
+            /** Duration */
+            duration: string | null;
+            /** Rules */
+            rules: string | null;
+            /** Source */
+            source: string | null;
+            /** Checkedon */
+            checkedOn: string | null;
+            /** Employerid */
+            employerId: string | null;
             /** Sample */
             sample: boolean;
             /**
@@ -2842,11 +2874,21 @@ export interface components {
             /** Title */
             title?: string | null;
             /** Type */
-            type?: ("exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term") | null;
+            type?: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term") | null;
             /** Year */
             year?: (1 | 2 | 3) | null;
             /** Moduleid */
             moduleId?: string | null;
+            /** Duration */
+            duration?: string | null;
+            /** Rules */
+            rules?: string | null;
+            /** Source */
+            source?: string | null;
+            /** Checkedon */
+            checkedOn?: string | null;
+            /** Employerid */
+            employerId?: string | null;
             /** Sample */
             sample?: boolean | null;
             /**
@@ -4432,6 +4474,10 @@ export interface components {
              */
             createdAt: string;
             preferences: components["schemas"]["Preferences"];
+            /** Papers */
+            papers: string[];
+            /** Zone */
+            zone: ("A" | "B") | null;
         };
         /**
          * MeUpdate
@@ -4443,6 +4489,10 @@ export interface components {
             /** Year */
             year?: (1 | 2 | 3) | null;
             preferences?: components["schemas"]["PreferencesUpdate"] | null;
+            /** Papers */
+            papers?: string[] | null;
+            /** Zone */
+            zone?: ("A" | "B") | null;
         };
         /**
          * ModuleCreate
@@ -16168,7 +16218,7 @@ export interface operations {
                 to?: string | null;
                 year?: number | null;
                 module_id?: string | null;
-                type?: ("exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term") | null;
+                type?: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term") | null;
             };
             header?: never;
             path?: never;
@@ -16427,7 +16477,8 @@ export interface operations {
         parameters: {
             query?: {
                 year?: number | null;
-                type?: ("exam" | "mock" | "revision" | "deadline" | "event" | "break" | "term") | null;
+                type?: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term") | null;
+                modules?: string | null;
             };
             header?: never;
             path?: never;

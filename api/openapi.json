@@ -772,7 +772,7 @@
           "me"
         ],
         "summary": "Update Me",
-        "description": "Display name, cohort year and email switches. Only the fields sent change; `year: null` clears it.\n\nErrors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).",
+        "description": "Display name, cohort year, email switches, papers and zone. Only the fields sent change; `year: null` clears it.\n\nErrors: invalid_display_name (422), forbidden (403: a suspended account can't change its name).",
         "operationId": "update_me_api_v1_me_patch",
         "requestBody": {
           "content": {
@@ -12430,6 +12430,7 @@
                     "mock",
                     "revision",
                     "deadline",
+                    "careers",
                     "event",
                     "break",
                     "term"
@@ -12767,7 +12768,7 @@
           "calendar"
         ],
         "summary": "Ics Feed",
-        "description": "An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).\n`type=exam` gives only the exams (the web app's \"Download the exams\").",
+        "description": "An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).\n`type=exam` gives only the exams (the web app's \"Download the exams\"). `modules` (comma-separated module ids,\nup to 20) keeps a module's events to those papers, from any year: the feed of someone's own papers, with\nnothing in the address that says who they are.",
         "operationId": "ics_feed_api_v1_calendar_feed_ics_get",
         "parameters": [
           {
@@ -12801,6 +12802,7 @@
                     "mock",
                     "revision",
                     "deadline",
+                    "careers",
                     "event",
                     "break",
                     "term"
@@ -12812,6 +12814,24 @@
                 }
               ],
               "title": "Type"
+            }
+          },
+          {
+            "name": "modules",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 1400,
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,63}(,[a-z0-9][a-z0-9-]{0,63})*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Modules"
             }
           }
         ],
@@ -16412,6 +16432,7 @@
               "mock",
               "revision",
               "deadline",
+              "careers",
               "event",
               "break",
               "term"
@@ -16444,6 +16465,66 @@
               }
             ],
             "title": "Moduleid"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "checkedOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkedon"
+          },
+          "employerId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employerid"
           },
           "sample": {
             "type": "boolean",
@@ -16515,6 +16596,7 @@
               "mock",
               "revision",
               "deadline",
+              "careers",
               "event",
               "break",
               "term"
@@ -16559,6 +16641,62 @@
             ],
             "title": "Unitcode"
           },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "checkedOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkedon"
+          },
+          "employerId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employerid"
+          },
           "sample": {
             "type": "boolean",
             "title": "Sample"
@@ -16576,6 +16714,11 @@
           "year",
           "moduleId",
           "unitCode",
+          "duration",
+          "rules",
+          "source",
+          "checkedOn",
+          "employerId",
           "sample"
         ],
         "title": "CalendarEventOut"
@@ -16636,6 +16779,7 @@
               "mock",
               "revision",
               "deadline",
+              "careers",
               "event",
               "break",
               "term"
@@ -16680,6 +16824,62 @@
             ],
             "title": "Unitcode"
           },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "checkedOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkedon"
+          },
+          "employerId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employerid"
+          },
           "sample": {
             "type": "boolean",
             "title": "Sample"
@@ -16710,6 +16910,11 @@
           "year",
           "moduleId",
           "unitCode",
+          "duration",
+          "rules",
+          "source",
+          "checkedOn",
+          "employerId",
           "sample",
           "notice",
           "told"
@@ -16789,6 +16994,7 @@
                   "mock",
                   "revision",
                   "deadline",
+                  "careers",
                   "event",
                   "break",
                   "term"
@@ -16826,6 +17032,66 @@
               }
             ],
             "title": "Moduleid"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "checkedOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkedon"
+          },
+          "employerId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employerid"
           },
           "sample": {
             "anyOf": [
@@ -21666,6 +21932,28 @@
           },
           "preferences": {
             "$ref": "#/components/schemas/Preferences"
+          },
+          "papers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Papers"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
           }
         },
         "type": "object",
@@ -21681,7 +21969,9 @@
           "phone",
           "needsProfile",
           "createdAt",
-          "preferences"
+          "preferences",
+          "papers",
+          "zone"
         ],
         "title": "Me"
       },
@@ -21725,6 +22015,37 @@
                 "type": "null"
               }
             ]
+          },
+          "papers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Papers"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
           }
         },
         "type": "object",
