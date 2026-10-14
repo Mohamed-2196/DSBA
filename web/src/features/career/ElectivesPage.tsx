@@ -24,8 +24,6 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
   const { featureOn } = useAuth();
   const startsThreads = useStartsThreads();
   const { module: m } = e;
-  const adds = e.skills.filter((s) => s.adds);
-  const also = e.skills.filter((s) => !s.adds);
   const headingId = `elective-${m.id}`;
   return (
     <Panel as="article" padding="none" radius="feature" className="elective" aria-labelledby={headingId} data-hub="elective" data-module-id={m.id}>
@@ -39,29 +37,33 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
         <p className="elective__desc">{m.description}</p>
       </header>
 
-      <section className="elective__part" aria-label={`Skills ${m.shortName} adds`}>
+      <section className="elective__part" aria-label={`Skills ${m.shortName} builds`}>
         <h3 className="elective__label">
           <Sparkle weight="fill" aria-hidden="true" />
-          Skills it adds
+          Skills it builds
         </h3>
-        {adds.length ? (
+        {e.skills.length ? (
           <ul role="list" className="elective__skills">
-            {adds.map((s) => (
+            {e.skills.map((s) => (
               <li key={s.id} className="elective__skill">
                 <span className="elective__skill-name">
                   {s.name}
                   <Badge size="sm" tone="outline">
                     {depthLabel[String(s.depth)] ?? ''}
                   </Badge>
+                  {s.adds ? (
+                    <Badge size="sm" tone="highlight">
+                      Beyond the core
+                    </Badge>
+                  ) : null}
                 </span>
                 <span className="elective__skill-what">{s.what}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="elective__none">Nothing beyond the compulsory modules, by Career Navigator’s count.</p>
+          <p className="elective__none">Career Navigator doesn’t list its skills yet.</p>
         )}
-        {also.length ? <p className="elective__also">Also practises {also.map((s) => s.name.toLowerCase()).join(', ')}.</p> : null}
       </section>
 
       {e.roles.length ? (
