@@ -23,6 +23,7 @@ BoxKey = Literal[
     "career.edit",
     "content.edit",
     "requests.manage",
+    "summary.share",
     "stats.view",
     "people.suspend",
     "audit.read",
@@ -40,6 +41,7 @@ FeatureKey = Literal[
     "notes",
     "board",
     "requests",
+    "summary",
 ]
 
 

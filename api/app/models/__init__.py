@@ -10,7 +10,7 @@ from app.models.library import ItemSource, ItemStatus, LibraryItem, LibraryStar,
 from app.models.newsletter import IssueStatus, NewsletterIssue, NewsletterReaction
 from app.models.noora import NooraLimits, NooraUsage
 from app.models.notes import Note
-from app.models.outbox import EmailOutbox, OutboxStatus
+from app.models.outbox import EmailOutbox, OutboxStatus, WeeklySummarySent
 from app.models.requests import RequestMeToo, RequestStatus, StudentRequest
 from app.models.user import Channel, OtpChallenge, OtpPurpose, User, UserSession, UserStatus
 
@@ -62,4 +62,5 @@ __all__ = [
     "User",
     "UserSession",
     "UserStatus",
+    "WeeklySummarySent",
 ]

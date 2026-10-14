@@ -9,18 +9,22 @@ from __future__ import annotations
 import datetime as dt
 import re
 from collections.abc import Iterable, Mapping
+from typing import NamedTuple
 
-from sqlalchemy import Select, func, or_, select
+from sqlalchemy import Select, and_, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from app.core.access import Feature
 from app.core.errors import ApiError, invalid, not_found
 from app.core.text import has_latin, insert_with_unique_slug, short_id
-from app.core.time import bahrain_today, utcnow
-from app.models import CalendarEvent, Module, User
-from app.schemas.calendar import CalendarEventCreate, CalendarEventOut, CalendarEventUpdate
+from app.core.time import BAHRAIN, bahrain_today, utcnow
+from app.models import BoardCard, CalendarEvent, Module, Notification, User
+from app.schemas.calendar import CalendarEventCreate, CalendarEventOut, CalendarEventUpdate, NoticeStatus
+from app.services import access, ratelimit
 from app.services.content import apply_patch, record
 from app.services.modules import require_module
+from app.services.notify import notify_all
 
 TYPE_LABELS: dict[str, str] = {
     "exam": "Exam",
@@ -149,9 +153,13 @@ def create_event(db: Session, user: User, body: CalendarEventCreate, ip: str | N
     return event
 
 
-def update_event(db: Session, user: User, event: CalendarEvent, body: CalendarEventUpdate, ip: str | None) -> None:
+def update_event(
+    db: Session, user: User, event: CalendarEvent, body: CalendarEventUpdate, ip: str | None
+) -> DateNotice:
     """Fields that are not sent stay; null clears the end date, time, place, cohort or module. The id never changes.
-    On a refusal the event is left as it was."""
+    On a refusal the event is left as it was. With `notify`, a change that matters to students is told to them
+    (tell_students). -> what students were told."""
+    before = Before(event.date, event.end_date, event.time, event.place, event.sample)
     module = require_module(db, body.module_id) if "module_id" in body.model_fields_set else None
     changed = apply_patch(event, body, EDITABLE, clearable=CLEARABLE)
     if "module_id" in body.model_fields_set and (module.id if module else None) != event.module_id:
@@ -163,8 +171,95 @@ def update_event(db: Session, user: User, event: CalendarEvent, body: CalendarEv
     except ApiError:
         db.expire(event)  # drop the unsaved changes
         raise
+    notice = DateNotice("none", 0)
+    if changed and body.notify:
+        notice = tell_students(db, user, event, before)
     if changed:
-        record(db, user, "calendar.update", "calendar_event", event.id, event.title, ip, fields=changed)
+        extra = {"told": notice.told} if notice.status == "sent" else {}
+        record(db, user, "calendar.update", "calendar_event", event.id, event.title, ip, fields=changed, **extra)
+    return notice
+
+
+# ── telling students about a change (IDEA-12) ────────────────────────────────────────────────
+
+NOTICE_TYPES = ("exam", "mock", "deadline")  # the dates worth a notification; others change quietly
+
+
+class Before(NamedTuple):
+    date: dt.date
+    end_date: dt.date | None
+    time: str | None
+    place: str | None
+    sample: bool
+
+
+class DateNotice(NamedTuple):
+    status: NoticeStatus
+    told: int  # the people notified
+
+
+def _day(d: dt.date) -> str:
+    return f"{d:%A} {d.day} {d:%B}"
+
+
+def _when(date: dt.date, end_date: dt.date | None, time: str | None, place: str | None) -> str:
+    days = _day(date) if end_date is None or end_date == date else f"{_day(date)} to {_day(end_date)}"
+    return ", ".join(p for p in (days, time, place) if p)
+
+
+def change_message(e: CalendarEvent, before: Before) -> tuple[str, str] | None:
+    """The notification's title and body for what changed in `e` since `before`, or None when nothing students
+    need to hear about changed (a new title, cohort or module, or a date marked unconfirmed)."""
+    name = summary(e)
+    moved = (e.date, e.end_date) != (before.date, before.end_date)
+    retimed, replaced = e.time != before.time, e.place != before.place
+    confirmed = before.sample and not e.sample
+    now = _when(e.date, e.end_date, e.time, e.place)
+    was = _when(before.date, before.end_date, before.time, before.place)
+    if moved:
+        return f"{name} moved to {_day(e.date)}", f"Now: {now}. It was {was}."
+    if retimed or replaced:
+        what = "time and place" if retimed and replaced else "time" if retimed else "place"
+        return f"{name}: new {what}", f"Now: {now}. It was {was}."
+    if confirmed:
+        return f"{name} is confirmed", f"{now}."
+    return None
+
+
+def tell_students(db: Session, user: User, e: CalendarEvent, before: Before) -> DateNotice:
+    """Tells students about a change to an exam, mock or deadline: its cohort (every student with a year, for an
+    event for everyone) and anyone with it on their study board, among those the calendar is on for. A notification
+    each, and an email for those who keep "Date changes" on. At most one notice per event a day (Bahrain): a later
+    change that day is "limit" and tells nobody."""
+    message = change_message(e, before) if e.type in NOTICE_TYPES else None
+    if message is None:
+        return DateNotice("none", 0)
+    readers = access.audience(db, Feature.calendar)
+    if readers is None:
+        return DateNotice("none", 0)
+    ratelimit.lock(db, f"calendar:notice:{e.id}")  # two edits at once can't both tell
+    midnight = dt.datetime.combine(bahrain_today(), dt.time(), tzinfo=BAHRAIN)
+    told_today = select(Notification.id).where(
+        Notification.kind == "date_changed",
+        Notification.data.contains({"eventId": e.id}),
+        Notification.created_at >= midnight,
+    )
+    if db.scalar(told_today.limit(1)) is not None:
+        return DateNotice("limit", 0)
+    cohort = User.year == e.year if e.year is not None else User.year.is_not(None)
+    on_board = select(BoardCard.user_id).where(BoardCard.link_type == "event", BoardCard.link_id == e.id)
+    title, body = message
+    told = notify_all(
+        db,
+        "date_changed",
+        title,
+        body=body,
+        url=f"/calendar?date={e.date.isoformat()}&event={e.id}",
+        actor=user,
+        data={"eventId": e.id},
+        only=and_(readers, or_(cohort, User.id.in_(on_board))),
+    )
+    return DateNotice("sent", told)
 
 
 def delete_event(db: Session, user: User, event: CalendarEvent, ip: str | None) -> None:

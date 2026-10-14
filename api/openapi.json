@@ -3643,7 +3643,8 @@
                 "noora.ai",
                 "notes",
                 "board",
-                "requests"
+                "requests",
+                "summary"
               ],
               "type": "string",
               "title": "Feature"
@@ -11872,7 +11873,7 @@
           "calendar"
         ],
         "summary": "Update Event",
-        "description": "Fields that are not sent stay as they are; `endDate`, `time`, `place`, `year` and `moduleId` can be\ncleared with null. The id never changes.",
+        "description": "Fields that are not sent stay as they are; `endDate`, `time`, `place`, `year` and `moduleId` can be\ncleared with null. The id never changes. With `notify`, a new date, time or place of an exam, mock or deadline,\nor its confirmation, is told to its cohort and to those with it on their board: at most once per event a day\n(`notice`: sent, limit or none).",
         "operationId": "update_event_api_v1_calendar_events__event_id__patch",
         "parameters": [
           {
@@ -11901,7 +11902,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CalendarEventOut"
+                  "$ref": "#/components/schemas/CalendarEventSaved"
                 }
               }
             }
@@ -13435,6 +13436,114 @@
           }
         }
       }
+    },
+    "/api/v1/summary/preview": {
+      "get": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Preview",
+        "description": "This week's Sunday summary for `year` (Sunday to Saturday, Bahrain time) as plain text with links, and how\nmany people in that year get it by email. Nothing is sent.",
+        "operationId": "preview_api_v1_summary_preview_get",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                1,
+                2,
+                3
+              ],
+              "type": "integer",
+              "title": "Year"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -14289,6 +14398,7 @@
               "career.edit",
               "content.edit",
               "requests.manage",
+              "summary.share",
               "stats.view",
               "people.suspend",
               "audit.read"
@@ -14536,6 +14646,143 @@
         ],
         "title": "CalendarEventOut"
       },
+      "CalendarEventSaved": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "endDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enddate"
+          },
+          "time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time"
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "exam",
+              "mock",
+              "revision",
+              "deadline",
+              "event",
+              "break",
+              "term"
+            ],
+            "title": "Type"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "sample": {
+            "type": "boolean",
+            "title": "Sample"
+          },
+          "notice": {
+            "type": "string",
+            "enum": [
+              "sent",
+              "limit",
+              "none"
+            ],
+            "title": "Notice"
+          },
+          "told": {
+            "type": "integer",
+            "title": "Told"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "date",
+          "endDate",
+          "time",
+          "place",
+          "title",
+          "type",
+          "year",
+          "moduleId",
+          "unitCode",
+          "sample",
+          "notice",
+          "told"
+        ],
+        "title": "CalendarEventSaved",
+        "description": "An edited event, and what its change told students."
+      },
       "CalendarEventUpdate": {
         "properties": {
           "date": {
@@ -14656,6 +14903,11 @@
               }
             ],
             "title": "Sample"
+          },
+          "notify": {
+            "type": "boolean",
+            "title": "Notify",
+            "default": false
           }
         },
         "type": "object",
@@ -16407,6 +16659,7 @@
                   "new_issue",
                   "report_resolved",
                   "request_update",
+                  "date_changed",
                   "system"
                 ]
               },
@@ -16701,6 +16954,7 @@
               "new_issue",
               "report_resolved",
               "request_update",
+              "date_changed",
               "system"
             ],
             "title": "Kind"
@@ -17171,7 +17425,8 @@
               "noora.ai",
               "notes",
               "board",
-              "requests"
+              "requests",
+              "summary"
             ],
             "title": "Feature"
           },
@@ -17253,7 +17508,8 @@
                 "noora.ai",
                 "notes",
                 "board",
-                "requests"
+                "requests",
+                "summary"
               ]
             },
             "type": "array",
@@ -19045,6 +19301,7 @@
                 "career.edit",
                 "content.edit",
                 "requests.manage",
+                "summary.share",
                 "stats.view",
                 "people.suspend",
                 "audit.read"
@@ -19068,7 +19325,8 @@
                 "noora.ai",
                 "notes",
                 "board",
-                "requests"
+                "requests",
+                "summary"
               ]
             },
             "type": "array",
@@ -20446,6 +20704,7 @@
               "new_issue",
               "report_resolved",
               "request_update",
+              "date_changed",
               "system"
             ],
             "title": "Kind"
@@ -20743,11 +21002,21 @@
             "type": "boolean",
             "title": "Emailnewissues",
             "default": true
+          },
+          "emailDateChanges": {
+            "type": "boolean",
+            "title": "Emaildatechanges",
+            "default": true
+          },
+          "emailWeeklySummary": {
+            "type": "boolean",
+            "title": "Emailweeklysummary",
+            "default": false
           }
         },
         "type": "object",
         "title": "Preferences",
-        "description": "Which notifications also come by email, to the account's email address. In the Hub every notification shows\nwhatever these say, and account security notices are always emailed."
+        "description": "Which notifications also come by email, to the account's email address, and whether the Sunday summary does.\nIn the Hub every notification shows whatever these say, and account security notices are always emailed. Unset\nmeans the default here."
       },
       "PreferencesUpdate": {
         "properties": {
@@ -20794,6 +21063,28 @@
               }
             ],
             "title": "Emailnewissues"
+          },
+          "emailDateChanges": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emaildatechanges"
+          },
+          "emailWeeklySummary": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emailweeklysummary"
           }
         },
         "type": "object",
@@ -21939,6 +22230,7 @@
                 "career.edit",
                 "content.edit",
                 "requests.manage",
+                "summary.share",
                 "stats.view",
                 "people.suspend",
                 "audit.read"
@@ -22012,6 +22304,7 @@
                 "career.edit",
                 "content.edit",
                 "requests.manage",
+                "summary.share",
                 "stats.view",
                 "people.suspend",
                 "audit.read"
@@ -22125,6 +22418,7 @@
                     "career.edit",
                     "content.edit",
                     "requests.manage",
+                    "summary.share",
                     "stats.view",
                     "people.suspend",
                     "audit.read"
@@ -22606,6 +22900,51 @@
         "type": "object",
         "title": "StepUpStart",
         "description": "Which of the account's own identifiers gets the code: by default the email address, else the phone number."
+      },
+      "SummaryPreview": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Year"
+          },
+          "weekOf": {
+            "type": "string",
+            "format": "date",
+            "title": "Weekof"
+          },
+          "subject": {
+            "type": "string",
+            "title": "Subject"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "empty": {
+            "type": "boolean",
+            "title": "Empty"
+          },
+          "subscribers": {
+            "type": "integer",
+            "title": "Subscribers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "weekOf",
+          "subject",
+          "text",
+          "empty",
+          "subscribers"
+        ],
+        "title": "SummaryPreview",
+        "description": "A year's Sunday summary for this week, as plain text with links: what the email says above its footer, and\nwhat a rep pastes into the year's group."
       },
       "SwitchUpdate": {
         "properties": {

@@ -39,6 +39,7 @@ class Box(enum.StrEnum):
     career_edit = "career.edit"
     content_edit = "content.edit"
     requests_manage = "requests.manage"
+    summary_share = "summary.share"
     stats_view = "stats.view"
     people_suspend = "people.suspend"
     audit_read = "audit.read"
@@ -62,6 +63,7 @@ class Feature(enum.StrEnum):
     notes = "notes"  # each student's private notes
     board = "board"  # each student's private study board
     requests = "requests"
+    summary = "summary"  # the Sunday summary email, and its text for a year's group
 
 
 class BoxInfo(NamedTuple):
@@ -116,6 +118,11 @@ BOXES: dict[Box, BoxInfo] = {
         "Answer and remove students' requests, and handle reports about them",
         "Only people who handle requests can do this.",
     ),
+    Box.summary_share: BoxInfo(
+        "Sunday summary",
+        "See a year's Sunday summary, to paste into its group",
+        "Only people who share the Sunday summary can do this.",
+    ),
     Box.stats_view: BoxInfo("Hub", "See the hub's numbers", "Only people who can see the hub's numbers can do this."),
     Box.people_suspend: BoxInfo(
         "People",
@@ -146,6 +153,7 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.notes: FeatureInfo("Notes", "Students' private notes. They're kept, and come back when it's on again."),
     Feature.board: FeatureInfo("Study board", "Each student's study board, and the add-to-board buttons."),
     Feature.requests: FeatureInfo("Requests", "Students' requests, their me-toos and the answers."),
+    Feature.summary: FeatureInfo("Sunday summary", "The Sunday summary email, and its text for reps to share."),
 }
 
 

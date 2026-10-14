@@ -67,7 +67,7 @@ from app.services import access, otp, sessions
 from app.services.audit import record
 from app.services.identifiers import Kind, admin_identifiers, destination_hint
 from app.services.modules import student_lesson, student_lessons
-from app.services.outbox import ACCOUNT_NOTICE
+from app.services.outbox import ACCOUNT_NOTICE, wants
 from app.services.storage import Storage
 
 log = logging.getLogger("dsba.accounts")
@@ -77,13 +77,12 @@ NOTIFICATION_KINDS = frozenset(get_args(NotificationKind))
 
 
 # The email switches, one per kind of email (decision D1).
-EMAIL_SWITCHES = ("email_replies", "email_answer_accepted", "email_upload_reviews", "email_new_issues")
+EMAIL_SWITCHES = tuple(Preferences.model_fields)
 
 
 def preferences_of(user: User) -> Preferences:
-    """The switches as stored on the account (users.preferences; unset means on)."""
-    stored = user.preferences if isinstance(user.preferences, dict) else {}
-    return Preferences.model_validate({name: stored.get(name) is not False for name in EMAIL_SWITCHES})
+    """The switches as stored on the account (users.preferences; unset means the switch's default)."""
+    return Preferences.model_validate({name: wants(user, name) for name in EMAIL_SWITCHES})
 
 
 def update_preferences(user: User, changes: PreferencesUpdate) -> None:
