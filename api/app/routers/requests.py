@@ -3,6 +3,7 @@ app/services/requests.py."""
 
 from __future__ import annotations
 
+import datetime as dt
 from typing import Annotated
 from uuid import UUID
 
@@ -14,6 +15,7 @@ from app.core.security import DB, ActiveUser, OptionalUser, client_ip, needs_fea
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.requests import (
+    DoneRequests,
     FoundAnswer,
     RequestAnswer,
     RequestCreate,
@@ -47,6 +49,19 @@ def list_requests(
     return svc.list_requests(
         db, viewer, kind=kind, status=status_, sort=sort, q=q, mine=mine, limit=limit, offset=offset
     )
+
+
+@router.get("/requests/done", response_model=DoneRequests, dependencies=[needs_feature(Feature.requests_done)])
+def done_requests(
+    db: DB,
+    viewer: OptionalUser,
+    until: dt.date | None = None,
+    days: Annotated[int, Query(ge=1, le=90)] = 30,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+) -> DoneRequests:
+    """ "You asked, we did": the requests done in the `days` up to `until` (a day in Bahrain, today by default), the
+    latest answered first, with their me-too counts. A newsletter issue passes its own date."""
+    return svc.done(db, viewer, until=until, days=days, limit=limit)
 
 
 @router.get("/requests/similar", response_model=list[SimilarRequest])

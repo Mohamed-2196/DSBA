@@ -12,6 +12,7 @@ add "me too", and people with requests.manage answer with a status and a public 
 
 from __future__ import annotations
 
+import datetime as dt
 import uuid
 from collections.abc import Sequence
 from datetime import timedelta
@@ -23,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from app.core.access import Box, Feature
 from app.core.errors import conflict, forbidden, invalid, not_found
-from app.core.time import utcnow
+from app.core.time import BAHRAIN, bahrain_today, utcnow
 from app.models import (
     CalendarEvent,
     ItemStatus,
@@ -35,6 +36,7 @@ from app.models import (
     User,
 )
 from app.schemas.requests import (
+    DoneRequests,
     FoundItem,
     RequestAnswer,
     RequestCreate,
@@ -197,6 +199,26 @@ def list_requests(
     order += [StudentRequest.created_at.desc(), StudentRequest.id]
     reqs = db.scalars(select(StudentRequest).where(*where).order_by(*order).limit(limit).offset(offset)).all()
     return RequestPage(items=_outs(db, reqs, viewer), total=total, limit=limit, offset=offset)
+
+
+def done(db: Session, viewer: User | None, *, until: dt.date | None, days: int, limit: int) -> DoneRequests:
+    """ "You asked, we did": the requests marked done in the `days` (days in Bahrain) up to `until`, today when it's
+    None, the latest answered first."""
+    last = until or bahrain_today()
+    since = last - timedelta(days=days - 1)
+    start = dt.datetime.combine(since, dt.time(), tzinfo=BAHRAIN)
+    end = dt.datetime.combine(last + timedelta(days=1), dt.time(), tzinfo=BAHRAIN)
+    where = [
+        StudentRequest.removed_at.is_(None),
+        StudentRequest.status == RequestStatus.done,
+        StudentRequest.answered_at >= start,
+        StudentRequest.answered_at < end,
+    ]
+    total = db.scalar(select(func.count()).select_from(StudentRequest).where(*where)) or 0
+    reqs = db.scalars(
+        select(StudentRequest).where(*where).order_by(StudentRequest.answered_at.desc(), StudentRequest.id).limit(limit)
+    ).all()
+    return DoneRequests(since=since, until=last, total=total, items=_outs(db, reqs, viewer))
 
 
 def similar(db: Session, q: str) -> list[SimilarRequest]:

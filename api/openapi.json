@@ -2617,6 +2617,98 @@
         }
       }
     },
+    "/api/v1/admin/gaps": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "What Is Missing",
+        "description": "What's missing, for the people who fill it: the library's (library.manage), the lessons' (content.edit), the\ncalendar's (calendar.manage) and the most wanted open requests (requests.manage). A part whose box the viewer\ndoesn't hold, or whose feature is off for them, is None. Errors: forbidden (403: none of these boxes).",
+        "operationId": "what_is_missing_api_v1_admin_gaps_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Gaps"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/users": {
       "get": {
         "tags": [
@@ -3651,6 +3743,7 @@
                 "board",
                 "requests",
                 "requests.autoclose",
+                "requests.done",
                 "summary",
                 "video_suggestions"
               ],
@@ -10061,6 +10154,141 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RequestOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/requests/done": {
+      "get": {
+        "tags": [
+          "requests"
+        ],
+        "summary": "Done Requests",
+        "description": "\"You asked, we did\": the requests done in the `days` up to `until` (a day in Bahrain, today by default), the\nlatest answered first, with their me-too counts. A newsletter issue passes its own date.",
+        "operationId": "done_requests_api_v1_requests_done_get",
+        "parameters": [
+          {
+            "name": "until",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Until"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoneRequests"
                 }
               }
             }
@@ -17832,6 +18060,30 @@
         "type": "object",
         "title": "CalendarEventUpdate"
       },
+      "CalendarGaps": {
+        "properties": {
+          "unconfirmed": {
+            "items": {
+              "$ref": "#/components/schemas/EventGap"
+            },
+            "type": "array",
+            "title": "Unconfirmed"
+          },
+          "examDetails": {
+            "items": {
+              "$ref": "#/components/schemas/EventGap"
+            },
+            "type": "array",
+            "title": "Examdetails"
+          }
+        },
+        "type": "object",
+        "required": [
+          "unconfirmed",
+          "examDetails"
+        ],
+        "title": "CalendarGaps"
+      },
       "CardAside": {
         "properties": {
           "type": {
@@ -19265,6 +19517,40 @@
         "title": "DateWindow",
         "description": "The dates a deadlines section lists (either end may be open)."
       },
+      "DoneRequests": {
+        "properties": {
+          "since": {
+            "type": "string",
+            "format": "date",
+            "title": "Since"
+          },
+          "until": {
+            "type": "string",
+            "format": "date",
+            "title": "Until"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RequestOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "since",
+          "until",
+          "total",
+          "items"
+        ],
+        "title": "DoneRequests",
+        "description": "The requests done in the `days` up to `until` (a day in Bahrain), the latest answered first: \"You asked, we\ndid\". `total` counts them all; `items` holds the first `limit`."
+      },
       "ErrorDetail": {
         "properties": {
           "code": {
@@ -19388,6 +19674,57 @@
           "error"
         ],
         "title": "ErrorResponse"
+      },
+      "EventGap": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "sample": {
+            "type": "boolean",
+            "title": "Sample"
+          },
+          "noTime": {
+            "type": "boolean",
+            "title": "Notime"
+          },
+          "noPlace": {
+            "type": "boolean",
+            "title": "Noplace"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "date",
+          "moduleId",
+          "sample",
+          "noTime",
+          "noPlace"
+        ],
+        "title": "EventGap"
       },
       "ExportBoardCard": {
         "properties": {
@@ -20738,6 +21075,7 @@
               "board",
               "requests",
               "requests.autoclose",
+              "requests.done",
               "summary",
               "video_suggestions"
             ],
@@ -20829,6 +21167,7 @@
                 "board",
                 "requests",
                 "requests.autoclose",
+                "requests.done",
                 "summary",
                 "video_suggestions"
               ]
@@ -21119,6 +21458,101 @@
           "label"
         ],
         "title": "FurtherStudyAction"
+      },
+      "GapModule": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "unitCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unitcode"
+          },
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "unitCode",
+          "year"
+        ],
+        "title": "GapModule"
+      },
+      "Gaps": {
+        "properties": {
+          "library": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LibraryGaps"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lessons": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/LessonGap"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lessons"
+          },
+          "calendar": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalendarGaps"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requests": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/RequestGap"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requests"
+          }
+        },
+        "type": "object",
+        "required": [
+          "library",
+          "lessons",
+          "calendar",
+          "requests"
+        ],
+        "title": "Gaps"
       },
       "Health": {
         "properties": {
@@ -21481,7 +21915,8 @@
                 "enum": [
                   "deadlines",
                   "forum",
-                  "library"
+                  "library",
+                  "requests"
                 ]
               },
               {
@@ -21859,6 +22294,39 @@
         ],
         "title": "LastLesson"
       },
+      "LessonGap": {
+        "properties": {
+          "module": {
+            "$ref": "#/components/schemas/GapModule"
+          },
+          "chapters": {
+            "type": "integer",
+            "title": "Chapters"
+          },
+          "emptyChapters": {
+            "type": "integer",
+            "title": "Emptychapters"
+          },
+          "lessons": {
+            "type": "integer",
+            "title": "Lessons"
+          },
+          "unavailable": {
+            "type": "integer",
+            "title": "Unavailable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "module",
+          "chapters",
+          "emptyChapters",
+          "lessons",
+          "unavailable"
+        ],
+        "title": "LessonGap",
+        "description": "A module with no lessons, or with chapters that have none, or with videos gone from YouTube."
+      },
       "LessonIn": {
         "properties": {
           "url": {
@@ -22023,6 +22491,38 @@
         ],
         "title": "LibraryFacets",
         "description": "Counts of published items, for the filter bar."
+      },
+      "LibraryGaps": {
+        "properties": {
+          "sittings": {
+            "items": {
+              "$ref": "#/components/schemas/SittingGap"
+            },
+            "type": "array",
+            "title": "Sittings"
+          },
+          "scans": {
+            "items": {
+              "$ref": "#/components/schemas/ScanGap"
+            },
+            "type": "array",
+            "title": "Scans"
+          },
+          "noCheatSheet": {
+            "items": {
+              "$ref": "#/components/schemas/GapModule"
+            },
+            "type": "array",
+            "title": "Nocheatsheet"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sittings",
+          "scans",
+          "noCheatSheet"
+        ],
+        "title": "LibraryGaps"
       },
       "LibraryItem": {
         "properties": {
@@ -22851,6 +23351,7 @@
                 "board",
                 "requests",
                 "requests.autoclose",
+                "requests.done",
                 "summary",
                 "video_suggestions"
               ]
@@ -25963,6 +26464,65 @@
         "title": "RequestEvent",
         "description": "The date a date request asks about."
       },
+      "RequestGap": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "paper",
+              "fix",
+              "event",
+              "feature",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "planned",
+              "done",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "meTooCount": {
+            "type": "integer",
+            "title": "Metoocount"
+          },
+          "moduleTitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduletitle"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "kind",
+          "status",
+          "meTooCount",
+          "moduleTitle"
+        ],
+        "title": "RequestGap"
+      },
       "RequestOut": {
         "properties": {
           "id": {
@@ -26610,6 +27170,70 @@
         "title": "RoleUpdate",
         "description": "Only the fields sent change; `badge: null` removes the badge, and `boxes` replaces them as a whole."
       },
+      "ScanGap": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "past-paper",
+              "examiners-report",
+              "exam-solutions",
+              "subject-guide",
+              "reading",
+              "study-guide",
+              "exercises",
+              "notes",
+              "cheat-sheet",
+              "course-materials",
+              "vle-materials",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "module": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GapModule"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "type": "string",
+            "enum": [
+              "empty",
+              "failed"
+            ],
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "kind",
+          "module",
+          "text"
+        ],
+        "title": "ScanGap",
+        "description": "A published paper, report or solutions file the text reader found no words in (a scan), or couldn't read:\nsearch finds it by its title only, and Mini Noora can't read it."
+      },
       "SearchHit": {
         "properties": {
           "type": {
@@ -27029,6 +27653,49 @@
           "zones"
         ],
         "title": "Sitting"
+      },
+      "SittingGap": {
+        "properties": {
+          "module": {
+            "$ref": "#/components/schemas/GapModule"
+          },
+          "examYear": {
+            "type": "integer",
+            "title": "Examyear"
+          },
+          "session": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "may",
+                  "october"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session"
+          },
+          "missing": {
+            "type": "string",
+            "enum": [
+              "paper",
+              "report"
+            ],
+            "title": "Missing"
+          }
+        },
+        "type": "object",
+        "required": [
+          "module",
+          "examYear",
+          "session",
+          "missing"
+        ],
+        "title": "SittingGap",
+        "description": "A sitting of a module with a past paper and no examiners' report, or the other way round."
       },
       "SittingZone": {
         "properties": {

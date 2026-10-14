@@ -65,6 +65,7 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("requests", "GET", "/requests"),
     ("requests", "GET", f"/requests/{NOTHING}"),
     ("requests", "POST", "/requests"),
+    ("requests.done", "GET", "/requests/done"),
     ("library.questions", "GET", f"/library/items/{NOTHING}/questions"),
     ("library.questions", "GET", "/library/questions?module_id=economics"),
     ("library.questions", "POST", f"/library/items/{NOTHING}/questions"),
@@ -91,6 +92,7 @@ OFF_AT_FIRST = (
     "requests.autoclose",
     "forum.help-below",
     "video_suggestions",
+    "requests.done",
 )
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
@@ -117,6 +119,7 @@ DECIDED_BY_REQUEST: dict[tuple[str, str], str] = {
     ("GET", "/admin/reports"): "lists the reports of the features on for the viewer",
     ("POST", "/admin/reports/{report_id}/resolve"): "resolves the reports of the features on for the viewer",
     ("GET", "/admin/stats"): "counts the features on for the viewer",
+    ("GET", "/admin/gaps"): "lists the gaps of the features on for the viewer",
 }
 # Where each feature's routes live: a route under one of these paths must declare that feature.
 AREAS: dict[str, Feature] = {

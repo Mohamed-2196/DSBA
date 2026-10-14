@@ -48,6 +48,7 @@ FeatureKey = Literal[
     "board",
     "requests",
     "requests.autoclose",
+    "requests.done",
     "summary",
     "video_suggestions",
 ]

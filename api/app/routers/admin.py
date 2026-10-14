@@ -14,7 +14,7 @@ from sqlalchemy.orm import aliased
 from app.core.access import Box, Feature
 from app.core.errors import conflict, forbidden, invalid, not_found
 from app.core.pagination import Limit, Offset
-from app.core.security import DB, CurrentSession, client_ip, requires
+from app.core.security import DB, ActiveUser, CurrentSession, client_ip, requires
 from app.models import (
     AuditEntry,
     ForumReply,
@@ -29,8 +29,9 @@ from app.models import (
 from app.routers._base import SteppedUpAdmin, router_for
 from app.schemas.access import UserRolesUpdate
 from app.schemas.common import ErrorResponse
+from app.schemas.gaps import Gaps
 from app.schemas.moderation import AdminStats, AdminUser, AdminUserPage, AdminUserUpdate, AuditOut, AuditPage
-from app.services import access, accounts, reports, requests, roles, sessions, suggestions
+from app.services import access, accounts, gaps, reports, requests, roles, sessions, suggestions
 from app.services.accounts import public_user
 from app.services.audit import record
 from app.services.identifiers import Kind, destination_hint, normalize_identifier
@@ -102,6 +103,14 @@ def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats
         if access.can(user, Box.content_edit) and access.feature_on(db, user, Feature.video_suggestions)
         else None,
     )
+
+
+@router.get("/admin/gaps", response_model=Gaps)
+def what_is_missing(user: ActiveUser, db: DB) -> Gaps:
+    """What's missing, for the people who fill it: the library's (library.manage), the lessons' (content.edit), the
+    calendar's (calendar.manage) and the most wanted open requests (requests.manage). A part whose box the viewer
+    doesn't hold, or whose feature is off for them, is None. Errors: forbidden (403: none of these boxes)."""
+    return gaps.gaps(db, user)
 
 
 @router.get("/admin/users", response_model=AdminUserPage)

@@ -70,6 +70,7 @@ class Feature(enum.StrEnum):
     board = "board"  # each student's private study board
     requests = "requests"
     requests_autoclose = "requests.autoclose"  # paper and date requests that close themselves
+    requests_done = "requests.done"  # the requests done lately, on the requests page and in the newsletter
     summary = "summary"  # the Sunday summary email, and its text for a year's group
     video_suggestions = "video_suggestions"  # students suggest videos for chapters; content managers review them
 
@@ -181,6 +182,10 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.requests_autoclose: FeatureInfo(
         "Requests that close themselves",
         "Matching paper requests with new files, and closing date requests when a rep confirms the date.",
+    ),
+    Feature.requests_done: FeatureInfo(
+        "You asked, we did",
+        "The requests done in the last 30 days, on the requests page and in the newsletter's section of them.",
     ),
     Feature.summary: FeatureInfo("Sunday summary", "The Sunday summary email, and its text for reps to share."),
     Feature.video_suggestions: FeatureInfo(
