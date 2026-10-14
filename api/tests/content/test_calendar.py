@@ -148,7 +148,9 @@ def test_ics_feed(client_for: Clients, events: dict[str, CalendarEvent], today: 
     assert mock["DTSTART;VALUE=DATE"] == day(3)
     assert mock["DTEND;VALUE=DATE"] == day(4)  # exclusive: the next day
     assert mock["SUMMARY"] == "ST2134 Statistical Inference mock exam"  # led by the unit code
-    assert "Not confirmed yet. Ask your student rep or the programme office" in mock["DESCRIPTION"]  # not "sample" (UX-13)
+    assert (
+        "Not confirmed yet. Ask your student rep or the programme office" in mock["DESCRIPTION"]
+    )  # not "sample" (UX-13)
     assert "ample" not in mock["DESCRIPTION"]
     assert "Module: ST2134 Advanced Statistics: Statistical Inference." in mock["DESCRIPTION"].replace("\\n", "\n")
     assert mock["DTSTAMP"].endswith("Z")
@@ -325,8 +327,13 @@ def test_a_feed_of_your_own_papers(client_for: Clients, events: dict[str, Calend
     """IDEA-10: `modules` keeps a module's events to those papers, from any year; the rest follow `year`."""
     db.add(
         CalendarEvent(
-            id="other-year-exam", date=bahrain_today(), title="ST2133 exam", type="exam", year=2,
-            module_id="advanced-stats-distribution", unit_code="ST2133",
+            id="other-year-exam",
+            date=bahrain_today(),
+            title="ST2133 exam",
+            type="exam",
+            year=2,
+            module_id="advanced-stats-distribution",
+            unit_code="ST2133",
         )
     )
     db.add(CalendarEvent(id="year2-day", date=bahrain_today(), title="Year 2 welcome", type="event", year=2))
