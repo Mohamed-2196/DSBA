@@ -1,10 +1,10 @@
-// A past paper's question the student asks Mini Noora about (IDEA-4). The file viewer sets it and opens her panel;
+// A past paper's question the student asks Mini Noora about (IDEA-4). The file viewer sets it and opens her chat;
 // her chat sends it with each question until the student takes it off or clears the chat. The API reads the page's
 // words and the examiners' report for the same sitting itself: only the paper's id, the page and the number go.
 import { useSyncExternalStore } from 'react';
 import { useAuth } from '../../auth';
 import { useNooraStatus } from './ai';
-import { openNoora } from './dock';
+import { openNoora } from './open';
 import { useMiniNooraHidden } from './visibility';
 
 export interface PaperAsk {
@@ -43,7 +43,7 @@ export function questionNumber(raw: string): string | null {
   return s.length <= QUESTION_MAX && QUESTION.test(s) ? s : null;
 }
 
-/** Ask Mini Noora about a paper's question: opens her panel with it. `from` gets focus back when it closes. */
+/** Ask Mini Noora about a paper's question: opens her chat with it. `from` gets focus back when it closes. */
 export function askAboutPaper(paper: PaperAsk, from: HTMLElement | null = null): void {
   set({ paper, asked: snapshot.asked + 1 });
   openNoora(from);

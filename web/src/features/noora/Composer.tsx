@@ -1,6 +1,6 @@
 import { useLayoutEffect, type RefObject } from 'react';
-import { Exam, NotePencil, PaperPlaneRight, Paperclip, X } from '@phosphor-icons/react';
-import { IconButton, Tooltip } from '../../ui';
+import { ArrowUp, Exam, NotePencil, Paperclip, X } from '@phosphor-icons/react';
+import { IconButton, Tooltip, cx } from '../../ui';
 import { FileChip } from './Attachment';
 import type { Attachment } from './files';
 
@@ -43,15 +43,14 @@ export interface ComposerProps {
   /** take one out of the tray */
   onRemove: (file: Attachment) => void;
   onSend: () => void;
-  /** the text box took focus (the phone sheet goes to full height, above the keyboard) */
-  onFocus?: () => void;
 }
 
 /**
- * Where the student writes: a tray of what is attached, the paperclip, the text box and Send.
+ * Where the student writes: one slim field with the text box, what is attached, and a row of small controls under
+ * it (attach, "Include my note", Send). A paper's question being asked about sits above the field.
  * Controlled by ChatPanel, which also takes files that are dropped on the chat.
  */
-export function Composer({ inputRef, draft, onDraft, files, note, noteChoice = null, paperChoice = null, busy, onAttach, onRemove, onSend, onFocus }: ComposerProps) {
+export function Composer({ inputRef, draft, onDraft, files, note, noteChoice = null, paperChoice = null, busy, onAttach, onRemove, onSend }: ComposerProps) {
   const ready = !busy && (draft.trim().length > 0 || files.length > 0);
 
   useLayoutEffect(() => {
@@ -70,87 +69,60 @@ export function Composer({ inputRef, draft, onDraft, files, note, noteChoice = n
 
   return (
     <div className="nc-composer">
-      {files.length || note ? (
-        <div className="nc-tray" data-hub="noora-tray">
-          {files.map((file) =>
-            file.kind === 'image' && file.url ? (
-              <span key={file.id} className="nc-tray__shot">
-                <img src={file.url} alt={file.name} />
-                {remove(file)}
-              </span>
-            ) : (
-              <FileChip key={file.id} file={file}>
-                {remove(file)}
-              </FileChip>
-            ),
-          )}
-          {note ? (
-            <p className="nc-tray__note" role="status">
-              {note}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
-
-      {noteChoice ? (
-        <label className="nc-include" data-hub="noora-include-note">
-          <input type="checkbox" checked={noteChoice.checked} onChange={(e) => noteChoice.onChange(e.target.checked)} />
-          <NotePencil aria-hidden="true" weight="duotone" />
-          <span className="nc-include__text">
-            Include my note <span className="nc-include__title">“{noteChoice.title}”</span>
-            {noteChoice.checked ? (
-              <span className="nc-include__hint">{noteChoice.long ? 'Its first 20,000 characters go to Claude with this question.' : 'It goes to Claude with this question only.'}</span>
-            ) : null}
-          </span>
-        </label>
-      ) : null}
-
       {paperChoice ? (
-        <div className="nc-include nc-paper" data-hub="noora-paper">
-          <Exam aria-hidden="true" weight="duotone" />
-          <span className="nc-include__text">
-            Question {paperChoice.question}, page {paperChoice.page} <span className="nc-include__title">“{paperChoice.title}”</span>
-            <span className="nc-include__hint">That page and the examiners’ report go to Claude with your questions.</span>
+        <div className="nc-context" data-hub="noora-paper">
+          <Exam aria-hidden="true" weight="duotone" className="nc-context__icon" />
+          <span className="nc-context__text">
+            <span className="nc-context__title">
+              Question {paperChoice.question}, page {paperChoice.page}
+            </span>
+            <span className="nc-context__sub">
+              “{paperChoice.title}”. That page and the examiners’ report go to Claude with your questions.
+            </span>
           </span>
-          <IconButton label="Stop asking about this paper" icon={X} size="sm" className="nc-paper__remove" onClick={paperChoice.onRemove} data-hub="noora-paper-remove" />
+          <IconButton label="Stop asking about this paper" icon={X} size="sm" onClick={paperChoice.onRemove} data-hub="noora-paper-remove" />
         </div>
       ) : null}
 
       <form
-        className="nc-compose"
+        className="nc-field"
         onSubmit={(e) => {
           e.preventDefault();
           onSend();
         }}
       >
-        {/* A label around the real file input: a click, the keyboard and the tooling's setInputFiles all reach it. */}
-        <Tooltip label="Attach a photo or file" side="top" describe={false}>
-          <label className="nc-attach" data-hub="noora-attach">
-            <input
-              type="file"
-              multiple
-              className="visually-hidden"
-              aria-label="Attach a photo or file"
-              onChange={(e) => {
-                onAttach(e.target.files);
-                e.target.value = ''; // so the same file can be picked again
-              }}
-            />
-            <Paperclip aria-hidden="true" />
-          </label>
-        </Tooltip>
+        {files.length || note ? (
+          <div className="nc-tray" data-hub="noora-tray">
+            {files.map((file) =>
+              file.kind === 'image' && file.url ? (
+                <span key={file.id} className="nc-tray__shot">
+                  <img src={file.url} alt={file.name} />
+                  {remove(file)}
+                </span>
+              ) : (
+                <FileChip key={file.id} file={file}>
+                  {remove(file)}
+                </FileChip>
+              ),
+            )}
+            {note ? (
+              <p className="nc-tray__note" role="status">
+                {note}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <textarea
           ref={inputRef}
           className="nc-input"
           rows={1}
           value={draft}
-          placeholder="Ask about a module, a topic or an exam…"
+          placeholder="Ask about a module, a topic or an exam"
           aria-label="Message Mini Noora"
           dir="auto"
           enterKeyHint="send"
           autoComplete="off"
           onChange={(e) => onDraft(e.target.value)}
-          onFocus={onFocus}
           onKeyDown={(e) => {
             // Enter sends; Shift+Enter makes a new line. (Not while an input method is still composing.)
             if (e.key !== 'Enter' || e.shiftKey || e.nativeEvent.isComposing) return;
@@ -165,8 +137,38 @@ export function Composer({ inputRef, draft, onDraft, files, note, noteChoice = n
           }}
           data-hub="noora-input"
         />
-        <IconButton type="submit" label="Send" icon={<PaperPlaneRight weight="fill" />} variant="primary" className="nc-send" disabled={!ready} data-hub="noora-send" />
+        <div className="nc-tools">
+          {/* A label around the real file input: a click, the keyboard and the tooling's setInputFiles all reach it. */}
+          <Tooltip label="Attach a photo or file" side="top" describe={false}>
+            <label className="nc-tool nc-tool--icon" data-hub="noora-attach">
+              <input
+                type="file"
+                multiple
+                className="visually-hidden"
+                aria-label="Attach a photo or file"
+                onChange={(e) => {
+                  onAttach(e.target.files);
+                  e.target.value = ''; // so the same file can be picked again
+                }}
+              />
+              <Paperclip aria-hidden="true" />
+            </label>
+          </Tooltip>
+          {noteChoice ? (
+            <label className={cx('nc-tool', 'nc-toggle', noteChoice.checked && 'is-on')} title={`“${noteChoice.title}”`} data-hub="noora-include-note">
+              <input type="checkbox" className="visually-hidden" checked={noteChoice.checked} onChange={(e) => noteChoice.onChange(e.target.checked)} />
+              <NotePencil aria-hidden="true" weight={noteChoice.checked ? 'fill' : 'regular'} />
+              <span>Include my note</span>
+            </label>
+          ) : null}
+          <IconButton type="submit" label="Send" icon={<ArrowUp weight="bold" />} variant="primary" size="sm" className="nc-send" disabled={!ready} data-hub="noora-send" />
+        </div>
       </form>
+      {noteChoice?.checked ? (
+        <p className="nc-included" role="status">
+          “{noteChoice.title}” {noteChoice.long ? 'goes to Claude with this question: its first 20,000 characters.' : 'goes to Claude with this question only.'}
+        </p>
+      ) : null}
     </div>
   );
 }

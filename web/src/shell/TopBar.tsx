@@ -4,7 +4,6 @@ import { MagnifyingGlass, UploadSimple } from '@phosphor-icons/react';
 import { Button, ErrorBoundary, IconButton, HubLogo, SearchField, cx } from '../ui';
 import { openCommandPalette } from '../features/search/public';
 import { NotificationsMenu } from '../features/notifications/public';
-import { NooraAvatar, useNooraLauncher } from '../features/noora/public';
 import { YearSwitcher } from './YearSwitcher';
 import { ProfileMenu } from './ProfileMenu';
 import { useStartUpload, useUploadShown } from './upload';
@@ -29,7 +28,6 @@ export function TopBar() {
   // The library has its own Upload button: one is enough.
   const { pathname } = useLocation();
   const onLibrary = pathname === '/library';
-  const noora = useNooraLauncher();
   return (
     <header className={cx('shell-topbar', scrolled && 'is-scrolled')} data-hub="topbar">
       <div className="shell-topbar__inner">
@@ -48,18 +46,6 @@ export function TopBar() {
         <div className="shell-topbar__actions">
           <YearSwitcher compact menuSide="bottom" className="shell-topbar__year" hookId="year-switcher-mobile" />
           <IconButton className="shell-topbar__search-icon" label="Search" icon={MagnifyingGlass} onClick={() => openCommandPalette()} />
-          {noora.shown ? (
-            // Tablets. Phones open her from the tab bar, laptops from the tab at the panel's edge.
-            <IconButton
-              className="shell-topbar__noora"
-              label="Ask Mini Noora"
-              icon={<NooraAvatar size={28} />}
-              tooltip
-              active={noora.open}
-              onClick={noora.toggle}
-              {...noora.props}
-            />
-          ) : null}
           <ErrorBoundary name="NotificationsMenu" fallback={null}>
             <NotificationsMenu />
           </ErrorBoundary>

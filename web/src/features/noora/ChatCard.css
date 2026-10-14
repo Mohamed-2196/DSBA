@@ -1,0 +1,71 @@
+/* Mini Noora's chat card (MiniNoora.tsx places it): beside her on wider screens, a sheet above the tab bar on phones.
+   The chat inside is styled by ChatPanel.css. Colours are the Hub's tokens. */
+
+/* Her face in a round frame, cut from a bust sprite (each image is placed by sprites.ts → faceCrop). */
+.nc-face {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-block;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--cobalt-soft);
+}
+.nc-face__img {
+  position: absolute;
+  max-width: none;
+  height: auto;
+  visibility: hidden;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.nc-face__img[data-on] { visibility: visible; }
+
+/* Position and size are set inline. Over the page and her (she stands beside it), under dialogs and toasts. */
+.ncard {
+  position: fixed;
+  z-index: calc(var(--z-dropdown) + 5);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  outline: none;
+}
+.ncard[hidden] { display: none; }
+.ncard--float {
+  border-radius: var(--r-panel);
+  transform-origin: 100% 100%;
+  animation: ncard-in var(--dur-slow) var(--ease);
+}
+.ncard--float[data-side='right'] { transform-origin: 0 100%; }
+@keyframes ncard-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+
+.ncard--sheet {
+  border-width: 1px 0 0;
+  border-radius: var(--r-feature) var(--r-feature) 0 0;
+  animation: ncard-rise var(--dur-slow) var(--ease);
+}
+@keyframes ncard-rise { from { opacity: 0; transform: translateY(24px); } }
+
+/* While the chat's code arrives, and if it fails. */
+.ncard-note {
+  flex: 1 1 auto;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--sp-12);
+  padding: var(--sp-24);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ncard--float, .ncard--sheet { animation: none; }
+}
+
+@media print {
+  .ncard { display: none; }
+}

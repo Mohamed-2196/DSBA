@@ -6,7 +6,7 @@ import { ErrorBoundary, Toaster } from '../ui';
 import { AnalyticsFeatures } from './AnalyticsFeatures';
 import { CommandPalette } from '../features/search/public';
 import { Onboarding } from '../features/onboarding/public';
-import { NooraDock } from '../features/noora/public';
+import { MiniNoora } from '../features/noora/public';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { UpdatePrompt } from './UpdatePrompt';
@@ -49,10 +49,10 @@ export function AppShell({ children }: { children?: ReactNode }) {
           </ErrorBoundary>
         ) : null}
       </ModulesGate>
-      {/* Mini Noora: on a laptop the shell's third column (she never covers the page), elsewhere a sheet. */}
+      {/* Mini Noora floats over the page; she keeps clear of the bars and the page's primary buttons. */}
       {featureOn('noora') ? (
         <ErrorBoundary name="MiniNoora" fallback={null}>
-          <NooraDock />
+          <MiniNoora />
         </ErrorBoundary>
       ) : null}
       <Toaster />

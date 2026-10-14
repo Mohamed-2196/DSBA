@@ -17,6 +17,7 @@ export type IconName =
   | 'Books'
   | 'Calculator'
   | 'CalendarDots'
+  | 'ChatCircleText'
   | 'ChatsCircle'
   | 'Eye'
   | 'EyeSlash'
@@ -35,7 +36,7 @@ export type IconName =
  * switches and the library.upload box). */
 export type OfferId = 'threads' | 'upload';
 
-export type Run = { type: 'theme' } | { type: 'year'; year: 1 | 2 | 3 } | { type: 'noora'; hide: boolean };
+export type Run = { type: 'theme' } | { type: 'year'; year: 1 | 2 | 3 } | { type: 'noora'; act: 'ask' | 'hide' | 'show' };
 
 interface Base {
   id: string;
@@ -165,9 +166,10 @@ export function buildActions({ year, theme, nooraHidden = false }: { year: numbe
     },
     { id: 'action:grades', group: 'actions', kind: 'action', title: 'Calculate my grade', icon: 'Calculator', keywords: ['gpa', 'classification', 'grade calculator', 'marks'], to: '/grades', feature: 'grades' },
     { id: 'action:subscribe', group: 'actions', kind: 'action', title: 'Subscribe to the calendar', icon: 'CalendarDots', keywords: ['ics', 'google calendar', 'outlook', 'feed', 'subscribe'], to: '/calendar', feature: 'calendar' },
+    { id: 'action:ask-noora', group: 'actions', kind: 'action', title: 'Ask Mini Noora', icon: 'ChatCircleText', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'ask', 'chat', 'help'], run: { type: 'noora', act: 'ask' }, feature: 'noora' },
     nooraHidden
-      ? { id: 'action:noora', group: 'actions', kind: 'action', title: 'Show Mini Noora', icon: 'Eye', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot', 'bring back'], run: { type: 'noora', hide: false }, feature: 'noora' }
-      : { id: 'action:noora', group: 'actions', kind: 'action', title: 'Hide Mini Noora', icon: 'EyeSlash', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot'], run: { type: 'noora', hide: true }, feature: 'noora' },
+      ? { id: 'action:noora', group: 'actions', kind: 'action', title: 'Show Mini Noora', icon: 'Eye', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot', 'bring back'], run: { type: 'noora', act: 'show' }, feature: 'noora' }
+      : { id: 'action:noora', group: 'actions', kind: 'action', title: 'Hide Mini Noora', icon: 'EyeSlash', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot'], run: { type: 'noora', act: 'hide' }, feature: 'noora' },
     { id: 'action:report', group: 'actions', kind: 'action', title: 'Report a problem', icon: 'GithubLogo', keywords: ['bug', 'problem', 'broken', 'feedback', 'github', 'issue'], href: REPORT_PROBLEM_URL },
     { id: 'action:myclass', group: 'actions', kind: 'action', title: 'Open BIBF MyClass', icon: 'GraduationCap', keywords: ['myclass', 'bibf'], href: MYCLASS_URL },
     { id: 'action:uol', group: 'actions', kind: 'action', title: 'Open the UoL student portal', icon: 'Bank', keywords: ['uol', 'university of london', 'portal'], href: UOL_PORTAL_URL },

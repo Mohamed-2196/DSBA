@@ -1,24 +1,24 @@
-// Mini Noora's chat: who she is (the header and its actions), the conversation, and the composer. It fills the panel
-// that NooraDock.tsx places (docked beside the page on a laptop, a sheet on a phone or tablet). This file is fetched
-// on demand and brings the conversation and her scripted "brain" with it.
+// Mini Noora's chat: a calm card with her name and face at the top, the conversation as plain blocks of text, and a
+// slim composer. MiniNoora.tsx places it (beside her, or a sheet on a phone). This file is fetched on demand and
+// brings the conversation and her scripted "brain" with it.
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type RefObject } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { matchPath, useLocation } from 'react-router-dom';
-import { ArrowCounterClockwise, ArrowsInLineHorizontal, ArrowsOutLineHorizontal, EyeSlash, TrayArrowDown, X } from '@phosphor-icons/react';
+import { ArrowCounterClockwise, DotsThree, EyeSlash, TrayArrowDown, X } from '@phosphor-icons/react';
 import type { NooraStatus } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useOpenNote } from '../notes/public';
 import { useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { ConfirmDialog, IconButton, cx } from '../../ui';
+import { ConfirmDialog, IconButton, Menu, cx } from '../../ui';
 import { NOORA_STATUS_KEY, useNooraStatus } from './ai';
 import { Composer, type NoteChoice, type PaperChoice } from './Composer';
-import type { DockWidth } from './dock';
 import { Face } from './Face';
 import { addFiles, release, releaseAll, type Attachment } from './files';
 import { MessageList } from './Messages';
 import { clearPaperAsk, usePaperAsk } from './paper';
 import type { Bust } from './sprites';
+import type { ChatMood } from './poses';
 import { pageSuggestions } from './suggestions';
 import type { Message } from './types';
 import { useChat, type ChatAi, type Pending } from './useChat';
@@ -39,6 +39,14 @@ function faceFor(pending: Pending | null, waving: boolean): Bust {
   return mood === 'wave' ? 'wave' : 'neutral';
 }
 
+/** How she stands beside the chat (poses.ts), from the same reply. */
+function moodFor(pending: Pending | null, waving: boolean): ChatMood | null {
+  if (!pending) return waving ? 'wave' : null;
+  if (pending.phase === 'thinking') return 'thinking';
+  if (pending.phase === 'typing') return 'talking';
+  return pending.reply.mood === 'sad' || pending.reply.mood === 'angry' ? 'sad' : 'happy';
+}
+
 /** What a screen reader hears: that she is thinking, then the whole reply at once (not letter by letter). */
 function spokenFor(messages: Message[], pending: Pending | null): string {
   if (pending && pending.phase === 'thinking') return pending.label;
@@ -55,26 +63,23 @@ const carriesFiles = (e: DragEvent): boolean => Array.from(e.dataTransfer.types)
 export interface ChatPanelProps {
   /** shown or not; the conversation is kept while it is closed */
   open: boolean;
-  /** a sheet on a phone or tablet (else docked beside the page) */
+  /** a sheet on a phone (else a card beside her) */
   sheet: boolean;
   /** reduced motion */
   calm: boolean;
-  /** the panel (focused when a sheet opens, so the keyboard only comes up when the box is tapped) */
+  /** the card (focused when a sheet opens, so the keyboard only comes up when the box is tapped) */
   panelRef: RefObject<HTMLElement>;
-  /** docked: its width and the switch between the two; null on a sheet */
-  width: DockWidth | null;
-  onWidth: (width: DockWidth) => void;
-  /** the composer took focus */
-  onComposerFocus: () => void;
   /** close it and hand the keyboard back to the launcher */
   onClose: () => void;
   /** a "Where to look" link was followed */
   onFollow: () => void;
   /** hide her on this device */
   onHide: () => void;
+  /** how she should stand while the chat is open */
+  onMood: (mood: ChatMood | null) => void;
 }
 
-export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth, onComposerFocus, onClose, onFollow, onHide }: ChatPanelProps) {
+export default function ChatPanel({ open, sheet, calm, panelRef, onClose, onFollow, onHide, onMood }: ChatPanelProps) {
   const { year } = useYear();
   const { pathname, search } = useLocation();
   const { modules } = useModules();
@@ -165,6 +170,11 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
     if (!open) setNewFrom(lastId);
   }, [open, lastId]);
 
+  const mood = moodFor(pending, waving);
+  useEffect(() => {
+    onMood(open ? mood : null);
+  }, [open, mood, onMood]);
+
   // Leaving for good: let go of every picture, sent or still in the tray.
   useEffect(() => releaseAll, []);
 
@@ -197,7 +207,6 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
     input.current?.focus({ preventScroll: true });
   };
 
-  const wide = width === 'wide';
   return (
     <div
       className={cx('nc', dropping && 'is-dropping')}
@@ -221,39 +230,22 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
       }}
     >
       <header className="nc-head">
-        <Face bust={faceFor(pending, waving)} size={36} live className="nc-head__face" />
+        <Face bust={faceFor(pending, waving)} size={32} live className="nc-head__face" />
         <div className="nc-head__text">
-          <h2 className="nc-head__title">
-            Mini Noora
-          </h2>
-          <p className="nc-head__sub">
-            <span className="nc-head__dot" aria-hidden="true" />
-            {usingAi ? 'Knows your modules and this page' : 'Knows your modules'}
-          </p>
+          <h2 className="nc-head__title">Mini Noora</h2>
+          <p className="nc-head__sub">{pending && pending.phase !== 'done' ? 'Answering…' : usingAi ? 'Knows your modules and this page' : 'Knows your modules'}</p>
         </div>
-        <div className="nc-head__actions">
-          <IconButton
-            label="Clear chat"
-            icon={ArrowCounterClockwise}
-            size="sm"
-            tooltip
-            disabled={!messages.length && !pending}
-            onClick={() => setConfirming(true)}
-            data-hub="noora-clear"
-          />
-          {width ? (
-            <IconButton
-              label={wide ? 'Make the panel narrower' : 'Make the panel wider'}
-              icon={wide ? ArrowsInLineHorizontal : ArrowsOutLineHorizontal}
-              size="sm"
-              tooltip
-              onClick={() => onWidth(wide ? 'narrow' : 'wide')}
-              data-hub="noora-width"
-            />
-          ) : null}
-          <IconButton label="Hide Mini Noora" icon={EyeSlash} size="sm" tooltip onClick={onHide} data-hub="noora-hide" />
-          <IconButton label="Close chat" icon={X} size="sm" tooltip onClick={onClose} data-hub="noora-close" />
-        </div>
+        <Menu
+          align="end"
+          className="nc-menu"
+          label="Chat options"
+          trigger={<IconButton label="Chat options" icon={DotsThree} size="sm" data-hub="noora-more" />}
+          items={[
+            { id: 'clear', label: 'Clear chat', icon: ArrowCounterClockwise, disabled: !messages.length && !pending, onSelect: () => setConfirming(true) },
+            { id: 'hide', label: 'Hide Mini Noora', icon: EyeSlash, onSelect: onHide },
+          ]}
+        />
+        <IconButton label="Close chat" icon={X} size="sm" onClick={onClose} data-hub="noora-close" />
       </header>
 
       <div className="nc-body">
@@ -270,11 +262,10 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
           onAttach={attach}
           onRemove={remove}
           onSend={submit}
-          onFocus={onComposerFocus}
         />
         <p className="nc-foot" data-hub="noora-foot">
           {usingAi
-            ? `Answers come from Claude, an AI, and can be wrong. Your questions and notes aren’t stored: only how many you ask.${status.data ? ` ${status.data.questionsLeft} left today.` : ''} Pictures stay in this browser.`
+            ? `Answers come from Claude, an AI, and can be wrong. Your questions and notes aren’t stored, only how many you ask.${status.data ? ` ${status.data.questionsLeft} left today.` : ''} Pictures stay in this browser.`
             : 'She answers from the Hub’s modules and calendar. What you send her stays in this browser.'}
         </p>
         {/* Always there, shown while files are dragged over the chat. */}
