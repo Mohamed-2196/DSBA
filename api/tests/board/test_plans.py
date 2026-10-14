@@ -79,7 +79,7 @@ def test_a_plan_adds_unwatched_lessons_and_papers_and_spreads_them(
     set_feature("library", "everyone")
     old, new = paper(db, module, 2022), paper(db, module, 2024)
     paper(db, module, 2023, kind="examiners-report")
-    c = client_for(make_user())
+    c = client_for(make_user(tracks=True))
     c.put(f"{API}/me/progress/lessons/{lesson_id(module, 0, 0)}", json={"watched": True})
     made = plan(c, module, 6, paperEvery=3)
     assert made["added"] == 4  # two lessons, two papers (6 days, one every 3)
@@ -152,7 +152,7 @@ def test_a_plan_needs_a_module_and_a_date_after_today(
 def test_removing_a_plan_keeps_what_is_done(
     client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
 ) -> None:
-    user = make_user()
+    user = make_user(tracks=True)
     c = client_for(user)
     plan(c, module, 9)
     c.put(f"{API}/me/progress/lessons/{lesson_id(module, 0, 0)}", json={"watched": True})

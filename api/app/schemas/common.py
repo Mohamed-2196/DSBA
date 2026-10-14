@@ -56,6 +56,7 @@ ErrorCode = Literal[
     "step_up_required",  # 403: confirm it's you first (POST /me/step-up)
     "cannot_change_self",  # 409: an admin changing their own account
     "storage_unavailable",  # 503: files could not be deleted; nothing changed
+    "progress_off",  # 409: lesson progress is kept only once the person turns it on
     # forum and reports
     "thread_locked",  # 409: a student rep locked the thread
     "post_unavailable",  # 409: the post (or file) was deleted, hidden or removed

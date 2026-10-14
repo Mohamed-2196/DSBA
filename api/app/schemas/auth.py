@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Annotated, Literal
+from typing import Annotated, Literal, get_args
 from uuid import UUID
 
 from pydantic import Field, StringConstraints, WithJsonSchema
@@ -54,10 +54,25 @@ class OtpVerifyRequest(ApiModel):
     code: Code
 
 
+# Home's blocks, in the order a student first sees them. Each one renders only when it has something to show.
+HomeBlock = Literal[
+    "start_here",  # Start here: Year 1's checklist in the first weeks
+    "results_day",  # Results day: two weeks from each results date
+    "coming_up",  # the next exam and this week's dates
+    "daily_question",  # a past exam question before the next exam
+    "todo",  # the study board's To do and In progress cards
+    "continue",  # the lessons to pick up (lesson progress on)
+    "modules",  # my modules
+    "new",  # new files and threads in my modules
+    "newsletter",  # the latest issue of The DSBA Newsletter
+]
+MAX_HOME_BLOCKS = len(get_args(HomeBlock))
+
+
 class Preferences(ApiModel):
-    """Which notifications also come by email, to the account's email address, and whether the Sunday summary does.
-    In the Hub every notification shows whatever these say, and account security notices are always emailed. Unset
-    means the default here."""
+    """Which notifications also come by email (to the account's email address; account security notices always do),
+    whether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Unset means the default
+    here."""
 
     email_replies: bool = True  # someone replied to your thread or to your reply
     email_answer_accepted: bool = True  # your reply was accepted as the answer
@@ -65,10 +80,14 @@ class Preferences(ApiModel):
     email_new_issues: bool = True  # a new issue of The DSBA Newsletter is out
     email_date_changes: bool = True  # an exam, mock or deadline of your year moved, or was confirmed
     email_weekly_summary: bool = False  # the Sunday summary: opt in
+    track_progress: bool = False  # keep the lessons watched and the lesson to resume: opt in
+    # Home's blocks that show, in order; a block left out is hidden. null: the default layout.
+    home_blocks: list[HomeBlock] | None = None
 
 
 class PreferencesUpdate(ApiModel):
-    """Only the switches sent change."""
+    """Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default
+    layout."""
 
     email_replies: bool | None = None
     email_answer_accepted: bool | None = None
@@ -76,6 +95,8 @@ class PreferencesUpdate(ApiModel):
     email_new_issues: bool | None = None
     email_date_changes: bool | None = None
     email_weekly_summary: bool | None = None
+    track_progress: bool | None = None
+    home_blocks: Annotated[list[HomeBlock], Field(max_length=MAX_HOME_BLOCKS)] | None = None
 
 
 class Me(ApiModel):
