@@ -131,6 +131,9 @@
   line-height: 1;
   color: var(--mod-strong);
 }
+.home-mods__lead { flex: 0 0 64px; display: flex; }
+.home-mods__art { --modart-size: 44px; }
+.home-mods__tag { margin-right: 6px; color: var(--mod-strong); }
 .home-mods__icon {
   flex: 0 0 auto;
   display: grid;

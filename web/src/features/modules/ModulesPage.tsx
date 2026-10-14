@@ -1,7 +1,7 @@
-// /modules: the year's modules as a contents page: a spine of big unit codes (Year 3 modules have no code, so a
-// plate with the module's icon takes the code's place), each row with name, description, counts, next exam and
-// lesson progress. Follows the global year; the segmented control peeks at another year without changing it
-// (?year=3).
+// /modules: the year's modules as a contents page: a spine of module tiles (the module's illustration, or its unit
+// code where it has none yet, or a plate with its icon for Year 3 modules, which have no code), each row with name,
+// description, counts, next exam and lesson progress. Follows the global year; the segmented control peeks at
+// another year without changing it (?year=3).
 import { ArrowCounterClockwise, ArrowRight, CalendarBlank, CaretRight, Sparkle } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useMemo, useRef } from 'react';
@@ -10,7 +10,7 @@ import type { ModuleSummary } from '../../api/types';
 import { useAuth } from '../../auth';
 import { COHORTS, YEARS, cohortColor, normalizeYear, useDocumentTitle, useQueryParam, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Button, CohortBadge, ModuleIcon, Page, PageHeader, ProgressRing, SegmentedControl, Skeleton, cx, countOf } from '../../ui';
+import { Button, CohortBadge, ModuleArt, ModuleIcon, Page, PageHeader, ProgressRing, SegmentedControl, Skeleton, cx, countOf, moduleArtSrc } from '../../ui';
 import { prefetchModule } from './api';
 import { useExamsByModule, type ExamInfo } from './exams';
 import { ImportProgressPrompt } from './ImportProgressPrompt';
@@ -36,6 +36,9 @@ function ModuleRow({
   const uid = useId();
   const qc = useQueryClient();
   const hasLessons = m.lessonCount > 0;
+  const hasArt = moduleArtSrc(m.id) != null;
+  // With an illustration, the unit code moves next to the name as a label.
+  const labelled = hasArt ? [m.unitCode && `${uid}-code`, `${uid}-name`] : [`${uid}-anchor`, `${uid}-name`];
   const described = [`${uid}-desc`, `${uid}-counts`, showExam && `${uid}-exam`, showProgress && `${uid}-prog`].filter(Boolean).join(' ');
   return (
     <li className="mod-toc__item">
@@ -44,13 +47,15 @@ function ModuleRow({
         className={cx('mod-row', `mod-row--y${m.year}`, !showExam && 'mod-row--no-exam', !showProgress && 'mod-row--no-prog')}
         data-hub="module-tile"
         data-module-id={m.id}
-        aria-labelledby={`${uid}-anchor ${uid}-name`}
+        aria-labelledby={labelled.filter(Boolean).join(' ')}
         aria-describedby={described}
         onMouseEnter={() => void prefetchModule(qc, m.id)}
         onFocus={() => void prefetchModule(qc, m.id)}
       >
         <span className="mod-row__anchor" id={`${uid}-anchor`}>
-          {m.unitCode ? (
+          {hasArt ? (
+            <ModuleArt moduleId={m.id} className="mod-row__art" />
+          ) : m.unitCode ? (
             <span className="mod-row__code u-code">{m.unitCode}</span>
           ) : (
             <span className="mod-row__plate">
@@ -61,6 +66,11 @@ function ModuleRow({
         </span>
 
         <span className="mod-row__main">
+          {hasArt && m.unitCode ? (
+            <span className="mod-row__label u-code" id={`${uid}-code`}>
+              {m.unitCode}
+            </span>
+          ) : null}
           <span className="mod-row__name" id={`${uid}-name`}>
             {m.name}
           </span>
