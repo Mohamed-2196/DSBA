@@ -38,7 +38,7 @@ test('Mini Noora answers with the date of an exam and where to look', async ({ b
   await prepareContext(ctx, { noora: true, year: '1' });
   const page = await ctx.newPage();
   await page.goto('/');
-  const launcher = page.locator('[data-hub="noora-launcher"]:visible');
+  const launcher = page.locator('[data-hub="noora-launcher"]');
   await launcher.click();
   const chat = page.locator('[data-hub="noora-chat"]');
   await expect(chat).toBeVisible();
@@ -47,16 +47,41 @@ test('Mini Noora answers with the date of an exam and where to look', async ({ b
   await chat.getByLabel('Message Mini Noora').fill('When is my EC1002 exam?');
   await chat.getByLabel('Message Mini Noora').press('Enter');
   await expect(chat).toContainText(/The next EC1002 Economics exam is on \w+day \d+ \w+/);
-  // Her links open the page and, on a laptop, she stays open beside it.
+  // Her links open the page and, on a laptop, her card stays open beside her.
   await chat.getByRole('link').filter({ hasText: /EC1002/ }).first().click();
   await expect(page).toHaveURL(/\/(calendar|modules)/);
   await expect(chat).toBeVisible();
   // Clearing the chat asks first.
-  await chat.locator('[data-hub="noora-clear"]').click();
+  await chat.locator('[data-hub="noora-more"]').click();
+  await page.getByRole('menuitem', { name: 'Clear chat' }).click();
   await page.getByRole('dialog', { name: 'Clear the chat?' }).getByRole('button', { name: 'Clear chat' }).click();
   await expect(chat.locator('[data-hub="noora-empty"]')).toBeVisible();
   await chat.getByRole('button', { name: 'Close chat' }).click();
   await expect(chat).toBeHidden();
   await expect(launcher).toBeFocused();
+  await ctx.close();
+});
+
+test('Mini Noora can be carried to the other edge, and ⌘/ or Ctrl+/ opens her chat', async ({ browser }) => {
+  const ctx = await browser.newContext({ baseURL: env.baseURL, viewport: { width: 1440, height: 900 } });
+  await prepareContext(ctx, { noora: true });
+  const page = await ctx.newPage();
+  await page.goto('/');
+  const her = page.locator('[data-hub="noora-launcher"]');
+  const start = await her.boundingBox();
+  if (!start) throw new Error('Mini Noora is not on the page');
+  await page.mouse.move(start.x + 20, start.y + 50);
+  await page.mouse.down();
+  for (let i = 1; i <= 20; i++) await page.mouse.move(start.x + 20 - i * 40, start.y + 50 - i * 10);
+  await page.mouse.up();
+  // Let go left of the middle: she snaps to the left edge, and stays there after a reload.
+  await expect.poll(async () => (await her.boundingBox())?.x).toBeLessThan(20);
+  await page.reload();
+  await expect.poll(async () => (await her.boundingBox())?.x).toBeLessThan(20);
+  await page.keyboard.press('Control+/');
+  await expect(page.locator('[data-hub="noora-chat"]')).toBeVisible();
+  await expect(page.getByLabel('Message Mini Noora')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[data-hub="noora-chat"]')).toBeHidden();
   await ctx.close();
 });
