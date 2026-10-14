@@ -113,6 +113,12 @@ mail`). Several workers may run (`docker compose -f compose.prod.yaml up -d --sc
 by one. Sent, failed and cancelled emails are deleted after 30 days. An email is cancelled when its time comes if
 the person turned that switch off, changed their address or deleted the account.
 
+**Text of papers.** Search finds words inside published PDF and Word files. The `texts` service
+(`python -m app.cli text-worker`) reads each newly published file once, in a child process limited to 60 seconds
+and 1 GB, and skips files over 60 MB; scans have no text and stay findable by title only. After deploying it the
+first time, or after a big import, read the files already there: `docker compose -f compose.prod.yaml run --rm api
+python -m app.cli extract-texts` (`--retry` reads failed and empty files again).
+
 ## 5. Client addresses and the proxy
 
 Per-IP limits (sign-in codes above all), sessions and the audit log use the client's address. The API takes it from

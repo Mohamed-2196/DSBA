@@ -127,7 +127,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** one pass per file when it's published. Scanned papers have no text and stay title-only; OCR
   would cost more, so leave it out. Formulas extract badly; words like "likelihood" extract fine.
 - **How we'd know it worked:** fewer library searches ending in "No files match"; more papers opened from search.
-- **Status:** proposed.
+- **Status:** approved; built on round5/search.
 
 ### IDEA-3. Past questions by topic
 
@@ -170,7 +170,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** none worth noting; 384 video titles is small. YouTube titles are noisy, so chapter titles rank
   first.
 - **How we'd know it worked:** fewer searches with no results; lessons opened from search.
-- **Status:** proposed.
+- **Status:** approved; built on round5/search.
 
 ## Asking and answering
 
