@@ -21,3 +21,4 @@
 @media (max-width: 699px) {
   .career-after__grid > .career-seniors { padding: var(--sp-16); }
 }
+.career-senior__note { margin-top: 2px; color: var(--ink-3); font-size: var(--fs-14); line-height: 1.45; max-width: 60ch; overflow-wrap: anywhere; }

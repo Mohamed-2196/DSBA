@@ -1150,7 +1150,13 @@ export interface paths {
          * Create Thread
          * @description The author upvotes their own thread. Forum images in the body (/api/v1/media/<id>) are attached.
          *
-         *     Errors: rate_limited (429) after 10 threads in an hour.
+         *     `anonymous` (needs forum.anonymous): students see "A Year N student" in place of the author, everywhere the
+         *     thread shows, and in its notifications. The author and those who moderate the forum (forum.moderate) still see
+         *     who it is, and the audit log records it (forum.thread.anonymous). Reports and rate limits apply as usual.
+         *     `seniorId` (needs career.seniors): a listed senior asked from Career Navigator; they are notified.
+         *
+         *     Errors: rate_limited (429) after 10 threads in an hour; feature_off (404) for `anonymous` or `seniorId` while
+         *     their feature is off; invalid_input (422: the senior isn't taking questions).
          */
         post: operations["create_thread_api_v1_forum_threads_post"];
         delete?: never;
@@ -1241,6 +1247,27 @@ export interface paths {
          */
         get: operations["related_threads_api_v1_forum_threads__thread_id__related_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forum/threads/{thread_id}/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Follow Thread
+         * @description Follow a thread: 'answers' (an accepted answer), 'replies' (every reply too) or 'off'. Voting for a thread or
+         *     replying in it starts at 'answers', unless you switched it off. The thread's author follows it already.
+         */
+        put: operations["follow_thread_api_v1_forum_threads__thread_id__follow_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1693,6 +1720,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/newsletter/issues/{issue_id}/polls/{poll_id}/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Vote In Poll
+         * @description One vote per person, and it can't be changed. The counts come back with it. Published issues only.
+         *     Errors: already_voted (409), not_found (404: no such issue or poll), invalid_input (422: no such answer).
+         */
+        put: operations["vote_in_poll_api_v1_newsletter_issues__issue_id__polls__poll_id__vote_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notes": {
         parameters: {
             query?: never;
@@ -1899,6 +1947,54 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/career/seniors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Seniors
+         * @description The Year 3 students taking questions: name, cohort, badge, topics and their line. Never contact details.
+         */
+        get: operations["list_seniors_api_v1_career_seniors_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/career/seniors/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Listing
+         * @description The signed-in person's listing, and whether they may have one (Year 3 only).
+         */
+        get: operations["my_listing_api_v1_career_seniors_me_get"];
+        /**
+         * Save Listing
+         * @description List yourself, change your topics or line, or pause. Errors: forbidden (403: not in Year 3).
+         */
+        put: operations["save_listing_api_v1_career_seniors_me_put"];
+        post?: never;
+        /**
+         * Remove Listing
+         * @description Take yourself off the list. Idempotent.
+         */
+        delete: operations["remove_listing_api_v1_career_seniors_me_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2121,6 +2217,11 @@ export interface components {
             emails: components["schemas"]["ExportEmail"][];
             /** Board */
             board: components["schemas"]["ExportBoardCard"][];
+            /** Follows */
+            follows: components["schemas"]["ExportFollow"][];
+            /** Pollvotes */
+            pollVotes: components["schemas"]["ExportPollVote"][];
+            senior: components["schemas"]["ExportSenior"] | null;
         };
         /**
          * AdminStats
@@ -2561,11 +2662,6 @@ export interface components {
             yearHints: {
                 [key: string]: string;
             };
-            /**
-             * Seniors
-             * @default []
-             */
-            seniors: components["schemas"]["CareerSenior"][];
         };
         /**
          * CareerEmployer
@@ -2664,26 +2760,6 @@ export interface components {
             close: {
                 [key: string]: components["schemas"]["CloseLesson"] | components["schemas"]["CloseFile"] | components["schemas"]["CloseCert"] | components["schemas"]["CloseForum"] | components["schemas"]["CloseOpps"];
             };
-        };
-        /**
-         * CareerSenior
-         * @description A Year 3 student or a recent graduate who answers questions.
-         */
-        CareerSenior: {
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Short */
-            short: string;
-            /** Year */
-            year?: (1 | 2 | 3) | null;
-            /** Badge */
-            badge?: string | null;
-            /** Helps */
-            helps: string;
-            /** Ask */
-            ask: string;
         };
         /** CareerSkill */
         CareerSkill: {
@@ -2936,7 +3012,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "already_voted" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -2986,7 +3062,7 @@ export interface components {
          */
         ExportEmail: {
             /** Kind */
-            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system") | "account_notice";
+            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system") | "account_notice";
             /** Toaddress */
             toAddress: string;
             /** Subject */
@@ -3003,6 +3079,26 @@ export interface components {
             createdAt: string;
             /** Sentat */
             sentAt: string | null;
+        };
+        /** ExportFollow */
+        ExportFollow: {
+            /**
+             * Threadid
+             * Format: uuid
+             */
+            threadId: string;
+            /** Threadslug */
+            threadSlug: string;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "answers" | "replies" | "off";
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
         };
         /** ExportLibraryItem */
         ExportLibraryItem: {
@@ -3073,7 +3169,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -3087,6 +3183,25 @@ export interface components {
             createdAt: string;
             /** Readat */
             readAt: string | null;
+        };
+        /** ExportPollVote */
+        ExportPollVote: {
+            /**
+             * Issueid
+             * Format: uuid
+             */
+            issueId: string;
+            /** Issueslug */
+            issueSlug: string;
+            /** Pollid */
+            pollId: string;
+            /** Choice */
+            choice: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
         };
         /** ExportReaction */
         ExportReaction: {
@@ -3208,6 +3323,20 @@ export interface components {
              */
             createdAt: string;
         };
+        /** ExportSenior */
+        ExportSenior: {
+            /** Topics */
+            topics: ("internships" | "jobs" | "msc" | "electives" | "modules")[];
+            /** Note */
+            note: string;
+            /** Paused */
+            paused: boolean;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
         /** ExportThread */
         ExportThread: {
             /**
@@ -3246,6 +3375,8 @@ export interface components {
             voteCount: number;
             /** Replycount */
             replyCount: number;
+            /** Anonymous */
+            anonymous: boolean;
         };
         /** ExportVote */
         ExportVote: {
@@ -3271,7 +3402,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests";
+            feature: "forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests";
             /** Label */
             label: string;
             /** Hides */
@@ -3297,7 +3428,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests")[];
+            features: ("forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests")[];
         };
         /** FileLink */
         FileLink: {
@@ -3305,6 +3436,22 @@ export interface components {
             url: string;
             /** Expiresin */
             expiresIn: number;
+        };
+        /** FollowRequest */
+        FollowRequest: {
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "answers" | "replies" | "off";
+        };
+        /** FollowResult */
+        FollowResult: {
+            /**
+             * Following
+             * @enum {string}
+             */
+            following: "answers" | "replies" | "off";
         };
         /** ForumMeta */
         ForumMeta: {
@@ -3472,6 +3619,10 @@ export interface components {
             reactions: {
                 [key: string]: components["schemas"]["ReactionCounts"];
             };
+            /** Polls */
+            polls: {
+                [key: string]: components["schemas"]["PollResult"];
+            };
         };
         /**
          * IssueFigure
@@ -3509,12 +3660,12 @@ export interface components {
              * Blocks
              * @default []
              */
-            blocks: (components["schemas"]["ParagraphBlock"] | components["schemas"]["ListBlock"] | components["schemas"]["SignoffBlock"] | components["schemas"]["CtaBlock"])[];
+            blocks: (components["schemas"]["ParagraphBlock"] | components["schemas"]["ListBlock"] | components["schemas"]["SignoffBlock"] | components["schemas"]["CtaBlock"] | components["schemas"]["PollBlock"])[];
             /**
              * After
              * @default []
              */
-            after: (components["schemas"]["ParagraphBlock"] | components["schemas"]["ListBlock"] | components["schemas"]["SignoffBlock"] | components["schemas"]["CtaBlock"])[];
+            after: (components["schemas"]["ParagraphBlock"] | components["schemas"]["ListBlock"] | components["schemas"]["SignoffBlock"] | components["schemas"]["CtaBlock"] | components["schemas"]["PollBlock"])[];
             figure?: components["schemas"]["IssueFigure"] | null;
             /** Aside */
             aside?: (components["schemas"]["CardAside"] | components["schemas"]["StatsAside"]) | null;
@@ -3846,7 +3997,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests")[];
+            features: ("forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests")[];
             /**
              * Status
              * @enum {string}
@@ -4086,6 +4237,22 @@ export interface components {
             lessonCount: number;
             /** Librarycount */
             libraryCount: number | null;
+        };
+        /**
+         * MySenior
+         * @description The signed-in person's listing, and whether they may have one (Year 3 only).
+         */
+        MySenior: {
+            /** Eligible */
+            eligible: boolean;
+            /** Listed */
+            listed: boolean;
+            /** Topics */
+            topics: ("internships" | "jobs" | "msc" | "electives" | "modules")[];
+            /** Note */
+            note: string;
+            /** Paused */
+            paused: boolean;
         };
         /**
          * NooraDoneEvent
@@ -4348,7 +4515,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -4447,6 +4614,42 @@ export interface components {
              * @default false
              */
             lead: boolean;
+        };
+        /**
+         * PollBlock
+         * @description A question to the cohort with two to five answers: one vote per signed-in student, and the counts once you
+         *     have voted (needs the newsletter.polls feature). `id` keeps its votes: it is unique in the issue and stays put
+         *     once the issue is out.
+         */
+        PollBlock: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "poll";
+            /** Id */
+            id: string;
+            /** Question */
+            question: string;
+            /** Answers */
+            answers: string[];
+        };
+        /**
+         * PollResult
+         * @description A poll's votes. Nobody sees who voted.
+         */
+        PollResult: {
+            /** Total */
+            total: number;
+            /** Counts */
+            counts: number[] | null;
+            /** Mine */
+            mine: number | null;
+        };
+        /** PollVoteRequest */
+        PollVoteRequest: {
+            /** Choice */
+            choice: number;
         };
         /** PostImage */
         PostImage: {
@@ -4581,6 +4784,10 @@ export interface components {
             reactions: {
                 [key: string]: components["schemas"]["ReactionCounts"];
             };
+            /** Polls */
+            polls: {
+                [key: string]: components["schemas"]["PollResult"];
+            };
             /** Emailed */
             emailed: boolean;
         };
@@ -4624,6 +4831,8 @@ export interface components {
             author: components["schemas"]["UserPublic"] | null;
             /** Authoryear */
             authorYear: (1 | 2 | 3) | null;
+            /** Anonymous */
+            anonymous: boolean;
             /** Body */
             body: string;
             /**
@@ -4989,6 +5198,32 @@ export interface components {
             /** Events */
             events: components["schemas"]["SearchHit"][];
         };
+        /**
+         * Senior
+         * @description A listed senior: name, cohort and badge, the topics and their line. No contact details.
+         */
+        Senior: {
+            user: components["schemas"]["UserPublic"];
+            /** Topics */
+            topics: ("internships" | "jobs" | "msc" | "electives" | "modules")[];
+            /** Note */
+            note: string;
+        };
+        /** SeniorUpdate */
+        SeniorUpdate: {
+            /** Topics */
+            topics: ("internships" | "jobs" | "msc" | "electives" | "modules")[];
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /**
+             * Paused
+             * @default false
+             */
+            paused: boolean;
+        };
         /** SessionInfo */
         SessionInfo: {
             /**
@@ -5156,6 +5391,13 @@ export interface components {
             moduleId?: string | null;
             /** Tags */
             tags?: string[];
+            /**
+             * Anonymous
+             * @default false
+             */
+            anonymous: boolean;
+            /** Seniorid */
+            seniorId?: string | null;
         };
         /** ThreadDetail */
         ThreadDetail: {
@@ -5184,6 +5426,8 @@ export interface components {
             author: components["schemas"]["UserPublic"] | null;
             /** Authoryear */
             authorYear: (1 | 2 | 3) | null;
+            /** Anonymous */
+            anonymous: boolean;
             /**
              * Createdat
              * Format: date-time
@@ -5228,6 +5472,11 @@ export interface components {
             canAccept: boolean;
             /** Canmoderate */
             canModerate: boolean;
+            /**
+             * Following
+             * @enum {string}
+             */
+            following: "answers" | "replies" | "off";
         };
         /** ThreadModeration */
         ThreadModeration: {
@@ -5278,6 +5527,8 @@ export interface components {
             author: components["schemas"]["UserPublic"] | null;
             /** Authoryear */
             authorYear: (1 | 2 | 3) | null;
+            /** Anonymous */
+            anonymous: boolean;
             /**
              * Createdat
              * Format: date-time
@@ -5458,7 +5709,6 @@ export type CareerEmployer = components['schemas']['CareerEmployer'];
 export type CareerFeatured = components['schemas']['CareerFeatured'];
 export type CareerOffer = components['schemas']['CareerOffer'];
 export type CareerRole = components['schemas']['CareerRole'];
-export type CareerSenior = components['schemas']['CareerSenior'];
 export type CareerSkill = components['schemas']['CareerSkill'];
 export type CareerTrack = components['schemas']['CareerTrack'];
 export type CategoryOut = components['schemas']['CategoryOut'];
@@ -5483,18 +5733,23 @@ export type ErrorDetail = components['schemas']['ErrorDetail'];
 export type ErrorResponse = components['schemas']['ErrorResponse'];
 export type ExportBoardCard = components['schemas']['ExportBoardCard'];
 export type ExportEmail = components['schemas']['ExportEmail'];
+export type ExportFollow = components['schemas']['ExportFollow'];
 export type ExportLibraryItem = components['schemas']['ExportLibraryItem'];
 export type ExportNotification = components['schemas']['ExportNotification'];
+export type ExportPollVote = components['schemas']['ExportPollVote'];
 export type ExportReaction = components['schemas']['ExportReaction'];
 export type ExportReply = components['schemas']['ExportReply'];
 export type ExportReport = components['schemas']['ExportReport'];
 export type ExportRequest = components['schemas']['ExportRequest'];
+export type ExportSenior = components['schemas']['ExportSenior'];
 export type ExportThread = components['schemas']['ExportThread'];
 export type ExportVote = components['schemas']['ExportVote'];
 export type FeatureOut = components['schemas']['FeatureOut'];
 export type FeaturedLogo = components['schemas']['FeaturedLogo'];
 export type FeaturesOut = components['schemas']['FeaturesOut'];
 export type FileLink = components['schemas']['FileLink'];
+export type FollowRequest = components['schemas']['FollowRequest'];
+export type FollowResult = components['schemas']['FollowResult'];
 export type ForumMeta = components['schemas']['ForumMeta'];
 export type ForumStats = components['schemas']['ForumStats'];
 export type FurtherStudy = components['schemas']['FurtherStudy'];
@@ -5529,6 +5784,7 @@ export type ModuleOrder = components['schemas']['ModuleOrder'];
 export type ModuleResources = components['schemas']['ModuleResources'];
 export type ModuleSave = components['schemas']['ModuleSave'];
 export type ModuleSummary = components['schemas']['ModuleSummary'];
+export type MySenior = components['schemas']['MySenior'];
 export type NooraDoneEvent = components['schemas']['NooraDoneEvent'];
 export type NooraErrorEvent = components['schemas']['NooraErrorEvent'];
 export type NooraLimitsIn = components['schemas']['NooraLimitsIn'];
@@ -5552,6 +5808,9 @@ export type OtpChallengeOut = components['schemas']['OtpChallengeOut'];
 export type OtpStartRequest = components['schemas']['OtpStartRequest'];
 export type OtpVerifyRequest = components['schemas']['OtpVerifyRequest'];
 export type ParagraphBlock = components['schemas']['ParagraphBlock'];
+export type PollBlock = components['schemas']['PollBlock'];
+export type PollResult = components['schemas']['PollResult'];
+export type PollVoteRequest = components['schemas']['PollVoteRequest'];
 export type PostImage = components['schemas']['PostImage'];
 export type Preferences = components['schemas']['Preferences'];
 export type PreferencesUpdate = components['schemas']['PreferencesUpdate'];
@@ -5582,6 +5841,8 @@ export type RoleSummary = components['schemas']['RoleSummary'];
 export type RoleUpdate = components['schemas']['RoleUpdate'];
 export type SearchHit = components['schemas']['SearchHit'];
 export type SearchResults = components['schemas']['SearchResults'];
+export type Senior = components['schemas']['Senior'];
+export type SeniorUpdate = components['schemas']['SeniorUpdate'];
 export type SessionInfo = components['schemas']['SessionInfo'];
 export type SessionState = components['schemas']['SessionState'];
 export type SignInResult = components['schemas']['SignInResult'];
@@ -8659,7 +8920,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests";
+                feature: "forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests";
             };
             cookie?: never;
         };
@@ -11506,6 +11767,95 @@ export interface operations {
             };
         };
     };
+    follow_thread_api_v1_forum_threads__thread_id__follow_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FollowRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     vote_thread_api_v1_forum_threads__thread_id__vote_put: {
         parameters: {
             query?: never;
@@ -14017,6 +14367,96 @@ export interface operations {
             };
         };
     };
+    vote_in_poll_api_v1_newsletter_issues__issue_id__polls__poll_id__vote_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_id: string;
+                poll_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PollVoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PollResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_notes_api_v1_notes_get: {
         parameters: {
             query?: {
@@ -15250,6 +15690,340 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SearchResults"];
                 };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_seniors_api_v1_career_seniors_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Senior"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    my_listing_api_v1_career_seniors_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MySenior"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_listing_api_v1_career_seniors_me_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeniorUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MySenior"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    remove_listing_api_v1_career_seniors_me_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {

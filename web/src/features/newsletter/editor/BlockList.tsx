@@ -1,8 +1,9 @@
-// The copy of a section in the editor: paragraphs, bulleted lists, the editors' sign-off and buttons, each a small
-// form of its own, with Add, Move up/down and Remove.
-import { ListBullets, Plus, Signature, TextAlignLeft, CursorClick, type Icon } from '@phosphor-icons/react';
+// The copy of a section in the editor: paragraphs, bulleted lists, the editors' sign-off, buttons and polls (while
+// newsletter.polls is on), each a small form of its own, with Add, Move up/down and Remove.
+import { ChartBar, ListBullets, Plus, Signature, TextAlignLeft, CursorClick, type Icon } from '@phosphor-icons/react';
+import { useAuth } from '../../../auth';
 import { Button, Switch, cx } from '../../../ui';
-import { LIMITS, blankBlock, blankItem, fieldPath, moveByKey, removeByKey, updateByKey, type BlockDraft, type BlockKind, type FieldErrors } from '../lib/draft';
+import { LIMITS, blankBlock, blankItem, fieldPath, firstField, moveByKey, removeByKey, updateByKey, type BlockDraft, type BlockKind, type FieldErrors } from '../lib/draft';
 import { ItemTools, TextBox, TextInput } from './fields';
 
 const BLOCK_KINDS: { type: BlockKind; label: string; add: string; icon: Icon }[] = [
@@ -10,6 +11,7 @@ const BLOCK_KINDS: { type: BlockKind; label: string; add: string; icon: Icon }[]
   { type: 'list', label: 'Bulleted list', add: 'List', icon: ListBullets },
   { type: 'signoff', label: 'Sign-off', add: 'Sign-off', icon: Signature },
   { type: 'cta', label: 'Button', add: 'Button', icon: CursorClick },
+  { type: 'poll', label: 'Poll', add: 'Poll', icon: ChartBar },
 ];
 
 const kindOf = (type: BlockKind) => BLOCK_KINDS.find((k) => k.type === type) ?? BLOCK_KINDS[0];
@@ -65,6 +67,59 @@ function ListItems({ sectionKey, block, errors, onChange }: BlockFormProps & { b
   );
 }
 
+function PollForm({ sectionKey, block, errors, onChange }: BlockFormProps & { block: Extract<BlockDraft, { type: 'poll' }> }) {
+  const setAnswers = (fn: (answers: typeof block.answers) => typeof block.answers) => onChange((b) => (b.type === 'poll' ? { ...b, answers: fn(b.answers) } : b));
+  const answersError = errors[fieldPath.block(sectionKey, block.key, 'answers')];
+  return (
+    <>
+      <TextInput
+        path={fieldPath.block(sectionKey, block.key, 'question')}
+        errors={errors}
+        label="Question"
+        max={LIMITS.heading}
+        placeholder="Which Saturday suits a revision session?"
+        hint="Each student votes once and sees the counts after voting. Nobody sees who voted."
+        value={block.question}
+        onValue={(question) => onChange((b) => (b.type === 'poll' ? { ...b, question } : b))}
+      />
+      <div className="nl-ed-items">
+        <ol className="nl-ed-items__list">
+          {block.answers.map((answer, i) => (
+            <li key={answer.key} className="nl-ed-item">
+              <TextInput
+                path={fieldPath.item(sectionKey, block.key, answer.key)}
+                errors={errors}
+                label={`Answer ${i + 1}`}
+                hideLabel
+                max={LIMITS.pollAnswer}
+                value={answer.text}
+                onValue={(text) => setAnswers((answers) => updateByKey(answers, answer.key, (x) => ({ ...x, text })))}
+                className="nl-ed-item__field"
+              />
+              <ItemTools
+                name={`answer ${i + 1}`}
+                first={i === 0}
+                last={i === block.answers.length - 1}
+                onMove={(dir) => setAnswers((answers) => moveByKey(answers, answer.key, dir))}
+                onRemove={() => setAnswers((answers) => removeByKey(answers, answer.key))}
+                className="nl-ed-item__tools"
+              />
+            </li>
+          ))}
+        </ol>
+        {answersError ? (
+          <p className="nl-ed-error" tabIndex={-1}>
+            {answersError}
+          </p>
+        ) : null}
+        <Button size="sm" variant="ghost" leadingIcon={Plus} disabled={block.answers.length >= LIMITS.pollAnswers} onClick={() => setAnswers((answers) => [...answers, blankItem()])}>
+          Add an answer
+        </Button>
+      </div>
+    </>
+  );
+}
+
 function BlockForm({ sectionKey, block, errors, onChange }: BlockFormProps) {
   const path = (field: string) => fieldPath.block(sectionKey, block.key, field);
   switch (block.type) {
@@ -92,6 +147,8 @@ function BlockForm({ sectionKey, block, errors, onChange }: BlockFormProps) {
       );
     case 'list':
       return <ListItems sectionKey={sectionKey} block={block} errors={errors} onChange={onChange} />;
+    case 'poll':
+      return <PollForm sectionKey={sectionKey} block={block} errors={errors} onChange={onChange} />;
     case 'signoff':
       return (
         <TextInput
@@ -151,10 +208,12 @@ export interface BlockListProps {
 /** A section's blocks, each a small form, with Add, Move and Remove. */
 export function BlockList({ sectionKey, title, blocks, max, errors, path, onChange, onFocus }: BlockListProps) {
   const counts: Partial<Record<BlockKind, number>> = {};
+  const pollsOn = useAuth().featureOn('newsletter.polls');
+  const kinds = BLOCK_KINDS.filter((k) => k.type !== 'poll' || pollsOn);
   const add = (type: BlockKind) => {
     const block = blankBlock(type);
     onChange((list) => [...list, block]);
-    onFocus(block.type === 'list' ? fieldPath.item(sectionKey, block.key, block.items[0]?.key ?? '') : fieldPath.block(sectionKey, block.key, block.type === 'cta' ? 'label' : 'text'));
+    onFocus(block.type === 'list' ? fieldPath.item(sectionKey, block.key, block.items[0]?.key ?? '') : fieldPath.block(sectionKey, block.key, firstField(block)));
   };
   return (
     <div className="nl-ed-blocks">
@@ -195,7 +254,7 @@ export function BlockList({ sectionKey, title, blocks, max, errors, path, onChan
         <span className="nl-ed-add__label" aria-hidden="true">
           Add
         </span>
-        {BLOCK_KINDS.map((k) => (
+        {kinds.map((k) => (
           <Button key={k.type} size="sm" variant="secondary" leadingIcon={k.icon} disabled={blocks.length >= max} onClick={() => add(k.type)} aria-label={`Add a ${k.label.toLowerCase()} to ${title}`}>
             {k.add}
           </Button>
