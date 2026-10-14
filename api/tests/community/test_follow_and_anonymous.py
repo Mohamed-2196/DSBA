@@ -73,8 +73,8 @@ def test_followers_hear_about_answers_and_if_they_chose_replies(
     assert db.scalars(select(EmailOutbox.kind).where(EmailOutbox.user_id == hamad.id)).all() == ["followed_reply"]
     client_for(student).post(f"{API}/forum/threads/{t['id']}/accept", json={"replyId": answer["id"]})
     for person in (layla, hamad):
-        last = notifications_for(db, person)[-1]
-        assert (last.kind, last.title) == ("followed_answer", "“When are the October results out?” has an answer")
+        answers = [n.title for n in notifications_for(db, person) if n.kind == "followed_answer"]
+        assert answers == ["“When are the October results out?” has an answer"]
     # the answer's author hears once, as its author
     assert [n.kind for n in notifications_for(db, classmate)] == ["answer_accepted"]
 
