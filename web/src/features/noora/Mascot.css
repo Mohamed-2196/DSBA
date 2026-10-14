@@ -45,6 +45,8 @@
   -webkit-tap-highlight-color: transparent;
 }
 .noora[data-ready] .noora__button { opacity: 1; }
+/* At least 44 px wide to press, however slim she is drawn (40 px on a phone). */
+.noora__button::before { content: ''; position: absolute; inset: 0 min(0px, calc(50% - 22px)); }
 .noora[data-state='carried'] .noora__button { cursor: grabbing; }
 .noora__button:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: 4px; }
 

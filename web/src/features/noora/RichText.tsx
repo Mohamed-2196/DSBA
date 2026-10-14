@@ -1,8 +1,10 @@
 // Her AI's answer drawn as rich text (rich.ts parses it): headings, lists, code, tables and formulas set by the
 // Hub's KaTeX renderer. What she writes is only ever a React child, never HTML. Links go only to the Hub's own pages;
 // anything else stays as its words.
-import { memo, useMemo, type ReactNode } from 'react';
+import { memo, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { Check, Copy } from '@phosphor-icons/react';
+import { copyText } from '../../lib/share';
 import { TeX, safeInternalPath } from '../../ui';
 import { parseInline, parseRich, type Block, type Inline } from './rich';
 
@@ -35,6 +37,33 @@ function inline(tok: Inline, key: number, onFollow: () => void): ReactNode {
   }
 }
 
+const COPIED_FOR = 1600; // ms the button says it worked
+
+/** A code block with its language and a copy button. */
+function CodeBlock({ lang, text }: { lang: string; text: string }) {
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return undefined;
+    const done = setTimeout(() => setCopied(false), COPIED_FOR);
+    return () => clearTimeout(done);
+  }, [copied]);
+  const CopyIcon = copied ? Check : Copy;
+  return (
+    <div className="nr-code">
+      <div className="nr-code__bar">
+        <span className="nr-code__lang">{lang || 'Code'}</span>
+        <button type="button" className="nr-code__copy" onClick={() => void copyText(text).then(setCopied)} data-hub="noora-copy-code">
+          <CopyIcon aria-hidden="true" weight={copied ? 'bold' : 'regular'} />
+          <span>{copied ? 'Copied' : 'Copy code'}</span>
+        </button>
+      </div>
+      <pre tabIndex={0} aria-label={lang ? `Code, ${lang}` : 'Code'}>
+        <code>{text}</code>
+      </pre>
+    </div>
+  );
+}
+
 function block(b: Block, key: number, onFollow: () => void): ReactNode {
   switch (b.type) {
     case 'heading':
@@ -65,12 +94,7 @@ function block(b: Block, key: number, onFollow: () => void): ReactNode {
       return b.type === 'ul' ? <ul key={key}>{items}</ul> : <ol key={key} start={b.start === 1 ? undefined : b.start}>{items}</ol>;
     }
     case 'code':
-      return (
-        <pre key={key} className="nr-code" tabIndex={0} aria-label={b.lang ? `Code, ${b.lang}` : 'Code'}>
-          {b.lang ? <span className="nr-code__lang">{b.lang}</span> : null}
-          <code>{b.text}</code>
-        </pre>
-      );
+      return <CodeBlock key={key} lang={b.lang} text={b.text} />;
     case 'math':
       // A formula still being written is shown as it is, not set half-finished.
       return b.open ? (

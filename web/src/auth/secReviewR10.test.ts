@@ -1,46 +1,45 @@
-// Security review, rounds 5 to 9 (docs/reviews/security.md), SEC-31. Passes while the finding is real: Mini Noora's
-// saved conversations outlive sign-out on a shared computer. Turn it around once the key is cleared on sign-out.
-import { afterEach, beforeEach, expect, it } from "vitest";
-import { RECENT_KEY } from "../features/noora/saved";
-import { clearPersonalStorage } from "./queries";
+// Security review, rounds 5 to 9 (docs/reviews/security.md), SEC-31: Noora's saved conversations must not outlive
+// sign-out on a shared computer, in localStorage (every chat) or sessionStorage (the tab's open chat).
+import { afterEach, beforeEach, expect, it } from 'vitest';
+import { CHATS_KEY, CURRENT_KEY } from '../features/noora/saved';
+import { clearPersonalStorage } from './queries';
 
-const store = new Map<string, string>();
-const storage = {
-  get length() {
-    return store.size;
-  },
-  key: (i: number) => [...store.keys()][i] ?? null,
-  getItem: (k: string) => store.get(k) ?? null,
-  setItem: (k: string, v: string) => void store.set(k, String(v)),
-  removeItem: (k: string) => void store.delete(k),
-};
+function memory() {
+  const store = new Map<string, string>();
+  return {
+    get length() {
+      return store.size;
+    },
+    key: (i: number) => [...store.keys()][i] ?? null,
+    getItem: (k: string) => store.get(k) ?? null,
+    setItem: (k: string, v: string) => void store.set(k, String(v)),
+    removeItem: (k: string) => void store.delete(k),
+  };
+}
+let local = memory();
+let session = memory();
 const g = globalThis as unknown as {
-  window?: EventTarget & { localStorage: typeof storage };
+  window?: EventTarget & { localStorage: typeof local; sessionStorage: typeof session };
 };
 
 beforeEach(() => {
-  store.clear();
-  g.window = Object.assign(new EventTarget(), { localStorage: storage });
+  local = memory();
+  session = memory();
+  g.window = Object.assign(new EventTarget(), { localStorage: local, sessionStorage: session });
 });
 
 afterEach(() => {
   delete g.window;
 });
 
-it("SEC-31: signing out leaves Mini Noora’s recent chats in localStorage", () => {
-  storage.setItem("hub.mine.grades", "{}");
-  storage.setItem(
-    RECENT_KEY,
-    JSON.stringify([
-      {
-        id: "chat-1",
-        at: 1,
-        title: "Is my resit fee refundable?",
-        messages: [],
-      },
-    ]),
-  );
+it('SEC-31: signing out removes Noora’s chats from both storage areas', () => {
+  local.setItem('theme', '"dark"');
+  local.setItem(CHATS_KEY, JSON.stringify([{ id: 'chat-1', at: 1, title: 'Is my resit fee refundable?', messages: [] }]));
+  session.setItem(CURRENT_KEY, JSON.stringify({ id: 'chat-1', messages: [] }));
+  session.setItem('hub.other', '1');
   clearPersonalStorage();
-  expect(storage.getItem("hub.mine.grades")).toBeNull(); // personal keys go
-  expect(storage.getItem(RECENT_KEY)).toContain("resit fee"); // her conversations stay for the next person
+  expect(local.getItem(CHATS_KEY)).toBeNull();
+  expect(session.getItem(CURRENT_KEY)).toBeNull();
+  expect(local.getItem('theme')).toBe('"dark"'); // device settings stay
+  expect(session.getItem('hub.other')).toBe('1');
 });

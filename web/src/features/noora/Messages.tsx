@@ -1,11 +1,11 @@
 // The conversation as it is drawn: her answers as readable rich text, the student's questions as quiet lines on the
-// right. No bubbles and no faces beside each message: her face is in the card's header. Each answer shows its time
-// on hover or focus and can be copied; her last one can be asked again. Before anything is asked, she says hello
-// with questions for the page. The list follows a streaming answer only while it is scrolled to the bottom; scrolled
-// up, it stays put and offers "Jump to latest".
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+// right. No bubbles and no faces beside each message. Each answer shows its time on hover or focus and can be copied;
+// her last one can be asked again, and a question can be edited and sent again. Before anything is asked, the card
+// shows her hello with questions for the page (the full page passes its own welcome). A question that is sent goes to
+// the top of the list and her answer arrives under it without moving the list.
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowClockwise, ArrowDown, ArrowRight, Books, CalendarDots, Check, Copy, FileText, PlayCircle, SquaresFour, type Icon } from '@phosphor-icons/react';
+import { ArrowClockwise, ArrowDown, ArrowRight, Books, CalendarDots, Check, Copy, FileText, PencilSimple, PlayCircle, SquaresFour, type Icon } from '@phosphor-icons/react';
 import { appUrl, copyText } from '../../lib/share';
 import { formatClock } from '../../lib/dates';
 import { IconButton, cx, safeInternalPath } from '../../ui';
@@ -177,15 +177,17 @@ const NooraMessage = memo(function NooraMessage({ message, shown, isNew, onRegen
 interface MyMessageProps {
   message: MyMessageData;
   isNew: boolean;
-  /** a picture has loaded (the list keeps to the newest message) */
+  /** a picture has loaded (the list may need to make room) */
   onLoad: () => void;
+  /** put it back in the box to change it (null: it can't be edited now) */
+  onEdit: ((message: MyMessageData) => void) | null;
 }
 
-const MyMessage = memo(function MyMessage({ message, isNew, onLoad }: MyMessageProps) {
+const MyMessage = memo(function MyMessage({ message, isNew, onLoad, onEdit }: MyMessageProps) {
   const pictures = message.attachments.filter((a) => a.kind === 'image');
   const files = message.attachments.filter((a) => a.kind !== 'image');
   return (
-    <div className={cx('nc-turn', 'nc-turn--me', isNew && 'is-new')} role="group" aria-label="You" data-hub="noora-message" data-from="me">
+    <div className={cx('nc-turn', 'nc-turn--me', isNew && 'is-new')} role="group" aria-label="You" data-hub="noora-message" data-from="me" data-mid={message.id}>
       {pictures.map((file) => (
         <Shot key={file.id} file={file} onLoad={onLoad} />
       ))}
@@ -197,15 +199,25 @@ const MyMessage = memo(function MyMessage({ message, isNew, onLoad }: MyMessageP
           {message.text}
         </p>
       ) : null}
+      {onEdit && message.text ? (
+        <div className="nc-meta nc-meta--me">
+          <IconButton size="sm" className="nc-copy" label="Edit and resend" icon={PencilSimple} tooltip tooltipSide="top" onClick={() => onEdit(message)} data-hub="noora-edit" />
+        </div>
+      ) : null}
     </div>
   );
 });
 
 /** Before anything is asked: her hello, and questions about the page the student is on. */
-function Hello({ greeting, chips, onSuggest }: { greeting: Reply; chips: readonly string[]; onSuggest: (text: string) => void }) {
+function Hello({ greeting, chips, paused, onSuggest }: { greeting: Reply; chips: readonly string[]; paused: string | null; onSuggest: (text: string) => void }) {
   return (
     <div className="nc-hello" data-hub="noora-empty">
       <p className="nc-hello__text">{greeting.text}</p>
+      {paused ? (
+        <p className="nc-hello__paused" data-hub="noora-ai-paused">
+          {paused}
+        </p>
+      ) : null}
       <Suggestions title="For this page" list={chips} onPick={onSuggest} />
     </div>
   );
@@ -215,61 +227,105 @@ export interface MessageListProps {
   greeting: Reply;
   messages: Message[];
   pending: Pending | null;
+  /** the conversation on screen: another one starts at its newest message */
+  conversation: string;
   /** shown or not (the list goes back to the newest message when it is shown again) */
   open: boolean;
   /** reduced motion */
   calm: boolean;
   /** questions about the page the student is on */
   pageChips: readonly string[];
+  /** why her AI isn't answering, said once in the empty chat (null: it is) */
+  paused?: string | null;
+  /** what the empty chat shows instead of her hello (the full page's welcome) */
+  empty?: ReactNode;
   /** messages with an id above this one arrive with a small entrance */
   newFrom: number;
   /** a suggestion was chosen */
   onSuggest: (text: string) => void;
   /** ask the last question again */
   onRegenerate: () => void;
+  /** a question goes back in the box to be changed and sent again (omit: questions can't be edited from the list) */
+  onEdit?: (message: MyMessageData) => void;
   /** a "Where to look" link was followed */
   onFollow: () => void;
+  className?: string;
 }
 
-/** The scrolling list. It keeps to the newest message while the student is there. */
-export const MessageList = memo(function MessageList({ greeting, messages, pending, open, calm, pageChips, newFrom, onSuggest, onRegenerate, onFollow }: MessageListProps) {
+const ROOM_ABOVE = 12; // px left above a question that is scrolled to the top
+
+/**
+ * The scrolling list. A question the student sends goes to the top, and her answer arrives below it without moving
+ * the list: they read from its start, at their own pace (UX review UX-29). A conversation that is opened, or shown
+ * again, starts at its newest message. "Jump to latest" shows while the end is out of view.
+ */
+export const MessageList = memo(function MessageList(props: MessageListProps) {
+  const { greeting, messages, pending, conversation, open, calm, pageChips, paused = null, empty = null, newFrom, onSuggest, onRegenerate, onEdit, onFollow, className } = props;
   const list = useRef<HTMLDivElement>(null);
-  const stuck = useRef(true); // at the newest message: a growing answer is followed
+  const room = useRef<HTMLDivElement>(null);
+  const anchor = useRef<number | null>(null); // the question kept at the top while its answer arrives
   const [away, setAway] = useState(false);
-  const toNewest = useCallback(() => {
-    if (list.current) list.current.scrollTop = list.current.scrollHeight;
-  }, []);
-  const onScroll = useCallback(() => {
+
+  const checkAway = useCallback(() => {
     const el = list.current;
     if (!el) return;
-    const near = el.scrollHeight - el.scrollTop - el.clientHeight <= NEAR_BOTTOM;
-    stuck.current = near;
-    setAway(!near);
+    setAway(el.scrollHeight - el.scrollTop - el.clientHeight > NEAR_BOTTOM);
   }, []);
-  const onPicture = useCallback(() => {
-    if (stuck.current) toNewest();
-  }, [toNewest]);
+  /** Room under the answer, so the question can sit at the top even while the answer is short. */
+  const makeRoom = useCallback(() => {
+    const el = list.current;
+    const spacer = room.current;
+    if (!el || !spacer) return;
+    const question = anchor.current == null ? null : el.querySelector<HTMLElement>(`[data-mid="${anchor.current}"]`);
+    spacer.style.height = '0px';
+    if (!question) return;
+    const below = el.scrollHeight - question.offsetTop + ROOM_ABOVE;
+    spacer.style.height = `${Math.max(0, el.clientHeight - below)}px`;
+  }, []);
+  const toNewest = useCallback(() => {
+    anchor.current = null;
+    makeRoom();
+    if (list.current) list.current.scrollTop = list.current.scrollHeight;
+  }, [makeRoom]);
   const jump = () => {
-    stuck.current = true;
     setAway(false);
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: calm ? 'auto' : 'smooth' });
   };
 
-  // A question the student has just asked is always shown, with the answer that follows it.
   const lastMine = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) if (messages[i].from === 'me') return messages[i].id;
     return 0;
   }, [messages]);
+
+  // Another conversation, or the list shown again: its newest message.
+  const shownFor = useRef({ conversation, open, lastMine });
   useLayoutEffect(() => {
-    stuck.current = true;
-  }, [lastMine]);
-  // The empty chat starts at its top (her hello); a conversation keeps to its newest message while the student is
-  // there, and stays where it is when they have scrolled up to read.
+    const before = shownFor.current;
+    shownFor.current = { conversation, open, lastMine };
+    if (!open) return;
+    if (before.conversation !== conversation || !before.open) {
+      toNewest();
+      return;
+    }
+    // A question just sent: to the top, with room for her answer under it.
+    if (lastMine !== before.lastMine && lastMine > newFrom) {
+      anchor.current = lastMine;
+      makeRoom();
+      const el = list.current;
+      const question = el?.querySelector<HTMLElement>(`[data-mid="${lastMine}"]`);
+      if (el && question) el.scrollTo({ top: Math.max(0, question.offsetTop - ROOM_ABOVE), behavior: calm ? 'auto' : 'smooth' });
+    }
+  }, [conversation, open, lastMine, newFrom, calm, toNewest, makeRoom]);
+  // While the answer arrives: keep the room right, never move the list.
   useLayoutEffect(() => {
-    if (!open || (!messages.length && !pending)) return;
-    if (stuck.current) toNewest();
-    else onScroll();
-  }, [messages, pending, open, toNewest, onScroll]);
+    if (!open) return;
+    makeRoom();
+    checkAway();
+  }, [messages, pending, open, makeRoom, checkAway]);
+  // On first showing: the newest message.
+  useLayoutEffect(() => {
+    toNewest();
+  }, [toNewest]);
 
   const typing = pending && pending.phase === 'typing' ? pending : null;
   const resting = !pending || pending.phase === 'done';
@@ -282,14 +338,15 @@ export const MessageList = memo(function MessageList({ greeting, messages, pendi
     return (own ?? pageChips).filter((s) => !asked.has(s.toLowerCase())).slice(0, AFTER_MAX);
   }, [messages, own, pageChips]);
   const canRegenerate = resting && last?.from === 'noora' && messages.some((m) => m.from === 'me');
+  const editable = resting && onEdit ? onEdit : null;
 
   return (
-    <div className="nc-scroll">
-      <div ref={list} className="nc-messages" onScroll={onScroll} data-hub="noora-messages">
-        {messages.length === 0 && !pending ? <Hello greeting={greeting} chips={pageChips} onSuggest={onSuggest} /> : null}
+    <div className={cx('nc-scroll', className)}>
+      <div ref={list} className="nc-messages" onScroll={checkAway} data-hub="noora-messages">
+        {messages.length === 0 && !pending ? (empty ?? <Hello greeting={greeting} chips={pageChips} paused={paused} onSuggest={onSuggest} />) : null}
         {messages.map((m) =>
           m.from === 'me' ? (
-            <MyMessage key={m.id} message={m} isNew={m.id > newFrom} onLoad={onPicture} />
+            <MyMessage key={m.id} message={m} isNew={m.id > newFrom} onLoad={makeRoom} onEdit={editable} />
           ) : (
             <NooraMessage
               key={m.id}
@@ -303,6 +360,7 @@ export const MessageList = memo(function MessageList({ greeting, messages, pendi
         )}
         {pending && pending.phase === 'thinking' ? <Thinking label={pending.label} /> : null}
         {resting && last?.from === 'noora' ? <Suggestions className="nc-suggest--after" title={own ? 'Try asking' : 'For this page'} list={after} onPick={onSuggest} /> : null}
+        <div ref={room} className="nc-room" aria-hidden="true" />
       </div>
       {away && messages.length ? (
         <button type="button" className="nc-jump" onClick={jump} data-hub="noora-jump">

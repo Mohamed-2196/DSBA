@@ -5,7 +5,7 @@ import type { Point, Side } from './layout';
 import { POSES, poseUrl, type Figure, type Pose } from './sprites';
 import './Mascot.css';
 
-const HINT = 'Hi, I’m Mini Noora. Ask me about your modules, exams or this page.';
+const HINT = 'Hi, I’m Noora. Ask me anything you’re studying, from a formula to a revision plan.';
 
 export type MascotState = 'rest' | 'pressed' | 'carried' | 'dropped';
 export type Motion = 'breathe' | 'wave' | 'think';

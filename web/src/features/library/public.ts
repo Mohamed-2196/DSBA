@@ -13,6 +13,7 @@
 //   <DailyQuestion moduleId moduleName examDays day className />
 //                                        Home's past question a day before the next exam; it gates itself (switches,
 //                                        six weeks, enough tags) and renders nothing otherwise
+//   useModuleQuestions(moduleId)       a module's past exam questions tagged by chapter (Noora's full page asks about one)
 //   LIBRARY_KINDS, LIBRARY_EXAM_KINDS   every kind in the library's order; the kinds that carry an exam year and zone
 import { createElement, lazy, Suspense, useCallback, useState, type ReactNode } from 'react';
 import { showsUpload, useAuth } from '../../auth';
@@ -20,6 +21,7 @@ import type { CohortYear } from '../../state';
 import { Skeleton } from '../../ui';
 
 export { useRecentFiles } from './api';
+export { useModuleQuestions } from './papers';
 export { itemPath as libraryItemPath } from './api';
 export { EXAM_KINDS as LIBRARY_EXAM_KINDS, KINDS as LIBRARY_KINDS, kindLabel as libraryKindLabel } from './kinds';
 export { UploadsQueue } from './UploadsQueue';

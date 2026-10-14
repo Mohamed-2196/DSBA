@@ -24,6 +24,7 @@
 /* ── The conversation ────────────────────────────────────────────────────────────────────────── */
 .nc-scroll { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .nc-messages {
+  position: relative; /* the questions' offsetTop is measured from here */
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
@@ -63,17 +64,6 @@
   .nc-jump { min-height: 44px; padding: 0 16px; }
 }
 
-/* Her AI is paused: said once, plainly, above the conversation. */
-.nc-banner {
-  flex: 0 0 auto;
-  margin: 10px 12px 0;
-  padding: 8px 12px;
-  border-radius: var(--r-control);
-  background: var(--highlight-soft);
-  color: var(--ink);
-  font-size: var(--fs-12);
-  line-height: 1.45;
-}
 .nc-turn.is-new { animation: nc-arrive var(--dur-slow) var(--ease) both; }
 @keyframes nc-arrive { from { opacity: 0; transform: translateY(6px); } }
 
@@ -142,22 +132,43 @@
 .nr a:hover { text-decoration-color: currentColor; }
 .nr code { font-size: 0.86em; overflow-wrap: anywhere; }
 .nr strong { font-weight: var(--fw-semibold); }
-/* Code: its own scrolling box, so a long line never widens the chat. */
+/* Code: a bar with its language and a copy button, and its own scrolling box, so a long line never widens the chat. */
 .nr-code {
-  position: relative;
   max-width: 100%;
-  overflow-x: auto;
-  padding: 10px 12px;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--r-control);
   background: var(--surface-2);
+}
+.nr-code__bar { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 4px 0 12px; border-bottom: 1px solid var(--line); }
+.nr-code__lang { flex: 1 1 auto; color: var(--ink-2); font-family: var(--font-sans); font-size: 11px; font-weight: var(--fw-semibold); text-transform: lowercase; }
+.nr-code__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: var(--r-xs);
+  color: var(--ink-2);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: var(--fw-semibold);
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.nr-code__copy:hover { background: var(--surface); color: var(--ink); }
+.nr-code__copy svg { font-size: 14px; }
+@media (pointer: coarse) {
+  .nr-code__copy { min-height: 44px; padding: 0 12px; }
+}
+.nr-code pre {
+  overflow-x: auto;
+  padding: 10px 12px;
   font-size: 12.5px;
   line-height: 1.55;
   white-space: pre;
   overflow-wrap: normal;
 }
-.nr-code code { padding: 0; background: none; font-size: inherit; }
-.nr-code__lang { display: block; margin-bottom: 4px; color: var(--ink-2); font-family: var(--font-sans); font-size: 11px; font-weight: var(--fw-semibold); }
+.nr-code code { padding: 0; background: none; font-size: inherit; overflow-wrap: normal; }
 /* A formula on its own line, and a table: they scroll inside themselves when they are wider than the chat. */
 .nr-math { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 4px 2px; }
 .nr-math .ui-tex--display { margin: 0; }
@@ -167,7 +178,7 @@
 .nr-table th, .nr-table td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; overflow-wrap: normal; }
 .nr-table th { background: var(--surface-2); color: var(--ink); font-weight: var(--fw-semibold); white-space: nowrap; }
 .nr-table tr:last-child td { border-bottom: 0; }
-.nr-code:focus-visible, .nr-math:focus-visible, .nr-table:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: 2px; }
+.nr-code pre:focus-visible, .nr-math:focus-visible, .nr-table:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: 2px; }
 .nr > .nc-caret:last-child { margin-top: 0; }
 
 /* The student's question: a quiet line on the right. */
@@ -191,6 +202,7 @@
 @media (hover: none) {
   .nc-meta { opacity: 1; }
 }
+.nc-meta--me { justify-content: flex-end; margin: 0 -6px 0 0; }
 .nc-time { padding-left: 6px; color: var(--ink-2); font-size: 11px; line-height: 1; }
 .nc-meta .nc-copy.ui-iconbutton { color: var(--ink-2); }
 
@@ -225,6 +237,10 @@
 
 /* ── Before anything is asked ────────────────────────────────────────────────────────────────── */
 .nc-hello { display: flex; flex-direction: column; gap: 20px; }
+/* Her AI is paused: said once, in the empty chat, never pinned over her answers. */
+.nc-hello__paused { max-width: 46ch; color: var(--ink-2); font-size: var(--fs-12); line-height: 1.5; }
+/* Room under the newest answer, so the question it answers can sit at the top of the list (MessageList). */
+.nc-room { flex: 0 0 auto; margin-top: -18px; pointer-events: none; }
 .nc-hello__text {
   max-width: 34ch;
   color: var(--ink);
@@ -588,9 +604,11 @@ a.nc-card:hover .nc-card__go { color: var(--cobalt); transform: translateX(2px);
   .nc-drop, .nc-meta, .nc-card__go, .nc-suggest__go, .nc-field, .nc-tool, .nc-recent__item, .nc-notice__retry { transition: none; }
 }
 
-/* A short screen (a phone on its side): the conversation keeps as much room as it can. */
+/* A short screen (a phone on its side): the conversation keeps as much room as it can. The note under the composer
+   is in the card's "…" menu instead. */
 @media (max-height: 480px) {
   .nc-composer { gap: 6px; padding-top: 6px; }
-  .nc-foot { overflow: hidden; padding-bottom: 6px; text-overflow: ellipsis; white-space: nowrap; }
-  .nc-banner { margin-top: 6px; padding: 6px 10px; }
+  .nc-foot { display: none; }
+  .nc-head { padding-block: 4px; }
+  .nc-messages { padding-block: 12px 10px; }
 }

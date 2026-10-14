@@ -33,6 +33,8 @@ export interface Anchor {
 export interface ChatPlace {
   /** a sheet along the bottom (phones), else a card beside her */
   sheet: boolean;
+  /** the sheet covers the whole window (a short screen): she steps out of sight */
+  full: boolean;
   left: number;
   top: number;
   width: number;
@@ -42,7 +44,7 @@ export interface ChatPlace {
 }
 
 const EDGE = 8; // she never touches the edge of the window
-const HOME_LIFT = { desktop: 24, phone: 12 }; // where she starts: bottom right, just above the floor
+const HOME_LIFT = { desktop: 16, phone: 4 }; // where she starts: bottom right, on the floor
 const CHAT = { width: 384, height: 560, gap: 16, edge: 12 };
 const SHEET = { height: 560, headroom: 20 }; // phones: the chat is a sheet and she stands on top of it
 const CLEAR = 8; // px she keeps from a control she must not cover
@@ -108,11 +110,13 @@ export function avoid(point: Point, view: View, box: Box, controls: readonly Rec
  * Wider screens: a card beside her, on the side with room (it stays on the side it is on for as long as it fits),
  * its bottom level with her feet, always inside her band. With no room either side, above or below her.
  * Phones: a sheet along the bottom, above the tab bar, with room for her to stand on top of it.
+ * Short screens (a phone on its side): the whole window, from its top to the floor, so the conversation has room.
  */
-export function placeChat(point: Point, view: View, box: Box, { phone = false, prefer = null }: { phone?: boolean; prefer?: Side | null } = {}): ChatPlace {
+export function placeChat(point: Point, view: View, box: Box, { phone = false, short = false, prefer = null }: { phone?: boolean; short?: boolean; prefer?: Side | null } = {}): ChatPlace {
+  if (short) return { sheet: true, full: true, left: 0, top: 0, width: view.w, height: Math.max(0, view.floor), side: 'left' };
   if (phone) {
     const height = Math.round(clamp(view.floor - view.ceiling - box.h - SHEET.headroom, 260, SHEET.height));
-    return { sheet: true, left: 0, top: view.floor - height, width: view.w, height, side: 'left' };
+    return { sheet: true, full: false, left: 0, top: view.floor - height, width: view.w, height, side: 'left' };
   }
 
   const width = Math.min(CHAT.width, view.w - 2 * CHAT.edge);
@@ -136,6 +140,7 @@ export function placeChat(point: Point, view: View, box: Box, { phone = false, p
   }
   return {
     sheet: false,
+    full: false,
     left: Math.round(clamp(left, CHAT.edge, view.w - width - CHAT.edge)),
     top: Math.round(clamp(top, band.top, band.bottom - height)),
     width,

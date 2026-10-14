@@ -1,5 +1,5 @@
 // Navigation config for the shell (rail, mobile tab bar, More drawer).
-import { Books, Calculator, CalendarDots, ChatsCircle, Compass, GraduationCap, HandWaving, House, Kanban, Newspaper, NotePencil, SquaresFour, Bank, type Icon } from '@phosphor-icons/react';
+import { Books, Calculator, CalendarDots, ChatTeardropText, ChatsCircle, Compass, GraduationCap, HandWaving, House, Kanban, Newspaper, NotePencil, SquaresFour, Bank, type Icon } from '@phosphor-icons/react';
 import { MYCLASS_URL, UOL_PORTAL_URL } from '../data/people';
 import type { Feature } from '../auth';
 import type { BrandLogoName } from '../ui';
@@ -31,6 +31,7 @@ export interface ExternalLink {
 export const NAV: NavItem[] = [
   { id: 'home', label: 'Home', to: '/', icon: House, end: true },
   { id: 'modules', label: 'Modules', to: '/modules', icon: SquaresFour },
+  { id: 'noora', label: 'Noora', to: '/noora', icon: ChatTeardropText, isNew: true, feature: 'noora' },
   { id: 'library', label: 'Library', to: '/library', icon: Books, feature: 'library' },
   { id: 'newsletter', label: 'Newsletter', to: '/newsletter', icon: Newspaper, feature: 'newsletter' },
   { id: 'forum', label: 'Forum', to: '/forum', icon: ChatsCircle, isNew: true, feature: 'forum' },
@@ -49,6 +50,6 @@ export const EXTERNAL_LINKS: ExternalLink[] = [
 ];
 
 /** Mobile bottom tabs (+ "More"). */
-export const MOBILE_TAB_IDS = ['home', 'modules', 'library', 'forum'];
+export const MOBILE_TAB_IDS = ['home', 'modules', 'noora', 'library', 'forum'];
 /** Routes that live under "More" on mobile. */
 export const MORE_IDS = ['newsletter', 'career', 'calendar', 'grades', 'notes', 'board', 'requests'];

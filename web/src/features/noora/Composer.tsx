@@ -1,10 +1,10 @@
-import { useLayoutEffect, type RefObject } from 'react';
+import { useLayoutEffect, type ReactNode, type RefObject } from 'react';
 import { ArrowUp, Browser, Exam, NotePencil, Paperclip, Plus, Stop, X, type Icon } from '@phosphor-icons/react';
 import { IconButton, Tooltip, cx } from '../../ui';
 import { FileChip } from './Attachment';
 import type { Attachment } from './files';
 
-const TALLEST = 132; // px: the box grows with what is typed, up to about five lines
+const TALLEST = { card: 132, page: 220 }; // px: the box grows with what is typed, up to about five (card) or nine lines
 export const QUESTION_MAX = 2000; // characters of a question (the API's limit)
 const COUNT_FROM = 1600; // characters typed before the count shows
 
@@ -61,6 +61,15 @@ export interface ComposerProps {
   /** up arrow in an empty box: edit the last question */
   onEditLast: () => void;
   onCancelEdit: () => void;
+  /** the card's slim composer, or the full page's large one */
+  size?: 'card' | 'page';
+  placeholder?: string;
+  /** the text box's accessible name */
+  label?: string;
+  /** more of what her AI can see (the full page's added context), before the page chips */
+  context?: ReactNode;
+  /** more controls after "Attach" (the full page's "Add context") */
+  tools?: ReactNode;
 }
 
 interface SeenProps {
@@ -74,7 +83,7 @@ interface SeenProps {
 }
 
 /** One thing her AI can see, with a button to take it off. */
-function Seen({ icon: SeenIcon, label, title, removeLabel, onRemove, hub, removeHub }: SeenProps) {
+export function Seen({ icon: SeenIcon, label, title, removeLabel, onRemove, hub, removeHub }: SeenProps) {
   return (
     <li className="nc-see" data-hub={hub} title={title}>
       <SeenIcon className="nc-see__icon" aria-hidden="true" weight="duotone" />
@@ -94,7 +103,8 @@ function Seen({ icon: SeenIcon, label, title, removeLabel, onRemove, hub, remove
  */
 export function Composer(props: ComposerProps) {
   const { inputRef, draft, onDraft, files, note, pageChoice = null, noteChoice = null, paperChoice = null, busy, editing } = props;
-  const { onAttach, onRemove, onSend, onStop, onEditLast, onCancelEdit } = props;
+  const { onAttach, onRemove, onSend, onStop, onEditLast, onCancelEdit, size = 'card', placeholder = 'Ask about a module, a topic or an exam', label = 'Message Mini Noora', context = null, tools = null } = props;
+  const tallest = TALLEST[size];
   const length = draft.trim().length;
   const over = length > QUESTION_MAX;
   const ready = !busy && !over && (length > 0 || files.length > 0);
@@ -104,8 +114,8 @@ export function Composer(props: ComposerProps) {
     if (!box) return;
     box.style.height = 'auto';
     // scrollHeight leaves the border out; the box's height (border-box) includes it.
-    box.style.height = `${Math.min(box.scrollHeight + box.offsetHeight - box.clientHeight, TALLEST)}px`;
-  }, [draft, inputRef]);
+    box.style.height = `${Math.min(box.scrollHeight + box.offsetHeight - box.clientHeight, tallest)}px`;
+  }, [draft, inputRef, tallest]);
 
   const remove = (file: Attachment) => (
     <button type="button" className="nc-tray__remove" aria-label={`Remove ${file.name}`} onClick={() => onRemove(file)}>
@@ -113,12 +123,13 @@ export function Composer(props: ComposerProps) {
     </button>
   );
 
-  const sees = Boolean(pageChoice || paperChoice || noteChoice?.checked);
+  const sees = Boolean(context || pageChoice || paperChoice || noteChoice?.checked);
 
   return (
-    <div className="nc-composer">
+    <div className={cx('nc-composer', size === 'page' && 'nc-composer--page')}>
       {sees ? (
-        <ul role="list" className="nc-sees" aria-label="What Mini Noora can see">
+        <ul role="list" className="nc-sees" aria-label="What Noora can see">
+          {context}
           {pageChoice?.shared ? (
             <Seen
               icon={Browser}
@@ -163,7 +174,7 @@ export function Composer(props: ComposerProps) {
 
       {editing ? (
         <p className="nc-editing" data-hub="noora-editing">
-          <span>Editing your last question</span>
+          <span>Editing your question: sending it replaces it and her answer</span>
           <button type="button" className="nc-editing__cancel" onClick={onCancelEdit}>
             Cancel
           </button>
@@ -204,8 +215,8 @@ export function Composer(props: ComposerProps) {
           className="nc-input"
           rows={1}
           value={draft}
-          placeholder="Ask about a module, a topic or an exam"
-          aria-label="Message Mini Noora"
+          placeholder={placeholder}
+          aria-label={label}
           aria-describedby={length >= COUNT_FROM ? 'nc-count' : undefined}
           aria-invalid={over || undefined}
           dir="auto"
@@ -255,6 +266,7 @@ export function Composer(props: ComposerProps) {
               <Paperclip aria-hidden="true" />
             </label>
           </Tooltip>
+          {tools}
           {noteChoice ? (
             <label className={cx('nc-tool', 'nc-toggle', noteChoice.checked && 'is-on')} title={`“${noteChoice.title}”`} data-hub="noora-include-note">
               <input type="checkbox" className="visually-hidden" checked={noteChoice.checked} onChange={(e) => noteChoice.onChange(e.target.checked)} />
