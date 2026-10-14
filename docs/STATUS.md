@@ -50,7 +50,8 @@ ideas except IDEA-22, which waits for R-8):
   paces (2 s) and waits the block out, and a re-run picks up the rest. Skipped: 8 IS2184 videos, one 60 MB PDF.
 - **Local database:** SEC-26 edited migration 0006 (`answering_since`); apply that column by hand on the local
   database rather than rebuilding, to keep the import.
-- **Open question for Mohamed:** what "RTC" means in paper names (RTC papers get no zone for now).
+- **RTC papers:** RTC (Recognised Teaching Centre) is a zone of its own beside A and B, read from file names and
+  shown by sitting. After merging, run `python -m app.cli exam-meta` to give the imported RTC files their zone.
 
 **Round 4.** Each builder on its own branch and worktree; one review per branch, just before it merges.
 

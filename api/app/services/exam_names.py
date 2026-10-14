@@ -1,5 +1,5 @@
-"""What a past paper's file name says about it: the year it was sat, its session and zone (or RTC), and whether it is the
-examiners' report or the worked solutions rather than the paper itself.
+"""What a past paper's file name says about it: the year it was sat, its session and zone (zone A, zone B or RTC), and
+whether it is the examiners' report or the worked solutions rather than the paper itself.
 
 The Drive import (python -m app.cli import-drive) files everything in a module's past-papers folder as a past paper,
 and the papers in its VLE folder too, and reads the rest from each file's name, so the library's sittings and its
