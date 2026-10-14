@@ -39,9 +39,16 @@ chain: 0001-0006, 0008 search, 0009 board plans, 0011 alerts, 0010 forum, 0007 p
 is still open), IDEA-9, 10, 11, 15, 18, 19, and RTC as a paper variant ("RTC" = Recognised Teaching Centre; not
 necessarily BIBF's, so labelled just "RTC"). Checks green (API 1081, web 591). Migrations: ... 0007, 0012, 0014, 0015.
 
-**Round 7** (approved 2026-10-14): IDEA-27 a question a day (`round7/daily`, also Noora's budget default to $25 a
-month), IDEA-36/37 results day and projected class (`round7/results`), IDEA-38/39 you asked, we did, and the reps'
-gaps screen (`round7/reps`). IDEA-25, 26, 28-35 are proposed, not approved.
+**Round 7: merged 2026-10-14.** IDEA-27, 36, 37, 38, 39; Noora's budget defaults to $25 a month.
+
+**Round 8: merged 2026-10-14** (Mohamed's design feedback, see memory and `docs/design/asset-prompts.md`):
+- Home is blocks the student can show, hide and reorder; no pulse line, no UoL/BIBF logos.
+- Lesson progress is opt in (`trackProgress`, off by default); turning it off hides saved progress, keeps it.
+- The draggable Mini Noora is back with a compact chat card; the docked column is gone.
+- **Waiting on Mohamed:** the generated assets (Hub lockup, 16 module icons, Noora refresh, spot illustrations) in
+  `web/public/brand/incoming/` per its README; then wire them in.
+- Test accounts (local): mohamed.admin@example.com (admin), rami.rep@example.com (rep), sara.student@example.com
+  (Year 2); codes in Mailpit.
 
 - **Drive import:** 105 files in. Google blocks the network for "automated queries" after bursts; the importer now
   paces (2 s) and waits the block out, and a re-run picks up the rest. Skipped: 8 IS2184 videos, one 60 MB PDF.
