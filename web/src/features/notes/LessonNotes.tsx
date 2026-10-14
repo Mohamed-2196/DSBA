@@ -12,24 +12,23 @@ import './Notes.css';
 
 export interface LessonNotesProps {
   moduleId: string;
-  chapter: number;
-  video: number;
+  lessonId: string;
 }
 
-export function LessonNotes({ moduleId, chapter, video }: LessonNotesProps) {
+export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
   const { me, featureOn } = useAuth();
   const on = !!me && !me.needsProfile && featureOn('notes');
-  const notes = useLessonNotes(moduleId, chapter, video, { enabled: on });
+  const notes = useLessonNotes(moduleId, lessonId, { enabled: on });
   const create = useCreateNote();
   const [text, setText] = useState('');
   if (!on) return null;
   const readOnly = me?.status === 'suspended';
-  const place = `module=${encodeURIComponent(moduleId)}&chapter=${chapter}&video=${video}`;
+  const place = `module=${encodeURIComponent(moduleId)}&lesson=${encodeURIComponent(lessonId)}`;
 
   const onAdd = (e: FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
-    create.mutate({ title: '', body: text, moduleId, chapter, video }, { onSuccess: () => setText('') });
+    create.mutate({ title: '', body: text, moduleId, lessonId }, { onSuccess: () => setText('') });
   };
 
   const items = notes.data?.items ?? [];

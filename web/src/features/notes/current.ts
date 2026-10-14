@@ -8,8 +8,7 @@ export interface OpenNote {
   title: string;
   body: string;
   moduleId: string | null;
-  chapter: number | null;
-  video: number | null;
+  lessonId: string | null;
 }
 
 let current: OpenNote | null = null;

@@ -77,10 +77,7 @@ function Editor({ noteId, readOnly, onCreated }: { noteId: string | null; readOn
   const navigate = useNavigate();
   const wide = useMediaQuery(BREAKPOINTS.desktop);
   const [place] = useState(() => {
-    const moduleId = params.get('module');
-    const chapter = Number.parseInt(params.get('chapter') ?? '', 10);
-    const video = Number.parseInt(params.get('video') ?? '', 10);
-    return { moduleId, chapter: Number.isInteger(chapter) ? chapter : null, video: Number.isInteger(video) ? video : null };
+    return { moduleId: params.get('module'), lessonId: params.get('lesson') };
   });
   const editor = useNoteEditor(noteId, { place, readOnly, onCreated });
   const remove = useDeleteNote();

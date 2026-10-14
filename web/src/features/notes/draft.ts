@@ -10,8 +10,7 @@ export interface NoteDoc {
   title: string;
   body: string;
   moduleId: string | null;
-  chapter: number | null;
-  video: number | null;
+  lessonId: string | null;
 }
 
 /** The unsent copy of a note: what it says, and the version of the note it was written over (null: a new note). */
@@ -27,18 +26,17 @@ export const NEW_NOTE = 'new';
 
 export const draftKey = (id: string | null): string => `${DRAFT_PREFIX}${id ?? NEW_NOTE}`;
 
-export const emptyDoc = (place: Partial<Pick<NoteDoc, 'moduleId' | 'chapter' | 'video'>> = {}): NoteDoc => ({
+export const emptyDoc = (place: Partial<Pick<NoteDoc, 'moduleId' | 'lessonId'>> = {}): NoteDoc => ({
   title: '',
   body: '',
   moduleId: place.moduleId ?? null,
-  chapter: place.moduleId != null ? (place.chapter ?? null) : null,
-  video: place.moduleId != null && place.chapter != null ? (place.video ?? null) : null,
+  lessonId: place.moduleId != null ? (place.lessonId ?? null) : null,
 });
 
-export const docOf = (note: Note): NoteDoc => ({ title: note.title, body: note.body, moduleId: note.moduleId, chapter: note.chapter, video: note.video });
+export const docOf = (note: Note): NoteDoc => ({ title: note.title, body: note.body, moduleId: note.moduleId, lessonId: note.lessonId });
 
 export const sameDoc = (a: NoteDoc | null | undefined, b: NoteDoc | null | undefined): boolean =>
-  !!a && !!b && a.title === b.title && a.body === b.body && a.moduleId === b.moduleId && a.chapter === b.chapter && a.video === b.video;
+  !!a && !!b && a.title === b.title && a.body === b.body && a.moduleId === b.moduleId && a.lessonId === b.lessonId;
 
 export const isBlank = (doc: NoteDoc): boolean => !doc.title.trim() && !doc.body.trim();
 
@@ -51,8 +49,8 @@ export function asDraft(value: unknown): Draft | null {
   if (!doc || typeof doc !== 'object' || !isNum(base) || typeof at !== 'number') return null;
   const d = doc as Record<string, unknown>;
   if (typeof d.title !== 'string' || typeof d.body !== 'string') return null;
-  if (!(d.moduleId === null || typeof d.moduleId === 'string') || !isNum(d.chapter) || !isNum(d.video)) return null;
-  return { doc: { title: d.title, body: d.body, moduleId: d.moduleId, chapter: d.chapter, video: d.video }, base, at };
+  if (!(d.moduleId === null || typeof d.moduleId === 'string') || !(d.lessonId === null || typeof d.lessonId === 'string')) return null;
+  return { doc: { title: d.title, body: d.body, moduleId: d.moduleId, lessonId: d.lessonId }, base, at };
 }
 
 export const readDraft = (id: string | null): Draft | null => asDraft(readStored<unknown>(draftKey(id), () => null));
@@ -112,9 +110,9 @@ export function noteLabel(note: { title: string; body?: string; excerpt?: string
   return first.length > 80 ? `${first.slice(0, 79)}…` : first;
 }
 
-/** A lesson, as the notes name it. */
-export function lessonLabel(chapter: number, video: number): string {
-  return `Chapter ${chapter + 1}, video ${video + 1}`;
+/** A lesson, as the notes name it: 'Chapter 2, video 1', or 'A lesson' while (or when) it isn't in the module. */
+export function lessonLabel(place: { c: number; v: number } | null): string {
+  return place ? `Chapter ${place.c + 1}, video ${place.v + 1}` : 'A lesson';
 }
 
 /** The start of a note's body as one plain line, for lists. */

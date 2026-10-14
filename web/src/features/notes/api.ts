@@ -1,5 +1,5 @@
 // Notes from the API (TanStack Query). Every note is its writer's alone.
-//   GET    /api/v1/notes            your notes, last edited first: ?q (title and body), ?module_id, ?chapter & ?video
+//   GET    /api/v1/notes            your notes, last edited first: ?q (title and body), ?module_id, ?lesson_id
 //   POST   /api/v1/notes            a new note
 //   GET    /api/v1/notes/{id}       one note, with its whole body
 //   PUT    /api/v1/notes/{id}       save the whole note, with the version it was loaded at (409 note_changed: saved
@@ -16,14 +16,13 @@ const PAGE = 20;
 export interface NoteFilters {
   q?: string;
   moduleId?: string | null;
-  chapter?: number | null;
-  video?: number | null;
+  lessonId?: string | null;
 }
 
 export const noteKeys = {
   all: NOTES_KEY,
   lists: [...NOTES_KEY, 'list'] as const,
-  list: (f: NoteFilters) => [...NOTES_KEY, 'list', { q: f.q ?? '', moduleId: f.moduleId ?? null, chapter: f.chapter ?? null, video: f.video ?? null }] as const,
+  list: (f: NoteFilters) => [...NOTES_KEY, 'list', { q: f.q ?? '', moduleId: f.moduleId ?? null, lessonId: f.lessonId ?? null }] as const,
   one: (id: string) => [...NOTES_KEY, 'one', id] as const,
 };
 
@@ -34,8 +33,7 @@ const listQuery = (f: NoteFilters, limit: number, offset: number) =>
         query: {
           q: f.q || undefined,
           module_id: f.moduleId ?? undefined,
-          chapter: f.chapter ?? undefined,
-          video: f.video ?? undefined,
+          lesson_id: f.lessonId ?? undefined,
           limit,
           offset,
         },
@@ -56,8 +54,8 @@ export function useNotes(filters: NoteFilters, { enabled = true }: { enabled?: b
 }
 
 /** One lesson's notes (the lesson page's "Your notes"): the five last edited, and how many there are. */
-export function useLessonNotes(moduleId: string, chapter: number, video: number, { enabled = true }: { enabled?: boolean } = {}) {
-  const filters = { moduleId, chapter, video };
+export function useLessonNotes(moduleId: string, lessonId: string, { enabled = true }: { enabled?: boolean } = {}) {
+  const filters = { moduleId, lessonId };
   return useQuery({ queryKey: [...noteKeys.list(filters), 'first'], queryFn: () => listQuery(filters, 5, 0), enabled });
 }
 
