@@ -2,7 +2,7 @@
 questions students tag with a chapter and the flags on wrong tags, and the switch for tagging
 
 Revision ID: 0007
-Revises: 0011
+Revises: 0010
 Create Date: 2026-10-14 18:00:00
 
 Tagging arrives switched off: an admin switches it on from the Access screen. Files already in the library get their
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0007"
-down_revision: str | None = "0011"
+down_revision: str | None = "0010"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
