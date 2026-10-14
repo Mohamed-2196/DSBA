@@ -21,6 +21,7 @@ import { chapterPosition, isModuleTab, lessonHref, moduleTabOn, type ModuleTab }
 import { ModuleOverview } from './ModuleOverview';
 import { computeModuleProgress, computeResumePoint, findLesson, summaryProgress, useProgress, type Fraction, type ResumeKind, type ResumePoint } from './progress';
 import { resourceSummary } from './resources';
+import { SuggestVideo } from './suggestions/SuggestVideo';
 import './ModulePage.css';
 
 const RESUME_LABEL: Record<ResumeKind, string> = { resume: 'Resume lesson', next: 'Continue', start: 'Start lesson 1', done: 'Watch again' };
@@ -298,6 +299,11 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
         </TabPanel>
         <TabPanel idBase="module" id="lessons" value={tab}>
           {lessonsPanel}
+          {detail && featureOn('video_suggestions') ? (
+            <ErrorBoundary name="SuggestVideo" resetKey={m.id}>
+              <SuggestVideo module={detail} />
+            </ErrorBoundary>
+          ) : null}
         </TabPanel>
         {moduleTabOn('files', featureOn) ? (
           <TabPanel idBase="module" id="files" value={tab}>

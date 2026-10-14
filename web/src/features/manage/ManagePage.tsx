@@ -1,13 +1,13 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
-import { BookOpenText, CalendarCheck, CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, HandWaving, Newspaper, Power, Tray, UsersThree, type Icon } from '@phosphor-icons/react';
+import { BookOpenText, CalendarCheck, CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, HandWaving, Newspaper, Power, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { normalizeYear, useQueryParam } from '../../state';
 import { Button, EmptyState, ErrorBoundary, Page, PageHeader, Panel, QueryError, Skeleton, TabPanel, Tabs, formatCount } from '../../ui';
 import { ActivityLog, PeopleList } from '../access/public';
 import { ReportsQueue } from '../forum/public';
-import { ModulesEditor } from '../modules/public';
+import { ModulesEditor, SuggestionsQueue } from '../modules/public';
 import { UploadsQueue } from '../library/public';
 import { RequestsQueue } from '../requests/public';
 import { useIssues } from '../newsletter/public';
@@ -26,6 +26,7 @@ const SECTIONS: Record<SectionId, { label: string; icon: Icon }> = {
   summary: { label: 'Sunday summary', icon: CalendarCheck },
   career: { label: 'Career Navigator', icon: Compass },
   content: { label: 'Modules', icon: BookOpenText },
+  videos: { label: 'Suggested videos', icon: YoutubeLogo },
   numbers: { label: 'Numbers', icon: ChartBar },
   people: { label: 'People', icon: UsersThree },
   activity: { label: 'Activity', icon: ClockCounterClockwise },
@@ -35,6 +36,7 @@ const NUMBERS = [
   ['openReports', 'Open reports'],
   ['pendingUploads', 'Uploads to review'],
   ['openRequests', 'Open requests'],
+  ['pendingSuggestions', 'Suggested videos'],
   ['users', 'People'],
   ['threads', 'Threads'],
   ['replies', 'Replies'],
@@ -118,6 +120,7 @@ const BODIES: Record<SectionId, () => ReactNode> = {
   summary: () => <SummaryForMe />,
   career: () => <LinkOut icon={Compass} title="Career Navigator" body="Its content is edited on Career Navigator." to="/career" label="Open Career Navigator" />,
   content: () => <ModulesEditor />,
+  videos: () => <SuggestionsQueue />,
   numbers: () => <Numbers />,
   people: () => <PeopleList />,
   activity: () => <ActivityLog />,
@@ -133,6 +136,7 @@ function ManageScreen() {
     reports: stats.data?.openReports ?? null,
     uploads: stats.data?.pendingUploads ?? null,
     requests: stats.data?.openRequests ?? null,
+    videos: stats.data?.pendingSuggestions ?? null,
   };
   const [tab, setTab] = useQueryParam('tab', sections[0] ?? 'reports');
   const current = sections.find((id) => id === tab) ?? sections[0];

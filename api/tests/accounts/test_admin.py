@@ -120,6 +120,7 @@ def test_stats(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     db.commit()
     after = client_for(rep).get(f"{API}/admin/stats").json()
     assert after.pop("openRequests") is None  # requests arrive switched off
+    assert after.pop("pendingSuggestions") is None  # suggested videos arrive switched off
     assert set(after) == {"users", "threads", "replies", "libraryItems", "pendingUploads", "openReports"}
     delta = {k: after[k] - before[k] for k in after}
     assert delta == {"users": 1, "threads": 1, "replies": 1, "libraryItems": 1, "pendingUploads": 1, "openReports": 1}

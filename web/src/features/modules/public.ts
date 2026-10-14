@@ -7,8 +7,11 @@
 //                                   for GET /modules/{id} (useQuery(moduleDetailQuery(id)), useQueries, prefetchQuery)
 //   <ModulesEditor />               Manage → Modules (content.edit): add, edit, reorder, hide and remove modules,
 //                                   chapters and lessons
+//   <SuggestionsQueue />            Manage → Suggested videos (content.edit): accept students' suggestions as
+//                                   lessons, or decline them
 export { ContinueLearning } from './ContinueLearning';
 export { findLesson, useModuleProgress } from './progress';
 export { lessonHref } from './lessons';
 export { moduleDetailQuery } from './api';
 export { ModulesEditor } from './editor/ModulesEditor';
+export { SuggestionsQueue } from './suggestions/SuggestionsQueue';

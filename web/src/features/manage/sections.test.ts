@@ -26,6 +26,10 @@ describe('sectionsFor', () => {
     expect(sectionsFor(holds('content.edit'), onlyOn())).toEqual(['content']);
   });
 
+  it('gives content editors the suggested videos while they are on', () => {
+    expect(sectionsFor(holds('content.edit'), onlyOn('video_suggestions'))).toEqual(['content', 'videos']);
+  });
+
   it('gives the Sunday summary to its box while it is on', () => {
     expect(sectionsFor(holds('summary.share'), onlyOn('summary'))).toEqual(['summary']);
     expect(sectionsFor(holds('summary.share'), onlyOn())).toEqual([]);
