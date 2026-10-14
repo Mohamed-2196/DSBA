@@ -76,7 +76,7 @@ The new problems are mostly about Noora's money and Noora's prompt:
     sign up again with the same one).
   - The monthly budget is therefore the only real ceiling, and it reads a total these questions never add to.
   - The spend has no limit on the Hub's side; only the Anthropic account's own spending limit stops it.
-  - Even counted honestly, US$10 is about 500 maximal questions: one student with 17 accounts can pause Noora for the
+  - Even counted honestly, the default US$25 is about 1,250 maximal questions: one student with 42 accounts can pause Noora for the
     whole cohort for the month in a day. That part is a product call (the budget and the cap), not a bug.
 - **Proof:** `test_sec22_closing_the_stream_leaves_the_answer_uncosted`. One event is read from `answer()` and the
   generator is closed, as Starlette does. The question is counted (1), while tokens and cost are 0, although the

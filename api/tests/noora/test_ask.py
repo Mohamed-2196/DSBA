@@ -210,7 +210,7 @@ def test_manage_sees_totals_and_admins_set_the_limits(
     assert client_for(sara).get(f"{API}/admin/noora").status_code == 403
     numbers = client_for(rep).get(f"{API}/admin/noora").json()
     assert numbers["configured"] is True
-    assert (numbers["dailyQuestions"], numbers["monthlyBudgetCents"]) == (30, 1000)
+    assert (numbers["dailyQuestions"], numbers["monthlyBudgetCents"]) == (30, 2500)
     assert numbers["today"] == numbers["month"]
     assert numbers["today"] == {
         "questions": 1,
@@ -220,11 +220,11 @@ def test_manage_sees_totals_and_admins_set_the_limits(
         "costCents": 0.23,
     }
 
-    limits = {"dailyQuestions": 10, "monthlyBudgetCents": 2500}
+    limits = {"dailyQuestions": 10, "monthlyBudgetCents": 4000}
     assert client_for(rep).put(f"{API}/admin/noora", json=limits).status_code == 403
     r = client_for(boss).put(f"{API}/admin/noora", json=limits)
     assert r.status_code == 200, r.text
-    assert (r.json()["dailyQuestions"], r.json()["monthlyBudgetCents"]) == (10, 2500)
+    assert (r.json()["dailyQuestions"], r.json()["monthlyBudgetCents"]) == (10, 4000)
     entry = db.scalars(select(AuditEntry).where(AuditEntry.action == "noora.limits")).one()
     assert entry.data["after"] == limits
     assert client_for(boss).put(f"{API}/admin/noora", json={**limits, "dailyQuestions": -1}).status_code == 422

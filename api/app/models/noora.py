@@ -13,7 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base, uuid_pk
 
 DEFAULT_DAILY_QUESTIONS = 30
-DEFAULT_MONTHLY_BUDGET_CENTS = 1000  # US$10
+DEFAULT_MONTHLY_BUDGET_CENTS = 2500  # US$25
 
 
 class NooraLimits(Base):
