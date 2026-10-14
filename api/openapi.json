@@ -25514,6 +25514,7 @@
                     "continue",
                     "modules",
                     "new",
+                    "help_below",
                     "newsletter"
                   ]
                 },
@@ -25623,11 +25624,12 @@
                     "continue",
                     "modules",
                     "new",
+                    "help_below",
                     "newsletter"
                   ]
                 },
                 "type": "array",
-                "maxItems": 9
+                "maxItems": 10
               },
               {
                 "type": "null"

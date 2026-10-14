@@ -5613,7 +5613,7 @@ export interface components {
              */
             trackProgress: boolean;
             /** Homeblocks */
-            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "daily_question" | "todo" | "continue" | "modules" | "new" | "newsletter")[] | null;
+            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "daily_question" | "todo" | "continue" | "modules" | "new" | "help_below" | "newsletter")[] | null;
         };
         /**
          * PreferencesUpdate
@@ -5636,7 +5636,7 @@ export interface components {
             /** Trackprogress */
             trackProgress?: boolean | null;
             /** Homeblocks */
-            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "daily_question" | "todo" | "continue" | "modules" | "new" | "newsletter")[] | null;
+            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "daily_question" | "todo" | "continue" | "modules" | "new" | "help_below" | "newsletter")[] | null;
         };
         /**
          * PresignedUpload

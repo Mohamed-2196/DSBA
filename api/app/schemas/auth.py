@@ -64,6 +64,7 @@ HomeBlock = Literal[
     "continue",  # the lessons to pick up (lesson progress on)
     "modules",  # my modules
     "new",  # new files and threads in my modules
+    "help_below",  # unanswered questions from the years below (Years 2 and 3)
     "newsletter",  # the latest issue of The DSBA Newsletter
 ]
 MAX_HOME_BLOCKS = len(get_args(HomeBlock))

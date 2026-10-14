@@ -344,7 +344,7 @@ def test_home_blocks(client_for: ClientFor, make_user: MakeUser, db: Session) ->
     assert "home_blocks" not in _fresh(db, User, user.id).preferences
     r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["weather"]}})
     assert r.status_code == 422
-    r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["todo"] * 10}})
+    r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["todo"] * 12}})
     assert r.status_code == 422
 
 
