@@ -10,7 +10,7 @@ import { useDebouncedValue, useLocalStorage, useTheme, useToast, useYear } from 
 import { useModules } from '../../state/modules';
 import { Count, HubMark, Kbd, Modal, cx } from '../../ui';
 import { useStartsThreads } from '../forum/public';
-import { hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
+import { askNoora, hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
 import { useSearch } from './api';
 import { tokenize } from './match';
 import { Leading, Marked, Trailing } from './PaletteRow';
@@ -154,8 +154,10 @@ export function CommandPalette() {
       const run = item.run;
       if (run.type === 'theme') toggleTheme();
       else if (run.type === 'noora') {
-        if (run.hide) hideMiniNoora();
-        else showMiniNoora();
+        if (run.act === 'hide') hideMiniNoora();
+        else if (run.act === 'show') showMiniNoora();
+        // After the palette has closed and handed focus back, so her chat keeps it.
+        else requestAnimationFrame(() => askNoora());
       } else {
         setYear(run.year);
         push({ title: `Showing Year ${run.year}`, body: 'Modules, exams and threads now follow your new year.', tone: 'success' });

@@ -51,6 +51,12 @@ describe('runSearch', () => {
   it('leaves out matching actions of switched-off features', () => {
     const r = ids(runSearch({ ...base, query: 'noora', isOn: (f) => f !== 'noora' }));
     expect(r).not.toContain('action:noora');
+    expect(r).not.toContain('action:ask-noora');
+  });
+
+  it('offers to ask Mini Noora, and to hide or show her', () => {
+    expect(ids(runSearch({ ...base, query: 'ask noora' }))).toContain('action:ask-noora');
+    expect(ids(runSearch({ ...base, query: 'noora' }))).toContain('action:noora');
   });
 
   it('leaves out search hits of switched-off features', () => {

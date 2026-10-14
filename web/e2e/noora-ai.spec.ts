@@ -42,7 +42,7 @@ async function standIn(page: Page): Promise<Request[]> {
 }
 
 async function openNoora(page: Page) {
-  await page.locator('[data-hub="noora-launcher"]:visible').click();
+  await page.locator('[data-hub="noora-launcher"]').click();
   const chat = page.locator('[data-hub="noora-chat"]');
   await expect(chat).toBeVisible();
   return chat;

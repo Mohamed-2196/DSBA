@@ -2,7 +2,7 @@
 //   sara   Year 2, signed up with her phone (setup project)        ali    Year 1, signed up with his email
 //   rep    a student rep (dev-login)                                admin  an admin (dev-login)
 //   guest  nobody signed in, browsing Year 2
-// Mini Noora is hidden on every page (her launcher and panel change the layout); see support.prepareContext.
+// Mini Noora is hidden on every page (she floats over the page and covers part of it); see support.prepareContext.
 import { test as base, type Browser, type Page } from '@playwright/test';
 import { env, personaContext, prepareContext, readRun, type Persona, type RunInfo } from './support';
 

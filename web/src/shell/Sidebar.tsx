@@ -3,7 +3,6 @@ import { Link, NavLink } from 'react-router-dom';
 import { ArrowUpRight } from '@phosphor-icons/react';
 import { useAuth } from '../auth';
 import { BREAKPOINTS, useMediaQuery } from '../state';
-import { useNooraLauncher } from '../features/noora/public';
 import { Badge, BrandLogo, HubLogo, HubMark, Tooltip, cx } from '../ui';
 import { EXTERNAL_LINKS, NAV, type ExternalLink, type NavItem as NavConfig } from './nav';
 import { visibleNav } from './visibility';
@@ -69,13 +68,9 @@ function ExternalItem({ item, collapsed }: { item: ExternalLink; collapsed: bool
   );
 }
 
-/** Left rail: brand, year switcher, nav, external links, theme, account. Icon-only at 700–1099px, and on laptops
- *  under 1440px while Mini Noora's panel is open beside the page, so the page keeps its room. */
+/** Left rail: brand, year switcher, nav, external links, theme, account. Icon-only at 700–1099px. */
 export function Sidebar() {
-  const tablet = useMediaQuery(BREAKPOINTS.tablet);
-  const roomy = useMediaQuery('(min-width: 1440px)');
-  const noora = useNooraLauncher();
-  const collapsed = tablet || (noora.shown && noora.open && !roomy);
+  const collapsed = useMediaQuery(BREAKPOINTS.tablet);
   const { featureOn, me } = useAuth();
   return (
     // The column wrapper runs the full page height (surface + border); the rail inside is sticky.
