@@ -139,7 +139,7 @@ export default function ModulesPage() {
   const peeking = year != null && viewYear !== year;
   const { getModulesForYear } = useModules();
   const { featureOn } = useAuth();
-  const { state, ready } = useProgress();
+  const { state, ready, tracking } = useProgress();
   const exams = useExamsByModule(viewYear);
   useDocumentTitle(`${COHORTS[viewYear].label} modules`);
 
@@ -167,7 +167,8 @@ export default function ModulesPage() {
     .sort((a, b) => a.exam.days - b.exam.days)[0];
   // Columns that would say "none" on every row are left out (Year 3 has no exam dates or videos yet).
   const showExam = rows.some((r) => r.exam);
-  const showProgress = totals.videos > 0;
+  const hasVideos = totals.videos > 0;
+  const showProgress = hasVideos && tracking;
 
   return (
     <Page className="mod-index">
@@ -187,9 +188,9 @@ export default function ModulesPage() {
           <>
             <CohortBadge year={viewYear} />
             <span className="mod-index__fact">{countOf(rows.length, 'module')}</span>
-            {showProgress ? (
+            {hasVideos ? (
               <span className="mod-index__fact">
-                {ready ? (
+                {ready && tracking ? (
                   <span>
                     <b className="u-tabular">{totals.watched}</b> of <b className="u-tabular">{totals.videos}</b> lessons watched
                   </span>

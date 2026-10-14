@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
 import { useAuth } from '../../auth';
 import { cohortColor } from '../../state';
-import { Button, Panel, SectionHeader, Skeleton, cx, formatDate } from '../../ui';
+import { Button, Panel, SectionHeader, Skeleton, countOf, cx, formatDate } from '../../ui';
 import { daysUntil } from '../../lib/dates';
 import { typeLabel } from '../calendar/public';
 import { useModuleDates } from './exams';
@@ -109,11 +109,14 @@ function PickUp({ module: m, resume }: { module: ModuleDetail; resume: ResumePoi
 function ProgressSection({
   module: m,
   state,
+  tracking,
   onOpenLesson,
   onTab,
 }: {
   module: ModuleDetail;
   state: ProgressState;
+  /** Off: the chapters without what was watched. */
+  tracking: boolean;
   onOpenLesson: (c: number, v: number) => void;
   onTab: (tab: string) => void;
 }) {
@@ -129,9 +132,11 @@ function ProgressSection({
         <h2 id="mod-prog-title" className="mod-side__title">
           Chapters
         </h2>
-        <p className="mod-prog__sum">
-          <b className="u-tabular">{done}</b> of <span className="u-tabular">{m.chapters.length}</span> complete
-        </p>
+        {tracking ? (
+          <p className="mod-prog__sum">
+            <b className="u-tabular">{done}</b> of <span className="u-tabular">{m.chapters.length}</span> complete
+          </p>
+        ) : null}
       </div>
       <ol className="mod-prog__list" role="list">
         {shown.map((ch, c) => {
@@ -143,13 +148,19 @@ function ProgressSection({
               <button type="button" className={cx('mod-prog__ch', complete && 'is-done')} onClick={() => onOpenLesson(c, firstOpen < 0 ? 0 : firstOpen)}>
                 <span className="mod-prog__num u-tabular">{c + 1}</span>
                 <span className="mod-prog__name">{ch.title}</span>
-                <span className="mod-prog__frac u-tabular">
-                  {complete ? <CheckCircle weight="fill" aria-hidden="true" /> : null}
-                  {cp.watched}/{cp.total}
-                </span>
-                <span className="mod-prog__bar" aria-hidden="true">
-                  <span style={{ width: `${cp.pct}%`, background: complete ? 'var(--signal)' : color }} />
-                </span>
+                {tracking ? (
+                  <>
+                    <span className="mod-prog__frac u-tabular">
+                      {complete ? <CheckCircle weight="fill" aria-hidden="true" /> : null}
+                      {cp.watched}/{cp.total}
+                    </span>
+                    <span className="mod-prog__bar" aria-hidden="true">
+                      <span style={{ width: `${cp.pct}%`, background: complete ? 'var(--signal)' : color }} />
+                    </span>
+                  </>
+                ) : (
+                  <span className="mod-prog__frac u-tabular">{countOf(cp.total, 'lesson')}</span>
+                )}
               </button>
             </li>
           );
@@ -211,6 +222,7 @@ function UpcomingDates({ module: m }: { module: ModuleDetail }) {
 export function ModuleOverview({
   module: m,
   state,
+  tracking,
   resume,
   libraryCount,
   onOpenLesson,
@@ -219,6 +231,7 @@ export function ModuleOverview({
 }: {
   module: ModuleDetail;
   state: ProgressState;
+  tracking: boolean;
   resume: ResumePoint | null;
   /** null while the library is switched off */
   libraryCount: number | null;
@@ -284,7 +297,7 @@ export function ModuleOverview({
               </Button>
             </section>
           ) : null}
-          {resume ? <ProgressSection module={m} state={state} onOpenLesson={onOpenLesson} onTab={onTab} /> : null}
+          {resume ? <ProgressSection module={m} state={state} tracking={tracking} onOpenLesson={onOpenLesson} onTab={onTab} /> : null}
           {featureOn('calendar') ? <UpcomingDates module={m} /> : null}
         </Panel>
       </aside>

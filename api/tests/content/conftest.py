@@ -31,7 +31,7 @@ def modules(db: Session) -> dict[str, Module]:
 
 @pytest.fixture
 def student(make_user: Callable[..., User]) -> User:
-    return make_user(name="Sara Student", year=2)
+    return make_user(name="Sara Student", year=2, tracks=True)  # keeps lesson progress: edits must keep it
 
 
 @pytest.fixture

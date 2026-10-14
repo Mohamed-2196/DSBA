@@ -216,7 +216,7 @@ def test_a_link_follows_the_hub(
 
 
 def test_a_watched_lesson_moves_its_card_to_done(client_for: ClientFor, make_user: MakeUser, module: Module) -> None:
-    c = client_for(make_user())
+    c = client_for(make_user(tracks=True))
     other = add(c, title="Something done")
     move(c, other, "done")
     card = add(c, link={"type": "lesson", "id": lesson_id(module, 1, 0)})

@@ -5,7 +5,7 @@ import {
 } from '@phosphor-icons/react';
 import { ApiError, errorMessage } from '../../api/errors';
 import type { Me, SessionInfo } from '../../api/types';
-import { useAuth, type Feature } from '../../auth';
+import { useAuth, useUpdatePreferences, type Feature } from '../../auth';
 import { CohortPicker, type CohortChoice } from '../../auth/CohortPicker';
 import { formatPhone } from '../../auth/identifiers';
 import { PageLoader } from '../../shell/PageLoader';
@@ -13,11 +13,12 @@ import { useToast } from '../../state';
 import {
   Badge, Button, ConfirmDialog, Divider, EmptyState, Page, PageHeader, PageSection, Panel, QueryError, SectionHeader, Skeleton, Switch, TextField, formatDate, timeAgo,
 } from '../../ui';
-import { downloadAccountData, useRemoveIdentifier, useRevokeSessions, useSessions, useUpdateMe, useUpdatePreferences, type IdentifierKind } from './api';
+import { downloadAccountData, useRemoveIdentifier, useRevokeSessions, useSessions, useUpdateMe, type IdentifierKind } from './api';
 import { SeniorListing } from '../career/public';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { describeDevice } from './device';
 import { IdentifierDialog } from './IdentifierDialog';
+import { useTracking } from '../modules/public';
 import { PapersButton } from '../papers/public';
 import './AccountPage.css';
 
@@ -215,7 +216,7 @@ function SignInMethods({ me }: { me: Me }) {
 
 // ── Emails ───────────────────────────────────────────────────────────────────────────────────
 
-type EmailSwitch = keyof Me['preferences'];
+type EmailSwitch = 'emailReplies' | 'emailAnswerAccepted' | 'emailUploadReviews' | 'emailNewIssues' | 'emailDateChanges' | 'emailWeeklySummary';
 
 /** One switch per kind of email (decision D1); the notification in the Hub shows whatever they say. The Sunday
  *  summary is an email of its own, off until you turn it on, and only while its feature is on. */
@@ -249,6 +250,23 @@ function EmailPreferences({ me }: { me: Me }) {
         </div>
       ))}
       <p className="acct-note acct-note--inset">We always email you when how you sign in changes, so you’d know if it wasn’t you.</p>
+    </Panel>
+  );
+}
+
+// ── Lesson progress ──────────────────────────────────────────────────────────────────────────
+
+function LessonProgress() {
+  const tracking = useTracking();
+  return (
+    <Panel className="acct-switches">
+      <Switch
+        label="Track my lesson progress"
+        description="Mark lessons as watched and pick up where you left off, on every device. Off: nothing about what you watch is saved."
+        checked={tracking.on}
+        onChange={tracking.set}
+        data-hub="account-track-progress"
+      />
     </Panel>
   );
 }
@@ -457,6 +475,11 @@ export default function AccountPage() {
       <PageSection aria-labelledby="acct-signin">
         <SectionHeader id="acct-signin" title="How you sign in" description="We send a code to one of these each time you sign in." />
         <SignInMethods me={me} />
+      </PageSection>
+
+      <PageSection aria-labelledby="acct-progress">
+        <SectionHeader id="acct-progress" title="Lesson progress" description="Off unless you turn it on." />
+        <LessonProgress />
       </PageSection>
 
       <PageSection aria-labelledby="acct-emails">

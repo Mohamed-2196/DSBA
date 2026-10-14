@@ -7,7 +7,7 @@ import unicodedata
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Literal, get_args
+from typing import Any, Literal, get_args
 
 from botocore.exceptions import BotoCoreError, ClientError
 from sqlalchemy import delete, false, func, or_, select, update
@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, object_session
 
 from app.core.access import ADMIN, STUDENT
-from app.core.errors import ApiError, invalid, not_found
+from app.core.errors import ApiError, conflict, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
     BoardCard,
@@ -73,6 +73,7 @@ from app.schemas.auth import (
     ExportSuggestion,
     ExportThread,
     ExportVote,
+    HomeBlock,
     Me,
     Preferences,
     PreferencesUpdate,
@@ -94,22 +95,59 @@ NOTIFICATION_KINDS = frozenset(get_args(NotificationKind))
 # ── the signed-in user ───────────────────────────────────────────────────────────────────────
 
 
-# The email switches, one per kind of email (decision D1).
-EMAIL_SWITCHES = tuple(Preferences.model_fields)
+# The email switches, one per kind of email (decision D1), and the other switches kept on the account.
+EMAIL_SWITCHES = tuple(name for name in Preferences.model_fields if name.startswith("email_"))
+SWITCHES = (*EMAIL_SWITCHES, "track_progress")
+HOME_BLOCKS = frozenset(get_args(HomeBlock))
+
+
+def _stored(user: User) -> dict[str, Any]:
+    return user.preferences if isinstance(user.preferences, dict) else {}
+
+
+def home_blocks_of(user: User) -> list[HomeBlock] | None:
+    """Home's blocks as the person laid them out, in order; None: the default layout."""
+    blocks = _stored(user).get("home_blocks")
+    if not isinstance(blocks, list):
+        return None
+    return [b for b in dict.fromkeys(blocks) if b in HOME_BLOCKS]
+
+
+def tracks_progress(user: User) -> bool:
+    """Whether the person keeps their lesson progress (opt in)."""
+    return _stored(user).get("track_progress") is True
 
 
 def preferences_of(user: User) -> Preferences:
-    """The switches as stored on the account (users.preferences; unset means the switch's default)."""
-    return Preferences.model_validate({name: wants(user, name) for name in EMAIL_SWITCHES})
+    """The preferences as stored on the account (users.preferences; unset means the default)."""
+    return Preferences.model_validate(
+        {
+            **{name: wants(user, name) for name in EMAIL_SWITCHES},
+            "track_progress": tracks_progress(user),
+            "home_blocks": home_blocks_of(user),
+        }
+    )
 
 
 def update_preferences(user: User, changes: PreferencesUpdate) -> None:
-    """Applies the switches that were sent; a switch sent as null stays as it is."""
-    sent = {name: value for name, value in changes.model_dump(exclude_unset=True).items() if value is not None}
-    stored = user.preferences if isinstance(user.preferences, dict) else {}
-    merged = {name: stored[name] for name in EMAIL_SWITCHES if isinstance(stored.get(name), bool)}
-    merged.update(sent)
+    """Applies what was sent: a switch sent as null stays as it is; `home_blocks` sent as null goes back to the
+    default layout, and repeated blocks are dropped."""
+    sent = changes.model_dump(exclude_unset=True)
+    stored = _stored(user)
+    merged: dict[str, Any] = {name: stored[name] for name in SWITCHES if isinstance(stored.get(name), bool)}
+    merged.update({name: value for name, value in sent.items() if name in SWITCHES and value is not None})
+    blocks = sent["home_blocks"] if "home_blocks" in sent else home_blocks_of(user)
+    if blocks is not None:
+        merged["home_blocks"] = list(dict.fromkeys(blocks))
     user.preferences = merged  # a new dict: JSONB columns don't see changes made in place
+
+
+def require_tracking(user: User) -> None:
+    """Lesson progress is kept only for someone who turned it on."""
+    if not tracks_progress(user):
+        raise conflict(
+            "progress_off", "Your lesson progress isn't kept. Turn on Track my lesson progress in Account first."
+        )
 
 
 def role_summaries(user: User) -> list[RoleSummary]:

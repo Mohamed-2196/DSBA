@@ -129,6 +129,8 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
             "emailNewIssues": True,
             "emailDateChanges": True,
             "emailWeeklySummary": False,
+            "trackProgress": False,
+            "homeBlocks": None,
         },
         "papers": [],
         "zone": None,
@@ -281,16 +283,18 @@ def test_year(client_for: ClientFor, make_user: MakeUser) -> None:
     assert r.json()["error"]["code"] == "invalid_input"
 
 
-def _switches(**changed: bool) -> dict[str, bool]:
-    """The preferences as the API shows them: each switch at its default (the Sunday summary off, the others on)
-    except those given."""
-    defaults = {
+def _switches(**changed: bool) -> dict[str, object]:
+    """The preferences as the API shows them: each switch at its default (the Sunday summary and lesson progress
+    off, the others on; Home's default layout) except those given."""
+    defaults: dict[str, object] = {
         "emailReplies": True,
         "emailAnswerAccepted": True,
         "emailUploadReviews": True,
         "emailNewIssues": True,
         "emailDateChanges": True,
         "emailWeeklySummary": False,
+        "trackProgress": False,
+        "homeBlocks": None,
     }
     return defaults | changed
 
@@ -311,6 +315,37 @@ def test_preferences_one_switch_per_kind_of_email(client_for: ClientFor, make_us
     r = c.patch(f"{API}/me", json={"preferences": {"emailWeeklySummary": True}})  # opt-in: stored when on
     assert r.json()["preferences"] == _switches(emailWeeklySummary=True)
     assert _fresh(db, User, user.id).preferences["email_weekly_summary"] is True
+
+
+def test_lesson_progress_is_opt_in(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+    user = make_user()
+    c = client_for(user)
+    r = c.patch(f"{API}/me", json={"preferences": {"trackProgress": True}})
+    assert r.status_code == 200, r.text
+    assert r.json()["preferences"] == _switches(trackProgress=True)
+    r = c.patch(f"{API}/me", json={"preferences": {"emailReplies": False}})
+    assert r.json()["preferences"] == _switches(trackProgress=True, emailReplies=False)  # the others stay
+    assert _fresh(db, User, user.id).preferences == {"track_progress": True, "email_replies": False}
+
+
+def test_home_blocks(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+    """Home's layout: the blocks shown, in order (repeats dropped); null goes back to the default."""
+    user = make_user()
+    c = client_for(user)
+    r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["todo", "coming_up", "todo"]}})
+    assert r.status_code == 200, r.text
+    assert r.json()["preferences"]["homeBlocks"] == ["todo", "coming_up"]
+    r = c.patch(f"{API}/me", json={"preferences": {"emailNewIssues": False}})
+    assert r.json()["preferences"]["homeBlocks"] == ["todo", "coming_up"]  # not sent: unchanged
+    r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": []}})
+    assert r.json()["preferences"]["homeBlocks"] == []  # every block hidden
+    r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": None}})
+    assert r.json()["preferences"] == _switches(emailNewIssues=False)
+    assert "home_blocks" not in _fresh(db, User, user.id).preferences
+    r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["weather"]}})
+    assert r.status_code == 422
+    r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["todo"] * 12}})
+    assert r.status_code == 422
 
 
 def test_a_suspended_account_keeps_its_name(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:

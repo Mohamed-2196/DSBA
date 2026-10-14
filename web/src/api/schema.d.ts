@@ -375,6 +375,8 @@ export interface paths {
          * Set Watched
          * @description Mark one lesson watched or not (404 when there is no such lesson). A study-board card for a watched lesson
          *     moves to Done.
+         *
+         *     Errors: progress_off (409: the person doesn't keep their lesson progress).
          */
         put: operations["set_watched_api_v1_me_progress_lessons__lesson_id__put"];
         post?: never;
@@ -395,6 +397,8 @@ export interface paths {
         /**
          * Set Resume
          * @description The lesson the student just opened in its module (404 when it does not exist).
+         *
+         *     Errors: progress_off (409: the person doesn't keep their lesson progress).
          */
         put: operations["set_resume_api_v1_me_progress_resume_put"];
         post?: never;
@@ -436,6 +440,8 @@ export interface paths {
         /**
          * Import Progress
          * @description Merge progress kept in the browser as a guest (unknown lessons are skipped, newest timestamps win).
+         *
+         *     Errors: progress_off (409: the person doesn't keep their lesson progress).
          */
         post: operations["import_progress_api_v1_me_progress_import_post"];
         delete?: never;
@@ -3586,7 +3592,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -5566,9 +5572,9 @@ export interface components {
         };
         /**
          * Preferences
-         * @description Which notifications also come by email, to the account's email address, and whether the Sunday summary does.
-         *     In the Hub every notification shows whatever these say, and account security notices are always emailed. Unset
-         *     means the default here.
+         * @description Which notifications also come by email (to the account's email address; account security notices always do),
+         *     whether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Unset means the default
+         *     here.
          */
         Preferences: {
             /**
@@ -5601,10 +5607,18 @@ export interface components {
              * @default false
              */
             emailWeeklySummary: boolean;
+            /**
+             * Trackprogress
+             * @default false
+             */
+            trackProgress: boolean;
+            /** Homeblocks */
+            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "daily_question" | "todo" | "continue" | "modules" | "new" | "help_below" | "newsletter")[] | null;
         };
         /**
          * PreferencesUpdate
-         * @description Only the switches sent change.
+         * @description Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default
+         *     layout.
          */
         PreferencesUpdate: {
             /** Emailreplies */
@@ -5619,6 +5633,10 @@ export interface components {
             emailDateChanges?: boolean | null;
             /** Emailweeklysummary */
             emailWeeklySummary?: boolean | null;
+            /** Trackprogress */
+            trackProgress?: boolean | null;
+            /** Homeblocks */
+            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "daily_question" | "todo" | "continue" | "modules" | "new" | "help_below" | "newsletter")[] | null;
         };
         /**
          * PresignedUpload

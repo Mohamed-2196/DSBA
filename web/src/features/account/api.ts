@@ -2,7 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ACCOUNT_KEY } from '../../api/keys';
-import type { Me, MeUpdate, PreferencesUpdate, SessionInfo } from '../../api/types';
+import type { MeUpdate, SessionInfo } from '../../api/types';
 import { ME_KEY } from '../../auth';
 
 export const SESSIONS_KEY = [...ACCOUNT_KEY, 'sessions'] as const;
@@ -22,30 +22,6 @@ export function useUpdateMe() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: MeUpdate) => call(api.PATCH('/api/v1/me', { body })),
-    onSuccess: (me) => qc.setQueryData(ME_KEY, me),
-  });
-}
-
-/** Preferences change as soon as a switch flips (optimistic), and flip back if the server says no. */
-export function useUpdatePreferences() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (preferences: PreferencesUpdate) => call(api.PATCH('/api/v1/me', { body: { preferences } })),
-    onMutate: async (preferences) => {
-      await qc.cancelQueries({ queryKey: ME_KEY });
-      const before = qc.getQueryData<Me | null>(ME_KEY);
-      if (before) {
-        const next = { ...before.preferences };
-        for (const [key, on] of Object.entries(preferences) as [keyof Me['preferences'], boolean | null | undefined][]) {
-          if (on != null) next[key] = on;
-        }
-        qc.setQueryData<Me>(ME_KEY, { ...before, preferences: next });
-      }
-      return { before };
-    },
-    onError: (_e, _v, ctx) => {
-      if (ctx?.before) qc.setQueryData(ME_KEY, ctx.before);
-    },
     onSuccess: (me) => qc.setQueryData(ME_KEY, me),
   });
 }

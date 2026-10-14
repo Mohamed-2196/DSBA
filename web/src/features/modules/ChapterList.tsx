@@ -1,7 +1,7 @@
 // Chapter list beside the player: chapters with per-chapter progress, expanding to their videos.
 // Each video is a link to the lesson's address (/modules/<id>/lessons/<lesson id>), so lessons can be opened in a new
 // tab.
-import { ArrowCounterClockwise, CaretDown, Check, CheckCircle, DotsThree, Play, Warning } from '@phosphor-icons/react';
+import { ArrowCounterClockwise, CaretDown, Check, CheckCircle, DotsThree, EyeSlash, ListChecks, Play, Warning } from '@phosphor-icons/react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Chapter, ModuleDetail, Video } from '../../api/types';
@@ -50,13 +50,18 @@ export function ChapterList({
   module: m,
   selection,
   state,
+  tracking,
   nowLabel = 'Selected',
   onReset,
+  onTracking,
   onPick,
 }: {
   module: ModuleDetail;
   selection: { c: number; v: number };
   state: ProgressState;
+  /** The person keeps their progress: counts, bars and watched marks show. */
+  tracking: boolean;
+  onTracking: (on: boolean) => void;
   /** What the current lesson's row says: 'Playing' once loaded, else 'Selected'. */
   nowLabel?: string;
   onReset: () => void;
@@ -111,28 +116,43 @@ export function ChapterList({
         <div className="mod-chapters__heading">
           <h2 className="mod-chapters__title">Chapters</h2>
           <p className="mod-chapters__sum">
-            <b className="u-tabular">{p.watched}</b> of <span className="u-tabular">{p.total}</span> lessons watched
+            {tracking ? (
+              <>
+                <b className="u-tabular">{p.watched}</b> of <span className="u-tabular">{p.total}</span> lessons watched
+              </>
+            ) : (
+              <>
+                <span className="u-tabular">{p.total}</span> {p.total === 1 ? 'lesson' : 'lessons'}
+              </>
+            )}
           </p>
         </div>
         <Menu
           align="end"
           label="Lesson options"
           trigger={<IconButton label="Lesson options" icon={DotsThree} size="sm" />}
-          items={[
-            {
-              id: 'reset',
-              label: 'Clear my progress in this module',
-              icon: ArrowCounterClockwise,
-              danger: true,
-              onSelect: onReset,
-              disabled: p.watched === 0 && !state.last[m.id],
-            },
-          ]}
+          items={
+            tracking
+              ? [
+                  {
+                    id: 'reset',
+                    label: 'Clear my progress in this module',
+                    icon: ArrowCounterClockwise,
+                    danger: true,
+                    onSelect: onReset,
+                    disabled: p.watched === 0 && !state.last[m.id],
+                  },
+                  { id: 'tracking', label: 'Stop tracking my progress', icon: EyeSlash, onSelect: () => onTracking(false) },
+                ]
+              : [{ id: 'tracking', label: 'Track my lesson progress', icon: ListChecks, onSelect: () => onTracking(true) }]
+          }
         />
       </div>
-      <div className="mod-chapters__bar" aria-hidden="true">
-        <span style={{ width: `${p.pct}%`, background: p.pct === 100 ? 'var(--signal)' : color }} />
-      </div>
+      {tracking ? (
+        <div className="mod-chapters__bar" aria-hidden="true">
+          <span style={{ width: `${p.pct}%`, background: p.pct === 100 ? 'var(--signal)' : color }} />
+        </div>
+      ) : null}
 
       <ol className="mod-chapters__list" role="list" ref={listRef}>
         {m.chapters.map((ch, ci) => {

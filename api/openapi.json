@@ -1805,7 +1805,7 @@
           "progress"
         ],
         "summary": "Set Watched",
-        "description": "Mark one lesson watched or not (404 when there is no such lesson). A study-board card for a watched lesson\nmoves to Done.",
+        "description": "Mark one lesson watched or not (404 when there is no such lesson). A study-board card for a watched lesson\nmoves to Done.\n\nErrors: progress_off (409: the person doesn't keep their lesson progress).",
         "operationId": "set_watched_api_v1_me_progress_lessons__lesson_id__put",
         "parameters": [
           {
@@ -1919,7 +1919,7 @@
           "progress"
         ],
         "summary": "Set Resume",
-        "description": "The lesson the student just opened in its module (404 when it does not exist).",
+        "description": "The lesson the student just opened in its module (404 when it does not exist).\n\nErrors: progress_off (409: the person doesn't keep their lesson progress).",
         "operationId": "set_resume_api_v1_me_progress_resume_put",
         "requestBody": {
           "content": {
@@ -2117,7 +2117,7 @@
           "progress"
         ],
         "summary": "Import Progress",
-        "description": "Merge progress kept in the browser as a guest (unknown lessons are skipped, newest timestamps win).",
+        "description": "Merge progress kept in the browser as a guest (unknown lessons are skipped, newest timestamps win).\n\nErrors: progress_off (409: the person doesn't keep their lesson progress).",
         "operationId": "import_progress_api_v1_me_progress_import_post",
         "requestBody": {
           "content": {
@@ -19582,6 +19582,7 @@
               "step_up_required",
               "cannot_change_self",
               "storage_unavailable",
+              "progress_off",
               "thread_locked",
               "post_unavailable",
               "already_used",
@@ -25493,11 +25494,42 @@
             "type": "boolean",
             "title": "Emailweeklysummary",
             "default": false
+          },
+          "trackProgress": {
+            "type": "boolean",
+            "title": "Trackprogress",
+            "default": false
+          },
+          "homeBlocks": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "start_here",
+                    "results_day",
+                    "coming_up",
+                    "daily_question",
+                    "todo",
+                    "continue",
+                    "modules",
+                    "new",
+                    "help_below",
+                    "newsletter"
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Homeblocks"
           }
         },
         "type": "object",
         "title": "Preferences",
-        "description": "Which notifications also come by email, to the account's email address, and whether the Sunday summary does.\nIn the Hub every notification shows whatever these say, and account security notices are always emailed. Unset\nmeans the default here."
+        "description": "Which notifications also come by email (to the account's email address; account security notices always do),\nwhether the Sunday summary does, whether lesson progress is kept, and Home's blocks. Unset means the default\nhere."
       },
       "PreferencesUpdate": {
         "properties": {
@@ -25566,11 +25598,49 @@
               }
             ],
             "title": "Emailweeklysummary"
+          },
+          "trackProgress": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trackprogress"
+          },
+          "homeBlocks": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "start_here",
+                    "results_day",
+                    "coming_up",
+                    "daily_question",
+                    "todo",
+                    "continue",
+                    "modules",
+                    "new",
+                    "help_below",
+                    "newsletter"
+                  ]
+                },
+                "type": "array",
+                "maxItems": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Homeblocks"
           }
         },
         "type": "object",
         "title": "PreferencesUpdate",
-        "description": "Only the switches sent change."
+        "description": "Only the fields sent change. A switch sent as null stays as it is; `homeBlocks: null` goes back to the default\nlayout."
       },
       "PresignedUpload": {
         "properties": {

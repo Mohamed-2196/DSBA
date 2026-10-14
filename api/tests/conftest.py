@@ -132,8 +132,9 @@ def storage(settings_env: None):  # type: ignore[no-untyped-def]
 
 @pytest.fixture
 def make_user(db: Session) -> Callable[..., User]:
-    """make_user(email=, phone=, name=, roles=, year=) -> a User holding these roles (slugs; Student by default),
-    committed. An email address is made up if neither identifier is given."""
+    """make_user(email=, phone=, name=, roles=, year=, tracks=) -> a User holding these roles (slugs; Student by
+    default), committed. An email address is made up if neither identifier is given. tracks=True: they keep their
+    lesson progress."""
     from app.services import access
 
     def _make(
@@ -143,10 +144,12 @@ def make_user(db: Session) -> Callable[..., User]:
         name: str | None = "Test Student",
         roles: Sequence[str] = ("student",),
         year: int | None = 2,
+        tracks: bool = False,
     ) -> User:
         if email is None and phone is None:
             email = f"student-{uuid.uuid4().hex[:8]}@example.com"
-        u = User(email=email, phone=phone, display_name=name, year=year)
+        prefs = {"track_progress": True} if tracks else {}
+        u = User(email=email, phone=phone, display_name=name, year=year, preferences=prefs)
         db.add(u)
         db.commit()
         access.give(db, u, *roles)

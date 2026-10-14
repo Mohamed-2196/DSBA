@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { CONTRIBUTORS, COPYRIGHT_HOLDER, DISCLAIMER, LAUNCH_YEAR, MYCLASS_URL, UOL_PORTAL_URL } from '../data/people';
-import { ProgrammeLockup, HubLogo } from '../ui';
+import { HubLogo } from '../ui';
 import { UPLOAD_PATH, useStartUpload, useUploadShown } from './upload';
 import './SiteFooter.css';
 
@@ -42,7 +42,7 @@ export function SiteFooter() {
             </a>
           </nav>
         </div>
-        <ProgrammeLockup className="shell-footer__affil">Made by DSBA students at BIBF, studying for a University of London degree.</ProgrammeLockup>
+        <p className="shell-footer__affil">Made by DSBA students at BIBF, studying for a University of London degree.</p>
         <ul role="list" className="shell-footer__people" aria-label="Contributors">
           {CONTRIBUTORS.map((c) => (
             <li key={c.id}>

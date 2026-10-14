@@ -52,11 +52,11 @@ export default function AboutPage() {
               <p>
                 DSBA Hub grew out of the DSBA Resource Hub. It keeps everything the hub offered for each module — books and study guides, notes shared by students,
                 exercises, past exams, cheat sheets and recorded lessons — and adds a forum for all three cohorts, a library you can read without leaving the app,
-                lessons that remember where you stopped, Career Navigator, a full calendar, a degree classification calculator and The DSBA Newsletter.
+                lessons that can remember where you stopped, Career Navigator, a full calendar, a degree classification calculator and The DSBA Newsletter.
               </p>
               <CoverageLine />
               <p>
-                Anyone can read it. Sign in with your email or phone number to ask and answer in the forum, share files, react to the newsletter and keep your lesson
+                Anyone can read it. Sign in with your email or phone number to ask and answer in the forum, share files, react to the newsletter and, if you choose, keep your lesson
                 progress on every device. The grade calculator is the exception: the marks you type into it never leave your browser.
               </p>
               <p>

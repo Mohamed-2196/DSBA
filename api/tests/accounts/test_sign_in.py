@@ -68,6 +68,8 @@ def test_sign_in_by_email_creates_an_account(client_for: ClientFor, outbox: Outb
         "emailNewIssues": True,
         "emailDateChanges": True,
         "emailWeeklySummary": False,
+        "trackProgress": False,
+        "homeBlocks": None,
     }
 
     cookie = next(h for h in r.headers.get_list("set-cookie") if h.startswith("dsba_session="))

@@ -22,7 +22,10 @@ def get_progress(user: CurrentUser, db: DB) -> Progress:
 @router.put("/me/progress/lessons/{lesson_id}", response_model=Progress)
 def set_watched(body: LessonWatchedUpdate, user: CurrentUser, db: DB, lesson_id: str = LessonIdPath) -> Progress:
     """Mark one lesson watched or not (404 when there is no such lesson). A study-board card for a watched lesson
-    moves to Done."""
+    moves to Done.
+
+    Errors: progress_off (409: the person doesn't keep their lesson progress)."""
+    accounts.require_tracking(user)
     accounts.set_watched(db, user.id, lesson_id, body.watched)
     if body.watched:
         board.complete_lessons(db, user.id)
@@ -32,7 +35,10 @@ def set_watched(body: LessonWatchedUpdate, user: CurrentUser, db: DB, lesson_id:
 
 @router.put("/me/progress/resume", response_model=Progress)
 def set_resume(body: ResumeUpdate, user: CurrentUser, db: DB) -> Progress:
-    """The lesson the student just opened in its module (404 when it does not exist)."""
+    """The lesson the student just opened in its module (404 when it does not exist).
+
+    Errors: progress_off (409: the person doesn't keep their lesson progress)."""
+    accounts.require_tracking(user)
     accounts.set_resume(db, user.id, accounts.require_lesson(db, body.lesson_id), utcnow())
     db.commit()
     return accounts.progress_of(db, user.id)
@@ -48,7 +54,10 @@ def reset_module(module_id: str, user: CurrentUser, db: DB) -> Response:
 
 @router.post("/me/progress/import", response_model=Progress)
 def import_progress(body: ProgressImport, user: CurrentUser, db: DB) -> Progress:
-    """Merge progress kept in the browser as a guest (unknown lessons are skipped, newest timestamps win)."""
+    """Merge progress kept in the browser as a guest (unknown lessons are skipped, newest timestamps win).
+
+    Errors: progress_off (409: the person doesn't keep their lesson progress)."""
+    accounts.require_tracking(user)
     accounts.import_progress(db, user.id, body)
     board.complete_lessons(db, user.id)
     db.commit()

@@ -912,7 +912,7 @@ export default function StyleGuidePage() {
               </Specimen>
             </div>
             <Specimen title="ErrorBoundary" note="wrap every component imported from another feature; default fallback shown here"
-              code={`<ErrorBoundary name="HotThreads"><HotThreads n={5} /></ErrorBoundary>\n<ErrorBoundary name="Overlay" fallback={null}>…</ErrorBoundary>`}>
+              code={`<ErrorBoundary name="UpcomingEvents"><UpcomingEvents n={5} /></ErrorBoundary>\n<ErrorBoundary name="Overlay" fallback={null}>…</ErrorBoundary>`}>
               <div className="ui-boundary" role="note">
                 <WarningCircle className="ui-boundary__icon" aria-hidden="true" weight="fill" />
                 <span>This section didn’t load.</span>

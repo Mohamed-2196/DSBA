@@ -40,8 +40,27 @@ def test_guests_get_401(client: TestClient, module: Module) -> None:
     assert client.post(f"{API}/me/progress/import", json={"watched": {}, "last": {}}).status_code == 401
 
 
+def test_nothing_is_kept_until_it_is_turned_on(
+    client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
+) -> None:
+    user = make_user()
+    c = client_for(user)
+    lesson = lesson_id(module, 0, 0)
+    for r in (
+        _watch(c, lesson),
+        _resume(c, lesson),
+        c.post(f"{API}/me/progress/import", json={"watched": {lesson: "2026-10-01T10:00:00Z"}, "last": {}}),
+    ):
+        assert r.status_code == 409
+        assert r.json()["error"]["code"] == "progress_off"
+    assert db.query(LessonView).filter_by(user_id=user.id).count() == 0
+    assert db.query(LessonResume).filter_by(user_id=user.id).count() == 0
+    assert c.patch(f"{API}/me", json={"preferences": {"trackProgress": True}}).status_code == 200
+    assert _watch(c, lesson).status_code == 200
+
+
 def test_mark_lessons_watched(client_for: ClientFor, make_user: MakeUser, module: Module) -> None:
-    c = client_for(make_user())
+    c = client_for(make_user(tracks=True))
     a, b = lesson_id(module, 0, 1), lesson_id(module, 1, 0)
     assert c.get(f"{API}/me/progress").json() == {"watched": {}, "last": {}}
     r = _watch(c, a)
@@ -60,7 +79,7 @@ def test_progress_follows_a_lesson_that_moves(
     client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
 ) -> None:
     """Reordering changes positions only: what students watched stays with the lesson."""
-    c = client_for(make_user())
+    c = client_for(make_user(tracks=True))
     lesson = lesson_id(module, 0, 1)
     _watch(c, lesson)
     _resume(c, lesson)
@@ -74,7 +93,7 @@ def test_progress_follows_a_lesson_that_moves(
 def test_unknown_and_hidden_lessons_are_404(
     client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
 ) -> None:
-    c = client_for(make_user())
+    c = client_for(make_user(tracks=True))
     assert _watch(c, "nosuchlesson").status_code == 404
     module.chapters[1].lessons[0].hidden = True
     db.commit()
@@ -85,11 +104,11 @@ def test_unknown_and_hidden_lessons_are_404(
 
 @pytest.mark.parametrize("key", ["Bad", "a:b:c", "UPPER", "x" * 17])
 def test_malformed_ids_are_422(client_for: ClientFor, make_user: MakeUser, key: str) -> None:
-    assert _watch(client_for(make_user()), key).status_code == 422
+    assert _watch(client_for(make_user(tracks=True)), key).status_code == 422
 
 
 def test_resume(client_for: ClientFor, make_user: MakeUser, module: Module) -> None:
-    c = client_for(make_user())
+    c = client_for(make_user(tracks=True))
     r = _resume(c, lesson_id(module, 1, 0))
     assert r.status_code == 200, r.text
     assert r.json()["last"][module.id]["lessonId"] == lesson_id(module, 1, 0)
@@ -112,7 +131,7 @@ def test_reset_a_module(client_for: ClientFor, make_user: MakeUser, module: Modu
     )
     db.add(other)
     db.commit()
-    c = client_for(make_user())
+    c = client_for(make_user(tracks=True))
     _watch(c, lesson_id(module, 0, 0))
     _watch(c, lesson_id(other, 0, 0))
     _resume(c, lesson_id(module, 0, 0))
@@ -125,7 +144,7 @@ def test_reset_a_module(client_for: ClientFor, make_user: MakeUser, module: Modu
 
 
 def test_progress_is_per_user(client_for: ClientFor, make_user: MakeUser, module: Module) -> None:
-    a, b = client_for(make_user()), client_for(make_user())
+    a, b = client_for(make_user(tracks=True)), client_for(make_user(tracks=True))
     _watch(a, lesson_id(module, 0, 0))
     assert b.get(f"{API}/me/progress").json() == {"watched": {}, "last": {}}
 
@@ -133,7 +152,7 @@ def test_progress_is_per_user(client_for: ClientFor, make_user: MakeUser, module
 def test_import_merges_and_the_newest_wins(
     client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
 ) -> None:
-    user = make_user()
+    user = make_user(tracks=True)
     now = utcnow()
     old, older, newer = now - timedelta(days=3), now - timedelta(days=5), now - timedelta(days=1)
     l00, l01, l10 = lesson_id(module, 0, 0), lesson_id(module, 0, 1), lesson_id(module, 1, 0)
@@ -174,7 +193,7 @@ def test_import_merges_and_the_newest_wins(
 def test_import_keeps_a_newer_resume_and_ignores_the_future(
     client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
 ) -> None:
-    user = make_user()
+    user = make_user(tracks=True)
     now = utcnow()
     l00, l01, l10 = lesson_id(module, 0, 0), lesson_id(module, 0, 1), lesson_id(module, 1, 0)
     db.add(LessonResume(user_id=user.id, module_id=module.id, lesson_id=l10, opened_at=now - timedelta(hours=1)))
@@ -191,7 +210,7 @@ def test_import_keeps_a_newer_resume_and_ignores_the_future(
 
 
 def test_import_is_capped(client_for: ClientFor, make_user: MakeUser, module: Module) -> None:
-    c = client_for(make_user())
+    c = client_for(make_user(tracks=True))
     at = utcnow().isoformat()
     r = c.post(f"{API}/me/progress/import", json={"watched": {f"l{i}": at for i in range(5001)}, "last": {}})
     assert r.status_code == 422
