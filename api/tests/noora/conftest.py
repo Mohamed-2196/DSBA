@@ -4,12 +4,14 @@ answers with fixed text and never reaches the network."""
 from __future__ import annotations
 
 import uuid
-from collections.abc import Callable, Iterator
+from collections.abc import AsyncIterator, Callable, Iterator
 from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Any
 
 import anthropic
+import anyio
+import anyio.lowlevel
 import httpx2
 import pytest
 from anthropic.types import Usage
@@ -28,24 +30,37 @@ class FakeStream:
     pieces: list[str]
     usage: Usage
     fail_after: int | None  # raise a connection error after this many pieces
+    started: bool = False  # Claude's first event (with the prompt's tokens) arrived
 
-    def __enter__(self) -> FakeStream:
+    async def __aenter__(self) -> FakeStream:
         return self
 
-    def __exit__(self, *_: type[BaseException] | BaseException | TracebackType | None) -> None:
+    async def __aexit__(self, *_: type[BaseException] | BaseException | TracebackType | None) -> None:
         return None
 
     @property
-    def text_stream(self) -> Iterator[str]:
+    def text_stream(self) -> AsyncIterator[str]:
+        return self._text()
+
+    async def _text(self) -> AsyncIterator[str]:
+        self.started = True
         for i, piece in enumerate(self.pieces):
+            await anyio.lowlevel.checkpoint()  # where a dropped connection's cancellation lands, as on the network
             if self.fail_after is not None and i >= self.fail_after:
                 raise anthropic.APIConnectionError(request=httpx2.Request("POST", "https://api.anthropic.com"))
             yield piece
         if self.fail_after is not None and self.fail_after >= len(self.pieces):
             raise anthropic.APIConnectionError(request=httpx2.Request("POST", "https://api.anthropic.com"))
 
-    def get_final_message(self) -> Any:
+    async def get_final_message(self) -> Any:
         return type("Final", (), {"usage": self.usage})()
+
+    @property
+    def current_message_snapshot(self) -> Any:
+        """As the SDK: an assertion error before the first event, then the prompt's tokens and one output token."""
+        assert self.started
+        so_far = self.usage.model_copy(update={"output_tokens": 1})
+        return type("Snapshot", (), {"usage": so_far})()
 
 
 @dataclass

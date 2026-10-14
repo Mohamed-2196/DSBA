@@ -87,12 +87,14 @@ ErrorCode = Literal[
     # notes (R-5)
     "note_changed",  # 409: the note was saved elsewhere (another tab) since this version: load it, or save over it
     "too_many_notes",  # 409: the most notes one student may keep
+    "notes_full",  # 409: the student's notes hold as much text as they may
     # the study board (R-4)
     "board_full",  # 409: the board holds as many cards as it may
     "already_on_board",  # 409: this event, lesson, module or file already has a card
     # Mini Noora's AI answers (R-6)
     "noora_unavailable",  # 503: no AI right now (not set up, or Claude failed): she answers from her script
     "noora_budget_reached",  # 503: the hub's monthly AI budget is spent: she answers from her script
+    "noora_busy",  # 503: too many answers are streaming hub-wide right now: she answers from her script
     "noora_daily_limit",  # 429: the student's questions for today are used up (retryAfter: Bahrain midnight)
 ]
 

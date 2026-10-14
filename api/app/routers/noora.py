@@ -9,9 +9,9 @@ from fastapi import Request
 from fastapi.responses import StreamingResponse
 
 from app.core.access import Box, Feature
-from app.core.security import DB, ActiveUser, client_ip, needs_feature, requires, requires_admin
+from app.core.security import DB, ActiveUser, client_ip, needs_feature, requires
 from app.models import User
-from app.routers._base import router_for
+from app.routers._base import SteppedUpAdmin, router_for
 from app.schemas.common import ErrorResponse
 from app.schemas.noora import NooraEvent, NooraLimitsIn, NooraQuestion, NooraStatus, NooraUsageOut
 from app.services.noora import ask
@@ -27,7 +27,8 @@ STREAM: dict[int | str, dict[str, Any]] = {
     },
     503: {
         "model": ErrorResponse,
-        "description": "noora_unavailable (no key) or noora_budget_reached (the month's budget is spent).",
+        "description": "noora_unavailable (no key), noora_budget_reached (the month's budget is spent) or noora_busy "
+        "(too many answers streaming hub-wide).",
     },
 }
 
@@ -39,7 +40,8 @@ def ask_noora(body: NooraQuestion, user: ActiveUser, db: DB) -> StreamingRespons
 
     Errors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly
     budget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),
-    rate_limited (429: a question a moment ago), invalid_input (422: too long)."""
+    rate_limited (429: a question a moment ago, or an answer still streaming to this student), noora_busy (503: too
+    many answers streaming hub-wide), invalid_input (422: too long)."""
     prepared = ask.prepare(db, user, body)
     db.commit()
     return StreamingResponse(
@@ -62,11 +64,10 @@ def noora_usage(user: Annotated[User, requires(Box.stats_view)], db: DB) -> Noor
 
 
 @router.put("/admin/noora", response_model=NooraUsageOut)
-def set_noora_limits(
-    body: NooraLimitsIn, request: Request, user: Annotated[User, requires_admin()], db: DB
-) -> NooraUsageOut:
+def set_noora_limits(body: NooraLimitsIn, request: Request, user: SteppedUpAdmin, db: DB) -> NooraUsageOut:
     """Set the questions each student may ask a day (0 pauses the AI answers) and the monthly budget in US cents.
-    Admins only. Audited (`noora.limits`)."""
+    Admins only, with a session started or stepped up in the last ten minutes (403 step_up_required). Audited
+    (`noora.limits`)."""
     ask.set_limits(db, user, body, client_ip(request))
     db.commit()
     return ask.usage(db)
