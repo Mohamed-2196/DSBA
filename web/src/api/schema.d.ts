@@ -870,6 +870,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/library/papers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Papers
+         * @description A module's past papers, examiners' reports and solutions by sitting (exam year and session) and zone, the
+         *     newest sitting first; the ones without an exam year in `other`. Errors: invalid_input (422: an unknown module).
+         */
+        get: operations["papers_api_v1_library_papers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/library/items/{slug}": {
         parameters: {
             query?: never;
@@ -1018,6 +1039,119 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/library/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Module Questions
+         * @description The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first.
+         *     `flagged`: only the tags someone flagged, the most flagged first, of `module_id` or of every module (library
+         *     managers; 403 for others). Errors: invalid_input (422: an unknown module, or none without `flagged`).
+         */
+        get: operations["module_questions_api_v1_library_questions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/items/{item_id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Paper Questions
+         * @description A published past paper's tagged questions, by question number. Errors: not_found (404), not_a_paper (409).
+         */
+        get: operations["paper_questions_api_v1_library_items__item_id__questions_get"];
+        put?: never;
+        /**
+         * Tag Question
+         * @description Tag a question of a published past paper with one of its module's chapters, and the page it starts on.
+         *
+         *     Errors: not_found (404), not_a_paper (409), already_tagged (409), invalid_input (422: another module's chapter),
+         *     rate_limited (429: 60 an hour).
+         */
+        post: operations["tag_question_api_v1_library_items__item_id__questions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/questions/{question_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Question
+         * @description Whoever tagged it, or a library manager (audited: `library.question_remove`). Errors: not_found (404).
+         */
+        delete: operations["remove_question_api_v1_library_questions__question_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/questions/{question_id}/keep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Keep Question
+         * @description The tag is right: clear its flags (library managers; audited: `library.question_keep`).
+         */
+        post: operations["keep_question_api_v1_library_questions__question_id__keep_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/questions/{question_id}/flag": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Flag Question
+         * @description Say a tag is wrong: the library's managers see it. Saying it twice changes nothing.
+         */
+        put: operations["flag_question_api_v1_library_questions__question_id__flag_put"];
+        post?: never;
+        /**
+         * Unflag Question
+         * @description Take a flag back.
+         */
+        delete: operations["unflag_question_api_v1_library_questions__question_id__flag_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/uploads": {
         parameters: {
             query?: never;
@@ -1151,7 +1285,13 @@ export interface paths {
          * Create Thread
          * @description The author upvotes their own thread. Forum images in the body (/api/v1/media/<id>) are attached.
          *
-         *     Errors: rate_limited (429) after 10 threads in an hour.
+         *     `anonymous` (needs forum.anonymous): students see "A Year N student" in place of the author, everywhere the
+         *     thread shows, and in its notifications. The author and those who moderate the forum (forum.moderate) still see
+         *     who it is, and the audit log records it (forum.thread.anonymous). Reports and rate limits apply as usual.
+         *     `seniorId` (needs career.seniors): a listed senior asked from Career Navigator; they are notified.
+         *
+         *     Errors: rate_limited (429) after 10 threads in an hour; feature_off (404) for `anonymous` or `seniorId` while
+         *     their feature is off; invalid_input (422: the senior isn't taking questions).
          */
         post: operations["create_thread_api_v1_forum_threads_post"];
         delete?: never;
@@ -1242,6 +1382,27 @@ export interface paths {
          */
         get: operations["related_threads_api_v1_forum_threads__thread_id__related_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forum/threads/{thread_id}/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Follow Thread
+         * @description Follow a thread: 'answers' (an accepted answer), 'replies' (every reply too) or 'off'. Voting for a thread or
+         *     replying in it starts at 'answers', unless you switched it off. The thread's author follows it already.
+         */
+        put: operations["follow_thread_api_v1_forum_threads__thread_id__follow_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1646,7 +1807,8 @@ export interface paths {
         /**
          * Update Issue
          * @description Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are
-         *     replaced as a whole). Errors: slug_taken (409), invalid_input (422).
+         *     replaced as a whole). Errors: slug_taken (409), poll_has_votes (409: a poll's answers changed after it got
+         *     votes), invalid_input (422).
          */
         patch: operations["update_issue_api_v1_newsletter_issues__issue_id__patch"];
         trace?: never;
@@ -1694,6 +1856,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/newsletter/issues/{issue_id}/polls/{poll_id}/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Vote In Poll
+         * @description One vote per person, and it can't be changed. The counts come back with it. Published issues only.
+         *     Errors: already_voted (409), poll_closed (409), not_found (404: no such issue or poll), invalid_input (422: no
+         *     such answer).
+         */
+        put: operations["vote_in_poll_api_v1_newsletter_issues__issue_id__polls__poll_id__vote_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notes": {
         parameters: {
             query?: never;
@@ -1711,7 +1895,7 @@ export interface paths {
         /**
          * Create Note
          * @description A new note. Errors: invalid_input (422: an unknown module or lesson, or too long), too_many_notes (409),
-         *     rate_limited (429).
+         *     notes_full (409: the student's notes hold 10 MB of text), rate_limited (429).
          */
         post: operations["create_note_api_v1_notes_post"];
         delete?: never;
@@ -1732,7 +1916,8 @@ export interface paths {
         /**
          * Save Note
          * @description Save the whole note. Send the `version` you loaded: if it was saved since (another tab), 409 note_changed;
-         *     load it again, or send its new version to save yours over it. Errors: rate_limited (429: saving very fast).
+         *     load it again, or send its new version to save yours over it. Errors: notes_full (409: the student's notes hold
+         *     10 MB of text), rate_limited (429: saving very fast).
          */
         put: operations["save_note_api_v1_notes__note_id__put"];
         post?: never;
@@ -1907,6 +2092,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/career/seniors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Seniors
+         * @description The Year 3 students taking questions: name, cohort, badge, topics and their line. Never contact details.
+         */
+        get: operations["list_seniors_api_v1_career_seniors_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/career/seniors/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Listing
+         * @description The signed-in person's listing, and whether they may have one (Year 3 only).
+         */
+        get: operations["my_listing_api_v1_career_seniors_me_get"];
+        /**
+         * Save Listing
+         * @description List yourself, change your topics or line, or pause. Errors: forbidden (403: not in Year 3).
+         */
+        put: operations["save_listing_api_v1_career_seniors_me_put"];
+        post?: never;
+        /**
+         * Remove Listing
+         * @description Take yourself off the list. Idempotent.
+         */
+        delete: operations["remove_listing_api_v1_career_seniors_me_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/features": {
         parameters: {
             query?: never;
@@ -2070,7 +2303,8 @@ export interface paths {
          *
          *     Errors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly
          *     budget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),
-         *     rate_limited (429: a question a moment ago), invalid_input (422: too long).
+         *     rate_limited (429: a question a moment ago, or an answer still streaming to this student), noora_busy (503: too
+         *     many answers streaming hub-wide), invalid_input (422: too long).
          */
         post: operations["ask_noora_api_v1_noora_ask_post"];
         delete?: never;
@@ -2114,7 +2348,8 @@ export interface paths {
         /**
          * Set Noora Limits
          * @description Set the questions each student may ask a day (0 pauses the AI answers) and the monthly budget in US cents.
-         *     Admins only. Audited (`noora.limits`).
+         *     Admins only, with a session started or stepped up in the last ten minutes (403 step_up_required). Audited
+         *     (`noora.limits`).
          */
         put: operations["set_noora_limits_api_v1_admin_noora_put"];
         post?: never;
@@ -2183,12 +2418,25 @@ export interface components {
             requests: components["schemas"]["ExportRequest"][];
             /** Metoos */
             meToos: string[];
+            /** Questiontags */
+            questionTags: components["schemas"]["ExportQuestionTag"][];
+            /** Questionflags */
+            questionFlags: string[];
             /** Emails */
             emails: components["schemas"]["ExportEmail"][];
             /** Board */
             board: components["schemas"]["ExportBoardCard"][];
             /** Boardplans */
             boardPlans: components["schemas"]["ExportBoardPlan"][];
+            /** Follows */
+            follows: components["schemas"]["ExportFollow"][];
+            /** Pollvotes */
+            pollVotes: components["schemas"]["ExportPollVote"][];
+            senior: components["schemas"]["ExportSenior"] | null;
+            /** Notes */
+            notes: components["schemas"]["ExportNote"][];
+            /** Noorausage */
+            nooraUsage: components["schemas"]["ExportNooraDay"][];
         };
         /**
          * AdminStats
@@ -2402,7 +2650,7 @@ export interface components {
             /** Date */
             date: string | null;
             /** Kind */
-            kind: ("past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
+            kind: ("past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
             /** Moduleid */
             moduleId: string | null;
         };
@@ -2733,11 +2981,6 @@ export interface components {
             yearHints: {
                 [key: string]: string;
             };
-            /**
-             * Seniors
-             * @default []
-             */
-            seniors: components["schemas"]["CareerSenior"][];
         };
         /**
          * CareerEmployer
@@ -2836,26 +3079,6 @@ export interface components {
             close: {
                 [key: string]: components["schemas"]["CloseLesson"] | components["schemas"]["CloseFile"] | components["schemas"]["CloseCert"] | components["schemas"]["CloseForum"] | components["schemas"]["CloseOpps"];
             };
-        };
-        /**
-         * CareerSenior
-         * @description A Year 3 student or a recent graduate who answers questions.
-         */
-        CareerSenior: {
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Short */
-            short: string;
-            /** Year */
-            year?: (1 | 2 | 3) | null;
-            /** Badge */
-            badge?: string | null;
-            /** Helps */
-            helps: string;
-            /** Ask */
-            ask: string;
         };
         /** CareerSkill */
         CareerSkill: {
@@ -3108,7 +3331,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -3177,7 +3400,7 @@ export interface components {
          */
         ExportEmail: {
             /** Kind */
-            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system") | "account_notice";
+            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system") | "account_notice";
             /** Toaddress */
             toAddress: string;
             /** Subject */
@@ -3194,6 +3417,26 @@ export interface components {
             createdAt: string;
             /** Sentat */
             sentAt: string | null;
+        };
+        /** ExportFollow */
+        ExportFollow: {
+            /**
+             * Threadid
+             * Format: uuid
+             */
+            threadId: string;
+            /** Threadslug */
+            threadSlug: string;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "answers" | "replies" | "off";
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
         };
         /** ExportLibraryItem */
         ExportLibraryItem: {
@@ -3213,7 +3456,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
+            kind: "past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
             /** Title */
             title: string;
             /** Description */
@@ -3253,6 +3496,51 @@ export interface components {
             /** Publishedat */
             publishedAt: string | null;
         };
+        /**
+         * ExportNooraDay
+         * @description Mini Noora's AI questions on one day: only counts (no question or answer is stored).
+         */
+        ExportNooraDay: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Questions */
+            questions: number;
+            /** Inputtokens */
+            inputTokens: number;
+            /** Outputtokens */
+            outputTokens: number;
+        };
+        /** ExportNote */
+        ExportNote: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Body */
+            body: string;
+            /** Moduleid */
+            moduleId: string | null;
+            /** Lessonid */
+            lessonId: string | null;
+            /** Version */
+            version: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
         /** ExportNotification */
         ExportNotification: {
             /**
@@ -3264,7 +3552,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -3278,6 +3566,52 @@ export interface components {
             createdAt: string;
             /** Readat */
             readAt: string | null;
+        };
+        /** ExportPollVote */
+        ExportPollVote: {
+            /**
+             * Issueid
+             * Format: uuid
+             */
+            issueId: string;
+            /** Issueslug */
+            issueSlug: string;
+            /** Pollid */
+            pollId: string;
+            /** Choice */
+            choice: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /**
+         * ExportQuestionTag
+         * @description A past paper's question you tagged with a chapter.
+         */
+        ExportQuestionTag: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Itemid
+             * Format: uuid
+             */
+            itemId: string;
+            /** Chapterid */
+            chapterId: string;
+            /** Question */
+            question: number;
+            /** Page */
+            page: number | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
         };
         /** ExportReaction */
         ExportReaction: {
@@ -3399,6 +3733,20 @@ export interface components {
              */
             createdAt: string;
         };
+        /** ExportSenior */
+        ExportSenior: {
+            /** Topics */
+            topics: ("internships" | "jobs" | "msc" | "electives" | "modules")[];
+            /** Note */
+            note: string;
+            /** Paused */
+            paused: boolean;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
         /** ExportThread */
         ExportThread: {
             /**
@@ -3437,6 +3785,8 @@ export interface components {
             voteCount: number;
             /** Replycount */
             replyCount: number;
+            /** Anonymous */
+            anonymous: boolean;
         };
         /** ExportVote */
         ExportVote: {
@@ -3462,7 +3812,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary";
+            feature: "forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary";
             /** Label */
             label: string;
             /** Hides */
@@ -3488,7 +3838,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary")[];
+            features: ("forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary")[];
         };
         /** FileLink */
         FileLink: {
@@ -3496,6 +3846,22 @@ export interface components {
             url: string;
             /** Expiresin */
             expiresIn: number;
+        };
+        /** FollowRequest */
+        FollowRequest: {
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "answers" | "replies" | "off";
+        };
+        /** FollowResult */
+        FollowResult: {
+            /**
+             * Following
+             * @enum {string}
+             */
+            following: "answers" | "replies" | "off";
         };
         /** ForumMeta */
         ForumMeta: {
@@ -3663,6 +4029,10 @@ export interface components {
             reactions: {
                 [key: string]: components["schemas"]["ReactionCounts"];
             };
+            /** Polls */
+            polls: {
+                [key: string]: components["schemas"]["PollResult"];
+            };
         };
         /**
          * IssueFigure
@@ -3700,12 +4070,12 @@ export interface components {
              * Blocks
              * @default []
              */
-            blocks: (components["schemas"]["ParagraphBlock"] | components["schemas"]["ListBlock"] | components["schemas"]["SignoffBlock"] | components["schemas"]["CtaBlock"])[];
+            blocks: (components["schemas"]["ParagraphBlock"] | components["schemas"]["ListBlock"] | components["schemas"]["SignoffBlock"] | components["schemas"]["CtaBlock"] | components["schemas"]["PollBlock"])[];
             /**
              * After
              * @default []
              */
-            after: (components["schemas"]["ParagraphBlock"] | components["schemas"]["ListBlock"] | components["schemas"]["SignoffBlock"] | components["schemas"]["CtaBlock"])[];
+            after: (components["schemas"]["ParagraphBlock"] | components["schemas"]["ListBlock"] | components["schemas"]["SignoffBlock"] | components["schemas"]["CtaBlock"] | components["schemas"]["PollBlock"])[];
             figure?: components["schemas"]["IssueFigure"] | null;
             /** Aside */
             aside?: (components["schemas"]["CardAside"] | components["schemas"]["StatsAside"]) | null;
@@ -3863,7 +4233,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
+            kind: "past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
             /** Title */
             title: string;
             /** Description */
@@ -3886,6 +4256,8 @@ export interface components {
             examYear: number | null;
             /** Zone */
             zone: string | null;
+            /** Examsession */
+            examSession: ("may" | "october") | null;
             /** Authorname */
             authorName: string | null;
             uploadedBy: components["schemas"]["UserPublic"] | null;
@@ -3929,7 +4301,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
+            kind: "past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
             /** Moduleid */
             moduleId?: string | null;
             /** Year */
@@ -3940,6 +4312,8 @@ export interface components {
             examYear?: number | null;
             /** Zone */
             zone?: ("A" | "B") | null;
+            /** Examsession */
+            examSession?: ("may" | "october") | null;
             /** Authorname */
             authorName?: string | null;
         };
@@ -3948,7 +4322,7 @@ export interface components {
             /** Title */
             title?: string | null;
             /** Kind */
-            kind?: ("past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
+            kind?: ("past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
             /** Moduleid */
             moduleId?: string | null;
             /** Year */
@@ -3959,6 +4333,8 @@ export interface components {
             examYear?: number | null;
             /** Zone */
             zone?: ("A" | "B") | null;
+            /** Examsession */
+            examSession?: ("may" | "october") | null;
             /** Authorname */
             authorName?: string | null;
         };
@@ -3978,7 +4354,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
+            kind: "past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
             /** Moduleid */
             moduleId?: string | null;
             /** Year */
@@ -4038,7 +4414,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary")[];
+            features: ("forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary")[];
             /**
              * Status
              * @enum {string}
@@ -4278,6 +4654,22 @@ export interface components {
             lessonCount: number;
             /** Librarycount */
             libraryCount: number | null;
+        };
+        /**
+         * MySenior
+         * @description The signed-in person's listing, and whether they may have one (Year 3 only).
+         */
+        MySenior: {
+            /** Eligible */
+            eligible: boolean;
+            /** Listed */
+            listed: boolean;
+            /** Topics */
+            topics: ("internships" | "jobs" | "msc" | "electives" | "modules")[];
+            /** Note */
+            note: string;
+            /** Paused */
+            paused: boolean;
         };
         /**
          * NooraDoneEvent
@@ -4540,7 +4932,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -4625,6 +5017,74 @@ export interface components {
             /** Code */
             code: string;
         };
+        /** PaperQuestion */
+        PaperQuestion: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            paper: components["schemas"]["PaperRef"];
+            /** Chapterid */
+            chapterId: string;
+            /** Chaptertitle */
+            chapterTitle: string;
+            /** Question */
+            question: number;
+            /** Page */
+            page: number | null;
+            /** Flagged */
+            flagged: boolean;
+            /** Flagcount */
+            flagCount: number | null;
+            /** Ismine */
+            isMine: boolean;
+            /** Canremove */
+            canRemove: boolean;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** PaperQuestionCreate */
+        PaperQuestionCreate: {
+            /** Question */
+            question: number;
+            /** Chapterid */
+            chapterId: string;
+            /** Page */
+            page?: number | null;
+        };
+        /** PaperRef */
+        PaperRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Title */
+            title: string;
+            /** Examyear */
+            examYear: number | null;
+            /** Examsession */
+            examSession: ("may" | "october") | null;
+            /** Zone */
+            zone: string | null;
+        };
+        /**
+         * PaperSittings
+         * @description A module's past papers, examiners' reports and solutions: by sitting, newest first, and the ones without an
+         *     exam year apart.
+         */
+        PaperSittings: {
+            /** Sittings */
+            sittings: components["schemas"]["Sitting"][];
+            /** Other */
+            other: components["schemas"]["LibraryItem"][];
+        };
         /** ParagraphBlock */
         ParagraphBlock: {
             /**
@@ -4639,6 +5099,47 @@ export interface components {
              * @default false
              */
             lead: boolean;
+        };
+        /**
+         * PollBlock
+         * @description A question to the cohort with two to five answers: one vote per signed-in student, and the counts once you
+         *     have voted (needs the newsletter.polls feature). `id` keeps its votes: it is unique in the issue and stays put
+         *     once the issue is out.
+         */
+        PollBlock: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "poll";
+            /** Id */
+            id: string;
+            /** Question */
+            question: string;
+            /** Answers */
+            answers: string[];
+            /**
+             * Closed
+             * @default false
+             */
+            closed: boolean;
+        };
+        /**
+         * PollResult
+         * @description A poll's votes. Nobody sees who voted.
+         */
+        PollResult: {
+            /** Total */
+            total: number;
+            /** Counts */
+            counts: number[] | null;
+            /** Mine */
+            mine: number | null;
+        };
+        /** PollVoteRequest */
+        PollVoteRequest: {
+            /** Choice */
+            choice: number;
         };
         /** PostImage */
         PostImage: {
@@ -4788,6 +5289,10 @@ export interface components {
             reactions: {
                 [key: string]: components["schemas"]["ReactionCounts"];
             };
+            /** Polls */
+            polls: {
+                [key: string]: components["schemas"]["PollResult"];
+            };
             /** Emailed */
             emailed: boolean;
         };
@@ -4831,6 +5336,8 @@ export interface components {
             author: components["schemas"]["UserPublic"] | null;
             /** Authoryear */
             authorYear: (1 | 2 | 3) | null;
+            /** Anonymous */
+            anonymous: boolean;
             /** Body */
             body: string;
             /**
@@ -5200,6 +5707,32 @@ export interface components {
             /** Events */
             events: components["schemas"]["SearchHit"][];
         };
+        /**
+         * Senior
+         * @description A listed senior: name, cohort and badge, the topics and their line. No contact details.
+         */
+        Senior: {
+            user: components["schemas"]["UserPublic"];
+            /** Topics */
+            topics: ("internships" | "jobs" | "msc" | "electives" | "modules")[];
+            /** Note */
+            note: string;
+        };
+        /** SeniorUpdate */
+        SeniorUpdate: {
+            /** Topics */
+            topics: ("internships" | "jobs" | "msc" | "electives" | "modules")[];
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /**
+             * Paused
+             * @default false
+             */
+            paused: boolean;
+        };
         /** SessionInfo */
         SessionInfo: {
             /**
@@ -5268,6 +5801,30 @@ export interface components {
             status: "open" | "planned" | "done" | "declined";
             /** Metoocount */
             meTooCount: number;
+        };
+        /** Sitting */
+        Sitting: {
+            /** Examyear */
+            examYear: number;
+            /** Session */
+            session: ("may" | "october") | null;
+            /** Zones */
+            zones: components["schemas"]["SittingZone"][];
+        };
+        /**
+         * SittingZone
+         * @description One zone's papers in a sitting, with their examiners' reports and solutions. `zone` None: files for both
+         *     zones, or a sitting with one paper.
+         */
+        SittingZone: {
+            /** Zone */
+            zone: ("A" | "B") | null;
+            /** Papers */
+            papers: components["schemas"]["LibraryItem"][];
+            /** Reports */
+            reports: components["schemas"]["LibraryItem"][];
+            /** Solutions */
+            solutions: components["schemas"]["LibraryItem"][];
         };
         /** SkillTaught */
         SkillTaught: {
@@ -5402,6 +5959,13 @@ export interface components {
             moduleId?: string | null;
             /** Tags */
             tags?: string[];
+            /**
+             * Anonymous
+             * @default false
+             */
+            anonymous: boolean;
+            /** Seniorid */
+            seniorId?: string | null;
         };
         /** ThreadDetail */
         ThreadDetail: {
@@ -5430,6 +5994,8 @@ export interface components {
             author: components["schemas"]["UserPublic"] | null;
             /** Authoryear */
             authorYear: (1 | 2 | 3) | null;
+            /** Anonymous */
+            anonymous: boolean;
             /**
              * Createdat
              * Format: date-time
@@ -5474,6 +6040,11 @@ export interface components {
             canAccept: boolean;
             /** Canmoderate */
             canModerate: boolean;
+            /**
+             * Following
+             * @enum {string}
+             */
+            following: "answers" | "replies" | "off";
         };
         /** ThreadModeration */
         ThreadModeration: {
@@ -5524,6 +6095,8 @@ export interface components {
             author: components["schemas"]["UserPublic"] | null;
             /** Authoryear */
             authorYear: (1 | 2 | 3) | null;
+            /** Anonymous */
+            anonymous: boolean;
             /**
              * Createdat
              * Format: date-time
@@ -5708,7 +6281,6 @@ export type CareerEmployer = components['schemas']['CareerEmployer'];
 export type CareerFeatured = components['schemas']['CareerFeatured'];
 export type CareerOffer = components['schemas']['CareerOffer'];
 export type CareerRole = components['schemas']['CareerRole'];
-export type CareerSenior = components['schemas']['CareerSenior'];
 export type CareerSkill = components['schemas']['CareerSkill'];
 export type CareerTrack = components['schemas']['CareerTrack'];
 export type CategoryOut = components['schemas']['CategoryOut'];
@@ -5734,18 +6306,26 @@ export type ErrorResponse = components['schemas']['ErrorResponse'];
 export type ExportBoardCard = components['schemas']['ExportBoardCard'];
 export type ExportBoardPlan = components['schemas']['ExportBoardPlan'];
 export type ExportEmail = components['schemas']['ExportEmail'];
+export type ExportFollow = components['schemas']['ExportFollow'];
 export type ExportLibraryItem = components['schemas']['ExportLibraryItem'];
+export type ExportNooraDay = components['schemas']['ExportNooraDay'];
+export type ExportNote = components['schemas']['ExportNote'];
 export type ExportNotification = components['schemas']['ExportNotification'];
+export type ExportPollVote = components['schemas']['ExportPollVote'];
+export type ExportQuestionTag = components['schemas']['ExportQuestionTag'];
 export type ExportReaction = components['schemas']['ExportReaction'];
 export type ExportReply = components['schemas']['ExportReply'];
 export type ExportReport = components['schemas']['ExportReport'];
 export type ExportRequest = components['schemas']['ExportRequest'];
+export type ExportSenior = components['schemas']['ExportSenior'];
 export type ExportThread = components['schemas']['ExportThread'];
 export type ExportVote = components['schemas']['ExportVote'];
 export type FeatureOut = components['schemas']['FeatureOut'];
 export type FeaturedLogo = components['schemas']['FeaturedLogo'];
 export type FeaturesOut = components['schemas']['FeaturesOut'];
 export type FileLink = components['schemas']['FileLink'];
+export type FollowRequest = components['schemas']['FollowRequest'];
+export type FollowResult = components['schemas']['FollowResult'];
 export type ForumMeta = components['schemas']['ForumMeta'];
 export type ForumStats = components['schemas']['ForumStats'];
 export type FurtherStudy = components['schemas']['FurtherStudy'];
@@ -5780,6 +6360,7 @@ export type ModuleOrder = components['schemas']['ModuleOrder'];
 export type ModuleResources = components['schemas']['ModuleResources'];
 export type ModuleSave = components['schemas']['ModuleSave'];
 export type ModuleSummary = components['schemas']['ModuleSummary'];
+export type MySenior = components['schemas']['MySenior'];
 export type NooraDoneEvent = components['schemas']['NooraDoneEvent'];
 export type NooraErrorEvent = components['schemas']['NooraErrorEvent'];
 export type NooraLimitsIn = components['schemas']['NooraLimitsIn'];
@@ -5802,7 +6383,14 @@ export type OfferTypeLabels = components['schemas']['OfferTypeLabels'];
 export type OtpChallengeOut = components['schemas']['OtpChallengeOut'];
 export type OtpStartRequest = components['schemas']['OtpStartRequest'];
 export type OtpVerifyRequest = components['schemas']['OtpVerifyRequest'];
+export type PaperQuestion = components['schemas']['PaperQuestion'];
+export type PaperQuestionCreate = components['schemas']['PaperQuestionCreate'];
+export type PaperRef = components['schemas']['PaperRef'];
+export type PaperSittings = components['schemas']['PaperSittings'];
 export type ParagraphBlock = components['schemas']['ParagraphBlock'];
+export type PollBlock = components['schemas']['PollBlock'];
+export type PollResult = components['schemas']['PollResult'];
+export type PollVoteRequest = components['schemas']['PollVoteRequest'];
 export type PostImage = components['schemas']['PostImage'];
 export type Preferences = components['schemas']['Preferences'];
 export type PreferencesUpdate = components['schemas']['PreferencesUpdate'];
@@ -5833,11 +6421,15 @@ export type RoleSummary = components['schemas']['RoleSummary'];
 export type RoleUpdate = components['schemas']['RoleUpdate'];
 export type SearchHit = components['schemas']['SearchHit'];
 export type SearchResults = components['schemas']['SearchResults'];
+export type Senior = components['schemas']['Senior'];
+export type SeniorUpdate = components['schemas']['SeniorUpdate'];
 export type SessionInfo = components['schemas']['SessionInfo'];
 export type SessionState = components['schemas']['SessionState'];
 export type SignInResult = components['schemas']['SignInResult'];
 export type SignoffBlock = components['schemas']['SignoffBlock'];
 export type SimilarRequest = components['schemas']['SimilarRequest'];
+export type Sitting = components['schemas']['Sitting'];
+export type SittingZone = components['schemas']['SittingZone'];
 export type SkillTaught = components['schemas']['SkillTaught'];
 export type StarResult = components['schemas']['StarResult'];
 export type StatItem = components['schemas']['StatItem'];
@@ -8912,7 +9504,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary";
+                feature: "forum" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary";
             };
             cookie?: never;
         };
@@ -9688,10 +10280,12 @@ export interface operations {
                 q?: string | null;
                 module_id?: string | null;
                 year?: number | null;
-                kind?: ("past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
+                kind?: ("past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
                 source?: ("file" | "link") | null;
                 /** @description relevance: best match first (with q) */
                 sort?: "new" | "popular" | "title" | "relevance";
+                exam_year?: number | null;
+                zone?: ("A" | "B") | null;
                 starred?: boolean;
                 mine?: boolean;
                 /** @description Library managers: e.g. pending */
@@ -9884,6 +10478,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LibraryFacets"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    papers_api_v1_library_papers_get: {
+        parameters: {
+            query: {
+                module_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSittings"];
                 };
             };
             /** @description Bad Request */
@@ -10655,6 +11334,604 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LibraryItem"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    module_questions_api_v1_library_questions_get: {
+        parameters: {
+            query?: {
+                module_id?: string | null;
+                flagged?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperQuestion"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    paper_questions_api_v1_library_items__item_id__questions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperQuestion"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    tag_question_api_v1_library_items__item_id__questions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperQuestionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperQuestion"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    remove_question_api_v1_library_questions__question_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    keep_question_api_v1_library_questions__question_id__keep_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperQuestion"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    flag_question_api_v1_library_questions__question_id__flag_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperQuestion"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    unflag_question_api_v1_library_questions__question_id__flag_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperQuestion"];
                 };
             };
             /** @description Bad Request */
@@ -11692,6 +12969,95 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ThreadSummary"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    follow_thread_api_v1_forum_threads__thread_id__follow_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FollowRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowResult"];
                 };
             };
             /** @description Bad Request */
@@ -14270,6 +15636,96 @@ export interface operations {
             };
         };
     };
+    vote_in_poll_api_v1_newsletter_issues__issue_id__polls__poll_id__vote_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_id: string;
+                poll_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PollVoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PollResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_notes_api_v1_notes_get: {
         parameters: {
             query?: {
@@ -15569,6 +17025,340 @@ export interface operations {
             };
         };
     };
+    list_seniors_api_v1_career_seniors_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Senior"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    my_listing_api_v1_career_seniors_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MySenior"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_listing_api_v1_career_seniors_me_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeniorUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MySenior"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    remove_listing_api_v1_career_seniors_me_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     features_api_v1_features_get: {
         parameters: {
             query?: never;
@@ -16339,7 +18129,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description noora_unavailable (no key) or noora_budget_reached (the month's budget is spent). */
+            /** @description noora_unavailable (no key), noora_budget_reached (the month's budget is spent) or noora_busy (too many answers streaming hub-wide). */
             503: {
                 headers: {
                     [name: string]: unknown;

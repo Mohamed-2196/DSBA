@@ -18,6 +18,8 @@ import-drive       copy the files of the library's Google Drive folders into the
                    imports, and lists the folders Drive refused (--dry-run: only the plan; --module ID; --limit N
                    files; --pace S: seconds between downloads, default 2; --yes: no question). Safe to run again:
                    it tries skipped and failed files again. Needs DSBA_GOOGLE_API_KEY (DEPLOYMENT.md, 10)
+exam-meta          read the exam year, session, zone and kind of the past papers, reports and solutions the Drive
+                   import brought in, from their names, and fill what each lacks (--dry-run: only list them)
 text-worker        read the words of each newly published PDF and Word file, for search inside papers; runs until
                    stopped. Several can run side by side.
 extract-texts      read the words of the published files that have none yet (the backfill), then stop (--retry:
@@ -364,6 +366,21 @@ def cmd_import_drive(args: argparse.Namespace) -> int:
         )
 
 
+def cmd_exam_meta(args: argparse.Namespace) -> int:
+    """Imported papers, reports and VLE files get the exam details their names give (backfill_exam_meta)."""
+    from app.services.drive_import import backfill_exam_meta
+
+    with get_sessionmaker()() as db:
+        result = backfill_exam_meta(db, dry_run=args.dry_run)
+        for line in result.changed:
+            print(f"  {line}")
+        verb = "Would change" if args.dry_run else "Changed"
+        print(f"{verb} {len(result.changed)} of {result.checked} imported papers, reports and VLE files.")
+        if not args.dry_run:
+            db.commit()
+    return 0
+
+
 def _confirm(question: str) -> bool:
     try:
         answer = input(question)
@@ -464,6 +481,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     di.add_argument("--yes", action="store_true", help="import without asking first")
     di.set_defaults(fn=cmd_import_drive)
+    em = sub.add_parser("exam-meta")
+    em.add_argument("--dry-run", action="store_true", help="list what would change and change nothing")
+    em.set_defaults(fn=cmd_exam_meta)
     tw = sub.add_parser("text-worker")
     tw.add_argument("--poll", type=float, default=10.0, help="seconds to wait when nothing is new (default 10)")
     tw.set_defaults(fn=cmd_text_worker)

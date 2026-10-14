@@ -1,4 +1,4 @@
-"""The DSBA Newsletter: issues (sections are JSON blocks, rendered by the web app) and reactions."""
+"""The DSBA Newsletter: issues (sections are JSON blocks, rendered by the web app), reactions and poll votes."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Computed, Date, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy import Computed, Date, ForeignKey, Index, Integer, SmallInteger, String, Text, func
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -62,4 +62,19 @@ class NewsletterReaction(Base):
     )
     section_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     reaction: Mapped[str] = mapped_column(String(16), primary_key=True)  # useful | love | laugh
+    created_at: Mapped[datetime] = created_ts()
+
+
+class PollVote(Base):
+    """One student's answer to a poll in an issue. Kept only to count and to stop a second vote: nobody sees who
+    voted."""
+
+    __tablename__ = "newsletter_poll_votes"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    issue_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("newsletter_issues.id", ondelete="CASCADE"), primary_key=True
+    )
+    poll_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    choice: Mapped[int] = mapped_column(SmallInteger)  # the answer's position, from 0
     created_at: Mapped[datetime] = created_ts()

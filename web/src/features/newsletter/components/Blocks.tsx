@@ -3,6 +3,7 @@ import { Avatar, Button, cx } from '../../../ui';
 import { safeHref, safeImageSrc } from '../lib/links';
 import { plainText } from '../lib/text';
 import type { Aside as AsideData, Block as BlockData } from '../types';
+import { Poll, type PollIssue } from './Poll';
 import { RichText } from './RichText';
 
 /**
@@ -38,8 +39,10 @@ export function EditorAvatars({ names = [], size = 28 }: { names?: readonly stri
   );
 }
 
-function Block({ block, editors }: { block: BlockData; editors: readonly string[] }) {
+function Block({ block, editors, poll }: { block: BlockData; editors: readonly string[]; poll?: PollIssue }) {
   switch (block.type) {
+    case 'poll':
+      return poll ? <Poll block={block} issue={poll} /> : null;
     case 'p':
       return (
         <p className={cx('nl-p', block.lead && 'nl-p--lead')}>
@@ -85,12 +88,12 @@ function Block({ block, editors }: { block: BlockData; editors: readonly string[
   }
 }
 
-/** A section's copy: paragraphs, bulleted lists, the editors' sign-off and buttons. */
-export function Blocks({ blocks = [], editors = [] }: { blocks?: readonly BlockData[]; editors?: readonly string[] }) {
+/** A section's copy: paragraphs, bulleted lists, the editors' sign-off, buttons and polls (`poll`: the issue). */
+export function Blocks({ blocks = [], editors = [], poll }: { blocks?: readonly BlockData[]; editors?: readonly string[]; poll?: PollIssue }) {
   return (
     <>
       {blocks.map((b, i) => (
-        <Block key={`${b.type}-${i}`} block={b} editors={editors} />
+        <Block key={`${b.type}-${i}`} block={b} editors={editors} poll={poll} />
       ))}
     </>
   );

@@ -2,7 +2,7 @@
 // from the forum, files from the library) and the reactions; a picture or a card beside it.
 // Used by the reader and by the editor's preview.
 import type { ReactNode } from 'react';
-import type { IssueSection as SectionData, LiveFallback, ReactionCounts } from '../../../api/types';
+import type { IssueSection as SectionData, LiveFallback, PollResult, ReactionCounts } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { addDaysToKey } from '../../../lib/dates';
 import { ErrorBoundary, cx } from '../../../ui';
@@ -24,6 +24,7 @@ export interface SectionIssue {
   date: string;
   editors: readonly string[];
   reactions: Record<string, ReactionCounts>;
+  polls?: Record<string, PollResult>;
 }
 
 export interface IssueSectionProps {
@@ -53,6 +54,7 @@ function SectionFrame({ issue, section, readOnly, title = section.title, blocks 
   if (section.figure) side = <Figure figure={section.figure} />;
   else if (section.aside) side = <Aside aside={section.aside} />;
   else if (aside) side = aside;
+  const poll = { issueId: issue.id, slug: issue.slug, polls: issue.polls, readOnly };
   return (
     <section id={sectionDomId(section.id)} className={cx('nl-section', `nl-section--${section.kind ?? 'copy'}`, wide && 'has-wide-aside')} aria-labelledby={headId} data-hub="issue-section">
       <header className="nl-section__head">
@@ -65,13 +67,13 @@ function SectionFrame({ issue, section, readOnly, title = section.title, blocks 
         </h2>
       </header>
       <div className="nl-section__body">
-        <Blocks blocks={blocks} editors={issue.editors} />
+        <Blocks blocks={blocks} editors={issue.editors} poll={poll} />
         {body ? (
           <ErrorBoundary name={`Newsletter ${section.id}`} resetKey={issue.slug}>
             {body}
           </ErrorBoundary>
         ) : null}
-        <Blocks blocks={section.after} editors={issue.editors} />
+        <Blocks blocks={section.after} editors={issue.editors} poll={poll} />
         <Reactions issueId={issue.id} issueSlug={issue.slug} sectionId={section.id} counts={issue.reactions[section.id]} label={label} readOnly={readOnly} />
       </div>
       {side ? <div className="nl-section__aside">{side}</div> : null}

@@ -15,6 +15,7 @@ export interface KindInfo {
 export const KINDS: readonly KindInfo[] = [
   { id: 'past-paper', label: 'Past paper', plural: 'Past papers' },
   { id: 'examiners-report', label: 'Examiners’ report', plural: 'Examiners’ reports' },
+  { id: 'exam-solutions', label: 'Solutions', plural: 'Solutions' },
   { id: 'subject-guide', label: 'Subject guide', plural: 'Subject guides' },
   { id: 'reading', label: 'Essential reading', plural: 'Essential reading' },
   { id: 'study-guide', label: 'Study guide', plural: 'Study guides' },
@@ -37,8 +38,8 @@ export function kindLabel(kind: LibraryKind, { plural = false }: { plural?: bool
   return k ? (plural ? k.plural : k.label) : 'File';
 }
 
-/** Kinds that belong to an exam sitting: they carry an exam year and a zone. */
-export const EXAM_KINDS: ReadonlySet<LibraryKind> = new Set<LibraryKind>(['past-paper', 'examiners-report']);
+/** Kinds that belong to an exam sitting: they carry an exam year, a session and a zone. */
+export const EXAM_KINDS: ReadonlySet<LibraryKind> = new Set<LibraryKind>(['past-paper', 'examiners-report', 'exam-solutions']);
 
 // ── Formats ─────────────────────────────────────────────────────────────────
 

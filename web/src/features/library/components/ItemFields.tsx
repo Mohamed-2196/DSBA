@@ -93,6 +93,18 @@ export function ItemFields({
             disabled={disabled}
           />
           <Select
+            label="Session"
+            value={values.session}
+            onChange={(e) => onChange({ session: e.target.value as ItemFormValues['session'] })}
+            error={errors.session}
+            disabled={disabled}
+            options={[
+              { value: '', label: 'Not sure' },
+              { value: 'may', label: 'May' },
+              { value: 'october', label: 'October (resits)' },
+            ]}
+          />
+          <Select
             label="Zone"
             value={values.zone}
             onChange={(e) => onChange({ zone: e.target.value as ItemFormValues['zone'] })}

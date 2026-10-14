@@ -35,7 +35,7 @@ def list_notes(
 @router.post("/notes", response_model=Note, status_code=status.HTTP_201_CREATED)
 def create_note(body: NoteCreate, user: ActiveUser, db: DB) -> Note:
     """A new note. Errors: invalid_input (422: an unknown module or lesson, or too long), too_many_notes (409),
-    rate_limited (429)."""
+    notes_full (409: the student's notes hold 10 MB of text), rate_limited (429)."""
     note = notes.create_note(db, user, body)
     db.commit()
     return notes.to_out(note)
@@ -49,7 +49,8 @@ def get_note(note_id: UUID, user: CurrentUser, db: DB) -> Note:
 @router.put("/notes/{note_id}", response_model=Note)
 def save_note(note_id: UUID, body: NoteUpdate, user: ActiveUser, db: DB) -> Note:
     """Save the whole note. Send the `version` you loaded: if it was saved since (another tab), 409 note_changed;
-    load it again, or send its new version to save yours over it. Errors: rate_limited (429: saving very fast)."""
+    load it again, or send its new version to save yours over it. Errors: notes_full (409: the student's notes hold
+    10 MB of text), rate_limited (429: saving very fast)."""
     note = notes.update_note(db, user, note_id, body)
     db.commit()
     return notes.to_out(note)

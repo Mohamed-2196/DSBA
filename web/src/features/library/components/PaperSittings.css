@@ -1,0 +1,34 @@
+/* The Files tab's past papers by sitting. */
+.lib-sit__list { margin: 0; padding: 0; list-style: none; }
+.lib-sit { display: grid; grid-template-columns: 9rem minmax(0, 1fr); align-items: baseline; gap: var(--sp-8) var(--sp-16); padding: var(--sp-12) var(--sp-16); border-bottom: 1px solid var(--line); }
+.lib-sit:last-child { border-bottom: 0; }
+.lib-sit__when { margin: 0; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-bold); }
+.lib-sit__zones { display: flex; flex-wrap: wrap; gap: var(--sp-8) var(--sp-24); min-width: 0; }
+.lib-sit__zone { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); min-width: 0; }
+.lib-sit__zone-name { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+.lib-sit__files { display: flex; flex-wrap: wrap; gap: var(--sp-8); margin: 0; padding: 0; list-style: none; }
+.lib-sit__file {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 2px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.lib-sit__file:hover { border-color: var(--ink-3); background: var(--surface-2); }
+.lib-sit__none { margin: 0; color: var(--ink-3); font-size: var(--fs-12); align-self: center; }
+.lib-sit__more { display: flex; justify-content: center; }
+
+@media (pointer: coarse) {
+  .lib-sit__file { min-height: 44px; padding: 0 16px; }
+}
+
+@media (max-width: 699px) {
+  .lib-sit { grid-template-columns: minmax(0, 1fr); padding: var(--sp-12); }
+}

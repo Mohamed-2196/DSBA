@@ -22,6 +22,7 @@ from app.routers import (
     progress,
     reports,
     requests,
+    seniors,
     summary,
     uploads,
 )
@@ -45,6 +46,7 @@ for module in (
     notes,
     calendar,
     content,
+    seniors,
     features,
     board,
     noora,

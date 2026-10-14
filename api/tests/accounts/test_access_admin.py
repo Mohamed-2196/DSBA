@@ -139,7 +139,9 @@ def test_holding_every_box_is_not_being_an_admin(
     make_role: Callable[..., Any],
     give_roles: Callable[..., None],
     db: Session,
+    set_feature: Callable[..., None],
 ) -> None:
+    set_feature("noora.ai", "everyone")  # so PUT /admin/noora reaches the admin check
     everything = make_role("everything", *Box)
     climber, sara = make_user(name="Climber"), make_user(name="Sara Student")
     give_roles(climber, "student", "everything")
@@ -155,6 +157,7 @@ def test_holding_every_box_is_not_being_an_admin(
         ("PUT", f"/admin/users/{sara.id}/roles", {"roleIds": [admin_role]}),
         ("GET", "/admin/features", None),
         ("PUT", "/admin/features/forum", {"mode": "off"}),
+        ("PUT", "/admin/noora", {"dailyQuestions": 500, "monthlyBudgetCents": 1_000_000}),
     ]:
         r = c.request(method, f"{API}{path}", json=body)
         assert (r.status_code, r.json()["error"]["message"]) == (403, "Only admins can do this."), (method, path)
@@ -364,7 +367,8 @@ def test_admin_changes_need_a_recent_step_up(
     older_sessions: Callable[..., None],
     outbox: Outbox,
 ) -> None:
-    """AD-1: a stolen admin session, however old, can't give roles, edit them or flip switches without a code."""
+    """AD-1: a stolen admin session, however old, can't give roles, edit them, flip switches or raise the AI budget
+    (SEC-25) without a code."""
     sara = make_user(name="Sara Student")
     writes: list[tuple[str, str, dict[str, Any] | None]] = [
         ("POST", "/admin/roles", {"name": "Events team", "boxes": []}),
@@ -372,6 +376,7 @@ def test_admin_changes_need_a_recent_step_up(
         ("DELETE", f"/admin/roles/{role_id(db, 'content-manager')}", None),
         ("PUT", f"/admin/users/{sara.id}/roles", {"roleIds": [role_id(db, "student"), role_id(db, "rep")]}),
         ("PUT", "/admin/features/forum", {"mode": "off"}),
+        ("PUT", "/admin/noora", {"dailyQuestions": 500, "monthlyBudgetCents": 1_000_000}),
     ]
     c = client_for(boss)
     older_sessions()

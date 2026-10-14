@@ -19,13 +19,16 @@ MODULE_UNKNOWN = "Pick a module from the list."
 ID_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789"
 
 
-def require_module(db: Session, module_id: str | None, field: str = "moduleId") -> Module | None:
+def require_module(
+    db: Session, module_id: str | None, field: str = "moduleId", *, visible: bool = False
+) -> Module | None:
     """The module a request names, None when it names none, or 422 on `field` when there is no such module
-    (code quality review CQ-6: one rule and one message for every area)."""
+    (code quality review CQ-6: one rule and one message for every area). `visible`: for what students write, a hidden
+    module is no module, as it is 404 to them."""
     if module_id is None:
         return None
     module = db.get(Module, module_id)
-    if module is None:
+    if module is None or (visible and module.hidden):
         raise invalid(field, MODULE_UNKNOWN)
     return module
 
