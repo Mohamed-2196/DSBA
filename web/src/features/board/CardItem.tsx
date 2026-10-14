@@ -7,10 +7,11 @@ import { Badge, IconButton, Menu, cx, safeInternalPath, type MenuItem } from '..
 import { COLUMNS, dueLabel, dueOf, isOverdue, isPastPaper } from './board';
 import type { CardActions } from './BoardPage';
 
-const LINK_ICON: Record<BoardLink['type'], Icon> = { event: CalendarDots, lesson: PlayCircle, module: BookOpen, library_item: FileText };
+const LINK_ICON: Record<BoardLink['type'], Icon> = { event: CalendarDots, my_event: CalendarDots, lesson: PlayCircle, module: BookOpen, library_item: FileText };
 // What the link says when the card already carries the thing's title.
 const OPEN_LABEL: Record<BoardLink['type'], string> = {
   event: 'Open in the calendar',
+  my_event: 'Open in your calendar',
   lesson: 'Watch the lesson',
   module: 'Open the module',
   library_item: 'Open the file',

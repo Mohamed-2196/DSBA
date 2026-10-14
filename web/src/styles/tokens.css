@@ -139,6 +139,13 @@
   --on-y1: #0A1F44;                    /* text on a solid cohort fill (AA) */
   --on-y2: #FFFFFF;
   --on-y3: #0A1F44;
+  /* colours a student gives their own calendar events: each AA as small text on a surface */
+  --mine-violet: #6741D9;
+  --mine-teal: #0B7285;
+  --mine-green: #2B8A3E;
+  --mine-orange: #C2410C;
+  --mine-rose: #C2255C;
+  --mine-slate: #495057;
   --cobalt-hover: #0F47CF;
   --cobalt-soft: #E6EEFF;              /* cobalt tint (selected rows, info) */
   --alert-soft: #FEECEF;
@@ -193,6 +200,12 @@
   --on-y1: #07122B;
   --on-y2: #07122B;
   --on-y3: #07122B;
+  --mine-violet: #B197FC;
+  --mine-teal: #66D9E8;
+  --mine-green: #8CE99A;
+  --mine-orange: #FFA94D;
+  --mine-rose: #F783AC;
+  --mine-slate: #CED4DA;
   --cobalt-hover: #96BBFF;
   --cobalt-soft: #173066;
   --alert-soft: #3A1F45;

@@ -2121,6 +2121,145 @@ export interface paths {
         patch: operations["update_event_api_v1_calendar_events__event_id__patch"];
         trace?: never;
     };
+    "/api/v1/calendar/mine/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Events
+         * @description Your own events, by date. Each repeat is one event: the web app lays out its occurrences.
+         */
+        get: operations["my_events_api_v1_calendar_mine_events_get"];
+        put?: never;
+        /**
+         * Add My Event
+         * @description An event on your calendar only. Errors: invalid_input (422: dates or times that don't fit together),
+         *     calendar_full (409), rate_limited (429).
+         */
+        post: operations["add_my_event_api_v1_calendar_mine_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/mine/events/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete My Event
+         * @description Deletes the event, every repeat of it.
+         */
+        delete: operations["delete_my_event_api_v1_calendar_mine_events__event_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit My Event
+         * @description Fields not sent stay; null clears the optional ones. A repeat changes as a whole.
+         */
+        patch: operations["edit_my_event_api_v1_calendar_mine_events__event_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/calendar/mine/events/{event_id}.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Event Ics
+         * @description One of your events as an .ics file to import, with its repeat and reminder.
+         */
+        get: operations["my_event_ics_api_v1_calendar_mine_events__event_id__ics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/mine/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Settings
+         * @description The programme dates you keep off your calendar, and your private feed's path.
+         */
+        get: operations["my_settings_api_v1_calendar_mine_settings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change My Settings
+         * @description Each list sent (hidden dates, modules, types) replaces the one kept; lists not sent stay.
+         */
+        patch: operations["change_my_settings_api_v1_calendar_mine_settings_patch"];
+        trace?: never;
+    };
+    "/api/v1/calendar/mine/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * New My Feed
+         * @description Turns your private feed on at a new address. An address you had before stops working.
+         */
+        post: operations["new_my_feed_api_v1_calendar_mine_feed_post"];
+        /**
+         * Stop My Feed
+         * @description Turns your private feed off: its address stops working.
+         */
+        delete: operations["stop_my_feed_api_v1_calendar_mine_feed_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feeds/calendar/{token}.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Private Calendar
+         * @description A student's own calendar to subscribe to: their year's and papers' dates, less what they hid, and their own
+         *     events with their repeats and reminders. Works only while the calendar is on for them and the address is
+         *     current. Errors: not_found (404).
+         */
+        get: operations["private_calendar_api_v1_feeds_calendar__token__ics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/career": {
         parameters: {
             query?: never;
@@ -2628,6 +2767,9 @@ export interface components {
             nooraUsage: components["schemas"]["ExportNooraDay"][];
             /** Videosuggestions */
             videoSuggestions: components["schemas"]["ExportSuggestion"][];
+            /** Calendarevents */
+            calendarEvents: components["schemas"]["PersonalEventOut"][];
+            calendarSettings: components["schemas"]["ExportCalendarSettings"] | null;
         };
         /**
          * AdminStats
@@ -2833,7 +2975,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "event" | "lesson" | "module" | "library_item";
+            type: "event" | "my_event" | "lesson" | "module" | "library_item";
             /** Id */
             id: string;
             /** Title */
@@ -2849,14 +2991,15 @@ export interface components {
         };
         /**
          * BoardLinkIn
-         * @description What a card points at: a calendar event id, a lesson id, a module id or a library item id.
+         * @description What a card points at: a calendar event id, one of the student's own events, a lesson id, a module id or a
+         *     library item id.
          */
         BoardLinkIn: {
             /**
              * Type
              * @enum {string}
              */
-            type: "event" | "lesson" | "module" | "library_item";
+            type: "event" | "my_event" | "lesson" | "module" | "library_item";
             /** Id */
             id: string;
         };
@@ -3094,6 +3237,33 @@ export interface components {
             unconfirmed: components["schemas"]["EventGap"][];
             /** Examdetails */
             examDetails: components["schemas"]["EventGap"][];
+        };
+        /**
+         * CalendarPrefsOut
+         * @description What a student keeps off their calendar, and their private feed. Hidden programme dates leave their list,
+         *     month, Home and private feed; the shared feed and other people's calendars are unchanged.
+         */
+        CalendarPrefsOut: {
+            /** Hiddenevents */
+            hiddenEvents: string[];
+            /** Hiddenmodules */
+            hiddenModules: string[];
+            /** Hiddentypes */
+            hiddenTypes: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term")[];
+            /** Feedpath */
+            feedPath: string | null;
+        };
+        /**
+         * CalendarPrefsUpdate
+         * @description Each list sent replaces the one kept (at most 300 entries); lists not sent stay.
+         */
+        CalendarPrefsUpdate: {
+            /** Hiddenevents */
+            hiddenEvents?: string[] | null;
+            /** Hiddenmodules */
+            hiddenModules?: string[] | null;
+            /** Hiddentypes */
+            hiddenTypes?: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term")[] | null;
         };
         /**
          * CardAside
@@ -3592,7 +3762,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -3645,7 +3815,7 @@ export interface components {
             /** Duedate */
             dueDate: string | null;
             /** Linktype */
-            linkType: ("event" | "lesson" | "module" | "library_item") | null;
+            linkType: ("event" | "my_event" | "lesson" | "module" | "library_item") | null;
             /** Linkid */
             linkId: string | null;
             /** Planmoduleid */
@@ -3676,12 +3846,27 @@ export interface components {
             createdAt: string;
         };
         /**
+         * ExportCalendarSettings
+         * @description What this person keeps off their calendar, and whether their private feed is on (its address is a secret,
+         *     left out).
+         */
+        ExportCalendarSettings: {
+            /** Hiddenevents */
+            hiddenEvents: string[];
+            /** Hiddenmodules */
+            hiddenModules: string[];
+            /** Hiddentypes */
+            hiddenTypes: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term")[];
+            /** Privatefeed */
+            privateFeed: boolean;
+        };
+        /**
          * ExportEmail
          * @description An email the Hub sent you, or will send (notifications and account notices; sign-in codes are not kept).
          */
         ExportEmail: {
             /** Kind */
-            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system") | "account_notice";
+            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "event_reminder" | "video_suggestion" | "system") | "account_notice";
             /** Toaddress */
             toAddress: string;
             /** Subject */
@@ -3833,7 +4018,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "event_reminder" | "video_suggestion" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -5354,7 +5539,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "followed_reply" | "followed_answer" | "senior_question" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "event_reminder" | "video_suggestion" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -5521,6 +5706,124 @@ export interface components {
              * @default false
              */
             lead: boolean;
+        };
+        /** PersonalEventCreate */
+        PersonalEventCreate: {
+            /** Title */
+            title: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Enddate */
+            endDate?: string | null;
+            /** Starttime */
+            startTime?: string | null;
+            /** Endtime */
+            endTime?: string | null;
+            /** Place */
+            place?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Colour
+             * @default violet
+             * @enum {string}
+             */
+            colour: "violet" | "teal" | "green" | "orange" | "rose" | "slate";
+            /**
+             * Repeat
+             * @default none
+             * @enum {string}
+             */
+            repeat: "none" | "daily" | "weekly";
+            /** Repeatuntil */
+            repeatUntil?: string | null;
+            /** Remind */
+            remind?: (0 | 10 | 30 | 60 | 1440) | null;
+        };
+        /**
+         * PersonalEventOut
+         * @description An event a student added for themselves: private to them. Without `startTime` it is all day (through
+         *     `endDate` when set); with it, it runs from `startTime` to `endTime` (or for an hour) on `date`. Times are in
+         *     Bahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year).
+         */
+        PersonalEventOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Enddate */
+            endDate: string | null;
+            /** Starttime */
+            startTime: string | null;
+            /** Endtime */
+            endTime: string | null;
+            /** Place */
+            place: string | null;
+            /** Notes */
+            notes: string | null;
+            /**
+             * Colour
+             * @enum {string}
+             */
+            colour: "violet" | "teal" | "green" | "orange" | "rose" | "slate";
+            /**
+             * Repeat
+             * @enum {string}
+             */
+            repeat: "none" | "daily" | "weekly";
+            /** Repeatuntil */
+            repeatUntil: string | null;
+            /** Remind */
+            remind: (0 | 10 | 30 | 60 | 1440) | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /**
+         * PersonalEventUpdate
+         * @description Fields not sent stay; null clears the end date, times, place, notes, repeat end and reminder.
+         */
+        PersonalEventUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Date */
+            date?: string | null;
+            /** Enddate */
+            endDate?: string | null;
+            /** Starttime */
+            startTime?: string | null;
+            /** Endtime */
+            endTime?: string | null;
+            /** Place */
+            place?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Colour */
+            colour?: ("violet" | "teal" | "green" | "orange" | "rose" | "slate") | null;
+            /** Repeat */
+            repeat?: ("none" | "daily" | "weekly") | null;
+            /** Repeatuntil */
+            repeatUntil?: string | null;
+            /** Remind */
+            remind?: (0 | 10 | 30 | 60 | 1440) | null;
         };
         /**
          * PollBlock
@@ -6908,6 +7211,8 @@ export type CalendarEventOut = components['schemas']['CalendarEventOut'];
 export type CalendarEventSaved = components['schemas']['CalendarEventSaved'];
 export type CalendarEventUpdate = components['schemas']['CalendarEventUpdate'];
 export type CalendarGaps = components['schemas']['CalendarGaps'];
+export type CalendarPrefsOut = components['schemas']['CalendarPrefsOut'];
+export type CalendarPrefsUpdate = components['schemas']['CalendarPrefsUpdate'];
 export type CardAside = components['schemas']['CardAside'];
 export type CareerCert = components['schemas']['CareerCert'];
 export type CareerChecklistItem = components['schemas']['CareerChecklistItem'];
@@ -6943,6 +7248,7 @@ export type ErrorResponse = components['schemas']['ErrorResponse'];
 export type EventGap = components['schemas']['EventGap'];
 export type ExportBoardCard = components['schemas']['ExportBoardCard'];
 export type ExportBoardPlan = components['schemas']['ExportBoardPlan'];
+export type ExportCalendarSettings = components['schemas']['ExportCalendarSettings'];
 export type ExportEmail = components['schemas']['ExportEmail'];
 export type ExportFollow = components['schemas']['ExportFollow'];
 export type ExportLibraryItem = components['schemas']['ExportLibraryItem'];
@@ -7034,6 +7340,9 @@ export type PaperQuestionCreate = components['schemas']['PaperQuestionCreate'];
 export type PaperRef = components['schemas']['PaperRef'];
 export type PaperSittings = components['schemas']['PaperSittings'];
 export type ParagraphBlock = components['schemas']['ParagraphBlock'];
+export type PersonalEventCreate = components['schemas']['PersonalEventCreate'];
+export type PersonalEventOut = components['schemas']['PersonalEventOut'];
+export type PersonalEventUpdate = components['schemas']['PersonalEventUpdate'];
 export type PollBlock = components['schemas']['PollBlock'];
 export type PollResult = components['schemas']['PollResult'];
 export type PollVoteRequest = components['schemas']['PollVoteRequest'];
@@ -17614,6 +17923,854 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CalendarEventSaved"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    my_events_api_v1_calendar_mine_events_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalEventOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    add_my_event_api_v1_calendar_mine_events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonalEventCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalEventOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_my_event_api_v1_calendar_mine_events__event_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    edit_my_event_api_v1_calendar_mine_events__event_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonalEventUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalEventOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    my_event_ics_api_v1_calendar_mine_events__event_id__ics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/calendar": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    my_settings_api_v1_calendar_mine_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarPrefsOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    change_my_settings_api_v1_calendar_mine_settings_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarPrefsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarPrefsOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    new_my_feed_api_v1_calendar_mine_feed_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarPrefsOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    stop_my_feed_api_v1_calendar_mine_feed_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarPrefsOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    private_calendar_api_v1_feeds_calendar__token__ics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/calendar": string;
                 };
             };
             /** @description Bad Request */

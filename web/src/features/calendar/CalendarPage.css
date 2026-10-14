@@ -425,3 +425,76 @@
 .cal-drawer__facts div { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: var(--sp-12); }
 .cal-drawer__facts dt { color: var(--ink-2); font-size: var(--fs-14); }
 .cal-drawer__facts dd { margin: 0; color: var(--ink); font-size: var(--fs-14); line-height: 1.45; overflow-wrap: anywhere; }
+
+/* ── A student's own events ───────────────────────────────────────────────────────────────── */
+.cal-row.cal-tone--mine { box-shadow: inset 3px 0 0 var(--mine); }
+.cal-chip--mine { --chip-bg: color-mix(in srgb, var(--mine) 12%, var(--surface)); box-shadow: inset 3px 0 0 var(--mine); }
+.cal-chip--mine:hover { box-shadow: inset 3px 0 0 var(--mine), inset 0 0 0 1px var(--line-strong); }
+.cal-chip--mine.is-selected { box-shadow: inset 3px 0 0 var(--mine), inset 0 0 0 2px var(--ink); }
+.cal-chip--mine.is-past { --chip-bg: var(--surface-2); }
+.cal-chip__time { flex: 0 0 auto; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+.cal-typechip--mine .cal-dot { margin-right: 2px; }
+.cal-mine-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--mine) 14%, var(--surface));
+  color: var(--ink);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+}
+.cal-drawer__notes { max-width: 65ch; color: var(--ink); font-size: var(--fs-14); line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cal-drawer__hide { display: flex; flex-wrap: wrap; gap: var(--sp-8); margin-top: var(--sp-8); }
+
+/* the form: start and end side by side, the colour swatches */
+.cal-form__times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-12); }
+.cal-colours { margin: 0; padding: 0; border: 0; min-width: 0; }
+.cal-colours__legend { margin-bottom: var(--sp-8); padding: 0; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.cal-colours__list { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+.cal-colours__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  min-height: 44px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  cursor: pointer;
+}
+.cal-colours__item.is-picked { border-color: var(--mine); box-shadow: inset 0 0 0 1px var(--mine); font-weight: var(--fw-semibold); }
+.cal-colours__item:has(input:focus-visible) { outline: var(--focus-width) solid var(--focus-color); outline-offset: var(--focus-offset); }
+.cal-colours__swatch { width: 18px; height: 18px; border-radius: 4px; background: var(--mine); }
+
+/* Customise */
+.cal-customise { display: grid; gap: var(--sp-24); }
+.cal-customise__section { display: grid; gap: var(--sp-8); justify-items: start; }
+.cal-customise__h { color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-bold); }
+.cal-customise__line { max-width: 65ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.cal-customise__types { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+.cal-customise__hidden { display: grid; gap: 2px; width: 100%; padding: 0; }
+.cal-customise__hidden li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  padding: var(--sp-8) 0;
+  border-bottom: 1px solid var(--line);
+}
+.cal-customise__what { display: grid; flex: 1 1 auto; min-width: 0; }
+.cal-customise__name { overflow-wrap: anywhere; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.cal-customise__meta { color: var(--ink-2); font-size: var(--fs-12); }
+
+/* Subscribe: the private link */
+.cal-subscribe__lead { max-width: 65ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.cal-subscribe__manage { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); margin-top: calc(-1 * var(--sp-8)); }
+.cal-subscribe__manage .cal-subscribe__note { flex: 1 1 100%; }
+
+@media (pointer: coarse) {
+  .cal-drawer__hide .ui-button,
+  .cal-subscribe__manage .ui-button,
+  .cal-customise .ui-button { min-height: 44px; }
+}

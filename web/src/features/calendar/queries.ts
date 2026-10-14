@@ -2,7 +2,7 @@
 import { addDaysToKey, parseDay, todayKey, type DayKey } from '../../lib/dates';
 import { isMine } from '../papers/public';
 import { TYPE_ORDER } from './eventMeta';
-import type { CalendarEvent, EventType } from './types';
+import type { CalendarEvent, EventFilter, EventType } from './types';
 
 /** Local-midnight Date of an event (dates are calendar days, no time zone). */
 export const eventDate = (e: Pick<CalendarEvent, 'date'>): Date => parseDay(e.date);
@@ -39,10 +39,12 @@ type Papers = ReadonlySet<string> | null | undefined;
 
 /**
  * Events that apply to a cohort (year null → all), to a student's papers when given (a module's events only for
- * those modules) and, optionally, a set of types (empty: every type).
+ * those modules) and, optionally, a set of filters (empty: everything): programme types, and 'mine' for the
+ * student's own events, which every cohort shows.
  */
-export function filterEvents(events: readonly CalendarEvent[], { year, types, papers }: { year?: number | null; types?: ReadonlySet<EventType>; papers?: Papers } = {}): CalendarEvent[] {
-  return events.filter((e) => isMine(e, year ?? null, papers ?? null) && (!types || types.size === 0 || types.has(e.type)));
+export function filterEvents(events: readonly CalendarEvent[], { year, types, papers }: { year?: number | null; types?: ReadonlySet<EventFilter>; papers?: Papers } = {}): CalendarEvent[] {
+  const any = !types || types.size === 0;
+  return events.filter((e) => (e.mine ? any || types.has('mine') : isMine(e, year ?? null, papers ?? null) && (any || types.has(e.type))));
 }
 
 /** Events still to come on `from` (a day key): starting that day or later, or running through it. In list order. */

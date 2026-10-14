@@ -1,17 +1,22 @@
 // What the calendar page shows, from its address: ?cohort=all, ?types=exam,mock, ?view=month (phones and tablets),
-// ?month=YYYY-MM (the month grid) and ?event=<id> (the open event).
+// ?month=YYYY-MM (the month grid) and ?event=<id> (the open event; 'mine-<id>' for one of the student's own).
+// ?types=mine shows only the student's own events.
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQueryParam, type CohortYear } from '../../state';
 import { usePapers } from '../papers/public';
 import { addDaysToKey, dayKey } from '../../lib/dates';
 import { addMonths, monthKey, monthOfDate, type MonthRef, parseMonthKey, sameMonth } from './dates';
 import { isEventType, TYPE_ORDER } from './eventMeta';
+import { findEvent as findIn } from './mine';
 import { eventDate, filterEvents, lastDay, nextExamFor, upcomingFrom, weekAhead, weekEnd, type NextExam } from './queries';
-import type { CalendarEvent, EventType } from './types';
+import type { CalendarEvent, EventFilter } from './types';
 
 export const monthOfEvent = (e: CalendarEvent): MonthRef => monthOfDate(eventDate(e));
 
 export type CalendarMode = 'list' | 'month';
+
+const FILTER_ORDER: readonly EventFilter[] = ['mine', ...TYPE_ORDER];
+const isFilter = (value: string): value is EventFilter => value === 'mine' || isEventType(value);
 
 export interface CalendarView {
   /** today in Bahrain, as a day key */
@@ -27,9 +32,11 @@ export interface CalendarView {
   /** the cohort the list and the grid show: the student's year, or null for every year */
   cohortYear: CohortYear | null;
   setAllYears: (all: boolean) => void;
-  /** the types picked (none: every type) */
-  types: ReadonlySet<EventType>;
-  toggleType: (type: EventType) => void;
+  /** the student has a calendar of their own (signed in): the filters offer it */
+  signedIn: boolean;
+  /** the types picked, and 'mine' for their own events (none: everything) */
+  types: ReadonlySet<EventFilter>;
+  toggleType: (type: EventFilter) => void;
   clearTypes: () => void;
   /** the cohort's events of the picked types */
   visible: CalendarEvent[];
@@ -55,7 +62,7 @@ export interface CalendarView {
   close: () => void;
 }
 
-export function useCalendarView(events: CalendarEvent[], today: Date): CalendarView {
+export function useCalendarView(events: CalendarEvent[], today: Date, signedIn = false): CalendarView {
   const { year, papers } = usePapers();
   const [monthParam, setMonthParam] = useQueryParam('month');
   const [cohortParam, setCohortParam] = useQueryParam('cohort', 'mine');
@@ -66,10 +73,10 @@ export function useCalendarView(events: CalendarEvent[], today: Date): CalendarV
 
   const todayKey = dayKey(today);
   const cohortYear = year && cohortParam !== 'all' ? year : null;
-  const types = useMemo(() => new Set<EventType>((typesParam || '').split(',').filter(isEventType)), [typesParam]);
+  const types = useMemo(() => new Set<EventFilter>((typesParam || '').split(',').filter(isFilter)), [typesParam]);
   const shownPapers = cohortYear ? papers : null;
   const visible = useMemo(() => filterEvents(events, { year: cohortYear, types, papers: shownPapers }), [events, cohortYear, types, shownPapers]);
-  const findEvent = useCallback((id: string | null) => (id ? (events.find((e) => e.id === id) ?? null) : null), [events]);
+  const findEvent = useCallback((id: string | null) => findIn(events, id, todayKey), [events, todayKey]);
   const openEvent = findEvent(eventId);
 
   const nextExam = useMemo(() => nextExamFor(events, { year, today: todayKey, papers }), [events, year, todayKey, papers]);
@@ -125,11 +132,11 @@ export function useCalendarView(events: CalendarEvent[], today: Date): CalendarV
   }, [eventId, month, setMonthParam, findEvent]);
 
   const toggleType = useCallback(
-    (type: EventType) => {
+    (type: EventFilter) => {
       const next = new Set(types);
       if (next.has(type)) next.delete(type);
       else next.add(type);
-      setTypesParam(TYPE_ORDER.filter((t) => next.has(t)).join(','), { replace: true });
+      setTypesParam(FILTER_ORDER.filter((t) => next.has(t)).join(','), { replace: true });
     },
     [types, setTypesParam],
   );
@@ -145,6 +152,7 @@ export function useCalendarView(events: CalendarEvent[], today: Date): CalendarV
     week,
     cohortYear,
     setAllYears,
+    signedIn,
     types,
     toggleType,
     clearTypes,

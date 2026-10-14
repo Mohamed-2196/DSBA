@@ -67,7 +67,7 @@ export function Browse({ view, today, calendarEmpty, onAdd }: BrowseProps) {
 }
 
 function Filters({ view }: { view: CalendarView }) {
-  const { year, cohortYear, setAllYears, types, toggleType, clearTypes } = view;
+  const { year, cohortYear, setAllYears, signedIn, types, toggleType, clearTypes } = view;
   return (
     <div className="cal-filters">
       {year ? (
@@ -84,6 +84,12 @@ function Filters({ view }: { view: CalendarView }) {
         />
       ) : null}
       <div className="cal-filters__types" role="group" aria-label="Event types (also the colour key)">
+        {signedIn ? (
+          <Chip size="sm" selected={types.has('mine')} onChange={() => toggleType('mine')} className="cal-typechip cal-typechip--mine" data-hub="calendar-filter-mine">
+            <span className="cal-dot cal-dot--mine cal-colour--violet" aria-hidden="true" />
+            Yours
+          </Chip>
+        ) : null}
         {TYPE_ORDER.map((type) => (
           <Chip key={type} size="sm" selected={types.has(type)} onChange={() => toggleType(type)} color={EVENT_TYPES[type].color} className={cx('cal-typechip', `cal-typechip--${type}`)}>
             {typeLabel(type)}

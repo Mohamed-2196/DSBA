@@ -2,7 +2,8 @@ import { CohortBadge, cx } from '../../ui';
 import { dayKey, daysUntil, formatLong, formatShort, parseDay } from '../../lib/dates';
 import { DateLeaf } from './DateLeaf';
 import { countdownLabel } from './dates';
-import { splitTitle, typeLabel, whenAndWhere, windowLeft } from './eventMeta';
+import { dotClass, kindLabel, leafTone, splitTitle, toneClass, whenAndWhere, windowLeft } from './eventMeta';
+import { repeatLabel } from './mine';
 import type { DayGroup } from './queries';
 import type { CalendarEvent } from './types';
 
@@ -27,7 +28,7 @@ export function DayList({ days, today, selectedId, showCohort, onOpen, className
       {days.map((day) => {
         const n = daysUntil(day.date, today);
         const first = day.events[0];
-        const tone = first && day.events.every((e) => e.type === first.type) ? first.type : 'neutral';
+        const tone = first && day.events.every((e) => !e.mine && e.type === first.type) ? leafTone(first) : 'neutral';
         return (
           <li key={day.key} className={cx('cal-days__day', n === 0 && 'is-today')}>
             <DateLeaf date={day.date} tone={n === 0 ? 'today' : tone} solid={n === 0} className="cal-days__leaf" />
@@ -65,7 +66,7 @@ function EventRow({ event: e, day, days, today, selected, showCohort, onOpen }: 
   return (
     <button
       type="button"
-      className={cx('cal-row', `cal-tone--${e.type}`, e.sample && 'is-unconfirmed', selected && 'is-selected')}
+      className={cx('cal-row', toneClass(e), e.sample && 'is-unconfirmed', selected && 'is-selected')}
       onClick={() => onOpen(e)}
       data-hub="calendar-event"
       data-event-id={e.id}
@@ -73,10 +74,10 @@ function EventRow({ event: e, day, days, today, selected, showCohort, onOpen }: 
       <span className="visually-hidden">{formatLong(day)}: </span>
       <span className="cal-row__meta">
         <span className="cal-row__type">
-          <span className={cx('cal-dot', `cal-dot--${e.type}`)} aria-hidden="true" />
-          {typeLabel(e.type)}
+          <span className={cx('cal-dot', dotClass(e))} aria-hidden="true" />
+          {kindLabel(e)}
         </span>
-        {showCohort ? <CohortBadge year={e.year} variant="dot" size="sm" short /> : e.year == null ? <span className="cal-row__all">All years</span> : null}
+        {e.mine ? (e.mine.repeat !== 'none' ? <span className="cal-row__all">{repeatLabel(e.mine)}</span> : null) : showCohort ? <CohortBadge year={e.year} variant="dot" size="sm" short /> : e.year == null ? <span className="cal-row__all">All years</span> : null}
         {e.sample ? <span className="cal-unconfirmed">Not confirmed yet</span> : null}
       </span>
       <span className="cal-row__when">{left ?? countdownLabel(days)}</span>

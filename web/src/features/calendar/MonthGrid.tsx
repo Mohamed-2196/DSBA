@@ -4,7 +4,7 @@ import { useModules } from '../../state/modules';
 import { cx } from '../../ui';
 import { addDays, dayKey, formatLong, isWeekend, WEEKDAYS } from '../../lib/dates';
 import { monthMatrix, monthOfDate, type MonthRef } from './dates';
-import { chipText, eventSummary } from './eventMeta';
+import { chipClass, chipText, dotClass, eventSummary } from './eventMeta';
 import { groupByDay } from './queries';
 import type { CalendarEvent } from './types';
 
@@ -139,7 +139,7 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                   list.length ? (
                     <span className="cal-day__dots" aria-hidden="true">
                       {list.slice(0, 3).map((ev) => (
-                        <span key={ev.id} className={cx('cal-dot', `cal-dot--${ev.type}`)} />
+                        <span key={ev.id} className={cx('cal-dot', dotClass(ev))} />
                       ))}
                     </span>
                   ) : null
@@ -152,14 +152,15 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                           key={ev.id}
                           type="button"
                           tabIndex={-1}
-                          className={cx('cal-chip', `cal-chip--${ev.type}`, ev.id === selectedId && 'is-selected', past && 'is-past')}
+                          className={cx('cal-chip', chipClass(ev), ev.id === selectedId && 'is-selected', past && 'is-past')}
                           onClick={() => onOpen(ev)}
                           data-hub="calendar-event"
                           data-event-id={ev.id}
                           aria-label={eventSummary(ev)}
                         >
                           <span className="cal-chip__top">
-                            <span className={cx('cal-dot', `cal-dot--${ev.type}`)} aria-hidden="true" />
+                            <span className={cx('cal-dot', dotClass(ev))} aria-hidden="true" />
+                            {ev.mine?.startTime ? <span className="cal-chip__time u-tabular">{ev.mine.startTime.slice(0, 5)}</span> : null}
                             <span className={cx('cal-chip__title', code && 'u-code')}>{code || line}</span>
                             {showCohort && ev.year ? (
                               <span className="cal-chip__cohort" style={{ color: cohortTextColor(ev.year) }}>
