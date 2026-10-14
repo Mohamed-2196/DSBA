@@ -8,7 +8,7 @@ import { api, call } from '../api/client';
 import { ApiError, errorMessage } from '../api/errors';
 import type { Me, OtpChallengeOut } from '../api/types';
 import { useToast, useYear, type CohortYear } from '../state';
-import { Button, Modal, TextField } from '../ui';
+import { Button, HubLogo, Modal, TextField } from '../ui';
 import { CohortPicker, type CohortChoice } from './CohortPicker';
 import { checkIdentifier, displayIdentifier, formatPhone, identifierHint } from './identifiers';
 import { CodeEntry } from './CodeEntry';
@@ -203,6 +203,16 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
           ? 'Check your messages'
           : 'Check your email'
         : reason || 'Sign in to DSBA Hub';
+  // The first step carries the lockup above its title, so the dialog reads as the hub's own.
+  const heading =
+    step === 'identifier' ? (
+      <>
+        <HubLogo variant="lockup" size={30} decorative className="signin__brand" />
+        {title}
+      </>
+    ) : (
+      title
+    );
   const description =
     step === 'profile'
       ? 'This is how classmates see you on the forum and in the library.'
@@ -213,7 +223,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
   const numeric = /^\s*[+\d]/.test(identifier);
 
   return (
-    <Modal open={open} onClose={onDismiss} title={title} description={description} size="sm" className="signin-dialog" data-hub="sign-in">
+    <Modal open={open} onClose={onDismiss} title={heading} description={description} size="sm" className="signin-dialog" data-hub="sign-in">
       <div className="signin">
         {step === 'identifier' ? (
           <form className="signin__form" onSubmit={onStart} noValidate>

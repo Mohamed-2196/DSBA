@@ -404,7 +404,7 @@ export default function StyleGuidePage() {
           </Panel>
 
           {/* ── Brand ─────────────────────────────────────────────────── */}
-          <Section id="brand" title="Brand" description="The trace marks the active page and is the loader. The logo is a file (data/brand.ts): until it arrives, HubLogo sets the name as text. The highlighter marks what is new or important.">
+          <Section id="brand" title="Brand" description="The trace marks the active page and is the loader. The logo is a file (data/brand.ts): the “DSBA Hub” lockup and the “DH” tile. The highlighter marks what is new or important.">
             <div className="sg-grid sg-grid--2">
               <Specimen
                 title="HubMark"
@@ -454,7 +454,7 @@ export default function StyleGuidePage() {
               </Specimen>
             </div>
 
-            <Specimen title="Lockup" note="HubLogo: the logo (data/brand.ts) plus the name in Schibsted 800. Until the logo arrives, the name alone." stageClassName="sg-stage--lockups">
+            <Specimen title="Lockup" note="HubLogo: the official DSBA wordmark with “Hub” in matching type, blue on light surfaces and white on dark." stageClassName="sg-stage--lockups">
               <HubLogo variant="lockup" size={48} />
               <HubLogo variant="lockup" size={32} />
               <span className="sg-lockup sg-lockup--navy" data-theme="dark">
