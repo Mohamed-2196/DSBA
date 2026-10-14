@@ -1,5 +1,5 @@
-// Query → grouped results for the palette. Content (modules, library items, threads, newsletter issues and
-// calendar dates) comes ranked from the API; the palette adds its own actions, pages and recent searches.
+// Query → grouped results for the palette. Content (modules, lessons, library items, threads, newsletter issues
+// and calendar dates) comes ranked from the API; the palette adds its own actions, pages and recent searches.
 import type { ModuleSummary, SearchHit, SearchResults } from '../../api/types';
 import type { Feature } from '../../auth';
 import { MYCLASS_URL, REPORT_PROBLEM_URL, UOL_PORTAL_URL } from '../../data/people';
@@ -8,7 +8,7 @@ import { safeInternalPath } from '../../ui';
 import { EVENT_TYPES, TYPE_ORDER, type EventType } from '../calendar/public';
 import { scoreEntry, tokenize } from './match';
 
-export type GroupId = 'recent' | 'suggested' | 'modules' | 'files' | 'threads' | 'issues' | 'events' | 'actions' | 'pages' | 'quick' | 'goto' | 'fallback';
+export type GroupId = 'recent' | 'suggested' | 'modules' | 'lessons' | 'files' | 'threads' | 'issues' | 'events' | 'actions' | 'pages' | 'quick' | 'goto' | 'fallback';
 
 export type IconName =
   | 'ArrowsLeftRight'
@@ -46,6 +46,7 @@ interface Base {
 
 export type Item =
   | (Base & { kind: 'module'; moduleId: string; year: number | null; code: string | null; to: string })
+  | (Base & { kind: 'lesson'; to: string; chapter: boolean })
   | (Base & { kind: 'file'; to: string; meta: string | null })
   | (Base & { kind: 'thread'; to: string; meta: string | null })
   | (Base & { kind: 'issue'; to: string; number: number | null })
@@ -75,6 +76,7 @@ export const GROUPS: Record<GroupId, { label: string; cap?: number; noun?: strin
   recent: { label: 'Recent searches' },
   suggested: { label: 'Try searching for' },
   modules: { label: 'Modules', cap: 4, noun: 'modules' },
+  lessons: { label: 'Lessons', cap: 3, noun: 'lessons' },
   files: { label: 'Library', cap: 3, noun: 'files' },
   threads: { label: 'Forum', cap: 3, noun: 'threads' },
   issues: { label: 'The DSBA Newsletter', cap: 2, noun: 'issues' },
@@ -86,7 +88,7 @@ export const GROUPS: Record<GroupId, { label: string; cap?: number; noun?: strin
   fallback: { label: 'Search somewhere else' },
 };
 
-const CONTENT_ORDER: readonly GroupId[] = ['modules', 'files', 'threads', 'issues', 'events'];
+const CONTENT_ORDER: readonly GroupId[] = ['modules', 'lessons', 'files', 'threads', 'issues', 'events'];
 
 export const SUGGESTIONS = ['Econometrics', 'Past papers', 'Regression', 'ST2133'];
 
@@ -214,6 +216,13 @@ function toItem(hit: SearchHit, group: GroupId, getModule: (id: string) => Modul
       const m = getModule(hit.id);
       return { ...base, kind: 'module', moduleId: hit.id, year: m?.year ?? null, code: m?.unitCode ?? null, subtitle: m ? `Year ${m.year} module${m.lessonCount ? `, ${m.lessonCount} lessons` : ''}` : plainMeta(hit.meta), to };
     }
+    case 'lesson': {
+      // meta: 'EC1002 · Chapter' or 'EC1002 · Video'; a video's snippet is its chapter.
+      const [code, what = ''] = (hit.meta ?? '').split(/\s+·\s+/);
+      const chapter = what === 'Chapter';
+      const label = [code, chapter ? 'chapter' : 'video'].filter(Boolean).join(' ');
+      return { ...base, kind: 'lesson', chapter, subtitle: hit.snippet ? `${label}, in ${hit.snippet}` : label, to };
+    }
     case 'library':
       return { ...base, kind: 'file', subtitle: [plainMeta(hit.meta), hit.snippet].filter(Boolean).join(': ') || null, meta: null, to };
     case 'thread':
@@ -324,6 +333,7 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
     actions: [],
     pages: [],
     modules: (results?.modules ?? []).map((h) => toItem(h, 'modules', lookup, now)).filter((i): i is Item => !!i),
+    lessons: (results?.lessons ?? []).map((h) => toItem(h, 'lessons', lookup, now)).filter((i): i is Item => !!i),
     // The API leaves out switched-off features' hits too; this keeps a cached answer from showing them after a
     // switch flips.
     files: off('library') ? [] : (results?.library ?? []).map((h) => toItem(h, 'files', lookup, now)).filter((i): i is Item => !!i),

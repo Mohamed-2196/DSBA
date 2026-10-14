@@ -1,10 +1,10 @@
-import { ArrowDown, ArrowRight, ArrowUp, BookOpen, CalendarDots, DotsThree, FileText, PencilSimple, PlayCircle, Trash, type Icon } from '@phosphor-icons/react';
+import { ArrowDown, ArrowRight, ArrowUp, BookOpen, CalendarDots, DotsThree, FileText, PencilSimple, PlayCircle, Trash, Trophy, type Icon } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import type { BoardCard, BoardLink } from '../../api/types';
 import { formatDay } from '../../lib/dates';
 import { BREAKPOINTS, useMediaQuery } from '../../state';
 import { Badge, IconButton, Menu, cx, safeInternalPath, type MenuItem } from '../../ui';
-import { COLUMNS, dueLabel, dueOf, isOverdue } from './board';
+import { COLUMNS, dueLabel, dueOf, isOverdue, isPastPaper } from './board';
 import type { CardActions } from './BoardPage';
 
 const LINK_ICON: Record<BoardLink['type'], Icon> = { event: CalendarDots, lesson: PlayCircle, module: BookOpen, library_item: FileText };
@@ -32,6 +32,8 @@ export function CardItem({ card, today, actions, unsaved }: CardItemProps) {
   const overdue = isOverdue(card, today);
   const locked = actions.readOnly || unsaved;
   const draggable = fine && !isPhone && !locked;
+  const paper = isPastPaper(card) && card.link ? card.link.id : null;
+  const score = paper ? actions.scores[paper] : undefined;
 
   const items: MenuItem[] = [
     ...COLUMNS.filter((c) => c.id !== card.column).map(
@@ -40,6 +42,9 @@ export function CardItem({ card, today, actions, unsaved }: CardItemProps) {
     { id: 'up', label: 'Move up', icon: ArrowUp, disabled: !actions.canNudge(card, -1), onSelect: () => actions.onNudge(card, -1) },
     { id: 'down', label: 'Move down', icon: ArrowDown, disabled: !actions.canNudge(card, 1), onSelect: () => actions.onNudge(card, 1) },
     { divider: true, id: 'd' },
+    ...(paper && card.column === 'done'
+      ? [{ id: 'score', label: score == null ? 'Add your score' : 'Change your score', icon: Trophy, onSelect: () => actions.onScore(card) } satisfies MenuItem]
+      : []),
     { id: 'edit', label: 'Edit', icon: PencilSimple, onSelect: () => actions.onEdit(card) },
     { id: 'delete', label: 'Delete', icon: Trash, danger: true, onSelect: () => actions.onDelete(card) },
   ];
@@ -73,6 +78,7 @@ export function CardItem({ card, today, actions, unsaved }: CardItemProps) {
       </div>
       {card.link ? <CardLink link={card.link} cardTitle={card.title} /> : null}
       {card.note ? <p className="board-card__note">{card.note}</p> : null}
+      {score != null && card.column === 'done' ? <p className="board-card__score">Your score: {score}%</p> : null}
       {due && card.column !== 'done' ? (
         <p className={cx('board-card__due', overdue && 'is-overdue')}>
           {overdue ? (

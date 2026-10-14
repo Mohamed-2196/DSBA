@@ -115,8 +115,8 @@ function ImagePreview({ item, src }: { item: LibraryItem; src: string }) {
 
 /**
  * The file itself: PDFs in the browser's PDF viewer and images as they are, both from a short-lived link
- * (GET /library/items/{id}/file); on phones a PDF opens in a new tab instead. `page` opens a PDF at that page.
- * Other formats and links show a card with Download or Open.
+ * (GET /library/items/{id}/file); on phones a PDF opens in a new tab instead. Other formats and links show
+ * a card with Download or Open. `page` opens a PDF at that page (where a search found its words, or a tagged question starts).
  */
 export function Preview({ item, compact, page = null }: { item: LibraryItem; compact: boolean; page?: number | null }) {
   const removed = item.status === 'removed';
@@ -158,6 +158,7 @@ export function Preview({ item, compact, page = null }: { item: LibraryItem; com
   if (!src) return <Loading label={kind === 'pdf' ? 'Loading the PDF' : 'Loading the image'} />;
 
   if (kind === 'image') return <ImagePreview item={item} src={src} />;
+  const at = page ? `#page=${page}` : '';
 
   if (compact) {
     // Phone browsers show one page of a PDF in a frame, or nothing: open it in their own viewer instead.
@@ -166,8 +167,8 @@ export function Preview({ item, compact, page = null }: { item: LibraryItem; com
         <FileThumb item={item} size="strip" />
         <div className="lib-nopreview__text">
           <h2 className="lib-nopreview__title">Read the PDF</h2>
-          <p>It opens in your phone’s PDF viewer, in a new tab.</p>
-          <Button variant="primary" href={`${link.data?.url ?? src}${page ? `#page=${page}` : ''}`} external leadingIcon={FilePdf}>
+          <p>It opens in your phone’s PDF viewer, in a new tab.{page ? ` It opens at page ${page}.` : ''}</p>
+          <Button variant="primary" href={(link.data?.url ?? src) + at} external leadingIcon={FilePdf}>
             Open the PDF
           </Button>
           <Button variant="ghost" href={downloadHref(item)} leadingIcon={DownloadSimple}>
@@ -178,6 +179,5 @@ export function Preview({ item, compact, page = null }: { item: LibraryItem; com
     );
   }
 
-  // A new page reloads the frame: browsers' PDF viewers read #page only when they open the file.
-  return <iframe key={page ?? 0} className="lib-preview__frame" src={page ? `${src}#page=${page}` : src} title={`${item.title} (PDF)`} referrerPolicy="no-referrer" data-hub="file-preview" />;
+  return <iframe key={at} className="lib-preview__frame" src={src + at} title={`${item.title} (PDF)`} referrerPolicy="no-referrer" data-hub="file-preview" />;
 }

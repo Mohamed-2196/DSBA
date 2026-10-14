@@ -1,7 +1,7 @@
 // Which of Manage's sections a person gets, from their boxes and the features that are on for them.
 import type { Box, Feature } from '../../auth';
 
-export type SectionId = 'reports' | 'uploads' | 'requests' | 'newsletter' | 'calendar' | 'career' | 'content' | 'numbers' | 'people' | 'activity';
+export type SectionId = 'reports' | 'uploads' | 'requests' | 'newsletter' | 'summary' | 'calendar' | 'career' | 'content' | 'numbers' | 'people' | 'activity';
 
 type Can = (box: Box) => boolean;
 type On = (feature: Feature) => boolean;
@@ -12,6 +12,7 @@ const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
   ['requests', (can, on) => can('requests.manage') && on('requests')],
   ['newsletter', (can, on) => can('newsletter.manage') && on('newsletter')],
   ['calendar', (can, on) => can('calendar.manage') && on('calendar')],
+  ['summary', (can, on) => can('summary.share') && on('summary')],
   ['career', (can, on) => can('career.edit') && on('career')],
   ['content', (can) => can('content.edit')],
   ['numbers', (can) => can('stats.view')],

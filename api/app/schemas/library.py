@@ -32,6 +32,13 @@ Description = Annotated[str, StringConstraints(strip_whitespace=True, max_length
 AuthorName = Annotated[str, StringConstraints(strip_whitespace=True, max_length=120)]
 
 
+class TextMatch(ApiModel):
+    """Where a search's words were found inside the file: the words around them, and the page (PDFs)."""
+
+    snippet: str
+    page: int | None
+
+
 class LibraryItem(ApiModel):
     id: UUID
     slug: str
@@ -59,6 +66,7 @@ class LibraryItem(ApiModel):
     starred: bool
     is_mine: bool
     can_edit: bool
+    match: TextMatch | None  # with a search (q) that found the words inside the file, not in its title
 
 
 class LibraryPage(Page[LibraryItem]):

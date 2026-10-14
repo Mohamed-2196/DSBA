@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LibraryItem } from '../../api/types';
-import { addedAt, cardMeta, downloadsLabel, examLabel, isNew, linkPlace, moduleTag, sizeLabel, statusInfo } from './display';
+import { addedAt, cardMeta, downloadsLabel, examLabel, isNew, linkPlace, matchLine, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
 
 const DAY = 24 * 3600 * 1000;
 const NOW = Date.parse('2026-10-12T12:00:00Z');
@@ -34,6 +34,7 @@ function item(patch: Partial<LibraryItem> = {}): LibraryItem {
     starred: false,
     isMine: false,
     canEdit: false,
+    match: null,
     ...patch,
   };
 }
@@ -99,5 +100,18 @@ describe('labels', () => {
     expect(statusInfo('rejected')).toEqual({ label: 'Not published', tone: 'alert' });
     expect(statusInfo('removed')?.label).toBe('Removed');
     expect(statusInfo('published')).toBeNull();
+  });
+});
+
+describe('matches inside files', () => {
+  it('says where the words were found', () => {
+    expect(matchLine(item())).toBeNull();
+    expect(matchLine(item({ match: { snippet: 'the Cramér–Rao bound', page: 3 } }))).toBe('Page 3: the Cramér–Rao bound');
+    expect(matchLine(item({ match: { snippet: 'the likelihood principle', page: null } }))).toBe('the likelihood principle');
+  });
+
+  it('reads ?page= as a page number or nothing', () => {
+    expect(pageParam('3')).toBe(3);
+    expect(['0', '-1', '2.5', 'x', '', null].map(pageParam)).toEqual([null, null, null, null, null, null]);
   });
 });

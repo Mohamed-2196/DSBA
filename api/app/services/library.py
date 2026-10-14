@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import logging
 import uuid
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
-from sqlalchemy import Select, case, delete, func, select, update
+from sqlalchemy import Select, case, delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
@@ -27,6 +27,7 @@ from app.models import (
     ItemStatus,
     LibraryItem,
     LibraryStar,
+    LibraryText,
     Module,
     Upload,
     UploadPurpose,
@@ -46,11 +47,12 @@ from app.schemas.library import (
 )
 from app.schemas.library import LibraryItem as LibraryItemOut
 from app.schemas.notifications import NotificationKind
-from app.services import access, ratelimit
+from app.services import access, paper_text, ratelimit
 from app.services.accounts import public_user
 from app.services.content import apply_patch, record
 from app.services.modules import require_module
 from app.services.notify import notify
+from app.services.paper_text import Match
 from app.services.storage import INLINE_TYPES, Storage, get_storage
 from app.services.uploads import extension, serve_type
 
@@ -171,8 +173,11 @@ def get_visible(db: Session, ref: str | uuid.UUID, user: User | None) -> Library
 # ── output ───────────────────────────────────────────────────────────────────────────────────
 
 
-def to_out(db: Session, items: Sequence[LibraryItem], user: User | None) -> list[LibraryItemOut]:
-    """Items as this person sees them (uploader, star, edit rights, review note), in one query per relation."""
+def to_out(
+    db: Session, items: Sequence[LibraryItem], user: User | None, found: Mapping[uuid.UUID, Match] | None = None
+) -> list[LibraryItemOut]:
+    """Items as this person sees them (uploader, star, edit rights, review note), in one query per relation, with
+    where a search found its words inside each file (`found`)."""
     uploader_ids = {i.uploaded_by for i in items if i.uploaded_by}
     users = {u.id: u for u in db.scalars(select(User).where(User.id.in_(uploader_ids)))} if uploader_ids else {}
     access.prefetch(db, users.values())
@@ -218,6 +223,7 @@ def to_out(db: Session, items: Sequence[LibraryItem], user: User | None) -> list
                     "starred": i.id in starred,
                     "is_mine": mine,
                     "can_edit": can_edit(i, user),
+                    "match": vars(found[i.id]) if found and i.id in found else None,
                 }
             )
         )
@@ -237,6 +243,13 @@ def search_document() -> ColumnElement[Any]:
     kind_words = case(KIND_WORDS, value=LibraryItem.kind, else_=func.replace(LibraryItem.kind, "-", " "))
     extra = func.concat_ws(" ", Module.unit_code, Module.short_name, Module.name, kind_words)
     return LibraryItem.search_vector.op("||")(func.to_tsvector("simple", extra))
+
+
+def says(item: LibraryItem, terms: list[str]) -> bool:
+    """Whether the item's title or description already shows one of the search's words (then a result shows those,
+    not the words found inside the file)."""
+    own = f"{item.title} {item.description or ''}".lower()
+    return any(t in own for t in terms)
 
 
 @dataclass(frozen=True)
@@ -270,6 +283,7 @@ def list_items(
     f: ListFilters,
     *,
     tsquery: ColumnElement[Any] | None,
+    terms: list[str] | None = None,
     sort: Sort,
     limit: int,
     offset: int,
@@ -293,11 +307,14 @@ def list_items(
         q = q.where(LibraryItem.exam_year == f.exam_year)
     if f.zone:
         q = q.where(LibraryItem.zone == f.zone)
-    rank: ColumnElement[Any] | None = None
-    if tsquery is not None:
+    rank: list[ColumnElement[Any]] = []
+    if tsquery is not None:  # the item's own words, or the words inside its file (paper_text)
         doc = search_document()
-        q = q.outerjoin(Module, Module.id == LibraryItem.module_id).where(doc.bool_op("@@")(tsquery))
-        rank = func.ts_rank(doc, tsquery)
+        in_doc = doc.bool_op("@@")(tsquery)
+        q = q.outerjoin(Module, Module.id == LibraryItem.module_id).where(
+            or_(in_doc, paper_text.content_match(tsquery))
+        )
+        rank = [in_doc.desc(), func.ts_rank(doc, tsquery).desc()]
 
     total = db.scalar(select(func.count()).select_from(q.order_by(None).subquery())) or 0
     newest = func.coalesce(LibraryItem.published_at, LibraryItem.created_at)
@@ -305,12 +322,14 @@ def list_items(
         order: list[Any] = [LibraryItem.download_count.desc(), newest.desc()]
     elif sort == "title":
         order = [func.lower(LibraryItem.title).asc()]
-    elif sort == "relevance" and rank is not None:
-        order = [rank.desc(), newest.desc()]
+    elif sort == "relevance" and rank:
+        order = [*rank, newest.desc()]
     else:
         order = [newest.desc()]
     q = q.order_by(*order, LibraryItem.title.asc(), LibraryItem.id.asc()).limit(limit).offset(offset)
-    return to_out(db, db.scalars(q).all(), user), total
+    items = db.scalars(q).all()
+    found = paper_text.matches(db, [i.id for i in items if not says(i, terms)], terms) if terms else None
+    return to_out(db, items, user, found), total
 
 
 def facets(db: Session) -> LibraryFacets:
@@ -615,8 +634,8 @@ def review(
 
 def sweep_files(db: Session, storage: Storage | None = None, now: datetime | None = None) -> int:
     """For the daily sweep: deletes from the bucket the files of items rejected or removed more than FILE_GRACE ago
-    (security review SEC-14), with their upload rows; the item rows stay, without a file. -> how many files.
-    The caller commits. Safe to run again: a file already gone is skipped."""
+    (security review SEC-14), with their upload rows and their text; the item rows stay, without a file. -> how many
+    files. The caller commits. Safe to run again: a file already gone is skipped."""
     cutoff = (now or utcnow()) - FILE_GRACE
     decided = func.coalesce(LibraryItem.updated_at, LibraryItem.reviewed_at, LibraryItem.created_at)
     items = db.scalars(
@@ -633,6 +652,7 @@ def sweep_files(db: Session, storage: Storage | None = None, now: datetime | Non
             continue
         st.delete(item.storage_key)
         db.execute(delete(Upload).where(Upload.storage_key == item.storage_key))
+        db.execute(delete(LibraryText).where(LibraryText.item_id == item.id))
         item.storage_key = None
     if items:
         log.info("deleted %d rejected or removed library file(s)", len(items))

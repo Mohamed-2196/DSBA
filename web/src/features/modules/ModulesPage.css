@@ -199,3 +199,13 @@
   .mod-row__prog { flex-direction: row-reverse; gap: 10px; }
   .mod-row__name { font-size: var(--fs-16); }
 }
+
+/* ── Year 2 and 3: the way to the electives guide ───────────────────────────────────────────── */
+.mod-electives { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-8); margin-top: var(--sp-24); color: var(--ink-2); font-size: var(--fs-14); }
+.mod-electives__icon { flex: none; color: var(--y3-strong); font-size: 20px; }
+.mod-electives__link { display: inline-flex; align-items: center; gap: 4px; color: var(--cobalt); font-weight: var(--fw-semibold); text-decoration: none; }
+.mod-electives__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.mod-electives__link svg { font-size: 12px; }
+@media (pointer: coarse) {
+  .mod-electives__link { min-height: 44px; }
+}

@@ -4,9 +4,10 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { LibraryItem, Sitting, SittingZone } from '../../../api/types';
 import { Button, Panel, Skeleton } from '../../../ui';
+import { SittingsDone } from '../../board/public';
 import { itemPath } from '../api';
 import { sittingLabel } from '../display';
-import { usePaperSittings } from '../papers';
+import { sittingFiles, usePaperSittings } from '../papers';
 import type { LinkState } from './FileCard';
 import './PaperSittings.css';
 
@@ -58,7 +59,18 @@ function SittingRow({ sitting, linkState }: { sitting: Sitting; linkState: LinkS
 }
 
 /** The Files tab's past papers. Renders nothing while the module has none. */
-export function PaperSittings({ moduleId, linkState, renderOther }: { moduleId: string; linkState: LinkState; renderOther: (items: LibraryItem[]) => ReactNode }) {
+/** `board`: the study board is on, so the heading says how many sittings are done. */
+export function PaperSittings({
+  moduleId,
+  linkState,
+  renderOther,
+  board,
+}: {
+  moduleId: string;
+  linkState: LinkState;
+  renderOther: (items: LibraryItem[]) => ReactNode;
+  board: boolean;
+}) {
   const papers = usePaperSittings(moduleId);
   const [all, setAll] = useState(false);
   if (papers.isPending) {
@@ -80,6 +92,9 @@ export function PaperSittings({ moduleId, linkState, renderOther }: { moduleId: 
           <h3 id="lib-mf-sittings" className="lib-mf__h">
             Past papers by sitting
             <span className="lib-mf__count">{sittings.length}</span>
+            {board ? (
+              <SittingsDone papers={sittings.flatMap((s) => sittingFiles(s).filter((f) => f.kind === 'past-paper'))} className="lib-mf__sittings" />
+            ) : null}
           </h3>
           <Panel as="div" padding="none" className="lib-mf__panel">
             <ul role="list" className="lib-sit__list">

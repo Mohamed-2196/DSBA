@@ -6,11 +6,12 @@ Sign-in codes are not queued: they are sent while the person waits for them."""
 
 from __future__ import annotations
 
+import datetime as dt
 import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, Index, SmallInteger, String, Text, text
+from sqlalchemy import Date, ForeignKey, Index, SmallInteger, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, created_ts, str_enum, uuid_pk
@@ -48,3 +49,14 @@ class EmailOutbox(Base):
     last_error: Mapped[str | None] = mapped_column(String(200))  # the kind of failure, never an address
     created_at: Mapped[datetime] = created_ts()
     sent_at: Mapped[datetime | None]
+
+
+class WeeklySummarySent(Base):
+    """A Sunday summary queued for one person for one week: at most one per person per week, however often the job
+    runs or however many workers run it."""
+
+    __tablename__ = "weekly_summaries"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    week_of: Mapped[dt.date] = mapped_column(Date, primary_key=True)  # the week's Sunday, in Bahrain
+    created_at: Mapped[datetime] = created_ts()

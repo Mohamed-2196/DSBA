@@ -3,7 +3,8 @@
   "entry": [
     "e2e/*.setup.ts",
     "e2e/*.teardown.ts",
-    "deploy/*.mjs"
+    "deploy/*.mjs",
+    "src/sw/sw.ts"
   ],
   "project": [
     "src/**/*.{ts,tsx}",

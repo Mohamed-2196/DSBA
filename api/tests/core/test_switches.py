@@ -67,9 +67,10 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("noora.ai", "GET", "/noora/status"),
     ("noora.ai", "POST", "/noora/ask"),
     ("noora.ai", "GET", "/admin/noora"),
+    ("summary", "GET", "/summary/preview?year=2"),
 ]
 # Features that arrive switched off (the migrations' switches): the tests switch them on first.
-OFF_AT_FIRST = ("notes", "board", "requests", "noora.ai", "library.questions")
+OFF_AT_FIRST = ("notes", "board", "requests", "noora.ai", "summary", "library.questions")
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
 # paths below it.

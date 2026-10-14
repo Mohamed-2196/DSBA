@@ -170,6 +170,7 @@
   .lib-crumbs a { min-height: 44px; }
   .lib-viewer.is-app .lib-viewer__head, .lib-viewer.is-stacked .lib-viewer__head { padding-top: var(--sp-4); }
 }
+.lib-viewer__board { margin-left: auto; }
 
 /* ── Past papers: the sitting, "Time me", questions by topic ───────── */
 .lib-meta__sitting { display: grid; gap: var(--sp-8); }

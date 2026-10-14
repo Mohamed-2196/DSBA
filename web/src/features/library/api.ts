@@ -172,8 +172,10 @@ export function openLinkHref(item: Pick<LibraryItem, 'id'>): string {
 }
 
 /** The item's page in the app. */
-export function itemPath(item: Pick<LibraryItem, 'slug'>): string {
-  return `/library/${encodeURIComponent(item.slug)}`;
+/** The file's page in the hub; with a search that found its words inside, opened at their page. */
+export function itemPath(item: Pick<LibraryItem, 'slug'> & { match?: LibraryItem['match'] }): string {
+  const page = item.match?.page;
+  return `/library/${encodeURIComponent(item.slug)}${page ? `?page=${page}` : ''}`;
 }
 
 // ── Cache helpers ─────────────────────────────────────────────────────────────

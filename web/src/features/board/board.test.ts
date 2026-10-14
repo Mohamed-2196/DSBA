@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { BoardCard } from '../../api/types';
-import { afterIdAt, afterIdBefore, appendCard, counts, dueLabel, dueOf, isOverdue, nudge, placeCard, splitDone } from './board';
+import { afterIdAt, afterIdBefore, appendCard, counts, dueLabel, dueOf, isOverdue, isPastPaper, nudge, parseScore, placeCard, planPace, sittingsDone, splitDone } from './board';
+import { cleanScores } from './scores';
 
 const card = (id: string, column: BoardCard['column'], extra: Partial<BoardCard> = {}): BoardCard => ({
   id,
@@ -9,6 +10,8 @@ const card = (id: string, column: BoardCard['column'], extra: Partial<BoardCard>
   note: null,
   dueDate: null,
   link: null,
+  planModuleId: null,
+  planDate: null,
   createdAt: '2026-10-01T08:00:00Z',
   doneAt: column === 'done' ? '2026-10-10T08:00:00Z' : null,
   ...extra,
@@ -60,8 +63,10 @@ describe('positions from the screen', () => {
 });
 
 describe('due dates', () => {
-  const event = { type: 'event' as const, id: 'x', title: 'Exam', url: '/calendar?event=x', date: '2026-10-12' };
-  it('uses the card’s own date, else its event’s', () => {
+  const event = { type: 'event' as const, id: 'x', title: 'Exam', url: '/calendar?event=x', date: '2026-10-12', kind: null, moduleId: null };
+  it('uses the card’s own date, else its plan’s, else its event’s', () => {
+    expect(dueOf(card('a', 'todo', { link: event, planDate: '2026-10-08' }))).toBe('2026-10-08');
+    expect(dueOf(card('a', 'todo', { planDate: '2026-10-08', dueDate: '2026-10-09' }))).toBe('2026-10-09');
     expect(dueOf(card('a', 'todo', { link: event }))).toBe('2026-10-12');
     expect(dueOf(card('a', 'todo', { link: event, dueDate: '2026-10-20' }))).toBe('2026-10-20');
     expect(dueOf(card('a', 'todo'))).toBeNull();
@@ -86,5 +91,47 @@ describe('splitDone', () => {
     const { recent, older } = splitDone(done, '2026-10-13');
     expect(recent.map((c) => c.id)).toEqual(['new', 'edge']);
     expect(older.map((c) => c.id)).toEqual(['old']);
+  });
+});
+
+describe('revision plans', () => {
+  it('says the pace', () => {
+    expect(planPace({ left: 40, daysLeft: 6 })).toBe('About 7 a day');
+    expect(planPace({ left: 3, daysLeft: 9 })).toBe('1 every 3 days');
+    expect(planPace({ left: 5, daysLeft: 6 })).toBe('About 1 a day');
+    expect(planPace({ left: 0, daysLeft: 6 })).toBe('All done.');
+    expect(planPace({ left: 2, daysLeft: 0 })).toBe('The exam day has come.');
+  });
+});
+
+describe('past papers', () => {
+  const paper = { type: 'library_item' as const, id: 'p1', title: 'EC1002 2023 Zone A', url: '/library/p1', date: null, kind: 'past-paper' as const, moduleId: 'm' };
+  it('knows a past paper card', () => {
+    expect(isPastPaper(card('a', 'todo', { link: paper }))).toBe(true);
+    expect(isPastPaper(card('a', 'todo', { link: { ...paper, kind: 'notes' } }))).toBe(false);
+    expect(isPastPaper(card('a', 'todo'))).toBe(false);
+  });
+  it('counts sittings: a year and session (both zones in one), or a paper without a year on its own', () => {
+    const papers = [
+      { id: 'a', examYear: 2023, examSession: 'may' },
+      { id: 'a2', examYear: 2023, examSession: 'may' },
+      { id: 'b', examYear: 2023, examSession: 'october' },
+      { id: 'c', examYear: null, examSession: null },
+    ];
+    expect(sittingsDone(papers, new Set(['a', 'a2', 'c']))).toEqual({ done: 2, total: 3 });
+    expect(sittingsDone(papers, new Set())).toEqual({ done: 0, total: 3 });
+  });
+  it('reads a score as typed', () => {
+    expect(parseScore('')).toBeNull();
+    expect(parseScore(' 68 % ')).toBe(68);
+    expect(parseScore('72.5')).toBe(72.5);
+    expect(parseScore('101')).toBeUndefined();
+    expect(parseScore('-3')).toBeUndefined();
+    expect(parseScore('abc')).toBeUndefined();
+  });
+  it('keeps only sane stored scores', () => {
+    expect(cleanScores({ a: 50, b: 'x', c: 140, d: 0 })).toEqual({ a: 50, d: 0 });
+    expect(cleanScores([1, 2])).toEqual({});
+    expect(cleanScores(null)).toEqual({});
   });
 });

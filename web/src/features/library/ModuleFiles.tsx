@@ -4,6 +4,7 @@ import { ArrowSquareOut, Books, DownloadSimple, UploadSimple } from '@phosphor-i
 import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { showsUpload, useAuth } from '../../auth';
+import { PaperDone } from '../board/public';
 import { useModules } from '../../state/modules';
 import { Badge, Button, EmptyState, IconButton, Panel, QueryError, Skeleton, formatCount, timeAgo } from '../../ui';
 import { downloadHref, itemPath, openLinkHref, useLibraryList } from './api';
@@ -20,7 +21,7 @@ import './ModuleFiles.css';
 
 const LIMIT = 100;
 
-function FileRow({ item, linkState, onToggleStar }: { item: LibraryItem; linkState: LinkState; onToggleStar: (item: LibraryItem) => void }) {
+function FileRow({ item, linkState, onToggleStar, board }: { item: LibraryItem; linkState: LinkState; onToggleStar: (item: LibraryItem) => void; board: boolean }) {
   const exam = examLabel(item);
   return (
     <li className="lib-mf__row">
@@ -34,6 +35,7 @@ function FileRow({ item, linkState, onToggleStar }: { item: LibraryItem; linkSta
                 New
               </Badge>
             ) : null}
+            {board && item.kind === 'past-paper' ? <PaperDone itemId={item.id} /> : null}
           </span>
           <span className="lib-mf__meta">
             {exam ? <span>{exam}</span> : null}
@@ -61,6 +63,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
   const { getModule } = useModules();
   const { requireAuth, featureOn, mayTry } = useAuth();
   const uploadShown = showsUpload(featureOn, mayTry);
+  const board = featureOn('board');
   const toggleStar = useStar();
   const m = getModule(moduleId);
   const files = useLibraryList({ moduleId, sort: 'title' }, { limit: LIMIT });
@@ -82,7 +85,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
     <Panel as="div" padding="none" className="lib-mf__panel">
       <ul role="list" className="lib-mf__list">
         {items.map((f) => (
-          <FileRow key={f.id} item={f} linkState={linkState} onToggleStar={toggleStar} />
+          <FileRow key={f.id} item={f} linkState={linkState} onToggleStar={toggleStar} board={board} />
         ))}
       </ul>
     </Panel>
@@ -128,7 +131,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
   } else {
     body = (
       <div className="lib-mf__groups">
-        <PaperSittings moduleId={moduleId} linkState={linkState} renderOther={fileList} />
+        <PaperSittings moduleId={moduleId} linkState={linkState} renderOther={fileList} board={board} />
         {groups.map(({ kind, items }) => (
           <section key={kind.id} className="lib-mf__group" aria-labelledby={`lib-mf-${kind.id}`}>
             <h3 id={`lib-mf-${kind.id}`} className="lib-mf__h">

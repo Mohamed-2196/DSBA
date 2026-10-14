@@ -13,6 +13,8 @@ const PAGES: [string, RegExp][] = [
   ['/newsletter', /The DSBA Newsletter/],
   ['/calendar', /^Calendar$/],
   ['/career', /^Career Navigator$/],
+  ['/career/electives', /^Choosing your Year 3 electives$/],
+  ['/start-here', /^Start here$/],
   ['/grades', /^Grades$/],
   ['/about', /About DSBA Hub/],
   ['/account', /^Your account$/],

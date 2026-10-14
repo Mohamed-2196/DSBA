@@ -30,6 +30,7 @@ function file(id: string, kind: LibraryItem['kind'], zone: string | null): Libra
     starred: false,
     isMine: false,
     canEdit: false,
+    match: null,
   };
 }
 

@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ADMIN_STATS_KEY } from '../../api/keys';
 import type { NooraLimitsIn } from '../../api/types';
+import type { CohortYear } from '../../state';
 
 const NOORA_USAGE_KEY = ['admin', 'noora'] as const;
 
@@ -23,5 +24,13 @@ export function useSetNooraLimits() {
   return useMutation({
     mutationFn: (body: NooraLimitsIn) => call(api.PUT('/api/v1/admin/noora', { body })),
     onSuccess: (out) => qc.setQueryData(NOORA_USAGE_KEY, out),
+  });
+}
+
+/** A year's Sunday summary for this week: the text reps paste into the group. */
+export function useSummaryPreview(year: CohortYear) {
+  return useQuery({
+    queryKey: ['summary', 'preview', year] as const,
+    queryFn: () => call(api.GET('/api/v1/summary/preview', { params: { query: { year } } })),
   });
 }

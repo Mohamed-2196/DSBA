@@ -20,6 +20,7 @@ from app.core.errors import ApiError, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
     BoardCard,
+    BoardPlan,
     EmailOutbox,
     ForumReply,
     ForumThread,
@@ -49,6 +50,7 @@ from app.schemas.access import RoleSummary
 from app.schemas.auth import (
     AccountExport,
     ExportBoardCard,
+    ExportBoardPlan,
     ExportEmail,
     ExportLibraryItem,
     ExportNotification,
@@ -70,7 +72,7 @@ from app.services import access, otp, sessions
 from app.services.audit import record
 from app.services.identifiers import Kind, admin_identifiers, destination_hint
 from app.services.modules import student_lesson, student_lessons
-from app.services.outbox import ACCOUNT_NOTICE
+from app.services.outbox import ACCOUNT_NOTICE, wants
 from app.services.storage import Storage
 
 log = logging.getLogger("dsba.accounts")
@@ -80,13 +82,12 @@ NOTIFICATION_KINDS = frozenset(get_args(NotificationKind))
 
 
 # The email switches, one per kind of email (decision D1).
-EMAIL_SWITCHES = ("email_replies", "email_answer_accepted", "email_upload_reviews", "email_new_issues")
+EMAIL_SWITCHES = tuple(Preferences.model_fields)
 
 
 def preferences_of(user: User) -> Preferences:
-    """The switches as stored on the account (users.preferences; unset means on)."""
-    stored = user.preferences if isinstance(user.preferences, dict) else {}
-    return Preferences.model_validate({name: stored.get(name) is not False for name in EMAIL_SWITCHES})
+    """The switches as stored on the account (users.preferences; unset means the switch's default)."""
+    return Preferences.model_validate({name: wants(user, name) for name in EMAIL_SWITCHES})
 
 
 def update_preferences(user: User, changes: PreferencesUpdate) -> None:
@@ -683,6 +684,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for e in db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == uid).order_by(EmailOutbox.created_at))
     ]
+    plans = {p.id: p for p in db.scalars(select(BoardPlan).where(BoardPlan.user_id == uid))}
     board = [
         ExportBoardCard.model_validate(
             {
@@ -693,6 +695,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
                 "due_date": c.due_date,
                 "link_type": c.link_type,
                 "link_id": c.lesson_id if c.link_type == "lesson" else c.link_id,
+                "plan_module_id": plans[c.plan_id].module_id if c.plan_id in plans else None,
                 "created_at": c.created_at,
                 "done_at": c.done_at,
             }
@@ -717,6 +720,12 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         question_flags=question_flags,
         emails=emails,
         board=board,
+        board_plans=[
+            ExportBoardPlan(
+                module_id=p.module_id, exam_date=p.exam_date, paper_every=p.paper_every, created_at=p.created_at
+            )
+            for p in sorted(plans.values(), key=lambda p: p.created_at)
+        ],
     )
 
 

@@ -102,6 +102,33 @@ Index(
 )
 
 
+class TextStatus(enum.StrEnum):
+    working = "working"  # a text worker is reading the file
+    done = "done"  # its text is in `body`
+    empty = "empty"  # read, but it has no text (a scan): found by its title only
+    failed = "failed"  # too big, too slow or unreadable
+
+
+class LibraryText(Base):
+    """The words of a published PDF or Word file, for search (app/services/paper_text.py). `body` holds its pages
+    in order, separated by form feeds, so a match knows its page. A row is made when a text worker takes the file,
+    and stays: a file is read once."""
+
+    __tablename__ = "library_texts"
+    __table_args__ = (Index("ix_library_texts_search", "search_vector", postgresql_using="gin"),)
+
+    item_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("library_items.id", ondelete="CASCADE"), primary_key=True)
+    status: Mapped[TextStatus] = mapped_column(str_enum(TextStatus, 8))
+    body: Mapped[str | None] = mapped_column(Text)
+    pages: Mapped[int | None] = mapped_column(Integer)  # PDFs only
+    error: Mapped[str | None] = mapped_column(String(200))  # why it failed, for the logs and the CLI
+    started_at: Mapped[datetime] = created_ts()
+    finished_at: Mapped[datetime | None]
+    search_vector: Mapped[str] = mapped_column(
+        TSVECTOR, Computed("to_tsvector('simple', coalesce(body, ''))", persisted=True)
+    )
+
+
 class LibraryStar(Base):
     __tablename__ = "library_stars"
 

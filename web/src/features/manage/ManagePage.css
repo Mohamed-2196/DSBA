@@ -42,3 +42,19 @@
 @media (max-width: 699px) {
   .manage-number dd { font-size: var(--fs-20); }
 }
+.manage-summary { display: grid; gap: var(--sp-12); justify-items: start; }
+.manage-summary > * { max-width: 100%; }
+.manage-summary__text {
+  width: 100%;
+  max-width: 75ch;
+  margin: 0;
+  padding: var(--sp-12);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
