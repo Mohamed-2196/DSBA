@@ -31,6 +31,12 @@ describe('projectClass', () => {
     expect(p.next).toEqual({ kind: 'first', mark: 70, blanks: 8 });
   });
 
+  it('doesn’t round an average up into the next class', () => {
+    // Year 1 at 69 and 70 alternately averages 69.5: under a First's 70, so the projection stays a 2:1.
+    const p = projectClass(marks('', { 0: 69, 1: 70, 2: 69, 3: 70 }));
+    expect(p).toMatchObject({ state: 'partial', kind: 'upper' });
+  });
+
   it('has no next class above a First', () => {
     const p = projectClass(marks('', { 0: 80, 1: 80, 2: 80, 3: 80 }));
     expect(p).toMatchObject({ state: 'partial', kind: 'first', next: null });

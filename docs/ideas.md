@@ -678,7 +678,8 @@ Quick wins are marked **quick win** in the heading: a day or two each.
 - **Costs and risks:** it must be right each session, so a rep checks it in May and October. It mustn't sound like
   official advice: it says where the official rules are.
 - **How we'd know it worked:** visits to the guide and to the grades page in results week.
-- **Status:** proposed.
+- **Status:** built (round 7, `round7/results`). The results dates are `event`s titled "UoL results released";
+  the seed has two, marked not confirmed, for a rep to correct.
 
 ### IDEA-37. Your projected class in Career Navigator · quick win
 
@@ -692,7 +693,7 @@ Quick wins are marked **quick win** in the heading: a day or two each.
 - **Costs and risks:** marks are cleared on sign-out (D10), so the card says when it has none. No server change, no
   new personal data.
 - **How we'd know it worked:** clicks from the card to the calculator and back.
-- **Status:** proposed.
+- **Status:** built (round 7, `round7/results`). The same projection shows on the Results day guide.
 
 ## Round 2 · For the rep
 

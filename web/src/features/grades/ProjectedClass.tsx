@@ -14,7 +14,7 @@ import './ProjectedClass.css';
 const named = (kind: keyof typeof CLASS_NAME): string => `${CLASS_NAME[kind]} (${CLASS_SHORT[kind]})`;
 
 function NextLine({ p }: { p: Extract<Projection, { state: 'partial' }> }) {
-  if (!p.next) return <p className="projected__more">That’s the top class. Keep your marks at 70 or above in the modules still to come.</p>;
+  if (!p.next) return null;
   const { kind, mark, blanks } = p.next;
   const modules = blanks === 1 ? 'the module' : `each of the ${blanks} modules`;
   return (

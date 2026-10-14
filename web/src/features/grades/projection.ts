@@ -46,7 +46,7 @@ export function projectClass(input: unknown): Projection {
     return { state: 'complete', kind: result.kind, average: result.average };
   }
 
-  const filled = marks.map((m) => String(m ?? Math.round(average)));
+  const filled = marks.map((m) => String(m ?? average));
   const kind = classify(filled).kind;
   const nextKind = NEXT_CLASS[kind];
   const target = nextKind ? targetsForRemaining(marks.map((m) => (m === null ? '' : String(m)))).find((t) => t.kind === nextKind) : undefined;
