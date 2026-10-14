@@ -4,6 +4,7 @@ from app.models.access import AccessRole, FeatureSwitch, FeatureSwitchRole, Role
 from app.models.activity import AuditEntry, LessonResume, LessonView, Notification, Report, ReportStatus
 from app.models.base import Base
 from app.models.board import BoardCard, BoardPlan
+from app.models.bugs import BugReport, BugStatus
 from app.models.content import (
     CalendarEvent,
     Chapter,
@@ -41,6 +42,8 @@ __all__ = [
     "Base",
     "BoardCard",
     "BoardPlan",
+    "BugReport",
+    "BugStatus",
     "CalendarEvent",
     "Channel",
     "Chapter",
