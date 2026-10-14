@@ -16,7 +16,8 @@ weekly-summary     queue this week's Sunday summary now, for everyone who has it
                    (--preview YEAR: print that year's text and send nothing)
 import-drive       copy the files of the library's Google Drive folders into the library: prints the plan, asks,
                    imports, and lists the folders Drive refused (--dry-run: only the plan; --module ID; --limit N
-                   files; --yes: no question). Safe to run again. Needs DSBA_GOOGLE_API_KEY (DEPLOYMENT.md, 10)
+                   files; --pace S: seconds between downloads, default 2; --yes: no question). Safe to run again:
+                   it tries skipped and failed files again. Needs DSBA_GOOGLE_API_KEY (DEPLOYMENT.md, 10)
 text-worker        read the words of each newly published PDF and Word file, for search inside papers; runs until
                    stopped. Several can run side by side.
 extract-texts      read the words of the published files that have none yet (the backfill), then stop (--retry:
@@ -339,6 +340,8 @@ def cmd_import_drive(args: argparse.Namespace) -> int:
     from app.services import drive
     from app.services.drive_import import import_from_drive
 
+    # The client's warnings (a retry, a wait for Google's block to lift) show; httpx's request lines don't.
+    logging.basicConfig(level=logging.WARNING, format="%(message)s")
     try:
         client = drive.connect(get_settings())
     except drive.DriveFatalError as e:
@@ -356,6 +359,7 @@ def cmd_import_drive(args: argparse.Namespace) -> int:
             module_id=args.module,
             limit=args.limit,
             dry_run=args.dry_run,
+            pace=args.pace,
             confirm=None if args.yes else _confirm,
         )
 
@@ -376,6 +380,16 @@ def _positive(value: str) -> int:
         n = 0
     if n < 1:
         raise argparse.ArgumentTypeError("a whole number of files, 1 or more")
+    return n
+
+
+def _seconds(value: str) -> float:
+    try:
+        n = float(value)
+    except ValueError:
+        n = -1.0
+    if not 0 <= n <= 600:
+        raise argparse.ArgumentTypeError("a number of seconds from 0 to 600")
     return n
 
 
@@ -445,6 +459,9 @@ def main(argv: list[str] | None = None) -> int:
     di.add_argument("--dry-run", action="store_true", help="print the plan and import nothing")
     di.add_argument("--module", metavar="ID", default=None, help="only the links of this module")
     di.add_argument("--limit", metavar="N", type=_positive, default=None, help="import at most N files this run")
+    di.add_argument(
+        "--pace", metavar="SECONDS", type=_seconds, default=2.0, help="seconds between two downloads (default 2)"
+    )
     di.add_argument("--yes", action="store_true", help="import without asking first")
     di.set_defaults(fn=cmd_import_drive)
     tw = sub.add_parser("text-worker")

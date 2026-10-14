@@ -17,6 +17,13 @@ of it since, even after a rep removed it and the sweep deleted its file. The lin
 
 A folder Drive refuses (403 or 404: shared only inside BIBF's Google domain, or not at all) doesn't stop the run: it is
 listed at the end with its module and link, to be shared with "anyone with the link" (or with the service account).
+A file Drive won't hand over (downloads turned off, flagged as abuse, its download quota spent) is skipped with the
+reason and its own Drive link; its folder's link item stays in the library either way. Skipped and failed files get
+no import key, so the next run tries them again.
+
+Downloads are paced (`pace` seconds between files) so Google doesn't take the run for automated queries. When it
+does anyway, the client waits the block out (drive.DriveBlockedError) and the run doubles its pace from then on; a
+block that outlasts the waits stops the run, and the next run carries on where it stopped.
 Each real run is one entry in the audit log (`library.import`, via cli); a dry run changes nothing."""
 
 from __future__ import annotations
@@ -48,6 +55,7 @@ from app.services.drive import (
     DriveFile,
     Ref,
     TooLargeError,
+    file_url,
     folder_in,
     folder_url,
     printable,
@@ -84,6 +92,8 @@ REFUSALS = {
     "fileNotDownloadable": "Drive has no way to download it",
     "cannotDownloadFile": "its owner turned off downloads",
 }
+PACE = 2.0  # seconds between two downloads (--pace)
+PACE_MAX = 30.0  # the slowest the run gets after Google blocked it
 MAX_DEPTH = 12  # folders below the link's own
 NAME_MAX = 255  # LibraryItem.file_name
 TITLE_MAX = 200  # LibraryItem.title
@@ -183,6 +193,13 @@ class Skipped:
     source: Source
     where: str
     reason: str
+    url: str | None = None  # a file Drive wouldn't hand over: where to open it in Drive
+
+
+def _skip_line(indent: str, skipped: Skipped, *, segment: bool = True) -> str:
+    where = f"{skipped.source.segment}: {skipped.where}" if segment else skipped.where
+    link = f" ({printable(skipped.url, 200)})" if skipped.url else ""
+    return f"{indent}{where}: {skipped.reason}{link}"
 
 
 @dataclass(frozen=True)
@@ -262,9 +279,10 @@ class BucketError(Exception):
 
 
 class _SkipError(Exception):
-    def __init__(self, reason: str) -> None:
+    def __init__(self, reason: str, url: str | None = None) -> None:
         super().__init__(reason)
         self.reason = reason
+        self.url = url
 
 
 # ── names ────────────────────────────────────────────────────────────────────────────────────
@@ -465,8 +483,8 @@ def _plan_file(plan: LinkPlan, found: _Found, done: set[str], seen: set[str], up
     shown = shown_name(file.name)
     where = SEP.join((*found.folders, shown))
 
-    def skip(reason: str) -> None:
-        plan.skipped.append(Skipped(source, where, reason))
+    def skip(reason: str, url: str | None = None) -> None:
+        plan.skipped.append(Skipped(source, where, reason, url))
 
     export: str | None = None
     limit = upload_limit
@@ -491,7 +509,7 @@ def _plan_file(plan: LinkPlan, found: _Found, done: set[str], seen: set[str], up
                 return
             name, ext = _with_extension(shown, by_type), by_type
     if file.can_download is False:
-        skip("its owner turned off downloads")
+        skip(REFUSALS["cannotDownloadFile"], file_url(file.ref))
         return
     if file.size is not None and file.size > limit:
         skip(f"it is over the {_mb(limit)} limit ({_size(file.size)})")
@@ -536,27 +554,47 @@ def exam_kind(name: str) -> tuple[LibraryKind, int | None, str | None]:
 # ── the run ──────────────────────────────────────────────────────────────────────────────────
 
 
-def run(db: Session, drive: Drive, storage: Storage, plan: Plan, report: Report, *, echo: Echo = _quiet) -> None:
-    """Imports the plan's files, one transaction each, recording each outcome in `report` as it goes.
-    DriveFatalError and BucketError stop it; anything else about one file is that file's outcome."""
+def run(
+    db: Session,
+    drive: Drive,
+    storage: Storage,
+    plan: Plan,
+    report: Report,
+    *,
+    pace: float = PACE,
+    echo: Echo = _quiet,
+) -> None:
+    """Imports the plan's files, one transaction each, recording each outcome in `report` as it goes, `pace` seconds
+    apart (drive.sleep), twice as far apart after each time Google blocked the run. DriveFatalError (a block that
+    outlasted the waits included) and BucketError stop it; anything else about one file is that file's outcome."""
     todo = plan.to_import
+    downloaded = False
+    blocks = 0  # the blocks already answered by slowing down (any while planning count too)
     for n, planned in enumerate(todo, 1):
         step = f"[{n}/{len(todo)}] {planned.source.segment}: {planned.where}"
         if db.scalar(select(LibraryItem.id).where(LibraryItem.import_key == planned.import_key)) is not None:
             report.already += 1
             echo(f"{step}: already in the library")
             continue
+        if drive.blocks > blocks:
+            blocks = drive.blocks
+            pace = min(PACE_MAX, max(pace * 2, 1.0))
+            echo(f"Google blocked the requests for a while: {pace:.0f} s between downloads from now on.")
+        if downloaded and pace > 0:
+            drive.sleep(pace)
+        downloaded = True
         try:
             size = _store(drive, storage, planned)
         except _SkipError as s:
-            report.skipped.append(Skipped(planned.source, planned.where, s.reason))
-            echo(f"{step}: skipped, {s.reason}")
+            report.skipped.append(Skipped(planned.source, planned.where, s.reason, s.url))
+            echo(f"{step}: skipped, {s.reason}" + (f" ({s.url})" if s.url else ""))
             continue
         except DriveFatalError:
             raise
         except DriveError as e:
-            report.failed.append(Skipped(planned.source, planned.where, e.message))
-            echo(f"{step}: failed, {e.message}")
+            reason = f"{e.message} ({e.reason})" if e.reason else e.message
+            report.failed.append(Skipped(planned.source, planned.where, reason))
+            echo(f"{step}: failed, {reason}")
             continue
         try:
             library.create_imported(
@@ -600,10 +638,11 @@ def _store(drive: Drive, storage: Storage, planned: Planned) -> int:
         except DriveFatalError:
             raise
         except DriveError as e:
+            url = file_url(planned.file.ref)
             if e.reason in REFUSALS:
-                raise _SkipError(REFUSALS[e.reason]) from None
+                raise _SkipError(f"{REFUSALS[e.reason]} ({e.describe()})", url) from None
             if isinstance(e, DriveDeniedError):
-                raise _SkipError(f"Drive refused the download ({e.describe()})") from None
+                raise _SkipError(f"Drive refused the download ({e.describe()})", url) from None
             raise
         if size == 0:
             raise _SkipError("it is empty")
@@ -635,6 +674,11 @@ def record_run(db: Session, plan: Plan, report: Report, *, module_id: str | None
             "imported": n,
             "skipped": len(plan.skipped) + len(report.skipped),
             "failed": len(report.failed),
+            "refusedFiles": [
+                {"module": s.source.segment, "file": s.where, "why": s.reason, "link": s.url}
+                for s in (*plan.skipped, *report.skipped)
+                if s.url
+            ],
             "refusedFolders": [
                 {"module": r.source.segment, "link": r.source.url, "folder": r.url} for r in plan.refused
             ],
@@ -653,6 +697,7 @@ def import_from_drive(
     module_id: str | None = None,
     limit: int | None = None,
     dry_run: bool = False,
+    pace: float = PACE,
     confirm: Callable[[str], bool] | None = None,
     echo: Echo = print,
 ) -> int:
@@ -674,7 +719,7 @@ def import_from_drive(
         return 1
     report = Report()
     try:
-        run(db, drive, storage, plan, report, echo=echo)
+        run(db, drive, storage, plan, report, pace=pace, echo=echo)
     except (DriveFatalError, BucketError) as e:
         report.stopped = e.message if isinstance(e, DriveFatalError) else str(e)
     except BaseException:
@@ -749,7 +794,7 @@ def plan_lines(plan: Plan, *, dry_run: bool, service_account: str | None = None)
         named = f", \u201c{printable(link.folder_name, 120)}\u201d in Drive" if link.folder_name else ""
         lines.append(f"  {printable(link.source.title, 120)}{named}: {printable(link.source.url, 200)}")
         lines += [f"    + {p.where}{_details(p)}" for p in link.planned]
-        lines += [f"    - {s.where}: {s.reason}" for s in link.skipped]
+        lines += [_skip_line("    - ", s, segment=False) for s in link.skipped]
         lines += [f"    ! {e.where}: {e.reason}" for e in link.errors]
         for r in link.refused:
             where = SEP.join(r.folders) or "the folder"
@@ -792,10 +837,11 @@ def report_lines(plan: Plan, report: Report) -> list[str]:
         lines.append(f"{report.already} had been imported by another run meanwhile.")
     if report.skipped:
         lines.append("Skipped:")
-        lines += [f"  {s.source.segment}: {s.where}: {s.reason}" for s in report.skipped]
+        lines += [_skip_line("  ", s) for s in report.skipped]
+        lines.append("Skipped files stay out of the library; their folders' links stay. The next run tries them again.")
     if report.failed:
         lines.append("Failed (run the import again to try them again):")
-        lines += [f"  {s.source.segment}: {s.where}: {s.reason}" for s in report.failed]
+        lines += [_skip_line("  ", s) for s in report.failed]
     if report.stopped:
         lines.append(f"The import stopped early: {report.stopped} Run it again: it carries on where it stopped.")
     left = len(plan.planned) - len(plan.to_import)

@@ -71,6 +71,16 @@ def google_error(status: int, reason: str, message: str = "", *, details: str | 
     return httpx.Response(status, json={"error": error})
 
 
+def automated_queries(status: int = 403) -> httpx.Response:
+    """Google's "Sorry..." page, as www.googleapis.com serves it to a network it takes for a bot: HTML, no reason."""
+    page = (
+        '<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"/><title>Sorry...</title>'
+        "</head><body><h1>We're sorry...</h1><p>... but your computer or network may be sending automated queries. "
+        "To protect our users, we can't process your request right now.</p></body></html>"
+    )
+    return httpx.Response(status, text=page, headers={"Content-Type": "text/html; charset=UTF-8"})
+
+
 def not_found(file_id: str) -> httpx.Response:
     return google_error(404, "notFound", f"File not found: {file_id}.")
 

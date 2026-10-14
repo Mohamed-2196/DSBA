@@ -326,11 +326,15 @@ types, at most `DSBA_MAX_UPLOAD_MB` per file (counted while downloading, whateve
 bytes must match its type. The links stay. Large files go up in parts: the API's key needs nothing more than
 section 3 lists, but give it `s3:AbortMultipartUpload` too, so a failed upload leaves no parts behind.
 
-Drive's quota errors are retried with growing waits. A file that keeps failing is listed at the end: run the command
-again later and it carries on. Each real run is one entry in the audit log ("library import", from the server); a
+Downloads are 2 seconds apart (`--pace SECONDS` changes that). Drive's quota errors are retried with growing waits.
+After many downloads in a row Google may block the network for a while with its "automated queries" page: the
+import waits it out (1, 2, 4, 8 and 10 minutes), then doubles its pace; a block that outlasts the waits stops the run.
+Files Drive won't hand over (downloads turned off, flagged as abuse) are listed with the reason and their Drive link.
+Skipped and failed files aren't marked as imported: run the command again later and it carries on and tries them
+again. Each real run is one entry in the audit log ("library import", from the server); a
 dry run, or a run with nothing to import, changes nothing. `--module ID` imports one module's folders only.
 
 Locally, `scripts/seed-real.sh` (without `--prod`) does the same in the `compose.yaml` stack, into MinIO, with the key
 in the `.env` of your checkout. Without the script, the import alone is
 `docker compose -f compose.prod.yaml run --rm -e DSBA_GOOGLE_API_KEY api python -m app.cli import-drive` with
-`--dry-run`, `--module ID`, `--limit N` or `--yes`.
+`--dry-run`, `--module ID`, `--limit N`, `--pace SECONDS` or `--yes`.
