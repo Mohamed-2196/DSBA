@@ -11,6 +11,7 @@ import { monthKey } from './dates';
 import { EventDrawer } from './EventDrawer';
 import { EventFormDialog, type DateNotice } from './EventFormDialog';
 import { ForYou } from './ForYou';
+import { PapersButton, usePapers } from '../papers/public';
 import { SubscribeDialog } from './SubscribeDialog';
 import type { CalendarEvent } from './types';
 import { monthOfEvent, useCalendarView } from './useCalendarView';
@@ -20,14 +21,16 @@ import './CalendarPage.css';
 export default function CalendarPage() {
   const query = useCalendarEvents();
   const { year } = useYear();
+  const { papers } = usePapers();
   const { can } = useAuth();
   const manages = can('calendar.manage');
   const [subscribing, setSubscribing] = useState(false);
   const [editing, setEditing] = useState<{ event: CalendarEvent | null } | null>(null);
 
-  const description = `Exams, deadlines and term dates for ${year ? cohortLabel(year) : 'all three years'}. Add any of them to your own calendar.`;
+  const description = `Exams, deadlines and term dates for ${year ? (papers ? 'your papers' : cohortLabel(year)) : 'all three years'}. Add any of them to your own calendar.`;
   const actions = (
     <>
+      {year ? <PapersButton /> : null}
       <Button leadingIcon={RssSimple} onClick={() => setSubscribing(true)} data-hub="calendar-subscribe-open">
         Subscribe
       </Button>
@@ -49,7 +52,7 @@ export default function CalendarPage() {
       ) : (
         <CalendarBody events={query.data} onEdit={manages ? (e) => setEditing({ event: e }) : undefined} onAdd={manages ? () => setEditing({ event: null }) : undefined} />
       )}
-      <SubscribeDialog open={subscribing} year={year} onClose={() => setSubscribing(false)} />
+      <SubscribeDialog open={subscribing} year={year} papers={papers} onClose={() => setSubscribing(false)} />
       <EventEditor editing={editing} onClose={() => setEditing(null)} />
     </Page>
   );
@@ -147,6 +150,7 @@ function CalendarBody({ events, onEdit, onAdd }: CalendarBodyProps) {
 
       <EventDrawer
         event={view.openEvent}
+        papers={view.papers}
         events={events}
         today={today}
         year={view.year}

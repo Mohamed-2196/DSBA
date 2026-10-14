@@ -1,8 +1,8 @@
 import { CohortBadge, cx } from '../../ui';
-import { daysUntil, formatLong, formatShort, parseDay } from '../../lib/dates';
+import { dayKey, daysUntil, formatLong, formatShort, parseDay } from '../../lib/dates';
 import { DateLeaf } from './DateLeaf';
 import { countdownLabel } from './dates';
-import { splitTitle, typeLabel, whenAndWhere } from './eventMeta';
+import { splitTitle, typeLabel, whenAndWhere, windowLeft } from './eventMeta';
 import type { DayGroup } from './queries';
 import type { CalendarEvent } from './types';
 
@@ -34,7 +34,7 @@ export function DayList({ days, today, selectedId, showCohort, onOpen, className
             <ul role="list" className="cal-days__events">
               {day.events.map((e) => (
                 <li key={e.id}>
-                  <EventRow event={e} day={day.date} days={n} selected={e.id === selectedId} showCohort={showCohort} onOpen={onOpen} />
+                  <EventRow event={e} day={day.date} days={n} today={today} selected={e.id === selectedId} showCohort={showCohort} onOpen={onOpen} />
                 </li>
               ))}
             </ul>
@@ -50,16 +50,18 @@ interface EventRowProps {
   day: Date;
   /** days from today to `day` */
   days: number;
+  today: Date;
   selected: boolean;
   showCohort: boolean;
   onOpen: (e: CalendarEvent) => void;
 }
 
-function EventRow({ event: e, day, days, selected, showCohort, onOpen }: EventRowProps) {
+function EventRow({ event: e, day, days, today, selected, showCohort, onOpen }: EventRowProps) {
   const { code, rest } = splitTitle(e);
   const where = whenAndWhere(e);
+  const left = windowLeft(e, dayKey(today));
   const until = e.endDate && e.endDate > e.date ? `Until ${formatShort(parseDay(e.endDate))}` : null;
-  const detail = [until, where].filter(Boolean).join(', ');
+  const detail = [until, where, e.type === 'exam' ? e.duration : null].filter(Boolean).join(', ');
   return (
     <button
       type="button"
@@ -77,7 +79,7 @@ function EventRow({ event: e, day, days, selected, showCohort, onOpen }: EventRo
         {showCohort ? <CohortBadge year={e.year} variant="dot" size="sm" short /> : e.year == null ? <span className="cal-row__all">All years</span> : null}
         {e.sample ? <span className="cal-unconfirmed">Not confirmed yet</span> : null}
       </span>
-      <span className="cal-row__when">{countdownLabel(days)}</span>
+      <span className="cal-row__when">{left ?? countdownLabel(days)}</span>
       <span className="cal-row__name">
         {code ? <span className="u-code">{code} </span> : null}
         {rest}

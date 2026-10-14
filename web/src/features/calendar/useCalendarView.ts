@@ -1,7 +1,8 @@
 // What the calendar page shows, from its address: ?cohort=all, ?types=exam,mock, ?view=month (phones and tablets),
 // ?month=YYYY-MM (the month grid) and ?event=<id> (the open event).
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useQueryParam, useYear, type CohortYear } from '../../state';
+import { useQueryParam, type CohortYear } from '../../state';
+import { usePapers } from '../papers/public';
 import { addDaysToKey, dayKey } from '../../lib/dates';
 import { addMonths, monthKey, monthOfDate, type MonthRef, parseMonthKey, sameMonth } from './dates';
 import { isEventType, TYPE_ORDER } from './eventMeta';
@@ -17,6 +18,8 @@ export interface CalendarView {
   todayKey: string;
   /** the student's year (null: none picked) */
   year: CohortYear | null;
+  /** the student's papers in that year (null: all its modules) */
+  papers: ReadonlySet<string> | null;
   /** the student's next exam (every year's without a year) */
   nextExam: NextExam | null;
   /** the student's week ahead, every type */
@@ -53,7 +56,7 @@ export interface CalendarView {
 }
 
 export function useCalendarView(events: CalendarEvent[], today: Date): CalendarView {
-  const { year } = useYear();
+  const { year, papers } = usePapers();
   const [monthParam, setMonthParam] = useQueryParam('month');
   const [cohortParam, setCohortParam] = useQueryParam('cohort', 'mine');
   const [typesParam, setTypesParam] = useQueryParam('types', '');
@@ -64,12 +67,13 @@ export function useCalendarView(events: CalendarEvent[], today: Date): CalendarV
   const todayKey = dayKey(today);
   const cohortYear = year && cohortParam !== 'all' ? year : null;
   const types = useMemo(() => new Set<EventType>((typesParam || '').split(',').filter(isEventType)), [typesParam]);
-  const visible = useMemo(() => filterEvents(events, { year: cohortYear, types }), [events, cohortYear, types]);
+  const shownPapers = cohortYear ? papers : null;
+  const visible = useMemo(() => filterEvents(events, { year: cohortYear, types, papers: shownPapers }), [events, cohortYear, types, shownPapers]);
   const findEvent = useCallback((id: string | null) => (id ? (events.find((e) => e.id === id) ?? null) : null), [events]);
   const openEvent = findEvent(eventId);
 
-  const nextExam = useMemo(() => nextExamFor(events, { year, today: todayKey }), [events, year, todayKey]);
-  const week = useMemo(() => weekAhead(events, { year, today: todayKey }), [events, year, todayKey]);
+  const nextExam = useMemo(() => nextExamFor(events, { year, today: todayKey, papers }), [events, year, todayKey, papers]);
+  const week = useMemo(() => weekAhead(events, { year, today: todayKey, papers }), [events, year, todayKey, papers]);
   // The top of the page lists the student's week, every type. When the list shows the same cohort and every type,
   // it starts after that week and leaves out the week's events, so nothing is listed twice.
   const afterWeek = cohortYear === year && types.size === 0;
@@ -136,6 +140,7 @@ export function useCalendarView(events: CalendarEvent[], today: Date): CalendarV
   return {
     todayKey,
     year,
+    papers,
     nextExam,
     week,
     cohortYear,

@@ -51,12 +51,12 @@ export function AddToCalendar({ event, iconOnly = false, variant = 'primary', si
   );
 }
 
-/** Every exam of a cohort (null: every cohort) as one .ics file. */
-export function AddExamsToCalendar({ year, size = 'md' }: { year: CohortYear | null; size?: ButtonSize }) {
+/** Every exam of a cohort (null: every cohort), or of a student's papers in it, as one .ics file. */
+export function AddExamsToCalendar({ year, papers, size = 'md' }: { year: CohortYear | null; papers?: ReadonlySet<string> | null; size?: ButtonSize }) {
   const note = useDownloadNote();
   return (
-    <Button size={size} leadingIcon={DownloadSimple} href={examsIcsUrl(year)} download external={false} onClick={() => note('every exam')}>
-      {year ? `All ${cohortLabel(year)} exams` : 'All exams'}
+    <Button size={size} leadingIcon={DownloadSimple} href={examsIcsUrl(year, papers)} download external={false} onClick={() => note('every exam')}>
+      {year && papers ? 'All your exams' : year ? `All ${cohortLabel(year)} exams` : 'All exams'}
     </Button>
   );
 }

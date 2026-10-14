@@ -418,3 +418,9 @@
   .cal-subscribe__body .ui-seg { justify-self: stretch; }
   .cal-subscribe__body .ui-seg__item { flex: 1 1 0; }
 }
+
+/* An exam's length and rules (IDEA-11) */
+.cal-drawer__facts { display: grid; gap: var(--sp-8); margin: 0; }
+.cal-drawer__facts div { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: var(--sp-12); }
+.cal-drawer__facts dt { color: var(--ink-2); font-size: var(--fs-14); }
+.cal-drawer__facts dd { margin: 0; color: var(--ink); font-size: var(--fs-14); line-height: 1.45; overflow-wrap: anywhere; }
