@@ -30,6 +30,7 @@ export const FEATURE_KEYS = [
   'forum.follow',
   'library',
   'library.uploads',
+  'library.questions',
   'newsletter',
   'newsletter.polls',
   'calendar',

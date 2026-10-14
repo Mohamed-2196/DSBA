@@ -65,6 +65,9 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("requests", "GET", "/requests"),
     ("requests", "GET", f"/requests/{NOTHING}"),
     ("requests", "POST", "/requests"),
+    ("library.questions", "GET", f"/library/items/{NOTHING}/questions"),
+    ("library.questions", "GET", "/library/questions?module_id=economics"),
+    ("library.questions", "POST", f"/library/items/{NOTHING}/questions"),
     ("noora.ai", "GET", "/noora/status"),
     ("noora.ai", "POST", "/noora/ask"),
     ("noora.ai", "GET", "/admin/noora"),
@@ -81,6 +84,7 @@ OFF_AT_FIRST = (
     "newsletter.polls",
     "career.seniors",
     "summary",
+    "library.questions",
 )
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the

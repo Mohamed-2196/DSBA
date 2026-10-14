@@ -46,6 +46,7 @@ describe('request bodies', () => {
       description: null,
       examYear: null,
       zone: null,
+      examSession: null,
       authorName: null,
     });
   });
@@ -56,8 +57,17 @@ describe('request bodies', () => {
   });
 
   it('sends the exam sitting only for exam kinds', () => {
-    expect(toUpdateBody(values({ kind: 'past-paper', examYear: '2024', zone: 'B' }), getModule)).toMatchObject({ examYear: 2024, zone: 'B' });
-    expect(toUpdateBody(values({ kind: 'notes', examYear: '2024', zone: 'B' }), getModule)).toMatchObject({ examYear: null, zone: null });
+    expect(toUpdateBody(values({ kind: 'past-paper', examYear: '2024', session: 'may', zone: 'B' }), getModule)).toMatchObject({
+      examYear: 2024,
+      examSession: 'may',
+      zone: 'B',
+    });
+    expect(toUpdateBody(values({ kind: 'exam-solutions', examYear: '2025', session: 'october' }), getModule)).toMatchObject({ examSession: 'october' });
+    expect(toUpdateBody(values({ kind: 'notes', examYear: '2024', session: 'may', zone: 'B' }), getModule)).toMatchObject({
+      examYear: null,
+      examSession: null,
+      zone: null,
+    });
   });
 
   it('trims text and clears empty fields', () => {

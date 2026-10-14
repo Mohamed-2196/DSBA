@@ -6,6 +6,7 @@ import { EXAM_KINDS, KINDS, KIND_BY_ID, MAX_PENDING_UPLOADS, extensionOf, format
 const API_KINDS: LibraryItem['kind'][] = [
   'past-paper',
   'examiners-report',
+  'exam-solutions',
   'subject-guide',
   'reading',
   'study-guide',
@@ -37,7 +38,7 @@ describe('kinds', () => {
   });
 
   it('knows which kinds belong to an exam sitting', () => {
-    expect([...EXAM_KINDS]).toEqual(['past-paper', 'examiners-report']);
+    expect([...EXAM_KINDS]).toEqual(['past-paper', 'examiners-report', 'exam-solutions']);
   });
 
   it('mirrors the API’s limit on files waiting for review', () => {

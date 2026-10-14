@@ -3637,6 +3637,7 @@
                 "forum.follow",
                 "library",
                 "library.uploads",
+                "library.questions",
                 "newsletter",
                 "newsletter.polls",
                 "calendar",
@@ -4659,6 +4660,7 @@
                   "enum": [
                     "past-paper",
                     "examiners-report",
+                    "exam-solutions",
                     "subject-guide",
                     "reading",
                     "study-guide",
@@ -4715,6 +4717,44 @@
               "title": "Sort"
             },
             "description": "relevance: best match first (with q)"
+          },
+          {
+            "name": "exam_year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 1990
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exam Year"
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "A",
+                    "B"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Zone"
+            }
           },
           {
             "name": "starred",
@@ -5060,6 +5100,109 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/library/papers": {
+      "get": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Papers",
+        "description": "A module's past papers, examiners' reports and solutions by sitting (exam year and session) and zone, the\nnewest sitting first; the ones without an exam year in `other`. Errors: invalid_input (422: an unknown module).",
+        "operationId": "papers_api_v1_library_papers_get",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperSittings"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
           }
         }
       }
@@ -5920,6 +6063,757 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LibraryItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/library/questions": {
+      "get": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Module Questions",
+        "description": "The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first.\n`flagged`: only the tags someone flagged, the most flagged first, of `module_id` or of every module (library\nmanagers; 403 for others). Errors: invalid_input (422: an unknown module, or none without `flagged`).",
+        "operationId": "module_questions_api_v1_library_questions_get",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Module Id"
+            }
+          },
+          {
+            "name": "flagged",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Flagged"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaperQuestion"
+                  },
+                  "title": "Response Module Questions Api V1 Library Questions Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/library/items/{item_id}/questions": {
+      "get": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Paper Questions",
+        "description": "A published past paper's tagged questions, by question number. Errors: not_found (404), not_a_paper (409).",
+        "operationId": "paper_questions_api_v1_library_items__item_id__questions_get",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaperQuestion"
+                  },
+                  "title": "Response Paper Questions Api V1 Library Items  Item Id  Questions Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Tag Question",
+        "description": "Tag a question of a published past paper with one of its module's chapters, and the page it starts on.\n\nErrors: not_found (404), not_a_paper (409), already_tagged (409), invalid_input (422: another module's chapter),\nrate_limited (429: 60 an hour).",
+        "operationId": "tag_question_api_v1_library_items__item_id__questions_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperQuestionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperQuestion"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/library/questions/{question_id}": {
+      "delete": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Remove Question",
+        "description": "Whoever tagged it, or a library manager (audited: `library.question_remove`). Errors: not_found (404).",
+        "operationId": "remove_question_api_v1_library_questions__question_id__delete",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/library/questions/{question_id}/keep": {
+      "post": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Keep Question",
+        "description": "The tag is right: clear its flags (library managers; audited: `library.question_keep`).",
+        "operationId": "keep_question_api_v1_library_questions__question_id__keep_post",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperQuestion"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/library/questions/{question_id}/flag": {
+      "put": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Flag Question",
+        "description": "Say a tag is wrong: the library's managers see it. Saying it twice changes nothing.",
+        "operationId": "flag_question_api_v1_library_questions__question_id__flag_put",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperQuestion"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Unflag Question",
+        "description": "Take a flag back.",
+        "operationId": "unflag_question_api_v1_library_questions__question_id__flag_delete",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperQuestion"
                 }
               }
             }
@@ -14466,6 +15360,21 @@
             "type": "array",
             "title": "Metoos"
           },
+          "questionTags": {
+            "items": {
+              "$ref": "#/components/schemas/ExportQuestionTag"
+            },
+            "type": "array",
+            "title": "Questiontags"
+          },
+          "questionFlags": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Questionflags"
+          },
           "emails": {
             "items": {
               "$ref": "#/components/schemas/ExportEmail"
@@ -14527,6 +15436,8 @@
           "reports",
           "requests",
           "meToos",
+          "questionTags",
+          "questionFlags",
           "emails",
           "board",
           "boardPlans",
@@ -15229,6 +16140,7 @@
                 "enum": [
                   "past-paper",
                   "examiners-report",
+                  "exam-solutions",
                   "subject-guide",
                   "reading",
                   "study-guide",
@@ -17401,6 +18313,8 @@
               "no_preview",
               "file_gone",
               "too_many_pending",
+              "not_a_paper",
+              "already_tagged",
               "feature_off",
               "last_admin",
               "role_locked",
@@ -17748,6 +18662,7 @@
             "enum": [
               "past-paper",
               "examiners-report",
+              "exam-solutions",
               "subject-guide",
               "reading",
               "study-guide",
@@ -18058,6 +18973,55 @@
           "createdAt"
         ],
         "title": "ExportPollVote"
+      },
+      "ExportQuestionTag": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Itemid"
+          },
+          "chapterId": {
+            "type": "string",
+            "title": "Chapterid"
+          },
+          "question": {
+            "type": "integer",
+            "title": "Question"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "itemId",
+          "chapterId",
+          "question",
+          "page",
+          "createdAt"
+        ],
+        "title": "ExportQuestionTag",
+        "description": "A past paper's question you tagged with a chapter."
       },
       "ExportReaction": {
         "properties": {
@@ -18507,6 +19471,7 @@
               "forum.follow",
               "library",
               "library.uploads",
+              "library.questions",
               "newsletter",
               "newsletter.polls",
               "calendar",
@@ -18594,6 +19559,7 @@
                 "forum.follow",
                 "library",
                 "library.uploads",
+                "library.questions",
                 "newsletter",
                 "newsletter.polls",
                 "calendar",
@@ -19741,6 +20707,7 @@
             "enum": [
               "past-paper",
               "examiners-report",
+              "exam-solutions",
               "subject-guide",
               "reading",
               "study-guide",
@@ -19872,6 +20839,21 @@
             ],
             "title": "Zone"
           },
+          "examSession": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "may",
+                  "october"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examsession"
+          },
           "authorName": {
             "anyOf": [
               {
@@ -19975,6 +20957,7 @@
           "format",
           "examYear",
           "zone",
+          "examSession",
           "authorName",
           "uploadedBy",
           "status",
@@ -20007,6 +20990,7 @@
             "enum": [
               "past-paper",
               "examiners-report",
+              "exam-solutions",
               "subject-guide",
               "reading",
               "study-guide",
@@ -20086,6 +21070,21 @@
             ],
             "title": "Zone"
           },
+          "examSession": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "may",
+                  "october"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examsession"
+          },
           "authorName": {
             "anyOf": [
               {
@@ -20130,6 +21129,7 @@
                 "enum": [
                   "past-paper",
                   "examiners-report",
+                  "exam-solutions",
                   "subject-guide",
                   "reading",
                   "study-guide",
@@ -20214,6 +21214,21 @@
             ],
             "title": "Zone"
           },
+          "examSession": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "may",
+                  "october"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examsession"
+          },
           "authorName": {
             "anyOf": [
               {
@@ -20250,6 +21265,7 @@
             "enum": [
               "past-paper",
               "examiners-report",
+              "exam-solutions",
               "subject-guide",
               "reading",
               "study-guide",
@@ -20478,6 +21494,7 @@
                 "forum.follow",
                 "library",
                 "library.uploads",
+                "library.questions",
                 "newsletter",
                 "newsletter.polls",
                 "calendar",
@@ -22146,6 +23163,208 @@
           "code"
         ],
         "title": "OtpVerifyRequest"
+      },
+      "PaperQuestion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "paper": {
+            "$ref": "#/components/schemas/PaperRef"
+          },
+          "chapterId": {
+            "type": "string",
+            "title": "Chapterid"
+          },
+          "chapterTitle": {
+            "type": "string",
+            "title": "Chaptertitle"
+          },
+          "question": {
+            "type": "integer",
+            "title": "Question"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "flagged": {
+            "type": "boolean",
+            "title": "Flagged"
+          },
+          "flagCount": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flagcount"
+          },
+          "isMine": {
+            "type": "boolean",
+            "title": "Ismine"
+          },
+          "canRemove": {
+            "type": "boolean",
+            "title": "Canremove"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "paper",
+          "chapterId",
+          "chapterTitle",
+          "question",
+          "page",
+          "flagged",
+          "flagCount",
+          "isMine",
+          "canRemove",
+          "createdAt"
+        ],
+        "title": "PaperQuestion"
+      },
+      "PaperQuestionCreate": {
+        "properties": {
+          "question": {
+            "type": "integer",
+            "maximum": 40.0,
+            "minimum": 1.0,
+            "title": "Question"
+          },
+          "chapterId": {
+            "type": "string",
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Chapterid"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 999.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question",
+          "chapterId"
+        ],
+        "title": "PaperQuestionCreate"
+      },
+      "PaperRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "examYear": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examyear"
+          },
+          "examSession": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "may",
+                  "october"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examsession"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "examYear",
+          "examSession",
+          "zone"
+        ],
+        "title": "PaperRef"
+      },
+      "PaperSittings": {
+        "properties": {
+          "sittings": {
+            "items": {
+              "$ref": "#/components/schemas/Sitting"
+            },
+            "type": "array",
+            "title": "Sittings"
+          },
+          "other": {
+            "items": {
+              "$ref": "#/components/schemas/LibraryItem"
+            },
+            "type": "array",
+            "title": "Other"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sittings",
+          "other"
+        ],
+        "title": "PaperSittings",
+        "description": "A module's past papers, examiners' reports and solutions: by sitting, newest first, and the ones without an\nexam year apart."
       },
       "ParagraphBlock": {
         "properties": {
@@ -24161,6 +25380,92 @@
           "meTooCount"
         ],
         "title": "SimilarRequest"
+      },
+      "Sitting": {
+        "properties": {
+          "examYear": {
+            "type": "integer",
+            "title": "Examyear"
+          },
+          "session": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "may",
+                  "october"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session"
+          },
+          "zones": {
+            "items": {
+              "$ref": "#/components/schemas/SittingZone"
+            },
+            "type": "array",
+            "title": "Zones"
+          }
+        },
+        "type": "object",
+        "required": [
+          "examYear",
+          "session",
+          "zones"
+        ],
+        "title": "Sitting"
+      },
+      "SittingZone": {
+        "properties": {
+          "zone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          },
+          "papers": {
+            "items": {
+              "$ref": "#/components/schemas/LibraryItem"
+            },
+            "type": "array",
+            "title": "Papers"
+          },
+          "reports": {
+            "items": {
+              "$ref": "#/components/schemas/LibraryItem"
+            },
+            "type": "array",
+            "title": "Reports"
+          },
+          "solutions": {
+            "items": {
+              "$ref": "#/components/schemas/LibraryItem"
+            },
+            "type": "array",
+            "title": "Solutions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "zone",
+          "papers",
+          "reports",
+          "solutions"
+        ],
+        "title": "SittingZone",
+        "description": "One zone's papers in a sitting, with their examiners' reports and solutions. `zone` None: files for both\nzones, or a sitting with one paper."
       },
       "SkillTaught": {
         "properties": {

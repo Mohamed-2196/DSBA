@@ -1,0 +1,14 @@
+/* Lessons tab: a chapter's past exam questions. */
+.lib-chq { display: grid; gap: var(--sp-8); max-width: var(--measure, 75ch); }
+.lib-chq__h { margin: 0; color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-bold); }
+.lib-chq__list { display: flex; flex-wrap: wrap; gap: var(--sp-8); margin: 0; padding: 0; list-style: none; }
+.lib-chq__link { display: inline-flex; align-items: baseline; gap: var(--sp-8); min-height: 36px; padding: var(--sp-8) var(--sp-12); border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: var(--fs-14); text-decoration: none; }
+.lib-chq__link:hover { border-color: var(--ink-3); background: var(--surface-2); }
+.lib-chq__paper { font-weight: var(--fw-semibold); }
+.lib-chq__q { color: var(--ink-2); }
+.lib-chq__empty { margin: 0; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.lib-chq__empty a { color: var(--cobalt); font-weight: var(--fw-semibold); }
+
+@media (pointer: coarse) {
+  .lib-chq__link { min-height: 44px; }
+}

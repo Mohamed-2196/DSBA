@@ -34,6 +34,8 @@ from app.models import (
     NewsletterReaction,
     Notification,
     PollVote,
+    PaperQuestion,
+    PaperQuestionFlag,
     ReplyVote,
     Report,
     RequestMeToo,
@@ -57,6 +59,7 @@ from app.schemas.auth import (
     ExportLibraryItem,
     ExportNotification,
     ExportPollVote,
+    ExportQuestionTag,
     ExportReaction,
     ExportReply,
     ExportReport,
@@ -643,6 +646,26 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
     me_toos = list(
         db.scalars(select(RequestMeToo.request_id).where(RequestMeToo.user_id == uid).order_by(RequestMeToo.created_at))
     )
+    question_tags = [
+        ExportQuestionTag(
+            id=t.id,
+            item_id=t.item_id,
+            chapter_id=t.chapter_id,
+            question=t.question,
+            page=t.page,
+            created_at=t.created_at,
+        )
+        for t in db.scalars(
+            select(PaperQuestion).where(PaperQuestion.tagged_by == uid).order_by(PaperQuestion.created_at)
+        )
+    ]
+    question_flags = list(
+        db.scalars(
+            select(PaperQuestionFlag.question_id)
+            .where(PaperQuestionFlag.user_id == uid)
+            .order_by(PaperQuestionFlag.created_at)
+        )
+    )
     notifications = [
         ExportNotification(
             id=n.id,
@@ -735,6 +758,8 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         reports=reports,
         requests=requests,
         me_toos=me_toos,
+        question_tags=question_tags,
+        question_flags=question_flags,
         emails=emails,
         board=board,
         board_plans=[
@@ -796,7 +821,7 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
         db.execute(delete(Upload).where(Upload.id.in_([u.id for u in dropped_uploads])))
     if dropped_items:
         db.execute(delete(LibraryItem).where(LibraryItem.id.in_([i.id for i in dropped_items])))
-    # Their votes and me-toos go with the account (cascade), so the counters they added go too.
+    # Their votes, me-toos and flags go with the account (cascade), so the counters they added go too.
     db.execute(
         update(ForumThread)
         .where(ForumThread.id.in_(select(ThreadVote.thread_id).where(ThreadVote.user_id == uid)))
@@ -811,6 +836,11 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
         update(StudentRequest)
         .where(StudentRequest.id.in_(select(RequestMeToo.request_id).where(RequestMeToo.user_id == uid)))
         .values(me_too_count=func.greatest(StudentRequest.me_too_count - 1, 0))
+    )
+    db.execute(
+        update(PaperQuestion)
+        .where(PaperQuestion.id.in_(select(PaperQuestionFlag.question_id).where(PaperQuestionFlag.user_id == uid)))
+        .values(flag_count=func.greatest(PaperQuestion.flag_count - 1, 0))
     )
     # The sign-in rows stay, without the addresses, for the rate limits (student test: deleting the account and
     # signing up again must refill nothing).

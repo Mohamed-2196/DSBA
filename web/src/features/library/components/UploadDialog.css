@@ -95,7 +95,7 @@
    stretch the other (UX review UX-12). */
 .lib-form { display: grid; gap: var(--sp-16); }
 .lib-form__row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; gap: var(--sp-12); }
-.lib-form__row--exam { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.lib-form__row--exam { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 @keyframes lib-upload-in { from { opacity: 0; transform: translateY(4px); } }
 

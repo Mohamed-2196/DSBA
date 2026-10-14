@@ -262,6 +262,17 @@ class ExportRequest(ApiModel):
     created_at: datetime
 
 
+class ExportQuestionTag(ApiModel):
+    """A past paper's question you tagged with a chapter."""
+
+    id: UUID
+    item_id: UUID
+    chapter_id: str
+    question: int
+    page: int | None
+    created_at: datetime
+
+
 class ExportNotification(ApiModel):
     id: UUID
     kind: NotificationKind
@@ -299,6 +310,8 @@ class AccountExport(ApiModel):
     reports: list[ExportReport]  # reports this person filed
     requests: list[ExportRequest]  # requests this person made
     me_toos: list[UUID]  # requests this person said "me too" to
+    question_tags: list[ExportQuestionTag]  # past papers' questions this person tagged with a chapter
+    question_flags: list[UUID]  # tags this person said were wrong
     emails: list[ExportEmail]
     board: list[ExportBoardCard]  # study-board cards
     board_plans: list[ExportBoardPlan]  # revision plans on the study board

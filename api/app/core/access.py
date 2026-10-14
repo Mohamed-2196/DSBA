@@ -56,6 +56,7 @@ class Feature(enum.StrEnum):
     forum_follow = "forum.follow"  # following a thread
     library = "library"
     library_uploads = "library.uploads"  # uploads only: the library stays readable
+    library_questions = "library.questions"  # past papers' questions tagged with chapters
     newsletter = "newsletter"
     newsletter_polls = "newsletter.polls"  # polls in issues: the issue reads without them
     calendar = "calendar"
@@ -152,6 +153,10 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.forum_follow: FeatureInfo("Following threads", "Following threads, and the notifications it sends."),
     Feature.library: FeatureInfo("Library", "Every file and link in the library, and uploads to it."),
     Feature.library_uploads: FeatureInfo("Library uploads", "Uploading to the library. It stays readable."),
+    Feature.library_questions: FeatureInfo(
+        "Past questions by topic",
+        "Tagging past papers' questions with chapters, and each chapter's past questions. The tags are kept.",
+    ),
     Feature.newsletter: FeatureInfo("Newsletter", "Every issue and its reactions."),
     Feature.newsletter_polls: FeatureInfo("Newsletter polls", "The polls in issues and voting in them."),
     Feature.calendar: FeatureInfo("Calendar", "The calendar, its feeds and its events in search."),

@@ -249,6 +249,7 @@ export const FEATURES = [
   'forum.follow',
   'library',
   'library.uploads',
+  'library.questions',
   'newsletter',
   'newsletter.polls',
   'calendar',
