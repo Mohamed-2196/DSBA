@@ -28,6 +28,7 @@ from app.models import (
     LibraryItem,
     Module,
     Note,
+    Notebook,
     StudentRequest,
     User,
 )
@@ -402,7 +403,7 @@ def uses_of(db: Session, m: Module) -> list[str]:
         (lessons, "lesson", "lessons"),
         (_count(db, LibraryItem.module_id, m.id), "library item", "library items"),
         (_count(db, ForumThread.module_id, m.id), "forum thread", "forum threads"),
-        (_count(db, Note.module_id, m.id), "student's note", "students' notes"),
+        (_count(db, Notebook.module_id, m.id), "student's notebook", "students' notebooks"),
         (cards, "study-board card", "study-board cards"),
         (_count(db, StudentRequest.module_id, m.id), "request", "requests"),
         (_count(db, CalendarEvent.module_id, m.id), "calendar date", "calendar dates"),

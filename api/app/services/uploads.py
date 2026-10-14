@@ -5,7 +5,7 @@ How a file gets in (docs/reviews/security-design.md, findings 6-8):
      throwaway key, `incoming/<upload id>`, that only accepts the allowlisted type and the declared size.
   2. The browser POSTs the file straight to the bucket.
   3. POST /uploads/{id}/complete checks what actually arrived (size, type, the file's first bytes), then copies it
-     server-side to its final key, `library/<uuid>/<safe name>` or `forum/<uuid>/<safe name>`, and deletes the
+     server-side to its final key, `library/`, `forum/` or `notes/<uuid>/<safe name>`, and deletes the
      incoming object. No presigned policy ever allows writing a final key, so a checked file can't be swapped.
 
 `Upload.storage_key` always names where the object is now: the incoming key while pending, the final key after."""
@@ -85,6 +85,7 @@ IMAGE_TYPES: dict[str, FileType] = {
 ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
     UploadPurpose.library: LIBRARY_TYPES,
     UploadPurpose.forum_image: IMAGE_TYPES,
+    UploadPurpose.note_file: LIBRARY_TYPES | IMAGE_TYPES,  # a note's pictures, files and the PDFs it writes over
 }
 # Shown in the browser (PDF viewer, <img>): storage.INLINE_TYPES. Everything else downloads as an attachment.
 IMAGE_CONTENT_TYPES = frozenset(t.content_type for t in IMAGE_TYPES.values())
@@ -138,8 +139,15 @@ def media_url(upload_id: uuid.UUID) -> str:
     return media_path(upload_id)
 
 
+FINAL_PREFIXES: dict[UploadPurpose, str] = {
+    UploadPurpose.library: "library",
+    UploadPurpose.forum_image: "forum",
+    UploadPurpose.note_file: "notes",
+}
+
+
 def _final_key(up: Upload) -> str:
-    prefix = "forum" if up.purpose == UploadPurpose.forum_image else "library"
+    prefix = FINAL_PREFIXES[up.purpose]
     return f"{prefix}/{uuid.uuid4()}/{safe_file_name(up.file_name)}"
 
 
@@ -163,6 +171,11 @@ def to_out(up: Upload) -> UploadOut:
 def _unsupported(purpose: UploadPurpose) -> ApiError:
     if purpose == UploadPurpose.forum_image:
         msg = "Use a PNG, JPEG, WebP or GIF image."
+    elif purpose == UploadPurpose.note_file:
+        msg = (
+            "Use a picture (JPG, PNG, WebP or GIF), a PDF, or a Word, Excel, PowerPoint, notebook (.ipynb), R, "
+            "text or CSV file."
+        )
     else:
         msg = (
             "Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, "
@@ -254,6 +267,7 @@ def _not_uploaded(message: str = "The file hasn't arrived yet. Upload it again."
 PURPOSE_FEATURES: dict[UploadPurpose, tuple[Feature, ...]] = {
     UploadPurpose.library: (Feature.library, Feature.library_uploads),
     UploadPurpose.forum_image: (Feature.forum,),
+    UploadPurpose.note_file: (Feature.notes,),
 }
 
 

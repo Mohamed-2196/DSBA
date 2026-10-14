@@ -305,7 +305,7 @@ def test_hiding_takes_lessons_out_of_view_and_back(
     assert "hidden" not in detail["chapters"][0]
     assert s.put(f"{API}/me/progress/lessons/{a}", json={"watched": True}).status_code == 404
     # the note keeps its hidden lesson, and still saves
-    body = {"title": "On a, again", "moduleId": mid, "lessonId": a, "version": 1}
+    body = {"title": "On a, again", "notebookId": note.json()["notebookId"], "lessonId": a, "version": 1}
     assert s.put(f"{API}/notes/{note.json()['id']}", json=body).status_code == 200
 
     m["chapters"][0]["hidden"] = False

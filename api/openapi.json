@@ -6995,7 +6995,7 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum\npicture), feature_off (404: the library, its uploads or the forum is switched off).",
+        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; note_file: the library's types\nand GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), notes_full (409: note_file only), rate_limited (429), forbidden (403: no\nlibrary.upload, or no forum.post for a forum picture), feature_off (404: the library, its uploads, the forum or\nthe notebook is switched off).",
         "operationId": "create_upload_api_v1_uploads_post",
         "requestBody": {
           "content": {
@@ -12105,13 +12105,413 @@
         }
       }
     },
+    "/api/v1/notebooks": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "List Notebooks",
+        "description": "Your notebooks, the one changed last first, and how much of your notebook storage you use.",
+        "operationId": "list_notebooks_api_v1_notebooks_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotebookList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Create Notebook",
+        "description": "A notebook of your own (`title`), or a module's (`moduleId`: the one you have, or a new one). Errors:\ninvalid_input (422), too_many_notebooks (409).",
+        "operationId": "create_notebook_api_v1_notebooks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotebookCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notebook"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notebooks/{notebook_id}": {
+      "patch": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Rename Notebook",
+        "operationId": "rename_notebook_api_v1_notebooks__notebook_id__patch",
+        "parameters": [
+          {
+            "name": "notebook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Notebook Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotebookUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notebook"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Delete Notebook",
+        "description": "Deletes the notebook and every note in it.",
+        "operationId": "delete_notebook_api_v1_notebooks__notebook_id__delete",
+        "parameters": [
+          {
+            "name": "notebook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Notebook Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/notes": {
       "get": {
         "tags": [
           "notes"
         ],
         "summary": "List Notes",
-        "description": "Your notes, last edited first, each with the start of its body. `q` searches titles and bodies; `module_id`\nkeeps one module's notes, and `lesson_id` one lesson's.",
+        "description": "Your notes, last edited first, each with the start of its text. `q` searches titles and text; `notebook_id`\nkeeps one notebook's notes, `module_id` the module's notebook's, and `lesson_id` one lesson's.",
         "operationId": "list_notes_api_v1_notes_get",
         "parameters": [
           {
@@ -12129,6 +12529,23 @@
                 }
               ],
               "title": "Q"
+            }
+          },
+          {
+            "name": "notebook_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Notebook Id"
             }
           },
           {
@@ -12282,7 +12699,7 @@
           "notes"
         ],
         "summary": "Create Note",
-        "description": "A new note. Errors: invalid_input (422: an unknown module or lesson, or too long), too_many_notes (409),\nnotes_full (409: the student's notes hold 10 MB of text), rate_limited (429).",
+        "description": "A new note. Errors: invalid_input (422: an unknown notebook, module or lesson, a PDF that isn't yours, or text\nthe editor doesn't write), too_many_notes (409), too_many_notebooks (409), notes_full (409), rate_limited (429).",
         "operationId": "create_note_api_v1_notes_post",
         "requestBody": {
           "required": true,
@@ -12378,12 +12795,115 @@
         }
       }
     },
+    "/api/v1/notes/annotate": {
+      "post": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Annotate",
+        "description": "Your note written over a library PDF: the one you have (200), or a new one in the module's notebook (201).\nErrors: invalid_input (422: not a published PDF), not_found (404), too_many_notes (409), rate_limited (429).",
+        "operationId": "annotate_api_v1_notes_annotate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Note"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/notes/{note_id}": {
       "get": {
         "tags": [
           "notes"
         ],
         "summary": "Get Note",
+        "description": "The note with its typed text, its ink and the PDF it is written over.",
         "operationId": "get_note_api_v1_notes__note_id__get",
         "parameters": [
           {
@@ -12485,7 +13005,7 @@
           "notes"
         ],
         "summary": "Save Note",
-        "description": "Save the whole note. Send the `version` you loaded: if it was saved since (another tab), 409 note_changed;\nload it again, or send its new version to save yours over it. Errors: notes_full (409: the student's notes hold\n10 MB of text), rate_limited (429: saving very fast).",
+        "description": "Save the note's text, paper, sheets, lesson and notebook. Send the `version` you loaded: if it was saved since\n(another tab), 409 note_changed; load it again, or send its new version to save yours over it. Errors:\nnotes_full (409), rate_limited (429: saving very fast).",
         "operationId": "save_note_api_v1_notes__note_id__put",
         "parameters": [
           {
@@ -12612,6 +13132,238 @@
         ],
         "responses": {
           "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/notes/{note_id}/ink/{sheet}": {
+      "put": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Save Ink",
+        "description": "Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).\nSend the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:\nnotes_full (409), rate_limited (429).",
+        "operationId": "save_ink_api_v1_notes__note_id__ink__sheet__put",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Note Id"
+            }
+          },
+          {
+            "name": "sheet",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMaximum": 1300,
+              "title": "Sheet"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InkSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InkSheet"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/notes/files/{upload_id}": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Note File",
+        "description": "One of your note's pictures, files or PDFs: 302 to a short-lived link, shown in the browser (pictures and\nPDFs) or, with `download`, saved under its name.",
+        "operationId": "note_file_api_v1_notes_files__upload_id__get",
+        "parameters": [
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Upload Id"
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Download"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
             "description": "Successful Response"
           },
           "400": {
@@ -16368,12 +17120,12 @@
               }
             ]
           },
-          "notes": {
+          "notebooks": {
             "items": {
-              "$ref": "#/components/schemas/ExportNote"
+              "$ref": "#/components/schemas/ExportNotebook"
             },
             "type": "array",
-            "title": "Notes"
+            "title": "Notebooks"
           },
           "nooraUsage": {
             "items": {
@@ -16413,7 +17165,7 @@
           "follows",
           "pollVotes",
           "senior",
-          "notes",
+          "notebooks",
           "nooraUsage",
           "videoSuggestions"
         ],
@@ -16692,6 +17444,20 @@
         "type": "object",
         "title": "AdminUserUpdate",
         "description": "Only the fields sent change. `status` needs people.suspend; only admins suspend or restore an admin. `email`\nand `phone` are the account-recovery action (security review SEC-9), for admins only: they replace the account's\naddress (`null` removes it; one must stay), end every session of the account, send a notice to the address that\nwas replaced or removed, and are audited (`user.identifier`)."
+      },
+      "AnnotateRequest": {
+        "properties": {
+          "libraryItemId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Libraryitemid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "libraryItemId"
+        ],
+        "title": "AnnotateRequest"
       },
       "AuditOut": {
         "properties": {
@@ -19617,7 +20383,9 @@
               "already_suggested",
               "suggestion_closed",
               "note_changed",
+              "ink_changed",
               "too_many_notes",
+              "too_many_notebooks",
               "notes_full",
               "board_full",
               "already_on_board",
@@ -19986,6 +20754,28 @@
         ],
         "title": "ExportFollow"
       },
+      "ExportInk": {
+        "properties": {
+          "sheet": {
+            "type": "integer",
+            "title": "Sheet"
+          },
+          "strokes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Strokes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sheet",
+          "strokes"
+        ],
+        "title": "ExportInk"
+      },
       "ExportLibraryItem": {
         "properties": {
           "id": {
@@ -20246,20 +21036,22 @@
             "type": "string",
             "title": "Title"
           },
-          "body": {
+          "text": {
             "type": "string",
-            "title": "Body"
+            "title": "Text"
           },
-          "moduleId": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Moduleid"
+          "doc": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Doc"
+          },
+          "paper": {
+            "type": "string",
+            "title": "Paper"
+          },
+          "sheets": {
+            "type": "integer",
+            "title": "Sheets"
           },
           "lessonId": {
             "anyOf": [
@@ -20271,6 +21063,32 @@
               }
             ],
             "title": "Lessonid"
+          },
+          "libraryItemId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Libraryitemid"
+          },
+          "files": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Files"
+          },
+          "ink": {
+            "items": {
+              "$ref": "#/components/schemas/ExportInk"
+            },
+            "type": "array",
+            "title": "Ink"
           },
           "version": {
             "type": "integer",
@@ -20291,14 +21109,64 @@
         "required": [
           "id",
           "title",
-          "body",
-          "moduleId",
+          "text",
+          "doc",
+          "paper",
+          "sheets",
           "lessonId",
+          "libraryItemId",
+          "files",
+          "ink",
           "version",
           "createdAt",
           "updatedAt"
         ],
         "title": "ExportNote"
+      },
+      "ExportNotebook": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/ExportNote"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "moduleId",
+          "createdAt",
+          "notes"
+        ],
+        "title": "ExportNotebook"
       },
       "ExportNotification": {
         "properties": {
@@ -21597,6 +22465,56 @@
           "version"
         ],
         "title": "Health"
+      },
+      "InkSave": {
+        "properties": {
+          "strokes": {
+            "items": {
+              "$ref": "#/components/schemas/Stroke"
+            },
+            "type": "array",
+            "maxItems": 4000,
+            "title": "Strokes"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "strokes",
+          "version"
+        ],
+        "title": "InkSave",
+        "description": "The whole sheet as it is now, and the version it was loaded at (0: the sheet had no ink yet)."
+      },
+      "InkSheet": {
+        "properties": {
+          "sheet": {
+            "type": "integer",
+            "title": "Sheet"
+          },
+          "strokes": {
+            "items": {
+              "$ref": "#/components/schemas/Stroke"
+            },
+            "type": "array",
+            "title": "Strokes"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sheet",
+          "strokes",
+          "version"
+        ],
+        "title": "InkSheet"
       },
       "IssueCover": {
         "properties": {
@@ -24607,6 +25525,11 @@
             "format": "uuid",
             "title": "Id"
           },
+          "notebookId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Notebookid"
+          },
           "title": {
             "type": "string",
             "title": "Title"
@@ -24637,6 +25560,10 @@
             ],
             "title": "Lessonid"
           },
+          "onPdf": {
+            "type": "boolean",
+            "title": "Onpdf"
+          },
           "version": {
             "type": "integer",
             "title": "Version"
@@ -24651,22 +25578,65 @@
             "format": "date-time",
             "title": "Updatedat"
           },
-          "body": {
+          "doc": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Doc"
+          },
+          "text": {
             "type": "string",
-            "title": "Body"
+            "title": "Text"
+          },
+          "paper": {
+            "type": "string",
+            "enum": [
+              "blank",
+              "lined",
+              "grid",
+              "dotted"
+            ],
+            "title": "Paper"
+          },
+          "sheets": {
+            "type": "integer",
+            "title": "Sheets"
+          },
+          "pdf": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NotePdf"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ink": {
+            "items": {
+              "$ref": "#/components/schemas/InkSheet"
+            },
+            "type": "array",
+            "title": "Ink"
           }
         },
         "type": "object",
         "required": [
           "id",
+          "notebookId",
           "title",
           "excerpt",
           "moduleId",
           "lessonId",
+          "onPdf",
           "version",
           "createdAt",
           "updatedAt",
-          "body"
+          "doc",
+          "text",
+          "paper",
+          "sheets",
+          "pdf",
+          "ink"
         ],
         "title": "Note"
       },
@@ -24678,11 +25648,52 @@
             "title": "Title",
             "default": ""
           },
-          "body": {
+          "doc": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Doc"
+          },
+          "paper": {
             "type": "string",
-            "maxLength": 100000,
-            "title": "Body",
-            "default": ""
+            "enum": [
+              "blank",
+              "lined",
+              "grid",
+              "dotted"
+            ],
+            "title": "Paper",
+            "default": "lined"
+          },
+          "sheets": {
+            "type": "integer",
+            "maximum": 300.0,
+            "minimum": 0.0,
+            "title": "Sheets",
+            "default": 1
+          },
+          "lessonId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9]{1,16}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lessonid"
+          },
+          "notebookId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notebookid"
           },
           "moduleId": {
             "anyOf": [
@@ -24696,21 +25707,22 @@
             ],
             "title": "Moduleid"
           },
-          "lessonId": {
+          "pdfUploadId": {
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^[a-z0-9]{1,16}$"
+                "format": "uuid"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Lessonid"
+            "title": "Pdfuploadid"
           }
         },
         "type": "object",
-        "title": "NoteCreate"
+        "title": "NoteCreate",
+        "description": "A new note: in `notebookId`, or in the module's notebook (made when it isn't there yet), or in the student's\nfirst notebook of their own. `pdfUploadId` writes it over a PDF the student uploaded (purpose note_file)."
       },
       "NotePage": {
         "properties": {
@@ -24743,12 +25755,62 @@
         ],
         "title": "NotePage"
       },
+      "NotePdf": {
+        "properties": {
+          "libraryItemId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Libraryitemid"
+          },
+          "uploadId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploadid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          }
+        },
+        "type": "object",
+        "required": [
+          "libraryItemId",
+          "uploadId",
+          "title",
+          "available"
+        ],
+        "title": "NotePdf",
+        "description": "The PDF a note is written over: a library file (`libraryItemId`, read with /library/items/{id}/file) or the\nstudent's own (`uploadId`, read with /notes/files/{id}). `available` is false once the file is gone."
+      },
       "NoteSummary": {
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid",
             "title": "Id"
+          },
+          "notebookId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Notebookid"
           },
           "title": {
             "type": "string",
@@ -24780,6 +25842,10 @@
             ],
             "title": "Lessonid"
           },
+          "onPdf": {
+            "type": "boolean",
+            "title": "Onpdf"
+          },
           "version": {
             "type": "integer",
             "title": "Version"
@@ -24798,10 +25864,12 @@
         "type": "object",
         "required": [
           "id",
+          "notebookId",
           "title",
           "excerpt",
           "moduleId",
           "lessonId",
+          "onPdf",
           "version",
           "createdAt",
           "updatedAt"
@@ -24816,23 +25884,28 @@
             "title": "Title",
             "default": ""
           },
-          "body": {
-            "type": "string",
-            "maxLength": 100000,
-            "title": "Body",
-            "default": ""
+          "doc": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Doc"
           },
-          "moduleId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 64
-              },
-              {
-                "type": "null"
-              }
+          "paper": {
+            "type": "string",
+            "enum": [
+              "blank",
+              "lined",
+              "grid",
+              "dotted"
             ],
-            "title": "Moduleid"
+            "title": "Paper",
+            "default": "lined"
+          },
+          "sheets": {
+            "type": "integer",
+            "maximum": 300.0,
+            "minimum": 0.0,
+            "title": "Sheets",
+            "default": 1
           },
           "lessonId": {
             "anyOf": [
@@ -24846,6 +25919,11 @@
             ],
             "title": "Lessonid"
           },
+          "notebookId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Notebookid"
+          },
           "version": {
             "type": "integer",
             "minimum": 1.0,
@@ -24854,10 +25932,119 @@
         },
         "type": "object",
         "required": [
+          "notebookId",
           "version"
         ],
         "title": "NoteUpdate",
-        "description": "The whole note as it is now, and the version it was loaded at."
+        "description": "The whole note as it is now, the notebook it is in, and the version it was loaded at."
+      },
+      "Notebook": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "noteCount": {
+            "type": "integer",
+            "title": "Notecount"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "moduleId",
+          "noteCount",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "Notebook"
+      },
+      "NotebookCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Title",
+            "default": ""
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          }
+        },
+        "type": "object",
+        "title": "NotebookCreate",
+        "description": "A notebook of the student's own, or a module's (one per module: asking again answers the one there is)."
+      },
+      "NotebookList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Notebook"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "storage": {
+            "$ref": "#/components/schemas/StorageUse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "storage"
+        ],
+        "title": "NotebookList"
+      },
+      "NotebookUpdate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "NotebookUpdate"
       },
       "NotificationOut": {
         "properties": {
@@ -27976,6 +29163,72 @@
         "title": "StepUpStart",
         "description": "Which of the account's own identifiers gets the code: by default the email address, else the phone number."
       },
+      "StorageUse": {
+        "properties": {
+          "usedBytes": {
+            "type": "integer",
+            "title": "Usedbytes"
+          },
+          "limitBytes": {
+            "type": "integer",
+            "title": "Limitbytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "usedBytes",
+          "limitBytes"
+        ],
+        "title": "StorageUse",
+        "description": "What the student's notebooks hold (typed text, ink, pictures and files) against what they may hold."
+      },
+      "Stroke": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,32}$",
+            "title": "Id"
+          },
+          "tool": {
+            "type": "string",
+            "enum": [
+              "pen",
+              "highlighter"
+            ],
+            "title": "Tool"
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "title": "Color"
+          },
+          "width": {
+            "type": "number",
+            "maximum": 64.0,
+            "minimum": 0.5,
+            "title": "Width"
+          },
+          "points": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "maxItems": 18000,
+            "minItems": 3,
+            "title": "Points"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tool",
+          "color",
+          "width",
+          "points"
+        ],
+        "title": "Stroke",
+        "description": "One line drawn with the pen or the highlighter. `points` is x, y, pressure (0-1), x, y, pressure, \u2026 in sheet\nunits, the sheet's top left at 0, 0."
+      },
       "SuggestionAccept": {
         "properties": {
           "chapterId": {
@@ -29043,7 +30296,8 @@
             "type": "string",
             "enum": [
               "library",
-              "forum_image"
+              "forum_image",
+              "note_file"
             ],
             "title": "Purpose"
           },

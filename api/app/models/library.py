@@ -177,12 +177,13 @@ class PaperQuestionFlag(Base):
 class UploadPurpose(enum.StrEnum):
     library = "library"
     forum_image = "forum_image"
+    note_file = "note_file"  # a picture, file or PDF in a student's own note
 
 
 class UploadStatus(enum.StrEnum):
     pending = "pending"  # a presigned upload was handed out; the object may not exist yet
     uploaded = "uploaded"  # the object exists and matched what was declared
-    attached = "attached"  # in use by a library item or a forum post
+    attached = "attached"  # in use by a library item, a forum post or a note
 
 
 class Upload(Base):
@@ -190,12 +191,14 @@ class Upload(Base):
 
     A forum image belongs to the post that shows it, set when the post is saved: `thread_id` for a thread's body,
     `reply_id` for a reply's. /media serves it only while that post is visible (security review, finding 8).
-    Uploads that are never attached to anything are swept after a day."""
+    A note's file belongs to the note that shows it (`note_id`), and only its owner ever gets a link to it.
+    Uploads that are never attached to anything are swept after a day; a note's files once the note is gone."""
 
     __tablename__ = "uploads"
     __table_args__ = (
         Index("ix_uploads_status_created", "status", "created_at"),
         Index("ix_uploads_user_created", "user_id", "created_at"),  # uploads per user per hour; account deletion
+        Index("ix_uploads_note", "note_id"),  # a note's files; a note deleted (SET NULL)
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -210,3 +213,4 @@ class Upload(Base):
     completed_at: Mapped[datetime | None]
     thread_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("forum_threads.id", ondelete="SET NULL"))
     reply_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("forum_replies.id", ondelete="SET NULL"))
+    note_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("notes.id", ondelete="SET NULL", use_alter=True))
