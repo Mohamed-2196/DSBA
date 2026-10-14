@@ -58,6 +58,7 @@ class Feature(enum.StrEnum):
     library = "library"
     library_uploads = "library.uploads"  # uploads only: the library stays readable
     library_questions = "library.questions"  # past papers' questions tagged with chapters
+    library_daily_question = "library.daily-question"  # Home's past question a day: nothing in the API
     newsletter = "newsletter"
     newsletter_polls = "newsletter.polls"  # polls in issues: the issue reads without them
     calendar = "calendar"
@@ -162,6 +163,10 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.library_questions: FeatureInfo(
         "Past questions by topic",
         "Tagging past papers' questions with chapters, and each chapter's past questions. The tags are kept.",
+    ),
+    Feature.library_daily_question: FeatureInfo(
+        "A past question a day",
+        "Home's card with one tagged past question a day before your next exam. Needs past questions by topic.",
     ),
     Feature.newsletter: FeatureInfo("Newsletter", "Every issue and its reactions."),
     Feature.newsletter_polls: FeatureInfo("Newsletter polls", "The polls in issues and voting in them."),

@@ -251,6 +251,7 @@ export const FEATURES = [
   'library',
   'library.uploads',
   'library.questions',
+  'library.daily-question',
   'newsletter',
   'newsletter.polls',
   'calendar',

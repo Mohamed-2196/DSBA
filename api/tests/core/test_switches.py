@@ -91,6 +91,7 @@ OFF_AT_FIRST = (
     "requests.autoclose",
     "forum.help-below",
     "video_suggestions",
+    "library.daily-question",
 )
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
