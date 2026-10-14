@@ -14,6 +14,8 @@ from app.core.security import DB, ActiveUser, OptionalUser, client_ip, needs_fea
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.library import (
+    EXAM_YEAR_MAX,
+    EXAM_YEAR_MIN,
     FileLink,
     ItemStatus,
     LibraryFacets,
@@ -23,15 +25,21 @@ from app.schemas.library import (
     LibraryKind,
     LibraryLinkCreate,
     LibraryPage,
+    PaperQuestion,
+    PaperQuestionCreate,
+    PaperSittings,
     ReviewDecision,
     StarResult,
+    Zone,
 )
 from app.services import library as svc
+from app.services import past_questions
 from app.services.search import text_query
 
 router = router_for("library", needs_feature(Feature.library))
 Uploader = Annotated[User, requires(Box.library_upload)]
 LibraryManager = Annotated[User, requires(Box.library_manage)]
+QUESTIONS = [needs_feature(Feature.library_questions)]
 
 
 @router.get("/library/items", response_model=LibraryPage)
@@ -46,6 +54,8 @@ def list_items(
     sort: Literal["new", "popular", "title", "relevance"] = Query(
         default="new", description="relevance: best match first (with q)"
     ),
+    exam_year: int | None = Query(default=None, ge=EXAM_YEAR_MIN, le=EXAM_YEAR_MAX),
+    zone: Zone | None = None,
     starred: bool = False,
     mine: bool = False,
     status_: ItemStatus | None = Query(default=None, alias="status", description="Library managers: e.g. pending"),
@@ -56,7 +66,15 @@ def list_items(
     `q` searches titles, descriptions, authors and file names, plus the module's code and name and the kind
     ("ST2133 past papers"); the last word matches as a prefix."""
     filters = svc.ListFilters(
-        module_id=module_id, year=year, kind=kind, source=source, starred=starred, mine=mine, status=status_
+        module_id=module_id,
+        year=year,
+        kind=kind,
+        source=source,
+        starred=starred,
+        mine=mine,
+        status=status_,
+        exam_year=exam_year,
+        zone=zone,
     )
     tsq = text_query(q) if q and q.strip() else None
     if q and q.strip() and tsq is None:  # only symbols: nothing can match
@@ -68,6 +86,13 @@ def list_items(
 @router.get("/library/facets", response_model=LibraryFacets)
 def facets(db: DB) -> LibraryFacets:
     return svc.facets(db)
+
+
+@router.get("/library/papers", response_model=PaperSittings)
+def papers(db: DB, user: OptionalUser, module_id: str) -> PaperSittings:
+    """A module's past papers, examiners' reports and solutions by sitting (exam year and session) and zone, the
+    newest sitting first; the ones without an exam year in `other`. Errors: invalid_input (422: an unknown module)."""
+    return svc.sittings(db, user, module_id)
 
 
 @router.get("/library/items/{slug}", response_model=LibraryItem)
@@ -162,3 +187,62 @@ def review(item_id: UUID, body: ReviewDecision, request: Request, user: LibraryM
     svc.review(db, user, item, body.decision, body.note, client_ip(request))
     db.commit()
     return svc.one_out(db, item, user)
+
+
+# ── past questions by topic ──────────────────────────────────────────────────────────────────
+
+
+@router.get("/library/questions", response_model=list[PaperQuestion], dependencies=QUESTIONS)
+def module_questions(db: DB, user: OptionalUser, module_id: str, flagged: bool = False) -> list[PaperQuestion]:
+    """The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first.
+    `flagged`: only the tags someone flagged, the most flagged first (library managers; 403 for others).
+    Errors: invalid_input (422: an unknown module)."""
+    return past_questions.for_module(db, module_id, user, flagged=flagged)
+
+
+@router.get("/library/items/{item_id}/questions", response_model=list[PaperQuestion], dependencies=QUESTIONS)
+def paper_questions(item_id: UUID, db: DB, user: OptionalUser) -> list[PaperQuestion]:
+    """A published past paper's tagged questions, by question number. Errors: not_found (404), not_a_paper (409)."""
+    return past_questions.for_paper(db, item_id, user)
+
+
+@router.post(
+    "/library/items/{item_id}/questions",
+    response_model=PaperQuestion,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=QUESTIONS,
+)
+def tag_question(item_id: UUID, body: PaperQuestionCreate, user: ActiveUser, db: DB) -> PaperQuestion:
+    """Tag a question of a published past paper with one of its module's chapters, and the page it starts on.
+
+    Errors: not_found (404), not_a_paper (409), already_tagged (409), invalid_input (422: another module's chapter),
+    rate_limited (429: 60 an hour)."""
+    row = past_questions.tag(db, user, item_id, body)
+    db.commit()
+    return past_questions.to_out(db, [row], user)[0]
+
+
+@router.delete("/library/questions/{question_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=QUESTIONS)
+def remove_question(question_id: UUID, request: Request, user: ActiveUser, db: DB) -> Response:
+    """Whoever tagged it, or a library manager (audited: `library.question_remove`). Errors: not_found (404)."""
+    past_questions.remove(db, user, past_questions.get(db, question_id), client_ip(request))
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.put("/library/questions/{question_id}/flag", response_model=PaperQuestion, dependencies=QUESTIONS)
+def flag_question(question_id: UUID, user: ActiveUser, db: DB) -> PaperQuestion:
+    """Say a tag is wrong: the library's managers see it. Saying it twice changes nothing."""
+    row = past_questions.get(db, question_id)
+    past_questions.set_flag(db, user, row, True)
+    db.commit()
+    return past_questions.to_out(db, [row], user)[0]
+
+
+@router.delete("/library/questions/{question_id}/flag", response_model=PaperQuestion, dependencies=QUESTIONS)
+def unflag_question(question_id: UUID, user: ActiveUser, db: DB) -> PaperQuestion:
+    """Take a flag back."""
+    row = past_questions.get(db, question_id)
+    past_questions.set_flag(db, user, row, False)
+    db.commit()
+    return past_questions.to_out(db, [row], user)[0]

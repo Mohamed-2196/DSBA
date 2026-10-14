@@ -31,6 +31,7 @@ FeatureKey = Literal[
     "forum",
     "library",
     "library.uploads",
+    "library.questions",
     "newsletter",
     "calendar",
     "career",

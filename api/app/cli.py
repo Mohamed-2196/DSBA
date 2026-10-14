@@ -14,6 +14,8 @@ mail-worker        send the queued emails (notifications, account notices) with 
 import-drive       copy the files of the library's Google Drive folders into the library: prints the plan, asks,
                    imports, and lists the folders Drive refused (--dry-run: only the plan; --module ID; --limit N
                    files; --yes: no question). Safe to run again. Needs DSBA_GOOGLE_API_KEY (DEPLOYMENT.md, 10)
+exam-meta          read the exam year, session, zone and kind of the past papers, reports and solutions the Drive
+                   import brought in, from their names, and fill what each lacks (--dry-run: only list them)
 dev-login ID       development only: print a session token for an account (created if needed, holding Student;
                    --role gives one more role)
 
@@ -307,6 +309,21 @@ def cmd_import_drive(args: argparse.Namespace) -> int:
         )
 
 
+def cmd_exam_meta(args: argparse.Namespace) -> int:
+    """Imported papers, reports and VLE files get the exam details their names give (backfill_exam_meta)."""
+    from app.services.drive_import import backfill_exam_meta
+
+    with get_sessionmaker()() as db:
+        result = backfill_exam_meta(db, dry_run=args.dry_run)
+        for line in result.changed:
+            print(f"  {line}")
+        verb = "Would change" if args.dry_run else "Changed"
+        print(f"{verb} {len(result.changed)} of {result.checked} imported papers, reports and VLE files.")
+        if not args.dry_run:
+            db.commit()
+    return 0
+
+
 def _confirm(question: str) -> bool:
     try:
         answer = input(question)
@@ -391,6 +408,9 @@ def main(argv: list[str] | None = None) -> int:
     di.add_argument("--limit", metavar="N", type=_positive, default=None, help="import at most N files this run")
     di.add_argument("--yes", action="store_true", help="import without asking first")
     di.set_defaults(fn=cmd_import_drive)
+    em = sub.add_parser("exam-meta")
+    em.add_argument("--dry-run", action="store_true", help="list what would change and change nothing")
+    em.set_defaults(fn=cmd_exam_meta)
     dl = sub.add_parser("dev-login")
     dl.add_argument("identifier")
     dl.add_argument("--role", default=None, metavar="ROLE", help="give this role too (a slug, such as rep or admin)")

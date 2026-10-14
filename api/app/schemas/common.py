@@ -75,6 +75,8 @@ ErrorCode = Literal[
     "no_preview",  # 404/409: this file has no preview
     "file_gone",  # 409: the file was deleted after it was rejected
     "too_many_pending",  # 409: ten files already wait for review
+    "not_a_paper",  # 409: only a module's published past papers take question tags
+    "already_tagged",  # 409: this question already has this chapter
     # access: roles and feature switches (R-1, R-10)
     "feature_off",  # 404: the feature is switched off for this person (admins see every feature)
     "last_admin",  # 409: the hub needs at least one active admin

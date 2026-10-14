@@ -13,6 +13,7 @@ EXAM_YEAR_MIN, EXAM_YEAR_MAX = 1990, 2100  # the exam years a past paper may giv
 LibraryKind = Literal[
     "past-paper",
     "examiners-report",
+    "exam-solutions",
     "subject-guide",
     "reading",
     "study-guide",
@@ -23,6 +24,8 @@ LibraryKind = Literal[
     "vle-materials",
     "other",
 ]
+ExamSession = Literal["may", "october"]  # the May sitting or the October resits
+Zone = Literal["A", "B"]
 ItemStatus = Literal["pending", "published", "rejected", "removed"]
 Title = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=200)]
 Description = Annotated[str, StringConstraints(strip_whitespace=True, max_length=2000)]
@@ -45,6 +48,7 @@ class LibraryItem(ApiModel):
     format: str | None  # 'PDF', 'DOCX', ... from the file name; None for links
     exam_year: int | None
     zone: str | None
+    exam_session: ExamSession | None
     author_name: str | None
     uploaded_by: UserPublic | None
     status: ItemStatus
@@ -80,7 +84,8 @@ class LibraryItemCreate(ApiModel):
     year: Year | None = None
     description: Description | None = None
     exam_year: int | None = Field(default=None, ge=EXAM_YEAR_MIN, le=EXAM_YEAR_MAX)
-    zone: Literal["A", "B"] | None = None
+    zone: Zone | None = None
+    exam_session: ExamSession | None = None
     author_name: AuthorName | None = None
 
 
@@ -103,7 +108,8 @@ class LibraryItemUpdate(ApiModel):
     year: Year | None = None
     description: Description | None = None
     exam_year: int | None = Field(default=None, ge=EXAM_YEAR_MIN, le=EXAM_YEAR_MAX)
-    zone: Literal["A", "B"] | None = None
+    zone: Zone | None = None
+    exam_session: ExamSession | None = None
     author_name: AuthorName | None = None
 
 
@@ -119,3 +125,64 @@ class StarResult(ApiModel):
 class FileLink(ApiModel):
     url: str  # presigned, short-lived
     expires_in: int
+
+
+# ── past papers by sitting ───────────────────────────────────────────────────────────────────
+
+
+class SittingZone(ApiModel):
+    """One zone's papers in a sitting, with their examiners' reports and solutions. `zone` None: files for both
+    zones, or a sitting with one paper."""
+
+    zone: Zone | None
+    papers: list[LibraryItem]
+    reports: list[LibraryItem]
+    solutions: list[LibraryItem]
+
+
+class Sitting(ApiModel):
+    exam_year: int
+    session: ExamSession | None
+    zones: list[SittingZone]  # zone A, zone B, then both zones
+
+
+class PaperSittings(ApiModel):
+    """A module's past papers, examiners' reports and solutions: by sitting, newest first, and the ones without an
+    exam year apart."""
+
+    sittings: list[Sitting]
+    other: list[LibraryItem]
+
+
+# ── past questions by chapter ────────────────────────────────────────────────────────────────
+
+QUESTION_MAX, PAGE_MAX = 40, 999
+
+
+class PaperQuestionCreate(ApiModel):
+    question: int = Field(ge=1, le=QUESTION_MAX)
+    chapter_id: Annotated[str, StringConstraints(min_length=1, max_length=16)]
+    page: int | None = Field(default=None, ge=1, le=PAGE_MAX)  # where the question starts in the PDF
+
+
+class PaperRef(ApiModel):
+    id: UUID
+    slug: str
+    title: str
+    exam_year: int | None
+    exam_session: ExamSession | None
+    zone: str | None
+
+
+class PaperQuestion(ApiModel):
+    id: UUID
+    paper: PaperRef
+    chapter_id: str
+    chapter_title: str
+    question: int
+    page: int | None
+    flagged: bool  # by the person asking
+    flag_count: int | None  # people who manage the library only
+    is_mine: bool
+    can_remove: bool
+    created_at: datetime

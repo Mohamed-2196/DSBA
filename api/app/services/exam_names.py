@@ -18,10 +18,9 @@ some modules set) have no zone."""
 from __future__ import annotations
 
 import re
-from typing import Literal, NamedTuple
+from typing import NamedTuple
 
-Zone = Literal["A", "B"]
-ExamSession = Literal["may", "october"]
+from app.schemas.library import ExamSession, Zone
 
 
 class ExamMeta(NamedTuple):
@@ -52,8 +51,8 @@ def _clean(name: str) -> str:
     text = name.strip()
     text = re.sub(r"\.[A-Za-z0-9]{1,5}$", "", text)  # '.pdf', '.PDF', '.docx'
     text = re.sub(r"(?<=[A-Za-z])pdf$", "", text)  # 'Zone-Apdf': an extension typed into the name
-    text = text.lower().replace("â", " ").replace("_", " ")
-    text = re.sub(r"[‐-―-]", " - ", text)
+    text = text.lower().replace("\u00e2", " ").replace("_", " ")
+    text = re.sub("[\u2010-\u2015-]", " - ", text)
     return re.sub(r"\s+", " ", text).strip()
 
 

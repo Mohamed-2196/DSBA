@@ -265,14 +265,18 @@ def test_files_become_published_library_files_of_the_links_kind_module_and_autho
     }
 
 
-def test_past_papers_take_their_exam_year_zone_and_kind_from_the_name(
+def test_papers_take_their_exam_year_session_zone_and_kind_from_the_name(
     db: Session, fake: FakeDrive, run: Callable[..., int], out: Lines, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """The wiring only: exam_meta_from_name is Mohamed's to write, so it is replaced here."""
+    """The wiring only: exam_meta_from_name has its own tests (test_exam_names.py), so it is replaced here. A past
+    papers folder's files are all papers; a VLE folder's only when their names say they are a sitting's."""
     said = {
         "ST2133_2021_ZA.pdf": ExamMeta(2021, "A", False),
         "ST2133_2020_ER.pdf": ExamMeta(2020, None, True),
-        "Odd.pdf": ExamMeta(21, "C", False),  # type: ignore[arg-type]  # not a year, not a zone: ignored
+        "Odd.pdf": ExamMeta(21, "C", False, "june"),  # type: ignore[arg-type]  # not a year, zone or session: ignored
+        "ST2133 Exam paper - May 2024.pdf": ExamMeta(2024, None, False, "may", False, True),
+        "ST2133 solutions - October 2024.pdf": ExamMeta(2024, "B", False, "october", True, True),
+        "ST2133 2024.pdf": ExamMeta(2024, None, False),  # a year, but not a sitting's file
     }
     asked: list[str] = []
 
@@ -287,23 +291,32 @@ def test_past_papers_take_their_exam_year_zone_and_kind_from_the_name(
     fake.google("mock1", "Mock exam", "old1")
     fake.folder("notes1", "Notes")
     fake.file("n1", "ST2133_2019_ZB.pdf", "notes1")
+    fake.folder("vle1", "VLE")
+    vle = ["ST2133 Exam paper - May 2024.pdf", "ST2133 solutions - October 2024.pdf", "ST2133 2024.pdf"]
+    for i, name in enumerate(vle):
+        fake.file(f"v{i}", name, "vle1")
     link(db, "advanced-stats-distribution", "old1", kind="past-paper", title="Past exams")
+    link(db, "advanced-stats-distribution", "vle1", kind="vle-materials", title="VLE materials")
     link(db, "advanced-stats-distribution", "notes1", kind="notes", title="Sara's notes", author="Sara")
 
     assert run() == 0
-    assert sorted(asked) == ["Mock exam", "Odd.pdf", "ST2133_2020_ER.pdf", "ST2133_2021_ZA.pdf"]  # past papers only
+    assert "ST2133_2019_ZB.pdf" not in asked  # a notes folder: its files are notes
     items = imported(db)
-    found = {name: (i.kind, i.exam_year, i.zone) for name, i in items.items()}
+    found = {name: (i.kind, i.exam_year, i.exam_session, i.zone) for name, i in items.items()}
     assert found == {
-        "ST2133_2021_ZA.pdf": ("past-paper", 2021, "A"),
-        "ST2133_2020_ER.pdf": ("examiners-report", 2020, None),
-        "Odd.pdf": ("past-paper", None, None),
-        "Mock exam.pdf": ("past-paper", None, None),
-        "ST2133_2019_ZB.pdf": ("notes", None, None),
+        "ST2133_2021_ZA.pdf": ("past-paper", 2021, None, "A"),
+        "ST2133_2020_ER.pdf": ("examiners-report", 2020, None, None),
+        "Odd.pdf": ("past-paper", None, None, None),
+        "Mock exam.pdf": ("past-paper", None, None, None),
+        "ST2133_2019_ZB.pdf": ("notes", None, None, None),
+        "ST2133 Exam paper - May 2024.pdf": ("past-paper", 2024, "may", None),
+        "ST2133 solutions - October 2024.pdf": ("exam-solutions", 2024, "october", "B"),
+        "ST2133 2024.pdf": ("vle-materials", None, None, None),
     }
     assert items["ST2133_2019_ZB.pdf"].author_name == "Sara"
     assert f"    + ST2133_2021_ZA.pdf ({len(PDF)} bytes; Past paper 2021, zone A)" in out
     assert f"    + ST2133_2020_ER.pdf ({len(PDF)} bytes; Examiners\u2019 report 2020)" in out
+    assert f"    + ST2133 solutions - October 2024.pdf ({len(PDF)} bytes; Solutions October 2024, zone B)" in out
 
 
 def test_a_rerun_skips_what_is_there_even_after_a_rep_moved_or_removed_it(

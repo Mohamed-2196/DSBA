@@ -6,7 +6,17 @@ from app.models.base import Base
 from app.models.board import BoardCard
 from app.models.content import CalendarEvent, Chapter, ContentDoc, Lesson, Module
 from app.models.forum import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVote
-from app.models.library import ItemSource, ItemStatus, LibraryItem, LibraryStar, Upload, UploadPurpose, UploadStatus
+from app.models.library import (
+    ItemSource,
+    ItemStatus,
+    LibraryItem,
+    LibraryStar,
+    PaperQuestion,
+    PaperQuestionFlag,
+    Upload,
+    UploadPurpose,
+    UploadStatus,
+)
 from app.models.newsletter import IssueStatus, NewsletterIssue, NewsletterReaction
 from app.models.noora import NooraLimits, NooraUsage
 from app.models.notes import Note
@@ -46,6 +56,8 @@ __all__ = [
     "OtpChallenge",
     "OtpPurpose",
     "OutboxStatus",
+    "PaperQuestion",
+    "PaperQuestionFlag",
     "PostStatus",
     "ReplyVote",
     "Report",

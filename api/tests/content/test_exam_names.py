@@ -42,7 +42,10 @@ NAMES: list[tuple[str, ExamMeta]] = [
     ("ST104a - Statistics 1 - 2004 Examiners Commentaries - Zone-A.pdf", report(2004, "may", "A")),
     ("ST2133 - Advanced Statistics - Distribution Theory - 2008 Exam - ZA-ZB.pdf", paper(2008, "may")),
     ("ST2133 - Advanced Statistics - Distribution Theory - 2022 October Resit Exam.pdf", paper(2022, "october")),
-    ("ST3134 - Advanced Statistics - Statistical Inference - 2017 Exam - Zone-B (One Zone Only).pdf", paper(2017, "may", "B")),
+    (
+        "ST3134 - Advanced Statistics - Statistical Inference - 2017 Exam - Zone-B (One Zone Only).pdf",
+        paper(2017, "may", "B"),
+    ),
     ("EC2020 - Elements of Econometrics - 2003 Exam - Zone-B.pdf", paper(2003, "may", "B")),  # not 2020: the code
     ("EC2020 - Elements of Econometrics - 2020 Exam.pdf", paper(2020, "may")),
     ("IS2184 - Information Systems Management - 2022 Examiner Commentaries.pdf", report(2022, "may")),
@@ -62,9 +65,9 @@ NAMES: list[tuple[str, ExamMeta]] = [
     ("EC1002 ZB Exam paper Section B with correct question numbering - May 2025.pdf", paper(2025, "may", "B")),
     ("EC1002 Exam Paper - October 2025 (full paper, final).pdf", paper(2025, "october")),
     ("EC1002 exam paper - October November 2022.pdf", paper(2022, "october")),
-    ("EC1002 ZA Exam paper – May 2026.pdf", paper(2026, "may", "A")),
-    ("ST3189 Exam paper â May 2026.pdf", paper(2026, "may")),
-    ("EC2066 ZB Exam paper â May 2026.pdf", paper(2026, "may", "B")),
+    ("EC1002 ZA Exam paper \u2013 May 2026.pdf", paper(2026, "may", "A")),
+    ("ST3189 Exam paper \u00e2 May 2026.pdf", paper(2026, "may")),
+    ("EC2066 ZB Exam paper \u00e2 May 2026.pdf", paper(2026, "may", "B")),
     ("EC2066 Exam ZA 2024.pdf", paper(2024, "may", "A")),
     ("EC2066 ZA Commentary - May 2026 DRAFT.pdf", report(2026, "may", "A")),
     ("FN2203 exam paper - May 2025 FINAL.pdf", paper(2025, "may")),
@@ -111,5 +114,5 @@ def test_a_paper_pairs_with_its_report_by_year_session_and_zone() -> None:
         return m.exam_year, m.session, m.zone
 
     assert sitting("MT3095 Exam paper - October 2025 (final).pdf") == sitting("MT3095_Commentary_October_2025.pdf")
-    assert sitting("EC2066 ZA Exam paper â May 2026.pdf") == sitting("EC2066 ZA Commentary - May 2026 DRAFT.pdf")
+    assert sitting("EC2066 ZA Exam paper \u00e2 May 2026.pdf") == sitting("EC2066 ZA Commentary - May 2026 DRAFT.pdf")
     assert sitting("MT1186 Exam paper - October 2025.pdf") != sitting("MT1186 Exam paper - May 2025.pdf")

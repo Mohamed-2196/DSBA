@@ -8,8 +8,9 @@ past papers and students' notes):
      XLSX), and what the library doesn't take, what is too big and what an earlier run imported are skipped;
   3. once confirmed, download each file (its bytes counted against the limit, whatever Drive says its size is), check
      its first bytes with the uploads' own check, store it at library/drive/<module>/<Drive file id>/<safe name> and
-     add it as a published file with the link's kind, module and author. Past papers get their exam year and zone
-     from their names (exam_names.exam_meta_from_name), and examiners' reports their own kind.
+     add it as a published file with the link's kind, module and author. Past papers get their exam year, session
+     and zone from their names (exam_names.exam_meta_from_name), examiners' reports and solutions their own kinds,
+     and the papers, reports and solutions in a VLE folder the same (exam_kind).
 
 Imported files are ordinary library files (source `file`): they are served, previewed, edited, removed and swept like
 uploads. `import_key` ('drive/<module>/<file id>') remembers where each came from, so a rerun skips it whatever became
@@ -152,6 +153,7 @@ class Planned:
     kind: LibraryKind
     exam_year: int | None = None
     zone: str | None = None
+    exam_session: str | None = None
 
     @property
     def where(self) -> str:
@@ -503,9 +505,7 @@ def _plan_file(plan: LinkPlan, found: _Found, done: set[str], seen: set[str], up
     if key in seen:  # the same file again in this module: a shortcut, or a folder linked twice
         return
     seen.add(key)
-    kind, exam_year, zone = source.kind, None, None
-    if source.kind == "past-paper":
-        kind, exam_year, zone = exam_kind(shown)
+    exam = exam_kind(shown, source.kind)
     plan.planned.append(
         Planned(
             source=source,
@@ -516,21 +516,48 @@ def _plan_file(plan: LinkPlan, found: _Found, done: set[str], seen: set[str], up
             file_type=LIBRARY_TYPES[ext],
             export=export,
             limit=limit,
-            kind=kind,
-            exam_year=exam_year,
-            zone=zone,
+            kind=exam.kind,
+            exam_year=exam.exam_year,
+            zone=exam.zone,
+            exam_session=exam.exam_session,
         )
     )
 
 
-def exam_kind(name: str) -> tuple[LibraryKind, int | None, str | None]:
-    """A past paper's kind ('examiners-report' when its name says so), exam year and zone, read from its name by
-    exam_names.exam_meta_from_name. What the name doesn't say, or says implausibly, stays empty."""
+@dataclass(frozen=True)
+class ExamKind:
+    kind: LibraryKind
+    exam_year: int | None = None
+    zone: str | None = None
+    exam_session: str | None = None
+
+
+def exam_kind(name: str, folder_kind: LibraryKind) -> ExamKind:
+    """What a file in a folder of `folder_kind` is, from its name (exam_names.exam_meta_from_name).
+
+    - A past-papers folder: a past paper, or an examiners' report or solutions when the name says so, with the exam
+      year, session and zone the name gives. What it doesn't say, or says implausibly, stays empty.
+    - A VLE folder: the same for the files whose names say they are a sitting's paper, report or solutions
+      ('ST2133 Exam paper - May 2024.pdf'); everything else keeps the folder's kind.
+    - Any other folder: its kind, with nothing more."""
+    if folder_kind not in ("past-paper", "vle-materials"):
+        return ExamKind(folder_kind)
     meta = exam_names.exam_meta_from_name(name)
+    if folder_kind == "vle-materials" and meta.sitting is not True:
+        return ExamKind(folder_kind)
     year = meta.exam_year
     exam_year = year if isinstance(year, int) and EXAM_YEAR_MIN <= year <= EXAM_YEAR_MAX else None
-    zone = meta.zone if meta.zone in ("A", "B") else None
-    return ("examiners-report" if meta.examiners_report is True else "past-paper"), exam_year, zone
+    kind: LibraryKind = "past-paper"
+    if meta.examiners_report is True:
+        kind = "examiners-report"
+    elif meta.solutions is True:
+        kind = "exam-solutions"
+    return ExamKind(
+        kind=kind,
+        exam_year=exam_year,
+        zone=meta.zone if meta.zone in ("A", "B") else None,
+        exam_session=meta.session if exam_year is not None and meta.session in ("may", "october") else None,
+    )
 
 
 # ── the run ──────────────────────────────────────────────────────────────────────────────────
@@ -571,6 +598,7 @@ def run(db: Session, drive: Drive, storage: Storage, plan: Plan, report: Report,
                 import_key=planned.import_key,
                 exam_year=planned.exam_year,
                 zone=planned.zone,
+                exam_session=planned.exam_session,
                 author_name=planned.source.author_name,
             )
             db.commit()
@@ -710,7 +738,7 @@ def _details(planned: Planned) -> str:
     if planned.kind != planned.source.kind or planned.exam_year or planned.zone:
         exam = library.kind_label(planned.kind)
         if planned.exam_year:
-            exam += f" {planned.exam_year}"
+            exam += f" {planned.exam_session.capitalize() + ' ' if planned.exam_session else ''}{planned.exam_year}"
         if planned.zone:
             exam += f", zone {planned.zone}"
         parts.append(exam)
@@ -803,3 +831,52 @@ def report_lines(plan: Plan, report: Report) -> list[str]:
         lines.append(f"{_plural(left, 'file')} {'waits' if left == 1 else 'wait'} for the next run (--limit).")
     lines += _refused_lines(plan, None)
     return lines
+
+
+# ── files imported before their names were read ──────────────────────────────────────────────
+
+
+@dataclass
+class ExamBackfill:
+    changed: list[str] = field(default_factory=list)  # 'module · title: Solutions, May 2025, zone A'
+    checked: int = 0
+
+
+def backfill_exam_meta(db: Session, *, dry_run: bool = False) -> ExamBackfill:
+    """Reads again the names of the files the import brought in from past-papers and VLE folders (exam_kind), and
+    fills what an item lacks: its exam year, session and zone, and its kind when it still has its folder's (a past
+    paper that is an examiners' report or solutions, a VLE file that is a sitting's paper). What a rep set stays.
+    The caller commits (nothing changes with `dry_run`). Safe to run again."""
+    folder_kinds: tuple[LibraryKind, ...] = ("past-paper", "examiners-report", "exam-solutions", "vle-materials")
+    items = db.scalars(
+        select(LibraryItem)
+        .where(
+            LibraryItem.import_key.is_not(None),
+            LibraryItem.file_name.is_not(None),
+            LibraryItem.kind.in_(folder_kinds),
+        )
+        .order_by(LibraryItem.module_id, LibraryItem.title)
+    ).all()
+    out = ExamBackfill(checked=len(items))
+    for item in items:
+        folder: LibraryKind = "vle-materials" if item.kind == "vle-materials" else "past-paper"
+        exam = exam_kind(item.file_name or "", folder)
+        before = (item.kind, item.exam_year, item.exam_session, item.zone)
+        kind = exam.kind if item.kind == folder else item.kind
+        after = (
+            kind,
+            item.exam_year if item.exam_year is not None else exam.exam_year,
+            item.exam_session if item.exam_session is not None else exam.exam_session,
+            item.zone if item.zone is not None else exam.zone,
+        )
+        if after == before:
+            continue
+        what = library.kind_label(after[0])
+        if after[1] is not None:
+            what += f", {(after[2] or '').capitalize()} {after[1]}".replace(",  ", ", ")
+        if after[3]:
+            what += f", zone {after[3]}"
+        out.changed.append(f"{item.module_id or 'no module'} · {item.title}: {what}")
+        if not dry_run:
+            item.kind, item.exam_year, item.exam_session, item.zone = after
+    return out

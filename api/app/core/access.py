@@ -53,6 +53,7 @@ class Feature(enum.StrEnum):
     forum = "forum"
     library = "library"
     library_uploads = "library.uploads"  # uploads only: the library stays readable
+    library_questions = "library.questions"  # past papers' questions tagged with chapters
     newsletter = "newsletter"
     calendar = "calendar"
     career = "career"
@@ -135,6 +136,10 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.forum: FeatureInfo("Forum", "Every thread, reply and forum picture."),
     Feature.library: FeatureInfo("Library", "Every file and link in the library, and uploads to it."),
     Feature.library_uploads: FeatureInfo("Library uploads", "Uploading to the library. It stays readable."),
+    Feature.library_questions: FeatureInfo(
+        "Past questions by topic",
+        "Tagging past papers' questions with chapters, and each chapter's past questions. The tags are kept.",
+    ),
     Feature.newsletter: FeatureInfo("Newsletter", "Every issue and its reactions."),
     Feature.calendar: FeatureInfo("Calendar", "The calendar, its feeds and its events in search."),
     Feature.career: FeatureInfo("Career Navigator", "Career Navigator."),
