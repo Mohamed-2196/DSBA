@@ -16,7 +16,8 @@ LessonIdPath = Path(pattern=r"^[a-z0-9]{1,16}$")
 
 @router.get("/me/progress", response_model=Progress)
 def get_progress(user: CurrentUser, db: DB) -> Progress:
-    return accounts.progress_of(db, user.id)
+    """Empty while the person keeps no progress: what they saved before is kept hidden until they turn it on."""
+    return accounts.progress_of(db, user)
 
 
 @router.put("/me/progress/lessons/{lesson_id}", response_model=Progress)
@@ -30,7 +31,7 @@ def set_watched(body: LessonWatchedUpdate, user: CurrentUser, db: DB, lesson_id:
     if body.watched:
         board.complete_lessons(db, user.id)
     db.commit()
-    return accounts.progress_of(db, user.id)
+    return accounts.progress_of(db, user)
 
 
 @router.put("/me/progress/resume", response_model=Progress)
@@ -41,7 +42,7 @@ def set_resume(body: ResumeUpdate, user: CurrentUser, db: DB) -> Progress:
     accounts.require_tracking(user)
     accounts.set_resume(db, user.id, accounts.require_lesson(db, body.lesson_id), utcnow())
     db.commit()
-    return accounts.progress_of(db, user.id)
+    return accounts.progress_of(db, user)
 
 
 @router.delete("/me/progress/modules/{module_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -61,4 +62,4 @@ def import_progress(body: ProgressImport, user: CurrentUser, db: DB) -> Progress
     accounts.import_progress(db, user.id, body)
     board.complete_lessons(db, user.id)
     db.commit()
-    return accounts.progress_of(db, user.id)
+    return accounts.progress_of(db, user)

@@ -1,6 +1,6 @@
 // Whether lesson progress is kept: opt in. Signed in, it is the account's preference (trackProgress), and the API
 // keeps nothing until it is on. A guest's choice stays in this browser. Off: no watched marks, no resume, no
-// progress bars, and nothing is recorded.
+// progress bars, and nothing new is recorded; the API keeps what was saved before hidden until it is on again.
 import { useCallback, useMemo } from 'react';
 import { errorMessage } from '../../api/errors';
 import { useAuth, useUpdatePreferences } from '../../auth';

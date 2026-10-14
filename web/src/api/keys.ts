@@ -1,4 +1,4 @@
-// Query keys that more than one area reads or invalidates (code quality review CQ-5). A key used by one area only
+// Query keys that more than one area reads or invalidates. A key used by one area only
 // stays in that area's api.ts.
 
 /** GET /admin/stats: the hub's numbers and the queue counts. Invalidate it after anything that changes a queue (a report
@@ -14,3 +14,9 @@ export const FEATURES_KEY = ['features'] as const;
 /** The Access screen: the roles catalogue and the feature switches (admins). */
 export const ACCESS_ROLES_KEY = ['admin', 'roles'] as const;
 export const ACCESS_FEATURES_KEY = ['admin', 'features'] as const;
+
+/** GET /me/progress, per account. Refetched when lesson tracking is turned on or off: the API hides what was saved
+ *  while it is off. */
+export const PROGRESS_KEY = ['progress'] as const;
+/** Per account, so one person's progress is never shown to the next one on this browser. */
+export const progressKey = (userId: string) => [...PROGRESS_KEY, userId] as const;

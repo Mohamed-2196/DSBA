@@ -262,7 +262,7 @@ function LessonProgress() {
     <Panel className="acct-switches">
       <Switch
         label="Track my lesson progress"
-        description="Mark lessons as watched and pick up where you left off, on every device. Off: nothing about what you watch is saved."
+        description="Mark lessons as watched and pick up where you left off, on every device. Off: nothing new is saved; what you saved before is kept hidden."
         checked={tracking.on}
         onChange={tracking.set}
         data-hub="account-track-progress"

@@ -10,7 +10,8 @@ import { useAuth, useUpdatePreferences } from '../../auth';
 import { useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, Modal } from '../../ui';
-import { importProgress, progressKey } from './api';
+import { progressKey } from '../../api/keys';
+import { importProgress } from './api';
 import { isEmptyProgress, toImport, useGuestProgress } from './progress';
 import './ImportProgressPrompt.css';
 

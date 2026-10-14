@@ -476,7 +476,16 @@ def require_lesson(db: Session, lesson_id: str) -> Lesson:
     return lesson
 
 
-def progress_of(db: Session, user_id: uuid.UUID) -> Progress:
+def progress_of(db: Session, user: User) -> Progress:
+    """The lessons watched and the lesson to resume in each module. While the person keeps no progress, what was
+    recorded before stays stored but hidden, and comes back when they turn tracking on again."""
+    if not tracks_progress(user):
+        return Progress.model_validate({"watched": {}, "last": {}})
+    return recorded_progress(db, user.id)
+
+
+def recorded_progress(db: Session, user_id: uuid.UUID) -> Progress:
+    """Everything stored, tracking on or off: the account export holds it all."""
     watched = {
         lesson_id: {"module_id": module_id, "at": at}
         for lesson_id, module_id, at in db.execute(
@@ -825,7 +834,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         library_items=library_items,
         stars=stars,
         reactions=reactions,
-        progress=progress_of(db, uid),
+        progress=recorded_progress(db, uid),
         notifications=notifications,
         votes=votes,
         reports=reports,
