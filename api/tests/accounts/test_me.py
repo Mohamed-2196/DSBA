@@ -29,6 +29,8 @@ from app.models import (
     Module,
     NewsletterIssue,
     NewsletterReaction,
+    NooraUsage,
+    Note,
     Notification,
     OtpChallenge,
     OtpPurpose,
@@ -543,6 +545,9 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
             LessonView(user_id=user.id, lesson_id=lesson_id(module, 0, 0)),
             Notification(user_id=user.id, kind="thread_reply", title="Someone replied", actor_id=other.id),
             Notification(user_id=other.id, kind="thread_reply", title="Not mine", actor_id=user.id),
+            Note(user_id=user.id, title="Private", body="my-private-note-text", module_id=module.id),
+            Note(user_id=other.id, title="Theirs", body="their-private-note-text"),
+            NooraUsage(user_id=user.id, day=dt.date(2026, 10, 2), questions=3, input_tokens=900, output_tokens=200),
         ]
     )
     db.commit()
@@ -564,6 +569,10 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
     assert list(data["progress"]["watched"]) == [lesson_id(module, 0, 0)]
     assert [n["title"] for n in data["notifications"]] == ["Someone replied"]
     assert data["emails"] == []
+    assert [(n["title"], n["body"], n["moduleId"]) for n in data["notes"]] == [
+        ("Private", "my-private-note-text", module.id)
+    ]  # SEC-24
+    assert data["nooraUsage"] == [{"day": "2026-10-02", "questions": 3, "inputTokens": 900, "outputTokens": 200}]
     assert set(data) == {  # code quality review CQ-4: a typed export, every section on purpose
         "user",
         "sessions",
@@ -586,9 +595,11 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
         "follows",
         "pollVotes",
         "senior",
+        "notes",
+        "nooraUsage",
     }
     text = json.dumps(data)
-    for private in ("someone-else@example.com", "+97333123471", "Their answer", "Not mine"):
+    for private in ("someone-else@example.com", "+97333123471", "Their answer", "Not mine", "their-private-note-text"):
         assert private not in text
 
 

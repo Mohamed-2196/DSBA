@@ -2,8 +2,8 @@
 
 - Saving sends the whole note and the version it was loaded at. A note saved since (another tab, another device)
   answers 409 note_changed, and the writer chooses: load the newer one, or save theirs over it.
-- Limits: MAX_NOTES per student, CREATES_PER_HOUR new notes, SAVES_PER_MINUTE saves of one note (the web app saves
-  as the student types, about once a second at most)."""
+- Limits: MAX_NOTES per student, MAX_BYTES of text across them, CREATES_PER_HOUR new notes, SAVES_PER_MINUTE saves of
+  one note (the web app saves as the student types, about once a second at most)."""
 
 from __future__ import annotations
 
@@ -22,6 +22,7 @@ from app.services import ratelimit
 from app.services.modules import student_lesson
 
 MAX_NOTES = 1000
+MAX_BYTES = 10_000_000  # the text of all of one student's notes, in UTF-8
 CREATES_PER_HOUR = 60
 SAVES_PER_MINUTE = 120
 SAVE_WINDOW = timedelta(minutes=1)
@@ -34,20 +35,36 @@ def _like(text: str) -> str:
     return f"%{escaped}%"
 
 
-def _check_place(db: Session, fields: NoteFields, *, current: str | None = None) -> None:
-    """The module and lesson a note is about exist (422 otherwise). A lesson needs its module. A note may keep a lesson
-    that was hidden since (`current`)."""
+def _check_place(db: Session, fields: NoteFields, note: NoteRow | None = None) -> None:
+    """The module and lesson a note is about exist and students see them (422 otherwise). A lesson needs its module. A
+    note may keep a module or lesson that was hidden since."""
     if fields.module_id is None:
         if fields.lesson_id is not None:
             raise invalid("moduleId", "Choose the lesson's module too.")
         return
-    if db.get(Module, fields.module_id) is None:
+    module = db.get(Module, fields.module_id)
+    kept = note is not None and note.module_id == fields.module_id
+    if module is None or (module.hidden and not kept):
         raise invalid("moduleId", "This module doesn't exist.")
     if fields.lesson_id is None:
         return
+    current = note.lesson_id if note is not None else None
     lesson = db.get(Lesson, fields.lesson_id) if fields.lesson_id == current else student_lesson(db, fields.lesson_id)
     if lesson is None or lesson.module_id != fields.module_id:
         raise invalid("lessonId", "This lesson doesn't exist.")
+
+
+def _check_room(db: Session, user: User, body: str, note: NoteRow | None = None) -> None:
+    """409 notes_full when `body` (new, or replacing `note`'s) would take the student's notes past MAX_BYTES. The
+    caller holds the student's notes lock, so parallel saves count one after the other."""
+    where: list[ColumnElement[bool]] = [NoteRow.user_id == user.id]
+    if note is not None:
+        where.append(NoteRow.id != note.id)
+    used = db.scalar(select(func.coalesce(func.sum(func.octet_length(NoteRow.body)), 0)).where(*where)) or 0
+    if used + len(body.encode()) > MAX_BYTES:
+        raise conflict(
+            "notes_full", "Your notes hold as much text as they can. Shorten or delete some notes to save this one."
+        )
 
 
 def to_out(note: NoteRow) -> Note:
@@ -134,6 +151,7 @@ def create_note(db: Session, user: User, body: NoteCreate) -> NoteRow:
     count = db.scalar(select(func.count()).select_from(NoteRow).where(NoteRow.user_id == user.id)) or 0
     if count >= MAX_NOTES:
         raise conflict("too_many_notes", f"You have {MAX_NOTES} notes, the most you can keep. Delete some to add more.")
+    _check_room(db, user, body.body)
     now = utcnow()
     note = NoteRow(
         user_id=user.id,
@@ -156,7 +174,7 @@ def update_note(db: Session, user: User, note_id: uuid.UUID, body: NoteUpdate) -
     note = _own(db, user, note_id, lock=True)
     if note.version != body.version:
         raise conflict("note_changed", "This note was changed in another tab or on another device.")
-    _check_place(db, body, current=note.lesson_id)
+    _check_place(db, body, note)
     fields = {
         "title": body.title,
         "body": body.body,
@@ -171,6 +189,9 @@ def update_note(db: Session, user: User, note_id: uuid.UUID, body: NoteUpdate) -
     if note.saves >= SAVES_PER_MINUTE:
         wait = max(1, int((note.saves_since + SAVE_WINDOW - now).total_seconds()) + 1)
         raise rate_limited(wait, "You're saving very fast. Your note is kept on this device: it saves in a moment.")
+    if body.body != note.body:
+        ratelimit.lock(db, f"notes:{user.id}")
+        _check_room(db, user, body.body, note)
     for k, v in fields.items():
         setattr(note, k, v)
     note.saves += 1

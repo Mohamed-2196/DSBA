@@ -234,6 +234,26 @@ class ExportBoardPlan(ApiModel):
     created_at: datetime
 
 
+class ExportNote(ApiModel):
+    id: UUID
+    title: str
+    body: str
+    module_id: str | None
+    lesson_id: str | None
+    version: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class ExportNooraDay(ApiModel):
+    """Mini Noora's AI questions on one day: only counts (no question or answer is stored)."""
+
+    day: date
+    questions: int
+    input_tokens: int
+    output_tokens: int
+
+
 class ExportVote(ApiModel):
     type: Literal["thread", "reply"]
     id: UUID
@@ -318,3 +338,5 @@ class AccountExport(ApiModel):
     follows: list[ExportFollow]  # forum threads this person follows
     poll_votes: list[ExportPollVote]  # newsletter poll answers
     senior: ExportSenior | None  # the "Ask a senior" listing
+    notes: list[ExportNote]  # private notes
+    noora_usage: list[ExportNooraDay]  # Mini Noora's AI questions per day

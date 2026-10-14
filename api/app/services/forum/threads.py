@@ -51,7 +51,7 @@ def create_thread(db: Session, user: User, data: ThreadCreate, ip: str | None) -
         access.require_feature(db, user, Feature.forum_anonymous)
     title = valid_title(data.title)
     body = valid_body(data.body)
-    category, module = place(data.category, module_or_422(db, data.module_id), module_wins=True)
+    category, module = place(data.category, module_or_422(db, data.module_id, visible=True), module_wins=True)
     tags = valid_tags(data.tags)
     limit_threads(db, user)
     now = utcnow()

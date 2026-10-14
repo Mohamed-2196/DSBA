@@ -151,6 +151,38 @@ def test_how_many_notes_and_how_fast(
     assert r.headers["Retry-After"]
 
 
+def test_the_text_of_all_notes_is_capped(
+    client_for: ClientFor, make_user: MakeUser, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """SEC-27: a free account can't fill the disk: its notes hold MAX_BYTES of text in all (UTF-8 bytes)."""
+    monkeypatch.setattr(svc, "MAX_BYTES", 10)
+    c = client_for(make_user())
+    note = new_note(c, body="12345678")
+    r = c.post(f"{API}/notes", json={"body": "abc"})
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "notes_full")
+    assert c.post(f"{API}/notes", json={"body": "ab"}).status_code == 201
+    r = save(c, note, body="123456789")
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "notes_full")
+    saved = save(c, note, body="éééé")  # eight bytes: ten in all
+    assert saved.status_code == 200, saved.text
+    r = save(c, saved.json(), body="éééé!")  # nine: eleven in all
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "notes_full")
+    assert save(c, saved.json(), title="Renamed").status_code == 200  # the text unchanged: no check
+
+
+def test_a_hidden_module_is_no_module_for_a_new_note(
+    client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
+) -> None:
+    """SEC-21: a module still being prepared is 404 to students; a note can't name it, but keeps it if hidden since."""
+    c = client_for(make_user())
+    note = new_note(c, moduleId=module.id)
+    module.hidden = True
+    db.commit()
+    r = c.post(f"{API}/notes", json={"title": "Draft", "moduleId": module.id})
+    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["moduleId"])
+    assert save(c, note, body="Still about it").status_code == 200
+
+
 def test_a_suspended_account_reads_but_does_not_write(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     user = make_user()
     c = client_for(user)
