@@ -128,7 +128,24 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
             "emailDateChanges": True,
             "emailWeeklySummary": False,
         },
+        "papers": [],
     }
+
+
+def test_your_papers(client_for: ClientFor, make_user: MakeUser) -> None:
+    """IDEA-10: the papers someone sits, kept on the account; a new year clears them."""
+    c = client_for(make_user(year=2))
+    papers = ["econometrics", "statistics", "econometrics"]
+    r = c.patch(f"{API}/me", json={"papers": papers})
+    assert r.status_code == 200, r.text
+    assert r.json()["papers"] == ["econometrics", "statistics"]  # in order, once each
+    assert c.patch(f"{API}/me", json={"year": 2}).json()["papers"] == ["econometrics", "statistics"]  # same year
+    assert c.patch(f"{API}/me", json={"year": 3}).json()["papers"] == []  # Year 2's choices don't carry over
+    both = c.patch(f"{API}/me", json={"year": 2, "papers": ["abstract-maths"]}).json()
+    assert (both["year"], both["papers"]) == (2, ["abstract-maths"])
+    assert c.patch(f"{API}/me", json={"papers": []}).json()["papers"] == []
+    assert c.patch(f"{API}/me", json={"papers": ["Bad Id"]}).status_code == 422
+    assert c.patch(f"{API}/me", json={"papers": [f"m{i}" for i in range(21)]}).status_code == 422
 
 
 def test_the_profile_step(client_for: ClientFor, make_user: MakeUser) -> None:

@@ -2,14 +2,15 @@
   {
     "id": "2024-12-04-statistics-deadline",
     "date": "2024-12-04",
-    "title": "First day of Stats MCQ on VLE",
+    "title": "Stats MCQ on VLE",
     "type": "deadline",
     "year": 1,
     "moduleId": "statistics",
     "unitCode": "ST1215",
     "time": null,
     "place": null,
-    "sample": false
+    "sample": false,
+    "endDate": "2025-02-15"
   },
   {
     "id": "2024-12-05-business-mock",
@@ -79,18 +80,6 @@
     "year": null,
     "moduleId": null,
     "unitCode": null,
-    "time": null,
-    "place": null,
-    "sample": false
-  },
-  {
-    "id": "2025-02-15-statistics-deadline",
-    "date": "2025-02-15",
-    "title": "Last day of Stats MCQ on VLE",
-    "type": "deadline",
-    "year": 1,
-    "moduleId": "statistics",
-    "unitCode": "ST1215",
     "time": null,
     "place": null,
     "sample": false
@@ -506,14 +495,15 @@
   {
     "id": "2026-10-18-machine-learning-deadline",
     "date": "2026-10-18",
-    "title": "First day of Machine Learning MCQ on VLE",
+    "title": "Machine Learning MCQ on VLE",
     "type": "deadline",
     "year": 3,
     "moduleId": "machine-learning",
     "unitCode": null,
     "time": null,
     "place": null,
-    "sample": true
+    "sample": true,
+    "endDate": "2026-11-12"
   },
   {
     "id": "2026-10-19-economics-exam",
@@ -660,18 +650,6 @@
     "sample": false
   },
   {
-    "id": "2026-11-12-machine-learning-deadline",
-    "date": "2026-11-12",
-    "title": "Last day of Machine Learning MCQ on VLE",
-    "type": "deadline",
-    "year": 3,
-    "moduleId": "machine-learning",
-    "unitCode": null,
-    "time": null,
-    "place": null,
-    "sample": true
-  },
-  {
     "id": "2026-12-01-machine-learning-mock",
     "date": "2026-12-01",
     "title": "Machine Learning mock exam",
@@ -686,14 +664,15 @@
   {
     "id": "2026-12-02-statistics-deadline",
     "date": "2026-12-02",
-    "title": "First day of Stats MCQ on VLE",
+    "title": "Stats MCQ on VLE",
     "type": "deadline",
     "year": 1,
     "moduleId": "statistics",
     "unitCode": "ST1215",
     "time": null,
     "place": null,
-    "sample": true
+    "sample": true,
+    "endDate": "2027-02-13"
   },
   {
     "id": "2026-12-03-advanced-stats-distribution-mock",
@@ -775,18 +754,6 @@
     "year": null,
     "moduleId": null,
     "unitCode": null,
-    "time": null,
-    "place": null,
-    "sample": true
-  },
-  {
-    "id": "2027-02-13-statistics-deadline",
-    "date": "2027-02-13",
-    "title": "Last day of Stats MCQ on VLE",
-    "type": "deadline",
-    "year": 1,
-    "moduleId": "statistics",
-    "unitCode": "ST1215",
     "time": null,
     "place": null,
     "sample": true

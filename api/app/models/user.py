@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import CheckConstraint, ForeignKey, Index, SmallInteger, String, text
-from sqlalchemy.dialects.postgresql import INET
+from sqlalchemy.dialects.postgresql import ARRAY, INET
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, created_ts, str_enum, uuid_pk, year_range
@@ -45,6 +45,9 @@ class User(Base):
         str_enum(UserStatus), default=UserStatus.active, server_default=UserStatus.active.value
     )
     preferences: Mapped[dict[str, Any]] = mapped_column(default=dict, server_default=text("'{}'::jsonb"))
+    # The papers this person sits, as module ids: their option and electives, and papers from other years (IDEA-10).
+    # Empty: every module of their year. Private: only /me and the export show it.
+    papers: Mapped[list[str]] = mapped_column(ARRAY(String(64)), default=list, server_default="{}")
     created_at: Mapped[datetime] = created_ts()
     last_seen_at: Mapped[datetime | None]
 
