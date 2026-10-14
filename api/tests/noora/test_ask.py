@@ -252,3 +252,11 @@ def test_the_messages_alternate_and_start_with_the_student() -> None:
     content = out[0]["content"]
     assert isinstance(content, str)
     assert content.startswith('One\n\nTwo\n\nMy note, which I\'m asking about:\n<student_note title="Untitled">')
+
+
+def test_she_is_asked_for_markdown_and_latex_the_chat_can_set() -> None:
+    """The chat renders her Markdown and sets $…$ and $$…$$ with KaTeX: the rules ask for exactly that."""
+    from app.services.noora import prompt
+
+    assert "Format with Markdown" in prompt.RULES
+    assert r"$$E[X] = \int x f(x)\,dx$$" in prompt.RULES
