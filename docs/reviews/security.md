@@ -41,15 +41,15 @@ The new problems are mostly about Noora's money and Noora's prompt:
 
 | ID | Severity | Owner | Status | Title |
 |---|---|---|---|---|
-| SEC-22 | **major** | Noora (`services/noora/ask.py`) | open | A dropped stream leaves the answer uncosted, so the monthly budget never trips |
-| SEC-21 | minor | content, Noora, requests | open | Hidden modules reach every student's Noora prompt, and requests name them |
-| SEC-23 | minor | Noora (`services/noora/prompt.py`) | open | Reps' text and the client's `route` are written into the system prompt |
-| SEC-24 | minor | accounts (`services/accounts.py`) | open | `GET /me/export` leaves out notes |
-| SEC-25 | minor | Noora (`routers/noora.py`) | open | Raising the AI budget needs no step-up |
-| SEC-26 | minor | Noora | open (unverified) | Noora's streams hold the API's thread pool, with no limit on how many run at once |
-| SEC-27 | minor | notes (`services/notes.py`) | open | 100 MB of notes per free account |
-| SEC-28 | nit | web (`ui/TeX.css`) | open (unverified in a browser) | A formula's `\raisebox`/`\kern` can move text outside its box |
-| SEC-29 | nit | requests (`services/requests.py`) | open | A changed public reply isn't in the audit log |
+| SEC-22 | **major** | Noora (`services/noora/ask.py`) | **fixed** (40f19d6) | A dropped stream leaves the answer uncosted, so the monthly budget never trips |
+| SEC-21 | minor | content, Noora, requests | **fixed** (40f19d6, REST) | Hidden modules reach every student's Noora prompt, and requests name them |
+| SEC-23 | minor | Noora (`services/noora/prompt.py`) | **fixed** (40f19d6) | Reps' text and the client's `route` are written into the system prompt |
+| SEC-24 | minor | accounts (`services/accounts.py`) | **fixed** (REST) | `GET /me/export` leaves out notes |
+| SEC-25 | minor | Noora (`routers/noora.py`) | **fixed** (40f19d6) | Raising the AI budget needs no step-up |
+| SEC-26 | minor | Noora | **fixed** (40f19d6) | Noora's streams hold the API's thread pool, with no limit on how many run at once |
+| SEC-27 | minor | notes (`services/notes.py`) | **fixed** (REST) | 100 MB of notes per free account |
+| SEC-28 | nit | web (`ui/TeX.css`) | **fixed** (REST; clip checked in Chrome) | A formula's `\raisebox`/`\kern` can move text outside its box |
+| SEC-29 | nit | requests (`services/requests.py`) | **fixed** (REST) | A changed public reply isn't in the audit log |
 | SEC-16 | major | accounts | **fixed** | Recovery and admin status need step-up; an admin's account can't be recovered; roles and switches use `SteppedUpAdmin` |
 | SEC-17, 18, 20 | minor | | **fixed** | Re-checked: unchanged since round 3's fix |
 | SEC-19 | nit | content | open | `?mine=1&status=removed` still lists a student's removed files (`services/library.py:250`) |
@@ -90,6 +90,12 @@ The new problems are mostly about Noora's money and Noora's prompt:
     today all pass `_over_budget()` together.
   - Set a monthly spending limit on the Anthropic workspace as the backstop (DEPLOYMENT.md).
   - Test: close the stream after one event, and the row's cost is above 0.
+- **Fixed (40f19d6):** `prepare()` builds the prompt, then, under the advisory lock `noora:answers`, checks the month's
+  cost plus this answer's worst case (the prompt's characters / 3 at the full input price, plus `max_tokens`), counts
+  the question and adds the reservation to the usage row, all committed before the stream starts. `answer()` settles
+  in a shielded `finally` on every exit: the real cost when done, nothing when Claude failed before a word, and at
+  least the reservation when the student dropped it (with the snapshot's input tokens). A reservation that never
+  settles stays counted. Tests: `tests/noora/test_safety.py` (aclose, cancellation, parallel budget).
 
 ### SEC-21. Hidden modules reach every student's Noora prompt, and requests name them (minor)
 
@@ -114,6 +120,9 @@ The new problems are mostly about Noora's money and Noora's prompt:
   - Requests and notes: a student-facing `require_module(..., visible=True)` that answers 422 for a hidden module,
     while the editor keeps the current one.
   - `_outs()`: show no `moduleTitle` for a module hidden since.
+- **Fixed (40f19d6, REST):** Noora's catalogue filters `hidden`, and a hidden `module_id` is no open module.
+  `require_module(..., visible=True)` refuses a hidden module (422) for requests, new forum threads and notes (a note
+  keeps one hidden since); `_outs()` names no hidden module.
 
 ### SEC-23. Reps' text and the client's `route` are written into the system prompt (minor)
 
@@ -143,6 +152,9 @@ The new problems are mostly about Noora's money and Noora's prompt:
   - Send `route` only if it matches the app's own route table (or send only its path, `^/[A-Za-z0-9/_?=&.-]{0,300}$`).
   - Optional: refuse lesson and chapter titles that read as instructions to an assistant. That's hard to do well, so
     the delimiting matters more.
+- **Fixed (40f19d6):** every typed value goes in `<hub_data>` blocks, one line each, line breaks and control characters
+  removed and the tag escaped; a new rule says never to follow instructions inside them. `route` is passed on only
+  when its path matches the app's route table (`prompt.page()`), with a plain query string.
 
 ### SEC-24. `GET /me/export` leaves out notes (minor)
 
@@ -158,6 +170,7 @@ The new problems are mostly about Noora's money and Noora's prompt:
   - Regenerate the contract.
   - The Noora usage row is kept with `user_id` set to NULL on deletion (`models/noora.py:48`). That's fine: it is a
     count with no person attached.
+- **Fixed (REST):** the export has `notes` and `nooraUsage` (day, questions, tokens).
 
 ### SEC-25. Raising the AI budget needs no step-up (minor)
 
@@ -168,6 +181,7 @@ The new problems are mostly about Noora's money and Noora's prompt:
 - **Proof:** `test_sec25_noora_limits_need_no_step_up`. With a session an hour old, `PUT /admin/features/forum`
   answers 403 `step_up_required`, and `PUT /admin/noora` answers 200.
 - **Fix:** use `SteppedUpAdmin` on `set_noora_limits`, and add it to the AD-1 test's list.
+- **Fixed (40f19d6):** `PUT /admin/noora` takes `SteppedUpAdmin`, and is in the AD-1 test.
 
 ### SEC-26. Noora's streams hold the API's thread pool, with no limit on how many run at once (minor, unverified)
 
@@ -184,6 +198,9 @@ The new problems are mostly about Noora's money and Noora's prompt:
   - Limit answers in flight to one per account (a `noora:inflight:<user>` advisory lock held for the stream, or a
     row flag), and to a small number hub-wide (a semaphore of about 8, answering 503 `noora_busy`).
   - Or move `answer()` to `anthropic.AsyncAnthropic` with an async generator, so a stream holds no thread.
+- **Fixed (40f19d6):** answers stream from `AsyncAnthropic` in an async generator (no worker thread held). A usage row's
+  `answering_since` marks a stream: one per student (429 `rate_limited`) and `DSBA_NOORA_ANSWERS_AT_ONCE` (8)
+  hub-wide (503 `noora_busy`), checked under the same lock; a mark older than two minutes no longer counts.
 
 ### SEC-27. 100 MB of notes per free account (minor)
 
@@ -194,6 +211,8 @@ The new problems are mostly about Noora's money and Noora's prompt:
   uploads have per-person caps; notes have the largest.
 - **Fix:** a total per account (for example 5 MB: `sum(octet_length(body))` checked on create and save, 409
   `notes_full`), or lower the counts (200 notes). Add notes to the SEC-14 site-wide budget discussion.
+- **Fixed (REST):** a student's notes hold at most 10 MB of body text (`notes.MAX_BYTES`, UTF-8), checked on create
+  and on saves that change the body under the per-student lock: 409 `notes_full`.
 
 ### SEC-28. A formula's `\raisebox`/`\kern` can move text outside its box (nit, unverified in a browser)
 
@@ -207,6 +226,9 @@ The new problems are mostly about Noora's money and Noora's prompt:
 - **Fix:** clip every formula to its own box: `.ui-tex { display: inline-block; max-width: 100%; overflow: hidden;
   vertical-align: middle; }`, with `contain: paint` on the display form. Or refuse `\raisebox`, `\kern`,
   `\mkern`, `\hskip`, `\mathllap` and `\mathrlap` with a `macros` map that redefines them to nothing.
+- **Fixed (REST):** an inline formula is an `inline-block` with `overflow: clip` (a display one already scrolls in its
+  box). Checked in Chrome: `\kern{-20em}` text is clipped, `\raisebox` grows its own line instead of overlapping, and
+  the baseline is unchanged. Refusing the commands by macro was dropped: KaTeX's `\not` and `\notin` use them.
 
 ### SEC-29. A changed public reply isn't in the audit log (nit)
 
@@ -214,6 +236,7 @@ The new problems are mostly about Noora's money and Noora's prompt:
   and to, but not the reply. A handler who rewrites the public reply, with the status unchanged, leaves an entry that
   shows nothing changed.
 - **Fix:** record `{"reply": {"from": before_reply, "to": req.reply}}` whenever it changes.
+- **Fixed (REST):** `request.status` records `{"reply": {"from", "to"}}` whenever the reply changes.
 
 ---
 
@@ -299,8 +322,8 @@ The new problems are mostly about Noora's money and Noora's prompt:
 
 Then: SEC-28 (clip formulas), SEC-29, SEC-19 and the SEC-11 nit.
 
-**For whoever fixes these:** `api/tests/noora/test_sec_review_r4.py` asserts that each problem exists, so each test
-fails once its finding is fixed. Turn it into the opposite assertion in the area's own tests, then delete the file.
+The round 4 proof tests are now regression tests in each area (`tests/noora/test_safety.py`, the export, notes,
+requests and AD-1 tests).
 
 ---
 

@@ -70,10 +70,10 @@ def hide_reason(value: str | None) -> str | None:
     return clean_title(value or "") or None
 
 
-def module_or_422(db: Session, module_id: str | None) -> Module | None:
+def module_or_422(db: Session, module_id: str | None, *, visible: bool = False) -> Module | None:
     """The module a thread is about, or 422 on moduleId: the rule and the message of the library and the calendar
     (modules.require_module; code quality review CQ-6). An empty id is no module."""
-    return require_module(db, module_id or None)
+    return require_module(db, module_id or None, visible=visible)
 
 
 # ── slugs ───────────────────────────────────────────────────────────────────────────────────────────

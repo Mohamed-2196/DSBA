@@ -31,6 +31,8 @@ from app.models import (
     LibraryStar,
     NewsletterIssue,
     NewsletterReaction,
+    NooraUsage,
+    Note,
     Notification,
     ReplyVote,
     Report,
@@ -49,6 +51,8 @@ from app.schemas.auth import (
     ExportBoardCard,
     ExportEmail,
     ExportLibraryItem,
+    ExportNooraDay,
+    ExportNote,
     ExportNotification,
     ExportReaction,
     ExportReply,
@@ -676,6 +680,28 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for c in db.scalars(select(BoardCard).where(BoardCard.user_id == uid).order_by(BoardCard.created_at))
     ]
+    notes = [
+        ExportNote(
+            id=n.id,
+            title=n.title,
+            body=n.body,
+            module_id=n.module_id,
+            lesson_id=n.lesson_id,
+            version=n.version,
+            created_at=n.created_at,
+            updated_at=n.updated_at,
+        )
+        for n in db.scalars(select(Note).where(Note.user_id == uid).order_by(Note.created_at))
+    ]
+    noora = [
+        ExportNooraDay(
+            day=u.day,
+            questions=u.questions,
+            input_tokens=u.input_tokens + u.cache_read_tokens + u.cache_write_tokens,
+            output_tokens=u.output_tokens,
+        )
+        for u in db.scalars(select(NooraUsage).where(NooraUsage.user_id == uid).order_by(NooraUsage.day))
+    ]
     return AccountExport(
         user=me_out(user),
         sessions=[sessions.info(s, current) for s in sessions.live(db, uid)],
@@ -692,6 +718,8 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         me_toos=me_toos,
         emails=emails,
         board=board,
+        notes=notes,
+        noora_usage=noora,
     )
 
 

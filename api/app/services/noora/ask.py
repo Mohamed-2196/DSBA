@@ -22,7 +22,7 @@ import json
 import logging
 import math
 import uuid
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from functools import partial
 from typing import Any, Literal, Protocol
@@ -345,6 +345,7 @@ async def _settled(db: Session, p: Prepared, used: Usage | None, ended: Ended) -
     """_settle() on a worker thread, finished even when the answer's task is being cancelled (a dropped stream)."""
     with anyio.CancelScope(shield=True):
         return await anyio.to_thread.run_sync(partial(_settle, db, p, used, ended))
+    raise AssertionError("unreachable: a shielded scope that isn't cancelled itself swallows nothing")
 
 
 def _usage_so_far(stream: AsyncMessageStream[Any]) -> Usage | None:
@@ -355,7 +356,7 @@ def _usage_so_far(stream: AsyncMessageStream[Any]) -> Usage | None:
         return None
 
 
-async def answer(db: Session, p: Prepared) -> AsyncIterator[str]:
+async def answer(db: Session, p: Prepared) -> AsyncGenerator[str]:
     """The answer as Server-Sent Events: text pieces, then done (or error, after which the student sees what came
     with a line that it was cut off). The cost is settled on every way out, a dropped connection included."""
     said = False

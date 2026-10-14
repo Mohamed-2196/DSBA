@@ -1710,7 +1710,7 @@ export interface paths {
         /**
          * Create Note
          * @description A new note. Errors: invalid_input (422: an unknown module or lesson, or too long), too_many_notes (409),
-         *     rate_limited (429).
+         *     notes_full (409: the student's notes hold 10 MB of text), rate_limited (429).
          */
         post: operations["create_note_api_v1_notes_post"];
         delete?: never;
@@ -1731,7 +1731,8 @@ export interface paths {
         /**
          * Save Note
          * @description Save the whole note. Send the `version` you loaded: if it was saved since (another tab), 409 note_changed;
-         *     load it again, or send its new version to save yours over it. Errors: rate_limited (429: saving very fast).
+         *     load it again, or send its new version to save yours over it. Errors: notes_full (409: the student's notes hold
+         *     10 MB of text), rate_limited (429: saving very fast).
          */
         put: operations["save_note_api_v1_notes__note_id__put"];
         post?: never;
@@ -2025,7 +2026,8 @@ export interface paths {
          *
          *     Errors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly
          *     budget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),
-         *     rate_limited (429: a question a moment ago), invalid_input (422: too long).
+         *     rate_limited (429: a question a moment ago, or an answer still streaming to this student), noora_busy (503: too
+         *     many answers streaming hub-wide), invalid_input (422: too long).
          */
         post: operations["ask_noora_api_v1_noora_ask_post"];
         delete?: never;
@@ -2069,7 +2071,8 @@ export interface paths {
         /**
          * Set Noora Limits
          * @description Set the questions each student may ask a day (0 pauses the AI answers) and the monthly budget in US cents.
-         *     Admins only. Audited (`noora.limits`).
+         *     Admins only, with a session started or stepped up in the last ten minutes (403 step_up_required). Audited
+         *     (`noora.limits`).
          */
         put: operations["set_noora_limits_api_v1_admin_noora_put"];
         post?: never;
@@ -2121,6 +2124,10 @@ export interface components {
             emails: components["schemas"]["ExportEmail"][];
             /** Board */
             board: components["schemas"]["ExportBoardCard"][];
+            /** Notes */
+            notes: components["schemas"]["ExportNote"][];
+            /** Noorausage */
+            nooraUsage: components["schemas"]["ExportNooraDay"][];
         };
         /**
          * AdminStats
@@ -2936,7 +2943,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -3061,6 +3068,51 @@ export interface components {
             createdAt: string;
             /** Publishedat */
             publishedAt: string | null;
+        };
+        /**
+         * ExportNooraDay
+         * @description Mini Noora's AI questions on one day: only counts (no question or answer is stored).
+         */
+        ExportNooraDay: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Questions */
+            questions: number;
+            /** Inputtokens */
+            inputTokens: number;
+            /** Outputtokens */
+            outputTokens: number;
+        };
+        /** ExportNote */
+        ExportNote: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Body */
+            body: string;
+            /** Moduleid */
+            moduleId: string | null;
+            /** Lessonid */
+            lessonId: string | null;
+            /** Version */
+            version: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
         };
         /** ExportNotification */
         ExportNotification: {
@@ -5484,6 +5536,8 @@ export type ErrorResponse = components['schemas']['ErrorResponse'];
 export type ExportBoardCard = components['schemas']['ExportBoardCard'];
 export type ExportEmail = components['schemas']['ExportEmail'];
 export type ExportLibraryItem = components['schemas']['ExportLibraryItem'];
+export type ExportNooraDay = components['schemas']['ExportNooraDay'];
+export type ExportNote = components['schemas']['ExportNote'];
 export type ExportNotification = components['schemas']['ExportNotification'];
 export type ExportReaction = components['schemas']['ExportReaction'];
 export type ExportReply = components['schemas']['ExportReply'];
@@ -15916,7 +15970,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description noora_unavailable (no key) or noora_budget_reached (the month's budget is spent). */
+            /** @description noora_unavailable (no key), noora_budget_reached (the month's budget is spent) or noora_busy (too many answers streaming hub-wide). */
             503: {
                 headers: {
                     [name: string]: unknown;

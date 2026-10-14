@@ -70,6 +70,7 @@ export function fallback(e: unknown): { notice: string; pause: boolean } {
   if (code === 'noora_daily_limit') return { notice: 'You’ve used today’s AI questions, so this answer is from my script. Ask again tomorrow.', pause: true };
   if (code === 'noora_budget_reached') return { notice: 'My AI answers are paused until next month, so this answer is from my script.', pause: true };
   if (code === 'rate_limited') return { notice: 'One question at a time, so this answer is from my script.', pause: false };
+  if (code === 'noora_busy') return { notice: 'Lots of students are asking me right now, so this answer is from my script.', pause: false };
   const pause = code === 'noora_unavailable' || code === 'feature_off' || code === 'unauthenticated' || code === 'forbidden';
   return { notice: 'I can’t reach my AI right now, so this answer is from my script.', pause };
 }

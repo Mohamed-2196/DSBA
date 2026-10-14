@@ -197,6 +197,26 @@ class ExportBoardCard(ApiModel):
     done_at: datetime | None
 
 
+class ExportNote(ApiModel):
+    id: UUID
+    title: str
+    body: str
+    module_id: str | None
+    lesson_id: str | None
+    version: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class ExportNooraDay(ApiModel):
+    """Mini Noora's AI questions on one day: only counts (no question or answer is stored)."""
+
+    day: date
+    questions: int
+    input_tokens: int
+    output_tokens: int
+
+
 class ExportVote(ApiModel):
     type: Literal["thread", "reply"]
     id: UUID
@@ -264,3 +284,5 @@ class AccountExport(ApiModel):
     me_toos: list[UUID]  # requests this person said "me too" to
     emails: list[ExportEmail]
     board: list[ExportBoardCard]  # study-board cards
+    notes: list[ExportNote]  # private notes
+    noora_usage: list[ExportNooraDay]  # Mini Noora's AI questions per day

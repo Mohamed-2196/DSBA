@@ -10799,7 +10799,7 @@
           "notes"
         ],
         "summary": "Create Note",
-        "description": "A new note. Errors: invalid_input (422: an unknown module or lesson, or too long), too_many_notes (409),\nrate_limited (429).",
+        "description": "A new note. Errors: invalid_input (422: an unknown module or lesson, or too long), too_many_notes (409),\nnotes_full (409: the student's notes hold 10 MB of text), rate_limited (429).",
         "operationId": "create_note_api_v1_notes_post",
         "requestBody": {
           "required": true,
@@ -11002,7 +11002,7 @@
           "notes"
         ],
         "summary": "Save Note",
-        "description": "Save the whole note. Send the `version` you loaded: if it was saved since (another tab), 409 note_changed;\nload it again, or send its new version to save yours over it. Errors: rate_limited (429: saving very fast).",
+        "description": "Save the whole note. Send the `version` you loaded: if it was saved since (another tab), 409 note_changed;\nload it again, or send its new version to save yours over it. Errors: notes_full (409: the student's notes hold\n10 MB of text), rate_limited (429: saving very fast).",
         "operationId": "save_note_api_v1_notes__note_id__put",
         "parameters": [
           {
@@ -13026,7 +13026,7 @@
           "noora"
         ],
         "summary": "Ask Noora",
-        "description": "Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the\nnote or the answer. The note goes only when the student ticked \"Include my note\".\n\nErrors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly\nbudget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),\nrate_limited (429: a question a moment ago), invalid_input (422: too long).",
+        "description": "Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the\nnote or the answer. The note goes only when the student ticked \"Include my note\".\n\nErrors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly\nbudget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),\nrate_limited (429: a question a moment ago, or an answer still streaming to this student), noora_busy (503: too\nmany answers streaming hub-wide), invalid_input (422: too long).",
         "operationId": "ask_noora_api_v1_noora_ask_post",
         "requestBody": {
           "content": {
@@ -13140,7 +13140,7 @@
             }
           },
           "503": {
-            "description": "noora_unavailable (no key) or noora_budget_reached (the month's budget is spent).",
+            "description": "noora_unavailable (no key), noora_budget_reached (the month's budget is spent) or noora_busy (too many answers streaming hub-wide).",
             "content": {
               "application/json": {
                 "schema": {
@@ -13340,7 +13340,7 @@
           "noora"
         ],
         "summary": "Set Noora Limits",
-        "description": "Set the questions each student may ask a day (0 pauses the AI answers) and the monthly budget in US cents.\nAdmins only. Audited (`noora.limits`).",
+        "description": "Set the questions each student may ask a day (0 pauses the AI answers) and the monthly budget in US cents.\nAdmins only, with a session started or stepped up in the last ten minutes (403 step_up_required). Audited\n(`noora.limits`).",
         "operationId": "set_noora_limits_api_v1_admin_noora_put",
         "requestBody": {
           "content": {
@@ -13560,6 +13560,20 @@
             },
             "type": "array",
             "title": "Board"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/ExportNote"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "nooraUsage": {
+            "items": {
+              "$ref": "#/components/schemas/ExportNooraDay"
+            },
+            "type": "array",
+            "title": "Noorausage"
           }
         },
         "type": "object",
@@ -13578,7 +13592,9 @@
           "requests",
           "meToos",
           "emails",
-          "board"
+          "board",
+          "notes",
+          "nooraUsage"
         ],
         "title": "AccountExport",
         "description": "Everything the Hub stores about the signed-in user (GET /me/export)."
@@ -16232,10 +16248,12 @@
               "content_in_use",
               "note_changed",
               "too_many_notes",
+              "notes_full",
               "board_full",
               "already_on_board",
               "noora_unavailable",
               "noora_budget_reached",
+              "noora_busy",
               "noora_daily_limit"
             ],
             "title": "Code"
@@ -16682,6 +16700,101 @@
           "publishedAt"
         ],
         "title": "ExportLibraryItem"
+      },
+      "ExportNooraDay": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "questions": {
+            "type": "integer",
+            "title": "Questions"
+          },
+          "inputTokens": {
+            "type": "integer",
+            "title": "Inputtokens"
+          },
+          "outputTokens": {
+            "type": "integer",
+            "title": "Outputtokens"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "questions",
+          "inputTokens",
+          "outputTokens"
+        ],
+        "title": "ExportNooraDay",
+        "description": "Mini Noora's AI questions on one day: only counts (no question or answer is stored)."
+      },
+      "ExportNote": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          },
+          "lessonId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lessonid"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "body",
+          "moduleId",
+          "lessonId",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "ExportNote"
       },
       "ExportNotification": {
         "properties": {
