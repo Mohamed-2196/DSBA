@@ -12,7 +12,7 @@ vi.mock('../calendar/public', () => ({
   },
 }));
 vi.mock('../modules/public', () => ({
-  lessonHref: (id: string, c: number, v: number) => `/modules/${id}?tab=lessons&chapter=${c}&video=${v}`,
+  lessonHref: (id: string, lesson: string) => `/modules/${id}/lessons/${lesson}`,
 }));
 
 const { answer, buildKnowledge } = await import('./brain');
@@ -25,10 +25,14 @@ const ST2133 = summary('advanced-stats-distribution', 'ST2133', 'Advanced Statis
 const detail = {
   ...ST2133,
   chapters: [
-    { title: 'Probability Space', videos: [{ title: 'Indicator Functions' }] },
+    { title: 'Probability Space', videos: [{ id: 'ind', title: 'Indicator Functions' }] },
     {
       title: 'Random variables and univariate distributions',
-      videos: [{ title: 'Introduction to the Bernoulli Distribution' }, { title: 'An Introduction to the Poisson Distribution' }, { title: 'Probability Exponential Distribution Problems' }],
+      videos: [
+        { id: 'bern', title: 'Introduction to the Bernoulli Distribution' },
+        { id: 'pois', title: 'An Introduction to the Poisson Distribution' },
+        { id: 'expo', title: 'Probability Exponential Distribution Problems' },
+      ],
     },
   ],
 } as unknown as ModuleDetail;
@@ -48,7 +52,7 @@ describe('MGF questions (ST-3)', () => {
     expect(r.steps).toBeUndefined();
     expect(r.text).toBe('The MGF of the Poisson distribution:');
     expect(r.refs.map((x) => x.label)).toEqual(['Chapter 2 · Random variables and univariate distributions', 'Poisson distribution', 'ST2133 notes and past papers']);
-    expect(r.refs[1]?.to).toBe('/modules/advanced-stats-distribution?tab=lessons&chapter=1&video=1');
+    expect(r.refs[1]?.to).toBe('/modules/advanced-stats-distribution/lessons/pois');
   });
 
   it('knows the normal, the exponential and the gamma, and reads "beta" in a gamma question as a parameter', () => {

@@ -10,7 +10,7 @@ vi.mock('../calendar/public', () => ({
   },
 }));
 vi.mock('../modules/public', () => ({
-  lessonHref: (id: string, c: number, v: number) => `/modules/${id}?tab=lessons&chapter=${c}&video=${v}`,
+  lessonHref: (id: string, lesson: string) => `/modules/${id}/lessons/${lesson}`,
 }));
 
 const { answer, buildKnowledge } = await import('./brain');

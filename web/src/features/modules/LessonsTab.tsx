@@ -1,5 +1,5 @@
 // Lessons tab: the player (click-to-load poster, then the embed) with the lesson's details and controls, beside
-// the chapter list. The lesson on screen lives in the URL (?tab=lessons&chapter=<i>&video=<j>).
+// the chapter list. The lesson on screen lives in the URL (/modules/<id>/lessons/<lesson id>).
 import { ArrowSquareOut, CalendarBlank, CaretLeft, CaretRight, CheckCircle, Circle, Headphones, Warning, WifiSlash } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { ModuleDetail, Video } from '../../api/types';

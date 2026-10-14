@@ -1,5 +1,6 @@
 // Chapter list beside the player: chapters with per-chapter progress, expanding to their videos.
-// Each video is a link (?tab=lessons&chapter=<i>&video=<j>), so lessons can be opened in a new tab.
+// Each video is a link to the lesson's address (/modules/<id>/lessons/<lesson id>), so lessons can be opened in a new
+// tab.
 import { ArrowCounterClockwise, CaretDown, Check, CheckCircle, DotsThree, Play, Warning } from '@phosphor-icons/react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';

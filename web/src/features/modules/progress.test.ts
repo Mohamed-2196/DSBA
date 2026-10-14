@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+import type { Chapter, Video } from '../../api/types';
 import {
   EMPTY_PROGRESS,
   computeChapterProgress,
