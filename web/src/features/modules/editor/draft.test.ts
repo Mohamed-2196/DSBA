@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import type { ModuleEdit } from '../../../api/types';
 import { addChapter, addLesson, canStepLesson, draftProblems, isDirty, moveChapter, moveLesson, removeLesson, stepLesson, toDraft, toSave, updateLesson, videoKind } from './draft';
 
-const lesson = (chapter: number, video: number, id: string) => ({
+const lesson = (id: string, video: string) => ({
+  id,
   kind: 'youtube' as const,
-  url: `https://www.youtube.com/watch?v=${id}`,
-  title: `Video ${id}`,
+  url: `https://www.youtube.com/watch?v=${video}`,
+  title: `Video ${video}`,
   channel: null,
   hidden: false,
-  origin: { chapter, video },
 });
 
 const loaded: ModuleEdit = {
@@ -27,33 +27,33 @@ const loaded: ModuleEdit = {
   description: 'Means and **medians**.',
   resources: { materials: 'https://drive.google.com/x', exercises: null, exercisesNote: null, vle: null, olderExams: null, cheatSheet: null },
   chapters: [
-    { title: 'One', hidden: false, origin: 0, lessons: [lesson(0, 0, 'aaaaaaaaaaa'), lesson(0, 1, 'bbbbbbbbbbb')] },
-    { title: 'Two', hidden: true, origin: 1, lessons: [lesson(1, 0, 'ccccccccccc')] },
+    { id: 'chone', title: 'One', hidden: false, lessons: [lesson('la', 'aaaaaaaaaaa'), lesson('lb', 'bbbbbbbbbbb')] },
+    { id: 'chtwo', title: 'Two', hidden: true, lessons: [lesson('lc', 'ccccccccccc')] },
   ],
 };
 
 const titles = (d: ReturnType<typeof toDraft>) => d.chapters.map((c) => c.lessons.map((l) => l.title));
 
 describe('the module draft', () => {
-  it('saves what was loaded unchanged, with every origin', () => {
+  it('saves what was loaded unchanged, with every id', () => {
     const body = toSave(toDraft(loaded), loaded.version);
     expect(body.version).toBe(4);
     expect(body.unitCode).toBe('ST1215');
     expect(body.resources?.materials).toBe('https://drive.google.com/x');
     expect(body.resources?.vle).toBeNull();
-    expect(body.chapters?.map((c) => [c.origin, c.hidden])).toEqual([
-      [0, false],
-      [1, true],
+    expect(body.chapters?.map((c) => [c.id, c.hidden])).toEqual([
+      ['chone', false],
+      ['chtwo', true],
     ]);
-    expect(body.chapters?.[0]?.lessons?.[1]).toEqual({ url: 'https://www.youtube.com/watch?v=bbbbbbbbbbb', title: 'Video bbbbbbbbbbb', channel: null, hidden: false, origin: { chapter: 0, video: 1 } });
+    expect(body.chapters?.[0]?.lessons?.[1]).toEqual({ url: 'https://www.youtube.com/watch?v=bbbbbbbbbbb', title: 'Video bbbbbbbbbbb', channel: null, hidden: false, id: 'lb' });
     expect(isDirty(toDraft(loaded), loaded)).toBe(false);
   });
 
-  it('moves lessons within and across chapters, keeping their origins', () => {
+  it('moves lessons within and across chapters, keeping their ids', () => {
     const d = toDraft(loaded);
     const across = moveLesson(d, { chapter: 1, lesson: 0 }, { chapter: 0, lesson: 0 });
     expect(titles(across)).toEqual([['Video ccccccccccc', 'Video aaaaaaaaaaa', 'Video bbbbbbbbbbb'], []]);
-    expect(toSave(across, 4).chapters?.[0]?.lessons?.[0]?.origin).toEqual({ chapter: 1, video: 0 });
+    expect(toSave(across, 4).chapters?.[0]?.lessons?.[0]?.id).toBe('lc');
     expect(isDirty(across, loaded)).toBe(true);
   });
 
@@ -65,11 +65,11 @@ describe('the module draft', () => {
     expect(canStepLesson(d, { chapter: 1, lesson: 0 }, 1)).toBe(false);
   });
 
-  it('reorders chapters and adds new ones without an origin', () => {
+  it('reorders chapters and adds new ones without an id', () => {
     const d = addLesson(addChapter(moveChapter(toDraft(loaded), 1, 0)), 2);
     const body = toSave(d, 4);
-    expect(body.chapters?.map((c) => c.origin)).toEqual([1, 0, null]);
-    expect(body.chapters?.[2]?.lessons?.[0]?.origin).toBeNull();
+    expect(body.chapters?.map((c) => c.id)).toEqual(['chtwo', 'chone', null]);
+    expect(body.chapters?.[2]?.lessons?.[0]?.id).toBeNull();
   });
 
   it('finds what the API would refuse before saving', () => {

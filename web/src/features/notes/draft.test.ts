@@ -8,14 +8,13 @@ const note = (over: Partial<Note> = {}): Note => ({
   body: 'E[X]',
   excerpt: 'E[X]',
   moduleId: null,
-  chapter: null,
-  video: null,
+  lessonId: null,
   version: 3,
   createdAt: '2026-10-13T10:00:00Z',
   updatedAt: '2026-10-13T10:00:00Z',
   ...over,
 });
-const doc = (over: Partial<NoteDoc> = {}): NoteDoc => ({ title: 'Moments', body: 'E[X]', moduleId: null, chapter: null, video: null, ...over });
+const doc = (over: Partial<NoteDoc> = {}): NoteDoc => ({ title: 'Moments', body: 'E[X]', moduleId: null, lessonId: null, ...over });
 
 describe('openNote', () => {
   it('opens the server note when there is no copy here, or the copy says the same', () => {
@@ -41,7 +40,7 @@ describe('asDraft', () => {
     expect(asDraft({ doc: doc(), base: null, at: 5 })?.base).toBeNull();
     expect(asDraft(null)).toBeNull();
     expect(asDraft({ doc: { title: 1 }, base: 2, at: 5 })).toBeNull();
-    expect(asDraft({ doc: doc({ chapter: 1.5 }), base: 2, at: 5 })).toBeNull();
+    expect(asDraft({ doc: { ...doc(), lessonId: 3 }, base: 2, at: 5 })).toBeNull();
     expect(asDraft({ doc: doc(), base: '2', at: 5 })).toBeNull();
   });
 });
@@ -49,14 +48,13 @@ describe('asDraft', () => {
 describe('docs', () => {
   it('compares every field', () => {
     expect(sameDoc(doc(), doc())).toBe(true);
-    expect(sameDoc(doc(), doc({ video: 0, chapter: 0 }))).toBe(false);
+    expect(sameDoc(doc(), doc({ lessonId: 'abc' }))).toBe(false);
     expect(sameDoc(doc(), null)).toBe(false);
   });
 
   it('starts a new note where it was asked for, keeping a lesson only with its module', () => {
-    expect(emptyDoc({ moduleId: 'm', chapter: 1, video: 2 })).toEqual(doc({ title: '', body: '', moduleId: 'm', chapter: 1, video: 2 }));
-    expect(emptyDoc({ chapter: 1, video: 2 })).toEqual(doc({ title: '', body: '' }));
-    expect(emptyDoc({ moduleId: 'm', video: 2 }).video).toBeNull();
+    expect(emptyDoc({ moduleId: 'm', lessonId: 'abc' })).toEqual(doc({ title: '', body: '', moduleId: 'm', lessonId: 'abc' }));
+    expect(emptyDoc({ lessonId: 'abc' })).toEqual(doc({ title: '', body: '' }));
     expect(isBlank(emptyDoc())).toBe(true);
     expect(isBlank(doc({ title: ' ', body: 'x' }))).toBe(false);
   });
