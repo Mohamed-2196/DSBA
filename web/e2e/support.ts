@@ -198,9 +198,12 @@ export async function prepareContext(ctx: BrowserContext, { noora = false, year 
 }
 
 export async function personaContext(browser: Browser, who: Persona, opts: Parameters<typeof prepareContext>[1] & { mobile?: boolean } = {}): Promise<BrowserContext> {
+  // The saved state carries the setup's localStorage, Mini Noora hidden included: a test that wants her drops that.
+  const state = JSON.parse(fs.readFileSync(statePath(who), 'utf8')) as Awaited<ReturnType<BrowserContext['storageState']>>;
+  if (opts.noora) for (const o of state.origins) o.localStorage = o.localStorage.filter((item) => item.name !== 'hub.noora.hidden');
   const ctx = await browser.newContext({
     baseURL: env.baseURL,
-    storageState: statePath(who),
+    storageState: state,
     acceptDownloads: true,
     ...(opts.mobile ? { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } : {}),
   });
