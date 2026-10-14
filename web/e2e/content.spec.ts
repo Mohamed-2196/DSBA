@@ -10,8 +10,8 @@ test('a content editor adds a module with a lesson, hides it and removes it', as
     await admin.goto('/manage?tab=content');
     await admin.getByRole('button', { name: 'Add a module' }).click();
     const dialog = admin.getByRole('dialog', { name: 'Add a module' });
-    await dialog.getByLabel('Name').fill(name);
-    await dialog.getByLabel('Short name').fill('E2E');
+    await dialog.getByLabel('Name', { exact: true }).fill(name);
+    await dialog.getByLabel('Short name', { exact: true }).fill('E2E');
     await dialog.getByLabel('Address').fill(id);
     await dialog.getByLabel('Year').selectOption('3');
     await dialog.getByRole('button', { name: 'Add the module' }).click();
