@@ -107,9 +107,7 @@ def test_sec24_export_leaves_out_notes(
     assert "notes" not in export.json()
 
 
-def test_sec25_noora_limits_need_no_step_up(
-    client_for: ClientFor, make_user: MakeUser, db: Session
-) -> None:
+def test_sec25_noora_limits_need_no_step_up(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     """SEC-25: an admin session of any age raises the AI budget to US$10,000 a month without a code."""
     boss = make_user(name="Boss Admin", roles=("student", "admin"))
     c = client_for(boss)
