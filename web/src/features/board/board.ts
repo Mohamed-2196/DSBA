@@ -111,7 +111,7 @@ export function planPace(plan: Pick<BoardPlan, 'left' | 'daysLeft'>): string {
 }
 
 /** A sitting: a paper's exam year and session (May or October), as the library groups them (GET /library/papers);
- *  zone A and zone B are two papers of one sitting. Papers without a year count as one sitting each. */
+ *  zone A, zone B and RTC are papers of one sitting. Papers without a year count as one sitting each. */
 export interface Paper {
   id: string;
   examYear?: number | null;

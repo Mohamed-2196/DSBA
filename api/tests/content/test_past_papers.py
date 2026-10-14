@@ -45,6 +45,8 @@ def test_a_modules_papers_come_by_sitting_with_their_reports_newest_first(
 
     share("EC1002 ZA May 2024", exam_year=2024, exam_session="may", zone="A")
     share("EC1002 ZB May 2024", exam_year=2024, exam_session="may", zone="B")
+    share("EC1002 RTC May 2024", exam_year=2024, exam_session="may", zone="RTC")
+    share("EC1002 RTC commentary May 2024", "examiners-report", exam_year=2024, exam_session="may", zone="RTC")
     share("EC1002 commentary May 2024", "examiners-report", exam_year=2024, exam_session="may")
     share("EC1002 ZA solutions May 2024", "exam-solutions", exam_year=2024, exam_session="may", zone="A")
     share("EC1002 October 2024", exam_year=2024, exam_session="october")
@@ -73,6 +75,7 @@ def test_a_modules_papers_come_by_sitting_with_their_reports_newest_first(
             [
                 ("A", ["EC1002 ZA May 2024"], [], ["EC1002 ZA solutions May 2024"]),
                 ("B", ["EC1002 ZB May 2024"], [], []),
+                ("RTC", ["EC1002 RTC May 2024"], ["EC1002 RTC commentary May 2024"], []),
                 (None, [], ["EC1002 commentary May 2024"], []),
             ],
         ),
@@ -233,10 +236,12 @@ def test_exam_meta_fills_what_imported_files_lack_and_keeps_what_a_rep_set(
     old = imported(db, "EC1002 - Introduction to Economics - 2019 Exam - Zone-A.pdf", "past-paper", exam_year=2019)
     edited = imported(db, "EC1002 ZA exam paper - May 2023.pdf", "past-paper", exam_year=2021, zone="B")
     notes = imported(db, "EC1002 notes May 2024.pdf", "notes")
+    # an RTC file with its year and no zone: the backfill gives it the RTC zone
+    rtc = imported(db, "MN3141 RTC Commentary - May 2026 DRAFT.docx", "examiners-report", exam_year=2026)
 
     result = backfill_exam_meta(db, dry_run=True)
-    assert result.checked == 5
-    assert len(result.changed) == 4
+    assert result.checked == 6
+    assert len(result.changed) == 5
     db.refresh(solutions)
     assert solutions.kind == "past-paper"  # a dry run changes nothing
 
@@ -246,8 +251,8 @@ def test_exam_meta_fills_what_imported_files_lack_and_keeps_what_a_rep_set(
 
     monkeypatch.setattr(cli, "get_sessionmaker", lambda: same_session)
     assert cli.main(["exam-meta"]) == 0
-    assert "Changed 4 of 5 imported papers, reports and VLE files." in capsys.readouterr().out
-    items = (solutions, report, vle_other, old, edited, notes)
+    assert "Changed 5 of 6 imported papers, reports and VLE files." in capsys.readouterr().out
+    items = (solutions, report, vle_other, old, edited, notes, rtc)
     for item in items:
         db.refresh(item)
     got = {i.title: (i.kind, i.exam_year, i.exam_session, i.zone) for i in items}
@@ -258,5 +263,6 @@ def test_exam_meta_fills_what_imported_files_lack_and_keeps_what_a_rep_set(
         old.title: ("past-paper", 2019, "may", "A"),
         edited.title: ("past-paper", 2021, "may", "B"),  # the rep's year and zone stay; the session was empty
         notes.title: ("notes", None, None, None),  # not from a papers or VLE folder
+        rtc.title: ("examiners-report", 2026, "may", "RTC"),
     }
     assert backfill_exam_meta(db).changed == []  # safe to run again

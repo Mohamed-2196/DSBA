@@ -25,7 +25,9 @@ LibraryKind = Literal[
     "other",
 ]
 ExamSession = Literal["may", "october"]  # the May sitting or the October resits
-Zone = Literal["A", "B"]
+# The versions the University of London sets of a paper: zone A, zone B, and for some modules the RTC paper, the one
+# set for Recognised Teaching Centres.
+Zone = Literal["A", "B", "RTC"]
 ItemStatus = Literal["pending", "published", "rejected", "removed"]
 Title = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=200)]
 Description = Annotated[str, StringConstraints(strip_whitespace=True, max_length=2000)]
@@ -139,8 +141,8 @@ class FileLink(ApiModel):
 
 
 class SittingZone(ApiModel):
-    """One zone's papers in a sitting, with their examiners' reports and solutions. `zone` None: files for both
-    zones, or a sitting with one paper."""
+    """One zone's papers in a sitting, with their examiners' reports and solutions: zone A, zone B or RTC (the paper set
+    for Recognised Teaching Centres). `zone` None: files for every zone, or a sitting with one paper."""
 
     zone: Zone | None
     papers: list[LibraryItem]
@@ -151,7 +153,7 @@ class SittingZone(ApiModel):
 class Sitting(ApiModel):
     exam_year: int
     session: ExamSession | None
-    zones: list[SittingZone]  # zone A, zone B, then both zones
+    zones: list[SittingZone]  # zone A, zone B, RTC, then every zone
 
 
 class PaperSittings(ApiModel):

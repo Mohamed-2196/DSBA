@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import type { ModuleSummary } from '../../../api/types';
 import { useModules } from '../../../state/modules';
 import { Badge, cx } from '../../../ui';
-import { isNew, linkPlace, moduleTag } from '../display';
+import { isNew, linkPlace, moduleTag, zoneLabel } from '../display';
 import { formatOf, kindLabel } from '../kinds';
 import type { LibraryItem } from '../types';
 import './FileThumb.css';
@@ -57,7 +57,7 @@ export function FileThumb({
               {item.examYear ? (
                 <span className="lib-cover__exam">
                   {item.examYear}
-                  {item.zone ? ` · Zone ${item.zone}` : ''}
+                  {item.zone ? ` · ${zoneLabel(item.zone)}` : ''}
                 </span>
               ) : null}
             </span>

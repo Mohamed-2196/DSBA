@@ -352,7 +352,7 @@ def facets(db: Session) -> LibraryFacets:
 
 EXAM_KINDS: tuple[LibraryKind, ...] = ("past-paper", "examiners-report", "exam-solutions")
 _SESSION_ORDER = {"october": 0, "may": 1, None: 2}  # newest first within a year: the resits come after May
-_ZONE_ORDER = {"A": 0, "B": 1, None: 2}
+_ZONE_ORDER = {"A": 0, "B": 1, "RTC": 2, None: 3}
 
 
 def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
@@ -378,7 +378,7 @@ def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
             other.append(out[i.id])
             continue
         zones = groups.setdefault((i.exam_year, i.exam_session), {})
-        zone = i.zone if i.zone in ("A", "B") else None
+        zone = i.zone if i.zone in _ZONE_ORDER else None
         bucket = zones.setdefault(zone, SittingZone(zone=zone, papers=[], reports=[], solutions=[]))
         if i.kind == "examiners-report":
             bucket.reports.append(out[i.id])

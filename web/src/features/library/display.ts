@@ -60,10 +60,18 @@ export function sittingLabel(examYear: number, session: LibraryItem['examSession
   return String(examYear);
 }
 
+/** 'Zone A', or 'RTC' for the paper set for Recognised Teaching Centres. */
+export function zoneLabel(zone: string): string {
+  return zone === 'RTC' ? 'RTC' : `Zone ${zone}`;
+}
+
+/** What RTC means, for where zones are shown. */
+export const RTC_NOTE = 'RTC: the paper set for Recognised Teaching Centres.';
+
 /** 'May 2025, Zone A'. */
 export function examLabel(item: Pick<LibraryItem, 'examYear' | 'examSession' | 'zone'>): string | null {
   if (!item.examYear && !item.zone) return null;
-  return [item.examYear ? sittingLabel(item.examYear, item.examSession) : null, item.zone ? `Zone ${item.zone}` : null].filter(Boolean).join(', ');
+  return [item.examYear ? sittingLabel(item.examYear, item.examSession) : null, item.zone ? zoneLabel(item.zone) : null].filter(Boolean).join(', ');
 }
 
 export interface StatusInfo {

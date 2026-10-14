@@ -3,7 +3,7 @@
 import { Link } from 'react-router-dom';
 import type { PaperQuestion } from '../../api/types';
 import { Skeleton } from '../../ui';
-import { sittingLabel } from './display';
+import { sittingLabel, zoneLabel } from './display';
 import { questionHref, questionLabel, useModuleQuestions } from './papers';
 import './ChapterQuestions.css';
 
@@ -11,7 +11,7 @@ import './ChapterQuestions.css';
 function paperLabel(q: PaperQuestion): string {
   const p = q.paper;
   if (!p.examYear) return p.title;
-  return [sittingLabel(p.examYear, p.examSession), p.zone ? `Zone ${p.zone}` : null].filter(Boolean).join(', ');
+  return [sittingLabel(p.examYear, p.examSession), p.zone ? zoneLabel(p.zone) : null].filter(Boolean).join(', ');
 }
 
 export function ChapterQuestions({ moduleId, chapterId }: { moduleId: string; chapterId: string }) {

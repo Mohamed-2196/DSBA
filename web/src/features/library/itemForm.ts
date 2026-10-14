@@ -13,7 +13,7 @@ export interface ItemFormValues {
   examYear: string;
   /** '' = not said: the May sitting or the October resits. */
   session: '' | 'may' | 'october';
-  zone: '' | 'A' | 'B';
+  zone: '' | 'A' | 'B' | 'RTC';
   authorName: string;
   description: string;
 }
@@ -44,7 +44,7 @@ export function valuesFromItem(item: LibraryItem): ItemFormValues {
     year: item.year ? (String(item.year) as ItemFormValues['year']) : '',
     examYear: item.examYear ? String(item.examYear) : '',
     session: item.examSession ?? '',
-    zone: item.zone === 'A' || item.zone === 'B' ? item.zone : '',
+    zone: item.zone === 'A' || item.zone === 'B' || item.zone === 'RTC' ? item.zone : '',
     authorName: item.authorName ?? '',
     description: item.description ?? '',
   };

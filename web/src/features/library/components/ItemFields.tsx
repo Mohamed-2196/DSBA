@@ -1,5 +1,6 @@
 import { useModules } from '../../../state/modules';
 import { Select, TextArea, TextField } from '../../../ui';
+import { RTC_NOTE } from '../display';
 import { EXAM_KINDS, KINDS, isLibraryKind } from '../kinds';
 import { NO_MODULE, type ItemFormErrors, type ItemFormValues } from '../itemForm';
 
@@ -109,11 +110,13 @@ export function ItemFields({
             value={values.zone}
             onChange={(e) => onChange({ zone: e.target.value as ItemFormValues['zone'] })}
             error={errors.zone}
+            hint={values.zone === 'RTC' ? RTC_NOTE : undefined}
             disabled={disabled}
             options={[
               { value: '', label: 'No zone' },
               { value: 'A', label: 'Zone A' },
               { value: 'B', label: 'Zone B' },
+              { value: 'RTC', label: 'RTC' },
             ]}
           />
         </div>

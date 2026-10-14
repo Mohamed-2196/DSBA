@@ -65,7 +65,7 @@ class LibraryItem(Base):
     content_type: Mapped[str | None] = mapped_column(String(127))
     size_bytes: Mapped[int | None] = mapped_column(BigInteger)
     exam_year: Mapped[int | None] = mapped_column(SmallInteger)  # past papers and examiners' reports
-    zone: Mapped[str | None] = mapped_column(String(8))  # 'A' | 'B'
+    zone: Mapped[str | None] = mapped_column(String(8))  # 'A' | 'B' | 'RTC' (schemas.library.Zone)
     exam_session: Mapped[str | None] = mapped_column(String(8))  # 'may' | 'october' (schemas/library.py ExamSession)
     author_name: Mapped[str | None] = mapped_column(String(120))  # credited author, as typed by the uploader
     # Where a file the server imported came from: 'drive/<module>/<Drive file id>' (python -m app.cli import-drive).

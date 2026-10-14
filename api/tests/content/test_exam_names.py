@@ -51,8 +51,10 @@ NAMES: list[tuple[str, ExamMeta]] = [
     ("IS2184 - Information Systems Management - 2022 Examiner Commentaries.pdf", report(2022, "may")),
     # the VLE
     ("MN3141 ZA exam paper - May 2024.pdf", paper(2024, "may", "A")),
-    ("MN3141 RTC Exam paper - May 2025.pdf", paper(2025, "may")),
-    ("MN3141 RTC Exam paper - October 2025 (final).docx", paper(2025, "october")),
+    ("MN3141 RTC Exam paper - May 2025.pdf", paper(2025, "may", "RTC")),
+    ("MN3141 RTC Exam paper - October 2025 (final).docx", paper(2025, "october", "RTC")),
+    ("MN3141 RTC Exam paper \u00e2 May 2026.pdf", paper(2026, "may", "RTC")),
+    ("MN3141 RTC Commentary - May 2026 DRAFT.docx", report(2026, "may", "RTC")),
     ("MN3141 commentary May 2024 - ZB.pdf", report(2024, "may", "B")),
     ("MN3141_Commentary_2022 ZA.pdf", report(2022, "may", "A")),
     ("MT3095_Commentary_October_2025.pdf", report(2025, "october")),
