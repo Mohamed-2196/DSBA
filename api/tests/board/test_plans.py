@@ -1,4 +1,4 @@
-"""Revision plans on the study board: a module's unwatched lessons and some past papers, spread to the exam."""
+"""Revision plans on a board: a module's unwatched lessons and some past papers, spread to the exam."""
 
 from __future__ import annotations
 
@@ -14,9 +14,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.time import bahrain_today, utcnow
-from app.models import BoardCard, BoardPlan, ItemSource, ItemStatus, LibraryItem, Module, User
-from app.services import board as svc
-from tests.board.conftest import API
+from app.models import BoardCard, BoardColumn, BoardPlan, ItemSource, ItemStatus, LibraryItem, Module, User
+from app.services.board import cards as cards_svc
+from app.services.board import common
+from app.services.board import plans as svc
+from tests.board.conftest import API, column, first_board, make_board, move
 from tests.lessons import lesson_id
 
 ClientFor = Callable[..., TestClient]
@@ -45,25 +47,29 @@ def paper(db: Session, module: Module, exam_year: int, zone: str = "A", kind: st
 
 def plan(c: TestClient, module: Module, days: int, **body: Any) -> dict[str, Any]:
     exam = (bahrain_today() + timedelta(days=days)).isoformat()
-    r = c.post(f"{API}/board/plans", json={"moduleId": module.id, "examDate": exam, **body})
+    r = c.post(f"{API}/board-plans", json={"moduleId": module.id, "examDate": exam, **body})
     assert r.status_code == 200, r.text
     made: dict[str, Any] = r.json()
     return made
 
 
 def board(c: TestClient) -> dict[str, Any]:
-    out: dict[str, Any] = c.get(f"{API}/board").json()
+    """The first board, with "column" on each card: the name of its column."""
+    out: dict[str, Any] = c.get(f"{API}/boards/{first_board(c)['id']}").json()
+    names = {col["id"]: col["name"] for col in out["board"]["columns"]}
+    for card in out["cards"]:
+        card["column"] = names[card["columnId"]]
     return out
 
 
 def test_spread_puts_the_cards_evenly_before_the_exam() -> None:
     today = dt.date(2026, 5, 1)
     cards = [BoardCard(id=uuid.uuid4()) for _ in range(4)]
-    days = svc.spread(cards, dt.date(2026, 5, 3), today)
+    days = cards_svc.spread(cards, dt.date(2026, 5, 3), today)
     assert [days[c.id].day for c in cards] == [1, 1, 2, 2]
-    days = svc.spread(cards[:2], dt.date(2026, 5, 11), today)
+    days = cards_svc.spread(cards[:2], dt.date(2026, 5, 11), today)
     assert [days[c.id].day for c in cards[:2]] == [1, 6]
-    assert svc.spread(cards, today, today) == {}
+    assert cards_svc.spread(cards, today, today) == {}
 
 
 def test_papers_close_their_share_of_the_lessons() -> None:
@@ -86,6 +92,7 @@ def test_a_plan_adds_unwatched_lessons_and_papers_and_spreads_them(
     assert made["plan"] == {
         "moduleId": module.id,
         "moduleName": "Test",
+        "boardId": first_board(c)["id"],
         "examDate": (bahrain_today() + timedelta(days=6)).isoformat(),
         "paperEvery": 3,
         "left": 4,
@@ -94,7 +101,7 @@ def test_a_plan_adds_unwatched_lessons_and_papers_and_spreads_them(
     }
     got = board(c)
     assert got["plans"] == [made["plan"]]
-    todo = [x for x in got["cards"] if x["column"] == "todo"]
+    todo = [x for x in got["cards"] if x["column"] == "To do"]
     assert [x["title"] for x in todo] == ["Test: One, lesson 2", old.title, "Test: Two, lesson 1", new.title]
     assert all(x["planModuleId"] == module.id for x in todo)
     today = bahrain_today()
@@ -104,10 +111,10 @@ def test_a_plan_adds_unwatched_lessons_and_papers_and_spreads_them(
     # watching a lesson ticks it off and the rest spread again
     c.put(f"{API}/me/progress/lessons/{lesson_id(module, 0, 1)}", json={"watched": True})
     got = board(c)
-    todo = [x for x in got["cards"] if x["column"] == "todo"]
+    todo = [x for x in got["cards"] if x["column"] == "To do"]
     assert [x["planDate"] for x in todo] == [(today + timedelta(days=d)).isoformat() for d in (0, 2, 4)]
     assert (got["plans"][0]["left"], got["plans"][0]["done"]) == (3, 1)
-    assert next(x for x in got["cards"] if x["column"] == "done")["planDate"] is None
+    assert next(x for x in got["cards"] if x["column"] == "Done")["planDate"] is None
 
     # planning again keeps the cards, takes the new date and adds nothing twice
     again = plan(c, module, 10, paperEvery=2)
@@ -122,7 +129,7 @@ def test_a_plan_skips_what_is_already_on_the_board_and_papers_when_the_library_i
     set_feature("library", "off")
     paper(db, module, 2024)
     c = client_for(make_user())
-    c.post(f"{API}/board/cards", json={"link": {"type": "lesson", "id": lesson_id(module, 1, 0)}})
+    c.post(f"{API}/board-cards", json={"link": {"type": "lesson", "id": lesson_id(module, 1, 0)}})
     made = plan(c, module, 30)
     assert made["added"] == 2
     own = next(x for x in board(c)["cards"] if x["link"]["id"] == lesson_id(module, 1, 0))
@@ -140,12 +147,12 @@ def test_a_plan_needs_a_module_and_a_date_after_today(
         ({"moduleId": module.id, "examDate": today.isoformat()}, "examDate"),
         ({"moduleId": module.id, "examDate": (today + timedelta(days=400)).isoformat()}, "examDate"),
     ):
-        r = c.post(f"{API}/board/plans", json=body)
+        r = c.post(f"{API}/board-plans", json=body)
         assert r.status_code == 422, body
         assert field in r.json()["error"]["fields"]
-    r = c.post(f"{API}/board/plans", json={"moduleId": module.id, "examDate": "2027-01-01", "paperEvery": 0})
+    r = c.post(f"{API}/board-plans", json={"moduleId": module.id, "examDate": "2027-01-01", "paperEvery": 0})
     assert r.status_code == 422
-    guest = client_for().post(f"{API}/board/plans", json={"moduleId": module.id, "examDate": "2027-01-01"})
+    guest = client_for().post(f"{API}/board-plans", json={"moduleId": module.id, "examDate": "2027-01-01"})
     assert guest.status_code == 401
 
 
@@ -157,34 +164,35 @@ def test_removing_a_plan_keeps_what_is_done(
     plan(c, module, 9)
     c.put(f"{API}/me/progress/lessons/{lesson_id(module, 0, 0)}", json={"watched": True})
     other = client_for(make_user(name="Omar Classmate"))
-    assert other.delete(f"{API}/board/plans/{module.id}").status_code == 404
-    assert c.delete(f"{API}/board/plans/{module.id}").status_code == 204
+    assert other.delete(f"{API}/board-plans/{module.id}").status_code == 404
+    assert c.delete(f"{API}/board-plans/{module.id}").status_code == 204
     got = board(c)
     assert got["plans"] == []
-    assert [(x["title"], x["column"], x["planModuleId"]) for x in got["cards"]] == [("Test: Limits", "done", None)]
-    assert c.delete(f"{API}/board/plans/{module.id}").status_code == 404
+    assert [(x["title"], x["column"], x["planModuleId"]) for x in got["cards"]] == [("Test: Limits", "Done", None)]
+    assert c.delete(f"{API}/board-plans/{module.id}").status_code == 404
 
 
 def test_a_plan_must_fit_on_the_board_and_is_rate_limited(
     client_for: ClientFor, make_user: MakeUser, module: Module, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    user = make_user()
-    earlier = utcnow() - timedelta(hours=2)
-    db.add_all(
-        BoardCard(user_id=user.id, column="todo", position=float(i), title=f"{i}", created_at=earlier)
-        for i in range(svc.MAX_CARDS - 2)
-    )
-    db.commit()
-    c = client_for(user)
-    r = c.post(f"{API}/board/plans", json={"moduleId": module.id, "examDate": "2027-01-01"})
+    monkeypatch.setattr(common, "MAX_CARDS", 2)
+    monkeypatch.setattr(cards_svc, "MAX_CARDS", 2)
+    c = client_for(make_user())
+    r = c.post(f"{API}/board-plans", json={"moduleId": module.id, "examDate": "2027-01-01"})
     assert r.status_code == 409
     assert r.json()["error"]["code"] == "board_full"
 
     monkeypatch.setattr(svc, "PLAN_LIMIT", 1)
     busy = make_user()
-    db.add(BoardPlan(user_id=busy.id, module_id=module.id, exam_date=dt.date(2027, 1, 1), paper_every=3))
+    busy_c = client_for(busy)
+    own = make_board(busy_c)
+    db.add(
+        BoardPlan(
+            user_id=busy.id, board_id=own["id"], module_id=module.id, exam_date=dt.date(2027, 1, 1), paper_every=3
+        )
+    )
     db.commit()
-    r = client_for(busy).post(f"{API}/board/plans", json={"moduleId": module.id, "examDate": "2027-01-01"})
+    r = busy_c.post(f"{API}/board-plans", json={"moduleId": module.id, "examDate": "2027-01-01"})
     assert r.status_code == 429
 
 
@@ -196,12 +204,16 @@ def test_plan_cards_do_not_count_against_adding_cards(
     plan(c, module, 9)
     p = db.scalar(select(BoardPlan).where(BoardPlan.user_id == user.id))
     assert p is not None
+    col = db.scalar(select(BoardColumn).where(BoardColumn.board_id == p.board_id))
+    assert col is not None
     db.add_all(
-        BoardCard(user_id=user.id, column="todo", position=100.0 + i, title=f"{i}", plan_id=p.id)
-        for i in range(svc.CREATE_LIMIT)
+        BoardCard(
+            user_id=user.id, board_id=p.board_id, column_id=col.id, position=100.0 + i, title=f"{i}", plan_id=p.id
+        )
+        for i in range(cards_svc.CREATE_LIMIT)
     )
     db.commit()
-    assert c.post(f"{API}/board/cards", json={"title": "Mine"}).status_code == 201
+    assert c.post(f"{API}/board-cards", json={"title": "Mine"}).status_code == 201
 
 
 def test_the_export_holds_the_plans(client_for: ClientFor, make_user: MakeUser, module: Module) -> None:
@@ -209,4 +221,24 @@ def test_the_export_holds_the_plans(client_for: ClientFor, make_user: MakeUser, 
     plan(c, module, 9)
     exported = c.get(f"{API}/me/export").json()
     assert [x["moduleId"] for x in exported["boardPlans"]] == [module.id]
-    assert {x["planModuleId"] for x in exported["board"]} == {module.id}
+    assert {x["planModuleId"] for x in exported["boards"][0]["cards"]} == {module.id}
+
+
+def test_a_plan_goes_to_the_board_asked_for_and_stays_there(
+    client_for: ClientFor, make_user: MakeUser, module: Module
+) -> None:
+    c = client_for(make_user())
+    make_board(c, "Everyday", "personal")
+    revision = make_board(c, "Exams", "revision")
+    made = plan(c, module, 9, boardId=revision["id"])
+    assert made["plan"]["boardId"] == revision["id"]
+    got = c.get(f"{API}/boards/{revision['id']}").json()
+    assert {x["columnId"] for x in got["cards"]} == {column(revision, "To revise")}
+    assert [p["moduleId"] for p in got["plans"]] == [module.id]
+    assert plan(c, module, 12)["plan"]["boardId"] == revision["id"]  # planning again keeps its board
+    # cards nearest done are first in the plan's days
+    first, *_rest = got["cards"]
+    move(c, got["cards"][-1], column(revision, "Revising"))
+    again = {x["id"]: x for x in c.get(f"{API}/boards/{revision['id']}").json()["cards"]}
+    assert again[got["cards"][-1]["id"]]["planDate"] == bahrain_today().isoformat()
+    assert again[first["id"]]["planDate"] is not None

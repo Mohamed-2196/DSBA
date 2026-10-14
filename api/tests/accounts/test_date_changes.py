@@ -14,7 +14,17 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
-from app.models import AuditEntry, BoardCard, CalendarEvent, EmailOutbox, Notification, OutboxStatus, User
+from app.models import (
+    AuditEntry,
+    Board,
+    BoardCard,
+    BoardColumn,
+    CalendarEvent,
+    EmailOutbox,
+    Notification,
+    OutboxStatus,
+    User,
+)
 from app.services.notify import EMAIL_MAX_PER_HOUR, notify_all
 from tests.accounts.conftest import API, Deliver, Outbox
 
@@ -67,7 +77,23 @@ def test_moving_a_mock_tells_its_year_and_whoever_has_it_on_their_board(
     omar = make_user(email="omar@example.com", name="Omar", year=1)
     layla = make_user(email="layla@example.com", name="Layla", year=1)
     e = _event(db)
-    db.add(BoardCard(user_id=layla.id, column="todo", position=1.0, title="Mock", link_type="event", link_id=e.id))
+    board = Board(user_id=layla.id, name="Study", color="cobalt", template="study", position=1.0)
+    db.add(board)
+    db.flush()
+    todo = BoardColumn(board_id=board.id, name="To do", position=1.0)
+    db.add(todo)
+    db.flush()
+    db.add(
+        BoardCard(
+            user_id=layla.id,
+            board_id=board.id,
+            column_id=todo.id,
+            position=1.0,
+            title="Mock",
+            link_type="event",
+            link_id=e.id,
+        )
+    )
     db.commit()
 
     r = client_for(rep).patch(f"{API}/calendar/events/{e.id}", json={"date": "2026-11-12", "notify": True})

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import Annotated, Literal, get_args
 from uuid import UUID
 
 from pydantic import Field, StringConstraints, WithJsonSchema
 
 from app.schemas.access import BoxKey, FeatureKey, RoleSummary
-from app.schemas.board import BoardColumn, BoardLinkType
+from app.schemas.board import BoardLinkType, ChecklistItem, Priority
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
 from app.schemas.forum import Category, FollowLevel
 from app.schemas.library import ItemStatus, LibraryKind, Zone
@@ -60,7 +60,7 @@ HomeBlock = Literal[
     "results_day",  # Results day: two weeks from each results date
     "coming_up",  # the next exam and this week's dates
     "daily_question",  # a past exam question before the next exam
-    "todo",  # the study board's To do and In progress cards
+    "todo",  # the cards due soon on the student's boards
     "continue",  # the lessons to pick up (lesson progress on)
     "modules",  # my modules
     "new",  # new files and threads in my modules
@@ -248,21 +248,58 @@ class ExportReaction(ApiModel):
     created_at: datetime
 
 
+class ExportBoardFile(ApiModel):
+    file_name: str
+    content_type: str
+    size_bytes: int
+    created_at: datetime
+
+
+class ExportBoardComment(ApiModel):
+    body: str
+    created_at: datetime
+
+
 class ExportBoardCard(ApiModel):
     id: UUID
-    column: BoardColumn
+    column: str  # the column's name
     title: str
-    note: str | None
+    description: str | None
     due_date: date | None
+    due_time: time | None
+    remind_before: int | None  # minutes
+    priority: Priority
+    labels: list[str]
+    checklist: list[ChecklistItem]
     link_type: BoardLinkType | None
     link_id: str | None
     plan_module_id: str | None  # the module whose revision plan added it
+    files: list[ExportBoardFile]
+    comments: list[ExportBoardComment]
     created_at: datetime
     done_at: datetime | None
 
 
+class ExportBoardColumn(ApiModel):
+    name: str
+    done: bool
+
+
+class ExportBoard(ApiModel):
+    id: UUID
+    name: str
+    emoji: str | None
+    color: str
+    template: str
+    archived_at: datetime | None
+    created_at: datetime
+    columns: list[ExportBoardColumn]
+    cards: list[ExportBoardCard]
+
+
 class ExportBoardPlan(ApiModel):
     module_id: str
+    board_id: UUID
     exam_date: date
     paper_every: int
     created_at: datetime
@@ -384,8 +421,9 @@ class AccountExport(ApiModel):
     question_tags: list[ExportQuestionTag]  # past papers' questions this person tagged with a chapter
     question_flags: list[UUID]  # tags this person said were wrong
     emails: list[ExportEmail]
-    board: list[ExportBoardCard]  # study-board cards
-    board_plans: list[ExportBoardPlan]  # revision plans on the study board
+    boards: list[ExportBoard]  # boards, their columns and cards
+    board_labels: list[str]
+    board_plans: list[ExportBoardPlan]  # revision plans on the boards
     follows: list[ExportFollow]  # forum threads this person follows
     poll_votes: list[ExportPollVote]  # newsletter poll answers
     senior: ExportSenior | None  # the "Ask a senior" listing

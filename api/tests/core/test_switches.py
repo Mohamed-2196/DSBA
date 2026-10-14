@@ -60,8 +60,14 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("notes", "GET", "/notes"),
     ("notes", "POST", "/notes"),
     ("notes", "GET", f"/notes/{NOTHING}"),
-    ("board", "GET", "/board"),
-    ("board", "POST", "/board/cards"),
+    ("board", "GET", "/boards"),
+    ("board", "POST", "/boards"),
+    ("board", "GET", "/board-agenda"),
+    ("board", "GET", "/board-links"),
+    ("board", "POST", "/board-cards"),
+    ("board", "POST", "/board-labels"),
+    ("board", "POST", "/board-plans"),
+    ("board", "GET", f"/board-files/{NOTHING}"),
     ("requests", "GET", "/requests"),
     ("requests", "GET", f"/requests/{NOTHING}"),
     ("requests", "POST", "/requests"),
@@ -117,7 +123,9 @@ FEATURE_FREE: dict[str, str] = {
 }
 # Routes whose feature depends on the request: they check it in code, and the tests below prove it.
 DECIDED_BY_REQUEST: dict[tuple[str, str], str] = {
-    ("POST", "/uploads"): "a forum picture needs the forum; a library file needs the library and its uploads",
+    ("POST", "/uploads"): (
+        "a forum picture needs the forum; a library file needs the library and its uploads; a card's file the boards"
+    ),
     ("POST", "/uploads/{upload_id}/complete"): "as POST /uploads, by the upload's purpose",
     ("POST", "/reports"): "a post needs the forum; a library file needs the library",
     ("GET", "/admin/reports"): "lists the reports of the features on for the viewer",
@@ -127,7 +135,13 @@ DECIDED_BY_REQUEST: dict[tuple[str, str], str] = {
 }
 # Where each feature's routes live: a route under one of these paths must declare that feature.
 AREAS: dict[str, Feature] = {
-    "/board": Feature.board,
+    "/boards": Feature.board,
+    "/board-agenda": Feature.board,
+    "/board-links": Feature.board,
+    "/board-cards": Feature.board,
+    "/board-labels": Feature.board,
+    "/board-files": Feature.board,
+    "/board-plans": Feature.board,
     "/forum": Feature.forum,
     "/media": Feature.forum,
     "/library": Feature.library,

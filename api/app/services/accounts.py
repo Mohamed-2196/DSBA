@@ -19,8 +19,6 @@ from app.core.access import ADMIN, STUDENT
 from app.core.errors import ApiError, conflict, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
-    BoardCard,
-    BoardPlan,
     EmailOutbox,
     ForumReply,
     ForumThread,
@@ -55,8 +53,6 @@ from app.models import (
 from app.schemas.access import RoleSummary
 from app.schemas.auth import (
     AccountExport,
-    ExportBoardCard,
-    ExportBoardPlan,
     ExportEmail,
     ExportFollow,
     ExportLibraryItem,
@@ -83,6 +79,7 @@ from app.schemas.modules import Progress, ProgressImport
 from app.schemas.notifications import NotificationKind
 from app.services import access, otp, sessions
 from app.services.audit import record
+from app.services.board.export import board_export
 from app.services.identifiers import Kind, admin_identifiers, destination_hint
 from app.services.module_editor import link_of
 from app.services.modules import student_lesson, student_lessons
@@ -742,24 +739,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for e in db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == uid).order_by(EmailOutbox.created_at))
     ]
-    plans = {p.id: p for p in db.scalars(select(BoardPlan).where(BoardPlan.user_id == uid))}
-    board = [
-        ExportBoardCard.model_validate(
-            {
-                "id": c.id,
-                "column": c.column,
-                "title": c.title,
-                "note": c.note,
-                "due_date": c.due_date,
-                "link_type": c.link_type,
-                "link_id": c.lesson_id if c.link_type == "lesson" else c.link_id,
-                "plan_module_id": plans[c.plan_id].module_id if c.plan_id in plans else None,
-                "created_at": c.created_at,
-                "done_at": c.done_at,
-            }
-        )
-        for c in db.scalars(select(BoardCard).where(BoardCard.user_id == uid).order_by(BoardCard.created_at))
-    ]
+    boards, board_labels, board_plans = board_export(db, uid)
     follows = [
         ExportFollow.model_validate(
             {"thread_id": f.thread_id, "thread_slug": slug, "level": f.level, "created_at": f.created_at}
@@ -834,13 +814,9 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         question_tags=question_tags,
         question_flags=question_flags,
         emails=emails,
-        board=board,
-        board_plans=[
-            ExportBoardPlan(
-                module_id=p.module_id, exam_date=p.exam_date, paper_every=p.paper_every, created_at=p.created_at
-            )
-            for p in sorted(plans.values(), key=lambda p: p.created_at)
-        ],
+        boards=boards,
+        board_labels=board_labels,
+        board_plans=board_plans,
         follows=follows,
         poll_votes=poll_votes,
         senior=senior,
@@ -870,13 +846,12 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
 
 
 def delete_account(db: Session, user: User, storage: Storage) -> None:
-    """Deletes the account. Files that never reached the library and forum pictures go (objects first: if the
-    bucket fails, nothing is deleted and the person can try again); pending and rejected library items go;
-    published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set NULL); everything
-    personal (sessions, notifications, queued emails, progress, stars, votes, me-toos, reactions, follows, poll
-    votes, the senior listing) cascades; the sign-in
-    codes stay, anonymised, until the sweep (the rate limits count them). The last active admin can't leave
-    (409 last_admin). The caller commits."""
+    """Deletes the account. Files that never reached the library, forum pictures and files on board cards go
+    (objects first: if the bucket fails, nothing is deleted and the person can try again); pending and rejected
+    library items go; published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set
+    NULL); everything personal (boards, sessions, notifications, queued emails, progress, stars, votes, me-toos,
+    reactions, follows, poll votes, the senior listing) cascades; the sign-in codes stay, anonymised, until the
+    sweep (the rate limits count them). The last active admin can't leave (409 last_admin). The caller commits."""
     if access.is_admin(user):
         access.ensure_admins_remain(db, user)
     uid = user.id
@@ -893,7 +868,10 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
             select(Upload).where(
                 or_(
                     (Upload.user_id == uid)
-                    & or_(Upload.status != UploadStatus.attached, Upload.purpose == UploadPurpose.forum_image),
+                    & or_(
+                        Upload.status != UploadStatus.attached,
+                        Upload.purpose.in_([UploadPurpose.forum_image, UploadPurpose.board]),
+                    ),
                     Upload.storage_key.in_(item_keys) if item_keys else false(),
                 )
             )

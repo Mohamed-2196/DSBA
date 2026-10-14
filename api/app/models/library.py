@@ -177,6 +177,7 @@ class PaperQuestionFlag(Base):
 class UploadPurpose(enum.StrEnum):
     library = "library"
     forum_image = "forum_image"
+    board = "board"  # a file or picture on a board card
 
 
 class UploadStatus(enum.StrEnum):
@@ -190,12 +191,15 @@ class Upload(Base):
 
     A forum image belongs to the post that shows it, set when the post is saved: `thread_id` for a thread's body,
     `reply_id` for a reply's. /media serves it only while that post is visible (security review, finding 8).
-    Uploads that are never attached to anything are swept after a day."""
+    A board file belongs to its card (`card_id`, set when it is attached) and is served to its owner only; when the
+    card goes, `card_id` empties and the sweep deletes the file. Uploads that are never attached to anything are swept
+    after a day."""
 
     __tablename__ = "uploads"
     __table_args__ = (
         Index("ix_uploads_status_created", "status", "created_at"),
         Index("ix_uploads_user_created", "user_id", "created_at"),  # uploads per user per hour; account deletion
+        Index("ix_uploads_card", "card_id"),  # a card's files; removing a card (SET NULL)
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -210,3 +214,4 @@ class Upload(Base):
     completed_at: Mapped[datetime | None]
     thread_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("forum_threads.id", ondelete="SET NULL"))
     reply_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("forum_replies.id", ondelete="SET NULL"))
+    card_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("board_cards.id", ondelete="SET NULL"))

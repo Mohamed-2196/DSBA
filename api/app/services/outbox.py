@@ -210,10 +210,12 @@ def run_worker(
     poll_seconds: float = 5.0,
     stop: threading.Event | None = None,
 ) -> int:
-    """The mail worker: sends due emails, waits `poll_seconds` when there are none, purges old rows hourly, and on
-    Sunday morning (Bahrain) queues the week's summaries (app/services/summary.py). SIGTERM and SIGINT stop it after
+    """The mail worker: sends due emails, waits `poll_seconds` when there are none, purges old rows hourly, turns
+    board cards' reminders into notifications as they come (app/services/board/reminders.py), and on Sunday morning
+    (Bahrain) queues the week's summaries (app/services/summary.py). SIGTERM and SIGINT stop it after
     the email in hand. With `once`, it stops when nothing is due."""
     from app.services import summary
+    from app.services.board import reminders
 
     stop = stop or threading.Event()
 
@@ -238,6 +240,7 @@ def run_worker(
                 if purged:
                     log.info("purged %d old email(s) from the outbox", purged)
                 last_purge = utcnow()
+            reminders.send_due(sessions)
             handled = drain(sessions)
         except SQLAlchemyError:
             log.exception("mail worker: database error; trying again in %.0f s", poll_seconds)
