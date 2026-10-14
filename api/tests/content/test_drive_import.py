@@ -49,6 +49,7 @@ from tests.content.fake_drive import (
     XLSX,
     XLSX_TYPE,
     FakeDrive,
+    automated_queries,
     google_error,
     listing,
     media,
@@ -259,6 +260,7 @@ def test_files_become_published_library_files_of_the_links_kind_module_and_autho
         "skipped": 0,
         "failed": 0,
         "refusedFolders": [],
+        "refusedFiles": [],
         "module": None,
         "limit": None,
         "stopped": None,
@@ -421,11 +423,12 @@ def test_what_the_library_does_not_take_is_skipped_and_says_why(
     for line in [  # the plan's
         "    - code.zip: the library doesn't take .zip files",
         "    - huge.pdf: it is over the 1 MB limit (5.0 MB)",
-        "    - locked.pdf: its owner turned off downloads",
+        "    - locked.pdf: its owner turned off downloads (https://drive.google.com/file/d/locked1/view)",
         "    - Quiz: the library doesn't take Google Forms files",
         "    - Week 1. Introduction: the library can't tell what kind of file",
         # the run's
-        "  statistics: Book.pdf: Google exports at most 10 MB of a file, and this one is bigger",
+        "  statistics: Book.pdf: Google exports at most 10 MB of a file, and this one is bigger "
+        "(403 exportSizeLimitExceeded) (https://drive.google.com/file/d/book1/view)",
         "  statistics: empty.pdf: it is empty",
         "  statistics: liar.pdf: it is over the 1 MB limit",
         "  statistics: notreally.pdf: what Drive sent isn't a real .pdf file: its first bytes don't match",
@@ -549,6 +552,87 @@ def test_quota_errors_are_waited_out_and_a_file_that_keeps_failing_comes_in_next
     assert runs(db)[0].data["failed"] == 1
     assert run() == 0
     assert sorted(imported(db)) == ["a.pdf", "b.pdf"]
+
+
+def test_downloads_are_paced_and_slow_down_after_google_blocks_the_run(
+    db: Session, storage: Storage, fake: FakeDrive, settings: Settings, modules: dict[str, Module], out: Lines
+) -> None:
+    fake.folder("mat1", "Materials")
+    for name in "abcd":
+        fake.file(f"{name}1", f"{name}.pdf", "mat1")
+    link(db, "statistics", "mat1")
+    fake.queue(media("b1"), automated_queries())
+    sleeps: list[float] = []
+    with connect(settings, transport=fake.transport, sleep=sleeps.append) as paced:
+        paced.jitter = False
+        assert import_from_drive(db, paced, storage, pace=1.5, echo=out.append) == 0
+    assert sorted(imported(db)) == ["a.pdf", "b.pdf", "c.pdf", "d.pdf"]
+    # 1.5 s between files; the block on b.pdf is waited out (60 s), then 3 s between files
+    assert sleeps == [1.5, 60.0, 3.0, 3.0]
+    assert "Google blocked the requests for a while: 3 s between downloads from now on." in out
+
+
+def test_a_block_that_does_not_lift_stops_the_run_and_the_next_run_carries_on(
+    db: Session, fake: FakeDrive, run: Callable[..., int], out: Lines
+) -> None:
+    fake.folder("mat1", "Materials")
+    for name in "abc":
+        fake.file(f"{name}1", f"{name}.pdf", "mat1")
+    link(db, "statistics", "mat1")
+    fake.queue(media("b1"), *[automated_queries() for _ in range(6)])
+
+    assert run() == 1
+    assert sorted(imported(db)) == ["a.pdf"]
+    stopped = "The import stopped early: Google is refusing requests from this network for now"
+    assert any(line.startswith(stopped) for line in out)
+    assert not any("c.pdf" in line for line in out if line.startswith("[")), "nothing after the block is tried"
+    assert runs(db)[0].data["stopped"].startswith("Google is refusing requests")
+    out.clear()
+    assert run() == 0
+    assert sorted(imported(db)) == ["a.pdf", "b.pdf", "c.pdf"]
+
+
+def test_a_file_drive_wont_hand_over_is_skipped_with_its_link_and_tried_again_next_run(
+    db: Session, fake: FakeDrive, run: Callable[..., int], out: Lines
+) -> None:
+    fake.folder("mat1", "Materials")
+    fake.file("a1", "a.pdf", "mat1")
+    fake.file("b1", "b.pdf", "mat1", resource_key="0-key")
+    fake.file("c1", "c.pdf", "mat1")
+    folder = link(db, "statistics", "mat1")
+    fake.queue(media("b1"), google_error(403, "cannotDownloadFile", "The user does not have permission."))
+    fake.queue(media("c1"), google_error(403, "insufficientFilePermissions", "No."))
+
+    assert run() == 0
+    assert sorted(imported(db)) == ["a.pdf"]
+    assert (
+        "  statistics: b.pdf: its owner turned off downloads (403 cannotDownloadFile) "
+        "(https://drive.google.com/file/d/b1/view?resourcekey=0-key)"
+    ) in out
+    assert (
+        "  statistics: c.pdf: Drive refused the download (403 insufficientFilePermissions) "
+        "(https://drive.google.com/file/d/c1/view)"
+    ) in out
+    assert runs(db)[0].data["refusedFiles"] == [
+        {
+            "module": "statistics",
+            "file": "b.pdf",
+            "why": "its owner turned off downloads (403 cannotDownloadFile)",
+            "link": "https://drive.google.com/file/d/b1/view?resourcekey=0-key",
+        },
+        {
+            "module": "statistics",
+            "file": "c.pdf",
+            "why": "Drive refused the download (403 insufficientFilePermissions)",
+            "link": "https://drive.google.com/file/d/c1/view",
+        },
+    ]
+    db.refresh(folder)
+    assert folder.status == ItemStatus.published  # the folder's link stays
+
+    out.clear()
+    assert run() == 0  # Drive hands them over now
+    assert sorted(imported(db)) == ["a.pdf", "b.pdf", "c.pdf"]
 
 
 def test_a_file_another_run_saves_at_the_same_moment_fails_and_the_run_goes_on(
@@ -729,9 +813,10 @@ def test_the_command_checks_what_it_is_given(
 ) -> None:
     assert cli.main(["import-drive", "--module", "nope", "--dry-run"]) == 2
     assert "There is no module 'nope'. The modules are: advanced-stats-distribution," in capsys.readouterr().err
-    with pytest.raises(SystemExit) as stopped:
-        cli.main(["import-drive", "--limit", "0"])
-    assert stopped.value.code == 2
+    for bad in (["--limit", "0"], ["--pace", "-1"], ["--pace", "soon"]):
+        with pytest.raises(SystemExit) as stopped:
+            cli.main(["import-drive", *bad])
+        assert stopped.value.code == 2
     settings.google_api_key = None
     assert cli.main(["import-drive", "--dry-run"]) == 1
     assert "Set DSBA_GOOGLE_API_KEY (or DSBA_GOOGLE_SERVICE_ACCOUNT_FILE) first" in capsys.readouterr().err
