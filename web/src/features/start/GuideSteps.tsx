@@ -1,45 +1,45 @@
-// The Start here checklist (data/guides.ts): Home's card shows it short, /start-here in full. Ticks stay in this
-// browser, like Career Navigator's checklist.
+// A guide's checklist (data/guides.ts: Start here, Results day): Home's cards show it short, the guide's page in full.
+// Ticks stay in this browser, like Career Navigator's checklist.
 import { ArrowRight, ArrowSquareOut, CheckCircle, DownloadSimple } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
-import { START_HERE, type GuideLink } from '../../data/guides';
+import type { GuideLink, GuideStep } from '../../data/guides';
 import { addDaysToKey, formatDay, todayKey } from '../../lib/dates';
 import { useInstall } from '../../lib/pwa';
 import { Badge, Button, Skeleton, cx } from '../../ui';
 import { safeHref } from '../../ui/safeHref';
 import { useCalendarEvents } from '../calendar/public';
 import { nextDated } from './startHere';
-import { useStartTicks } from './useStartTicks';
+import type { GuideTicks } from './useGuideTicks';
 import './StartHere.css';
 
-/** The registration deadline from the calendar: its date, and whether reps have confirmed it. */
-function DeadlineLink() {
+/** The next calendar date a step points at (`{ kind: 'date' }`): its day, and whether reps have confirmed it. */
+function DateLink({ link }: { link: Extract<GuideLink, { kind: 'date' }> }) {
   const today = todayKey();
-  const events = useCalendarEvents({ from: today, to: addDaysToKey(today, 400), type: 'deadline' });
+  const events = useCalendarEvents({ from: today, to: addDaysToKey(today, 400), type: link.type });
   if (events.isPending) return <Skeleton width={180} height={16} />;
   if (events.isError) {
     return (
       <span className="start-step__note">
-        The deadline didn’t load.{' '}
+        The date didn’t load.{' '}
         <button type="button" className="start-link" onClick={() => void events.refetch()}>
           Try again
         </button>
       </span>
     );
   }
-  const event = nextDated(events.data, START_HERE.deadlineTitle, today);
+  const event = nextDated(events.data, link.title, today);
   if (!event) {
     return (
-      <Link to="/calendar?types=deadline" className="start-link">
-        No date on the calendar yet. Check the calendar
+      <Link to={`/calendar?types=${link.type}`} className="start-link">
+        {link.label}: not on the calendar yet. Check the calendar
         <ArrowRight weight="bold" aria-hidden="true" />
       </Link>
     );
   }
   return (
-    <Link to={`/calendar?event=${encodeURIComponent(event.id)}`} className="start-link" data-hub="start-deadline">
-      Deadline {formatDay(event.date, { weekday: 'long' })}
+    <Link to={`/calendar?event=${encodeURIComponent(event.id)}`} className="start-link" data-hub="guide-date">
+      {link.label} {formatDay(event.date, { weekday: 'long' })}
       {event.sample ? ', not confirmed yet' : ''}
       <ArrowRight weight="bold" aria-hidden="true" />
     </Link>
@@ -87,25 +87,27 @@ function StepLink({ link }: { link: GuideLink }) {
           <ArrowRight weight="bold" aria-hidden="true" />
         </Link>
       );
-    case 'deadline':
-      return featureOn('calendar') ? <DeadlineLink /> : null;
+    case 'date':
+      return featureOn('calendar') ? <DateLink link={link} /> : null;
     case 'install':
       return <InstallLink />;
   }
 }
 
-export interface StartHereStepsProps {
+export interface GuideStepsProps {
+  steps: readonly GuideStep[];
+  ticks: GuideTicks;
   /** 'card': titles and links (Home); 'page': with each step's hint */
   variant: 'card' | 'page';
 }
 
-export function StartHereSteps({ variant }: StartHereStepsProps) {
-  const { done, toggle } = useStartTicks();
+export function GuideSteps({ steps, ticks, variant }: GuideStepsProps) {
+  const { done, toggle } = ticks;
   return (
-    <ol role="list" className={cx('start-steps', `start-steps--${variant}`)} data-hub="start-steps">
-      {START_HERE.steps.map((step) => {
+    <ol role="list" className={cx('start-steps', `start-steps--${variant}`)} data-hub="guide-steps">
+      {steps.map((step) => {
         const ticked = done.has(step.id);
-        const hintId = `start-hint-${step.id}`;
+        const hintId = `guide-hint-${step.id}`;
         return (
           <li key={step.id} className={cx('start-step', ticked && 'is-done')} data-step-id={step.id}>
             <label className="start-check">

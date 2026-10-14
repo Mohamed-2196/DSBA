@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, GraduationCap } from '@phosphor-icons/react';
 import type { CareerChecklistItem } from '../../api/types';
+import { useAuth } from '../../auth';
 import { useLocalStorage } from '../../state';
 import { Badge, Button, PageSection, Panel, SectionHeader, cx } from '../../ui';
 import { useModuleDetail } from './api';
@@ -9,6 +10,7 @@ import { useCareerData } from './context';
 import { jumpTo } from './lib/jump';
 import { appPath, lessonPath } from './lib/links';
 import { useListedSeniors } from './api';
+import { ProjectedClass } from '../grades/public';
 import { Seniors } from './Seniors';
 import './AfterDsba.css';
 
@@ -107,6 +109,7 @@ function Checklist() {
 export function AfterDsba() {
   const { checklist, furtherStudy: study } = useCareerData();
   const seniors = useListedSeniors();
+  const { featureOn } = useAuth();
   const studyTo = appPath(study?.action.to);
   if (!checklist.length && !seniors.length && !study) return null;
   const description = seniors.length ? 'Things to have ready, and people who can tell you how it went for them.' : 'Things to have ready before you send an application.';
@@ -129,6 +132,7 @@ export function AfterDsba() {
                 {study.action.label}
               </Button>
             ) : null}
+            {featureOn('grades') ? <ProjectedClass className="career-study__projected" calculatorLink={studyTo !== '/grades'} /> : null}
           </Panel>
         ) : null}
       </div>

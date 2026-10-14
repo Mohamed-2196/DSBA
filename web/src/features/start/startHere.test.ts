@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { doneSteps, nextDated, startWindow, toggleStep } from './startHere';
+import { doneSteps, latestWithin, nextDated, startWindow, toggleStep } from './startHere';
 
 const TERM = { month: 9, day: 14 };
 
@@ -45,5 +45,25 @@ describe('ticks', () => {
     expect(toggleStep(['a'], 'b')).toEqual(['a', 'b']);
     expect(toggleStep(['a', 'b'], 'a')).toEqual(['b']);
     expect(toggleStep(null, 'a')).toEqual(['a']);
+  });
+});
+
+describe('latestWithin', () => {
+  const events = [
+    { id: 'may', date: '2026-08-04', title: 'UoL results released', sample: false },
+    { id: 'oct', date: '2027-01-07', title: 'UoL results released', sample: true },
+    { id: 'old', date: '2026-07-30', title: 'UoL Results Released', sample: false },
+    { id: 'x', date: '2026-08-05', title: 'Business mock exam', sample: false },
+  ];
+
+  it('finds the latest results date for two weeks from it', () => {
+    expect(latestWithin(events, 'UoL results released', '2026-08-04', 2)?.id).toBe('may');
+    expect(latestWithin(events, 'uol results released', '2026-08-17', 2)?.id).toBe('may');
+    expect(latestWithin(events, 'UoL results released', '2026-08-18', 2)).toBeNull();
+  });
+
+  it('ignores dates still to come and empty titles', () => {
+    expect(latestWithin(events, 'UoL results released', '2027-01-06', 2)).toBeNull();
+    expect(latestWithin(events, ' ', '2026-08-04', 2)).toBeNull();
   });
 });

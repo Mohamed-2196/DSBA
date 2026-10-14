@@ -5,8 +5,8 @@ import { todayKey } from '../../lib/dates';
 import { useLocalStorage, type CohortYear } from '../../state';
 import { Badge, Button, IconButton, Panel } from '../../ui';
 import { startWindow } from './startHere';
-import { StartHereSteps } from './StartHereSteps';
-import { useStartTicks } from './useStartTicks';
+import { GuideSteps } from './GuideSteps';
+import { useStartTicks } from './useGuideTicks';
 import './StartHere.css';
 
 /** The first day of the academic year the card was hidden in: it comes back the next September. */
@@ -15,7 +15,8 @@ const HIDDEN_KEY = 'hub.start.hidden';
 export function StartHereCard({ year }: { year: CohortYear }) {
   const term = startWindow(todayKey(), START_HERE.termStart, START_HERE.weeks);
   const [hiddenIn, setHiddenIn] = useLocalStorage<unknown>(HIDDEN_KEY, null);
-  const { done, total } = useStartTicks();
+  const ticks = useStartTicks();
+  const { done, total } = ticks;
   if (year !== 1 || !term.open || hiddenIn === term.from) return null;
   const n = done.size;
   return (
@@ -30,7 +31,7 @@ export function StartHereCard({ year }: { year: CohortYear }) {
         <IconButton icon={X} label="Hide Start here" size="sm" onClick={() => setHiddenIn(term.from)} data-hub="start-hide" />
       </div>
       <p className="start-card__intro">{START_HERE.intro}</p>
-      <StartHereSteps variant="card" />
+      <GuideSteps steps={START_HERE.steps} ticks={ticks} variant="card" />
       <div className="start-card__foot">
         <Button variant="ghost" size="sm" to="/start-here" trailingIcon={ArrowRight}>
           What each step means

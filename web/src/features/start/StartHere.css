@@ -95,3 +95,11 @@
 .start-place__name .start-link { font-size: inherit; font-weight: inherit; }
 .start-place__whose { margin-top: 2px; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); letter-spacing: 0.04em; text-transform: uppercase; }
 .start-place__what { margin-top: var(--sp-8); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+
+/* ── Results day ─────────────────────────────────────────────────────────────────────────────── */
+.start-card--results { border-color: color-mix(in srgb, var(--cobalt) 35%, var(--line)); }
+.start-page__panel--roomy { padding: var(--sp-16) var(--sp-24); }
+.start-sources { list-style: none; display: flex; flex-direction: column; gap: var(--sp-8); }
+@media (max-width: 699px) {
+  .start-page__panel--roomy { padding: var(--sp-16); }
+}

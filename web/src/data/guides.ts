@@ -2,12 +2,16 @@
 // data: modules, the calendar, the library and Career Navigator.
 //
 //   START_HERE   Year 1's first weeks: the card on Home and the page at /start-here. A rep checks it every September.
+//   RESULTS_DAY  What results mean and what to do next: Home's card from each results date, and /results-day.
+//                A rep checks it every May and October, and puts the results dates on the calendar.
+//   UOL_RULES    Where the University's own rules are, and the line that says the hub's sums aren't official.
+//                The links point at this year's editions: update them when the University publishes new ones.
 //   ELECTIVES    Choosing your Year 3 electives (/career/electives): the intro and the disclaimer.
 //
 // Keep each line short and plain. A step's `link` says where its button goes:
 //   { kind: 'web', href, label }           another site (https only)
 //   { kind: 'page', to, label, feature? }  a page of the hub; `feature` hides it while that feature is switched off
-//   { kind: 'deadline' }                   the calendar date named by START_HERE.deadlineTitle
+//   { kind: 'date', title, type, label }   the next calendar date of that type whose title contains `title`
 //   { kind: 'install' }                    "Install the app", or how to add it on an iPhone
 import type { Feature } from '../auth';
 import { MYCLASS_URL, UOL_PORTAL_URL } from './people';
@@ -15,7 +19,7 @@ import { MYCLASS_URL, UOL_PORTAL_URL } from './people';
 export type GuideLink =
   | { kind: 'web'; href: string; label: string }
   | { kind: 'page'; to: string; label: string; feature?: Feature }
-  | { kind: 'deadline' }
+  | { kind: 'date'; title: string; type: 'deadline' | 'event'; label: string }
   | { kind: 'install' };
 
 export interface GuideStep {
@@ -23,7 +27,7 @@ export interface GuideStep {
   id: string;
   title: string;
   hint: string;
-  links: GuideLink[];
+  links: readonly GuideLink[];
 }
 
 export interface GuidePlace {
@@ -37,8 +41,6 @@ export const START_HERE = {
   /** The first day of the academic year (month 1-12). The card shows on Year 1's Home for `weeks` weeks from it. */
   termStart: { month: 9, day: 14 },
   weeks: 6,
-  /** The calendar date the "Register" step shows: the next one whose title contains this. */
-  deadlineTitle: 'UoL application deadline',
   title: 'Start here',
   intro: 'Your first weeks on DSBA, one step at a time. Ticks stay in this browser.',
   steps: [
@@ -52,7 +54,7 @@ export const START_HERE = {
       id: 'register',
       title: 'Register with the University before the deadline',
       hint: 'Do it early. Ask a rep if the portal turns you away.',
-      links: [{ kind: 'deadline' }],
+      links: [{ kind: 'date', title: 'UoL application deadline', type: 'deadline', label: 'Deadline' }],
     },
     {
       id: 'modules',
@@ -94,6 +96,77 @@ export const START_HERE = {
     { name: 'The VLE', whose: 'University of London', what: 'Study guides, readings and each module’s page.' },
     { name: 'The student portal', whose: 'University of London', what: 'Registration, exam entry and results.', href: UOL_PORTAL_URL },
   ] satisfies GuidePlace[],
+} as const;
+
+export const UOL_RULES = {
+  regulations: {
+    href: 'https://www.london.ac.uk/sites/default/files/progregs-emfss-online-and-rtc-taught-2025-26.pdf',
+    label: 'Programme regulations 2025–26',
+  },
+  results: {
+    href: 'https://www.london.ac.uk/current-students/examinations-assessment/examination-entry-results',
+    label: 'Exam entry and results',
+  },
+  /** Under every class the hub works out. */
+  check: 'Worked out in this browser from the University’s rules, by students. It isn’t your official result: check with the University.',
+} as const;
+
+/** The calendar's results dates are `event`s whose title contains this. */
+const RESULTS_TITLE = 'UoL results released';
+
+export const RESULTS_DAY = {
+  eventTitle: RESULTS_TITLE,
+  /** Home's card shows for this many weeks from each results date. */
+  weeks: 2,
+  title: 'Results day',
+  intro: 'What your marks mean and what to do next. Ticks stay in this browser.',
+  steps: [
+    {
+      id: 'read',
+      title: 'Read your results on the UoL portal',
+      hint: 'Each course has a mark out of 100: 70 and above is first class, 60 to 69 upper second, 50 to 59 lower second, 40 to 49 third, and under 40 a fail.',
+      links: [
+        { kind: 'web', href: UOL_PORTAL_URL, label: 'Open the UoL portal' },
+        { kind: 'date', title: RESULTS_TITLE, type: 'event', label: 'Next results day' },
+      ],
+    },
+    {
+      id: 'under40',
+      title: 'Under 40 is a fail, not the end',
+      hint: 'You get up to three attempts at each course, and the most recent mark counts. The degree needs passes in at least 330 of its 360 credits, including every core course (regulations 5.11, 8.5 and 8.6).',
+      links: [
+        { kind: 'page', to: '/grades', label: 'Try it in the grades calculator', feature: 'grades' },
+        { kind: 'web', href: UOL_RULES.regulations.href, label: 'The regulations' },
+      ],
+    },
+    {
+      id: 'resit',
+      title: 'Enter for your resit before the exam entry deadline',
+      hint: 'You enter a resit on the UoL portal, like any exam. A session where you take a new course must also include any failed course that is compulsory or a prerequisite for it (regulation 5.13).',
+      links: [
+        { kind: 'date', title: 'exam entry', type: 'deadline', label: 'Exam entry deadline' },
+        { kind: 'web', href: UOL_PORTAL_URL, label: 'Open the UoL portal' },
+      ],
+    },
+    {
+      id: 'recheck',
+      title: 'Think a mark is wrong? Ask for a recheck',
+      hint: 'The University can check that every answer was marked and the marks were added up and recorded correctly. It doesn’t re-mark for academic judgement. There’s a fee and a deadline a few weeks after results day: its results page gives both.',
+      links: [{ kind: 'web', href: UOL_RULES.results.href, label: 'UoL exam entry and results' }],
+    },
+    {
+      id: 'talk',
+      title: 'Talk it through with someone at BIBF',
+      hint: 'Your student reps and BIBF’s programme team can help you plan resits and next year’s modules. Bring your marks.',
+      links: [],
+    },
+    {
+      id: 'plan',
+      title: 'Plan the year ahead',
+      hint: 'Put your marks in the grades calculator to see your class so far and what each course still to come needs.',
+      links: [{ kind: 'page', to: '/grades', label: 'Open the grades calculator', feature: 'grades' }],
+    },
+  ] satisfies GuideStep[],
 } as const;
 
 export const ELECTIVES = {

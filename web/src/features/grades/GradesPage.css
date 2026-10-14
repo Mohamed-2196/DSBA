@@ -315,6 +315,7 @@
 .grades-table--bands tbody th .grades-swatch { margin-right: 10px; }
 .grades-table--bands td { white-space: nowrap; }
 .grades-how__note { margin-top: var(--sp-12); max-width: var(--measure); color: var(--ink-2); font-size: var(--fs-12); line-height: 1.5; }
+.grades-how__note a { color: var(--cobalt); font-weight: var(--fw-semibold); }
 
 /* ── Mobile sticky result ──────────────────────────────────────────────────────────────────── */
 .grades-sticky {

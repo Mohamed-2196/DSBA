@@ -12,7 +12,7 @@ import { UpcomingEvents, useCalendarEvents } from '../calendar/public';
 import { HelpBelow, HotThreads } from '../forum/public';
 import { ContinueLearning } from '../modules/public';
 import { LatestIssueCard } from '../newsletter/public';
-import { StartHereCard } from '../start/public';
+import { ResultsDayCard, StartHereCard } from '../start/public';
 import { ExamTimeline } from './ExamTimeline';
 import { NewInLibrary } from './NewInLibrary';
 import { PapersButton, usePapers } from '../papers/public';
@@ -131,6 +131,11 @@ export default function HomePage() {
             <ErrorBoundary name="StartHereCard" fallback={null}>
               <div className="home-sec home-sec--start">
                 <StartHereCard year={activeYear} />
+              </div>
+            </ErrorBoundary>
+            <ErrorBoundary name="ResultsDayCard" fallback={null}>
+              <div className="home-sec home-sec--start">
+                <ResultsDayCard />
               </div>
             </ErrorBoundary>
             <PageSection className="home-sec home-sec--continue" aria-labelledby="home-continue">

@@ -54,3 +54,18 @@ export function toggleStep(stored: unknown, id: string): string[] {
   const list = Array.isArray(stored) ? stored.filter((x): x is string => typeof x === 'string') : [];
   return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
 }
+
+/**
+ * The latest date (today or before) whose title contains `title`, while today is within `weeks` weeks of it; null
+ * otherwise. Results day's card shows for that long.
+ */
+export function latestWithin<T extends DatedEvent>(events: readonly T[], title: string, today: DayKey, weeks: number): T | null {
+  const want = title.trim().toLowerCase();
+  if (!want) return null;
+  const since = addDaysToKey(today, -(weeks * 7 - 1));
+  return (
+    events
+      .filter((e) => e.date <= today && e.date >= since && e.title.toLowerCase().includes(want))
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))[0] ?? null
+  );
+}
