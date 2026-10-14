@@ -2,7 +2,7 @@
 // and calendar dates) comes ranked from the API; the palette adds its own actions, pages and recent searches.
 import type { ModuleSummary, SearchHit, SearchResults } from '../../api/types';
 import type { Feature } from '../../auth';
-import { MYCLASS_URL, REPORT_PROBLEM_URL, UOL_PORTAL_URL } from '../../data/people';
+import { MYCLASS_URL, UOL_PORTAL_URL } from '../../data/people';
 import { daysBetween, formatLong, isDayKey, parseDay, today } from '../../lib/dates';
 import { safeInternalPath } from '../../ui';
 import { EVENT_TYPES, TYPE_ORDER, type EventType } from '../calendar/public';
@@ -21,7 +21,7 @@ export type IconName =
   | 'ChatsCircle'
   | 'Eye'
   | 'EyeSlash'
-  | 'GithubLogo'
+  | 'Bug'
   | 'GraduationCap'
   | 'House'
   | 'Info'
@@ -36,7 +36,7 @@ export type IconName =
  * switches and the library.upload box). */
 export type OfferId = 'threads' | 'upload';
 
-export type Run = { type: 'theme' } | { type: 'year'; year: 1 | 2 | 3 } | { type: 'noora'; act: 'ask' | 'hide' | 'show' };
+export type Run = { type: 'theme' } | { type: 'bug' } | { type: 'year'; year: 1 | 2 | 3 } | { type: 'noora'; act: 'ask' | 'hide' | 'show' };
 
 interface Base {
   id: string;
@@ -170,7 +170,7 @@ export function buildActions({ year, theme, nooraHidden = false }: { year: numbe
     nooraHidden
       ? { id: 'action:noora', group: 'actions', kind: 'action', title: 'Show Mini Noora', icon: 'Eye', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot', 'bring back'], run: { type: 'noora', act: 'show' }, feature: 'noora' }
       : { id: 'action:noora', group: 'actions', kind: 'action', title: 'Hide Mini Noora', icon: 'EyeSlash', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot'], run: { type: 'noora', act: 'hide' }, feature: 'noora' },
-    { id: 'action:report', group: 'actions', kind: 'action', title: 'Report a problem', icon: 'GithubLogo', keywords: ['bug', 'problem', 'broken', 'feedback', 'github', 'issue'], href: REPORT_PROBLEM_URL },
+    { id: 'action:report', group: 'actions', kind: 'action', title: 'Report a bug', icon: 'Bug', keywords: ['bug', 'problem', 'broken', 'feedback', 'issue', 'report', 'not working'], run: { type: 'bug' } },
     { id: 'action:myclass', group: 'actions', kind: 'action', title: 'Open BIBF MyClass', icon: 'GraduationCap', keywords: ['myclass', 'bibf'], href: MYCLASS_URL },
     { id: 'action:uol', group: 'actions', kind: 'action', title: 'Open the UoL student portal', icon: 'Bank', keywords: ['uol', 'university of london', 'portal'], href: UOL_PORTAL_URL },
   ];

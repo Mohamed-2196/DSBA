@@ -2,7 +2,11 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { ADMIN_STATS_KEY } from '../../api/keys';
-import type { BugReportCreate, BugReportOut, BugStatus } from '../../api/types';
+import { nextOffset } from '../../api/paging';
+import type { BugReportCreate, BugReportOut } from '../../api/types';
+
+export type BugStatus = BugReportOut['status'];
+const PAGE = 20;
 
 export const bugKeys = {
   all: ['admin', 'bug-reports'] as const,
@@ -18,9 +22,9 @@ export function useReportBug() {
 export function useBugReports(status: BugStatus) {
   return useInfiniteQuery({
     queryKey: bugKeys.list(status),
-    queryFn: ({ pageParam, signal }) => call(api.GET('/api/v1/admin/bug-reports', { params: { query: { status, cursor: pageParam ?? undefined } }, signal })),
-    initialPageParam: null as string | null,
-    getNextPageParam: (page) => page.nextCursor ?? null,
+    queryFn: ({ pageParam, signal }) => call(api.GET('/api/v1/admin/bug-reports', { params: { query: { status, limit: PAGE, offset: pageParam } }, signal })),
+    initialPageParam: 0,
+    getNextPageParam: nextOffset,
   });
 }
 

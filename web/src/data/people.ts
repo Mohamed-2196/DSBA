@@ -2,9 +2,6 @@
 // people; they are credited on the footer and the About page.
 // Public-repo rule: never invent quotes or content attributed to real tutors or staff.
 
-export const REPO_URL = 'https://github.com/Mohamed-2196/DSBA';
-/** Where a problem with the Hub itself is reported (About's "Report a problem", decision D6). */
-export const REPORT_PROBLEM_URL = `${REPO_URL}/issues/new`;
 export const MYCLASS_URL = 'https://myclass.bibf.com';
 export const UOL_PORTAL_URL = 'https://my.london.ac.uk/group/student';
 export const LAUNCH_YEAR = 2024;

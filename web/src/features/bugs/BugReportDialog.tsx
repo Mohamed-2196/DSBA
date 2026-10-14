@@ -20,7 +20,7 @@ interface Shot {
   preview: string;
 }
 
-function BugForm({ page, onDone }: { page: string; onDone: () => void }) {
+function BugForm({ id, page, onDone, onSending }: { id: string; page: string; onDone: () => void; onSending: (sending: boolean) => void }) {
   const uid = useId();
   const { status } = useAuth();
   const signedIn = status === 'signed-in';
@@ -30,7 +30,6 @@ function BugForm({ page, onDone }: { page: string; onDone: () => void }) {
   const [expected, setExpected] = useState('');
   const [shot, setShot] = useState<Shot | null>(null);
   const [errors, setErrors] = useState<{ what?: string; shot?: string; form?: string }>({});
-  const [sending, setSending] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const browser = browserOf(navigator.userAgent, window.innerWidth, window.innerHeight);
 
@@ -58,7 +57,7 @@ function BugForm({ page, onDone }: { page: string; onDone: () => void }) {
       return;
     }
     setErrors({});
-    setSending(true);
+    onSending(true);
     try {
       let screenshotUploadId: string | null = null;
       if (shot && signedIn) {
@@ -77,12 +76,12 @@ function BugForm({ page, onDone }: { page: string; onDone: () => void }) {
       if (isApiError(err) && err.fields.whatHappened) setErrors({ what: err.fields.whatHappened });
       else setErrors({ form: errorMessage(err, 'Your report wasn’t sent. Try again in a moment.') });
     } finally {
-      setSending(false);
+      onSending(false);
     }
   };
 
   return (
-    <form id={`${uid}-form`} className="bug-form" onSubmit={(e) => void submit(e)} noValidate>
+    <form id={id} className="bug-form" onSubmit={(e) => void submit(e)} noValidate>
       <TextArea
         label="What happened?"
         value={what}
@@ -145,14 +144,6 @@ function BugForm({ page, onDone }: { page: string; onDone: () => void }) {
           {errors.form}
         </p>
       ) : null}
-      <div className="bug-form__actions">
-        <Button variant="ghost" onClick={onDone} disabled={sending}>
-          Cancel
-        </Button>
-        <Button variant="primary" type="submit" loading={sending}>
-          Send report
-        </Button>
-      </div>
     </form>
   );
 }
@@ -168,9 +159,27 @@ export function BugReportDialog() {
     setWasOpen(open);
     if (open) setPage(pageOf(location));
   }
+  const formId = useId();
+  const [sending, setSending] = useState(false);
   return (
-    <Modal open={open} onClose={closeBugReport} title="Report a bug" description="Tell us what went wrong. A sentence or two is enough." size="md">
-      {open ? <BugForm key={page} page={page} onDone={closeBugReport} /> : null}
+    <Modal
+      open={open}
+      onClose={sending ? () => undefined : closeBugReport}
+      title="Report a bug"
+      description="Tell us what went wrong. A sentence or two is enough."
+      size="md"
+      footer={
+        <>
+          <Button variant="ghost" onClick={closeBugReport} disabled={sending}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit" form={formId} loading={sending}>
+            Send report
+          </Button>
+        </>
+      }
+    >
+      {open ? <BugForm key={page} id={formId} page={page} onDone={closeBugReport} onSending={setSending} /> : null}
     </Modal>
   );
 }

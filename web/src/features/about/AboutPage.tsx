@@ -1,8 +1,9 @@
-import { ArrowUpRight, Bank, GithubLogo, GraduationCap, UploadSimple, type Icon } from '@phosphor-icons/react';
-import { CONTRIBUTORS, DISCLAIMER, contributorLine, MYCLASS_URL, NOTE_CONTRIBUTORS, REPORT_PROBLEM_URL, UOL_PORTAL_URL } from '../../data/people';
+import { ArrowUpRight, Bank, Bug, GraduationCap, UploadSimple, type Icon } from '@phosphor-icons/react';
+import { CONTRIBUTORS, DISCLAIMER, contributorLine, MYCLASS_URL, NOTE_CONTRIBUTORS, UOL_PORTAL_URL } from '../../data/people';
 import { showsUpload, useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
 import { Avatar, Button, Page, PageHeader, PageSection, Panel, SectionHeader, countOf } from '../../ui';
+import { openBugReport } from '../bugs/public';
 import { useCalendarEvents } from '../calendar/public';
 import './AboutPage.css';
 
@@ -108,7 +109,7 @@ export default function AboutPage() {
         </div>
 
         <aside className="about__aside" aria-label="Sharing, problems and links">
-          {/* Contributing means uploading to the library; GitHub is only where problems are reported (decision D6). */}
+          {/* Contributing means uploading to the library (decision D6); problems go to the admins as bug reports. */}
           {showsUpload(featureOn, mayTry) ? (
             <Panel padding="md" className="about__contribute">
               <h2 className="about__aside-title">Got a resource to share?</h2>
@@ -121,9 +122,8 @@ export default function AboutPage() {
           <Panel padding="md" className="about__report">
             <h2 className="about__aside-title">Something wrong with the Hub?</h2>
             <p className="about__aside-body">A broken page, a wrong date or a typo: tell the people who build it.</p>
-            <Button href={REPORT_PROBLEM_URL} leadingIcon={GithubLogo} trailingIcon={ArrowUpRight} fullWidth data-hub="about-report">
-              Report a problem
-              <span className="visually-hidden">, opens GitHub in a new tab</span>
+            <Button onClick={openBugReport} leadingIcon={Bug} fullWidth data-hub="about-report">
+              Report a bug
             </Button>
           </Panel>
           <Panel padding="none">

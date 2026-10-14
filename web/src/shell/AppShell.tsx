@@ -7,6 +7,7 @@ import { AnalyticsFeatures } from './AnalyticsFeatures';
 import { CommandPalette } from '../features/search/public';
 import { Onboarding } from '../features/onboarding/public';
 import { MiniNoora } from '../features/noora/public';
+import { BugReportDialog } from '../features/bugs/public';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { UpdatePrompt } from './UpdatePrompt';
@@ -55,6 +56,9 @@ export function AppShell({ children }: { children?: ReactNode }) {
           <MiniNoora />
         </ErrorBoundary>
       ) : null}
+      <ErrorBoundary name="BugReport" fallback={null}>
+        <BugReportDialog />
+      </ErrorBoundary>
       <Toaster />
       <UpdatePrompt />
       <AnalyticsFeatures />

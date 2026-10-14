@@ -1,8 +1,9 @@
 import { createElement, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { ArrowUpRight, DotsThreeOutline, Info, UploadSimple } from '@phosphor-icons/react';
+import { ArrowUpRight, Bug, DotsThreeOutline, Info, UploadSimple } from '@phosphor-icons/react';
 import { useAuth } from '../auth';
 import { Divider, Drawer, cx } from '../ui';
+import { openBugReport } from '../features/bugs/public';
 import { EXTERNAL_LINKS, MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav';
 import { visibleNav } from './visibility';
 import { YearSwitcher } from './YearSwitcher';
@@ -83,6 +84,20 @@ export function MobileNav() {
                 </button>
               </li>
             ) : null}
+            <li>
+              <button
+                type="button"
+                className="shell-more__item"
+                onClick={() => {
+                  close();
+                  openBugReport();
+                }}
+                data-hub="more-bug"
+              >
+                <Bug aria-hidden="true" />
+                <span>Report a bug</span>
+              </button>
+            </li>
             <li>
               <Link to="/about" onClick={close} className="shell-more__item">
                 <Info aria-hidden="true" />

@@ -10,6 +10,7 @@ import { useDebouncedValue, useLocalStorage, useTheme, useToast, useYear } from 
 import { useModules } from '../../state/modules';
 import { Count, Kbd, Spinner, Modal, cx } from '../../ui';
 import { useStartsThreads } from '../forum/public';
+import { openBugReport } from '../bugs/public';
 import { askNoora, hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
 import { useSearch } from './api';
 import { tokenize } from './match';
@@ -153,6 +154,8 @@ export function CommandPalette() {
     if (item.kind === 'action' && item.run) {
       const run = item.run;
       if (run.type === 'theme') toggleTheme();
+      // After the palette has closed and handed focus back, so the dialog keeps it.
+      else if (run.type === 'bug') requestAnimationFrame(() => openBugReport());
       else if (run.type === 'noora') {
         if (run.act === 'hide') hideMiniNoora();
         else if (run.act === 'show') showMiniNoora();
