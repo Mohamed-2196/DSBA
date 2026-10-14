@@ -1,4 +1,5 @@
 // Her "Where to look" links as the chat shows and copies them. Pure.
+import { plainText } from './rich';
 import type { NooraMessage, Ref } from './types';
 
 /** What a link opens, for its icon: a lesson, a module's files, a module, the calendar, the library. */
@@ -19,7 +20,7 @@ export function refKind(to: string): RefKind {
 
 /** One of her answers as plain text, for the clipboard: what she said, the maths as words, and where to look. */
 export function messageAsText(message: Pick<NooraMessage, 'text' | 'formula' | 'steps' | 'refs'>, linkFor: (to: string) => string): string {
-  const lines = [message.text];
+  const lines = [plainText(message.text)];
   if (message.formula) lines.push(message.formula.say);
   for (const step of message.steps ?? []) lines.push(step.say);
   if (message.refs.length) {

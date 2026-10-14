@@ -54,7 +54,7 @@ export type Mood = 'happy' | 'laughing' | 'angry' | 'sad' | 'wave' | 'neutral';
 /** One of her answers. */
 export interface Reply {
   mood: Mood;
-  /** one or two short sentences */
+  /** what she says: plain words from her script, Markdown from her AI */
   text: string;
   formula?: FormulaData;
   steps?: Step[];
@@ -70,6 +70,10 @@ export interface NooraMessage extends Reply {
   from: 'noora';
   /** when it arrived (ms since the epoch) */
   at: number;
+  /** written by her AI: `text` is Markdown with formulas (rich.ts); else it is her script's plain words */
+  ai?: boolean;
+  /** her AI couldn't answer this time: "Try again" asks it again */
+  retry?: boolean;
 }
 export interface MyMessage {
   id: number;

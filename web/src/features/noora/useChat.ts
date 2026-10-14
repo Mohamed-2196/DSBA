@@ -35,7 +35,7 @@ function thinkingTime(text: string, attachments: readonly Attachment[]): number 
  * and then null again.
  */
 export type Pending =
-  | { phase: 'thinking'; label: string; wait: number; since: number; question: Question; replyId: number; ai: boolean; notice?: string }
+  | { phase: 'thinking'; label: string; wait: number; since: number; question: Question; replyId: number; ai: boolean; notice?: string; retry?: boolean }
   | { phase: 'typing'; reply: NooraMessage; shown: number; live?: boolean }
   | { phase: 'done'; reply: NooraMessage };
 
@@ -56,23 +56,34 @@ export interface Chat {
   pending: Pending | null;
   /** she is still answering; send() does nothing until she has finished */
   busy: boolean;
-  /** her AI stopped for this visit (today's questions are used up, the budget is spent...): she uses her script */
-  aiPaused: boolean;
-  /** true if the message was taken */
-  send: (message: { text: string; attachments?: Attachment[] }) => boolean;
+  /** why her AI stopped for this visit (today's questions are used up, the budget is spent...): she uses her script */
+  paused: Pause | null;
+  /** true if the message was taken. `edit`: it replaces the last question (and her answer to it) */
+  send: (message: { text: string; attachments?: Attachment[]; edit?: boolean }) => boolean;
+  /** stop the answer on its way: what has arrived stays, marked as stopped */
+  stop: () => void;
+  /** ask the last question again: her last answer goes */
+  regenerate: () => void;
   /** start again: every message goes, and an answer on its way is dropped */
   clear: () => void;
+  /** carry on with a saved conversation */
+  load: (messages: Message[]) => void;
 }
 
+/** Why her AI is paused for the visit. */
+export type Pause = 'limit' | 'budget' | 'off';
+
+const STOPPED = 'You stopped this answer.';
+
 /** Why an answer comes from her script instead of her AI, and whether to stop asking her AI for this visit. */
-export function fallback(e: unknown): { notice: string; pause: boolean } {
+export function fallback(e: unknown): { notice: string; pause: Pause | null } {
   const code = isApiError(e) ? e.code : null;
-  if (code === 'noora_daily_limit') return { notice: 'You’ve used today’s AI questions, so this answer is from my script. Ask again tomorrow.', pause: true };
-  if (code === 'noora_budget_reached') return { notice: 'My AI answers are paused until next month, so this answer is from my script.', pause: true };
-  if (code === 'rate_limited') return { notice: 'One question at a time, so this answer is from my script.', pause: false };
-  if (code === 'noora_busy') return { notice: 'Lots of students are asking me right now, so this answer is from my script.', pause: false };
-  const pause = code === 'noora_unavailable' || code === 'feature_off' || code === 'unauthenticated' || code === 'forbidden';
-  return { notice: 'I can’t reach my AI right now, so this answer is from my script.', pause };
+  if (code === 'noora_daily_limit') return { notice: 'You’ve used today’s AI questions, so this answer is from my script. Ask again tomorrow.', pause: 'limit' };
+  if (code === 'noora_budget_reached') return { notice: 'My AI answers are paused until next month, so this answer is from my script.', pause: 'budget' };
+  if (code === 'rate_limited') return { notice: 'One question at a time, so this answer is from my script.', pause: null };
+  if (code === 'noora_busy') return { notice: 'Lots of students are asking me right now, so this answer is from my script.', pause: null };
+  const off = code === 'noora_unavailable' || code === 'feature_off' || code === 'unauthenticated' || code === 'forbidden';
+  return { notice: 'I couldn’t reach my AI, so this answer is from my script.', pause: off ? 'off' : null };
 }
 
 /** The conversation so far, for a follow-up question: the newest messages with words in them. */
@@ -83,13 +94,31 @@ export function historyOf(messages: readonly Message[]): NooraTurn[] {
     .map((m) => ({ role: m.from === 'me' ? 'student' : 'noora', text: m.text.slice(0, TURN_MAX) }));
 }
 
+/** Where the last question is (-1: none yet). */
+export function lastQuestionAt(messages: readonly Message[]): number {
+  for (let i = messages.length - 1; i >= 0; i -= 1) if (messages[i].from === 'me') return i;
+  return -1;
+}
+
+/** The reply on its way, stopped where it is: what has arrived, marked as stopped. */
+export function stoppedReply(pending: Pending, partial: string, modules: readonly ModuleSummary[], at: number): NooraMessage | null {
+  if (pending.phase === 'done') return null;
+  if (pending.phase === 'thinking') return { id: pending.replyId, from: 'noora', at, mood: 'neutral', text: '', refs: [], notice: STOPPED, ai: pending.ai };
+  const { reply } = pending;
+  if (pending.live) return { ...replyFromAnswer(visibleText(partial), modules), id: reply.id, from: 'noora', at: reply.at, ai: true, notice: STOPPED };
+  return { ...reply, text: Array.from(reply.text).slice(0, pending.shown).join(''), formula: undefined, steps: undefined, refs: [], suggestions: undefined, notice: STOPPED };
+}
+
+const highestId = (messages: readonly Message[]): number => messages.reduce((top, m) => Math.max(top, m.id), 0);
+
 /**
  * The conversation with Mini Noora: the messages so far, and the reply that is on its way.
  * year: the year the student is browsing (the brain uses it to break ties). calm: reduced motion, scripted replies
  * appear whole instead of streaming. ai: her AI while it's on for the student; null: only her script, and nothing
- * leaves the browser. When her AI can't answer, her script does, with a short notice.
+ * leaves the browser. When her AI can't answer, her script does, with a short notice. initial: a conversation to
+ * carry on with.
  */
-export function useChat({ year, calm, ai }: { year: number | null; calm: boolean; ai: ChatAi | null }): Chat {
+export function useChat({ year, calm, ai, initial = [] }: { year: number | null; calm: boolean; ai: ChatAi | null; initial?: Message[] }): Chat {
   const { knowledge, ready } = useKnowledge();
   const latest = useRef(knowledge);
   useEffect(() => {
@@ -101,10 +130,10 @@ export function useChat({ year, calm, ai }: { year: number | null; calm: boolean
   }, [ai]);
 
   const hello = useMemo(() => greeting(knowledge.name), [knowledge.name]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(initial);
   const [pending, setPending] = useState<Pending | null>(null);
-  const [aiPaused, setAiPaused] = useState(false);
-  const lastId = useRef(0);
+  const [paused, setPaused] = useState<Pause | null>(null);
+  const lastId = useRef(highestId(initial));
   const busy = Boolean(pending) && pending?.phase !== 'done';
   const answering = useRef(false);
   useEffect(() => {
@@ -114,7 +143,16 @@ export function useChat({ year, calm, ai }: { year: number | null; calm: boolean
   useEffect(() => {
     shown.current = messages;
   }, [messages]);
+  const pendingRef = useRef(pending);
+  useEffect(() => {
+    pendingRef.current = pending;
+  }, [pending]);
+  const pausedRef = useRef(paused);
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
   const asking = useRef<AbortController | null>(null);
+  const partial = useRef(''); // her AI's answer so far, as it arrived
   useEffect(() => () => asking.current?.abort(), []);
 
   /** Puts her reply in the list, or replaces the one with its id (an answer that is still arriving). */
@@ -126,61 +164,93 @@ export function useChat({ year, calm, ai }: { year: number | null; calm: boolean
     (now: ChatAi, question: Question, replyId: number, history: NooraTurn[]) => {
       const controller = new AbortController();
       asking.current = controller;
-      let full = '';
+      partial.current = '';
       const at = Date.now();
-      const finish = (reply: Reply) => {
-        const message: NooraMessage = { id: replyId, from: 'noora', at, ...reply };
-        put(message);
-        setPending({ phase: 'done', reply: message });
+      const finish = (reply: NooraMessage) => {
+        put(reply);
+        setPending({ phase: 'done', reply });
       };
       askNoora(
         now.question(question.text, history),
         (piece) => {
-          full += piece;
-          const reply: NooraMessage = { id: replyId, from: 'noora', at, mood: 'neutral', text: visibleText(full), refs: [] };
+          partial.current += piece;
+          const reply: NooraMessage = { id: replyId, from: 'noora', at, mood: 'neutral', text: visibleText(partial.current), refs: [], ai: true };
           put(reply);
           setPending({ phase: 'typing', reply, shown: Array.from(reply.text).length, live: true });
         },
         controller.signal,
       )
         .then((left) => {
-          finish(replyFromAnswer(full, now.modules));
+          finish({ ...replyFromAnswer(partial.current, now.modules), id: replyId, from: 'noora', at, ai: true });
           now.onAnswered(left);
         })
         .catch((e: unknown) => {
           if (controller.signal.aborted) return;
           if (e instanceof AnswerCutOff && e.said) {
-            finish({ ...replyFromAnswer(full, now.modules), mood: 'sad', notice: e.message });
+            finish({ ...replyFromAnswer(partial.current, now.modules), id: replyId, from: 'noora', at, ai: true, mood: 'sad', notice: e.message, retry: true });
             return;
           }
           const { notice, pause } = fallback(e);
-          if (pause) setAiPaused(true);
-          setPending({ phase: 'thinking', label: THINKING, wait: 0, since: Date.now(), question, replyId, ai: false, notice });
+          if (pause) setPaused(pause);
+          setPending({ phase: 'thinking', label: THINKING, wait: 0, since: Date.now(), question, replyId, ai: false, notice, retry: !pause });
         });
     },
     [put],
   );
 
-  const send = useCallback<Chat['send']>(
-    ({ text, attachments = [] }) => {
+  /** Asks `text` after the messages in `base` (the conversation so far, or less of it when a question is redone). */
+  const ask = useCallback(
+    (base: Message[], text: string, attachments: Attachment[]): boolean => {
       if (answering.current) return false;
       answering.current = true;
-      lastId.current += 1;
+      lastId.current = Math.max(lastId.current, highestId(base)) + 1;
       const mine: MyMessage = { id: lastId.current, from: 'me', at: Date.now(), text, attachments };
       lastId.current += 1;
       const replyId = lastId.current;
       const question: Question = { text, attachments, year };
       const now = aiRef.current;
       // Her AI reads words only: a message of only pictures or files goes to her script.
-      const toAi = now !== null && !aiPaused && text.trim().length > 0;
-      const history = historyOf(shown.current);
-      setMessages((list) => [...list, mine]);
+      const toAi = now !== null && !pausedRef.current && text.trim().length > 0;
+      setMessages([...base, mine]);
       setPending({ phase: 'thinking', label: THINKING, wait: thinkingTime(text, attachments), since: Date.now(), question, replyId, ai: toAi });
-      if (toAi) askAi(now, question, replyId, history);
+      if (toAi) askAi(now, question, replyId, historyOf(base));
       return true;
     },
-    [year, aiPaused, askAi],
+    [year, askAi],
   );
+
+  const send = useCallback<Chat['send']>(
+    ({ text, attachments = [], edit = false }) => {
+      const list = shown.current;
+      const at = edit ? lastQuestionAt(list) : -1;
+      if (at < 0) return ask(list, text, attachments);
+      // An edited question keeps the pictures the first one carried.
+      const before = list[at];
+      const kept = before.from === 'me' ? before.attachments : [];
+      return ask(list.slice(0, at), text, [...kept, ...attachments]);
+    },
+    [ask],
+  );
+
+  const regenerate = useCallback(() => {
+    const list = shown.current;
+    const at = lastQuestionAt(list);
+    const question = list[at];
+    if (!question || question.from !== 'me') return;
+    ask(list.slice(0, at), question.text, question.attachments);
+  }, [ask]);
+
+  const stop = useCallback(() => {
+    const now = pendingRef.current;
+    if (!now) return;
+    asking.current?.abort();
+    asking.current = null;
+    const reply = stoppedReply(now, partial.current, aiRef.current?.modules ?? [], Date.now());
+    if (!reply) return;
+    put(reply);
+    setPending({ phase: 'done', reply });
+    answering.current = false;
+  }, [put]);
 
   // One clock moves a scripted reply through its phases. While she thinks, it also waits for her material to
   // arrive. An answer from her AI moves itself (askAi): the clock only lets her mood linger once it is done.
@@ -191,12 +261,12 @@ export function useChat({ year, calm, ai }: { year: number | null; calm: boolean
     let wait = AFTERGLOW;
     let next = () => setPending(null);
     if (pending.phase === 'thinking') {
-      const { question, replyId, notice } = pending;
+      const { question, replyId, notice, retry } = pending;
       const elapsed = Date.now() - pending.since;
       wait = Math.max(0, (thinkingReady ? pending.wait : Math.max(pending.wait, MAX_WAIT)) - elapsed);
       next = () => {
-        const reply: NooraMessage = { id: replyId, from: 'noora', at: Date.now(), ...answer(question, latest.current), ...(notice ? { notice } : {}) };
-        setMessages((list) => [...list, reply]);
+        const reply: NooraMessage = { id: replyId, from: 'noora', at: Date.now(), ...answer(question, latest.current), ...(notice ? { notice } : {}), ...(retry ? { retry } : {}) };
+        put(reply);
         setPending(calm ? { phase: 'done', reply } : { phase: 'typing', reply, shown: 0 });
       };
     } else if (pending.phase === 'typing') {
@@ -209,10 +279,11 @@ export function useChat({ year, calm, ai }: { year: number | null; calm: boolean
     }
     const timer = setTimeout(next, wait);
     return () => clearTimeout(timer);
-  }, [pending, calm, thinkingReady]);
+  }, [pending, calm, thinkingReady, put]);
 
   const clear = useCallback(() => {
     asking.current?.abort();
+    asking.current = null;
     // The pictures go with the messages that carried them.
     for (const m of shown.current) if (m.from === 'me') m.attachments.forEach(release);
     setMessages([]);
@@ -220,5 +291,14 @@ export function useChat({ year, calm, ai }: { year: number | null; calm: boolean
     answering.current = false;
   }, []);
 
-  return { greeting: hello, messages, pending, busy, aiPaused, send, clear };
+  const load = useCallback(
+    (saved: Message[]) => {
+      clear();
+      lastId.current = highestId(saved);
+      setMessages(saved);
+    },
+    [clear],
+  );
+
+  return { greeting: hello, messages, pending, busy, paused, send, stop, regenerate, clear, load };
 }
