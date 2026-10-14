@@ -8,7 +8,7 @@ import { Button, EmptyState, ErrorBoundary, Page, PageHeader, Panel, QueryError,
 import { ActivityLog, PeopleList } from '../access/public';
 import { ReportsQueue } from '../forum/public';
 import { ModulesEditor, SuggestionsQueue } from '../modules/public';
-import { UploadsQueue } from '../library/public';
+import { FlaggedQuestions, UploadsQueue } from '../library/public';
 import { RequestsQueue } from '../requests/public';
 import { useIssues } from '../newsletter/public';
 import { useAdminStats } from './api';
@@ -113,7 +113,12 @@ function SummaryForMe() {
 
 const BODIES: Record<SectionId, () => ReactNode> = {
   reports: () => <ReportsQueue />,
-  uploads: () => <UploadsQueue />,
+  uploads: () => (
+    <>
+      <UploadsQueue />
+      <FlaggedQuestions />
+    </>
+  ),
   requests: () => <RequestsQueue />,
   newsletter: () => <Drafts />,
   calendar: () => <LinkOut icon={CalendarDots} title="The calendar" body="Add, edit and delete events from the calendar itself." to="/calendar" label="Open the calendar" />,

@@ -111,12 +111,12 @@ describe('past papers', () => {
     expect(isPastPaper(card('a', 'todo', { link: { ...paper, kind: 'notes' } }))).toBe(false);
     expect(isPastPaper(card('a', 'todo'))).toBe(false);
   });
-  it('counts sittings: a year and zone, or a paper without a year on its own', () => {
+  it('counts sittings: a year and session (both zones in one), or a paper without a year on its own', () => {
     const papers = [
-      { id: 'a', examYear: 2023, zone: 'A' },
-      { id: 'a2', examYear: 2023, zone: 'A' },
-      { id: 'b', examYear: 2023, zone: 'B' },
-      { id: 'c', examYear: null, zone: null },
+      { id: 'a', examYear: 2023, examSession: 'may' },
+      { id: 'a2', examYear: 2023, examSession: 'may' },
+      { id: 'b', examYear: 2023, examSession: 'october' },
+      { id: 'c', examYear: null, examSession: null },
     ];
     expect(sittingsDone(papers, new Set(['a', 'a2', 'c']))).toEqual({ done: 2, total: 3 });
     expect(sittingsDone(papers, new Set())).toEqual({ done: 0, total: 3 });

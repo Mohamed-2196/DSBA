@@ -8,6 +8,7 @@ import { useModuleDetail } from './api';
 import { useCareerData } from './context';
 import { jumpTo } from './lib/jump';
 import { appPath, lessonPath } from './lib/links';
+import { useListedSeniors } from './api';
 import { Seniors } from './Seniors';
 import './AfterDsba.css';
 
@@ -104,7 +105,8 @@ function Checklist() {
 
 /** What to have ready, who to ask, and one line for those heading to further study instead. */
 export function AfterDsba() {
-  const { checklist, seniors, furtherStudy: study } = useCareerData();
+  const { checklist, furtherStudy: study } = useCareerData();
+  const seniors = useListedSeniors();
   const studyTo = appPath(study?.action.to);
   if (!checklist.length && !seniors.length && !study) return null;
   const description = seniors.length ? 'Things to have ready, and people who can tell you how it went for them.' : 'Things to have ready before you send an application.';
@@ -114,7 +116,7 @@ export function AfterDsba() {
       <div className="career-after">
         <div className={cx('career-after__grid', !seniors.length && 'career-after__grid--single')}>
           {checklist.length ? <Checklist /> : null}
-          <Seniors />
+          <Seniors seniors={seniors} />
         </div>
         {study ? (
           <Panel tone="inset" padding="none" className="career-study" data-hub="career-study">

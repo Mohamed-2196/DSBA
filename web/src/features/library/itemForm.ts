@@ -11,6 +11,8 @@ export interface ItemFormValues {
   /** Only used when module is 'none'. */
   year: '' | '1' | '2' | '3';
   examYear: string;
+  /** '' = not said: the May sitting or the October resits. */
+  session: '' | 'may' | 'october';
   zone: '' | 'A' | 'B';
   authorName: string;
   description: string;
@@ -27,6 +29,7 @@ export function emptyValues({ moduleId, year }: { moduleId?: string | null; year
     module: moduleId ?? '',
     year: year ? (String(year) as ItemFormValues['year']) : '',
     examYear: '',
+    session: '',
     zone: '',
     authorName: '',
     description: '',
@@ -40,6 +43,7 @@ export function valuesFromItem(item: LibraryItem): ItemFormValues {
     module: item.moduleId ?? NO_MODULE,
     year: item.year ? (String(item.year) as ItemFormValues['year']) : '',
     examYear: item.examYear ? String(item.examYear) : '',
+    session: item.examSession ?? '',
     zone: item.zone === 'A' || item.zone === 'B' ? item.zone : '',
     authorName: item.authorName ?? '',
     description: item.description ?? '',
@@ -75,6 +79,8 @@ export function errorsFromApi(fields: Record<string, string>): ItemFormErrors {
     examYear: 'examYear',
     exam_year: 'examYear',
     zone: 'zone',
+    examSession: 'session',
+    exam_session: 'session',
     authorName: 'authorName',
     author_name: 'authorName',
     description: 'description',
@@ -98,6 +104,7 @@ function details(v: ItemFormValues, getModule: (id: string) => ModuleSummary | n
     description: v.description.trim() || null,
     examYear: exam && v.examYear.trim() ? Number(v.examYear) : null,
     zone: exam && v.zone ? v.zone : null,
+    examSession: exam && v.session ? v.session : null,
     authorName: v.authorName.trim() || null,
   };
 }

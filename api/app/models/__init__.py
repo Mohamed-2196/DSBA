@@ -13,23 +13,26 @@ from app.models.content import (
     SuggestionStatus,
     VideoSuggestion,
 )
-from app.models.forum import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVote
+from app.models.forum import FollowLevel, ForumReply, ForumThread, PostStatus, ReplyVote, ThreadFollow, ThreadVote
 from app.models.library import (
     ItemSource,
     ItemStatus,
     LibraryItem,
     LibraryStar,
     LibraryText,
+    PaperQuestion,
+    PaperQuestionFlag,
     TextStatus,
     Upload,
     UploadPurpose,
     UploadStatus,
 )
-from app.models.newsletter import IssueStatus, NewsletterIssue, NewsletterReaction
+from app.models.newsletter import IssueStatus, NewsletterIssue, NewsletterReaction, PollVote
 from app.models.noora import NooraLimits, NooraUsage
 from app.models.notes import Note
 from app.models.outbox import EmailOutbox, OutboxStatus, WeeklySummarySent
 from app.models.requests import RequestMeToo, RequestStatus, StudentRequest
+from app.models.seniors import SeniorProfile
 from app.models.user import Channel, OtpChallenge, OtpPurpose, User, UserSession, UserStatus
 
 __all__ = [
@@ -45,6 +48,7 @@ __all__ = [
     "EmailOutbox",
     "FeatureSwitch",
     "FeatureSwitchRole",
+    "FollowLevel",
     "ForumReply",
     "ForumThread",
     "IssueStatus",
@@ -66,6 +70,9 @@ __all__ = [
     "OtpChallenge",
     "OtpPurpose",
     "OutboxStatus",
+    "PaperQuestion",
+    "PaperQuestionFlag",
+    "PollVote",
     "PostStatus",
     "ReplyVote",
     "Report",
@@ -74,9 +81,11 @@ __all__ = [
     "RequestStatus",
     "RoleBox",
     "RoleGrant",
+    "SeniorProfile",
     "StudentRequest",
     "SuggestionStatus",
     "TextStatus",
+    "ThreadFollow",
     "ThreadVote",
     "Upload",
     "UploadPurpose",

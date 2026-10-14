@@ -12,6 +12,7 @@ function reply(over: Partial<Reply> = {}): Reply {
     parentId: null,
     author: person('ali'),
     authorYear: 2,
+    anonymous: false,
     body: 'text',
     createdAt: new Date(Date.UTC(2026, 9, 1, 10, n)).toISOString(),
     editedAt: null,

@@ -24,6 +24,7 @@ import type {
   StarResult,
 } from '../../api/types';
 import { MODULES_KEY } from '../../state/modules';
+import { PAPERS_KEY } from './papers';
 import type { CohortYear, LibraryQuery } from './types';
 
 // ── Keys ──────────────────────────────────────────────────────────────────────
@@ -234,6 +235,7 @@ async function cancelLibraryRefetches(qc: QueryClient) {
 
 function refreshCounts(qc: QueryClient) {
   void qc.invalidateQueries({ queryKey: libraryKeys.facets });
+  void qc.invalidateQueries({ queryKey: PAPERS_KEY });
   void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
   void qc.invalidateQueries({ queryKey: MODULES_KEY, exact: true });
 }

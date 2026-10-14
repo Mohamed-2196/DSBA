@@ -5,6 +5,7 @@ import { formatSize } from '../../../api/uploads';
 import { hostOf } from '../../../lib/share';
 import { cohortTextColor } from '../../../state';
 import { useModules } from '../../../state/modules';
+import { useAuth } from '../../../auth';
 import { Button, CohortBadge, Count, Kbd, Skeleton, cx, formatDate, timeAgo } from '../../../ui';
 import { downloadHref, itemPath, openLinkHref, useLibraryList } from '../api';
 import type { LinkState } from '../components/FileCard';
@@ -12,6 +13,8 @@ import { FileThumb } from '../components/FileThumb';
 import { addedAt, examLabel, linkPlace, sizeLabel } from '../display';
 import { formatOf, kindLabel } from '../kinds';
 import type { LibraryItem } from '../types';
+import { QuestionTags } from './QuestionTags';
+import { SittingPanel } from './SittingPanel';
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -59,9 +62,25 @@ function MoreFromModule({ item, linkState }: { item: LibraryItem; linkState?: Li
   );
 }
 
-/** The file page's details column: module, facts, credit, description, the original, more from the module. */
-export function MetaPanel({ item, linkState, className, id }: { item: LibraryItem; linkState?: LinkState; className?: string; id?: string }) {
+/** The file page's details column: module, facts, credit, description, the paper's sitting and its questions by
+ *  topic, the original, more from the module. `onPage` opens a PDF at a page. */
+export function MetaPanel({
+  item,
+  linkState,
+  className,
+  id,
+  onPage,
+}: {
+  item: LibraryItem;
+  linkState?: LinkState;
+  className?: string;
+  id?: string;
+  onPage: (page: number) => void;
+}) {
   const { getModule } = useModules();
+  const { featureOn } = useAuth();
+  const published = item.status === 'published' && item.source === 'file';
+  const tagging = published && item.kind === 'past-paper' && !!item.moduleId && featureOn('library.questions');
   const m = getModule(item.moduleId);
   const fmt = formatOf(item);
   const exam = examLabel(item);
@@ -112,6 +131,9 @@ export function MetaPanel({ item, linkState, className, id }: { item: LibraryIte
           {isLink ? (item.downloadCount === 1 ? ' time' : ' times') : null}
         </Row>
       </dl>
+
+      {published ? <SittingPanel item={item} linkState={linkState} /> : null}
+      {tagging ? <QuestionTags item={item} onPage={onPage} /> : null}
 
       {item.description ? (
         <section className="lib-meta__desc" aria-labelledby="lib-meta-desc">

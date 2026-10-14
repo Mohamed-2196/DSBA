@@ -116,7 +116,7 @@ function ImagePreview({ item, src }: { item: LibraryItem; src: string }) {
 /**
  * The file itself: PDFs in the browser's PDF viewer and images as they are, both from a short-lived link
  * (GET /library/items/{id}/file); on phones a PDF opens in a new tab instead. Other formats and links show
- * a card with Download or Open. `page` opens a PDF at that page (where a search found its words).
+ * a card with Download or Open. `page` opens a PDF at that page (where a search found its words, or a tagged question starts).
  */
 export function Preview({ item, compact, page = null }: { item: LibraryItem; compact: boolean; page?: number | null }) {
   const removed = item.status === 'removed';
@@ -167,7 +167,7 @@ export function Preview({ item, compact, page = null }: { item: LibraryItem; com
         <FileThumb item={item} size="strip" />
         <div className="lib-nopreview__text">
           <h2 className="lib-nopreview__title">Read the PDF</h2>
-          <p>It opens in your phone’s PDF viewer, in a new tab.{page ? ` Your search found its words on page ${page}.` : ''}</p>
+          <p>It opens in your phone’s PDF viewer, in a new tab.{page ? ` It opens at page ${page}.` : ''}</p>
           <Button variant="primary" href={(link.data?.url ?? src) + at} external leadingIcon={FilePdf}>
             Open the PDF
           </Button>

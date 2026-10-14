@@ -31,21 +31,26 @@ deployed yet.
 
 ## In flight
 
-**Round 5** (started 2026-10-14). Mohamed approved 15 student ideas; six builders in parallel, migrations 0007-0011
-re-chained at merge:
+**Round 5: merged 2026-10-14.** All 15 approved ideas (IDEA-1, 2, 3, 5, 7, 8, 12, 13, 14, 16, 17, 20, 21, 23, 24)
+and the round 4 security fixes (SEC-21 to SEC-29) are on feature/backend; checks green (API 1040, web 563). Migration
+chain: 0001-0006, 0008 search, 0009 board plans, 0011 alerts, 0010 forum, 0007 papers. New switches start off.
+
+**Round 6** (started 2026-10-14; Mohamed: "start working on the next features", taken as approval of the remaining
+ideas except IDEA-22, which waits for R-8):
 
 | Branch | Ideas |
 | --- | --- |
-| `round5/papers` | IDEA-1 paper + examiners' report, IDEA-3 questions by topic, and `exam_meta_from_name` (Mohamed agreed the builder writes it) |
-| `round5/search` | IDEA-5 search finds lessons, IDEA-2 search inside papers |
-| `round5/board2` | IDEA-13 revision plan, IDEA-14 past papers as cards |
-| `round5/forum` | IDEA-7 follow, IDEA-8 anonymous asks, IDEA-17 seniors, IDEA-20 polls |
-| `round5/alerts` | IDEA-12 date-change alerts, IDEA-21 Sunday summary |
-| `round5/onboard` | IDEA-23 PWA, IDEA-24 Year 1 start, IDEA-16 electives |
-| `round4/review-security` | security review of round 4 |
+| `round6/calendar2` | IDEA-10 your papers, IDEA-11 dates that tell you enough, IDEA-18 application dates |
+| `round6/paperq` | IDEA-4 ask Noora about a paper's question |
+| `round6/community2` | IDEA-9 help the year below, IDEA-19 requests that close themselves |
+| `round6/content2` | IDEA-15 videos students suggest |
+| `round6/ideas6` | student-user: the next batch, IDEA-25 on |
 
-- **Drive import running** into local MinIO (732 files, 684 MB; key in `.env`). Skipped: 8 IS2184 videos (.mp4) and
-  one 60 MB PDF over the 50 MB limit; 4 single-file links stay links.
+- **Drive import:** 105 files in. Google blocks the network for "automated queries" after bursts; the importer now
+  paces (2 s) and waits the block out, and a re-run picks up the rest. Skipped: 8 IS2184 videos, one 60 MB PDF.
+- **Local database:** SEC-26 edited migration 0006 (`answering_since`); apply that column by hand on the local
+  database rather than rebuilding, to keep the import.
+- **Open question for Mohamed:** what "RTC" means in paper names (RTC papers get no zone for now).
 
 **Round 4.** Each builder on its own branch and worktree; one review per branch, just before it merges.
 

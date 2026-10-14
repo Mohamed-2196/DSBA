@@ -67,7 +67,10 @@ ErrorCode = Literal[
     "request_closed",  # 409: a done or declined request takes no more me-toos
     # library, uploads, newsletter, calendar
     "slug_taken",  # 409: a rep chose an address another issue has
-    "not_published",  # 409: reactions wait for the issue to be published
+    "not_published",  # 409: reactions and votes wait for the issue to be published
+    "already_voted",  # 409: one vote per poll
+    "poll_closed",  # 409: the poll takes no more votes
+    "poll_has_votes",  # 409: a poll's answers can't change once it has votes
     "unsupported_type",  # 422: a file type the library or the forum doesn't take
     "too_large",  # 422
     "not_uploaded",  # 409: the file never reached the bucket
@@ -75,6 +78,8 @@ ErrorCode = Literal[
     "no_preview",  # 404/409: this file has no preview
     "file_gone",  # 409: the file was deleted after it was rejected
     "too_many_pending",  # 409: ten files already wait for review
+    "not_a_paper",  # 409: only a module's published past papers take question tags
+    "already_tagged",  # 409: this question already has this chapter
     # access: roles and feature switches (R-1, R-10)
     "feature_off",  # 404: the feature is switched off for this person (admins see every feature)
     "last_admin",  # 409: the hub needs at least one active admin
@@ -91,12 +96,14 @@ ErrorCode = Literal[
     # notes (R-5)
     "note_changed",  # 409: the note was saved elsewhere (another tab) since this version: load it, or save over it
     "too_many_notes",  # 409: the most notes one student may keep
+    "notes_full",  # 409: the student's notes hold as much text as they may
     # the study board (R-4)
     "board_full",  # 409: the board holds as many cards as it may
     "already_on_board",  # 409: this event, lesson, module or file already has a card
     # Mini Noora's AI answers (R-6)
     "noora_unavailable",  # 503: no AI right now (not set up, or Claude failed): she answers from her script
     "noora_budget_reached",  # 503: the hub's monthly AI budget is spent: she answers from her script
+    "noora_busy",  # 503: too many answers are streaming hub-wide right now: she answers from her script
     "noora_daily_limit",  # 429: the student's questions for today are used up (retryAfter: Bahrain midnight)
 ]
 

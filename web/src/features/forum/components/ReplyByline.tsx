@@ -1,7 +1,7 @@
 import { CheckCircle, EyeSlash } from '@phosphor-icons/react';
 import type { Reply } from '../../../api/types';
 import { Badge, CohortBadge, timeAgo } from '../../../ui';
-import { authorName, postYear, roleFlair } from '../lib/authors';
+import { postAuthorName, postYear, roleFlair } from '../lib/authors';
 import { AuthorFlair } from './ThreadBits';
 
 export interface ReplyBylineProps {
@@ -25,7 +25,7 @@ export function ReplyByline({ reply, isOp, accepted, fresh, gone }: ReplyBylineP
         <span className="forum-reply__name is-muted">Deleted reply</span>
       ) : (
         <>
-          <span className="forum-reply__name">{authorName(reply.author)}</span>
+          <span className="forum-reply__name">{postAuthorName(reply)}</span>
           {roleFlair(reply.author) ? (
             <AuthorFlair author={reply.author} className="forum-reply__flair" />
           ) : year ? (

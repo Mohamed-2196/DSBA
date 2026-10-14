@@ -14,7 +14,7 @@ from app.core.errors import conflict, forbidden, invalid, not_found
 from app.core.time import utcnow
 from app.models import ForumReply, ForumThread, PostStatus, User
 from app.schemas.forum import ReplyCreate
-from app.services.forum import notices
+from app.services.forum import follows, notices
 from app.services.forum.images import attach_images, release_images
 from app.services.forum.rules import audit, bump_thread, change, hide_reason, limit_replies, valid_body
 from app.services.forum.text import media_ids
@@ -71,7 +71,9 @@ def create_reply(db: Session, user: User, t: ForumThread, data: ReplyCreate) -> 
     db.flush()
     bump_thread(db, t, replies=1, activity=now)
     attach_images(db, user.id, body, reply_id=r.id)
-    notices.reply_posted(db, t, r, parent, user)
+    told = notices.reply_posted(db, t, r, parent, user)
+    follows.reply_posted(db, t, r, user, told, named=notices.named(t, user))
+    follows.start(db, user, t)
     return r
 
 

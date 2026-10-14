@@ -1,34 +1,34 @@
 import { ChatsCircle } from '@phosphor-icons/react';
-import type { CareerSenior } from '../../api/types';
+import type { Senior as SeniorData } from '../../api/types';
 import { Avatar, Badge, Button, CohortBadge, Panel } from '../../ui';
 import { useStartsThreads } from '../forum/public';
-import { useCareerData } from './context';
-import { askLink } from './lib/links';
+import { askSeniorLink, topicLine } from './lib/seniors';
 import './Seniors.css';
 
-function Senior({ s, ask }: { s: CareerSenior; ask: boolean }) {
+function Senior({ s, ask }: { s: SeniorData; ask: boolean }) {
+  const first = s.user.displayName.split(' ')[0] || s.user.displayName;
   return (
-    <li className="career-senior" data-hub="career-senior" data-senior-id={s.id}>
-      <Avatar name={s.name} size="lg" decorative />
+    <li className="career-senior" data-hub="career-senior" data-senior-id={s.user.id}>
+      <Avatar name={s.user.displayName} size="lg" decorative />
       <div className="career-senior__body">
         <p className="career-senior__who">
-          <span className="career-senior__name">{s.name}</span>
-          {s.year ? <CohortBadge year={s.year} /> : s.badge ? <Badge tone="neutral">{s.badge}</Badge> : null}
+          <span className="career-senior__name">{s.user.displayName}</span>
+          {s.user.badge ? <Badge tone="neutral">{s.user.badge}</Badge> : s.user.year ? <CohortBadge year={s.user.year} /> : null}
         </p>
-        <p className="career-senior__helps">{s.helps}</p>
+        <p className="career-senior__helps">{topicLine(s.topics)}</p>
+        {s.note ? <p className="career-senior__note">{s.note}</p> : null}
       </div>
-      {ask && s.ask ? (
-        <Button variant="ghost" size="sm" leadingIcon={ChatsCircle} to={askLink(s.ask)} className="career-senior__ask">
-          {`Ask ${s.short}`}
+      {ask ? (
+        <Button variant="ghost" size="sm" leadingIcon={ChatsCircle} to={askSeniorLink(s.user.id)} className="career-senior__ask">
+          {`Ask ${first}`}
         </Button>
       ) : null}
     </li>
   );
 }
 
-/** Year 3 students and recent graduates who answer questions. Hidden while nobody has signed up. */
-export function Seniors() {
-  const { seniors } = useCareerData();
+/** Year 3 students who answer questions, from Your account. Hidden while nobody is listed. */
+export function Seniors({ seniors }: { seniors: SeniorData[] }) {
   const startsThreads = useStartsThreads();
   if (!seniors.length) return null;
   return (
@@ -39,16 +39,11 @@ export function Seniors() {
             Ask a senior
           </h3>
         </div>
-        {startsThreads ? (
-          <Button variant="primary" size="sm" leadingIcon={ChatsCircle} to="/forum/new">
-            Ask in the forum
-          </Button>
-        ) : null}
       </div>
-      <p className="career-seniors__desc">Year 3 students and recent graduates who answer questions about applying, interviews and first jobs.</p>
+      <p className="career-seniors__desc">Year 3 students who answer questions about applying, interviews and what comes next. Asking one starts a forum thread and tells them.</p>
       <ul role="list" className="career-seniors__list">
         {seniors.map((s) => (
-          <Senior key={s.id} s={s} ask={startsThreads} />
+          <Senior key={s.user.id} s={s} ask={startsThreads} />
         ))}
       </ul>
     </Panel>

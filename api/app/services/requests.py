@@ -72,7 +72,11 @@ def _outs(db: Session, reqs: Sequence[StudentRequest], viewer: User | None) -> l
     access.prefetch(db, people.values())
     module_ids = {r.module_id for r in reqs if r.module_id}
     modules = (
-        dict(db.execute(select(Module.id, Module.name).where(Module.id.in_(module_ids))).tuples().all())
+        dict(
+            db.execute(select(Module.id, Module.name).where(Module.id.in_(module_ids), Module.hidden.is_(False)))
+            .tuples()
+            .all()
+        )
         if module_ids
         else {}
     )
@@ -200,7 +204,7 @@ def _title(value: str) -> str:
 def create_request(db: Session, user: User, data: RequestCreate) -> StudentRequest:
     title = _title(data.title)
     details = clean_body(data.details)
-    require_module(db, data.module_id)
+    require_module(db, data.module_id, visible=True)
     enforce(
         db,
         f"requests:{user.id}",
@@ -293,22 +297,23 @@ def answer(db: Session, user: User, req: StudentRequest, data: RequestAnswer, ip
     status = RequestStatus(data.status)
     if status == RequestStatus.declined and not reply:
         raise invalid("reply", "Say why it's declined: the students who asked will see it.")
-    before = req.status
+    before, before_reply = req.status, req.reply
     req.status = status
     req.reply = reply or None
     req.answered_by = user.id
     req.answered_at = utcnow()
     db.flush()
     told = _tell(db, req, user) if status != before else 0
-    record(
-        db,
-        user,
-        "request.status",
-        "request",
-        req.id,
-        {"from": before.value, "to": status.value, "title": req.title, "kind": req.kind, "told": told},
-        ip,
-    )
+    changes: dict[str, Any] = {
+        "from": before.value,
+        "to": status.value,
+        "title": req.title,
+        "kind": req.kind,
+        "told": told,
+    }
+    if req.reply != before_reply:
+        changes["reply"] = {"from": before_reply, "to": req.reply}
+    record(db, user, "request.status", "request", req.id, changes, ip)
 
 
 def remove(db: Session, user: User, req: StudentRequest, ip: str | None) -> None:

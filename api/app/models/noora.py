@@ -54,3 +54,4 @@ class NooraUsage(Base):
     cache_write_tokens: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0")
     cost_microusd: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0")  # millionths of a dollar
     last_asked_at: Mapped[datetime | None]
+    answering_since: Mapped[datetime | None]  # an answer is streaming to the student (cleared when it ends)

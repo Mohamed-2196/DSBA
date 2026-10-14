@@ -9,12 +9,13 @@ from pydantic import StringConstraints, WithJsonSchema
 from app.schemas.access import BoxKey, FeatureKey, RoleSummary
 from app.schemas.board import BoardColumn, BoardLinkType
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
-from app.schemas.forum import Category
+from app.schemas.forum import Category, FollowLevel
 from app.schemas.library import ItemStatus, LibraryKind
 from app.schemas.moderation import ReportReason, ReportTarget
 from app.schemas.modules import Progress
 from app.schemas.notifications import NotificationKind
 from app.schemas.requests import RequestKind, RequestStatus
+from app.schemas.seniors import SeniorTopic
 from app.schemas.suggestions import SuggestionStatus
 
 Identifier = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)]
@@ -146,6 +147,7 @@ class ExportThread(ApiModel):
     edited_at: datetime | None
     vote_count: int
     reply_count: int
+    anonymous: bool
 
 
 class ExportReply(ApiModel):
@@ -183,6 +185,28 @@ class ExportLibraryItem(ApiModel):
     published_at: datetime | None
 
 
+class ExportFollow(ApiModel):
+    thread_id: UUID
+    thread_slug: str
+    level: FollowLevel
+    created_at: datetime
+
+
+class ExportPollVote(ApiModel):
+    issue_id: UUID
+    issue_slug: str
+    poll_id: str
+    choice: int  # the answer's position, from 0
+    created_at: datetime
+
+
+class ExportSenior(ApiModel):
+    topics: list[SeniorTopic]
+    note: str
+    paused: bool
+    created_at: datetime
+
+
 class ExportReaction(ApiModel):
     issue_id: UUID
     issue_slug: str
@@ -209,6 +233,26 @@ class ExportBoardPlan(ApiModel):
     exam_date: date
     paper_every: int
     created_at: datetime
+
+
+class ExportNote(ApiModel):
+    id: UUID
+    title: str
+    body: str
+    module_id: str | None
+    lesson_id: str | None
+    version: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class ExportNooraDay(ApiModel):
+    """Mini Noora's AI questions on one day: only counts (no question or answer is stored)."""
+
+    day: date
+    questions: int
+    input_tokens: int
+    output_tokens: int
 
 
 class ExportVote(ApiModel):
@@ -252,6 +296,17 @@ class ExportSuggestion(ApiModel):
     created_at: datetime
 
 
+class ExportQuestionTag(ApiModel):
+    """A past paper's question you tagged with a chapter."""
+
+    id: UUID
+    item_id: UUID
+    chapter_id: str
+    question: int
+    page: int | None
+    created_at: datetime
+
+
 class ExportNotification(ApiModel):
     id: UUID
     kind: NotificationKind
@@ -289,7 +344,16 @@ class AccountExport(ApiModel):
     reports: list[ExportReport]  # reports this person filed
     requests: list[ExportRequest]  # requests this person made
     me_toos: list[UUID]  # requests this person said "me too" to
+    question_tags: list[ExportQuestionTag]  # past papers' questions this person tagged with a chapter
+    question_flags: list[UUID]  # tags this person said were wrong
     emails: list[ExportEmail]
     board: list[ExportBoardCard]  # study-board cards
     board_plans: list[ExportBoardPlan]  # revision plans on the study board
     video_suggestions: list[ExportSuggestion]  # videos this person suggested for lessons
+    created_at: datetime
+
+    follows: list[ExportFollow]  # forum threads this person follows
+    poll_votes: list[ExportPollVote]  # newsletter poll answers
+    senior: ExportSenior | None  # the "Ask a senior" listing
+    notes: list[ExportNote]  # private notes
+    noora_usage: list[ExportNooraDay]  # Mini Noora's AI questions per day

@@ -1,7 +1,7 @@
 """suggested videos: video_suggestions, the video_suggestion notification and its switch (off)
 
 Revision ID: 0015
-Revises: 0011
+Revises: 0007
 Create Date: 2026-10-14 21:00:00
 
 Students suggest videos for a module's chapters; content managers accept them as lessons or decline them (IDEA-15).
@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0015"
-down_revision: str | None = "0011"
+down_revision: str | None = "0007"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -31,6 +31,9 @@ NOTIFICATION_KINDS = (
     "request_update",
     "date_changed",
     "system",
+    "followed_reply",
+    "followed_answer",
+    "senior_question",
 )
 
 
@@ -104,7 +107,7 @@ def upgrade() -> None:
         unique=False,
         postgresql_where=sa.text("status = 'pending'"),
     )
-    _kinds((*NOTIFICATION_KINDS[:-1], "video_suggestion", "system"))
+    _kinds((*NOTIFICATION_KINDS, "video_suggestion"))
     op.get_bind().execute(sa.text("INSERT INTO feature_switches (feature, mode) VALUES ('video_suggestions', 'off')"))
 
 
