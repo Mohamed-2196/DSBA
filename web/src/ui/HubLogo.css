@@ -51,14 +51,5 @@ img.ui-hublogo--tile { display: block; }
   user-select: none;
 }
 
-/* ── Lockup with the supplied wordmark: [DSBA artwork] Hub ────────────── */
-.ui-hublogo--wordmark { gap: calc(var(--hublogo-size, 32px) * 0.2); align-items: center; }
-.ui-hublogo--wordmark .ui-hublogo__name {
-  /* cap height of Schibsted ≈ 0.72 em: sit just under the artwork's letter height (0.68 × size) */
-  font-size: calc(var(--hublogo-size, 32px) * 0.84);
-  font-weight: var(--fw-bold);
-  letter-spacing: -0.035em;
-  color: var(--ink);
-  /* optical: the caps sit a hair low next to the artwork */
-  transform: translateY(-0.02em);
-}
+/* ── Lockup artwork: "DSBA Hub" as one picture (light and dark copies, see BrandLogo.css) ── */
+.ui-hublogo--art { display: inline-block; vertical-align: middle; }

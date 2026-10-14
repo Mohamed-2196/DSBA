@@ -1,5 +1,6 @@
 /* Sign-in dialog and the shared code entry (also used on the account page). */
 .signin { display: grid; gap: var(--sp-16); }
+.signin__brand { display: block; margin-bottom: var(--sp-12); }
 .signin__form { display: grid; gap: var(--sp-16); }
 .signin__form > .ui-button { margin-top: var(--sp-4); }
 

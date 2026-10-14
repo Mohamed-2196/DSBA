@@ -78,7 +78,7 @@ export function Sidebar() {
       <aside className={cx('shell-rail', collapsed && 'is-collapsed')} data-hub="sidebar" aria-label="Sidebar">
         <div className="shell-rail__brand">
           <Link to="/" className="shell-brand" aria-label="DSBA Hub home" data-hub="brand">
-            <HubLogo variant={collapsed ? 'tile' : 'lockup'} size={32} textInset={6} decorative />
+            <HubLogo variant={collapsed ? 'tile' : 'lockup'} size={collapsed ? 32 : 36} textInset={6} decorative />
           </Link>
         </div>
 

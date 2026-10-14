@@ -28,7 +28,7 @@ describe('routeFor', () => {
 
   it('keeps built files and public images', () => {
     expect(routeFor(get('/assets/index-abc.js'), ORIGIN)).toBe('asset');
-    expect(routeFor(get('/brand/dsba-icon.png', 'no-cors'), ORIGIN)).toBe('static');
+    expect(routeFor(get('/brand/hub-icon.png', 'no-cors'), ORIGIN)).toBe('static');
     expect(routeFor(get('/logos/employers/bbk.png', 'no-cors'), ORIGIN)).toBe('static');
     expect(routeFor(get('/favicon.png', 'no-cors'), ORIGIN)).toBe('static');
   });
