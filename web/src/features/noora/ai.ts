@@ -85,7 +85,7 @@ export async function readAnswer(body: ReadableStream<Uint8Array>, onText: (text
 
 /**
  * Ask her: the question with what's on the screen. Resolves with the questions left today. Throws an ApiError
- * before the answer starts (noora_unavailable, noora_budget_reached, noora_daily_limit, rate_limited, feature_off,
+ * before the answer starts (noora_unavailable, noora_budget_reached, noora_busy, noora_daily_limit, rate_limited, feature_off,
  * network...), or AnswerCutOff when it stops part-way.
  */
 export async function askNoora(question: NooraQuestion, onText: (text: string) => void, signal?: AbortSignal): Promise<number> {

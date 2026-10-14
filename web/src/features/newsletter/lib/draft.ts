@@ -34,6 +34,8 @@ export const LIMITS = {
   blocks: 40,
   after: 10,
   statValue: 24,
+  pollAnswer: 80,
+  pollAnswers: 5,
   stats: 8,
   alt: 500,
   issueBytes: 256 * 1024,
@@ -52,7 +54,9 @@ export type BlockDraft =
   | { key: string; type: 'p'; text: string; lead: boolean }
   | { key: string; type: 'list'; items: ItemDraft[] }
   | { key: string; type: 'signoff'; text: string }
-  | { key: string; type: 'cta'; label: string; to: string };
+  | { key: string; type: 'cta'; label: string; to: string }
+  /** `id` keeps the poll's votes: it never changes once the block exists */
+  | { key: string; type: 'poll'; id: string; question: string; answers: ItemDraft[]; closed: boolean };
 
 export type BlockKind = BlockDraft['type'];
 
@@ -154,6 +158,8 @@ function blockDraft(b: Block): BlockDraft {
       return { key: newKey('b'), type: 'signoff', text: b.text };
     case 'cta':
       return { key: newKey('b'), type: 'cta', label: b.label, to: b.to };
+    case 'poll':
+      return { key: newKey('b'), type: 'poll', id: b.id, question: b.question, answers: b.answers.map((text) => ({ key: newKey('i'), text })), closed: b.closed };
   }
 }
 
@@ -228,6 +234,8 @@ function blockPayload(b: BlockDraft): Block {
       return { type: 'signoff', text: b.text.trim() };
     case 'cta':
       return { type: 'cta', label: b.label.trim(), to: b.to.trim() };
+    case 'poll':
+      return { type: 'poll', id: b.id, question: b.question.trim(), answers: b.answers.map((a) => a.text.trim()), closed: b.closed };
   }
 }
 
@@ -367,6 +375,15 @@ function checkBlocks(errors: FieldErrors, s: SectionDraft, blocks: BlockDraft[],
         put('label', textProblem(b.label, LIMITS.label, { required: true, empty: 'Write what the button says.' }));
         put('to', linkProblem(b.to) ?? '');
         break;
+      case 'poll':
+        put('question', textProblem(b.question, LIMITS.heading, { required: true, empty: 'Write the question, or remove the poll.' }));
+        if (b.answers.length < 2) put('answers', 'A poll needs at least two answers.');
+        else if (b.answers.length > LIMITS.pollAnswers) put('answers', `A poll holds ${LIMITS.pollAnswers} answers at most.`);
+        for (const a of b.answers) {
+          const message = textProblem(a.text, LIMITS.pollAnswer, { required: true, empty: 'Write the answer, or remove it.' });
+          if (message) errors[fieldPath.item(s.key, b.key, a.key)] = message;
+        }
+        break;
       case 'list':
         if (!b.items.length) put('items', 'Add at least one item, or remove the list.');
         else if (b.items.length > LIMITS.items) put('items', `A list holds ${LIMITS.items} items at most.`);
@@ -481,7 +498,7 @@ export function validate(d: IssueDraft): FieldErrors {
 
 // ── The API's 422 paths → field paths ────────────────────────────────────────────────────────────
 
-const BLOCK_FIELDS: Record<string, string> = { text: 'text', lead: 'text', label: 'label', to: 'to', items: 'items' };
+const BLOCK_FIELDS: Record<string, string> = { text: 'text', lead: 'text', label: 'label', to: 'to', items: 'items', question: 'question', answers: 'answers', id: 'question' };
 const ISSUE_FIELDS = new Set(['title', 'number', 'date', 'slug', 'dek', 'summary', 'editors']);
 
 /** One error path of the API, for the draft that was saved, as a field path (or null when it names no field). */
@@ -512,7 +529,11 @@ export function fieldOfApiPath(apiPath: string, d: IssueDraft): string | null {
       const item = b.items[Number(itemIndex)];
       if (item) return fieldPath.item(s.key, b.key, item.key);
     }
-    const blockField = BLOCK_FIELDS[field ?? ''] ?? (b.type === 'cta' ? 'label' : b.type === 'list' ? 'items' : 'text');
+    if (b.type === 'poll' && field === 'answers' && itemIndex !== undefined) {
+      const answer = b.answers[Number(itemIndex)];
+      if (answer) return fieldPath.item(s.key, b.key, answer.key);
+    }
+    const blockField = BLOCK_FIELDS[field ?? ''] ?? firstField(b);
     return fieldPath.block(s.key, b.key, blockField);
   }
   if (part === 'aside') {
@@ -685,6 +706,14 @@ export function setKind(s: SectionDraft, kind: SectionKind | null, issueDate: st
   return { ...s, kind, window, fallback, estWords: kind ? (s.kind ? s.estWords : LIVE_WORDS[kind]) : null };
 }
 
+/** The field a block's form starts with. */
+export function firstField(b: BlockDraft): string {
+  return b.type === 'cta' ? 'label' : b.type === 'list' ? 'items' : b.type === 'poll' ? 'question' : 'text';
+}
+
+/** A poll's id: unique in the issue, and kept for good (it holds the votes). */
+const pollId = (): string => `poll-${Date.now().toString(36)}-${Math.floor(Math.random() * 36 ** 4).toString(36)}`;
+
 /** A new, empty block of a kind. */
 export function blankBlock(type: BlockKind): BlockDraft {
   switch (type) {
@@ -696,6 +725,8 @@ export function blankBlock(type: BlockKind): BlockDraft {
       return { key: newKey('b'), type: 'signoff', text: '' };
     case 'cta':
       return { key: newKey('b'), type: 'cta', label: '', to: '' };
+    case 'poll':
+      return { key: newKey('b'), type: 'poll', id: pollId(), question: '', answers: [blankItem(), blankItem()], closed: false };
   }
 }
 
@@ -741,5 +772,7 @@ function hasWords(b: Block): boolean {
       return b.items.some(Boolean);
     case 'cta':
       return Boolean(b.label && b.to);
+    case 'poll':
+      return Boolean(b.question);
   }
 }

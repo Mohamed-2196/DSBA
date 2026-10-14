@@ -20,6 +20,7 @@
 .nl-ed-note { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; max-width: var(--measure); }
 .nl-ed-count { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .nl-ed-count.is-over { color: var(--alert-strong); font-weight: var(--fw-semibold); }
+.nl-ed-note { color: var(--ink-2); font-size: var(--fs-14); line-height: 1.4; max-width: 65ch; }
 .nl-ed-error { color: var(--alert-strong); font-size: var(--fs-14); font-weight: var(--fw-semibold); line-height: 1.4; }
 .nl-ed-error:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: var(--focus-offset); border-radius: 4px; }
 .nl-ed-tools { display: inline-flex; flex: 0 0 auto; gap: 2px; }

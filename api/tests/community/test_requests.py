@@ -148,6 +148,11 @@ def test_answers_notify_the_requester_and_the_me_toos(
         ("open", "planned", 2),
         ("planned", "planned", 0),
     ]
+    # A changed public reply is in the log, even with the status unchanged (SEC-29).
+    assert [e.data.get("reply") for e in entries] == [
+        {"from": None, "to": "Asking the tutor."},
+        {"from": "Asking the tutor.", "to": "Still asking."},
+    ]
 
 
 def test_declining_needs_a_reason_and_closes_me_too(
@@ -247,3 +252,18 @@ def test_export_and_deletion(client_for: Client, student: User, classmate: User,
     assert [r["title"] for r in client_for(student).get(f"{API}/me/export").json()["requests"]] == [PAPER["title"]]
     accounts.delete_account(db, classmate, storage)
     assert client_for().get(f"{API}/requests/{made['id']}").json()["meTooCount"] == 0
+
+
+def test_a_hidden_module_is_no_module_to_students(
+    client_for: Client, student: User, modules: dict[str, Module], db: Session
+) -> None:
+    """SEC-21: a module still being prepared is 404 to students, so a request can't name it or learn its name."""
+    made = ask(client_for(student), moduleId="advanced-stats-distribution")
+    module = modules["advanced-stats-distribution"]
+    module.hidden = True
+    db.commit()
+    assert client_for().get(f"{API}/modules/{module.id}").status_code == 404
+    r = client_for(student).post(f"{API}/requests", json={**PAPER, "moduleId": module.id})
+    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["moduleId"])
+    again = client_for().get(f"{API}/requests/{made['id']}").json()
+    assert again["moduleTitle"] is None  # a module hidden since isn't named

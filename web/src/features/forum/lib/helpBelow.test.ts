@@ -24,6 +24,7 @@ const thread = (id: string, fields: Partial<ThreadSummary> = {}): ThreadSummary 
   status: 'visible',
   image: null,
   isMine: false,
+  anonymous: false,
   ...fields,
 });
 

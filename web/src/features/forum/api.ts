@@ -22,7 +22,9 @@ import { ApiError, errorMessage } from '../../api/errors';
 import { ADMIN_STATS_KEY } from '../../api/keys';
 import { nextOffset } from '../../api/paging';
 import type {
+  FollowRequest,
   Reply,
+  Senior,
   ReplyModeration,
   ReportCreate,
   ThreadCreate,
@@ -32,6 +34,7 @@ import type {
   ThreadSummary,
   ThreadUpdate,
 } from '../../api/types';
+import { useAuth } from '../../auth';
 import type { CohortYear } from '../../state';
 import { useToast } from '../../state';
 import { pickBelow } from './lib/helpBelow';
@@ -159,6 +162,11 @@ function withVote<T extends { voted: boolean; voteCount: number }>(t: T, up: boo
   return t.voted === up ? t : { ...t, voted: up, voteCount: Math.max(0, t.voteCount + (up ? 1 : -1)) };
 }
 
+/** Voting for a thread or replying in it can start following it (on the server): read the thread again. */
+function refreshFollow(qc: QueryClient, threadId: string): void {
+  void qc.invalidateQueries({ queryKey: forumKeys.threads, predicate: (q) => (q.state.data as ThreadDetail | undefined)?.id === threadId });
+}
+
 // ── Reads ───────────────────────────────────────────────────────────────────────────────────────
 
 export function useForumMeta() {
@@ -257,6 +265,18 @@ export function useSimilarThreads(title: string) {
 }
 
 /** One thread with its replies. Re-read every 30 s while the page is visible, so new replies show up. */
+/** The senior a thread is asked of (?senior=<id> from Career Navigator), while they are listed and seniors are on. */
+export function useAskedSenior(userId: string | null): Senior | null {
+  const on = useAuth().featureOn('career.seniors') && !!userId;
+  const seniors = useQuery({
+    queryKey: ['career', 'seniors'],
+    queryFn: () => call(api.GET('/api/v1/career/seniors')),
+    enabled: on,
+    staleTime: 5 * 60_000,
+  });
+  return (on && seniors.data?.find((s) => s.user.id === userId)) || null;
+}
+
 export function useThread(slug: string) {
   return useQuery({
     queryKey: forumKeys.thread(slug),
@@ -298,6 +318,7 @@ export function useThreadVote() {
     },
     onSuccess: (res, { threadId }, ctx) => {
       if (ctx && isLatestVote(`t:${threadId}`, ctx.seq)) patchThread(qc, threadId, (t) => ({ ...t, voted: res.voted, voteCount: res.voteCount }));
+      if (res.voted) refreshFollow(qc, threadId);
     },
   });
 }
@@ -365,6 +386,20 @@ export function useDeleteThread() {
   });
 }
 
+/** Follow a thread: 'answers', 'replies' or 'off' (forum.follow). */
+export function useFollowThread() {
+  const qc = useQueryClient();
+  const { push } = useToast();
+  return useMutation({
+    mutationFn: ({ threadId, level }: { threadId: string; level: FollowRequest['level'] }) =>
+      call(api.PUT('/api/v1/forum/threads/{thread_id}/follow', { params: { path: { thread_id: threadId } }, body: { level } })),
+    onSuccess: ({ following }, { threadId }) => {
+      qc.setQueriesData<ThreadDetail>({ queryKey: forumKeys.threads }, (data) => (data && data.id === threadId ? { ...data, following } : data));
+    },
+    onError: (err) => push({ title: "That wasn't saved", body: errorMessage(err), tone: 'alert' }),
+  });
+}
+
 /** Mark a reply as the answer (replyId null takes it away). */
 export function useAcceptAnswer() {
   const qc = useQueryClient();
@@ -410,6 +445,7 @@ export function useCreateReply() {
             }
           : data,
       );
+      refreshFollow(qc, reply.threadId);
       void invalidateLists(qc);
     },
     onError: (e) => {

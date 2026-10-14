@@ -1,0 +1,11 @@
+/* Your account: the senior listing form (senior-). */
+.senior-form { display: grid; gap: var(--sp-24); }
+.senior-form__topics { border: 0; padding: 0; margin: 0; min-width: 0; }
+.senior-form__legend { font-size: var(--fs-14); font-weight: var(--fw-semibold); margin-bottom: var(--sp-8); }
+.senior-form__chips { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+.senior-form__error { margin-top: var(--sp-8); color: var(--alert-strong); font-size: var(--fs-14); }
+.senior-form__actions { display: flex; flex-wrap: wrap; gap: var(--sp-8) var(--sp-12); }
+.senior-form__note { color: var(--ink-2); font-size: var(--fs-14); max-width: 65ch; }
+@media (pointer: coarse) {
+  .senior-form__chips .ui-chip { min-height: 44px; }
+}

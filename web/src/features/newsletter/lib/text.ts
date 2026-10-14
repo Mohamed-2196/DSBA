@@ -34,6 +34,8 @@ function blockStrings(b: Block): string[] {
       return b.items;
     case 'cta':
       return [];
+    case 'poll':
+      return [b.question, ...b.answers];
   }
 }
 

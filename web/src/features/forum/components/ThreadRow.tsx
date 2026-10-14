@@ -4,7 +4,7 @@ import { EyeSlash, LockSimple, PushPin } from '@phosphor-icons/react';
 import type { ThreadSummary } from '../../../api/types';
 import { Badge, Highlight, Skeleton, cx, timeAgo } from '../../../ui';
 import { useModules } from '../../../state/modules';
-import { authorName } from '../lib/authors';
+import { postAuthorName, unnamed } from '../lib/authors';
 import { mediaSrc } from '../lib/links';
 import { isNew } from '../lib/time';
 import { AuthorAvatar } from './AuthorAvatar';
@@ -91,8 +91,8 @@ export function ThreadRow({ thread, onVote, fresh = false, terms, showModule = t
         ) : null}
         <div className="forum-row__meta">
           <span className="forum-row__author">
-            <AuthorAvatar author={thread.author} size="xs" />
-            {authorName(thread.author)}
+            <AuthorAvatar author={thread.author} guest={unnamed(thread)} size="xs" />
+            {postAuthorName(thread)}
             <AuthorFlair author={thread.author} />
           </span>
           <PlaceBadge thread={thread} />

@@ -4,10 +4,10 @@ import { CaretRight } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { UserPublic } from '../../api/types';
 import { badgeOf, useAuth } from '../../auth';
-import { Page, PageHeader, Skeleton, TextField, cx } from '../../ui';
+import { Page, PageHeader, Skeleton, Switch, TextField, cx } from '../../ui';
 import { useSingleFlight, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { useCreateThread } from './api';
+import { useAskedSenior, useCreateThread } from './api';
 import { composerPresets } from './lib/composerPresets';
 import { usePlacementRules } from './lib/placement';
 import { categoryForYear, useTaxonomy } from './lib/taxonomy';
@@ -35,6 +35,7 @@ import './NewThreadPage.css';
  *   ?module=mathematics    the module, by id (or by unit code: ?module=MT1186); a year category that disagrees with the
  *                          module's year follows the module
  *   ?title=...             the title
+ *   ?senior=<user id>      a senior asked from Career Navigator (career.seniors): they are told when it is posted
  * An unfinished thread is kept as a draft on this device (lib/threadDraft.ts) until it is posted or discarded. An
  * account without the forum.post box gets a note in place of the composer.
  */
@@ -42,7 +43,7 @@ export default function NewThreadPage() {
   const { status, offer } = useAuth();
   const [params] = useSearchParams();
   // A new preset on the same route starts a fresh composer, and so does another person (lib/useAccountKey.ts).
-  const presetKey = ['category', 'module', 'title'].map((k) => params.get(k) || '').join('|');
+  const presetKey = ['category', 'module', 'title', 'senior'].map((k) => params.get(k) || '').join('|');
   const accountKey = useAccountKey();
   // Whose draft to restore depends on who is signed in, so the composer waits for that (usually already known).
   if (status === 'loading') return <ComposerPlaceholder />;
@@ -88,7 +89,7 @@ function ComposerPlaceholder() {
 }
 
 function Composer() {
-  const { me, status: authStatus, requireAuth } = useAuth();
+  const { me, status: authStatus, requireAuth, featureOn } = useAuth();
   const { year } = useYear();
   const { push } = useToast();
   const navigate = useNavigate();
@@ -111,6 +112,9 @@ function Composer() {
     empty: () => ({ title: '', body: '', moduleId: '', category: defaultCategory(), tags: [] }),
   });
   const [errors, setErrors] = useState<ThreadErrors>({});
+  const [anonymous, setAnonymous] = useState(false);
+  const mayGoUnnamed = featureOn('forum.anonymous');
+  const senior = useAskedSenior(params.get('senior'));
   const titleRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
@@ -155,7 +159,15 @@ function Composer() {
     }
     if (!requireAuth('Sign in to post your thread', () => sendRef.current())) return;
     post(
-      { title, body: form.body.trim(), category: form.category, moduleId: form.moduleId || null, tags: form.tags },
+      {
+        title,
+        body: form.body.trim(),
+        category: form.category,
+        moduleId: form.moduleId || null,
+        tags: form.tags,
+        anonymous: mayGoUnnamed && anonymous,
+        seniorId: senior?.user.id ?? null,
+      },
       {
         onSuccess: (thread) => {
           finish();
@@ -281,6 +293,21 @@ function Composer() {
           />
 
           <AttachRow images={images} />
+
+          {senior ? (
+            <p className="forum-composer__senior" role="status" data-hub="composer-senior">
+              Asking {senior.user.displayName}. They’ll be told when you post, and anyone can still answer.
+            </p>
+          ) : null}
+          {mayGoUnnamed ? (
+            <Switch
+              label="Post without my name"
+              description={`Classmates see “${ownYear ? `A Year ${ownYear} student` : 'A student'}”. The student reps can still see it’s you, and reports work as usual.`}
+              checked={anonymous}
+              onChange={setAnonymous}
+              data-hub="composer-anonymous"
+            />
+          ) : null}
 
           <ComposerFooter author={author} checking={authStatus === 'loading'} posting={create.isPending} onDiscard={discard} />
         </form>

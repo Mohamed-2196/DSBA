@@ -110,14 +110,15 @@ export function planPace(plan: Pick<BoardPlan, 'left' | 'daysLeft'>): string {
   return every <= 1 ? 'About 1 a day' : `1 every ${every} days`;
 }
 
-/** A sitting: a paper's exam year and zone. Papers without a year count as one sitting each. */
+/** A sitting: a paper's exam year and session (May or October), as the library groups them (GET /library/papers);
+ *  zone A and zone B are two papers of one sitting. Papers without a year count as one sitting each. */
 export interface Paper {
   id: string;
   examYear?: number | null;
-  zone?: string | null;
+  examSession?: string | null;
 }
 
-const sittingOf = (p: Paper): string => (p.examYear ? `${p.examYear}-${p.zone ?? ''}` : `item-${p.id}`);
+const sittingOf = (p: Paper): string => (p.examYear ? `${p.examYear}-${p.examSession ?? ''}` : `item-${p.id}`);
 
 /** How many of the papers' sittings have a paper done, out of how many sittings. */
 export function sittingsDone(papers: readonly Paper[], done: ReadonlySet<string>): { done: number; total: number } {

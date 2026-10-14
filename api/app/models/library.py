@@ -8,12 +8,23 @@ import uuid
 from datetime import datetime
 from typing import get_args
 
-from sqlalchemy import BigInteger, Computed, ForeignKey, Index, Integer, SmallInteger, String, Text, func
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    Computed,
+    ForeignKey,
+    Index,
+    Integer,
+    SmallInteger,
+    String,
+    Text,
+    func,
+)
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import SLUG, Base, check_in, created_ts, str_enum, uuid_pk, year_range
-from app.schemas.library import LibraryKind
+from app.schemas.library import ExamSession, LibraryKind
 
 
 class ItemSource(enum.StrEnum):
@@ -36,6 +47,7 @@ class LibraryItem(Base):
         Index("ix_library_items_reviewed_by", "reviewed_by"),  # account deletion (SET NULL)
         Index("ix_library_items_search", "search_vector", postgresql_using="gin"),
         check_in("kind", get_args(LibraryKind)),  # code quality review CQ-15
+        check_in("exam_session", get_args(ExamSession)),
         year_range(),
     )
 
@@ -54,6 +66,7 @@ class LibraryItem(Base):
     size_bytes: Mapped[int | None] = mapped_column(BigInteger)
     exam_year: Mapped[int | None] = mapped_column(SmallInteger)  # past papers and examiners' reports
     zone: Mapped[str | None] = mapped_column(String(8))  # 'A' | 'B'
+    exam_session: Mapped[str | None] = mapped_column(String(8))  # 'may' | 'october' (schemas/library.py ExamSession)
     author_name: Mapped[str | None] = mapped_column(String(120))  # credited author, as typed by the uploader
     # Where a file the server imported came from: 'drive/<module>/<Drive file id>' (python -m app.cli import-drive).
     # A rerun of the import skips it whatever became of the item since: edited, moved, removed, its file swept (the
@@ -121,6 +134,43 @@ class LibraryStar(Base):
 
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     item_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("library_items.id", ondelete="CASCADE"), primary_key=True)
+    created_at: Mapped[datetime] = created_ts()
+
+
+class PaperQuestion(Base):
+    """A question of a past paper, tagged by a student with one of its module's chapters ("Q3: Elasticity"), so
+    the chapter lists it. `tagged_by` is kept for moderation only; any student may flag a wrong tag, and people who
+    manage the library remove it."""
+
+    __tablename__ = "paper_questions"
+    __table_args__ = (
+        Index("ix_paper_questions_item_question_chapter", "item_id", "question", "chapter_id", unique=True),
+        Index("ix_paper_questions_chapter", "chapter_id"),
+        Index("ix_paper_questions_tagged_by", "tagged_by"),  # tags per hour, export, account deletion (SET NULL)
+        CheckConstraint("question BETWEEN 1 AND 40", name="question_range"),
+        CheckConstraint("page IS NULL OR page BETWEEN 1 AND 999", name="page_range"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    item_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("library_items.id", ondelete="CASCADE"))
+    chapter_id: Mapped[str] = mapped_column(ForeignKey("chapters.id", ondelete="CASCADE"))
+    question: Mapped[int] = mapped_column(SmallInteger)
+    page: Mapped[int | None] = mapped_column(SmallInteger)  # where the question starts in the PDF
+    tagged_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    flag_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    created_at: Mapped[datetime] = created_ts()
+
+
+class PaperQuestionFlag(Base):
+    """A student who says a tag is wrong."""
+
+    __tablename__ = "paper_question_flags"
+    __table_args__ = (Index("ix_paper_question_flags_user", "user_id"),)  # export, account deletion (CASCADE)
+
+    question_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("paper_questions.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     created_at: Mapped[datetime] = created_ts()
 
 

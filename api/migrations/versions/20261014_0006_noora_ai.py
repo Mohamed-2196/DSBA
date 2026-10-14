@@ -46,6 +46,7 @@ def upgrade() -> None:
         sa.Column("cache_write_tokens", sa.BigInteger(), server_default="0", nullable=False),
         sa.Column("cost_microusd", sa.BigInteger(), server_default="0", nullable=False),
         sa.Column("last_asked_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("answering_since", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(
             ["user_id"], ["users.id"], name=op.f("fk_noora_usage_user_id_users"), ondelete="SET NULL"
         ),

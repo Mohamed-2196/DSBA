@@ -32,11 +32,18 @@ from app.models import (
     LibraryStar,
     NewsletterIssue,
     NewsletterReaction,
+    NooraUsage,
+    Note,
     Notification,
+    PaperQuestion,
+    PaperQuestionFlag,
+    PollVote,
     ReplyVote,
     Report,
     RequestMeToo,
+    SeniorProfile,
     StudentRequest,
+    ThreadFollow,
     ThreadVote,
     Upload,
     UploadPurpose,
@@ -50,12 +57,18 @@ from app.schemas.auth import (
     ExportBoardCard,
     ExportBoardPlan,
     ExportEmail,
+    ExportFollow,
     ExportLibraryItem,
+    ExportNooraDay,
+    ExportNote,
     ExportNotification,
+    ExportPollVote,
+    ExportQuestionTag,
     ExportReaction,
     ExportReply,
     ExportReport,
     ExportRequest,
+    ExportSenior,
     ExportThread,
     ExportVote,
     Me,
@@ -526,6 +539,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
             edited_at=t.edited_at,
             vote_count=t.vote_count,
             reply_count=t.reply_count,
+            anonymous=t.anonymous,
         )
         for t in db.scalars(select(ForumThread).where(ForumThread.author_id == uid).order_by(ForumThread.created_at))
     ]
@@ -640,6 +654,26 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
     me_toos = list(
         db.scalars(select(RequestMeToo.request_id).where(RequestMeToo.user_id == uid).order_by(RequestMeToo.created_at))
     )
+    question_tags = [
+        ExportQuestionTag(
+            id=t.id,
+            item_id=t.item_id,
+            chapter_id=t.chapter_id,
+            question=t.question,
+            page=t.page,
+            created_at=t.created_at,
+        )
+        for t in db.scalars(
+            select(PaperQuestion).where(PaperQuestion.tagged_by == uid).order_by(PaperQuestion.created_at)
+        )
+    ]
+    question_flags = list(
+        db.scalars(
+            select(PaperQuestionFlag.question_id)
+            .where(PaperQuestionFlag.user_id == uid)
+            .order_by(PaperQuestionFlag.created_at)
+        )
+    )
     notifications = [
         ExportNotification(
             id=n.id,
@@ -683,6 +717,63 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for c in db.scalars(select(BoardCard).where(BoardCard.user_id == uid).order_by(BoardCard.created_at))
     ]
+    follows = [
+        ExportFollow.model_validate(
+            {"thread_id": f.thread_id, "thread_slug": slug, "level": f.level, "created_at": f.created_at}
+        )
+        for f, slug in db.execute(
+            select(ThreadFollow, ForumThread.slug)
+            .join(ForumThread, ForumThread.id == ThreadFollow.thread_id)
+            .where(ThreadFollow.user_id == uid)
+            .order_by(ThreadFollow.created_at)
+        ).tuples()
+    ]
+    poll_votes = [
+        ExportPollVote(
+            issue_id=v.issue_id, issue_slug=slug, poll_id=v.poll_id, choice=v.choice, created_at=v.created_at
+        )
+        for v, slug in db.execute(
+            select(PollVote, NewsletterIssue.slug)
+            .join(NewsletterIssue, NewsletterIssue.id == PollVote.issue_id)
+            .where(PollVote.user_id == uid)
+            .order_by(PollVote.created_at)
+        ).tuples()
+    ]
+    listing = db.get(SeniorProfile, uid)
+    senior = (
+        ExportSenior.model_validate(
+            {
+                "topics": list(listing.topics),
+                "note": listing.note,
+                "paused": listing.paused,
+                "created_at": listing.created_at,
+            }
+        )
+        if listing is not None
+        else None
+    )
+    notes = [
+        ExportNote(
+            id=n.id,
+            title=n.title,
+            body=n.body,
+            module_id=n.module_id,
+            lesson_id=n.lesson_id,
+            version=n.version,
+            created_at=n.created_at,
+            updated_at=n.updated_at,
+        )
+        for n in db.scalars(select(Note).where(Note.user_id == uid).order_by(Note.created_at))
+    ]
+    noora = [
+        ExportNooraDay(
+            day=u.day,
+            questions=u.questions,
+            input_tokens=u.input_tokens + u.cache_read_tokens + u.cache_write_tokens,
+            output_tokens=u.output_tokens,
+        )
+        for u in db.scalars(select(NooraUsage).where(NooraUsage.user_id == uid).order_by(NooraUsage.day))
+    ]
     return AccountExport(
         user=me_out(user),
         sessions=[sessions.info(s, current) for s in sessions.live(db, uid)],
@@ -697,6 +788,8 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         reports=reports,
         requests=requests,
         me_toos=me_toos,
+        question_tags=question_tags,
+        question_flags=question_flags,
         emails=emails,
         board=board,
         board_plans=[
@@ -705,6 +798,11 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
             )
             for p in sorted(plans.values(), key=lambda p: p.created_at)
         ],
+        follows=follows,
+        poll_votes=poll_votes,
+        senior=senior,
+        notes=notes,
+        noora_usage=noora,
     )
 
 
@@ -715,7 +813,8 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     """Deletes the account. Files that never reached the library and forum pictures go (objects first: if the
     bucket fails, nothing is deleted and the person can try again); pending and rejected library items go;
     published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set NULL); everything
-    personal (sessions, notifications, queued emails, progress, stars, votes, me-toos, reactions) cascades; the sign-in
+    personal (sessions, notifications, queued emails, progress, stars, votes, me-toos, reactions, follows, poll
+    votes, the senior listing) cascades; the sign-in
     codes stay, anonymised, until the sweep (the rate limits count them). The last active admin can't leave
     (409 last_admin). The caller commits."""
     if access.is_admin(user):
@@ -754,7 +853,7 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
         db.execute(delete(Upload).where(Upload.id.in_([u.id for u in dropped_uploads])))
     if dropped_items:
         db.execute(delete(LibraryItem).where(LibraryItem.id.in_([i.id for i in dropped_items])))
-    # Their votes and me-toos go with the account (cascade), so the counters they added go too.
+    # Their votes, me-toos and flags go with the account (cascade), so the counters they added go too.
     db.execute(
         update(ForumThread)
         .where(ForumThread.id.in_(select(ThreadVote.thread_id).where(ThreadVote.user_id == uid)))
@@ -769,6 +868,11 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
         update(StudentRequest)
         .where(StudentRequest.id.in_(select(RequestMeToo.request_id).where(RequestMeToo.user_id == uid)))
         .values(me_too_count=func.greatest(StudentRequest.me_too_count - 1, 0))
+    )
+    db.execute(
+        update(PaperQuestion)
+        .where(PaperQuestion.id.in_(select(PaperQuestionFlag.question_id).where(PaperQuestionFlag.user_id == uid)))
+        .values(flag_count=func.greatest(PaperQuestion.flag_count - 1, 0))
     )
     # The sign-in rows stay, without the addresses, for the rate limits (student test: deleting the account and
     # signing up again must refill nothing).

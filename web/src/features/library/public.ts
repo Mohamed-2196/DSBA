@@ -5,8 +5,11 @@
 //                                        contributing means uploading to the library.
 //   useRecentFiles({ n, year, enabled }) newest published items: { data: LibraryItem[] | undefined, isPending, isError, refetch }
 //   <UploadsQueue />                    moderators' review queue (Manage's Uploads section)
+//   <FlaggedQuestions />                question tags flagged as wrong, to keep or remove (Manage's Uploads section)
 //   libraryItemPath(item)               '/library/<slug>', the item's page
 //   libraryKindLabel(kind)              'Past paper', 'Students’ notes', …
+//   <ChapterQuestions moduleId chapterId />  the Lessons tab's past exam questions tagged with a chapter
+//                                        (render it only while the library.questions feature is on)
 //   LIBRARY_KINDS, LIBRARY_EXAM_KINDS   every kind in the library's order; the kinds that carry an exam year and zone
 import { createElement, lazy, Suspense, useCallback, useState, type ReactNode } from 'react';
 import { showsUpload, useAuth } from '../../auth';
@@ -17,6 +20,8 @@ export { useRecentFiles } from './api';
 export { itemPath as libraryItemPath } from './api';
 export { EXAM_KINDS as LIBRARY_EXAM_KINDS, KINDS as LIBRARY_KINDS, kindLabel as libraryKindLabel } from './kinds';
 export { UploadsQueue } from './UploadsQueue';
+export { ChapterQuestions } from './ChapterQuestions';
+export { FlaggedQuestions } from './FlaggedQuestions';
 ;
 
 const LazyModuleFiles = lazy(() => import('./ModuleFiles'));

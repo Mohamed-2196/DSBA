@@ -13,7 +13,7 @@ from typing import Annotated, Literal
 from pydantic import Field, StringConstraints, model_validator
 from pydantic_core import PydanticCustomError
 
-from app.schemas.common import ApiModel, Year
+from app.schemas.common import ApiModel
 from app.schemas.links import HttpsUrl, HubLink
 
 # An id the document refers to (also an employer's logo file name: public/logos/employers/<id>.png).
@@ -188,18 +188,6 @@ class CareerChecklistItem(ApiModel):
     link: ChecklistLink | None = None
 
 
-class CareerSenior(ApiModel):
-    """A Year 3 student or a recent graduate who answers questions."""
-
-    id: CareerId
-    name: Name
-    short: Short
-    year: Year | None = None
-    badge: Short | None = None
-    helps: Text
-    ask: Text
-
-
 class OfferTypeLabel(ApiModel):
     label: Short
     plural: Short
@@ -263,7 +251,6 @@ class CareerDoc(ApiModel):
     checklist: list[CareerChecklistItem] = Field(max_length=30)
     further_study: FurtherStudy | None
     year_hints: dict[str, Text]  # by cohort: '1', '2', '3'
-    seniors: list[CareerSenior] = Field(default=[], max_length=50)
 
     @model_validator(mode="after")
     def _references(self) -> CareerDoc:
@@ -274,7 +261,6 @@ class CareerDoc(ApiModel):
             (self.certs, "certificates"),
             (self.roles, "roles"),
             (self.checklist, "checklist items"),
-            (self.seniors, "seniors"),
         ):
             _unique((i.id for i in items), what)
         tracks, roles, skills = {t.id for t in self.tracks}, {r.id for r in self.roles}, set(self.skills)

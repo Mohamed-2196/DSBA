@@ -5,7 +5,7 @@ import { badgeOf, useAuth } from '../../../auth';
 import { useSingleFlight } from '../../../state';
 import { Button, Kbd, cx, modKeyLabel } from '../../../ui';
 import { useCreateReply } from '../api';
-import { authorName } from '../lib/authors';
+import { postAuthorName } from '../lib/authors';
 import { REPLY_MAX } from '../lib/threadForm';
 import { useAttachImages } from '../lib/useAttachImages';
 import { AuthorAvatar } from './AuthorAvatar';
@@ -57,7 +57,7 @@ export function ReplyComposer({ thread, parent = null, mention = null, onPosted,
   const localRef = useRef<HTMLTextAreaElement>(null);
   const inputRef = textareaRef ?? localRef;
   const inline = Boolean(parent);
-  const parentName = parent ? authorName(parent.author) : null;
+  const parentName = parent ? postAuthorName(parent) : null;
   const images = useAttachImages({ text: body, setText: setBody, textareaRef: inputRef, gate: () => requireAuth('Sign in to attach images') });
   const hasText = body.trim().length > 0 && body.trim() !== (mention ? `@${mention}` : '');
   const shut = closed || refused;

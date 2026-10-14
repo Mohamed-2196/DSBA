@@ -9,6 +9,7 @@ import { useToast } from '../../state';
 import { Button, ErrorBoundary, HubMark, cx } from '../../ui';
 import { LessonNotes } from '../notes/public';
 import { AddToBoard } from '../board/public';
+import { ChapterQuestions } from '../library/public';
 import { ChapterList } from './ChapterList';
 import { KIND_SOURCE, chapterLessons, chapterPosition, embedSrc, httpsOnly, kindLabel, lessonPosition, openOriginalLabel, sourceHref } from './lessons';
 import { LessonPoster } from './Poster';
@@ -272,6 +273,8 @@ export function LessonsTab({
                 </audio>
               </div>
             ) : null}
+
+            {featureOn('library') && featureOn('library.questions') ? <ChapterQuestions moduleId={m.id} chapterId={chapter.id} /> : null}
 
             <ErrorBoundary name="LessonNotes" resetKey={key}>
               <LessonNotes moduleId={m.id} lessonId={key} />
