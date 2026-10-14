@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import { Button, QueryError, Skeleton, TextArea, timeAgo } from '../../ui';
 import { useCreateNote, useLessonNotes } from './api';
-import { noteLabel } from './draft';
+import { docFromText, noteLabel } from './draft';
 import { BODY_MAX } from './limits';
 import './Notes.css';
 
@@ -28,7 +28,7 @@ export function LessonNotes({ moduleId, lessonId }: LessonNotesProps) {
   const onAdd = (e: FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
-    create.mutate({ title: '', body: text, moduleId, lessonId }, { onSuccess: () => setText('') });
+    create.mutate({ title: '', doc: docFromText(text), moduleId, lessonId, paper: 'lined', sheets: 1 }, { onSuccess: () => setText('') });
   };
 
   const items = notes.data?.items ?? [];

@@ -1194,13 +1194,15 @@ export interface paths {
          * Create Upload
          * @description A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,
          *     .ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to
-         *     DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the
+         *     DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; note_file: the library's types
+         *     and GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room. The extension must match the
          *     declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file
          *     as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
          *
          *     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
-         *     for review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum
-         *     picture), feature_off (404: the library, its uploads or the forum is switched off).
+         *     for review; library only), notes_full (409: note_file only), rate_limited (429), forbidden (403: no
+         *     library.upload, or no forum.post for a forum picture), feature_off (404: the library, its uploads, the forum or
+         *     the notebook is switched off).
          */
         post: operations["create_upload_api_v1_uploads_post"];
         delete?: never;
@@ -1954,6 +1956,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notebooks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Notebooks
+         * @description Your notebooks, the one changed last first, and how much of your notebook storage you use.
+         */
+        get: operations["list_notebooks_api_v1_notebooks_get"];
+        put?: never;
+        /**
+         * Create Notebook
+         * @description A notebook of your own (`title`), or a module's (`moduleId`: the one you have, or a new one). Errors:
+         *     invalid_input (422), too_many_notebooks (409).
+         */
+        post: operations["create_notebook_api_v1_notebooks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notebooks/{notebook_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Notebook
+         * @description Deletes the notebook and every note in it.
+         */
+        delete: operations["delete_notebook_api_v1_notebooks__notebook_id__delete"];
+        options?: never;
+        head?: never;
+        /** Rename Notebook */
+        patch: operations["rename_notebook_api_v1_notebooks__notebook_id__patch"];
+        trace?: never;
+    };
     "/api/v1/notes": {
         parameters: {
             query?: never;
@@ -1963,17 +2011,38 @@ export interface paths {
         };
         /**
          * List Notes
-         * @description Your notes, last edited first, each with the start of its body. `q` searches titles and bodies; `module_id`
-         *     keeps one module's notes, and `lesson_id` one lesson's.
+         * @description Your notes, last edited first, each with the start of its text. `q` searches titles and text; `notebook_id`
+         *     keeps one notebook's notes, `module_id` the module's notebook's, and `lesson_id` one lesson's.
          */
         get: operations["list_notes_api_v1_notes_get"];
         put?: never;
         /**
          * Create Note
-         * @description A new note. Errors: invalid_input (422: an unknown module or lesson, or too long), too_many_notes (409),
-         *     notes_full (409: the student's notes hold 10 MB of text), rate_limited (429).
+         * @description A new note. Errors: invalid_input (422: an unknown notebook, module or lesson, a PDF that isn't yours, or text
+         *     the editor doesn't write), too_many_notes (409), too_many_notebooks (409), notes_full (409), rate_limited (429).
          */
         post: operations["create_note_api_v1_notes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/annotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Annotate
+         * @description Your note written over a library PDF: the one you have (200), or a new one in the module's notebook (201).
+         *     Errors: invalid_input (422: not a published PDF), not_found (404), too_many_notes (409), rate_limited (429).
+         */
+        post: operations["annotate_api_v1_notes_annotate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1987,18 +2056,64 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Note */
+        /**
+         * Get Note
+         * @description The note with its typed text, its ink and the PDF it is written over.
+         */
         get: operations["get_note_api_v1_notes__note_id__get"];
         /**
          * Save Note
-         * @description Save the whole note. Send the `version` you loaded: if it was saved since (another tab), 409 note_changed;
-         *     load it again, or send its new version to save yours over it. Errors: notes_full (409: the student's notes hold
-         *     10 MB of text), rate_limited (429: saving very fast).
+         * @description Save the note's text, paper, sheets, lesson and notebook. Send the `version` you loaded: if it was saved since
+         *     (another tab), 409 note_changed; load it again, or send its new version to save yours over it. Errors:
+         *     notes_full (409), rate_limited (429: saving very fast).
          */
         put: operations["save_note_api_v1_notes__note_id__put"];
         post?: never;
         /** Delete Note */
         delete: operations["delete_note_api_v1_notes__note_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/{note_id}/ink/{sheet}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save Ink
+         * @description Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).
+         *     Send the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:
+         *     notes_full (409), rate_limited (429).
+         */
+        put: operations["save_ink_api_v1_notes__note_id__ink__sheet__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/files/{upload_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Note File
+         * @description One of your note's pictures, files or PDFs: 302 to a short-lived link, shown in the browser (pictures and
+         *     PDFs) or, with `download`, saved under its name.
+         */
+        get: operations["note_file_api_v1_notes_files__upload_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2622,8 +2737,8 @@ export interface components {
             /** Pollvotes */
             pollVotes: components["schemas"]["ExportPollVote"][];
             senior: components["schemas"]["ExportSenior"] | null;
-            /** Notes */
-            notes: components["schemas"]["ExportNote"][];
+            /** Notebooks */
+            notebooks: components["schemas"]["ExportNotebook"][];
             /** Noorausage */
             nooraUsage: components["schemas"]["ExportNooraDay"][];
             /** Videosuggestions */
@@ -2706,6 +2821,14 @@ export interface components {
             email?: string | null;
             /** Phone */
             phone?: string | null;
+        };
+        /** AnnotateRequest */
+        AnnotateRequest: {
+            /**
+             * Libraryitemid
+             * Format: uuid
+             */
+            libraryItemId: string;
         };
         /** AuditOut */
         AuditOut: {
@@ -3592,7 +3715,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -3719,6 +3842,15 @@ export interface components {
              */
             createdAt: string;
         };
+        /** ExportInk */
+        ExportInk: {
+            /** Sheet */
+            sheet: number;
+            /** Strokes */
+            strokes: {
+                [key: string]: unknown;
+            }[];
+        };
         /** ExportLibraryItem */
         ExportLibraryItem: {
             /**
@@ -3803,12 +3935,24 @@ export interface components {
             id: string;
             /** Title */
             title: string;
-            /** Body */
-            body: string;
-            /** Moduleid */
-            moduleId: string | null;
+            /** Text */
+            text: string;
+            /** Doc */
+            doc: {
+                [key: string]: unknown;
+            };
+            /** Paper */
+            paper: string;
+            /** Sheets */
+            sheets: number;
             /** Lessonid */
             lessonId: string | null;
+            /** Libraryitemid */
+            libraryItemId: string | null;
+            /** Files */
+            files: string[];
+            /** Ink */
+            ink: components["schemas"]["ExportInk"][];
             /** Version */
             version: number;
             /**
@@ -3821,6 +3965,25 @@ export interface components {
              * Format: date-time
              */
             updatedAt: string;
+        };
+        /** ExportNotebook */
+        ExportNotebook: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Moduleid */
+            moduleId: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Notes */
+            notes: components["schemas"]["ExportNote"][];
         };
         /** ExportNotification */
         ExportNotification: {
@@ -4311,6 +4474,25 @@ export interface components {
             storage: "ok" | "error";
             /** Version */
             version: string;
+        };
+        /**
+         * InkSave
+         * @description The whole sheet as it is now, and the version it was loaded at (0: the sheet had no ink yet).
+         */
+        InkSave: {
+            /** Strokes */
+            strokes: components["schemas"]["Stroke"][];
+            /** Version */
+            version: number;
+        };
+        /** InkSheet */
+        InkSheet: {
+            /** Sheet */
+            sheet: number;
+            /** Strokes */
+            strokes: components["schemas"]["Stroke"][];
+            /** Version */
+            version: number;
         };
         /**
          * IssueCover
@@ -5242,6 +5424,11 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Notebookid
+             * Format: uuid
+             */
+            notebookId: string;
             /** Title */
             title: string;
             /** Excerpt */
@@ -5250,6 +5437,8 @@ export interface components {
             moduleId: string | null;
             /** Lessonid */
             lessonId: string | null;
+            /** Onpdf */
+            onPdf: boolean;
             /** Version */
             version: number;
             /**
@@ -5262,25 +5451,57 @@ export interface components {
              * Format: date-time
              */
             updatedAt: string;
-            /** Body */
-            body: string;
+            /** Doc */
+            doc: {
+                [key: string]: unknown;
+            };
+            /** Text */
+            text: string;
+            /**
+             * Paper
+             * @enum {string}
+             */
+            paper: "blank" | "lined" | "grid" | "dotted";
+            /** Sheets */
+            sheets: number;
+            pdf: components["schemas"]["NotePdf"] | null;
+            /** Ink */
+            ink: components["schemas"]["InkSheet"][];
         };
-        /** NoteCreate */
+        /**
+         * NoteCreate
+         * @description A new note: in `notebookId`, or in the module's notebook (made when it isn't there yet), or in the student's
+         *     first notebook of their own. `pdfUploadId` writes it over a PDF the student uploaded (purpose note_file).
+         */
         NoteCreate: {
             /**
              * Title
              * @default
              */
             title: string;
+            /** Doc */
+            doc?: {
+                [key: string]: unknown;
+            };
             /**
-             * Body
-             * @default
+             * Paper
+             * @default lined
+             * @enum {string}
              */
-            body: string;
-            /** Moduleid */
-            moduleId?: string | null;
+            paper: "blank" | "lined" | "grid" | "dotted";
+            /**
+             * Sheets
+             * @default 1
+             */
+            sheets: number;
             /** Lessonid */
             lessonId?: string | null;
+            /** Notebookid */
+            notebookId?: string | null;
+            /** Moduleid */
+            moduleId?: string | null;
+            /** Pdfuploadid */
+            pdfUploadId?: string | null;
         };
         /** NotePage */
         NotePage: {
@@ -5293,6 +5514,21 @@ export interface components {
             /** Offset */
             offset: number;
         };
+        /**
+         * NotePdf
+         * @description The PDF a note is written over: a library file (`libraryItemId`, read with /library/items/{id}/file) or the
+         *     student's own (`uploadId`, read with /notes/files/{id}). `available` is false once the file is gone.
+         */
+        NotePdf: {
+            /** Libraryitemid */
+            libraryItemId: string | null;
+            /** Uploadid */
+            uploadId: string | null;
+            /** Title */
+            title: string;
+            /** Available */
+            available: boolean;
+        };
         /** NoteSummary */
         NoteSummary: {
             /**
@@ -5300,6 +5536,11 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Notebookid
+             * Format: uuid
+             */
+            notebookId: string;
             /** Title */
             title: string;
             /** Excerpt */
@@ -5308,6 +5549,8 @@ export interface components {
             moduleId: string | null;
             /** Lessonid */
             lessonId: string | null;
+            /** Onpdf */
+            onPdf: boolean;
             /** Version */
             version: number;
             /**
@@ -5323,7 +5566,7 @@ export interface components {
         };
         /**
          * NoteUpdate
-         * @description The whole note as it is now, and the version it was loaded at.
+         * @description The whole note as it is now, the notebook it is in, and the version it was loaded at.
          */
         NoteUpdate: {
             /**
@@ -5331,17 +5574,78 @@ export interface components {
              * @default
              */
             title: string;
+            /** Doc */
+            doc?: {
+                [key: string]: unknown;
+            };
             /**
-             * Body
-             * @default
+             * Paper
+             * @default lined
+             * @enum {string}
              */
-            body: string;
-            /** Moduleid */
-            moduleId?: string | null;
+            paper: "blank" | "lined" | "grid" | "dotted";
+            /**
+             * Sheets
+             * @default 1
+             */
+            sheets: number;
             /** Lessonid */
             lessonId?: string | null;
+            /**
+             * Notebookid
+             * Format: uuid
+             */
+            notebookId: string;
             /** Version */
             version: number;
+        };
+        /** Notebook */
+        Notebook: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Moduleid */
+            moduleId: string | null;
+            /** Notecount */
+            noteCount: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /**
+         * NotebookCreate
+         * @description A notebook of the student's own, or a module's (one per module: asking again answers the one there is).
+         */
+        NotebookCreate: {
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Moduleid */
+            moduleId?: string | null;
+        };
+        /** NotebookList */
+        NotebookList: {
+            /** Items */
+            items: components["schemas"]["Notebook"][];
+            storage: components["schemas"]["StorageUse"];
+        };
+        /** NotebookUpdate */
+        NotebookUpdate: {
+            /** Title */
+            title: string;
         };
         /** NotificationOut */
         NotificationOut: {
@@ -6428,6 +6732,36 @@ export interface components {
             via?: ("email" | "phone") | null;
         };
         /**
+         * StorageUse
+         * @description What the student's notebooks hold (typed text, ink, pictures and files) against what they may hold.
+         */
+        StorageUse: {
+            /** Usedbytes */
+            usedBytes: number;
+            /** Limitbytes */
+            limitBytes: number;
+        };
+        /**
+         * Stroke
+         * @description One line drawn with the pen or the highlighter. `points` is x, y, pressure (0-1), x, y, pressure, … in sheet
+         *     units, the sheet's top left at 0, 0.
+         */
+        Stroke: {
+            /** Id */
+            id: string;
+            /**
+             * Tool
+             * @enum {string}
+             */
+            tool: "pen" | "highlighter";
+            /** Color */
+            color: string;
+            /** Width */
+            width: number;
+            /** Points */
+            points: number[];
+        };
+        /**
          * SuggestionAccept
          * @description Where the new lesson goes: `chapter_id` (default: the one suggested), or a new chapter at the end of the module
          *     named `new_chapter`. `title` replaces the suggested title.
@@ -6782,7 +7116,7 @@ export interface components {
              * Purpose
              * @enum {string}
              */
-            purpose: "library" | "forum_image";
+            purpose: "library" | "forum_image" | "note_file";
             /** Filename */
             fileName: string;
             /** Contenttype */
@@ -6890,6 +7224,7 @@ export type AdminStats = components['schemas']['AdminStats'];
 export type AdminUser = components['schemas']['AdminUser'];
 export type AdminUserPage = components['schemas']['AdminUserPage'];
 export type AdminUserUpdate = components['schemas']['AdminUserUpdate'];
+export type AnnotateRequest = components['schemas']['AnnotateRequest'];
 export type AuditOut = components['schemas']['AuditOut'];
 export type AuditPage = components['schemas']['AuditPage'];
 export type Board = components['schemas']['Board'];
@@ -6945,9 +7280,11 @@ export type ExportBoardCard = components['schemas']['ExportBoardCard'];
 export type ExportBoardPlan = components['schemas']['ExportBoardPlan'];
 export type ExportEmail = components['schemas']['ExportEmail'];
 export type ExportFollow = components['schemas']['ExportFollow'];
+export type ExportInk = components['schemas']['ExportInk'];
 export type ExportLibraryItem = components['schemas']['ExportLibraryItem'];
 export type ExportNooraDay = components['schemas']['ExportNooraDay'];
 export type ExportNote = components['schemas']['ExportNote'];
+export type ExportNotebook = components['schemas']['ExportNotebook'];
 export type ExportNotification = components['schemas']['ExportNotification'];
 export type ExportPollVote = components['schemas']['ExportPollVote'];
 export type ExportQuestionTag = components['schemas']['ExportQuestionTag'];
@@ -6974,6 +7311,8 @@ export type FurtherStudyAction = components['schemas']['FurtherStudyAction'];
 export type GapModule = components['schemas']['GapModule'];
 export type Gaps = components['schemas']['Gaps'];
 export type Health = components['schemas']['Health'];
+export type InkSave = components['schemas']['InkSave'];
+export type InkSheet = components['schemas']['InkSheet'];
 export type IssueCover = components['schemas']['IssueCover'];
 export type IssueCreate = components['schemas']['IssueCreate'];
 export type IssueDetail = components['schemas']['IssueDetail'];
@@ -7020,8 +7359,13 @@ export type NooraUsageOut = components['schemas']['NooraUsageOut'];
 export type Note = components['schemas']['Note'];
 export type NoteCreate = components['schemas']['NoteCreate'];
 export type NotePage = components['schemas']['NotePage'];
+export type NotePdf = components['schemas']['NotePdf'];
 export type NoteSummary = components['schemas']['NoteSummary'];
 export type NoteUpdate = components['schemas']['NoteUpdate'];
+export type Notebook = components['schemas']['Notebook'];
+export type NotebookCreate = components['schemas']['NotebookCreate'];
+export type NotebookList = components['schemas']['NotebookList'];
+export type NotebookUpdate = components['schemas']['NotebookUpdate'];
 export type NotificationOut = components['schemas']['NotificationOut'];
 export type NotificationPage = components['schemas']['NotificationPage'];
 export type OfferTypeLabel = components['schemas']['OfferTypeLabel'];
@@ -7086,6 +7430,8 @@ export type StatItem = components['schemas']['StatItem'];
 export type StatsAside = components['schemas']['StatsAside'];
 export type StepUpResult = components['schemas']['StepUpResult'];
 export type StepUpStart = components['schemas']['StepUpStart'];
+export type StorageUse = components['schemas']['StorageUse'];
+export type Stroke = components['schemas']['Stroke'];
 export type SuggestionAccept = components['schemas']['SuggestionAccept'];
 export type SuggestionCreate = components['schemas']['SuggestionCreate'];
 export type SuggestionDecline = components['schemas']['SuggestionDecline'];
@@ -16640,10 +16986,353 @@ export interface operations {
             };
         };
     };
+    list_notebooks_api_v1_notebooks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotebookList"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_notebook_api_v1_notebooks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotebookCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notebook"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_notebook_api_v1_notebooks__notebook_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notebook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    rename_notebook_api_v1_notebooks__notebook_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notebook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotebookUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notebook"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_notes_api_v1_notes_get: {
         parameters: {
             query?: {
                 q?: string | null;
+                notebook_id?: string | null;
                 module_id?: string | null;
                 lesson_id?: string | null;
                 /** @description Page size */
@@ -16746,6 +17435,93 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Note"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    annotate_api_v1_notes_annotate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnnotateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -17005,6 +17781,181 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_ink_api_v1_notes__note_id__ink__sheet__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                note_id: string;
+                sheet: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InkSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InkSheet"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    note_file_api_v1_notes_files__upload_id__get: {
+        parameters: {
+            query?: {
+                download?: boolean;
+            };
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            302: {
                 headers: {
                     [name: string]: unknown;
                 };

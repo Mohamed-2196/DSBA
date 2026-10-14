@@ -9,4 +9,5 @@
 // what it's about).
 export { LessonNotes } from './LessonNotes';
 export { useOpenNote } from './current';
+export { useAnnotate } from './api';
 export type { OpenNote } from './current';

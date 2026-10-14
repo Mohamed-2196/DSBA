@@ -1,20 +1,20 @@
-// The editor's engine: the text on screen, the copy on this device, and saving to the server as the student types.
+// The note's text, paper and place: what is on screen, the copy on this device, and saving to the server as the
+// student types. (Its ink saves per sheet: useInkSync.)
 //   - Every change goes to the device's copy at once (draft.ts) and to the server SAVE_AFTER ms after typing stops.
 //   - One save at a time; changes made while one runs are sent when it ends.
 //   - Offline: the copy waits, and is sent when the browser is back online (and every RETRY_EVERY ms until then).
 //   - Saved elsewhere since (409 note_changed, another tab): the student keeps theirs (saved over the other) or loads
 //     the other.
-// A new note (id null) is created by its first save; `onCreated` gets its id.
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isApiError } from '../../api/errors';
 import type { Note } from '../../api/types';
-import { createNote, fetchNote, noteKeys, noteSaved, saveNote, useNote } from './api';
+import { fetchNote, noteKeys, noteSaved, saveNote, useNote } from './api';
 import { setOpenNote } from './current';
-import { docOf, dropDraft, emptyDoc, isBlank, openNote, readDraft, sameDoc, writeDraft, type NoteDoc } from './draft';
+import { docOf, dropDraft, openNote, readDraft, sameDoc, writeDraft, type NoteDoc } from './draft';
 
 export const SAVE_AFTER = 700;
-const RETRY_EVERY = 15_000;
+export const RETRY_EVERY = 15_000;
 
 /**
  * - 'saved': the server has what is on screen;
@@ -29,14 +29,17 @@ export type SaveState = 'saved' | 'unsaved' | 'saving' | 'offline' | 'conflict' 
 export interface NoteEditor {
   /** null until the note is loaded (or found on this device) */
   doc: NoteDoc | null;
-  id: string | null;
+  /** the note as the server last sent it (its PDF, its ink when it opened) */
+  note: Note | undefined;
   state: SaveState;
   error: string | null;
+  /** when the server last confirmed what is on screen */
+  savedAt: number | null;
   /** the note as it was saved elsewhere, while state is 'conflict' */
   theirs: Note | null;
   /** loading the note failed and there's no copy of it here */
   loadError: unknown;
-  /** the note doesn't exist (deleted elsewhere) and there's no copy of it here */
+  /** the note doesn't exist (deleted elsewhere, or never was) */
   missing: boolean;
   change: (patch: Partial<NoteDoc>) => void;
   /** send now (a retry, or before leaving) */
@@ -45,34 +48,28 @@ export interface NoteEditor {
   loadTheirs: () => void;
   /** forget the copy on this device (the note was deleted) */
   discard: () => void;
+  /** the plain text of what is on screen, for Mini Noora (the editor reports it as it changes) */
+  setPlainText: (text: string) => void;
 }
 
-export function useNoteEditor(
-  noteId: string | null,
-  { place, readOnly, onCreated }: { place?: Partial<NoteDoc>; readOnly: boolean; onCreated: (id: string) => void },
-): NoteEditor {
+export function useNoteEditor(noteId: string, { readOnly }: { readOnly: boolean }): NoteEditor {
   const qc = useQueryClient();
   const query = useNote(noteId);
-  const idRef = useRef(noteId);
   const docRef = useRef<NoteDoc | null>(null);
   const baseRef = useRef<number | null>(null);
   const savedRef = useRef<NoteDoc | null>(null);
   const busy = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const opened = useRef(false);
-  const onCreatedRef = useRef(onCreated);
-  useEffect(() => {
-    onCreatedRef.current = onCreated;
-  });
+  const plain = useRef('');
   const [doc, setDoc] = useState<NoteDoc | null>(() => {
-    // A new note opens at once; so does a note with a copy here (the server's answer is checked against it).
+    // A note with a copy here opens at once (the server's answer is checked against it).
     const draft = readDraft(noteId);
-    const start = noteId === null ? (draft?.doc ?? emptyDoc(place)) : (draft?.doc ?? null);
-    docRef.current = start;
+    docRef.current = draft?.doc ?? null;
     baseRef.current = draft?.base ?? null;
-    return start;
+    return docRef.current;
   });
-  const [state, setStateRaw] = useState<SaveState>(() => (noteId === null && readDraft(null) ? 'unsaved' : 'saved'));
+  const [state, setStateRaw] = useState<SaveState>('saved');
   const stateRef = useRef(state);
   const setState = (s: SaveState) => {
     stateRef.current = s;
@@ -80,7 +77,7 @@ export function useNoteEditor(
   };
   const [error, setError] = useState<string | null>(null);
   const [theirs, setTheirs] = useState<Note | null>(null);
-  const [missing, setMissing] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
 
   const show = (next: NoteDoc) => {
     docRef.current = next;
@@ -91,41 +88,33 @@ export function useNoteEditor(
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
     const sent = docRef.current;
-    if (readOnly || busy.current || !sent || stateRef.current === 'conflict') return;
-    const id = idRef.current;
-    if (id !== null && !opened.current) return; // the server's copy isn't here yet: openNote() decides first
-    if (id === null ? isBlank(sent) : sameDoc(sent, savedRef.current)) {
-      if (id === null && isBlank(sent)) dropDraft(null);
-      if (id !== null) dropDraft(id);
+    if (readOnly || busy.current || !sent || stateRef.current === 'conflict' || !opened.current) return;
+    if (sameDoc(sent, savedRef.current)) {
+      dropDraft(noteId);
       setState('saved');
       return;
     }
     busy.current = true;
     setState('saving');
     try {
-      const note = id === null ? await createNote(sent) : await saveNote(id, { ...sent, version: baseRef.current ?? 1 });
+      const note = await saveNote(noteId, { ...sent, version: baseRef.current ?? 1 });
       noteSaved(qc, note);
-      if (id === null) {
-        dropDraft(null);
-        idRef.current = note.id;
-        opened.current = true;
-        onCreatedRef.current(note.id);
-      }
       baseRef.current = note.version;
       savedRef.current = sent; // what was sent: the server tidies the title, and sending it again changes nothing
       setError(null);
+      setSavedAt(Date.now());
       if (sameDoc(docRef.current, sent)) {
-        dropDraft(note.id);
+        dropDraft(noteId);
         setState('saved');
       } else {
-        if (docRef.current) writeDraft(note.id, docRef.current, note.version);
+        if (docRef.current) writeDraft(noteId, docRef.current, note.version);
         setState('unsaved');
         timer.current = setTimeout(() => void flush(), SAVE_AFTER);
       }
     } catch (e) {
-      if (isApiError(e) && e.code === 'note_changed' && id !== null) {
+      if (isApiError(e) && e.code === 'note_changed') {
         try {
-          setTheirs(await fetchNote(id));
+          setTheirs(await fetchNote(noteId));
           setState('conflict');
         } catch {
           setState('offline');
@@ -142,15 +131,16 @@ export function useNoteEditor(
     } finally {
       busy.current = false;
     }
-  }, [qc, readOnly]);
+  }, [qc, readOnly, noteId]);
 
   // The server's copy arrives: open the note from it and the copy here.
   useEffect(() => {
-    if (opened.current || !query.data || idRef.current === null) return;
+    if (opened.current || !query.data) return;
     opened.current = true;
-    const opening = openNote(query.data, readDraft(idRef.current));
+    const opening = openNote(query.data, readDraft(noteId));
     savedRef.current = docOf(query.data);
     baseRef.current = opening.base;
+    plain.current = query.data.text;
     show(opening.doc);
     if (opening.theirs) {
       setTheirs(opening.theirs);
@@ -158,29 +148,22 @@ export function useNoteEditor(
     } else if (!sameDoc(opening.doc, savedRef.current)) {
       setState('unsaved');
       void flush();
+    } else {
+      setSavedAt(Date.parse(query.data.updatedAt));
     }
-  }, [query.data, flush]);
+  }, [query.data, flush, noteId]);
 
-  // It can't be loaded: a copy here is shown (and sent once the note loads); a deleted note's copy becomes a new note.
+  // It can't be loaded: a copy here is shown (and sent once the note loads).
   useEffect(() => {
-    if (opened.current || !query.error || idRef.current === null) return;
-    const draft = readDraft(idRef.current);
+    if (opened.current || !query.error) return;
     if (isApiError(query.error) && query.error.status === 404) {
-      if (draft && !isBlank(draft.doc)) {
-        dropDraft(idRef.current);
-        idRef.current = null;
-        baseRef.current = null;
-        writeDraft(null, draft.doc, null);
-        show(draft.doc);
-        setState('unsaved');
-        void flush();
-      } else {
-        setMissing(true);
-      }
+      dropDraft(noteId);
+      docRef.current = null;
+      setDoc(null);
       return;
     }
-    if (draft) setState('offline');
-  }, [query.error, flush]);
+    if (readDraft(noteId)) setState('offline');
+  }, [query.error, noteId]);
 
   // Back online, every so often while offline, and when the tab is hidden or the editor closes: send what waits.
   useEffect(() => {
@@ -203,25 +186,39 @@ export function useNoteEditor(
     };
   }, [flush]);
 
+  const publish = useCallback(() => {
+    const d = docRef.current;
+    const module = query.data?.moduleId ?? null;
+    setOpenNote(d ? { id: noteId, title: d.title, body: plain.current, moduleId: module, lessonId: d.lessonId } : null);
+  }, [noteId, query.data?.moduleId]);
+
   // What other parts of the app see as the open note (Mini Noora reads it when the student asks about it).
-  useEffect(() => {
-    setOpenNote(doc ? { id: idRef.current, ...doc } : null);
-  }, [doc]);
+  useEffect(() => publish(), [doc, publish]);
   useEffect(() => () => setOpenNote(null), []);
+
+  const setPlainText = useCallback(
+    (text: string) => {
+      if (text === plain.current) return;
+      plain.current = text;
+      publish();
+    },
+    [publish],
+  );
 
   const change = useCallback(
     (patch: Partial<NoteDoc>) => {
       const current = docRef.current;
       if (!current || readOnly) return;
       const next = { ...current, ...patch };
+      if (sameDoc(next, current)) return;
       show(next);
-      writeDraft(idRef.current, next, baseRef.current);
+      writeDraft(noteId, next, baseRef.current ?? 1);
       if (stateRef.current === 'conflict') return;
       if (stateRef.current !== 'offline' && stateRef.current !== 'error') setState('unsaved');
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => void flush(), SAVE_AFTER);
     },
-    [flush, readOnly],
+    [flush, readOnly, noteId],
   );
 
   const keepMine = useCallback(() => {
@@ -238,31 +235,35 @@ export function useNoteEditor(
     baseRef.current = theirs.version;
     savedRef.current = docOf(theirs);
     show(docOf(theirs));
-    dropDraft(idRef.current);
+    dropDraft(noteId);
     qc.setQueryData(noteKeys.one(theirs.id), theirs);
     setTheirs(null);
     setState('saved');
-  }, [theirs, qc]);
+    setSavedAt(Date.parse(theirs.updatedAt));
+  }, [theirs, qc, noteId]);
 
   const discard = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
-    dropDraft(idRef.current);
+    dropDraft(noteId);
     docRef.current = null;
     setOpenNote(null);
-  }, []);
+  }, [noteId]);
 
+  const missing = !doc && isApiError(query.error) && query.error.status === 404;
   return {
     doc,
-    id: idRef.current,
+    note: query.data,
     state,
     error,
+    savedAt,
     theirs,
-    loadError: doc ? null : query.error,
+    loadError: doc || missing ? null : query.error,
     missing,
     change,
     flush: () => void flush(),
     keepMine,
     loadTheirs,
     discard,
+    setPlainText,
   };
 }
