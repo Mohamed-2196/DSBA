@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Annotated, Literal, get_args
+from typing import Annotated, Any, Literal, get_args
 from uuid import UUID
 
 from pydantic import Field, StringConstraints, WithJsonSchema
@@ -365,6 +365,18 @@ class ExportEmail(ApiModel):
     sent_at: datetime | None
 
 
+class ExportDailyPlay(ApiModel):
+    day: date
+    game: str
+    variant: str
+    status: str
+    scored: bool
+    points: int
+    moves: list[Any]
+    started_at: datetime
+    finished_at: datetime | None
+
+
 class AccountExport(ApiModel):
     """Everything the Hub stores about the signed-in user (GET /me/export)."""
 
@@ -392,3 +404,5 @@ class AccountExport(ApiModel):
     notes: list[ExportNote]  # private notes
     noora_usage: list[ExportNooraDay]  # Mini Noora's AI questions per day
     video_suggestions: list[ExportSuggestion]  # videos this person suggested for lessons
+    daily_plays: list[ExportDailyPlay]  # daily puzzles played, with their moves
+    daily_show_on_board: bool  # the name shows on Daily's leaderboard

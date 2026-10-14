@@ -76,6 +76,11 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("video_suggestions", "POST", "/video-suggestions"),
     ("video_suggestions", "GET", "/video-suggestions/mine"),
     ("video_suggestions", "GET", "/content/video-suggestions"),
+    ("daily", "GET", "/daily"),
+    ("daily", "GET", "/daily/2026-10-01/word"),
+    ("daily", "POST", "/daily/2026-10-01/word/moves"),
+    ("daily", "GET", "/daily/leaderboard"),
+    ("daily", "GET", "/daily/me"),
 ]
 # Features that arrive switched off (the migrations' switches): the tests switch them on first.
 OFF_AT_FIRST = (
@@ -94,6 +99,7 @@ OFF_AT_FIRST = (
     "video_suggestions",
     "library.daily-question",
     "requests.done",
+    "daily",
 )
 
 # Features that live inside another one, whose routes need it on too.

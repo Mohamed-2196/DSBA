@@ -410,6 +410,14 @@ def _seconds(value: str) -> float:
     return n
 
 
+def cmd_daily_neighbours(_: argparse.Namespace) -> int:
+    """Works out Nearest neighbour's ranks from its vocabulary (after editing data/nearest.json)."""
+    from app.services.daily.games.nearest import write_ranks
+
+    write_ranks()
+    return 0
+
+
 def cmd_dev_login(args: argparse.Namespace) -> int:
     from app.core.access import STUDENT
     from app.core.security import hash_token, new_token
@@ -464,6 +472,7 @@ def main(argv: list[str] | None = None) -> int:
     sr.set_defaults(fn=cmd_set_role)
     sub.add_parser("backup").set_defaults(fn=cmd_backup)
     sub.add_parser("sweep").set_defaults(fn=cmd_sweep)
+    sub.add_parser("daily-neighbours").set_defaults(fn=cmd_daily_neighbours)
     sub.add_parser("setup-bucket").set_defaults(fn=cmd_setup_bucket)
     mw = sub.add_parser("mail-worker")
     mw.add_argument("--once", action="store_true", help="stop when nothing is due")

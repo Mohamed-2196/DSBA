@@ -1,0 +1,4541 @@
+{
+ "tags": [
+  "statistics",
+  "probability",
+  "maths",
+  "ml",
+  "ai",
+  "neural",
+  "finance",
+  "accounting",
+  "economics",
+  "data",
+  "database",
+  "programming",
+  "python",
+  "sql",
+  "business",
+  "marketing",
+  "management",
+  "strategy",
+  "model",
+  "prediction",
+  "measure",
+  "average",
+  "spread",
+  "distribution",
+  "chart",
+  "visual",
+  "test",
+  "error",
+  "sample",
+  "chance",
+  "risk",
+  "uncertainty",
+  "money",
+  "investment",
+  "market",
+  "trading",
+  "banking",
+  "tax",
+  "cost",
+  "income",
+  "growth",
+  "people",
+  "customer",
+  "product",
+  "sales",
+  "brand",
+  "communication",
+  "organisation",
+  "leadership",
+  "work",
+  "document",
+  "storage",
+  "code",
+  "language",
+  "text",
+  "image",
+  "structure",
+  "network",
+  "internet",
+  "computer",
+  "hardware",
+  "software",
+  "number",
+  "time",
+  "place",
+  "object",
+  "everyday",
+  "food",
+  "drink",
+  "school",
+  "learning",
+  "nature",
+  "animal",
+  "process",
+  "government",
+  "law",
+  "quality",
+  "security",
+  "value",
+  "record",
+  "optimisation",
+  "training",
+  "sound"
+ ],
+ "words": {
+  "mean": {
+   "tags": [
+    "statistics",
+    "average",
+    "measure",
+    "maths",
+    "number"
+   ],
+   "near": [
+    "median",
+    "average"
+   ]
+  },
+  "median": {
+   "tags": [
+    "statistics",
+    "average",
+    "measure",
+    "maths",
+    "number"
+   ],
+   "near": [
+    "mode"
+   ]
+  },
+  "mode": {
+   "tags": [
+    "statistics",
+    "average",
+    "measure",
+    "number"
+   ]
+  },
+  "average": {
+   "tags": [
+    "statistics",
+    "average",
+    "measure",
+    "maths",
+    "number",
+    "everyday"
+   ]
+  },
+  "variance": {
+   "tags": [
+    "statistics",
+    "spread",
+    "measure",
+    "maths",
+    "number",
+    "distribution"
+   ],
+   "near": [
+    "deviation"
+   ]
+  },
+  "deviation": {
+   "tags": [
+    "statistics",
+    "spread",
+    "measure",
+    "maths",
+    "error"
+   ]
+  },
+  "spread": {
+   "tags": [
+    "statistics",
+    "spread",
+    "measure",
+    "distribution"
+   ]
+  },
+  "range": {
+   "tags": [
+    "statistics",
+    "spread",
+    "measure",
+    "number"
+   ]
+  },
+  "outlier": {
+   "tags": [
+    "statistics",
+    "data",
+    "error",
+    "spread",
+    "value"
+   ],
+   "near": [
+    "anomaly"
+   ]
+  },
+  "anomaly": {
+   "tags": [
+    "statistics",
+    "data",
+    "error",
+    "value",
+    "security"
+   ]
+  },
+  "skewness": {
+   "tags": [
+    "statistics",
+    "distribution",
+    "measure",
+    "spread",
+    "maths"
+   ]
+  },
+  "kurtosis": {
+   "tags": [
+    "statistics",
+    "distribution",
+    "measure",
+    "maths",
+    "spread"
+   ]
+  },
+  "distribution": {
+   "tags": [
+    "statistics",
+    "probability",
+    "distribution",
+    "maths",
+    "measure"
+   ],
+   "near": [
+    "normal"
+   ]
+  },
+  "normal": {
+   "tags": [
+    "statistics",
+    "probability",
+    "distribution",
+    "maths"
+   ],
+   "near": [
+    "gaussian"
+   ]
+  },
+  "gaussian": {
+   "tags": [
+    "statistics",
+    "probability",
+    "distribution",
+    "maths"
+   ]
+  },
+  "poisson": {
+   "tags": [
+    "statistics",
+    "probability",
+    "distribution",
+    "maths",
+    "number",
+    "time"
+   ]
+  },
+  "binomial": {
+   "tags": [
+    "statistics",
+    "probability",
+    "distribution",
+    "maths",
+    "chance"
+   ]
+  },
+  "uniform": {
+   "tags": [
+    "statistics",
+    "probability",
+    "distribution",
+    "chance"
+   ]
+  },
+  "probability": {
+   "tags": [
+    "statistics",
+    "probability",
+    "chance",
+    "maths",
+    "uncertainty",
+    "number"
+   ],
+   "near": [
+    "chance",
+    "likelihood"
+   ]
+  },
+  "chance": {
+   "tags": [
+    "probability",
+    "chance",
+    "uncertainty",
+    "everyday",
+    "risk"
+   ],
+   "near": [
+    "luck"
+   ]
+  },
+  "luck": {
+   "tags": [
+    "chance",
+    "everyday",
+    "uncertainty",
+    "people"
+   ]
+  },
+  "likelihood": {
+   "tags": [
+    "statistics",
+    "probability",
+    "chance",
+    "model",
+    "maths"
+   ]
+  },
+  "odds": {
+   "tags": [
+    "statistics",
+    "probability",
+    "chance",
+    "number",
+    "risk"
+   ],
+   "near": [
+    "betting"
+   ]
+  },
+  "betting": {
+   "tags": [
+    "chance",
+    "risk",
+    "money",
+    "everyday"
+   ]
+  },
+  "gambling": {
+   "tags": [
+    "chance",
+    "risk",
+    "money",
+    "everyday",
+    "law"
+   ]
+  },
+  "dice": {
+   "tags": [
+    "probability",
+    "chance",
+    "object",
+    "everyday"
+   ],
+   "near": [
+    "coin"
+   ]
+  },
+  "coin": {
+   "tags": [
+    "probability",
+    "chance",
+    "object",
+    "money",
+    "everyday"
+   ]
+  },
+  "random": {
+   "tags": [
+    "statistics",
+    "probability",
+    "chance",
+    "uncertainty",
+    "sample"
+   ]
+  },
+  "sample": {
+   "tags": [
+    "statistics",
+    "sample",
+    "data",
+    "people",
+    "measure"
+   ],
+   "near": [
+    "population"
+   ]
+  },
+  "population": {
+   "tags": [
+    "statistics",
+    "sample",
+    "people",
+    "data"
+   ]
+  },
+  "survey": {
+   "tags": [
+    "statistics",
+    "sample",
+    "people",
+    "data",
+    "marketing",
+    "document"
+   ],
+   "near": [
+    "questionnaire"
+   ]
+  },
+  "questionnaire": {
+   "tags": [
+    "sample",
+    "people",
+    "document",
+    "data"
+   ]
+  },
+  "census": {
+   "tags": [
+    "statistics",
+    "sample",
+    "people",
+    "government",
+    "data"
+   ]
+  },
+  "poll": {
+   "tags": [
+    "statistics",
+    "sample",
+    "people",
+    "government",
+    "communication"
+   ]
+  },
+  "hypothesis": {
+   "tags": [
+    "statistics",
+    "test",
+    "model",
+    "uncertainty",
+    "prediction"
+   ],
+   "near": [
+    "null"
+   ]
+  },
+  "null": {
+   "tags": [
+    "statistics",
+    "test",
+    "value",
+    "programming"
+   ]
+  },
+  "pvalue": {
+   "tags": [
+    "statistics",
+    "test",
+    "probability",
+    "number",
+    "error"
+   ],
+   "near": [
+    "significance"
+   ]
+  },
+  "significance": {
+   "tags": [
+    "statistics",
+    "test",
+    "probability",
+    "measure"
+   ]
+  },
+  "confidence": {
+   "tags": [
+    "statistics",
+    "probability",
+    "uncertainty",
+    "measure",
+    "number"
+   ],
+   "near": [
+    "interval"
+   ]
+  },
+  "interval": {
+   "tags": [
+    "statistics",
+    "measure",
+    "spread",
+    "number",
+    "uncertainty"
+   ]
+  },
+  "estimate": {
+   "tags": [
+    "statistics",
+    "measure",
+    "prediction",
+    "uncertainty",
+    "number"
+   ],
+   "near": [
+    "estimator"
+   ]
+  },
+  "estimator": {
+   "tags": [
+    "statistics",
+    "model",
+    "measure",
+    "maths"
+   ]
+  },
+  "bias": {
+   "tags": [
+    "statistics",
+    "error",
+    "measure",
+    "model",
+    "quality"
+   ]
+  },
+  "error": {
+   "tags": [
+    "statistics",
+    "error",
+    "measure",
+    "quality"
+   ]
+  },
+  "mistake": {
+   "tags": [
+    "error",
+    "everyday",
+    "people",
+    "learning"
+   ]
+  },
+  "residual": {
+   "tags": [
+    "statistics",
+    "error",
+    "model",
+    "measure",
+    "prediction"
+   ]
+  },
+  "regression": {
+   "tags": [
+    "statistics",
+    "model",
+    "prediction",
+    "maths",
+    "ml",
+    "measure"
+   ],
+   "near": [
+    "correlation",
+    "slope"
+   ]
+  },
+  "correlation": {
+   "tags": [
+    "statistics",
+    "measure",
+    "maths",
+    "model",
+    "data"
+   ],
+   "near": [
+    "causation"
+   ]
+  },
+  "causation": {
+   "tags": [
+    "statistics",
+    "model",
+    "test",
+    "uncertainty"
+   ]
+  },
+  "slope": {
+   "tags": [
+    "statistics",
+    "maths",
+    "measure",
+    "model",
+    "number"
+   ]
+  },
+  "intercept": {
+   "tags": [
+    "statistics",
+    "maths",
+    "model",
+    "number"
+   ]
+  },
+  "histogram": {
+   "tags": [
+    "statistics",
+    "chart",
+    "visual",
+    "distribution",
+    "data"
+   ],
+   "near": [
+    "boxplot"
+   ]
+  },
+  "boxplot": {
+   "tags": [
+    "statistics",
+    "chart",
+    "visual",
+    "spread",
+    "distribution"
+   ]
+  },
+  "scatterplot": {
+   "tags": [
+    "statistics",
+    "chart",
+    "visual",
+    "data",
+    "model"
+   ]
+  },
+  "chart": {
+   "tags": [
+    "chart",
+    "visual",
+    "data",
+    "document",
+    "everyday"
+   ],
+   "near": [
+    "graph"
+   ]
+  },
+  "graph": {
+   "tags": [
+    "chart",
+    "visual",
+    "data",
+    "maths",
+    "structure",
+    "network"
+   ]
+  },
+  "diagram": {
+   "tags": [
+    "chart",
+    "visual",
+    "document",
+    "structure"
+   ]
+  },
+  "pie": {
+   "tags": [
+    "chart",
+    "visual",
+    "food",
+    "everyday"
+   ]
+  },
+  "bar": {
+   "tags": [
+    "chart",
+    "visual",
+    "everyday",
+    "place",
+    "drink"
+   ]
+  },
+  "plot": {
+   "tags": [
+    "chart",
+    "visual",
+    "data",
+    "maths"
+   ]
+  },
+  "bayes": {
+   "tags": [
+    "statistics",
+    "probability",
+    "model",
+    "uncertainty",
+    "people"
+   ],
+   "near": [
+    "prior"
+   ]
+  },
+  "prior": {
+   "tags": [
+    "statistics",
+    "probability",
+    "model",
+    "uncertainty"
+   ],
+   "near": [
+    "posterior"
+   ]
+  },
+  "posterior": {
+   "tags": [
+    "statistics",
+    "probability",
+    "model",
+    "uncertainty"
+   ]
+  },
+  "anova": {
+   "tags": [
+    "statistics",
+    "test",
+    "spread",
+    "model",
+    "average"
+   ]
+  },
+  "ttest": {
+   "tags": [
+    "statistics",
+    "test",
+    "average",
+    "sample"
+   ]
+  },
+  "chisquare": {
+   "tags": [
+    "statistics",
+    "test",
+    "distribution",
+    "probability"
+   ]
+  },
+  "quartile": {
+   "tags": [
+    "statistics",
+    "spread",
+    "measure",
+    "distribution"
+   ],
+   "near": [
+    "percentile"
+   ]
+  },
+  "percentile": {
+   "tags": [
+    "statistics",
+    "spread",
+    "measure",
+    "distribution",
+    "number"
+   ]
+  },
+  "zscore": {
+   "tags": [
+    "statistics",
+    "measure",
+    "number",
+    "distribution"
+   ]
+  },
+  "frequency": {
+   "tags": [
+    "statistics",
+    "measure",
+    "number",
+    "time",
+    "data"
+   ]
+  },
+  "count": {
+   "tags": [
+    "statistics",
+    "number",
+    "measure",
+    "data",
+    "everyday"
+   ]
+  },
+  "proportion": {
+   "tags": [
+    "statistics",
+    "number",
+    "measure",
+    "maths"
+   ]
+  },
+  "percentage": {
+   "tags": [
+    "number",
+    "measure",
+    "maths",
+    "everyday"
+   ]
+  },
+  "ratio": {
+   "tags": [
+    "maths",
+    "number",
+    "measure",
+    "finance"
+   ]
+  },
+  "sigma": {
+   "tags": [
+    "statistics",
+    "maths",
+    "spread",
+    "number"
+   ]
+  },
+  "experiment": {
+   "tags": [
+    "statistics",
+    "test",
+    "process",
+    "sample",
+    "learning"
+   ],
+   "near": [
+    "trial"
+   ]
+  },
+  "trial": {
+   "tags": [
+    "statistics",
+    "test",
+    "process",
+    "sample",
+    "chance"
+   ]
+  },
+  "control": {
+   "tags": [
+    "statistics",
+    "test",
+    "process",
+    "management"
+   ]
+  },
+  "placebo": {
+   "tags": [
+    "statistics",
+    "test",
+    "process",
+    "people"
+   ]
+  },
+  "variable": {
+   "tags": [
+    "statistics",
+    "data",
+    "maths",
+    "programming",
+    "value"
+   ]
+  },
+  "maths": {
+   "tags": [
+    "maths",
+    "number",
+    "school",
+    "learning"
+   ],
+   "near": [
+    "algebra"
+   ]
+  },
+  "equation": {
+   "tags": [
+    "maths",
+    "number",
+    "structure",
+    "school"
+   ]
+  },
+  "number": {
+   "tags": [
+    "number",
+    "maths",
+    "everyday"
+   ]
+  },
+  "theorem": {
+   "tags": [
+    "maths",
+    "statistics",
+    "probability",
+    "learning"
+   ]
+  },
+  "proof": {
+   "tags": [
+    "maths",
+    "learning",
+    "document"
+   ]
+  },
+  "calculus": {
+   "tags": [
+    "maths",
+    "number",
+    "school",
+    "learning"
+   ]
+  },
+  "algebra": {
+   "tags": [
+    "maths",
+    "number",
+    "school",
+    "learning",
+    "structure"
+   ]
+  },
+  "matrix": {
+   "tags": [
+    "maths",
+    "number",
+    "structure",
+    "data",
+    "ml"
+   ]
+  },
+  "vector": {
+   "tags": [
+    "maths",
+    "number",
+    "structure",
+    "ml",
+    "data"
+   ]
+  },
+  "uncertainty": {
+   "tags": [
+    "uncertainty",
+    "risk",
+    "chance",
+    "statistics"
+   ]
+  },
+  "forecast": {
+   "tags": [
+    "prediction",
+    "time",
+    "model",
+    "statistics",
+    "business"
+   ],
+   "near": [
+    "prediction"
+   ]
+  },
+  "trend": {
+   "tags": [
+    "statistics",
+    "time",
+    "growth",
+    "data",
+    "prediction",
+    "chart"
+   ]
+  },
+  "seasonality": {
+   "tags": [
+    "statistics",
+    "time",
+    "data",
+    "prediction"
+   ]
+  },
+  "timeseries": {
+   "tags": [
+    "statistics",
+    "time",
+    "data",
+    "prediction",
+    "model"
+   ]
+  },
+  "ml": {
+   "tags": [
+    "ml",
+    "ai",
+    "model",
+    "prediction",
+    "data",
+    "learning",
+    "computer"
+   ],
+   "near": [
+    "ai"
+   ]
+  },
+  "ai": {
+   "tags": [
+    "ai",
+    "ml",
+    "computer",
+    "software",
+    "learning"
+   ],
+   "near": [
+    "robot"
+   ]
+  },
+  "model": {
+   "tags": [
+    "ml",
+    "model",
+    "prediction",
+    "statistics",
+    "data"
+   ]
+  },
+  "prediction": {
+   "tags": [
+    "prediction",
+    "model",
+    "ml",
+    "statistics",
+    "uncertainty"
+   ]
+  },
+  "neural": {
+   "tags": [
+    "ml",
+    "ai",
+    "neural",
+    "model",
+    "network"
+   ],
+   "near": [
+    "network"
+   ]
+  },
+  "network": {
+   "tags": [
+    "network",
+    "structure",
+    "computer",
+    "internet"
+   ]
+  },
+  "neuron": {
+   "tags": [
+    "ml",
+    "neural",
+    "nature",
+    "structure"
+   ],
+   "near": [
+    "brain"
+   ]
+  },
+  "brain": {
+   "tags": [
+    "neural",
+    "nature",
+    "people",
+    "learning"
+   ],
+   "near": [
+    "mind"
+   ]
+  },
+  "mind": {
+   "tags": [
+    "people",
+    "learning",
+    "neural"
+   ]
+  },
+  "layer": {
+   "tags": [
+    "ml",
+    "neural",
+    "structure",
+    "model"
+   ],
+   "near": [
+    "neuron"
+   ]
+  },
+  "weight": {
+   "tags": [
+    "ml",
+    "neural",
+    "model",
+    "number",
+    "value"
+   ]
+  },
+  "activation": {
+   "tags": [
+    "ml",
+    "neural",
+    "maths",
+    "model"
+   ]
+  },
+  "sigmoid": {
+   "tags": [
+    "ml",
+    "neural",
+    "maths",
+    "model",
+    "probability"
+   ]
+  },
+  "relu": {
+   "tags": [
+    "ml",
+    "neural",
+    "maths",
+    "model"
+   ]
+  },
+  "softmax": {
+   "tags": [
+    "ml",
+    "neural",
+    "maths",
+    "probability",
+    "model"
+   ]
+  },
+  "transformer": {
+   "tags": [
+    "ml",
+    "ai",
+    "neural",
+    "model",
+    "language",
+    "text"
+   ],
+   "near": [
+    "attention"
+   ]
+  },
+  "attention": {
+   "tags": [
+    "ml",
+    "ai",
+    "neural",
+    "language",
+    "text"
+   ]
+  },
+  "embedding": {
+   "tags": [
+    "ml",
+    "ai",
+    "language",
+    "text",
+    "maths"
+   ],
+   "near": [
+    "vector"
+   ]
+  },
+  "token": {
+   "tags": [
+    "ml",
+    "ai",
+    "language",
+    "text",
+    "programming"
+   ]
+  },
+  "prompt": {
+   "tags": [
+    "ml",
+    "ai",
+    "language",
+    "text",
+    "communication"
+   ],
+   "near": [
+    "chatbot"
+   ]
+  },
+  "chatbot": {
+   "tags": [
+    "ml",
+    "ai",
+    "language",
+    "text",
+    "communication",
+    "software"
+   ],
+   "near": [
+    "assistant"
+   ]
+  },
+  "assistant": {
+   "tags": [
+    "ai",
+    "people",
+    "work",
+    "software",
+    "communication"
+   ]
+  },
+  "llm": {
+   "tags": [
+    "ml",
+    "ai",
+    "language",
+    "text",
+    "model"
+   ],
+   "near": [
+    "chatbot"
+   ]
+  },
+  "gpt": {
+   "tags": [
+    "ml",
+    "ai",
+    "language",
+    "text",
+    "model"
+   ],
+   "near": [
+    "llm"
+   ]
+  },
+  "hallucination": {
+   "tags": [
+    "ml",
+    "ai",
+    "error",
+    "language",
+    "text"
+   ]
+  },
+  "gradient": {
+   "tags": [
+    "ml",
+    "optimisation",
+    "maths",
+    "training",
+    "model"
+   ],
+   "near": [
+    "descent"
+   ]
+  },
+  "descent": {
+   "tags": [
+    "ml",
+    "optimisation",
+    "maths",
+    "training"
+   ]
+  },
+  "optimisation": {
+   "tags": [
+    "optimisation",
+    "maths",
+    "ml",
+    "training",
+    "process"
+   ],
+   "near": [
+    "optimiser"
+   ]
+  },
+  "optimiser": {
+   "tags": [
+    "ml",
+    "optimisation",
+    "training",
+    "process"
+   ]
+  },
+  "epoch": {
+   "tags": [
+    "ml",
+    "training",
+    "time",
+    "process"
+   ]
+  },
+  "batch": {
+   "tags": [
+    "ml",
+    "training",
+    "data",
+    "process"
+   ]
+  },
+  "training": {
+   "tags": [
+    "ml",
+    "training",
+    "learning",
+    "process",
+    "data"
+   ],
+   "near": [
+    "learning"
+   ]
+  },
+  "learning": {
+   "tags": [
+    "learning",
+    "school",
+    "training",
+    "ml",
+    "people"
+   ]
+  },
+  "overfitting": {
+   "tags": [
+    "ml",
+    "training",
+    "error",
+    "model",
+    "quality"
+   ],
+   "near": [
+    "regularisation"
+   ]
+  },
+  "underfitting": {
+   "tags": [
+    "ml",
+    "training",
+    "error",
+    "model",
+    "quality"
+   ],
+   "near": [
+    "overfitting"
+   ]
+  },
+  "regularisation": {
+   "tags": [
+    "ml",
+    "training",
+    "error",
+    "model",
+    "optimisation"
+   ]
+  },
+  "dropout": {
+   "tags": [
+    "ml",
+    "neural",
+    "training",
+    "model"
+   ]
+  },
+  "validation": {
+   "tags": [
+    "ml",
+    "test",
+    "training",
+    "data",
+    "quality"
+   ]
+  },
+  "accuracy": {
+   "tags": [
+    "ml",
+    "measure",
+    "quality",
+    "test",
+    "prediction"
+   ],
+   "near": [
+    "precision"
+   ]
+  },
+  "precision": {
+   "tags": [
+    "ml",
+    "measure",
+    "quality",
+    "test",
+    "prediction"
+   ],
+   "near": [
+    "recall"
+   ]
+  },
+  "recall": {
+   "tags": [
+    "ml",
+    "measure",
+    "quality",
+    "test",
+    "prediction"
+   ]
+  },
+  "classification": {
+   "tags": [
+    "ml",
+    "model",
+    "prediction",
+    "data",
+    "statistics"
+   ],
+   "near": [
+    "classifier"
+   ]
+  },
+  "classifier": {
+   "tags": [
+    "ml",
+    "model",
+    "prediction",
+    "software"
+   ]
+  },
+  "clustering": {
+   "tags": [
+    "ml",
+    "model",
+    "data",
+    "structure",
+    "statistics"
+   ],
+   "near": [
+    "kmeans"
+   ]
+  },
+  "kmeans": {
+   "tags": [
+    "ml",
+    "model",
+    "data",
+    "statistics",
+    "average"
+   ]
+  },
+  "label": {
+   "tags": [
+    "ml",
+    "data",
+    "text",
+    "record"
+   ]
+  },
+  "feature": {
+   "tags": [
+    "ml",
+    "data",
+    "model",
+    "value"
+   ]
+  },
+  "dataset": {
+   "tags": [
+    "ml",
+    "data",
+    "record",
+    "storage",
+    "statistics"
+   ],
+   "near": [
+    "data"
+   ]
+  },
+  "tree": {
+   "tags": [
+    "ml",
+    "model",
+    "structure",
+    "nature",
+    "prediction"
+   ],
+   "near": [
+    "forest"
+   ]
+  },
+  "forest": {
+   "tags": [
+    "ml",
+    "model",
+    "nature",
+    "prediction",
+    "structure"
+   ]
+  },
+  "boosting": {
+   "tags": [
+    "ml",
+    "model",
+    "optimisation",
+    "prediction"
+   ]
+  },
+  "ensemble": {
+   "tags": [
+    "ml",
+    "model",
+    "prediction",
+    "statistics"
+   ]
+  },
+  "reinforcement": {
+   "tags": [
+    "ml",
+    "ai",
+    "training",
+    "learning",
+    "process"
+   ]
+  },
+  "agent": {
+   "tags": [
+    "ml",
+    "ai",
+    "software",
+    "people",
+    "work"
+   ]
+  },
+  "robot": {
+   "tags": [
+    "ai",
+    "ml",
+    "hardware",
+    "computer",
+    "object"
+   ]
+  },
+  "automation": {
+   "tags": [
+    "ai",
+    "software",
+    "process",
+    "work",
+    "business"
+   ]
+  },
+  "vision": {
+   "tags": [
+    "ml",
+    "ai",
+    "image",
+    "computer",
+    "visual"
+   ],
+   "near": [
+    "recognition"
+   ]
+  },
+  "pixel": {
+   "tags": [
+    "image",
+    "computer",
+    "number",
+    "data"
+   ]
+  },
+  "image": {
+   "tags": [
+    "image",
+    "visual",
+    "computer",
+    "data"
+   ]
+  },
+  "camera": {
+   "tags": [
+    "image",
+    "hardware",
+    "object",
+    "everyday"
+   ]
+  },
+  "recognition": {
+   "tags": [
+    "ml",
+    "ai",
+    "image",
+    "prediction"
+   ]
+  },
+  "speech": {
+   "tags": [
+    "ml",
+    "ai",
+    "sound",
+    "language",
+    "communication"
+   ]
+  },
+  "voice": {
+   "tags": [
+    "sound",
+    "people",
+    "communication",
+    "language"
+   ]
+  },
+  "deepfake": {
+   "tags": [
+    "ml",
+    "ai",
+    "image",
+    "security",
+    "error"
+   ]
+  },
+  "gpu": {
+   "tags": [
+    "hardware",
+    "computer",
+    "ml",
+    "training"
+   ]
+  },
+  "chip": {
+   "tags": [
+    "hardware",
+    "computer",
+    "object"
+   ]
+  },
+  "tensor": {
+   "tags": [
+    "ml",
+    "maths",
+    "structure",
+    "data",
+    "programming"
+   ]
+  },
+  "algorithm": {
+   "tags": [
+    "programming",
+    "ml",
+    "maths",
+    "process",
+    "code"
+   ],
+   "near": [
+    "code"
+   ]
+  },
+  "intelligence": {
+   "tags": [
+    "ai",
+    "people",
+    "learning",
+    "neural"
+   ]
+  },
+  "smart": {
+   "tags": [
+    "ai",
+    "people",
+    "learning"
+   ]
+  },
+  "autonomous": {
+   "tags": [
+    "ai",
+    "ml",
+    "process",
+    "hardware"
+   ]
+  },
+  "generative": {
+   "tags": [
+    "ml",
+    "ai",
+    "model",
+    "text",
+    "image"
+   ]
+  },
+  "money": {
+   "tags": [
+    "money",
+    "finance",
+    "everyday",
+    "cost",
+    "income"
+   ],
+   "near": [
+    "cash"
+   ]
+  },
+  "cash": {
+   "tags": [
+    "money",
+    "finance",
+    "everyday",
+    "banking"
+   ]
+  },
+  "currency": {
+   "tags": [
+    "money",
+    "finance",
+    "economics",
+    "market",
+    "trading"
+   ]
+  },
+  "dinar": {
+   "tags": [
+    "money",
+    "finance",
+    "economics",
+    "place"
+   ],
+   "near": [
+    "currency"
+   ]
+  },
+  "dollar": {
+   "tags": [
+    "money",
+    "finance",
+    "economics",
+    "place"
+   ],
+   "near": [
+    "currency"
+   ]
+  },
+  "euro": {
+   "tags": [
+    "money",
+    "finance",
+    "economics",
+    "place"
+   ]
+  },
+  "pound": {
+   "tags": [
+    "money",
+    "finance",
+    "economics",
+    "place"
+   ]
+  },
+  "bank": {
+   "tags": [
+    "banking",
+    "finance",
+    "money",
+    "place",
+    "organisation"
+   ],
+   "near": [
+    "loan"
+   ]
+  },
+  "banking": {
+   "tags": [
+    "banking",
+    "finance",
+    "money",
+    "organisation"
+   ]
+  },
+  "loan": {
+   "tags": [
+    "banking",
+    "finance",
+    "money",
+    "risk",
+    "cost"
+   ],
+   "near": [
+    "debt"
+   ]
+  },
+  "debt": {
+   "tags": [
+    "finance",
+    "money",
+    "risk",
+    "cost",
+    "banking"
+   ],
+   "near": [
+    "credit"
+   ]
+  },
+  "credit": {
+   "tags": [
+    "finance",
+    "money",
+    "banking",
+    "accounting"
+   ]
+  },
+  "debit": {
+   "tags": [
+    "finance",
+    "money",
+    "banking",
+    "accounting"
+   ]
+  },
+  "mortgage": {
+   "tags": [
+    "banking",
+    "finance",
+    "money",
+    "risk",
+    "place",
+    "cost"
+   ],
+   "near": [
+    "loan"
+   ]
+  },
+  "interest": {
+   "tags": [
+    "finance",
+    "money",
+    "banking",
+    "cost",
+    "income"
+   ],
+   "near": [
+    "rate"
+   ]
+  },
+  "rate": {
+   "tags": [
+    "finance",
+    "number",
+    "measure",
+    "economics"
+   ]
+  },
+  "savings": {
+   "tags": [
+    "money",
+    "finance",
+    "banking",
+    "growth"
+   ]
+  },
+  "investment": {
+   "tags": [
+    "investment",
+    "finance",
+    "money",
+    "risk",
+    "growth"
+   ],
+   "near": [
+    "portfolio"
+   ]
+  },
+  "investor": {
+   "tags": [
+    "investment",
+    "finance",
+    "people",
+    "money"
+   ]
+  },
+  "portfolio": {
+   "tags": [
+    "investment",
+    "finance",
+    "risk",
+    "money",
+    "trading"
+   ]
+  },
+  "stock": {
+   "tags": [
+    "investment",
+    "finance",
+    "trading",
+    "market",
+    "money"
+   ],
+   "near": [
+    "share"
+   ]
+  },
+  "share": {
+   "tags": [
+    "investment",
+    "finance",
+    "trading",
+    "market",
+    "money"
+   ]
+  },
+  "bond": {
+   "tags": [
+    "investment",
+    "finance",
+    "trading",
+    "market",
+    "risk"
+   ],
+   "near": [
+    "yield"
+   ]
+  },
+  "yield": {
+   "tags": [
+    "investment",
+    "finance",
+    "income",
+    "measure"
+   ]
+  },
+  "dividend": {
+   "tags": [
+    "investment",
+    "finance",
+    "income",
+    "money",
+    "accounting"
+   ],
+   "near": [
+    "share"
+   ]
+  },
+  "equity": {
+   "tags": [
+    "finance",
+    "accounting",
+    "investment",
+    "value"
+   ]
+  },
+  "asset": {
+   "tags": [
+    "finance",
+    "accounting",
+    "value",
+    "money",
+    "investment"
+   ],
+   "near": [
+    "liability"
+   ]
+  },
+  "liability": {
+   "tags": [
+    "finance",
+    "accounting",
+    "cost",
+    "money",
+    "risk"
+   ]
+  },
+  "balance": {
+   "tags": [
+    "accounting",
+    "finance",
+    "money",
+    "record"
+   ]
+  },
+  "ledger": {
+   "tags": [
+    "accounting",
+    "finance",
+    "record",
+    "document"
+   ]
+  },
+  "audit": {
+   "tags": [
+    "accounting",
+    "finance",
+    "quality",
+    "law",
+    "document"
+   ],
+   "near": [
+    "auditor"
+   ]
+  },
+  "auditor": {
+   "tags": [
+    "accounting",
+    "finance",
+    "people",
+    "work"
+   ]
+  },
+  "accountant": {
+   "tags": [
+    "accounting",
+    "finance",
+    "people",
+    "work"
+   ],
+   "near": [
+    "accounting"
+   ]
+  },
+  "accounting": {
+   "tags": [
+    "accounting",
+    "finance",
+    "record",
+    "work"
+   ]
+  },
+  "bookkeeping": {
+   "tags": [
+    "accounting",
+    "finance",
+    "record",
+    "work"
+   ]
+  },
+  "invoice": {
+   "tags": [
+    "accounting",
+    "finance",
+    "document",
+    "money",
+    "sales"
+   ]
+  },
+  "receipt": {
+   "tags": [
+    "accounting",
+    "money",
+    "document",
+    "everyday",
+    "sales"
+   ]
+  },
+  "revenue": {
+   "tags": [
+    "finance",
+    "accounting",
+    "income",
+    "sales",
+    "business"
+   ],
+   "near": [
+    "profit"
+   ]
+  },
+  "profit": {
+   "tags": [
+    "finance",
+    "accounting",
+    "income",
+    "business",
+    "value"
+   ]
+  },
+  "loss": {
+   "tags": [
+    "finance",
+    "accounting",
+    "cost",
+    "risk",
+    "error"
+   ]
+  },
+  "cost": {
+   "tags": [
+    "cost",
+    "money",
+    "finance",
+    "business"
+   ]
+  },
+  "expense": {
+   "tags": [
+    "cost",
+    "money",
+    "accounting",
+    "finance"
+   ]
+  },
+  "budget": {
+   "tags": [
+    "money",
+    "finance",
+    "cost",
+    "management",
+    "government"
+   ]
+  },
+  "depreciation": {
+   "tags": [
+    "accounting",
+    "finance",
+    "cost",
+    "value",
+    "time"
+   ]
+  },
+  "inflation": {
+   "tags": [
+    "economics",
+    "money",
+    "cost",
+    "government",
+    "market"
+   ],
+   "near": [
+    "price"
+   ]
+  },
+  "price": {
+   "tags": [
+    "money",
+    "cost",
+    "market",
+    "sales",
+    "economics"
+   ],
+   "near": [
+    "cost"
+   ]
+  },
+  "salary": {
+   "tags": [
+    "income",
+    "money",
+    "work",
+    "people"
+   ],
+   "near": [
+    "wage"
+   ]
+  },
+  "wage": {
+   "tags": [
+    "income",
+    "money",
+    "work",
+    "people"
+   ]
+  },
+  "tax": {
+   "tags": [
+    "tax",
+    "government",
+    "money",
+    "finance",
+    "law",
+    "accounting"
+   ],
+   "near": [
+    "vat"
+   ]
+  },
+  "vat": {
+   "tags": [
+    "tax",
+    "government",
+    "money",
+    "sales"
+   ]
+  },
+  "tariff": {
+   "tags": [
+    "tax",
+    "government",
+    "trading",
+    "economics"
+   ]
+  },
+  "economy": {
+   "tags": [
+    "economics",
+    "market",
+    "money",
+    "government",
+    "growth"
+   ],
+   "near": [
+    "economics"
+   ]
+  },
+  "economics": {
+   "tags": [
+    "economics",
+    "market",
+    "money",
+    "government",
+    "learning"
+   ]
+  },
+  "gdp": {
+   "tags": [
+    "economics",
+    "growth",
+    "measure",
+    "government",
+    "number"
+   ],
+   "near": [
+    "economy"
+   ]
+  },
+  "recession": {
+   "tags": [
+    "economics",
+    "growth",
+    "risk",
+    "market",
+    "time"
+   ]
+  },
+  "growth": {
+   "tags": [
+    "growth",
+    "economics",
+    "business",
+    "measure"
+   ]
+  },
+  "market": {
+   "tags": [
+    "market",
+    "economics",
+    "trading",
+    "money",
+    "place"
+   ]
+  },
+  "trading": {
+   "tags": [
+    "trading",
+    "market",
+    "finance",
+    "investment",
+    "money"
+   ]
+  },
+  "trader": {
+   "tags": [
+    "trading",
+    "finance",
+    "people",
+    "market",
+    "work"
+   ]
+  },
+  "exchange": {
+   "tags": [
+    "trading",
+    "market",
+    "finance",
+    "place",
+    "money"
+   ]
+  },
+  "crypto": {
+   "tags": [
+    "finance",
+    "money",
+    "trading",
+    "investment",
+    "risk",
+    "internet"
+   ]
+  },
+  "bitcoin": {
+   "tags": [
+    "finance",
+    "money",
+    "trading",
+    "investment",
+    "risk",
+    "internet"
+   ],
+   "near": [
+    "crypto"
+   ]
+  },
+  "supply": {
+   "tags": [
+    "economics",
+    "market",
+    "product",
+    "process"
+   ]
+  },
+  "demand": {
+   "tags": [
+    "economics",
+    "market",
+    "customer",
+    "product"
+   ],
+   "near": [
+    "supply"
+   ]
+  },
+  "monopoly": {
+   "tags": [
+    "economics",
+    "market",
+    "business",
+    "strategy"
+   ]
+  },
+  "competition": {
+   "tags": [
+    "economics",
+    "market",
+    "business",
+    "strategy"
+   ]
+  },
+  "hedge": {
+   "tags": [
+    "finance",
+    "investment",
+    "risk",
+    "trading"
+   ]
+  },
+  "option": {
+   "tags": [
+    "finance",
+    "investment",
+    "trading",
+    "risk"
+   ]
+  },
+  "futures": {
+   "tags": [
+    "finance",
+    "investment",
+    "trading",
+    "risk",
+    "time"
+   ]
+  },
+  "derivative": {
+   "tags": [
+    "finance",
+    "investment",
+    "trading",
+    "risk",
+    "maths"
+   ]
+  },
+  "risk": {
+   "tags": [
+    "risk",
+    "uncertainty",
+    "finance",
+    "chance"
+   ]
+  },
+  "insurance": {
+   "tags": [
+    "finance",
+    "risk",
+    "money",
+    "organisation"
+   ]
+  },
+  "pension": {
+   "tags": [
+    "finance",
+    "income",
+    "investment",
+    "time",
+    "people"
+   ]
+  },
+  "wealth": {
+   "tags": [
+    "money",
+    "finance",
+    "investment",
+    "growth",
+    "people"
+   ]
+  },
+  "rich": {
+   "tags": [
+    "money",
+    "people",
+    "everyday",
+    "income"
+   ]
+  },
+  "poor": {
+   "tags": [
+    "money",
+    "people",
+    "everyday",
+    "economics"
+   ]
+  },
+  "capital": {
+   "tags": [
+    "finance",
+    "money",
+    "investment",
+    "business"
+   ]
+  },
+  "fund": {
+   "tags": [
+    "finance",
+    "investment",
+    "money",
+    "organisation"
+   ]
+  },
+  "valuation": {
+   "tags": [
+    "finance",
+    "value",
+    "investment",
+    "measure"
+   ]
+  },
+  "cashflow": {
+   "tags": [
+    "finance",
+    "money",
+    "accounting",
+    "income",
+    "cost"
+   ]
+  },
+  "liquidity": {
+   "tags": [
+    "finance",
+    "money",
+    "market",
+    "risk",
+    "banking"
+   ]
+  },
+  "treasury": {
+   "tags": [
+    "finance",
+    "government",
+    "money",
+    "banking"
+   ]
+  },
+  "government": {
+   "tags": [
+    "government",
+    "law",
+    "organisation",
+    "people"
+   ]
+  },
+  "law": {
+   "tags": [
+    "law",
+    "government",
+    "document",
+    "people"
+   ]
+  },
+  "wallet": {
+   "tags": [
+    "money",
+    "object",
+    "everyday"
+   ]
+  },
+  "shopping": {
+   "tags": [
+    "money",
+    "everyday",
+    "sales",
+    "customer",
+    "place"
+   ]
+  },
+  "fee": {
+   "tags": [
+    "cost",
+    "money",
+    "finance"
+   ]
+  },
+  "discount": {
+   "tags": [
+    "cost",
+    "money",
+    "sales",
+    "marketing",
+    "customer"
+   ]
+  },
+  "data": {
+   "tags": [
+    "data",
+    "record",
+    "storage",
+    "computer",
+    "number"
+   ],
+   "near": [
+    "database"
+   ]
+  },
+  "database": {
+   "tags": [
+    "database",
+    "data",
+    "storage",
+    "sql",
+    "software",
+    "structure"
+   ],
+   "near": [
+    "sql"
+   ]
+  },
+  "sql": {
+   "tags": [
+    "sql",
+    "database",
+    "data",
+    "language",
+    "programming",
+    "code"
+   ],
+   "near": [
+    "query"
+   ]
+  },
+  "query": {
+   "tags": [
+    "sql",
+    "database",
+    "data",
+    "programming",
+    "code"
+   ]
+  },
+  "table": {
+   "tags": [
+    "database",
+    "data",
+    "structure",
+    "sql",
+    "record"
+   ]
+  },
+  "row": {
+   "tags": [
+    "database",
+    "data",
+    "record",
+    "structure"
+   ]
+  },
+  "column": {
+   "tags": [
+    "database",
+    "data",
+    "structure",
+    "sql"
+   ]
+  },
+  "schema": {
+   "tags": [
+    "database",
+    "structure",
+    "sql",
+    "data",
+    "document"
+   ]
+  },
+  "join": {
+   "tags": [
+    "sql",
+    "database",
+    "data",
+    "structure"
+   ]
+  },
+  "select": {
+   "tags": [
+    "sql",
+    "database",
+    "data",
+    "code"
+   ]
+  },
+  "index": {
+   "tags": [
+    "database",
+    "data",
+    "structure",
+    "storage"
+   ]
+  },
+  "key": {
+   "tags": [
+    "database",
+    "security",
+    "structure",
+    "object",
+    "everyday"
+   ]
+  },
+  "python": {
+   "tags": [
+    "python",
+    "programming",
+    "code",
+    "language",
+    "software"
+   ],
+   "near": [
+    "pandas"
+   ]
+  },
+  "pandas": {
+   "tags": [
+    "python",
+    "programming",
+    "data",
+    "animal",
+    "software"
+   ]
+  },
+  "numpy": {
+   "tags": [
+    "python",
+    "programming",
+    "maths",
+    "data",
+    "software"
+   ]
+  },
+  "programming": {
+   "tags": [
+    "programming",
+    "code",
+    "computer",
+    "software",
+    "language"
+   ],
+   "near": [
+    "coding"
+   ]
+  },
+  "coding": {
+   "tags": [
+    "programming",
+    "code",
+    "computer",
+    "software"
+   ]
+  },
+  "code": {
+   "tags": [
+    "code",
+    "programming",
+    "computer",
+    "software",
+    "text"
+   ]
+  },
+  "developer": {
+   "tags": [
+    "programming",
+    "people",
+    "work",
+    "software",
+    "code"
+   ],
+   "near": [
+    "programmer"
+   ]
+  },
+  "programmer": {
+   "tags": [
+    "programming",
+    "people",
+    "work",
+    "software"
+   ]
+  },
+  "software": {
+   "tags": [
+    "software",
+    "computer",
+    "programming",
+    "product"
+   ]
+  },
+  "app": {
+   "tags": [
+    "software",
+    "computer",
+    "product",
+    "internet",
+    "everyday"
+   ]
+  },
+  "computer": {
+   "tags": [
+    "computer",
+    "hardware",
+    "software",
+    "everyday",
+    "object"
+   ],
+   "near": [
+    "laptop"
+   ]
+  },
+  "laptop": {
+   "tags": [
+    "computer",
+    "hardware",
+    "object",
+    "everyday",
+    "school"
+   ]
+  },
+  "keyboard": {
+   "tags": [
+    "computer",
+    "hardware",
+    "object"
+   ]
+  },
+  "mouse": {
+   "tags": [
+    "computer",
+    "hardware",
+    "object",
+    "animal"
+   ]
+  },
+  "screen": {
+   "tags": [
+    "computer",
+    "hardware",
+    "visual",
+    "object"
+   ]
+  },
+  "server": {
+   "tags": [
+    "computer",
+    "hardware",
+    "network",
+    "internet",
+    "storage"
+   ],
+   "near": [
+    "cloud"
+   ]
+  },
+  "cloud": {
+   "tags": [
+    "computer",
+    "internet",
+    "storage",
+    "network",
+    "software"
+   ]
+  },
+  "internet": {
+   "tags": [
+    "internet",
+    "network",
+    "computer",
+    "communication",
+    "everyday"
+   ]
+  },
+  "website": {
+   "tags": [
+    "internet",
+    "software",
+    "communication",
+    "text"
+   ]
+  },
+  "email": {
+   "tags": [
+    "internet",
+    "communication",
+    "text",
+    "work",
+    "document"
+   ]
+  },
+  "file": {
+   "tags": [
+    "storage",
+    "computer",
+    "document",
+    "data"
+   ]
+  },
+  "folder": {
+   "tags": [
+    "storage",
+    "computer",
+    "document",
+    "object"
+   ]
+  },
+  "storage": {
+   "tags": [
+    "storage",
+    "computer",
+    "data",
+    "hardware"
+   ]
+  },
+  "memory": {
+   "tags": [
+    "storage",
+    "computer",
+    "hardware",
+    "data"
+   ]
+  },
+  "cache": {
+   "tags": [
+    "storage",
+    "computer",
+    "data",
+    "software"
+   ]
+  },
+  "bug": {
+   "tags": [
+    "programming",
+    "error",
+    "code",
+    "software",
+    "animal"
+   ],
+   "near": [
+    "debug"
+   ]
+  },
+  "debug": {
+   "tags": [
+    "programming",
+    "error",
+    "code",
+    "software",
+    "process"
+   ]
+  },
+  "exception": {
+   "tags": [
+    "programming",
+    "error",
+    "code",
+    "python"
+   ]
+  },
+  "function": {
+   "tags": [
+    "programming",
+    "code",
+    "python",
+    "maths",
+    "structure"
+   ],
+   "near": [
+    "loop"
+   ]
+  },
+  "loop": {
+   "tags": [
+    "programming",
+    "code",
+    "process",
+    "structure"
+   ]
+  },
+  "list": {
+   "tags": [
+    "python",
+    "programming",
+    "data",
+    "structure"
+   ]
+  },
+  "array": {
+   "tags": [
+    "programming",
+    "data",
+    "structure",
+    "maths"
+   ]
+  },
+  "dictionary": {
+   "tags": [
+    "python",
+    "programming",
+    "data",
+    "structure",
+    "language"
+   ]
+  },
+  "string": {
+   "tags": [
+    "programming",
+    "text",
+    "data",
+    "code"
+   ]
+  },
+  "integer": {
+   "tags": [
+    "programming",
+    "number",
+    "maths",
+    "data"
+   ]
+  },
+  "float": {
+   "tags": [
+    "programming",
+    "number",
+    "python",
+    "data"
+   ]
+  },
+  "boolean": {
+   "tags": [
+    "programming",
+    "code",
+    "maths",
+    "value"
+   ]
+  },
+  "class": {
+   "tags": [
+    "programming",
+    "code",
+    "structure",
+    "python",
+    "school"
+   ]
+  },
+  "object": {
+   "tags": [
+    "programming",
+    "code",
+    "structure",
+    "everyday"
+   ]
+  },
+  "library": {
+   "tags": [
+    "programming",
+    "software",
+    "code",
+    "place",
+    "school"
+   ]
+  },
+  "package": {
+   "tags": [
+    "programming",
+    "software",
+    "code",
+    "python"
+   ]
+  },
+  "api": {
+   "tags": [
+    "programming",
+    "software",
+    "internet",
+    "communication",
+    "code"
+   ]
+  },
+  "json": {
+   "tags": [
+    "data",
+    "programming",
+    "text",
+    "structure",
+    "internet"
+   ],
+   "near": [
+    "csv"
+   ]
+  },
+  "csv": {
+   "tags": [
+    "data",
+    "text",
+    "document",
+    "storage"
+   ]
+  },
+  "excel": {
+   "tags": [
+    "data",
+    "software",
+    "document",
+    "chart",
+    "number"
+   ]
+  },
+  "spreadsheet": {
+   "tags": [
+    "data",
+    "software",
+    "document",
+    "number",
+    "chart"
+   ],
+   "near": [
+    "excel"
+   ]
+  },
+  "dashboard": {
+   "tags": [
+    "data",
+    "chart",
+    "visual",
+    "business",
+    "software"
+   ],
+   "near": [
+    "visualisation"
+   ]
+  },
+  "git": {
+   "tags": [
+    "programming",
+    "code",
+    "software",
+    "process",
+    "storage"
+   ]
+  },
+  "github": {
+   "tags": [
+    "programming",
+    "code",
+    "software",
+    "internet",
+    "storage"
+   ],
+   "near": [
+    "git"
+   ]
+  },
+  "commit": {
+   "tags": [
+    "programming",
+    "code",
+    "process",
+    "storage"
+   ]
+  },
+  "version": {
+   "tags": [
+    "programming",
+    "software",
+    "process",
+    "time"
+   ]
+  },
+  "sorting": {
+   "tags": [
+    "programming",
+    "process",
+    "code",
+    "structure"
+   ]
+  },
+  "search": {
+   "tags": [
+    "programming",
+    "process",
+    "data",
+    "internet"
+   ]
+  },
+  "hash": {
+   "tags": [
+    "programming",
+    "security",
+    "structure",
+    "data"
+   ]
+  },
+  "encryption": {
+   "tags": [
+    "security",
+    "computer",
+    "data",
+    "internet",
+    "communication"
+   ],
+   "near": [
+    "password",
+    "hash"
+   ]
+  },
+  "password": {
+   "tags": [
+    "security",
+    "computer",
+    "people",
+    "text"
+   ]
+  },
+  "security": {
+   "tags": [
+    "security",
+    "computer",
+    "data",
+    "law"
+   ]
+  },
+  "hacker": {
+   "tags": [
+    "security",
+    "computer",
+    "people",
+    "internet",
+    "error"
+   ]
+  },
+  "virus": {
+   "tags": [
+    "security",
+    "computer",
+    "error",
+    "software"
+   ]
+  },
+  "backup": {
+   "tags": [
+    "storage",
+    "data",
+    "security",
+    "computer"
+   ]
+  },
+  "etl": {
+   "tags": [
+    "data",
+    "process",
+    "database",
+    "programming"
+   ]
+  },
+  "pipeline": {
+   "tags": [
+    "data",
+    "process",
+    "programming",
+    "software",
+    "database"
+   ],
+   "near": [
+    "etl"
+   ]
+  },
+  "warehouse": {
+   "tags": [
+    "data",
+    "storage",
+    "database",
+    "place"
+   ]
+  },
+  "bigdata": {
+   "tags": [
+    "data",
+    "storage",
+    "computer",
+    "ml",
+    "statistics"
+   ]
+  },
+  "analytics": {
+   "tags": [
+    "data",
+    "statistics",
+    "business",
+    "measure",
+    "software"
+   ],
+   "near": [
+    "analysis"
+   ]
+  },
+  "analysis": {
+   "tags": [
+    "data",
+    "statistics",
+    "measure",
+    "process",
+    "learning"
+   ]
+  },
+  "analyst": {
+   "tags": [
+    "data",
+    "statistics",
+    "people",
+    "work",
+    "business"
+   ]
+  },
+  "visualisation": {
+   "tags": [
+    "data",
+    "chart",
+    "visual",
+    "communication"
+   ],
+   "near": [
+    "chart"
+   ]
+  },
+  "terminal": {
+   "tags": [
+    "computer",
+    "programming",
+    "software",
+    "text"
+   ]
+  },
+  "linux": {
+   "tags": [
+    "computer",
+    "software",
+    "programming"
+   ]
+  },
+  "javascript": {
+   "tags": [
+    "programming",
+    "language",
+    "code",
+    "internet",
+    "software"
+   ]
+  },
+  "java": {
+   "tags": [
+    "programming",
+    "language",
+    "code",
+    "software"
+   ]
+  },
+  "business": {
+   "tags": [
+    "business",
+    "organisation",
+    "work",
+    "money"
+   ],
+   "near": [
+    "company"
+   ]
+  },
+  "company": {
+   "tags": [
+    "business",
+    "organisation",
+    "work",
+    "people"
+   ]
+  },
+  "firm": {
+   "tags": [
+    "business",
+    "organisation",
+    "work"
+   ]
+  },
+  "startup": {
+   "tags": [
+    "business",
+    "organisation",
+    "growth",
+    "risk",
+    "investment"
+   ],
+   "near": [
+    "entrepreneur"
+   ]
+  },
+  "entrepreneur": {
+   "tags": [
+    "business",
+    "people",
+    "risk",
+    "growth",
+    "work"
+   ]
+  },
+  "founder": {
+   "tags": [
+    "business",
+    "people",
+    "organisation",
+    "leadership"
+   ]
+  },
+  "ceo": {
+   "tags": [
+    "business",
+    "management",
+    "leadership",
+    "people",
+    "organisation"
+   ],
+   "near": [
+    "manager"
+   ]
+  },
+  "manager": {
+   "tags": [
+    "management",
+    "people",
+    "work",
+    "organisation",
+    "leadership"
+   ]
+  },
+  "management": {
+   "tags": [
+    "management",
+    "organisation",
+    "people",
+    "work",
+    "strategy"
+   ]
+  },
+  "leader": {
+   "tags": [
+    "leadership",
+    "people",
+    "management",
+    "organisation"
+   ]
+  },
+  "leadership": {
+   "tags": [
+    "leadership",
+    "people",
+    "management",
+    "strategy",
+    "organisation"
+   ],
+   "near": [
+    "leader"
+   ]
+  },
+  "team": {
+   "tags": [
+    "people",
+    "work",
+    "organisation",
+    "management"
+   ]
+  },
+  "employee": {
+   "tags": [
+    "people",
+    "work",
+    "organisation"
+   ]
+  },
+  "staff": {
+   "tags": [
+    "people",
+    "work",
+    "organisation"
+   ]
+  },
+  "job": {
+   "tags": [
+    "work",
+    "people",
+    "income"
+   ]
+  },
+  "career": {
+   "tags": [
+    "work",
+    "people",
+    "learning",
+    "time"
+   ]
+  },
+  "office": {
+   "tags": [
+    "work",
+    "place",
+    "organisation",
+    "everyday"
+   ]
+  },
+  "meeting": {
+   "tags": [
+    "work",
+    "people",
+    "communication",
+    "time"
+   ]
+  },
+  "strategy": {
+   "tags": [
+    "strategy",
+    "business",
+    "management",
+    "organisation",
+    "growth"
+   ],
+   "near": [
+    "plan"
+   ]
+  },
+  "plan": {
+   "tags": [
+    "strategy",
+    "management",
+    "time",
+    "document"
+   ]
+  },
+  "goal": {
+   "tags": [
+    "strategy",
+    "management",
+    "measure",
+    "people"
+   ]
+  },
+  "target": {
+   "tags": [
+    "strategy",
+    "measure",
+    "management",
+    "sales"
+   ]
+  },
+  "kpi": {
+   "tags": [
+    "management",
+    "measure",
+    "business",
+    "strategy",
+    "number"
+   ]
+  },
+  "marketing": {
+   "tags": [
+    "marketing",
+    "business",
+    "customer",
+    "communication",
+    "sales"
+   ],
+   "near": [
+    "advertising"
+   ]
+  },
+  "advertising": {
+   "tags": [
+    "marketing",
+    "communication",
+    "customer",
+    "brand",
+    "sales"
+   ]
+  },
+  "advert": {
+   "tags": [
+    "marketing",
+    "communication",
+    "brand",
+    "visual"
+   ]
+  },
+  "campaign": {
+   "tags": [
+    "marketing",
+    "communication",
+    "brand",
+    "time",
+    "strategy"
+   ]
+  },
+  "brand": {
+   "tags": [
+    "brand",
+    "marketing",
+    "customer",
+    "product",
+    "quality"
+   ],
+   "near": [
+    "logo"
+   ]
+  },
+  "logo": {
+   "tags": [
+    "brand",
+    "marketing",
+    "visual",
+    "image"
+   ]
+  },
+  "slogan": {
+   "tags": [
+    "brand",
+    "marketing",
+    "language",
+    "text",
+    "communication"
+   ]
+  },
+  "customer": {
+   "tags": [
+    "customer",
+    "people",
+    "sales",
+    "business",
+    "marketing"
+   ],
+   "near": [
+    "client"
+   ]
+  },
+  "client": {
+   "tags": [
+    "customer",
+    "people",
+    "business",
+    "work"
+   ]
+  },
+  "consumer": {
+   "tags": [
+    "customer",
+    "people",
+    "economics",
+    "market",
+    "product"
+   ]
+  },
+  "sales": {
+   "tags": [
+    "sales",
+    "business",
+    "customer",
+    "money",
+    "product"
+   ],
+   "near": [
+    "selling"
+   ]
+  },
+  "selling": {
+   "tags": [
+    "sales",
+    "customer",
+    "money",
+    "product"
+   ]
+  },
+  "product": {
+   "tags": [
+    "product",
+    "business",
+    "customer",
+    "sales"
+   ]
+  },
+  "service": {
+   "tags": [
+    "product",
+    "business",
+    "customer",
+    "quality",
+    "work"
+   ]
+  },
+  "promotion": {
+   "tags": [
+    "marketing",
+    "sales",
+    "customer",
+    "communication"
+   ]
+  },
+  "socialmedia": {
+   "tags": [
+    "marketing",
+    "internet",
+    "communication",
+    "people",
+    "brand"
+   ]
+  },
+  "influencer": {
+   "tags": [
+    "marketing",
+    "internet",
+    "people",
+    "brand",
+    "communication"
+   ]
+  },
+  "pitch": {
+   "tags": [
+    "business",
+    "communication",
+    "sales",
+    "investment",
+    "people"
+   ],
+   "near": [
+    "negotiation"
+   ]
+  },
+  "negotiation": {
+   "tags": [
+    "business",
+    "communication",
+    "people",
+    "strategy",
+    "sales"
+   ],
+   "near": [
+    "contract"
+   ]
+  },
+  "competitor": {
+   "tags": [
+    "business",
+    "market",
+    "strategy",
+    "organisation",
+    "economics"
+   ],
+   "near": [
+    "competition"
+   ]
+  },
+  "swot": {
+   "tags": [
+    "strategy",
+    "business",
+    "management",
+    "quality"
+   ]
+  },
+  "retail": {
+   "tags": [
+    "business",
+    "sales",
+    "customer",
+    "place",
+    "product"
+   ]
+  },
+  "shop": {
+   "tags": [
+    "sales",
+    "place",
+    "customer",
+    "everyday",
+    "product"
+   ]
+  },
+  "store": {
+   "tags": [
+    "sales",
+    "place",
+    "customer",
+    "product",
+    "storage"
+   ]
+  },
+  "supplier": {
+   "tags": [
+    "business",
+    "product",
+    "process",
+    "organisation"
+   ]
+  },
+  "logistics": {
+   "tags": [
+    "business",
+    "process",
+    "product",
+    "place"
+   ]
+  },
+  "supplychain": {
+   "tags": [
+    "business",
+    "process",
+    "product",
+    "organisation",
+    "place",
+    "trading"
+   ],
+   "near": [
+    "logistics",
+    "supplier"
+   ]
+  },
+  "franchise": {
+   "tags": [
+    "business",
+    "organisation",
+    "brand",
+    "growth",
+    "sales"
+   ],
+   "near": [
+    "retail"
+   ]
+  },
+  "merger": {
+   "tags": [
+    "business",
+    "organisation",
+    "strategy",
+    "investment",
+    "finance"
+   ]
+  },
+  "shareholder": {
+   "tags": [
+    "finance",
+    "investment",
+    "people",
+    "business",
+    "organisation"
+   ]
+  },
+  "board": {
+   "tags": [
+    "management",
+    "organisation",
+    "people",
+    "leadership"
+   ]
+  },
+  "stakeholder": {
+   "tags": [
+    "business",
+    "people",
+    "organisation",
+    "management"
+   ]
+  },
+  "ethics": {
+   "tags": [
+    "business",
+    "law",
+    "people",
+    "quality"
+   ]
+  },
+  "sustainability": {
+   "tags": [
+    "business",
+    "nature",
+    "strategy",
+    "quality"
+   ]
+  },
+  "innovation": {
+   "tags": [
+    "business",
+    "product",
+    "growth",
+    "strategy",
+    "learning"
+   ]
+  },
+  "quality": {
+   "tags": [
+    "quality",
+    "product",
+    "customer",
+    "measure"
+   ]
+  },
+  "feedback": {
+   "tags": [
+    "customer",
+    "communication",
+    "quality",
+    "people"
+   ]
+  },
+  "review": {
+   "tags": [
+    "customer",
+    "communication",
+    "quality",
+    "text"
+   ]
+  },
+  "loyalty": {
+   "tags": [
+    "customer",
+    "brand",
+    "marketing",
+    "people"
+   ]
+  },
+  "segment": {
+   "tags": [
+    "marketing",
+    "customer",
+    "statistics",
+    "strategy"
+   ]
+  },
+  "niche": {
+   "tags": [
+    "marketing",
+    "customer",
+    "strategy",
+    "market"
+   ]
+  },
+  "launch": {
+   "tags": [
+    "product",
+    "marketing",
+    "time",
+    "business"
+   ]
+  },
+  "deadline": {
+   "tags": [
+    "time",
+    "work",
+    "management"
+   ]
+  },
+  "project": {
+   "tags": [
+    "management",
+    "work",
+    "time",
+    "process"
+   ]
+  },
+  "agile": {
+   "tags": [
+    "management",
+    "process",
+    "work",
+    "programming"
+   ]
+  },
+  "consultant": {
+   "tags": [
+    "business",
+    "people",
+    "work",
+    "strategy"
+   ]
+  },
+  "intern": {
+   "tags": [
+    "work",
+    "people",
+    "learning",
+    "school"
+   ]
+  },
+  "recruitment": {
+   "tags": [
+    "people",
+    "work",
+    "organisation",
+    "management"
+   ]
+  },
+  "interview": {
+   "tags": [
+    "people",
+    "work",
+    "communication"
+   ]
+  },
+  "presentation": {
+   "tags": [
+    "communication",
+    "work",
+    "visual",
+    "document",
+    "school"
+   ]
+  },
+  "report": {
+   "tags": [
+    "document",
+    "work",
+    "communication",
+    "text",
+    "data"
+   ]
+  },
+  "contract": {
+   "tags": [
+    "law",
+    "document",
+    "business",
+    "work"
+   ]
+  },
+  "export": {
+   "tags": [
+    "trading",
+    "business",
+    "economics",
+    "place"
+   ]
+  },
+  "import": {
+   "tags": [
+    "trading",
+    "business",
+    "economics",
+    "place"
+   ]
+  },
+  "time": {
+   "tags": [
+    "time",
+    "everyday",
+    "number"
+   ]
+  },
+  "day": {
+   "tags": [
+    "time",
+    "everyday",
+    "school"
+   ]
+  },
+  "week": {
+   "tags": [
+    "time",
+    "everyday",
+    "work"
+   ]
+  },
+  "year": {
+   "tags": [
+    "time",
+    "everyday",
+    "school"
+   ]
+  },
+  "calendar": {
+   "tags": [
+    "time",
+    "document",
+    "everyday",
+    "school"
+   ]
+  },
+  "clock": {
+   "tags": [
+    "time",
+    "object",
+    "everyday"
+   ]
+  },
+  "exam": {
+   "tags": [
+    "school",
+    "test",
+    "learning",
+    "time"
+   ]
+  },
+  "test": {
+   "tags": [
+    "test",
+    "school",
+    "learning",
+    "measure",
+    "quality"
+   ]
+  },
+  "grade": {
+   "tags": [
+    "school",
+    "measure",
+    "learning",
+    "number"
+   ]
+  },
+  "student": {
+   "tags": [
+    "school",
+    "people",
+    "learning"
+   ]
+  },
+  "teacher": {
+   "tags": [
+    "school",
+    "people",
+    "learning",
+    "work"
+   ]
+  },
+  "lecture": {
+   "tags": [
+    "school",
+    "learning",
+    "communication"
+   ]
+  },
+  "university": {
+   "tags": [
+    "school",
+    "learning",
+    "place",
+    "organisation"
+   ]
+  },
+  "school": {
+   "tags": [
+    "school",
+    "learning",
+    "place"
+   ]
+  },
+  "homework": {
+   "tags": [
+    "school",
+    "learning",
+    "work"
+   ]
+  },
+  "book": {
+   "tags": [
+    "school",
+    "learning",
+    "text",
+    "document",
+    "object"
+   ]
+  },
+  "notes": {
+   "tags": [
+    "school",
+    "learning",
+    "text",
+    "document"
+   ]
+  },
+  "pen": {
+   "tags": [
+    "object",
+    "everyday",
+    "school"
+   ]
+  },
+  "paper": {
+   "tags": [
+    "object",
+    "document",
+    "school",
+    "text"
+   ]
+  },
+  "coffee": {
+   "tags": [
+    "drink",
+    "everyday",
+    "food"
+   ]
+  },
+  "tea": {
+   "tags": [
+    "drink",
+    "everyday",
+    "food"
+   ]
+  },
+  "water": {
+   "tags": [
+    "drink",
+    "everyday",
+    "nature"
+   ]
+  },
+  "food": {
+   "tags": [
+    "food",
+    "everyday",
+    "drink"
+   ]
+  },
+  "pizza": {
+   "tags": [
+    "food",
+    "everyday",
+    "drink"
+   ]
+  },
+  "lunch": {
+   "tags": [
+    "food",
+    "everyday",
+    "time"
+   ]
+  },
+  "cafe": {
+   "tags": [
+    "place",
+    "food",
+    "drink",
+    "everyday"
+   ]
+  },
+  "home": {
+   "tags": [
+    "place",
+    "everyday",
+    "people"
+   ]
+  },
+  "city": {
+   "tags": [
+    "place",
+    "people",
+    "everyday"
+   ]
+  },
+  "bahrain": {
+   "tags": [
+    "place",
+    "people",
+    "government",
+    "economics"
+   ]
+  },
+  "country": {
+   "tags": [
+    "place",
+    "government",
+    "people"
+   ]
+  },
+  "world": {
+   "tags": [
+    "place",
+    "nature",
+    "people"
+   ]
+  },
+  "car": {
+   "tags": [
+    "object",
+    "everyday",
+    "hardware"
+   ]
+  },
+  "phone": {
+   "tags": [
+    "object",
+    "hardware",
+    "computer",
+    "communication",
+    "everyday"
+   ]
+  },
+  "friend": {
+   "tags": [
+    "people",
+    "everyday",
+    "communication"
+   ]
+  },
+  "family": {
+   "tags": [
+    "people",
+    "everyday",
+    "place"
+   ]
+  },
+  "person": {
+   "tags": [
+    "people",
+    "everyday",
+    "nature"
+   ]
+  },
+  "human": {
+   "tags": [
+    "people",
+    "nature",
+    "neural"
+   ]
+  },
+  "game": {
+   "tags": [
+    "everyday",
+    "people",
+    "chance",
+    "learning"
+   ]
+  },
+  "sport": {
+   "tags": [
+    "everyday",
+    "people",
+    "test"
+   ]
+  },
+  "music": {
+   "tags": [
+    "sound",
+    "everyday",
+    "people"
+   ]
+  },
+  "movie": {
+   "tags": [
+    "image",
+    "everyday",
+    "visual"
+   ]
+  },
+  "photo": {
+   "tags": [
+    "image",
+    "visual",
+    "everyday"
+   ]
+  },
+  "picture": {
+   "tags": [
+    "image",
+    "visual",
+    "everyday"
+   ]
+  },
+  "colour": {
+   "tags": [
+    "visual",
+    "everyday",
+    "image"
+   ]
+  },
+  "word": {
+   "tags": [
+    "language",
+    "text",
+    "communication"
+   ]
+  },
+  "sentence": {
+   "tags": [
+    "language",
+    "text",
+    "communication"
+   ]
+  },
+  "news": {
+   "tags": [
+    "communication",
+    "text",
+    "everyday"
+   ]
+  },
+  "cat": {
+   "tags": [
+    "animal",
+    "nature",
+    "everyday"
+   ]
+  },
+  "dog": {
+   "tags": [
+    "animal",
+    "nature",
+    "everyday"
+   ]
+  },
+  "snake": {
+   "tags": [
+    "animal",
+    "nature",
+    "programming"
+   ]
+  },
+  "bird": {
+   "tags": [
+    "animal",
+    "nature",
+    "sound"
+   ]
+  },
+  "fish": {
+   "tags": [
+    "animal",
+    "nature",
+    "food"
+   ]
+  },
+  "sun": {
+   "tags": [
+    "nature",
+    "everyday",
+    "time"
+   ]
+  },
+  "weather": {
+   "tags": [
+    "nature",
+    "prediction",
+    "everyday",
+    "chance"
+   ]
+  },
+  "rain": {
+   "tags": [
+    "nature",
+    "everyday",
+    "drink"
+   ],
+   "near": [
+    "weather"
+   ]
+  },
+  "light": {
+   "tags": [
+    "nature",
+    "visual",
+    "everyday"
+   ]
+  },
+  "energy": {
+   "tags": [
+    "nature",
+    "economics",
+    "hardware"
+   ]
+  },
+  "oil": {
+   "tags": [
+    "economics",
+    "nature",
+    "trading",
+    "market"
+   ]
+  },
+  "gold": {
+   "tags": [
+    "money",
+    "investment",
+    "nature",
+    "trading"
+   ]
+  },
+  "house": {
+   "tags": [
+    "place",
+    "everyday",
+    "investment"
+   ]
+  },
+  "work": {
+   "tags": [
+    "work",
+    "people",
+    "everyday"
+   ]
+  },
+  "holiday": {
+   "tags": [
+    "time",
+    "everyday",
+    "place"
+   ]
+  },
+  "idea": {
+   "tags": [
+    "learning",
+    "people",
+    "strategy"
+   ]
+  },
+  "question": {
+   "tags": [
+    "communication",
+    "learning",
+    "school",
+    "test"
+   ]
+  },
+  "answer": {
+   "tags": [
+    "communication",
+    "learning",
+    "school",
+    "test"
+   ]
+  },
+  "problem": {
+   "tags": [
+    "error",
+    "learning",
+    "maths"
+   ]
+  },
+  "solution": {
+   "tags": [
+    "learning",
+    "maths",
+    "process"
+   ]
+  },
+  "puzzle": {
+   "tags": [
+    "learning",
+    "maths",
+    "everyday"
+   ]
+  }
+ },
+ "targets": {
+  "stats": [
+   "mean",
+   "variance",
+   "regression",
+   "probability",
+   "histogram",
+   "hypothesis",
+   "sample",
+   "distribution",
+   "correlation",
+   "outlier",
+   "bayes",
+   "survey",
+   "confidence",
+   "median",
+   "estimate",
+   "odds"
+  ],
+  "ml": [
+   "neural",
+   "transformer",
+   "gradient",
+   "overfitting",
+   "accuracy",
+   "clustering",
+   "embedding",
+   "chatbot",
+   "robot",
+   "training",
+   "classification",
+   "prompt",
+   "vision",
+   "tree",
+   "dataset"
+  ],
+  "finance": [
+   "inflation",
+   "mortgage",
+   "dividend",
+   "stock",
+   "bond",
+   "tax",
+   "revenue",
+   "asset",
+   "audit",
+   "interest",
+   "loan",
+   "gdp",
+   "investment",
+   "bitcoin",
+   "currency"
+  ],
+  "data": [
+   "database",
+   "sql",
+   "python",
+   "programming",
+   "bug",
+   "function",
+   "server",
+   "spreadsheet",
+   "query",
+   "cloud",
+   "encryption",
+   "pipeline",
+   "dashboard",
+   "developer",
+   "json"
+  ],
+  "business": [
+   "marketing",
+   "brand",
+   "customer",
+   "startup",
+   "strategy",
+   "ceo",
+   "leadership",
+   "competitor",
+   "supplychain",
+   "advertising",
+   "franchise",
+   "negotiation",
+   "sales",
+   "pitch"
+  ]
+ }
+}

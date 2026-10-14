@@ -1,0 +1,1326 @@
+[
+  {
+    "id": "stats-averages",
+    "theme": "stats",
+    "label": "Measures of centre",
+    "level": 1,
+    "words": [
+      "MEAN",
+      "MEDIAN",
+      "MODE",
+      "MIDRANGE"
+    ]
+  },
+  {
+    "id": "stats-charts",
+    "theme": "stats",
+    "label": "Kinds of chart",
+    "level": 1,
+    "words": [
+      "HISTOGRAM",
+      "BOXPLOT",
+      "SCATTER",
+      "PIE",
+      "BAR"
+    ]
+  },
+  {
+    "id": "stats-hypothesis",
+    "theme": "stats",
+    "label": "Hypothesis testing words",
+    "level": 1,
+    "words": [
+      "NULL",
+      "ALTERNATIVE",
+      "SIGNIFICANCE",
+      "PVALUE",
+      "REJECT"
+    ]
+  },
+  {
+    "id": "stats-probability",
+    "theme": "stats",
+    "label": "Probability words",
+    "level": 1,
+    "words": [
+      "EVENT",
+      "OUTCOME",
+      "TRIAL",
+      "CHANCE",
+      "ODDS"
+    ]
+  },
+  {
+    "id": "stats-spread",
+    "theme": "stats",
+    "label": "Measures of spread",
+    "level": 2,
+    "words": [
+      "VARIANCE",
+      "RANGE",
+      "IQR",
+      "MAD"
+    ]
+  },
+  {
+    "id": "stats-distributions",
+    "theme": "stats",
+    "label": "Probability distributions",
+    "level": 2,
+    "words": [
+      "NORMAL",
+      "POISSON",
+      "BINOMIAL",
+      "UNIFORM",
+      "EXPONENTIAL",
+      "GEOMETRIC"
+    ]
+  },
+  {
+    "id": "stats-greek",
+    "theme": "stats",
+    "label": "Greek letters in statistics",
+    "level": 2,
+    "words": [
+      "SIGMA",
+      "MU",
+      "RHO",
+      "LAMBDA",
+      "THETA"
+    ]
+  },
+  {
+    "id": "stats-sampling",
+    "theme": "stats",
+    "label": "Sampling methods",
+    "level": 2,
+    "words": [
+      "RANDOM",
+      "STRATIFIED",
+      "CLUSTER",
+      "SYSTEMATIC",
+      "QUOTA",
+      "SNOWBALL"
+    ]
+  },
+  {
+    "id": "stats-props",
+    "theme": "stats",
+    "label": "Classic probability props",
+    "level": 2,
+    "words": [
+      "DICE",
+      "COIN",
+      "CARDS",
+      "URN",
+      "SPINNER",
+      "ROULETTE"
+    ]
+  },
+  {
+    "id": "stats-shape",
+    "theme": "stats",
+    "label": "Describing a distribution's shape",
+    "level": 2,
+    "words": [
+      "SKEWED",
+      "SYMMETRIC",
+      "BIMODAL",
+      "UNIMODAL"
+    ]
+  },
+  {
+    "id": "stats-regression",
+    "theme": "stats",
+    "label": "Parts of a regression",
+    "level": 2,
+    "words": [
+      "SLOPE",
+      "INTERCEPT",
+      "RESIDUAL",
+      "COEFFICIENT",
+      "PREDICTOR"
+    ]
+  },
+  {
+    "id": "stats-tests",
+    "theme": "stats",
+    "label": "Named statistical tests",
+    "level": 3,
+    "words": [
+      "ANOVA",
+      "CHISQUARE",
+      "WILCOXON",
+      "KRUSKAL"
+    ]
+  },
+  {
+    "id": "stats-bias",
+    "theme": "stats",
+    "label": "___ bias",
+    "level": 3,
+    "words": [
+      "SELECTION",
+      "RESPONSE",
+      "SURVIVORSHIP",
+      "CONFIRMATION",
+      "RECALL",
+      "PUBLICATION"
+    ]
+  },
+  {
+    "id": "stats-statisticians",
+    "theme": "stats",
+    "label": "Famous statisticians",
+    "level": 3,
+    "words": [
+      "PEARSON",
+      "SPEARMAN",
+      "FISHER",
+      "BAYES",
+      "GOSSET",
+      "NEYMAN"
+    ]
+  },
+  {
+    "id": "stats-bayes",
+    "theme": "stats",
+    "label": "Words in Bayes' theorem",
+    "level": 3,
+    "words": [
+      "PRIOR",
+      "POSTERIOR",
+      "LIKELIHOOD",
+      "EVIDENCE"
+    ]
+  },
+  {
+    "id": "stats-quantiles",
+    "theme": "stats",
+    "label": "Ways to cut ordered data into equal parts",
+    "level": 3,
+    "words": [
+      "QUARTILE",
+      "DECILE",
+      "PERCENTILE",
+      "QUINTILE",
+      "TERCILE"
+    ]
+  },
+  {
+    "id": "stats-design",
+    "theme": "stats",
+    "label": "Experiment design words",
+    "level": 3,
+    "words": [
+      "CONTROL",
+      "PLACEBO",
+      "BLIND",
+      "TREATMENT",
+      "RANDOMISE"
+    ]
+  },
+  {
+    "id": "stats-bell",
+    "theme": "stats",
+    "label": "Bell ___",
+    "level": 4,
+    "words": [
+      "BOY",
+      "HOP",
+      "PEPPER",
+      "TOWER",
+      "RINGER"
+    ]
+  },
+  {
+    "id": "stats-hidden-numbers",
+    "theme": "stats",
+    "label": "Hidden numbers",
+    "level": 4,
+    "words": [
+      "WEIGHT",
+      "OFTEN",
+      "MONEY",
+      "FREIGHT",
+      "STONE"
+    ]
+  },
+  {
+    "id": "stats-standard",
+    "theme": "stats",
+    "label": "Standard ___",
+    "level": 4,
+    "words": [
+      "ERROR",
+      "BEARER",
+      "ISSUE",
+      "LAMP",
+      "DEVIATION"
+    ]
+  },
+  {
+    "id": "stats-central",
+    "theme": "stats",
+    "label": "Central ___",
+    "level": 4,
+    "words": [
+      "LIMIT",
+      "PARK",
+      "HEATING",
+      "STATION",
+      "BANK"
+    ]
+  },
+  {
+    "id": "ml-metrics",
+    "theme": "ml",
+    "label": "Classification metrics",
+    "level": 1,
+    "words": [
+      "ACCURACY",
+      "PRECISION",
+      "RECALL",
+      "SPECIFICITY",
+      "SENSITIVITY"
+    ]
+  },
+  {
+    "id": "ml-neural",
+    "theme": "ml",
+    "label": "Parts of a neural network",
+    "level": 1,
+    "words": [
+      "NEURON",
+      "LAYER",
+      "WEIGHT",
+      "BIAS",
+      "NODE"
+    ]
+  },
+  {
+    "id": "ml-training",
+    "theme": "ml",
+    "label": "Training loop words",
+    "level": 1,
+    "words": [
+      "EPOCH",
+      "BATCH",
+      "LOSS",
+      "GRADIENT",
+      "ITERATION"
+    ]
+  },
+  {
+    "id": "ml-splits",
+    "theme": "ml",
+    "label": "Data splits",
+    "level": 1,
+    "words": [
+      "TRAINING",
+      "TEST",
+      "VALIDATION",
+      "HOLDOUT"
+    ]
+  },
+  {
+    "id": "ml-learning",
+    "theme": "ml",
+    "label": "___ learning",
+    "level": 2,
+    "words": [
+      "DEEP",
+      "TRANSFER",
+      "ACTIVE",
+      "ONLINE",
+      "FEDERATED"
+    ]
+  },
+  {
+    "id": "ml-clustering",
+    "theme": "ml",
+    "label": "Clustering methods",
+    "level": 2,
+    "words": [
+      "KMEANS",
+      "DBSCAN",
+      "HIERARCHICAL",
+      "SPECTRAL",
+      "MEANSHIFT"
+    ]
+  },
+  {
+    "id": "ml-activations",
+    "theme": "ml",
+    "label": "Activation functions",
+    "level": 2,
+    "words": [
+      "RELU",
+      "SIGMOID",
+      "TANH",
+      "SOFTMAX",
+      "GELU"
+    ]
+  },
+  {
+    "id": "ml-overfitting",
+    "theme": "ml",
+    "label": "Ways to fight overfitting",
+    "level": 2,
+    "words": [
+      "DROPOUT",
+      "PRUNING",
+      "AUGMENTATION",
+      "LASSO",
+      "RIDGE"
+    ]
+  },
+  {
+    "id": "ml-language",
+    "theme": "ml",
+    "label": "Language model words",
+    "level": 2,
+    "words": [
+      "TOKEN",
+      "PROMPT",
+      "EMBEDDING",
+      "ATTENTION",
+      "CONTEXT"
+    ]
+  },
+  {
+    "id": "ml-vision",
+    "theme": "ml",
+    "label": "Computer vision tasks",
+    "level": 2,
+    "words": [
+      "DETECTION",
+      "SEGMENTATION",
+      "TRACKING",
+      "CAPTIONING",
+      "RECOGNITION"
+    ]
+  },
+  {
+    "id": "ml-trees",
+    "theme": "ml",
+    "label": "Parts of a decision tree",
+    "level": 2,
+    "words": [
+      "ROOT",
+      "LEAF",
+      "SPLIT",
+      "BRANCH",
+      "DEPTH"
+    ]
+  },
+  {
+    "id": "ml-optimisers",
+    "theme": "ml",
+    "label": "Optimisers",
+    "level": 3,
+    "words": [
+      "ADAM",
+      "SGD",
+      "RMSPROP",
+      "ADAGRAD",
+      "MOMENTUM",
+      "NESTEROV"
+    ]
+  },
+  {
+    "id": "ml-architectures",
+    "theme": "ml",
+    "label": "Neural network architectures",
+    "level": 3,
+    "words": [
+      "TRANSFORMER",
+      "RESNET",
+      "LSTM",
+      "GAN",
+      "UNET",
+      "PERCEPTRON"
+    ]
+  },
+  {
+    "id": "ml-pioneers",
+    "theme": "ml",
+    "label": "AI pioneers",
+    "level": 3,
+    "words": [
+      "TURING",
+      "HINTON",
+      "LECUN",
+      "BENGIO",
+      "MINSKY",
+      "MCCARTHY"
+    ]
+  },
+  {
+    "id": "ml-ensembles",
+    "theme": "ml",
+    "label": "Ensemble methods",
+    "level": 3,
+    "words": [
+      "BAGGING",
+      "BOOSTING",
+      "STACKING",
+      "BLENDING",
+      "VOTING",
+      "XGBOOST"
+    ]
+  },
+  {
+    "id": "ml-reduction",
+    "theme": "ml",
+    "label": "Dimensionality reduction",
+    "level": 3,
+    "words": [
+      "PCA",
+      "TSNE",
+      "UMAP",
+      "SVD",
+      "ISOMAP"
+    ]
+  },
+  {
+    "id": "ml-network",
+    "theme": "ml",
+    "label": "___ network",
+    "level": 4,
+    "words": [
+      "SOCIAL",
+      "RAIL",
+      "TELEVISION",
+      "SENSOR",
+      "NEURAL"
+    ]
+  },
+  {
+    "id": "ml-film",
+    "theme": "ml",
+    "label": "AIs from films",
+    "level": 4,
+    "words": [
+      "HAL",
+      "TERMINATOR",
+      "SKYNET",
+      "ULTRON",
+      "JARVIS"
+    ]
+  },
+  {
+    "id": "ml-deep",
+    "theme": "ml",
+    "label": "Deep ___",
+    "level": 4,
+    "words": [
+      "FAKE",
+      "DIVE",
+      "FRYER",
+      "BLUE",
+      "SEA",
+      "END"
+    ]
+  },
+  {
+    "id": "ml-model",
+    "theme": "ml",
+    "label": "___ model",
+    "level": 4,
+    "words": [
+      "ROLE",
+      "SUPER",
+      "FASHION",
+      "LANGUAGE",
+      "BUSINESS"
+    ]
+  },
+  {
+    "id": "finance-balance-sheet",
+    "theme": "finance",
+    "label": "On the balance sheet",
+    "level": 1,
+    "words": [
+      "ASSETS",
+      "LIABILITIES",
+      "EQUITY",
+      "RESERVES"
+    ]
+  },
+  {
+    "id": "finance-currencies",
+    "theme": "finance",
+    "label": "Currencies",
+    "level": 1,
+    "words": [
+      "DINAR",
+      "RIYAL",
+      "DIRHAM",
+      "EURO",
+      "YEN",
+      "POUND"
+    ]
+  },
+  {
+    "id": "finance-investments",
+    "theme": "finance",
+    "label": "Things you can invest in",
+    "level": 1,
+    "words": [
+      "STOCKS",
+      "BONDS",
+      "GOLD",
+      "PROPERTY",
+      "FUNDS"
+    ]
+  },
+  {
+    "id": "finance-macro",
+    "theme": "finance",
+    "label": "Macroeconomic indicators",
+    "level": 1,
+    "words": [
+      "GDP",
+      "INFLATION",
+      "UNEMPLOYMENT",
+      "CPI",
+      "DEFICIT"
+    ]
+  },
+  {
+    "id": "finance-banking",
+    "theme": "finance",
+    "label": "Banking products",
+    "level": 1,
+    "words": [
+      "MORTGAGE",
+      "OVERDRAFT",
+      "LOAN",
+      "SAVINGS",
+      "DEPOSIT"
+    ]
+  },
+  {
+    "id": "finance-income-statement",
+    "theme": "finance",
+    "label": "On the income statement",
+    "level": 2,
+    "words": [
+      "REVENUE",
+      "DEPRECIATION",
+      "EXPENSES",
+      "INTEREST",
+      "EBITDA"
+    ]
+  },
+  {
+    "id": "finance-ratios",
+    "theme": "finance",
+    "label": "___ ratio",
+    "level": 2,
+    "words": [
+      "CURRENT",
+      "QUICK",
+      "GEARING",
+      "PAYOUT",
+      "SHARPE"
+    ]
+  },
+  {
+    "id": "finance-structures",
+    "theme": "finance",
+    "label": "Market structures",
+    "level": 2,
+    "words": [
+      "MONOPOLY",
+      "OLIGOPOLY",
+      "DUOPOLY",
+      "MONOPSONY"
+    ]
+  },
+  {
+    "id": "finance-derivatives",
+    "theme": "finance",
+    "label": "Derivatives",
+    "level": 2,
+    "words": [
+      "OPTION",
+      "FUTURE",
+      "FORWARD",
+      "SWAP",
+      "WARRANT"
+    ]
+  },
+  {
+    "id": "finance-tax",
+    "theme": "finance",
+    "label": "Kinds of tax",
+    "level": 2,
+    "words": [
+      "VAT",
+      "INCOME",
+      "CORPORATION",
+      "INHERITANCE",
+      "EXCISE",
+      "TARIFF"
+    ]
+  },
+  {
+    "id": "finance-animals",
+    "theme": "finance",
+    "label": "Animals of the markets",
+    "level": 3,
+    "words": [
+      "BULL",
+      "BEAR",
+      "HAWK",
+      "DOVE",
+      "STAG"
+    ]
+  },
+  {
+    "id": "finance-economists",
+    "theme": "finance",
+    "label": "Economists",
+    "level": 3,
+    "words": [
+      "KEYNES",
+      "SMITH",
+      "FRIEDMAN",
+      "MARX",
+      "HAYEK",
+      "RICARDO"
+    ]
+  },
+  {
+    "id": "finance-principles",
+    "theme": "finance",
+    "label": "Accounting concepts",
+    "level": 3,
+    "words": [
+      "ACCRUALS",
+      "PRUDENCE",
+      "MATCHING",
+      "CONSISTENCY",
+      "MATERIALITY"
+    ]
+  },
+  {
+    "id": "finance-supply-demand",
+    "theme": "finance",
+    "label": "Supply and demand words",
+    "level": 3,
+    "words": [
+      "ELASTICITY",
+      "EQUILIBRIUM",
+      "SHORTAGE",
+      "SUBSTITUTE",
+      "COMPLEMENT"
+    ]
+  },
+  {
+    "id": "finance-bubbles",
+    "theme": "finance",
+    "label": "Famous bubbles and crashes",
+    "level": 3,
+    "words": [
+      "TULIP",
+      "DOTCOM",
+      "SUBPRIME",
+      "SOUTHSEA"
+    ]
+  },
+  {
+    "id": "finance-capital",
+    "theme": "finance",
+    "label": "___ capital",
+    "level": 3,
+    "words": [
+      "VENTURE",
+      "WORKING",
+      "HUMAN",
+      "SOCIAL",
+      "SEED"
+    ]
+  },
+  {
+    "id": "finance-street",
+    "theme": "finance",
+    "label": "___ Street",
+    "level": 4,
+    "words": [
+      "WALL",
+      "HIGH",
+      "DOWNING",
+      "FLEET",
+      "BAKER",
+      "SESAME"
+    ]
+  },
+  {
+    "id": "finance-hidden-currencies",
+    "theme": "finance",
+    "label": "Hidden currencies",
+    "level": 4,
+    "words": [
+      "ORDINARY",
+      "BRANDY",
+      "WONDER",
+      "NEURON",
+      "REALITY"
+    ]
+  },
+  {
+    "id": "finance-bank",
+    "theme": "finance",
+    "label": "___ bank",
+    "level": 4,
+    "words": [
+      "PIGGY",
+      "RIVER",
+      "FOOD",
+      "BLOOD"
+    ]
+  },
+  {
+    "id": "finance-market",
+    "theme": "finance",
+    "label": "___ market",
+    "level": 4,
+    "words": [
+      "BLACK",
+      "FLEA",
+      "SUPER",
+      "FISH",
+      "NIGHT"
+    ]
+  },
+  {
+    "id": "data-sql",
+    "theme": "data",
+    "label": "SQL keywords",
+    "level": 1,
+    "words": [
+      "SELECT",
+      "FROM",
+      "WHERE",
+      "HAVING",
+      "LIMIT"
+    ]
+  },
+  {
+    "id": "data-types",
+    "theme": "data",
+    "label": "Python data types",
+    "level": 1,
+    "words": [
+      "LIST",
+      "TUPLE",
+      "DICT",
+      "SET",
+      "FLOAT",
+      "BOOL"
+    ]
+  },
+  {
+    "id": "data-languages",
+    "theme": "data",
+    "label": "Programming languages",
+    "level": 1,
+    "words": [
+      "JAVA",
+      "RUST",
+      "SWIFT",
+      "KOTLIN",
+      "RUBY",
+      "PERL"
+    ]
+  },
+  {
+    "id": "data-git",
+    "theme": "data",
+    "label": "Git commands",
+    "level": 1,
+    "words": [
+      "COMMIT",
+      "PUSH",
+      "PULL",
+      "CLONE",
+      "BRANCH",
+      "REBASE"
+    ]
+  },
+  {
+    "id": "data-units",
+    "theme": "data",
+    "label": "Units of data",
+    "level": 1,
+    "words": [
+      "BIT",
+      "BYTE",
+      "KILOBYTE",
+      "MEGABYTE",
+      "GIGABYTE",
+      "TERABYTE"
+    ]
+  },
+  {
+    "id": "data-aggregates",
+    "theme": "data",
+    "label": "SQL aggregate functions",
+    "level": 1,
+    "words": [
+      "COUNT",
+      "SUM",
+      "AVG",
+      "MIN",
+      "MAX"
+    ]
+  },
+  {
+    "id": "data-joins",
+    "theme": "data",
+    "label": "Kinds of SQL join",
+    "level": 2,
+    "words": [
+      "INNER",
+      "OUTER",
+      "LEFT",
+      "RIGHT",
+      "CROSS",
+      "FULL"
+    ]
+  },
+  {
+    "id": "data-libraries",
+    "theme": "data",
+    "label": "Python libraries",
+    "level": 2,
+    "words": [
+      "PANDAS",
+      "NUMPY",
+      "MATPLOTLIB",
+      "SEABORN",
+      "SCIPY",
+      "POLARS"
+    ]
+  },
+  {
+    "id": "data-databases",
+    "theme": "data",
+    "label": "Database systems",
+    "level": 2,
+    "words": [
+      "POSTGRES",
+      "MYSQL",
+      "SQLITE",
+      "ORACLE",
+      "MONGODB",
+      "REDIS"
+    ]
+  },
+  {
+    "id": "data-keys",
+    "theme": "data",
+    "label": "Kinds of database key",
+    "level": 2,
+    "words": [
+      "PRIMARY",
+      "FOREIGN",
+      "COMPOSITE",
+      "CANDIDATE",
+      "SURROGATE"
+    ]
+  },
+  {
+    "id": "data-structures",
+    "theme": "data",
+    "label": "Data structures",
+    "level": 2,
+    "words": [
+      "STACK",
+      "QUEUE",
+      "HEAP",
+      "TREE",
+      "GRAPH"
+    ]
+  },
+  {
+    "id": "data-formats",
+    "theme": "data",
+    "label": "File formats",
+    "level": 2,
+    "words": [
+      "CSV",
+      "JSON",
+      "PARQUET",
+      "XML",
+      "YAML"
+    ]
+  },
+  {
+    "id": "data-sorts",
+    "theme": "data",
+    "label": "___ sort",
+    "level": 3,
+    "words": [
+      "BUBBLE",
+      "QUICK",
+      "INSERTION",
+      "SELECTION",
+      "RADIX",
+      "COUNTING"
+    ]
+  },
+  {
+    "id": "data-errors",
+    "theme": "data",
+    "label": "Python ___Error",
+    "level": 3,
+    "words": [
+      "VALUE",
+      "TYPE",
+      "KEY",
+      "INDEX",
+      "NAME",
+      "SYNTAX"
+    ]
+  },
+  {
+    "id": "data-design",
+    "theme": "data",
+    "label": "Database design words",
+    "level": 3,
+    "words": [
+      "SCHEMA",
+      "ENTITY",
+      "ATTRIBUTE",
+      "RELATION",
+      "CARDINALITY"
+    ]
+  },
+  {
+    "id": "data-big-data",
+    "theme": "data",
+    "label": "Big data and cloud tools",
+    "level": 3,
+    "words": [
+      "SPARK",
+      "HADOOP",
+      "KAFKA",
+      "AIRFLOW",
+      "DOCKER",
+      "KUBERNETES"
+    ]
+  },
+  {
+    "id": "data-snakes",
+    "theme": "data",
+    "label": "Snakes",
+    "level": 4,
+    "words": [
+      "PYTHON",
+      "COBRA",
+      "VIPER",
+      "ADDER",
+      "BOA"
+    ]
+  },
+  {
+    "id": "data-code",
+    "theme": "data",
+    "label": "___ code",
+    "level": 4,
+    "words": [
+      "MORSE",
+      "ZIP",
+      "DRESS",
+      "AREA",
+      "CHEAT"
+    ]
+  },
+  {
+    "id": "data-base",
+    "theme": "data",
+    "label": "___base",
+    "level": 4,
+    "words": [
+      "DATA",
+      "CODE",
+      "KNOWLEDGE",
+      "AIR",
+      "FIRST"
+    ]
+  },
+  {
+    "id": "business-four-ps",
+    "theme": "business",
+    "label": "The four Ps of marketing",
+    "level": 1,
+    "words": [
+      "PRODUCT",
+      "PRICE",
+      "PLACE",
+      "PROMOTION"
+    ]
+  },
+  {
+    "id": "business-swot",
+    "theme": "business",
+    "label": "SWOT, one word each",
+    "level": 1,
+    "words": [
+      "STRENGTH",
+      "WEAKNESS",
+      "OPPORTUNITY",
+      "THREAT"
+    ]
+  },
+  {
+    "id": "business-roles",
+    "theme": "business",
+    "label": "Office roles",
+    "level": 1,
+    "words": [
+      "INTERN",
+      "MANAGER",
+      "DIRECTOR",
+      "ANALYST",
+      "CONSULTANT"
+    ]
+  },
+  {
+    "id": "business-kinds",
+    "theme": "business",
+    "label": "Kinds of business",
+    "level": 1,
+    "words": [
+      "STARTUP",
+      "FRANCHISE",
+      "PARTNERSHIP",
+      "COOPERATIVE",
+      "CONGLOMERATE"
+    ]
+  },
+  {
+    "id": "business-channels",
+    "theme": "business",
+    "label": "Advertising channels",
+    "level": 1,
+    "words": [
+      "BILLBOARD",
+      "RADIO",
+      "PODCAST",
+      "TELEVISION",
+      "EMAIL"
+    ]
+  },
+  {
+    "id": "business-pestle",
+    "theme": "business",
+    "label": "PESTLE factors",
+    "level": 2,
+    "words": [
+      "POLITICAL",
+      "ECONOMIC",
+      "SOCIAL",
+      "LEGAL"
+    ]
+  },
+  {
+    "id": "business-leadership",
+    "theme": "business",
+    "label": "Leadership styles",
+    "level": 2,
+    "words": [
+      "AUTOCRATIC",
+      "DEMOCRATIC",
+      "SERVANT",
+      "CHARISMATIC"
+    ]
+  },
+  {
+    "id": "business-segments",
+    "theme": "business",
+    "label": "Ways to segment a market",
+    "level": 2,
+    "words": [
+      "DEMOGRAPHIC",
+      "GEOGRAPHIC",
+      "BEHAVIOURAL",
+      "LIFESTYLE"
+    ]
+  },
+  {
+    "id": "business-hr",
+    "theme": "business",
+    "label": "HR processes",
+    "level": 2,
+    "words": [
+      "RECRUITMENT",
+      "ONBOARDING",
+      "APPRAISAL",
+      "TRAINING",
+      "PAYROLL"
+    ]
+  },
+  {
+    "id": "business-online",
+    "theme": "business",
+    "label": "Online business models",
+    "level": 2,
+    "words": [
+      "SUBSCRIPTION",
+      "MARKETPLACE",
+      "FREEMIUM",
+      "DROPSHIPPING",
+      "AFFILIATE"
+    ]
+  },
+  {
+    "id": "business-funding",
+    "theme": "business",
+    "label": "Ways to fund a startup",
+    "level": 2,
+    "words": [
+      "ANGEL",
+      "CROWDFUNDING",
+      "VENTURE",
+      "LOAN",
+      "GRANT"
+    ]
+  },
+  {
+    "id": "business-lifecycle",
+    "theme": "business",
+    "label": "Product life cycle stages",
+    "level": 2,
+    "words": [
+      "INTRODUCTION",
+      "GROWTH",
+      "MATURITY",
+      "DECLINE"
+    ]
+  },
+  {
+    "id": "business-supply-chain",
+    "theme": "business",
+    "label": "Supply chain words",
+    "level": 2,
+    "words": [
+      "LOGISTICS",
+      "PROCUREMENT",
+      "INVENTORY",
+      "WAREHOUSE",
+      "SOURCING",
+      "DISTRIBUTION"
+    ]
+  },
+  {
+    "id": "business-porter",
+    "theme": "business",
+    "label": "Porter's five forces",
+    "level": 3,
+    "words": [
+      "RIVALRY",
+      "SUPPLIERS",
+      "BUYERS",
+      "ENTRANTS",
+      "SUBSTITUTES"
+    ]
+  },
+  {
+    "id": "business-boston",
+    "theme": "business",
+    "label": "Boston matrix",
+    "level": 3,
+    "words": [
+      "STAR",
+      "DOG",
+      "CASHCOW",
+      "QUESTIONMARK",
+      "PROBLEMCHILD"
+    ]
+  },
+  {
+    "id": "business-motivation",
+    "theme": "business",
+    "label": "Motivation theorists",
+    "level": 3,
+    "words": [
+      "MASLOW",
+      "HERZBERG",
+      "MCGREGOR",
+      "TAYLOR",
+      "MAYO",
+      "VROOM"
+    ]
+  },
+  {
+    "id": "business-acronyms",
+    "theme": "business",
+    "label": "Business acronyms",
+    "level": 3,
+    "words": [
+      "KPI",
+      "ROI",
+      "SME",
+      "IPO",
+      "USP",
+      "CRM"
+    ]
+  },
+  {
+    "id": "business-tank",
+    "theme": "business",
+    "label": "___ tank",
+    "level": 4,
+    "words": [
+      "THINK",
+      "FISH",
+      "SEPTIC",
+      "WATER",
+      "PETROL"
+    ]
+  },
+  {
+    "id": "business-brain",
+    "theme": "business",
+    "label": "Brain___",
+    "level": 4,
+    "words": [
+      "STORM",
+      "WAVE",
+      "CHILD",
+      "TEASER",
+      "WASH",
+      "DRAIN"
+    ]
+  },
+  {
+    "id": "business-glass",
+    "theme": "business",
+    "label": "Glass ___",
+    "level": 4,
+    "words": [
+      "CEILING",
+      "SLIPPER",
+      "HOUSE",
+      "CLIFF",
+      "WARE"
+    ]
+  },
+  {
+    "id": "business-pitch",
+    "theme": "business",
+    "label": "Things you can pitch",
+    "level": 4,
+    "words": [
+      "TENT",
+      "IDEA",
+      "BALL",
+      "CAMP"
+    ]
+  }
+]

@@ -9,6 +9,7 @@ from app.routers import (
     board,
     calendar,
     content,
+    daily,
     features,
     forum,
     health,
@@ -53,5 +54,6 @@ for module in (
     noora,
     summary,
     suggestions,
+    daily,
 ):
     api_router.include_router(module.router)

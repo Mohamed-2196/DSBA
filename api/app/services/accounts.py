@@ -21,6 +21,8 @@ from app.core.time import utcnow
 from app.models import (
     BoardCard,
     BoardPlan,
+    DailyPlay,
+    DailyProfile,
     EmailOutbox,
     ForumReply,
     ForumThread,
@@ -57,6 +59,7 @@ from app.schemas.auth import (
     AccountExport,
     ExportBoardCard,
     ExportBoardPlan,
+    ExportDailyPlay,
     ExportEmail,
     ExportFollow,
     ExportLibraryItem,
@@ -863,6 +866,13 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
                 select(VideoSuggestion).where(VideoSuggestion.author_id == uid).order_by(VideoSuggestion.created_at)
             )
         ],
+        daily_plays=[
+            ExportDailyPlay.model_validate(p)
+            for p in db.scalars(
+                select(DailyPlay).where(DailyPlay.user_id == uid).order_by(DailyPlay.day, DailyPlay.started_at)
+            )
+        ],
+        daily_show_on_board=bool(db.scalar(select(DailyProfile.show_on_board).where(DailyProfile.user_id == uid))),
     )
 
 

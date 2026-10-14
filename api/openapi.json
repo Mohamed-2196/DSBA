@@ -3746,7 +3746,8 @@
                 "requests.autoclose",
                 "requests.done",
                 "summary",
-                "video_suggestions"
+                "video_suggestions",
+                "daily"
               ],
               "type": "string",
               "title": "Feature"
@@ -16196,6 +16197,782 @@
           }
         }
       }
+    },
+    "/api/v1/daily": {
+      "get": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Today",
+        "description": "Today's set: the theme, each game and how far you got, your points and streak (signed in).",
+        "operationId": "today_api_v1_daily_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyToday"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/daily/calendar": {
+      "get": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Calendar",
+        "description": "The month's days with puzzles out, and how many games you finished on each.",
+        "operationId": "calendar_api_v1_daily_calendar_get",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}$",
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyCalendar"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/daily/leaderboard": {
+      "get": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Leaderboard",
+        "description": "The players who chose to show their name, by points: this week's (from Sunday) or of all time.",
+        "operationId": "leaderboard_api_v1_daily_leaderboard_get",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "week",
+                "all"
+              ],
+              "type": "string",
+              "default": "week",
+              "title": "Period"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 3,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Year"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Leaderboard"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/daily/me": {
+      "get": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Me",
+        "description": "Your totals, streak, badges and whether your name shows on the leaderboard.",
+        "operationId": "me_api_v1_daily_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyMe"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Update Me",
+        "description": "Shows or hides your name on the leaderboard.",
+        "operationId": "update_me_api_v1_daily_me_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DailyMeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyMe"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/daily/{day}/{game}": {
+      "get": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Get Play",
+        "description": "A game on a day, and your play of it so far. Errors: not_out_yet (404), invalid_input on `variant` (422).",
+        "operationId": "get_play_api_v1_daily__day___game__get",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          },
+          {
+            "name": "game",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "word",
+                "groups",
+                "search",
+                "quiz",
+                "nearest",
+                "sudoku"
+              ],
+              "type": "string",
+              "title": "Game"
+            }
+          },
+          {
+            "name": "variant",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Variant"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/daily/{day}/{game}/moves": {
+      "post": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Make Move",
+        "description": "One move, checked on the server. Signed in, it's kept, and today's first play of a game scores. Errors:\ninvalid_input on `move` (422), unknown_word (422), already_tried (409), game_over (409), not_out_yet (404).",
+        "operationId": "make_move_api_v1_daily__day___game__moves_post",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          },
+          {
+            "name": "game",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "word",
+                "groups",
+                "search",
+                "quiz",
+                "nearest",
+                "sudoku"
+              ],
+              "type": "string",
+              "title": "Game"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -16388,6 +17165,17 @@
             },
             "type": "array",
             "title": "Videosuggestions"
+          },
+          "dailyPlays": {
+            "items": {
+              "$ref": "#/components/schemas/ExportDailyPlay"
+            },
+            "type": "array",
+            "title": "Dailyplays"
+          },
+          "dailyShowOnBoard": {
+            "type": "boolean",
+            "title": "Dailyshowonboard"
           }
         },
         "type": "object",
@@ -16415,7 +17203,9 @@
           "senior",
           "notes",
           "nooraUsage",
-          "videoSuggestions"
+          "videoSuggestions",
+          "dailyPlays",
+          "dailyShowOnBoard"
         ],
         "title": "AccountExport",
         "description": "Everything the Hub stores about the signed-in user (GET /me/export)."
@@ -16693,6 +17483,28 @@
         "title": "AdminUserUpdate",
         "description": "Only the fields sent change. `status` needs people.suspend; only admins suspend or restore an admin. `email`\nand `phone` are the account-recovery action (security review SEC-9), for admins only: they replace the account's\naddress (`null` removes it; one must stay), end every session of the account, send a notice to the address that\nwas replaced or removed, and are audited (`user.identifier`)."
       },
+      "AnswerMove": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "answer",
+            "title": "Kind"
+          },
+          "choice": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Choice"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "choice"
+        ],
+        "title": "AnswerMove",
+        "description": "The answer to the quiz's next question: the index of an option."
+      },
       "AuditOut": {
         "properties": {
           "id": {
@@ -16788,6 +17600,34 @@
           "offset"
         ],
         "title": "AuditPage"
+      },
+      "Badge": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "earned": {
+            "type": "boolean",
+            "title": "Earned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "description",
+          "earned"
+        ],
+        "title": "Badge"
       },
       "Board": {
         "properties": {
@@ -17284,6 +18124,38 @@
         ],
         "title": "BoardPlanMade"
       },
+      "BoardRow": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserPublic"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "played": {
+            "type": "integer",
+            "title": "Played"
+          },
+          "you": {
+            "type": "boolean",
+            "title": "You"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "user",
+          "points",
+          "played",
+          "you"
+        ],
+        "title": "BoardRow"
+      },
       "BoxOut": {
         "properties": {
           "key": {
@@ -17323,6 +18195,35 @@
           "label"
         ],
         "title": "BoxOut"
+      },
+      "CalendarDay": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "theme": {
+            "type": "string",
+            "title": "Theme"
+          },
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "theme",
+          "done",
+          "points"
+        ],
+        "title": "CalendarDay"
       },
       "CalendarEventCreate": {
         "properties": {
@@ -18999,6 +19900,28 @@
         ],
         "title": "CategoryOut"
       },
+      "Cell": {
+        "properties": {
+          "row": {
+            "type": "integer",
+            "maximum": 15.0,
+            "minimum": 0.0,
+            "title": "Row"
+          },
+          "col": {
+            "type": "integer",
+            "maximum": 15.0,
+            "minimum": 0.0,
+            "title": "Col"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row",
+          "col"
+        ],
+        "title": "Cell"
+      },
       "CertFile": {
         "properties": {
           "module": {
@@ -19487,6 +20410,161 @@
         ],
         "title": "CtaLabels"
       },
+      "DailyCalendar": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "title": "Month"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarDay"
+            },
+            "type": "array",
+            "title": "Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "month",
+          "total",
+          "days"
+        ],
+        "title": "DailyCalendar"
+      },
+      "DailyMe": {
+        "properties": {
+          "showOnBoard": {
+            "type": "boolean",
+            "title": "Showonboard"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/DailyStats"
+          },
+          "streak": {
+            "$ref": "#/components/schemas/Streak"
+          },
+          "badges": {
+            "items": {
+              "$ref": "#/components/schemas/Badge"
+            },
+            "type": "array",
+            "title": "Badges"
+          }
+        },
+        "type": "object",
+        "required": [
+          "showOnBoard",
+          "stats",
+          "streak",
+          "badges"
+        ],
+        "title": "DailyMe"
+      },
+      "DailyMeIn": {
+        "properties": {
+          "showOnBoard": {
+            "type": "boolean",
+            "title": "Showonboard"
+          }
+        },
+        "type": "object",
+        "required": [
+          "showOnBoard"
+        ],
+        "title": "DailyMeIn"
+      },
+      "DailyStats": {
+        "properties": {
+          "played": {
+            "type": "integer",
+            "title": "Played"
+          },
+          "won": {
+            "type": "integer",
+            "title": "Won"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "weekPoints": {
+            "type": "integer",
+            "title": "Weekpoints"
+          }
+        },
+        "type": "object",
+        "required": [
+          "played",
+          "won",
+          "points",
+          "weekPoints"
+        ],
+        "title": "DailyStats"
+      },
+      "DailyToday": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "firstDay": {
+            "type": "string",
+            "format": "date",
+            "title": "Firstday"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/Theme"
+          },
+          "games": {
+            "items": {
+              "$ref": "#/components/schemas/GameDay"
+            },
+            "type": "array",
+            "title": "Games"
+          },
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "streak": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Streak"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "nextAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Nextat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "firstDay",
+          "theme",
+          "games",
+          "done",
+          "points",
+          "streak",
+          "nextAt"
+        ],
+        "title": "DailyToday"
+      },
       "DateWindow": {
         "properties": {
           "from": {
@@ -19624,7 +20702,11 @@
               "noora_unavailable",
               "noora_budget_reached",
               "noora_busy",
-              "noora_daily_limit"
+              "noora_daily_limit",
+              "unknown_word",
+              "already_tried",
+              "game_over",
+              "not_out_yet"
             ],
             "title": "Code"
           },
@@ -19872,6 +20954,70 @@
           "createdAt"
         ],
         "title": "ExportBoardPlan"
+      },
+      "ExportDailyPlay": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "game": {
+            "type": "string",
+            "title": "Game"
+          },
+          "variant": {
+            "type": "string",
+            "title": "Variant"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "scored": {
+            "type": "boolean",
+            "title": "Scored"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "moves": {
+            "items": {},
+            "type": "array",
+            "title": "Moves"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Startedat"
+          },
+          "finishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finishedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "game",
+          "variant",
+          "status",
+          "scored",
+          "points",
+          "moves",
+          "startedAt",
+          "finishedAt"
+        ],
+        "title": "ExportDailyPlay"
       },
       "ExportEmail": {
         "properties": {
@@ -21080,7 +22226,8 @@
               "requests.autoclose",
               "requests.done",
               "summary",
-              "video_suggestions"
+              "video_suggestions",
+              "daily"
             ],
             "title": "Feature"
           },
@@ -21173,7 +22320,8 @@
                 "requests.autoclose",
                 "requests.done",
                 "summary",
-                "video_suggestions"
+                "video_suggestions",
+                "daily"
               ]
             },
             "type": "array",
@@ -21203,6 +22351,29 @@
           "expiresIn"
         ],
         "title": "FileLink"
+      },
+      "FindMove": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "find",
+            "title": "Kind"
+          },
+          "start": {
+            "$ref": "#/components/schemas/Cell"
+          },
+          "end": {
+            "$ref": "#/components/schemas/Cell"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "start",
+          "end"
+        ],
+        "title": "FindMove",
+        "description": "A straight line of letters in the word search, from its first letter to its last."
       },
       "FollowRequest": {
         "properties": {
@@ -21347,6 +22518,32 @@
         "title": "FoundAnswer",
         "description": "The requester's or a rep's word on the file found for a request: yes closes it as done, no keeps it open."
       },
+      "FoundGroup": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "words": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Words"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "level",
+          "words"
+        ],
+        "title": "FoundGroup"
+      },
       "FoundItem": {
         "properties": {
           "id": {
@@ -21463,6 +22660,98 @@
         ],
         "title": "FurtherStudyAction"
       },
+      "GameDay": {
+        "properties": {
+          "info": {
+            "$ref": "#/components/schemas/GameInfo"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "playing",
+              "won",
+              "lost"
+            ],
+            "title": "Status"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "scored": {
+            "type": "boolean",
+            "title": "Scored"
+          }
+        },
+        "type": "object",
+        "required": [
+          "info",
+          "status",
+          "points",
+          "scored"
+        ],
+        "title": "GameDay",
+        "description": "A game on the hub: its card, and how far the viewer got."
+      },
+      "GameInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "word",
+              "groups",
+              "search",
+              "quiz",
+              "nearest",
+              "sudoku"
+            ],
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "tagline": {
+            "type": "string",
+            "title": "Tagline"
+          },
+          "howTo": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Howto"
+          },
+          "scoring": {
+            "type": "string",
+            "title": "Scoring"
+          },
+          "variants": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Variants"
+          },
+          "maxPoints": {
+            "type": "integer",
+            "title": "Maxpoints"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "tagline",
+          "howTo",
+          "scoring",
+          "variants",
+          "maxPoints"
+        ],
+        "title": "GameInfo",
+        "description": "A game as the hub lists it: how to play and how it scores."
+      },
       "GapModule": {
         "properties": {
           "id": {
@@ -21558,6 +22847,121 @@
         ],
         "title": "Gaps"
       },
+      "GiveUpMove": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "give-up",
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "GiveUpMove",
+        "description": "Ends the play as lost and shows the answer."
+      },
+      "GroupMove": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "group",
+            "title": "Kind"
+          },
+          "words": {
+            "items": {
+              "type": "string",
+              "maxLength": 16,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Words"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "words"
+        ],
+        "title": "GroupMove",
+        "description": "Four words picked as one group."
+      },
+      "GroupsView": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "groups",
+            "title": "Kind"
+          },
+          "words": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Words"
+          },
+          "found": {
+            "items": {
+              "$ref": "#/components/schemas/FoundGroup"
+            },
+            "type": "array",
+            "title": "Found"
+          },
+          "mistakesLeft": {
+            "type": "integer",
+            "title": "Mistakesleft"
+          },
+          "guesses": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Guesses"
+          },
+          "oneAway": {
+            "type": "boolean",
+            "title": "Oneaway"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "words",
+          "found",
+          "mistakesLeft",
+          "guesses",
+          "oneAway"
+        ],
+        "title": "GroupsView"
+      },
+      "GuessMove": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "guess",
+            "title": "Kind"
+          },
+          "word": {
+            "type": "string",
+            "maxLength": 24,
+            "minLength": 1,
+            "title": "Word"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "word"
+        ],
+        "title": "GuessMove",
+        "description": "A word: the word game's guess, or a guess at the secret word in Nearest neighbour."
+      },
       "Health": {
         "properties": {
           "status": {
@@ -21597,6 +23001,34 @@
           "version"
         ],
         "title": "Health"
+      },
+      "HintMove": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "hint",
+            "title": "Kind"
+          },
+          "cell": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 80.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cell"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "HintMove",
+        "description": "A hint, for a few points: Sudoku fills `cell` (or a cell it picks), the word search shows where a word\nstarts, Nearest neighbour reveals a closer word."
       },
       "IssueCover": {
         "properties": {
@@ -22297,6 +23729,79 @@
           "at"
         ],
         "title": "LastLesson"
+      },
+      "Leaderboard": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "enum": [
+              "week",
+              "all"
+            ],
+            "title": "Period"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "since": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/BoardRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "you": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BoardRow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "yourPoints": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yourpoints"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "year",
+          "since",
+          "rows",
+          "you",
+          "yourPoints"
+        ],
+        "title": "Leaderboard"
       },
       "LessonGap": {
         "properties": {
@@ -23358,7 +24863,8 @@
                 "requests.autoclose",
                 "requests.done",
                 "summary",
-                "video_suggestions"
+                "video_suggestions",
+                "daily"
               ]
             },
             "type": "array",
@@ -24208,6 +25714,106 @@
         ],
         "title": "ModuleSummary"
       },
+      "MoveIn": {
+        "properties": {
+          "variant": {
+            "type": "string",
+            "maxLength": 12,
+            "title": "Variant",
+            "default": ""
+          },
+          "move": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/GuessMove"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GroupMove"
+                  },
+                  {
+                    "$ref": "#/components/schemas/FindMove"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AnswerMove"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PlaceMove"
+                  },
+                  {
+                    "$ref": "#/components/schemas/HintMove"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GiveUpMove"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "kind",
+                  "mapping": {
+                    "answer": "#/components/schemas/AnswerMove",
+                    "find": "#/components/schemas/FindMove",
+                    "give-up": "#/components/schemas/GiveUpMove",
+                    "group": "#/components/schemas/GroupMove",
+                    "guess": "#/components/schemas/GuessMove",
+                    "hint": "#/components/schemas/HintMove",
+                    "place": "#/components/schemas/PlaceMove"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Move"
+          },
+          "history": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/GuessMove"
+                },
+                {
+                  "$ref": "#/components/schemas/GroupMove"
+                },
+                {
+                  "$ref": "#/components/schemas/FindMove"
+                },
+                {
+                  "$ref": "#/components/schemas/AnswerMove"
+                },
+                {
+                  "$ref": "#/components/schemas/PlaceMove"
+                },
+                {
+                  "$ref": "#/components/schemas/HintMove"
+                },
+                {
+                  "$ref": "#/components/schemas/GiveUpMove"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "kind",
+                "mapping": {
+                  "answer": "#/components/schemas/AnswerMove",
+                  "find": "#/components/schemas/FindMove",
+                  "give-up": "#/components/schemas/GiveUpMove",
+                  "group": "#/components/schemas/GroupMove",
+                  "guess": "#/components/schemas/GuessMove",
+                  "hint": "#/components/schemas/HintMove",
+                  "place": "#/components/schemas/PlaceMove"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 400,
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "title": "MoveIn",
+        "description": "One move. Signed in, the play is kept on the server and `history` is ignored. A guest's play lives in their\nbrowser: it sends the moves made so far as `history`, and nothing is saved."
+      },
       "MySenior": {
         "properties": {
           "eligible": {
@@ -24251,6 +25857,68 @@
         ],
         "title": "MySenior",
         "description": "The signed-in person's listing, and whether they may have one (Year 3 only)."
+      },
+      "NearestGuess": {
+        "properties": {
+          "word": {
+            "type": "string",
+            "title": "Word"
+          },
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "hint": {
+            "type": "boolean",
+            "title": "Hint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "word",
+          "rank",
+          "hint"
+        ],
+        "title": "NearestGuess"
+      },
+      "NearestView": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "nearest",
+            "title": "Kind"
+          },
+          "vocabulary": {
+            "type": "integer",
+            "title": "Vocabulary"
+          },
+          "guesses": {
+            "items": {
+              "$ref": "#/components/schemas/NearestGuess"
+            },
+            "type": "array",
+            "title": "Guesses"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "vocabulary",
+          "guesses",
+          "answer"
+        ],
+        "title": "NearestView"
       },
       "NooraDoneEvent": {
         "properties": {
@@ -25342,6 +27010,195 @@
         ],
         "title": "ParagraphBlock"
       },
+      "PlaceMove": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "place",
+            "title": "Kind"
+          },
+          "cell": {
+            "type": "integer",
+            "maximum": 80.0,
+            "minimum": 0.0,
+            "title": "Cell"
+          },
+          "digit": {
+            "type": "integer",
+            "maximum": 9.0,
+            "minimum": 1.0,
+            "title": "Digit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "cell",
+          "digit"
+        ],
+        "title": "PlaceMove",
+        "description": "A digit in a Sudoku cell (0-80, reading order)."
+      },
+      "Play": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "game": {
+            "type": "string",
+            "enum": [
+              "word",
+              "groups",
+              "search",
+              "quiz",
+              "nearest",
+              "sudoku"
+            ],
+            "title": "Game"
+          },
+          "variant": {
+            "type": "string",
+            "title": "Variant"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "playing",
+              "won",
+              "lost"
+            ],
+            "title": "Status"
+          },
+          "scored": {
+            "type": "boolean",
+            "title": "Scored"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "mistakes": {
+            "type": "integer",
+            "title": "Mistakes"
+          },
+          "hints": {
+            "type": "integer",
+            "title": "Hints"
+          },
+          "seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seconds"
+          },
+          "tooFast": {
+            "type": "boolean",
+            "title": "Toofast"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "share": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share"
+          },
+          "view": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WordView"
+              },
+              {
+                "$ref": "#/components/schemas/GroupsView"
+              },
+              {
+                "$ref": "#/components/schemas/SearchView"
+              },
+              {
+                "$ref": "#/components/schemas/QuizView"
+              },
+              {
+                "$ref": "#/components/schemas/NearestView"
+              },
+              {
+                "$ref": "#/components/schemas/SudokuView"
+              }
+            ],
+            "title": "View",
+            "discriminator": {
+              "propertyName": "kind",
+              "mapping": {
+                "groups": "#/components/schemas/GroupsView",
+                "nearest": "#/components/schemas/NearestView",
+                "quiz": "#/components/schemas/QuizView",
+                "search": "#/components/schemas/SearchView",
+                "sudoku": "#/components/schemas/SudokuView",
+                "word": "#/components/schemas/WordView"
+              }
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "game",
+          "variant",
+          "status",
+          "scored",
+          "points",
+          "mistakes",
+          "hints",
+          "seconds",
+          "tooFast",
+          "result",
+          "share",
+          "view"
+        ],
+        "title": "Play",
+        "description": "One person's play of one game on one day, as it stands."
+      },
+      "PlayOut": {
+        "properties": {
+          "info": {
+            "$ref": "#/components/schemas/GameInfo"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/Theme"
+          },
+          "play": {
+            "$ref": "#/components/schemas/Play"
+          }
+        },
+        "type": "object",
+        "required": [
+          "info",
+          "theme",
+          "play"
+        ],
+        "title": "PlayOut"
+      },
       "PollBlock": {
         "properties": {
           "type": {
@@ -25839,6 +27696,97 @@
           "emailed"
         ],
         "title": "PublishedIssue"
+      },
+      "QuizAnswered": {
+        "properties": {
+          "choice": {
+            "type": "integer",
+            "title": "Choice"
+          },
+          "answer": {
+            "type": "integer",
+            "title": "Answer"
+          },
+          "correct": {
+            "type": "boolean",
+            "title": "Correct"
+          },
+          "explain": {
+            "type": "string",
+            "title": "Explain"
+          }
+        },
+        "type": "object",
+        "required": [
+          "choice",
+          "answer",
+          "correct",
+          "explain"
+        ],
+        "title": "QuizAnswered"
+      },
+      "QuizQuestion": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prompt",
+          "options",
+          "source"
+        ],
+        "title": "QuizQuestion"
+      },
+      "QuizView": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "quiz",
+            "title": "Kind"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuizQuestion"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "answered": {
+            "items": {
+              "$ref": "#/components/schemas/QuizAnswered"
+            },
+            "type": "array",
+            "title": "Answered"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "questions",
+          "answered"
+        ],
+        "title": "QuizView"
       },
       "ReactionCounts": {
         "properties": {
@@ -27308,6 +29256,27 @@
         "title": "ScanGap",
         "description": "A published paper, report or solutions file the text reader found no words in (a scan), or couldn't read:\nsearch finds it by its title only, and Mini Noora can't read it."
       },
+      "SearchFound": {
+        "properties": {
+          "word": {
+            "type": "string",
+            "title": "Word"
+          },
+          "start": {
+            "$ref": "#/components/schemas/Cell"
+          },
+          "end": {
+            "$ref": "#/components/schemas/Cell"
+          }
+        },
+        "type": "object",
+        "required": [
+          "word",
+          "start",
+          "end"
+        ],
+        "title": "SearchFound"
+      },
       "SearchHit": {
         "properties": {
           "type": {
@@ -27453,6 +29422,57 @@
           "events"
         ],
         "title": "SearchResults"
+      },
+      "SearchView": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "search",
+            "title": "Kind"
+          },
+          "grid": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Grid"
+          },
+          "words": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Words"
+          },
+          "found": {
+            "items": {
+              "$ref": "#/components/schemas/SearchFound"
+            },
+            "type": "array",
+            "title": "Found"
+          },
+          "hints": {
+            "items": {
+              "$ref": "#/components/schemas/Cell"
+            },
+            "type": "array",
+            "title": "Hints"
+          },
+          "misses": {
+            "type": "integer",
+            "title": "Misses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "grid",
+          "words",
+          "found",
+          "hints",
+          "misses"
+        ],
+        "title": "SearchView"
       },
       "Senior": {
         "properties": {
@@ -27976,6 +29996,102 @@
         "title": "StepUpStart",
         "description": "Which of the account's own identifiers gets the code: by default the email address, else the phone number."
       },
+      "Streak": {
+        "properties": {
+          "current": {
+            "type": "integer",
+            "title": "Current"
+          },
+          "best": {
+            "type": "integer",
+            "title": "Best"
+          },
+          "playedToday": {
+            "type": "boolean",
+            "title": "Playedtoday"
+          },
+          "freezeReady": {
+            "type": "boolean",
+            "title": "Freezeready"
+          },
+          "frozenDays": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Frozendays"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current",
+          "best",
+          "playedToday",
+          "freezeReady",
+          "frozenDays"
+        ],
+        "title": "Streak"
+      },
+      "SudokuView": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "sudoku",
+            "title": "Kind"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "easy",
+              "medium",
+              "hard"
+            ],
+            "title": "Difficulty"
+          },
+          "givens": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Givens"
+          },
+          "filled": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Filled"
+          },
+          "hinted": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Hinted"
+          },
+          "wrong": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlaceMove"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "difficulty",
+          "givens",
+          "filled",
+          "hinted",
+          "wrong"
+        ],
+        "title": "SudokuView"
+      },
       "SuggestionAccept": {
         "properties": {
           "chapterId": {
@@ -28376,6 +30492,29 @@
         ],
         "title": "TextMatch",
         "description": "Where a search's words were found inside the file: the words around them, and the page (PDFs)."
+      },
+      "Theme": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "blurb": {
+            "type": "string",
+            "title": "Blurb"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "blurb"
+        ],
+        "title": "Theme"
       },
       "ThreadCreate": {
         "properties": {
@@ -29300,6 +31439,76 @@
           "at"
         ],
         "title": "WatchedLesson"
+      },
+      "WordRow": {
+        "properties": {
+          "word": {
+            "type": "string",
+            "title": "Word"
+          },
+          "marks": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "hit",
+                "near",
+                "miss"
+              ]
+            },
+            "type": "array",
+            "title": "Marks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "word",
+          "marks"
+        ],
+        "title": "WordRow"
+      },
+      "WordView": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "word",
+            "title": "Kind"
+          },
+          "length": {
+            "type": "integer",
+            "title": "Length"
+          },
+          "maxGuesses": {
+            "type": "integer",
+            "title": "Maxguesses"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/WordRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "length",
+          "maxGuesses",
+          "rows",
+          "answer"
+        ],
+        "title": "WordView"
       }
     }
   }

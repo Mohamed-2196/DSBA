@@ -52,6 +52,7 @@ FeatureKey = Literal[
     "requests.done",
     "summary",
     "video_suggestions",
+    "daily",
 ]
 
 
