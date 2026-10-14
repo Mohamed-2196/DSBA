@@ -119,6 +119,22 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  texts:
+    # The text worker: reads the words of each published PDF and Word file once, for search inside papers.
+    build: ./api
+    environment: *api-env
+    command: sh -c "sleep 10; python -m app.cli text-worker"  # after the API has applied the migrations
+    volumes:
+      - ./api/app:/app/app
+    healthcheck:
+      disable: true
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
   backup:
     # A database dump into the bucket every 24 hours (backups/db/, the newest 14 kept). Restore:
     # docs/backend/DEPLOYMENT.md. MinIO without a KMS has no server-side encryption: none here.

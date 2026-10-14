@@ -27,7 +27,7 @@ from app.schemas.library import (
     StarResult,
 )
 from app.services import library as svc
-from app.services.search import text_query
+from app.services.search import text_query, words
 
 router = router_for("library", needs_feature(Feature.library))
 Uploader = Annotated[User, requires(Box.library_upload)]
@@ -54,14 +54,17 @@ def list_items(
 ) -> LibraryPage:
     """Published items for everyone. `starred` and `mine` need a session; `mine` includes pending and rejected.
     `q` searches titles, descriptions, authors and file names, plus the module's code and name and the kind
-    ("ST2133 past papers"); the last word matches as a prefix."""
+    ("ST2133 past papers"), and the words inside PDF and Word files (those found only there come after the rest,
+    with `match`: the words around them and the page); the last word matches as a prefix."""
     filters = svc.ListFilters(
         module_id=module_id, year=year, kind=kind, source=source, starred=starred, mine=mine, status=status_
     )
     tsq = text_query(q) if q and q.strip() else None
     if q and q.strip() and tsq is None:  # only symbols: nothing can match
         return LibraryPage(items=[], total=0, limit=limit, offset=offset)
-    items, total = svc.list_items(db, user, filters, tsquery=tsq, sort=sort, limit=limit, offset=offset)
+    items, total = svc.list_items(
+        db, user, filters, tsquery=tsq, terms=words(q or ""), sort=sort, limit=limit, offset=offset
+    )
     return LibraryPage(items=items, total=total, limit=limit, offset=offset)
 
 

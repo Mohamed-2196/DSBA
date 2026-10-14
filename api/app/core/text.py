@@ -6,6 +6,7 @@
   retry when a parallel request takes it first (a race answers 409 `retry` at worst; any other integrity error is
   raised as it is).
 - clip(): text cut to a length with an ellipsis, at a word if asked.
+- snippet(): plain text around the first match of a search's words.
 - short_id(), has_latin(): titles without Latin letters (Arabic, digits only) get a short id, not 'file-2'
   (decision D8)."""
 
@@ -25,6 +26,7 @@ from app.core.errors import conflict
 from app.models.base import Base
 
 SLUG_TRIES = 3
+SNIPPET_RADIUS = 80
 SHORT_ID_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789"
 SHORT_ID_LENGTH = 6  # 36^6: two billion
 
@@ -64,6 +66,28 @@ def clip(text: str, limit: int, *, at_word: bool = False) -> str:
             cut = cut[:space]
         cut = cut.rstrip(" ,.;:?!")
     return cut.rstrip() + "\u2026"
+
+
+def snippet(text: str | None, terms: list[str], radius: int = SNIPPET_RADIUS) -> str | None:
+    """About 2 x radius characters of plain text around the first match of any term, cut at word boundaries."""
+    t = re.sub(r"\s+", " ", text or "").strip()
+    if not t:
+        return None
+    low = t.lower()
+    hits = [i for i in (low.find(term) for term in terms) if i >= 0]
+    if not hits:
+        if len(t) <= radius * 2:
+            return t
+        return clip(t, radius * 2 + 1, at_word=True)
+    i = min(hits)
+    start, end = max(0, i - radius), min(len(t), i + radius)
+    if start > 0:
+        space = t.find(" ", start, i)
+        start = space + 1 if space >= 0 else start
+    if end < len(t):
+        space = t.rfind(" ", i, end)
+        end = space if space > i else end
+    return f"{'…' if start > 0 else ''}{t[start:end].strip()}{'…' if end < len(t) else ''}"
 
 
 def has_latin(text: str) -> bool:
