@@ -61,7 +61,10 @@ def test_the_baseline_seeds_the_roles_and_every_switch(scratch: tuple[Config, En
             "admin": None,
             "content-manager": "calendar.manage,career.edit,content.edit",
             "newsletter-manager": "newsletter.manage",
-            "rep": "calendar.manage,forum.moderate,library.manage,newsletter.manage,requests.manage,stats.view,summary.share",
+            "rep": (
+                "calendar.manage,forum.moderate,library.manage,newsletter.manage,requests.manage,stats.view,"
+                "summary.share"
+            ),
             "student": "forum.post,library.upload,newsletter.react,reports.create",
         }
         switches = dict(c.execute(text("SELECT feature, mode FROM feature_switches")).tuples().all())
