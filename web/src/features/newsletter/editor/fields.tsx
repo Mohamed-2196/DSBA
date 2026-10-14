@@ -40,6 +40,8 @@ interface FieldCommon {
   hideLabel?: boolean;
   placeholder?: string;
   className?: string;
+  /** shown but not editable (a voted poll's answers) */
+  disabled?: boolean;
 }
 
 export interface TextInputProps extends FieldCommon {

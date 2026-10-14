@@ -38,6 +38,7 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("forum", "GET", "/forum/stats"),
     ("forum", "GET", f"/forum/threads/{NOTHING}"),
     ("forum", "POST", "/forum/threads"),
+    ("forum.follow", "PUT", f"/forum/threads/{NOTHING}/follow"),
     ("forum", "GET", f"/media/{NOTHING}"),
     ("library", "GET", "/library/items"),
     ("library", "GET", "/library/facets"),
@@ -46,6 +47,7 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("newsletter", "GET", "/newsletter/issues"),
     ("newsletter", "GET", f"/newsletter/issues/{NOTHING}"),
     ("newsletter", "POST", "/newsletter/issues"),
+    ("newsletter.polls", "PUT", f"/newsletter/issues/{NOTHING}/polls/p/vote"),
     ("calendar", "GET", "/calendar/events"),
     ("calendar", "GET", "/calendar/upcoming"),
     ("calendar", "GET", "/calendar/feed.ics"),
@@ -53,6 +55,8 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("calendar", "POST", "/calendar/events"),
     ("career", "GET", "/career"),
     ("career", "PUT", "/career"),
+    ("career.seniors", "GET", "/career/seniors"),
+    ("career.seniors", "PUT", "/career/seniors/me"),
     ("notes", "GET", "/notes"),
     ("notes", "POST", "/notes"),
     ("notes", "GET", f"/notes/{NOTHING}"),
@@ -67,7 +71,17 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("summary", "GET", "/summary/preview?year=2"),
 ]
 # Features that arrive switched off (the migrations' switches): the tests switch them on first.
-OFF_AT_FIRST = ("notes", "board", "requests", "noora.ai", "summary")
+OFF_AT_FIRST = (
+    "notes",
+    "board",
+    "requests",
+    "noora.ai",
+    "forum.anonymous",
+    "forum.follow",
+    "newsletter.polls",
+    "career.seniors",
+    "summary",
+)
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
 # paths below it.

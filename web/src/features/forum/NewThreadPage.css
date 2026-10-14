@@ -25,6 +25,14 @@
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
+.forum-composer__senior {
+  padding: 10px 14px;
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  max-width: 75ch;
+}
 .forum-composer__link { color: var(--cobalt); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
 .forum-composer__link:hover { text-decoration: underline; }
 .forum-composer__count { color: var(--ink-2); font-size: var(--fs-12); font-variant-numeric: tabular-nums; }

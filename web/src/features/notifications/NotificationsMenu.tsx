@@ -1,6 +1,6 @@
 // Bell + dropdown in the top bar: the signed-in person's notifications from the API (hidden for guests).
 import { Link } from 'react-router-dom';
-import { Bell, CalendarDots, ChatsCircle, Check, Checks, FileArrowUp, FileX, HandWaving, Newspaper, SealCheck, ShieldCheck, type Icon } from '@phosphor-icons/react';
+import { Bell, BellRinging, CalendarDots, ChatsCircle, Check, Checks, FileArrowUp, FileX, HandWaving, Newspaper, SealCheck, ShieldCheck, Student, type Icon } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { NotificationOut } from '../../api/types';
 import { useAuth } from '../../auth';
@@ -15,6 +15,9 @@ const KIND_ICON: Record<Exclude<Kind, 'system'>, { icon: Icon; tone: string }> =
   thread_reply: { icon: ChatsCircle, tone: 'forum' },
   reply_reply: { icon: ChatsCircle, tone: 'forum' },
   answer_accepted: { icon: SealCheck, tone: 'signal' },
+  followed_reply: { icon: BellRinging, tone: 'forum' },
+  followed_answer: { icon: SealCheck, tone: 'forum' },
+  senior_question: { icon: Student, tone: 'forum' },
   upload_published: { icon: FileArrowUp, tone: 'signal' },
   upload_rejected: { icon: FileX, tone: 'alert' },
   new_issue: { icon: Newspaper, tone: 'newsletter' },

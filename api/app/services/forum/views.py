@@ -1,5 +1,8 @@
 """The forum's responses: ThreadSummary (lists), ThreadDetail (a thread with its replies) and Reply. People appear
-through accounts.public_user, the one UserPublic serialiser (code quality review CQ-6)."""
+through accounts.public_user, the one UserPublic serialiser (code quality review CQ-6).
+
+An anonymous thread's author is named only to themselves and to moderators (forum.moderate): everyone else gets
+author None and anonymous true, and so do the author's own replies in that thread."""
 
 from __future__ import annotations
 
@@ -14,6 +17,7 @@ from app.models import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVot
 from app.schemas.forum import Reply, ThreadDetail, ThreadSummary
 from app.services import access
 from app.services.accounts import public_user
+from app.services.forum import follows
 from app.services.forum.taxonomy import thread_year
 from app.services.forum.text import excerpt, first_image
 from app.services.forum.visibility import REPLY_OPTS, can_read_reply, gone, moderates
@@ -32,6 +36,12 @@ def _editable(post: ForumThread | ForumReply, mine: bool, mod: bool) -> bool:
     return mod if post.status == PostStatus.hidden else (mine or mod)
 
 
+def names_author(t: ForumThread, viewer: User | None) -> bool:
+    """Whether the viewer may see who wrote the thread: always, unless it is anonymous; then its author and
+    moderators only."""
+    return not t.anonymous or (viewer is not None and t.author_id == viewer.id) or moderates(viewer)
+
+
 def summary_dict(
     t: ForumThread, author: User | None, year: int | None, voted: bool, viewer: User | None
 ) -> dict[str, Any]:
@@ -45,8 +55,9 @@ def summary_dict(
         "module_id": t.module_id,
         "year": year,
         "tags": list(t.tags or []),
-        "author": public_user(author),
+        "author": public_user(author) if names_author(t, viewer) else None,
         "author_year": t.author_year,  # 1-3 or none: the database checks it
+        "anonymous": t.anonymous,
         "created_at": t.created_at,
         "last_activity_at": t.last_activity_at,
         "vote_count": t.vote_count,
@@ -71,12 +82,14 @@ def summaries(rows: Sequence[Row[Any]], viewer: User | None) -> list[ThreadSumma
 
 def reply_dict(r: ForumReply, author: User | None, t: ForumThread, viewer: User | None, voted: bool) -> dict[str, Any]:
     mine = viewer is not None and r.author_id == viewer.id
+    asker = t.anonymous and r.author_id is not None and r.author_id == t.author_id
     return {
         "id": r.id,
         "thread_id": r.thread_id,
         "parent_id": r.parent_id,
-        "author": public_user(author),
+        "author": public_user(author) if not asker or names_author(t, viewer) else None,
         "author_year": r.author_year,
+        "anonymous": asker,
         "body": _text(r),
         "created_at": r.created_at,
         "edited_at": r.edited_at,
@@ -149,5 +162,6 @@ def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDet
         can_edit=_editable(t, mine, mod),
         can_accept=(mine or mod) and t.status == PostStatus.visible,
         can_moderate=mod,
+        following=follows.level_of(db, t, viewer),
     )
     return ThreadDetail.model_validate(data)

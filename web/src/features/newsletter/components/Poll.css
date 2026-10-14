@@ -1,0 +1,17 @@
+/* A poll in an issue (nl-poll). */
+.nl-poll { display: grid; gap: var(--sp-12); max-width: var(--measure-serif); padding: var(--sp-16); border: 1px solid var(--line); border-radius: var(--r-panel); background: var(--surface); }
+.nl-poll__kicker { display: inline-flex; align-items: center; gap: var(--sp-4); color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); letter-spacing: 0.04em; text-transform: uppercase; }
+.nl-poll__question { font-size: var(--fs-20); font-weight: var(--fw-bold); line-height: var(--lh-heading); overflow-wrap: anywhere; }
+.nl-poll__answers { display: grid; gap: var(--sp-8); }
+.nl-poll__choice { min-height: 44px; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--r-control); background: var(--surface); color: var(--ink); font: inherit; font-size: var(--fs-16); text-align: start; cursor: pointer; overflow-wrap: anywhere; }
+.nl-poll__choice:hover:not(:disabled) { border-color: var(--cobalt); }
+.nl-poll__choice:focus-visible { outline: 2px solid var(--cobalt); outline-offset: 2px; }
+.nl-poll__choice:disabled { cursor: default; opacity: 0.7; }
+.nl-poll__results { display: grid; gap: var(--sp-8); list-style: none; }
+.nl-poll__result { position: relative; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); min-height: 44px; padding: 10px 14px; border-radius: var(--r-control); background: var(--surface-2); overflow: hidden; }
+.nl-poll__bar { position: absolute; inset-block: 0; inset-inline-start: 0; background: color-mix(in srgb, var(--cobalt) 18%, transparent); }
+.nl-poll__result.is-mine .nl-poll__bar { background: color-mix(in srgb, var(--cobalt) 30%, transparent); }
+.nl-poll__answer, .nl-poll__share { position: relative; overflow-wrap: anywhere; }
+.nl-poll__share { font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); }
+.nl-poll__you { color: var(--ink-2); font-size: var(--fs-14); }
+.nl-poll__foot { color: var(--ink-2); font-size: var(--fs-14); }

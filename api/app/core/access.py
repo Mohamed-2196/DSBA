@@ -52,11 +52,15 @@ STUDENT_BOXES = frozenset({Box.forum_post, Box.library_upload, Box.newsletter_re
 
 class Feature(enum.StrEnum):
     forum = "forum"
+    forum_anonymous = "forum.anonymous"  # posting a thread without your name
+    forum_follow = "forum.follow"  # following a thread
     library = "library"
     library_uploads = "library.uploads"  # uploads only: the library stays readable
     newsletter = "newsletter"
+    newsletter_polls = "newsletter.polls"  # polls in issues: the issue reads without them
     calendar = "calendar"
     career = "career"
+    career_seniors = "career.seniors"  # seniors who answer, listed in Career Navigator
     grades = "grades"  # the web app's grades calculator: nothing in the API
     noora = "noora"  # Mini Noora, in the web app: nothing in the API
     noora_ai = "noora.ai"  # her answers from Claude (Mini Noora stays scripted without it)
@@ -82,7 +86,9 @@ BOXES: dict[Box, BoxInfo] = {
         "Library", "Upload files for review", "Your account can't upload to the library. Contact a student rep."
     ),
     Box.newsletter_react: BoxInfo(
-        "Newsletter", "React to issues", "Your account can't react to the newsletter. Contact a student rep."
+        "Newsletter",
+        "React to issues and vote in their polls",
+        "Your account can't react to the newsletter. Contact a student rep.",
     ),
     Box.reports_create: BoxInfo(
         "Reports", "Report a post or a file", "Your account can't report posts or files. Contact a student rep."
@@ -140,11 +146,19 @@ class FeatureInfo(NamedTuple):
 
 FEATURES: dict[Feature, FeatureInfo] = {
     Feature.forum: FeatureInfo("Forum", "Every thread, reply and forum picture."),
+    Feature.forum_anonymous: FeatureInfo(
+        "Posting without a name", "The option to start a thread without your name. Threads posted so far stay unnamed."
+    ),
+    Feature.forum_follow: FeatureInfo("Following threads", "Following threads, and the notifications it sends."),
     Feature.library: FeatureInfo("Library", "Every file and link in the library, and uploads to it."),
     Feature.library_uploads: FeatureInfo("Library uploads", "Uploading to the library. It stays readable."),
     Feature.newsletter: FeatureInfo("Newsletter", "Every issue and its reactions."),
+    Feature.newsletter_polls: FeatureInfo("Newsletter polls", "The polls in issues and voting in them."),
     Feature.calendar: FeatureInfo("Calendar", "The calendar, its feeds and its events in search."),
     Feature.career: FeatureInfo("Career Navigator", "Career Navigator."),
+    Feature.career_seniors: FeatureInfo(
+        "Seniors who answer", "The seniors listed in Career Navigator, and signing up as one on Your account."
+    ),
     Feature.grades: FeatureInfo("Grades calculator", "The grades calculator."),
     Feature.noora: FeatureInfo("Mini Noora", "Mini Noora, the hub's helper."),
     Feature.noora_ai: FeatureInfo(

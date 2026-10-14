@@ -1,5 +1,5 @@
 // How people appear next to their posts. Authors are UserPublic ({ id, displayName, year, badge }) or null when the
-// account was deleted.
+// account was deleted, or when the post is anonymous and you are neither its author nor a moderator.
 import type { UserPublic } from '../../../api/types';
 import type { CohortYear } from '../../../state';
 
@@ -23,3 +23,23 @@ export function postYear(authorYear: CohortYear | null | undefined, user: UserPu
 export function sameAuthor(a: UserPublic | null | undefined, b: UserPublic | null | undefined): boolean {
   return !!a && !!b && a.id === b.id;
 }
+
+/** A post as its byline needs it: a thread, or a reply (anonymous: the anonymous thread's author replying in it). */
+export interface PostAuthor {
+  author: UserPublic | null;
+  authorYear: CohortYear | null;
+  anonymous: boolean;
+}
+
+/**
+ * The name a post shows: "A Year 1 student" for an anonymous post, unless you may see who wrote it (its author and
+ * the moderators), who get the name with "(no name shown)".
+ */
+export function postAuthorName(post: PostAuthor): string {
+  if (!post.anonymous) return authorName(post.author);
+  if (post.author) return `${authorName(post.author)} (no name shown)`;
+  return post.authorYear ? `A Year ${post.authorYear} student` : 'A student';
+}
+
+/** An anonymous post whose author you can't see: a neutral avatar, no badge. */
+export const unnamed = (post: PostAuthor): boolean => post.anonymous && !post.author;

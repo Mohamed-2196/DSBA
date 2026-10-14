@@ -73,6 +73,10 @@ def test_the_baseline_seeds_the_roles_and_every_switch(scratch: tuple[Config, En
             "notes": "off",
             "board": "off",
             "requests": "off",
+            "forum.anonymous": "off",
+            "forum.follow": "off",
+            "newsletter.polls": "off",
+            "career.seniors": "off",
             "noora.ai": "off",
             "summary": "off",
         }

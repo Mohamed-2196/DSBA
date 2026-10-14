@@ -3633,11 +3633,15 @@
             "schema": {
               "enum": [
                 "forum",
+                "forum.anonymous",
+                "forum.follow",
                 "library",
                 "library.uploads",
                 "newsletter",
+                "newsletter.polls",
                 "calendar",
                 "career",
+                "career.seniors",
                 "grades",
                 "noora",
                 "noora.ai",
@@ -6738,7 +6742,7 @@
           "forum"
         ],
         "summary": "Create Thread",
-        "description": "The author upvotes their own thread. Forum images in the body (/api/v1/media/<id>) are attached.\n\nErrors: rate_limited (429) after 10 threads in an hour.",
+        "description": "The author upvotes their own thread. Forum images in the body (/api/v1/media/<id>) are attached.\n\n`anonymous` (needs forum.anonymous): students see \"A Year N student\" in place of the author, everywhere the\nthread shows, and in its notifications. The author and those who moderate the forum (forum.moderate) still see\nwho it is, and the audit log records it (forum.thread.anonymous). Reports and rate limits apply as usual.\n`seniorId` (needs career.seniors): a listed senior asked from Career Navigator; they are notified.\n\nErrors: rate_limited (429) after 10 threads in an hour; feature_off (404) for `anonymous` or `seniorId` while\ntheir feature is off; invalid_input (422: the senior isn't taking questions).",
         "operationId": "create_thread_api_v1_forum_threads_post",
         "requestBody": {
           "required": true,
@@ -7318,6 +7322,120 @@
                     "$ref": "#/components/schemas/ThreadSummary"
                   },
                   "title": "Response Related Threads Api V1 Forum Threads  Thread Id  Related Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/forum/threads/{thread_id}/follow": {
+      "put": {
+        "tags": [
+          "forum"
+        ],
+        "summary": "Follow Thread",
+        "description": "Follow a thread: 'answers' (an accepted answer), 'replies' (every reply too) or 'off'. Voting for a thread or\nreplying in it starts at 'answers', unless you switched it off. The thread's author follows it already.",
+        "operationId": "follow_thread_api_v1_forum_threads__thread_id__follow_put",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowResult"
                 }
               }
             }
@@ -10066,7 +10184,7 @@
           "newsletter"
         ],
         "summary": "Update Issue",
-        "description": "Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are\nreplaced as a whole). Errors: slug_taken (409), invalid_input (422).",
+        "description": "Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are\nreplaced as a whole). Errors: slug_taken (409), poll_has_votes (409: a poll's answers changed after it got\nvotes), invalid_input (422).",
         "operationId": "update_issue_api_v1_newsletter_issues__issue_id__patch",
         "parameters": [
           {
@@ -10546,6 +10664,129 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReactionCounts"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/newsletter/issues/{issue_id}/polls/{poll_id}/vote": {
+      "put": {
+        "tags": [
+          "newsletter"
+        ],
+        "summary": "Vote In Poll",
+        "description": "One vote per person, and it can't be changed. The counts come back with it. Published issues only.\nErrors: already_voted (409), poll_closed (409), not_found (404: no such issue or poll), invalid_input (422: no\nsuch answer).",
+        "operationId": "vote_in_poll_api_v1_newsletter_issues__issue_id__polls__poll_id__vote_put",
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Issue Id"
+            }
+          },
+          {
+            "name": "poll_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Poll Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PollVoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PollResult"
                 }
               }
             }
@@ -12414,6 +12655,377 @@
         }
       }
     },
+    "/api/v1/career/seniors": {
+      "get": {
+        "tags": [
+          "seniors"
+        ],
+        "summary": "List Seniors",
+        "description": "The Year 3 students taking questions: name, cohort, badge, topics and their line. Never contact details.",
+        "operationId": "list_seniors_api_v1_career_seniors_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Senior"
+                  },
+                  "type": "array",
+                  "title": "Response List Seniors Api V1 Career Seniors Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/career/seniors/me": {
+      "get": {
+        "tags": [
+          "seniors"
+        ],
+        "summary": "My Listing",
+        "description": "The signed-in person's listing, and whether they may have one (Year 3 only).",
+        "operationId": "my_listing_api_v1_career_seniors_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MySenior"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "seniors"
+        ],
+        "summary": "Save Listing",
+        "description": "List yourself, change your topics or line, or pause. Errors: forbidden (403: not in Year 3).",
+        "operationId": "save_listing_api_v1_career_seniors_me_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeniorUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MySenior"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "seniors"
+        ],
+        "summary": "Remove Listing",
+        "description": "Take yourself off the list. Idempotent.",
+        "operationId": "remove_listing_api_v1_career_seniors_me_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/features": {
       "get": {
         "tags": [
@@ -13874,6 +14486,30 @@
             },
             "type": "array",
             "title": "Boardplans"
+          },
+          "follows": {
+            "items": {
+              "$ref": "#/components/schemas/ExportFollow"
+            },
+            "type": "array",
+            "title": "Follows"
+          },
+          "pollVotes": {
+            "items": {
+              "$ref": "#/components/schemas/ExportPollVote"
+            },
+            "type": "array",
+            "title": "Pollvotes"
+          },
+          "senior": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExportSenior"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -13893,7 +14529,10 @@
           "meToos",
           "emails",
           "board",
-          "boardPlans"
+          "boardPlans",
+          "follows",
+          "pollVotes",
+          "senior"
         ],
         "title": "AccountExport",
         "description": "Everything the Hub stores about the signed-in user (GET /me/export)."
@@ -15697,15 +16336,6 @@
             },
             "type": "object",
             "title": "Yearhints"
-          },
-          "seniors": {
-            "items": {
-              "$ref": "#/components/schemas/CareerSenior"
-            },
-            "type": "array",
-            "maxItems": 50,
-            "title": "Seniors",
-            "default": []
           }
         },
         "type": "object",
@@ -16027,80 +16657,6 @@
           "ask"
         ],
         "title": "CareerRole"
-      },
-      "CareerSenior": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "maxLength": 160,
-            "minLength": 1,
-            "title": "Name"
-          },
-          "short": {
-            "type": "string",
-            "maxLength": 60,
-            "minLength": 1,
-            "title": "Short"
-          },
-          "year": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "enum": [
-                  1,
-                  2,
-                  3
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Year"
-          },
-          "badge": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 60,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Badge"
-          },
-          "helps": {
-            "type": "string",
-            "maxLength": 600,
-            "minLength": 1,
-            "title": "Helps"
-          },
-          "ask": {
-            "type": "string",
-            "maxLength": 600,
-            "minLength": 1,
-            "title": "Ask"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "short",
-          "helps",
-          "ask"
-        ],
-        "title": "CareerSenior",
-        "description": "A Year 3 student or a recent graduate who answers questions."
       },
       "CareerSkill": {
         "properties": {
@@ -16835,6 +17391,9 @@
               "request_closed",
               "slug_taken",
               "not_published",
+              "already_voted",
+              "poll_closed",
+              "poll_has_votes",
               "unsupported_type",
               "too_large",
               "not_uploaded",
@@ -17063,6 +17622,9 @@
                   "thread_reply",
                   "reply_reply",
                   "answer_accepted",
+                  "followed_reply",
+                  "followed_answer",
+                  "senior_question",
                   "upload_published",
                   "upload_rejected",
                   "new_issue",
@@ -17126,6 +17688,41 @@
         ],
         "title": "ExportEmail",
         "description": "An email the Hub sent you, or will send (notifications and account notices; sign-in codes are not kept)."
+      },
+      "ExportFollow": {
+        "properties": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Threadid"
+          },
+          "threadSlug": {
+            "type": "string",
+            "title": "Threadslug"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "answers",
+              "replies",
+              "off"
+            ],
+            "title": "Level"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "threadId",
+          "threadSlug",
+          "level",
+          "createdAt"
+        ],
+        "title": "ExportFollow"
       },
       "ExportLibraryItem": {
         "properties": {
@@ -17358,6 +17955,9 @@
               "thread_reply",
               "reply_reply",
               "answer_accepted",
+              "followed_reply",
+              "followed_answer",
+              "senior_question",
               "upload_published",
               "upload_rejected",
               "new_issue",
@@ -17423,6 +18023,41 @@
           "readAt"
         ],
         "title": "ExportNotification"
+      },
+      "ExportPollVote": {
+        "properties": {
+          "issueId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Issueid"
+          },
+          "issueSlug": {
+            "type": "string",
+            "title": "Issueslug"
+          },
+          "pollId": {
+            "type": "string",
+            "title": "Pollid"
+          },
+          "choice": {
+            "type": "integer",
+            "title": "Choice"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "issueId",
+          "issueSlug",
+          "pollId",
+          "choice",
+          "createdAt"
+        ],
+        "title": "ExportPollVote"
       },
       "ExportReaction": {
         "properties": {
@@ -17689,6 +18324,45 @@
         ],
         "title": "ExportRequest"
       },
+      "ExportSenior": {
+        "properties": {
+          "topics": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "internships",
+                "jobs",
+                "msc",
+                "electives",
+                "modules"
+              ]
+            },
+            "type": "array",
+            "title": "Topics"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "paused": {
+            "type": "boolean",
+            "title": "Paused"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topics",
+          "note",
+          "paused",
+          "createdAt"
+        ],
+        "title": "ExportSenior"
+      },
       "ExportThread": {
         "properties": {
           "id": {
@@ -17770,6 +18444,10 @@
           "replyCount": {
             "type": "integer",
             "title": "Replycount"
+          },
+          "anonymous": {
+            "type": "boolean",
+            "title": "Anonymous"
           }
         },
         "type": "object",
@@ -17785,7 +18463,8 @@
           "createdAt",
           "editedAt",
           "voteCount",
-          "replyCount"
+          "replyCount",
+          "anonymous"
         ],
         "title": "ExportThread"
       },
@@ -17824,11 +18503,15 @@
             "type": "string",
             "enum": [
               "forum",
+              "forum.anonymous",
+              "forum.follow",
               "library",
               "library.uploads",
               "newsletter",
+              "newsletter.polls",
               "calendar",
               "career",
+              "career.seniors",
               "grades",
               "noora",
               "noora.ai",
@@ -17907,11 +18590,15 @@
               "type": "string",
               "enum": [
                 "forum",
+                "forum.anonymous",
+                "forum.follow",
                 "library",
                 "library.uploads",
                 "newsletter",
+                "newsletter.polls",
                 "calendar",
                 "career",
+                "career.seniors",
                 "grades",
                 "noora",
                 "noora.ai",
@@ -17948,6 +18635,42 @@
           "expiresIn"
         ],
         "title": "FileLink"
+      },
+      "FollowRequest": {
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "answers",
+              "replies",
+              "off"
+            ],
+            "title": "Level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "level"
+        ],
+        "title": "FollowRequest"
+      },
+      "FollowResult": {
+        "properties": {
+          "following": {
+            "type": "string",
+            "enum": [
+              "answers",
+              "replies",
+              "off"
+            ],
+            "title": "Following"
+          }
+        },
+        "type": "object",
+        "required": [
+          "following"
+        ],
+        "title": "FollowResult"
       },
       "ForumMeta": {
         "properties": {
@@ -18312,6 +19035,13 @@
             },
             "type": "object",
             "title": "Reactions"
+          },
+          "polls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PollResult"
+            },
+            "type": "object",
+            "title": "Polls"
           }
         },
         "type": "object",
@@ -18328,7 +19058,8 @@
           "status",
           "publishedAt",
           "sections",
-          "reactions"
+          "reactions",
+          "polls"
         ],
         "title": "IssueDetail"
       },
@@ -18466,6 +19197,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/CtaBlock"
+                },
+                {
+                  "$ref": "#/components/schemas/PollBlock"
                 }
               ],
               "discriminator": {
@@ -18474,6 +19208,7 @@
                   "cta": "#/components/schemas/CtaBlock",
                   "list": "#/components/schemas/ListBlock",
                   "p": "#/components/schemas/ParagraphBlock",
+                  "poll": "#/components/schemas/PollBlock",
                   "signoff": "#/components/schemas/SignoffBlock"
                 }
               }
@@ -18497,6 +19232,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/CtaBlock"
+                },
+                {
+                  "$ref": "#/components/schemas/PollBlock"
                 }
               ],
               "discriminator": {
@@ -18505,6 +19243,7 @@
                   "cta": "#/components/schemas/CtaBlock",
                   "list": "#/components/schemas/ListBlock",
                   "p": "#/components/schemas/ParagraphBlock",
+                  "poll": "#/components/schemas/PollBlock",
                   "signoff": "#/components/schemas/SignoffBlock"
                 }
               }
@@ -19735,11 +20474,15 @@
               "type": "string",
               "enum": [
                 "forum",
+                "forum.anonymous",
+                "forum.follow",
                 "library",
                 "library.uploads",
                 "newsletter",
+                "newsletter.polls",
                 "calendar",
                 "career",
+                "career.seniors",
                 "grades",
                 "noora",
                 "noora.ai",
@@ -20539,6 +21282,50 @@
         ],
         "title": "ModuleSummary"
       },
+      "MySenior": {
+        "properties": {
+          "eligible": {
+            "type": "boolean",
+            "title": "Eligible"
+          },
+          "listed": {
+            "type": "boolean",
+            "title": "Listed"
+          },
+          "topics": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "internships",
+                "jobs",
+                "msc",
+                "electives",
+                "modules"
+              ]
+            },
+            "type": "array",
+            "title": "Topics"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "paused": {
+            "type": "boolean",
+            "title": "Paused"
+          }
+        },
+        "type": "object",
+        "required": [
+          "eligible",
+          "listed",
+          "topics",
+          "note",
+          "paused"
+        ],
+        "title": "MySenior",
+        "description": "The signed-in person's listing, and whether they may have one (Year 3 only)."
+      },
       "NooraDoneEvent": {
         "properties": {
           "type": {
@@ -21119,6 +21906,9 @@
               "thread_reply",
               "reply_reply",
               "answer_accepted",
+              "followed_reply",
+              "followed_answer",
+              "senior_question",
               "upload_published",
               "upload_rejected",
               "new_issue",
@@ -21382,6 +22172,109 @@
           "text"
         ],
         "title": "ParagraphBlock"
+      },
+      "PollBlock": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "poll",
+            "title": "Type"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "answers": {
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 2,
+            "title": "Answers"
+          },
+          "closed": {
+            "type": "boolean",
+            "title": "Closed",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "id",
+          "question",
+          "answers"
+        ],
+        "title": "PollBlock",
+        "description": "A question to the cohort with two to five answers: one vote per signed-in student, and the counts once you\nhave voted (needs the newsletter.polls feature). `id` keeps its votes: it is unique in the issue and stays put\nonce the issue is out."
+      },
+      "PollResult": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "counts": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counts"
+          },
+          "mine": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mine"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "counts",
+          "mine"
+        ],
+        "title": "PollResult",
+        "description": "A poll's votes. Nobody sees who voted."
+      },
+      "PollVoteRequest": {
+        "properties": {
+          "choice": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Choice"
+          }
+        },
+        "type": "object",
+        "required": [
+          "choice"
+        ],
+        "title": "PollVoteRequest"
       },
       "PostImage": {
         "properties": {
@@ -21677,6 +22570,13 @@
             "type": "object",
             "title": "Reactions"
           },
+          "polls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PollResult"
+            },
+            "type": "object",
+            "title": "Polls"
+          },
           "emailed": {
             "type": "boolean",
             "title": "Emailed"
@@ -21697,6 +22597,7 @@
           "publishedAt",
           "sections",
           "reactions",
+          "polls",
           "emailed"
         ],
         "title": "PublishedIssue"
@@ -21785,6 +22686,10 @@
             ],
             "title": "Authoryear"
           },
+          "anonymous": {
+            "type": "boolean",
+            "title": "Anonymous"
+          },
           "body": {
             "type": "string",
             "title": "Body"
@@ -21843,6 +22748,7 @@
           "parentId",
           "author",
           "authorYear",
+          "anonymous",
           "body",
           "createdAt",
           "editedAt",
@@ -23019,6 +23925,75 @@
         ],
         "title": "SearchResults"
       },
+      "Senior": {
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserPublic"
+          },
+          "topics": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "internships",
+                "jobs",
+                "msc",
+                "electives",
+                "modules"
+              ]
+            },
+            "type": "array",
+            "title": "Topics"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user",
+          "topics",
+          "note"
+        ],
+        "title": "Senior",
+        "description": "A listed senior: name, cohort and badge, the topics and their line. No contact details."
+      },
+      "SeniorUpdate": {
+        "properties": {
+          "topics": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "internships",
+                "jobs",
+                "msc",
+                "electives",
+                "modules"
+              ]
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Topics"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 140,
+            "title": "Note",
+            "default": ""
+          },
+          "paused": {
+            "type": "boolean",
+            "title": "Paused",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "topics"
+        ],
+        "title": "SeniorUpdate"
+      },
       "SessionInfo": {
         "properties": {
           "id": {
@@ -23509,6 +24484,23 @@
             "type": "array",
             "maxItems": 3,
             "title": "Tags"
+          },
+          "anonymous": {
+            "type": "boolean",
+            "title": "Anonymous",
+            "default": false
+          },
+          "seniorId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seniorid"
           }
         },
         "type": "object",
@@ -23606,6 +24598,10 @@
               }
             ],
             "title": "Authoryear"
+          },
+          "anonymous": {
+            "type": "boolean",
+            "title": "Anonymous"
           },
           "createdAt": {
             "type": "string",
@@ -23710,6 +24706,15 @@
           "canModerate": {
             "type": "boolean",
             "title": "Canmoderate"
+          },
+          "following": {
+            "type": "string",
+            "enum": [
+              "answers",
+              "replies",
+              "off"
+            ],
+            "title": "Following"
           }
         },
         "type": "object",
@@ -23724,6 +24729,7 @@
           "tags",
           "author",
           "authorYear",
+          "anonymous",
           "createdAt",
           "lastActivityAt",
           "voteCount",
@@ -23741,7 +24747,8 @@
           "replies",
           "canEdit",
           "canAccept",
-          "canModerate"
+          "canModerate",
+          "following"
         ],
         "title": "ThreadDetail"
       },
@@ -23921,6 +24928,10 @@
             ],
             "title": "Authoryear"
           },
+          "anonymous": {
+            "type": "boolean",
+            "title": "Anonymous"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -23991,6 +25002,7 @@
           "tags",
           "author",
           "authorYear",
+          "anonymous",
           "createdAt",
           "lastActivityAt",
           "voteCount",
