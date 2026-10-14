@@ -9,6 +9,8 @@ export interface SubscribeDialogProps {
   open: boolean;
   /** The cohort the student browses (the default choice). */
   year: CohortYear | null;
+  /** the student's papers in that year (null: all its modules) */
+  papers?: ReadonlySet<string> | null;
   onClose: () => void;
 }
 
@@ -19,7 +21,7 @@ type Choice = 'all' | `${CohortYear}`;
  * (/api/v1/calendar/feed.ics, one cohort or every cohort), a copy button, a webcal link for calendar
  * apps and a one-off download.
  */
-export function SubscribeDialog({ open, year, onClose }: SubscribeDialogProps) {
+export function SubscribeDialog({ open, year, papers, onClose }: SubscribeDialogProps) {
   const copyLink = useCopyLink();
   const [choice, setChoice] = useState<Choice>(year ? `${year}` : 'all');
   useEffect(() => {
@@ -27,9 +29,10 @@ export function SubscribeDialog({ open, year, onClose }: SubscribeDialogProps) {
   }, [open, year]);
 
   const chosen: CohortYear | null = choice === 'all' ? null : normalizeYear(Number(choice));
-  const url = feedUrl(chosen);
+  const mine = chosen && chosen === year && papers ? papers : null;
+  const url = feedUrl(chosen, mine);
   const webcal = url.replace(/^https?:/, 'webcal:');
-  const fileName = chosen ? `dsba-hub-year-${chosen}.ics` : 'dsba-hub.ics';
+  const fileName = chosen ? `dsba-hub-year-${chosen}${mine ? '-papers' : ''}.ics` : 'dsba-hub.ics';
 
   const copy = () => copyLink(url, 'Paste it into your calendar app to subscribe.');
 
@@ -76,7 +79,13 @@ export function SubscribeDialog({ open, year, onClose }: SubscribeDialogProps) {
               Copy
             </Button>
           }
-          hint={chosen ? `${cohortLabel(chosen)} dates and the dates for everyone.` : 'Every cohort’s dates.'}
+          hint={
+            mine
+              ? `Your papers’ dates, ${cohortLabel(chosen)}’s other dates and the dates for everyone. The link doesn’t say who you are.`
+              : chosen
+                ? `${cohortLabel(chosen)} dates and the dates for everyone.`
+                : 'Every cohort’s dates.'
+          }
         />
         <ul role="list" className="cal-subscribe__how">
           <li>

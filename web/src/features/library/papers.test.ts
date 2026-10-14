@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LibraryItem, PaperQuestion, Sitting } from '../../api/types';
-import { byChapter, clockLabel, paperContext, questionHref, questionLabel, sittingFiles } from './papers';
+import { byChapter, clockLabel, paperContext, questionHref, questionLabel, sittingFiles, yourZoneFirst } from './papers';
 
 function file(id: string, kind: LibraryItem['kind'], zone: string | null): LibraryItem {
   return {
@@ -114,5 +114,13 @@ describe('clockLabel', () => {
     expect(clockLabel(3 * 3600_000)).toBe('3:00:00');
     expect(clockLabel(4 * 60_000 + 7_000)).toBe('0:04:07');
     expect(clockLabel(-5)).toBe('0:00:00');
+  });
+});
+
+describe('yourZoneFirst', () => {
+  const z = (zone: 'A' | 'B' | null) => ({ zone, papers: [], reports: [], solutions: [] });
+  it('puts your zone first, the rest as they came', () => {
+    expect(yourZoneFirst([z('A'), z('B'), z(null)], 'B').map((x) => x.zone)).toEqual(['B', 'A', null]);
+    expect(yourZoneFirst([z('A'), z('B')], null).map((x) => x.zone)).toEqual(['A', 'B']);
   });
 });

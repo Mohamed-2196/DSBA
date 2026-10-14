@@ -163,3 +163,9 @@ export function clockLabel(ms: number): string {
   const s = total % 60;
   return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
+
+/** A sitting's zones with the student's own zone first (null: as they come). */
+export function yourZoneFirst(zones: readonly SittingZone[], zone: SittingZone['zone']): SittingZone[] {
+  if (!zone) return [...zones];
+  return [...zones.filter((z) => z.zone === zone), ...zones.filter((z) => z.zone !== zone)];
+}

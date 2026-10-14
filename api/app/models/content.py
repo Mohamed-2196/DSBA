@@ -108,6 +108,11 @@ class CalendarEvent(Base):
     year: Mapped[int | None] = mapped_column(SmallInteger)  # None = everyone
     module_id: Mapped[str | None] = mapped_column(ForeignKey("modules.id", ondelete="SET NULL"))
     unit_code: Mapped[str | None] = mapped_column(String(16))
+    duration: Mapped[str | None] = mapped_column(String(40))  # an exam's length, as published: '3 hours'
+    rules: Mapped[str | None] = mapped_column(String(300))  # what to bring, calculators, ...
+    source: Mapped[str | None] = mapped_column(String(300))  # where the date comes from: a name or a link
+    checked_on: Mapped[dt.date | None] = mapped_column(Date)  # when someone last checked it against the source
+    employer_id: Mapped[str | None] = mapped_column(String(64))  # a careers date: the Career Navigator employer
     sample: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # a placeholder date
     created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = created_ts()

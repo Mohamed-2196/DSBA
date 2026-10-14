@@ -1,19 +1,22 @@
 import { LinkSimple, PencilSimple, Trash } from '@phosphor-icons/react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import { AddToBoard } from '../board/public';
 import { BREAKPOINTS, useMediaQuery, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, CohortBadge, cx, Drawer, IconButton, ModuleIcon } from '../../ui';
-import { daysUntil, formatLong, formatMonthYear, formatShort, formatShortYear, parseDay, weekdayOf } from '../../lib/dates';
+import { dayKey, daysUntil, formatLong, formatMonthYear, formatShort, formatShortYear, parseDay, weekdayOf } from '../../lib/dates';
 import { useCopyLink } from '../../lib/useCopyLink';
 import { AddExamsToCalendar, AddToCalendar } from './AddToCalendar';
 import { eventPageUrl } from './api';
 import { countdownLabel } from './dates';
-import { splitTitle, TYPE_BADGE_TONE, typeLabel, whenAndWhere } from './eventMeta';
+import { sourceLine, splitTitle, TYPE_BADGE_TONE, typeLabel, whenAndWhere, windowLeft } from './eventMeta';
 import type { CalendarEvent, EventType } from './types';
 
 export interface EventDrawerProps {
   event: CalendarEvent | null;
+  /** the student's papers in `year` (null: all its modules) */
+  papers?: ReadonlySet<string> | null;
   /** Every event on the calendar (for "also on this day" and the module's other dates). */
   events: CalendarEvent[];
   today: Date;
@@ -32,7 +35,7 @@ export interface EventDrawerProps {
  * calendar" (the API's .ics files). Opened from the list, the grid, the top of the page or a ?event=<id> link.
  * Moderators also get Edit and Delete.
  */
-export function EventDrawer({ event, events, today, year, hasExams, onClose, onOpen, onEdit, onDelete }: EventDrawerProps) {
+export function EventDrawer({ event, papers, events, today, year, hasExams, onClose, onOpen, onEdit, onDelete }: EventDrawerProps) {
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
   const copy = useCopyLink();
   const copyLink = (e: CalendarEvent) => copy(eventPageUrl(e), 'Anyone with the link sees this date on the DSBA Hub calendar.');
@@ -57,7 +60,7 @@ export function EventDrawer({ event, events, today, year, hasExams, onClose, onO
         ) : null
       }
     >
-      {event ? <DrawerContent event={event} events={events} today={today} onOpen={onOpen} examsYear={hasExams ? year : undefined} /> : null}
+      {event ? <DrawerContent event={event} events={events} today={today} onOpen={onOpen} examsYear={hasExams ? year : undefined} papers={papers} /> : null}
     </Drawer>
   );
 }
@@ -69,12 +72,14 @@ interface DrawerContentProps {
   onOpen: (e: CalendarEvent) => void;
   /** offer every exam of this cohort (null: of every cohort) as one file; undefined: no exams ahead */
   examsYear?: CohortYear | null;
+  /** the student's papers, for "All your exams" */
+  papers?: ReadonlySet<string> | null;
 }
 
 // The dates a student works towards: these can go on the study board.
 const BOARD_TYPES: ReadonlySet<EventType> = new Set(['exam', 'mock', 'deadline']);
 
-function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerContentProps) {
+function DrawerContent({ event, events, today, onOpen, examsYear, papers }: DrawerContentProps) {
   const { getModule } = useModules();
   const { featureOn } = useAuth();
   const date = parseDay(event.date);
@@ -85,6 +90,8 @@ function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerConten
   const sameDay = events.filter((e) => e.date === event.date && e.id !== event.id);
   const related = module ? events.filter((e) => e.moduleId === module.id) : [];
   const where = whenAndWhere(event);
+  const left = windowLeft(event, dayKey(today));
+  const source = sourceLine(event);
 
   return (
     <div className="cal-drawer__content">
@@ -103,7 +110,7 @@ function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerConten
           <span className="cal-drawer__weekday">{weekdayOf(date).long}</span>
           <span className="cal-drawer__monthyear">{formatMonthYear(date)}</span>
         </span>
-        <span className={cx('cal-drawer__countdown', days < 0 && 'is-past', event.type === 'exam' && days >= 0 && days <= 7 && 'is-soon')}>{countdownLabel(days)}</span>
+        <span className={cx('cal-drawer__countdown', days < 0 && !left && 'is-past', event.type === 'exam' && days >= 0 && days <= 7 && 'is-soon')}>{left ?? countdownLabel(days)}</span>
         <span className="visually-hidden">{formatLong(date)}</span>
       </div>
 
@@ -119,6 +126,29 @@ function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerConten
           {where}
         </p>
       ) : null}
+
+      {event.duration || event.rules ? (
+        <dl className="cal-drawer__facts">
+          {event.duration ? (
+            <div>
+              <dt>Length</dt>
+              <dd>{event.duration}</dd>
+            </div>
+          ) : null}
+          {event.rules ? (
+            <div>
+              <dt>Rules</dt>
+              <dd>{event.rules}</dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
+      {event.type === 'exam' && !event.rules && featureOn('forum') ? (
+        <p className="cal-drawer__note">
+          What to bring and which calculators: ask in the forum’s <Link to="/forum?tag=exams">Exam rules</Link> threads.
+        </p>
+      ) : null}
+      {source ? <p className="cal-drawer__note">{source}</p> : null}
 
       {featureOn('board') && BOARD_TYPES.has(event.type) ? <AddToBoard link={{ type: 'event', id: event.id }} className="cal-drawer__board" /> : null}
 
@@ -186,7 +216,7 @@ function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerConten
 
       {event.sample ? (
         <p className="cal-drawer__sample">
-          <b>Not confirmed yet.</b> Check with the programme office before you plan around it.
+          <b>Not confirmed yet.</b> Ask your student rep or the programme office before you plan around it.
         </p>
       ) : null}
 
@@ -196,7 +226,7 @@ function DrawerContent({ event, events, today, onOpen, examsYear }: DrawerConten
       </p>
       {examsYear !== undefined ? (
         <div className="cal-drawer__exams">
-          <AddExamsToCalendar year={examsYear} size="sm" />
+          <AddExamsToCalendar year={examsYear} papers={examsYear ? papers : null} size="sm" />
         </div>
       ) : null}
     </div>

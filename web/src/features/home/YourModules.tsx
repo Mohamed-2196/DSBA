@@ -7,6 +7,7 @@ import { useModules } from '../../state/modules';
 import { ModuleIcon, cx } from '../../ui';
 import { useCalendarEvents } from '../calendar/public';
 import { useModuleProgress } from '../modules/public';
+import { modulesFor, usePapers } from '../papers/public';
 import { dayKey, daysBetween, formatDayMonth, formatLongDay, inDays, parseDay } from '../../lib/dates';
 
 interface NextExam {
@@ -54,9 +55,10 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
   );
 }
 
-/** "Your modules": the year's modules as a quick list (unit code, name, progress, next exam). */
+/** "Your modules": the year's modules (your papers, once picked) as a quick list (unit code, name, progress, next exam). */
 export function YourModules({ year, today }: { year: CohortYear; today: Date }) {
-  const { getModulesForYear } = useModules();
+  const { modules: catalogue } = useModules();
+  const { papers } = usePapers();
   const exams = useCalendarEvents({ from: dayKey(today), type: 'exam' }, { enabled: useAuth().featureOn('calendar') });
   const nextExam = (moduleId: string): NextExam | null => {
     const e = (exams.data ?? []).find((ev) => ev.moduleId === moduleId && !ev.sample);
@@ -65,7 +67,7 @@ export function YourModules({ year, today }: { year: CohortYear; today: Date }) 
     return { date, days: daysBetween(today, date) };
   };
   // In exam season the list reads in exam order (it doubles as the hero trace's legend).
-  const modules = getModulesForYear(year)
+  const modules = modulesFor(year, papers, catalogue)
     .map((m, i) => ({ m, i, exam: nextExam(m.id) }))
     .sort((a, b) => (a.exam ? a.exam.days : 1e6) - (b.exam ? b.exam.days : 1e6) || a.i - b.i);
   return (

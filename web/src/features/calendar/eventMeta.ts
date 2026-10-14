@@ -1,6 +1,7 @@
 // Presentation helpers for calendar events (shared by the page, the drawer and UpcomingEvents).
 // Pure functions: the module an event belongs to is passed in (useModules().getModule in components).
 import type { ModuleSummary } from '../../api/types';
+import { daysBetween, formatDay, monthName, parseDay, type DayKey } from '../../lib/dates';
 import type { CalendarEvent, EventType, EventTypeMeta } from './types';
 
 export const EVENT_TYPES: Record<EventType, EventTypeMeta> = {
@@ -8,6 +9,8 @@ export const EVENT_TYPES: Record<EventType, EventTypeMeta> = {
   mock: { label: 'Mock exam', token: '--cobalt', color: 'var(--cobalt)' },
   revision: { label: 'Revision', token: '--signal', color: 'var(--signal)' },
   deadline: { label: 'Deadline', token: '--highlight', color: 'var(--highlight)' },
+  // Application windows of Career Navigator's employers (IDEA-18).
+  careers: { label: 'Careers', token: '--ink', color: 'var(--ink)' },
   // Programme events (Speech Day, launches, socials). Amber is the one warm token the other types leave free; it is
   // also Year 3's cohort colour, so it never appears without the word "Event".
   event: { label: 'Event', token: '--y3', color: 'var(--y3)' },
@@ -16,7 +19,7 @@ export const EVENT_TYPES: Record<EventType, EventTypeMeta> = {
 };
 
 /** Legend / filter order. Also the order of importance when one day holds several events. */
-export const TYPE_ORDER: readonly EventType[] = ['exam', 'mock', 'revision', 'deadline', 'event', 'break', 'term'];
+export const TYPE_ORDER: readonly EventType[] = ['exam', 'mock', 'revision', 'deadline', 'careers', 'event', 'break', 'term'];
 
 export const isEventType = (value: unknown): value is EventType => typeof value === 'string' && value in EVENT_TYPES;
 
@@ -28,6 +31,7 @@ export const TYPE_BADGE_TONE: Record<EventType, BadgeTone> = {
   mock: 'cobalt',
   revision: 'signal',
   deadline: 'highlight',
+  careers: 'neutral',
   event: 'neutral',
   break: 'neutral',
   term: 'neutral',
@@ -91,6 +95,33 @@ export function eventSummary(e: CalendarEvent): string {
   return `${e.title}, ${typeLabel(e.type)}${e.year ? `, Year ${e.year}` : ', all years'}`;
 }
 
-/** Does an event apply to a cohort? Everyone-events (year null) apply to every cohort; year null → all. */
-export const appliesTo = (e: Pick<CalendarEvent, 'year'>, year: number | null | undefined): boolean =>
-  year == null || e.year == null || e.year === Number(year);
+/**
+ * A window that is open today (a VLE MCQ, coursework, applications): '4 days left' counting today, 'Last day
+ * today'. null when the event is a single day or isn't running today.
+ */
+export function windowLeft(e: Pick<CalendarEvent, 'date' | 'endDate'>, today: DayKey): string | null {
+  if (!e.endDate || e.endDate <= e.date || e.date > today || e.endDate < today) return null;
+  const left = daysBetween(today, e.endDate);
+  return left === 0 ? 'Last day today' : `${left + 1} days left`;
+}
+
+/**
+ * What an employer's card says about a careers date: 'Opens in January' (more than a month away), 'Opens 5
+ * January', 'Closes 30 November'. A careers date without an end day is a closing date. null once it has closed.
+ */
+export function applicationLine(e: Pick<CalendarEvent, 'date' | 'endDate'>, today: DayKey): string | null {
+  const close = e.endDate && e.endDate > e.date ? e.endDate : null;
+  if (close && e.date > today) {
+    const opens = parseDay(e.date);
+    return daysBetween(today, e.date) > 31 ? `Opens in ${monthName(opens.getMonth())}` : `Opens ${formatDay(opens, { year: false })}`;
+  }
+  const last = close ?? e.date;
+  if (last < today) return null;
+  return `Closes ${formatDay(parseDay(last), { year: false })}`;
+}
+
+/** 'Checked 10 October 2026 against UoL exam timetable' style line: where a date comes from. null without a source. */
+export function sourceLine(e: Pick<CalendarEvent, 'source' | 'checkedOn'>): string | null {
+  if (!e.source) return null;
+  return e.checkedOn ? `Source: ${e.source}. Checked ${formatDay(parseDay(e.checkedOn))}.` : `Source: ${e.source}.`;
+}

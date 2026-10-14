@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import datetime as dt
 import re
-from collections.abc import Iterable, Mapping
+from collections.abc import Collection, Iterable, Mapping
 from typing import NamedTuple
 
 from sqlalchemy import Select, and_, func, or_, select
@@ -31,11 +31,12 @@ TYPE_LABELS: dict[str, str] = {
     "mock": "Mock exam",
     "revision": "Revision",
     "deadline": "Deadline",
+    "careers": "Careers",
     "event": "Event",
     "break": "Break",
     "term": "Term dates",
 }
-SAMPLE_NOTE = "Not confirmed yet. Check with the programme office before you plan around it."
+SAMPLE_NOTE = "Not confirmed yet. Ask your student rep or the programme office before you plan around it."
 
 
 def cohort_label(year: int | None) -> str:
@@ -52,15 +53,23 @@ def events_query(
     year: int | None = None,
     module_id: str | None = None,
     type_: str | None = None,
+    papers: Collection[str] | None = None,
 ) -> Select[tuple[CalendarEvent]]:
-    """Events that overlap [start, end], for a cohort plus everyone-events, oldest first."""
+    """Events that overlap [start, end], for a cohort plus everyone-events, oldest first. With `papers` (module ids),
+    a module's events count only for those modules, whatever their year; the others still follow `year`."""
     q = select(CalendarEvent)
     if start is not None:
         q = q.where(func.coalesce(CalendarEvent.end_date, CalendarEvent.date) >= start)
     if end is not None:
         q = q.where(CalendarEvent.date <= end)
-    if year is not None:
-        q = q.where(or_(CalendarEvent.year == year, CalendarEvent.year.is_(None)))
+    in_year = or_(CalendarEvent.year == year, CalendarEvent.year.is_(None)) if year is not None else None
+    if papers is not None:
+        unlinked = CalendarEvent.module_id.is_(None)
+        q = q.where(
+            or_(CalendarEvent.module_id.in_(papers), and_(unlinked, in_year) if in_year is not None else unlinked)
+        )
+    elif in_year is not None:
+        q = q.where(in_year)
     if module_id is not None:
         q = q.where(CalendarEvent.module_id == module_id)
     if type_ is not None:
@@ -87,13 +96,15 @@ def upcoming(db: Session, n: int, year: int | None) -> list[CalendarEventOut]:
     return [CalendarEventOut.model_validate(e) for e in db.scalars(q)]
 
 
-def feed(db: Session, year: int | None, type_: str | None = None) -> str:
+def feed(db: Session, year: int | None, type_: str | None = None, papers: Collection[str] | None = None) -> str:
     """The iCalendar document for a cohort (plus everyone-events), or for everyone; with `type_`, only events of
-    that type (the exams)."""
-    events = db.scalars(events_query(year=year, type_=type_)).all()
+    that type (the exams); with `papers`, only those modules' events (events_query)."""
+    events = db.scalars(events_query(year=year, type_=type_, papers=papers)).all()
     module_ids = {e.module_id for e in events if e.module_id}
     modules = {m.id: m for m in db.scalars(select(Module).where(Module.id.in_(module_ids)))} if module_ids else {}
     name = f"DSBA Hub: Year {year}" if year else "DSBA Hub"
+    if papers is not None:
+        name = f"{name}, your papers"
     if type_ is not None:
         name = f"{name}, {TYPE_LABELS.get(type_, type_).lower()}s"
     return build_ics(events, modules, name=name, base_url=get_settings().web_base_url)
@@ -110,13 +121,16 @@ def event_ics(db: Session, event_id: str) -> str:
 
 # ── writing (moderators) ─────────────────────────────────────────────────────────────────────
 
-EDITABLE = ("date", "end_date", "time", "place", "title", "type", "year", "sample")
-CLEARABLE = ("end_date", "time", "place", "year")
+DETAILS = ("duration", "rules", "source", "checked_on", "employer_id")
+EDITABLE = ("date", "end_date", "time", "place", "title", "type", "year", "sample", *DETAILS)
+CLEARABLE = ("end_date", "time", "place", "year", *DETAILS)
 
 
-def _check_dates(date: dt.date, end_date: dt.date | None) -> None:
-    if end_date is not None and end_date < date:
+def _check(e: CalendarEvent) -> None:
+    if e.end_date is not None and e.end_date < e.date:
         raise invalid("endDate", "The last day can't be before the first.")
+    if e.type == "careers" and not e.source:
+        raise invalid("source", "Add where this date comes from. Careers dates show only with their source.")
 
 
 def get_event(db: Session, event_id: str) -> CalendarEvent:
@@ -129,7 +143,6 @@ def get_event(db: Session, event_id: str) -> CalendarEvent:
 def create_event(db: Session, user: User, body: CalendarEventCreate, ip: str | None) -> CalendarEvent:
     """A new date, with the id '<date>-<slug of the title>' ('-2' when taken). For a module's event the cohort is the
     module's year unless `year` is sent (null: everyone)."""
-    _check_dates(body.date, body.end_date)
     module = require_module(db, body.module_id)
     year = module.year if module is not None and "year" not in body.model_fields_set else body.year
     event = CalendarEvent(
@@ -142,9 +155,15 @@ def create_event(db: Session, user: User, body: CalendarEventCreate, ip: str | N
         year=year,
         module_id=module.id if module else None,
         unit_code=module.unit_code if module else None,
+        duration=body.duration or None,
+        rules=body.rules or None,
+        source=body.source or None,
+        checked_on=body.checked_on,
+        employer_id=body.employer_id,
         sample=body.sample,
         created_by=user.id,
     )
+    _check(event)
     # its id: the date and the title ('2026-12-03-mock-exam'), or the date and a short id for a title without Latin
     # letters ('2026-12-03-x3k9q2', decision D8)
     words = body.title if has_latin(body.title) else short_id()
@@ -167,7 +186,7 @@ def update_event(
         event.unit_code = module.unit_code if module else None
         changed += ["module_id", "unit_code"]
     try:
-        _check_dates(event.date, event.end_date)
+        _check(event)
     except ApiError:
         db.expire(event)  # drop the unsaved changes
         raise
@@ -325,8 +344,15 @@ def describe(e: CalendarEvent, module: Module | None) -> str:
         lines.append(f"Module: {module.unit_code + ' ' if module.unit_code else ''}{module.name}.")
     if e.time or e.place:
         lines.append(", ".join(p for p in (e.time, e.place) if p) + ".")
+    if e.duration:
+        lines.append(f"Length: {e.duration}.")
+    if e.rules:
+        lines.append(f"Rules: {e.rules}")
     if e.sample:
         lines.append(SAMPLE_NOTE)
+    if e.source:
+        checked = f", checked {e.checked_on.day} {e.checked_on:%B %Y}" if e.checked_on else ""
+        lines.append(f"Source: {e.source}{checked}.")
     if e.time or e.place:
         lines.append("From the DSBA Hub calendar (all-day event).")
     else:

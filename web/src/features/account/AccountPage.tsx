@@ -18,6 +18,7 @@ import { SeniorListing } from '../career/public';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { describeDevice } from './device';
 import { IdentifierDialog } from './IdentifierDialog';
+import { PapersButton } from '../papers/public';
 import './AccountPage.css';
 
 // ── Profile ──────────────────────────────────────────────────────────────────────────────────
@@ -447,6 +448,11 @@ export default function AccountPage() {
           <SeniorListing />
         </PageSection>
       ) : null}
+
+      <PageSection aria-labelledby="acct-papers">
+        <SectionHeader id="acct-papers" title="Your papers" description="Your option, electives and any paper from another year, and your zone. Only you see them." />
+        <PapersButton />
+      </PageSection>
 
       <PageSection aria-labelledby="acct-signin">
         <SectionHeader id="acct-signin" title="How you sign in" description="We send a code to one of these each time you sign in." />

@@ -123,6 +123,11 @@ def load_calendar(db: Session) -> int:
                 year=e.get("year"),
                 module_id=module_id if module_id in modules else None,
                 unit_code=e.get("unitCode"),
+                duration=e.get("duration"),
+                rules=e.get("rules"),
+                source=e.get("source"),
+                checked_on=dt.date.fromisoformat(e["checkedOn"]) if e.get("checkedOn") else None,
+                employer_id=e.get("employerId"),
                 sample=bool(e.get("sample")),
             )
         )

@@ -59,3 +59,19 @@ export function subjectDisplay(subject: Subject, picks: Picks, getModule: Module
 
 /** Rows grouped by year, in subject order. */
 export const YEARS: { year: 1 | 2 | 3; subjects: Subject[] }[] = ([1, 2, 3] as const).map((year) => ({ year, subjects: SUBJECTS.filter((s) => s.year === year) }));
+
+/**
+ * The calculator's choices filled from the student's papers (IDEA-10) where the calculator has none of its own:
+ * the option, and both electives together.
+ */
+export function withPaperPicks(picks: Picks, papers: readonly string[]): Picks {
+  const out: Picks = { ...picks };
+  const option = YEAR2_OPTIONS.find((o) => papers.includes(o.value));
+  if (!out.year2Option && option) out.year2Option = option.value;
+  const electives = ELECTIVE_OPTIONS.filter((o) => papers.includes(o.value)).map((o) => o.value);
+  if (!out.elective1 && !out.elective2) {
+    if (electives[0]) out.elective1 = electives[0];
+    if (electives[1]) out.elective2 = electives[1];
+  }
+  return out;
+}

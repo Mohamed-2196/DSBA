@@ -22,6 +22,18 @@ export function useCareer() {
   });
 }
 
+/** The employers as { id, name }: empty while there is nothing to show. */
+export function useEmployers(enabled = true) {
+  const career = useQuery({
+    queryKey: CAREER_KEY,
+    queryFn: async () => (await call(api.GET('/api/v1/career'))).data,
+    select: (doc: CareerDoc | null) => (usable(doc)?.employers ?? []).map((e) => ({ id: e.id, name: e.name })),
+    staleTime: 10 * 60_000,
+    enabled,
+  });
+  return career.data ?? [];
+}
+
 /** A module with its chapters (for links straight to a lesson): the modules feature's one cache entry for it. */
 export function useModuleDetail(moduleId: string | null | undefined) {
   return useQuery({ ...moduleDetailQuery(moduleId ?? ''), enabled: !!moduleId });

@@ -74,10 +74,22 @@ export function useNextExamForModule(moduleId: string | null | undefined, { enab
   });
 }
 
-/** The iCalendar feed for a cohort (null: every cohort), as an absolute URL calendar apps can subscribe to. */
-export function feedUrl(year: CohortYear | null): string {
-  const path = apiUrl(year ? `/api/v1/calendar/feed.ics?year=${year}` : '/api/v1/calendar/feed.ics');
-  return new URL(path, window.location.origin).href;
+/** The feed's query: a cohort, and a student's papers in it (module ids; nothing in it says who they are). */
+function feedQuery(year: CohortYear | null, papers: ReadonlySet<string> | null | undefined, type?: 'exam'): string {
+  const q = new URLSearchParams();
+  if (type) q.set('type', type);
+  if (year) q.set('year', String(year));
+  if (year && papers) q.set('modules', [...papers].sort().join(','));
+  const s = q.toString().replace(/%2C/g, ',');
+  return s ? `?${s}` : '';
+}
+
+/**
+ * The iCalendar feed for a cohort (null: every cohort), as an absolute URL calendar apps can subscribe to. With
+ * `papers`, a module's dates only for those papers.
+ */
+export function feedUrl(year: CohortYear | null, papers?: ReadonlySet<string> | null): string {
+  return new URL(apiUrl(`/api/v1/calendar/feed.ics${feedQuery(year, papers)}`), window.location.origin).href;
 }
 
 /** The address of a date on the calendar page, to share. */
@@ -87,7 +99,7 @@ export const eventPageUrl = (e: Pick<CalendarEvent, 'id'>): string => appUrl(`/c
 export const eventIcsUrl = (id: string): string => apiUrl(`/api/v1/calendar/events/${encodeURIComponent(id)}.ics`);
 
 /** Every exam of a cohort (and the exams for everyone; null: every cohort) as one .ics file. */
-export const examsIcsUrl = (year: CohortYear | null): string => apiUrl(year ? `/api/v1/calendar/feed.ics?type=exam&year=${year}` : '/api/v1/calendar/feed.ics?type=exam');
+export const examsIcsUrl = (year: CohortYear | null, papers?: ReadonlySet<string> | null): string => apiUrl(`/api/v1/calendar/feed.ics${feedQuery(year, papers, 'exam')}`);
 
 // ── Moderators ─────────────────────────────────────────────────────────────────────────────────
 

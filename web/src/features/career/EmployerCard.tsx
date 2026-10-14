@@ -18,7 +18,10 @@ import {
   type Icon,
 } from '@phosphor-icons/react';
 import type { CareerEmployer, CareerOffer, CareerTrack } from '../../api/types';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../auth';
 import { Badge, Button, Panel, cx } from '../../ui';
+import { applicationLine, dayKeyFromToday, useCalendarEvents, type CalendarEvent } from '../calendar/public';
 import { hostOf } from '../../lib/share';
 import { useCareerData } from './context';
 import { webUrl } from './lib/links';
@@ -57,6 +60,19 @@ function programmeLine(employer: CareerEmployer): string {
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
+/** The employer's next application date on the calendar, with what its card says about it. */
+function useApplicationDate(employerId: string): { event: CalendarEvent; line: string } | null {
+  const { featureOn } = useAuth();
+  const today = dayKeyFromToday();
+  const dates = useCalendarEvents({ type: 'careers', from: today }, { enabled: featureOn('calendar') });
+  for (const event of dates.data ?? []) {
+    if (event.employerId !== employerId) continue;
+    const line = applicationLine(event, today);
+    if (line) return { event, line };
+  }
+  return null;
+}
+
 export function EmployerCard({ employer, track, tracks }: { employer: CareerEmployer; track: string; tracks: Map<string, CareerTrack> }) {
   const { offerTypes: labels, ctaLabel } = useCareerData();
   const types = offerTypes(employer);
@@ -64,6 +80,7 @@ export function EmployerCard({ employer, track, tracks }: { employer: CareerEmpl
   const url = webUrl(employer.url);
   const host = hostOf(url);
   const SectorIcon = SECTOR_ICONS[employer.sector] ?? Buildings;
+  const applications = useApplicationDate(employer.id);
   return (
     <Panel as="li" padding="none" id={`career-emp-${employer.id}`} className="career-emp" data-hub="career-employer" data-employer-id={employer.id} data-offer-types={types.join(' ')}>
       <div className="career-emp__top">
@@ -88,6 +105,12 @@ export function EmployerCard({ employer, track, tracks }: { employer: CareerEmpl
       <div className="career-emp__body">
         {programme ? <p className="career-emp__programme">{programme}</p> : null}
         <p className="career-emp__why">{employer.why}</p>
+        {applications ? (
+          <p className="career-emp__dates" data-hub="career-application-date">
+            <Link to={`/calendar?event=${encodeURIComponent(applications.event.id)}`}>{applications.line}</Link>
+            <span className="career-emp__dates-title">{applications.event.title}</span>
+          </p>
+        ) : null}
       </div>
 
       <ul role="list" className="career-emp__tracks" aria-label="Good for">

@@ -4,13 +4,13 @@ from datetime import date, datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import StringConstraints, WithJsonSchema
+from pydantic import Field, StringConstraints, WithJsonSchema
 
 from app.schemas.access import BoxKey, FeatureKey, RoleSummary
 from app.schemas.board import BoardColumn, BoardLinkType
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
 from app.schemas.forum import Category, FollowLevel
-from app.schemas.library import ItemStatus, LibraryKind
+from app.schemas.library import ItemStatus, LibraryKind, Zone
 from app.schemas.moderation import ReportReason, ReportTarget
 from app.schemas.modules import Progress
 from app.schemas.notifications import NotificationKind
@@ -26,6 +26,9 @@ Code = Annotated[
 # 2-40 characters after trimming: letters (any script), digits, spaces and . ' -. The documented schema says so;
 # the rule itself is applied by PATCH /me, so that every bad name answers 422 invalid_display_name.
 DisplayName = Annotated[str, WithJsonSchema({"type": "string", "maxLength": 40, "minLength": 2})]
+# A paper someone sits: a module id ('econometrics'), or a choice the Hub has no module for ('abstract-maths').
+PaperId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9][a-z0-9-]{0,63}$")]
+MAX_PAPERS = 20
 
 
 class OtpStartRequest(ApiModel):
@@ -87,6 +90,10 @@ class Me(ApiModel):
     needs_profile: bool  # True until a display name is set: the web app asks for it right after sign-in
     created_at: datetime
     preferences: Preferences
+    # The papers this person sits (IDEA-10): their option, electives and papers from other years. Empty: every
+    # module of their year.
+    papers: list[str]
+    zone: Zone | None  # the zone whose papers they sit; None: not chosen
 
 
 class SignInResult(ApiModel):
@@ -106,6 +113,10 @@ class MeUpdate(ApiModel):
     display_name: DisplayName | None = None
     year: Year | None = None
     preferences: PreferencesUpdate | None = None
+    # The whole list (the order is kept, repeats are dropped); [] clears it. A new `year` clears it when no papers
+    # are sent with it.
+    papers: Annotated[list[PaperId], Field(max_length=MAX_PAPERS)] | None = None
+    zone: Zone | None = None  # null clears it
 
 
 class StepUpStart(ApiModel):

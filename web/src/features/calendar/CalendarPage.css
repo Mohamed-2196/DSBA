@@ -214,6 +214,7 @@
 .cal-chip--mock { --chip-bg: var(--cobalt-soft); }
 .cal-chip--revision { --chip-bg: var(--signal-soft); }
 .cal-chip--deadline { --chip-bg: var(--highlight-soft); }
+.cal-chip--careers { --chip-bg: var(--surface-2); }
 .cal-chip--event { --chip-bg: color-mix(in srgb, var(--y3) 15%, var(--surface)); }
 .cal-chip:hover { box-shadow: inset 0 0 0 1px var(--line-strong); }
 .cal-chip.is-selected { box-shadow: inset 0 0 0 2px var(--ink); }
@@ -418,3 +419,9 @@
   .cal-subscribe__body .ui-seg { justify-self: stretch; }
   .cal-subscribe__body .ui-seg__item { flex: 1 1 0; }
 }
+
+/* An exam's length and rules (IDEA-11) */
+.cal-drawer__facts { display: grid; gap: var(--sp-8); margin: 0; }
+.cal-drawer__facts div { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: var(--sp-12); }
+.cal-drawer__facts dt { color: var(--ink-2); font-size: var(--fs-14); }
+.cal-drawer__facts dd { margin: 0; color: var(--ink); font-size: var(--fs-14); line-height: 1.45; overflow-wrap: anywhere; }

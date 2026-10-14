@@ -1,6 +1,7 @@
 // Calendar queries: pure functions over a list of events from the API.
 import { addDaysToKey, parseDay, todayKey, type DayKey } from '../../lib/dates';
-import { appliesTo, TYPE_ORDER } from './eventMeta';
+import { isMine } from '../papers/public';
+import { TYPE_ORDER } from './eventMeta';
 import type { CalendarEvent, EventType } from './types';
 
 /** Local-midnight Date of an event (dates are calendar days, no time zone). */
@@ -33,9 +34,15 @@ export function listOrder<T extends Pick<CalendarEvent, 'date' | 'sample' | 'typ
     .map(({ e }) => e);
 }
 
-/** Events that apply to a cohort (year null → all) and, optionally, a set of types (empty: every type). */
-export function filterEvents(events: readonly CalendarEvent[], { year, types }: { year?: number | null; types?: ReadonlySet<EventType> } = {}): CalendarEvent[] {
-  return events.filter((e) => appliesTo(e, year) && (!types || types.size === 0 || types.has(e.type)));
+/** A student's papers (module ids; null: every module of their year), for the filters below. */
+type Papers = ReadonlySet<string> | null | undefined;
+
+/**
+ * Events that apply to a cohort (year null → all), to a student's papers when given (a module's events only for
+ * those modules) and, optionally, a set of types (empty: every type).
+ */
+export function filterEvents(events: readonly CalendarEvent[], { year, types, papers }: { year?: number | null; types?: ReadonlySet<EventType>; papers?: Papers } = {}): CalendarEvent[] {
+  return events.filter((e) => isMine(e, year ?? null, papers ?? null) && (!types || types.size === 0 || types.has(e.type)));
 }
 
 /** Events still to come on `from` (a day key): starting that day or later, or running through it. In list order. */
@@ -57,8 +64,8 @@ export interface NextExam {
  * dates come first: an unconfirmed exam never takes the place of a confirmed one, it is listed as coming before
  * it. null when no exam is ahead.
  */
-export function nextExamFor(events: readonly CalendarEvent[], { year, today }: { year: number | null; today: DayKey }): NextExam | null {
-  const ahead = listOrder(events.filter((e) => e.type === 'exam' && appliesTo(e, year) && e.date >= today));
+export function nextExamFor(events: readonly CalendarEvent[], { year, today, papers }: { year: number | null; today: DayKey; papers?: Papers }): NextExam | null {
+  const ahead = listOrder(events.filter((e) => e.type === 'exam' && isMine(e, year, papers ?? null) && e.date >= today));
   const i = Math.max(0, ahead.findIndex((e) => !e.sample));
   const exam = ahead[i];
   if (!exam) return null;
@@ -69,9 +76,9 @@ export function nextExamFor(events: readonly CalendarEvent[], { year, today }: {
 export const weekEnd = (today: DayKey, days = 7): DayKey => addDaysToKey(today, days - 1);
 
 /** What a cohort has on in the week ahead (today and the six days after it), every type, in list order. */
-export function weekAhead(events: readonly CalendarEvent[], { year, today, days = 7 }: { year: number | null; today: DayKey; days?: number }): CalendarEvent[] {
+export function weekAhead(events: readonly CalendarEvent[], { year, today, days = 7, papers }: { year: number | null; today: DayKey; days?: number; papers?: Papers }): CalendarEvent[] {
   const end = weekEnd(today, days);
-  return listOrder(events.filter((e) => appliesTo(e, year) && e.date <= end && lastDay(e) >= today));
+  return listOrder(events.filter((e) => isMine(e, year, papers ?? null) && e.date <= end && lastDay(e) >= today));
 }
 
 export interface DayGroup {

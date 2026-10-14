@@ -122,3 +122,9 @@
   .career-opps__tracks .ui-chip { flex: none; scroll-snap-align: start; }
   .career-emps > .career-emp { padding: var(--sp-16); }
 }
+
+/* Application dates from the calendar (IDEA-18) */
+.career-emp__dates { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--sp-8); margin-top: var(--sp-8); font-size: var(--fs-14); line-height: 1.4; }
+.career-emp__dates a { display: inline-flex; align-items: center; min-height: 44px; color: var(--cobalt-ink); font-weight: var(--fw-semibold); }
+@media (hover: hover) and (pointer: fine) { .career-emp__dates a { min-height: 0; } }
+.career-emp__dates-title { color: var(--ink-2); overflow-wrap: anywhere; }

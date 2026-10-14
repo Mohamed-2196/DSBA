@@ -131,6 +131,8 @@ def me_out(user: User) -> Me:
             "needs_profile": user.display_name is None,
             "created_at": user.created_at,
             "preferences": preferences_of(user),
+            "papers": list(user.papers or []),
+            "zone": user.zone,
         }
     )
 

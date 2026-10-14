@@ -22,6 +22,7 @@ import { useModules } from '../../state/modules';
 import { Badge, Button, Chip, CohortBadge, PageSection, Panel, ProgressRing, SectionHeader, cx } from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { useCareerData } from './context';
+import { usePapers } from '../papers/public';
 import { evaluateRole, type RoleFitResult, type SkillStatus } from './lib/fit';
 import { jumpTo } from './lib/jump';
 import { askLink } from './lib/links';
@@ -72,7 +73,8 @@ export function RoleFit({ role, onSelect, year }: RoleFitProps) {
   const data = useCareerData();
   const { getModule } = useModules();
   const startsThreads = useStartsThreads();
-  const fit = useMemo(() => evaluateRole(data, getModule, role, year), [data, getModule, role, year]);
+  const { papers } = usePapers();
+  const fit = useMemo(() => evaluateRole(data, getModule, role, year, papers), [data, getModule, role, year, papers]);
   // The skills ease in only when the student picks another role, never on arrival.
   const [swapped, setSwapped] = useState(false);
   const n = fit.covered.length;

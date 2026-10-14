@@ -15,6 +15,7 @@ import { LatestIssueCard } from '../newsletter/public';
 import { StartHereCard } from '../start/public';
 import { ExamTimeline } from './ExamTimeline';
 import { NewInLibrary } from './NewInLibrary';
+import { PapersButton, usePapers } from '../papers/public';
 import { getExamSession } from './session';
 import { addDays, dayKey, formatLongDay, parseDay, todayKey } from '../../lib/dates';
 import { greetingFor } from './time';
@@ -64,7 +65,8 @@ export default function HomePage() {
     return () => clearTimeout(t);
   }, [playing]);
 
-  const session = useMemo(() => getExamSession(calendar.data ?? [], activeYear, getModule, today), [calendar.data, activeYear, getModule, today]);
+  const { papers } = usePapers();
+  const session = useMemo(() => getExamSession(calendar.data ?? [], activeYear, getModule, today, { papers }), [calendar.data, activeYear, getModule, today, papers]);
   const name = status === 'signed-in' ? firstNameOf(me?.displayName) : null;
 
   return (
@@ -176,9 +178,12 @@ export default function HomePage() {
                 id="home-modules"
                 title="Your modules"
                 action={
-                  <Button variant="ghost" size="sm" to="/modules">
-                    All modules
-                  </Button>
+                  <span className="home-mods__actions">
+                    {year ? <PapersButton /> : null}
+                    <Button variant="ghost" size="sm" to="/modules">
+                      All modules
+                    </Button>
+                  </span>
                 }
               />
               <ErrorBoundary name="YourModules">

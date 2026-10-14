@@ -12,6 +12,7 @@ from app.core.pagination import YearParam
 from app.core.security import DB, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import router_for
+from app.schemas.auth import MAX_PAPERS
 from app.schemas.calendar import (
     CalendarEventCreate,
     CalendarEventOut,
@@ -26,6 +27,7 @@ from app.services import calendar as svc
 router = router_for("calendar", needs_feature(Feature.calendar))
 
 FEED_CACHE = "public, max-age=900"
+PAPERS_PATTERN = r"^[a-z0-9][a-z0-9-]{0,63}(,[a-z0-9][a-z0-9-]{0,63})*$"
 PRIVATE_FEED_CACHE = "private, no-store"
 
 
@@ -62,14 +64,22 @@ def upcoming(
     responses={200: {"content": {"text/calendar": {"schema": {"type": "string"}}}}},
 )
 def ics_feed(
-    db: DB, year: YearParam | None = None, type_: EventType | None = Query(default=None, alias="type")
+    db: DB,
+    year: YearParam | None = None,
+    type_: EventType | None = Query(default=None, alias="type"),
+    modules: Annotated[str | None, Query(max_length=1400, pattern=PAPERS_PATTERN)] = None,
 ) -> Response:
     """An iCalendar feed to subscribe to from Google Calendar or Outlook (one cohort plus everyone-events, or all).
-    `type=exam` gives only the exams (the web app's "Download the exams")."""
+    `type=exam` gives only the exams (the web app's "Download the exams"). `modules` (comma-separated module ids,
+    up to 20) keeps a module's events to those papers, from any year: the feed of someone's own papers, with
+    nothing in the address that says who they are."""
+    papers = sorted(set(modules.split(",")))[:MAX_PAPERS] if modules else None
     name = f"dsba-hub-year-{year}" if year else "dsba-hub"
+    if papers is not None:
+        name = f"{name}-papers"
     file_name = f"{name}-{type_}s.ics" if type_ else f"{name}.ics"
     return Response(
-        content=svc.feed(db, year, type_).encode("utf-8"),
+        content=svc.feed(db, year, type_, papers).encode("utf-8"),
         media_type="text/calendar; charset=utf-8",
         headers={"Content-Disposition": f'inline; filename="{file_name}"', "Cache-Control": feed_cache(db)},
     )

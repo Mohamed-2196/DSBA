@@ -97,6 +97,11 @@ def test_filters(client_for: Clients, events: dict[str, CalendarEvent], today: d
         "year": 2,
         "moduleId": "advanced-stats-inferential",
         "unitCode": "ST2134",
+        "duration": None,
+        "rules": None,
+        "source": None,
+        "checkedOn": None,
+        "employerId": None,
         "sample": True,
     }
 
@@ -143,7 +148,7 @@ def test_ics_feed(client_for: Clients, events: dict[str, CalendarEvent], today: 
     assert mock["DTSTART;VALUE=DATE"] == day(3)
     assert mock["DTEND;VALUE=DATE"] == day(4)  # exclusive: the next day
     assert mock["SUMMARY"] == "ST2134 Statistical Inference mock exam"  # led by the unit code
-    assert "Not confirmed yet. Check with the programme office" in mock["DESCRIPTION"]  # not "sample" (UX-13)
+    assert "Not confirmed yet. Ask your student rep or the programme office" in mock["DESCRIPTION"]  # not "sample" (UX-13)
     assert "ample" not in mock["DESCRIPTION"]
     assert "Module: ST2134 Advanced Statistics: Statistical Inference." in mock["DESCRIPTION"].replace("\\n", "\n")
     assert mock["DTSTAMP"].endswith("Z")
@@ -314,3 +319,93 @@ def test_feeds_are_cached_publicly_only_while_the_calendar_is_on_for_everyone(
     for path in ("/calendar/feed.ics", f"/calendar/events/{exam}.ics"):
         r = manager.get(f"{API}{path}")
         assert (r.status_code, r.headers["cache-control"]) == (200, "private, no-store")
+
+
+def test_a_feed_of_your_own_papers(client_for: Clients, events: dict[str, CalendarEvent], db: Session) -> None:
+    """IDEA-10: `modules` keeps a module's events to those papers, from any year; the rest follow `year`."""
+    db.add(
+        CalendarEvent(
+            id="other-year-exam", date=bahrain_today(), title="ST2133 exam", type="exam", year=2,
+            module_id="advanced-stats-distribution", unit_code="ST2133",
+        )
+    )
+    db.add(CalendarEvent(id="year2-day", date=bahrain_today(), title="Year 2 welcome", type="event", year=2))
+    db.commit()
+    feed = f"{API}/calendar/feed.ics"
+
+    def uids(**params: Any) -> list[str]:
+        r = client_for().get(feed, params=params)
+        assert r.status_code == 200, r.text
+        return sorted(line[4:].removesuffix("@dsba-hub") for line in unfold(r.text) if line.startswith("UID:"))
+
+    # a Year 1 student who also sits ST2133: Year 1's dates without a module, and the two papers
+    mine = uids(year=1, modules="mathematics,advanced-stats-distribution")
+    assert mine == ["break", "mt1186-exam", "other-year-exam", "running-week"]
+    # a Year 2 student who doesn't sit ST2134: its mock is left out, Year 2's own day stays
+    assert uids(year=2, modules="advanced-stats-distribution") == [
+        "break",
+        "other-year-exam",
+        "past-exam",
+        "running-week",
+        "year2-day",
+    ]
+    r = client_for().get(feed, params={"year": 1, "modules": "mathematics", "type": "exam"})
+    assert "X-WR-CALNAME:DSBA Hub: Year 1\\, your papers\\, exams" in r.text
+    assert 'filename="dsba-hub-year-1-papers-exams.ics"' in r.headers["content-disposition"]
+    for bad in ("Mathematics", "a,,b", ",a", "a b", "x" * 65):
+        assert client_for().get(feed, params={"modules": bad}).status_code == 422
+
+
+def test_dates_that_tell_you_enough(client_for: Clients, moderator: User, modules: dict[str, Module]) -> None:
+    """IDEA-11: an exam's length, its rules, and where the date comes from and when it was checked."""
+    rep = client_for(moderator)
+    body = {
+        "date": "2026-10-19",
+        "title": "EC1002 Introduction to Economics (October exam)",
+        "type": "exam",
+        "moduleId": "economics",
+        "time": "10:00 AM",
+        "place": "BIBF exam hall",
+        "duration": "3 hours",
+        "rules": "Bring your student ID. No calculators.",
+        "source": "UoL October 2026 exam timetable",
+        "checkedOn": "2026-10-10",
+    }
+    r = rep.post(EVENTS, json=body)
+    assert r.status_code == 201, r.text
+    made = r.json()
+    assert (made["duration"], made["rules"], made["source"], made["checkedOn"]) == (
+        "3 hours",
+        "Bring your student ID. No calculators.",
+        "UoL October 2026 exam timetable",
+        "2026-10-10",
+    )
+    text = client_for().get(f"{API}/calendar/events/{made['id']}.ics").text.replace("\r\n ", "")
+    assert "Length: 3 hours." in text
+    assert "Rules: Bring your student ID. No calculators." in text
+    assert "Source: UoL October 2026 exam timetable\\, checked 10 October 2026." in text
+    cleared = rep.patch(f"{EVENTS}/{made['id']}", json={"rules": None, "duration": ""}).json()
+    assert (cleared["rules"], cleared["duration"], cleared["source"]) == (None, None, "UoL October 2026 exam timetable")
+    assert rep.post(EVENTS, json={**body, "rules": "x" * 301}).status_code == 422
+
+
+def test_careers_dates_need_their_source(client_for: Clients, moderator: User) -> None:
+    """IDEA-18: an application window for a Career Navigator employer, shown only with where it comes from."""
+    rep = client_for(moderator)
+    body = {
+        "date": "2026-11-01",
+        "endDate": "2026-11-30",
+        "title": "NBB EVOLVE applications",
+        "type": "careers",
+        "employerId": "nbb",
+    }
+    assert rep.post(EVENTS, json=body).json()["error"]["fields"] == {
+        "source": "Add where this date comes from. Careers dates show only with their source."
+    }
+    r = rep.post(EVENTS, json={**body, "source": "https://nbbonline.com/about/careers/"})
+    assert r.status_code == 201, r.text
+    made = r.json()
+    assert (made["type"], made["employerId"], made["year"]) == ("careers", "nbb", None)
+    assert rep.patch(f"{EVENTS}/{made['id']}", json={"source": None}).status_code == 422
+    assert rep.post(EVENTS, json={**body, "source": "x", "employerId": "NBB!"}).status_code == 422
+    assert "CATEGORIES:Careers" in client_for().get(f"{API}/calendar/feed.ics").text

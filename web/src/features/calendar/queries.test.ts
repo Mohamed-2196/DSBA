@@ -6,7 +6,7 @@ import type { CalendarEvent } from './types';
 let seq = 0;
 const ev = (date: string, over: Partial<CalendarEvent> = {}): CalendarEvent => {
   seq += 1;
-  return { id: `e${seq}`, date, endDate: null, time: null, place: null, title: `Event ${seq}`, type: 'exam', year: 2, moduleId: null, unitCode: null, sample: false, ...over };
+  return { id: `e${seq}`, date, endDate: null, time: null, place: null, title: `Event ${seq}`, type: 'exam', year: 2, moduleId: null, unitCode: null, duration: null, rules: null, source: null, checkedOn: null, employerId: null, sample: false, ...over };
 };
 const ids = (events: CalendarEvent[]) => events.map((e) => e.id);
 
