@@ -5,7 +5,7 @@ import { normalizeGrades, type ChoiceSlot, type Picks } from './classify';
 import { EMPTY_RECORD, type GradesRecord } from './examples';
 
 // Marks live only in this browser's localStorage: the calculator never sends them to the server. The key starts
-// with 'hub.mine.', so signing out clears them (shared lab computers: security review, finding 23).
+// with 'hub.mine.', so signing out clears them (lab computers are shared).
 export const STORAGE_KEY = 'hub.mine.grades';
 
 const SLOTS: readonly ChoiceSlot[] = ['year2Option', 'elective1', 'elective2'];
