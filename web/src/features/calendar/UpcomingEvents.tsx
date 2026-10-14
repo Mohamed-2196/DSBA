@@ -4,6 +4,7 @@ import { CalendarBlank } from '@phosphor-icons/react';
 import { cohortLabel, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, cx, EmptyState, QueryError, Skeleton } from '../../ui';
+import { isMine, usePapers } from '../papers/public';
 import { useUpcomingEvents } from './api';
 import { DateLeaf } from './DateLeaf';
 import { daysUntil, formatLong, parseDay, today as bahrainToday } from '../../lib/dates';
@@ -31,7 +32,10 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
   const year = forYear === undefined ? browsed : forYear;
   const { getModule } = useModules();
   const [today] = useState(() => bahrainToday());
-  const query = useUpcomingEvents({ n, year });
+  const { year: ownYear, papers: ownPapers } = usePapers();
+  const papers = year === ownYear ? ownPapers : null;
+  // With papers, read more and keep the student's own (another paper's dates drop out).
+  const query = useUpcomingEvents({ n: papers ? n * 4 : n, year });
 
   if (query.isPending) {
     return (
@@ -61,7 +65,7 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
     );
   }
 
-  const events = query.data;
+  const events = papers ? query.data.filter((e) => isMine(e, year ?? null, papers)).slice(0, n) : query.data;
   if (!events.length) {
     return (
       <div className="cal-upcoming cal-upcoming--empty" data-hub="upcoming-events">

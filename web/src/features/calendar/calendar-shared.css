@@ -12,6 +12,7 @@
 .cal-tone--mock { --tone: var(--cobalt); --tone-on: var(--cobalt-ink); --tone-soft: var(--cobalt-soft); --tone-text: var(--cobalt); }
 .cal-tone--revision { --tone: var(--signal); --tone-on: var(--highlight-ink); --tone-soft: var(--signal-soft); --tone-text: var(--signal-strong); }
 .cal-tone--deadline { --tone: var(--highlight); --tone-on: var(--highlight-ink); --tone-soft: var(--highlight-soft); --tone-text: var(--ink); }
+.cal-tone--careers { --tone: var(--ink); --tone-on: var(--surface); --tone-soft: var(--surface-2); --tone-text: var(--ink); }
 .cal-tone--event { --tone: var(--y3); --tone-on: var(--on-y3); --tone-soft: color-mix(in srgb, var(--y3) 15%, var(--surface)); --tone-text: var(--y3-strong); }
 .cal-tone--break { --tone: var(--ink-3); --tone-on: var(--highlight-ink); --tone-soft: var(--surface-2); --tone-text: var(--ink-2); }
 .cal-tone--term { --tone: var(--ink-2); --tone-on: var(--surface); --tone-soft: var(--surface-2); --tone-text: var(--ink-2); }
@@ -28,6 +29,7 @@
 .cal-dot--mock { background: var(--cobalt); }
 .cal-dot--revision { background: var(--signal); }
 .cal-dot--deadline { background: var(--highlight); box-shadow: 0 0 0 1px var(--ink); }
+.cal-dot--careers { background: var(--surface); box-shadow: inset 0 0 0 2px var(--ink); }
 .cal-dot--event { background: var(--y3); }
 .cal-dot--break { background: var(--ink-3); }
 .cal-dot--term { background: var(--ink-2); }
@@ -63,5 +65,6 @@
 .cal-leaf--mock { --leaf-band: var(--cobalt-soft); --leaf-band-ink: var(--cobalt); --leaf-edge: color-mix(in srgb, var(--cobalt) 32%, var(--line)); }
 .cal-leaf--revision { --leaf-band: var(--signal-soft); --leaf-band-ink: var(--signal-strong); --leaf-edge: color-mix(in srgb, var(--signal) 38%, var(--line)); }
 .cal-leaf--event { --leaf-band: color-mix(in srgb, var(--y3) 15%, var(--surface)); --leaf-band-ink: var(--y3-strong); --leaf-edge: color-mix(in srgb, var(--y3) 42%, var(--line)); }
+.cal-leaf--careers { --leaf-band: var(--surface-2); --leaf-band-ink: var(--ink); --leaf-edge: var(--line-strong); }
 .cal-leaf--deadline { --leaf-band: var(--highlight-soft); --leaf-band-ink: var(--ink); --leaf-edge: color-mix(in srgb, var(--highlight) 60%, var(--line-strong)); }
 .cal-leaf--today.is-solid { --leaf-band: var(--cobalt); --leaf-band-ink: var(--cobalt-ink); --leaf-edge: var(--cobalt); }

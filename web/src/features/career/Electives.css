@@ -3,7 +3,7 @@
 .electives__note { display: flex; align-items: flex-start; gap: var(--sp-12); padding: var(--sp-12) var(--sp-16); margin-bottom: var(--sp-24); }
 .electives__note svg { flex: none; margin-top: 3px; color: var(--ink-2); font-size: 18px; }
 .electives__note p { max-width: 72ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
-.electives__count { margin-bottom: var(--sp-16); color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); }
+.electives__count { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8) var(--sp-16); margin-bottom: var(--sp-16); color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); }
 
 .electives-page { container: electives / inline-size; }
 .electives { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-16); align-items: stretch; }
@@ -84,3 +84,4 @@
 @media (max-width: 699px) {
   .electives-link { padding: var(--sp-16); }
 }
+.electives__count p { margin: 0; }

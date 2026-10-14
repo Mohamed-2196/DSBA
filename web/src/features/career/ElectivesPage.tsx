@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import type { CareerDoc } from '../../api/types';
 import { useAuth } from '../../auth';
 import { ELECTIVES } from '../../data/guides';
+import { PapersButton } from '../papers/public';
 import { useModules } from '../../state/modules';
 import { Badge, Button, EmptyState, ModuleIcon, Page, PageHeader, Panel, QueryError, Skeleton } from '../../ui';
 import { useStartsThreads } from '../forum/public';
@@ -117,9 +118,10 @@ function ElectivesBody({ data }: { data: CareerDoc }) {
   }
   return (
     <>
-      <p className="electives__count">
-        You take {numberWord(ELECTIVES.pick)} of these {numberWord(list.length)}.
-      </p>
+      <div className="electives__count">
+        <p>You take {numberWord(ELECTIVES.pick)} of these {numberWord(list.length)}.</p>
+        <PapersButton />
+      </div>
       <div className="electives" data-hub="electives">
         {list.map((e) => (
           <ElectiveCard key={e.module.id} e={e} depthLabel={data.depthLabel} />

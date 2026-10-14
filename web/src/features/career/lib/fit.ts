@@ -46,13 +46,15 @@ const bestDepth = (list: readonly Teaching[]): number => list.reduce((m, t) => M
  *   later:   they don't yet, but a later year does.
  *   gap:     DSBA never takes it past an intro: it is yours to close.
  */
-export function evaluateSkill(data: CareerDoc, getModule: ModuleLookup, skillId: string, year: number): SkillFit | null {
+export function evaluateSkill(data: CareerDoc, getModule: ModuleLookup, skillId: string, year: number, papers: ReadonlySet<string> | null = null): SkillFit | null {
   const skill = data.skills[skillId];
   if (!skill) return null;
   const taught: Teaching[] = [];
   for (const t of skill.taught) {
     const mod = getModule(t.module);
-    if (mod) taught.push({ ...t, mod, chosen: data.chosen[t.module] ?? null });
+    const chosen = data.chosen[t.module] ?? null;
+    // a choice of the student's own year they didn't pick (their papers) doesn't count
+    if (mod && !(chosen && papers && mod.year === year && !papers.has(mod.id))) taught.push({ ...t, mod, chosen });
   }
   const soFar = taught.filter((t) => t.mod.year <= year);
   const ahead = taught.filter((t) => t.mod.year > year);
@@ -81,8 +83,8 @@ export function evaluateSkill(data: CareerDoc, getModule: ModuleLookup, skillId:
 }
 
 /** Every skill of a role for a year, with the three headline counts. */
-export function evaluateRole(data: CareerDoc, getModule: ModuleLookup, role: CareerRole, year: number): RoleFitResult {
-  const rows = role.skills.map((id) => evaluateSkill(data, getModule, id, year)).filter((r): r is SkillFit => r !== null);
+export function evaluateRole(data: CareerDoc, getModule: ModuleLookup, role: CareerRole, year: number, papers: ReadonlySet<string> | null = null): RoleFitResult {
+  const rows = role.skills.map((id) => evaluateSkill(data, getModule, id, year, papers)).filter((r): r is SkillFit => r !== null);
   const by = (status: SkillStatus) => rows.filter((r) => r.status === status);
   return { rows, covered: by('covered'), later: by('later'), gaps: by('gap'), total: rows.length };
 }

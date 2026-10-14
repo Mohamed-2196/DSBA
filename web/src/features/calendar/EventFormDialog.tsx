@@ -5,6 +5,8 @@ import { moduleLabel } from '../../lib/modules';
 import { cohortLabel, normalizeYear, YEARS, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, Modal, Select, TextField } from '../../ui';
+import { useAuth } from '../../auth';
+import { useEmployers } from '../career/public';
 import { useCreateEvent, useUpdateEvent } from './api';
 import { EVENT_TYPES, isEventType, TYPE_ORDER } from './eventMeta';
 import type { CalendarEvent, EventInput, EventType } from './types';
@@ -38,6 +40,14 @@ interface FormState {
   moduleId: string; // '' = none
   time: string;
   place: string;
+  /** an exam's length and rules (exams and mocks) */
+  duration: string;
+  rules: string;
+  /** where the date comes from, and when it was last checked against it */
+  source: string;
+  checkedOn: string;
+  /** a careers date's employer ('' = none) */
+  employerId: string;
   sample: boolean;
   /** Tell the cohort about a new date, time or place, or a confirmation (editing an exam, mock or deadline). */
   tell: boolean;
@@ -63,6 +73,11 @@ const fromEvent = (e: CalendarEvent | null, getModule: ModuleLookup, defaultDate
   moduleId: e?.moduleId ?? '',
   time: e?.time ?? '',
   place: e?.place ?? '',
+  duration: e?.duration ?? '',
+  rules: e?.rules ?? '',
+  source: e?.source ?? '',
+  checkedOn: e?.checkedOn ?? '',
+  employerId: e?.employerId ?? '',
   sample: e?.sample ?? false,
   tell: true,
 });
@@ -80,6 +95,11 @@ function validate(f: FormState): FieldErrors {
   else if (f.endDate && f.date && f.endDate < f.date) errors.endDate = 'The end date can’t be before the start date.';
   if (f.time.trim().length > 40) errors.time = 'Keep the time under 40 characters.';
   if (f.place.trim().length > 120) errors.place = 'Keep the place under 120 characters.';
+  if (f.duration.trim().length > 40) errors.duration = 'Keep the length under 40 characters.';
+  if (f.rules.trim().length > 300) errors.rules = 'Keep the rules under 300 characters.';
+  if (f.source.trim().length > 300) errors.source = 'Keep the source under 300 characters.';
+  if (f.checkedOn && !DATE_RE.test(f.checkedOn)) errors.checkedOn = 'Choose the day it was checked, or leave it empty.';
+  if (f.type === 'careers' && !f.source.trim()) errors.source = 'Add where this date comes from. Careers dates show only with their source.';
   return errors;
 }
 
@@ -95,12 +115,20 @@ const API_FIELDS: Record<string, keyof FormState> = {
   module_id: 'moduleId',
   time: 'time',
   place: 'place',
+  duration: 'duration',
+  rules: 'rules',
+  source: 'source',
+  checkedOn: 'checkedOn',
+  employerId: 'employerId',
 };
+
+const EXAM_TYPES: ReadonlySet<EventType> = new Set(['exam', 'mock']);
 
 /** Moderators: add an event to the calendar, or edit one. */
 export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: EventFormDialogProps) {
   const uid = useId().replace(/:/g, '');
   const { modules, getModule } = useModules();
+  const employers = useEmployers(useAuth().featureOn('career'));
   const create = useCreateEvent();
   const update = useUpdateEvent();
   const [form, setForm] = useState<FormState>(() => fromEvent(event, getModule, defaultDate));
@@ -159,6 +187,11 @@ export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: 
       moduleId: form.moduleId || null,
       time: form.time.trim() || null,
       place: form.place.trim() || null,
+      duration: (EXAM_TYPES.has(form.type) && form.duration.trim()) || null,
+      rules: (EXAM_TYPES.has(form.type) && form.rules.trim()) || null,
+      source: form.source.trim() || null,
+      checkedOn: form.checkedOn || null,
+      employerId: (form.type === 'careers' && form.employerId) || null,
       sample: form.sample,
     };
     const fail = (err: unknown) => {
@@ -237,6 +270,34 @@ export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: 
         />
         <TextField label="Time" value={form.time} onChange={(e) => set('time', e.target.value)} error={errors.time} placeholder="12:30 PM" hint="As the organiser published it." />
         <TextField label="Place" value={form.place} onChange={(e) => set('place', e.target.value)} error={errors.place} placeholder="Auditorium" />
+        {EXAM_TYPES.has(form.type) ? (
+          <>
+            <TextField label="Length" value={form.duration} onChange={(e) => set('duration', e.target.value)} error={errors.duration} placeholder="3 hours" />
+            <TextField label="Rules" value={form.rules} onChange={(e) => set('rules', e.target.value)} error={errors.rules} placeholder="Bring your student ID. Casio fx-83 or fx-85 only." hint="What to bring, and which calculators." className="cal-form__wide" />
+          </>
+        ) : null}
+        {form.type === 'careers' ? (
+          <Select
+            label="Employer"
+            value={form.employerId}
+            onChange={(e) => set('employerId', e.target.value)}
+            options={[{ value: '', label: 'No employer' }, ...employers.map((m) => ({ value: m.id, label: m.name }))]}
+            error={errors.employerId}
+            hint="Its card in Career Navigator says when applications open or close. Set an end date for a window; without one, the date is the closing day."
+            className="cal-form__wide"
+          />
+        ) : null}
+        <TextField
+          label="Source"
+          required={form.type === 'careers'}
+          value={form.source}
+          onChange={(e) => set('source', e.target.value)}
+          error={errors.source}
+          placeholder="UoL October 2026 exam timetable"
+          hint="Where the date comes from: a name or a link. Students see it."
+          className="cal-form__wide"
+        />
+        <TextField label="Checked on" type="date" value={form.checkedOn} onChange={(e) => set('checkedOn', e.target.value)} error={errors.checkedOn} hint="When you last checked it against the source." />
         <label className="cal-form__check cal-form__wide">
           <input type="checkbox" checked={form.sample} onChange={(e) => set('sample', e.target.checked)} />
           <span>
