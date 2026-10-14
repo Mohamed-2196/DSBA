@@ -15,6 +15,7 @@ from app.config import Settings, get_settings
 from app.services.drive import (
     ApiKey,
     Drive,
+    DriveBlockedError,
     DriveDeniedError,
     DriveError,
     DriveFatalError,
@@ -32,6 +33,7 @@ from tests.content.fake_drive import (
     SERVICE_EMAIL,
     BrokenStream,
     FakeDrive,
+    automated_queries,
     google_error,
     listing,
     media,
@@ -183,6 +185,40 @@ def test_a_call_that_keeps_failing_gives_up_after_six_tries(fake: FakeDrive, dri
     assert caught.value.retryable
     assert len(fake.requests) == 6
     assert len(sleeps) == 5
+
+
+def test_googles_automated_queries_page_is_waited_out_with_long_waits(
+    fake: FakeDrive, drive: Drive, sleeps: list[float]
+) -> None:
+    fake.folder("root1", "Materials")
+    fake.file("f1", "a.pdf", "root1")
+    fake.queue(media("f1"), automated_queries(), automated_queries(429))
+    size, _ = drive.fetch(DriveFile("f1", "a.pdf", "application/pdf"), io.BytesIO(), limit=1024)
+    assert size == len(PDF)
+    assert sleeps == [60.0, 120.0]
+    assert drive.blocks == 2
+
+
+def test_a_block_that_outlasts_the_waits_is_fatal_and_says_what_to_do(
+    fake: FakeDrive, drive: Drive, sleeps: list[float]
+) -> None:
+    fake.folder("root1", "Materials")
+    fake.file("f1", "a.pdf", "root1")
+    fake.queue(media("f1"), *[automated_queries() for _ in range(6)])
+    with pytest.raises(DriveBlockedError) as caught:
+        drive.fetch(DriveFile("f1", "a.pdf", "application/pdf"), io.BytesIO(), limit=1024)
+    assert isinstance(caught.value, DriveFatalError)
+    assert caught.value.describe() == "403 automatedQueries"
+    assert "Wait an hour or so, then run the import again." in caught.value.message
+    assert sleeps == [60.0, 120.0, 240.0, 480.0, 600.0]  # doubling, up to ten minutes
+
+
+def test_an_html_403_that_isnt_the_block_is_a_refusal(fake: FakeDrive, drive: Drive) -> None:
+    fake.folder("root1", "Materials")
+    fake.queue(on_path("/files/root1"), httpx.Response(403, text="<html><title>Forbidden</title></html>"))
+    with pytest.raises(DriveDeniedError):
+        drive.get(Ref("root1"))
+    assert drive.blocks == 0
 
 
 @pytest.mark.parametrize(

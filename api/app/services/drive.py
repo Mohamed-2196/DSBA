@@ -13,9 +13,12 @@ bodies are read with a cap, and names, types and sizes are only hints (the impor
 first ones itself).
 
 Errors (`DriveError`): quota refusals (403 rateLimitExceeded or userRateLimitExceeded, and 429), server errors and
-broken connections are retried with exponential backoff, honouring Retry-After. A refusal for permission (403, 404) is
-`DriveDeniedError`. A problem with the credentials or the Cloud project (a bad or restricted key, the Drive API turned
-off, the day's quota spent) is `DriveFatalError`: no other call can work either, so the import stops."""
+broken connections are retried with exponential backoff and jitter, honouring Retry-After. Google's "automated
+queries" page (a 403 or 429 in HTML, without a reason: Google blocks the network for a while after many downloads in a
+row) is `DriveBlockedError`: waited out with far longer waits, then fatal, since every other download would be refused
+too. A refusal for permission (403, 404) is `DriveDeniedError`. A problem with the credentials or the Cloud project (a
+bad or restricted key, the Drive API turned off, the day's quota spent) is `DriveFatalError`: no other call can work
+either, so the import stops."""
 
 from __future__ import annotations
 
@@ -58,6 +61,8 @@ ERROR_MAX = 64 * 1024
 CHUNK = 256 * 1024
 REDIRECTS = 3
 RETRY_AFTER_MAX = 300.0
+BLOCK_DELAY = 60.0  # the first wait after Google's "automated queries" page; it doubles from there
+BLOCK_MAX_DELAY = 600.0
 TIMEOUT = httpx.Timeout(60.0, connect=15.0)
 
 # Google's error reasons: errors[].reason in Drive's own format, details[].reason (ErrorInfo) in the newer one.
@@ -86,6 +91,9 @@ FATAL = frozenset(
 NOT_PERMISSION = frozenset(
     {"exportSizeLimitExceeded", "downloadQuotaExceeded", "cannotDownloadAbusiveFile", "fileNotDownloadable"}
 )
+AUTOMATED = "automatedQueries"  # the reason the import gives Google's "Sorry..." page, which has none of its own
+# What Google's "Sorry..." page says ("your computer or network may be sending automated queries"), lower case.
+AUTOMATED_SIGNS = (b"automated queries", b"unusual traffic", b"<title>sorry...</title>")
 
 T = TypeVar("T")
 
@@ -125,6 +133,11 @@ class DriveDeniedError(DriveError):
 
 class DriveFatalError(DriveError):
     """The credentials or the Cloud project are wrong (or the day's quota is spent): no other call can work either."""
+
+
+class DriveBlockedError(DriveFatalError):
+    """Google's "automated queries" page: it blocks this network for a while (minutes to an hour or so) after many
+    requests in a row. Retried with long waits; once the waits are spent, nothing else can be downloaded either."""
 
 
 class TooLargeError(Exception):
@@ -252,6 +265,12 @@ def folder_in(url: str) -> Ref | None:
 
 def folder_url(ref: Ref) -> str:
     url = f"https://drive.google.com/drive/folders/{ref.id}"
+    return f"{url}?resourcekey={ref.resource_key}" if ref.resource_key else url
+
+
+def file_url(ref: Ref) -> str:
+    """Where a person opens the file in Drive."""
+    url = f"https://drive.google.com/file/d/{ref.id}/view"
     return f"{url}?resourcekey={ref.resource_key}" if ref.resource_key else url
 
 
@@ -397,6 +416,8 @@ class Drive:
         base_delay: float = 1.0,
         max_delay: float = 64.0,
         jitter: bool = True,
+        block_delay: float = BLOCK_DELAY,
+        block_max_delay: float = BLOCK_MAX_DELAY,
     ) -> None:
         if not credentials:
             raise ValueError("no credentials")
@@ -407,6 +428,9 @@ class Drive:
         self.base_delay = base_delay
         self.max_delay = max_delay
         self.jitter = jitter
+        self.block_delay = block_delay
+        self.block_max_delay = block_max_delay
+        self.blocks = 0  # how often Google's "automated queries" page was waited out: the import slows down after one
 
     def __enter__(self) -> Drive:
         return self
@@ -536,7 +560,10 @@ class Drive:
                 continue
             if not failure.retryable or attempt >= self.attempts:
                 raise failure
-            delay = self._delay(attempt, failure.retry_after)
+            blocked = isinstance(failure, DriveBlockedError)
+            if blocked:
+                self.blocks += 1
+            delay = self._delay(attempt, failure.retry_after, blocked=blocked)
             log.warning(
                 "Drive: %s; trying again in %.0f s (try %d of %d)",
                 failure.describe(),
@@ -583,8 +610,9 @@ class Drive:
             return self.http.build_request("GET", target)
         raise DriveError(f"Drive sent the download to {printable(host, 80) or 'an odd address'}: not followed.")
 
-    def _delay(self, attempt: int, retry_after: float | None) -> float:
-        delay = min(self.max_delay, self.base_delay * 2.0 ** (attempt - 1))
+    def _delay(self, attempt: int, retry_after: float | None, *, blocked: bool = False) -> float:
+        base, cap = (self.block_delay, self.block_max_delay) if blocked else (self.base_delay, self.max_delay)
+        delay = min(cap, base * 2.0 ** (attempt - 1))
         if retry_after is not None:
             delay = max(delay, min(retry_after, RETRY_AFTER_MAX))
         if self.jitter:
@@ -667,6 +695,15 @@ def classify(status: int, body: bytes, headers: httpx.Headers, scrub: Callable[[
     reasons, message = google_error(body)
     found = set(reasons)
     reason = reasons[0] if reasons else ""
+    if status in (403, 429) and not reasons and any(sign in body.lower() for sign in AUTOMATED_SIGNS):
+        return DriveBlockedError(
+            "Google is refusing requests from this network for now: it took the import's many downloads in a row for "
+            "automated queries. Wait an hour or so, then run the import again.",
+            status=status,
+            reason=AUTOMATED,
+            retryable=True,
+            retry_after=_retry_after(headers),
+        )
     text = scrub(message) if message else f"Drive answered {status}."
     if status in (429, 500, 502, 503, 504) or (status == 403 and found & QUOTA):
         return DriveError(text, status=status, reason=reason, retryable=True, retry_after=_retry_after(headers))
