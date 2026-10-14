@@ -65,6 +65,11 @@ def unlink(text: str) -> str:
     return " ".join(_LINK.sub(LINK_STANDIN, text).split())
 
 
+def has_link(text: str) -> bool:
+    """Whether `text` holds anything a mail or chat app would turn into a link."""
+    return _LINK.search(text) is not None
+
+
 def switch_footer(switch: str) -> list[str]:
     """The lines that end every email a switch governs: why it came, and where to turn it off (no token in the link:
     the switches are behind sign-in)."""

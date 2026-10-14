@@ -10,6 +10,7 @@ import { CohortPicker, type CohortChoice } from '../../auth/CohortPicker';
 import { formatPhone } from '../../auth/identifiers';
 import { PageLoader } from '../../shell/PageLoader';
 import { useToast } from '../../state';
+import { ModulesGate } from '../../state/ModulesProvider';
 import {
   Badge, Button, ConfirmDialog, Divider, EmptyState, Page, PageHeader, PageSection, Panel, QueryError, SectionHeader, Skeleton, Switch, TextField, formatDate, timeAgo,
 } from '../../ui';
@@ -469,7 +470,13 @@ export default function AccountPage() {
 
       <PageSection aria-labelledby="acct-papers">
         <SectionHeader id="acct-papers" title="Your papers" description="Your option, electives and any paper from another year, and your zone. Only you see them." />
-        <PapersButton />
+        {/* The page doesn't wait for the module catalogue; picking papers needs it. */}
+        <ModulesGate
+          fallback={<Skeleton lines={1} />}
+          error={(retry, error, retrying) => <QueryError error={error} title="Your papers didn’t load" onRetry={retry} retrying={retrying} size="sm" />}
+        >
+          <PapersButton />
+        </ModulesGate>
       </PageSection>
 
       <PageSection aria-labelledby="acct-signin">

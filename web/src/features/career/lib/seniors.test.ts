@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { askSeniorLink, topicLine } from './seniors';
+import { notEligible } from './seniors';
 
-describe('seniors', () => {
-  it('names the topics in the order given', () => {
-    expect(topicLine(['msc', 'internships'])).toBe('MSc applications, Internships');
+describe('notEligible', () => {
+  it('says when a new Year 3 account can list itself', () => {
+    expect(notEligible({ eligibleFrom: '2026-11-13T09:00:00Z' })).toBe('New accounts can answer as seniors after 30 days. You can list yourself from 13 Nov 2026.');
   });
-  it('asks a senior through the composer', () => {
-    expect(askSeniorLink('a b')).toBe('/forum/new?senior=a%20b');
+  it('sends anyone else to their year', () => {
+    expect(notEligible({ eligibleFrom: null })).toBe('Seniors are Year 3 students. Check your year under Profile.');
   });
 });

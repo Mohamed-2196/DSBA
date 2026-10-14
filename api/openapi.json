@@ -1714,6 +1714,7 @@
           "progress"
         ],
         "summary": "Get Progress",
+        "description": "Empty while the person keeps no progress: what they saved before is kept hidden until they turn it on.",
         "operationId": "get_progress_api_v1_me_progress_get",
         "responses": {
           "200": {
@@ -14018,7 +14019,7 @@
           "seniors"
         ],
         "summary": "My Listing",
-        "description": "The signed-in person's listing, and whether they may have one (Year 3 only).",
+        "description": "The signed-in person's listing, and whether they may have one (Year 3 accounts at least 30 days old).",
         "operationId": "my_listing_api_v1_career_seniors_me_get",
         "responses": {
           "200": {
@@ -14108,7 +14109,7 @@
           "seniors"
         ],
         "summary": "Save Listing",
-        "description": "List yourself, change your topics or line, or pause. Errors: forbidden (403: not in Year 3).",
+        "description": "List yourself, change your topics or line, or pause.\n\nErrors: forbidden (403: not in Year 3, or the account is under 30 days old), invalid (422: the line reads as\nstaff or holds a link).",
         "operationId": "save_listing_api_v1_career_seniors_me_put",
         "requestBody": {
           "content": {
@@ -24214,6 +24215,18 @@
             "type": "boolean",
             "title": "Eligible"
           },
+          "eligibleFrom": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eligiblefrom"
+          },
           "listed": {
             "type": "boolean",
             "title": "Listed"
@@ -24250,7 +24263,7 @@
           "paused"
         ],
         "title": "MySenior",
-        "description": "The signed-in person's listing, and whether they may have one (Year 3 only)."
+        "description": "The signed-in person's listing, and whether they may have one (Year 3 accounts at least 30 days old)."
       },
       "NooraDoneEvent": {
         "properties": {

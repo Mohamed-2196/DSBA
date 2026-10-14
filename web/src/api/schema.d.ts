@@ -353,7 +353,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Progress */
+        /**
+         * Get Progress
+         * @description Empty while the person keeps no progress: what they saved before is kept hidden until they turn it on.
+         */
         get: operations["get_progress_api_v1_me_progress_get"];
         put?: never;
         post?: never;
@@ -2199,12 +2202,15 @@ export interface paths {
         };
         /**
          * My Listing
-         * @description The signed-in person's listing, and whether they may have one (Year 3 only).
+         * @description The signed-in person's listing, and whether they may have one (Year 3 accounts at least 30 days old).
          */
         get: operations["my_listing_api_v1_career_seniors_me_get"];
         /**
          * Save Listing
-         * @description List yourself, change your topics or line, or pause. Errors: forbidden (403: not in Year 3).
+         * @description List yourself, change your topics or line, or pause.
+         *
+         *     Errors: forbidden (403: not in Year 3, or the account is under 30 days old), invalid (422: the line reads as
+         *     staff or holds a link).
          */
         put: operations["save_listing_api_v1_career_seniors_me_put"];
         post?: never;
@@ -5062,11 +5068,13 @@ export interface components {
         };
         /**
          * MySenior
-         * @description The signed-in person's listing, and whether they may have one (Year 3 only).
+         * @description The signed-in person's listing, and whether they may have one (Year 3 accounts at least 30 days old).
          */
         MySenior: {
             /** Eligible */
             eligible: boolean;
+            /** Eligiblefrom */
+            eligibleFrom?: string | null;
             /** Listed */
             listed: boolean;
             /** Topics */

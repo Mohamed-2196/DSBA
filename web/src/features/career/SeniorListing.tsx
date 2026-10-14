@@ -1,4 +1,4 @@
-// Your account: a Year 3 student lists themselves as a senior who answers questions (career.seniors), picks topics,
+// Your account: a Year 3 student (account at least 30 days old) lists themselves as a senior who answers questions (career.seniors), picks topics,
 // writes a line about what they did, pauses or leaves. Name, cohort and badge are shown; never contact details.
 import { useEffect, useState, type FormEvent } from 'react';
 import { errorMessage } from '../../api/errors';
@@ -6,7 +6,7 @@ import type { MySenior } from '../../api/types';
 import { useToast } from '../../state';
 import { Button, Chip, ConfirmDialog, Panel, QueryError, Skeleton, Switch, TextField } from '../../ui';
 import { useMySenior, useRemoveSenior, useSaveSenior } from './api';
-import { TOPICS, type SeniorTopic } from './lib/seniors';
+import { TOPICS, notEligible, type SeniorTopic } from './lib/seniors';
 import './SeniorListing.css';
 
 const NOTE_MAX = 140;
@@ -111,7 +111,7 @@ export function SeniorListing() {
   const mine = useMySenior(true);
   return (
     <Panel>
-      {mine.isPending ? <Skeleton lines={3} /> : mine.isError ? <QueryError error={mine.error} onRetry={() => void mine.refetch()} /> : mine.data.eligible ? <ListingForm mine={mine.data} /> : <p className="senior-form__note">Seniors are Year 3 students. Check your year under Profile.</p>}
+      {mine.isPending ? <Skeleton lines={3} /> : mine.isError ? <QueryError error={mine.error} onRetry={() => void mine.refetch()} /> : mine.data.eligible ? <ListingForm mine={mine.data} /> : <p className="senior-form__note">{notEligible(mine.data)}</p>}
     </Panel>
   );
 }

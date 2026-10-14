@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated, Literal
 
 from pydantic import Field, StringConstraints
@@ -28,9 +29,10 @@ class SeniorUpdate(ApiModel):
 
 
 class MySenior(ApiModel):
-    """The signed-in person's listing, and whether they may have one (Year 3 only)."""
+    """The signed-in person's listing, and whether they may have one (Year 3 accounts at least 30 days old)."""
 
     eligible: bool
+    eligible_from: datetime | None = None  # a Year 3 account too new to list: when it can
     listed: bool  # signed up (paused or not)
     topics: list[SeniorTopic]
     note: str

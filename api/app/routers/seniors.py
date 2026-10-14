@@ -21,13 +21,16 @@ def list_seniors(db: DB) -> list[Senior]:
 
 @router.get("/career/seniors/me", response_model=MySenior)
 def my_listing(user: CurrentUser, db: DB) -> MySenior:
-    """The signed-in person's listing, and whether they may have one (Year 3 only)."""
+    """The signed-in person's listing, and whether they may have one (Year 3 accounts at least 30 days old)."""
     return svc.mine(db, user)
 
 
 @router.put("/career/seniors/me", response_model=MySenior)
 def save_listing(body: SeniorUpdate, user: ActiveUser, db: DB) -> MySenior:
-    """List yourself, change your topics or line, or pause. Errors: forbidden (403: not in Year 3)."""
+    """List yourself, change your topics or line, or pause.
+
+    Errors: forbidden (403: not in Year 3, or the account is under 30 days old), invalid (422: the line reads as
+    staff or holds a link)."""
     out = svc.save(db, user, body)
     db.commit()
     return out

@@ -22,6 +22,15 @@ export const SIMILAR_MIN = 4;
 
 const listKey = (filters: RequestFilters) => [...REQUESTS_KEY, 'list', filters] as const;
 const oneKey = (id: string) => [...REQUESTS_KEY, 'one', id] as const;
+const doneKey = [...REQUESTS_KEY, 'done'] as const;
+
+/** After a request was answered, confirmed or removed: the lists, "You asked, we did" (on /requests and in the
+ *  newsletter) and Manage's counts follow. */
+export function requestsChanged(qc: QueryClient): void {
+  void qc.invalidateQueries({ queryKey: [...REQUESTS_KEY, 'list'] });
+  void qc.invalidateQueries({ queryKey: doneKey });
+  void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
+}
 
 export function useRequests(filters: RequestFilters, { enabled = true }: { enabled?: boolean } = {}) {
   return useInfiniteQuery({
@@ -51,7 +60,7 @@ export function useRequests(filters: RequestFilters, { enabled = true }: { enabl
 /** "You asked, we did": the requests done in the 30 days up to `until` (today by default), the latest first. */
 export function useDoneRequests({ until, limit, enabled = true }: { until?: string; limit: number; enabled?: boolean }) {
   return useQuery({
-    queryKey: [...REQUESTS_KEY, 'done', until ?? null, limit] as const,
+    queryKey: [...doneKey, until ?? null, limit] as const,
     queryFn: () => call(api.GET('/api/v1/requests/done', { params: { query: { until, limit } } })),
     enabled,
   });
@@ -155,8 +164,7 @@ export function useAnswerRequest() {
       ),
     onSuccess: (fresh) => {
       patchRequest(qc, fresh.id, () => fresh);
-      void qc.invalidateQueries({ queryKey: [...REQUESTS_KEY, 'list'] });
-      void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
+      requestsChanged(qc);
     },
   });
 }
@@ -174,8 +182,7 @@ export function useAnswerFound() {
       ),
     onSuccess: (fresh) => {
       patchRequest(qc, fresh.id, () => fresh);
-      void qc.invalidateQueries({ queryKey: [...REQUESTS_KEY, 'list'] });
-      void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
+      requestsChanged(qc);
     },
   });
 }
@@ -191,8 +198,7 @@ export function useRemoveRequest() {
       ),
     onSuccess: (_d, id) => {
       qc.removeQueries({ queryKey: oneKey(id) });
-      void qc.invalidateQueries({ queryKey: [...REQUESTS_KEY, 'list'] });
-      void qc.invalidateQueries({ queryKey: ADMIN_STATS_KEY });
+      requestsChanged(qc);
     },
   });
 }

@@ -1,5 +1,6 @@
 // Seniors who answer: the topics they pick and the link that asks one of them.
-import type { Senior } from '../../../api/types';
+import type { MySenior, Senior } from '../../../api/types';
+import { formatDate } from '../../../ui/utils';
 
 export type SeniorTopic = Senior['topics'][number];
 
@@ -21,4 +22,11 @@ export function topicLine(topics: readonly SeniorTopic[]): string {
 /** /forum/new asking this senior: they are told when the thread is posted. */
 export function askSeniorLink(userId: string): string {
   return `/forum/new?senior=${encodeURIComponent(userId)}`;
+}
+
+/** Why the person can't list themselves yet, and what to do. */
+export function notEligible(mine: Pick<MySenior, 'eligibleFrom'>): string {
+  return mine.eligibleFrom
+    ? `New accounts can answer as seniors after 30 days. You can list yourself from ${formatDate(mine.eligibleFrom)}.`
+    : 'Seniors are Year 3 students. Check your year under Profile.';
 }
