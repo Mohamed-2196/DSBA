@@ -1,9 +1,10 @@
 // /modules/:moduleId: header (code, name, year, next exam, progress and quick actions) and URL-driven tabs:
-// ?tab=overview|lessons|files|discussion, the lesson via &chapter=<i>&video=<j> (0-based).
+// ?tab=overview|lessons|files|discussion. A lesson has its own address, /modules/:moduleId/lessons/:lessonId (the
+// Lessons tab with that lesson on screen); ?tab=lessons opens where the student left off.
 // The header comes from the catalogue at once; chapters, videos and resources load with GET /modules/{id}.
 import { ArrowSquareOut, BookOpenText, CalendarBlank, CaretLeft, ChatsCircle, Files, Info, MagnifyingGlass, Play, PlayCircle, UploadSimple } from '@phosphor-icons/react';
 import { useCallback, useEffect, type ReactNode } from 'react';
-import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
 import { COHORTS, cohortColor, useDocumentTitle, useYear } from '../../state';
 import { useAuth } from '../../auth';
@@ -15,9 +16,9 @@ import { useModule } from './api';
 import { useModuleExam, type ExamInfo } from './exams';
 import { ImportProgressPrompt } from './ImportProgressPrompt';
 import { LessonsTab } from './LessonsTab';
-import { chapterPosition, indexParam, isModuleTab, moduleTabOn, type ModuleTab } from './lessons';
+import { chapterPosition, isModuleTab, lessonHref, moduleTabOn, type ModuleTab } from './lessons';
 import { ModuleOverview } from './ModuleOverview';
-import { computeModuleProgress, computeResumePoint, isValidLesson, summaryProgress, useProgress, type Fraction, type ResumeKind, type ResumePoint } from './progress';
+import { computeModuleProgress, computeResumePoint, findLesson, summaryProgress, useProgress, type Fraction, type ResumeKind, type ResumePoint } from './progress';
 import { resourceSummary } from './resources';
 import './ModulePage.css';
 
@@ -179,10 +180,11 @@ function PanelSkeleton() {
   );
 }
 
-function ModuleView({ summary: m }: { summary: ModuleSummary }) {
-  const [params, setParams] = useSearchParams();
+function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId: string | null }) {
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
   const { featureOn } = useAuth();
-  const rawTab = params.get('tab');
+  const rawTab = lessonId ? 'lessons' : params.get('tab');
   const tab: ModuleTab = isModuleTab(rawTab) && moduleTabOn(rawTab, featureOn) ? rawTab : 'overview';
   const detailQ = useModule(m.id);
   const detail = detailQ.data;
@@ -194,44 +196,33 @@ function ModuleView({ summary: m }: { summary: ModuleSummary }) {
   // Contributing means uploading to the library (decision D6), with this module chosen.
   const upload = useLibraryUpload({ moduleId: m.id, year: m.year });
 
-  const update = useCallback(
-    (patch: Record<string, string | number | null>) => {
-      setParams(
-        (prev) => {
-          const p = new URLSearchParams(prev);
-          Object.entries(patch).forEach(([k, val]) => (val == null ? p.delete(k) : p.set(k, String(val))));
-          return p;
-        },
-        { replace: true },
-      );
+  const go = useCallback((to: string) => navigate(to, { replace: true }), [navigate]);
+  const setTab = useCallback((id: string) => go(id === 'overview' ? `/modules/${m.id}` : `/modules/${m.id}?tab=${id}`), [go, m.id]);
+  const selectLesson = useCallback(
+    (c: number, v: number) => {
+      const id = detail?.chapters[c]?.videos[v]?.id;
+      if (id) go(lessonHref(m.id, id));
     },
-    [setParams],
-  );
-  const setTab = useCallback(
-    (id: string) => update(id === 'lessons' ? { tab: 'lessons' } : { tab: id === 'overview' ? null : id, chapter: null, video: null }),
-    [update],
+    [detail, go, m.id],
   );
   const openLesson = useCallback(
     (c: number, v: number) => {
-      update({ tab: 'lessons', chapter: c, video: v });
+      selectLesson(c, v);
       window.scrollTo({ top: 0, behavior: 'auto' });
     },
-    [update],
+    [selectLesson],
   );
-  const selectLesson = useCallback((c: number, v: number) => update({ tab: 'lessons', chapter: c, video: v }), [update]);
 
   // The lesson on screen: from the URL, else where the student left off, else the first one.
-  const cParam = indexParam(params.get('chapter'));
-  const vParam = indexParam(params.get('video'));
-  const fromUrl = !!detail && cParam != null && isValidLesson(detail, cParam, vParam ?? 0);
-  const selection = fromUrl && cParam != null ? { c: cParam, v: vParam ?? 0 } : resume ? { c: resume.c, v: resume.v } : null;
+  const fromUrl = findLesson(detail, lessonId);
+  const selection = fromUrl ?? (resume ? { c: resume.c, v: resume.v } : null);
 
-  // Pin the resolved lesson in the URL, so marking it watched doesn't move the player along.
+  // Give the resolved lesson its address, so marking it watched doesn't move the player along.
   const pinC = selection?.c;
   const pinV = selection?.v;
   useEffect(() => {
-    if (tab === 'lessons' && !fromUrl && pinC != null) update({ chapter: pinC, video: pinV ?? 0 });
-  }, [tab, fromUrl, pinC, pinV, update]);
+    if (tab === 'lessons' && !fromUrl && pinC != null && pinV != null) selectLesson(pinC, pinV);
+  }, [tab, fromUrl, pinC, pinV, selectLesson]);
 
   const tabs = (
     [
@@ -323,8 +314,8 @@ function ModuleView({ summary: m }: { summary: ModuleSummary }) {
 }
 
 export default function ModulePage() {
-  const { moduleId = '' } = useParams();
-  const { search } = useLocation();
+  const { moduleId = '', lessonId = null } = useParams();
+  const { pathname, search } = useLocation();
   const { getModule, getModuleByUnitCode } = useModules();
   // A unit code ('/modules/ST2133') works as an address too, and leads to the module's own one.
   const m = getModule(moduleId) ?? getModuleByUnitCode(moduleId.toUpperCase());
@@ -348,6 +339,6 @@ export default function ModulePage() {
       </Page>
     );
   }
-  if (m.id !== moduleId) return <Navigate replace to={`/modules/${m.id}${search}`} />;
-  return <ModuleView key={m.id} summary={m} />;
+  if (m.id !== moduleId) return <Navigate replace to={`/modules/${m.id}${pathname.slice(`/modules/${moduleId}`.length)}${search}`} />;
+  return <ModuleView key={m.id} summary={m} lessonId={lessonId} />;
 }

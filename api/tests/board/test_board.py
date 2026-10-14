@@ -15,6 +15,7 @@ from app.models import BoardCard, CalendarEvent, Module, User, UserStatus
 from app.services import board as svc
 from tests.board.conftest import API
 from tests.core.helpers import share_pdf
+from tests.lessons import lesson_id
 
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
@@ -165,11 +166,11 @@ def test_cards_from_the_hub(
         "url": f"/calendar?event={event.id}",
         "date": "2026-11-02",
     }
-    lesson = add(c, link={"type": "lesson", "id": f"{module.id}:0:0"}, title="Watch limits")
+    lesson = add(c, link={"type": "lesson", "id": lesson_id(module, 0, 0)}, title="Watch limits")
     assert lesson["title"] == "Watch limits"
     assert lesson["link"]["title"] == "Test: Limits"
-    assert lesson["link"]["url"] == f"/modules/{module.id}?tab=lessons&chapter=0&video=0"
-    untitled = add(c, link={"type": "lesson", "id": f"{module.id}:0:1"})
+    assert lesson["link"]["url"] == f"/modules/{module.id}/lessons/{lesson_id(module, 0, 0)}"
+    untitled = add(c, link={"type": "lesson", "id": lesson_id(module, 0, 1)})
     assert untitled["title"] == "Test: One, lesson 2"
     assert add(c, link={"type": "module", "id": module.id})["link"]["url"] == f"/modules/{module.id}"
     file = add(c, link={"type": "library_item", "id": item["id"]})
@@ -180,7 +181,7 @@ def test_cards_from_the_hub(
     assert again.json()["error"]["code"] == "already_on_board"
     for link in (
         {"type": "event", "id": "2020-01-01-nothing"},
-        {"type": "lesson", "id": f"{module.id}:5:0"},
+        {"type": "lesson", "id": "nosuchlesson"},
         {"type": "lesson", "id": "not-a-key"},
         {"type": "module", "id": "no-such-module"},
         {"type": "library_item", "id": "not-a-uuid"},
@@ -214,18 +215,20 @@ def test_a_watched_lesson_moves_its_card_to_done(client_for: ClientFor, make_use
     c = client_for(make_user())
     other = add(c, title="Something done")
     move(c, other, "done")
-    card = add(c, link={"type": "lesson", "id": f"{module.id}:1:0"})
+    card = add(c, link={"type": "lesson", "id": lesson_id(module, 1, 0)})
     assert card["column"] == "todo"
-    assert c.put(f"{API}/me/progress/lessons/{module.id}:1:0", json={"watched": True}).status_code == 200
+    assert c.put(f"{API}/me/progress/lessons/{lesson_id(module, 1, 0)}", json={"watched": True}).status_code == 200
     done = [x for x in c.get(f"{API}/board").json()["cards"] if x["column"] == "done"]
     assert [x["id"] for x in done] == [card["id"], other["id"]]  # at the top of Done
     assert done[0]["doneAt"] is not None
     # a lesson already watched starts in Done
-    c.put(f"{API}/me/progress/lessons/{module.id}:0:0", json={"watched": True})
-    assert add(c, link={"type": "lesson", "id": f"{module.id}:0:0"})["column"] == "done"
+    c.put(f"{API}/me/progress/lessons/{lesson_id(module, 0, 0)}", json={"watched": True})
+    assert add(c, link={"type": "lesson", "id": lesson_id(module, 0, 0)})["column"] == "done"
     # and an imported guest's progress counts too
-    later = add(c, link={"type": "lesson", "id": f"{module.id}:0:1"})
-    r = c.post(f"{API}/me/progress/import", json={"watched": {f"{module.id}:0:1": "2026-10-01T10:00:00Z"}, "last": {}})
+    later = add(c, link={"type": "lesson", "id": lesson_id(module, 0, 1)})
+    r = c.post(
+        f"{API}/me/progress/import", json={"watched": {lesson_id(module, 0, 1): "2026-10-01T10:00:00Z"}, "last": {}}
+    )
     assert r.status_code == 200
     assert next(x for x in c.get(f"{API}/board").json()["cards"] if x["id"] == later["id"])["column"] == "done"
 

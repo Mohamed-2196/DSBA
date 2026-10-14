@@ -11,7 +11,7 @@ from app.schemas.modules import LessonWatchedUpdate, Progress, ProgressImport, R
 from app.services import accounts, board
 
 router = router_for("progress")
-LessonKey = Path(pattern=r"^[a-z0-9-]{1,64}:\d{1,3}:\d{1,3}$")
+LessonIdPath = Path(pattern=r"^[a-z0-9]{1,16}$")
 
 
 @router.get("/me/progress", response_model=Progress)
@@ -19,11 +19,11 @@ def get_progress(user: CurrentUser, db: DB) -> Progress:
     return accounts.progress_of(db, user.id)
 
 
-@router.put("/me/progress/lessons/{lesson_key}", response_model=Progress)
-def set_watched(body: LessonWatchedUpdate, user: CurrentUser, db: DB, lesson_key: str = LessonKey) -> Progress:
-    """Mark one lesson watched or not (404 when the module, chapter or video does not exist). A study-board card for
-    a watched lesson moves to Done."""
-    accounts.set_watched(db, user.id, lesson_key, body.watched)
+@router.put("/me/progress/lessons/{lesson_id}", response_model=Progress)
+def set_watched(body: LessonWatchedUpdate, user: CurrentUser, db: DB, lesson_id: str = LessonIdPath) -> Progress:
+    """Mark one lesson watched or not (404 when there is no such lesson). A study-board card for a watched lesson
+    moves to Done."""
+    accounts.set_watched(db, user.id, lesson_id, body.watched)
     if body.watched:
         board.complete_lessons(db, user.id)
     db.commit()
@@ -32,9 +32,8 @@ def set_watched(body: LessonWatchedUpdate, user: CurrentUser, db: DB, lesson_key
 
 @router.put("/me/progress/resume", response_model=Progress)
 def set_resume(body: ResumeUpdate, user: CurrentUser, db: DB) -> Progress:
-    """The lesson the student just opened in a module (404 when it does not exist)."""
-    accounts.require_lesson(db, body.module_id, body.chapter, body.video)
-    accounts.set_resume(db, user.id, body.module_id, body.chapter, body.video, utcnow())
+    """The lesson the student just opened in its module (404 when it does not exist)."""
+    accounts.set_resume(db, user.id, accounts.require_lesson(db, body.lesson_id), utcnow())
     db.commit()
     return accounts.progress_of(db, user.id)
 

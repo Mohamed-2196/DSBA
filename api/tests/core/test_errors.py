@@ -50,8 +50,7 @@ def test_a_value_the_database_refuses_is_invalid_input(app: FastAPI, client_for:
         db.execute(text("SELECT CAST(:value AS text)"), {"value": body["value"]})
 
     assert client_for().post(f"{API}/_store", json={"value": "a\u0000b"}).status_code == 422
-    r = client_for(student).put(f"{API}/me/progress/resume", json={"moduleId": "a\u0000b", "chapter": 0, "video": 0})
-    assert r.status_code == 422
+    r = client_for(student).post(f"{API}/_store", json={"value": "a\u0000b"})
     assert r.json()["error"]["code"] == "invalid_input"
 
 

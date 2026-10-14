@@ -7,10 +7,18 @@ from pydantic import Field, StringConstraints
 
 from app.schemas.common import ApiModel, Year
 
+VideoKind = Literal["youtube", "youtube-playlist", "bbb"]
+LessonId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]{1,16}$")]  # app/services/modules.py new_id()
+ChapterId = LessonId
+
 
 class Video(ApiModel):
-    kind: Literal["youtube", "youtube-playlist", "bbb"]
-    id: str | None = None  # YouTube video or playlist id
+    """A lesson: one video of a chapter. `id` is the lesson's own, for good: its address is
+    /modules/<module id>/lessons/<id>."""
+
+    id: str
+    kind: VideoKind
+    video_id: str | None = None  # YouTube video or playlist id
     url: str | None = None  # BigBlueButton recording
     title: str | None = None
     channel: str | None = None  # the YouTube channel
@@ -18,6 +26,7 @@ class Video(ApiModel):
 
 
 class Chapter(ApiModel):
+    id: str
     title: str
     audio_url: str | None = None
     videos: list[Video]
@@ -51,15 +60,17 @@ class ModuleDetail(ModuleSummary):
 
 
 class LastLesson(ApiModel):
-    chapter: int
-    video: int
+    lesson_id: LessonId
+    at: datetime
+
+
+class WatchedLesson(ApiModel):
+    module_id: str
     at: datetime
 
 
 class Progress(ApiModel):
-    """lesson key = '<module id>:<chapter index>:<video index>'."""
-
-    watched: dict[str, datetime]
+    watched: dict[str, WatchedLesson]  # by lesson id
     last: dict[str, LastLesson]  # by module id
 
 
@@ -68,14 +79,12 @@ class LessonWatchedUpdate(ApiModel):
 
 
 class ResumeUpdate(ApiModel):
-    module_id: str
-    chapter: int
-    video: int
+    lesson_id: LessonId
 
 
 class ProgressImport(ApiModel):
-    """Progress kept in the browser before signing in, merged into the account once (newest wins). At most 5000
-    watched lessons and 100 modules (security review, finding 19)."""
+    """Progress kept in the browser before signing in, merged into the account once (newest wins). `watched` is by
+    lesson id and `last` by module id. At most 5000 watched lessons and 100 modules (security review, finding 19)."""
 
     watched: dict[str, datetime] = Field(max_length=5000)
     last: dict[str, LastLesson] = Field(max_length=100)
@@ -136,13 +145,6 @@ class ModuleCreate(ModuleFields):
     id: ModuleSlug
 
 
-class LessonOrigin(ApiModel):
-    """Where a lesson was in the version loaded: its chapter and video index as stored (ModuleEdit's order)."""
-
-    chapter: int = Field(ge=0, le=999)
-    video: int = Field(ge=0, le=999)
-
-
 class LessonIn(ApiModel):
     """A video lesson: a YouTube video or playlist link, or a class recording on vc.bibf.com."""
 
@@ -150,20 +152,20 @@ class LessonIn(ApiModel):
     title: Optional200 | None = None
     channel: Annotated[str, StringConstraints(strip_whitespace=True, max_length=120)] | None = None
     hidden: bool = False
-    origin: LessonOrigin | None = None  # None: a new lesson
+    id: LessonId | None = None  # None: a new lesson
 
 
 class ChapterIn(ApiModel):
     title: Title
     hidden: bool = False
-    origin: int | None = Field(default=None, ge=0, le=999)  # its index in the version loaded; None: a new chapter
+    id: ChapterId | None = None  # None: a new chapter
     lessons: list[LessonIn] = Field(default_factory=list, max_length=200)
 
 
 class ModuleSave(ModuleFields):
     """The whole module as the editor has it. `version` is the one loaded: if someone saved since, 409
-    module_changed. Lessons and chapters keep their `origin`, so what refers to them (progress, notes, study-board
-    cards) follows them when they move."""
+    module_changed. Chapters and lessons keep their `id` (a lesson may move to another chapter of the module); one
+    left out is removed."""
 
     version: int
     hidden: bool = False
@@ -171,14 +173,14 @@ class ModuleSave(ModuleFields):
 
 
 class LessonOut(LessonIn):
-    kind: Literal["youtube", "youtube-playlist", "bbb"]
-    origin: LessonOrigin  # = where it is now: send it back as it is
+    id: str
+    kind: VideoKind
 
 
 class ChapterOut(ApiModel):
+    id: str
     title: str
     hidden: bool
-    origin: int  # = where it is now: send it back as it is
     lessons: list[LessonOut]
 
 

@@ -66,7 +66,7 @@ describe('clearPersonalStorage', () => {
     storage.setItem(RECENT, '["mgf"]');
     storage.setItem('theme', 'dark');
     storage.setItem('selectedYear', '"2"');
-    storage.setItem('hub.lessons', '{}');
+    storage.setItem('hub.progress', '{}');
 
     clearPersonalStorage();
 
@@ -75,7 +75,7 @@ describe('clearPersonalStorage', () => {
     expect(storage.getItem(RECENT)).toBeNull();
     expect(storage.getItem('theme')).toBe('dark');
     expect(storage.getItem('selectedYear')).toBe('"2"');
-    expect(storage.getItem('hub.lessons')).toBe('{}');
+    expect(storage.getItem('hub.progress')).toBe('{}');
   });
 
   it('does nothing when storage is unavailable', () => {

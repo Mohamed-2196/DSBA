@@ -20,12 +20,13 @@ export function webUrl(raw: string | null | undefined): string | null {
 /** A page of the Hub ('/forum/new?…', never '//host' or '/\\host'), or null. */
 export const appPath = (raw: string | null | undefined): string | null => safeInternalPath(raw);
 
-/** /modules/<id>?tab=lessons&chapter=<n>&video=0, where chapter n is the first whose title starts with `prefix`. */
+/** The first lesson of the first chapter whose title starts with `prefix`, or the module's lessons. */
 export function lessonPath(moduleId: string, prefix: string, module: ModuleDetail | undefined): string {
-  const base = `/modules/${encodeURIComponent(moduleId)}?tab=lessons`;
+  const id = encodeURIComponent(moduleId);
+  const base = `/modules/${id}?tab=lessons`;
   if (!module || !prefix) return base;
-  const i = module.chapters.findIndex((c) => c.title.toLowerCase().startsWith(prefix.toLowerCase()));
-  return i >= 0 ? `${base}&chapter=${i}&video=0` : base;
+  const first = module.chapters.find((c) => c.title.toLowerCase().startsWith(prefix.toLowerCase()))?.videos[0];
+  return first ? `/modules/${id}/lessons/${encodeURIComponent(first.id)}` : base;
 }
 
 /** The library, showing one module's files. */

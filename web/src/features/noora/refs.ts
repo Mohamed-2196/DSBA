@@ -10,7 +10,7 @@ export function refKind(to: string): RefKind {
   if (path.startsWith('/calendar')) return 'calendar';
   if (path.startsWith('/library')) return 'library';
   if (path.startsWith('/modules/')) {
-    if (params.get('tab') === 'lessons') return 'lesson';
+    if (params.get('tab') === 'lessons' || /^\/modules\/[^/]+\/lessons\//.test(path)) return 'lesson';
     if (params.get('tab') === 'files') return 'files';
     return 'module';
   }

@@ -1,27 +1,33 @@
 // Lesson progress. Signed in: kept by the API (/me/progress…), with optimistic updates. Guests: kept in this
-// browser (localStorage 'hub.lessons'). After signing in, the student is asked once whether that progress is
+// browser (localStorage 'hub.progress'). After signing in, the student is asked once whether that progress is
 // theirs (ImportProgressPrompt): computers at BIBF are shared, so it may be someone else's.
-//   state.watched  { '<module id>:<chapter>:<video>': watchedAt (ms) }
-//   state.last     { [moduleId]: { c, v, at (ms) } }  the lesson last opened (played or marked) in each module;
-//                  it drives "Pick up where you left off" and Home's Continue learning.
+//   state.watched  { [lessonId]: { m: module id, at: watchedAt (ms) } }
+//   state.last     { [moduleId]: { l: lesson id, at (ms) } }  the lesson last opened (played or marked) in each
+//                  module; it drives "Pick up where you left off" and Home's Continue learning.
+// Lessons are known by their id, which never changes: a content manager reordering a module moves nothing here.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { errorMessage } from '../../api/errors';
 import type { Chapter, ModuleDetail, Progress, ProgressImport, Video } from '../../api/types';
 import { useAuth } from '../../auth';
-import { lessonKey } from '../../lib/modules';
 import { useLocalStorage, useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import { deleteModuleProgress, fetchProgress, importProgress, progressKey, putResume, putWatched } from './api';
 
+export interface WatchedMark {
+  /** the lesson's module */
+  m: string;
+  at: number;
+}
+
 export interface LessonPointer {
-  c: number;
-  v: number;
+  /** the lesson's id */
+  l: string;
   at: number;
 }
 
 export interface ProgressState {
-  watched: Readonly<Record<string, number>>;
+  watched: Readonly<Record<string, WatchedMark>>;
   last: Readonly<Record<string, LessonPointer>>;
 }
 
@@ -33,49 +39,56 @@ export function isEmptyProgress(s: ProgressState): boolean {
 
 // ── Shapes: the browser's store and the API ───────────────────────────────────
 
-export const GUEST_PROGRESS_KEY = 'hub.lessons';
-const KEY_RE = /^[a-z0-9-]{1,64}:\d{1,3}:\d{1,3}$/;
+export const GUEST_PROGRESS_KEY = 'hub.progress';
+const LESSON_RE = /^[a-z0-9]{1,16}$/;
 const MODULE_RE = /^[a-z0-9-]{1,64}$/;
 const isRecord = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
-const isIndex = (x: unknown): x is number => Number.isInteger(x) && (x as number) >= 0 && (x as number) < 1000;
 const isTime = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
+const isLesson = (x: unknown): x is string => typeof x === 'string' && LESSON_RE.test(x);
+const isModule = (x: unknown): x is string => typeof x === 'string' && MODULE_RE.test(x);
 
 /** What the browser has stored, as progress (malformed entries dropped). */
 export function normalizeStored(raw: unknown): ProgressState {
   if (!isRecord(raw)) return EMPTY_PROGRESS;
-  const watched: Record<string, number> = {};
+  const watched: Record<string, WatchedMark> = {};
   if (isRecord(raw.watched)) {
-    for (const [k, t] of Object.entries(raw.watched)) if (KEY_RE.test(k) && isTime(t)) watched[k] = t;
+    for (const [l, w] of Object.entries(raw.watched)) {
+      if (isLesson(l) && isRecord(w) && isModule(w.m) && isTime(w.at)) watched[l] = { m: w.m, at: w.at };
+    }
   }
   const last: Record<string, LessonPointer> = {};
   if (isRecord(raw.last)) {
     for (const [m, p] of Object.entries(raw.last)) {
-      if (MODULE_RE.test(m) && isRecord(p) && isIndex(p.c) && isIndex(p.v) && isTime(p.at)) last[m] = { c: p.c, v: p.v, at: p.at };
+      if (isModule(m) && isRecord(p) && isLesson(p.l) && isTime(p.at)) last[m] = { l: p.l, at: p.at };
     }
   }
   return { watched, last };
 }
 
+const time = (iso: string) => {
+  const t = Date.parse(iso);
+  return Number.isFinite(t) ? t : 0;
+};
+const iso = (t: number) => new Date(Math.min(t, Date.now())).toISOString();
+
 export function fromServer(p: Progress): ProgressState {
-  const watched: Record<string, number> = {};
-  for (const [k, iso] of Object.entries(p.watched)) {
-    const t = Date.parse(iso);
-    if (Number.isFinite(t)) watched[k] = t;
-  }
+  const watched: Record<string, WatchedMark> = {};
+  for (const [l, w] of Object.entries(p.watched)) watched[l] = { m: w.moduleId, at: time(w.at) };
   const last: Record<string, LessonPointer> = {};
-  for (const [m, l] of Object.entries(p.last)) {
-    const t = Date.parse(l.at);
-    last[m] = { c: l.chapter, v: l.video, at: Number.isFinite(t) ? t : 0 };
-  }
+  for (const [m, l] of Object.entries(p.last)) last[m] = { l: l.lessonId, at: time(l.at) };
   return { watched, last };
 }
 
-export function toImport(s: ProgressState): ProgressImport {
-  const iso = (t: number) => new Date(Math.min(t, Date.now())).toISOString();
+export function toServer(s: ProgressState): Progress {
   return {
-    watched: Object.fromEntries(Object.entries(s.watched).map(([k, t]) => [k, iso(t)])),
-    last: Object.fromEntries(Object.entries(s.last).map(([m, l]) => [m, { chapter: l.c, video: l.v, at: iso(l.at) }])),
+    watched: Object.fromEntries(Object.entries(s.watched).map(([l, w]) => [l, { moduleId: w.m, at: iso(w.at) }])),
+    last: Object.fromEntries(Object.entries(s.last).map(([m, p]) => [m, { lessonId: p.l, at: iso(p.at) }])),
   };
+}
+
+export function toImport(s: ProgressState): ProgressImport {
+  const { watched, last } = toServer(s);
+  return { watched: Object.fromEntries(Object.entries(watched).map(([l, w]) => [l, w.at])), last };
 }
 
 // ── Pure helpers ──────────────────────────────────────────────────────────────
@@ -96,8 +109,14 @@ export function flatLessons(m: WithChapters | null | undefined): FlatLesson[] {
   return out;
 }
 
-export function isValidLesson(m: WithChapters | null | undefined, c: number | null, v: number | null): boolean {
-  return !!m && c != null && v != null && Number.isInteger(c) && Number.isInteger(v) && !!m.chapters[c]?.videos[v];
+/** Where a lesson is in the module as it is now ({ c, v }), or null when the module doesn't show it. */
+export function findLesson(m: WithChapters | null | undefined, lessonId: string | null | undefined): { c: number; v: number } | null {
+  if (!m || !lessonId) return null;
+  for (let c = 0; c < m.chapters.length; c++) {
+    const v = m.chapters[c].videos.findIndex((video) => video.id === lessonId);
+    if (v >= 0) return { c, v };
+  }
+  return null;
 }
 
 export interface Fraction {
@@ -110,29 +129,20 @@ export interface Fraction {
 const fraction = (watched: number, total: number): Fraction => ({ watched, total, pct: total ? Math.round((watched / total) * 100) : 0 });
 
 export function computeModuleProgress(state: ProgressState, m: WithChapters | null | undefined): Fraction {
-  let watched = 0;
-  let total = 0;
-  m?.chapters.forEach((ch, c) =>
-    ch.videos.forEach((_, v) => {
-      total += 1;
-      if (state.watched[lessonKey(m.id, c, v)]) watched += 1;
-    }),
-  );
-  return fraction(watched, total);
+  const lessons = flatLessons(m);
+  return fraction(lessons.filter((l) => state.watched[l.video.id]).length, lessons.length);
 }
 
 export function computeChapterProgress(state: ProgressState, m: WithChapters, c: number): Fraction {
   const ch = m.chapters[c];
   if (!ch) return fraction(0, 0);
-  const watched = ch.videos.reduce((n, _, v) => n + (state.watched[lessonKey(m.id, c, v)] ? 1 : 0), 0);
-  return fraction(watched, ch.videos.length);
+  return fraction(ch.videos.filter((video) => state.watched[video.id]).length, ch.videos.length);
 }
 
 /** Watched lessons of a module from the catalogue's count alone (no chapters needed): Home and the module list. */
 export function summaryProgress(state: ProgressState, moduleId: string | null | undefined, total: number): Fraction {
   if (!moduleId || !total) return fraction(0, total);
-  const prefix = `${moduleId}:`;
-  const watched = Object.keys(state.watched).filter((k) => k.startsWith(prefix)).length;
+  const watched = Object.values(state.watched).filter((w) => w.m === moduleId).length;
   return fraction(Math.min(watched, total), total);
 }
 
@@ -153,11 +163,12 @@ export interface ResumePoint {
 export function computeResumePoint(state: ProgressState, m: WithChapters | null | undefined): ResumePoint | null {
   const lessons = flatLessons(m);
   if (!m || !lessons.length) return null;
-  const seen = (l: FlatLesson) => !!state.watched[lessonKey(m.id, l.c, l.v)];
+  const seen = (l: FlatLesson) => !!state.watched[l.video.id];
   const last = state.last[m.id];
-  if (last && isValidLesson(m, last.c, last.v)) {
-    const i = lessons.findIndex((l) => l.c === last.c && l.v === last.v);
-    if (!seen(lessons[i])) return { c: last.c, v: last.v, at: last.at, kind: 'resume' };
+  const i = last ? lessons.findIndex((l) => l.video.id === last.l) : -1;
+  if (last && i >= 0) {
+    const at = lessons[i];
+    if (!seen(at)) return { c: at.c, v: at.v, at: last.at, kind: 'resume' };
     const after = lessons.slice(i + 1).find((l) => !seen(l)) ?? lessons.slice(0, i).find((l) => !seen(l));
     if (after) return { c: after.c, v: after.v, at: last.at, kind: 'next' };
     return { c: lessons[0].c, v: lessons[0].v, at: last.at, kind: 'done' };
@@ -171,34 +182,31 @@ export function computeResumePoint(state: ProgressState, m: WithChapters | null 
 
 export interface ProgressSnapshot {
   moduleId: string;
-  watched: Record<string, number>;
+  watched: Record<string, WatchedMark>;
   last: LessonPointer | null;
 }
 
-function withWatched(s: ProgressState, moduleId: string, c: number, v: number, on: boolean, now: number): ProgressState {
-  const key = lessonKey(moduleId, c, v);
+function withWatched(s: ProgressState, moduleId: string, lessonId: string, on: boolean, now: number): ProgressState {
   const watched = { ...s.watched };
-  if (on) watched[key] = watched[key] ?? now;
-  else delete watched[key];
-  return { watched, last: { ...s.last, [moduleId]: { c, v, at: now } } };
+  if (on) watched[lessonId] = watched[lessonId] ?? { m: moduleId, at: now };
+  else delete watched[lessonId];
+  return { watched, last: { ...s.last, [moduleId]: { l: lessonId, at: now } } };
 }
 
-function withOpened(s: ProgressState, moduleId: string, c: number, v: number, now: number): ProgressState {
-  return { watched: s.watched, last: { ...s.last, [moduleId]: { c, v, at: now } } };
+function withOpened(s: ProgressState, moduleId: string, lessonId: string, now: number): ProgressState {
+  return { watched: s.watched, last: { ...s.last, [moduleId]: { l: lessonId, at: now } } };
 }
 
 function withoutModule(s: ProgressState, moduleId: string): ProgressState {
-  const prefix = `${moduleId}:`;
   const last = { ...s.last };
   delete last[moduleId];
-  return { watched: Object.fromEntries(Object.entries(s.watched).filter(([k]) => !k.startsWith(prefix))), last };
+  return { watched: Object.fromEntries(Object.entries(s.watched).filter(([, w]) => w.m !== moduleId)), last };
 }
 
 function snapshotOf(s: ProgressState, moduleId: string): ProgressSnapshot {
-  const prefix = `${moduleId}:`;
   return {
     moduleId,
-    watched: Object.fromEntries(Object.entries(s.watched).filter(([k]) => k.startsWith(prefix))),
+    watched: Object.fromEntries(Object.entries(s.watched).filter(([, w]) => w.m === moduleId)),
     last: s.last[moduleId] ?? null,
   };
 }
@@ -211,7 +219,7 @@ function withSnapshot(s: ProgressState, snap: ProgressSnapshot): ProgressState {
 }
 
 // The same changes on the API's shape (ISO timestamps), for optimistic updates of the cached query.
-const toServerShape = (s: ProgressState): Progress => toImport(s);
+const toServerShape = toServer;
 
 // ── Hooks ─────────────────────────────────────────────────────────────────────
 
@@ -220,10 +228,10 @@ export interface ProgressApi {
   /** False while an account's progress is loading (show placeholders, not zeros). */
   ready: boolean;
   mode: 'guest' | 'account';
-  isWatched: (key: string) => boolean;
-  setWatched: (moduleId: string, c: number, v: number, on: boolean) => void;
+  isWatched: (lessonId: string) => boolean;
+  setWatched: (moduleId: string, lessonId: string, on: boolean) => void;
   /** The student pressed play on a lesson. */
-  markOpened: (moduleId: string, c: number, v: number) => void;
+  markOpened: (moduleId: string, lessonId: string) => void;
   /** Clears a module and returns what it held, for Undo. */
   resetModule: (moduleId: string) => ProgressSnapshot;
   restore: (snapshot: ProgressSnapshot) => void;
@@ -247,9 +255,9 @@ export function useGuestProgress(): ProgressApi & { clear: () => void } {
       state,
       ready: true,
       mode: 'guest' as const,
-      isWatched: (key: string) => !!state.watched[key],
-      setWatched: (moduleId: string, c: number, v: number, on: boolean) => write((s) => withWatched(s, moduleId, c, v, on, Date.now())),
-      markOpened: (moduleId: string, c: number, v: number) => write((s) => withOpened(s, moduleId, c, v, Date.now())),
+      isWatched: (lessonId: string) => !!state.watched[lessonId],
+      setWatched: (moduleId: string, lessonId: string, on: boolean) => write((s) => withWatched(s, moduleId, lessonId, on, Date.now())),
+      markOpened: (moduleId: string, lessonId: string) => write((s) => withOpened(s, moduleId, lessonId, Date.now())),
       resetModule: (moduleId: string) => {
         const snap = snapshotOf(state, moduleId);
         write((s) => withoutModule(s, moduleId));
@@ -263,8 +271,8 @@ export function useGuestProgress(): ProgressApi & { clear: () => void } {
 }
 
 type Op =
-  | { type: 'watched'; moduleId: string; c: number; v: number; on: boolean }
-  | { type: 'opened'; moduleId: string; c: number; v: number }
+  | { type: 'watched'; moduleId: string; lessonId: string; on: boolean }
+  | { type: 'opened'; moduleId: string; lessonId: string }
   | { type: 'reset'; moduleId: string }
   | { type: 'restore'; snapshot: ProgressSnapshot };
 
@@ -274,9 +282,9 @@ function applyOp(s: ProgressState, op: Op): ProgressState {
   const now = Date.now();
   switch (op.type) {
     case 'watched':
-      return withWatched(s, op.moduleId, op.c, op.v, op.on, now);
+      return withWatched(s, op.moduleId, op.lessonId, op.on, now);
     case 'opened':
-      return withOpened(s, op.moduleId, op.c, op.v, now);
+      return withOpened(s, op.moduleId, op.lessonId, now);
     case 'reset':
       return withoutModule(s, op.moduleId);
     case 'restore':
@@ -287,10 +295,10 @@ function applyOp(s: ProgressState, op: Op): ProgressState {
 async function send(op: Op): Promise<Progress | null> {
   switch (op.type) {
     case 'watched':
-      await putWatched(lessonKey(op.moduleId, op.c, op.v), op.on);
-      return putResume(op.moduleId, op.c, op.v);
+      await putWatched(op.lessonId, op.on);
+      return putResume(op.lessonId);
     case 'opened':
-      return putResume(op.moduleId, op.c, op.v);
+      return putResume(op.lessonId);
     case 'reset':
       await deleteModuleProgress(op.moduleId);
       return null;
@@ -337,9 +345,9 @@ function useAccountProgress(userId: string | null): ProgressApi {
       state,
       ready: !userId || q.data !== undefined || q.isError,
       mode: 'account' as const,
-      isWatched: (k: string) => !!state.watched[k],
-      setWatched: (moduleId: string, c: number, v: number, on: boolean) => mutate({ type: 'watched', moduleId, c, v, on }),
-      markOpened: (moduleId: string, c: number, v: number) => mutate({ type: 'opened', moduleId, c, v }),
+      isWatched: (lessonId: string) => !!state.watched[lessonId],
+      setWatched: (moduleId: string, lessonId: string, on: boolean) => mutate({ type: 'watched', moduleId, lessonId, on }),
+      markOpened: (moduleId: string, lessonId: string) => mutate({ type: 'opened', moduleId, lessonId }),
       resetModule: (moduleId: string) => {
         const snap = snapshotOf(state, moduleId);
         mutate({ type: 'reset', moduleId });

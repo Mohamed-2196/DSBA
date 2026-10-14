@@ -66,7 +66,9 @@ test('her answer streams in with a card, and she is told the page and the lesson
   const asked = await standIn(page);
   const modules = (await api<{ id: string }[]>(page, 'GET', '/api/v1/modules')).body;
   const moduleId = modules[0]?.id ?? '';
-  await page.goto(`/modules/${moduleId}?tab=lessons&chapter=0&video=0`);
+  const detail = (await api<{ chapters: { videos: { id: string }[] }[] }>(page, 'GET', `/api/v1/modules/${moduleId}`)).body;
+  const lessonId = detail.chapters[0]?.videos[0]?.id ?? '';
+  await page.goto(`/modules/${moduleId}/lessons/${lessonId}`);
   const chat = await openNoora(page);
   await expect(chat.locator('[data-hub="noora-foot"]')).toContainText('Claude');
   await chat.getByLabel('Message Mini Noora').fill('What is this lesson about?');
@@ -75,7 +77,7 @@ test('her answer streams in with a card, and she is told the page and the lesson
   await expect(chat.locator('[data-hub="noora-refs"]').getByRole('link', { name: /calendar/ })).toBeVisible();
   await expect(chat.locator('[data-hub="noora-foot"]')).toContainText('28 left today');
   const body: unknown = asked[0]?.postDataJSON();
-  expect(body).toMatchObject({ question: 'What is this lesson about?', moduleId, chapter: 0, video: 0, note: null });
+  expect(body).toMatchObject({ question: 'What is this lesson about?', moduleId, lessonId, note: null });
   await ctx.close();
 });
 

@@ -45,6 +45,7 @@ from app.models import (
 from app.services.identifiers import anon_identifier
 from app.services.storage import Storage
 from tests.accounts.conftest import API, Deliver, Outbox, SignIn, start, wrong
+from tests.lessons import lesson_id
 
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
@@ -525,7 +526,7 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
             NewsletterReaction(user_id=user.id, issue_id=issue.id, section_id="intro", reaction="love"),
             ThreadVote(user_id=user.id, thread_id=theirs.id),
             Report(reporter_id=user.id, target_type="thread", target_id=theirs.id, reason="spam", note="Ads"),
-            LessonView(user_id=user.id, lesson_key=f"{module.id}:0:0", module_id=module.id),
+            LessonView(user_id=user.id, lesson_id=lesson_id(module, 0, 0)),
             Notification(user_id=user.id, kind="thread_reply", title="Someone replied", actor_id=other.id),
             Notification(user_id=other.id, kind="thread_reply", title="Not mine", actor_id=user.id),
         ]
@@ -546,7 +547,7 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
     assert data["reactions"][0]["issueSlug"] == issue.slug
     assert data["votes"] == [{"type": "thread", "id": str(theirs.id), "createdAt": data["votes"][0]["createdAt"]}]
     assert data["reports"][0]["note"] == "Ads"
-    assert list(data["progress"]["watched"]) == [f"{module.id}:0:0"]
+    assert list(data["progress"]["watched"]) == [lesson_id(module, 0, 0)]
     assert [n["title"] for n in data["notifications"]] == ["Someone replied"]
     assert data["emails"] == []
     assert set(data) == {  # code quality review CQ-4: a typed export, every section on purpose
@@ -652,7 +653,7 @@ def test_delete_the_account(
             challenge,
             LibraryStar(user_id=user.id, item_id=published.id),
             NewsletterReaction(user_id=user.id, issue_id=issue.id, section_id="s", reaction="useful"),
-            LessonView(user_id=user.id, lesson_key=f"{module.id}:0:0", module_id=module.id),
+            LessonView(user_id=user.id, lesson_id=lesson_id(module, 0, 0)),
             Notification(user_id=user.id, kind="system", title="For me"),
         ]
     )

@@ -69,16 +69,16 @@ def reorder_modules(body: ModuleOrder, request: Request, user: Editor, db: DB) -
 
 @router.get("/content/modules/{module_id}", response_model=ModuleEdit)
 def module_for_editing(module_id: str, db: DB, _: Editor) -> ModuleEdit:
-    """A module as the editor has it: hidden chapters and lessons too, each with its `origin` and video link."""
+    """A module as the editor has it: hidden chapters and lessons too, each with its `id` and video link."""
     return editor.edit_view(editor.get_module(db, module_id))
 
 
 @router.put("/content/modules/{module_id}", response_model=ModuleEdit)
 def save_module(module_id: str, body: ModuleSave, request: Request, user: Editor, db: DB) -> ModuleEdit:
-    """Saves the whole module. What refers to its lessons (progress, notes, study-board cards) follows them when
-    they move or are hidden. Audited, with what changed before and after.
+    """Saves the whole module. Chapters and lessons keep their ids, so what refers to a lesson (progress, notes,
+    study-board cards) stays with it when it moves or is hidden. Audited, with what changed before and after.
 
-    Errors: module_changed (409: someone saved it since `version`, or an `origin` that isn't in it any more),
+    Errors: module_changed (409: someone saved it since `version`, or a chapter or lesson `id` that isn't the module's),
     content_in_use (409: removing a chapter that still has lessons, or a lesson with notes or cards: hide it),
     invalid_input (422: a video link the app can't embed, a unit code another module has, a link that isn't
     https://)."""

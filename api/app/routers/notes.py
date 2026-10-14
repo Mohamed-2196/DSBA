@@ -23,16 +23,13 @@ def list_notes(
     db: DB,
     q: str | None = Query(default=None, max_length=200),
     module_id: str | None = Query(default=None, max_length=64),
-    chapter: int | None = Query(default=None, ge=0, le=999),
-    video: int | None = Query(default=None, ge=0, le=999),
+    lesson_id: str | None = Query(default=None, pattern=r"^[a-z0-9]{1,16}$"),
     limit: Limit = 20,
     offset: Offset = 0,
 ) -> NotePage:
     """Your notes, last edited first, each with the start of its body. `q` searches titles and bodies; `module_id`
-    keeps one module's notes, and with `chapter` and `video` one lesson's."""
-    return notes.list_notes(
-        db, user, q=q, module_id=module_id, chapter=chapter, video=video, limit=limit, offset=offset
-    )
+    keeps one module's notes, and `lesson_id` one lesson's."""
+    return notes.list_notes(db, user, q=q, module_id=module_id, lesson_id=lesson_id, limit=limit, offset=offset)
 
 
 @router.post("/notes", response_model=Note, status_code=status.HTTP_201_CREATED)

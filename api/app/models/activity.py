@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from typing import Any, get_args
 
-from sqlalchemy import BigInteger, ForeignKey, Index, SmallInteger, String, Text, text
+from sqlalchemy import BigInteger, ForeignKey, Index, String, Text, text
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -41,13 +41,13 @@ class Notification(Base):
 
 
 class LessonView(Base):
-    """A lesson (one video of a chapter) a student marked as watched. lesson_key = '<module>:<chapter>:<video>'."""
+    """A lesson a student marked as watched."""
 
     __tablename__ = "lesson_views"
+    __table_args__ = (Index("ix_lesson_views_lesson", "lesson_id"),)  # a lesson removed (CASCADE)
 
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
-    lesson_key: Mapped[str] = mapped_column(String(96), primary_key=True)
-    module_id: Mapped[str] = mapped_column(ForeignKey("modules.id", ondelete="CASCADE"))
+    lesson_id: Mapped[str] = mapped_column(ForeignKey("lessons.id", ondelete="CASCADE"), primary_key=True)
     watched_at: Mapped[datetime] = created_ts()
 
 
@@ -55,11 +55,11 @@ class LessonResume(Base):
     """The lesson a student opened last in a module ("pick up where you left off")."""
 
     __tablename__ = "lesson_resume"
+    __table_args__ = (Index("ix_lesson_resume_lesson", "lesson_id"),)  # a lesson removed (CASCADE)
 
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     module_id: Mapped[str] = mapped_column(ForeignKey("modules.id", ondelete="CASCADE"), primary_key=True)
-    chapter: Mapped[int] = mapped_column(SmallInteger)
-    video: Mapped[int] = mapped_column(SmallInteger)
+    lesson_id: Mapped[str] = mapped_column(ForeignKey("lessons.id", ondelete="CASCADE"))
     opened_at: Mapped[datetime] = created_ts()
 
 

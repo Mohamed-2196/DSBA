@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any, get_args
 
 from sqlalchemy import Boolean, CheckConstraint, Date, ForeignKey, Index, Integer, SmallInteger, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, check_in, created_ts, year_range
 from app.schemas.calendar import EventType
@@ -16,13 +16,9 @@ from app.schemas.calendar import EventType
 
 class Module(Base):
     """A module of the programme. Content managers edit it in the app; app/seed/data/modules.json is only the
-    starting content.
-
-    Lessons live in `chapters` (JSON), in the order the editors set, each chapter and video with an optional
-    `hidden` flag. Lesson keys ('<module id>:<chapter index>:<video index>') count in the order students see: the
-    visible chapters first, then the hidden ones, and the same for the videos in a chapter
-    (app/services/modules.py `in_key_order`). A save that moves, hides or removes lessons moves what refers to them
-    to the new keys (app/services/module_editor.py). `version` grows with every save: a stale one gets 409."""
+    starting content. Its lessons are rows of `lessons`, grouped in `chapters`, each with an id of its own that never
+    changes: progress, notes and study-board cards point at lessons by id, so editors reorder freely. `version` grows
+    with every save: a stale one gets 409."""
 
     __tablename__ = "modules"
     __table_args__ = (CheckConstraint("year BETWEEN 1 AND 3", name="year_range"),)
@@ -35,13 +31,61 @@ class Module(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     icon: Mapped[str | None] = mapped_column(String(40))  # a Phosphor icon name
     resources: Mapped[dict[str, Any]] = mapped_column(default=dict)  # materials, exercises, vle, olderExams, ...
-    chapters: Mapped[list[Any]] = mapped_column(
-        default=list
-    )  # [{title, audioUrl?, hidden?, videos: [{kind, id?, url?, title?, channel?, unavailable?, hidden?}]}]
     position: Mapped[int] = mapped_column(Integer, default=0)
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # left out of students' views
     version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     updated_at: Mapped[datetime | None] = mapped_column(onupdate=func.now())
+
+    chapters: Mapped[list[Chapter]] = relationship(
+        back_populates="module", order_by="Chapter.position", cascade="all, delete-orphan", lazy="selectin"
+    )
+
+
+class Chapter(Base):
+    """A chapter of a module: its lessons in order. Hidden ones (and their lessons) are left out of students'
+    views."""
+
+    __tablename__ = "chapters"
+    __table_args__ = (Index("ix_chapters_module_position", "module_id", "position"),)
+
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)  # app/services/modules.py new_id()
+    module_id: Mapped[str] = mapped_column(ForeignKey("modules.id", ondelete="CASCADE"))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    title: Mapped[str] = mapped_column(String(160))
+    audio_url: Mapped[str | None] = mapped_column(String(500))
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+
+    module: Mapped[Module] = relationship(back_populates="chapters")
+    lessons: Mapped[list[Lesson]] = relationship(
+        back_populates="chapter", order_by="Lesson.position", cascade="all, delete-orphan", lazy="selectin"
+    )
+
+
+class Lesson(Base):
+    """One video of a chapter: a YouTube video or playlist (`video_id`), or a class recording (`url`). Its `id` is
+    its address (/modules/<module>/lessons/<id>) for good. Watched lessons and resume points go with it; a lesson with
+    students' notes or study-board cards can't be removed, only hidden."""
+
+    __tablename__ = "lessons"
+    __table_args__ = (
+        Index("ix_lessons_chapter_position", "chapter_id", "position"),
+        Index("ix_lessons_module", "module_id"),
+        check_in("kind", ("youtube", "youtube-playlist", "bbb")),
+    )
+
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)  # app/services/modules.py new_id()
+    module_id: Mapped[str] = mapped_column(ForeignKey("modules.id", ondelete="CASCADE"))
+    chapter_id: Mapped[str] = mapped_column(ForeignKey("chapters.id", ondelete="CASCADE"))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    kind: Mapped[str] = mapped_column(String(20))
+    video_id: Mapped[str | None] = mapped_column(String(64))  # the YouTube video or playlist id
+    url: Mapped[str | None] = mapped_column(String(500))  # a class recording on vc.bibf.com
+    title: Mapped[str | None] = mapped_column(String(200))
+    channel: Mapped[str | None] = mapped_column(String(120))  # the YouTube channel
+    unavailable: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # removed from YouTube
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+
+    chapter: Mapped[Chapter] = relationship(back_populates="lessons")
 
 
 class CalendarEvent(Base):

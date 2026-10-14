@@ -36,12 +36,12 @@ export function fetchProgress(signal?: AbortSignal): Promise<Progress> {
   return call(api.GET('/api/v1/me/progress', { signal }));
 }
 
-export function putWatched(key: string, watched: boolean): Promise<Progress> {
-  return call(api.PUT('/api/v1/me/progress/lessons/{lesson_key}', { params: { path: { lesson_key: key } }, body: { watched } }));
+export function putWatched(lessonId: string, watched: boolean): Promise<Progress> {
+  return call(api.PUT('/api/v1/me/progress/lessons/{lesson_id}', { params: { path: { lesson_id: lessonId } }, body: { watched } }));
 }
 
-export function putResume(moduleId: string, chapter: number, video: number): Promise<Progress> {
-  return call(api.PUT('/api/v1/me/progress/resume', { body: { moduleId, chapter, video } }));
+export function putResume(lessonId: string): Promise<Progress> {
+  return call(api.PUT('/api/v1/me/progress/resume', { body: { lessonId } }));
 }
 
 export function deleteModuleProgress(moduleId: string): Promise<unknown> {

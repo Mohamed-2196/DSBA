@@ -26,9 +26,11 @@ from app.core.text import slugify, unique_slug
 from app.models import (
     AuditEntry,
     CalendarEvent,
+    Chapter,
     ContentDoc,
     ItemSource,
     ItemStatus,
+    Lesson,
     LibraryItem,
     Module,
     NewsletterIssue,
@@ -51,6 +53,29 @@ def load_modules(db: Session) -> int:
         return 0
     n = 0
     for m in read("modules"):
+        chapters = [
+            Chapter(
+                id=c["id"],
+                position=ci,
+                title=c["title"],
+                audio_url=c.get("audioUrl"),
+                lessons=[
+                    Lesson(
+                        id=v["id"],
+                        module_id=m["id"],
+                        position=vi,
+                        kind=v["kind"],
+                        video_id=v.get("videoId"),
+                        url=v.get("url"),
+                        title=v.get("title"),
+                        channel=v.get("channel"),
+                        unavailable=bool(v.get("unavailable")),
+                    )
+                    for vi, v in enumerate(c.get("videos") or [])
+                ],
+            )
+            for ci, c in enumerate(m.get("chapters") or [])
+        ]
         db.add(
             Module(
                 id=m["id"],
@@ -62,7 +87,7 @@ def load_modules(db: Session) -> int:
                 icon=m.get("icon"),
                 position=m.get("position", 0),
                 resources=m.get("resources") or {},
-                chapters=m.get("chapters") or [],
+                chapters=chapters,
             )
         )
         n += 1

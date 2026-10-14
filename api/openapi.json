@@ -1799,23 +1799,23 @@
         }
       }
     },
-    "/api/v1/me/progress/lessons/{lesson_key}": {
+    "/api/v1/me/progress/lessons/{lesson_id}": {
       "put": {
         "tags": [
           "progress"
         ],
         "summary": "Set Watched",
-        "description": "Mark one lesson watched or not (404 when the module, chapter or video does not exist). A study-board card for\na watched lesson moves to Done.",
-        "operationId": "set_watched_api_v1_me_progress_lessons__lesson_key__put",
+        "description": "Mark one lesson watched or not (404 when there is no such lesson). A study-board card for a watched lesson\nmoves to Done.",
+        "operationId": "set_watched_api_v1_me_progress_lessons__lesson_id__put",
         "parameters": [
           {
-            "name": "lesson_key",
+            "name": "lesson_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^[a-z0-9-]{1,64}:\\d{1,3}:\\d{1,3}$",
-              "title": "Lesson Key"
+              "pattern": "^[a-z0-9]{1,16}$",
+              "title": "Lesson Id"
             }
           }
         ],
@@ -1919,7 +1919,7 @@
           "progress"
         ],
         "summary": "Set Resume",
-        "description": "The lesson the student just opened in a module (404 when it does not exist).",
+        "description": "The lesson the student just opened in its module (404 when it does not exist).",
         "operationId": "set_resume_api_v1_me_progress_resume_put",
         "requestBody": {
           "content": {
@@ -4271,7 +4271,7 @@
           "modules"
         ],
         "summary": "Module For Editing",
-        "description": "A module as the editor has it: hidden chapters and lessons too, each with its `origin` and video link.",
+        "description": "A module as the editor has it: hidden chapters and lessons too, each with its `id` and video link.",
         "operationId": "module_for_editing_api_v1_content_modules__module_id__get",
         "parameters": [
           {
@@ -4372,7 +4372,7 @@
           "modules"
         ],
         "summary": "Save Module",
-        "description": "Saves the whole module. What refers to its lessons (progress, notes, study-board cards) follows them when\nthey move or are hidden. Audited, with what changed before and after.\n\nErrors: module_changed (409: someone saved it since `version`, or an `origin` that isn't in it any more),\ncontent_in_use (409: removing a chapter that still has lessons, or a lesson with notes or cards: hide it),\ninvalid_input (422: a video link the app can't embed, a unit code another module has, a link that isn't\nhttps://).",
+        "description": "Saves the whole module. Chapters and lessons keep their ids, so what refers to a lesson (progress, notes,\nstudy-board cards) stays with it when it moves or is hidden. Audited, with what changed before and after.\n\nErrors: module_changed (409: someone saved it since `version`, or a chapter or lesson `id` that isn't the module's),\ncontent_in_use (409: removing a chapter that still has lessons, or a lesson with notes or cards: hide it),\ninvalid_input (422: a video link the app can't embed, a unit code another module has, a link that isn't\nhttps://).",
         "operationId": "save_module_api_v1_content_modules__module_id__put",
         "parameters": [
           {
@@ -10628,7 +10628,7 @@
           "notes"
         ],
         "summary": "List Notes",
-        "description": "Your notes, last edited first, each with the start of its body. `q` searches titles and bodies; `module_id`\nkeeps one module's notes, and with `chapter` and `video` one lesson's.",
+        "description": "Your notes, last edited first, each with the start of its body. `q` searches titles and bodies; `module_id`\nkeeps one module's notes, and `lesson_id` one lesson's.",
         "operationId": "list_notes_api_v1_notes_get",
         "parameters": [
           {
@@ -10666,39 +10666,20 @@
             }
           },
           {
-            "name": "chapter",
+            "name": "lesson_id",
             "in": "query",
             "required": false,
             "schema": {
               "anyOf": [
                 {
-                  "type": "integer",
-                  "maximum": 999,
-                  "minimum": 0
+                  "type": "string",
+                  "pattern": "^[a-z0-9]{1,16}$"
                 },
                 {
                   "type": "null"
                 }
               ],
-              "title": "Chapter"
-            }
-          },
-          {
-            "name": "video",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "maximum": 999,
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Video"
+              "title": "Lesson Id"
             }
           },
           {
@@ -14290,7 +14271,7 @@
           "id"
         ],
         "title": "BoardLinkIn",
-        "description": "What a card points at: a calendar event id, a lesson key ('<module>:<chapter>:<video>'), a module id or a\nlibrary item id."
+        "description": "What a card points at: a calendar event id, a lesson id, a module id or a library item id."
       },
       "BoxOut": {
         "properties": {
@@ -15703,6 +15684,10 @@
       },
       "Chapter": {
         "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
           "title": {
             "type": "string",
             "title": "Title"
@@ -15728,6 +15713,7 @@
         },
         "type": "object",
         "required": [
+          "id",
           "title",
           "videos"
         ],
@@ -15746,18 +15732,17 @@
             "title": "Hidden",
             "default": false
           },
-          "origin": {
+          "id": {
             "anyOf": [
               {
-                "type": "integer",
-                "maximum": 999.0,
-                "minimum": 0.0
+                "type": "string",
+                "pattern": "^[a-z0-9]{1,16}$"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Origin"
+            "title": "Id"
           },
           "lessons": {
             "items": {
@@ -15776,6 +15761,10 @@
       },
       "ChapterOut": {
         "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
           "title": {
             "type": "string",
             "title": "Title"
@@ -15783,10 +15772,6 @@
           "hidden": {
             "type": "boolean",
             "title": "Hidden"
-          },
-          "origin": {
-            "type": "integer",
-            "title": "Origin"
           },
           "lessons": {
             "items": {
@@ -15798,9 +15783,9 @@
         },
         "type": "object",
         "required": [
+          "id",
           "title",
           "hidden",
-          "origin",
           "lessons"
         ],
         "title": "ChapterOut"
@@ -18145,13 +18130,10 @@
       },
       "LastLesson": {
         "properties": {
-          "chapter": {
-            "type": "integer",
-            "title": "Chapter"
-          },
-          "video": {
-            "type": "integer",
-            "title": "Video"
+          "lessonId": {
+            "type": "string",
+            "pattern": "^[a-z0-9]{1,16}$",
+            "title": "Lessonid"
           },
           "at": {
             "type": "string",
@@ -18161,8 +18143,7 @@
         },
         "type": "object",
         "required": [
-          "chapter",
-          "video",
+          "lessonId",
           "at"
         ],
         "title": "LastLesson"
@@ -18203,15 +18184,17 @@
             "title": "Hidden",
             "default": false
           },
-          "origin": {
+          "id": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/LessonOrigin"
+                "type": "string",
+                "pattern": "^[a-z0-9]{1,16}$"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Id"
           }
         },
         "type": "object",
@@ -18220,29 +18203,6 @@
         ],
         "title": "LessonIn",
         "description": "A video lesson: a YouTube video or playlist link, or a class recording on vc.bibf.com."
-      },
-      "LessonOrigin": {
-        "properties": {
-          "chapter": {
-            "type": "integer",
-            "maximum": 999.0,
-            "minimum": 0.0,
-            "title": "Chapter"
-          },
-          "video": {
-            "type": "integer",
-            "maximum": 999.0,
-            "minimum": 0.0,
-            "title": "Video"
-          }
-        },
-        "type": "object",
-        "required": [
-          "chapter",
-          "video"
-        ],
-        "title": "LessonOrigin",
-        "description": "Where a lesson was in the version loaded: its chapter and video index as stored (ModuleEdit's order)."
       },
       "LessonOut": {
         "properties": {
@@ -18280,8 +18240,9 @@
             "title": "Hidden",
             "default": false
           },
-          "origin": {
-            "$ref": "#/components/schemas/LessonOrigin"
+          "id": {
+            "type": "string",
+            "title": "Id"
           },
           "kind": {
             "type": "string",
@@ -18296,7 +18257,7 @@
         "type": "object",
         "required": [
           "url",
-          "origin",
+          "id",
           "kind"
         ],
         "title": "LessonOut"
@@ -19814,7 +19775,7 @@
           "version"
         ],
         "title": "ModuleSave",
-        "description": "The whole module as the editor has it. `version` is the one loaded: if someone saved since, 409\nmodule_changed. Lessons and chapters keep their `origin`, so what refers to them (progress, notes, study-board\ncards) follows them when they move."
+        "description": "The whole module as the editor has it. `version` is the one loaded: if someone saved since, 409\nmodule_changed. Chapters and lessons keep their `id` (a lesson may move to another chapter of the module); one\nleft out is removed."
       },
       "ModuleSummary": {
         "properties": {
@@ -20031,31 +19992,17 @@
             ],
             "title": "Moduleid"
           },
-          "chapter": {
+          "lessonId": {
             "anyOf": [
               {
-                "type": "integer",
-                "maximum": 500.0,
-                "minimum": 0.0
+                "type": "string",
+                "maxLength": 16
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Chapter"
-          },
-          "video": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "maximum": 500.0,
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Video"
+            "title": "Lessonid"
           },
           "note": {
             "anyOf": [
@@ -20248,27 +20195,16 @@
             ],
             "title": "Moduleid"
           },
-          "chapter": {
+          "lessonId": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Chapter"
-          },
-          "video": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Video"
+            "title": "Lessonid"
           },
           "version": {
             "type": "integer",
@@ -20295,8 +20231,7 @@
           "title",
           "excerpt",
           "moduleId",
-          "chapter",
-          "video",
+          "lessonId",
           "version",
           "createdAt",
           "updatedAt",
@@ -20330,31 +20265,17 @@
             ],
             "title": "Moduleid"
           },
-          "chapter": {
+          "lessonId": {
             "anyOf": [
               {
-                "type": "integer",
-                "maximum": 999.0,
-                "minimum": 0.0
+                "type": "string",
+                "pattern": "^[a-z0-9]{1,16}$"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Chapter"
-          },
-          "video": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "maximum": 999.0,
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Video"
+            "title": "Lessonid"
           }
         },
         "type": "object",
@@ -20417,27 +20338,16 @@
             ],
             "title": "Moduleid"
           },
-          "chapter": {
+          "lessonId": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Chapter"
-          },
-          "video": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Video"
+            "title": "Lessonid"
           },
           "version": {
             "type": "integer",
@@ -20460,8 +20370,7 @@
           "title",
           "excerpt",
           "moduleId",
-          "chapter",
-          "video",
+          "lessonId",
           "version",
           "createdAt",
           "updatedAt"
@@ -20494,31 +20403,17 @@
             ],
             "title": "Moduleid"
           },
-          "chapter": {
+          "lessonId": {
             "anyOf": [
               {
-                "type": "integer",
-                "maximum": 999.0,
-                "minimum": 0.0
+                "type": "string",
+                "pattern": "^[a-z0-9]{1,16}$"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Chapter"
-          },
-          "video": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "maximum": 999.0,
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Video"
+            "title": "Lessonid"
           },
           "version": {
             "type": "integer",
@@ -20947,8 +20842,7 @@
         "properties": {
           "watched": {
             "additionalProperties": {
-              "type": "string",
-              "format": "date-time"
+              "$ref": "#/components/schemas/WatchedLesson"
             },
             "type": "object",
             "title": "Watched"
@@ -20966,8 +20860,7 @@
           "watched",
           "last"
         ],
-        "title": "Progress",
-        "description": "lesson key = '<module id>:<chapter index>:<video index>'."
+        "title": "Progress"
       },
       "ProgressImport": {
         "properties": {
@@ -20995,7 +20888,7 @@
           "last"
         ],
         "title": "ProgressImport",
-        "description": "Progress kept in the browser before signing in, merged into the account once (newest wins). At most 5000\nwatched lessons and 100 modules (security review, finding 19)."
+        "description": "Progress kept in the browser before signing in, merged into the account once (newest wins). `watched` is by\nlesson id and `last` by module id. At most 5000 watched lessons and 100 modules (security review, finding 19)."
       },
       "PublishedIssue": {
         "properties": {
@@ -21945,24 +21838,15 @@
       },
       "ResumeUpdate": {
         "properties": {
-          "moduleId": {
+          "lessonId": {
             "type": "string",
-            "title": "Moduleid"
-          },
-          "chapter": {
-            "type": "integer",
-            "title": "Chapter"
-          },
-          "video": {
-            "type": "integer",
-            "title": "Video"
+            "pattern": "^[a-z0-9]{1,16}$",
+            "title": "Lessonid"
           }
         },
         "type": "object",
         "required": [
-          "moduleId",
-          "chapter",
-          "video"
+          "lessonId"
         ],
         "title": "ResumeUpdate"
       },
@@ -23547,6 +23431,10 @@
       },
       "Video": {
         "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
           "kind": {
             "type": "string",
             "enum": [
@@ -23556,7 +23444,7 @@
             ],
             "title": "Kind"
           },
-          "id": {
+          "videoId": {
             "anyOf": [
               {
                 "type": "string"
@@ -23565,7 +23453,7 @@
                 "type": "null"
               }
             ],
-            "title": "Id"
+            "title": "Videoid"
           },
           "url": {
             "anyOf": [
@@ -23608,9 +23496,11 @@
         },
         "type": "object",
         "required": [
+          "id",
           "kind"
         ],
-        "title": "Video"
+        "title": "Video",
+        "description": "A lesson: one video of a chapter. `id` is the lesson's own, for good: its address is\n/modules/<module id>/lessons/<id>."
       },
       "VoteResult": {
         "properties": {
@@ -23629,6 +23519,25 @@
           "voted"
         ],
         "title": "VoteResult"
+      },
+      "WatchedLesson": {
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleId",
+          "at"
+        ],
+        "title": "WatchedLesson"
       }
     }
   }

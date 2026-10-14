@@ -5,42 +5,49 @@ import {
   computeChapterProgress,
   computeModuleProgress,
   computeResumePoint,
+  findLesson,
   flatLessons,
   fromServer,
   isEmptyProgress,
-  isValidLesson,
   normalizeStored,
   summaryProgress,
   toImport,
+  toServer,
   type ProgressState,
 } from './progress';
 
-const video = (id: string): Video => ({ kind: 'youtube', id, unavailable: false });
-const chapter = (title: string, n: number): Chapter => ({ title, videos: Array.from({ length: n }, (_, i) => video(`${title}-${i}`)) });
+const video = (id: string): Video => ({ id, kind: 'youtube', videoId: `yt${id}`, unavailable: false });
+const chapter = (title: string, n: number): Chapter => ({
+  id: title.toLowerCase(),
+  title,
+  videos: Array.from({ length: n }, (_, i) => video(`${title.toLowerCase()}${i}`)),
+});
 // 2 chapters: 2 videos, then 1.
 const m = { id: 'advanced-stats-distribution', chapters: [chapter('MGFs', 2), chapter('Transformations', 1)] };
-const key = (c: number, v: number) => `${m.id}:${c}:${v}`;
+const id = (c: number, v: number) => m.chapters[c].videos[v].id;
 const T = Date.parse('2026-10-01T10:00:00Z');
 const state = (watched: [number, number][], last?: { c: number; v: number }): ProgressState => ({
-  watched: Object.fromEntries(watched.map(([c, v]) => [key(c, v), T])),
-  last: last ? { [m.id]: { ...last, at: T } } : {},
+  watched: Object.fromEntries(watched.map(([c, v]) => [id(c, v), { m: m.id, at: T }])),
+  last: last ? { [m.id]: { l: id(last.c, last.v), at: T } } : {},
 });
 
 describe('stored progress', () => {
   it('drops what isn’t progress', () => {
     expect(normalizeStored(null)).toBe(EMPTY_PROGRESS);
     const s = normalizeStored({
-      watched: { [key(0, 0)]: T, 'bad key': T, [key(0, 1)]: -1 },
-      last: { [m.id]: { c: 0, v: 1, at: T }, 'Bad Module': { c: 0, v: 0, at: T }, other: { c: -1, v: 0, at: T } },
+      watched: { [id(0, 0)]: { m: m.id, at: T }, 'bad key': { m: m.id, at: T }, [id(0, 1)]: { m: m.id, at: -1 }, [id(1, 0)]: T },
+      last: { [m.id]: { l: id(0, 1), at: T }, 'Bad Module': { l: id(0, 0), at: T }, other: { c: 0, v: 0, at: T } },
     });
-    expect(s).toEqual({ watched: { [key(0, 0)]: T }, last: { [m.id]: { c: 0, v: 1, at: T } } });
+    expect(s).toEqual({ watched: { [id(0, 0)]: { m: m.id, at: T } }, last: { [m.id]: { l: id(0, 1), at: T } } });
   });
 
   it('round-trips with the API’s shape', () => {
     const s = state([[0, 0]], { c: 0, v: 1 });
-    const out = toImport(s);
-    expect(out).toEqual({ watched: { [key(0, 0)]: new Date(T).toISOString() }, last: { [m.id]: { chapter: 0, video: 1, at: new Date(T).toISOString() } } });
+    const at = new Date(T).toISOString();
+    const out = toServer(s);
+    expect(out).toEqual({ watched: { [id(0, 0)]: { moduleId: m.id, at } }, last: { [m.id]: { lessonId: id(0, 1), at } } });
     expect(fromServer(out)).toEqual(s);
+    expect(toImport(s)).toEqual({ watched: { [id(0, 0)]: at }, last: { [m.id]: { lessonId: id(0, 1), at } } });
   });
 
   it('knows empty progress', () => {
@@ -50,12 +57,19 @@ describe('stored progress', () => {
 });
 
 describe('lessons', () => {
-  it('lists every lesson in order and checks a position', () => {
+  it('lists every lesson in order and finds one by id', () => {
     expect(flatLessons(m).map((l) => `${l.c}:${l.v}`)).toEqual(['0:0', '0:1', '1:0']);
-    expect(isValidLesson(m, 1, 0)).toBe(true);
-    expect(isValidLesson(m, 1, 1)).toBe(false);
-    expect(isValidLesson(m, null, 0)).toBe(false);
-    expect(isValidLesson(null, 0, 0)).toBe(false);
+    expect(findLesson(m, id(1, 0))).toEqual({ c: 1, v: 0 });
+    expect(findLesson(m, 'nosuchlesson')).toBeNull();
+    expect(findLesson(m, null)).toBeNull();
+    expect(findLesson(null, id(0, 0))).toBeNull();
+  });
+
+  it('follows a lesson that moved', () => {
+    const s = state([[0, 1]], { c: 0, v: 1 });
+    const moved = { ...m, chapters: [{ ...m.chapters[0], videos: [m.chapters[0].videos[1], m.chapters[0].videos[0]] }, m.chapters[1]] };
+    expect(computeResumePoint(s, moved)).toEqual({ c: 0, v: 1, at: T, kind: 'next' });
+    expect(computeChapterProgress(s, moved, 0)).toEqual({ watched: 1, total: 2, pct: 50 });
   });
 
   it('counts what was watched', () => {

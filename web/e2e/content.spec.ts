@@ -27,6 +27,7 @@ test('a content editor adds a module with a lesson, hides it and removes it', as
 
     await sara.goto(`/modules/${id}?tab=lessons`);
     await expect(sara.getByText('Welcome').first()).toBeVisible();
+    await expect(sara).toHaveURL(new RegExp(`/modules/${id}/lessons/[a-z0-9]+$`)); // the lesson's own address
 
     await admin.getByText('Hide from students').click();
     await admin.getByRole('button', { name: 'Save' }).first().click();

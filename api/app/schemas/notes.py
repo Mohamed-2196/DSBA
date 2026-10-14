@@ -8,6 +8,7 @@ from uuid import UUID
 from pydantic import Field, field_validator
 
 from app.schemas.common import ApiModel, Page
+from app.schemas.modules import LessonId
 
 TITLE_MAX = 200
 BODY_MAX = 100_000  # characters: a long lecture's worth of notes
@@ -15,14 +16,13 @@ EXCERPT_LENGTH = 240
 
 
 class NoteFields(ApiModel):
-    """What a student writes. A note may be about a module, or about one of its lessons (a chapter and a video,
-    numbered as in lesson keys)."""
+    """What a student writes. A note may be about a module, or about one of its lessons (then `moduleId` is the
+    lesson's module)."""
 
     title: str = Field(default="", max_length=TITLE_MAX)
     body: str = Field(default="", max_length=BODY_MAX)  # Markdown
     module_id: str | None = Field(default=None, max_length=64)
-    chapter: int | None = Field(default=None, ge=0, le=999)
-    video: int | None = Field(default=None, ge=0, le=999)
+    lesson_id: LessonId | None = None
 
     @field_validator("title")
     @classmethod
@@ -45,8 +45,7 @@ class NoteSummary(ApiModel):
     title: str
     excerpt: str  # the start of the body
     module_id: str | None
-    chapter: int | None
-    video: int | None
+    lesson_id: str | None
     version: int
     created_at: datetime
     updated_at: datetime

@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.models import CalendarEvent, Module
 from app.services.noora import ask
+from tests.lessons import chapters
 
 FAKE_KEY = "sk-ant-test-not-a-real-key"
 
@@ -93,18 +94,22 @@ def claude(monkeypatch: pytest.MonkeyPatch, with_key: None) -> FakeClient:
 
 @pytest.fixture
 def module(db: Session) -> Module:
+    m_id = f"noora-mod-{uuid.uuid4().hex[:6]}"
     m = Module(
-        id=f"noora-mod-{uuid.uuid4().hex[:6]}",
+        id=m_id,
         unit_code="ST2133",
         name="Advanced statistics: distribution theory",
         short_name="Distribution theory",
         year=2,
         description="",
         resources={},
-        chapters=[
-            {"title": "Moments", "videos": [{"kind": "youtube", "id": "a", "title": "The MGF"}]},
-            {"title": "Transformations", "videos": [{"kind": "youtube", "id": "b"}]},
-        ],
+        chapters=chapters(
+            m_id,
+            [
+                {"title": "Moments", "videos": [{"kind": "youtube", "video_id": "a", "title": "The MGF"}]},
+                {"title": "Transformations", "videos": [{"kind": "youtube", "video_id": "b"}]},
+            ],
+        ),
     )
     db.add(m)
     db.commit()

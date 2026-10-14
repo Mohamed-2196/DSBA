@@ -179,9 +179,10 @@ router change and the e2e harness.
   seed file loads only into an empty catalogue; saves carry a version (409 `module_changed`); hide rather than
   delete (409 `content_in_use` when anything refers to it); only YouTube and vc.bibf.com videos.
 - **Built (`round4/content`):** `/content/modules` endpoints (list, create, save the whole module, reorder a year,
-  delete), audited with before and after. Lesson keys count visible lessons first, then hidden ones, so a save that
-  moves, hides or removes lessons moves watched lessons, resume points, notes and study-board cards with them.
-  Migration 0005 adds `modules.hidden` and `modules.version`. The editor drags or steps modules, chapters and
+  delete), audited with before and after. Chapters and lessons are rows with stable ids (`round4/lesson-ids`):
+  progress, resume points, notes and study-board cards point at the lesson id, so a reorder changes positions only;
+  lesson addresses are `/modules/<id>/lessons/<lesson id>`. Migration 0005 adds the hidden flags and
+  `modules.version`. The editor drags or steps modules, chapters and
   lessons, folds chapters, and previews the Markdown description.
 
 ## R-10. Feature flags

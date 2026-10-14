@@ -6,13 +6,12 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
 import { useAuth } from '../../auth';
-import { lessonKey } from '../../lib/modules';
 import { cohortColor } from '../../state';
 import { Button, Panel, SectionHeader, Skeleton, cx, formatDate } from '../../ui';
 import { daysUntil } from '../../lib/dates';
 import { typeLabel } from '../calendar/public';
 import { useModuleDates } from './exams';
-import { chapterPosition, lastOpenedLabel, lessonSearch } from './lessons';
+import { chapterPosition, lastOpenedLabel, lessonHref } from './lessons';
 import { MiniPoster } from './Poster';
 import { computeChapterProgress, type ProgressState, type ResumeKind, type ResumePoint } from './progress';
 import { buildResources, joinAnd, type ResourceEntry } from './resources';
@@ -90,7 +89,7 @@ function PickUp({ module: m, resume }: { module: ModuleDetail; resume: ResumePoi
         {PICKUP_TITLE[resume.kind]}
       </h2>
       <Link
-        to={lessonSearch(resume.c, resume.v)}
+        to={lessonHref(m.id, ch.videos[resume.v].id)}
         replace
         className="mod-pick__link"
         aria-label={`${PICKUP_ACTION[resume.kind]}: chapter ${resume.c + 1}, ${ch.title}`}
@@ -138,7 +137,7 @@ function ProgressSection({
         {shown.map((ch, c) => {
           const cp = computeChapterProgress(state, m, c);
           const complete = cp.total > 0 && cp.watched === cp.total;
-          const firstOpen = ch.videos.findIndex((_, v) => !state.watched[lessonKey(m.id, c, v)]);
+          const firstOpen = ch.videos.findIndex((video) => !state.watched[video.id]);
           return (
             <li key={c}>
               <button type="button" className={cx('mod-prog__ch', complete && 'is-done')} onClick={() => onOpenLesson(c, firstOpen < 0 ? 0 : firstOpen)}>

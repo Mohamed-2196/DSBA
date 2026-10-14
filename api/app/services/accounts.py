@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import re
 import unicodedata
 import uuid
 from dataclasses import dataclass
@@ -25,11 +24,11 @@ from app.models import (
     ForumReply,
     ForumThread,
     ItemStatus,
+    Lesson,
     LessonResume,
     LessonView,
     LibraryItem,
     LibraryStar,
-    Module,
     NewsletterIssue,
     NewsletterReaction,
     Notification,
@@ -67,7 +66,7 @@ from app.schemas.notifications import NotificationKind
 from app.services import access, otp, sessions
 from app.services.audit import record
 from app.services.identifiers import Kind, admin_identifiers, destination_hint
-from app.services.modules import visible_chapters
+from app.services.modules import student_lesson, student_lessons
 from app.services.outbox import ACCOUNT_NOTICE
 from app.services.storage import Storage
 
@@ -408,43 +407,31 @@ def queue_identifier_notice(db: Session, user: User, change: IdentifierChange) -
 
 # ── lesson progress ──────────────────────────────────────────────────────────────────────────
 
-LESSON_KEY = re.compile(r"([a-z0-9-]{1,64}):(\d{1,3}):(\d{1,3})", re.ASCII)
 MAX_IMPORT_WATCHED = 5000
 MAX_IMPORT_LAST = 100
 
 
-def parse_lesson_key(key: str) -> tuple[str, int, int] | None:
-    m = LESSON_KEY.fullmatch(key)
-    return (m.group(1), int(m.group(2)), int(m.group(3))) if m else None
-
-
-def lesson_key(module_id: str, chapter: int, video: int) -> str:
-    return f"{module_id}:{chapter}:{video}"
-
-
-def lesson_exists(module: Module | None, chapter: int, video: int) -> bool:
-    """A lesson students see: the module and the lesson aren't hidden."""
-    if module is None or module.hidden:
-        return False
-    chapters = visible_chapters(module.chapters)
-    return 0 <= chapter < len(chapters) and 0 <= video < len(chapters[chapter]["videos"])
-
-
-def require_lesson(db: Session, module_id: str, chapter: int, video: int) -> None:
-    if not lesson_exists(db.get(Module, module_id), chapter, video):
+def require_lesson(db: Session, lesson_id: str) -> Lesson:
+    """A lesson students see, or 404."""
+    lesson = student_lesson(db, lesson_id)
+    if lesson is None:
         raise not_found("This lesson doesn't exist.")
+    return lesson
 
 
 def progress_of(db: Session, user_id: uuid.UUID) -> Progress:
-    watched = dict(
-        db.execute(select(LessonView.lesson_key, LessonView.watched_at).where(LessonView.user_id == user_id))
-        .tuples()
-        .all()
-    )
+    watched = {
+        lesson_id: {"module_id": module_id, "at": at}
+        for lesson_id, module_id, at in db.execute(
+            select(LessonView.lesson_id, Lesson.module_id, LessonView.watched_at)
+            .join(Lesson, Lesson.id == LessonView.lesson_id)
+            .where(LessonView.user_id == user_id)
+        ).tuples()
+    }
     last = {
-        module_id: {"chapter": chapter, "video": video, "at": at}
-        for module_id, chapter, video, at in db.execute(
-            select(LessonResume.module_id, LessonResume.chapter, LessonResume.video, LessonResume.opened_at).where(
+        module_id: {"lesson_id": lesson_id, "at": at}
+        for module_id, lesson_id, at in db.execute(
+            select(LessonResume.module_id, LessonResume.lesson_id, LessonResume.opened_at).where(
                 LessonResume.user_id == user_id
             )
         ).tuples()
@@ -452,39 +439,36 @@ def progress_of(db: Session, user_id: uuid.UUID) -> Progress:
     return Progress.model_validate({"watched": watched, "last": last})
 
 
-def set_watched(db: Session, user_id: uuid.UUID, key: str, watched: bool) -> None:
-    parsed = parse_lesson_key(key)
-    if parsed is None:
-        raise not_found("This lesson doesn't exist.")
-    module_id, chapter, video = parsed
-    require_lesson(db, module_id, chapter, video)
-    canonical = lesson_key(module_id, chapter, video)
+def set_watched(db: Session, user_id: uuid.UUID, lesson_id: str, watched: bool) -> None:
+    """404 when students don't see the lesson."""
+    lesson = require_lesson(db, lesson_id)
     if watched:
         db.execute(
             pg_insert(LessonView)
-            .values(user_id=user_id, lesson_key=canonical, module_id=module_id, watched_at=utcnow())
-            .on_conflict_do_nothing(index_elements=[LessonView.user_id, LessonView.lesson_key])
+            .values(user_id=user_id, lesson_id=lesson.id, watched_at=utcnow())
+            .on_conflict_do_nothing(index_elements=[LessonView.user_id, LessonView.lesson_id])
         )
     else:
-        db.execute(delete(LessonView).where(LessonView.user_id == user_id, LessonView.lesson_key == canonical))
+        db.execute(delete(LessonView).where(LessonView.user_id == user_id, LessonView.lesson_id == lesson.id))
 
 
-def set_resume(db: Session, user_id: uuid.UUID, module_id: str, chapter: int, video: int, at: datetime) -> None:
-    """Remembers the lesson opened last in a module; with `at` older than what is stored, nothing changes."""
+def set_resume(db: Session, user_id: uuid.UUID, lesson: Lesson, at: datetime) -> None:
+    """Remembers the lesson opened last in its module; with `at` older than what is stored, nothing changes."""
     stmt = pg_insert(LessonResume).values(
-        user_id=user_id, module_id=module_id, chapter=chapter, video=video, opened_at=at
+        user_id=user_id, module_id=lesson.module_id, lesson_id=lesson.id, opened_at=at
     )
     db.execute(
         stmt.on_conflict_do_update(
             index_elements=[LessonResume.user_id, LessonResume.module_id],
-            set_={"chapter": stmt.excluded.chapter, "video": stmt.excluded.video, "opened_at": stmt.excluded.opened_at},
+            set_={"lesson_id": stmt.excluded.lesson_id, "opened_at": stmt.excluded.opened_at},
             where=LessonResume.opened_at <= stmt.excluded.opened_at,
         )
     )
 
 
 def reset_module(db: Session, user_id: uuid.UUID, module_id: str) -> None:
-    db.execute(delete(LessonView).where(LessonView.user_id == user_id, LessonView.module_id == module_id))
+    lessons = select(Lesson.id).where(Lesson.module_id == module_id)
+    db.execute(delete(LessonView).where(LessonView.user_id == user_id, LessonView.lesson_id.in_(lessons)))
     db.execute(delete(LessonResume).where(LessonResume.user_id == user_id, LessonResume.module_id == module_id))
 
 
@@ -500,30 +484,24 @@ def import_progress(db: Session, user_id: uuid.UUID, body: ProgressImport) -> No
     if len(body.watched) > MAX_IMPORT_WATCHED or len(body.last) > MAX_IMPORT_LAST:
         raise invalid("watched", "There is too much progress to import at once.")
     now = utcnow()
-    watched: dict[tuple[str, int, int], datetime] = {}
-    for key, at in body.watched.items():
-        parsed = parse_lesson_key(key)
-        if parsed is not None:
-            when = _past(at, now)
-            watched[parsed] = max(when, watched.get(parsed, when))
-    module_ids = {m for m, _, _ in watched} | set(body.last)
-    modules = {m.id: m for m in db.scalars(select(Module).where(Module.id.in_(module_ids)))} if module_ids else {}
+    lessons = student_lessons(db, [*body.watched, *(last.lesson_id for last in body.last.values())])
     rows = [
-        {"user_id": user_id, "lesson_key": lesson_key(m, c, v), "module_id": m, "watched_at": at}
-        for (m, c, v), at in watched.items()
-        if lesson_exists(modules.get(m), c, v)
+        {"user_id": user_id, "lesson_id": lesson_id, "watched_at": _past(at, now)}
+        for lesson_id, at in body.watched.items()
+        if lesson_id in lessons
     ]
     if rows:
         stmt = pg_insert(LessonView).values(rows)
         db.execute(
             stmt.on_conflict_do_update(
-                index_elements=[LessonView.user_id, LessonView.lesson_key],
+                index_elements=[LessonView.user_id, LessonView.lesson_id],
                 set_={"watched_at": func.greatest(LessonView.watched_at, stmt.excluded.watched_at)},
             )
         )
     for module_id, last in body.last.items():
-        if lesson_exists(modules.get(module_id), last.chapter, last.video):
-            set_resume(db, user_id, module_id, last.chapter, last.video, _past(last.at, now))
+        lesson = lessons.get(last.lesson_id)
+        if lesson is not None and lesson.module_id == module_id:
+            set_resume(db, user_id, lesson, _past(last.at, now))
 
 
 # ── export ──────────────────────────────────────────────────────────────────────────────────
@@ -683,7 +661,19 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         for e in db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == uid).order_by(EmailOutbox.created_at))
     ]
     board = [
-        ExportBoardCard.model_validate(c)
+        ExportBoardCard.model_validate(
+            {
+                "id": c.id,
+                "column": c.column,
+                "title": c.title,
+                "note": c.note,
+                "due_date": c.due_date,
+                "link_type": c.link_type,
+                "link_id": c.lesson_id if c.link_type == "lesson" else c.link_id,
+                "created_at": c.created_at,
+                "done_at": c.done_at,
+            }
+        )
         for c in db.scalars(select(BoardCard).where(BoardCard.user_id == uid).order_by(BoardCard.created_at))
     ]
     return AccountExport(

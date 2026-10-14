@@ -21,6 +21,7 @@ from app.config import Settings, get_settings
 from app.models import Module, OtpChallenge, UserSession
 from app.services import mailer, sms
 from app.services import outbox as mail_outbox
+from tests.lessons import chapters
 
 API = "/api/v1"
 
@@ -177,19 +178,26 @@ def older_sessions(db: Session) -> Callable[..., None]:
 
 @pytest.fixture
 def module(db: Session) -> Module:
-    """A module with two chapters: lessons test-mod:0:0, test-mod:0:1 and test-mod:1:0."""
+    """A module with two chapters: two lessons, then one (tests.lessons.lesson_id(module, chapter, video))."""
+    m_id = f"test-mod-{uuid.uuid4().hex[:6]}"
     m = Module(
-        id=f"test-mod-{uuid.uuid4().hex[:6]}",
+        id=m_id,
         unit_code="TS1000",
         name="Test module",
         short_name="Test",
         year=1,
         description="",
         resources={},
-        chapters=[
-            {"title": "One", "videos": [{"kind": "youtube", "id": "a"}, {"kind": "youtube", "id": "b"}]},
-            {"title": "Two", "videos": [{"kind": "youtube", "id": "c"}]},
-        ],
+        chapters=chapters(
+            m_id,
+            [
+                {
+                    "title": "One",
+                    "videos": [{"kind": "youtube", "video_id": "a"}, {"kind": "youtube", "video_id": "b"}],
+                },
+                {"title": "Two", "videos": [{"kind": "youtube", "video_id": "c"}]},
+            ],
+        ),
     )
     db.add(m)
     db.commit()

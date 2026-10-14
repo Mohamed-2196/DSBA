@@ -49,12 +49,6 @@ function spokenFor(messages: Message[], pending: Pending | null): string {
   return `${notice}${last.text}${last.formula ? ` ${last.formula.say}` : ''}${working ? ` ${working}` : ''}${where}`;
 }
 
-/** A number from the address (?chapter=2), or null. */
-function indexParam(params: URLSearchParams, name: string): number | null {
-  const value = Number(params.get(name) ?? Number.NaN);
-  return Number.isInteger(value) && value >= 0 ? value : null;
-}
-
 const carriesFiles = (e: DragEvent): boolean => Array.from(e.dataTransfer.types).includes('Files');
 
 export interface ChatPanelProps {
@@ -103,16 +97,15 @@ export default function ChatPanel({ open, sheet, calm, panelRef, width, onWidth,
             modules,
             question: (text, history) => {
               const now = screen.current;
-              const params = new URLSearchParams(now.search);
-              const moduleId = matchPath('/modules/:moduleId', now.pathname)?.params.moduleId ?? null;
+              const lesson = matchPath('/modules/:moduleId/lessons/:lessonId', now.pathname)?.params;
+              const moduleId = lesson?.moduleId ?? matchPath('/modules/:moduleId', now.pathname)?.params.moduleId ?? null;
               const note = now.withNote && now.openNote ? { title: now.openNote.title, body: now.openNote.body.slice(0, NOTE_MAX) } : null;
               return {
                 question: text,
                 route: `${now.pathname}${now.search}`.slice(0, 300),
                 year: now.year,
                 moduleId,
-                chapter: moduleId ? indexParam(params, 'chapter') : null,
-                video: moduleId ? indexParam(params, 'video') : null,
+                lessonId: lesson?.lessonId ?? null,
                 note,
                 history,
               };

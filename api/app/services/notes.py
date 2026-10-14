@@ -15,11 +15,11 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import conflict, invalid, not_found, rate_limited
 from app.core.time import utcnow
-from app.models import Module, User
+from app.models import Lesson, Module, User
 from app.models import Note as NoteRow
 from app.schemas.notes import EXCERPT_LENGTH, Note, NoteCreate, NoteFields, NotePage, NoteSummary, NoteUpdate
 from app.services import ratelimit
-from app.services.accounts import lesson_exists
+from app.services.modules import student_lesson
 
 MAX_NOTES = 1000
 CREATES_PER_HOUR = 60
@@ -34,20 +34,20 @@ def _like(text: str) -> str:
     return f"%{escaped}%"
 
 
-def _check_place(db: Session, fields: NoteFields) -> None:
-    """The module and lesson a note is about exist (422 otherwise). A lesson needs its module."""
-    if (fields.chapter is None) != (fields.video is None):
-        raise invalid("video", "A lesson needs both its chapter and its video.")
+def _check_place(db: Session, fields: NoteFields, *, current: str | None = None) -> None:
+    """The module and lesson a note is about exist (422 otherwise). A lesson needs its module. A note may keep a lesson
+    that was hidden since (`current`)."""
     if fields.module_id is None:
-        if fields.chapter is not None:
+        if fields.lesson_id is not None:
             raise invalid("moduleId", "Choose the lesson's module too.")
         return
-    module = db.get(Module, fields.module_id)
-    if module is None:
+    if db.get(Module, fields.module_id) is None:
         raise invalid("moduleId", "This module doesn't exist.")
-    chapter, video = fields.chapter, fields.video
-    if chapter is not None and video is not None and not lesson_exists(module, chapter, video):
-        raise invalid("chapter", "This lesson doesn't exist.")
+    if fields.lesson_id is None:
+        return
+    lesson = db.get(Lesson, fields.lesson_id) if fields.lesson_id == current else student_lesson(db, fields.lesson_id)
+    if lesson is None or lesson.module_id != fields.module_id:
+        raise invalid("lessonId", "This lesson doesn't exist.")
 
 
 def to_out(note: NoteRow) -> Note:
@@ -58,8 +58,7 @@ def to_out(note: NoteRow) -> Note:
             "body": note.body,
             "excerpt": note.body[:EXCERPT_LENGTH],
             "module_id": note.module_id,
-            "chapter": note.chapter,
-            "video": note.video,
+            "lesson_id": note.lesson_id,
             "version": note.version,
             "created_at": note.created_at,
             "updated_at": note.updated_at,
@@ -73,13 +72,12 @@ def list_notes(
     *,
     q: str | None = None,
     module_id: str | None = None,
-    chapter: int | None = None,
-    video: int | None = None,
+    lesson_id: str | None = None,
     limit: int = 20,
     offset: int = 0,
 ) -> NotePage:
     """The student's notes, last edited first. `q` matches the title or the body (any part, any case); `module_id`
-    keeps a module's notes, and with `chapter` and `video` one lesson's."""
+    keeps a module's notes, and `lesson_id` one lesson's."""
     where: list[ColumnElement[bool]] = [NoteRow.user_id == user.id]
     text = (q or "").strip()[:SEARCH_MAX]
     if text:
@@ -87,10 +85,8 @@ def list_notes(
         where.append(or_(NoteRow.title.ilike(pattern, escape="\\"), NoteRow.body.ilike(pattern, escape="\\")))
     if module_id is not None:
         where.append(NoteRow.module_id == module_id)
-    if chapter is not None:
-        where.append(NoteRow.chapter == chapter)
-    if video is not None:
-        where.append(NoteRow.video == video)
+    if lesson_id is not None:
+        where.append(NoteRow.lesson_id == lesson_id)
     total = db.scalar(select(func.count()).select_from(NoteRow).where(*where)) or 0
     rows = db.execute(
         select(
@@ -98,8 +94,7 @@ def list_notes(
             NoteRow.title,
             func.left(NoteRow.body, EXCERPT_LENGTH).label("excerpt"),
             NoteRow.module_id,
-            NoteRow.chapter,
-            NoteRow.video,
+            NoteRow.lesson_id,
             NoteRow.version,
             NoteRow.created_at,
             NoteRow.updated_at,
@@ -145,8 +140,7 @@ def create_note(db: Session, user: User, body: NoteCreate) -> NoteRow:
         title=body.title,
         body=body.body,
         module_id=body.module_id,
-        chapter=body.chapter,
-        video=body.video,
+        lesson_id=body.lesson_id,
         saves_since=now,
         created_at=now,
         updated_at=now,
@@ -162,13 +156,12 @@ def update_note(db: Session, user: User, note_id: uuid.UUID, body: NoteUpdate) -
     note = _own(db, user, note_id, lock=True)
     if note.version != body.version:
         raise conflict("note_changed", "This note was changed in another tab or on another device.")
-    _check_place(db, body)
+    _check_place(db, body, current=note.lesson_id)
     fields = {
         "title": body.title,
         "body": body.body,
         "module_id": body.module_id,
-        "chapter": body.chapter,
-        "video": body.video,
+        "lesson_id": body.lesson_id,
     }
     if all(getattr(note, k) == v for k, v in fields.items()):
         return note

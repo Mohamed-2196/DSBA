@@ -87,9 +87,9 @@ function indexModule(m: ModuleSummary, detail: ModuleDetail | undefined): Indexe
     chapters: (detail?.chapters ?? []).map((c, ci) => ({
       n: ci + 1,
       title: c.title,
-      to: lessonHref(m.id, ci, 0),
+      to: c.videos[0] ? lessonHref(m.id, c.videos[0].id) : `/modules/${m.id}?tab=lessons`,
       lessons: c.videos
-        .map((video, vi) => ({ n: vi + 1, title: video.title?.trim() ?? '', to: lessonHref(m.id, ci, vi) }))
+        .map((video, vi) => ({ n: vi + 1, title: video.title?.trim() ?? '', to: lessonHref(m.id, video.id) }))
         .filter((l) => l.title),
     })),
   };

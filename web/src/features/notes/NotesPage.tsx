@@ -11,12 +11,14 @@ import { useModules } from '../../state/modules';
 import { Badge, Button, EmptyState, Page, PageHeader, Panel, QueryError, SearchField, Select, Skeleton, timeAgo } from '../../ui';
 import { remainingCount } from '../../api/paging';
 import { useNotes } from './api';
+import { useLessonPlace } from './lessonPlace';
 import { NEW_NOTE, draftIds, lessonLabel, noteLabel, plainExcerpt, readDraft } from './draft';
 import './Notes.css';
 
 function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
   const { getModule } = useModules();
   const module = getModule(note.moduleId);
+  const place = useLessonPlace(note.moduleId, note.lessonId);
   const excerpt = plainExcerpt(note.excerpt);
   return (
     <li className="notes-row">
@@ -31,7 +33,7 @@ function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
         ) : null}
         <span className="notes-row__meta">
           {module ? <span>{moduleLabel(module)}</span> : null}
-          {module && note.chapter !== null && note.video !== null ? <span>{lessonLabel(note.chapter, note.video)}</span> : null}
+          {module && note.lessonId ? <span>{lessonLabel(place)}</span> : null}
           <span>Edited {timeAgo(note.updatedAt)}</span>
           {unsent ? (
             <Badge tone="alert" size="sm">

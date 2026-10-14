@@ -1,9 +1,8 @@
 """Content managers edit the module catalogue (R-9): add, edit, reorder, hide and remove modules, chapters and lessons.
 
 - A save sends the whole module with the `version` it loaded; a stale version gets 409 module_changed.
-- Chapters and lessons carry their `origin` (where they were), so a save that moves, hides or removes lessons moves
-  what refers to them (watched lessons, where students left off, notes and study-board cards) to the new lesson keys
-  (app/services/modules.py `in_key_order`).
+- Chapters and lessons carry their `id`, which never changes: what refers to a lesson (watched lessons, where
+  students left off, notes and study-board cards) points at its id, so moving one only changes its `position`.
 - Removing a lesson with notes or cards, a chapter that still has lessons, or a module that anything refers to is
   refused (409 content_in_use): hiding it is the way to take it out of students' views.
 - Every write is audited with what changed, before and after. Services leave the commit to the handler."""
@@ -11,12 +10,11 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable, Sequence
-from dataclasses import dataclass
+from collections.abc import Iterable
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError, conflict, invalid, not_found
@@ -24,9 +22,9 @@ from app.core.links import is_https
 from app.models import (
     BoardCard,
     CalendarEvent,
+    Chapter,
     ForumThread,
-    LessonResume,
-    LessonView,
+    Lesson,
     LibraryItem,
     Module,
     Note,
@@ -44,9 +42,8 @@ from app.schemas.modules import (
     ModuleSave,
     ResourcesIn,
 )
-from app.services.accounts import lesson_key, parse_lesson_key
 from app.services.content import record
-from app.services.modules import in_key_order
+from app.services.modules import new_id
 
 CHANGED = "Someone else saved this module while you were editing. Load it again."
 YOUTUBE_HOSTS = frozenset(
@@ -63,7 +60,7 @@ EDITED = ("unit_code", "name", "short_name", "year", "description", "icon", "res
 
 
 def parse_video(url: str) -> dict[str, str] | None:
-    """A stored video ({kind, id} or {kind, url}) from a link the app can embed, or None."""
+    """A stored video ({kind, video_id} or {kind, url}) from a link the app can embed, or None."""
     if not is_https(url):
         return None
     parts = urlsplit(url)
@@ -82,15 +79,15 @@ def parse_video(url: str) -> dict[str, str] | None:
             video = segments[1]
         elif segments in (["playlist"], ["embed", "videoseries"]):
             playlist = (query.get("list") or [""])[0]
-            return {"kind": "youtube-playlist", "id": playlist} if _PLAYLIST_ID.fullmatch(playlist) else None
-    return {"kind": "youtube", "id": video} if video and _VIDEO_ID.fullmatch(video) else None
+            return {"kind": "youtube-playlist", "video_id": playlist} if _PLAYLIST_ID.fullmatch(playlist) else None
+    return {"kind": "youtube", "video_id": video} if video and _VIDEO_ID.fullmatch(video) else None
 
 
-def video_link(video: dict[str, Any]) -> str:
-    """The link an editor sees for a stored video (parse_video() reads it back)."""
-    kind, ident = video.get("kind"), str(video.get("id") or "")
+def video_link(lesson: Lesson) -> str:
+    """The link an editor sees for a lesson's video (parse_video() reads it back)."""
+    kind, ident = lesson.kind, lesson.video_id or ""
     if kind == "bbb":
-        return str(video.get("url") or "")
+        return lesson.url or ""
     if kind == "youtube-playlist":
         return f"https://www.youtube.com/playlist?list={ident}"
     return ident if ident.startswith("https://") else f"https://www.youtube.com/watch?v={ident}"
@@ -99,17 +96,7 @@ def video_link(video: dict[str, Any]) -> str:
 # ── reading ──────────────────────────────────────────────────────────────────────────────────
 
 
-def _videos(chapter: object) -> list[dict[str, Any]]:
-    videos = chapter.get("videos") if isinstance(chapter, dict) else None
-    return [v for v in videos if isinstance(v, dict)] if isinstance(videos, list) else []
-
-
-def _chapters(m: Module) -> list[dict[str, Any]]:
-    return [c for c in m.chapters if isinstance(c, dict)] if isinstance(m.chapters, list) else []
-
-
 def _summary(m: Module) -> dict[str, Any]:
-    chapters = _chapters(m)
     return {
         "id": m.id,
         "unit_code": m.unit_code,
@@ -120,8 +107,8 @@ def _summary(m: Module) -> dict[str, Any]:
         "hidden": m.hidden,
         "position": m.position,
         "version": m.version,
-        "chapter_count": len(chapters),
-        "lesson_count": sum(len(_videos(c)) for c in chapters),
+        "chapter_count": len(m.chapters),
+        "lesson_count": sum(len(c.lessons) for c in m.chapters),
         "updated_at": m.updated_at,
     }
 
@@ -129,24 +116,24 @@ def _summary(m: Module) -> dict[str, Any]:
 def edit_view(m: Module) -> ModuleEdit:
     chapters = [
         ChapterOut(
-            title=str(c.get("title") or ""),
-            hidden=bool(c.get("hidden")),
-            origin=ci,
+            id=c.id,
+            title=c.title,
+            hidden=c.hidden,
             lessons=[
                 LessonOut.model_validate(
                     {
-                        "kind": v.get("kind", "youtube"),
+                        "id": v.id,
+                        "kind": v.kind,
                         "url": video_link(v),
-                        "title": v.get("title"),
-                        "channel": v.get("channel"),
-                        "hidden": bool(v.get("hidden")),
-                        "origin": {"chapter": ci, "video": vi},
+                        "title": v.title,
+                        "channel": v.channel,
+                        "hidden": v.hidden,
                     }
                 )
-                for vi, v in enumerate(_videos(c))
+                for v in c.lessons
             ],
         )
-        for ci, c in enumerate(_chapters(m))
+        for c in m.chapters
     ]
     return ModuleEdit.model_validate(
         {**_summary(m), "description": m.description, "resources": m.resources, "chapters": chapters}
@@ -207,8 +194,31 @@ def _fields(db: Session, body: ModuleFields, *, module_id: str | None = None) ->
     }
 
 
+def _chapters_snapshot(m: Module) -> list[dict[str, Any]]:
+    return [
+        {
+            "id": c.id,
+            "title": c.title,
+            "hidden": c.hidden,
+            "lessons": [
+                {
+                    "id": v.id,
+                    "kind": v.kind,
+                    "videoId": v.video_id,
+                    "url": v.url,
+                    "title": v.title,
+                    "channel": v.channel,
+                    "hidden": v.hidden,
+                }
+                for v in c.lessons
+            ],
+        }
+        for c in m.chapters
+    ]
+
+
 def _snapshot(m: Module) -> dict[str, Any]:
-    return {f: getattr(m, f) for f in EDITED}
+    return {f: _chapters_snapshot(m) if f == "chapters" else getattr(m, f) for f in EDITED}
 
 
 def _audit_change(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
@@ -224,7 +234,7 @@ def create_module(db: Session, user: User, body: ModuleCreate, ip: str | None) -
     if db.get(Module, body.id) is not None:
         raise conflict("slug_taken", "Another module has this address. Choose another one.")
     last = db.scalar(select(func.max(Module.position)))
-    m = Module(id=body.id, position=(last if last is not None else -1) + 1, chapters=[], **_fields(db, body))
+    m = Module(id=body.id, position=(last if last is not None else -1) + 1, **_fields(db, body))
     db.add(m)
     db.flush()
     record(db, user, "module.create", "module", m.id, m.name, ip, after=_snapshot(m))
@@ -233,192 +243,97 @@ def create_module(db: Session, user: User, body: ModuleCreate, ip: str | None) -
 
 # ── save: fields, chapters and lessons ───────────────────────────────────────────────────────
 
-Position = tuple[int, int]  # (chapter, video)
 
-
-def _new_chapters(
-    old: Sequence[dict[str, Any]], body: ModuleSave
-) -> tuple[list[dict[str, Any]], dict[Position, Position]]:
-    """The chapters to store, and where each kept lesson came from: {new stored position: old stored position}."""
-    seen_chapters: set[int] = set()
-    seen_lessons: set[Position] = set()
-    chapters: list[dict[str, Any]] = []
-    moved: dict[Position, Position] = {}
-    for ci, ch in enumerate(body.chapters):
-        before: dict[str, Any] = {}
-        if ch.origin is not None:
-            if ch.origin >= len(old) or ch.origin in seen_chapters:
+def _removed_lessons(m: Module, body: ModuleSave) -> set[str]:
+    """The ids of the lessons `body` leaves out. The ids it has are the module's own, once each (409 module_changed
+    otherwise: the editor loaded another version)."""
+    chapters = {c.id for c in m.chapters}
+    lessons = {v.id for c in m.chapters for v in c.lessons}
+    seen: set[str] = set()
+    for ch in body.chapters:
+        for ident, known in [(ch.id, chapters), *((item.id, lessons) for item in ch.lessons)]:
+            if ident is None:
+                continue
+            if ident not in known or ident in seen:
                 raise conflict("module_changed", CHANGED)
-            seen_chapters.add(ch.origin)
-            before = old[ch.origin]
-        videos: list[dict[str, Any]] = []
-        for vi, lesson in enumerate(ch.lessons):
-            parsed = parse_video(lesson.url)
-            if parsed is None:
-                raise invalid(f"chapters.{ci}.lessons.{vi}.url", VIDEO_RULE)
-            video: dict[str, Any] = dict(parsed)
-            if lesson.origin is not None:
-                o = (lesson.origin.chapter, lesson.origin.video)
-                if o[0] >= len(old) or o[1] >= len(_videos(old[o[0]])) or o in seen_lessons:
-                    raise conflict("module_changed", CHANGED)
-                seen_lessons.add(o)
-                moved[ci, vi] = o
-                was = _videos(old[o[0]])[o[1]]
-                if was.get("unavailable") and parse_video(video_link(was)) == parsed:
-                    video["unavailable"] = True  # still the video YouTube took down
-            video.update({k: v for k, v in (("title", lesson.title), ("channel", lesson.channel)) if v})
-            if lesson.hidden:
-                video["hidden"] = True
-            videos.append(video)
-        chapter: dict[str, Any] = {"title": ch.title}
-        if before.get("audioUrl"):
-            chapter["audioUrl"] = before["audioUrl"]
-        if ch.hidden:
-            chapter["hidden"] = True
-        chapter["videos"] = videos
-        chapters.append(chapter)
-    return chapters, moved
+            seen.add(ident)
+    return lessons - seen
 
 
-def _keys(chapters: Sequence[dict[str, Any]]) -> dict[Position, Position]:
-    """{stored position: lesson key position}."""
-    return {
-        (c, v): (kc, kv) for kc, (c, videos) in enumerate(in_key_order(list(chapters))) for kv, v in enumerate(videos)
-    }
-
-
-@dataclass
-class _Remap:
-    module_id: str
-    keys: dict[Position, Position]  # old key position -> new key position, for every lesson kept
-    removed: set[Position]  # old key positions of the lessons removed
-
-    def key(self, old: str) -> str | None:
-        """The new lesson key for an old one; None when the lesson is gone."""
-        parsed = parse_lesson_key(old)
-        if parsed is None or parsed[0] != self.module_id or (parsed[1], parsed[2]) not in self.keys:
-            return None
-        return lesson_key(self.module_id, *self.keys[parsed[1], parsed[2]])
-
-    @property
-    def moves(self) -> bool:
-        return bool(self.removed) or any(a != b for a, b in self.keys.items())
-
-
-def _lesson_cards(db: Session, module_id: str) -> list[BoardCard]:
-    q = select(BoardCard).where(
-        BoardCard.link_type == "lesson", BoardCard.link_id.startswith(f"{module_id}:", autoescape=True)
-    )
-    return list(db.scalars(q))
-
-
-def _refuse_removals(
-    db: Session,
-    m: Module,
-    old: Sequence[dict[str, Any]],
-    remap: _Remap,
-    body: ModuleSave,
-    old_keys: dict[Position, Position],
-) -> None:
+def _refuse_removals(db: Session, m: Module, body: ModuleSave, removed: set[str]) -> None:
     """Removing a chapter that still has lessons, or a lesson with notes or study-board cards, is refused."""
-    kept_chapters = {ch.origin for ch in body.chapters if ch.origin is not None}
-    gone = {key: pos for pos, key in old_keys.items() if key in remap.removed}
-    for ci, chapter in enumerate(old):
-        if ci not in kept_chapters and any(pos[0] == ci for pos in gone.values()):
+    if not removed:
+        return
+    kept_chapters = {ch.id for ch in body.chapters if ch.id is not None}
+    for chapter in m.chapters:
+        if chapter.id not in kept_chapters and any(v.id in removed for v in chapter.lessons):
             raise conflict(
                 "content_in_use",
-                f"“{chapter.get('title') or 'This chapter'}” still has lessons. Hide the chapter instead, or move or "
+                f"“{chapter.title or 'This chapter'}” still has lessons. Hide the chapter instead, or move or "
                 "remove its lessons and save first.",
             )
-    if not gone:
-        return
-    notes = db.execute(
-        select(Note.chapter, Note.video, func.count())
-        .where(Note.module_id == m.id, Note.chapter.is_not(None))
-        .group_by(Note.chapter, Note.video)
-    ).all()
-    uses: dict[Position, int] = {(int(c), int(v)): int(n) for c, v, n in notes}
-    for card in _lesson_cards(db, m.id):
-        parsed = parse_lesson_key(card.link_id or "")
-        if parsed is not None:
-            uses[parsed[1], parsed[2]] = uses.get((parsed[1], parsed[2]), 0) + 1
-    for key, (c, v) in sorted(gone.items()):
-        if uses.get(key):
-            title = _videos(old[c])[v].get("title") or f"Lesson {v + 1} of “{old[c].get('title') or 'its chapter'}”"
-            raise conflict(
-                "content_in_use",
-                f"“{title}” has students' notes or study-board cards. Hide the lesson instead of removing it.",
-            )
+    used = set(db.scalars(select(Note.lesson_id).where(Note.lesson_id.in_(removed)))) | set(
+        db.scalars(select(BoardCard.lesson_id).where(BoardCard.lesson_id.in_(removed)))
+    )
+    for chapter in m.chapters:
+        for i, lesson in enumerate(chapter.lessons):
+            if lesson.id in used:
+                title = lesson.title or f"Lesson {i + 1} of “{chapter.title or 'its chapter'}”"
+                raise conflict(
+                    "content_in_use",
+                    f"“{title}” has students' notes or study-board cards. Hide the lesson instead of removing it.",
+                )
 
 
-def _move_references(db: Session, remap: _Remap) -> None:
-    """Watched lessons, where students left off, notes and study-board cards follow their lessons to the new keys.
-    Watched lessons and resume points of removed lessons go."""
-    mid = remap.module_id
-    views = db.execute(
-        select(LessonView.user_id, LessonView.lesson_key, LessonView.watched_at).where(LessonView.module_id == mid)
-    ).all()
-    changed = [(user_id, key, remap.key(key), at) for user_id, key, at in views]
-    changed = [row for row in changed if row[2] != row[1]]
-    if changed:
-        old_keys = {key for _, key, _, _ in changed}
-        db.execute(
-            delete(LessonView)
-            .where(LessonView.module_id == mid, LessonView.lesson_key.in_(old_keys))
-            .execution_options(synchronize_session=False)
-        )
-        db.add_all(
-            LessonView(user_id=user_id, lesson_key=new, module_id=mid, watched_at=at)
-            for user_id, _, new, at in changed
-            if new is not None
-        )
-    for resume in db.scalars(select(LessonResume).where(LessonResume.module_id == mid)):
-        moved = remap.keys.get((resume.chapter, resume.video))
-        if moved is None:
-            db.delete(resume)
-        else:
-            resume.chapter, resume.video = moved
-    for note in db.scalars(select(Note).where(Note.module_id == mid, Note.chapter.is_not(None))):
-        if (
-            note.chapter is not None
-            and note.video is not None
-            and (moved := remap.keys.get((note.chapter, note.video)))
-        ):
-            note.chapter, note.video = moved
-    # Two steps, so two cards that swap keys never hold the same one at once (one card per lesson per board).
-    cards = [(card, remap.key(card.link_id or "")) for card in _lesson_cards(db, mid)]
-    cards = [(card, new) for card, new in cards if new is not None and new != card.link_id]
-    for card, new in cards:
-        card.link_id = f"~{new}"
-    db.flush()
-    for card, new in cards:
-        card.link_id = new
-    db.flush()
+def _place_chapters(m: Module, body: ModuleSave) -> None:
+    """Sets the module's chapters and lessons as `body` has them. Moving one changes its `position` (and a lesson's
+    chapter); what `body` leaves out is deleted."""
+    old_chapters = {c.id: c for c in m.chapters}
+    old_lessons = {v.id: v for c in m.chapters for v in c.lessons}
+    placed: list[tuple[Chapter, list[Lesson]]] = []
+    for ci, ch in enumerate(body.chapters):
+        chapter = old_chapters[ch.id] if ch.id is not None else Chapter(id=new_id(), module_id=m.id)
+        chapter.title, chapter.hidden, chapter.position = ch.title, ch.hidden, ci
+        lessons: list[Lesson] = []
+        for vi, item in enumerate(ch.lessons):
+            parsed = parse_video(item.url)
+            if parsed is None:
+                raise invalid(f"chapters.{ci}.lessons.{vi}.url", VIDEO_RULE)
+            if item.id is not None:
+                lesson = old_lessons[item.id]
+                # still the video YouTube took down: it stays marked
+                lesson.unavailable = lesson.unavailable and parse_video(video_link(lesson)) == parsed
+            else:
+                lesson = Lesson(id=new_id(), module_id=m.id, unavailable=False)
+            lesson.kind = parsed["kind"]
+            lesson.video_id, lesson.url = parsed.get("video_id"), parsed.get("url")
+            lesson.title, lesson.channel = item.title or None, item.channel or None
+            lesson.hidden, lesson.position = item.hidden, vi
+            lessons.append(lesson)
+        placed.append((chapter, lessons))
+    for chapter, lessons in placed:
+        chapter.lessons = lessons
+    m.chapters = [chapter for chapter, _ in placed]
 
 
 def save_module(db: Session, user: User, module_id: str, body: ModuleSave, ip: str | None) -> Module:
-    """Saves the whole module, if nobody saved it since `body.version` (409 module_changed)."""
+    """Saves the whole module, if nobody saved it since `body.version` (409 module_changed). Lessons left out go,
+    with who watched them and where students left off in them."""
     m = get_module(db, module_id, lock=True)
     if m.version != body.version:
         raise conflict("module_changed", CHANGED)
     fields = _fields(db, body, module_id=m.id)
-    old = _chapters(m)
-    chapters, moved = _new_chapters(old, body)
-    old_keys, new_keys = _keys(old), _keys(chapters)
-    remap = _Remap(
-        module_id=m.id,
-        keys={old_keys[was]: new_keys[now] for now, was in moved.items()},
-        removed={key for pos, key in old_keys.items() if pos not in set(moved.values())},
-    )
-    _refuse_removals(db, m, old, remap, body, old_keys)
+    removed = _removed_lessons(m, body)
+    _refuse_removals(db, m, body, removed)
     before = _snapshot(m)
-    for name, value in {**fields, "hidden": body.hidden, "chapters": chapters}.items():
-        setattr(m, name, value)
+    with db.no_autoflush:
+        for name, value in {**fields, "hidden": body.hidden}.items():
+            setattr(m, name, value)
+        _place_chapters(m, body)
+    db.flush()
     after = _snapshot(m)
     if after == before:
         return m
-    if remap.moves:
-        _move_references(db, remap)
     m.version += 1
     db.flush()
     record(db, user, "module.update", "module", m.id, m.name, ip, **_audit_change(before, after))
@@ -472,16 +387,11 @@ def _plural(n: int, one: str, many: str) -> str:
 
 
 def uses_of(db: Session, m: Module) -> list[str]:
-    """What still refers to the module, in words ("12 lessons", "3 library items")."""
-    lessons = sum(len(_videos(c)) for c in _chapters(m))
+    """What still refers to the module, in words ("12 lessons", "3 library items"). Cards for its lessons go with
+    the lessons."""
+    lessons = sum(len(c.lessons) for c in m.chapters)
     cards = int(
-        db.scalar(
-            select(func.count()).where(
-                ((BoardCard.link_type == "module") & (BoardCard.link_id == m.id))
-                | ((BoardCard.link_type == "lesson") & BoardCard.link_id.startswith(f"{m.id}:", autoescape=True))
-            )
-        )
-        or 0
+        db.scalar(select(func.count()).where((BoardCard.link_type == "module") & (BoardCard.link_id == m.id))) or 0
     )
     counts = (
         (lessons, "lesson", "lessons"),

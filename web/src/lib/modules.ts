@@ -9,36 +9,31 @@ export function moduleLabel(m: Pick<ModuleSummary, 'unitCode' | 'name'> | null |
   return m ? (m.unitCode ? `${m.unitCode} ${m.name}` : m.name) : '';
 }
 
-/** Stable key for a lesson (progress): '<module id>:<chapter index>:<video index>'. */
-export function lessonKey(moduleId: string, chapterIndex: number, videoIndex: number): string {
-  return `${moduleId}:${chapterIndex}:${videoIndex}`;
-}
-
 const isYoutubeUrl = (s: string) => s.includes('youtube.com') || s.includes('youtu.be');
 
 /** iframe src for a video: a YouTube embed, or the recording's own URL. */
 export function videoEmbedUrl(v: Video | null | undefined): string | null {
   if (!v) return null;
   if (v.kind === 'bbb') return v.url ?? null;
-  if (!v.id) return null;
-  if (v.kind === 'youtube-playlist') return `https://www.youtube.com/embed/videoseries?list=${v.id}`;
-  if (isYoutubeUrl(v.id)) return v.id;
-  return `https://www.youtube.com/embed/${v.id}`;
+  if (!v.videoId) return null;
+  if (v.kind === 'youtube-playlist') return `https://www.youtube.com/embed/videoseries?list=${v.videoId}`;
+  if (isYoutubeUrl(v.videoId)) return v.videoId;
+  return `https://www.youtube.com/embed/${v.videoId}`;
 }
 
 /** Link to open the video at its source ("Open original"). */
 export function videoSourceUrl(v: Video | null | undefined): string | null {
   if (!v) return null;
   if (v.kind === 'bbb') return v.url ?? null;
-  if (!v.id) return null;
-  if (v.kind === 'youtube-playlist') return `https://www.youtube.com/playlist?list=${v.id}`;
-  if (isYoutubeUrl(v.id)) return v.id;
-  return `https://www.youtube.com/watch?v=${v.id}`;
+  if (!v.videoId) return null;
+  if (v.kind === 'youtube-playlist') return `https://www.youtube.com/playlist?list=${v.videoId}`;
+  if (isYoutubeUrl(v.videoId)) return v.videoId;
+  return `https://www.youtube.com/watch?v=${v.videoId}`;
 }
 
 /** YouTube thumbnail (null for playlists and class recordings). External: always provide a fallback. */
 export function videoThumbnailUrl(v: Video | null | undefined): string | null {
-  return v && v.kind === 'youtube' && v.id && !v.id.includes('/') ? `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg` : null;
+  return v && v.kind === 'youtube' && v.videoId && !v.videoId.includes('/') ? `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg` : null;
 }
 
 export const VIDEO_KIND_LABEL: Record<Video['kind'], string> = {

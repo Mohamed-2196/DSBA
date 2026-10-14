@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.models import Module, Note, User, UserStatus
 from app.services import notes as svc
+from tests.lessons import lesson_id
 
 API = "/api/v1"
 ClientFor = Callable[..., TestClient]
@@ -27,7 +28,7 @@ def new_note(c: TestClient, **fields: Any) -> dict[str, Any]:
 
 
 def save(c: TestClient, note: dict[str, Any], **changes: Any) -> Any:
-    keys = ("title", "body", "moduleId", "chapter", "video", "version")
+    keys = ("title", "body", "moduleId", "lessonId", "version")
     return c.put(f"{API}/notes/{note['id']}", json={k: note[k] for k in keys} | changes)
 
 
@@ -77,7 +78,7 @@ def test_list_search_and_filter(client_for: ClientFor, make_user: MakeUser, modu
     c = client_for(make_user())
     first = new_note(c, title="Bayes", body="P(A|B) = P(B|A)P(A)/P(B)")
     second = new_note(c, title="Lecture", body="The 100% sure part: variance", moduleId=module.id)
-    lesson = new_note(c, title="Video notes", body="x" * 1000, moduleId=module.id, chapter=0, video=1)
+    lesson = new_note(c, title="Video notes", body="x" * 1000, moduleId=module.id, lessonId=lesson_id(module, 0, 1))
     page = c.get(f"{API}/notes").json()
     assert [n["id"] for n in page["items"]] == [lesson["id"], second["id"], first["id"]]  # last edited first
     assert len(page["items"][0]["excerpt"]) == 240
@@ -93,7 +94,7 @@ def test_list_search_and_filter(client_for: ClientFor, make_user: MakeUser, modu
     assert ids(q="100%") == [second["id"]]  # wildcards are plain characters
     assert ids(q="_") == []
     assert set(ids(module_id=module.id)) == {second["id"], lesson["id"]}
-    assert ids(module_id=module.id, chapter=0, video=1) == [lesson["id"]]
+    assert ids(module_id=module.id, lesson_id=lesson_id(module, 0, 1)) == [lesson["id"]]
     assert ids(limit=1, offset=1) == [lesson["id"]]
 
 
@@ -101,15 +102,17 @@ def test_list_search_and_filter(client_for: ClientFor, make_user: MakeUser, modu
     ("place", "field"),
     [
         ({"moduleId": "no-such-module"}, "moduleId"),
-        ({"chapter": 0, "video": 0}, "moduleId"),
-        ({"MODULE": 0, "chapter": 0}, "video"),
-        ({"MODULE": 0, "chapter": 1, "video": 1}, "chapter"),
+        ({"LESSON": 0}, "moduleId"),
+        ({"MODULE": 0, "lessonId": "nosuchlesson"}, "lessonId"),
+        ({"moduleId": "other-module", "LESSON": 0}, "moduleId"),
+        ({"MODULE": 0, "lessonId": "Not-An-Id"}, "lessonId"),
     ],
 )
 def test_the_module_and_lesson_must_exist(
     client_for: ClientFor, make_user: MakeUser, module: Module, place: dict[str, Any], field: str
 ) -> None:
-    body = {("moduleId" if k == "MODULE" else k): (module.id if k == "MODULE" else v) for k, v in place.items()}
+    values = {"MODULE": ("moduleId", module.id), "LESSON": ("lessonId", lesson_id(module, 0, 0))}
+    body: dict[str, Any] = dict(values.get(k, (k, v)) for k, v in place.items())
     r = client_for(make_user()).post(f"{API}/notes", json={"title": "Somewhere", **body})
     assert r.status_code == 422, r.text
     assert field in r.json()["error"]["fields"]

@@ -49,12 +49,47 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column("icon", sa.String(length=40), nullable=True),
         sa.Column("resources", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-        sa.Column("chapters", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("position", sa.Integer(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
         sa.CheckConstraint("year BETWEEN 1 AND 3", name=op.f("ck_modules_year_range")),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_modules")),
     )
+    op.create_table(
+        "chapters",
+        sa.Column("id", sa.String(length=16), nullable=False),
+        sa.Column("module_id", sa.String(length=64), nullable=False),
+        sa.Column("position", sa.Integer(), nullable=False),
+        sa.Column("title", sa.String(length=160), nullable=False),
+        sa.Column("audio_url", sa.String(length=500), nullable=True),
+        sa.ForeignKeyConstraint(
+            ["module_id"], ["modules.id"], name=op.f("fk_chapters_module_id_modules"), ondelete="CASCADE"
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_chapters")),
+    )
+    op.create_index("ix_chapters_module_position", "chapters", ["module_id", "position"], unique=False)
+    op.create_table(
+        "lessons",
+        sa.Column("id", sa.String(length=16), nullable=False),
+        sa.Column("module_id", sa.String(length=64), nullable=False),
+        sa.Column("chapter_id", sa.String(length=16), nullable=False),
+        sa.Column("position", sa.Integer(), nullable=False),
+        sa.Column("kind", sa.String(length=20), nullable=False),
+        sa.Column("video_id", sa.String(length=64), nullable=True),
+        sa.Column("url", sa.String(length=500), nullable=True),
+        sa.Column("title", sa.String(length=200), nullable=True),
+        sa.Column("channel", sa.String(length=120), nullable=True),
+        sa.Column("unavailable", sa.Boolean(), server_default="false", nullable=False),
+        sa.CheckConstraint("kind IN ('youtube', 'youtube-playlist', 'bbb')", name=op.f("ck_lessons_kind")),
+        sa.ForeignKeyConstraint(
+            ["chapter_id"], ["chapters.id"], name=op.f("fk_lessons_chapter_id_chapters"), ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["module_id"], ["modules.id"], name=op.f("fk_lessons_module_id_modules"), ondelete="CASCADE"
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_lessons")),
+    )
+    op.create_index("ix_lessons_chapter_position", "lessons", ["chapter_id", "position"], unique=False)
+    op.create_index("ix_lessons_module", "lessons", ["module_id"], unique=False)
     op.create_table(
         "roles",
         sa.Column("id", sa.UUID(), nullable=False),
@@ -229,9 +264,11 @@ def upgrade() -> None:
         "lesson_resume",
         sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("module_id", sa.String(length=64), nullable=False),
-        sa.Column("chapter", sa.SmallInteger(), nullable=False),
-        sa.Column("video", sa.SmallInteger(), nullable=False),
+        sa.Column("lesson_id", sa.String(length=16), nullable=False),
         sa.Column("opened_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["lesson_id"], ["lessons.id"], name=op.f("fk_lesson_resume_lesson_id_lessons"), ondelete="CASCADE"
+        ),
         sa.ForeignKeyConstraint(
             ["module_id"], ["modules.id"], name=op.f("fk_lesson_resume_module_id_modules"), ondelete="CASCADE"
         ),
@@ -240,20 +277,21 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("user_id", "module_id", name=op.f("pk_lesson_resume")),
     )
+    op.create_index("ix_lesson_resume_lesson", "lesson_resume", ["lesson_id"], unique=False)
     op.create_table(
         "lesson_views",
         sa.Column("user_id", sa.UUID(), nullable=False),
-        sa.Column("lesson_key", sa.String(length=96), nullable=False),
-        sa.Column("module_id", sa.String(length=64), nullable=False),
+        sa.Column("lesson_id", sa.String(length=16), nullable=False),
         sa.Column("watched_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(
-            ["module_id"], ["modules.id"], name=op.f("fk_lesson_views_module_id_modules"), ondelete="CASCADE"
+            ["lesson_id"], ["lessons.id"], name=op.f("fk_lesson_views_lesson_id_lessons"), ondelete="CASCADE"
         ),
         sa.ForeignKeyConstraint(
             ["user_id"], ["users.id"], name=op.f("fk_lesson_views_user_id_users"), ondelete="CASCADE"
         ),
-        sa.PrimaryKeyConstraint("user_id", "lesson_key", name=op.f("pk_lesson_views")),
+        sa.PrimaryKeyConstraint("user_id", "lesson_id", name=op.f("pk_lesson_views")),
     )
+    op.create_index("ix_lesson_views_lesson", "lesson_views", ["lesson_id"], unique=False)
     op.create_table(
         "library_items",
         sa.Column("id", sa.UUID(), nullable=False),
@@ -824,7 +862,9 @@ def downgrade() -> None:
     op.drop_index("ix_library_items_reviewed_by", table_name="library_items")
     op.drop_index("ix_library_items_module", table_name="library_items")
     op.drop_table("library_items")
+    op.drop_index("ix_lesson_views_lesson", table_name="lesson_views")
     op.drop_table("lesson_views")
+    op.drop_index("ix_lesson_resume_lesson", table_name="lesson_resume")
     op.drop_table("lesson_resume")
     op.drop_index("ix_forum_threads_search", table_name="forum_threads", postgresql_using="gin")
     op.drop_index("ix_forum_threads_module", table_name="forum_threads")
@@ -842,6 +882,11 @@ def downgrade() -> None:
     op.drop_table("audit_log")
     op.drop_table("users")
     op.drop_table("roles")
+    op.drop_index("ix_lessons_module", table_name="lessons")
+    op.drop_index("ix_lessons_chapter_position", table_name="lessons")
+    op.drop_table("lessons")
+    op.drop_index("ix_chapters_module_position", table_name="chapters")
+    op.drop_table("chapters")
     op.drop_table("modules")
 
 

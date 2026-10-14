@@ -220,9 +220,7 @@ def _screen(db: Session, user: User, body: NooraQuestion, today: dt.date) -> pro
     dates = None
     if access.feature_on(db, user, Feature.calendar):
         dates = list(db.scalars(events_query(start=today, year=year).limit(prompt.CALENDAR_DATES)))
-    return prompt.Screen(
-        today=today, year=year, route=body.route, module=module, chapter=body.chapter, video=body.video, dates=dates
-    )
+    return prompt.Screen(today=today, year=year, route=body.route, module=module, lesson_id=body.lesson_id, dates=dates)
 
 
 def prepare(db: Session, user: User, body: NooraQuestion) -> Prepared:

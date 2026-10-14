@@ -55,8 +55,8 @@ export interface LessonInfo {
  *   class recording   'Class recording', and the day it ran        '30 Sep 2025'
  *   YouTube playlist  'Playlist'                                   'Several videos on YouTube'
  *   anything else     'Video 3' (a title we don't know)
- * Videos YouTube removed are flagged `unavailable` by the API: they keep their place (lesson keys are positions)
- * with a quiet note, and can still be tried.
+ * Videos YouTube removed are flagged `unavailable` by the API: they keep their place with a quiet note, and can
+ * still be tried.
  */
 export function lessonInfo(video: Video, v: number, { time = false }: { time?: boolean } = {}): LessonInfo {
   if (video.kind === 'bbb') {
@@ -156,21 +156,9 @@ export function moduleTabOn(tab: ModuleTab, isOn: (feature: Feature) => boolean)
   return true;
 }
 
-/** Search string for a module page, e.g. lessonSearch(1, 4) → '?tab=lessons&chapter=1&video=4'. */
-export function lessonSearch(c: number, v: number): string {
-  return `?tab=lessons&chapter=${c}&video=${v}`;
-}
-
-/** Full route to a lesson. */
-export function lessonHref(moduleId: string, c: number, v: number): string {
-  return `/modules/${moduleId}${lessonSearch(c, v)}`;
-}
-
-/** Parse an index URL param ('2' → 2); anything else → null. */
-export function indexParam(raw: string | null): number | null {
-  if (raw == null || raw === '') return null;
-  const n = Number(raw);
-  return Number.isInteger(n) && n >= 0 ? n : null;
+/** A lesson's address: the module page's Lessons tab with that lesson on screen. */
+export function lessonHref(moduleId: string, lessonId: string): string {
+  return `/modules/${moduleId}/lessons/${lessonId}`;
 }
 
 // ── Time ──────────────────────────────────────────────────────────────────
