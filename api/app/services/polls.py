@@ -4,8 +4,8 @@ A poll is a block in an issue's sections (PollBlock). Each signed-in student vot
 The counts show once you have voted, and to people who manage the newsletter. Votes are kept only to count them and
 to stop a second vote: no response says who voted. They are in the voter's export and go with their account.
 
-Editing an answer's text after votes came in keeps the votes on that position; a removed answer's votes stop
-counting."""
+Once a poll has votes its answers are fixed (409 poll_has_votes): only its question and whether it is closed can
+change. A closed poll takes no more votes (409 poll_closed) and shows its counts to everyone."""
 
 from __future__ import annotations
 
@@ -56,8 +56,27 @@ def results(
     out: dict[str, PollResult] = {}
     for pid, c in counts.items():
         chose = mine.get(pid)
-        out[pid] = PollResult(total=sum(c), counts=c if chose is not None or manager else None, mine=chose)
+        shown = chose is not None or manager or polls[pid].closed
+        out[pid] = PollResult(total=sum(c), counts=c if shown else None, mine=chose)
     return out
+
+
+def keep_voted_answers(
+    db: Session, issue: NewsletterIssue, before: dict[str, PollBlock], after: dict[str, PollBlock]
+) -> None:
+    """Refuses an edit that changes the answers of a poll that already has votes."""
+    changed = [pid for pid, p in after.items() if pid in before and before[pid].answers != p.answers]
+    if not changed:
+        return
+    voted = db.scalar(
+        select(PollVote.poll_id).where(PollVote.issue_id == issue.id, PollVote.poll_id.in_(changed)).limit(1)
+    )
+    if voted is not None:
+        raise conflict(
+            "poll_has_votes",
+            f"The poll “{after[voted].question}” has votes, so its answers can't change. "
+            "Edit the question or close it instead.",
+        )
 
 
 def vote(
@@ -72,6 +91,8 @@ def vote(
     poll = polls.get(poll_id)
     if poll is None:
         raise not_found("This poll doesn't exist.")
+    if poll.closed:
+        raise conflict("poll_closed", "This poll is closed.")
     if choice >= len(poll.answers):
         raise invalid("choice", "Pick one of the answers.")
     added = db.execute(

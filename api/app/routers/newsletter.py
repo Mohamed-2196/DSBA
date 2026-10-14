@@ -55,7 +55,8 @@ def create_issue(body: IssueCreate, request: Request, user: NewsletterManager, d
 @router.patch("/newsletter/issues/{issue_id}", response_model=IssueDetail)
 def update_issue(issue_id: UUID, body: IssueUpdate, request: Request, user: NewsletterManager, db: DB) -> IssueDetail:
     """Edit a draft or a published issue (fields that are not sent stay as they are; `sections` and `cover` are
-    replaced as a whole). Errors: slug_taken (409), invalid_input (422)."""
+    replaced as a whole). Errors: slug_taken (409), poll_has_votes (409: a poll's answers changed after it got
+    votes), invalid_input (422)."""
     issue = svc.get_by_id(db, issue_id)
     svc.update_issue(db, user, issue, body, client_ip(request))
     db.commit()
@@ -104,7 +105,8 @@ def unreact(issue_id: UUID, section_id: str, reaction: Reaction, user: Reader, d
 )
 def vote_in_poll(issue_id: UUID, poll_id: str, body: PollVoteRequest, user: Reader, db: DB) -> PollResult:
     """One vote per person, and it can't be changed. The counts come back with it. Published issues only.
-    Errors: already_voted (409), not_found (404: no such issue or poll), invalid_input (422: no such answer)."""
+    Errors: already_voted (409), poll_closed (409), not_found (404: no such issue or poll), invalid_input (422: no
+    such answer)."""
     issue = svc.get_by_id(db, issue_id)
     result = polls.vote(db, user, issue, svc.read_sections(issue), poll_id, body.choice)
     db.commit()

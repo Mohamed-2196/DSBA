@@ -84,3 +84,29 @@ def test_polls_switched_off_give_no_results_and_refuse_votes(
     assert client_for(student).get(f"{ISSUES}/{issue['slug']}").json()["polls"] == {}
     r = vote(client_for(student), issue["id"], 0)
     assert (r.status_code, r.json()["error"]["code"]) == (404, "feature_off")
+
+
+def test_a_voted_polls_answers_are_fixed_but_it_can_be_reworded_and_closed(
+    client_for: Clients, student: User, moderator: User, set_feature: SetFeature
+) -> None:
+    set_feature("newsletter.polls", "everyone")
+    rep = client_for(moderator)
+    issue = publish(rep, with_poll(POLL))
+    url = f"{ISSUES}/{issue['id']}"
+    # no votes yet: the answers may change
+    assert (
+        rep.patch(
+            url, json={"sections": with_poll({**POLL, "answers": ["Yes", "No", "Maybe"]})["sections"]}
+        ).status_code
+        == 200
+    )
+    assert vote(client_for(student), issue["id"], 2).status_code == 200
+    r = rep.patch(url, json={"sections": with_poll({**POLL, "answers": ["Yes", "No"]})["sections"]})
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "poll_has_votes")
+    answers = ["Yes", "No", "Maybe"]
+    closed = {**POLL, "question": "Emails on by default?", "answers": answers, "closed": True}
+    assert rep.patch(url, json={"sections": with_poll(closed)["sections"]}).status_code == 200
+    late = vote(client_for(moderator), issue["id"], 0)
+    assert (late.status_code, late.json()["error"]["code"]) == (409, "poll_closed")
+    # closed: everyone sees the counts
+    assert client_for().get(f"{ISSUES}/{issue['slug']}").json()["polls"]["emails"]["counts"] == [0, 0, 1]

@@ -122,7 +122,8 @@ class PollBlock(ApiModel):
     type: Literal["poll"]
     id: SectionId
     question: Heading
-    answers: list[PollAnswer] = Field(min_length=2, max_length=5)
+    answers: list[PollAnswer] = Field(min_length=2, max_length=5)  # fixed once the poll has votes
+    closed: bool = False  # takes no more votes; the counts show to everyone
 
 
 IssueBlock = Annotated[ParagraphBlock | ListBlock | SignoffBlock | CtaBlock | PollBlock, Field(discriminator="type")]
@@ -244,7 +245,8 @@ class PollResult(ApiModel):
     """A poll's votes. Nobody sees who voted."""
 
     total: int
-    counts: list[int] | None  # by answer; None until the viewer has voted (people who manage the newsletter: always)
+    # by answer; None until the viewer has voted (always for people who manage the newsletter, and once it's closed)
+    counts: list[int] | None
     mine: int | None  # the answer the viewer chose
 
 

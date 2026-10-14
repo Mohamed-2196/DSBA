@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { blankBlock, draftFrom, fieldOfApiPath, fieldPath, toUpdate, validate, type IssueContent } from './draft';
 import { readMinutes } from './text';
 
-const POLL = { type: 'poll' as const, id: 'emails', question: 'Should emails be on by default?', answers: ['Yes', 'No'] };
+const POLL = { type: 'poll' as const, id: 'emails', question: 'Should emails be on by default?', answers: ['Yes', 'No'], closed: false };
 const ISSUE: IssueContent = {
   title: 'The October issue',
   number: 2,

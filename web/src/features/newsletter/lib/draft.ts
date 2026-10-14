@@ -56,7 +56,7 @@ export type BlockDraft =
   | { key: string; type: 'signoff'; text: string }
   | { key: string; type: 'cta'; label: string; to: string }
   /** `id` keeps the poll's votes: it never changes once the block exists */
-  | { key: string; type: 'poll'; id: string; question: string; answers: ItemDraft[] };
+  | { key: string; type: 'poll'; id: string; question: string; answers: ItemDraft[]; closed: boolean };
 
 export type BlockKind = BlockDraft['type'];
 
@@ -159,7 +159,7 @@ function blockDraft(b: Block): BlockDraft {
     case 'cta':
       return { key: newKey('b'), type: 'cta', label: b.label, to: b.to };
     case 'poll':
-      return { key: newKey('b'), type: 'poll', id: b.id, question: b.question, answers: b.answers.map((text) => ({ key: newKey('i'), text })) };
+      return { key: newKey('b'), type: 'poll', id: b.id, question: b.question, answers: b.answers.map((text) => ({ key: newKey('i'), text })), closed: b.closed };
   }
 }
 
@@ -235,7 +235,7 @@ function blockPayload(b: BlockDraft): Block {
     case 'cta':
       return { type: 'cta', label: b.label.trim(), to: b.to.trim() };
     case 'poll':
-      return { type: 'poll', id: b.id, question: b.question.trim(), answers: b.answers.map((a) => a.text.trim()) };
+      return { type: 'poll', id: b.id, question: b.question.trim(), answers: b.answers.map((a) => a.text.trim()), closed: b.closed };
   }
 }
 
@@ -726,7 +726,7 @@ export function blankBlock(type: BlockKind): BlockDraft {
     case 'cta':
       return { key: newKey('b'), type: 'cta', label: '', to: '' };
     case 'poll':
-      return { key: newKey('b'), type: 'poll', id: pollId(), question: '', answers: [blankItem(), blankItem()] };
+      return { key: newKey('b'), type: 'poll', id: pollId(), question: '', answers: [blankItem(), blankItem()], closed: false };
   }
 }
 

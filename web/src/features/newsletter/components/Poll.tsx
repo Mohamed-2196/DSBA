@@ -31,7 +31,7 @@ export function Poll({ block, issue }: { block: PollBlock; issue: PollIssue }) {
   const result = issue.polls?.[block.id];
   const counts = result?.counts ?? null;
   const total = result?.total ?? 0;
-  const votes = !issue.readOnly && mayTry('newsletter.react');
+  const votes = !issue.readOnly && !block.closed && mayTry('newsletter.react');
   const send = (choice: number) =>
     vote.mutate(
       { issueId: issue.issueId, slug: issue.slug, pollId: block.id, choice },
@@ -79,7 +79,7 @@ export function Poll({ block, issue }: { block: PollBlock; issue: PollIssue }) {
       )}
       <p className="nl-poll__foot">
         {total === 1 ? '1 vote' : `${total} votes`}
-        {counts ? '. Nobody sees who voted.' : votes ? '. You’ll see the results once you vote.' : issue.readOnly ? '' : '. Voting isn’t on your account.'}
+        {block.closed ? '. This poll is closed.' : counts ? '. Nobody sees who voted.' : votes ? '. You’ll see the results once you vote.' : issue.readOnly ? '' : '. Voting isn’t on your account.'}
       </p>
     </section>
   );

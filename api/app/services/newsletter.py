@@ -232,6 +232,8 @@ def update_issue(db: Session, user: User, issue: NewsletterIssue, body: IssueUpd
     savepoint, so a new address that another rep took a moment earlier answers 409 slug_taken, not a 500."""
     if body.slug is not None and body.slug != issue.slug:
         check_slug_free(db, body.slug, issue.id)
+    if body.sections is not None:
+        polls.keep_voted_answers(db, issue, polls.polls_in(read_sections(issue)), polls.polls_in(body.sections))
     try:
         with db.begin_nested():  # flushes what was pending before, then holds this edit
             changed = apply_patch(issue, body, EDITABLE, blank=BLANK)

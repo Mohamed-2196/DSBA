@@ -69,6 +69,8 @@ ErrorCode = Literal[
     "slug_taken",  # 409: a rep chose an address another issue has
     "not_published",  # 409: reactions and votes wait for the issue to be published
     "already_voted",  # 409: one vote per poll
+    "poll_closed",  # 409: the poll takes no more votes
+    "poll_has_votes",  # 409: a poll's answers can't change once it has votes
     "unsupported_type",  # 422: a file type the library or the forum doesn't take
     "too_large",  # 422
     "not_uploaded",  # 409: the file never reached the bucket
