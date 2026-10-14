@@ -402,8 +402,6 @@
 .cal-form__check-title { display: block; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
 .cal-form__check-hint { display: block; margin-top: 2px; color: var(--ink-2); font-size: var(--fs-12); line-height: 1.4; }
 .cal-form__error { color: var(--alert-strong); font-size: var(--fs-14); font-weight: var(--fw-medium); line-height: 1.4; }
-.cal-confirm { display: grid; gap: var(--sp-12); color: var(--ink-2); font-size: var(--fs-16); line-height: 1.5; }
-.cal-confirm b { color: var(--ink); }
 @media (max-width: 699px) {
   .cal-form { grid-template-columns: minmax(0, 1fr); }
 }
