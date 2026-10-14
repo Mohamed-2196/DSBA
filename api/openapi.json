@@ -6995,7 +6995,7 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum\npicture), feature_off (404: the library, its uploads or the forum is switched off).",
+        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; career_logo: PNG, JPEG, WebP up to\nDSBA_MAX_IMAGE_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429), forbidden (403: no library.upload, no forum.post for a forum\npicture, no career.edit for a logo), feature_off (404: the library, its uploads, the forum or Career Navigator is\nswitched off).",
         "operationId": "create_upload_api_v1_uploads_post",
         "requestBody": {
           "content": {
@@ -13582,7 +13582,7 @@
           "content"
         ],
         "summary": "Career",
-        "description": "The Career Navigator's content (`data` is null until it is loaded).",
+        "description": "Career Navigator as the page shows it, hidden parts left out (`data` is null until it is loaded).",
         "operationId": "career_api_v1_career_get",
         "responses": {
           "200": {
@@ -13671,14 +13671,14 @@
         "tags": [
           "content"
         ],
-        "summary": "Update Career",
-        "description": "Replace the whole document. Audited.\n\nErrors: invalid_input (422: it doesn't fit the schema, refers to an id it doesn't define or a module that\ndoesn't exist, has a link that isn't https:// or a page of the Hub, or is over 512 KB of JSON).",
-        "operationId": "update_career_api_v1_career_put",
+        "summary": "Save Career",
+        "description": "Save the whole document, if nobody saved it since `version`. Audited with what changed, before and after.\n\nErrors: career_changed (409: someone saved it since: load it again), invalid_input (422: it doesn't fit the\nschema, refers to an id it doesn't define or a module that doesn't exist, hides the role the page opens on, has a\nlink that isn't https:// or a page of the Hub, uses a logo that isn't uploaded, or is over 512 KB of JSON).",
+        "operationId": "save_career_api_v1_career_put",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CareerDoc"
+                "$ref": "#/components/schemas/CareerSave"
               }
             }
           },
@@ -13690,7 +13690,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CareerContent"
+                  "$ref": "#/components/schemas/CareerEditable"
                 }
               }
             }
@@ -13764,6 +13764,195 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/career/edit": {
+      "get": {
+        "tags": [
+          "content"
+        ],
+        "summary": "Career For Editing",
+        "description": "The whole document, hidden parts included, with the version a save names.",
+        "operationId": "career_for_editing_api_v1_career_edit_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CareerEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/career/logos/{upload_id}": {
+      "get": {
+        "tags": [
+          "content"
+        ],
+        "summary": "Career Logo",
+        "description": "An employer's or a certificate's logo: 302 to a short-lived link. To everyone while Career Navigator uses it;\nbefore that only to the editors (their preview).",
+        "operationId": "career_logo_api_v1_career_logos__upload_id__get",
+        "parameters": [
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Upload Id"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
           }
         }
       }
@@ -18246,6 +18435,21 @@
             "maxItems": 20,
             "title": "Roles",
             "default": []
+          },
+          "logo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CareerLogo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
           }
         },
         "type": "object",
@@ -18309,6 +18513,11 @@
               }
             ],
             "title": "Link"
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
           }
         },
         "type": "object",
@@ -18350,7 +18559,7 @@
           "updatedAt"
         ],
         "title": "CareerContent",
-        "description": "The Career Navigator's content, edited by admins as one document. `data` is None until it is loaded."
+        "description": "Career Navigator as the public page shows it (hidden parts left out). `data` is None until it is loaded."
       },
       "CareerDoc": {
         "properties": {
@@ -18526,6 +18735,55 @@
         ],
         "title": "CareerDoc"
       },
+      "CareerEditable": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CareerDoc"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy"
+        ],
+        "title": "CareerEditable",
+        "description": "The whole document for its editors, hidden parts included, with the version a save must name."
+      },
       "CareerEmployer": {
         "properties": {
           "id": {
@@ -18594,6 +18852,21 @@
               "roles"
             ],
             "title": "Cta"
+          },
+          "logo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CareerLogo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
           }
         },
         "type": "object",
@@ -18685,6 +18958,28 @@
         ],
         "title": "CareerFeatured",
         "description": "The one competition beside the page title."
+      },
+      "CareerLogo": {
+        "properties": {
+          "uploadId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uploadid"
+          },
+          "permission": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Permission"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uploadId",
+          "permission"
+        ],
+        "title": "CareerLogo",
+        "description": "A logo an editor uploaded (purpose career_logo), served by GET /career/logos/{uploadId}. Only an organisation's\nown logo file, used with its permission: `permission` says who agreed and when."
       },
       "CareerOffer": {
         "properties": {
@@ -18812,6 +19107,11 @@
             "type": "object",
             "title": "Close",
             "default": {}
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
           }
         },
         "type": "object",
@@ -18823,6 +19123,25 @@
           "ask"
         ],
         "title": "CareerRole"
+      },
+      "CareerSave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CareerDoc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "CareerSave",
+        "description": "PUT /career: the whole document, and the version it was edited from."
       },
       "CareerSkill": {
         "properties": {
@@ -18936,6 +19255,11 @@
             "maxItems": 20,
             "title": "Modules",
             "default": []
+          },
+          "hidden": {
+            "type": "boolean",
+            "title": "Hidden",
+            "default": false
           }
         },
         "type": "object",
@@ -19613,6 +19937,7 @@
               "role_in_use",
               "module_changed",
               "content_in_use",
+              "career_changed",
               "already_a_lesson",
               "already_suggested",
               "suggestion_closed",
@@ -29043,7 +29368,8 @@
             "type": "string",
             "enum": [
               "library",
-              "forum_image"
+              "forum_image",
+              "career_logo"
             ],
             "title": "Purpose"
           },

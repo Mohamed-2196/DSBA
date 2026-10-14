@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from app.schemas.career import CareerDoc
 from app.schemas.common import ApiModel
 
 SearchType = Literal["thread", "library", "issue", "module", "lesson", "event"]
@@ -28,13 +27,6 @@ class SearchResults(ApiModel):
     modules: list[SearchHit]
     lessons: list[SearchHit]  # chapters first (opening their first lesson), then videos by title
     events: list[SearchHit]
-
-
-class CareerContent(ApiModel):
-    """The Career Navigator's content, edited by admins as one document. `data` is None until it is loaded."""
-
-    data: CareerDoc | None
-    updated_at: datetime | None
 
 
 class Health(ApiModel):

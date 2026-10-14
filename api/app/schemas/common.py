@@ -92,6 +92,8 @@ ErrorCode = Literal[
     # modules and lessons (R-9)
     "module_changed",  # 409: another editor saved the module since it was loaded: load it again
     "content_in_use",  # 409: notes, cards, files or threads refer to it: hide it instead
+    # Career Navigator's editor
+    "career_changed",  # 409: someone saved Career Navigator since it was loaded: load it again
     # suggested videos (IDEA-15)
     "already_a_lesson",  # 409: the module already has this video as a lesson
     "already_suggested",  # 409: this video already waits for review for the module

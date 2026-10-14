@@ -7,7 +7,7 @@ from pydantic import Field, StringConstraints
 
 from app.schemas.common import ApiModel
 
-UploadPurpose = Literal["library", "forum_image"]
+UploadPurpose = Literal["library", "forum_image", "career_logo"]
 
 
 class UploadCreate(ApiModel):
@@ -33,4 +33,4 @@ class UploadOut(ApiModel):
     file_name: str
     content_type: str
     size_bytes: int
-    media_url: str | None  # forum images: '/api/v1/media/<id>', usable in markdown right away
+    media_url: str | None  # forum images: '/api/v1/media/<id>', usable in markdown right away; logos: their link

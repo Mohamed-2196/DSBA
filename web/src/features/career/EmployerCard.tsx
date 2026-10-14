@@ -84,7 +84,7 @@ export function EmployerCard({ employer, track, tracks }: { employer: CareerEmpl
   return (
     <Panel as="li" padding="none" id={`career-emp-${employer.id}`} className="career-emp" data-hub="career-employer" data-employer-id={employer.id} data-offer-types={types.join(' ')}>
       <div className="career-emp__top">
-        <LogoSlot kind="employer" id={employer.id} mono={employer.mono} />
+        <LogoSlot kind="employer" id={employer.id} logo={employer.logo} mono={employer.mono} />
         <ul role="list" className="career-emp__types" aria-label="What it offers">
           {types.map((t) => (
             <li key={t}>

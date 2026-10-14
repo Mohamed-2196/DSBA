@@ -177,6 +177,7 @@ class PaperQuestionFlag(Base):
 class UploadPurpose(enum.StrEnum):
     library = "library"
     forum_image = "forum_image"
+    career_logo = "career_logo"  # an employer's or a certificate's logo on Career Navigator
 
 
 class UploadStatus(enum.StrEnum):

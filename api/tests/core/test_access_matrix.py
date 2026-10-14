@@ -42,6 +42,7 @@ GUARDED: list[tuple[str, str, Box]] = [
     ("POST", "/calendar/events", Box.calendar_manage),
     ("PATCH", "/calendar/events/2026-01-01-nothing", Box.calendar_manage),
     ("DELETE", "/calendar/events/2026-01-01-nothing", Box.calendar_manage),
+    ("GET", "/career/edit", Box.career_edit),
     ("PUT", "/career", Box.career_edit),
     ("GET", "/content/modules", Box.content_edit),
     ("POST", "/content/modules", Box.content_edit),

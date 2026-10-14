@@ -55,6 +55,8 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("calendar", "POST", "/calendar/events"),
     ("career", "GET", "/career"),
     ("career", "PUT", "/career"),
+    ("career", "GET", "/career/edit"),
+    ("career", "GET", f"/career/logos/{NOTHING}"),
     ("career.seniors", "GET", "/career/seniors"),
     ("career.seniors", "PUT", "/career/seniors/me"),
     ("notes", "GET", "/notes"),

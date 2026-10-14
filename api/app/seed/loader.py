@@ -37,7 +37,7 @@ from app.models import (
 )
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCreate
-from app.services import content, newsletter
+from app.services import career, newsletter
 from app.services.library import REFERENCE_PUBLISHED_AT
 
 DATA = Path(__file__).parent / "data"
@@ -168,11 +168,11 @@ def load_newsletter(db: Session) -> int:
 
 
 def load_career(db: Session) -> int:
-    """Once: after that, the document is the admins' (PUT /career)."""
-    if db.get(ContentDoc, content.CAREER_KEY) is not None:
+    """Once, as starting content: after that the document is its editors' (PUT /career), and is never loaded over."""
+    if db.get(ContentDoc, career.CAREER_KEY) is not None:
         return 0
     doc = CareerDoc.model_validate(read("career"))
-    db.add(ContentDoc(key=content.CAREER_KEY, data=content.stored_career(doc)))
+    db.add(ContentDoc(key=career.CAREER_KEY, data=career.stored(doc)))
     db.flush()
     return 1
 

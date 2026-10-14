@@ -74,3 +74,8 @@ def json_size(value: Any) -> int:
 def media_path(upload_id: uuid.UUID) -> str:
     """Where the web app links an uploaded forum image: '/api/v1/media/<id>'."""
     return f"/api/v1/media/{upload_id}"
+
+
+def career_logo_path(upload_id: uuid.UUID) -> str:
+    """Where the web app shows a Career Navigator logo: '/api/v1/career/logos/<id>'."""
+    return f"/api/v1/career/logos/{upload_id}"

@@ -1194,13 +1194,15 @@ export interface paths {
          * Create Upload
          * @description A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,
          *     .ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to
-         *     DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the
+         *     DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; career_logo: PNG, JPEG, WebP up to
+         *     DSBA_MAX_IMAGE_MB. The extension must match the
          *     declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file
          *     as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
          *
          *     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
-         *     for review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum
-         *     picture), feature_off (404: the library, its uploads or the forum is switched off).
+         *     for review; library only), rate_limited (429), forbidden (403: no library.upload, no forum.post for a forum
+         *     picture, no career.edit for a logo), feature_off (404: the library, its uploads, the forum or Career Navigator is
+         *     switched off).
          */
         post: operations["create_upload_api_v1_uploads_post"];
         delete?: never;
@@ -2130,17 +2132,59 @@ export interface paths {
         };
         /**
          * Career
-         * @description The Career Navigator's content (`data` is null until it is loaded).
+         * @description Career Navigator as the page shows it, hidden parts left out (`data` is null until it is loaded).
          */
         get: operations["career_api_v1_career_get"];
         /**
-         * Update Career
-         * @description Replace the whole document. Audited.
+         * Save Career
+         * @description Save the whole document, if nobody saved it since `version`. Audited with what changed, before and after.
          *
-         *     Errors: invalid_input (422: it doesn't fit the schema, refers to an id it doesn't define or a module that
-         *     doesn't exist, has a link that isn't https:// or a page of the Hub, or is over 512 KB of JSON).
+         *     Errors: career_changed (409: someone saved it since: load it again), invalid_input (422: it doesn't fit the
+         *     schema, refers to an id it doesn't define or a module that doesn't exist, hides the role the page opens on, has a
+         *     link that isn't https:// or a page of the Hub, uses a logo that isn't uploaded, or is over 512 KB of JSON).
          */
-        put: operations["update_career_api_v1_career_put"];
+        put: operations["save_career_api_v1_career_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/career/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Career For Editing
+         * @description The whole document, hidden parts included, with the version a save names.
+         */
+        get: operations["career_for_editing_api_v1_career_edit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/career/logos/{upload_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Career Logo
+         * @description An employer's or a certificate's logo: 302 to a short-lived link. To everyone while Career Navigator uses it;
+         *     before that only to the editors (their preview).
+         */
+        get: operations["career_logo_api_v1_career_logos__upload_id__get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -3153,6 +3197,12 @@ export interface components {
              * @default []
              */
             roles: string[];
+            logo?: components["schemas"]["CareerLogo"] | null;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
         };
         /** CareerChecklistItem */
         CareerChecklistItem: {
@@ -3164,10 +3214,15 @@ export interface components {
             hint: string;
             /** Link */
             link?: (components["schemas"]["ChecklistLesson"] | components["schemas"]["ChecklistCert"] | components["schemas"]["ChecklistForum"]) | null;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
         };
         /**
          * CareerContent
-         * @description The Career Navigator's content, edited by admins as one document. `data` is None until it is loaded.
+         * @description Career Navigator as the public page shows it (hidden parts left out). `data` is None until it is loaded.
          */
         CareerContent: {
             data: components["schemas"]["CareerDoc"] | null;
@@ -3223,6 +3278,18 @@ export interface components {
             };
         };
         /**
+         * CareerEditable
+         * @description The whole document for its editors, hidden parts included, with the version a save must name.
+         */
+        CareerEditable: {
+            data: components["schemas"]["CareerDoc"] | null;
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+        };
+        /**
          * CareerEmployer
          * @description A real employer with a presence in Bahrain.
          */
@@ -3254,6 +3321,12 @@ export interface components {
              * @enum {string}
              */
             cta: "apply" | "programme" | "roles";
+            logo?: components["schemas"]["CareerLogo"] | null;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
         };
         /**
          * CareerFeatured
@@ -3279,6 +3352,20 @@ export interface components {
             note: string;
             /** Url */
             url: string;
+        };
+        /**
+         * CareerLogo
+         * @description A logo an editor uploaded (purpose career_logo), served by GET /career/logos/{uploadId}. Only an organisation's
+         *     own logo file, used with its permission: `permission` says who agreed and when.
+         */
+        CareerLogo: {
+            /**
+             * Uploadid
+             * Format: uuid
+             */
+            uploadId: string;
+            /** Permission */
+            permission: string;
         };
         /** CareerOffer */
         CareerOffer: {
@@ -3319,6 +3406,20 @@ export interface components {
             close: {
                 [key: string]: components["schemas"]["CloseLesson"] | components["schemas"]["CloseFile"] | components["schemas"]["CloseCert"] | components["schemas"]["CloseForum"] | components["schemas"]["CloseOpps"];
             };
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
+        };
+        /**
+         * CareerSave
+         * @description PUT /career: the whole document, and the version it was edited from.
+         */
+        CareerSave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["CareerDoc"];
         };
         /** CareerSkill */
         CareerSkill: {
@@ -3349,6 +3450,11 @@ export interface components {
              * @default []
              */
             modules: string[];
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
         };
         /** CategoryOut */
         CategoryOut: {
@@ -3592,7 +3698,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "too_many_notes" | "notes_full" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -6782,7 +6888,7 @@ export interface components {
              * Purpose
              * @enum {string}
              */
-            purpose: "library" | "forum_image";
+            purpose: "library" | "forum_image" | "career_logo";
             /** Filename */
             fileName: string;
             /** Contenttype */
@@ -6913,10 +7019,13 @@ export type CareerCert = components['schemas']['CareerCert'];
 export type CareerChecklistItem = components['schemas']['CareerChecklistItem'];
 export type CareerContent = components['schemas']['CareerContent'];
 export type CareerDoc = components['schemas']['CareerDoc'];
+export type CareerEditable = components['schemas']['CareerEditable'];
 export type CareerEmployer = components['schemas']['CareerEmployer'];
 export type CareerFeatured = components['schemas']['CareerFeatured'];
+export type CareerLogo = components['schemas']['CareerLogo'];
 export type CareerOffer = components['schemas']['CareerOffer'];
 export type CareerRole = components['schemas']['CareerRole'];
+export type CareerSave = components['schemas']['CareerSave'];
 export type CareerSkill = components['schemas']['CareerSkill'];
 export type CareerTrack = components['schemas']['CareerTrack'];
 export type CategoryOut = components['schemas']['CategoryOut'];
@@ -17764,7 +17873,7 @@ export interface operations {
             };
         };
     };
-    update_career_api_v1_career_put: {
+    save_career_api_v1_career_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -17773,7 +17882,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CareerDoc"];
+                "application/json": components["schemas"]["CareerSave"];
             };
         };
         responses: {
@@ -17783,8 +17892,174 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CareerContent"];
+                    "application/json": components["schemas"]["CareerEditable"];
                 };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    career_for_editing_api_v1_career_edit_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareerEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    career_logo_api_v1_career_logos__upload_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {

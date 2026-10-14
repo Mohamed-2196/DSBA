@@ -1,4 +1,5 @@
-// Uploading a file straight to the bucket, for every purpose: library files and pictures in forum posts.
+// Uploading a file straight to the bucket, for every purpose: library files, pictures in forum posts and Career
+// Navigator's logos.
 // The pipeline, its limits, accepted types and messages.
 //   1. POST /api/v1/uploads { purpose, fileName, contentType, sizeBytes } -> a presigned POST (PresignedUpload)
 //   2. POST a form to its url: every entry of `fields` first, then the file as `file` (XHR for progress; no cookies)
@@ -9,7 +10,8 @@ import { api, call } from './client';
 import { ApiError, errorMessage, isApiError } from './errors';
 import type { PresignedUpload, UploadCreate, UploadOut } from './types';
 
-/** What an upload is for: 'library' (a file for the library) or 'forum_image' (a picture in a post). */
+/** What an upload is for: 'library' (a file for the library), 'forum_image' (a picture in a post) or 'career_logo'
+ *  (an employer's or a certificate's logo on Career Navigator). */
 export type UploadPurpose = UploadCreate['purpose'];
 
 export interface UploadRules {
@@ -56,6 +58,7 @@ const LIBRARY_TYPES: Readonly<Record<string, string>> = {
 };
 
 const IMAGE_TYPES: Readonly<Record<string, string>> = { png: PNG, jpg: JPEG, jpeg: JPEG, webp: WEBP, gif: 'image/gif' };
+const LOGO_TYPES: Readonly<Record<string, string>> = { png: PNG, jpg: JPEG, jpeg: JPEG, webp: WEBP };
 
 /** The picker lists extensions, plus the picture types so phones offer their photos and camera. */
 function acceptFor(types: Readonly<Record<string, string>>, mime: readonly string[]): string {
@@ -82,6 +85,16 @@ export const UPLOAD_RULES: Readonly<Record<UploadPurpose, UploadRules>> = {
     allowed: 'Use a PNG, JPEG, WebP or GIF image.',
     refused: 'That file type can’t be attached.',
     noun: 'image',
+    smaller: 'Save a smaller copy and try again.',
+  },
+  career_logo: {
+    types: LOGO_TYPES,
+    maxMb: 8,
+    accept: [PNG, JPEG, WEBP].join(','),
+    summary: 'The organisation’s own logo file: PNG, JPEG or WebP, up to 8 MB.',
+    allowed: 'Use the logo as a PNG, JPEG or WebP picture.',
+    refused: 'That file type can’t be a logo.',
+    noun: 'logo',
     smaller: 'Save a smaller copy and try again.',
   },
 };

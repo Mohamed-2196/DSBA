@@ -25,17 +25,21 @@ MEDIA_CACHE = "private, max-age=240"
 def create_upload(body: UploadCreate, user: ActiveUser, db: DB) -> PresignedUpload:
     """A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,
     .ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to
-    DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the
+    DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; career_logo: PNG, JPEG, WebP up to
+    DSBA_MAX_IMAGE_MB. The extension must match the
     declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file
     as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
 
     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
-    for review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum
-    picture), feature_off (404: the library, its uploads or the forum is switched off)."""
+    for review; library only), rate_limited (429), forbidden (403: no library.upload, no forum.post for a forum
+    picture, no career.edit for a logo), feature_off (404: the library, its uploads, the forum or Career Navigator is
+    switched off)."""
     svc.require_features(db, user, UploadPurpose(body.purpose))
     if body.purpose == "library":
         access.require(user, Box.library_upload)
         library.check_pending_room(db, user)  # before the file travels: create_item checks again
+    elif body.purpose == "career_logo":
+        access.require(user, Box.career_edit)
     else:
         access.require(user, Box.forum_post)
     presigned = svc.create_upload(db, user, body)

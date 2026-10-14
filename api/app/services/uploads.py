@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.core.access import Feature
 from app.core.errors import ApiError, conflict, not_found
-from app.core.links import media_path
+from app.core.links import career_logo_path, media_path
 from app.core.time import utcnow
 from app.models import ForumReply, ForumThread, PostStatus, Upload, UploadPurpose, UploadStatus, User
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
@@ -82,9 +82,18 @@ IMAGE_TYPES: dict[str, FileType] = {
     "webp": _WEBP,
     "gif": FileType("image/gif", (), (b"GIF87a", b"GIF89a")),
 }
+# An organisation's logo: still pictures only (no SVG, never a GIF).
+LOGO_TYPES: dict[str, FileType] = {"png": _PNG, "jpg": _JPEG, "jpeg": _JPEG, "webp": _WEBP}
 ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
     UploadPurpose.library: LIBRARY_TYPES,
     UploadPurpose.forum_image: IMAGE_TYPES,
+    UploadPurpose.career_logo: LOGO_TYPES,
+}
+# Where each purpose's checked files live in the bucket.
+FINAL_PREFIX: dict[UploadPurpose, str] = {
+    UploadPurpose.library: "library",
+    UploadPurpose.forum_image: "forum",
+    UploadPurpose.career_logo: "career",
 }
 # Shown in the browser (PDF viewer, <img>): storage.INLINE_TYPES. Everything else downloads as an attachment.
 IMAGE_CONTENT_TYPES = frozenset(t.content_type for t in IMAGE_TYPES.values())
@@ -130,7 +139,7 @@ def serve_type(file_name: str | None) -> str:
 
 def limit_bytes(purpose: UploadPurpose) -> int:
     s = get_settings()
-    mb = s.max_image_mb if purpose == UploadPurpose.forum_image else s.max_upload_mb
+    mb = s.max_upload_mb if purpose == UploadPurpose.library else s.max_image_mb
     return mb * 1024 * 1024
 
 
@@ -139,12 +148,21 @@ def media_url(upload_id: uuid.UUID) -> str:
 
 
 def _final_key(up: Upload) -> str:
-    prefix = "forum" if up.purpose == UploadPurpose.forum_image else "library"
-    return f"{prefix}/{uuid.uuid4()}/{safe_file_name(up.file_name)}"
+    return f"{FINAL_PREFIX[up.purpose]}/{uuid.uuid4()}/{safe_file_name(up.file_name)}"
+
+
+def _shown_at(up: Upload) -> str | None:
+    """Where a checked picture is shown from: a forum image's /media link, a logo's /career/logos link."""
+    if up.status == UploadStatus.pending:
+        return None
+    if up.purpose == UploadPurpose.forum_image:
+        return media_url(up.id)
+    if up.purpose == UploadPurpose.career_logo:
+        return career_logo_path(up.id)
+    return None
 
 
 def to_out(up: Upload) -> UploadOut:
-    is_image = up.purpose == UploadPurpose.forum_image and up.status != UploadStatus.pending
     return UploadOut.model_validate(
         {
             "upload_id": up.id,
@@ -152,7 +170,7 @@ def to_out(up: Upload) -> UploadOut:
             "file_name": up.file_name,
             "content_type": up.content_type,
             "size_bytes": up.size_bytes,
-            "media_url": media_url(up.id) if is_image else None,
+            "media_url": _shown_at(up),
         }
     )
 
@@ -163,6 +181,8 @@ def to_out(up: Upload) -> UploadOut:
 def _unsupported(purpose: UploadPurpose) -> ApiError:
     if purpose == UploadPurpose.forum_image:
         msg = "Use a PNG, JPEG, WebP or GIF image."
+    elif purpose == UploadPurpose.career_logo:
+        msg = "Use the logo as a PNG, JPEG or WebP picture."
     else:
         msg = (
             "Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, "
@@ -254,6 +274,7 @@ def _not_uploaded(message: str = "The file hasn't arrived yet. Upload it again."
 PURPOSE_FEATURES: dict[UploadPurpose, tuple[Feature, ...]] = {
     UploadPurpose.library: (Feature.library, Feature.library_uploads),
     UploadPurpose.forum_image: (Feature.forum,),
+    UploadPurpose.career_logo: (Feature.career,),
 }
 
 
