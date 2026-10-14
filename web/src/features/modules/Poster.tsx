@@ -134,7 +134,7 @@ export function MiniPoster({
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }) {
-  const key = m.chapters[c].videos[v].id;
+  const key = `${m.id}:${c}:${v}`; // only the art's seed
   const trace = useMemo(() => lessonTrace(key, { width: 320, height: 64, points: 18, spikeAt: 0.62, noise: 0.08 }), [key]);
   return (
     <span className={cx('mod-mini', `mod-mini--${size}`, className)} data-theme="dark" style={cohortVars(m.year)} aria-hidden="true">

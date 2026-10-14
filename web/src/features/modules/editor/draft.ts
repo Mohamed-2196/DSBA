@@ -1,11 +1,11 @@
 // The module editor's working copy: the module as loaded (ModuleEdit), changed in the browser, then saved whole
-// (ModuleSave). Chapters and lessons keep their `origin` (where they were when loaded), so the API moves students'
-// progress, notes and study-board cards with them. `key` is only for React and drag and drop.
+// (ModuleSave). Chapters and lessons keep their `id` (null for new ones): students' progress, notes and study-board
+// cards point at lessons by id, so moving one changes nothing for them. `key` is only for React and drag and drop.
 import type { ModuleEdit, ModuleSave } from '../../../api/types';
 
 export interface DraftLesson {
   key: string;
-  origin: { chapter: number; video: number } | null;
+  id: string | null;
   url: string;
   title: string;
   channel: string;
@@ -14,7 +14,7 @@ export interface DraftLesson {
 
 export interface DraftChapter {
   key: string;
-  origin: number | null;
+  id: string | null;
   title: string;
   hidden: boolean;
   lessons: DraftLesson[];
@@ -69,13 +69,13 @@ export function toDraft(m: ModuleEdit): Draft {
       cheatSheet: r.cheatSheet ?? '',
     },
     chapters: m.chapters.map((ch) => ({
-      key: `c${ch.origin}`,
-      origin: ch.origin,
+      key: `c-${ch.id}`,
+      id: ch.id,
       title: ch.title,
       hidden: ch.hidden,
       lessons: ch.lessons.map((l) => ({
-        key: `l${l.origin.chapter}-${l.origin.video}`,
-        origin: l.origin,
+        key: `l-${l.id}`,
+        id: l.id,
         url: l.url,
         title: l.title ?? '',
         channel: l.channel ?? '',
@@ -110,8 +110,8 @@ export function toSave(d: Draft, version: number): ModuleSave {
     chapters: d.chapters.map((ch) => ({
       title: ch.title.trim(),
       hidden: ch.hidden,
-      origin: ch.origin,
-      lessons: ch.lessons.map((l) => ({ url: l.url.trim(), title: orNull(l.title), channel: orNull(l.channel), hidden: l.hidden, origin: l.origin })),
+      id: ch.id,
+      lessons: ch.lessons.map((l) => ({ url: l.url.trim(), title: orNull(l.title), channel: orNull(l.channel), hidden: l.hidden, id: l.id })),
     })),
   };
 }
@@ -167,11 +167,11 @@ export function canStepLesson(d: Draft, at: LessonPlace, step: -1 | 1): boolean 
   return stepLesson(d, at, step) !== d;
 }
 
-export function updateChapter(d: Draft, index: number, patch: Partial<Omit<DraftChapter, 'key' | 'origin' | 'lessons'>>): Draft {
+export function updateChapter(d: Draft, index: number, patch: Partial<Omit<DraftChapter, 'key' | 'id' | 'lessons'>>): Draft {
   return { ...d, chapters: d.chapters.map((ch, i) => (i === index ? { ...ch, ...patch } : ch)) };
 }
 
-export function updateLesson(d: Draft, at: LessonPlace, patch: Partial<Omit<DraftLesson, 'key' | 'origin'>>): Draft {
+export function updateLesson(d: Draft, at: LessonPlace, patch: Partial<Omit<DraftLesson, 'key' | 'id'>>): Draft {
   return {
     ...d,
     chapters: d.chapters.map((ch, i) => (i === at.chapter ? { ...ch, lessons: ch.lessons.map((l, j) => (j === at.lesson ? { ...l, ...patch } : l)) } : ch)),
@@ -179,11 +179,11 @@ export function updateLesson(d: Draft, at: LessonPlace, patch: Partial<Omit<Draf
 }
 
 export function addChapter(d: Draft): Draft {
-  return { ...d, chapters: [...d.chapters, { key: newKey('c'), origin: null, title: '', hidden: false, lessons: [] }] };
+  return { ...d, chapters: [...d.chapters, { key: newKey('c'), id: null, title: '', hidden: false, lessons: [] }] };
 }
 
 export function addLesson(d: Draft, chapter: number): Draft {
-  const lesson: DraftLesson = { key: newKey('l'), origin: null, url: '', title: '', channel: '', hidden: false };
+  const lesson: DraftLesson = { key: newKey('l'), id: null, url: '', title: '', channel: '', hidden: false };
   return { ...d, chapters: d.chapters.map((ch, i) => (i === chapter ? { ...ch, lessons: [...ch.lessons, lesson] } : ch)) };
 }
 
