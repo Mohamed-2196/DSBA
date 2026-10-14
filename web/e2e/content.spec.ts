@@ -10,18 +10,18 @@ test('a content editor adds a module with a lesson, hides it and removes it', as
     await admin.goto('/manage?tab=content');
     await admin.getByRole('button', { name: 'Add a module' }).click();
     const dialog = admin.getByRole('dialog', { name: 'Add a module' });
-    await dialog.getByLabel('Name', { exact: true }).fill(name);
-    await dialog.getByLabel('Short name', { exact: true }).fill('E2E');
+    await dialog.getByRole('textbox', { name: 'Name', exact: true }).fill(name);
+    await dialog.getByRole('textbox', { name: 'Short name', exact: true }).fill('E2E');
     await dialog.getByLabel('Address').fill(id);
     await dialog.getByLabel('Year').selectOption('3');
     await dialog.getByRole('button', { name: 'Add the module' }).click();
     await expect(admin).toHaveURL(new RegExp(`module=${id}`));
 
     await admin.getByRole('button', { name: 'Add a chapter' }).click();
-    await admin.getByLabel('Chapter 1').fill('Getting started');
+    await admin.getByRole('textbox', { name: 'Chapter 1', exact: true }).fill('Getting started');
     await admin.getByRole('button', { name: 'Add a lesson' }).click();
-    await admin.getByLabel('Lesson 1 title').fill('Welcome');
-    await admin.getByLabel('Video link').fill('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    await admin.getByRole('textbox', { name: 'Lesson 1 title' }).fill('Welcome');
+    await admin.getByRole('textbox', { name: 'Video link' }).fill('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
     await admin.getByRole('button', { name: 'Save' }).first().click();
     await expect(admin.getByText('Saved. Students see the changes now.')).toBeVisible();
 
@@ -29,7 +29,7 @@ test('a content editor adds a module with a lesson, hides it and removes it', as
     await expect(sara.getByText('Welcome').first()).toBeVisible();
     await expect(sara).toHaveURL(new RegExp(`/modules/${id}/lessons/[a-z0-9]+$`)); // the lesson's own address
 
-    await admin.getByText('Hide from students').click();
+    await admin.getByRole('switch', { name: 'Hide from students' }).check();
     await admin.getByRole('button', { name: 'Save' }).first().click();
     await expect(admin.getByText('Saved. Students see the changes now.').first()).toBeVisible();
     const hidden = await api(sara, 'GET', `/api/v1/modules/${id}`);
