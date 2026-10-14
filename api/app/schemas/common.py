@@ -67,7 +67,8 @@ ErrorCode = Literal[
     "request_closed",  # 409: a done or declined request takes no more me-toos
     # library, uploads, newsletter, calendar
     "slug_taken",  # 409: a rep chose an address another issue has
-    "not_published",  # 409: reactions wait for the issue to be published
+    "not_published",  # 409: reactions and votes wait for the issue to be published
+    "already_voted",  # 409: one vote per poll
     "unsupported_type",  # 422: a file type the library or the forum doesn't take
     "too_large",  # 422
     "not_uploaded",  # 409: the file never reached the bucket

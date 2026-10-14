@@ -10,6 +10,9 @@ NotificationKind = Literal[
     "thread_reply",  # someone replied to your thread
     "reply_reply",  # someone replied to your reply
     "answer_accepted",  # your reply was accepted as the answer
+    "followed_reply",  # a new reply in a thread you follow (when you follow every reply)
+    "followed_answer",  # a thread you follow has an accepted answer
+    "senior_question",  # someone asked you a question as a senior
     "upload_published",  # your library upload was approved
     "upload_rejected",
     "new_issue",  # a newsletter issue was published

@@ -29,11 +29,15 @@ BoxKey = Literal[
 ]
 FeatureKey = Literal[
     "forum",
+    "forum.anonymous",
+    "forum.follow",
     "library",
     "library.uploads",
     "newsletter",
+    "newsletter.polls",
     "calendar",
     "career",
+    "career.seniors",
     "grades",
     "noora",
     "noora.ai",

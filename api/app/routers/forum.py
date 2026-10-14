@@ -16,6 +16,8 @@ from app.routers._base import router_for
 from app.schemas.forum import (
     AcceptRequest,
     Category,
+    FollowRequest,
+    FollowResult,
     ForumMeta,
     ForumStats,
     Reply,
@@ -31,7 +33,7 @@ from app.schemas.forum import (
     ThreadUpdate,
     VoteResult,
 )
-from app.services.forum import queries, replies, taxonomy, threads, views, visibility, votes
+from app.services.forum import follows, queries, replies, taxonomy, threads, views, visibility, votes
 
 router = router_for("forum", needs_feature(Feature.forum))
 Poster = Annotated[User, requires(Box.forum_post)]  # start threads, reply, vote
@@ -92,11 +94,17 @@ def hot_threads(
 
 
 @router.post("/forum/threads", response_model=ThreadDetail, status_code=status.HTTP_201_CREATED)
-def create_thread(body: ThreadCreate, user: Poster, db: DB) -> ThreadDetail:
+def create_thread(body: ThreadCreate, request: Request, user: Poster, db: DB) -> ThreadDetail:
     """The author upvotes their own thread. Forum images in the body (/api/v1/media/<id>) are attached.
 
-    Errors: rate_limited (429) after 10 threads in an hour."""
-    t = threads.create_thread(db, user, body)
+    `anonymous` (needs forum.anonymous): students see "A Year N student" in place of the author, everywhere the
+    thread shows, and in its notifications. The author and those who moderate the forum (forum.moderate) still see
+    who it is, and the audit log records it (forum.thread.anonymous). Reports and rate limits apply as usual.
+    `seniorId` (needs career.seniors): a listed senior asked from Career Navigator; they are notified.
+
+    Errors: rate_limited (429) after 10 threads in an hour; feature_off (404) for `anonymous` or `seniorId` while
+    their feature is off; invalid_input (422: the senior isn't taking questions)."""
+    t = threads.create_thread(db, user, body, client_ip(request))
     db.commit()
     return views.thread_detail(db, t, user)
 
@@ -135,6 +143,18 @@ def related_threads(
 ) -> list[ThreadSummary]:
     """Same module first, then shared tags and category. Works on any thread the viewer can open."""
     return queries.related_threads(db, user, visibility.thread_to_read(db, thread_id, user), limit)
+
+
+@router.put(
+    "/forum/threads/{thread_id}/follow", response_model=FollowResult, dependencies=[needs_feature(Feature.forum_follow)]
+)
+def follow_thread(thread_id: UUID, body: FollowRequest, user: ActiveUser, db: DB) -> FollowResult:
+    """Follow a thread: 'answers' (an accepted answer), 'replies' (every reply too) or 'off'. Voting for a thread or
+    replying in it starts at 'answers', unless you switched it off. The thread's author follows it already."""
+    t = visibility.thread_for(db, thread_id, user)
+    level = follows.set_level(db, user, t, body.level)
+    db.commit()
+    return FollowResult(following=level)
 
 
 @router.put("/forum/threads/{thread_id}/vote", response_model=VoteResult)

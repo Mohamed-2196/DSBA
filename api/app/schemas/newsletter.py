@@ -111,7 +111,21 @@ class CtaBlock(ApiModel):
     to: HubLink  # a page of the Hub ('/calendar'), https:// or mailto:
 
 
-IssueBlock = Annotated[ParagraphBlock | ListBlock | SignoffBlock | CtaBlock, Field(discriminator="type")]
+PollAnswer = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
+
+
+class PollBlock(ApiModel):
+    """A question to the cohort with two to five answers: one vote per signed-in student, and the counts once you
+    have voted (needs the newsletter.polls feature). `id` keeps its votes: it is unique in the issue and stays put
+    once the issue is out."""
+
+    type: Literal["poll"]
+    id: SectionId
+    question: Heading
+    answers: list[PollAnswer] = Field(min_length=2, max_length=5)
+
+
+IssueBlock = Annotated[ParagraphBlock | ListBlock | SignoffBlock | CtaBlock | PollBlock, Field(discriminator="type")]
 
 
 class CardAside(ApiModel):
@@ -179,10 +193,16 @@ class IssueSection(ApiModel):
 
 def _unique_ids(sections: list[IssueSection]) -> list[IssueSection]:
     seen: set[str] = set()
+    polls: set[str] = set()
     for s in sections:
         if s.id in seen:
             raise PydanticCustomError("duplicate_id", "Two sections have the same id: “{id}”.", {"id": s.id})
         seen.add(s.id)
+        for b in [*s.blocks, *s.after]:
+            if isinstance(b, PollBlock):
+                if b.id in polls:
+                    raise PydanticCustomError("duplicate_id", "Two polls have the same id: “{id}”.", {"id": b.id})
+                polls.add(b.id)
     return sections
 
 
@@ -220,9 +240,22 @@ class IssueSummary(ApiModel):
     published_at: dt.datetime | None
 
 
+class PollResult(ApiModel):
+    """A poll's votes. Nobody sees who voted."""
+
+    total: int
+    counts: list[int] | None  # by answer; None until the viewer has voted (people who manage the newsletter: always)
+    mine: int | None  # the answer the viewer chose
+
+
+class PollVoteRequest(ApiModel):
+    choice: int = Field(ge=0, le=4)  # the answer's position, from 0
+
+
 class IssueDetail(IssueSummary):
     sections: list[IssueSection]
     reactions: dict[str, ReactionCounts]  # by section id
+    polls: dict[str, PollResult]  # by poll id; empty while polls are switched off for the viewer
 
 
 class PublishedIssue(IssueDetail):

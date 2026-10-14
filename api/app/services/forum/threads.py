@@ -10,11 +10,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import set_committed_value
 
+from app.core.access import Feature
 from app.core.errors import conflict, forbidden, invalid, not_found
 from app.core.time import utcnow
 from app.models import ForumReply, ForumThread, PostStatus, ThreadVote, User
 from app.schemas.forum import ThreadCreate, ThreadModeration, ThreadUpdate
-from app.services.forum import notices
+from app.services import access, seniors
+from app.services.forum import follows, notices
 from app.services.forum.images import attach_images, release_images
 from app.services.forum.rules import (
     audit,
@@ -41,8 +43,12 @@ from app.services.forum.visibility import (
 )
 
 
-def create_thread(db: Session, user: User, data: ThreadCreate) -> ForumThread:
-    """A new thread, upvoted by its author. Its forum images are attached."""
+def create_thread(db: Session, user: User, data: ThreadCreate, ip: str | None) -> ForumThread:
+    """A new thread, upvoted by its author. Its forum images are attached. Posted without a name (forum.anonymous),
+    it goes in the audit log with its author, so whoever reads the log can still see who posted. Asked of a senior
+    (career.seniors), the senior is told."""
+    if data.anonymous:
+        access.require_feature(db, user, Feature.forum_anonymous)
     title = valid_title(data.title)
     body = valid_body(data.body)
     category, module = place(data.category, module_or_422(db, data.module_id), module_wins=True)
@@ -57,6 +63,7 @@ def create_thread(db: Session, user: User, data: ThreadCreate) -> ForumThread:
         tags=tags,
         author_id=user.id,
         author_year=user.year,
+        anonymous=data.anonymous,
         status=PostStatus.visible,
         pinned=False,
         locked=False,
@@ -77,6 +84,10 @@ def create_thread(db: Session, user: User, data: ThreadCreate) -> ForumThread:
         raise conflict("retry", "Something went wrong. Try again.")
     db.add(ThreadVote(user_id=user.id, thread_id=t.id))
     attach_images(db, user.id, body, thread_id=t.id)
+    if data.anonymous:
+        audit(db, user, "forum.thread.anonymous", "thread", t.id, ip, title=t.title, slug=t.slug)
+    if data.senior_id is not None:
+        seniors.asked(db, user, data.senior_id, t)
     return t
 
 
@@ -173,6 +184,7 @@ def accept_answer(db: Session, user: User, t: ForumThread, reply_id: uuid.UUID |
     if not _set_answer(db, t, r.id):
         return
     notices.answer_accepted(db, t, r, user)
+    follows.answer_accepted(db, t, r, user, named=notices.named(t, user))
     if not mine:
         audit(db, user, "forum.thread.accept", "thread", t.id, ip, title=t.title, replyId=str(r.id))
 

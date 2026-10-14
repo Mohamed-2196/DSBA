@@ -16,11 +16,13 @@ from app.schemas.newsletter import (
     IssueDetail,
     IssueSummary,
     IssueUpdate,
+    PollResult,
+    PollVoteRequest,
     PublishedIssue,
     Reaction,
     ReactionCounts,
 )
-from app.services import access
+from app.services import access, polls
 from app.services import newsletter as svc
 
 router = router_for("newsletter", needs_feature(Feature.newsletter))
@@ -93,3 +95,17 @@ def unreact(issue_id: UUID, section_id: str, reaction: Reaction, user: Reader, d
     counts = svc.set_reaction(db, user, svc.get_by_id(db, issue_id), section_id, reaction, False)
     db.commit()
     return counts
+
+
+@router.put(
+    "/newsletter/issues/{issue_id}/polls/{poll_id}/vote",
+    response_model=PollResult,
+    dependencies=[needs_feature(Feature.newsletter_polls)],
+)
+def vote_in_poll(issue_id: UUID, poll_id: str, body: PollVoteRequest, user: Reader, db: DB) -> PollResult:
+    """One vote per person, and it can't be changed. The counts come back with it. Published issues only.
+    Errors: already_voted (409), not_found (404: no such issue or poll), invalid_input (422: no such answer)."""
+    issue = svc.get_by_id(db, issue_id)
+    result = polls.vote(db, user, issue, svc.read_sections(issue), poll_id, body.choice)
+    db.commit()
+    return result

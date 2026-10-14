@@ -32,10 +32,13 @@ from app.models import (
     NewsletterIssue,
     NewsletterReaction,
     Notification,
+    PollVote,
     ReplyVote,
     Report,
     RequestMeToo,
+    SeniorProfile,
     StudentRequest,
+    ThreadFollow,
     ThreadVote,
     Upload,
     UploadPurpose,
@@ -48,12 +51,15 @@ from app.schemas.auth import (
     AccountExport,
     ExportBoardCard,
     ExportEmail,
+    ExportFollow,
     ExportLibraryItem,
     ExportNotification,
+    ExportPollVote,
     ExportReaction,
     ExportReply,
     ExportReport,
     ExportRequest,
+    ExportSenior,
     ExportThread,
     ExportVote,
     Me,
@@ -525,6 +531,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
             edited_at=t.edited_at,
             vote_count=t.vote_count,
             reply_count=t.reply_count,
+            anonymous=t.anonymous,
         )
         for t in db.scalars(select(ForumThread).where(ForumThread.author_id == uid).order_by(ForumThread.created_at))
     ]
@@ -676,6 +683,41 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for c in db.scalars(select(BoardCard).where(BoardCard.user_id == uid).order_by(BoardCard.created_at))
     ]
+    follows = [
+        ExportFollow.model_validate(
+            {"thread_id": f.thread_id, "thread_slug": slug, "level": f.level, "created_at": f.created_at}
+        )
+        for f, slug in db.execute(
+            select(ThreadFollow, ForumThread.slug)
+            .join(ForumThread, ForumThread.id == ThreadFollow.thread_id)
+            .where(ThreadFollow.user_id == uid)
+            .order_by(ThreadFollow.created_at)
+        ).tuples()
+    ]
+    poll_votes = [
+        ExportPollVote(
+            issue_id=v.issue_id, issue_slug=slug, poll_id=v.poll_id, choice=v.choice, created_at=v.created_at
+        )
+        for v, slug in db.execute(
+            select(PollVote, NewsletterIssue.slug)
+            .join(NewsletterIssue, NewsletterIssue.id == PollVote.issue_id)
+            .where(PollVote.user_id == uid)
+            .order_by(PollVote.created_at)
+        ).tuples()
+    ]
+    listing = db.get(SeniorProfile, uid)
+    senior = (
+        ExportSenior.model_validate(
+            {
+                "topics": list(listing.topics),
+                "note": listing.note,
+                "paused": listing.paused,
+                "created_at": listing.created_at,
+            }
+        )
+        if listing is not None
+        else None
+    )
     return AccountExport(
         user=me_out(user),
         sessions=[sessions.info(s, current) for s in sessions.live(db, uid)],
@@ -692,6 +734,9 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         me_toos=me_toos,
         emails=emails,
         board=board,
+        follows=follows,
+        poll_votes=poll_votes,
+        senior=senior,
     )
 
 
@@ -702,7 +747,8 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     """Deletes the account. Files that never reached the library and forum pictures go (objects first: if the
     bucket fails, nothing is deleted and the person can try again); pending and rejected library items go;
     published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set NULL); everything
-    personal (sessions, notifications, queued emails, progress, stars, votes, me-toos, reactions) cascades; the sign-in
+    personal (sessions, notifications, queued emails, progress, stars, votes, me-toos, reactions, follows, poll
+    votes, the senior listing) cascades; the sign-in
     codes stay, anonymised, until the sweep (the rate limits count them). The last active admin can't leave
     (409 last_admin). The caller commits."""
     if access.is_admin(user):

@@ -9,12 +9,13 @@ from pydantic import StringConstraints, WithJsonSchema
 from app.schemas.access import BoxKey, FeatureKey, RoleSummary
 from app.schemas.board import BoardColumn, BoardLinkType
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
-from app.schemas.forum import Category
+from app.schemas.forum import Category, FollowLevel
 from app.schemas.library import ItemStatus, LibraryKind
 from app.schemas.moderation import ReportReason, ReportTarget
 from app.schemas.modules import Progress
 from app.schemas.notifications import NotificationKind
 from app.schemas.requests import RequestKind, RequestStatus
+from app.schemas.seniors import SeniorTopic
 
 Identifier = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)]
 # A 6-digit code, or the long one sent instead once wrong codes were tried for an address: 10 letters and digits,
@@ -140,6 +141,7 @@ class ExportThread(ApiModel):
     edited_at: datetime | None
     vote_count: int
     reply_count: int
+    anonymous: bool
 
 
 class ExportReply(ApiModel):
@@ -175,6 +177,28 @@ class ExportLibraryItem(ApiModel):
     download_count: int
     created_at: datetime
     published_at: datetime | None
+
+
+class ExportFollow(ApiModel):
+    thread_id: UUID
+    thread_slug: str
+    level: FollowLevel
+    created_at: datetime
+
+
+class ExportPollVote(ApiModel):
+    issue_id: UUID
+    issue_slug: str
+    poll_id: str
+    choice: int  # the answer's position, from 0
+    created_at: datetime
+
+
+class ExportSenior(ApiModel):
+    topics: list[SeniorTopic]
+    note: str
+    paused: bool
+    created_at: datetime
 
 
 class ExportReaction(ApiModel):
@@ -264,3 +288,6 @@ class AccountExport(ApiModel):
     me_toos: list[UUID]  # requests this person said "me too" to
     emails: list[ExportEmail]
     board: list[ExportBoardCard]  # study-board cards
+    follows: list[ExportFollow]  # forum threads this person follows
+    poll_votes: list[ExportPollVote]  # newsletter poll answers
+    senior: ExportSenior | None  # the "Ask a senior" listing

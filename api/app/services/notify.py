@@ -87,10 +87,12 @@ def notify(
     body: str | None = None,
     url: str | None = None,
     actor: User | None = None,
+    named: bool = True,
     data: dict[str, Any] | None = None,
 ) -> Notification | None:
     """Adds a notification for `user_id` to the session, and queues its email when the person wants one (the caller
-    commits both). Nobody is notified about their own action: returns None when the actor is the recipient. `url`
+    commits both). Nobody is notified about their own action: returns None when the actor is the recipient. With
+    `named` False the notification doesn't say who acted (an anonymous thread's author). `url`
     is kept only when it is a page of the Hub ('/forum/<slug>'); anything else is dropped. Kinds:
     app/schemas/notifications.py NotificationKind."""
     if actor is not None and actor.id == user_id:
@@ -103,7 +105,7 @@ def notify(
         title=title[:200],
         body=body,
         url=path,
-        actor_id=actor.id if actor else None,
+        actor_id=actor.id if actor and named else None,
         data=data or {},
     )
     db.add(n)
