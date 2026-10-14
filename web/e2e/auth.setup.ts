@@ -114,8 +114,10 @@ setup('Sara signs out and back in: grades are cleared, guest lesson progress is 
 
   // As a guest she marks two ST2133 lessons as watched.
   const lessons = ['ik3fr6mt', 'crvr85s7']; // chapter 1's first two lessons (app/seed/data/modules.json)
-  for (const lesson of lessons) {
+  for (const [i, lesson] of lessons.entries()) {
     await page.goto(`/modules/advanced-stats-distribution/lessons/${lesson}`);
+    // Lesson progress is opt in: the first lesson offers it once.
+    if (i === 0) await page.locator('[data-hub="progress-offer"]').getByRole('button', { name: 'Turn on' }).click();
     const watched = page.locator('[data-hub="lesson-watched"]');
     await watched.click();
     await expect(watched).toHaveAttribute('aria-pressed', 'true');

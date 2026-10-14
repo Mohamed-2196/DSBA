@@ -55,7 +55,8 @@ function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
   );
 }
 
-/** "Your modules": the year's modules (your papers, once picked) as a quick list (unit code, name, progress, next exam). */
+/** "My modules": the year's modules (your papers, once picked) as a quick list (unit code, name, progress while
+ *  tracked, next exam). */
 export function YourModules({ year, today }: { year: CohortYear; today: Date }) {
   const { modules: catalogue } = useModules();
   const { papers } = usePapers();
@@ -66,7 +67,7 @@ export function YourModules({ year, today }: { year: CohortYear; today: Date }) 
     const date = parseDay(e.date);
     return { date, days: daysBetween(today, date) };
   };
-  // In exam season the list reads in exam order (it doubles as the hero trace's legend).
+  // In exam season the list reads in exam order.
   const modules = modulesFor(year, papers, catalogue)
     .map((m, i) => ({ m, i, exam: nextExam(m.id) }))
     .sort((a, b) => (a.exam ? a.exam.days : 1e6) - (b.exam ? b.exam.days : 1e6) || a.i - b.i);

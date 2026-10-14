@@ -17,7 +17,9 @@ test('a guest browses the modules and a module’s tabs', async ({ guest }) => {
   }
   await guest.goto('/modules/advanced-stats-distribution/lessons/5g82thr5');
   await expect(guest.locator('[data-hub="lesson-player"]')).toBeVisible();
-  await expect(guest.locator('[data-hub="lesson-list"]')).toContainText(/0 of \d+ lessons watched/);
+  // Lesson progress is off until the guest turns it on: no counts, and the lesson offers it once.
+  await expect(guest.locator('[data-hub="lesson-list"]')).not.toContainText('watched');
+  await expect(guest.locator('[data-hub="progress-offer"]')).toBeVisible();
 });
 
 test('on a shared computer, someone else’s guest progress can be left out when signing in', async ({ browser }) => {
@@ -28,6 +30,7 @@ test('on a shared computer, someone else’s guest progress can be left out when
   });
   const page = await ctx.newPage();
   await page.goto('/modules/economics/lessons/xfm6xyvy');
+  await page.locator('[data-hub="progress-offer"]').getByRole('button', { name: 'Turn on' }).click();
   await page.locator('[data-hub="lesson-watched"]').click();
   await expect(page.locator('[data-hub="lesson-watched"]')).toHaveAttribute('aria-pressed', 'true');
 
