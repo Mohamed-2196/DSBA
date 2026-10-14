@@ -32,8 +32,6 @@ export function otpErrorMessage(e: unknown): string {
       return 'Couldn’t reach the Hub. Check your connection and try again.';
     case 'internal':
       return 'Something went wrong on our side. Try again in a minute.';
-    case 'not_implemented':
-      return 'Signing in isn’t available yet. Try again later.';
     case 'invalid_input':
       if (e.fields.code) return 'Enter the code from the message.';
       if (e.fields.identifier) return 'Enter your email address or phone number.';

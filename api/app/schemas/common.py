@@ -40,7 +40,6 @@ ErrorCode = Literal[
     "rate_limited",  # 429: retryAfter says when
     "retry",  # 409: two writes collided (a slug or an id taken at the same moment): try again
     "internal",  # 500
-    "not_implemented",  # 501
     "error",  # any other status
     # accounts and sign-in
     "invalid_identifier",  # 422: not an email address or a phone number

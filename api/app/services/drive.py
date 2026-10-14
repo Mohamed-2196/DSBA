@@ -28,6 +28,7 @@ import random
 import re
 import time
 import unicodedata
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import IO, Any, TypeVar
@@ -285,13 +286,13 @@ def printable(text: str, limit: int = 300) -> str:
 # ── credentials ──────────────────────────────────────────────────────────────────────────────
 
 
-class Credential:
+class Credential(ABC):
     """How a request proves who asks."""
 
     label = "credentials"
 
-    def headers(self) -> dict[str, str]:
-        raise NotImplementedError
+    @abstractmethod
+    def headers(self) -> dict[str, str]: ...
 
     def secrets(self) -> list[str]:
         """Values that must never appear in a message."""
