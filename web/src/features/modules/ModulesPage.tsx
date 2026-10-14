@@ -2,11 +2,12 @@
 // plate with the module's icon takes the code's place), each row with name, description, counts, next exam and
 // lesson progress. Follows the global year; the segmented control peeks at another year without changing it
 // (?year=3).
-import { ArrowCounterClockwise, CalendarBlank, CaretRight } from '@phosphor-icons/react';
+import { ArrowCounterClockwise, ArrowRight, CalendarBlank, CaretRight, Sparkle } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleSummary } from '../../api/types';
+import { useAuth } from '../../auth';
 import { COHORTS, YEARS, cohortColor, normalizeYear, useDocumentTitle, useQueryParam, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, CohortBadge, ModuleIcon, Page, PageHeader, ProgressRing, SegmentedControl, Skeleton, cx, countOf } from '../../ui';
@@ -137,6 +138,7 @@ export default function ModulesPage() {
   const viewYear = (normalizeYear(peek) ?? activeYear) as CohortYear;
   const peeking = year != null && viewYear !== year;
   const { getModulesForYear } = useModules();
+  const { featureOn } = useAuth();
   const { state, ready } = useProgress();
   const exams = useExamsByModule(viewYear);
   useDocumentTitle(`${COHORTS[viewYear].label} modules`);
@@ -241,6 +243,16 @@ export default function ModulesPage() {
           ))}
         </ol>
       </div>
+      {viewYear >= 2 && featureOn('career') ? (
+        <p className="mod-electives" data-hub="modules-electives">
+          <Sparkle weight="duotone" aria-hidden="true" className="mod-electives__icon" />
+          <span>{viewYear === 2 ? 'Picking your Year 3 electives next?' : 'Still choosing your electives?'}</span>
+          <Link to="/career/electives" className="mod-electives__link">
+            Compare the electives
+            <ArrowRight weight="bold" aria-hidden="true" />
+          </Link>
+        </p>
+      ) : null}
       <ImportProgressPrompt />
     </Page>
   );

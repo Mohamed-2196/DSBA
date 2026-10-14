@@ -145,7 +145,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-<theme sc
   'unsafe-inline'; img-src 'self' data: blob: https://i.ytimg.com <bucket>; media-src 'self' https:;
   font-src 'self' data:; connect-src 'self' <bucket>; frame-src https://www.youtube.com
   https://www.youtube-nocookie.com https://vc.bibf.com <bucket>; object-src 'none'; base-uri 'self';
-  form-action 'self'; frame-ancestors 'none'
+  form-action 'self'; frame-ancestors 'none'; worker-src 'self'; manifest-src 'self'
 ```
 
 - No inline script runs except the theme script in `index.html` (applied before first paint): its hash is computed
@@ -155,6 +155,10 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-<theme sc
 - Turning analytics on needs the PostHog host in `connect-src` (`DSBA_CSP_CONNECT_EXTRA`) and nothing else
   (section 9).
 - Hashed assets (`/assets/*`) are cached for a year; everything else revalidates, so a deploy shows at once.
+- The installed app: `/manifest.webmanifest` and a service worker, `/sw.js` (`web/src/sw/`), both from the app's
+  own origin. The worker keeps the app shell, the built files and the public images, and never an answer from
+  `/api/` or another site (the bucket's short-lived links). A new deploy installs beside the running one and the app
+  offers "Reload" (`web/src/lib/pwa.ts`). To take the worker out, deploy a `sw.js` that unregisters itself.
 - Request bodies to `/api/*` are capped at 1 MB (413 above that). Files never pass through the API.
 
 The API adds its own headers to every answer (`app/core/headers.py`): `nosniff`, `Referrer-Policy: no-referrer`,

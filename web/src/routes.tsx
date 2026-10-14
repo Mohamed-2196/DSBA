@@ -18,6 +18,7 @@ const pages: AppRoute[] = [
   { id: 'forum', path: '/forum', title: 'Forum', Page: lazy(() => import('./features/forum/ForumPage')), feature: 'forum' },
   { id: 'forum-new', path: '/forum/new', title: 'Start a thread', Page: lazy(() => import('./features/forum/NewThreadPage')), feature: 'forum' },
   { id: 'thread', path: '/forum/:threadId', title: 'Forum', Page: lazy(() => import('./features/forum/ThreadPage')), feature: 'forum' },
+  { id: 'electives', path: '/career/electives', title: 'Choosing your electives', Page: lazy(() => import('./features/career/ElectivesPage')), feature: 'career' },
   { id: 'career', path: '/career', title: 'Career Navigator', Page: lazy(() => import('./features/career/CareerPage')), feature: 'career' },
   { id: 'calendar', path: '/calendar', title: 'Calendar', Page: lazy(() => import('./features/calendar/CalendarPage')), feature: 'calendar' },
   { id: 'requests', path: '/requests', title: 'Requests', Page: lazy(() => import('./features/requests/RequestsPage')), feature: 'requests' },
@@ -30,6 +31,7 @@ const pages: AppRoute[] = [
   { id: 'manage', path: '/manage', title: 'Manage', Page: lazy(() => import('./features/manage/ManagePage')), modules: false },
   { id: 'access', path: '/admin/access', title: 'Access', Page: lazy(() => import('./features/access/AccessPage')), modules: false },
   { id: 'board', path: '/board', title: 'Study board', Page: lazy(() => import('./features/board/BoardPage')), feature: 'board', modules: false },
+  { id: 'start-here', path: '/start-here', title: 'Start here', Page: lazy(() => import('./features/start/StartHerePage')) },
   { id: 'about', path: '/about', title: 'About', Page: lazy(() => import('./features/about/AboutPage')) },
   {
     id: 'styleguide',

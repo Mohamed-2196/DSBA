@@ -9,6 +9,7 @@ import { Onboarding } from '../features/onboarding/public';
 import { NooraDock } from '../features/noora/public';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
+import { UpdatePrompt } from './UpdatePrompt';
 import { MobileNav } from './MobileNav';
 import { SiteFooter } from './SiteFooter';
 import './AppShell.css';
@@ -55,6 +56,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
         </ErrorBoundary>
       ) : null}
       <Toaster />
+      <UpdatePrompt />
       <AnalyticsFeatures />
     </div>
   );

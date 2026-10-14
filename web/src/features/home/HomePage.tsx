@@ -12,6 +12,7 @@ import { UpcomingEvents, useCalendarEvents } from '../calendar/public';
 import { HotThreads } from '../forum/public';
 import { ContinueLearning } from '../modules/public';
 import { LatestIssueCard } from '../newsletter/public';
+import { StartHereCard } from '../start/public';
 import { ExamTimeline } from './ExamTimeline';
 import { NewInLibrary } from './NewInLibrary';
 import { getExamSession } from './session';
@@ -125,6 +126,11 @@ export default function HomePage() {
       <div className="home-body">
         <div className="home-grid">
           <div className="home-main">
+            <ErrorBoundary name="StartHereCard" fallback={null}>
+              <div className="home-sec home-sec--start">
+                <StartHereCard year={activeYear} />
+              </div>
+            </ErrorBoundary>
             <PageSection className="home-sec home-sec--continue" aria-labelledby="home-continue">
               <SectionHeader id="home-continue" title="Continue learning" />
               <ErrorBoundary name="ContinueLearning">
