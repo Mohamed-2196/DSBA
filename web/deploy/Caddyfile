@@ -41,7 +41,7 @@
 	handle {
 		root * /srv
 		header {
-			Content-Security-Policy "default-src 'self'; script-src 'self' {$DSBA_CSP_SCRIPT_HASHES} {$DSBA_CSP_SCRIPT_EXTRA}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.ytimg.com {$DSBA_BUCKET_ORIGIN}; media-src 'self' https:; font-src 'self' data:; connect-src 'self' {$DSBA_BUCKET_ORIGIN} {$DSBA_CSP_CONNECT_EXTRA}; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://vc.bibf.com {$DSBA_BUCKET_ORIGIN}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+			Content-Security-Policy "default-src 'self'; script-src 'self' {$DSBA_CSP_SCRIPT_HASHES} {$DSBA_CSP_SCRIPT_EXTRA}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.ytimg.com {$DSBA_BUCKET_ORIGIN}; media-src 'self' https:; font-src 'self' data:; connect-src 'self' {$DSBA_BUCKET_ORIGIN} {$DSBA_CSP_CONNECT_EXTRA}; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://vc.bibf.com {$DSBA_BUCKET_ORIGIN}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; worker-src 'self'; manifest-src 'self'"
 			X-Frame-Options "DENY"
 			Cache-Control "no-cache"
 		}

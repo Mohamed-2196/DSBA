@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "DSBA Hub",
+  "short_name": "DSBA Hub",
+  "description": "Modules, lessons, files, the newsletter and the forum for DSBA students at BIBF.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F4F7FC",
+  "theme_color": "#F4F7FC",
+  "categories": ["education"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

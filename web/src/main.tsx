@@ -15,9 +15,13 @@ import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
 import './styles/tokens.css';
 import './styles/base.css';
 import App from './App';
+import { startPwa } from './lib/pwa';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('#root is missing from index.html');
+
+// The installed app: the install prompt and, in a production build, the service worker (lib/pwa.ts).
+startPwa();
 
 createRoot(root).render(
   <StrictMode>
