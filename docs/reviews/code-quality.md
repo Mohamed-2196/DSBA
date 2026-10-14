@@ -1,8 +1,408 @@
 # Code quality review
 
-Two passes live in this file. **Round 3 re-review** (below, at `8c4164d`) re-checks every earlier finding, reviews
-what rounds 2 and 3 added, and adds CQ-19 onwards. **Round 1** (further down, at `525962c`) holds the original
-findings CQ-1 to CQ-18 as they were written; their line numbers refer to that commit.
+Three passes live in this file, newest first. **Round 10 re-review** (at `6c90aa9`) covers rounds 5 to 9, re-checks
+every earlier finding and adds CQ-30 onwards. **Round 3 re-review** (at `8c4164d`) added CQ-19 to CQ-29. **Round 1**
+(at `525962c`) holds the original findings CQ-1 to CQ-18 as they were written. Line numbers refer to each pass's
+commit.
+
+# Round 10 re-review (rounds 5 to 9)
+
+Reviewer: code quality. Scope: everything merged on `feature/backend` since `581d5b5` (Merge round4/review-security)
+up to `6c90aa9` (round 9 merged): 23 merges, 349 files, +17,354/−3,292 lines. Reviewed on `round10/rev-cq`. Many of
+those branches were merged in parallel and their conflicts resolved by hand, so this pass looked hardest at
+duplication across features, code the merges left stale or contradictory, the migration chain, switch naming, size,
+tests and docs. No application code was changed, and Docker and the e2e suite were not run.
+
+## Checks run
+
+| check | result |
+|---|---|
+| `PATH=/opt/homebrew/opt/libpq/bin:$PATH scripts/check.sh` | **all passed**: lock and requirements in sync, ruff and ruff format clean (249 files), mypy strict clean on 232 files, **1,096 API tests** passed (drift, reversibility and baseline-seed tests included), both `tsc` configs, ESLint, knip clean, **655 Vitest tests in 81 files**, `schema.d.ts` matches `openapi.json`, build passed |
+| `npx knip` in `web/` | nothing reported. Checked by hand anyway: no feature imports another except through `public.ts`, and neither do `shell`, `auth`, `ui`, `lib`, `state` or `api` |
+| `type: ignore` in `api/app` | 3, all at untyped library edges (google-auth twice, boto3). None added in rounds 5 to 9. In `api/tests`, `content/test_exam_names.py:12,16,20` ignore `arg-type` because the helpers take `str` where `ExamMeta` wants the `Zone` and `ExamSession` literals: type the helpers instead |
+| `any` in `web/src` | none added |
+| N+1 | read, not probed: the new list endpoints (`/requests/done`, gaps, the suggestions queue, past questions, papers by sitting, seniors, follows) load their related rows in one batch per list. One loop does a query per row: CQ-38 |
+
+## Earlier findings: status
+
+| ID | Status | What is there now |
+|---|---|---|
+| CQ-1 to CQ-16 | as in round 3 | Fixed or folded into later IDs. CQ-1's rule ("every per-person key starts with `hub.mine.`") was broken again in round 9: see CQ-30 |
+| CQ-17 | **open** | Some large components grew: `newsletter/editor/Editor.tsx` 642 lines (441 in round 3), `library/LibraryPage.tsx` 568 (551), `account/AccountPage.tsx` 500 (454), `UploadDialog.tsx` 438. Noora and Home were split well as they grew (Noora's largest is `brain.ts` at 537 lines, then `ChatPanel.tsx` 414 and `MiniNoora.tsx` 413; `HomePage.tsx` is 277). Split the four when they're next touched |
+| CQ-18 | **open** | Type-aware lint is still off (`web/eslint.config.js:36`, `tseslint.configs.recommended`); S-1 |
+| CQ-19 | fixed | |
+| CQ-20 | **open, growing** | 162 review-ID references remain in `api/app`, `api/migrations` and `web/src` (about 290 in round 3), and rounds 5 to 9 added **38 `IDEA-n` references**. See CQ-41 |
+| CQ-21 | fixed | |
+| CQ-22 | **open** | `web/src/api/uploads.ts:6-7,39-90` still copies the API's limits and allowlists |
+| CQ-23 to CQ-25 | fixed | |
+| CQ-26 | **open, worse** | The personas are still in three conftests (`content`, `community`, `core`). A `module` fixture is now declared five times (`board/conftest.py:25`, `accounts/conftest.py:180`, `noora/conftest.py:111`, `notes/conftest.py:22`, plus `modules` in `content` and `community`), and `settings` and `set_option` are declared twice (`accounts/conftest.py:88,93`, `core/conftest.py:25,30`). The e2e `api<T>()` cast and `code as unknown as string` (`web/e2e/support.ts:135,224`) are unchanged |
+| CQ-27 | **mostly fixed** | `whatif`, the calendar's `queries` and `dates`, `search` and `lessons` now have tests. Still untested: `career/lib/fit.ts` and `home/session.ts`. The new gaps are in CQ-42 |
+| CQ-28 | fixed | knip runs in `check.sh` and reports nothing |
+| CQ-29 | fixed | `ERRORS` is annotated, and the kinds are typed as `LibraryKind` from start to end |
+
+## New findings (CQ-30 onwards)
+
+| ID | Severity | Title |
+|---|---|---|
+| CQ-30 | major | Mini Noora's chats survive sign-out on shared computers |
+| CQ-31 | major | Students can't request an RTC paper (lost in a merge) |
+| CQ-32 | major | Zone and sitting are defined in many places, on both sides |
+| CQ-33 | major | "You asked, we did" goes stale after a request is answered, confirmed or removed |
+| CQ-34 | major | Customize Home offers blocks whose switches are off, so they render nothing |
+| CQ-35 | minor | The migration chain: squash it into one baseline now |
+| CQ-36 | minor | Switch and id naming is mixed: `video_suggestions`, `help_below` beside `forum.help-below` |
+| CQ-37 | minor | Accepting a video suggestion edits modules outside `module_editor` |
+| CQ-38 | minor | Logic in routers, import cycles inside functions, and per-row lookups |
+| CQ-39 | minor | The account export is built from dicts and leaves out `found_item_id` and `found_at` |
+| CQ-40 | minor | Effects that should be derived state (Noora, Home) |
+| CQ-41 | minor | Comments cite idea and review numbers and narrate history |
+| CQ-42 | minor | Test gaps from rounds 5 to 9 |
+| CQ-43 | minor | No formatter in `web/`: merge leftovers and dead CSS |
+| CQ-44 | minor | Dead 501 scaffolding |
+| CQ-45 | minor | `/requests/done` has no index |
+| CQ-46 | minor | STATUS, ARCHITECTURE and DEPLOYMENT are out of date |
+
+### CQ-30. Mini Noora's chats survive sign-out on shared computers (major)
+
+- **Where:** `web/src/features/noora/saved.ts:10-11` stores the current chat under `hub.noora.chat` (sessionStorage)
+  and the recent chats under `hub.noora.recent` (localStorage). `clearPersonalStorage` (`web/src/auth/queries.ts:29-47`)
+  removes only keys that start with `hub.mine.`, and only from localStorage.
+- **Why it matters:** on a lab or library computer, the next person to open Noora sees the previous student's
+  questions. Those can quote their notes, a paper or their marks. The comment at `auth/queries.ts:29` promises the
+  opposite, and CQ-1 fixed this same class of bug.
+- **Fix:** rename the keys to `hub.mine.noora.chat` and `hub.mine.noora.recent`. Have `clearPersonalStorage` clear
+  the matching sessionStorage keys too, and add a case to `auth/queries.test.ts`.
+
+### CQ-31. Students can't request an RTC paper (lost in a merge) (major)
+
+- **Where:** `api/app/schemas/requests.py:34` has `zone: Literal["A", "B"] | None`. `schemas/library.py:30` has
+  `Zone = Literal["A", "B", "RTC"]`. The model's comment at `models/requests.py:57` still reads `'A' | 'B'`.
+  `round6/rtc` and `round6/calendar2` were merged side by side.
+- **Why it matters:** a request for an RTC paper is refused with a 422. A request that names no zone can still be
+  closed by an RTC file, but a student can't ask for one, so `match_published` (`services/requests.py:485`) never
+  matches on RTC. This is the feature the RTC work was for.
+- **Fix:** use `Zone` in the request schema, fix the comment, and add a test that an RTC request closes on an RTC
+  file. CQ-32 stops this from happening again.
+
+### CQ-32. Zone and sitting are defined in many places, on both sides (major)
+
+The value lists and labels were written once per branch, and the merges kept them all.
+- **API:**
+  - The zone label exists twice: `services/exam_names.py:78-80` ("zone A", "RTC") and `services/noora/paper.py:119-125`.
+    The second prints "zone RTC".
+  - Sittings are grouped three ways:
+    - `services/library.py:355-395`: by year, session and zone, with `_ZONE_ORDER`;
+    - `services/noora/paper.py:50`: by year and session, then the zone or none;
+    - `services/gaps.py:66-92`: by year and session only, with no zone.
+
+    The `gaps` grouping may be what reps want, since a report usually covers every zone. It should still say so,
+    not differ silently.
+  - The zone values are copied by hand at `services/drive_import.py:576` (`("A", "B", "RTC")`).
+  - `"past-paper"` and `"examiners-report"` are written out in `gaps.py:67-76` and `noora/paper.py:57,77`, while
+    `board.py:65` and `past_questions.py:29` each define their own constant.
+  - Output schemas say `zone: str | None` (`schemas/library.py:59,184`, `schemas/requests.py:53,80`,
+    `schemas/auth.py:212,315`), so the web app gets a plain `string`.
+  - No zone column has a CHECK (`library_items.zone`, `users.zone`, `requests.zone`), though `kind` and
+    `exam_session` beside them do (`models/library.py:49-50`).
+- **Web:**
+  - `features/papers/papers.ts:9` has `ZONE_LABELS`, and `features/library/display.ts:63-66` has `zoneLabel`.
+  - `library/components/ItemFields.tsx:115-120` hard-codes the zone options.
+  - `library/itemForm.ts:16,47` hand-writes `'' | 'A' | 'B' | 'RTC'` and checks it field by field.
+  - `library/ChapterQuestions.tsx:14` and `library/DailyQuestion.tsx:34` re-implement `examLabel`
+    (`display.ts:72-75`).
+  - `papers/usePapers.ts:17` checks `raw in ZONE_LABELS`, which matches inherited keys (`"toString"` passes), and
+    then casts with `as Zone`. `home/blocks.ts:48` uses `Object.hasOwn` correctly.
+- **Why it matters:** CQ-31 is what this costs. The next zone or session (a January sitting, say) has to be found
+  in about twelve places, and Noora already describes papers differently from the library.
+- **Fix:**
+  - **API:**
+    - Make `Zone` the type of every zone field, input and output.
+    - Add `check_in("zone", get_args(Zone))` on the three columns, in the squash (CQ-35).
+    - Keep one `zone_label` and one `sitting_key(item)` in `services/exam_names.py`, and use them in `library`,
+      `noora/paper` and `gaps`, with a comment in `gaps` on why it ignores the zone.
+    - Keep one `PAST_PAPER` and `EXAMINERS_REPORT` constant next to `LibraryKind`.
+  - **Web:**
+    - Make `library/display.ts` the home of `ZONES` (from `LibraryItem['zone']`), `zoneLabel`, `sittingLabel` and
+      `examLabel`, exported through `library/public.ts`.
+    - Have `papers`, `ItemFields`, `itemForm`, `ChapterQuestions` and `DailyQuestion` use them.
+    - Use `Object.hasOwn` in `cleanZone`.
+
+### CQ-33. "You asked, we did" goes stale after a request is answered, confirmed or removed (major)
+
+- **Where:** `web/src/features/requests/api.ts:54` keys the done list as `[...REQUESTS_KEY, 'done', until, limit]`.
+  `useAnswerRequest`, `useAnswerFound` and `useRemoveRequest` (`api.ts:155,175,192`) invalidate only
+  `[...REQUESTS_KEY, 'list']` and the admin stats.
+- **Why it matters:** a rep marks a request done and the section on `/requests`, and the newsletter's live section,
+  don't show it until the cache expires. A removed request keeps showing as done.
+- **Fix:** invalidate `REQUESTS_KEY` as a whole, or add `'done'`. A test with a `QueryClient` spy would keep it
+  that way.
+
+### CQ-34. Customize Home offers blocks whose switches are off, so they render nothing (major)
+
+- **Where:** `web/src/features/home/HomePage.tsx:76-87` builds `offered`:
+  - `daily_question` needs `calendar` and `library`, but `library/DailyQuestion.tsx:29` also needs
+    `library.questions` and `library.daily-question`;
+  - `help_below` needs a signed-in student and `forum`, but `forum/HelpBelow.tsx:21` also needs `forum.help-below`.
+
+  All three switches arrive off (migrations 0007, 0014 and 0016).
+- **Why it matters:** with the default switches, Customize Home lists "Daily question" and "Help the years below".
+  A student can move them to the top, and they show nothing.
+- **Fix:** give each entry in `home/blocks.ts` its list of features and the "needs an account" rule, and compute
+  `offered` from that list, so `offered` and the components can't disagree. `blocks.test.ts` can then test it.
+  At the same time, replace the join-and-split at `HomePage.tsx:88-89` (`as HomeBlock[]`) with a `useMemo` over
+  the list.
+
+### CQ-35. The migration chain: squash it into one baseline now (minor)
+
+- **Where:** `api/migrations/versions/`: 16 files. Their ids run out of order along the chain:
+  0001 → … → 0006 → 0008 → 0009 → 0011 → 0010 → 0007 → 0012 → 0014 → 0015 → 0016 → 0018, with no 0013 or 0017.
+  - 0001 to 0006 have been edited in place several times (0006 three times: `125b394`, `40f19d6`, `08f4323`).
+  - Five migrations exist only to seed one or two switch rows (0016 and 0018 are under 35 lines each).
+  - 0014 seeds `forum.help-below`, which has nothing to do with requests.
+  - The migrations hold frozen copies of value lists: `LIBRARY_KINDS` (0014:24-36), the event types (0012), the
+    notification kinds (0015) and `FEATURES` (0001:38).
+  - They seed in three styles: `op.execute`, `get_bind().execute(text)`, and parameterised.
+  - The docstrings narrate the rounds (0016 cites IDEA-27).
+
+  The chain works: the drift test, the reversibility test and `test_migrations.py:42-89` all pass.
+- **Why it matters:** the order of the ids no longer says the order of the changes, so every parallel round needs
+  the chain re-wired by hand at merge (`bb3bc1c`). Edits in place have already meant applying a column by hand to
+  the local database (STATUS: "SEC-26 edited migration 0006"). Nothing is released, and CLAUDE.md allows a squash.
+  It gets dearer with each round.
+- **Fix:** squash now, between rounds, while no builder holds a migration:
+  1. Write a new `0001_baseline` from the models: autogenerate against an empty database, then add the seeds
+     (roles, boxes, every switch with its first mode) as one data block.
+  2. Add the zone CHECKs from CQ-32 and the index from CQ-45.
+  3. Prove it with the drift test and `test_migrations.py` (it already pins the seeded roles and switches), and
+     compare `pg_dump --schema-only` of the old head with the new baseline.
+  4. Keep Mohamed's local data (the 105 imported Drive files): when the dumps match, `alembic stamp 0001` on the
+     local database instead of rebuilding it.
+
+  From then on, each builder adds `0002_<what>` on top. The lead renumbers at merge, which is one line.
+
+### CQ-36. Switch and id naming is mixed (minor)
+
+- **Where:**
+  - `video_suggestions` (`core/access.py:76`, `schemas/access.py:54`, `web/src/auth/access.ts:50`, migration
+    0015:111) is the only snake_case switch. Every other switch is `area.kebab-name` (`library.daily-question`,
+    `forum.help-below`).
+  - Home's block ids are snake_case (`help_below`, `daily_question`, `schemas/auth.py:56-68`), which is fine as
+    data, but sit next to dotted switches of the same names.
+  - The copy disagrees: the block is "Help the years below" (`home/blocks.ts:22`), and the switch
+    (`core/access.py:156`) and the card are "Help the year below".
+  - The feature list is written four times: `Feature` (`core/access.py:53-76`), `FeatureKey`
+    (`schemas/access.py:31-55`), `FEATURE_KEYS` (`auth/access.ts:27-51`) and the migrations. A test checks that
+    the first two are equal and that the database is seeded. `FEATURE_KEYS` is checked only with `satisfies`,
+    which doesn't catch a missing key.
+  - `HomeBlock` lives in `schemas/auth.py:55-68`, among the sign-in schemas.
+- **Fix:**
+  - Rename the switch to `modules.video-suggestions` (no compatibility to keep). Do it in the squash.
+  - Pick one copy, "Help the years below" or "Help the year below", for both the block and the switch.
+  - Derive `FeatureKey` from the enum (`Literal[tuple(Feature)]` doesn't type-check, so keep the test), and add a
+    Vitest that `FEATURE_KEYS` covers every `Feature`: `satisfies Record<Feature, true>` over an object does it at
+    compile time.
+  - Move `HomeBlock` to a `schemas/home.py`.
+
+### CQ-37. Accepting a video suggestion edits modules outside `module_editor` (minor)
+
+- **Where:** `services/suggestions.py:233-284` builds the `Lesson` and bumps `m.version` itself (`:250`, `:262`).
+  `module_editor` does the same job for Manage, with its own placement and audit. `parse_video` returns an untyped
+  `dict[str, str]` (`module_editor.py:62`), and `_same_video` builds a stand-in dict from the row
+  (`suggestions.py:246`).
+- **Why it matters:** there are two ways to add a lesson. The next rule that applies to lessons (an order, a cap or
+  a check) goes into one of them.
+- **Fix:** add a single `module_editor.add_lesson(db, module, chapter, video, title)` and have both callers use it.
+  Make the parsed video a `NamedTuple`.
+
+### CQ-38. Logic in routers, import cycles inside functions, and per-row lookups (minor)
+
+- `routers/me.py:50-75`: `update_me` holds the papers rules: clearing papers when the year changes, and dropping
+  repeats. Move them into `accounts.update_profile`.
+- `routers/calendar.py:76`: the feed splits, sorts and silently cuts `modules` to 20. Move this into the service,
+  or answer 422 when more than 20 are sent, as the docstring promises a limit.
+- `services/library.py:442-445`: `from app.services.requests import match_published` inside the function, to break
+  `requests → search → library`. The same happens at `services/calendar.py:199`.
+  - It runs for every file the Drive import publishes, with two `access.audience` queries each time.
+  - Fix: call `match_published` from the router and CLI layer after publishing, or pass it in. Match the import's
+    files in one batch.
+- `services/requests.py:543-579`: `close_for_date` calls `_tell`, and so `access.audience`, once per request. Compute
+  the audience once.
+- `services/calendar.py:162` and `models/content.py:169`: `employer_id` is checked only against the slug pattern,
+  never against Career Navigator's employers, so a typo saves. Check it in `_check`.
+- The slug pattern `^[a-z0-9][a-z0-9-]{0,63}$` is written three times (`schemas/auth.py:31` `PaperId`,
+  `schemas/calendar.py:17` `EmployerId`, `routers/calendar.py:30` `PAPERS_PATTERN`). One `Slug` type belongs in
+  `schemas/common.py`.
+- The lesson-kind tuple appears twice in `models/content.py:86,123`, though `VideoKind` exists in
+  `schemas/modules.py:10`. Use `get_args(VideoKind)`.
+
+### CQ-39. The account export is built from dicts and leaves out `found_item_id` and `found_at` (minor)
+
+- **Where:** `services/accounts.py:676-690` builds `ExportRequest.model_validate({...})`. The same happens at
+  `:747`, `:764` and `:787` for the board, follows and seniors, and `services/suggestions.py:74` builds
+  `SuggestionOut` the same way.
+  - mypy can't check the field names in a dict. The CQ-4 rule, that a field reaches the export only on purpose,
+    rests on the constructor's keyword arguments.
+  - The request export leaves out `found_item_id` and `found_at`, which hold data about the person (the file the hub
+    offered them). Every other column added in rounds 5 to 9 is exported: papers, zone, `track_progress`,
+    `home_blocks` and the video suggestions.
+- **Fix:** call the constructors with keyword arguments, and add the two fields.
+
+### CQ-40. Effects that should be derived state (minor)
+
+- `web/src/features/noora/useChat.ts:124-155`: six effects only copy state into refs. One shared `useLatest` in
+  `src/state` does this.
+- Some `MiniNoora.tsx` effects only set state from other state:
+  - `:131` (`if (open) setChatWanted(true)`);
+  - `:244` (`if (!open) setMood(null)`): render `open ? mood : null` instead;
+  - `ChatPanel.tsx:212` (`setNewFrom` while closed).
+
+  `ChatPanel.tsx:118` already uses the render-phase pattern these should follow.
+- **Why it matters:** each one costs an extra render with the stale value first. That is the S-7 pattern from the
+  standards review, and the files that grew in rounds 8 and 9 added more.
+
+### CQ-41. Comments cite idea and review numbers and narrate history (minor; continues CQ-20)
+
+- Rounds 5 to 9 added 38 `IDEA-n` references, for example:
+  - `models/requests.py:30`, `services/suggestions.py:1`, `services/gaps.py:1`, `routers/suggestions.py:1`;
+  - `features/papers/papers.ts:1`;
+  - migration 0016's docstring.
+
+  Some of them are in route docstrings, which `/api/v1/docs` shows.
+- The review IDs are still there: "code quality review CQ-15" at `models/content.py:152` and `models/library.py:49`,
+  CQ-4 at `services/accounts.py:568`, CQ-1 at `auth/queries.ts:38`, and "security review AD-3" at
+  `core/access.py:49`.
+- `features/papers/papers.ts:2` ends "…all its modules, as before.", which narrates history and breaks CLAUDE.md's
+  rule.
+- **Fix:** state the reason in words, drop the numbers, and keep `docs/ideas.md` as the place that maps ideas to
+  code. Do it in one sweep: `grep -rnE "\b(IDEA|CQ|SEC|AD|UX|ST|R)-[0-9]+" api/app api/migrations web/src`.
+
+### CQ-42. Test gaps from rounds 5 to 9 (minor)
+
+- **API:**
+  - No test for a request for an RTC paper, or for an RTC sitting in the gaps (CQ-31, CQ-32).
+  - No test of `noora/paper._sitting`'s output.
+  - No test of what happens when a published item's kind, year or zone is edited. Editing doesn't call
+    `_match_requests`; if that is intended, a test should say so.
+- **Web:**
+  - Pure or nearly pure modules added without tests:
+    - `noora/useDrag.ts` (153 lines: clamping, snapping);
+    - `noora/open.ts`;
+    - `home/layout.ts`;
+    - `papers/usePapers.ts` (a test would have caught `cleanZone`, CQ-32);
+    - `modules/tracking.ts`;
+    - `grades/record.ts`.
+  - Still untested from CQ-27: `career/lib/fit.ts` and `home/session.ts`.
+- **Fixtures:** see CQ-26. One `module` fixture and the personas belong in `tests/conftest.py`.
+
+### CQ-43. No formatter in `web/`: merge leftovers and dead CSS (minor)
+
+- **Where:** `web/` has no Prettier config and no format check, unlike the API's `ruff format`. `knip --fix` (`13a7b36`)
+  and the hand-merged conflicts left gaps:
+  - stray `;` lines (`auth/index.ts:3`, `ui/index.ts:51`, `features/forum/public.ts:17,19,22,26,28`,
+    `calendar/public.ts:15`);
+  - `{  X,  }` gaps (`ui/index.ts:3-50`, `state/index.ts:5-11`, `auth/index.ts:2,7,8`);
+  - lines over 200 characters (`library/DailyQuestion.tsx:29`).
+
+  Dead CSS classes with no user: `.cal-confirm`, `.forum-hot__count`, `.forum-hot__votes`,
+  `.forum-modthreads__foot`, `.forum-side__more`, `.nl-loading`, `.cmdk-new`, `.cmdk-doc__fmt` and
+  `.forum-reply__nested-line`. The Noora, Home, library, requests and papers CSS is clean.
+- **Why it matters:** with parallel builders, formatting differences turn into merge conflicts, and knip doesn't
+  look at CSS.
+- **Fix:** add Prettier with a `--check` step in `check.sh`, and format once in a commit of its own. Delete the nine
+  classes.
+
+### CQ-44. Dead 501 scaffolding (minor)
+
+- **Where:**
+  - `core/errors.py:124-126` turns `NotImplementedError` into 501 `not_implemented` "This endpoint is not built yet."
+  - `schemas/common.py:43` lists the code.
+  - `seed/loader.py:315-316` catches `NotImplementedError` as "not built yet".
+
+  No route or seed section raises it any more. The only `raise NotImplementedError` is the abstract
+  `Credential.headers` in `services/drive.py:294`.
+- **Why it matters:** if a programming error reached the base class, the client would see "not built yet" and no
+  500 would be logged. ARCHITECTURE still describes routes as stubs (CQ-46).
+- **Fix:** delete the handler, the error code and the `except`, and make `Credential` a `Protocol` or an `abc.ABC`.
+
+### CQ-45. `/requests/done` has no index (minor)
+
+- **Where:** `services/requests.py:204-221` filters on `status = 'done'`, `removed_at IS NULL` and a range of
+  `answered_at`. No index on `requests` covers this, and the newsletter's live section runs the same query.
+- **Fix:** a partial index `ix_requests_done (answered_at) WHERE status = 'done' AND removed_at IS NULL`, in the
+  squash. The suggestions queue, ordered by `decided_at`, can wait until it grows.
+
+### CQ-46. STATUS, ARCHITECTURE and DEPLOYMENT are out of date (minor)
+
+- **`docs/STATUS.md`:**
+  - It says "Last updated 2026-10-12 … when round 3 started" (`:4-5`), and "Last checks" (`:23-28`) cites round 3
+    numbers (598 and 655 API tests; today it's 1,096 API tests and 655 Vitest).
+  - `round4/content` appears twice, as "removed, merged" (`:72`) and as "pushed, waiting to merge" (`:78`).
+  - It names the switch `noora_ai` (`:73`); it is `noora.ai`.
+  - "Round 9" is a bullet inside Round 8 (`:48`).
+  - The migration chain (`:36`, `:41`) stops at 0015.
+  - Item 7, the no-compatibility clean-up (`:157-165`), is done but still listed as to do.
+- **`docs/backend/ARCHITECTURE.md`:**
+  - The layout and ownership table (`:42-83`) lists only round 1's routers, services, tests and features. Missing:
+    access, board, notes, requests, seniors, suggestions, summary and noora; `services/noora/`, `past_questions`,
+    `exam_names`, `gaps`, `polls` and `drive_import`; `tests/board`, `noora` and `notes`; and the web features
+    access, board, notes, papers, requests, start and manage.
+  - The CLI list (`:62`) is missing `weekly-summary`, `import-drive`, `exam-meta`, `text-worker` and
+    `extract-texts`.
+  - "The contract" (`:95-98`) still says routes are `NotImplementedError` stubs and that shapes change "only
+    additively". That contradicts the no-backward-compatibility rule in CLAUDE.md.
+  - "Migrations in round 2" (`:319-320`) is history.
+- **`docs/backend/DEPLOYMENT.md`:**
+  - The intro (`:3-12`) lists the API, the database, the mail worker and two daily jobs, but `compose.prod.yaml`
+    also runs the `texts` worker.
+  - Nothing tells a deployer about `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` (which `compose.prod.yaml:41-42`
+    reads), switching on `noora.ai`, or the Sunday summary that the mail worker queues.
+- **Fix:**
+  - Rewrite STATUS's head around round 10 and drop the finished items.
+  - Regenerate ARCHITECTURE's layout table from `ls`, and replace "The contract" rules with CLAUDE.md's.
+  - Add a "Mini Noora and the Sunday summary" section to DEPLOYMENT.
+
+## Summary
+
+Rounds 5 to 9 roughly doubled the product: 23 merges and 17,000 lines. On the whole it holds up:
+- Every check passes: 1,096 API tests, 655 Vitest tests in 81 files, mypy strict, knip clean.
+- The routers stay thin, the list endpoints load their rows in batches, every new error code is typed, and no
+  `type: ignore` or `any` was added.
+- Every feature reaches another only through `public.ts`.
+- Noora's chat grew into a set of small, mostly tested modules, not one component.
+- Home became a tested block model.
+
+This pass found **no blocker, 5 major and 12 minor findings**. The majors come from the way these rounds were built:
+parallel branches that each defined zones, sittings, switches and query keys their own way.
+- One branch's change was lost: students can't ask for an RTC paper (CQ-31).
+- Two features don't agree on which switches gate a block (CQ-34).
+- A cache key family missed an invalidation (CQ-33).
+- Round 9 brought back the bug CQ-1 fixed, with Noora's chats kept past sign-out (CQ-30).
+
+### Top five changes worth making, in order
+
+1. **CQ-30: put Noora's chats under `hub.mine.`, and clear them on sign-out.** Two key names, the sessionStorage
+   key and one test. This is the only finding that exposes one student's data to another.
+2. **CQ-31 with CQ-32: make zone one type from start to end.**
+   - Use `Zone` in the request schema and every output schema, so RTC requests work.
+   - One zone and sitting label and one sitting key on each side: `exam_names` in the API, `library/display.ts` in
+     the web app.
+   - CHECK constraints on the three zone columns.
+3. **CQ-33 and CQ-34: fix the two places where a screen and its data disagree.**
+   - Invalidate the whole `REQUESTS_KEY` after request mutations.
+   - Give each Home block its features in `home/blocks.ts`, and compute "offered" from them.
+4. **CQ-35 (with CQ-36 and CQ-45): squash the migrations into one baseline now, between rounds.**
+   - In the same change: rename `video_suggestions` to `modules.video-suggestions`, add the zone CHECKs and the
+     `requests` done index.
+   - Prove it with the drift test, the seeded-state test and a schema dump diff.
+   - `alembic stamp` the local database so the Drive import's data stays.
+5. **CQ-46 with CQ-41: bring the docs back in line with the code, and strip the IDEA and review numbers from it.**
+   STATUS is the next session's starting point, and it currently contradicts itself.
+
+The rest (CQ-37 to CQ-40, CQ-42 to CQ-44, and the open CQ-17, CQ-22 and CQ-26) are local fixes. Do each when its file
+is next touched. CQ-43, Prettier with a check, is worth doing before the next parallel round, since it removes a
+whole class of merge conflict.
+
+---
 
 # Round 3 re-review
 
