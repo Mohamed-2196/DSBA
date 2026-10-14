@@ -15,6 +15,7 @@ NotificationKind = Literal[
     "new_issue",  # a newsletter issue was published
     "report_resolved",  # a moderator acted on your report
     "request_update",  # a request you made or said "me too" to changed status
+    "date_changed",  # an exam, mock or deadline of your year moved, or was confirmed
     "system",
 ]
 

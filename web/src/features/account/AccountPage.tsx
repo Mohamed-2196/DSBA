@@ -5,7 +5,7 @@ import {
 } from '@phosphor-icons/react';
 import { ApiError, errorMessage } from '../../api/errors';
 import type { Me, SessionInfo } from '../../api/types';
-import { useAuth } from '../../auth';
+import { useAuth, type Feature } from '../../auth';
 import { CohortPicker, type CohortChoice } from '../../auth/CohortPicker';
 import { formatPhone } from '../../auth/identifiers';
 import { PageLoader } from '../../shell/PageLoader';
@@ -213,17 +213,26 @@ function SignInMethods({ me }: { me: Me }) {
 
 // ── Emails ───────────────────────────────────────────────────────────────────────────────────
 
-type EmailSwitch = 'emailReplies' | 'emailAnswerAccepted' | 'emailUploadReviews' | 'emailNewIssues';
+type EmailSwitch = keyof Me['preferences'];
 
-/** One switch per kind of email (decision D1); the notification in the Hub shows whatever they say. */
-const EMAIL_SWITCHES: { key: EmailSwitch; label: string; description: string }[] = [
+/** One switch per kind of email (decision D1); the notification in the Hub shows whatever they say. The Sunday
+ *  summary is an email of its own, off until you turn it on, and only while its feature is on. */
+const EMAIL_SWITCHES: { key: EmailSwitch; label: string; description: string; feature?: Feature }[] = [
   { key: 'emailReplies', label: 'Replies', description: 'When someone replies to your thread or to one of your replies.' },
   { key: 'emailAnswerAccepted', label: 'Accepted answers', description: 'When the person who asked marks your reply as the answer.' },
   { key: 'emailUploadReviews', label: 'Your uploads', description: 'When a student rep publishes a file you uploaded, or decides not to.' },
   { key: 'emailNewIssues', label: 'New newsletter issues', description: 'When a new issue of The DSBA Newsletter is out.' },
+  { key: 'emailDateChanges', label: 'Date changes', description: 'When an exam, mock or deadline of your year moves, or its date is confirmed.' },
+  {
+    key: 'emailWeeklySummary',
+    label: 'Sunday summary',
+    description: 'Each Sunday morning: your year’s exams and deadlines, new files, open questions and the newsletter.',
+    feature: 'summary',
+  },
 ];
 
 function EmailPreferences({ me }: { me: Me }) {
+  const { featureOn } = useAuth();
   const { push } = useToast();
   const update = useUpdatePreferences();
   const save = (patch: Parameters<typeof update.mutate>[0]) =>
@@ -231,7 +240,7 @@ function EmailPreferences({ me }: { me: Me }) {
   return (
     <Panel className="acct-switches">
       {!me.email ? <p className="acct-note acct-note--inset">These go to your email address. Add one above to get them.</p> : null}
-      {EMAIL_SWITCHES.map((s, i) => (
+      {EMAIL_SWITCHES.filter((s) => !s.feature || featureOn(s.feature)).map((s, i) => (
         <div key={s.key} className="acct-switches__item">
           {i > 0 ? <Divider /> : null}
           <Switch label={s.label} description={s.description} checked={me.preferences[s.key]} onChange={(on) => save({ [s.key]: on })} />

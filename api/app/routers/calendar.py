@@ -12,7 +12,13 @@ from app.core.pagination import YearParam
 from app.core.security import DB, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import router_for
-from app.schemas.calendar import CalendarEventCreate, CalendarEventOut, CalendarEventUpdate, EventType
+from app.schemas.calendar import (
+    CalendarEventCreate,
+    CalendarEventOut,
+    CalendarEventSaved,
+    CalendarEventUpdate,
+    EventType,
+)
 from app.schemas.common import ErrorResponse
 from app.services import access
 from app.services import calendar as svc
@@ -95,20 +101,23 @@ def create_event(
     return CalendarEventOut.model_validate(event)
 
 
-@router.patch("/calendar/events/{event_id}", response_model=CalendarEventOut)
+@router.patch("/calendar/events/{event_id}", response_model=CalendarEventSaved)
 def update_event(
     event_id: str,
     body: CalendarEventUpdate,
     request: Request,
     user: Annotated[User, requires(Box.calendar_manage)],
     db: DB,
-) -> CalendarEventOut:
+) -> CalendarEventSaved:
     """Fields that are not sent stay as they are; `endDate`, `time`, `place`, `year` and `moduleId` can be
-    cleared with null. The id never changes."""
+    cleared with null. The id never changes. With `notify`, a new date, time or place of an exam, mock or deadline,
+    or its confirmation, is told to its cohort and to those with it on their board: at most once per event a day
+    (`notice`: sent, limit or none)."""
     event = svc.get_event(db, event_id)
-    svc.update_event(db, user, event, body, client_ip(request))
+    notice = svc.update_event(db, user, event, body, client_ip(request))
     db.commit()
-    return CalendarEventOut.model_validate(event)
+    out = CalendarEventOut.model_validate(event)
+    return CalendarEventSaved(**out.model_dump(), notice=notice.status, told=notice.told)
 
 
 @router.delete("/calendar/events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)

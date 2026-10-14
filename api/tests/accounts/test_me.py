@@ -125,6 +125,8 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
             "emailAnswerAccepted": True,
             "emailUploadReviews": True,
             "emailNewIssues": True,
+            "emailDateChanges": True,
+            "emailWeeklySummary": False,
         },
     }
 
@@ -255,9 +257,18 @@ def test_year(client_for: ClientFor, make_user: MakeUser) -> None:
     assert r.json()["error"]["code"] == "invalid_input"
 
 
-def _switches(**off: bool) -> dict[str, bool]:
-    """The preferences as the API shows them: every switch on except those given."""
-    return {"emailReplies": True, "emailAnswerAccepted": True, "emailUploadReviews": True, "emailNewIssues": True} | off
+def _switches(**changed: bool) -> dict[str, bool]:
+    """The preferences as the API shows them: each switch at its default (the Sunday summary off, the others on)
+    except those given."""
+    defaults = {
+        "emailReplies": True,
+        "emailAnswerAccepted": True,
+        "emailUploadReviews": True,
+        "emailNewIssues": True,
+        "emailDateChanges": True,
+        "emailWeeklySummary": False,
+    }
+    return defaults | changed
 
 
 def test_preferences_one_switch_per_kind_of_email(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
@@ -273,6 +284,9 @@ def test_preferences_one_switch_per_kind_of_email(client_for: ClientFor, make_us
     assert _fresh(db, User, user.id).preferences == {"email_replies": False, "email_new_issues": False}
     r = c.patch(f"{API}/me", json={"preferences": {"emailReplies": True, "emailNewIssues": True}})
     assert r.json()["preferences"] == _switches()
+    r = c.patch(f"{API}/me", json={"preferences": {"emailWeeklySummary": True}})  # opt-in: stored when on
+    assert r.json()["preferences"] == _switches(emailWeeklySummary=True)
+    assert _fresh(db, User, user.id).preferences["email_weekly_summary"] is True
 
 
 def test_a_suspended_account_keeps_its_name(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:

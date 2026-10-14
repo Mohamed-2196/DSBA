@@ -50,13 +50,16 @@ class OtpVerifyRequest(ApiModel):
 
 
 class Preferences(ApiModel):
-    """Which notifications also come by email, to the account's email address. In the Hub every notification shows
-    whatever these say, and account security notices are always emailed."""
+    """Which notifications also come by email, to the account's email address, and whether the Sunday summary does.
+    In the Hub every notification shows whatever these say, and account security notices are always emailed. Unset
+    means the default here."""
 
     email_replies: bool = True  # someone replied to your thread or to your reply
     email_answer_accepted: bool = True  # your reply was accepted as the answer
     email_upload_reviews: bool = True  # a student rep published or rejected your upload
     email_new_issues: bool = True  # a new issue of The DSBA Newsletter is out
+    email_date_changes: bool = True  # an exam, mock or deadline of your year moved, or was confirmed
+    email_weekly_summary: bool = False  # the Sunday summary: opt in
 
 
 class PreferencesUpdate(ApiModel):
@@ -66,6 +69,8 @@ class PreferencesUpdate(ApiModel):
     email_answer_accepted: bool | None = None
     email_upload_reviews: bool | None = None
     email_new_issues: bool | None = None
+    email_date_changes: bool | None = None
+    email_weekly_summary: bool | None = None
 
 
 class Me(ApiModel):

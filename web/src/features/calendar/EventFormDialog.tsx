@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useState, type FormEvent } from 'react';
-import type { ModuleSummary } from '../../api/types';
+import type { CalendarEventSaved, ModuleSummary } from '../../api/types';
 import { errorMessage, isApiError } from '../../api/errors';
 import { moduleLabel } from '../../lib/modules';
 import { cohortLabel, normalizeYear, YEARS, type CohortYear } from '../../state';
@@ -16,8 +16,15 @@ export interface EventFormDialogProps {
   /** A date to start a new event on ('YYYY-MM-DD'). */
   defaultDate?: string;
   onClose: () => void;
-  onSaved: (event: CalendarEvent, created: boolean) => void;
+  /** `told`: what an edit told students (none for a new event). */
+  onSaved: (event: CalendarEvent, created: boolean, told?: DateNotice) => void;
 }
+
+/** What an edit told students: sent (with how many), limit (told today already) or none. */
+export type DateNotice = Pick<CalendarEventSaved, 'notice' | 'told'>;
+
+/** The dates whose changes students are told about. */
+const TOLD_TYPES: ReadonlySet<EventType> = new Set(['exam', 'mock', 'deadline']);
 
 interface FormState {
   title: string;
@@ -32,6 +39,8 @@ interface FormState {
   time: string;
   place: string;
   sample: boolean;
+  /** Tell the cohort about a new date, time or place, or a confirmation (editing an exam, mock or deadline). */
+  tell: boolean;
 }
 
 type FieldErrors = Partial<Record<keyof FormState, string>>;
@@ -55,6 +64,7 @@ const fromEvent = (e: CalendarEvent | null, getModule: ModuleLookup, defaultDate
   time: e?.time ?? '',
   place: e?.place ?? '',
   sample: e?.sample ?? false,
+  tell: true,
 });
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -162,7 +172,11 @@ export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: 
         if (!Object.keys(mapped).length) setFormError(err.message);
       } else setFormError(errorMessage(err, 'The event wasn’t saved. Try again.'));
     };
-    if (event) update.mutate({ id: event.id, patch: body }, { onSuccess: (saved) => onSaved(saved, false), onError: fail });
+    const tellable = TOLD_TYPES.has(form.type);
+    if (event) {
+      const patch = { ...body, notify: tellable && form.tell };
+      update.mutate({ id: event.id, patch }, { onSuccess: (saved) => onSaved(saved, false, saved), onError: fail });
+    }
     else {
       // 409 retry: another date took the same id at the same moment. Once more, without bothering the rep.
       const created = (saved: CalendarEvent) => onSaved(saved, true);
@@ -230,6 +244,15 @@ export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: 
             <span className="cal-form__check-hint">Students see it marked as not confirmed until you untick this.</span>
           </span>
         </label>
+        {event && TOLD_TYPES.has(form.type) ? (
+          <label className="cal-form__check cal-form__wide">
+            <input type="checkbox" checked={form.tell} onChange={(e) => set('tell', e.target.checked)} data-hub="calendar-tell" />
+            <span>
+              <span className="cal-form__check-title">Tell {year ? cohortLabel(year) : 'every cohort'}</span>
+              <span className="cal-form__check-hint">If the date, time or place changes, or you confirm it, they get a notification. At most once a day for each event.</span>
+            </span>
+          </label>
+        ) : null}
         {formError ? (
           <p className="cal-form__error cal-form__wide" role="alert">
             {formError}

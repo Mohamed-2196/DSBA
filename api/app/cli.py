@@ -9,8 +9,11 @@ sweep              delete what is no longer needed: uploads never attached to an
                    codes older than two days, sessions that expired or were revoked more than 30 days ago, and
                    the files of library items rejected or removed more than a week ago
 setup-bucket       create the bucket if needed and set its CORS and lifecycle rules (production: once)
-mail-worker        send the queued emails (notifications, account notices) with retries; runs until stopped
-                   (--once: until nothing is due). Several can run side by side.
+mail-worker        send the queued emails (notifications, account notices, Sunday summaries) with retries; runs
+                   until stopped (--once: until nothing is due). Several can run side by side. On Sunday from
+                   08:00 Bahrain time it queues the week's summaries itself
+weekly-summary     queue this week's Sunday summary now, for everyone who has it on and hasn't had it this week
+                   (--preview YEAR: print that year's text and send nothing)
 import-drive       copy the files of the library's Google Drive folders into the library: prints the plan, asks,
                    imports, and lists the folders Drive refused (--dry-run: only the plan; --module ID; --limit N
                    files; --yes: no question). Safe to run again. Needs DSBA_GOOGLE_API_KEY (DEPLOYMENT.md, 10)
@@ -43,6 +46,7 @@ from sqlalchemy import CursorResult, delete, or_, select
 from sqlalchemy.engine import make_url
 
 from app.config import Settings, get_settings
+from app.core.access import Feature
 from app.core.time import utcnow
 from app.db import get_sessionmaker
 from app.models import AccessRole, OtpChallenge, Upload, UploadStatus, User, UserSession
@@ -313,6 +317,22 @@ def cmd_extract_texts(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_weekly_summary(args: argparse.Namespace) -> int:
+    """The Sunday summary on demand: the mail worker queues it on Sunday mornings by itself."""
+    from app.core.time import bahrain_today
+    from app.services import summary
+
+    with get_sessionmaker()() as db:
+        if args.preview is not None:
+            s = summary.build(db, args.preview, summary.week_of(bahrain_today()), frozenset(Feature))
+            print(s.text(), end="")
+            return 0
+        queued = summary.send_week(db, bahrain_today())
+        db.commit()
+    print(f"queued {queued} Sunday summar{'y' if queued == 1 else 'ies'}")
+    return 0
+
+
 def cmd_import_drive(args: argparse.Namespace) -> int:
     """The Drive import (app/services/drive_import.py), run from the server's shell (scripts/seed-real.sh)."""
     from app.models import Module
@@ -418,6 +438,9 @@ def main(argv: list[str] | None = None) -> int:
     mw.add_argument("--once", action="store_true", help="stop when nothing is due")
     mw.add_argument("--poll", type=float, default=5.0, help="seconds to wait when nothing is due (default 5)")
     mw.set_defaults(fn=cmd_mail_worker)
+    ws = sub.add_parser("weekly-summary")
+    ws.add_argument("--preview", type=int, choices=[1, 2, 3], default=None, metavar="YEAR", help="print, don't send")
+    ws.set_defaults(fn=cmd_weekly_summary)
     di = sub.add_parser("import-drive")
     di.add_argument("--dry-run", action="store_true", help="print the plan and import nothing")
     di.add_argument("--module", metavar="ID", default=None, help="only the links of this module")
