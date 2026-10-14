@@ -1,15 +1,17 @@
-"""The academic calendar. Owner: content agent."""
+"""The academic calendar, and each student's own layer on it: their events, the programme dates they hide, and
+their private feed. A student's own calendar is theirs alone: another person's event answers 404."""
 
 from __future__ import annotations
 
 import datetime as dt
-from typing import Annotated
+from typing import Annotated, Any
+from uuid import UUID
 
 from fastapi import Query, Request, Response, status
 
 from app.core.access import Box, Feature
 from app.core.pagination import YearParam
-from app.core.security import DB, client_ip, needs_feature, requires
+from app.core.security import DB, ActiveUser, CurrentUser, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.auth import MAX_PAPERS
@@ -18,11 +20,17 @@ from app.schemas.calendar import (
     CalendarEventOut,
     CalendarEventSaved,
     CalendarEventUpdate,
+    CalendarPrefsOut,
+    CalendarPrefsUpdate,
     EventType,
+    PersonalEventCreate,
+    PersonalEventOut,
+    PersonalEventUpdate,
 )
 from app.schemas.common import ErrorResponse
 from app.services import access
 from app.services import calendar as svc
+from app.services import my_calendar as mine
 
 router = router_for("calendar", needs_feature(Feature.calendar))
 
@@ -138,3 +146,83 @@ def delete_event(
     svc.delete_event(db, user, svc.get_event(db, event_id), client_ip(request))
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ── your own calendar ────────────────────────────────────────────────────────────────────────
+
+ICS: dict[int | str, dict[str, Any]] = {
+    200: {"content": {"text/calendar": {"schema": {"type": "string"}}}},
+    404: {"model": ErrorResponse},
+}
+
+
+@router.get("/calendar/mine/events", response_model=list[PersonalEventOut])
+def my_events(user: CurrentUser, db: DB) -> list[PersonalEventOut]:
+    """Your own events, by date. Each repeat is one event: the web app lays out its occurrences."""
+    return [PersonalEventOut.model_validate(e) for e in mine.list_events(db, user)]
+
+
+@router.post("/calendar/mine/events", response_model=PersonalEventOut, status_code=status.HTTP_201_CREATED)
+def add_my_event(body: PersonalEventCreate, user: ActiveUser, db: DB) -> PersonalEventOut:
+    """An event on your calendar only. Errors: invalid_input (422: dates or times that don't fit together),
+    calendar_full (409), rate_limited (429)."""
+    event = mine.create_event(db, user, body)
+    db.commit()
+    return PersonalEventOut.model_validate(event)
+
+
+@router.patch("/calendar/mine/events/{event_id}", response_model=PersonalEventOut)
+def edit_my_event(event_id: UUID, body: PersonalEventUpdate, user: ActiveUser, db: DB) -> PersonalEventOut:
+    """Fields not sent stay; null clears the optional ones. A repeat changes as a whole."""
+    event = mine.get_event(db, user, event_id)
+    mine.update_event(db, event, body)
+    db.commit()
+    return PersonalEventOut.model_validate(event)
+
+
+@router.delete("/calendar/mine/events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_my_event(event_id: UUID, user: ActiveUser, db: DB) -> Response:
+    """Deletes the event, every repeat of it."""
+    mine.delete_event(db, mine.get_event(db, user, event_id))
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/calendar/mine/events/{event_id}.ics", response_class=Response, responses=ICS)
+def my_event_ics(event_id: UUID, user: CurrentUser, db: DB) -> Response:
+    """One of your events as an .ics file to import, with its repeat and reminder."""
+    return Response(
+        content=mine.event_ics(mine.get_event(db, user, event_id)).encode("utf-8"),
+        media_type="text/calendar; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="my-event.ics"', "Cache-Control": PRIVATE_FEED_CACHE},
+    )
+
+
+@router.get("/calendar/mine/settings", response_model=CalendarPrefsOut)
+def my_settings(user: CurrentUser, db: DB) -> CalendarPrefsOut:
+    """The programme dates you keep off your calendar, and your private feed's path."""
+    return mine.prefs_out(user, mine.get_prefs(db, user))
+
+
+@router.patch("/calendar/mine/settings", response_model=CalendarPrefsOut)
+def change_my_settings(body: CalendarPrefsUpdate, user: ActiveUser, db: DB) -> CalendarPrefsOut:
+    """Each list sent (hidden dates, modules, types) replaces the one kept; lists not sent stay."""
+    prefs = mine.update_prefs(db, user, body)
+    db.commit()
+    return mine.prefs_out(user, prefs)
+
+
+@router.post("/calendar/mine/feed", response_model=CalendarPrefsOut)
+def new_my_feed(user: ActiveUser, db: DB) -> CalendarPrefsOut:
+    """Turns your private feed on at a new address. An address you had before stops working."""
+    prefs = mine.new_feed(db, user)
+    db.commit()
+    return mine.prefs_out(user, prefs)
+
+
+@router.delete("/calendar/mine/feed", response_model=CalendarPrefsOut)
+def stop_my_feed(user: ActiveUser, db: DB) -> CalendarPrefsOut:
+    """Turns your private feed off: its address stops working."""
+    prefs = mine.stop_feed(db, user)
+    db.commit()
+    return mine.prefs_out(user, prefs)

@@ -2,9 +2,9 @@
 
 - A card's place in its column is `position`, a number between its neighbours', so a move writes one row. When two
   neighbours get too close to split, the column is numbered again.
-- A card may point at a calendar event, a lesson, a module or a library item, once per board. Its title, address and
-  (for an event) date are read from the hub every time the board loads, so a renamed or moved event shows as it is
-  now.
+- A card may point at a calendar event, one of the student's own events, a lesson, a module or a library item,
+  once per board. Its title, address and (for an event) date are read from the hub every time the board loads, so a
+  renamed or moved event shows as it is now.
 - A lesson card moves to Done once the lesson is watched (`complete_lessons`, called when progress is saved).
 - A revision plan (one per module) adds a card for each lesson not watched yet and a past paper every few days. Its
   cards that aren't done are spread over the days left to the exam each time the board is read, in board order
@@ -23,7 +23,17 @@ from sqlalchemy.orm import Session
 from app.core.access import Feature
 from app.core.errors import conflict, invalid, not_found
 from app.core.time import bahrain_today, utcnow
-from app.models import BoardCard, BoardPlan, CalendarEvent, ItemStatus, LessonView, LibraryItem, Module, User
+from app.models import (
+    BoardCard,
+    BoardPlan,
+    CalendarEvent,
+    ItemStatus,
+    LessonView,
+    LibraryItem,
+    Module,
+    PersonalEvent,
+    User,
+)
 from app.schemas.board import (
     Board,
     BoardCardCreate,
@@ -36,7 +46,7 @@ from app.schemas.board import (
 )
 from app.schemas.board import BoardCard as BoardCardOut
 from app.schemas.board import BoardPlan as BoardPlanOut
-from app.services import access, ratelimit
+from app.services import access, my_calendar, ratelimit
 from app.services.content import apply_patch
 from app.services.modules import (
     MODULE_UNKNOWN,
@@ -54,6 +64,7 @@ COLUMNS: tuple[BoardColumn, ...] = ("todo", "doing", "done")
 CARD_GONE = "This card isn't on your board any more. Reload the board."
 LINK_GONE = {
     "event": "This date isn't in the calendar any more.",
+    "my_event": "This event isn't on your calendar any more.",
     "lesson": "This lesson doesn't exist.",
     "module": "This module doesn't exist.",
     "library_item": "This file isn't in the library.",
@@ -99,6 +110,21 @@ def resolve_links(db: Session, user: User | None, keys: Iterable[LinkKey]) -> di
                 date=e.end_date or e.date,
                 kind=None,
                 module_id=e.module_id,
+            )
+    if (ids := wanted.get("my_event")) and user is not None and access.feature_on(db, user, Feature.calendar):
+        uuids = [u for u in (_uuid(i) for i in ids) if u is not None]
+        today = bahrain_today()
+        own = select(PersonalEvent).where(PersonalEvent.id.in_(uuids), PersonalEvent.user_id == user.id)
+        for p in db.scalars(own) if uuids else ():
+            day = my_calendar.next_day(p, today) or my_calendar.last_repeat(p)
+            found["my_event", str(p.id)] = BoardLink(
+                type="my_event",
+                id=str(p.id),
+                title=p.title,
+                url=f"/calendar?event=mine-{p.id}",
+                date=day + (p.end_date - p.date) if p.end_date else day,
+                kind=None,
+                module_id=None,
             )
     if ids := wanted.get("library_item"):
         uuids = [u for u in (_uuid(i) for i in ids) if u is not None]
@@ -299,7 +325,7 @@ def _top_of(db: Session, user_id: uuid.UUID, column: str) -> float:
 def _canonical_link(db: Session, user: User, kind: str, raw: str) -> tuple[str, BoardLink]:
     """The link's stored id and what it points at, or 422 on link.id when there's nothing there for `user`."""
     ident = raw
-    if kind == "library_item" and (u := _uuid(raw)) is not None:
+    if kind in ("library_item", "my_event") and (u := _uuid(raw)) is not None:
         ident = str(u)
     link = resolve_links(db, user, [(kind, ident)]).get((kind, ident))
     if link is None:

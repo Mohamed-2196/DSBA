@@ -1,0 +1,453 @@
+"""A student's own calendar: events they add for themselves, the programme dates they keep off it, their private
+feed, and the reminders for their events.
+
+Times are Bahrain times (core.time.BAHRAIN, UTC+3 all year). A timed event runs from its start time to its end
+time, or for an hour. An all-day event "starts" at 09:00 for its reminder. A repeat runs every day or week from
+the event's date until its repeat end, or for REPEAT_DAYS without one; the web app, the feed (RRULE) and the
+reminders all count the same occurrences."""
+
+from __future__ import annotations
+
+import base64
+import datetime as dt
+import hashlib
+import hmac
+import logging
+import secrets
+import uuid
+from collections.abc import Callable, Collection, Iterator, Sequence
+from contextlib import AbstractContextManager
+from datetime import datetime, timedelta
+
+from sqlalchemy import and_, func, or_, select
+from sqlalchemy.orm import Session
+
+from app.config import get_settings
+from app.core.access import Feature
+from app.core.errors import ApiError, conflict, invalid, not_found
+from app.core.time import BAHRAIN, utcnow
+from app.models import CalendarEvent, CalendarPrefs, Module, PersonalEvent, User
+from app.schemas.calendar import (
+    CalendarPrefsOut,
+    CalendarPrefsUpdate,
+    PersonalEventCreate,
+    PersonalEventUpdate,
+)
+from app.services import access, ratelimit
+from app.services import calendar as programme
+from app.services.content import apply_patch
+from app.services.notify import notify
+
+log = logging.getLogger("dsba.calendar")
+
+MAX_EVENTS = 500
+CREATE_LIMIT = 60
+CREATE_WINDOW = timedelta(hours=1)
+REPEAT_DAYS = 365  # a repeat without an end runs for a year
+ALL_DAY_AT = dt.time(9, 0)  # when an all-day event's reminder counts from
+DEFAULT_LENGTH = timedelta(hours=1)
+REMINDER_GRACE = timedelta(minutes=15)  # a reminder still goes out this long after its event started
+EVENT_GONE = "This event isn't on your calendar any more."
+EDITABLE = (
+    "title",
+    "date",
+    "end_date",
+    "start_time",
+    "end_time",
+    "place",
+    "notes",
+    "colour",
+    "repeat",
+    "repeat_until",
+    "remind",
+)
+CLEARABLE = ("end_date", "start_time", "end_time", "place", "notes", "repeat_until", "remind")
+
+# The choices inside a year that a student's papers pick from (web/src/features/papers/papers.ts CHOICES, which the
+# web app's "Your papers" shows): without a pick from a year's choice, every module of the year counts.
+CHOICES: dict[int, frozenset[str]] = {
+    2: frozenset({"econometrics", "information-systems", "abstract-maths"}),
+    3: frozenset({"microeconomics", "asset-pricing", "marketing-management", "further-maths-economists"}),
+}
+
+
+# ── occurrences ──────────────────────────────────────────────────────────────────────────────
+
+
+def last_repeat(e: PersonalEvent) -> dt.date:
+    """The last day an occurrence can start on."""
+    if e.repeat == "none":
+        return e.date
+    return e.repeat_until or e.date + timedelta(days=REPEAT_DAYS)
+
+
+def occurrence_days(e: PersonalEvent, start: dt.date, end: dt.date) -> Iterator[dt.date]:
+    """The days occurrences of `e` start on, from `start` to `end` inclusive."""
+    step = 7 if e.repeat == "weekly" else 1
+    first, last = e.date, min(last_repeat(e), end)
+    if start > first and e.repeat != "none":
+        first += timedelta(days=-(-(start - first).days // step) * step)  # the first occurrence on or after start
+    day = first
+    while day <= last:
+        if day >= start:
+            yield day
+        if e.repeat == "none":
+            return
+        day += timedelta(days=step)
+
+
+def starts_at(e: PersonalEvent, day: dt.date) -> datetime:
+    """When the occurrence on `day` starts, as an aware datetime (09:00 for an all-day event)."""
+    return datetime.combine(day, e.start_time or ALL_DAY_AT, tzinfo=BAHRAIN)
+
+
+def next_day(e: PersonalEvent, today: dt.date) -> dt.date | None:
+    """The day of the next occurrence that hasn't ended by `today`, or None when the event is over."""
+    span = (e.end_date - e.date).days if e.end_date else 0
+    return next(occurrence_days(e, today - timedelta(days=span), last_repeat(e)), None)
+
+
+# ── events ───────────────────────────────────────────────────────────────────────────────────
+
+
+def list_events(db: Session, user: User) -> list[PersonalEvent]:
+    q = select(PersonalEvent).where(PersonalEvent.user_id == user.id)
+    return list(db.scalars(q.order_by(PersonalEvent.date, PersonalEvent.start_time, PersonalEvent.created_at)))
+
+
+def get_event(db: Session, user: User, event_id: uuid.UUID) -> PersonalEvent:
+    """One of `user`'s events; 404 not_found for anyone else's."""
+    event = db.get(PersonalEvent, event_id)
+    if event is None or event.user_id != user.id:
+        raise not_found(EVENT_GONE)
+    return event
+
+
+def _check(e: PersonalEvent) -> None:
+    if e.end_date is not None and e.end_date == e.date:
+        e.end_date = None
+    if e.end_date is not None and e.end_date < e.date:
+        raise invalid("endDate", "The last day can't be before the first.")
+    if e.start_time is not None and e.end_date is not None:
+        raise invalid("endDate", "An event with a time is on one day. Make it all day to span several days.")
+    if e.start_time is None:
+        e.end_time = None
+    if e.end_time is not None and e.start_time is not None and e.end_time <= e.start_time:
+        raise invalid("endTime", "The end time has to be after the start time.")
+    if e.repeat == "none":
+        e.repeat_until = None
+    elif e.end_date is not None:
+        raise invalid("repeat", "A repeating event is on one day. Clear the last day, or don't repeat it.")
+    if e.repeat_until is not None and e.repeat_until < e.date:
+        raise invalid("repeatUntil", "The repeat can't end before the first day.")
+    if e.repeat_until is not None and e.repeat_until > e.date + timedelta(days=REPEAT_DAYS * 2):
+        raise invalid("repeatUntil", "A repeat can run for two years at most.")
+
+
+def create_event(db: Session, user: User, body: PersonalEventCreate) -> PersonalEvent:
+    """409 calendar_full at MAX_EVENTS, 429 after CREATE_LIMIT new events in an hour, 422 for dates and times that
+    don't fit together."""
+    ratelimit.enforce(
+        db,
+        f"personal-events:{user.id}",
+        PersonalEvent.created_at,
+        [PersonalEvent.user_id == user.id],
+        limit=CREATE_LIMIT,
+        window=CREATE_WINDOW,
+        message="You've added a lot of events. Try again in {}.",
+    )
+    count = db.scalar(select(func.count()).select_from(PersonalEvent).where(PersonalEvent.user_id == user.id)) or 0
+    if count >= MAX_EVENTS:
+        raise conflict("calendar_full", f"Your calendar holds {MAX_EVENTS} of your own events. Delete old ones first.")
+    event = PersonalEvent(
+        id=uuid.uuid4(),
+        user_id=user.id,
+        title=body.title,
+        date=body.date,
+        end_date=body.end_date,
+        start_time=body.start_time,
+        end_time=body.end_time,
+        place=body.place or None,
+        notes=body.notes or None,
+        colour=body.colour,
+        repeat=body.repeat,
+        repeat_until=body.repeat_until,
+        remind=body.remind,
+    )
+    _check(event)
+    db.add(event)
+    db.flush()
+    return event
+
+
+def update_event(db: Session, event: PersonalEvent, body: PersonalEventUpdate) -> None:
+    """Fields not sent stay; null clears the optional ones. On a refusal the event is left as it was."""
+    changed = apply_patch(event, body, EDITABLE, clearable=CLEARABLE)
+    try:
+        _check(event)
+    except ApiError:
+        db.expire(event)
+        raise
+    if changed:
+        event.updated_at = utcnow()
+        if {"date", "start_time", "repeat", "repeat_until", "remind"} & set(changed):
+            event.reminded_for = None  # a new time: its reminder is due again
+
+
+def delete_event(db: Session, event: PersonalEvent) -> None:
+    db.delete(event)
+
+
+# ── what a student keeps off their calendar ──────────────────────────────────────────────────
+
+
+def get_prefs(db: Session, user: User) -> CalendarPrefs | None:
+    return db.get(CalendarPrefs, user.id)
+
+
+def _prefs_for_update(db: Session, user: User) -> CalendarPrefs:
+    prefs = db.get(CalendarPrefs, user.id, with_for_update=True)
+    if prefs is None:
+        prefs = CalendarPrefs(user_id=user.id, hidden_events=[], hidden_modules=[], hidden_types=[])
+        db.add(prefs)
+    return prefs
+
+
+def feed_token(user_id: uuid.UUID, salt: str) -> str:
+    """The private feed's secret: an HMAC of the account and its salt under the server's key, so the address can
+    be shown again without being stored. 43 URL-safe characters (256 bits)."""
+    key = get_settings().secret_key.get_secret_value().encode()
+    mac = hmac.new(key, f"calendar-feed:{user_id}:{salt}".encode(), hashlib.sha256).digest()
+    return base64.urlsafe_b64encode(mac).decode().rstrip("=")
+
+
+def _feed_hash(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def feed_path(user_id: uuid.UUID, salt: str) -> str:
+    """The private feed's path under the API's origin."""
+    return f"/api/v1/feeds/calendar/{feed_token(user_id, salt)}.ics"
+
+
+def prefs_out(user: User, prefs: CalendarPrefs | None) -> CalendarPrefsOut:
+    if prefs is None:
+        return CalendarPrefsOut(hidden_events=[], hidden_modules=[], hidden_types=[], feed_path=None)
+    return CalendarPrefsOut.model_validate(
+        {
+            "hidden_events": list(prefs.hidden_events),
+            "hidden_modules": list(prefs.hidden_modules),
+            "hidden_types": list(prefs.hidden_types),
+            "feed_path": feed_path(user.id, prefs.feed_salt) if prefs.feed_salt else None,
+        }
+    )
+
+
+def update_prefs(db: Session, user: User, body: CalendarPrefsUpdate) -> CalendarPrefs:
+    """Each list sent replaces the kept one (repeats dropped, the order kept)."""
+    prefs = _prefs_for_update(db, user)
+    if body.hidden_events is not None:
+        prefs.hidden_events = list(dict.fromkeys(body.hidden_events))
+    if body.hidden_modules is not None:
+        prefs.hidden_modules = list(dict.fromkeys(body.hidden_modules))
+    if body.hidden_types is not None:
+        prefs.hidden_types = list(dict.fromkeys(body.hidden_types))
+    prefs.updated_at = utcnow()
+    return prefs
+
+
+def new_feed(db: Session, user: User) -> CalendarPrefs:
+    """Turns the private feed on at a new address: the old address, if any, stops working."""
+    prefs = _prefs_for_update(db, user)
+    prefs.feed_salt = secrets.token_hex(16)
+    prefs.feed_hash = _feed_hash(feed_token(user.id, prefs.feed_salt))
+    prefs.updated_at = utcnow()
+    return prefs
+
+
+def stop_feed(db: Session, user: User) -> CalendarPrefs:
+    prefs = _prefs_for_update(db, user)
+    prefs.feed_salt = prefs.feed_hash = None
+    prefs.updated_at = utcnow()
+    return prefs
+
+
+# ── the private feed ─────────────────────────────────────────────────────────────────────────
+
+
+def papers_of(user: User, catalogue: Sequence[Module]) -> set[str] | None:
+    """The module ids `user` sits in their year, or None when that is every module of it (their papers: the
+    web app's papersFor)."""
+    year, picks = user.year, set(user.papers or [])
+    if year is None or not picks:
+        return None
+    choice = CHOICES.get(year, frozenset())
+    chose = bool(choice & picks)
+    others = [m for m in catalogue if m.year != year and m.id in picks]
+    if not chose and not others:
+        return None
+    own = [m for m in catalogue if m.year == year and (not chose or m.id not in choice or m.id in picks)]
+    return {m.id for m in [*own, *others]}
+
+
+def counts_for(e: CalendarEvent, year: int | None, papers: Collection[str] | None, prefs: CalendarPrefs | None) -> bool:
+    """Whether a programme date is on a student's own calendar: their year's and their papers' (the web app's
+    isMine), less what they hid."""
+    if prefs is not None and (
+        e.id in prefs.hidden_events
+        or e.type in prefs.hidden_types
+        or (e.module_id is not None and e.module_id in prefs.hidden_modules)
+    ):
+        return False
+    if papers is not None and e.module_id:
+        return e.module_id in papers
+    return year is None or e.year is None or e.year == year
+
+
+def _owner_of_feed(db: Session, token: str) -> tuple[User, CalendarPrefs]:
+    """The account whose private feed `token` opens, while the calendar is on for it; else 404 not_found (an old,
+    wrong or switched-off address all look the same)."""
+    gone = not_found("This calendar link doesn't work any more. Copy your new one from the Hub's calendar.")
+    if len(token) != 43:
+        raise gone
+    prefs = db.scalar(select(CalendarPrefs).where(CalendarPrefs.feed_hash == _feed_hash(token)))
+    if prefs is None or prefs.feed_salt is None:
+        raise gone
+    if not hmac.compare_digest(feed_token(prefs.user_id, prefs.feed_salt), token):
+        raise gone
+    user = db.get(User, prefs.user_id)
+    if user is None or not access.feature_on(db, user, Feature.calendar):
+        raise gone
+    return user, prefs
+
+
+def _alarm(e: PersonalEvent) -> list[str]:
+    if e.remind is None:
+        return []
+    # relative to DTSTART: an all-day event starts at midnight, its reminder counts from 09:00
+    minutes = -e.remind if e.start_time else ALL_DAY_AT.hour * 60 - e.remind
+    trigger = f"{'-' if minutes < 0 else ''}PT{abs(minutes)}M"
+    return [
+        "BEGIN:VALARM",
+        "ACTION:DISPLAY",
+        f"DESCRIPTION:{programme.ics_text(e.title)}",
+        f"TRIGGER:{trigger}",
+        "END:VALARM",
+    ]
+
+
+def _utc(day: dt.date, at: dt.time) -> str:
+    return programme.utc_stamp(datetime.combine(day, at, tzinfo=BAHRAIN))
+
+
+def personal_vevent(e: PersonalEvent, now: datetime, base_url: str) -> list[str]:
+    lines = ["BEGIN:VEVENT", f"UID:{e.id}@dsba-hub-personal", f"DTSTAMP:{programme.utc_stamp(now)}"]
+    if e.start_time is None:
+        last = e.end_date or e.date
+        lines += [
+            f"DTSTART;VALUE=DATE:{programme.date_value(e.date)}",
+            f"DTEND;VALUE=DATE:{programme.date_value(last + timedelta(days=1))}",
+        ]
+    else:
+        start = datetime.combine(e.date, e.start_time, tzinfo=BAHRAIN)
+        end = datetime.combine(e.date, e.end_time, tzinfo=BAHRAIN) if e.end_time else start + DEFAULT_LENGTH
+        lines += [f"DTSTART:{programme.utc_stamp(start)}", f"DTEND:{programme.utc_stamp(end)}"]
+    if e.repeat != "none":
+        until = last_repeat(e)
+        # UNTIL takes DTSTART's type: a date for an all-day event, the last start in UTC for a timed one
+        stamp = programme.date_value(until) if e.start_time is None else _utc(until, e.start_time or ALL_DAY_AT)
+        lines.append(f"RRULE:FREQ={'WEEKLY' if e.repeat == 'weekly' else 'DAILY'};UNTIL={stamp}")
+    lines.append(f"SUMMARY:{programme.ics_text(e.title)}")
+    if e.notes:
+        lines.append(f"DESCRIPTION:{programme.ics_text(e.notes)}")
+    if e.place:
+        lines.append(f"LOCATION:{programme.ics_text(e.place)}")
+    lines += [
+        "CLASS:PRIVATE",
+        f"TRANSP:{'TRANSPARENT' if e.start_time is None else 'OPAQUE'}",
+        f"URL:{base_url.rstrip('/')}/calendar?event=mine-{e.id}",
+        f"LAST-MODIFIED:{programme.utc_stamp(e.updated_at)}",
+        *_alarm(e),
+        "END:VEVENT",
+    ]
+    return lines
+
+
+def private_feed(db: Session, token: str) -> str:
+    """The private feed: the student's programme dates (their year and papers, less what they hid) and their own
+    events. 404 not_found for an address that doesn't work."""
+    user, prefs = _owner_of_feed(db, token)
+    catalogue = db.scalars(select(Module)).all()
+    papers = papers_of(user, catalogue)
+    modules = {m.id: m for m in catalogue}
+    dates = [e for e in db.scalars(programme.events_query()) if counts_for(e, user.year, papers, prefs)]
+    now, base = utcnow(), get_settings().web_base_url
+    vevents = [programme.vevent(e, modules.get(e.module_id) if e.module_id else None, now, base) for e in dates]
+    vevents += [personal_vevent(e, now, base) for e in list_events(db, user)]
+    return programme.ics_document(vevents, name="DSBA Hub: my calendar")
+
+
+def event_ics(e: PersonalEvent) -> str:
+    """One of a student's events as a file to import once."""
+    vevent = personal_vevent(e, utcnow(), get_settings().web_base_url)
+    return programme.ics_document([vevent], name=e.title, subscription=False)
+
+
+# ── reminders ────────────────────────────────────────────────────────────────────────────────
+
+
+def _reminder_body(e: PersonalEvent, day: dt.date, today: dt.date) -> str:
+    when = (
+        "Today" if day == today else "Tomorrow" if day == today + timedelta(days=1) else f"{day:%A} {day.day} {day:%B}"
+    )
+    at = f" at {e.start_time:%H:%M}" if e.start_time else ", all day"
+    return f"{when}{at}{f', {e.place}' if e.place else ''}."
+
+
+def send_reminders(db: Session, now: datetime | None = None) -> int:
+    """A notification for each occurrence whose reminder is due (from `remind` minutes before its start until
+    REMINDER_GRACE after it), once per occurrence, for those the calendar is on for. The caller commits. -> how
+    many."""
+    now = now or utcnow()
+    today = now.astimezone(BAHRAIN).date()
+    soon, recent = today + timedelta(days=2), today - timedelta(days=1)
+    q = select(PersonalEvent).where(
+        PersonalEvent.remind.is_not(None),
+        PersonalEvent.date <= soon,
+        or_(
+            PersonalEvent.date >= recent,
+            and_(
+                PersonalEvent.repeat != "none",
+                or_(PersonalEvent.repeat_until.is_(None), PersonalEvent.repeat_until >= recent),
+            ),
+        ),
+    )
+    sent = 0
+    readers: dict[uuid.UUID, bool] = {}
+    for e in db.scalars(q.with_for_update(skip_locked=True)):
+        remind = timedelta(minutes=e.remind or 0)
+        for day in occurrence_days(e, recent, soon):
+            start = starts_at(e, day)
+            if not (start - remind <= now < start + REMINDER_GRACE):
+                continue
+            if e.reminded_for is not None and e.reminded_for >= start:
+                continue
+            e.reminded_for = start
+            if e.user_id not in readers:
+                user = db.get(User, e.user_id)
+                readers[e.user_id] = user is not None and access.feature_on(db, user, Feature.calendar)
+            if readers[e.user_id]:
+                url = f"/calendar?event=mine-{e.id}&date={day.isoformat()}"
+                notify(db, e.user_id, "event_reminder", e.title, body=_reminder_body(e, day, today), url=url)
+                sent += 1
+    return sent
+
+
+def send_due(sessions: Callable[[], AbstractContextManager[Session]], now: datetime | None = None) -> int:
+    """The mail worker's step for reminders. -> how many went out."""
+    with sessions() as db:
+        sent = send_reminders(db, now)
+        db.commit()
+    if sent:
+        log.info("sent %d calendar reminder(s)", sent)
+    return sent

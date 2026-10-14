@@ -74,6 +74,7 @@ MAX_RETRY = timedelta(hours=6)
 KEEP_DONE = timedelta(days=30)  # sent, failed and cancelled rows (what an export shows) are deleted after this
 PURGE_EVERY = timedelta(hours=1)
 SUMMARY_EVERY = timedelta(minutes=10)  # how often the worker asks whether the Sunday summary is due
+REMINDERS_EVERY = timedelta(minutes=1)  # how often it sends the reminders due for students' own events
 SUBJECT_MAX = 200
 
 
@@ -211,9 +212,10 @@ def run_worker(
     stop: threading.Event | None = None,
 ) -> int:
     """The mail worker: sends due emails, waits `poll_seconds` when there are none, purges old rows hourly, and on
-    Sunday morning (Bahrain) queues the week's summaries (app/services/summary.py). SIGTERM and SIGINT stop it after
+    Sunday morning (Bahrain) queues the week's summaries (app/services/summary.py); every minute it sends the reminders
+    for students' own events (app/services/my_calendar.py). SIGTERM and SIGINT stop it after
     the email in hand. With `once`, it stops when nothing is due."""
-    from app.services import summary
+    from app.services import my_calendar, summary
 
     stop = stop or threading.Event()
 
@@ -227,11 +229,15 @@ def run_worker(
     log.info("mail worker started")
     last_purge: datetime | None = None
     last_summary: datetime | None = None
+    last_reminders: datetime | None = None
     while not stop.is_set():
         try:
             if last_summary is None or utcnow() - last_summary > SUMMARY_EVERY:
                 summary.send_due(sessions)
                 last_summary = utcnow()
+            if last_reminders is None or utcnow() - last_reminders > REMINDERS_EVERY:
+                my_calendar.send_due(sessions)
+                last_reminders = utcnow()
             if last_purge is None or utcnow() - last_purge > PURGE_EVERY:
                 with sessions() as db:
                     purged = purge(db)

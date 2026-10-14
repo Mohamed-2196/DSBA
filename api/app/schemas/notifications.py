@@ -19,6 +19,7 @@ NotificationKind = Literal[
     "report_resolved",  # a moderator acted on your report
     "request_update",  # a request you made or said "me too" to changed status
     "date_changed",  # an exam, mock or deadline of your year moved, or was confirmed
+    "event_reminder",  # the reminder for an event you added to your own calendar
     "video_suggestion",  # a video you suggested was added as a lesson, or declined
     "system",
 ]

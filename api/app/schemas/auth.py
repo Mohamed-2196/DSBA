@@ -8,6 +8,7 @@ from pydantic import Field, StringConstraints, WithJsonSchema
 
 from app.schemas.access import BoxKey, FeatureKey, RoleSummary
 from app.schemas.board import BoardColumn, BoardLinkType
+from app.schemas.calendar import EventType, PersonalEventOut
 from app.schemas.common import ApiModel, PostStatus, UserStatus, Year
 from app.schemas.forum import Category, FollowLevel
 from app.schemas.library import ItemStatus, LibraryKind, Zone
@@ -279,6 +280,16 @@ class ExportNote(ApiModel):
     updated_at: datetime
 
 
+class ExportCalendarSettings(ApiModel):
+    """What this person keeps off their calendar, and whether their private feed is on (its address is a secret,
+    left out)."""
+
+    hidden_events: list[str]
+    hidden_modules: list[str]
+    hidden_types: list[EventType]
+    private_feed: bool
+
+
 class ExportNooraDay(ApiModel):
     """Mini Noora's AI questions on one day: only counts (no question or answer is stored)."""
 
@@ -392,3 +403,5 @@ class AccountExport(ApiModel):
     notes: list[ExportNote]  # private notes
     noora_usage: list[ExportNooraDay]  # Mini Noora's AI questions per day
     video_suggestions: list[ExportSuggestion]  # videos this person suggested for lessons
+    calendar_events: list[PersonalEventOut]  # events on their own calendar
+    calendar_settings: ExportCalendarSettings | None  # the programme dates they hide, and their private feed

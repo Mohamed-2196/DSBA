@@ -53,6 +53,10 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("calendar", "GET", "/calendar/feed.ics"),
     ("calendar", "GET", f"/calendar/events/{NOTHING}.ics"),
     ("calendar", "POST", "/calendar/events"),
+    ("calendar", "GET", "/calendar/mine/events"),
+    ("calendar", "POST", "/calendar/mine/events"),
+    ("calendar", "GET", "/calendar/mine/settings"),
+    ("calendar", "POST", "/calendar/mine/feed"),
     ("career", "GET", "/career"),
     ("career", "PUT", "/career"),
     ("career.seniors", "GET", "/career/seniors"),
@@ -124,6 +128,7 @@ DECIDED_BY_REQUEST: dict[tuple[str, str], str] = {
     ("POST", "/admin/reports/{report_id}/resolve"): "resolves the reports of the features on for the viewer",
     ("GET", "/admin/stats"): "counts the features on for the viewer",
     ("GET", "/admin/gaps"): "lists the gaps of the features on for the viewer",
+    ("GET", "/feeds/calendar/{token}.ics"): "a student's private feed: the calendar must be on for its owner",
 }
 # Where each feature's routes live: a route under one of these paths must declare that feature.
 AREAS: dict[str, Feature] = {

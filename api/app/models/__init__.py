@@ -27,6 +27,7 @@ from app.models.library import (
     UploadPurpose,
     UploadStatus,
 )
+from app.models.my_calendar import CalendarPrefs, PersonalEvent
 from app.models.newsletter import IssueStatus, NewsletterIssue, NewsletterReaction, PollVote
 from app.models.noora import NooraLimits, NooraUsage
 from app.models.notes import Note
@@ -42,6 +43,7 @@ __all__ = [
     "BoardCard",
     "BoardPlan",
     "CalendarEvent",
+    "CalendarPrefs",
     "Channel",
     "Chapter",
     "ContentDoc",
@@ -72,6 +74,7 @@ __all__ = [
     "OutboxStatus",
     "PaperQuestion",
     "PaperQuestionFlag",
+    "PersonalEvent",
     "PollVote",
     "PostStatus",
     "ReplyVote",
