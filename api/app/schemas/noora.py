@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Annotated, Literal
+from uuid import UUID
 
 from pydantic import Field
 
@@ -14,6 +15,8 @@ NOTE_TITLE_MAX = 200
 TURN_MAX = 4000  # characters of one earlier message
 HISTORY_MAX = 8  # earlier messages sent with a question
 ROUTE_MAX = 300
+PAPER_PAGE_MAX = 999
+PAPER_QUESTION_MAX = 16  # characters of a question's number, like "2(b)(ii)"
 DAILY_QUESTIONS_MAX = 500
 MONTHLY_BUDGET_CENTS_MAX = 1_000_000  # US$10,000
 
@@ -32,6 +35,15 @@ class NooraNote(ApiModel):
     body: str = Field(max_length=NOTE_MAX)
 
 
+class NooraPaper(ApiModel):
+    """A past paper's question the student is asking about. The server reads the page's words and the examiners'
+    report for the same sitting itself."""
+
+    item_id: UUID
+    page: int = Field(ge=1, le=PAPER_PAGE_MAX)  # where the question is in the PDF
+    question: str = Field(min_length=1, max_length=PAPER_QUESTION_MAX, pattern=r"^[0-9A-Za-z][0-9A-Za-z().]*$")
+
+
 class NooraQuestion(ApiModel):
     """A question, and what's on the student's screen. The server looks the module and lesson up itself."""
 
@@ -41,6 +53,7 @@ class NooraQuestion(ApiModel):
     module_id: str | None = Field(default=None, max_length=64)
     lesson_id: str | None = Field(default=None, max_length=16)
     note: NooraNote | None = None
+    paper: NooraPaper | None = None
     history: list[NooraTurn] = Field(default_factory=list, max_length=HISTORY_MAX)
 
 

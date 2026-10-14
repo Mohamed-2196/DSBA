@@ -14732,7 +14732,7 @@
           "noora"
         ],
         "summary": "Ask Noora",
-        "description": "Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the\nnote or the answer. The note goes only when the student ticked \"Include my note\".\n\nErrors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly\nbudget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),\nrate_limited (429: a question a moment ago, or an answer still streaming to this student), noora_busy (503: too\nmany answers streaming hub-wide), invalid_input (422: too long).",
+        "description": "Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the\nnote or the answer. The note goes only when the student ticked \"Include my note\". With `paper`, the server adds\nthat page of the past paper and the examiners' report for its sitting, from the text it read (IDEA-4): 404\nnot_found unless it is a published past paper, 404 feature_off while the library is off for the student.\n\nErrors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly\nbudget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),\nrate_limited (429: a question a moment ago, or an answer still streaming to this student), noora_busy (503: too\nmany answers streaming hub-wide), invalid_input (422: too long).",
         "operationId": "ask_noora_api_v1_noora_ask_post",
         "requestBody": {
           "content": {
@@ -22545,6 +22545,36 @@
         "title": "NooraNote",
         "description": "The note open in the editor. Sent only when the student ticks \"Include my note\" for this question."
       },
+      "NooraPaper": {
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Itemid"
+          },
+          "page": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 1.0,
+            "title": "Page"
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 16,
+            "minLength": 1,
+            "pattern": "^[0-9A-Za-z][0-9A-Za-z().]*$",
+            "title": "Question"
+          }
+        },
+        "type": "object",
+        "required": [
+          "itemId",
+          "page",
+          "question"
+        ],
+        "title": "NooraPaper",
+        "description": "A past paper's question the student is asking about. The server reads the page's words and the examiners'\nreport for the same sitting itself."
+      },
       "NooraQuestion": {
         "properties": {
           "question": {
@@ -22603,6 +22633,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/NooraNote"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "paper": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NooraPaper"
               },
               {
                 "type": "null"
