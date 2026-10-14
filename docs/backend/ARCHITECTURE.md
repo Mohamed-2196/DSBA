@@ -39,72 +39,73 @@ DSBA Hub was a front-end prototype: every page ran on demo data in the browser. 
   `python -m app.cli set-role ID ROLE...` sets someone's roles from the shell (slugs, such as `student admin`).
 - **The grades calculator stays in the browser.** Students' marks are not sent to the server (privacy).
 
-## Layout and ownership
+## Layout
 
 ```
 api/                          Python backend
-  app/main.py                 app factory, middleware                        lead
-  app/config.py, db.py        settings (DSBA_*), engine/session              lead
-  app/models/                 SQLAlchemy models (THE schema)                 lead: report needed changes
-  migrations/                 Alembic                                        lead
-  app/schemas/                Pydantic models = the API CONTRACT             see "Contract" below
-  app/core/                   errors, security (sessions, roles, CSRF, client IP), headers, pagination,
-                              text (slugs), links (link rules), time (UTC, Bahrain's today)   lead
-  app/services/storage.py     S3 (presigned POST to incoming/, copy, presigned GET, head, delete)   lead
-  app/services/notify.py      notify(db, user_id, kind, title, ...)          lead
-  app/services/audit.py       record(db, actor, action, ...)                 lead
-  app/services/identifiers.py normalise email / phone                        accounts
-  app/services/{otp,sessions,mailer,sms,ratelimit,outbox}.py                accounts
-  app/routers/auth.py me.py progress.py notifications.py admin.py           accounts
-  app/routers/forum.py reports.py                                            community
-  app/routers/library.py uploads.py modules.py newsletter.py calendar.py content.py   content
-  app/seed/                   seed loader + data exported from the prototype content
-  app/cli.py                  openapi, seed, set-role, backup, sweep, setup-bucket, mail-worker, dev-login
-                              lead (seed: content)
-  tests/conftest.py           shared harness                                 lead
-  tests/core/                 settings, proxies, CSRF, headers, storage, /media, CLI, drift checks   lead
-  tests/accounts|community|content/   each area's tests (+ its own conftest.py if needed)
-  Dockerfile, requirements.txt   the API image; requirements.txt is uv.lock exported with hashes   lead
+  app/main.py                 app factory, middleware
+  app/config.py, db.py        settings (DSBA_*), engine and session
+  app/models/                 SQLAlchemy models: the schema
+  migrations/                 Alembic, one file per change (the drift test compares them with the models)
+  app/schemas/                Pydantic models: the API contract
+  app/core/                   errors, security (sessions, CSRF, client IP), access (boxes, features), headers,
+                              pagination, text (slugs), links (link rules), time (UTC, Bahrain's today)
+  app/routers/                thin HTTP layer, one file per area:
+                              auth me progress notifications admin access features health
+                              forum reports seniors requests suggestions summary
+                              library uploads modules content newsletter calendar
+                              notes board noora
+  app/services/               the logic:
+                              accounts identifiers otp sessions mailer sms outbox notify notifications summary
+                              ratelimit audit access roles reports
+                              forum/ (threads, replies, votes, follows, search, views, visibility, notices, ...)
+                              requests seniors suggestions gaps polls
+                              library uploads storage search content modules module_editor newsletter calendar
+                              past_questions exam_names paper_text text_extract drive drive_import
+                              notes board noora/ (ask, prompt, paper)
+  app/seed/                   seed loader and the content data
+  app/cli.py                  openapi, seed, set-role, backup, sweep, setup-bucket, mail-worker, weekly-summary,
+                              import-drive, exam-meta, text-worker, extract-texts, dev-login
+  tests/conftest.py           shared harness (each run makes its own database)
+  tests/core|accounts|community|content|notes|board|noora/   each area's tests
+  Dockerfile, requirements.txt   the API image; requirements.txt is uv.lock exported with hashes
 web/                          React + TypeScript
-  src/api/                    client.ts (openapi-fetch + CSRF), errors.ts, queryClient.ts, schema.d.ts (generated)   lead
-  src/main.tsx, src/lib/analytics.ts   entry point; PostHog, loaded only when built with a key   lead
-  src/auth/                   AuthProvider, useAuth, SignInDialog        frontend-accounts
-  src/ui, src/shell, src/state, src/styles   design system + app shell   frontend-accounts
-  src/features/forum, notifications                                       frontend-community
-  src/features/library, modules                                           frontend-library
-  src/features/newsletter, calendar, career, grades, home, search, noora, about, onboarding   frontend-content
-  e2e/, playwright.config.ts  the end-to-end suite (Playwright, against a running stack)
-  Dockerfile, deploy/         the production image: the built app in Caddy (Caddyfile, CSP hashes)   lead
-compose.yaml, .env.example    local stack                                     lead
-compose.prod.yaml             production                                      lead
-scripts/check.sh, .github/    every check in one command, and CI running it   lead
-docs/backend/                 this brief, DEPLOYMENT.md (production)          lead
+  src/api/                    client.ts (openapi-fetch + CSRF), errors, keys, paging, uploads, queryClient,
+                              schema.d.ts (generated)
+  src/main.tsx, src/lib/      entry point; dates, share, analytics (PostHog, only when built with a key)
+  src/auth/                   AuthProvider, useAuth, sign-in, access (boxes and features), preferences
+  src/ui, src/shell, src/state, src/styles   design system, app shell, shared state
+  src/features/               about access account board calendar career forum grades home library manage
+                              modules newsletter noora notes notifications onboarding papers requests search
+                              start; each meets the others only through its public.ts
+  e2e/, playwright.config.ts  the end-to-end suite (Playwright, against the Docker stack)
+  Dockerfile, deploy/         the production image: the built app in Caddy (Caddyfile, CSP hashes)
+compose.yaml, .env.example    local stack
+compose.prod.yaml             production
+scripts/check.sh, .github/    every check in one command, and CI running it
+docs/backend/                 this brief, DEPLOYMENT.md (production)
 docs/reviews/                 reviewers' reports
 ```
 
-Stay inside your files. If you need something from a file you don't own, put it in your final report as a
-precise request (file, what, why). Never run git commands that change state: no add, commit, checkout,
-stash or reset. Don't change `package.json`, `pyproject.toml` or lockfiles. If a dependency is truly
-missing, say so in your report.
+Builders work on their own branch in their own git worktree and commit there; the lead merges. A builder that
+needs a change in an area another builder holds says so in its report (file, what, why). Don't change
+`package.json`, `pyproject.toml` or lockfiles without saying why in the report.
 
 ## The contract
 
 `app/schemas/*` define every request and response. FastAPI turns them into `api/openapi.json`, and the web
 app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fields are camelCase.
 
-- Backend agents implement the routes exactly as declared in `app/routers/*`. Each stub raises
-  `NotImplementedError`, which answers 501 until it is built.
-- Changing a shape is allowed only additively: a new optional field or a new endpoint. Note every change in
-  your report. The lead regenerates `openapi.json` and the TypeScript types:
-  `cd api && uv run --no-sync python -m app.cli openapi > openapi.json && cd ../web && npm run api:types`.
-  Backend agents may run that themselves after adding an endpoint. Frontend agents may run
-  `npm run api:types` at any time. CI fails while either file is stale: `tests/core/test_drift.py` compares
+- Nothing is released, so shapes change directly: rename, remove or retype a field when that keeps the code
+  simpler, with no aliases or deprecated fields (CLAUDE.md). Note every change in your report.
+- After any change to a shape, regenerate both files together:
+  `cd api && uv run --no-sync python -m app.cli openapi > openapi.json && cd ../web && npm run api:types`. CI fails while either file is stale: `tests/core/test_drift.py` compares
   `openapi.json` with what the app serves, `scripts/check.sh` compares `schema.d.ts` with `openapi.json`.
 - Errors always look like `{"error": {"code", "message", "fields"?, "retryAfter"?}}`. Raise
   `ApiError` / `not_found()` / `forbidden()` / `conflict(code, msg)` / `invalid(field, msg)` /
   `rate_limited(seconds)` from `app.core.errors`. Codes are snake_case and stable; the web app branches on
   them. Messages are short, plain, and shown to students as they are. Every code is listed in
-  `schemas/common.py` `ErrorCode` (code quality review CQ-10): a new one goes there first, mypy refuses any other,
+  `schemas/common.py` `ErrorCode`: a new one goes there first, mypy refuses any other,
   and the web app's `ApiError.code` is typed from it. One code per condition: `post_unavailable` for a deleted,
   hidden or removed target, `retry` when two writes collide, `thread_locked` only for a locked thread.
 - Notification kinds are `schemas/notifications.py` `NotificationKind`; `notify()` takes nothing else and the
@@ -136,7 +137,7 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
   keeps that switch on (decision D1). The mail worker (`python -m app.cli mail-worker`) sends queued emails with
   retries; never send mail inside a request, except sign-in codes. **Audit** every moderation and admin action
   with `app.services.audit.record(...)`; actions on an account carry its name (`targetName`).
-- **Shared rules** (code quality review CQ-6): slugs and ids from titles with `core.text.insert_with_unique_slug()`
+- **Shared rules:** slugs and ids from titles with `core.text.insert_with_unique_slug()`
   (a free one, retried on a race; a title without Latin letters gets a short id, decision D8), link and picture
   rules from `core.links`, a module from a request with `modules.require_module()`, how a person appears with
   `accounts.public_user()`, simple rate limits with `ratelimit.enforce()`.
@@ -203,6 +204,8 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
 - **Keep the design.** Reuse `src/ui` and the CSS tokens; new UI (sign-in, upload, moderation queues) must
   look like it was always part of the app. Copy is plain, short and in sentence case. Errors say what
   happened and what to do. Keep it accessible: labels, focus management in dialogs, visible keyboard focus.
+- **Progressive Web App (PWA):** `/manifest.webmanifest` and `/sw.js` (`web/src/sw/`, `web/src/lib/pwa.ts`).
+  The service worker caches the app shell, fonts and static assets, and prompts "Reload" when an update is deployed.
 - **Unit tests** (Vitest, `npm test`) sit next to the code as `<name>.test.ts` and cover pure modules: parsers,
   link checks, dates, reducers (`ui/safeHref.test.ts` is the pattern). Keep logic you want to test out of
   components.
@@ -232,6 +235,15 @@ Docker". Either way:
 - **Seed the dev DB:** `python -m app.cli seed` (the API also seeds when it starts).
 - **Notification emails** go out when the mail worker runs (`python -m app.cli mail-worker`; Docker starts one).
   Sign-in codes don't need it.
+- **Texts worker:** `python -m app.cli text-worker` extracts text from published PDFs and Word files for search
+  inside papers. `python -m app.cli extract-texts` processes existing library files.
+- **Mini Noora AI:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` (default: `claude-haiku-4-5-20251001`) power
+  rich AI answers when the `noora.ai` feature switch is turned on; without the key or when off, Noora answers in
+  script mode.
+- **Drive import pacing:** `python -m app.cli import-drive` imports linked Google Drive folders into S3/MinIO,
+  pacing downloads (2 s apart) and handling Google automated-query rate-limit blocks.
+- **Bug reports coming:** student bug reporting with optional screenshots (F-14) is being added in round 11
+  (`bug_reports` table, Manage → Bugs).
 - Keep test runs targeted and run long ones in the background; stop the dev servers you started when you finish.
 
 ## Security baseline (builders apply it from the start; the security reviewer checks it)
@@ -303,9 +315,9 @@ questions they raised:
 - **D3 Hidden threads stay visible to their author.** The author can still open a hidden thread, with a banner
   saying a student rep hid it, and is notified when it is hidden. Everyone else gets a 404, as before;
   moderators see it with the hidden marker. No schema change: the reason travels in the notification.
-- **D4 Sign-in lockout.** Follow SEC-2's recommended fix: wrong-code lockouts apply to the pair of address and
+- **D4 Sign-in lockout:** wrong-code lockouts apply to the pair of address and
   network (IP, or /64 for IPv6); per-address limits only slow down, they never lock the owner out for a day.
-- **D5 The newsletter editor is a form.** Sections and their blocks get real schemas (CQ-4), and reps edit them
+- **D5 The newsletter editor is a form.** Sections and their blocks get real schemas, and reps edit them
   with fields, not JSON. It must work on a phone.
 - **D6 Contribute means upload.** "Contribute" opens the library upload (sign-in first for guests). GitHub stays
   only as "Report a problem" on About.
@@ -316,8 +328,8 @@ questions they raised:
 - **D10 Kept as built:** reporters are visible to admins only; grades are cleared on sign-out; reading never
   needs an account.
 
-Migrations in round 2: only the accounts builder adds one (0003, the email outbox) in the first wave; the core
-builder adds index changes after it (0004). Nobody else changes `app/models` or `migrations/`.
+Migrations: a builder that changes `app/models` adds one migration with the number it was given; the lead
+re-chains them at merge.
 
 ## Round 4 decisions
 
