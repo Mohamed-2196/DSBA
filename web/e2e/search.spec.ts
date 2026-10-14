@@ -48,3 +48,14 @@ test('"/" opens search, which finds modules and dates', async ({ guest }) => {
   await guest.keyboard.press('Escape');
   await expect(search).toHaveCount(0);
 });
+
+test('search finds a chapter and opens its first lesson', async ({ guest }) => {
+  await guest.goto('/modules');
+  await expect(guest.getByRole('heading', { level: 1 })).toBeVisible();
+  const search = await palette(guest, '/');
+  await guest.keyboard.type('supply and demand');
+  const option = search.getByRole('option').filter({ hasText: 'Supply and Demand' }).filter({ hasText: 'chapter' }).first();
+  await expect(option).toBeVisible();
+  await option.click();
+  await expect(guest).toHaveURL(/\/modules\/economics\/lessons\/[^/]+$/);
+});

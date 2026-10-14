@@ -18,9 +18,9 @@ const base: SearchInput = {
 
 const ids = (r: ReturnType<typeof runSearch>) => r.groups.flatMap((g) => g.items.map((i) => i.id));
 
-const thread = { type: 'thread', id: 't1', title: 'MGF help', snippet: null, url: '/forum/mgf-help', meta: null, date: null } as const;
-const file = { type: 'library', id: 'f1', title: 'MGF notes', snippet: null, url: '/library/f1', meta: null, date: null } as const;
-const results = (over: Partial<SearchResults> = {}): SearchResults => ({ query: 'mgf', threads: [], library: [], issues: [], modules: [], events: [], ...over });
+const thread = { type: 'thread', id: 't1', title: 'MGF help', snippet: null, url: '/forum/mgf-help', meta: null, date: null, page: null } as const;
+const file = { type: 'library', id: 'f1', title: 'MGF notes', snippet: null, url: '/library/f1', meta: null, date: null, page: null } as const;
+const results = (over: Partial<SearchResults> = {}): SearchResults => ({ query: 'mgf', threads: [], library: [], issues: [], modules: [], lessons: [], events: [], ...over });
 
 describe('runSearch', () => {
   it('shows every page and quick action while every feature is on', () => {
@@ -57,6 +57,26 @@ describe('runSearch', () => {
     const r = runSearch({ ...base, query: 'mgf', isOn: (f) => f !== 'forum', results: results({ threads: [thread], library: [file] }) });
     expect(r.groups.find((g) => g.id === 'threads')).toBeUndefined();
     expect(r.groups.find((g) => g.id === 'files')?.items.map((i) => i.id)).toEqual(['library:f1']);
+  });
+
+  it('lists chapters and videos under Lessons, after modules', () => {
+    const chapter = { type: 'lesson', id: 'c1', title: 'Supply and Demand', snippet: null, url: '/modules/economics/lessons/l1', meta: 'EC1002 · Chapter', date: null, page: null } as const;
+    const video = { type: 'lesson', id: 'l9', title: 'Law of Comparative Advantage', snippet: 'The Economic Problem', url: '/modules/economics/lessons/l9', meta: 'EC1002 · Video', date: null, page: null } as const;
+    const r = runSearch({ ...base, query: 'supply', results: results({ lessons: [chapter, video] }) });
+    const lessons = r.groups.find((g) => g.id === 'lessons');
+    expect(lessons?.label).toBe('Lessons');
+    expect(lessons?.items.map((i) => [i.id, i.subtitle, 'to' in i ? i.to : null])).toEqual([
+      ['lesson:c1', 'EC1002 chapter', '/modules/economics/lessons/l1'],
+      ['lesson:l9', 'EC1002 video, in The Economic Problem', '/modules/economics/lessons/l9'],
+    ]);
+  });
+
+  it('shows the page a file matched on', () => {
+    const inside = { ...file, snippet: 'Derive the Cramér–Rao bound', meta: 'ST2133 · Past paper · Page 3', url: '/library/f1?page=3', page: 3 };
+    const r = runSearch({ ...base, query: 'cramer', results: results({ library: [inside] }) });
+    const hit = r.groups.find((g) => g.id === 'files')?.items[0];
+    expect(hit?.subtitle).toBe('ST2133, Past paper, Page 3: Derive the Cramér–Rao bound');
+    expect(hit && 'to' in hit ? hit.to : null).toBe('/library/f1?page=3');
   });
 
   it('offers only the fallbacks of features that are on', () => {

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useModules } from '../../../state/modules';
 import { Badge, IconButton, cx, timeAgo } from '../../../ui';
 import { downloadHref, itemPath, openLinkHref } from '../api';
-import { addedAt, isNew, linkPlace, moduleTag, sizeLabel, statusInfo } from '../display';
+import { addedAt, isNew, linkPlace, matchLine, moduleTag, sizeLabel, statusInfo } from '../display';
 import { extensionOf, kindLabel } from '../kinds';
 import type { LibraryItem, LibrarySort } from '../types';
 import type { LinkState } from './FileCard';
@@ -109,6 +109,7 @@ export function FileTable({
                         </span>
                         {m ? <span className="lib-row__module">{m.name}</span> : null}
                       </span>
+                      {f.match ? <span className="lib-card__match">{matchLine(f)}</span> : null}
                     </span>
                   </Link>
                 </td>

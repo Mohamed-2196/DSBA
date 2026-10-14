@@ -13,7 +13,7 @@ import {
 } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { isApiError } from '../../api/errors';
 import { appUrl } from '../../lib/share';
 import { useCopyLink } from '../../lib/useCopyLink';
@@ -27,7 +27,7 @@ import { DeleteItemDialog, EditItemDialog } from './components/EditItemDialog';
 import type { LinkState } from './components/FileCard';
 import { ReviewActions } from './components/ReviewActions';
 import { StarButton } from './components/StarButton';
-import { isNew, linkPlace, moduleTag, sizeLabel, statusInfo } from './display';
+import { isNew, linkPlace, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
 import { KIND_BY_ID, formatOf } from './kinds';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
@@ -56,6 +56,7 @@ function ViewerSkeleton() {
 
 export default function FileViewerPage() {
   const { fileId } = useParams();
+  const [params] = useSearchParams();
   const item = useLibraryItem(fileId);
   const notFound = item.isError && isApiError(item.error) && (item.error.status === 404 || item.error.status === 422);
   useDocumentTitle(item.data ? item.data.title : notFound ? 'File not found' : null);
@@ -83,7 +84,7 @@ export default function FileViewerPage() {
       </Page>
     );
   }
-  return <FileView key={item.data.id} item={item.data} />;
+  return <FileView key={item.data.id} item={item.data} page={pageParam(params.get('page'))} />;
 }
 
 /** What the uploader (or a moderator) sees above an item that isn't public. */
@@ -140,7 +141,7 @@ function StatusBanner({ item, onEdit, onDelete }: { item: LibraryItem; onEdit: (
   );
 }
 
-function FileView({ item }: { item: LibraryItem }) {
+function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   const location = useLocation();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -284,7 +285,7 @@ function FileView({ item }: { item: LibraryItem }) {
 
       <div className={cx('lib-viewer__body', isDesktop && metaOpen && 'has-meta')}>
         <div className="lib-viewer__canvas" role="region" aria-label={`${item.title}, preview`}>
-          <Preview item={item} compact={isMobile} />
+          <Preview item={item} compact={isMobile} page={page} />
         </div>
         {metaOpen ? <MetaPanel id="lib-file-meta" item={item} linkState={linkState} className={isDesktop ? undefined : 'lib-meta--stacked'} /> : null}
       </div>

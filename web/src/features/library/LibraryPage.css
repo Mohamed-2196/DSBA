@@ -114,6 +114,19 @@
   -webkit-box-orient: vertical;
 }
 .lib-card__ext { color: var(--ink-2); font-weight: var(--fw-regular); }
+/* Where a search found its words inside the file. */
+.lib-card__match {
+  display: -webkit-box;
+  max-width: 75ch;
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
 .lib-card__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-8); margin-top: 2px; }
 .lib-card__meta { display: flex; align-items: center; gap: var(--sp-8); min-width: 0; overflow: hidden; color: var(--ink-2); font-size: var(--fs-12); text-overflow: ellipsis; white-space: nowrap; }
 .lib-card__star { margin: -2px -6px -6px 0; } /* clear of the card link above: the two never overlap */
