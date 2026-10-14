@@ -682,22 +682,22 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         for r in db.scalars(select(Report).where(Report.reporter_id == uid).order_by(Report.created_at))
     ]
     requests = [
-        ExportRequest.model_validate(
-            {
-                "id": r.id,
-                "kind": r.kind,
-                "title": r.title,
-                "details": r.details,
-                "module_id": r.module_id,
-                "wanted_kind": r.wanted_kind,
-                "exam_year": r.exam_year,
-                "zone": r.zone,
-                "event_id": r.event_id,
-                "status": r.status.value,
-                "reply": r.reply,
-                "removed": r.removed_at is not None,
-                "created_at": r.created_at,
-            }
+        ExportRequest(
+            id=r.id,
+            kind=r.kind,
+            title=r.title,
+            details=r.details,
+            module_id=r.module_id,
+            wanted_kind=r.wanted_kind,
+            exam_year=r.exam_year,
+            zone=r.zone,
+            event_id=r.event_id,
+            status=r.status.value,
+            reply=r.reply,
+            found_item_id=r.found_item_id,
+            found_at=r.found_at,
+            removed=r.removed_at is not None,
+            created_at=r.created_at,
         )
         for r in db.scalars(
             select(StudentRequest).where(StudentRequest.author_id == uid).order_by(StudentRequest.created_at)
@@ -770,9 +770,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         for c in db.scalars(select(BoardCard).where(BoardCard.user_id == uid).order_by(BoardCard.created_at))
     ]
     follows = [
-        ExportFollow.model_validate(
-            {"thread_id": f.thread_id, "thread_slug": slug, "level": f.level, "created_at": f.created_at}
-        )
+        ExportFollow(thread_id=f.thread_id, thread_slug=slug, level=f.level, created_at=f.created_at)
         for f, slug in db.execute(
             select(ThreadFollow, ForumThread.slug)
             .join(ForumThread, ForumThread.id == ThreadFollow.thread_id)
@@ -793,13 +791,11 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
     ]
     listing = db.get(SeniorProfile, uid)
     senior = (
-        ExportSenior.model_validate(
-            {
-                "topics": list(listing.topics),
-                "note": listing.note,
-                "paused": listing.paused,
-                "created_at": listing.created_at,
-            }
+        ExportSenior(
+            topics=list(listing.topics),
+            note=listing.note,
+            paused=listing.paused,
+            created_at=listing.created_at,
         )
         if listing is not None
         else None

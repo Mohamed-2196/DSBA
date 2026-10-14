@@ -71,25 +71,23 @@ def _outs(db: Session, rows: Sequence[VideoSuggestion]) -> list[SuggestionOut]:
         else {}
     )
     return [
-        SuggestionOut.model_validate(
-            {
-                "id": s.id,
-                "module_id": s.module_id,
-                "module_title": modules.get(s.module_id, ""),
-                "chapter_id": s.chapter_id,
-                "chapter_title": chapters.get(s.chapter_id) if s.chapter_id else None,
-                "kind": s.kind,
-                "url": link_of(s.kind, s.video_id, s.url),
-                "title": s.title,
-                "reason": s.reason,
-                "status": s.status.value,
-                "reply": s.reply,
-                "lesson_id": s.lesson_id,
-                "author": public_user(people.get(s.author_id)) if s.author_id else None,
-                "decided_by": public_user(people.get(s.decided_by)) if s.decided_by else None,
-                "decided_at": s.decided_at,
-                "created_at": s.created_at,
-            }
+        SuggestionOut(
+            id=s.id,
+            module_id=s.module_id,
+            module_title=modules.get(s.module_id, ""),
+            chapter_id=s.chapter_id,
+            chapter_title=chapters.get(s.chapter_id) if s.chapter_id else None,
+            kind=s.kind,
+            url=link_of(s.kind, s.video_id, s.url),
+            title=s.title,
+            reason=s.reason,
+            status=s.status.value,
+            reply=s.reply,
+            lesson_id=s.lesson_id,
+            author=public_user(people.get(s.author_id)) if s.author_id else None,
+            decided_by=public_user(people.get(s.decided_by)) if s.decided_by else None,
+            decided_at=s.decided_at,
+            created_at=s.created_at,
         )
         for s in rows
     ]

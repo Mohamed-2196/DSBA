@@ -180,6 +180,9 @@ def test_a_file_already_in_the_library_is_found_when_asking(
     publish(client_for(moderator), item)
     made = ask(client_for(student))
     assert made["found"]["id"] == str(item.id)
+    [exported] = client_for(student).get(f"{API}/me/export").json()["requests"]
+    assert exported["foundItemId"] == str(item.id)
+    assert exported["foundAt"] is not None
 
 
 def test_a_removed_file_is_no_longer_offered(

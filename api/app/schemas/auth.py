@@ -316,6 +316,8 @@ class ExportRequest(ApiModel):
     event_id: str | None
     status: RequestStatus
     reply: str | None
+    found_item_id: UUID | None  # the file the hub offered for this request
+    found_at: datetime | None
     removed: bool
     created_at: datetime
 
