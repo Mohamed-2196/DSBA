@@ -332,6 +332,9 @@ a.nc-card:hover .nc-card__go { color: var(--cobalt); transform: translateX(2px);
 .nc-include__text { min-width: 0; overflow-wrap: anywhere; }
 .nc-include__title { color: var(--ink-2); }
 .nc-include__hint { display: block; color: var(--ink-2); font-size: var(--fs-12); }
+.nc-paper { align-items: center; cursor: default; }
+.nc-paper .nc-include__text { flex: 1 1 auto; }
+.nc-paper__remove { flex: 0 0 auto; margin: -4px -6px -4px 0; }
 .nc-include:has(input:focus-visible) { outline: var(--focus-width) solid var(--focus-color); outline-offset: 2px; }
 
 .nc-compose { display: flex; align-items: flex-end; gap: 6px; padding: 10px var(--sp-12) 8px; }

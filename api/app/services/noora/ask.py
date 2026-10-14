@@ -52,7 +52,7 @@ from app.schemas.noora import (
 )
 from app.services import access, audit, ratelimit
 from app.services.calendar import events_query
-from app.services.noora import prompt
+from app.services.noora import paper, prompt
 
 log = logging.getLogger("dsba.noora")
 
@@ -270,10 +270,13 @@ def prepare(db: Session, user: User, body: NooraQuestion) -> Prepared:
     client = make_client(s)
     if client is None:
         raise unavailable()
+    asked = paper.load(db, user, body.paper) if body.paper else None
     lim, today = limits(db), bahrain_today()
     modules = list(db.scalars(select(Module).where(Module.hidden.is_(False))))
     stable = prompt.stable_block(modules, access.features_on(db, user))
     system = prompt.system(stable, _screen(db, user, body, today))
+    if asked is not None:
+        system.append({"type": "text", "text": paper.block(asked)})
     messages = prompt.messages(body.question, body.history, body.note)
     reserved = estimate_microusd(system, messages, s.noora_max_answer_tokens, s)
     ratelimit.lock(db, LOCK)
