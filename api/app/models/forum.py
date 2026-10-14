@@ -1,4 +1,4 @@
-"""The forum: threads, one level of replies, upvotes, accepted answers."""
+"""The forum: threads, one level of replies, upvotes, accepted answers and the people following a thread."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from sqlalchemy import ARRAY, Boolean, Computed, ForeignKey, Index, Integer, Sma
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import SLUG, Base, created_ts, str_enum, uuid_pk, year_range
+from app.models.base import SLUG, Base, check_in, created_ts, str_enum, uuid_pk, year_range
 
 
 class PostStatus(enum.StrEnum):
@@ -38,6 +38,8 @@ class ForumThread(Base):
     tags: Mapped[list[str]] = mapped_column(ARRAY(String(32)), default=list, server_default="{}")
     author_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     author_year: Mapped[int | None] = mapped_column(SmallInteger)  # the author's cohort when they posted
+    # Posted without the author's name: students see "A Year 1 student"; the author and moderators see who it is.
+    anonymous: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     pinned: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     locked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     status: Mapped[PostStatus] = mapped_column(str_enum(PostStatus, 10), default=PostStatus.visible)
@@ -101,4 +103,25 @@ class ReplyVote(Base):
 
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     reply_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("forum_replies.id", ondelete="CASCADE"), primary_key=True)
+    created_at: Mapped[datetime] = created_ts()
+
+
+class FollowLevel(enum.StrEnum):
+    answers = "answers"  # an accepted answer
+    replies = "replies"  # every reply, and an accepted answer
+    off = "off"  # switched off by hand: voting or replying again doesn't switch it back on
+
+
+class ThreadFollow(Base):
+    """Someone following a thread. Voting or replying starts one at `answers`, unless the person switched it off."""
+
+    __tablename__ = "forum_follows"
+    __table_args__ = (
+        Index("ix_forum_follows_thread", "thread_id"),
+        check_in("level", [level.value for level in FollowLevel]),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    thread_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("forum_threads.id", ondelete="CASCADE"), primary_key=True)
+    level: Mapped[str] = mapped_column(String(10))
     created_at: Mapped[datetime] = created_ts()

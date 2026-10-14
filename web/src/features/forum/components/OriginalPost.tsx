@@ -7,9 +7,10 @@ import { Button, Panel, timeAgo } from '../../../ui';
 import { useToast } from '../../../state';
 import { ReportButton } from '../ReportButton';
 import { useThreadVote } from '../api';
-import { authorName, postYear, roleFlair } from '../lib/authors';
+import { postAuthorName, postYear, roleFlair, unnamed } from '../lib/authors';
 import { postMenuActions, readOnlyFor, takesReplies, textDeleted } from '../lib/replies';
 import type { useThreadModeration } from '../lib/useThreadModeration';
+import { FollowButton } from './FollowButton';
 import { AuthorAvatar } from './AuthorAvatar';
 import { DeleteThreadDialog } from './DeleteDialogs';
 import { HideDialog } from './HideDialog';
@@ -83,10 +84,10 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavaila
       </div>
       <div className="forum-op__main">
         <header className="forum-byline">
-          <AuthorAvatar author={thread.author} size="md" />
+          <AuthorAvatar author={thread.author} guest={unnamed(thread)} size="md" />
           <span className="forum-byline__text">
             <span className="forum-byline__who">
-              <span className="forum-byline__name">{authorName(thread.author)}</span>
+              <span className="forum-byline__name">{postAuthorName(thread)}</span>
               <AuthorFlair author={thread.author} />
             </span>
             <span className="forum-byline__meta">
@@ -112,6 +113,7 @@ export function OriginalPost({ thread, moderation, onReply, onCopyLink, unavaila
           <Button variant="ghost" size="sm" leadingIcon={LinkSimple} onClick={onCopyLink}>
             Copy link
           </Button>
+          <FollowButton thread={thread} />
           <span className="forum-op__end">
             {!thread.isMine && thread.status === 'visible' ? <ReportButton targetType="thread" targetId={thread.id} /> : null}
             <PostMenu

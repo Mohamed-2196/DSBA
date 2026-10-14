@@ -10,6 +10,8 @@ from app.schemas.common import ApiModel, Page, PostStatus, UserPublic, Year
 
 Category = Literal["year-1", "year-2", "year-3", "study-groups", "general"]
 Sort = Literal["hot", "new", "top"]
+# What a follower hears about: an accepted answer, every reply too, or nothing (switched off by hand).
+FollowLevel = Literal["answers", "replies", "off"]
 ThreadTitle = Annotated[str, StringConstraints(strip_whitespace=True, min_length=5, max_length=160)]
 ThreadBody = Annotated[str, StringConstraints(strip_whitespace=True, max_length=20_000)]
 ReplyBody = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=10_000)]
@@ -51,8 +53,10 @@ class ThreadSummary(ApiModel):
     module_id: str | None
     year: Year | None  # the category's cohort, else the module's
     tags: list[str]
-    author: UserPublic | None  # None: the account was deleted
+    # None: the account was deleted, or the thread is anonymous and the viewer is neither its author nor a moderator
+    author: UserPublic | None
     author_year: Year | None
+    anonymous: bool  # posted without the author's name: students see "A Year 1 student"
     created_at: datetime
     last_activity_at: datetime
     vote_count: int
@@ -74,8 +78,9 @@ class Reply(ApiModel):
     id: UUID
     thread_id: UUID
     parent_id: UUID | None  # one level of nesting
-    author: UserPublic | None
+    author: UserPublic | None  # None as on ThreadSummary
     author_year: Year | None
+    anonymous: bool  # the anonymous thread's author replying in it: shown as the asker
     body: str  # markdown; '' when deleted
     created_at: datetime
     edited_at: datetime | None
@@ -95,6 +100,7 @@ class ThreadDetail(ThreadSummary):
     can_edit: bool
     can_accept: bool
     can_moderate: bool
+    following: FollowLevel  # the signed-in person's follow ('off' for guests and when following is switched off)
 
 
 class ThreadCreate(ApiModel):
@@ -103,6 +109,8 @@ class ThreadCreate(ApiModel):
     category: Category | None = None  # default: the module's year, else 'general'
     module_id: str | None = None
     tags: list[TagId] = Field(default_factory=list, max_length=3)
+    anonymous: bool = False  # without the author's name (needs the forum.anonymous feature)
+    senior_id: UUID | None = None  # a senior asked through Career Navigator: they are told (needs career.seniors)
 
 
 class ThreadUpdate(ApiModel):
@@ -120,6 +128,14 @@ class ReplyCreate(ApiModel):
 
 class ReplyUpdate(ApiModel):
     body: ReplyBody
+
+
+class FollowRequest(ApiModel):
+    level: FollowLevel
+
+
+class FollowResult(ApiModel):
+    following: FollowLevel
 
 
 class VoteResult(ApiModel):

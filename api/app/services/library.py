@@ -41,6 +41,9 @@ from app.schemas.library import (
     LibraryItemUpdate,
     LibraryKind,
     LibraryLinkCreate,
+    PaperSittings,
+    Sitting,
+    SittingZone,
 )
 from app.schemas.library import LibraryItem as LibraryItemOut
 from app.schemas.notifications import NotificationKind
@@ -65,6 +68,7 @@ REFERENCE_PUBLISHED_AT = datetime(2026, 9, 1, tzinfo=UTC)
 KIND_LABELS: dict[str, str] = {
     "past-paper": "Past paper",
     "examiners-report": "Examiners\u2019 report",
+    "exam-solutions": "Solutions",
     "subject-guide": "Subject guide",
     "reading": "Essential reading",
     "study-guide": "Study guide",
@@ -78,7 +82,8 @@ KIND_LABELS: dict[str, str] = {
 # Extra words a kind is found by in search (the 'simple' configuration has no stemming).
 KIND_WORDS: dict[str, str] = {
     "past-paper": "past paper papers exam exams",
-    "examiners-report": "examiners examiner report reports",
+    "examiners-report": "examiners examiner report reports commentary commentaries",
+    "exam-solutions": "solutions solution answers exam",
     "subject-guide": "subject guide guides book books",
     "reading": "essential reading readings",
     "study-guide": "study guide guides",
@@ -207,6 +212,7 @@ def to_out(
                     "format": format_of(i.file_name) if i.source == ItemSource.file else None,
                     "exam_year": i.exam_year,
                     "zone": i.zone,
+                    "exam_session": i.exam_session,
                     "author_name": i.author_name,
                     "uploaded_by": public_user(users.get(i.uploaded_by)) if i.uploaded_by else None,
                     "status": i.status.value,
@@ -255,6 +261,8 @@ class ListFilters:
     starred: bool = False
     mine: bool = False
     status: str | None = None
+    exam_year: int | None = None
+    zone: str | None = None
 
 
 def _visible_statuses(user: User | None, f: ListFilters) -> list[ItemStatus]:
@@ -295,6 +303,10 @@ def list_items(
         q = q.where(LibraryItem.kind == f.kind)
     if f.source:
         q = q.where(LibraryItem.source == ItemSource(f.source))
+    if f.exam_year is not None:
+        q = q.where(LibraryItem.exam_year == f.exam_year)
+    if f.zone:
+        q = q.where(LibraryItem.zone == f.zone)
     rank: list[ColumnElement[Any]] = []
     if tsquery is not None:  # the item's own words, or the words inside its file (paper_text)
         doc = search_document()
@@ -333,6 +345,58 @@ def facets(db: Session) -> LibraryFacets:
         by_kind=counts(LibraryItem.kind),
         by_module=counts(LibraryItem.module_id),
         by_year=counts(LibraryItem.year),
+    )
+
+
+# ── past papers by sitting ───────────────────────────────────────────────────────────────────
+
+EXAM_KINDS: tuple[LibraryKind, ...] = ("past-paper", "examiners-report", "exam-solutions")
+_SESSION_ORDER = {"october": 0, "may": 1, None: 2}  # newest first within a year: the resits come after May
+_ZONE_ORDER = {"A": 0, "B": 1, None: 2}
+
+
+def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
+    """A module's published papers, reports and solutions, grouped by sitting (exam year and session) and zone,
+    newest first; those without an exam year go to `other`. Titles sort each list. Files only: the links to Drive
+    folders stay in the library's lists."""
+    require_module(db, module_id)
+    items = db.scalars(
+        select(LibraryItem)
+        .where(
+            LibraryItem.module_id == module_id,
+            LibraryItem.source == ItemSource.file,
+            LibraryItem.status == ItemStatus.published,
+            LibraryItem.kind.in_(EXAM_KINDS),
+        )
+        .order_by(func.lower(LibraryItem.title), LibraryItem.id)
+    ).all()
+    out = {i.id: o for i, o in zip(items, to_out(db, items, user), strict=True)}
+    groups: dict[tuple[int, str | None], dict[str | None, SittingZone]] = {}
+    other = []
+    for i in items:
+        if i.exam_year is None:
+            other.append(out[i.id])
+            continue
+        zones = groups.setdefault((i.exam_year, i.exam_session), {})
+        zone = i.zone if i.zone in ("A", "B") else None
+        bucket = zones.setdefault(zone, SittingZone(zone=zone, papers=[], reports=[], solutions=[]))
+        if i.kind == "examiners-report":
+            bucket.reports.append(out[i.id])
+        elif i.kind == "exam-solutions":
+            bucket.solutions.append(out[i.id])
+        else:
+            bucket.papers.append(out[i.id])
+    ordered = sorted(groups.items(), key=lambda g: (-g[0][0], _SESSION_ORDER.get(g[0][1], 2)))
+    return PaperSittings(
+        sittings=[
+            Sitting(
+                exam_year=year,
+                session=session,
+                zones=sorted(zones.values(), key=lambda z: _ZONE_ORDER[z.zone]),
+            )
+            for (year, session), zones in ordered
+        ],
+        other=other,
     )
 
 
@@ -404,6 +468,7 @@ def create_from_upload(db: Session, user: User, body: LibraryItemCreate, ip: str
         size_bytes=up.size_bytes,
         exam_year=body.exam_year,
         zone=body.zone,
+        exam_session=body.exam_session,
         author_name=body.author_name or None,
         uploaded_by=user.id,
         status=ItemStatus.published if moderator else ItemStatus.pending,
@@ -461,6 +526,7 @@ def create_imported(
     import_key: str,
     exam_year: int | None = None,
     zone: str | None = None,
+    exam_session: str | None = None,
     author_name: str | None = None,
 ) -> LibraryItem:
     """A file the server put in the bucket itself, after checking it (the Drive import): published at once, without
@@ -479,6 +545,7 @@ def create_imported(
         size_bytes=size_bytes,
         exam_year=exam_year,
         zone=zone,
+        exam_session=exam_session,
         author_name=author_name or None,
         import_key=import_key,
         status=ItemStatus.published,
@@ -488,8 +555,8 @@ def create_imported(
     return item
 
 
-EDITABLE = ("title", "kind", "year", "description", "exam_year", "zone", "author_name")
-CLEARABLE = ("year", "description", "exam_year", "zone", "author_name")
+EDITABLE = ("title", "kind", "year", "description", "exam_year", "zone", "exam_session", "author_name")
+CLEARABLE = ("year", "description", "exam_year", "zone", "exam_session", "author_name")
 
 
 def apply_update(db: Session, user: User, item: LibraryItem, body: LibraryItemUpdate, ip: str | None) -> None:

@@ -19,6 +19,7 @@ from app.core.errors import not_found
 from app.models import ItemSource, ItemStatus, LibraryItem, LibraryText, TextStatus, User
 from app.schemas.noora import NooraPaper
 from app.services import access
+from app.services.noora.prompt import data
 from app.services.paper_text import PAGE_BREAK
 
 PAGE_CHARS = 6000  # characters of each page she reads (about 1,500 tokens)
@@ -29,7 +30,7 @@ _TAGS = re.compile(r"<(\s*/?\s*)(past_paper|examiners_report)", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
-class PaperQuestion:
+class AskedQuestion:
     """What the server found for a question: the paper, its pages' words (None: its text isn't read, or it has
     none) and the report for its sitting (with its words, when they were read)."""
 
@@ -47,8 +48,9 @@ def _text(db: Session, item_id: object) -> str | None:
 
 
 def report_for(db: Session, paper: LibraryItem) -> LibraryItem | None:
-    """The published examiners' report for the paper's sitting: the same module and exam year, and the paper's zone
-    (or a report for both zones). None without an exam year or a module, or when there's none."""
+    """The published examiners' report for the paper's sitting (the same module, exam year and session, as
+    library.sittings() groups them), for the paper's zone or for both zones. None without an exam year or a module,
+    or when there's none."""
     if paper.exam_year is None or paper.module_id is None:
         return None
     q = select(LibraryItem).where(
@@ -57,6 +59,7 @@ def report_for(db: Session, paper: LibraryItem) -> LibraryItem | None:
         LibraryItem.source == ItemSource.file,
         LibraryItem.module_id == paper.module_id,
         LibraryItem.exam_year == paper.exam_year,
+        LibraryItem.exam_session.is_not_distinct_from(paper.exam_session),
     )
     if paper.zone:
         q = q.where(or_(LibraryItem.zone == paper.zone, LibraryItem.zone.is_(None)))
@@ -64,7 +67,7 @@ def report_for(db: Session, paper: LibraryItem) -> LibraryItem | None:
     return db.scalar(q.order_by(LibraryItem.zone.is_(None), LibraryItem.published_at.desc().nulls_last()).limit(1))
 
 
-def load(db: Session, user: User, asked: NooraPaper) -> PaperQuestion:
+def load(db: Session, user: User, asked: NooraPaper) -> AskedQuestion:
     """The paper's question, as the server holds it. 404 feature_off while the library is off for the student;
     404 not_found unless the item is a published past paper file."""
     access.require_feature(db, user, Feature.library)
@@ -78,7 +81,7 @@ def load(db: Session, user: User, asked: NooraPaper) -> PaperQuestion:
         raise not_found("This past paper doesn't exist or isn't public.")
     body = _text(db, paper.id)
     report = report_for(db, paper)
-    return PaperQuestion(
+    return AskedQuestion(
         paper=paper,
         question=asked.question,
         page=asked.page,
@@ -94,7 +97,8 @@ def _fenced(text: str) -> str:
 
 
 def _attr(text: str) -> str:
-    return _fenced(text).replace('"', "'").replace("\n", " ")
+    """A title, as one line inside an attribute."""
+    return _fenced(data(text)).replace('"', "'")
 
 
 def _number(question: str) -> str | None:
@@ -114,12 +118,14 @@ def report_part(body: str, question: str) -> str:
 
 def _sitting(item: LibraryItem) -> str:
     parts = [str(item.exam_year) if item.exam_year else "year unknown"]
+    if item.exam_session:
+        parts.append(f"{item.exam_session} session")
     if item.zone:
         parts.append(f"zone {item.zone}")
     return ", ".join(parts)
 
 
-def block(asked: PaperQuestion) -> str:
+def block(asked: AskedQuestion) -> str:
     """The paper's question for the system prompt: what the student asks about, then the words between tags."""
     p = asked.paper
     lines = [

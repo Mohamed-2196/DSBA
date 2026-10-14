@@ -192,6 +192,30 @@ export function useReact() {
   });
 }
 
+// ── Polls ──────────────────────────────────────────────────────────────────────────────────────
+
+export interface VoteVars {
+  issueId: string;
+  slug: string;
+  pollId: string;
+  choice: number;
+}
+
+/** One vote in a poll (once); the counts come back with it. */
+export function useVote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ issueId, pollId, choice }: VoteVars) =>
+      call(api.PUT('/api/v1/newsletter/issues/{issue_id}/polls/{poll_id}/vote', { params: { path: { issue_id: issueId, poll_id: pollId } }, body: { choice } })),
+    onSuccess: (result, { slug, pollId }) => {
+      qc.setQueryData<IssueDetail>(newsletterKeys.issue(slug), (d) => (d ? { ...d, polls: { ...d.polls, [pollId]: result } } : d));
+    },
+    onError: (_e, { slug }) => {
+      void qc.invalidateQueries({ queryKey: newsletterKeys.issue(slug), exact: true });
+    },
+  });
+}
+
 // ── The email preference ───────────────────────────────────────────────────────────────────────
 
 /** Turn emails about new issues on or off for the signed-in account (optimistic on /me). */

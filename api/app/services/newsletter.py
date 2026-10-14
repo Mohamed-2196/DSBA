@@ -1,5 +1,5 @@
 """The DSBA Newsletter: who sees which issue, writing and publishing issues, reactions, and an issue's plain text
-(for search).
+(for search). Polls in issues: app/services/polls.py.
 
 An issue's cover and sections are typed (app/schemas/newsletter.py): writes are validated there, links included
 (app/schemas/links.py), and stored as JSON in that shape. Reads parse the stored JSON with the same models.
@@ -35,11 +35,12 @@ from app.schemas.newsletter import (
     IssueUpdate,
     ListBlock,
     ParagraphBlock,
+    PollBlock,
     ReactionCounts,
     SignoffBlock,
     StatsAside,
 )
-from app.services import access, ratelimit
+from app.services import access, polls, ratelimit
 from app.services.content import apply_patch, record
 from app.services.notify import notify_all
 
@@ -141,7 +142,10 @@ def reaction_counts(
 def to_detail(db: Session, issue: NewsletterIssue, user: User | None) -> IssueDetail:
     sections = read_sections(issue)
     reactions = reaction_counts(db, issue, user, [s.id for s in sections])
-    return IssueDetail.model_validate({**_summary_fields(issue), "sections": sections, "reactions": reactions})
+    votes = polls.results(db, issue, user, polls.polls_in(sections))
+    return IssueDetail.model_validate(
+        {**_summary_fields(issue), "sections": sections, "reactions": reactions, "polls": votes}
+    )
 
 
 def list_issues(db: Session, include_drafts: bool) -> Sequence[NewsletterIssue]:
@@ -228,6 +232,8 @@ def update_issue(db: Session, user: User, issue: NewsletterIssue, body: IssueUpd
     savepoint, so a new address that another rep took a moment earlier answers 409 slug_taken, not a 500."""
     if body.slug is not None and body.slug != issue.slug:
         check_slug_free(db, body.slug, issue.id)
+    if body.sections is not None:
+        polls.keep_voted_answers(db, issue, polls.polls_in(read_sections(issue)), polls.polls_in(body.sections))
     try:
         with db.begin_nested():  # flushes what was pending before, then holds this edit
             changed = apply_patch(issue, body, EDITABLE, blank=BLANK)
@@ -376,6 +382,8 @@ def section_text(s: IssueSection) -> str:
             parts += b.items
         elif isinstance(b, CtaBlock):
             parts.append(b.label)
+        elif isinstance(b, PollBlock):
+            parts += [b.question, *b.answers]
     if isinstance(s.aside, CardAside):
         parts += [s.aside.kicker, s.aside.title, s.aside.text]
     elif isinstance(s.aside, StatsAside):

@@ -2,11 +2,16 @@
 
 A question goes through, in order:
 1. the key: without DSBA_ANTHROPIC_API_KEY, 503 noora_unavailable;
-2. the hub's monthly budget (estimated from the tokens used this month in Bahrain): 503 noora_budget_reached;
+2. the hub's monthly budget (estimated from the tokens used this month in Bahrain), with this answer's worst case
+   reserved: 503 noora_budget_reached;
 3. the student's questions today: 429 noora_daily_limit until midnight in Bahrain;
-4. a short gap between two questions from one student: 429 rate_limited.
-The question is counted before the answer starts (so parallel questions can't pass the cap together) and given back
-if Claude fails before a word of the answer arrives. The tokens and the estimated cost are added when it ends.
+4. a short gap between two questions from one student, and one answer at a time each: 429 rate_limited;
+5. the answers streaming hub-wide (settings.noora_answers_at_once): 503 noora_busy.
+These checks run one question at a time hub-wide (an advisory lock), so parallel questions can't pass them together.
+The question is counted and its worst-case cost reserved before the answer starts. When the answer ends, the cost is
+settled from Claude's usage; an answer the student dropped keeps at least its reservation, and a reservation whose
+answer never settles (the process died) stays counted. A question Claude failed before a word of the answer is given
+back. The answer streams asynchronously, so it holds no worker thread while it waits for Claude.
 
 Nothing a student asks or Noora answers is stored or logged: only the counts in noora_usage."""
 
@@ -16,11 +21,15 @@ import datetime as dt
 import json
 import logging
 import math
-from collections.abc import Iterator
+import uuid
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass
-from typing import Protocol
+from functools import partial
+from typing import Any, Literal, Protocol
 
 import anthropic
+import anyio
+from anthropic.lib.streaming import AsyncMessageStream
 from anthropic.types import MessageParam, TextBlockParam, Usage
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
@@ -41,7 +50,7 @@ from app.schemas.noora import (
     NooraTotals,
     NooraUsageOut,
 )
-from app.services import access, audit
+from app.services import access, audit, ratelimit
 from app.services.calendar import events_query
 from app.services.noora import paper, prompt
 
@@ -52,20 +61,23 @@ CACHE_WRITE_FACTOR = 1.25  # a cache write costs 1.25 times an input token
 CACHE_READ_FACTOR = 0.1  # a cache read, a tenth
 MICRO_PER_CENT = 10_000
 CUT_OFF = "My answer was cut off. Try asking again in a minute."
+CHARS_PER_TOKEN = 3  # a cautious estimate of a prompt's tokens from its characters
+ANSWER_STALE = dt.timedelta(minutes=2)  # an answer still marked as streaming after this ended without settling
+LOCK = "noora:answers"
 
 
 class MessagesClient(Protocol):
     """What Noora needs of the Anthropic client (tests pass a stand-in)."""
 
     @property
-    def messages(self) -> anthropic.resources.Messages: ...
+    def messages(self) -> anthropic.resources.AsyncMessages: ...
 
 
 def make_client(settings: Settings) -> MessagesClient | None:
     """The Anthropic client, or None without a key. Tests replace this function: they never reach the network."""
     if settings.anthropic_api_key is None:
         return None
-    return anthropic.Anthropic(api_key=settings.anthropic_api_key.get_secret_value(), max_retries=1, timeout=60.0)
+    return anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key.get_secret_value(), max_retries=1, timeout=60.0)
 
 
 def unavailable() -> ApiError:
@@ -74,6 +86,12 @@ def unavailable() -> ApiError:
 
 def budget_reached() -> ApiError:
     return ApiError(503, "noora_budget_reached", "Mini Noora's AI answers are paused until next month.")
+
+
+def busy() -> ApiError:
+    return ApiError(
+        503, "noora_busy", "Mini Noora is answering a lot of students right now. Try again in a minute.", retry_after=30
+    )
 
 
 # ── limits and usage ────────────────────────────────────────────────────────────────────────
@@ -169,6 +187,14 @@ def cost_microusd(u: Usage, s: Settings) -> int:
     return math.ceil(total)
 
 
+def estimate_microusd(system: list[TextBlockParam], messages: list[MessageParam], max_tokens: int, s: Settings) -> int:
+    """The most an answer can cost: the prompt at the full input price (no cache discount), and a whole answer."""
+    chars = sum(len(b["text"]) for b in system)
+    chars += sum(len(m["content"]) if isinstance(m["content"], str) else 0 for m in messages)
+    tokens_in = math.ceil(chars / CHARS_PER_TOKEN)
+    return math.ceil(tokens_in * s.noora_input_usd_per_mtok + max_tokens * s.noora_output_usd_per_mtok)
+
+
 def _seconds_to_midnight() -> int:
     now = utcnow().astimezone(BAHRAIN)
     midnight = dt.datetime.combine(now.date() + dt.timedelta(days=1), dt.time(), tzinfo=BAHRAIN)
@@ -198,6 +224,17 @@ def _reserve(db: Session, user: User, lim: NooraLimits, today: dt.date) -> Noora
     return row
 
 
+def _streaming(db: Session, today: dt.date, user: User | None = None) -> int:
+    """Answers streaming now (to `user`, or hub-wide): marked, and not so old that they ended without settling."""
+    q = select(func.count()).where(
+        NooraUsage.day >= today - dt.timedelta(days=1),  # an answer may run past midnight
+        NooraUsage.answering_since > utcnow() - ANSWER_STALE,
+    )
+    if user is not None:
+        q = q.where(NooraUsage.user_id == user.id)
+    return int(db.scalar(q) or 0)
+
+
 # ── a question ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -210,12 +247,15 @@ class Prepared:
     max_tokens: int
     system: list[TextBlockParam]
     messages: list[MessageParam]
-    usage_id: object
+    usage_id: uuid.UUID
     daily_questions: int
+    reserved: int  # micro-dollars added to the usage row before the answer, settled when it ends
 
 
 def _screen(db: Session, user: User, body: NooraQuestion, today: dt.date) -> prompt.Screen:
     module = db.get(Module, body.module_id) if body.module_id else None
+    if module is not None and module.hidden:  # hidden modules are 404 to students, and unknown to Noora
+        module = None
     year = body.year or user.year
     dates = None
     if access.feature_on(db, user, Feature.calendar):
@@ -224,30 +264,40 @@ def _screen(db: Session, user: User, body: NooraQuestion, today: dt.date) -> pro
 
 
 def prepare(db: Session, user: User, body: NooraQuestion) -> Prepared:
-    """Checks the question against the key, the budget and the limits, counts it and builds the prompt. The caller
-    commits, then streams answer()."""
+    """Checks the question against the key, the budget and the limits, counts it, reserves its worst-case cost and
+    builds the prompt. The caller commits, then streams answer()."""
     s = get_settings()
     client = make_client(s)
     if client is None:
         raise unavailable()
     asked = paper.load(db, user, body.paper) if body.paper else None
     lim, today = limits(db), bahrain_today()
-    if _over_budget(db, lim, today):
-        raise budget_reached()
-    row = _reserve(db, user, lim, today)
-    modules = list(db.scalars(select(Module)))
+    modules = list(db.scalars(select(Module).where(Module.hidden.is_(False))))
     stable = prompt.stable_block(modules, access.features_on(db, user))
     system = prompt.system(stable, _screen(db, user, body, today))
     if asked is not None:
         system.append({"type": "text", "text": paper.block(asked)})
+    messages = prompt.messages(body.question, body.history, body.note)
+    reserved = estimate_microusd(system, messages, s.noora_max_answer_tokens, s)
+    ratelimit.lock(db, LOCK)
+    if month_cost_microusd(db, today) + reserved > lim.monthly_budget_cents * MICRO_PER_CENT:
+        raise budget_reached()
+    row = _reserve(db, user, lim, today)
+    if _streaming(db, today, user):
+        raise rate_limited(GAP_SECONDS, "One question at a time. Wait for Mini Noora's answer to finish.")
+    if _streaming(db, today) >= s.noora_answers_at_once:
+        raise busy()
+    row.cost_microusd += reserved
+    row.answering_since = utcnow()
     return Prepared(
         client=client,
         model=s.noora_model,
         max_tokens=s.noora_max_answer_tokens,
         system=system,
-        messages=prompt.messages(body.question, body.history, body.note),
+        messages=messages,
         usage_id=row.id,
         daily_questions=lim.daily_questions,
+        reserved=reserved,
     )
 
 
@@ -255,49 +305,88 @@ def sse(event: NooraTextEvent | NooraDoneEvent | NooraErrorEvent) -> str:
     return f"data: {json.dumps(event.model_dump(by_alias=True), ensure_ascii=False)}\n\n"
 
 
-def _record(db: Session, p: Prepared, used: Usage | None, *, give_back: bool) -> int:
-    """Adds the answer's tokens and cost to today's row (or gives the question back). Returns the questions left."""
-    row = db.get(NooraUsage, p.usage_id, with_for_update=True, populate_existing=True)
-    if row is None:  # the account was deleted meanwhile: nothing to count against
+# How an answer ended: done (complete), unanswered (Claude failed before a word: the question is given back) or cut
+# (the student dropped it, or Claude failed partway: it costs at least its reservation).
+Ended = Literal["done", "unanswered", "cut"]
+
+
+def _charge(p: Prepared, used: Usage | None, ended: Ended) -> int:
+    """What the answer is counted as costing, in micro-dollars."""
+    known = cost_microusd(used, get_settings()) if used is not None else 0
+    if ended == "done" or ended == "unanswered":
+        return known
+    return max(known, p.reserved)  # a dropped answer's usage covers only what Claude had sent so far
+
+
+def _settle(db: Session, p: Prepared, used: Usage | None, ended: Ended) -> int:
+    """Settles the reservation with what the answer cost, adds its tokens, gives the question back if it went
+    unanswered, and ends the answer's streaming mark. Returns the questions left today."""
+    try:
+        db.rollback()
+        row = db.get(NooraUsage, p.usage_id, with_for_update=True, populate_existing=True)
+        if row is None:  # the usage row is gone: nothing to count against
+            db.commit()
+            return 0
+        if ended == "unanswered":
+            row.questions = max(0, row.questions - 1)
+        if used is not None:
+            row.input_tokens += used.input_tokens
+            row.output_tokens += used.output_tokens
+            row.cache_read_tokens += used.cache_read_input_tokens or 0
+            row.cache_write_tokens += used.cache_creation_input_tokens or 0
+        row.cost_microusd = max(0, row.cost_microusd - p.reserved + _charge(p, used, ended))
+        row.answering_since = None
+        left = max(0, p.daily_questions - row.questions)
         db.commit()
-        return 0
-    if give_back:
-        row.questions = max(0, row.questions - 1)
-    if used is not None:
-        row.input_tokens += used.input_tokens
-        row.output_tokens += used.output_tokens
-        row.cache_read_tokens += used.cache_read_input_tokens or 0
-        row.cache_write_tokens += used.cache_creation_input_tokens or 0
-        row.cost_microusd += cost_microusd(used, get_settings())
-    left = max(0, p.daily_questions - row.questions)
-    db.commit()
-    return left
+        return left
+    except BaseException:
+        db.rollback()
+        raise
 
 
-def answer(db: Session, p: Prepared) -> Iterator[str]:
+async def _settled(db: Session, p: Prepared, used: Usage | None, ended: Ended) -> int:
+    """_settle() on a worker thread, finished even when the answer's task is being cancelled (a dropped stream)."""
+    with anyio.CancelScope(shield=True):
+        return await anyio.to_thread.run_sync(partial(_settle, db, p, used, ended))
+    raise AssertionError("unreachable: a shielded scope that isn't cancelled itself swallows nothing")
+
+
+def _usage_so_far(stream: AsyncMessageStream[Any]) -> Usage | None:
+    """The usage Claude reported so far (the prompt's tokens arrive before the first word), or None before any."""
+    try:
+        return stream.current_message_snapshot.usage
+    except AssertionError:  # no event has arrived yet
+        return None
+
+
+async def answer(db: Session, p: Prepared) -> AsyncGenerator[str]:
     """The answer as Server-Sent Events: text pieces, then done (or error, after which the student sees what came
-    with a line that it was cut off)."""
+    with a line that it was cut off). The cost is settled on every way out, a dropped connection included."""
     said = False
     used: Usage | None = None
-    recorded = False
+    settled = False
     try:
-        with p.client.messages.stream(
+        async with p.client.messages.stream(
             model=p.model, max_tokens=p.max_tokens, system=p.system, messages=p.messages
         ) as stream:
-            for text in stream.text_stream:
-                said = True
-                yield sse(NooraTextEvent(text=text))
-            used = stream.get_final_message().usage
-        left = _record(db, p, used, give_back=False)
-        recorded = True
+            try:
+                async for text in stream.text_stream:
+                    said = True
+                    yield sse(NooraTextEvent(text=text))
+                used = (await stream.get_final_message()).usage
+            finally:
+                if used is None:
+                    used = _usage_so_far(stream)
+        left = await _settled(db, p, used, "done")
+        settled = True
         yield sse(NooraDoneEvent(questions_left=left))
     except anthropic.APIError as e:
         # The status and the error's type only: never the question, the note or the answer.
         log.warning("Claude failed for a Noora question: %s %s", type(e).__name__, getattr(e, "status_code", ""))
-        _record(db, p, used, give_back=not said)
-        recorded = True
+        if not settled:
+            await _settled(db, p, used, "cut" if said else "unanswered")
+            settled = True
         yield sse(NooraErrorEvent(message=CUT_OFF if said else "Mini Noora's AI answers aren't available right now."))
     finally:
-        if not recorded:  # the student closed the panel, or something unexpected: keep the count right
-            db.rollback()
-            _record(db, p, used, give_back=not said)
+        if not settled:  # the student closed the panel, or something unexpected: the reservation stands
+            await _settled(db, p, used, "cut")

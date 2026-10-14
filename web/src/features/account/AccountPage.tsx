@@ -14,6 +14,7 @@ import {
   Badge, Button, ConfirmDialog, Divider, EmptyState, Page, PageHeader, PageSection, Panel, QueryError, SectionHeader, Skeleton, Switch, TextField, formatDate, timeAgo,
 } from '../../ui';
 import { downloadAccountData, useRemoveIdentifier, useRevokeSessions, useSessions, useUpdateMe, useUpdatePreferences, type IdentifierKind } from './api';
+import { SeniorListing } from '../career/public';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { describeDevice } from './device';
 import { IdentifierDialog } from './IdentifierDialog';
@@ -218,8 +219,8 @@ type EmailSwitch = keyof Me['preferences'];
 /** One switch per kind of email (decision D1); the notification in the Hub shows whatever they say. The Sunday
  *  summary is an email of its own, off until you turn it on, and only while its feature is on. */
 const EMAIL_SWITCHES: { key: EmailSwitch; label: string; description: string; feature?: Feature }[] = [
-  { key: 'emailReplies', label: 'Replies', description: 'When someone replies to your thread or to one of your replies.' },
-  { key: 'emailAnswerAccepted', label: 'Accepted answers', description: 'When the person who asked marks your reply as the answer.' },
+  { key: 'emailReplies', label: 'Replies', description: 'When someone replies to your thread, to one of your replies or in a thread you follow, or asks you a question as a senior.' },
+  { key: 'emailAnswerAccepted', label: 'Accepted answers', description: 'When the person who asked marks your reply as the answer, or a thread you follow gets one.' },
   { key: 'emailUploadReviews', label: 'Your uploads', description: 'When a student rep publishes a file you uploaded, or decides not to.' },
   { key: 'emailNewIssues', label: 'New newsletter issues', description: 'When a new issue of The DSBA Newsletter is out.' },
   { key: 'emailDateChanges', label: 'Date changes', description: 'When an exam, mock or deadline of your year moves, or its date is confirmed.' },
@@ -400,7 +401,7 @@ function YourData() {
 // ── Page ─────────────────────────────────────────────────────────────────────────────────────
 
 export default function AccountPage() {
-  const { me, status, openSignIn } = useAuth();
+  const { me, status, openSignIn, featureOn } = useAuth();
 
   if (status === 'loading') return <PageLoader />;
   if (!me) {
@@ -439,6 +440,13 @@ export default function AccountPage() {
           <ProfileSection me={me} />
         </Panel>
       </PageSection>
+
+      {featureOn('career.seniors') && me.year === 3 ? (
+        <PageSection aria-labelledby="acct-senior">
+          <SectionHeader id="acct-senior" title="Answer as a senior" description="List yourself in Career Navigator so Year 1 and 2 students can ask you about what you’ve done." />
+          <SeniorListing />
+        </PageSection>
+      ) : null}
 
       <PageSection aria-labelledby="acct-signin">
         <SectionHeader id="acct-signin" title="How you sign in" description="We send a code to one of these each time you sign in." />

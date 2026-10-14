@@ -12,6 +12,7 @@ describe('fallback', () => {
 
   it('keeps trying after a hiccup', () => {
     expect(fallback(new ApiError({ status: 429, code: 'rate_limited', message: '' })).pause).toBe(false);
+    expect(fallback(new ApiError({ status: 503, code: 'noora_busy', message: '' })).pause).toBe(false);
     expect(fallback(new ApiError({ status: 0, code: 'network', message: '' })).pause).toBe(false);
     expect(fallback(new Error('cut off')).notice).toMatch(/from my script/);
   });

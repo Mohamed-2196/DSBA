@@ -29,6 +29,7 @@ def _file(
     kind: str = "past-paper",
     zone: str | None = "A",
     exam_year: int | None = 2023,
+    session: str | None = None,
     status: ItemStatus = ItemStatus.published,
     text: list[str] | None = None,
 ) -> LibraryItem:
@@ -44,6 +45,7 @@ def _file(
         file_name=f"{slug}.pdf",
         exam_year=exam_year,
         zone=zone,
+        exam_session=session,
         status=status,
         published_at=utcnow() if status == ItemStatus.published else None,
     )
@@ -129,6 +131,16 @@ def test_a_report_for_both_zones_counts_and_a_missing_one_is_said(
     block = paper_block(claude)
     assert f"/library/{both.slug}" in block
     assert "its text isn't available" in block
+
+
+def test_the_report_of_the_same_session(db: Session, module: Module) -> None:
+    may = _file(db, module, session="may")
+    _file(db, module, kind="examiners-report", session="october")
+    _file(db, module, kind="examiners-report")
+    assert paper.report_for(db, may) is None
+    report = _file(db, module, kind="examiners-report", session="may", zone=None)
+    assert paper.report_for(db, may) == report
+    assert paper.report_for(db, _file(db, module, exam_year=None)) is None
 
 
 def test_without_text_or_page_noora_asks_the_student(

@@ -7,7 +7,7 @@ import { Button, cx } from '../../../ui';
 import { useToast } from '../../../state';
 import { ReportButton } from '../ReportButton';
 import { useAcceptAnswer, useReplyVote } from '../api';
-import { authorName, sameAuthor } from '../lib/authors';
+import { postAuthorName, sameAuthor, unnamed } from '../lib/authors';
 import { mayChange, postMenuActions, readOnlyFor, textDeleted } from '../lib/replies';
 import { useReplyModeration } from '../lib/useReplyModeration';
 import { AuthorAvatar } from './AuthorAvatar';
@@ -58,7 +58,7 @@ export function ReplyItem({ reply, thread, nested = false, hasReplies = false, f
   // Hidden with its text deleted (SEC-15): unhiding brings it back deleted.
   const gone = textDeleted(reply, thread.canModerate);
   const accepted = reply.accepted || thread.acceptedReplyId === reply.id;
-  const isOp = sameAuthor(reply.author, thread.author);
+  const isOp = reply.anonymous || sameAuthor(reply.author, thread.author);
   // Your own reply, hidden by a rep: you still see it, marked, and nothing on it can change.
   const hiddenFromOthers = hidden && !thread.canModerate;
   // A hidden thread is only in front of the reps and its author: no votes or reports there.
@@ -99,9 +99,9 @@ export function ReplyItem({ reply, thread, nested = false, hasReplies = false, f
       data-hub="reply"
       data-reply-id={reply.id}
       id={`reply-${reply.id}`}
-      aria-label={deleted ? 'Deleted reply' : `${accepted ? 'Accepted answer' : hidden ? 'Hidden reply' : 'Reply'} by ${authorName(reply.author)}`}
+      aria-label={deleted ? 'Deleted reply' : `${accepted ? 'Accepted answer' : hidden ? 'Hidden reply' : 'Reply'} by ${postAuthorName(reply)}`}
     >
-      <AuthorAvatar author={deleted ? null : reply.author} size={nested ? 'sm' : 'md'} className="forum-reply__avatar" />
+      <AuthorAvatar author={deleted ? null : reply.author} guest={!deleted && unnamed(reply)} size={nested ? 'sm' : 'md'} className="forum-reply__avatar" />
       <div className="forum-reply__main">
         <ReplyByline reply={reply} isOp={isOp} accepted={accepted} fresh={fresh} gone={gone} />
 

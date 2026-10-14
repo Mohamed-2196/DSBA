@@ -1,4 +1,5 @@
-"""Upvotes on threads and replies: idempotent, and the counter moves in SQL in the same transaction."""
+"""Upvotes on threads and replies: idempotent, and the counter moves in SQL in the same transaction. Upvoting a
+thread starts following it (follows.start)."""
 
 from __future__ import annotations
 
@@ -9,6 +10,7 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from app.models import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVote, User
 from app.schemas.forum import VoteResult
+from app.services.forum import follows
 from app.services.forum.visibility import unavailable
 
 
@@ -35,6 +37,8 @@ def vote(
                 .where(ThreadVote.user_id == user.id, ThreadVote.thread_id == target.id)
                 .returning(ThreadVote.thread_id)
             ).first()
+        if up:
+            follows.start(db, user, target)
         model: type[ForumThread] | type[ForumReply] = ForumThread
     else:
         if up:
