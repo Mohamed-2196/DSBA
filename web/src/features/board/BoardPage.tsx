@@ -1,16 +1,18 @@
 // The study board: the student's own cards in To do, In progress and Done. Laptops show the three columns side by
 // side, phones one at a time behind a segmented switch. Cards move by drag and drop or from each card's menu.
 import { useState, type DragEvent } from 'react';
-import { Kanban, Plus } from '@phosphor-icons/react';
-import type { BoardCard } from '../../api/types';
+import { CalendarCheck, Kanban, Plus } from '@phosphor-icons/react';
+import type { BoardCard, BoardPlan } from '../../api/types';
 import { useAuth } from '../../auth';
 import { BREAKPOINTS, useMediaQuery } from '../../state';
 import { Button, ConfirmDialog, EmptyState, Page, PageHeader, QueryError, SegmentedControl, Skeleton, cx } from '../../ui';
-import { todayKey } from '../../lib/dates';
-import { isUnsaved, useBoard, useDeleteCard, useMoveCard } from './api';
-import { afterIdBefore, cardsIn, columnLabel, COLUMNS, counts, nudge, splitDone, type Column } from './board';
+import { formatDay, todayKey } from '../../lib/dates';
+import { isUnsaved, useBoard, useDeleteCard, useDeletePlan, useMoveCard } from './api';
+import { afterIdBefore, cardsIn, columnLabel, COLUMNS, counts, isPastPaper, nudge, planPace, splitDone, type Column } from './board';
 import { CardDialog } from './CardDialog';
 import { CardItem } from './CardItem';
+import { ScoreDialog } from './ScoreDialog';
+import { usePaperScores, type Scores } from './scores';
 import './BoardPage.css';
 
 type Editing = { card: BoardCard | null; column: Column } | null;
@@ -44,6 +46,10 @@ function Board() {
   const board = useBoard();
   const move = useMoveCard();
   const remove = useDeleteCard();
+  const removePlan = useDeletePlan();
+  const [scores, setScore] = usePaperScores();
+  const [scoring, setScoring] = useState<BoardCard | null>(null);
+  const [unplanning, setUnplanning] = useState<BoardPlan | null>(null);
   const isPhone = useMediaQuery(BREAKPOINTS.mobile);
   const [shown, setShown] = useState<Column>('todo');
   const [editing, setEditing] = useState<Editing>(null);
@@ -68,10 +74,13 @@ function Board() {
 
   const moveTo = (card: BoardCard, column: Column, afterId: string | null) => {
     move.mutate({ id: card.id, column, afterId });
+    if (column === 'done' && card.column !== 'done' && isPastPaper(card)) setScoring(card);
     setAnnouncement(card.column === column ? `Moved “${card.title}”.` : `Moved “${card.title}” to ${columnLabel(column)}.`);
   };
   const actions: CardActions = {
     readOnly,
+    scores,
+    onScore: setScoring,
     onEdit: (card) => setEditing({ card, column: card.column }),
     onDelete: setDeleting,
     onMove: (card, column) => moveTo(card, column, null),
@@ -108,6 +117,14 @@ function Board() {
       {readOnly ? <p className="board-page__notice">Your account is suspended, so your board is read only.</p> : null}
       {full ? <p className="board-page__notice">Your board holds {board.data.limit} cards. Delete some you’ve finished to add more.</p> : null}
 
+      {board.data.plans.length ? (
+        <ul role="list" className="board-plans" aria-label="Revision plans">
+          {board.data.plans.map((p) => (
+            <PlanRow key={p.moduleId} plan={p} readOnly={readOnly} onRemove={() => setUnplanning(p)} />
+          ))}
+        </ul>
+      ) : null}
+
       {isPhone ? (
         <SegmentedControl
           label="Column"
@@ -129,6 +146,29 @@ function Board() {
         {announcement}
       </p>
 
+      {scoring ? (
+        <ScoreDialog
+          key={scoring.id}
+          card={scoring}
+          score={scoring.link ? (scores[scoring.link.id] ?? null) : null}
+          onSave={(score) => {
+            if (scoring.link) setScore(scoring.link.id, score);
+          }}
+          onClose={() => setScoring(null)}
+        />
+      ) : null}
+      <ConfirmDialog
+        open={!!unplanning}
+        title={unplanning ? `Remove your ${unplanning.moduleName} plan?` : ''}
+        body="Its cards still to do go from your board. The ones you’ve done stay."
+        confirmLabel="Remove plan"
+        tone="danger"
+        onConfirm={() => {
+          if (unplanning) removePlan.mutate(unplanning.moduleId);
+          setUnplanning(null);
+        }}
+        onClose={() => setUnplanning(null)}
+      />
       {editing ? <CardDialog key={editing.card?.id ?? `new-${editing.column}`} card={editing.card} column={editing.column} onClose={() => setEditing(null)} /> : null}
       <ConfirmDialog
         open={!!deleting}
@@ -146,8 +186,32 @@ function Board() {
   );
 }
 
+function PlanRow({ plan, readOnly, onRemove }: { plan: BoardPlan; readOnly: boolean; onRemove: () => void }) {
+  const total = plan.left + plan.done;
+  return (
+    <li className="board-plan" data-hub="board-plan-row">
+      <CalendarCheck aria-hidden="true" weight="duotone" className="board-plan__icon" />
+      <p className="board-plan__text">
+        <strong>{plan.moduleName} revision</strong>
+        <span>
+          {plan.done} of {total} done. {planPace(plan)}
+          {plan.left && plan.daysLeft > 0 ? ` until the exam on ${formatDay(plan.examDate, { weekday: 'short', month: 'short', year: false })}.` : ''}
+        </span>
+      </p>
+      {readOnly ? null : (
+        <Button size="sm" variant="ghost" onClick={onRemove} className="board-plan__remove">
+          Remove plan
+        </Button>
+      )}
+    </li>
+  );
+}
+
 export interface CardActions {
   readOnly: boolean;
+  /** practice scores by library item id (this browser only) */
+  scores: Scores;
+  onScore: (card: BoardCard) => void;
   onEdit: (card: BoardCard) => void;
   onDelete: (card: BoardCard) => void;
   onMove: (card: BoardCard, column: Column) => void;

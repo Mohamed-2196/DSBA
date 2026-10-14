@@ -13020,6 +13020,204 @@
         }
       }
     },
+    "/api/v1/board/plans": {
+      "post": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Make Plan",
+        "description": "Plans a module's revision up to the exam: a card for each lesson not watched yet and a past paper every few\ndays. Planning the module again keeps its cards, adds what's missing and takes the new date. Errors:\ninvalid_input on `moduleId` or `examDate` (422), board_full (409), rate_limited (429).",
+        "operationId": "make_plan_api_v1_board_plans_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoardPlanCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardPlanMade"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/board/plans/{module_id}": {
+      "delete": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Delete Plan",
+        "description": "Removes the module's plan and its cards still to do; cards done stay. Errors: not_found (404).",
+        "operationId": "delete_plan_api_v1_board_plans__module_id__delete",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/noora/ask": {
       "post": {
         "tags": [
@@ -13560,6 +13758,13 @@
             },
             "type": "array",
             "title": "Board"
+          },
+          "boardPlans": {
+            "items": {
+              "$ref": "#/components/schemas/ExportBoardPlan"
+            },
+            "type": "array",
+            "title": "Boardplans"
           }
         },
         "type": "object",
@@ -13578,7 +13783,8 @@
           "requests",
           "meToos",
           "emails",
-          "board"
+          "board",
+          "boardPlans"
         ],
         "title": "AccountExport",
         "description": "Everything the Hub stores about the signed-in user (GET /me/export)."
@@ -13949,6 +14155,13 @@
             "type": "array",
             "title": "Cards"
           },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/BoardPlan"
+            },
+            "type": "array",
+            "title": "Plans"
+          },
           "limit": {
             "type": "integer",
             "title": "Limit"
@@ -13957,10 +14170,11 @@
         "type": "object",
         "required": [
           "cards",
+          "plans",
           "limit"
         ],
         "title": "Board",
-        "description": "Every card, by column, each column in its order."
+        "description": "Every card, by column, each column in its order, and the revision plans."
       },
       "BoardCard": {
         "properties": {
@@ -14015,6 +14229,29 @@
               }
             ]
           },
+          "planModuleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planmoduleid"
+          },
+          "planDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plandate"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -14041,6 +14278,8 @@
           "note",
           "dueDate",
           "link",
+          "planModuleId",
+          "planDate",
           "createdAt",
           "doneAt"
         ],
@@ -14234,6 +14473,41 @@
               }
             ],
             "title": "Date"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "past-paper",
+                  "examiners-report",
+                  "subject-guide",
+                  "reading",
+                  "study-guide",
+                  "exercises",
+                  "notes",
+                  "cheat-sheet",
+                  "course-materials",
+                  "vle-materials",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
           }
         },
         "type": "object",
@@ -14242,7 +14516,9 @@
           "id",
           "title",
           "url",
-          "date"
+          "date",
+          "kind",
+          "moduleId"
         ],
         "title": "BoardLink"
       },
@@ -14272,6 +14548,97 @@
         ],
         "title": "BoardLinkIn",
         "description": "What a card points at: a calendar event id, a lesson id, a module id or a library item id."
+      },
+      "BoardPlan": {
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "moduleName": {
+            "type": "string",
+            "title": "Modulename"
+          },
+          "examDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Examdate"
+          },
+          "paperEvery": {
+            "type": "integer",
+            "title": "Paperevery"
+          },
+          "left": {
+            "type": "integer",
+            "title": "Left"
+          },
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          },
+          "daysLeft": {
+            "type": "integer",
+            "title": "Daysleft"
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleId",
+          "moduleName",
+          "examDate",
+          "paperEvery",
+          "left",
+          "done",
+          "daysLeft"
+        ],
+        "title": "BoardPlan",
+        "description": "A revision plan for a module: its cards not done yet are spread over the days up to the exam."
+      },
+      "BoardPlanCreate": {
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Moduleid"
+          },
+          "examDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Examdate"
+          },
+          "paperEvery": {
+            "type": "integer",
+            "maximum": 14.0,
+            "minimum": 1.0,
+            "title": "Paperevery",
+            "default": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleId",
+          "examDate"
+        ],
+        "title": "BoardPlanCreate",
+        "description": "Plans a module's revision up to `examDate`: a card for each lesson not watched yet and a past paper every\n`paperEvery` days. Planning the same module again keeps its cards, adds what's missing and takes the new date."
+      },
+      "BoardPlanMade": {
+        "properties": {
+          "plan": {
+            "$ref": "#/components/schemas/BoardPlan"
+          },
+          "added": {
+            "type": "integer",
+            "title": "Added"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan",
+          "added"
+        ],
+        "title": "BoardPlanMade"
       },
       "BoxOut": {
         "properties": {
@@ -16360,6 +16727,17 @@
             ],
             "title": "Linkid"
           },
+          "planModuleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planmoduleid"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -16387,10 +16765,41 @@
           "dueDate",
           "linkType",
           "linkId",
+          "planModuleId",
           "createdAt",
           "doneAt"
         ],
         "title": "ExportBoardCard"
+      },
+      "ExportBoardPlan": {
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "examDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Examdate"
+          },
+          "paperEvery": {
+            "type": "integer",
+            "title": "Paperevery"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleId",
+          "examDate",
+          "paperEvery",
+          "createdAt"
+        ],
+        "title": "ExportBoardPlan"
       },
       "ExportEmail": {
         "properties": {

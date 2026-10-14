@@ -20,6 +20,7 @@ from app.core.errors import ApiError, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
     BoardCard,
+    BoardPlan,
     EmailOutbox,
     ForumReply,
     ForumThread,
@@ -47,6 +48,7 @@ from app.schemas.access import RoleSummary
 from app.schemas.auth import (
     AccountExport,
     ExportBoardCard,
+    ExportBoardPlan,
     ExportEmail,
     ExportLibraryItem,
     ExportNotification,
@@ -660,6 +662,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for e in db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == uid).order_by(EmailOutbox.created_at))
     ]
+    plans = {p.id: p for p in db.scalars(select(BoardPlan).where(BoardPlan.user_id == uid))}
     board = [
         ExportBoardCard.model_validate(
             {
@@ -670,6 +673,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
                 "due_date": c.due_date,
                 "link_type": c.link_type,
                 "link_id": c.lesson_id if c.link_type == "lesson" else c.link_id,
+                "plan_module_id": plans[c.plan_id].module_id if c.plan_id in plans else None,
                 "created_at": c.created_at,
                 "done_at": c.done_at,
             }
@@ -692,6 +696,12 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         me_toos=me_toos,
         emails=emails,
         board=board,
+        board_plans=[
+            ExportBoardPlan(
+                module_id=p.module_id, exam_date=p.exam_date, paper_every=p.paper_every, created_at=p.created_at
+            )
+            for p in sorted(plans.values(), key=lambda p: p.created_at)
+        ],
     )
 
 

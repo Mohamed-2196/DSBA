@@ -193,8 +193,16 @@ class ExportBoardCard(ApiModel):
     due_date: date | None
     link_type: BoardLinkType | None
     link_id: str | None
+    plan_module_id: str | None  # the module whose revision plan added it
     created_at: datetime
     done_at: datetime | None
+
+
+class ExportBoardPlan(ApiModel):
+    module_id: str
+    exam_date: date
+    paper_every: int
+    created_at: datetime
 
 
 class ExportVote(ApiModel):
@@ -264,3 +272,4 @@ class AccountExport(ApiModel):
     me_toos: list[UUID]  # requests this person said "me too" to
     emails: list[ExportEmail]
     board: list[ExportBoardCard]  # study-board cards
+    board_plans: list[ExportBoardPlan]  # revision plans on the study board

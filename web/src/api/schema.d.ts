@@ -2009,6 +2009,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/board/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Make Plan
+         * @description Plans a module's revision up to the exam: a card for each lesson not watched yet and a past paper every few
+         *     days. Planning the module again keeps its cards, adds what's missing and takes the new date. Errors:
+         *     invalid_input on `moduleId` or `examDate` (422), board_full (409), rate_limited (429).
+         */
+        post: operations["make_plan_api_v1_board_plans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/board/plans/{module_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Plan
+         * @description Removes the module's plan and its cards still to do; cards done stay. Errors: not_found (404).
+         */
+        delete: operations["delete_plan_api_v1_board_plans__module_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/noora/ask": {
         parameters: {
             query?: never;
@@ -2121,6 +2163,8 @@ export interface components {
             emails: components["schemas"]["ExportEmail"][];
             /** Board */
             board: components["schemas"]["ExportBoardCard"][];
+            /** Boardplans */
+            boardPlans: components["schemas"]["ExportBoardPlan"][];
         };
         /**
          * AdminStats
@@ -2232,11 +2276,13 @@ export interface components {
         };
         /**
          * Board
-         * @description Every card, by column, each column in its order.
+         * @description Every card, by column, each column in its order, and the revision plans.
          */
         Board: {
             /** Cards */
             cards: components["schemas"]["BoardCard"][];
+            /** Plans */
+            plans: components["schemas"]["BoardPlan"][];
             /** Limit */
             limit: number;
         };
@@ -2259,6 +2305,10 @@ export interface components {
             /** Duedate */
             dueDate: string | null;
             link: components["schemas"]["BoardLink"] | null;
+            /** Planmoduleid */
+            planModuleId: string | null;
+            /** Plandate */
+            planDate: string | null;
             /**
              * Createdat
              * Format: date-time
@@ -2327,6 +2377,10 @@ export interface components {
             url: string | null;
             /** Date */
             date: string | null;
+            /** Kind */
+            kind: ("past-paper" | "examiners-report" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other") | null;
+            /** Moduleid */
+            moduleId: string | null;
         };
         /**
          * BoardLinkIn
@@ -2340,6 +2394,54 @@ export interface components {
             type: "event" | "lesson" | "module" | "library_item";
             /** Id */
             id: string;
+        };
+        /**
+         * BoardPlan
+         * @description A revision plan for a module: its cards not done yet are spread over the days up to the exam.
+         */
+        BoardPlan: {
+            /** Moduleid */
+            moduleId: string;
+            /** Modulename */
+            moduleName: string;
+            /**
+             * Examdate
+             * Format: date
+             */
+            examDate: string;
+            /** Paperevery */
+            paperEvery: number;
+            /** Left */
+            left: number;
+            /** Done */
+            done: number;
+            /** Daysleft */
+            daysLeft: number;
+        };
+        /**
+         * BoardPlanCreate
+         * @description Plans a module's revision up to `examDate`: a card for each lesson not watched yet and a past paper every
+         *     `paperEvery` days. Planning the same module again keeps its cards, adds what's missing and takes the new date.
+         */
+        BoardPlanCreate: {
+            /** Moduleid */
+            moduleId: string;
+            /**
+             * Examdate
+             * Format: date
+             */
+            examDate: string;
+            /**
+             * Paperevery
+             * @default 3
+             */
+            paperEvery: number;
+        };
+        /** BoardPlanMade */
+        BoardPlanMade: {
+            plan: components["schemas"]["BoardPlan"];
+            /** Added */
+            added: number;
         };
         /** BoxOut */
         BoxOut: {
@@ -2972,6 +3074,8 @@ export interface components {
             linkType: ("event" | "lesson" | "module" | "library_item") | null;
             /** Linkid */
             linkId: string | null;
+            /** Planmoduleid */
+            planModuleId: string | null;
             /**
              * Createdat
              * Format: date-time
@@ -2979,6 +3083,23 @@ export interface components {
             createdAt: string;
             /** Doneat */
             doneAt: string | null;
+        };
+        /** ExportBoardPlan */
+        ExportBoardPlan: {
+            /** Moduleid */
+            moduleId: string;
+            /**
+             * Examdate
+             * Format: date
+             */
+            examDate: string;
+            /** Paperevery */
+            paperEvery: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
         };
         /**
          * ExportEmail
@@ -5445,6 +5566,9 @@ export type BoardCardMove = components['schemas']['BoardCardMove'];
 export type BoardCardUpdate = components['schemas']['BoardCardUpdate'];
 export type BoardLink = components['schemas']['BoardLink'];
 export type BoardLinkIn = components['schemas']['BoardLinkIn'];
+export type BoardPlan = components['schemas']['BoardPlan'];
+export type BoardPlanCreate = components['schemas']['BoardPlanCreate'];
+export type BoardPlanMade = components['schemas']['BoardPlanMade'];
 export type BoxOut = components['schemas']['BoxOut'];
 export type CalendarEventCreate = components['schemas']['CalendarEventCreate'];
 export type CalendarEventOut = components['schemas']['CalendarEventOut'];
@@ -5482,6 +5606,7 @@ export type DateWindow = components['schemas']['DateWindow'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
 export type ErrorResponse = components['schemas']['ErrorResponse'];
 export type ExportBoardCard = components['schemas']['ExportBoardCard'];
+export type ExportBoardPlan = components['schemas']['ExportBoardPlan'];
 export type ExportEmail = components['schemas']['ExportEmail'];
 export type ExportLibraryItem = components['schemas']['ExportLibraryItem'];
 export type ExportNotification = components['schemas']['ExportNotification'];
@@ -15764,6 +15889,176 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["BoardCard"];
                 };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    make_plan_api_v1_board_plans_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BoardPlanCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardPlanMade"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_plan_api_v1_board_plans__module_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                module_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {

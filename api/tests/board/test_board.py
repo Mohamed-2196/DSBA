@@ -38,7 +38,7 @@ def move(c: TestClient, card: dict[str, Any], column: str, after: dict[str, Any]
 
 def test_a_new_board_is_empty_and_cards_go_to_the_end(client_for: ClientFor, make_user: MakeUser) -> None:
     c = client_for(make_user())
-    assert c.get(f"{API}/board").json() == {"cards": [], "limit": svc.MAX_CARDS}
+    assert c.get(f"{API}/board").json() == {"cards": [], "plans": [], "limit": svc.MAX_CARDS}
     first = add(c, title="Read chapter 2", note="Pages 30 to 45", dueDate="2026-11-01")
     add(c, title="Past paper 2023")
     add(c, title="Revise", column="doing")
@@ -165,6 +165,8 @@ def test_cards_from_the_hub(
         "title": "Coursework due",
         "url": f"/calendar?event={event.id}",
         "date": "2026-11-02",
+        "kind": None,
+        "moduleId": None,
     }
     lesson = add(c, link={"type": "lesson", "id": lesson_id(module, 0, 0)}, title="Watch limits")
     assert lesson["title"] == "Watch limits"
@@ -175,6 +177,8 @@ def test_cards_from_the_hub(
     assert add(c, link={"type": "module", "id": module.id})["link"]["url"] == f"/modules/{module.id}"
     file = add(c, link={"type": "library_item", "id": item["id"]})
     assert (file["title"], file["link"]["url"]) == ("Week 3 notes", f"/library/{item['slug']}")
+    assert file["link"]["kind"] == "notes"
+    assert lesson["link"]["moduleId"] == module.id
 
     again = c.post(f"{API}/board/cards", json={"link": {"type": "event", "id": event.id}})
     assert again.status_code == 409

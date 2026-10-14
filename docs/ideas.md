@@ -284,7 +284,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Size:** M, mostly web, after R-4.
 - **Costs and risks:** a plan can nag, so no notifications, only the board.
 - **How we'd know it worked:** plans made in the month before a session; lessons watched in the last two weeks.
-- **Status:** proposed.
+- **Status:** approved; built in round 5 (`round5/board2`).
 
 ### IDEA-14. R-4: past papers as cards, scores kept private · **approved 2026-10-14, building (round 5)**
 
@@ -295,7 +295,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Size:** S to M, web, after R-4.
 - **Costs and risks:** whether practice scores are cleared on sign-out, as grades are (D10), is Mohamed's call.
 - **How we'd know it worked:** papers marked done per student before May.
-- **Status:** proposed.
+- **Status:** approved; built in round 5 (`round5/board2`).
 
 ## Year 3, electives and careers
 

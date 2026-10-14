@@ -20,6 +20,8 @@ import { useCopyLink } from '../../lib/useCopyLink';
 import { BREAKPOINTS, useDocumentTitle, useMediaQuery, useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, EmptyState, IconButton, Menu, Page, Panel, QueryError, Skeleton, cx, timeAgo } from '../../ui';
+import { useAuth } from '../../auth';
+import { AddToBoard, PaperDone } from '../board/public';
 import { ReportButton } from '../forum/public';
 import { useLibraryAccess } from './access';
 import { downloadHref, itemPath, libraryKeys, openLinkHref, useLibraryItem } from './api';
@@ -147,6 +149,7 @@ function FileView({ item }: { item: LibraryItem }) {
   const { push } = useToast();
   const copy = useCopyLink();
   const { suspended, moderator: managesLibrary } = useLibraryAccess();
+  const { featureOn } = useAuth();
   const { getModule } = useModules();
   const toggleStar = useStar();
   const isDesktop = useMediaQuery(BREAKPOINTS.desktop);
@@ -244,7 +247,9 @@ function FileView({ item }: { item: LibraryItem }) {
           <span className="lib-viewer__badges">
             {fmt ? <Badge tone="outline">{fmt.tag}</Badge> : <Badge tone="outline">Link</Badge>}
             {isNew(item) ? <Badge tone="highlight">New</Badge> : null}
+            {featureOn('board') && item.kind === 'past-paper' ? <PaperDone itemId={item.id} /> : null}
           </span>
+          {featureOn('board') && item.status === 'published' ? <AddToBoard link={{ type: 'library_item', id: item.id }} className="lib-viewer__board" /> : null}
         </div>
       </header>
 

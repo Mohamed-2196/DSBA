@@ -4,11 +4,13 @@
 //   PATCH  /api/v1/board/cards/{id}            title, note, due date
 //   PUT    /api/v1/board/cards/{id}/place      a column, after a card or at the top
 //   DELETE /api/v1/board/cards/{id}
+//   POST   /api/v1/board/plans                 plan a module's revision to the exam (cards for what's left)
+//   DELETE /api/v1/board/plans/{moduleId}      remove a plan and its cards still to do
 // Writes share one mutation scope, so they reach the API in the order they were made.
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { errorMessage } from '../../api/errors';
-import type { Board, BoardCard, BoardCardCreate, BoardCardUpdate } from '../../api/types';
+import type { Board, BoardCard, BoardCardCreate, BoardCardUpdate, BoardPlanCreate } from '../../api/types';
 import { useToast } from '../../state';
 import { appendCard, placeCard, type Column } from './board';
 
@@ -67,6 +69,8 @@ export function useAddCard() {
         note: body.note ?? null,
         dueDate: body.dueDate ?? null,
         link: null,
+        planModuleId: null,
+        planDate: null,
         createdAt: now,
         doneAt: body.column === 'done' ? now : null,
       };
@@ -140,5 +144,32 @@ export function useDeleteCard() {
     mutationFn: (id: string) => call(api.DELETE('/api/v1/board/cards/{card_id}', { params: { path: { card_id: id } } })),
     onMutate: (id) => edit(qc, (cards) => cards.filter((c) => c.id !== id)),
     onError: (e, _v, ctx) => failed(e, ctx),
+  });
+}
+
+/** Plans a module's revision. The board reloads with the plan's cards; the caller says how many were added. */
+export function useMakePlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    scope: SCOPE,
+    mutationFn: (body: BoardPlanCreate) => call(api.POST('/api/v1/board/plans', { body })),
+    onSettled: () => qc.invalidateQueries({ queryKey: BOARD_KEY }),
+  });
+}
+
+/** Removes a module's plan and its cards still to do. */
+export function useDeletePlan() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    scope: SCOPE,
+    mutationFn: (moduleId: string) => call(api.DELETE('/api/v1/board/plans/{module_id}', { params: { path: { module_id: moduleId } } })),
+    onMutate: (moduleId) =>
+      edit(qc, (cards) => cards.filter((c) => c.planModuleId !== moduleId || c.column === 'done')),
+    onError: (e, _v, ctx) => {
+      rollback(qc, ctx);
+      toast.push({ tone: 'alert', title: 'The plan wasn’t removed', body: errorMessage(e) });
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: BOARD_KEY }),
   });
 }
