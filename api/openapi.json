@@ -20842,8 +20842,7 @@
         "properties": {
           "watched": {
             "additionalProperties": {
-              "type": "string",
-              "format": "date-time"
+              "$ref": "#/components/schemas/WatchedLesson"
             },
             "type": "object",
             "title": "Watched"
@@ -23520,6 +23519,25 @@
           "voted"
         ],
         "title": "VoteResult"
+      },
+      "WatchedLesson": {
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleId",
+          "at"
+        ],
+        "title": "WatchedLesson"
       }
     }
   }

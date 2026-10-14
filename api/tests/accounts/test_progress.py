@@ -162,9 +162,10 @@ def test_import_merges_and_the_newest_wins(
     assert r.status_code == 200, r.text
     watched = r.json()["watched"]
     assert set(watched) == {l00, l10, l01}
-    assert _at(watched[l00]) == newer
-    assert _at(watched[l10]) == old
-    assert _at(watched[l01]) == datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
+    assert _at(watched[l00]["at"]) == newer
+    assert _at(watched[l10]["at"]) == old
+    assert _at(watched[l01]["at"]) == datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
+    assert watched[l01]["moduleId"] == module.id
     last = r.json()["last"]
     assert list(last) == [module.id]
     assert (last[module.id]["lessonId"], _at(last[module.id]["at"])) == (l10, newer)
@@ -185,7 +186,7 @@ def test_import_keeps_a_newer_resume_and_ignores_the_future(
     }
     r = client_for(user).post(f"{API}/me/progress/import", json=body)
     assert r.status_code == 200
-    assert _at(r.json()["watched"][l00]) <= utcnow()  # a wrong browser clock can't win forever
+    assert _at(r.json()["watched"][l00]["at"]) <= utcnow()  # a wrong browser clock can't win forever
     assert r.json()["last"][module.id]["lessonId"] == l10
 
 

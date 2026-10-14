@@ -64,8 +64,13 @@ class LastLesson(ApiModel):
     at: datetime
 
 
+class WatchedLesson(ApiModel):
+    module_id: str
+    at: datetime
+
+
 class Progress(ApiModel):
-    watched: dict[str, datetime]  # by lesson id
+    watched: dict[str, WatchedLesson]  # by lesson id
     last: dict[str, LastLesson]  # by module id
 
 

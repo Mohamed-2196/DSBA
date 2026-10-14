@@ -420,11 +420,14 @@ def require_lesson(db: Session, lesson_id: str) -> Lesson:
 
 
 def progress_of(db: Session, user_id: uuid.UUID) -> Progress:
-    watched = dict(
-        db.execute(select(LessonView.lesson_id, LessonView.watched_at).where(LessonView.user_id == user_id))
-        .tuples()
-        .all()
-    )
+    watched = {
+        lesson_id: {"module_id": module_id, "at": at}
+        for lesson_id, module_id, at in db.execute(
+            select(LessonView.lesson_id, Lesson.module_id, LessonView.watched_at)
+            .join(Lesson, Lesson.id == LessonView.lesson_id)
+            .where(LessonView.user_id == user_id)
+        ).tuples()
+    }
     last = {
         module_id: {"lesson_id": lesson_id, "at": at}
         for module_id, lesson_id, at in db.execute(

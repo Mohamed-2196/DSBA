@@ -363,7 +363,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/me/progress/lessons/{lesson_key}": {
+    "/api/v1/me/progress/lessons/{lesson_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -373,10 +373,10 @@ export interface paths {
         get?: never;
         /**
          * Set Watched
-         * @description Mark one lesson watched or not (404 when the module, chapter or video does not exist). A study-board card for
-         *     a watched lesson moves to Done.
+         * @description Mark one lesson watched or not (404 when there is no such lesson). A study-board card for a watched lesson
+         *     moves to Done.
          */
-        put: operations["set_watched_api_v1_me_progress_lessons__lesson_key__put"];
+        put: operations["set_watched_api_v1_me_progress_lessons__lesson_id__put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -394,7 +394,7 @@ export interface paths {
         get?: never;
         /**
          * Set Resume
-         * @description The lesson the student just opened in a module (404 when it does not exist).
+         * @description The lesson the student just opened in its module (404 when it does not exist).
          */
         put: operations["set_resume_api_v1_me_progress_resume_put"];
         post?: never;
@@ -1703,7 +1703,7 @@ export interface paths {
         /**
          * List Notes
          * @description Your notes, last edited first, each with the start of its body. `q` searches titles and bodies; `module_id`
-         *     keeps one module's notes, and with `chapter` and `video` one lesson's.
+         *     keeps one module's notes, and `lesson_id` one lesson's.
          */
         get: operations["list_notes_api_v1_notes_get"];
         put?: never;
@@ -2330,8 +2330,7 @@ export interface components {
         };
         /**
          * BoardLinkIn
-         * @description What a card points at: a calendar event id, a lesson key ('<module>:<chapter>:<video>'), a module id or a
-         *     library item id.
+         * @description What a card points at: a calendar event id, a lesson id, a module id or a library item id.
          */
         BoardLinkIn: {
             /**
@@ -2744,6 +2743,8 @@ export interface components {
         };
         /** Chapter */
         Chapter: {
+            /** Id */
+            id: string;
             /** Title */
             title: string;
             /** Audiourl */
@@ -2760,19 +2761,19 @@ export interface components {
              * @default false
              */
             hidden: boolean;
-            /** Origin */
-            origin?: number | null;
+            /** Id */
+            id?: string | null;
             /** Lessons */
             lessons?: components["schemas"]["LessonIn"][];
         };
         /** ChapterOut */
         ChapterOut: {
+            /** Id */
+            id: string;
             /** Title */
             title: string;
             /** Hidden */
             hidden: boolean;
-            /** Origin */
-            origin: number;
             /** Lessons */
             lessons: components["schemas"]["LessonOut"][];
         };
@@ -3580,10 +3581,8 @@ export interface components {
         };
         /** LastLesson */
         LastLesson: {
-            /** Chapter */
-            chapter: number;
-            /** Video */
-            video: number;
+            /** Lessonid */
+            lessonId: string;
             /**
              * At
              * Format: date-time
@@ -3606,17 +3605,8 @@ export interface components {
              * @default false
              */
             hidden: boolean;
-            origin?: components["schemas"]["LessonOrigin"] | null;
-        };
-        /**
-         * LessonOrigin
-         * @description Where a lesson was in the version loaded: its chapter and video index as stored (ModuleEdit's order).
-         */
-        LessonOrigin: {
-            /** Chapter */
-            chapter: number;
-            /** Video */
-            video: number;
+            /** Id */
+            id?: string | null;
         };
         /** LessonOut */
         LessonOut: {
@@ -3631,7 +3621,8 @@ export interface components {
              * @default false
              */
             hidden: boolean;
-            origin: components["schemas"]["LessonOrigin"];
+            /** Id */
+            id: string;
             /**
              * Kind
              * @enum {string}
@@ -4037,8 +4028,8 @@ export interface components {
         /**
          * ModuleSave
          * @description The whole module as the editor has it. `version` is the one loaded: if someone saved since, 409
-         *     module_changed. Lessons and chapters keep their `origin`, so what refers to them (progress, notes, study-board
-         *     cards) follows them when they move.
+         *     module_changed. Chapters and lessons keep their `id` (a lesson may move to another chapter of the module); one
+         *     left out is removed.
          */
         ModuleSave: {
             /** Unitcode */
@@ -4165,10 +4156,8 @@ export interface components {
             year?: (1 | 2 | 3) | null;
             /** Moduleid */
             moduleId?: string | null;
-            /** Chapter */
-            chapter?: number | null;
-            /** Video */
-            video?: number | null;
+            /** Lessonid */
+            lessonId?: string | null;
             note?: components["schemas"]["NooraNote"] | null;
             /** History */
             history?: components["schemas"]["NooraTurn"][];
@@ -4253,10 +4242,8 @@ export interface components {
             excerpt: string;
             /** Moduleid */
             moduleId: string | null;
-            /** Chapter */
-            chapter: number | null;
-            /** Video */
-            video: number | null;
+            /** Lessonid */
+            lessonId: string | null;
             /** Version */
             version: number;
             /**
@@ -4286,10 +4273,8 @@ export interface components {
             body: string;
             /** Moduleid */
             moduleId?: string | null;
-            /** Chapter */
-            chapter?: number | null;
-            /** Video */
-            video?: number | null;
+            /** Lessonid */
+            lessonId?: string | null;
         };
         /** NotePage */
         NotePage: {
@@ -4315,10 +4300,8 @@ export interface components {
             excerpt: string;
             /** Moduleid */
             moduleId: string | null;
-            /** Chapter */
-            chapter: number | null;
-            /** Video */
-            video: number | null;
+            /** Lessonid */
+            lessonId: string | null;
             /** Version */
             version: number;
             /**
@@ -4349,10 +4332,8 @@ export interface components {
             body: string;
             /** Moduleid */
             moduleId?: string | null;
-            /** Chapter */
-            chapter?: number | null;
-            /** Video */
-            video?: number | null;
+            /** Lessonid */
+            lessonId?: string | null;
             /** Version */
             version: number;
         };
@@ -4536,14 +4517,11 @@ export interface components {
             /** Maxbytes */
             maxBytes: number;
         };
-        /**
-         * Progress
-         * @description lesson key = '<module id>:<chapter index>:<video index>'.
-         */
+        /** Progress */
         Progress: {
             /** Watched */
             watched: {
-                [key: string]: string;
+                [key: string]: components["schemas"]["WatchedLesson"];
             };
             /** Last */
             last: {
@@ -4552,8 +4530,8 @@ export interface components {
         };
         /**
          * ProgressImport
-         * @description Progress kept in the browser before signing in, merged into the account once (newest wins). At most 5000
-         *     watched lessons and 100 modules (security review, finding 19).
+         * @description Progress kept in the browser before signing in, merged into the account once (newest wins). `watched` is by
+         *     lesson id and `last` by module id. At most 5000 watched lessons and 100 modules (security review, finding 19).
          */
         ProgressImport: {
             /** Watched */
@@ -4888,12 +4866,8 @@ export interface components {
         };
         /** ResumeUpdate */
         ResumeUpdate: {
-            /** Moduleid */
-            moduleId: string;
-            /** Chapter */
-            chapter: number;
-            /** Video */
-            video: number;
+            /** Lessonid */
+            lessonId: string;
         };
         /** ReviewDecision */
         ReviewDecision: {
@@ -5405,15 +5379,21 @@ export interface components {
             /** Roleids */
             roleIds: string[];
         };
-        /** Video */
+        /**
+         * Video
+         * @description A lesson: one video of a chapter. `id` is the lesson's own, for good: its address is
+         *     /modules/<module id>/lessons/<id>.
+         */
         Video: {
+            /** Id */
+            id: string;
             /**
              * Kind
              * @enum {string}
              */
             kind: "youtube" | "youtube-playlist" | "bbb";
-            /** Id */
-            id?: string | null;
+            /** Videoid */
+            videoId?: string | null;
             /** Url */
             url?: string | null;
             /** Title */
@@ -5432,6 +5412,16 @@ export interface components {
             voteCount: number;
             /** Voted */
             voted: boolean;
+        };
+        /** WatchedLesson */
+        WatchedLesson: {
+            /** Moduleid */
+            moduleId: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
         };
     };
     responses: never;
@@ -5519,7 +5509,6 @@ export type IssueSummary = components['schemas']['IssueSummary'];
 export type IssueUpdate = components['schemas']['IssueUpdate'];
 export type LastLesson = components['schemas']['LastLesson'];
 export type LessonIn = components['schemas']['LessonIn'];
-export type LessonOrigin = components['schemas']['LessonOrigin'];
 export type LessonOut = components['schemas']['LessonOut'];
 export type LessonWatchedUpdate = components['schemas']['LessonWatchedUpdate'];
 export type LibraryFacets = components['schemas']['LibraryFacets'];
@@ -5618,6 +5607,7 @@ export type UserPublic = components['schemas']['UserPublic'];
 export type UserRolesUpdate = components['schemas']['UserRolesUpdate'];
 export type Video = components['schemas']['Video'];
 export type VoteResult = components['schemas']['VoteResult'];
+export type WatchedLesson = components['schemas']['WatchedLesson'];
 export type $defs = Record<string, never>;
 export interface operations {
     health_api_v1_health_get: {
@@ -7201,12 +7191,12 @@ export interface operations {
             };
         };
     };
-    set_watched_api_v1_me_progress_lessons__lesson_key__put: {
+    set_watched_api_v1_me_progress_lessons__lesson_id__put: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                lesson_key: string;
+                lesson_id: string;
             };
             cookie?: never;
         };
@@ -14032,8 +14022,7 @@ export interface operations {
             query?: {
                 q?: string | null;
                 module_id?: string | null;
-                chapter?: number | null;
-                video?: number | null;
+                lesson_id?: string | null;
                 /** @description Page size */
                 limit?: number;
                 /** @description Items to skip */
