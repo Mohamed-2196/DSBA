@@ -99,7 +99,7 @@ Each year the University of London sets two papers per course, zone A and zone B
 each other and from the year before ([examiners' duties, 2018/19][uol]). A module soon has dozens of papers, and the
 examiners' commentaries explain what was marked down. Finding the right one fast is the job.
 
-### IDEA-1. Each past paper with its examiners' report · quick win
+### IDEA-1. Each past paper with its examiners' report · quick win · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Layla (Year 1), the night before EC1002: "I want the 2023 Zone A paper and what the examiners said
   about it, without opening five Drive folders."
@@ -115,7 +115,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
   by kind).
 - **Status:** proposed.
 
-### IDEA-2. Search inside papers
+### IDEA-2. Search inside papers · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Hamad (Year 2): "Which ST2134 papers had a Cramér–Rao question? I'd do all of them tonight."
 - **The idea:** When a PDF is published, by upload or by the Drive import, keep its text for search. A result shows
@@ -129,7 +129,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** fewer library searches ending in "No files match"; more papers opened from search.
 - **Status:** proposed.
 
-### IDEA-3. Past questions by topic
+### IDEA-3. Past questions by topic · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Layla, after the Elasticity chapter: "Which exam questions were on elasticity?"
 - **The idea:** On a past paper's page, signed-in students tag a question with one of the module's chapters ("Q3:
@@ -159,7 +159,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** threads that name a paper, and how often they get an answer compared with others.
 - **Status:** proposed.
 
-### IDEA-5. Search finds lessons · quick win
+### IDEA-5. Search finds lessons · quick win · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Layla types "supply and demand" and gets no results, though EC1002's second chapter is Supply and
   Demand.
@@ -189,7 +189,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
   a photo.
 - **Status:** proposed.
 
-### IDEA-7. Follow a question
+### IDEA-7. Follow a question · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Layla: "Someone already asked my exact question. I voted, but I won't know when it's answered."
 - **The idea:** A Follow button on threads, switched on when you vote or reply and easy to switch off. Followers hear
@@ -201,7 +201,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** follows per thread; fewer duplicate threads.
 - **Status:** proposed.
 
-### IDEA-8. Ask without your name
+### IDEA-8. Ask without your name · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Layla: "I don't want 160 people to see my name on a question this basic."
 - **The idea:** "Post without my name" on a new thread. Classmates see "A Year 1 student". Whoever can moderate the
@@ -259,7 +259,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** fewer "what time is it?" threads in exam weeks.
 - **Status:** proposed.
 
-### IDEA-12. R-3: tell people when a date changes
+### IDEA-12. R-3: tell people when a date changes · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** "The ST2134 mock moved to Thursday. It was in the group at 11 pm, between 200 other messages."
 - **The idea:** When a rep changes the date, time or place of an exam, mock or deadline, or confirms a date, that
@@ -275,7 +275,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 
 ## Revising
 
-### IDEA-13. R-4: a revision plan to the exam date
+### IDEA-13. R-4: a revision plan to the exam date · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Layla, six days before EC1002 with 72 videos unwatched: "How much do I need to do a day?"
 - **The idea:** "Plan my revision" on a module spreads the unwatched chapters, and a past paper every few days, over
@@ -286,7 +286,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** plans made in the month before a session; lessons watched in the last two weeks.
 - **Status:** proposed.
 
-### IDEA-14. R-4: past papers as cards, scores kept private
+### IDEA-14. R-4: past papers as cards, scores kept private · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Hamad keeps a list in his phone of the papers he's done and his marks.
 - **The idea:** "Add to my board" on a paper. Marking it done asks for an optional score, which stays in the browser
@@ -312,7 +312,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** Year 3 modules with lessons by January; Year 3 lesson views.
 - **Status:** proposed.
 
-### IDEA-16. Choosing your Year 3 electives
+### IDEA-16. Choosing your Year 3 electives · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Hamad on results day: "Asset Pricing or Marketing Management? What does each lead to, and what did
   last year's students think?"
@@ -326,7 +326,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** views from July to September; Module choice threads.
 - **Status:** proposed.
 
-### IDEA-17. Seniors who answer
+### IDEA-17. Seniors who answer · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Reem: "I did NBB's internship. I'd tell Year 2s how to apply." Hamad: "I want to ask someone
   who's done it."
@@ -369,7 +369,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** share of requests closed this way; days from request to file.
 - **Status:** proposed.
 
-### IDEA-20. Ask the cohort: polls
+### IDEA-20. Ask the cohort: polls · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Mohamed: "Should emails be on by default? Which apps should the hub connect to?" A rep: "Which
   Saturday suits a revision session?"
@@ -383,7 +383,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** votes per poll; open product calls settled with numbers.
 - **Status:** proposed.
 
-### IDEA-21. A Sunday summary
+### IDEA-21. A Sunday summary · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** "I only open the hub when someone posts a link in the group."
 - **The idea:** An opt-in email each Sunday for your year: this week's exams and deadlines, new files in your
@@ -413,7 +413,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** previews served (each one is a share), and the visits that follow.
 - **Status:** proposed.
 
-### IDEA-23. Install the hub on your phone · quick win
+### IDEA-23. Install the hub on your phone · quick win · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** "WhatsApp is on my home screen. The hub is a bookmark I forget."
 - **The idea:** A web app manifest with the hub's name and icons, so "Add to Home Screen" on iPhone and Android gives
@@ -426,7 +426,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** visits from the home-screen start address (`/?source=app`).
 - **Status:** proposed.
 
-### IDEA-24. Start here: Year 1's first month · quick win
+### IDEA-24. Start here: Year 1's first month · quick win · **approved 2026-10-14, building (round 5)**
 
 - **The moment:** Layla in week one: "What's the difference between MyClass, the VLE and the student portal? When do
   I register with the University of London?"

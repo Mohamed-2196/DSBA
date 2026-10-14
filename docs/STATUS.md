@@ -31,6 +31,22 @@ deployed yet.
 
 ## In flight
 
+**Round 5** (started 2026-10-14). Mohamed approved 15 student ideas; six builders in parallel, migrations 0007-0011
+re-chained at merge:
+
+| Branch | Ideas |
+| --- | --- |
+| `round5/papers` | IDEA-1 paper + examiners' report, IDEA-3 questions by topic, and `exam_meta_from_name` (Mohamed agreed the builder writes it) |
+| `round5/search` | IDEA-5 search finds lessons, IDEA-2 search inside papers |
+| `round5/board2` | IDEA-13 revision plan, IDEA-14 past papers as cards |
+| `round5/forum` | IDEA-7 follow, IDEA-8 anonymous asks, IDEA-17 seniors, IDEA-20 polls |
+| `round5/alerts` | IDEA-12 date-change alerts, IDEA-21 Sunday summary |
+| `round5/onboard` | IDEA-23 PWA, IDEA-24 Year 1 start, IDEA-16 electives |
+| `round4/review-security` | security review of round 4 |
+
+- **Drive import running** into local MinIO (732 files, 684 MB; key in `.env`). Skipped: 8 IS2184 videos (.mp4) and
+  one 60 MB PDF over the 50 MB limit; 4 single-file links stay links.
+
 **Round 4.** Each builder on its own branch and worktree; one review per branch, just before it merges.
 
 | Branch | Agent | Worktree | Covers |
