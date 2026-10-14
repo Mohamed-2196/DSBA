@@ -10,6 +10,7 @@ const pages: AppRoute[] = [
   { id: 'home', path: '/', title: null, Page: lazy(() => import('./features/home/HomePage')) },
   { id: 'modules', path: '/modules', title: 'Modules', Page: lazy(() => import('./features/modules/ModulesPage')) },
   { id: 'module', path: '/modules/:moduleId', title: 'Module', Page: lazy(() => import('./features/modules/ModulePage')) },
+  { id: 'lesson', path: '/modules/:moduleId/lessons/:lessonId', title: 'Lesson', Page: lazy(() => import('./features/modules/ModulePage')) },
   { id: 'library', path: '/library', title: 'Library', Page: lazy(() => import('./features/library/LibraryPage')), feature: 'library' },
   { id: 'file', path: '/library/:fileId', title: 'Library', Page: lazy(() => import('./features/library/FileViewerPage')), feature: 'library' },
   { id: 'newsletter', path: '/newsletter', title: 'The DSBA Newsletter', Page: lazy(() => import('./features/newsletter/NewsletterPage')), feature: 'newsletter' },
