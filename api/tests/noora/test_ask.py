@@ -17,6 +17,7 @@ from app.core.time import bahrain_today
 from app.models import AuditEntry, CalendarEvent, Module, NooraLimits, NooraUsage, User, UserStatus
 from app.schemas.noora import NooraNote, NooraTurn
 from app.services.noora import prompt
+from tests.lessons import lesson_id
 from tests.noora.conftest import FakeClient
 
 API = "/api/v1"
@@ -50,7 +51,12 @@ def test_an_answer_streams_and_only_counts_are_kept(
     client_for: ClientFor, make_user: MakeUser, claude: FakeClient, db: Session, module: Module, exam: CalendarEvent
 ) -> None:
     sara = make_user(name="Sara Student")
-    r = ask(client_for(sara), route=f"/modules/{module.id}?tab=lessons", moduleId=module.id, chapter=0, video=0)
+    r = ask(
+        client_for(sara),
+        route=f"/modules/{module.id}?tab=lessons",
+        moduleId=module.id,
+        lessonId=lesson_id(module, 0, 0),
+    )
     assert r.status_code == 200, r.text
     assert r.headers["content-type"].startswith("text/event-stream")
     got = events(r.text)
@@ -71,7 +77,8 @@ def test_an_answer_streams_and_only_counts_are_kept(
     assert module.id in stable["text"]
     assert "/calendar" in stable["text"]
     assert "cache_control" not in screen
-    assert "Open lesson: chapter 0, video 0: Moments: The MGF." in screen["text"]
+    assert f"Open lesson: {lesson_id(module, 0, 0)}: Moments: The MGF." in screen["text"]
+    assert f"lesson {lesson_id(module, 1, 0)}: Lesson 1" in screen["text"]
     assert "ST2133 exam" in screen["text"]
     assert "(to be confirmed)" in screen["text"]
     assert "The student is in year 2." in screen["text"]

@@ -1,5 +1,5 @@
 """Editing modules and lessons (R-9): content managers add, edit, reorder, hide and remove them; what refers to a
-lesson follows it; two editors never overwrite each other; the seed never overwrites what they did."""
+lesson keeps pointing at it by id; two editors never overwrite each other; the seed never overwrites what they did."""
 
 from __future__ import annotations
 
@@ -12,16 +12,17 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import AuditEntry, BoardCard, LessonResume, LessonView, Module, Note, User
+from app.models import AuditEntry, BoardCard, Lesson, LessonResume, LessonView, Module, Note, User
 from app.seed.loader import load_modules
 from app.services.module_editor import parse_video, video_link
 from tests.content.conftest import API
+from tests.lessons import chapters, lesson_id
 
 Clients = Callable[..., TestClient]
 
 
 def yt(ident: str) -> dict[str, Any]:
-    return {"kind": "youtube", "id": ident, "title": f"Video {ident}"}
+    return {"kind": "youtube", "video_id": ident, "title": f"Video {ident}"}
 
 
 @pytest.fixture
@@ -31,9 +32,10 @@ def manager(make_user: Callable[..., User]) -> User:
 
 @pytest.fixture
 def module(db: Session) -> Module:
-    """Two chapters: lessons 0:0 (a), 0:1 (b) and 1:0 (c)."""
+    """Two chapters: One with lessons a and b, Two with c."""
+    mid = f"edit-mod-{uuid.uuid4().hex[:6]}"
     m = Module(
-        id=f"edit-mod-{uuid.uuid4().hex[:6]}",
+        id=mid,
         unit_code="TS1001",
         name="Test module",
         short_name="Test",
@@ -41,15 +43,15 @@ def module(db: Session) -> Module:
         description="",
         position=100,
         resources={},
-        chapters=[
-            {
-                "title": "One",
-                "audioUrl": "https://example.com/one.mp3",
-                "videos": [yt("aaaaaaaaaaa"), yt("bbbbbbbbbbb")],
-            },
-            {"title": "Two", "videos": [yt("ccccccccccc")]},
-        ],
+        chapters=chapters(
+            mid,
+            [
+                {"title": "One", "videos": [yt("aaaaaaaaaaa"), yt("bbbbbbbbbbb")]},
+                {"title": "Two", "videos": [yt("ccccccccccc")]},
+            ],
+        ),
     )
+    m.chapters[0].audio_url = "https://example.com/one.mp3"
     db.add(m)
     db.commit()
     return m
@@ -70,8 +72,9 @@ def save(c: TestClient, module_id: str, body: dict[str, Any], status: int = 200)
 
 
 def public_ids(c: TestClient, module_id: str) -> list[list[str]]:
+    """The YouTube ids students see, by chapter."""
     detail = c.get(f"{API}/modules/{module_id}").json()
-    return [[v["id"] for v in ch["videos"]] for ch in detail["chapters"]]
+    return [[v["videoId"] for v in ch["videos"]] for ch in detail["chapters"]]
 
 
 # ── video links ──────────────────────────────────────────────────────────────────────────────
@@ -80,13 +83,13 @@ def public_ids(c: TestClient, module_id: str) -> list[list[str]]:
 @pytest.mark.parametrize(
     ("url", "expected"),
     [
-        ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", {"kind": "youtube", "id": "dQw4w9WgXcQ"}),
-        ("https://youtu.be/dQw4w9WgXcQ?t=10", {"kind": "youtube", "id": "dQw4w9WgXcQ"}),
-        ("https://www.youtube.com/embed/dQw4w9WgXcQ", {"kind": "youtube", "id": "dQw4w9WgXcQ"}),
-        ("https://m.youtube.com/shorts/dQw4w9WgXcQ", {"kind": "youtube", "id": "dQw4w9WgXcQ"}),
+        ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", {"kind": "youtube", "video_id": "dQw4w9WgXcQ"}),
+        ("https://youtu.be/dQw4w9WgXcQ?t=10", {"kind": "youtube", "video_id": "dQw4w9WgXcQ"}),
+        ("https://www.youtube.com/embed/dQw4w9WgXcQ", {"kind": "youtube", "video_id": "dQw4w9WgXcQ"}),
+        ("https://m.youtube.com/shorts/dQw4w9WgXcQ", {"kind": "youtube", "video_id": "dQw4w9WgXcQ"}),
         (
             "https://www.youtube.com/playlist?list=PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y",
-            {"kind": "youtube-playlist", "id": "PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y"},
+            {"kind": "youtube-playlist", "video_id": "PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y"},
         ),
         (
             "https://vc.bibf.com/playback/presentation/2.3/abc",
@@ -106,10 +109,9 @@ def test_only_videos_the_app_embeds(url: str, expected: dict[str, str] | None) -
 
 
 def test_a_stored_video_reads_back_as_the_same_link() -> None:
-    for video in (yt("dQw4w9WgXcQ"), {"kind": "youtube-playlist", "id": "PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y"}):
-        parsed = parse_video(video_link(video))
-        assert parsed is not None
-        assert parsed["id"] == video["id"]
+    for kind, ident in (("youtube", "dQw4w9WgXcQ"), ("youtube-playlist", "PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y")):
+        parsed = parse_video(video_link(Lesson(kind=kind, video_id=ident)))
+        assert parsed == {"kind": kind, "video_id": ident}
 
 
 # ── access and reading ───────────────────────────────────────────────────────────────────────
@@ -124,20 +126,20 @@ def test_only_content_editors_edit(client_for: Clients, module: Module, make_use
     assert admin.get(f"{API}/content/modules").status_code == 200
 
 
-def test_the_editor_sees_everything_with_origins(client_for: Clients, manager: User, module: Module) -> None:
+def test_the_editor_sees_everything_with_ids(client_for: Clients, manager: User, module: Module) -> None:
     c = client_for(manager)
     listed = next(m for m in c.get(f"{API}/content/modules").json() if m["id"] == module.id)
     assert (listed["version"], listed["hidden"], listed["chapterCount"], listed["lessonCount"]) == (1, False, 2, 3)
     m = load(c, module.id)
-    assert [ch["origin"] for ch in m["chapters"]] == [0, 1]
+    assert [ch["id"] for ch in m["chapters"]] == [ch.id for ch in module.chapters]
     first = m["chapters"][0]["lessons"][1]
     assert first == {
+        "id": lesson_id(module, 0, 1),
         "kind": "youtube",
         "url": "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "title": "Video bbbbbbbbbbb",
         "channel": None,
         "hidden": False,
-        "origin": {"chapter": 0, "video": 1},
     }
 
 
@@ -172,14 +174,18 @@ def test_create_edit_and_audit(client_for: Clients, manager: User, db: Session) 
     assert saved["version"] == 2
     assert saved["resources"]["materials"] == "https://drive.google.com/drive/folders/x"
     public = c.get(f"{API}/modules/data-ethics").json()
+    chapter, lesson = saved["chapters"][0], saved["chapters"][0]["lessons"][0]
+    assert len(chapter["id"]) == len(lesson["id"]) == 8
     assert public["chapters"] == [
         {
+            "id": chapter["id"],
             "title": "Fairness",
             "audioUrl": None,
             "videos": [
                 {
+                    "id": lesson["id"],
                     "kind": "youtube",
-                    "id": "dQw4w9WgXcQ",
+                    "videoId": "dQw4w9WgXcQ",
                     "url": None,
                     "title": "Intro",
                     "channel": None,
@@ -230,47 +236,52 @@ def test_resources_must_be_https(client_for: Clients, manager: User, module: Mod
     assert r.status_code == 422
 
 
-# ── moving lessons: what refers to them follows ──────────────────────────────────────────────
+# ── moving lessons: what refers to them stays with them ─────────────────────────────────────
 
 
-def test_moves_carry_progress_notes_and_cards(
+def test_moves_keep_progress_notes_and_cards(
     client_for: Clients, manager: User, student: User, module: Module, db: Session, set_feature: Callable[..., None]
 ) -> None:
     set_feature("notes", "everyone")
     set_feature("board", "everyone")
     s = client_for(student)
     mid = module.id
-    for key in (f"{mid}:0:0", f"{mid}:1:0"):
-        assert s.put(f"{API}/me/progress/lessons/{key}", json={"watched": True}).status_code == 200
-    assert s.put(f"{API}/me/progress/resume", json={"moduleId": mid, "chapter": 0, "video": 1}).status_code == 200
-    note = s.post(f"{API}/notes", json={"title": "On b", "moduleId": mid, "chapter": 0, "video": 1})
+    a, b, c_ = lesson_id(module, 0, 0), lesson_id(module, 0, 1), lesson_id(module, 1, 0)
+    for lesson in (a, c_):
+        assert s.put(f"{API}/me/progress/lessons/{lesson}", json={"watched": True}).status_code == 200
+    assert s.put(f"{API}/me/progress/resume", json={"lessonId": b}).status_code == 200
+    note = s.post(f"{API}/notes", json={"title": "On b", "moduleId": mid, "lessonId": b})
     assert note.status_code == 201, note.text
-    for key in (f"{mid}:0:0", f"{mid}:0:1"):  # two cards that swap keys
-        assert s.post(f"{API}/board/cards", json={"link": {"type": "lesson", "id": key}}).status_code == 201
+    for lesson in (a, b):
+        assert s.post(f"{API}/board/cards", json={"link": {"type": "lesson", "id": lesson}}).status_code == 201
 
     c = client_for(manager)
     m = load(c, mid)
     one, two = m["chapters"]
-    a, b = one["lessons"]
+    la, lb = one["lessons"]
     # swap a and b, move c into chapter One first, and put chapter Two (now empty) first
-    one["lessons"] = [two["lessons"][0], b, a]
+    one["lessons"] = [two["lessons"][0], lb, la]
     two["lessons"] = []
-    save(c, mid, {**m, "chapters": [two, one]})
+    saved = save(c, mid, {**m, "chapters": [two, one]})
 
+    assert [[v["id"] for v in ch["lessons"]] for ch in saved["chapters"]] == [[], [c_, b, a]]
     assert public_ids(s, mid) == [[], ["ccccccccccc", "bbbbbbbbbbb", "aaaaaaaaaaa"]]
-    watched = set(db.scalars(select(LessonView.lesson_key).where(LessonView.user_id == student.id)))
-    assert watched == {f"{mid}:1:2", f"{mid}:1:0"}  # a and c
+    watched = set(db.scalars(select(LessonView.lesson_id).where(LessonView.user_id == student.id)))
+    assert watched == {a, c_}
     resume = db.get(LessonResume, (student.id, mid))
     assert resume is not None
-    assert (resume.chapter, resume.video) == (1, 1)  # b
+    assert resume.lesson_id == b
     stored = db.scalar(select(Note).where(Note.user_id == student.id))
     assert stored is not None
-    assert (stored.chapter, stored.video) == (1, 1)
-    cards = {c.title: c.link_id for c in db.scalars(select(BoardCard).where(BoardCard.user_id == student.id))}
-    assert cards == {"Test: Video aaaaaaaaaaa": f"{mid}:1:2", "Test: Video bbbbbbbbbbb": f"{mid}:1:1"}
-    audio = load(c, mid)["chapters"][1]
-    assert audio["title"] == "One"
-    assert db.get(Module, mid).chapters[1]["audioUrl"] == "https://example.com/one.mp3"  # type: ignore[union-attr]
+    assert stored.lesson_id == b
+    cards = {x.title: x.lesson_id for x in db.scalars(select(BoardCard).where(BoardCard.user_id == student.id))}
+    assert cards == {"Test: Video aaaaaaaaaaa": a, "Test: Video bbbbbbbbbbb": b}
+    board = s.get(f"{API}/board").json()["cards"]
+    assert {x["link"]["url"] for x in board} == {f"/modules/{mid}/lessons/{a}", f"/modules/{mid}/lessons/{b}"}
+    db.expire_all()
+    now = db.get(Module, mid)
+    assert now is not None
+    assert now.chapters[1].audio_url == "https://example.com/one.mp3"
 
 
 def test_hiding_takes_lessons_out_of_view_and_back(
@@ -279,8 +290,10 @@ def test_hiding_takes_lessons_out_of_view_and_back(
     set_feature("notes", "everyone")
     s = client_for(student)
     mid = module.id
-    assert s.put(f"{API}/me/progress/lessons/{mid}:1:0", json={"watched": True}).status_code == 200
-    assert s.post(f"{API}/notes", json={"title": "On a", "moduleId": mid, "chapter": 0, "video": 0}).status_code == 201
+    a, c_ = lesson_id(module, 0, 0), lesson_id(module, 1, 0)
+    assert s.put(f"{API}/me/progress/lessons/{c_}", json={"watched": True}).status_code == 200
+    note = s.post(f"{API}/notes", json={"title": "On a", "moduleId": mid, "lessonId": a})
+    assert note.status_code == 201
 
     c = client_for(manager)
     m = load(c, mid)
@@ -290,32 +303,43 @@ def test_hiding_takes_lessons_out_of_view_and_back(
     detail = s.get(f"{API}/modules/{mid}").json()
     assert (detail["chapterCount"], detail["lessonCount"]) == (1, 1)
     assert "hidden" not in detail["chapters"][0]
-    assert set(db.scalars(select(LessonView.lesson_key))) == {f"{mid}:0:0"}  # c is first now
-    note = db.scalar(select(Note).where(Note.user_id == student.id))
-    assert note is not None
-    assert (note.chapter, note.video) == (1, 0)  # a, past the visible lessons
-    assert s.put(f"{API}/me/progress/lessons/{mid}:1:0", json={"watched": True}).status_code == 404
+    assert s.put(f"{API}/me/progress/lessons/{a}", json={"watched": True}).status_code == 404
+    # the note keeps its hidden lesson, and still saves
+    body = {"title": "On a, again", "moduleId": mid, "lessonId": a, "version": 1}
+    assert s.put(f"{API}/notes/{note.json()['id']}", json=body).status_code == 200
 
     m["chapters"][0]["hidden"] = False
     m["chapters"][1]["lessons"][0]["hidden"] = True  # c
     save(c, mid, m)
     assert public_ids(s, mid) == [["aaaaaaaaaaa", "bbbbbbbbbbb"], []]
-    db.refresh(note)
-    assert (note.chapter, note.video) == (0, 0)
-    assert set(db.scalars(select(LessonView.lesson_key))) == {f"{mid}:1:0"}  # c, hidden at the end of chapter Two
+    assert set(db.scalars(select(LessonView.lesson_id))) == {c_}  # kept while hidden
 
 
 # ── removing ─────────────────────────────────────────────────────────────────────────────────
 
 
-def test_removing_a_lesson_with_notes_is_refused(
-    client_for: Clients, manager: User, student: User, module: Module, db: Session, set_feature: Callable[..., None]
+@pytest.mark.parametrize("what", ["note", "card"])
+def test_removing_a_lesson_with_notes_or_cards_is_refused(
+    client_for: Clients,
+    manager: User,
+    student: User,
+    module: Module,
+    db: Session,
+    set_feature: Callable[..., None],
+    what: str,
 ) -> None:
     set_feature("notes", "everyone")
+    set_feature("board", "everyone")
     s = client_for(student)
     mid = module.id
-    assert s.post(f"{API}/notes", json={"title": "On b", "moduleId": mid, "chapter": 0, "video": 1}).status_code == 201
-    assert s.put(f"{API}/me/progress/lessons/{mid}:0:0", json={"watched": True}).status_code == 200
+    a, b = lesson_id(module, 0, 0), lesson_id(module, 0, 1)
+    if what == "note":
+        r = s.post(f"{API}/notes", json={"title": "On b", "moduleId": mid, "lessonId": b})
+    else:
+        r = s.post(f"{API}/board/cards", json={"link": {"type": "lesson", "id": b}})
+    assert r.status_code == 201
+    assert s.put(f"{API}/me/progress/lessons/{a}", json={"watched": True}).status_code == 200
+    assert s.put(f"{API}/me/progress/resume", json={"lessonId": a}).status_code == 200
     c = client_for(manager)
     m = load(c, mid)
     keep_a = {**m, "chapters": [{**m["chapters"][0], "lessons": [m["chapters"][0]["lessons"][0]]}, m["chapters"][1]]}
@@ -327,10 +351,10 @@ def test_removing_a_lesson_with_notes_is_refused(
     # a has only progress: it may go, and its progress with it
     keep_b = {**m, "chapters": [{**m["chapters"][0], "lessons": [m["chapters"][0]["lessons"][1]]}, m["chapters"][1]]}
     save(c, mid, keep_b)
-    assert set(db.scalars(select(LessonView.lesson_key).where(LessonView.user_id == student.id))) == set()
-    note = db.scalar(select(Note).where(Note.user_id == student.id))
-    assert note is not None
-    assert (note.chapter, note.video) == (0, 0)
+    db.expire_all()
+    assert db.get(Lesson, a) is None
+    assert set(db.scalars(select(LessonView.lesson_id).where(LessonView.user_id == student.id))) == set()
+    assert db.get(LessonResume, (student.id, mid)) is None
 
 
 def test_removing_a_chapter_with_lessons_is_refused(client_for: Clients, manager: User, module: Module) -> None:
@@ -347,10 +371,16 @@ def test_removing_a_chapter_with_lessons_is_refused(client_for: Clients, manager
     assert [len(ch["lessons"]) for ch in saved["chapters"]] == [3]
 
 
-def test_an_origin_from_another_version_is_refused(client_for: Clients, manager: User, module: Module) -> None:
+@pytest.mark.parametrize("change", ["unknown lesson", "lesson twice", "unknown chapter"])
+def test_ids_from_elsewhere_are_refused(client_for: Clients, manager: User, module: Module, change: str) -> None:
     c = client_for(manager)
     m = load(c, module.id)
-    m["chapters"][1]["lessons"][0]["origin"] = {"chapter": 1, "video": 5}
+    if change == "unknown lesson":
+        m["chapters"][1]["lessons"][0]["id"] = "zzzzzzzz"
+    elif change == "lesson twice":
+        m["chapters"][1]["lessons"].append(m["chapters"][0]["lessons"][0])
+    else:
+        m["chapters"][1]["id"] = "zzzzzzzz"
     r = c.put(f"{API}/content/modules/{module.id}", json=m)
     assert r.json()["error"]["code"] == "module_changed"
 

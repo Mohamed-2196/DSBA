@@ -64,11 +64,11 @@ def test_connections_use_utc(db: Session) -> None:
 
 def test_progress_import_is_capped(client_for: Clients, student: User) -> None:
     c = client_for(student)
-    watched = {f"m:{i // 100}:{i % 100}": "2026-10-01T10:00:00Z" for i in range(5001)}
+    watched = {f"l{i}": "2026-10-01T10:00:00Z" for i in range(5001)}
     r = c.post(f"{API}/me/progress/import", json={"watched": watched, "last": {}})
     assert r.status_code == 422
     assert "watched" in r.json()["error"]["fields"]
-    last = {f"module-{i}": {"chapter": 0, "video": 0, "at": "2026-10-01T10:00:00Z"} for i in range(101)}
+    last = {f"module-{i}": {"lessonId": "abc", "at": "2026-10-01T10:00:00Z"} for i in range(101)}
     r = c.post(f"{API}/me/progress/import", json={"watched": {}, "last": last})
     assert r.status_code == 422
     assert "last" in r.json()["error"]["fields"]
