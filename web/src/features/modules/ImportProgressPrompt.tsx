@@ -38,8 +38,8 @@ export function ImportProgressPrompt() {
   }, []);
 
   const summary = useMemo(() => {
-    const lessons = Object.keys(guest.state.watched).filter((k) => getModule(k.split(':')[0]));
-    const modules = new Set([...lessons.map((k) => k.split(':')[0]), ...Object.keys(guest.state.last).filter((id) => getModule(id))]);
+    const lessons = Object.values(guest.state.watched).filter((w) => getModule(w.m));
+    const modules = new Set([...lessons.map((w) => w.m), ...Object.keys(guest.state.last).filter((id) => getModule(id))]);
     return { lessons: lessons.length, modules: modules.size };
   }, [guest.state, getModule]);
 
