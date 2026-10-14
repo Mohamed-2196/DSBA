@@ -38,6 +38,7 @@ export const LIMITS = {
   pollAnswers: 5,
   stats: 8,
   alt: 500,
+  artAlt: 300,
   issueBytes: 256 * 1024,
 } as const;
 
@@ -136,7 +137,8 @@ export interface IssueDraft {
   summary: string;
   /** names separated by commas */
   editors: string;
-  cover: { tone: IssueCover['tone']; art: string | null; lines: CoverLineDraft[] };
+  /** artAlt: the illustration described for people who can't see it */
+  cover: { tone: IssueCover['tone']; art: string | null; artAlt: string; lines: CoverLineDraft[] };
   sections: SectionDraft[];
 }
 
@@ -209,6 +211,7 @@ export function draftFrom(issue: IssueContent): IssueDraft {
     cover: {
       tone: issue.cover.tone,
       art: issue.cover.art ?? null,
+      artAlt: issue.cover.artAlt ?? '',
       lines: issue.cover.lines.map((l) => ({ key: newKey('c'), section: l.section, text: l.text })),
     },
     sections: issue.sections.map(sectionDraft),
@@ -275,7 +278,7 @@ export function sectionPayload(s: SectionDraft): IssueSection {
 
 /** The issue's cover as the API takes it. */
 export function coverPayload(d: IssueDraft): IssueCover {
-  return { tone: d.cover.tone, art: d.cover.art, lines: d.cover.lines.map((l) => ({ section: l.section, text: l.text.trim() })) };
+  return { tone: d.cover.tone, art: d.cover.art, artAlt: d.cover.art ? d.cover.artAlt.trim() || null : null, lines: d.cover.lines.map((l) => ({ section: l.section, text: l.text.trim() })) };
 }
 
 /** Everything the editor saves (PATCH /newsletter/issues/{id}). */
@@ -404,7 +407,8 @@ function checkBeside(errors: FieldErrors, s: SectionDraft): void {
     const f = s.figure;
     if (!f.src.trim()) put('figure.src', 'Choose a picture.');
     else if (!isIssuePicture(f.src) || f.width < 1 || f.height < 1) put('figure.src', 'Choose one of the pictures.');
-    if (length(f.alt.trim()) > LIMITS.alt) put('figure.alt', `Keep the description to ${LIMITS.alt} characters (it has ${length(f.alt.trim())}).`);
+    if (!f.alt.trim()) put('figure.alt', 'Describe the picture for people who can’t see it.');
+    else if (length(f.alt.trim()) > LIMITS.alt) put('figure.alt', `Keep the description to ${LIMITS.alt} characters (it has ${length(f.alt.trim())}).`);
     put('figure.caption', textProblem(f.caption, LIMITS.short, { required: false, empty: '' }));
   } else if (s.beside === 'card') {
     const c = s.card;
@@ -476,6 +480,8 @@ export function validate(d: IssueDraft): FieldErrors {
 
   // The cover
   if (d.cover.art && !isIssuePicture(d.cover.art)) put('cover.art', 'Choose one of the pictures.');
+  if (d.cover.art && !d.cover.artAlt.trim()) put('cover.artAlt', 'Describe the illustration for people who can’t see it.');
+  else if (length(d.cover.artAlt.trim()) > LIMITS.artAlt) put('cover.artAlt', `Keep the description to ${LIMITS.artAlt} characters (it has ${length(d.cover.artAlt.trim())}).`);
   if (d.cover.lines.length > LIMITS.coverLines) put('cover.lines', `A cover has ${LIMITS.coverLines} lines at most: remove ${d.cover.lines.length - LIMITS.coverLines}.`);
   const ids = new Set(d.sections.map((s) => s.id.trim()));
   for (const l of d.cover.lines) {
@@ -513,6 +519,7 @@ export function fieldOfApiPath(apiPath: string, d: IssueDraft): string | null {
       if (line) return fieldPath.line(line.key, field === 'section' ? 'section' : 'text');
       return 'cover.lines';
     }
+    if (what === 'artAlt') return 'cover.artAlt';
     return what === 'lines' ? 'cover.lines' : 'cover.art';
   }
   if (head !== 'sections') return null;

@@ -61,6 +61,7 @@ const labelFromId = (id: string): string => {
 export interface CoverModel {
   tone: 'navy' | 'paper';
   art: string | null;
+  artAlt: string | null;
   number: string;
   /** '' for an issue that has no date yet. */
   date: string;
@@ -90,6 +91,7 @@ export function coverOf(issue: {
   return {
     tone: cover.tone,
     art: cover.art ?? null,
+    artAlt: cover.artAlt ?? null,
     number: issueNo(issue.number),
     date: issue.date ? formatDay(issue.date) : '',
     title: issue.title,

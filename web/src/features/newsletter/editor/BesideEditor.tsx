@@ -1,8 +1,9 @@
 // What sits beside a section's text in the editor: nothing, one of the app's pictures (with its description and
 // caption), a typographic card, or a few numbers. One at a time, as the reader shows it.
-import { useId } from 'react';
-import { Plus, TextAa } from '@phosphor-icons/react';
+import { useId, useRef, useState } from 'react';
+import { Plus, TextAa, UploadSimple } from '@phosphor-icons/react';
 import { Button, SegmentedControl, Switch, cx } from '../../../ui';
+import { UPLOAD_RULES, checkUpload, progressText, uploadErrorMessage, uploadFile, type UploadProgress } from '../../../api/uploads';
 import { LIMITS, blankStat, controlId, fieldPath, moveByKey, removeByKey, updateByKey, type Beside, type FieldErrors, type SectionDraft } from '../lib/draft';
 import { safeImageSrc } from '../lib/links';
 import { ItemTools, MARKUP_HINT, TextBox, TextInput } from './fields';
@@ -14,6 +15,24 @@ const BESIDE: { value: Beside; label: string }[] = [
   { value: 'card', label: 'Card' },
   { value: 'stats', label: 'Numbers' },
 ];
+
+function readImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const w = img.naturalWidth || 1;
+      const h = img.naturalHeight || 1;
+      URL.revokeObjectURL(url);
+      resolve({ width: w, height: h });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve({ width: 1200, height: 900 });
+    };
+    img.src = url;
+  });
+}
 
 export interface PicturePickerProps {
   /** the radio group's name, unique on the page */
@@ -32,6 +51,37 @@ export interface PicturePickerProps {
 /** Pictures as radio cards with a thumbnail each (and "none" when the picture is optional). */
 export function PicturePicker({ name, label, choices, value, onChoose, none, id, error }: PicturePickerProps) {
   const errorId = useId();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<UploadProgress | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const pickFile = async (file: File | undefined) => {
+    if (!file) return;
+    const problem = checkUpload('newsletter_image', file);
+    if (problem) {
+      setUploadError(problem);
+      return;
+    }
+    setUploadError(null);
+    setUploading(true);
+    setProgress(null);
+    try {
+      const [dims, out] = await Promise.all([
+        readImageDimensions(file),
+        uploadFile('newsletter_image', file, { onProgress: setProgress }),
+      ]);
+      const src = out.mediaUrl ?? `/api/v1/media/${out.uploadId}`;
+      onChoose({ src, label: file.name, width: dims.width, height: dims.height });
+    } catch (err) {
+      setUploadError(uploadErrorMessage(err, 'newsletter_image'));
+    } finally {
+      setUploading(false);
+      setProgress(null);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
   return (
     <fieldset className={cx('nl-ed-pictures', error && 'has-error')} aria-describedby={error ? errorId : undefined}>
       <legend className="ui-field__label">{label}</legend>
@@ -63,6 +113,30 @@ export function PicturePicker({ name, label, choices, value, onChoose, none, id,
             </label>
           );
         })}
+      </div>
+      <div className="nl-ed-pictures__action">
+        <input
+          ref={fileRef}
+          type="file"
+          accept={UPLOAD_RULES.newsletter_image.accept}
+          style={{ display: 'none' }}
+          onChange={(e) => void pickFile(e.target.files?.[0])}
+          disabled={uploading}
+        />
+        <Button
+          size="sm"
+          variant="secondary"
+          leadingIcon={UploadSimple}
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? (progress ? progressText(progress) : 'Uploading…') : 'Upload picture'}
+        </Button>
+        {uploadError ? (
+          <p className="nl-ed-error" tabIndex={-1}>
+            {uploadError}
+          </p>
+        ) : null}
       </div>
       {error ? (
         <p id={errorId} className="nl-ed-error" tabIndex={-1}>
@@ -109,7 +183,7 @@ export function BesideEditor({ section: s, errors, onChange }: BesideEditorProps
             id={controlId(path('figure.src'))}
             error={errors[path('figure.src')]}
           />
-          <p className="nl-ed-note">For now an issue uses the Hub’s own pictures. Pictures uploaded in the forum can’t be shown here.</p>
+          <p className="nl-ed-note">{UPLOAD_RULES.newsletter_image.summary}</p>
           <TextBox
             path={path('figure.alt')}
             errors={errors}

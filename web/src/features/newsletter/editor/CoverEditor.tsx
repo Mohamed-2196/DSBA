@@ -5,7 +5,7 @@ import { Button, SegmentedControl, Select } from '../../../ui';
 import { IssueCover } from '../components/IssueCover';
 import { LIMITS, blankCoverLine, controlId, fieldPath, moveByKey, previewOf, removeByKey, updateByKey, type FieldErrors, type IssueDraft } from '../lib/draft';
 import { plainText, sectionLabel } from '../lib/text';
-import { ItemTools, TextInput } from './fields';
+import { ItemTools, TextBox, TextInput } from './fields';
 import { PicturePicker } from './BesideEditor';
 import { pictureChoices } from './pictures';
 
@@ -63,6 +63,18 @@ export function CoverEditor({ draft, errors, onChange, onFocus }: CoverEditorPro
             none="Type only"
             error={errors['cover.art']}
           />
+          {cover.art ? (
+            <TextBox
+              path="cover.artAlt"
+              errors={errors}
+              label="Description"
+              rows={2}
+              max={LIMITS.artAlt}
+              hint={cover.artAlt?.trim() ? 'Read out to people who can’t see the illustration.' : 'Describe the illustration for people who can’t see it: what it shows, and any words on it.'}
+              value={cover.artAlt}
+              onValue={(artAlt) => onChange((c) => ({ ...c, artAlt }))}
+            />
+          ) : null}
         </div>
       </div>
 
