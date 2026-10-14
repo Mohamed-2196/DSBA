@@ -11,6 +11,7 @@ export const paperKeys = {
   sittings: (moduleId: string) => [...PAPERS_KEY, moduleId] as const,
   paper: (itemId: string) => [...QUESTIONS_KEY, 'paper', itemId] as const,
   module: (moduleId: string, flagged = false) => [...QUESTIONS_KEY, 'module', moduleId, flagged] as const,
+  flagged: [...QUESTIONS_KEY, 'flagged'] as const,
 };
 
 /** A module's past papers, examiners' reports and solutions by sitting, newest first. */
@@ -42,6 +43,25 @@ export function useModuleQuestions(moduleId: string | null | undefined, { enable
       call(api.GET('/api/v1/library/questions', { params: { query: { module_id: moduleId ?? '', flagged } }, signal })),
     enabled: enabled && !!moduleId,
     staleTime: 60_000,
+  });
+}
+
+/** Library managers: every module's tags that students flagged, the most flagged first. */
+export function useFlaggedQuestions({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: paperKeys.flagged,
+    queryFn: ({ signal }): Promise<PaperQuestion[]> => call(api.GET('/api/v1/library/questions', { params: { query: { flagged: true } }, signal })),
+    enabled,
+  });
+}
+
+/** Library managers: the tag is right, clear its flags. */
+export function useKeepQuestion() {
+  const refresh = useRefreshQuestions();
+  return useMutation({
+    mutationFn: ({ id }: { id: string }): Promise<PaperQuestion> =>
+      call(api.POST('/api/v1/library/questions/{question_id}/keep', { params: { path: { question_id: id } } })),
+    onSuccess: refresh,
   });
 }
 

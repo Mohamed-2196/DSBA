@@ -6141,15 +6141,22 @@
           "library"
         ],
         "summary": "Module Questions",
-        "description": "The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first.\n`flagged`: only the tags someone flagged, the most flagged first (library managers; 403 for others).\nErrors: invalid_input (422: an unknown module).",
+        "description": "The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first.\n`flagged`: only the tags someone flagged, the most flagged first, of `module_id` or of every module (library\nmanagers; 403 for others). Errors: invalid_input (422: an unknown module, or none without `flagged`).",
         "operationId": "module_questions_api_v1_library_questions_get",
         "parameters": [
           {
             "name": "module_id",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Module Id"
             }
           },
@@ -6495,6 +6502,110 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/library/questions/{question_id}/keep": {
+      "post": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Keep Question",
+        "description": "The tag is right: clear its flags (library managers; audited: `library.question_keep`).",
+        "operationId": "keep_question_api_v1_library_questions__question_id__keep_post",
+        "parameters": [
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperQuestion"
+                }
+              }
+            }
           },
           "400": {
             "content": {

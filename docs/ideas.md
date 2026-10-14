@@ -113,7 +113,10 @@ examiners' commentaries explain what was marked down. Finding the right one fast
   goes under "Other papers". No moderation and no personal data.
 - **How we'd know it worked:** examiners' reports downloaded nearly as often as papers before May (`downloadCount`
   by kind).
-- **Status:** proposed.
+- **Status:** built (round 5, `round5/papers`). The Files tab lists papers by sitting (year, May or October,
+  zone) with their reports and solutions; the paper page links them and has "Time me". The Drive import reads
+  the session too, files a VLE folder's papers as papers, and `python -m app.cli exam-meta` fills files imported
+  earlier.
 
 ### IDEA-2. Search inside papers
 
@@ -142,7 +145,8 @@ examiners' commentaries explain what was marked down. Finding the right one fast
   tags mislead, so any student can flag one. It stores who tagged what, for moderation only.
 - **How we'd know it worked:** share of each module's papers tagged by April; clicks from chapters to questions in
   May.
-- **Status:** proposed.
+- **Status:** built (round 5, `round5/papers`), behind the switch "Past questions by topic" (off at first).
+  Reps keep or remove flagged tags in Manage → Uploads.
 
 ### IDEA-4. Ask about a paper's question
 

@@ -100,16 +100,22 @@ def for_paper(db: Session, item_id: uuid.UUID, user: User | None) -> list[PaperQ
     return to_out(db, tags, user)
 
 
-def for_module(db: Session, module_id: str, user: User | None, *, flagged: bool = False) -> list[PaperQuestionOut]:
+def for_module(
+    db: Session, module_id: str | None, user: User | None, *, flagged: bool = False
+) -> list[PaperQuestionOut]:
     """A module's tags on published papers: chapter by chapter, the newest sitting first. `flagged`: only the tags
-    someone flagged, the most flagged first (people who manage the library)."""
+    someone flagged, the most flagged first, of one module or of all (people who manage the library)."""
+    if module_id is None and not flagged:
+        raise invalid("moduleId", "Choose a module.")
     require_module(db, module_id)
     q = (
         select(PaperQuestion)
         .join(LibraryItem, LibraryItem.id == PaperQuestion.item_id)
         .join(Chapter, Chapter.id == PaperQuestion.chapter_id)
-        .where(LibraryItem.module_id == module_id, LibraryItem.status == ItemStatus.published)
+        .where(LibraryItem.status == ItemStatus.published)
     )
+    if module_id is not None:
+        q = q.where(LibraryItem.module_id == module_id)
     if flagged:
         if not manages(user):
             raise forbidden("Only people who manage the library can see flagged tags.")
@@ -170,6 +176,19 @@ def remove(db: Session, user: User, row: PaperQuestion, ip: str | None) -> None:
         title = f"Q{row.question} of {item.title if item else 'a paper'}"
         record(db, user, "library.question_remove", "library_item", row.item_id, title, ip, chapter=row.chapter_id)
     db.delete(row)
+
+
+def keep(db: Session, user: User, row: PaperQuestion, ip: str | None) -> None:
+    """People who manage the library: the tag is right. Its flags go (audited)."""
+    if not manages(user):
+        raise forbidden("Only people who manage the library can do this.")
+    if row.flag_count == 0:
+        return
+    db.execute(delete(PaperQuestionFlag).where(PaperQuestionFlag.question_id == row.id))
+    row.flag_count = 0
+    item = db.get(LibraryItem, row.item_id)
+    title = f"Q{row.question} of {item.title if item else 'a paper'}"
+    record(db, user, "library.question_keep", "library_item", row.item_id, title, ip, chapter=row.chapter_id)
 
 
 def set_flag(db: Session, user: User, row: PaperQuestion, on: bool) -> None:

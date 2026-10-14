@@ -193,10 +193,12 @@ def review(item_id: UUID, body: ReviewDecision, request: Request, user: LibraryM
 
 
 @router.get("/library/questions", response_model=list[PaperQuestion], dependencies=QUESTIONS)
-def module_questions(db: DB, user: OptionalUser, module_id: str, flagged: bool = False) -> list[PaperQuestion]:
+def module_questions(
+    db: DB, user: OptionalUser, module_id: str | None = None, flagged: bool = False
+) -> list[PaperQuestion]:
     """The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first.
-    `flagged`: only the tags someone flagged, the most flagged first (library managers; 403 for others).
-    Errors: invalid_input (422: an unknown module)."""
+    `flagged`: only the tags someone flagged, the most flagged first, of `module_id` or of every module (library
+    managers; 403 for others). Errors: invalid_input (422: an unknown module, or none without `flagged`)."""
     return past_questions.for_module(db, module_id, user, flagged=flagged)
 
 
@@ -228,6 +230,15 @@ def remove_question(question_id: UUID, request: Request, user: ActiveUser, db: D
     past_questions.remove(db, user, past_questions.get(db, question_id), client_ip(request))
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/library/questions/{question_id}/keep", response_model=PaperQuestion, dependencies=QUESTIONS)
+def keep_question(question_id: UUID, request: Request, user: LibraryManager, db: DB) -> PaperQuestion:
+    """The tag is right: clear its flags (library managers; audited: `library.question_keep`)."""
+    row = past_questions.get(db, question_id)
+    past_questions.keep(db, user, row, client_ip(request))
+    db.commit()
+    return past_questions.to_out(db, [row], user)[0]
 
 
 @router.put("/library/questions/{question_id}/flag", response_model=PaperQuestion, dependencies=QUESTIONS)

@@ -154,10 +154,18 @@ def test_students_tag_questions_chapters_list_them_and_reps_remove_wrong_ones(
     assert them.put(f"{API}/library/questions/{tag['id']}/flag").status_code == 200  # twice: still one
     flagged = rep.get(f"{API}/library/questions", params={"module_id": MODULE, "flagged": True}).json()
     assert [(t["id"], t["flagCount"], t["canRemove"]) for t in flagged] == [(tag["id"], 1, True)]
+    assert rep.get(f"{API}/library/questions", params={"flagged": True}).json() == flagged  # every module's
     assert me.get(f"{API}/library/questions", params={"module_id": MODULE, "flagged": True}).status_code == 403
+    assert me.get(f"{API}/library/questions").status_code == 422  # a module, or the flagged ones
+    assert them.post(f"{API}/library/questions/{tag['id']}/keep").status_code == 403
+    kept = rep.post(f"{API}/library/questions/{tag['id']}/keep")
+    assert (kept.status_code, kept.json()["flagCount"]) == (200, 0)
+    assert rep.get(f"{API}/library/questions", params={"flagged": True}).json() == []
+    assert them.put(f"{API}/library/questions/{tag['id']}/flag").json()["flagged"] is True  # flagged again
     assert them.delete(f"{API}/library/questions/{tag['id']}").status_code == 403
     assert rep.delete(f"{API}/library/questions/{tag['id']}").status_code == 204
     assert rep.delete(f"{API}/library/questions/{tag['id']}").status_code == 404
+    assert db.scalars(select(AuditEntry.action).where(AuditEntry.action == "library.question_keep")).one()
     entry = db.scalars(select(AuditEntry).where(AuditEntry.action == "library.question_remove")).one()
     assert entry.data["title"] == "Q3 of EC1002 ZA May 2024"
 

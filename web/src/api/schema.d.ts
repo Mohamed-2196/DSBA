@@ -1048,8 +1048,8 @@ export interface paths {
         /**
          * Module Questions
          * @description The questions tagged on a module's published past papers, chapter by chapter, the newest sitting first.
-         *     `flagged`: only the tags someone flagged, the most flagged first (library managers; 403 for others).
-         *     Errors: invalid_input (422: an unknown module).
+         *     `flagged`: only the tags someone flagged, the most flagged first, of `module_id` or of every module (library
+         *     managers; 403 for others). Errors: invalid_input (422: an unknown module, or none without `flagged`).
          */
         get: operations["module_questions_api_v1_library_questions_get"];
         put?: never;
@@ -1102,6 +1102,26 @@ export interface paths {
          * @description Whoever tagged it, or a library manager (audited: `library.question_remove`). Errors: not_found (404).
          */
         delete: operations["remove_question_api_v1_library_questions__question_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/questions/{question_id}/keep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Keep Question
+         * @description The tag is right: clear its flags (library managers; audited: `library.question_keep`).
+         */
+        post: operations["keep_question_api_v1_library_questions__question_id__keep_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -10808,8 +10828,8 @@ export interface operations {
     };
     module_questions_api_v1_library_questions_get: {
         parameters: {
-            query: {
-                module_id: string;
+            query?: {
+                module_id?: string | null;
                 flagged?: boolean;
             };
             header?: never;
@@ -11083,6 +11103,91 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    keep_question_api_v1_library_questions__question_id__keep_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperQuestion"];
+                };
             };
             /** @description Bad Request */
             400: {
