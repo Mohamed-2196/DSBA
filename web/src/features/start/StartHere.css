@@ -1,0 +1,97 @@
+/* Start here (start-): Home's card and the /start-here page share the checklist. */
+
+/* ── The checklist ───────────────────────────────────────────────────────────────────────────── */
+.start-steps { list-style: none; container: start-steps / inline-size; }
+.start-step { display: flex; flex-direction: column; gap: 2px; padding: var(--sp-12) 0; border-top: 1px solid var(--line); }
+.start-step:first-child { border-top: 0; }
+
+.start-check { display: flex; align-items: flex-start; gap: var(--sp-12); min-width: 0; cursor: pointer; }
+.start-check__box {
+  appearance: none;
+  flex: none;
+  display: grid;
+  place-content: center;
+  width: 22px;
+  height: 22px;
+  margin: 1px 0 0;
+  border: 1.5px solid var(--ink-3);
+  border-radius: 7px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.start-check__box::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  background: var(--cobalt-ink);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  transform: scale(0);
+  transition: transform var(--dur-fast) var(--ease);
+}
+.start-check__box:checked { background: var(--cobalt); border-color: var(--cobalt); }
+.start-check__box:checked::after { transform: scale(1); }
+.start-check:hover .start-check__box:not(:checked) { border-color: var(--ink); }
+.start-check__title { max-width: var(--measure); color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-semibold); line-height: 1.35; }
+.start-step.is-done .start-check__title { color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--ink-3); }
+
+/* Hint and links sit under the title, lined up with it. */
+.start-step__more { display: flex; flex-direction: column; gap: var(--sp-4); margin-left: calc(22px + var(--sp-12)); min-width: 0; }
+.start-step__more:empty { display: none; }
+.start-step__hint { max-width: 64ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.start-step__links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-16); }
+.start-step__note { max-width: 64ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+
+.start-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--cobalt);
+  font: inherit;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  cursor: pointer;
+}
+.start-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.start-link svg { flex: none; font-size: 12px; }
+
+@media (pointer: coarse) {
+  .start-check { min-height: 44px; align-items: center; }
+  .start-check__box { margin: 0; }
+  .start-link { min-height: 44px; }
+}
+
+/* ── Home's card ─────────────────────────────────────────────────────────────────────────────── */
+.start-card { padding: var(--sp-24); border-color: color-mix(in srgb, var(--y1) 40%, var(--line)); }
+.start-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-12); }
+.start-card__titles { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8) var(--sp-12); min-width: 0; }
+.start-card__title { font-size: var(--fs-25); font-weight: var(--fw-heavy); letter-spacing: var(--tracking-head); line-height: var(--lh-heading); }
+.start-card__intro { max-width: var(--measure); margin: var(--sp-4) 0 var(--sp-8); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+.start-card__foot { margin-top: var(--sp-8); margin-left: -10px; }
+/* Wide enough: two columns of steps. */
+@container start-steps (min-width: 720px) {
+  .start-steps--card { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-32); }
+  .start-steps--card .start-step:nth-child(2) { border-top: 0; }
+}
+@media (max-width: 699px) {
+  .start-card { padding: var(--sp-16); }
+}
+
+/* ── The page ────────────────────────────────────────────────────────────────────────────────── */
+.start-page__panel { padding: var(--sp-8) var(--sp-24); }
+.start-page__panel .start-step { padding: var(--sp-16) 0; }
+.start-page__done { margin-top: var(--sp-12); color: var(--signal-strong); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+@media (max-width: 699px) {
+  .start-page__panel { padding: var(--sp-4) var(--sp-16); }
+}
+
+.start-places { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--sp-16); }
+.start-place { padding: var(--sp-16) var(--sp-24); border: 1px solid var(--line); border-radius: var(--r-panel); background: var(--surface); }
+.start-place__name { font-size: var(--fs-16); font-weight: var(--fw-bold); }
+.start-place__name .start-link { font-size: inherit; font-weight: inherit; }
+.start-place__whose { margin-top: 2px; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); letter-spacing: 0.04em; text-transform: uppercase; }
+.start-place__what { margin-top: var(--sp-8); color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }

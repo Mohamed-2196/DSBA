@@ -6,6 +6,7 @@ import { AfterDsba } from './AfterDsba';
 import { useCareer } from './api';
 import { Certificates } from './Certificates';
 import { CareerContext } from './context';
+import { ElectivesLink } from './ElectivesLink';
 import { FeaturedCompetition } from './FeaturedCompetition';
 import { Opportunities } from './Opportunities';
 import { RoleFit } from './RoleFit';
@@ -23,6 +24,7 @@ function CareerBody({ data }: { data: CareerDoc }) {
       <PageHeader title={TITLE} description={DESCRIPTION} actions={data.featured ? <FeaturedCompetition /> : null} />
       <Opportunities />
       <Certificates />
+      {Object.values(data.chosen).includes('elective') ? <ElectivesLink /> : null}
       {role ? <RoleFit role={role} year={activeYear} onSelect={(id) => setRoleParam(id, { replace: true })} /> : null}
       <AfterDsba />
     </CareerContext.Provider>
