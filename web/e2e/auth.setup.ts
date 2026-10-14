@@ -113,9 +113,9 @@ setup('Sara signs out and back in: grades are cleared, guest lesson progress is 
   await expect(marks.nth(3)).toHaveValue('');
 
   // As a guest she marks two ST2133 lessons as watched.
-  const mod = '/modules/advanced-stats-distribution?tab=lessons&chapter=0';
-  for (const v of [0, 1]) {
-    await page.goto(`${mod}&video=${v}`);
+  const lessons = ['ik3fr6mt', 'crvr85s7']; // chapter 1's first two lessons (app/seed/data/modules.json)
+  for (const lesson of lessons) {
+    await page.goto(`/modules/advanced-stats-distribution/lessons/${lesson}`);
     const watched = page.locator('[data-hub="lesson-watched"]');
     await watched.click();
     await expect(watched).toHaveAttribute('aria-pressed', 'true');
@@ -135,8 +135,8 @@ setup('Sara signs out and back in: grades are cleared, guest lesson progress is 
   await expect(prompt).toContainText('someone marked 2 lessons as watched on this computer');
   await prompt.getByRole('button', { name: 'Add to my account' }).click();
   await expect(page.getByText('Lesson progress added')).toBeVisible();
-  const progress = await api<{ watched: Record<string, string> }>(page, 'GET', '/api/v1/me/progress');
-  expect(Object.keys(progress.body.watched).sort()).toEqual(['advanced-stats-distribution:0:0', 'advanced-stats-distribution:0:1']);
+  const progress = await api<{ watched: Record<string, { moduleId: string }> }>(page, 'GET', '/api/v1/me/progress');
+  expect(Object.keys(progress.body.watched).sort()).toEqual([...lessons].sort());
 
   // Home picks up where she left off; clearing the module's progress offers an undo.
   await page.goto('/');

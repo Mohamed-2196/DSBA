@@ -43,12 +43,12 @@ test('a student writes a note, finds it and deletes it', async ({ sara, run }) =
 });
 
 test('a lesson keeps its own notes', async ({ sara, run }) => {
-  await sara.goto('/modules/economics?tab=lessons&chapter=0&video=0');
+  await sara.goto('/modules/economics/lessons/xfm6xyvy'); // chapter 1's first lesson (app/seed/data/modules.json)
   const panel = sara.locator('[data-hub="lesson-notes"]');
   await panel.locator('[data-hub="lesson-note-text"]').fill(`A quick note [e2e ${run.tag}]`);
   await panel.getByRole('button', { name: 'Add note' }).click();
   await expect(panel.getByRole('link', { name: `A quick note [e2e ${run.tag}]` })).toBeVisible();
-  const notes = await api<{ items: { id: string }[] }>(sara, 'GET', '/api/v1/notes?module_id=economics&chapter=0&video=0');
+  const notes = await api<{ items: { id: string }[] }>(sara, 'GET', '/api/v1/notes?module_id=economics&lesson_id=xfm6xyvy');
   for (const n of notes.body.items) expect((await api(sara, 'DELETE', `/api/v1/notes/${n.id}`)).status).toBe(204);
 });
 
