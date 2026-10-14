@@ -285,9 +285,12 @@ export function CommandPalette() {
             <p className="cmdk-empty__body">{loadProblem(search.error)} You can also look in the library or the forum.</p>
           </div>
         ) : results.empty ? (
-          <div className="cmdk-empty">
-            <p className="cmdk-empty__title">No results for “{query.trim()}”</p>
-            <p className="cmdk-empty__body">Check the spelling, or try a unit code like EC2020, a module name like regression, or a word from a thread title.</p>
+          <div className="cmdk-empty cmdk-empty--art">
+            <img className="cmdk-empty__art" src="/illustrations/empty-search.png" alt="" width={800} height={600} decoding="async" />
+            <div>
+              <p className="cmdk-empty__title">No results for “{query.trim()}”</p>
+              <p className="cmdk-empty__body">Check the spelling, or try a unit code like EC2020, a module name like regression, or a word from a thread title.</p>
+            </div>
           </div>
         ) : null}
         {groups.map((g) => (

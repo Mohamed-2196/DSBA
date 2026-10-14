@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ArrowClockwise, Power, WarningCircle } from '@phosphor-icons/react';
-import { isFeatureOff, loadProblem } from '../api/errors';
+import { isFeatureOff, isNetworkError, loadProblem } from '../api/errors';
 import { Button } from './Button';
 import { EmptyState } from './EmptyState';
 import { Panel } from './Panel';
@@ -33,6 +33,7 @@ export function QueryError({ error, title = 'This didn’t load', onRetry, retry
     <EmptyState
       size={size}
       icon={WarningCircle}
+      illustration={isNetworkError(error) ? 'offline' : undefined}
       title={title}
       body={loadProblem(error)}
       action={

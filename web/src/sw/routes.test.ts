@@ -31,6 +31,7 @@ describe('routeFor', () => {
     expect(routeFor(get('/brand/hub-icon.png', 'no-cors'), ORIGIN)).toBe('static');
     expect(routeFor(get('/logos/employers/bbk.png', 'no-cors'), ORIGIN)).toBe('static');
     expect(routeFor(get('/favicon.png', 'no-cors'), ORIGIN)).toBe('static');
+    expect(routeFor(get('/illustrations/empty-offline.png', 'no-cors'), ORIGIN)).toBe('static');
   });
 
   it('leaves the worker and the manifest to the browser', () => {

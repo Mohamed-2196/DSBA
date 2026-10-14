@@ -69,6 +69,7 @@ function NextExamCard({ year, next, today, onOpen }: NextExamCardProps) {
         <EmptyState
           size="sm"
           icon={CalendarCheck}
+          illustration="nothing-due"
           title={year ? `No exams ahead for ${cohortLabel(year)}` : 'No exams ahead'}
           body="Exam dates show up here as soon as they’re announced."
         />

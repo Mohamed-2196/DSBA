@@ -273,6 +273,9 @@
 .cmdk-item__remove:hover { background: var(--surface); color: var(--ink); }
 
 .cmdk-empty { padding: 16px 12px 4px; }
+.cmdk-empty--art { display: flex; align-items: center; gap: 12px; }
+.cmdk-empty__art { flex: 0 0 auto; width: 88px; height: auto; }
+@media (max-width: 480px) { .cmdk-empty__art { width: 64px; } }
 .cmdk-empty__title { font-size: var(--fs-16); font-weight: var(--fw-bold); }
 .cmdk-empty__body { margin-top: 4px; max-width: 58ch; color: var(--ink-2); font-size: var(--fs-14); }
 
