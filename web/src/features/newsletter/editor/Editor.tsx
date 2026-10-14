@@ -12,6 +12,7 @@ import {
   Books,
   Eye,
   FloppyDisk,
+  Megaphone,
   NotePencil,
   PencilSimple,
   Plus,
@@ -76,6 +77,7 @@ const ADD: { kind: NewSection; label: string; icon: typeof NotePencil }[] = [
   },
   { kind: "forum", label: "Hot threads from the forum", icon: ChatsCircle },
   { kind: "library", label: "New files in the library", icon: Books },
+  { kind: "requests", label: "Requests done", icon: Megaphone },
 ];
 
 /** The keys of `next` whose sections had an open card in `prev` (matched by link name: keys change on a reload). */

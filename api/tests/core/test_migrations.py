@@ -84,6 +84,7 @@ def test_the_baseline_seeds_the_roles_and_every_switch(scratch: tuple[Config, En
             "forum.help-below": "off",
             "video_suggestions": "off",
             "library.daily-question": "off",
+            "requests.done": "off",
         }
 
 

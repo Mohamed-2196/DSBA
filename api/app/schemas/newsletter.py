@@ -43,8 +43,8 @@ SectionIcon = Literal[
     "Newspaper",
 ]
 # Live sections list data from other features when they are read: the exams in a window of dates, the hottest forum
-# threads, the newest library files.
-SectionKind = Literal["deadlines", "forum", "library"]
+# threads, the newest library files, the requests done in the 30 days up to the issue's date.
+SectionKind = Literal["deadlines", "forum", "library", "requests"]
 CoverTone = Literal["navy", "paper"]  # the stock a typographic cover is printed on
 
 MAX_SECTIONS = 40
@@ -188,7 +188,7 @@ class IssueSection(ApiModel):
     figure: IssueFigure | None = None
     aside: IssueAside | None = None
     window: DateWindow | None = None  # deadlines
-    fallback: LiveFallback | None = None  # forum and library: when there is nothing to list
+    fallback: LiveFallback | None = None  # forum, library and requests: when there is nothing to list
     est_words: int | None = Field(default=None, ge=0, le=5_000)  # words a live list adds to the read time
 
 

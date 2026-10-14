@@ -27,6 +27,11 @@ export function useSetNooraLimits() {
   });
 }
 
+/** What's missing, by the boxes the person holds (IDEA-39). */
+export function useGaps() {
+  return useQuery({ queryKey: ['admin', 'gaps'] as const, queryFn: () => call(api.GET('/api/v1/admin/gaps')) });
+}
+
 /** A year's Sunday summary for this week: the text reps paste into the group. */
 export function useSummaryPreview(year: CohortYear) {
   return useQuery({

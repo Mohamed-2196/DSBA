@@ -264,6 +264,7 @@ export const FEATURES = [
   'board',
   'requests',
   'requests.autoclose',
+  'requests.done',
   'summary',
   'video_suggestions',
 ] as const;

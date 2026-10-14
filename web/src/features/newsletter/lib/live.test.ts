@@ -8,4 +8,10 @@ describe('liveSectionOn', () => {
     expect(liveSectionOn('forum', isOn)).toBe(true);
     expect(liveSectionOn('library', (f) => f !== 'library')).toBe(false);
   });
+
+  it('needs both requests and its done list for the requests section', () => {
+    expect(liveSectionOn('requests', () => true)).toBe(true);
+    expect(liveSectionOn('requests', (f) => f !== 'requests.done')).toBe(false);
+    expect(liveSectionOn('requests', (f) => f !== 'requests')).toBe(false);
+  });
 });

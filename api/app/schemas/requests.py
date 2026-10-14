@@ -103,3 +103,13 @@ class SimilarRequest(ApiModel):
     kind: RequestKind
     status: RequestStatus
     me_too_count: int
+
+
+class DoneRequests(ApiModel):
+    """The requests done in the `days` up to `until` (a day in Bahrain), the latest answered first: "You asked, we
+    did". `total` counts them all; `items` holds the first `limit`."""
+
+    since: dt.date
+    until: dt.date
+    total: int
+    items: list[RequestOut]

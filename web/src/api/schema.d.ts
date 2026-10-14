@@ -521,6 +521,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/gaps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What Is Missing
+         * @description What's missing, for the people who fill it: the library's (library.manage), the lessons' (content.edit), the
+         *     calendar's (calendar.manage) and the most wanted open requests (requests.manage). A part whose box the viewer
+         *     doesn't hold, or whose feature is off for them, is None. Errors: forbidden (403: none of these boxes).
+         */
+        get: operations["what_is_missing_api_v1_admin_gaps_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -1648,6 +1670,27 @@ export interface paths {
          *     again, or a date someone already asked about), rate_limited (429: five a day).
          */
         post: operations["create_request_api_v1_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requests/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Done Requests
+         * @description "You asked, we did": the requests done in the `days` up to `until` (a day in Bahrain, today by default), the
+         *     latest answered first, with their me-too counts. A newsletter issue passes its own date.
+         */
+        get: operations["done_requests_api_v1_requests_done_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3039,6 +3082,13 @@ export interface components {
              */
             notify: boolean;
         };
+        /** CalendarGaps */
+        CalendarGaps: {
+            /** Unconfirmed */
+            unconfirmed: components["schemas"]["EventGap"][];
+            /** Examdetails */
+            examDetails: components["schemas"]["EventGap"][];
+        };
         /**
          * CardAside
          * @description A typographic card beside the copy: a kicker, a short title in a highlight, a line of text.
@@ -3509,6 +3559,27 @@ export interface components {
             /** To */
             to?: string | null;
         };
+        /**
+         * DoneRequests
+         * @description The requests done in the `days` up to `until` (a day in Bahrain), the latest answered first: "You asked, we
+         *     did". `total` counts them all; `items` holds the first `limit`.
+         */
+        DoneRequests: {
+            /**
+             * Since
+             * Format: date
+             */
+            since: string;
+            /**
+             * Until
+             * Format: date
+             */
+            until: string;
+            /** Total */
+            total: number;
+            /** Items */
+            items: components["schemas"]["RequestOut"][];
+        };
         /** ErrorDetail */
         ErrorDetail: {
             /**
@@ -3528,6 +3599,26 @@ export interface components {
         /** ErrorResponse */
         ErrorResponse: {
             error: components["schemas"]["ErrorDetail"];
+        };
+        /** EventGap */
+        EventGap: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Moduleid */
+            moduleId: string | null;
+            /** Sample */
+            sample: boolean;
+            /** Notime */
+            noTime: boolean;
+            /** Noplace */
+            noPlace: boolean;
         };
         /** ExportBoardCard */
         ExportBoardCard: {
@@ -4036,7 +4127,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions";
+            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions";
             /** Label */
             label: string;
             /** Hides */
@@ -4062,7 +4153,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions")[];
         };
         /** FileLink */
         FileLink: {
@@ -4174,6 +4265,26 @@ export interface components {
             to: string;
             /** Label */
             label: string;
+        };
+        /** GapModule */
+        GapModule: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Unitcode */
+            unitCode: string | null;
+            /** Year */
+            year: number;
+        };
+        /** Gaps */
+        Gaps: {
+            library: components["schemas"]["LibraryGaps"] | null;
+            /** Lessons */
+            lessons: components["schemas"]["LessonGap"][] | null;
+            calendar: components["schemas"]["CalendarGaps"] | null;
+            /** Requests */
+            requests: components["schemas"]["RequestGap"][] | null;
         };
         /** Health */
         Health: {
@@ -4321,7 +4432,7 @@ export interface components {
             /** Icon */
             icon?: ("NotePencil" | "ListBullets" | "CalendarCheck" | "Sparkle" | "Megaphone" | "UsersThree" | "Lightbulb" | "Student" | "ChatsCircle" | "Books" | "ChartLineUp" | "Microphone" | "RocketLaunch" | "Newspaper") | null;
             /** Kind */
-            kind?: ("deadlines" | "forum" | "library") | null;
+            kind?: ("deadlines" | "forum" | "library" | "requests") | null;
             /**
              * Blocks
              * @default []
@@ -4407,6 +4518,21 @@ export interface components {
             at: string;
         };
         /**
+         * LessonGap
+         * @description A module with no lessons, or with chapters that have none, or with videos gone from YouTube.
+         */
+        LessonGap: {
+            module: components["schemas"]["GapModule"];
+            /** Chapters */
+            chapters: number;
+            /** Emptychapters */
+            emptyChapters: number;
+            /** Lessons */
+            lessons: number;
+            /** Unavailable */
+            unavailable: number;
+        };
+        /**
          * LessonIn
          * @description A video lesson: a YouTube video or playlist link, or a class recording on vc.bibf.com.
          */
@@ -4470,6 +4596,15 @@ export interface components {
             byYear: {
                 [key: string]: number;
             };
+        };
+        /** LibraryGaps */
+        LibraryGaps: {
+            /** Sittings */
+            sittings: components["schemas"]["SittingGap"][];
+            /** Scans */
+            scans: components["schemas"]["ScanGap"][];
+            /** Nocheatsheet */
+            noCheatSheet: components["schemas"]["GapModule"][];
         };
         /** LibraryItem */
         LibraryItem: {
@@ -4670,7 +4805,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions")[];
             /**
              * Status
              * @enum {string}
@@ -5816,6 +5951,30 @@ export interface components {
             /** Sample */
             sample: boolean;
         };
+        /** RequestGap */
+        RequestGap: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "paper" | "fix" | "event" | "feature" | "other";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "planned" | "done" | "declined";
+            /** Metoocount */
+            meTooCount: number;
+            /** Moduletitle */
+            moduleTitle: string | null;
+        };
         /** RequestOut */
         RequestOut: {
             /**
@@ -5986,6 +6145,33 @@ export interface components {
             /** Position */
             position?: number | null;
         };
+        /**
+         * ScanGap
+         * @description A published paper, report or solutions file the text reader found no words in (a scan), or couldn't read:
+         *     search finds it by its title only, and Mini Noora can't read it.
+         */
+        ScanGap: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Title */
+            title: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "past-paper" | "examiners-report" | "exam-solutions" | "subject-guide" | "reading" | "study-guide" | "exercises" | "notes" | "cheat-sheet" | "course-materials" | "vle-materials" | "other";
+            module: components["schemas"]["GapModule"] | null;
+            /**
+             * Text
+             * @enum {string}
+             */
+            text: "empty" | "failed";
+        };
         /** SearchHit */
         SearchHit: {
             /**
@@ -6128,6 +6314,22 @@ export interface components {
             session: ("may" | "october") | null;
             /** Zones */
             zones: components["schemas"]["SittingZone"][];
+        };
+        /**
+         * SittingGap
+         * @description A sitting of a module with a past paper and no examiners' report, or the other way round.
+         */
+        SittingGap: {
+            module: components["schemas"]["GapModule"];
+            /** Examyear */
+            examYear: number;
+            /** Session */
+            session: ("may" | "october") | null;
+            /**
+             * Missing
+             * @enum {string}
+             */
+            missing: "paper" | "report";
         };
         /**
          * SittingZone
@@ -6687,6 +6889,7 @@ export type CalendarEventCreate = components['schemas']['CalendarEventCreate'];
 export type CalendarEventOut = components['schemas']['CalendarEventOut'];
 export type CalendarEventSaved = components['schemas']['CalendarEventSaved'];
 export type CalendarEventUpdate = components['schemas']['CalendarEventUpdate'];
+export type CalendarGaps = components['schemas']['CalendarGaps'];
 export type CardAside = components['schemas']['CardAside'];
 export type CareerCert = components['schemas']['CareerCert'];
 export type CareerChecklistItem = components['schemas']['CareerChecklistItem'];
@@ -6716,8 +6919,10 @@ export type CoverLine = components['schemas']['CoverLine'];
 export type CtaBlock = components['schemas']['CtaBlock'];
 export type CtaLabels = components['schemas']['CtaLabels'];
 export type DateWindow = components['schemas']['DateWindow'];
+export type DoneRequests = components['schemas']['DoneRequests'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
 export type ErrorResponse = components['schemas']['ErrorResponse'];
+export type EventGap = components['schemas']['EventGap'];
 export type ExportBoardCard = components['schemas']['ExportBoardCard'];
 export type ExportBoardPlan = components['schemas']['ExportBoardPlan'];
 export type ExportEmail = components['schemas']['ExportEmail'];
@@ -6748,6 +6953,8 @@ export type FoundAnswer = components['schemas']['FoundAnswer'];
 export type FoundItem = components['schemas']['FoundItem'];
 export type FurtherStudy = components['schemas']['FurtherStudy'];
 export type FurtherStudyAction = components['schemas']['FurtherStudyAction'];
+export type GapModule = components['schemas']['GapModule'];
+export type Gaps = components['schemas']['Gaps'];
 export type Health = components['schemas']['Health'];
 export type IssueCover = components['schemas']['IssueCover'];
 export type IssueCreate = components['schemas']['IssueCreate'];
@@ -6757,10 +6964,12 @@ export type IssueSection = components['schemas']['IssueSection'];
 export type IssueSummary = components['schemas']['IssueSummary'];
 export type IssueUpdate = components['schemas']['IssueUpdate'];
 export type LastLesson = components['schemas']['LastLesson'];
+export type LessonGap = components['schemas']['LessonGap'];
 export type LessonIn = components['schemas']['LessonIn'];
 export type LessonOut = components['schemas']['LessonOut'];
 export type LessonWatchedUpdate = components['schemas']['LessonWatchedUpdate'];
 export type LibraryFacets = components['schemas']['LibraryFacets'];
+export type LibraryGaps = components['schemas']['LibraryGaps'];
 export type LibraryItem = components['schemas']['LibraryItem'];
 export type LibraryItemCreate = components['schemas']['LibraryItemCreate'];
 export type LibraryItemUpdate = components['schemas']['LibraryItemUpdate'];
@@ -6829,6 +7038,7 @@ export type ReportResolve = components['schemas']['ReportResolve'];
 export type RequestAnswer = components['schemas']['RequestAnswer'];
 export type RequestCreate = components['schemas']['RequestCreate'];
 export type RequestEvent = components['schemas']['RequestEvent'];
+export type RequestGap = components['schemas']['RequestGap'];
 export type RequestOut = components['schemas']['RequestOut'];
 export type RequestPage = components['schemas']['RequestPage'];
 export type ResourcesIn = components['schemas']['ResourcesIn'];
@@ -6839,6 +7049,7 @@ export type RoleCreate = components['schemas']['RoleCreate'];
 export type RoleOut = components['schemas']['RoleOut'];
 export type RoleSummary = components['schemas']['RoleSummary'];
 export type RoleUpdate = components['schemas']['RoleUpdate'];
+export type ScanGap = components['schemas']['ScanGap'];
 export type SearchHit = components['schemas']['SearchHit'];
 export type SearchResults = components['schemas']['SearchResults'];
 export type Senior = components['schemas']['Senior'];
@@ -6849,6 +7060,7 @@ export type SignInResult = components['schemas']['SignInResult'];
 export type SignoffBlock = components['schemas']['SignoffBlock'];
 export type SimilarRequest = components['schemas']['SimilarRequest'];
 export type Sitting = components['schemas']['Sitting'];
+export type SittingGap = components['schemas']['SittingGap'];
 export type SittingZone = components['schemas']['SittingZone'];
 export type SkillTaught = components['schemas']['SkillTaught'];
 export type StarResult = components['schemas']['StarResult'];
@@ -9143,6 +9355,89 @@ export interface operations {
             };
         };
     };
+    what_is_missing_api_v1_admin_gaps_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Gaps"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_users_api_v1_admin_users_get: {
         parameters: {
             query?: {
@@ -9929,7 +10224,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "summary" | "video_suggestions";
+                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions";
             };
             cookie?: never;
         };
@@ -14794,6 +15089,93 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RequestOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    done_requests_api_v1_requests_done_get: {
+        parameters: {
+            query?: {
+                until?: string | null;
+                days?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DoneRequests"];
                 };
             };
             /** @description Bad Request */

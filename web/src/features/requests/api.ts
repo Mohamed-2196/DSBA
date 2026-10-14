@@ -1,5 +1,6 @@
 // Requests from students.
 //   GET    /api/v1/requests                       the list (filters, sort, mine), own requests first
+//   GET    /api/v1/requests/done?until=           "You asked, we did": done in the 30 days up to a day (requests.done)
 //   GET    /api/v1/requests/similar?q=            "Similar requests" while a title is typed
 //   GET    /api/v1/requests/{id}                  one request
 //   POST   /api/v1/requests                       ask (signed in, active)
@@ -43,6 +44,15 @@ export function useRequests(filters: RequestFilters, { enabled = true }: { enabl
     initialPageParam: 0,
     getNextPageParam: nextOffset,
     placeholderData: (previous) => previous,
+    enabled,
+  });
+}
+
+/** "You asked, we did": the requests done in the 30 days up to `until` (today by default), the latest first. */
+export function useDoneRequests({ until, limit, enabled = true }: { until?: string; limit: number; enabled?: boolean }) {
+  return useQuery({
+    queryKey: [...REQUESTS_KEY, 'done', until ?? null, limit] as const,
+    queryFn: () => call(api.GET('/api/v1/requests/done', { params: { query: { until, limit } } })),
     enabled,
   });
 }

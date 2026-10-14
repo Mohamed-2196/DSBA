@@ -18,9 +18,11 @@ const KINDS: { value: '' | SectionKind; label: string; note: string }[] = [
   { value: 'deadlines', label: 'Deadlines from the calendar', note: 'Lists the exams between two days, from the calendar, with a countdown from the issue date.' },
   { value: 'forum', label: 'Hot threads from the forum', note: 'Lists the threads getting the most attention when someone reads the issue.' },
   { value: 'library', label: 'New files in the library', note: 'Lists the newest files in the library when someone reads the issue.' },
+  { value: 'requests', label: 'Requests done', note: 'Lists the requests done in the 30 days up to the issue date, with how many asked for each.' },
 ];
 
-const KIND_BADGE: Record<SectionKind, string> = { deadlines: 'Deadlines', forum: 'Forum', library: 'Library' };
+const KIND_BADGE: Record<SectionKind, string> = { deadlines: 'Deadlines', forum: 'Forum', library: 'Library', requests: 'Requests' };
+const NOTHING_YET: Record<'forum' | 'library' | 'requests', string> = { forum: 'forum has threads', library: 'library has files', requests: 'reps have done requests' };
 
 const ICON_NAMES: Record<SectionIcon, string> = {
   NotePencil: 'Note',
@@ -138,7 +140,7 @@ function SectionCardImpl({ section: s, index, count, issueDate, published, error
               value={s.kind ?? ''}
               onChange={(e) => {
                 const value = e.target.value;
-                const kind = value === 'deadlines' || value === 'forum' || value === 'library' ? value : null;
+                const kind = KINDS.find((k) => k.value === value)?.value || null;
                 change((x) => setKind(x, kind, issueDate));
               }}
               options={KINDS.map((k) => ({ value: k.value, label: k.label }))}
@@ -199,10 +201,10 @@ function SectionCardImpl({ section: s, index, count, issueDate, published, error
             </section>
           ) : null}
 
-          {s.kind === 'forum' || s.kind === 'library' ? (
+          {s.kind === 'forum' || s.kind === 'library' || s.kind === 'requests' ? (
             <section className="nl-ed-part" aria-label="When there’s nothing to list">
               <h4 className="nl-ed-part__title">When there’s nothing to list</h4>
-              <p className="nl-ed-note">Shown instead of the headline and the words above, until the {s.kind === 'forum' ? 'forum has threads' : 'library has files'} to list.</p>
+              <p className="nl-ed-note">Shown instead of the headline and the words above, until the {NOTHING_YET[s.kind]} to list.</p>
               <TextInput path={path('fallback.title')} errors={errors} label="Headline" max={LIMITS.line} value={s.fallback.title} onValue={(title) => change((x) => ({ ...x, fallback: { ...x.fallback, title } }))} />
               <TextBox path={path('fallback.text')} errors={errors} label="Text" rows={2} max={LIMITS.item} hint={MARKUP_HINT} value={s.fallback.text} onValue={(text) => change((x) => ({ ...x, fallback: { ...x.fallback, text } }))} />
             </section>

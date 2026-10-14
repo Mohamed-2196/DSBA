@@ -3,7 +3,12 @@
 //   <AskLink kind? lead? />   "Can't find it? Ask for it": opens /requests with "New request" on that kind (a paper by
 //                             default). Nothing while requests are off or the account is suspended.
 //   <RequestsQueue />         Manage's requests section: open and planned requests with the reps' answer form.
+//   useDoneRequests({ until?, limit, enabled? })
+//                             "You asked, we did": the requests done in the 30 days up to a day (the newsletter's live
+//                             section of them). askedBy(meTooCount): "Asked by 5 students".
 //
-// Request links are /requests/<id>.
+// Request links are /requests/<id> (requestPath).
 export { AskLink } from './AskLink';
+export { useDoneRequests } from './api';
+export { askedBy, requestPath } from './labels';
 export { RequestsQueue } from './RequestsQueue';

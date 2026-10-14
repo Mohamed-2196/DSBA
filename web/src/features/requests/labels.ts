@@ -78,6 +78,12 @@ export function meTooLine(count: number, meToo: boolean): string | null {
   return `${count} ${count === 1 ? 'other wants' : 'others want'} this too`;
 }
 
+/** How many asked for a request: the requester and everyone who said "me too". */
+export function askedBy(meTooCount: number): string {
+  const n = meTooCount + 1;
+  return `Asked by ${n} ${n === 1 ? 'student' : 'students'}`;
+}
+
 /** The status change a rep is about to make needs a reply: declining says why. */
 export function needsReply(status: RequestStatus): boolean {
   return status === 'declined';

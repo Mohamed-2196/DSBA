@@ -708,7 +708,8 @@ Quick wins are marked **quick win** in the heading: a day or two each.
 - **Size:** S, both.
 - **Costs and risks:** none; answered requests are already public.
 - **How we'd know it worked:** new requests after an issue with the block; me-too clicks.
-- **Status:** proposed.
+- **Status:** built (round 7, `round7/reps`), behind the switch "You asked, we did" (off at first): the last 30
+  days on /requests, and a "Requests done" live section for issues (the 30 days up to the issue date).
 
 ### IDEA-39. What's missing, for the rep
 
@@ -722,7 +723,8 @@ Quick wins are marked **quick win** in the heading: a day or two each.
 - **Costs and risks:** none for students. Searches that found nothing would be useful too, but logging what people
   search is personal data, so leave that out.
 - **How we'd know it worked:** gaps closed per month; fewer "Not confirmed" dates in exam weeks.
-- **Status:** proposed.
+- **Status:** built (round 7, `round7/reps`): the Gaps tab in Manage, a part per box held (library, lessons,
+  calendar, requests). It also lists confirmed exams in the next 90 days without a time or place.
 
 ## Considered and left out (round 2)
 

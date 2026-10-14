@@ -65,6 +65,7 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("requests", "GET", "/requests"),
     ("requests", "GET", f"/requests/{NOTHING}"),
     ("requests", "POST", "/requests"),
+    ("requests.done", "GET", "/requests/done"),
     ("library.questions", "GET", f"/library/items/{NOTHING}/questions"),
     ("library.questions", "GET", "/library/questions?module_id=economics"),
     ("library.questions", "POST", f"/library/items/{NOTHING}/questions"),
@@ -92,7 +93,11 @@ OFF_AT_FIRST = (
     "forum.help-below",
     "video_suggestions",
     "library.daily-question",
+    "requests.done",
 )
+
+# Features that live inside another one, whose routes need it on too.
+INSIDE: dict[str, str] = {"requests.done": "requests"}
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
 # paths below it.
@@ -118,6 +123,7 @@ DECIDED_BY_REQUEST: dict[tuple[str, str], str] = {
     ("GET", "/admin/reports"): "lists the reports of the features on for the viewer",
     ("POST", "/admin/reports/{report_id}/resolve"): "resolves the reports of the features on for the viewer",
     ("GET", "/admin/stats"): "counts the features on for the viewer",
+    ("GET", "/admin/gaps"): "lists the gaps of the features on for the viewer",
 }
 # Where each feature's routes live: a route under one of these paths must declare that feature.
 AREAS: dict[str, Feature] = {
@@ -197,8 +203,9 @@ def test_a_switched_off_feature_is_gone_except_for_admins(
 ) -> None:
     body: dict[str, Any] | None = {} if method in ("POST", "PUT") else None
     student, boss = make_user(name="Sara Student"), make_user(name="Head Admin", roles=ADMIN)
-    if feature in OFF_AT_FIRST:
-        set_feature(feature, "everyone")
+    for needed in (INSIDE.get(feature), feature):
+        if needed in OFF_AT_FIRST:
+            set_feature(needed, "everyone")
     assert not off(client_for(student).request(method, f"{API}{path}", json=body))
     set_feature(feature, "off")
     assert off(client_for().request(method, f"{API}{path}", json=body))

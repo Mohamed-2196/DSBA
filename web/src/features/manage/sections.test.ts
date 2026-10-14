@@ -7,7 +7,7 @@ const onlyOn = (...features: Feature[]) => (feature: Feature) => features.includ
 
 describe('sectionsFor', () => {
   it('gives a rep the queues, the newsletter, the calendar and the numbers', () => {
-    expect(sectionsFor(holds('forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'stats.view'))).toEqual(['reports', 'uploads', 'newsletter', 'calendar', 'numbers']);
+    expect(sectionsFor(holds('forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'stats.view'))).toEqual(['reports', 'uploads', 'newsletter', 'calendar', 'gaps', 'numbers']);
   });
 
   it('gives a newsletter manager only the newsletter', () => {
@@ -23,11 +23,11 @@ describe('sectionsFor', () => {
   });
 
   it('gives content editors the modules, with no switch to wait for', () => {
-    expect(sectionsFor(holds('content.edit'), onlyOn())).toEqual(['content']);
+    expect(sectionsFor(holds('content.edit'), onlyOn())).toEqual(['content', 'gaps']);
   });
 
   it('gives content editors the suggested videos while they are on', () => {
-    expect(sectionsFor(holds('content.edit'), onlyOn('video_suggestions'))).toEqual(['content', 'videos']);
+    expect(sectionsFor(holds('content.edit'), onlyOn('video_suggestions'))).toEqual(['content', 'videos', 'gaps']);
   });
 
   it('gives the Sunday summary to its box while it is on', () => {
@@ -42,12 +42,18 @@ describe('sectionsFor', () => {
   it('leaves out the sections of switched-off features', () => {
     const rep = holds('forum.moderate', 'library.manage', 'newsletter.manage', 'calendar.manage', 'career.edit', 'stats.view');
     expect(sectionsFor(rep, onlyOn('forum'))).toEqual(['reports', 'numbers']);
-    expect(sectionsFor(rep, onlyOn('library', 'career'))).toEqual(['reports', 'uploads', 'career', 'numbers']);
+    expect(sectionsFor(rep, onlyOn('library', 'career'))).toEqual(['reports', 'uploads', 'career', 'gaps', 'numbers']);
   });
 
   it('gives people who handle requests the requests and their reports, while requests are on', () => {
-    expect(sectionsFor(holds('requests.manage'), onlyOn('requests'))).toEqual(['reports', 'requests']);
+    expect(sectionsFor(holds('requests.manage'), onlyOn('requests'))).toEqual(['reports', 'requests', 'gaps']);
     expect(sectionsFor(holds('requests.manage'), onlyOn('forum'))).toEqual([]);
+  });
+
+  it('gives the gaps to anyone who looks after the library, modules, calendar or requests', () => {
+    expect(sectionsFor(holds('calendar.manage'), onlyOn('calendar'))).toEqual(['calendar', 'gaps']);
+    expect(sectionsFor(holds('calendar.manage'), onlyOn())).toEqual([]);
+    expect(sectionsFor(holds('newsletter.manage'))).not.toContain('gaps');
   });
 
   it('drops reports when the only area a person moderates is off', () => {
