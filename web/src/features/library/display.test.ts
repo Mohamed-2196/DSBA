@@ -23,6 +23,7 @@ function item(patch: Partial<LibraryItem> = {}): LibraryItem {
     format: 'PDF',
     examYear: null,
     zone: null,
+    examSession: null,
     authorName: null,
     uploadedBy: { id: 'a5e1c0de-0000-4000-8000-000000000001', displayName: 'Sara A.', year: 2, badge: null },
     status: 'published',
@@ -87,9 +88,10 @@ describe('labels', () => {
   });
 
   it('names an exam sitting', () => {
-    expect(examLabel({ examYear: 2024, zone: 'A' })).toBe('2024, Zone A');
-    expect(examLabel({ examYear: 2023, zone: null })).toBe('2023');
-    expect(examLabel({ examYear: null, zone: null })).toBeNull();
+    expect(examLabel({ examYear: 2024, examSession: 'may', zone: 'A' })).toBe('May 2024, Zone A');
+    expect(examLabel({ examYear: 2023, examSession: 'october', zone: null })).toBe('October 2023');
+    expect(examLabel({ examYear: 2023, examSession: null, zone: null })).toBe('2023');
+    expect(examLabel({ examYear: null, examSession: null, zone: null })).toBeNull();
   });
 
   it('labels what isn’t public yet: "Not published" for students, never "rejected"', () => {

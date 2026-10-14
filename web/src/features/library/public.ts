@@ -7,6 +7,8 @@
 //   <UploadsQueue />                    moderators' review queue (Manage's Uploads section)
 //   libraryItemPath(item)               '/library/<slug>', the item's page
 //   libraryKindLabel(kind)              'Past paper', 'Students’ notes', …
+//   <ChapterQuestions moduleId chapterId />  the Lessons tab's past exam questions tagged with a chapter
+//                                        (render it only while the library.questions feature is on)
 import { createElement, lazy, Suspense, useCallback, useState, type ReactNode } from 'react';
 import { showsUpload, useAuth } from '../../auth';
 import type { CohortYear } from '../../state';
@@ -16,6 +18,7 @@ export { useRecentFiles } from './api';
 export { itemPath as libraryItemPath } from './api';
 export { kindLabel as libraryKindLabel } from './kinds';
 export { UploadsQueue } from './UploadsQueue';
+export { ChapterQuestions } from './ChapterQuestions';
 ;
 
 const LazyModuleFiles = lazy(() => import('./ModuleFiles'));

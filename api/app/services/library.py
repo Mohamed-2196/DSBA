@@ -338,12 +338,14 @@ _ZONE_ORDER = {"A": 0, "B": 1, None: 2}
 
 def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
     """A module's published papers, reports and solutions, grouped by sitting (exam year and session) and zone,
-    newest first; those without an exam year go to `other`, by title. Titles sort each list."""
+    newest first; those without an exam year go to `other`. Titles sort each list. Files only: the links to Drive
+    folders stay in the library's lists."""
     require_module(db, module_id)
     items = db.scalars(
         select(LibraryItem)
         .where(
             LibraryItem.module_id == module_id,
+            LibraryItem.source == ItemSource.file,
             LibraryItem.status == ItemStatus.published,
             LibraryItem.kind.in_(EXAM_KINDS),
         )

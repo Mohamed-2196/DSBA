@@ -53,10 +53,17 @@ export function cardMeta(item: LibraryItem, sort: LibrarySort): string {
   return `Added ${timeAgo(addedAt(item))}`;
 }
 
-/** 'Past paper, 2025, Zone A'. */
-export function examLabel(item: Pick<LibraryItem, 'examYear' | 'zone'>): string | null {
+/** 'May 2025' or 'October 2024'; just the year when the session isn't known. */
+export function sittingLabel(examYear: number, session: LibraryItem['examSession']): string {
+  if (session === 'may') return `May ${examYear}`;
+  if (session === 'october') return `October ${examYear}`;
+  return String(examYear);
+}
+
+/** 'May 2025, Zone A'. */
+export function examLabel(item: Pick<LibraryItem, 'examYear' | 'examSession' | 'zone'>): string | null {
   if (!item.examYear && !item.zone) return null;
-  return [item.examYear, item.zone ? `Zone ${item.zone}` : null].filter(Boolean).join(', ');
+  return [item.examYear ? sittingLabel(item.examYear, item.examSession) : null, item.zone ? `Zone ${item.zone}` : null].filter(Boolean).join(', ');
 }
 
 export interface StatusInfo {

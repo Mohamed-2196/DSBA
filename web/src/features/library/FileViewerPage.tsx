@@ -13,7 +13,7 @@ import {
 } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { isApiError } from '../../api/errors';
 import { appUrl } from '../../lib/share';
 import { useCopyLink } from '../../lib/useCopyLink';
@@ -31,6 +31,8 @@ import { isNew, linkPlace, moduleTag, sizeLabel, statusInfo } from './display';
 import { KIND_BY_ID, formatOf } from './kinds';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
+import { paperContext, usePaperSittings } from './papers';
+import { ExamTimer, TimeMeButton } from './viewer/ExamTimer';
 import { MetaPanel } from './viewer/MetaPanel';
 import { Preview } from './viewer/Preview';
 import './FileViewerPage.css';
@@ -154,6 +156,21 @@ function FileView({ item }: { item: LibraryItem }) {
   const wide = useMediaQuery('(min-width: 1280px)');
   const [metaPref, setMetaPref] = useState<boolean | null>(null);
   const [dialog, setDialog] = useState<'edit' | 'delete' | null>(null);
+  const [params, setParams] = useSearchParams();
+  const asked = Number(params.get('page'));
+  const page = Number.isInteger(asked) && asked > 0 && asked < 1000 ? asked : null;
+  const openPage = (n: number) =>
+    setParams(
+      (p) => {
+        p.set('page', String(n));
+        return p;
+      },
+      { replace: true, state: location.state },
+    );
+  const [endsAt, setEndsAt] = useState<number | null>(null);
+  const isPaper = item.kind === 'past-paper' && item.source === 'file' && item.status === 'published';
+  const sittings = usePaperSittings(item.moduleId, { enabled: isPaper && item.examYear !== null });
+  const report = paperContext(sittings.data?.sittings, item.id)?.reports[0] ?? null;
 
   const state = location.state as Partial<LinkState> | null;
   const backTo = typeof state?.from === 'string' ? state.from : '/library';
@@ -259,6 +276,7 @@ function FileView({ item }: { item: LibraryItem }) {
           {item.status === 'published' ? <StarButton on={item.starred} onToggle={() => toggleStar(item)} title={item.title} size="md" tooltip={isDesktop} /> : null}
           {item.status === 'published' ? <IconButton label="Copy link" icon={LinkSimple} onClick={() => void copyLink()} tooltip={isDesktop} className="lib-tb__copy" /> : null}
           {item.status === 'published' && !item.isMine ? <ReportButton targetType="library_item" targetId={item.id} className="lib-tb__report" /> : null}
+          {isPaper ? <TimeMeButton compact={isMobile} onStart={(h) => setEndsAt(Date.now() + h * 3600_000)} /> : null}
           {canManage && moreItems.length ? (
             <Menu align="end" label="More actions" items={moreItems} trigger={<IconButton label="More actions" icon={DotsThree} tooltip={isDesktop} />} />
           ) : null}
@@ -280,13 +298,16 @@ function FileView({ item }: { item: LibraryItem }) {
         </div>
       </div>
 
+      {endsAt !== null ? <ExamTimer endsAt={endsAt} report={report} onStop={() => setEndsAt(null)} /> : null}
       {status ? <StatusBanner item={item} onEdit={() => setDialog('edit')} onDelete={() => setDialog('delete')} /> : null}
 
       <div className={cx('lib-viewer__body', isDesktop && metaOpen && 'has-meta')}>
         <div className="lib-viewer__canvas" role="region" aria-label={`${item.title}, preview`}>
-          <Preview item={item} compact={isMobile} />
+          <Preview item={item} compact={isMobile} page={page} />
         </div>
-        {metaOpen ? <MetaPanel id="lib-file-meta" item={item} linkState={linkState} className={isDesktop ? undefined : 'lib-meta--stacked'} /> : null}
+        {metaOpen ? (
+          <MetaPanel id="lib-file-meta" item={item} linkState={linkState} className={isDesktop ? undefined : 'lib-meta--stacked'} onPage={openPage} />
+        ) : null}
       </div>
 
       {dialog === 'edit' ? <EditItemDialog item={item} open onClose={() => setDialog(null)} /> : null}

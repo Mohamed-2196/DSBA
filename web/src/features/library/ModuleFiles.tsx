@@ -9,10 +9,11 @@ import { Badge, Button, EmptyState, IconButton, Panel, QueryError, Skeleton, for
 import { downloadHref, itemPath, openLinkHref, useLibraryList } from './api';
 import type { LinkState } from './components/FileCard';
 import { FileThumb } from './components/FileThumb';
+import { PaperSittings } from './components/PaperSittings';
 import { StarButton } from './components/StarButton';
 import { UploadDialog } from './components/UploadDialog';
 import { addedAt, examLabel, isNew, linkPlace, moduleTag, sizeLabel } from './display';
-import { KINDS, type LibraryKind } from './kinds';
+import { EXAM_KINDS, KINDS, type LibraryKind } from './kinds';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
 import './ModuleFiles.css';
@@ -71,11 +72,21 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
   const groups = useMemo(() => {
     const byKind = new Map<LibraryKind, LibraryItem[]>();
     for (const f of files.data?.items ?? []) {
-      if (f.status !== 'published') continue;
+      if (f.status !== 'published' || (f.source === 'file' && EXAM_KINDS.has(f.kind))) continue; // papers: by sitting, above
       byKind.set(f.kind, [...(byKind.get(f.kind) ?? []), f]);
     }
     return KINDS.filter((k) => byKind.has(k.id)).map((k) => ({ kind: k, items: byKind.get(k.id) ?? [] }));
   }, [files.data]);
+  const hasPapers = (files.data?.items ?? []).some((f) => f.status === 'published' && f.source === 'file' && EXAM_KINDS.has(f.kind));
+  const fileList = (items: LibraryItem[]) => (
+    <Panel as="div" padding="none" className="lib-mf__panel">
+      <ul role="list" className="lib-mf__list">
+        {items.map((f) => (
+          <FileRow key={f.id} item={f} linkState={linkState} onToggleStar={toggleStar} />
+        ))}
+      </ul>
+    </Panel>
+  );
 
   const openUpload = () => setUpload((u) => ({ open: true, key: u.key + 1 }));
   const startUpload = () => {
@@ -97,7 +108,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
     );
   } else if (files.isError) {
     body = <QueryError error={files.error} title={`The files for ${name} didn’t load`} onRetry={() => void files.refetch()} retrying={files.isFetching} />;
-  } else if (!groups.length) {
+  } else if (!groups.length && !hasPapers) {
     body = (
       <Panel padding="none">
         <EmptyState
@@ -117,19 +128,14 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
   } else {
     body = (
       <div className="lib-mf__groups">
+        <PaperSittings moduleId={moduleId} linkState={linkState} renderOther={fileList} />
         {groups.map(({ kind, items }) => (
           <section key={kind.id} className="lib-mf__group" aria-labelledby={`lib-mf-${kind.id}`}>
             <h3 id={`lib-mf-${kind.id}`} className="lib-mf__h">
               {kind.plural}
               <span className="lib-mf__count">{items.length}</span>
             </h3>
-            <Panel as="div" padding="none" className="lib-mf__panel">
-              <ul role="list" className="lib-mf__list">
-                {items.map((f) => (
-                  <FileRow key={f.id} item={f} linkState={linkState} onToggleStar={toggleStar} />
-                ))}
-              </ul>
-            </Panel>
+            {fileList(items)}
           </section>
         ))}
         {total > LIMIT ? (

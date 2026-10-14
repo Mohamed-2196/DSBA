@@ -115,10 +115,10 @@ function ImagePreview({ item, src }: { item: LibraryItem; src: string }) {
 
 /**
  * The file itself: PDFs in the browser's PDF viewer and images as they are, both from a short-lived link
- * (GET /library/items/{id}/file); on phones a PDF opens in a new tab instead. Other formats and links show
- * a card with Download or Open.
+ * (GET /library/items/{id}/file); on phones a PDF opens in a new tab instead. `page` opens a PDF at that page.
+ * Other formats and links show a card with Download or Open.
  */
-export function Preview({ item, compact }: { item: LibraryItem; compact: boolean }) {
+export function Preview({ item, compact, page = null }: { item: LibraryItem; compact: boolean; page?: number | null }) {
   const removed = item.status === 'removed';
   const kind = removed ? null : previewKind(item);
   const link = useFileLink(kind ? item.id : null);
@@ -167,7 +167,7 @@ export function Preview({ item, compact }: { item: LibraryItem; compact: boolean
         <div className="lib-nopreview__text">
           <h2 className="lib-nopreview__title">Read the PDF</h2>
           <p>It opens in your phone’s PDF viewer, in a new tab.</p>
-          <Button variant="primary" href={link.data?.url ?? src} external leadingIcon={FilePdf}>
+          <Button variant="primary" href={`${link.data?.url ?? src}${page ? `#page=${page}` : ''}`} external leadingIcon={FilePdf}>
             Open the PDF
           </Button>
           <Button variant="ghost" href={downloadHref(item)} leadingIcon={DownloadSimple}>
@@ -178,5 +178,6 @@ export function Preview({ item, compact }: { item: LibraryItem; compact: boolean
     );
   }
 
-  return <iframe className="lib-preview__frame" src={src} title={`${item.title} (PDF)`} referrerPolicy="no-referrer" data-hub="file-preview" />;
+  // A new page reloads the frame: browsers' PDF viewers read #page only when they open the file.
+  return <iframe key={page ?? 0} className="lib-preview__frame" src={page ? `${src}#page=${page}` : src} title={`${item.title} (PDF)`} referrerPolicy="no-referrer" data-hub="file-preview" />;
 }

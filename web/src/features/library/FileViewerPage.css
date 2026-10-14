@@ -170,3 +170,34 @@
   .lib-crumbs a { min-height: 44px; }
   .lib-viewer.is-app .lib-viewer__head, .lib-viewer.is-stacked .lib-viewer__head { padding-top: var(--sp-4); }
 }
+
+/* ── Past papers: the sitting, "Time me", questions by topic ───────── */
+.lib-meta__sitting { display: grid; gap: var(--sp-8); }
+.lib-meta__sitting-list { display: grid; gap: var(--sp-4); margin: 0; padding: 0; list-style: none; }
+.lib-meta__sitting-link { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-8); min-height: 36px; padding: var(--sp-8) var(--sp-12); border: 1px solid var(--line); border-radius: var(--r-sm, 8px); color: var(--ink); font-weight: var(--fw-semibold); text-decoration: none; }
+.lib-meta__sitting-link:hover { background: var(--surface-2); }
+.lib-meta__sitting-kind { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-medium); }
+.lib-meta__sitting-none { margin: 0; color: var(--ink-2); }
+
+.lib-timer { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-12); padding: var(--sp-8) var(--sp-16) var(--sp-8) var(--sp-24); border-bottom: 1px solid var(--line); background: var(--highlight-soft); }
+.lib-timer__icon { flex: 0 0 auto; font-size: 22px; color: var(--ink); }
+.lib-timer__text { flex: 1 1 auto; min-width: 0; margin: 0; color: var(--ink); font-size: var(--fs-14); }
+.lib-timer__text a { color: var(--cobalt); font-weight: var(--fw-semibold); }
+.lib-timer__clock { font-size: var(--fs-16); font-weight: var(--fw-heavy); }
+
+.lib-qtags { display: grid; gap: var(--sp-12); }
+.lib-qtags__list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.lib-qtags__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-8); padding: var(--sp-4) 0; border-bottom: 1px solid var(--line); }
+.lib-qtags__row:last-child { border-bottom: 0; }
+.lib-qtags__q { flex: 0 0 auto; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; font-weight: var(--fw-heavy); font-variant-numeric: tabular-nums; }
+button.lib-qtags__q { min-height: 32px; color: var(--cobalt); text-decoration: underline; text-underline-offset: 0.18em; cursor: pointer; }
+.lib-qtags__chapter { flex: 1 1 8rem; min-width: 0; color: var(--ink); overflow-wrap: anywhere; }
+.lib-qtags__flags { color: var(--alert, var(--ink-2)); font-size: var(--fs-12); }
+.lib-qtags__acts { display: inline-flex; gap: 2px; margin-left: auto; }
+.lib-qtags__empty { margin: 0; color: var(--ink-2); }
+.lib-qtags__form { display: grid; gap: var(--sp-12); padding: var(--sp-12); border-radius: var(--r-sm, 8px); background: var(--surface-2); }
+.lib-qtags__fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); }
+
+@media (pointer: coarse) {
+  .lib-meta__sitting-link, button.lib-qtags__q { min-height: 44px; }
+}
