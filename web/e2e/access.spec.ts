@@ -35,8 +35,8 @@ test('a newsletter manager can publish but not moderate', async ({ admin, sara, 
     const moderate = await api<{ error: { code: string } }>(sara, 'POST', '/api/v1/forum/threads/00000000-0000-4000-8000-000000000000/moderate', { status: 'hidden' });
     expect(moderate.status).toBe(403);
     await sara.goto('/manage');
-    await expect(sara.getByRole('tab', { name: /Newsletter/ })).toBeVisible();
-    await expect(sara.getByRole('tab', { name: /Reports/ })).toHaveCount(0);
+    await expect(sara.getByRole('navigation', { name: 'Your tools' }).getByRole('button', { name: /Newsletter/ })).toBeVisible();
+    await expect(sara.getByRole('navigation', { name: 'Your tools' }).getByRole('button', { name: /Reports/ })).toHaveCount(0);
   } finally {
     await api(admin, 'PUT', `/api/v1/admin/users/${me.body.id}/roles`, { roleIds: [ids[0]] });
   }

@@ -41,20 +41,55 @@
 .home-head__guest .ui-button { margin-left: -6px; }
 .home-head__custom { flex: 0 0 auto; }
 
-/* ── Blocks: one column, two from 760px of room (container query: the rail width varies) ── */
+/* ── Blocks: equal cards in a grid; one column, two from 680px of room, three from 1120px (container query: the
+   rail width varies). Notices and the Noora prompt run across the whole width. Cards in a row share its height. ── */
 .home-blocks { container: home / inline-size; }
-.home-blocks__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-48) var(--sp-32); align-items: start; }
+.home-blocks__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-32) var(--sp-24); align-items: stretch; }
 /* PageSection's own 48px rhythm is replaced by the grid's gaps here. */
 .home-blocks__grid .ui-page-section + .ui-page-section { margin-top: 0; }
-.home-block { min-width: 0; }
+.home-block { min-width: 0; display: flex; flex-direction: column; }
 .home-block:empty { display: none; }
 .home-block > .ui-section-header { min-height: 32px; align-items: center; }
+/* The card's body fills the rest of the row's height. */
+.home-block--card > :not(.ui-section-header) { flex: 1 1 auto; }
+.home-block--card > .home-coming { grid-template-rows: auto 1fr; align-content: start; }
+.home-block--wide { grid-column: 1 / -1; }
 .home-block--notice > .ui-page-section { margin-top: 0; }
 .home-block__actions { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-8); }
-@container home (min-width: 760px) {
+@container home (min-width: 680px) {
   .home-blocks__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .home-block--notice { grid-column: 1 / -1; }
 }
+@container home (min-width: 1120px) {
+  .home-blocks__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ── Ask Noora: one line that opens her page ───────────────────────── */
+.home-ask {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  min-height: 64px;
+  padding: var(--sp-8) var(--sp-8) var(--sp-8) var(--sp-16);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.home-ask:focus-within { border-color: var(--cobalt); box-shadow: 0 0 0 3px color-mix(in srgb, var(--cobalt) 18%, transparent); }
+.home-ask__icon { flex: 0 0 auto; font-size: 26px; color: var(--cobalt); }
+.home-ask__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-16);
+  outline: none;
+}
+.home-ask__input::placeholder { color: var(--ink-3); }
+.home-ask__go { flex: 0 0 auto; }
 
 /* ── Coming up: the next exam, then the dates ahead ────────────────── */
 .home-coming { display: grid; gap: var(--sp-12); }
@@ -72,8 +107,9 @@
   display: grid;
   place-content: center;
   justify-items: center;
-  width: 72px;
+  min-width: 72px;
   height: 72px;
+  padding: 0 var(--sp-8);
   border-radius: var(--r-control);
   background: color-mix(in srgb, var(--alert) 10%, var(--surface));
   color: var(--ink);
@@ -181,10 +217,10 @@
   background: linear-gradient(var(--mod-c), var(--mod-c)) 0 0 / var(--pct) 100% no-repeat;
 }
 
-/* ── New in my modules ─────────────────────────────────────────────── */
-.home-new { overflow: hidden; }
-.home-new li + li { border-top: 1px solid var(--line); }
-.home-new__row {
+/* ── New files and Forum lists ─────────────────────────────────────────────── */
+.home-list { overflow: hidden; }
+.home-list li + li { border-top: 1px solid var(--line); }
+.home-list__row {
   display: flex;
   align-items: center;
   gap: var(--sp-12);
@@ -194,15 +230,15 @@
   text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease);
 }
-.home-new__row:hover { background: var(--surface-2); }
-.home-new__row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus-color); }
-.home-new__icon { flex: 0 0 auto; color: var(--ink-2); font-size: 22px; }
-.home-new__text { flex: 1 1 auto; min-width: 0; display: grid; gap: 1px; }
-.home-new__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-14); font-weight: var(--fw-semibold); }
-.home-new__meta { display: flex; align-items: baseline; gap: var(--sp-8); min-width: 0; color: var(--ink-2); font-size: var(--fs-12); }
-.home-new__code { color: var(--ink); font-size: var(--fs-12); }
-.home-new__when { flex: 0 0 auto; color: var(--ink-2); font-size: var(--fs-12); white-space: nowrap; }
-.home-new__loading { display: grid; gap: var(--sp-16); padding: var(--sp-16); }
+.home-list__row:hover { background: var(--surface-2); }
+.home-list__row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus-color); }
+.home-list__icon { flex: 0 0 auto; color: var(--ink-2); font-size: 22px; }
+.home-list__text { flex: 1 1 auto; min-width: 0; display: grid; gap: 1px; }
+.home-list__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.home-list__meta { display: flex; align-items: baseline; gap: var(--sp-8); min-width: 0; color: var(--ink-2); font-size: var(--fs-12); }
+.home-list__code { color: var(--ink); font-size: var(--fs-12); }
+.home-list__when { flex: 0 0 auto; color: var(--ink-2); font-size: var(--fs-12); white-space: nowrap; }
+.home-list__loading { display: grid; gap: var(--sp-16); padding: var(--sp-16); }
 
 /* ── Customize Home ────────────────────────────────────────────────── */
 .home-custom { display: grid; margin: 0 0 var(--sp-16); }
@@ -216,8 +252,8 @@
   .home-head { margin-bottom: var(--sp-24); }
   .home-head__title { font-size: var(--fs-31); }
   .home-blocks__grid { row-gap: var(--sp-32); }
-  .home-new__when { display: none; }
-  .home-next__count { width: 60px; height: 60px; }
+  .home-list__when { display: none; }
+  .home-next__count { min-width: 60px; height: 60px; }
   .home-next__days { font-size: var(--fs-25); }
 }
 /* My modules' two actions wrap under the title when there's no room beside it. */

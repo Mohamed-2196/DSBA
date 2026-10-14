@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
@@ -44,6 +45,16 @@ function serviceWorker(): Plugin {
   };
 }
 
+/** The build's version for bug reports: VITE_APP_VERSION when set (CI, Docker), else the commit, else 'dev'. */
+function appVersion(env: Record<string, string>): string {
+  if (env.VITE_APP_VERSION) return env.VITE_APP_VERSION.slice(0, 40);
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() || 'dev';
+  } catch {
+    return 'dev';
+  }
+}
+
 // The app is served from the same origin as the API: in development Vite proxies /api to the backend,
 // in production a reverse proxy does (see compose.yaml and docs/backend/DEPLOYMENT.md).
 export default defineConfig(({ mode }) => {
@@ -52,6 +63,7 @@ export default defineConfig(({ mode }) => {
   return {
     base: env.VITE_BASE || '/',
     plugins: [react(), serviceWorker()],
+    define: { __APP_VERSION__: JSON.stringify(appVersion(env)) },
     server: {
       host: env.VITE_DEV_HOST || '127.0.0.1',
       port: 5173,

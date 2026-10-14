@@ -7,8 +7,8 @@ import { Button, cx, EmptyState, QueryError, Skeleton } from '../../ui';
 import { isMine, usePapers } from '../papers/public';
 import { useUpcomingEvents } from './api';
 import { DateLeaf } from './DateLeaf';
-import { daysUntil, formatLong, parseDay, today as bahrainToday } from '../../lib/dates';
-import { countdownShort } from './dates';
+import { dayKey, daysUntil, formatDay, formatLong, parseDay, today as bahrainToday } from '../../lib/dates';
+import { windowCountdown } from './dates';
 import { splitTitle, typeLabel, whenAndWhere } from './eventMeta';
 import './calendar-shared.css';
 import './UpcomingEvents.css';
@@ -32,6 +32,7 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
   const year = forYear === undefined ? browsed : forYear;
   const { getModule } = useModules();
   const [today] = useState(() => bahrainToday());
+  const todayKey = dayKey(today);
   const { year: ownYear, papers: ownPapers } = usePapers();
   const papers = year === ownYear ? ownPapers : null;
   // With papers, read more and keep the student's own (another paper's dates drop out).
@@ -65,7 +66,10 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
     );
   }
 
-  const events = papers ? query.data.filter((e) => isMine(e, year ?? null, papers)).slice(0, n) : query.data;
+  const listed = papers ? query.data.filter((e) => isMine(e, year ?? null, papers)).slice(0, n) : query.data;
+  // A date still open (an application window that started already) sorts by its last day, not its first.
+  const sortKey = (e: (typeof listed)[number]): string => (e.endDate && e.date < todayKey ? e.endDate : e.date);
+  const events = [...listed].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   if (!events.length) {
     return (
       <div className="cal-upcoming cal-upcoming--empty" data-hub="upcoming-events">
@@ -91,6 +95,8 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
         {events.map((e) => {
           const date = parseDay(e.date);
           const days = daysUntil(date, today);
+          const end = e.endDate ? parseDay(e.endDate) : null;
+          const count = windowCountdown(days, end ? daysUntil(end, today) : null, end ? formatDay(end, { year: false, month: 'short' }) : '');
           const { code, rest } = splitTitle(e);
           const module = getModule(e.moduleId);
           const name = code && module ? module.name : rest;
@@ -112,7 +118,7 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
                     <span className="visually-hidden">, {formatLong(date)}</span>
                   </span>
                 </span>
-                <span className={cx('cal-upcoming__count', days <= 7 && 'is-soon', e.type === 'exam' && 'is-exam')}>{countdownShort(days)}</span>
+                <span className={cx('cal-upcoming__count', days >= 0 && days <= 7 && 'is-soon', e.type === 'exam' && 'is-exam')}>{count}</span>
               </Link>
             </li>
           );

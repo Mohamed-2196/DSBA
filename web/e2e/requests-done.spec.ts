@@ -41,7 +41,7 @@ test('a request a rep marks done shows under "You asked, we did"', async ({ sara
 
 test('a rep sees the gaps of what they look after', async ({ rep }) => {
   await rep.goto('/manage?tab=gaps');
-  await expect(rep.getByRole('tab', { name: /Gaps/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(rep.getByRole('navigation', { name: 'Your tools' }).getByRole('button', { name: /Gaps/ })).toHaveAttribute('aria-current', 'page');
   await expect(rep.locator('[data-hub="gaps-requests"]')).toBeVisible();
   await expect(rep.locator('[data-hub="gaps-sittings"]')).toBeVisible();
   await expect(rep.locator('[data-hub="gaps-unconfirmed"]')).toBeVisible();

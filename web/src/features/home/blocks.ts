@@ -1,7 +1,8 @@
-// Home's blocks: which there are, the default layout, and the rules for showing, hiding and moving them. Pure, so
-// they can be tested. The layout is saved as the list of blocks shown, in order (the account's homeBlocks, or this
-// browser's for a guest); null means the default.
+// Home's blocks: which there are, what each needs, the default layout, and the rules for showing, hiding and moving
+// them. Pure, so they can be tested. The layout is saved as the list of blocks shown, in order (the account's
+// homeBlocks, or this browser's for a guest); null means the default.
 import type { Me } from '../../api/types';
+import type { Feature } from '../../auth';
 
 export type HomeBlock = NonNullable<Me['preferences']['homeBlocks']>[number];
 
@@ -9,39 +10,57 @@ export interface BlockInfo {
   title: string;
   /** what it shows, for Customize Home */
   description: string;
+  /** every feature it needs on; a block missing one isn't offered */
+  features: readonly Feature[];
+  /** needs a signed-in account */
+  account?: true;
+  /** needs lesson progress on */
+  tracking?: true;
+  /** how it sits in the grid: a card, or the whole width (notices and the Noora prompt) */
+  span: 'card' | 'wide';
 }
 
 export const BLOCKS: Readonly<Record<HomeBlock, BlockInfo>> = {
-  start_here: { title: 'Start here', description: 'Year 1’s checklist in the first weeks.' },
-  results_day: { title: 'Results day', description: 'What to do in the two weeks after results.' },
-  coming_up: { title: 'Coming up', description: 'Your next exam and the dates ahead.' },
-  daily_question: { title: 'Daily question', description: 'A past exam question before your next exam.' },
-  todo: { title: 'My to-do', description: 'What’s to do and in progress on your study board.' },
-  continue: { title: 'Continue', description: 'The lessons to pick up. Needs lesson progress on.' },
-  modules: { title: 'My modules', description: 'Your modules, with their next exams.' },
-  new: { title: 'New in my modules', description: 'New files and active threads.' },
-  help_below: { title: 'Help the years below', description: 'Questions from Years 1 and 2 that need an answer.' },
-  newsletter: { title: 'The DSBA Newsletter', description: 'The latest issue.' },
+  start_here: { title: 'Start here', description: 'Year 1’s checklist in the first weeks.', features: [], span: 'wide' },
+  results_day: { title: 'Results day', description: 'What to do in the two weeks after results.', features: ['calendar'], span: 'wide' },
+  coming_up: { title: 'Up next', description: 'Your next exam and the dates ahead.', features: ['calendar'], span: 'card' },
+  todo: { title: 'To-do', description: 'What’s to do and in progress on your study board.', features: ['board'], account: true, span: 'card' },
+  continue: { title: 'Continue', description: 'The lessons to pick up.', features: [], tracking: true, span: 'card' },
+  modules: { title: 'My modules', description: 'Your modules, with their next exams.', features: [], span: 'card' },
+  files: { title: 'New files', description: 'Files added to your modules in the library.', features: ['library'], span: 'card' },
+  forum: { title: 'Forum', description: 'Active threads in your modules.', features: ['forum'], span: 'card' },
+  noora: { title: 'Ask Noora', description: 'Ask Noora anything, from a formula to a past paper.', features: ['noora'], span: 'wide' },
+  daily_question: {
+    title: 'Daily question',
+    description: 'A past exam question before your next exam.',
+    features: ['calendar', 'library', 'library.questions', 'library.daily-question'],
+    span: 'wide',
+  },
+  help_below: {
+    title: 'Help the years below',
+    description: 'Questions from Years 1 and 2 that need an answer.',
+    features: ['forum', 'forum.help-below'],
+    account: true,
+    span: 'wide',
+  },
+  newsletter: { title: 'The DSBA Newsletter', description: 'The latest issue.', features: ['newsletter'], span: 'card' },
 };
 
 export const ALL_BLOCKS = Object.keys(BLOCKS) as HomeBlock[];
 
-/** A signed-in student's Home before they change it: what's coming, what to do, then where they study. */
-export const STUDENT_DEFAULT: readonly HomeBlock[] = [
-  'start_here',
-  'results_day',
-  'coming_up',
-  'daily_question',
-  'todo',
-  'continue',
-  'modules',
-  'new',
-  'help_below',
-  'newsletter',
-];
+/** Everyone's Home before they change it: the dashboard. Notices show only when they have something to say. */
+export const STUDENT_DEFAULT: readonly HomeBlock[] = ['start_here', 'results_day', 'coming_up', 'todo', 'continue', 'modules', 'files', 'forum', 'noora'];
 
-/** A guest's: fewer blocks, nothing that needs an account. */
-export const GUEST_DEFAULT: readonly HomeBlock[] = ['start_here', 'results_day', 'coming_up', 'continue', 'modules', 'new', 'newsletter'];
+/** A guest's: the same, without what needs an account. */
+export const GUEST_DEFAULT: readonly HomeBlock[] = STUDENT_DEFAULT.filter((b) => !BLOCKS[b].account);
+
+/** The blocks this person can have: every feature a block needs is on, and an account or lesson progress if it needs one. */
+export function offeredBlocks(featureOn: (f: Feature) => boolean, { signedIn, tracking }: { signedIn: boolean; tracking: boolean }): HomeBlock[] {
+  return ALL_BLOCKS.filter((b) => {
+    const info = BLOCKS[b];
+    return info.features.every(featureOn) && (!info.account || signedIn) && (!info.tracking || tracking);
+  });
+}
 
 const isBlock = (x: unknown): x is HomeBlock => typeof x === 'string' && Object.prototype.hasOwnProperty.call(BLOCKS, x);
 

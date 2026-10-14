@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GUEST_DEFAULT, STUDENT_DEFAULT, layoutOf, moveBlock, normalizeBlocks, showBlock, withUnavailable, type HomeBlock } from './blocks';
+import { GUEST_DEFAULT, STUDENT_DEFAULT, layoutOf, offeredBlocks, moveBlock, normalizeBlocks, showBlock, withUnavailable, type HomeBlock } from './blocks';
 
 const all = (...blocks: HomeBlock[]) => new Set<HomeBlock>(blocks);
 
@@ -17,13 +17,13 @@ describe('normalizeBlocks', () => {
 describe('layoutOf', () => {
   it('uses the defaults when nothing is saved, limited to what is available', () => {
     const l = layoutOf(null, STUDENT_DEFAULT, all('coming_up', 'modules', 'todo', 'newsletter'));
-    expect(l.shown).toEqual(['coming_up', 'todo', 'modules', 'newsletter']);
-    expect(l.hidden).toEqual([]);
+    expect(l.shown).toEqual(['coming_up', 'todo', 'modules']);
+    expect(l.hidden).toEqual(['newsletter']);
   });
   it('shows the saved blocks in their order and lists the rest as hidden', () => {
-    const l = layoutOf(['modules', 'coming_up'], STUDENT_DEFAULT, all('coming_up', 'modules', 'todo', 'new'));
+    const l = layoutOf(['modules', 'coming_up'], STUDENT_DEFAULT, all('coming_up', 'modules', 'todo', 'files'));
     expect(l.shown).toEqual(['modules', 'coming_up']);
-    expect(l.hidden).toEqual(['todo', 'new']);
+    expect(l.hidden).toEqual(['todo', 'files']);
   });
   it('gives guests no account-only blocks by default', () => {
     expect(GUEST_DEFAULT).not.toContain('todo');
@@ -44,5 +44,27 @@ describe('moving and showing', () => {
   it('keeps blocks that are unavailable now in their place', () => {
     const saved: HomeBlock[] = ['coming_up', 'todo', 'modules'];
     expect(withUnavailable(['modules', 'coming_up'], saved, STUDENT_DEFAULT, all('coming_up', 'modules'))).toEqual(['modules', 'todo', 'coming_up']);
+  });
+});
+
+describe('offeredBlocks', () => {
+  const on = (...features: string[]) => (f: string) => features.includes(f);
+  it('offers a block only when every feature it needs is on', () => {
+    const offered = offeredBlocks(on('calendar', 'library', 'forum'), { signedIn: true, tracking: false });
+    expect(offered).not.toContain('daily_question');
+    expect(offered).not.toContain('help_below');
+    expect(offered).toContain('files');
+    expect(offered).toContain('forum');
+    expect(offeredBlocks(on('calendar', 'library', 'library.questions', 'library.daily-question'), { signedIn: false, tracking: false })).toContain('daily_question');
+  });
+  it('needs an account for account blocks and lesson progress for Continue', () => {
+    const guest = offeredBlocks(on('board', 'forum', 'forum.help-below'), { signedIn: false, tracking: false });
+    expect(guest).not.toContain('todo');
+    expect(guest).not.toContain('help_below');
+    expect(guest).not.toContain('continue');
+    expect(offeredBlocks(on(), { signedIn: false, tracking: true })).toContain('continue');
+  });
+  it('puts the dashboard first by default', () => {
+    expect(STUDENT_DEFAULT).toEqual(['start_here', 'results_day', 'coming_up', 'todo', 'continue', 'modules', 'files', 'forum', 'noora']);
   });
 });

@@ -11,6 +11,9 @@ interface ImportMetaEnv {
   readonly VITE_CSRF_COOKIE?: string;
 }
 
+/** The build's version (vite.config.ts): sent with bug reports. */
+declare const __APP_VERSION__: string;
+
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }

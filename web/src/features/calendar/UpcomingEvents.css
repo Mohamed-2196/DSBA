@@ -55,7 +55,9 @@
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  max-width: 8em;
+  text-align: right;
+  text-wrap: balance;
 }
 .cal-upcoming__count.is-soon.is-exam { color: var(--alert-strong); }
 
