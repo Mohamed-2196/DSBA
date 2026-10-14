@@ -45,13 +45,25 @@ from app.schemas.board import (
     BoardDetail,
     BoardLink,
     BoardLinkState,
+    Boards,
+    BoardUsage,
 )
 from app.schemas.board import BoardCard as BoardCardOut
 from app.schemas.board import BoardPlan as BoardPlanOut
 from app.services import ratelimit
-from app.services.board.boards import active_boards, card_count, main_board, summaries
+from app.services.board.boards import (
+    active_boards,
+    boards_query,
+    card_count,
+    label_out,
+    main_board,
+    storage_used,
+    summaries,
+)
 from app.services.board.common import (
+    MAX_BOARDS,
     MAX_CARDS,
+    MAX_STORAGE_BYTES,
     cards_in,
     columns_of,
     end_position,
@@ -207,6 +219,14 @@ class CardContext:
                 "done_at": card.done_at,
             }
         )
+
+
+def plans_of(db: Session, user: User) -> list[BoardPlanOut]:
+    """Every revision plan of the student, nearest exam first."""
+    plans = _plans(db, user.id)
+    rows = _plan_cards(db, user.id) if plans else []
+    today = bahrain_today()
+    return [plan_out(p, rows, today) for p in plans.values()]
 
 
 def card_out(db: Session, user: User, card: BoardCard) -> BoardCardOut:
@@ -476,6 +496,25 @@ def agenda(db: Session, user: User, days: int = AGENDA_DAYS) -> Agenda:
         )
     found.sort(key=lambda r: r[0])
     return Agenda(today=today, until=until, cards=[c for _, c in found])
+
+
+def overview(db: Session, user: User) -> Boards:
+    """Every board, the labels, the revision plans and what the student holds of their limits."""
+    boards = list(db.scalars(boards_query(user.id)))
+    labels = db.scalars(select(BoardLabel).where(BoardLabel.user_id == user.id).order_by(BoardLabel.name))
+    return Boards(
+        boards=summaries(db, boards),
+        labels=[label_out(x) for x in labels],
+        plans=plans_of(db, user),
+        usage=BoardUsage(
+            boards=len(boards),
+            max_boards=MAX_BOARDS,
+            cards=card_count(db, user.id),
+            max_cards=MAX_CARDS,
+            storage_bytes=storage_used(db, user.id),
+            max_storage_bytes=MAX_STORAGE_BYTES,
+        ),
+    )
 
 
 def link_states(db: Session, user: User) -> list[BoardLinkState]:

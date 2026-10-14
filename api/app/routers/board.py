@@ -58,7 +58,7 @@ def _summary(db: DB, user: CurrentUser, board_id: uuid.UUID) -> BoardSummary:
 def list_boards(user: CurrentUser, db: DB) -> Boards:
     """Every board (active ones in order, then the archived ones), the student's labels, and what they hold of
     their limits."""
-    return boards.overview(db, user)
+    return cards.overview(db, user)
 
 
 @router.post("/boards", response_model=BoardSummary, status_code=status.HTTP_201_CREATED)

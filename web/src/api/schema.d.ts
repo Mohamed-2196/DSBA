@@ -3112,7 +3112,7 @@ export interface components {
              * Boardcolor
              * @enum {string}
              */
-            boardColor: "cobalt" | "teal" | "green" | "amber" | "coral" | "violet" | "slate";
+            boardColor: "cobalt" | "teal" | "green" | "amber" | "coral" | "slate";
             /**
              * Due
              * Format: date
@@ -3372,7 +3372,7 @@ export interface components {
              * @default cobalt
              * @enum {string}
              */
-            color: "cobalt" | "teal" | "green" | "amber" | "coral" | "violet" | "slate";
+            color: "cobalt" | "teal" | "green" | "amber" | "coral" | "slate";
             /**
              * Template
              * @default blank
@@ -3405,7 +3405,7 @@ export interface components {
              * Color
              * @enum {string}
              */
-            color: "cobalt" | "teal" | "green" | "amber" | "coral" | "violet" | "slate";
+            color: "cobalt" | "teal" | "green" | "amber" | "coral" | "slate";
         };
         /** BoardLink */
         BoardLink: {
@@ -3536,7 +3536,7 @@ export interface components {
              * Color
              * @enum {string}
              */
-            color: "cobalt" | "teal" | "green" | "amber" | "coral" | "violet" | "slate";
+            color: "cobalt" | "teal" | "green" | "amber" | "coral" | "slate";
             /**
              * Template
              * @enum {string}
@@ -3561,7 +3561,7 @@ export interface components {
             /** Emoji */
             emoji?: string | null;
             /** Color */
-            color?: ("cobalt" | "teal" | "green" | "amber" | "coral" | "violet" | "slate") | null;
+            color?: ("cobalt" | "teal" | "green" | "amber" | "coral" | "slate") | null;
             /** Archived */
             archived?: boolean | null;
         };
@@ -3585,13 +3585,16 @@ export interface components {
         };
         /**
          * Boards
-         * @description Every board, active ones in order first, then the archived ones; the student's labels; the limits.
+         * @description Every board, active ones in order first, then the archived ones; the student's labels; the revision plans,
+         *     nearest exam first; the limits.
          */
         Boards: {
             /** Boards */
             boards: components["schemas"]["BoardSummary"][];
             /** Labels */
             labels: components["schemas"]["BoardLabel"][];
+            /** Plans */
+            plans: components["schemas"]["BoardPlan"][];
             usage: components["schemas"]["BoardUsage"];
         };
         /** BoxOut */
@@ -5360,14 +5363,14 @@ export interface components {
              * @default cobalt
              * @enum {string}
              */
-            color: "cobalt" | "teal" | "green" | "amber" | "coral" | "violet" | "slate";
+            color: "cobalt" | "teal" | "green" | "amber" | "coral" | "slate";
         };
         /** LabelUpdate */
         LabelUpdate: {
             /** Name */
             name?: string | null;
             /** Color */
-            color?: ("cobalt" | "teal" | "green" | "amber" | "coral" | "violet" | "slate") | null;
+            color?: ("cobalt" | "teal" | "green" | "amber" | "coral" | "slate") | null;
         };
         /** LastLesson */
         LastLesson: {

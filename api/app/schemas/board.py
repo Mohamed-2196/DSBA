@@ -14,7 +14,7 @@ from app.schemas.library import LibraryKind
 
 BoardLinkType = Literal["event", "lesson", "module", "library_item"]
 BoardTemplate = Literal["study", "revision", "assignment", "weekly", "personal", "blank"]
-BoardColor = Literal["cobalt", "teal", "green", "amber", "coral", "violet", "slate"]
+BoardColor = Literal["cobalt", "teal", "green", "amber", "coral", "slate"]
 Priority = Literal["none", "low", "medium", "high"]
 # Minutes before the card is due that its reminder comes: at the time, 15 minutes, an hour, a day, two days.
 RemindBefore = Literal[0, 15, 60, 1440, 2880]
@@ -69,10 +69,12 @@ class BoardLabel(ApiModel):
 
 
 class Boards(ApiModel):
-    """Every board, active ones in order first, then the archived ones; the student's labels; the limits."""
+    """Every board, active ones in order first, then the archived ones; the student's labels; the revision plans,
+    nearest exam first; the limits."""
 
     boards: list[BoardSummary]
     labels: list[BoardLabel]
+    plans: list[BoardPlan]
     usage: BoardUsage
 
 

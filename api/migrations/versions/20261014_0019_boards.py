@@ -22,7 +22,7 @@ down_revision: str | None = "0018"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
-COLORS = "('cobalt', 'teal', 'green', 'amber', 'coral', 'violet', 'slate')"
+COLORS = "('cobalt', 'teal', 'green', 'amber', 'coral', 'slate')"
 NOTIFICATION_KINDS = (
     "thread_reply",
     "reply_reply",

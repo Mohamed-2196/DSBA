@@ -101,6 +101,7 @@ def test_a_plan_adds_unwatched_lessons_and_papers_and_spreads_them(
     }
     got = board(c)
     assert got["plans"] == [made["plan"]]
+    assert c.get(f"{API}/boards").json()["plans"] == [made["plan"]]
     todo = [x for x in got["cards"] if x["column"] == "To do"]
     assert [x["title"] for x in todo] == ["Test: One, lesson 2", old.title, "Test: Two, lesson 1", new.title]
     assert all(x["planModuleId"] == module.id for x in todo)

@@ -19,11 +19,9 @@ from app.models import Board, BoardCard, BoardColumn, BoardLabel, Upload, Upload
 from app.schemas.board import (
     AfterId,
     BoardCreate,
-    Boards,
     BoardSummary,
     BoardTemplate,
     BoardUpdate,
-    BoardUsage,
     ColumnCreate,
     ColumnUpdate,
     LabelCreate,
@@ -36,10 +34,8 @@ from app.schemas.board import (
 from app.services import ratelimit
 from app.services.board.common import (
     MAX_BOARDS,
-    MAX_CARDS,
     MAX_COLUMNS,
     MAX_LABELS,
-    MAX_STORAGE_BYTES,
     cards_in,
     columns_of,
     end_position,
@@ -127,23 +123,6 @@ def storage_used(db: Session, user_id: uuid.UUID) -> int:
         (Upload.status != UploadStatus.attached) | Upload.card_id.is_not(None),
     )
     return int(db.scalar(q) or 0)
-
-
-def overview(db: Session, user: User) -> Boards:
-    boards = list(db.scalars(boards_query(user.id)))
-    labels = db.scalars(select(BoardLabel).where(BoardLabel.user_id == user.id).order_by(BoardLabel.name))
-    return Boards(
-        boards=summaries(db, boards),
-        labels=[BoardLabelOut.model_validate({"id": x.id, "name": x.name, "color": x.color}) for x in labels],
-        usage=BoardUsage(
-            boards=len(boards),
-            max_boards=MAX_BOARDS,
-            cards=card_count(db, user.id),
-            max_cards=MAX_CARDS,
-            storage_bytes=storage_used(db, user.id),
-            max_storage_bytes=MAX_STORAGE_BYTES,
-        ),
-    )
 
 
 def active_boards(db: Session, user_id: uuid.UUID) -> list[Board]:

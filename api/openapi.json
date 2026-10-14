@@ -19110,7 +19110,6 @@
               "green",
               "amber",
               "coral",
-              "violet",
               "slate"
             ],
             "title": "Boardcolor"
@@ -19987,7 +19986,6 @@
               "green",
               "amber",
               "coral",
-              "violet",
               "slate"
             ],
             "title": "Color",
@@ -20062,7 +20060,6 @@
               "green",
               "amber",
               "coral",
-              "violet",
               "slate"
             ],
             "title": "Color"
@@ -20383,7 +20380,6 @@
               "green",
               "amber",
               "coral",
-              "violet",
               "slate"
             ],
             "title": "Color"
@@ -20472,7 +20468,6 @@
                   "green",
                   "amber",
                   "coral",
-                  "violet",
                   "slate"
                 ]
               },
@@ -20553,6 +20548,13 @@
             "type": "array",
             "title": "Labels"
           },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/BoardPlan"
+            },
+            "type": "array",
+            "title": "Plans"
+          },
           "usage": {
             "$ref": "#/components/schemas/BoardUsage"
           }
@@ -20561,10 +20563,11 @@
         "required": [
           "boards",
           "labels",
+          "plans",
           "usage"
         ],
         "title": "Boards",
-        "description": "Every board, active ones in order first, then the archived ones; the student's labels; the limits."
+        "description": "Every board, active ones in order first, then the archived ones; the student's labels; the revision plans,\nnearest exam first; the limits."
       },
       "BoxOut": {
         "properties": {
@@ -25956,7 +25959,6 @@
               "green",
               "amber",
               "coral",
-              "violet",
               "slate"
             ],
             "title": "Color",
@@ -25994,7 +25996,6 @@
                   "green",
                   "amber",
                   "coral",
-                  "violet",
                   "slate"
                 ]
               },
