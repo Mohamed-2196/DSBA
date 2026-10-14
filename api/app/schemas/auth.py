@@ -15,6 +15,7 @@ from app.schemas.moderation import ReportReason, ReportTarget
 from app.schemas.modules import Progress
 from app.schemas.notifications import NotificationKind
 from app.schemas.requests import RequestKind, RequestStatus
+from app.schemas.suggestions import SuggestionStatus
 
 Identifier = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)]
 # A 6-digit code, or the long one sent instead once wrong codes were tried for an address: 10 letters and digits,
@@ -238,6 +239,19 @@ class ExportRequest(ApiModel):
     created_at: datetime
 
 
+class ExportSuggestion(ApiModel):
+    id: UUID
+    module_id: str
+    chapter_id: str | None
+    url: str
+    title: str
+    reason: str
+    status: SuggestionStatus
+    reply: str | None
+    lesson_id: str | None
+    created_at: datetime
+
+
 class ExportNotification(ApiModel):
     id: UUID
     kind: NotificationKind
@@ -278,3 +292,4 @@ class AccountExport(ApiModel):
     emails: list[ExportEmail]
     board: list[ExportBoardCard]  # study-board cards
     board_plans: list[ExportBoardPlan]  # revision plans on the study board
+    video_suggestions: list[ExportSuggestion]  # videos this person suggested for lessons

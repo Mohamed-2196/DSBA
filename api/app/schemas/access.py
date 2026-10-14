@@ -42,6 +42,7 @@ FeatureKey = Literal[
     "board",
     "requests",
     "summary",
+    "video_suggestions",
 ]
 
 

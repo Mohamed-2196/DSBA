@@ -64,6 +64,7 @@ class Feature(enum.StrEnum):
     board = "board"  # each student's private study board
     requests = "requests"
     summary = "summary"  # the Sunday summary email, and its text for a year's group
+    video_suggestions = "video_suggestions"  # students suggest videos for chapters; content managers review them
 
 
 class BoxInfo(NamedTuple):
@@ -154,6 +155,9 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.board: FeatureInfo("Study board", "Each student's study board, and the add-to-board buttons."),
     Feature.requests: FeatureInfo("Requests", "Students' requests, their me-toos and the answers."),
     Feature.summary: FeatureInfo("Sunday summary", "The Sunday summary email, and its text for reps to share."),
+    Feature.video_suggestions: FeatureInfo(
+        "Suggested videos", "Suggesting videos for lessons, and the queue of suggestions in Manage."
+    ),
 }
 
 

@@ -2531,7 +2531,7 @@
           "admin"
         ],
         "summary": "Stats",
-        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle\nthem). A feature switched off for the viewer counts None.",
+        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle\nthem), and the suggested videos waiting for review (for people who edit modules). A feature switched off for the\nviewer counts None.",
         "operationId": "stats_api_v1_admin_stats_get",
         "responses": {
           "200": {
@@ -3644,7 +3644,8 @@
                 "notes",
                 "board",
                 "requests",
-                "summary"
+                "summary",
+                "video_suggestions"
               ],
               "type": "string",
               "title": "Feature"
@@ -13742,6 +13743,587 @@
           }
         }
       }
+    },
+    "/api/v1/video-suggestions": {
+      "post": {
+        "tags": [
+          "suggestions"
+        ],
+        "summary": "Suggest Video",
+        "description": "Suggest a video for a module's chapter (`chapterId` null: the editor picks one). The link must be a YouTube\nvideo or playlist, or a class recording on vc.bibf.com.\n\nErrors: invalid_input (422: an unknown or hidden module or chapter, a link the app can't embed),\nalready_a_lesson (409), already_suggested (409: it waits for review), rate_limited (429: five a day).",
+        "operationId": "suggest_video_api_v1_video_suggestions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/video-suggestions/mine": {
+      "get": {
+        "tags": [
+          "suggestions"
+        ],
+        "summary": "My Suggestions",
+        "description": "Your suggestions, newest first (the latest 50), for one module or all of them.",
+        "operationId": "my_suggestions_api_v1_video_suggestions_mine_get",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Moduleid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SuggestionOut"
+                  },
+                  "title": "Response My Suggestions Api V1 Video Suggestions Mine Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/video-suggestions": {
+      "get": {
+        "tags": [
+          "suggestions"
+        ],
+        "summary": "Suggestions Queue",
+        "description": "The review queue: pending suggestions oldest first, decided ones the latest decision first.",
+        "operationId": "suggestions_queue_api_v1_content_video_suggestions_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "pending",
+                "accepted",
+                "declined"
+              ],
+              "type": "string",
+              "default": "pending",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Page size",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Page size"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "description": "Items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Items to skip"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/video-suggestions/{suggestion_id}/accept": {
+      "post": {
+        "tags": [
+          "suggestions"
+        ],
+        "summary": "Accept Suggestion",
+        "description": "Add the video as a lesson at the end of a chapter: the suggested one, `chapterId`, or a new chapter named\n`newChapter`. The module's version moves on. Tells the student. Audited (`suggestion.accept`).\n\nErrors: not_found (404), suggestion_closed (409), already_a_lesson (409), invalid_input (422: no chapter).",
+        "operationId": "accept_suggestion_api_v1_content_video_suggestions__suggestion_id__accept_post",
+        "parameters": [
+          {
+            "name": "suggestion_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Suggestion Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionAccept"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/video-suggestions/{suggestion_id}/decline": {
+      "post": {
+        "tags": [
+          "suggestions"
+        ],
+        "summary": "Decline Suggestion",
+        "description": "Decline with a reason the student sees. Tells the student. Audited (`suggestion.decline`).\n\nErrors: not_found (404), suggestion_closed (409), invalid_input (422: no reason).",
+        "operationId": "decline_suggestion_api_v1_content_video_suggestions__suggestion_id__decline_post",
+        "parameters": [
+          {
+            "name": "suggestion_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Suggestion Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionDecline"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -13874,6 +14456,13 @@
             },
             "type": "array",
             "title": "Boardplans"
+          },
+          "videoSuggestions": {
+            "items": {
+              "$ref": "#/components/schemas/ExportSuggestion"
+            },
+            "type": "array",
+            "title": "Videosuggestions"
           }
         },
         "type": "object",
@@ -13893,7 +14482,8 @@
           "meToos",
           "emails",
           "board",
-          "boardPlans"
+          "boardPlans",
+          "videoSuggestions"
         ],
         "title": "AccountExport",
         "description": "Everything the Hub stores about the signed-in user (GET /me/export)."
@@ -13962,6 +14552,17 @@
               }
             ],
             "title": "Openrequests"
+          },
+          "pendingSuggestions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pendingsuggestions"
           }
         },
         "type": "object",
@@ -13972,7 +14573,8 @@
           "libraryItems",
           "pendingUploads",
           "openReports",
-          "openRequests"
+          "openRequests",
+          "pendingSuggestions"
         ],
         "title": "AdminStats",
         "description": "A feature's counts are None while it is switched off for the viewer."
@@ -16849,6 +17451,9 @@
               "role_in_use",
               "module_changed",
               "content_in_use",
+              "already_a_lesson",
+              "already_suggested",
+              "suggestion_closed",
               "note_changed",
               "too_many_notes",
               "board_full",
@@ -17069,6 +17674,7 @@
                   "report_resolved",
                   "request_update",
                   "date_changed",
+                  "video_suggestion",
                   "system"
                 ]
               },
@@ -17364,6 +17970,7 @@
               "report_resolved",
               "request_update",
               "date_changed",
+              "video_suggestion",
               "system"
             ],
             "title": "Kind"
@@ -17689,6 +18296,92 @@
         ],
         "title": "ExportRequest"
       },
+      "ExportSuggestion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "chapterId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapterid"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply"
+          },
+          "lessonId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lessonid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "moduleId",
+          "chapterId",
+          "url",
+          "title",
+          "reason",
+          "status",
+          "reply",
+          "lessonId",
+          "createdAt"
+        ],
+        "title": "ExportSuggestion"
+      },
       "ExportThread": {
         "properties": {
           "id": {
@@ -17835,7 +18528,8 @@
               "notes",
               "board",
               "requests",
-              "summary"
+              "summary",
+              "video_suggestions"
             ],
             "title": "Feature"
           },
@@ -17918,7 +18612,8 @@
                 "notes",
                 "board",
                 "requests",
-                "summary"
+                "summary",
+                "video_suggestions"
               ]
             },
             "type": "array",
@@ -19746,7 +20441,8 @@
                 "notes",
                 "board",
                 "requests",
-                "summary"
+                "summary",
+                "video_suggestions"
               ]
             },
             "type": "array",
@@ -21125,6 +21821,7 @@
               "report_resolved",
               "request_update",
               "date_changed",
+              "video_suggestion",
               "system"
             ],
             "title": "Kind"
@@ -23341,6 +24038,291 @@
         "type": "object",
         "title": "StepUpStart",
         "description": "Which of the account's own identifiers gets the code: by default the email address, else the phone number."
+      },
+      "SuggestionAccept": {
+        "properties": {
+          "chapterId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9]{1,16}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapterid"
+          },
+          "newChapter": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Newchapter"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "title": "SuggestionAccept",
+        "description": "Where the new lesson goes: `chapter_id` (default: the one suggested), or a new chapter at the end of the module\nnamed `new_chapter`. `title` replaces the suggested title."
+      },
+      "SuggestionCreate": {
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "chapterId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9]{1,16}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapterid"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleId",
+          "url",
+          "title"
+        ],
+        "title": "SuggestionCreate",
+        "description": "A YouTube video or playlist link, or a class recording on vc.bibf.com: the links the module editor takes.\n`chapter_id` None leaves the chapter to the editor."
+      },
+      "SuggestionDecline": {
+        "properties": {
+          "reply": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reply"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reply"
+        ],
+        "title": "SuggestionDecline",
+        "description": "The reason, which the student sees."
+      },
+      "SuggestionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "moduleTitle": {
+            "type": "string",
+            "title": "Moduletitle"
+          },
+          "chapterId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapterid"
+          },
+          "chapterTitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chaptertitle"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "youtube-playlist",
+              "bbb"
+            ],
+            "title": "Kind"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply"
+          },
+          "lessonId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lessonid"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decidedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decidedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decidedat"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "moduleId",
+          "moduleTitle",
+          "chapterId",
+          "chapterTitle",
+          "kind",
+          "url",
+          "title",
+          "reason",
+          "status",
+          "reply",
+          "lessonId",
+          "author",
+          "decidedBy",
+          "decidedAt",
+          "createdAt"
+        ],
+        "title": "SuggestionOut"
+      },
+      "SuggestionPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestionOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "SuggestionPage"
       },
       "SummaryPreview": {
         "properties": {

@@ -509,7 +509,8 @@ export interface paths {
          * Stats
          * @description Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
          *     for review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle
-         *     them). A feature switched off for the viewer counts None.
+         *     them), and the suggested videos waiting for review (for people who edit modules). A feature switched off for the
+         *     viewer counts None.
          */
         get: operations["stats_api_v1_admin_stats_get"];
         put?: never;
@@ -2145,6 +2146,115 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/video-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suggest Video
+         * @description Suggest a video for a module's chapter (`chapterId` null: the editor picks one). The link must be a YouTube
+         *     video or playlist, or a class recording on vc.bibf.com.
+         *
+         *     Errors: invalid_input (422: an unknown or hidden module or chapter, a link the app can't embed),
+         *     already_a_lesson (409), already_suggested (409: it waits for review), rate_limited (429: five a day).
+         */
+        post: operations["suggest_video_api_v1_video_suggestions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/video-suggestions/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Suggestions
+         * @description Your suggestions, newest first (the latest 50), for one module or all of them.
+         */
+        get: operations["my_suggestions_api_v1_video_suggestions_mine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/video-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Suggestions Queue
+         * @description The review queue: pending suggestions oldest first, decided ones the latest decision first.
+         */
+        get: operations["suggestions_queue_api_v1_content_video_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/video-suggestions/{suggestion_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Suggestion
+         * @description Add the video as a lesson at the end of a chapter: the suggested one, `chapterId`, or a new chapter named
+         *     `newChapter`. The module's version moves on. Tells the student. Audited (`suggestion.accept`).
+         *
+         *     Errors: not_found (404), suggestion_closed (409), already_a_lesson (409), invalid_input (422: no chapter).
+         */
+        post: operations["accept_suggestion_api_v1_content_video_suggestions__suggestion_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/video-suggestions/{suggestion_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline Suggestion
+         * @description Decline with a reason the student sees. Tells the student. Audited (`suggestion.decline`).
+         *
+         *     Errors: not_found (404), suggestion_closed (409), invalid_input (422: no reason).
+         */
+        post: operations["decline_suggestion_api_v1_content_video_suggestions__suggestion_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2189,6 +2299,8 @@ export interface components {
             board: components["schemas"]["ExportBoardCard"][];
             /** Boardplans */
             boardPlans: components["schemas"]["ExportBoardPlan"][];
+            /** Videosuggestions */
+            videoSuggestions: components["schemas"]["ExportSuggestion"][];
         };
         /**
          * AdminStats
@@ -2209,6 +2321,8 @@ export interface components {
             openReports: number;
             /** Openrequests */
             openRequests: number | null;
+            /** Pendingsuggestions */
+            pendingSuggestions: number | null;
         };
         /** AdminUser */
         AdminUser: {
@@ -3108,7 +3222,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "not_implemented" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "slug_taken" | "not_published" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "too_many_notes" | "board_full" | "already_on_board" | "noora_unavailable" | "noora_budget_reached" | "noora_daily_limit";
             /** Message */
             message: string;
             /** Fields */
@@ -3177,7 +3291,7 @@ export interface components {
          */
         ExportEmail: {
             /** Kind */
-            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system") | "account_notice";
+            kind: ("thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system") | "account_notice";
             /** Toaddress */
             toAddress: string;
             /** Subject */
@@ -3264,7 +3378,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -3399,6 +3513,38 @@ export interface components {
              */
             createdAt: string;
         };
+        /** ExportSuggestion */
+        ExportSuggestion: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Moduleid */
+            moduleId: string;
+            /** Chapterid */
+            chapterId: string | null;
+            /** Url */
+            url: string;
+            /** Title */
+            title: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "accepted" | "declined";
+            /** Reply */
+            reply: string | null;
+            /** Lessonid */
+            lessonId: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
         /** ExportThread */
         ExportThread: {
             /**
@@ -3462,7 +3608,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary";
+            feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary" | "video_suggestions";
             /** Label */
             label: string;
             /** Hides */
@@ -3488,7 +3634,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary")[];
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary" | "video_suggestions")[];
         };
         /** FileLink */
         FileLink: {
@@ -4038,7 +4184,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary")[];
+            features: ("forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary" | "video_suggestions")[];
             /**
              * Status
              * @enum {string}
@@ -4540,7 +4686,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "system";
+            kind: "thread_reply" | "reply_reply" | "answer_accepted" | "upload_published" | "upload_rejected" | "new_issue" | "report_resolved" | "request_update" | "date_changed" | "video_suggestion" | "system";
             /** Title */
             title: string;
             /** Body */
@@ -5333,6 +5479,103 @@ export interface components {
             via?: ("email" | "phone") | null;
         };
         /**
+         * SuggestionAccept
+         * @description Where the new lesson goes: `chapter_id` (default: the one suggested), or a new chapter at the end of the module
+         *     named `new_chapter`. `title` replaces the suggested title.
+         */
+        SuggestionAccept: {
+            /** Chapterid */
+            chapterId?: string | null;
+            /** Newchapter */
+            newChapter?: string | null;
+            /** Title */
+            title?: string | null;
+        };
+        /**
+         * SuggestionCreate
+         * @description A YouTube video or playlist link, or a class recording on vc.bibf.com: the links the module editor takes.
+         *     `chapter_id` None leaves the chapter to the editor.
+         */
+        SuggestionCreate: {
+            /** Moduleid */
+            moduleId: string;
+            /** Chapterid */
+            chapterId?: string | null;
+            /** Url */
+            url: string;
+            /** Title */
+            title: string;
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
+        };
+        /**
+         * SuggestionDecline
+         * @description The reason, which the student sees.
+         */
+        SuggestionDecline: {
+            /** Reply */
+            reply: string;
+        };
+        /** SuggestionOut */
+        SuggestionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Moduleid */
+            moduleId: string;
+            /** Moduletitle */
+            moduleTitle: string;
+            /** Chapterid */
+            chapterId: string | null;
+            /** Chaptertitle */
+            chapterTitle: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "youtube" | "youtube-playlist" | "bbb";
+            /** Url */
+            url: string;
+            /** Title */
+            title: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "accepted" | "declined";
+            /** Reply */
+            reply: string | null;
+            /** Lessonid */
+            lessonId: string | null;
+            author: components["schemas"]["UserPublic"] | null;
+            decidedBy: components["schemas"]["UserPublic"] | null;
+            /** Decidedat */
+            decidedAt: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** SuggestionPage */
+        SuggestionPage: {
+            /** Items */
+            items: components["schemas"]["SuggestionOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /**
          * SummaryPreview
          * @description A year's Sunday summary for this week, as plain text with links: what the email says above its footer, and
          *     what a rep pastes into the year's group.
@@ -5740,6 +5983,7 @@ export type ExportReaction = components['schemas']['ExportReaction'];
 export type ExportReply = components['schemas']['ExportReply'];
 export type ExportReport = components['schemas']['ExportReport'];
 export type ExportRequest = components['schemas']['ExportRequest'];
+export type ExportSuggestion = components['schemas']['ExportSuggestion'];
 export type ExportThread = components['schemas']['ExportThread'];
 export type ExportVote = components['schemas']['ExportVote'];
 export type FeatureOut = components['schemas']['FeatureOut'];
@@ -5844,6 +6088,11 @@ export type StatItem = components['schemas']['StatItem'];
 export type StatsAside = components['schemas']['StatsAside'];
 export type StepUpResult = components['schemas']['StepUpResult'];
 export type StepUpStart = components['schemas']['StepUpStart'];
+export type SuggestionAccept = components['schemas']['SuggestionAccept'];
+export type SuggestionCreate = components['schemas']['SuggestionCreate'];
+export type SuggestionDecline = components['schemas']['SuggestionDecline'];
+export type SuggestionOut = components['schemas']['SuggestionOut'];
+export type SuggestionPage = components['schemas']['SuggestionPage'];
 export type SummaryPreview = components['schemas']['SummaryPreview'];
 export type SwitchUpdate = components['schemas']['SwitchUpdate'];
 export type TagOut = components['schemas']['TagOut'];
@@ -8912,7 +9161,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary";
+                feature: "forum" | "library" | "library.uploads" | "newsletter" | "calendar" | "career" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "summary" | "video_suggestions";
             };
             cookie?: never;
         };
@@ -16622,6 +16871,445 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SummaryPreview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    suggest_video_api_v1_video_suggestions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    my_suggestions_api_v1_video_suggestions_mine_get: {
+        parameters: {
+            query?: {
+                moduleId?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    suggestions_queue_api_v1_content_video_suggestions_get: {
+        parameters: {
+            query?: {
+                status?: "pending" | "accepted" | "declined";
+                /** @description Page size */
+                limit?: number;
+                /** @description Items to skip */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionPage"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    accept_suggestion_api_v1_content_video_suggestions__suggestion_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suggestion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionAccept"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    decline_suggestion_api_v1_content_video_suggestions__suggestion_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suggestion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionDecline"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionOut"];
                 };
             };
             /** @description Bad Request */
