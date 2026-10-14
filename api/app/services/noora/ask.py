@@ -43,7 +43,7 @@ from app.schemas.noora import (
 )
 from app.services import access, audit
 from app.services.calendar import events_query
-from app.services.noora import prompt
+from app.services.noora import paper, prompt
 
 log = logging.getLogger("dsba.noora")
 
@@ -230,17 +230,21 @@ def prepare(db: Session, user: User, body: NooraQuestion) -> Prepared:
     client = make_client(s)
     if client is None:
         raise unavailable()
+    asked = paper.load(db, user, body.paper) if body.paper else None
     lim, today = limits(db), bahrain_today()
     if _over_budget(db, lim, today):
         raise budget_reached()
     row = _reserve(db, user, lim, today)
     modules = list(db.scalars(select(Module)))
     stable = prompt.stable_block(modules, access.features_on(db, user))
+    system = prompt.system(stable, _screen(db, user, body, today))
+    if asked is not None:
+        system.append({"type": "text", "text": paper.block(asked)})
     return Prepared(
         client=client,
         model=s.noora_model,
         max_tokens=s.noora_max_answer_tokens,
-        system=prompt.system(stable, _screen(db, user, body, today)),
+        system=system,
         messages=prompt.messages(body.question, body.history, body.note),
         usage_id=row.id,
         daily_questions=lim.daily_questions,
