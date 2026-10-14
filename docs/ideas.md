@@ -99,7 +99,7 @@ Each year the University of London sets two papers per course, zone A and zone B
 each other and from the year before ([examiners' duties, 2018/19][uol]). A module soon has dozens of papers, and the
 examiners' commentaries explain what was marked down. Finding the right one fast is the job.
 
-### IDEA-1. Each past paper with its examiners' report · quick win · **approved 2026-10-14, building (round 5)**
+### IDEA-1. Each past paper with its examiners' report · quick win · **built (round 5)**
 
 - **The moment:** Layla (Year 1), the night before EC1002: "I want the 2023 Zone A paper and what the examiners said
   about it, without opening five Drive folders."
@@ -118,7 +118,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
   the session too, files a VLE folder's papers as papers, and `python -m app.cli exam-meta` fills files imported
   earlier.
 
-### IDEA-2. Search inside papers · **approved 2026-10-14, building (round 5)**
+### IDEA-2. Search inside papers · **built (round 5)**
 
 - **The moment:** Hamad (Year 2): "Which ST2134 papers had a Cramér–Rao question? I'd do all of them tonight."
 - **The idea:** When a PDF is published, by upload or by the Drive import, keep its text for search. A result shows
@@ -130,9 +130,9 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** one pass per file when it's published. Scanned papers have no text and stay title-only; OCR
   would cost more, so leave it out. Formulas extract badly; words like "likelihood" extract fine.
 - **How we'd know it worked:** fewer library searches ending in "No files match"; more papers opened from search.
-- **Status:** approved; built on round5/search.
+- **Status:** built (round 5, `round5/search`).
 
-### IDEA-3. Past questions by topic · **approved 2026-10-14, building (round 5)**
+### IDEA-3. Past questions by topic · **built (round 5)**
 
 - **The moment:** Layla, after the Elasticity chapter: "Which exam questions were on elasticity?"
 - **The idea:** On a past paper's page, signed-in students tag a question with one of the module's chapters ("Q3:
@@ -163,7 +163,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** threads that name a paper, and how often they get an answer compared with others.
 - **Status:** proposed.
 
-### IDEA-5. Search finds lessons · quick win · **approved 2026-10-14, building (round 5)**
+### IDEA-5. Search finds lessons · quick win · **built (round 5)**
 
 - **The moment:** Layla types "supply and demand" and gets no results, though EC1002's second chapter is Supply and
   Demand.
@@ -174,11 +174,11 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** none worth noting; 384 video titles is small. YouTube titles are noisy, so chapter titles rank
   first.
 - **How we'd know it worked:** fewer searches with no results; lessons opened from search.
-- **Status:** approved; built on round5/search.
+- **Status:** built (round 5, `round5/search`).
 
 ## Asking and answering
 
-### IDEA-6. Formulas in forum posts
+### IDEA-6. Formulas in forum posts · **built (round 4)**
 
 - **The moment:** Hamad's ST2134 question showed `$\hat{\theta} = \max_i X_i$` as dollar signs and backslashes.
 - **The idea:** `$…$` and `$$…$$` render as maths in threads, replies and the composer's Preview. KaTeX is bundled
@@ -191,9 +191,9 @@ examiners' commentaries explain what was marked down. Finding the right one fast
   production CSP already allows the app's own fonts and inline styles.
 - **How we'd know it worked:** posts with maths in the statistics and maths modules; fewer questions that are only
   a photo.
-- **Status:** proposed.
+- **Status:** built (round 4, with `round4/noora`): KaTeX formulas in forum posts and notes.
 
-### IDEA-7. Follow a question · **approved 2026-10-14, building (round 5)**
+### IDEA-7. Follow a question · **built (round 5)**
 
 - **The moment:** Layla: "Someone already asked my exact question. I voted, but I won't know when it's answered."
 - **The idea:** A Follow button on threads, switched on when you vote or reply and easy to switch off. Followers hear
@@ -203,9 +203,9 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** noise, so by default only accepted answers. One row per person and thread, in the export and
   deleted with the account.
 - **How we'd know it worked:** follows per thread; fewer duplicate threads.
-- **Status:** proposed.
+- **Status:** built (round 5, `round5/forum`).
 
-### IDEA-8. Ask without your name · **approved 2026-10-14, building (round 5)**
+### IDEA-8. Ask without your name · **built (round 5)**
 
 - **The moment:** Layla: "I don't want 160 people to see my name on a question this basic."
 - **The idea:** "Post without my name" on a new thread. Classmates see "A Year 1 student". Whoever can moderate the
@@ -217,7 +217,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
   apply, and it could be for questions only, not replies. The masking must cover lists, search, notifications and
   other people's exports.
 - **How we'd know it worked:** more Year 1 questions; how many first posts use it.
-- **Status:** proposed.
+- **Status:** built (round 5, `round5/forum`).
 
 ### IDEA-9. Help the year below · quick win
 
@@ -263,7 +263,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** fewer "what time is it?" threads in exam weeks.
 - **Status:** built on `round6/calendar2`: exams carry length and rules, any date its source and when it was checked; windows (the VLE MCQs are now one entry) show "4 days left"; unconfirmed dates say to ask a student rep or the programme office.
 
-### IDEA-12. R-3: tell people when a date changes · **approved 2026-10-14, building (round 5)**
+### IDEA-12. R-3: tell people when a date changes · **built (round 5)**
 
 - **The moment:** "The ST2134 mock moved to Thursday. It was in the group at 11 pm, between 200 other messages."
 - **The idea:** When a rep changes the date, time or place of an exam, mock or deadline, or confirms a date, that
@@ -275,11 +275,12 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** notification fatigue, so only exams, mocks and deadlines, and at most one notice per event a
   day.
 - **How we'd know it worked:** these notifications get opened; fewer "is it still on?" questions.
-- **Status:** built on `round5/alerts`: "Tell Year 2" on the edit form, a `date_changed` notification and a "Date changes" email switch.
+- **Status:** built (round 5, `round5/alerts`): "Tell Year 2" on the edit form, a `date_changed` notification and a
+  "Date changes" email switch.
 
 ## Revising
 
-### IDEA-13. R-4: a revision plan to the exam date · **approved 2026-10-14, building (round 5)**
+### IDEA-13. R-4: a revision plan to the exam date · **built (round 5)**
 
 - **The moment:** Layla, six days before EC1002 with 72 videos unwatched: "How much do I need to do a day?"
 - **The idea:** "Plan my revision" on a module spreads the unwatched chapters, and a past paper every few days, over
@@ -288,9 +289,9 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Size:** M, mostly web, after R-4.
 - **Costs and risks:** a plan can nag, so no notifications, only the board.
 - **How we'd know it worked:** plans made in the month before a session; lessons watched in the last two weeks.
-- **Status:** approved; built in round 5 (`round5/board2`).
+- **Status:** built (round 5, `round5/board2`).
 
-### IDEA-14. R-4: past papers as cards, scores kept private · **approved 2026-10-14, building (round 5)**
+### IDEA-14. R-4: past papers as cards, scores kept private · **built (round 5)**
 
 - **The moment:** Hamad keeps a list in his phone of the papers he's done and his marks.
 - **The idea:** "Add to my board" on a paper. Marking it done asks for an optional score, which stays in the browser
@@ -299,7 +300,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Size:** S to M, web, after R-4.
 - **Costs and risks:** whether practice scores are cleared on sign-out, as grades are (D10), is Mohamed's call.
 - **How we'd know it worked:** papers marked done per student before May.
-- **Status:** approved; built in round 5 (`round5/board2`).
+- **Status:** built (round 5, `round5/board2`).
 
 ## Year 3, electives and careers
 
@@ -316,7 +317,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** Year 3 modules with lessons by January; Year 3 lesson views.
 - **Status:** proposed.
 
-### IDEA-16. Choosing your Year 3 electives · **approved 2026-10-14, building (round 5)**
+### IDEA-16. Choosing your Year 3 electives · **built (round 5)**
 
 - **The moment:** Hamad on results day: "Asset Pricing or Marketing Management? What does each lead to, and what did
   last year's students think?"
@@ -328,9 +329,9 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Size:** M, mostly web, with a few fields per elective in the career data.
 - **Costs and risks:** content upkeep. It must say it's a guide, not advice from BIBF.
 - **How we'd know it worked:** views from July to September; Module choice threads.
-- **Status:** proposed.
+- **Status:** built (round 5, `round5/onboard`).
 
-### IDEA-17. Seniors who answer · **approved 2026-10-14, building (round 5)**
+### IDEA-17. Seniors who answer · **built (round 5)**
 
 - **The moment:** Reem: "I did NBB's internship. I'd tell Year 2s how to apply." Hamad: "I want to ask someone
   who's done it."
@@ -342,7 +343,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Size:** M, both.
 - **Costs and risks:** opt-in only, with name and year and no contact details. A pause switch for busy seniors.
 - **How we'd know it worked:** seniors listed; questions asked through "Ask", and how many get an answer.
-- **Status:** proposed.
+- **Status:** built (round 5, `round5/forum`).
 
 ### IDEA-18. Application dates on the calendar · **built (round 6)**
 
@@ -373,7 +374,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **How we'd know it worked:** share of requests closed this way; days from request to file.
 - **Status:** proposed.
 
-### IDEA-20. Ask the cohort: polls · **approved 2026-10-14, building (round 5)**
+### IDEA-20. Ask the cohort: polls · **built (round 5)**
 
 - **The moment:** Mohamed: "Should emails be on by default? Which apps should the hub connect to?" A rep: "Which
   Saturday suits a revision session?"
@@ -385,9 +386,9 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** votes are kept only to stop double voting. The app shows counts, never who voted, and votes go
   with the account.
 - **How we'd know it worked:** votes per poll; open product calls settled with numbers.
-- **Status:** proposed.
+- **Status:** built (round 5, `round5/forum`).
 
-### IDEA-21. A Sunday summary · **approved 2026-10-14, building (round 5)**
+### IDEA-21. A Sunday summary · **built (round 5)**
 
 - **The moment:** "I only open the hub when someone posts a link in the group."
 - **The idea:** An opt-in email each Sunday for your year: this week's exams and deadlines, new files in your
@@ -399,11 +400,12 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** at most about 160 emails a week, within a small SMTP plan. It's opt-in, so it doesn't settle
   the open question on email defaults. The WhatsApp text is pasted by a person, with no API.
 - **How we'd know it worked:** visits that arrive with `?from=summary`; how many switch it off.
-- **Status:** built on `round5/alerts`: the `summary` switch (off at first), the mail worker queues it Sunday from 08:00 Bahrain time, `app.cli weekly-summary`, and Manage, Sunday summary for reps.
+- **Status:** built (round 5, `round5/alerts`): the `summary` switch (off at first), the mail worker queues it Sunday
+  from 08:00 Bahrain time, `app.cli weekly-summary`, and Manage, Sunday summary for reps.
 
 ## Into students' days
 
-### IDEA-22. R-8: links that look right in WhatsApp
+### IDEA-22. R-8: links that look right in WhatsApp · **on hold**
 
 - **The moment:** Hamad pastes the answer to an ST2134 question into the Year 2 group. Like every hub link, its
   preview reads "Modules, lessons, files, the newsletter and the forum…", so nobody can tell what it is.
@@ -415,9 +417,9 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** it must never reveal hidden, pending or removed things, so reuse the public read checks and
   fall back to the general preview. Crawler names change, so keep the list in one place.
 - **How we'd know it worked:** previews served (each one is a share), and the visits that follow.
-- **Status:** proposed.
+- **Status:** on hold: waits for R-8, which Mohamed put on hold on 2026-10-14.
 
-### IDEA-23. Install the hub on your phone · quick win · **approved 2026-10-14, building (round 5)**
+### IDEA-23. Install the hub on your phone · quick win · **built (round 5)**
 
 - **The moment:** "WhatsApp is on my home screen. The hub is a bookmark I forget."
 - **The idea:** A web app manifest with the hub's name and icons, so "Add to Home Screen" on iPhone and Android gives
@@ -428,9 +430,9 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Costs and risks:** none for a manifest. A service worker later needs care with short-lived file links and stale
   builds.
 - **How we'd know it worked:** visits from the home-screen start address (`/?source=app`).
-- **Status:** proposed.
+- **Status:** built (round 5, `round5/onboard`).
 
-### IDEA-24. Start here: Year 1's first month · quick win · **approved 2026-10-14, building (round 5)**
+### IDEA-24. Start here: Year 1's first month · quick win · **built (round 5)**
 
 - **The moment:** Layla in week one: "What's the difference between MyClass, the VLE and the student portal? When do
   I register with the University of London?"
@@ -443,9 +445,9 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Size:** S, web, with the wording from reps.
 - **Costs and risks:** it must be right every September, so a rep checks it each year.
 - **How we'd know it worked:** Year 1 visits to the linked pages in October.
-- **Status:** proposed.
+- **Status:** built (round 5, `round5/onboard`).
 
-## Considered and left out
+## Considered and left out (round 1)
 
 - **Study-group sign-up posts:** WhatsApp already does this well for 160 people.
 - **Saving grades as a private link or a file:** on a shared computer it would undo D10's clearing on sign-out.
@@ -454,7 +456,7 @@ examiners' commentaries explain what was marked down. Finding the right one fast
 - **Announcements from reps as a feature of their own:** IDEA-12 covers the urgent ones, IDEA-21 the weekly round-up
   and the newsletter the rest.
 
-## Top five
+## Top five (round 1)
 
 1. **IDEA-10, R-3: your papers.** Every Year 2 and 3 student sees wrong counts today, on the hub's best feature. The
    same choice then fixes the calendar, its feed, Career Navigator and the calculator.
@@ -468,3 +470,280 @@ examiners' commentaries explain what was marked down. Finding the right one fast
    many imported papers have text rather than scans.
 
 IDEA-5 and IDEA-9 take a day each: give them to whoever next works on search and on Home.
+
+## Round 2: 14 October 2026
+
+**How I used the hub.** As a guest on a 390×844 phone and as made-up students in Years 1, 2 and 3
+(`student.ideas.y*@example.com`) on a 1366×768 laptop, five days before EC1002 and nine before ST2134. Round 5 had
+just merged into the local checkout, and the local database was behind it, so the forum, the library and most module
+pages answered 500 while I looked (`column library_items.zone does not exist`). That's the migrations waiting for the
+Drive import to finish, not a bug. Home, the countdown, Start here, Coming up and the calendar worked; for the rest I
+read the code and the seed data. I also read the v1 bundle on `gh-pages`.
+
+**What stood out.**
+- Round 5 gave the hub the parts of a revision tool: papers by sitting, questions by topic, text inside papers, a
+  board with plans, notes with formulas and Noora on Claude. They don't yet meet. The night before ST2134 I still
+  open five screens: the countdown, the Files tab, the board, my notes and the forum.
+- Year 2's countdown still says "then five more exams" for a student who sits four. IDEA-10 is still the fix.
+- Notes are private, and 15 of 16 modules still have no cheat sheet. Students write the sheets the library lacks,
+  then keep them to themselves.
+- Noora can't see the paper you're reading, though round 5 now keeps every paper's text.
+- The most common message in a year's WhatsApp group is "is there class today?". The hub knows about exams and
+  deadlines, not about this week's classes.
+- Nothing in the calendar says when results come out, and results day has no guide like Start here.
+- Two things left out in round 1 can come back, because what they waited on is built: a daily past question (IDEA-3
+  is built) and Noora on examiners' reports (R-6 is built, with a budget).
+
+Quick wins are marked **quick win** in the heading: a day or two each.
+
+## Round 2 · The night before an exam
+
+### IDEA-25. One page for tonight's exam
+
+- **The moment:** Hamad, 11 pm before ST2134: "Where is it, when, which papers haven't I done, and what did the
+  examiners keep complaining about? All on one screen, please."
+- **The idea:** From the countdown's "Open ST2134", in the last three days before an exam, a page for that exam: the
+  time and place (or "not set yet, ask your rep"), the plan's cards still to do, the last three sittings with their
+  reports and which of them you've marked done, the chapters with the most tagged past questions, and the module's
+  threads tagged Exam rules or Calculators. Nothing new is stored.
+- **Builds on:** the calendar event, `GET /library/papers` (sittings), the board's plan and paper cards
+  (`PaperProgress`), `/library/questions` counts by chapter, the forum's tag filter, "Time me".
+- **Size:** M, web only.
+- **Costs and risks:** another page to keep in step with the rest. It's only as good as the times and places reps
+  enter (IDEA-11).
+- **How we'd know it worked:** visits in the 72 hours before each exam; papers opened from it.
+- **Status:** proposed.
+
+### IDEA-26. Noora reads the paper you're on
+
+- **The moment:** Layla, in the 2023 Zone A EC1002 paper: "What does Q4 want, and what did the examiners say people
+  got wrong on it?"
+- **The idea:** On a past paper's page, "Ask Noora about this paper" sends the paper's stored text, and its
+  examiners' report's text when there is one, with the question. Noora explains the method and quotes the report.
+  Only papers from sittings that are over; never a paper from a session still running.
+- **What changed since round 1:** "AI summaries of examiners' reports" was left out to wait for R-6's decision on a
+  model and a budget. R-6 is built, with a daily cap per student and a monthly budget, and IDEA-2 keeps each paper's
+  text.
+- **Builds on:** `LibraryText` (`paper_text.py`), the sitting links from IDEA-1, `noora/ask.py` and its `<hub_data>`
+  wrapping, the docked Noora panel, the `noora.ai` switch.
+- **Size:** M, mostly API: the item id in the ask request, the text trimmed to a budget, cached per paper.
+- **Costs and risks:** a paper plus its report is long, so each answer costs more; send only the pages near the
+  question when the student names one, and let the existing budget refuse when it's spent. Scanned papers have no
+  text, so the button hides. The live-assessment rule in Noora's prompt stays.
+- **How we'd know it worked:** asks from paper pages, and the share Noora answers without "I don't know".
+- **Status:** proposed.
+
+### IDEA-27. A past question a day · quick win
+
+- **The moment:** Hamad, three weeks out: "I won't sit a whole paper tonight, but I'd do one question on the bus."
+- **The idea:** A small Home card in the six weeks before your next exam: one tagged past question from that module,
+  a different one each day, opening the paper at its page. "Add to my board" keeps it for later.
+- **What changed since round 1:** left out because it needed IDEA-3's tagged questions. IDEA-3 is built, behind its
+  switch.
+- **Builds on:** `GET /library/questions` by module, the paper viewer's page links, Home's panels, "Add to my
+  board".
+- **Size:** S, web only. The day's question is picked from the date, so everyone in a year sees the same one, which
+  gives the group chat something to talk about.
+- **Costs and risks:** hidden while a module has fewer than about ten tags, and while the switch is off.
+- **How we'd know it worked:** opens of the day's question; questions added to boards from it.
+- **Status:** proposed.
+
+### IDEA-28. What last year revised before this exam
+
+- **The moment:** Layla: "There are 72 Economics videos. Which ones did people actually go back to?"
+- **The idea:** On the Lessons tab, in the month before an exam, a "Revisited before last year's exam" mark on the
+  chapters most watched in the two weeks before that module's previous exam. Counts only, never names.
+- **Builds on:** `lesson_views` (`watched_at`), the calendar's past exam dates per module, the Lessons tab.
+- **Size:** S to M, both: one aggregate query, a mark on the chapter list.
+- **Costs and risks:** shown only when at least ten students watched, so no one person can be singled out. It needs
+  one exam season of data, so it starts paying off in May.
+- **How we'd know it worked:** views of marked chapters against unmarked ones in the month before.
+- **Status:** proposed.
+
+## Round 2 · Notes into revision
+
+### IDEA-29. Share a note with your module
+
+- **The moment:** Reem wrote a one-page Microeconomics formula sheet in her notes: "Others need this. I'm not
+  exporting a PDF and uploading it."
+- **The idea:** "Share with the module" on a note publishes a copy to the module's library as notes, credited to
+  you or not, after the usual review. Later edits ask "Update the shared copy?". The note itself stays private.
+- **Builds on:** notes (Markdown with KaTeX, attached to a module), the library's notes kind, `author_name`, the review
+  queue in Manage, the formula renderer.
+- **Size:** M, both: a library item whose body is Markdown (or a stored rendered copy), the share step, the reader.
+- **Costs and risks:** review load for reps, as with uploads. The shared copy is public, so the dialog says so. Copied
+  study guides get the usual rejection.
+- **How we'd know it worked:** modules with a cheat sheet by May; downloads and views of shared notes.
+- **Status:** proposed.
+
+### IDEA-30. Flip cards from your notes
+
+- **The moment:** Hamad uses Anki for definitions: "I type every ST2133 distribution twice: once in my notes, once
+  in Anki."
+- **The idea:** A line written `term :: meaning` in a note becomes a card. "Practise" on the note flips through them,
+  formulas drawn, with "Again" and "Got it"; what you got right is kept in the browser. "Export for Anki" downloads a
+  tab-separated file Anki imports.
+- **Builds on:** notes and their Markdown, KaTeX, the browser-only rule for marks (like grades and practice scores).
+- **Size:** S for the Anki export alone (a quick win); M with the practise screen. Web only.
+- **Costs and risks:** none on the server. No spaced-repetition schedule; Anki does that better.
+- **How we'd know it worked:** notes with `::` lines; exports and practise sessions in the month before exams.
+- **Status:** proposed.
+
+## Round 2 · A normal week
+
+### IDEA-31. Is there class today?
+
+- **The moment:** Layla, Sunday 7:30 am: "Is Business on today or did the lecturer cancel? Someone said something in
+  the group last night."
+- **The idea:** A rep marks a class change (cancelled, moved, online, new room) for a module on a day. It shows at the
+  top of Home for that year on that day, on the module page, and goes out as a notification to that year, using the
+  date-change alert's rules.
+- **Builds on:** calendar events (a `class` type, one day, with time and place), IDEA-12's `date_changed` notify path
+  and its "Tell Year 2" box, Home's countdown area, the rep's event form.
+- **Size:** S to M, both: an event type and a migration, a Home banner.
+- **Costs and risks:** a rep has to post it, so it only works if posting is faster than WhatsApp: two taps from the
+  module. No regular timetable: MyClass already has one, and keeping a second copy would rot.
+- **How we'd know it worked:** class changes posted per week; notifications opened before 9 am.
+- **Status:** proposed.
+
+### IDEA-32. Ask about this lesson
+
+- **The moment:** Hamad, 14 minutes into an ST2134 video: "Why is the MLE biased here?" He wants to ask about this
+  video, and see if someone already did.
+- **The idea:** "Ask about this lesson" under a lesson opens the composer with the module and the lesson filled in.
+  The thread links back to the lesson, and the lesson lists its threads, answered first.
+- **Builds on:** stable lesson ids (`round4/lesson-ids`), the composer's presets (`/forum/new?module=…`), forum
+  threads' `module_id`, the lesson page, follow (IDEA-7).
+- **Size:** M, both: an optional `lesson_id` on threads and a migration, a filter, the lesson panel.
+- **Costs and risks:** moderation as usual. A hidden lesson hides its panel, not its threads.
+- **How we'd know it worked:** threads with a lesson; how often a lesson's existing thread is opened instead of a new
+  one being asked.
+- **Status:** proposed.
+
+### IDEA-33. Every deadline on my board in one go · quick win
+
+- **The moment:** Hamad at the start of term: "I added the Business Analytics MCQ to my board. Now I have to do the
+  other eight by hand."
+- **The idea:** "Add this term's deadlines" on the board: every deadline and mock for your year from today to the end
+  of the session becomes a dated card, skipping any already there.
+- **Builds on:** `GET /calendar/events?type=deadline` for the year, `POST /board/cards` with `link_type` event (what
+  "Add to my board" sends), the board's due dates.
+- **Size:** S, web only.
+- **Costs and risks:** a crowded To do column, so it lists what it will add and lets you untick. Follows IDEA-10's
+  picks when that's built.
+- **How we'd know it worked:** boards with event cards; deadline cards moved to Done before their date.
+- **Status:** proposed.
+
+### IDEA-34. This week, on Home · quick win
+
+- **The moment:** "I switched the Sunday email off. I'd still like to see the week at a glance when I open the hub."
+- **The idea:** A "This week" card on Home for every visitor, signed in or not: the Sunday summary's sections for
+  your year (dates, new files, questions to answer, the latest issue), refreshed on Sunday.
+- **Builds on:** `services/summary.build()` for a year, today behind `summary_share` at `/summary/preview`; a public
+  read of the same thing for the current week, cached per year.
+- **Size:** S, both.
+- **Costs and risks:** none new: the summary already leaves out anything a guest can't read and features that are
+  off.
+- **How we'd know it worked:** clicks from the card; visits on Sundays and Mondays.
+- **Status:** proposed.
+
+### IDEA-35. Hear about it on your phone
+
+- **The moment:** Layla installed the hub (IDEA-23): "WhatsApp buzzes. The hub never does, so I forget it's there."
+- **The idea:** For the installed hub, "Notify me on this phone" on Your account sends the notifications you'd get by
+  email (date changes, class changes, accepted answers, a reply) as phone notifications. Each kind has its own
+  switch, beside the email ones.
+- **Builds on:** the PWA's service worker, the outbox and its worker (a push channel beside email), the email switches
+  in preferences, notification kinds.
+- **Size:** M, both: Web Push with VAPID keys, a subscriptions table and a migration, the worker step, the switches.
+- **Costs and risks:** free to send. On iPhone it works only from the home-screen app (iOS 16.4 and later). A push
+  subscription is personal data: in the export, gone with the account, and removed when the browser rejects it. Off
+  until the student turns it on, so it doesn't settle the open email-default question.
+- **How we'd know it worked:** phones subscribed; notifications opened from push compared with email.
+- **Status:** proposed.
+
+## Round 2 · Results day and after
+
+### IDEA-36. Results day, explained · quick win
+
+- **The moment:** Hamad, the morning results come out: "I got 38 in EC2020. Is that a resit? When do I register,
+  and can I ask for a re-mark?"
+- **The idea:** A "Results day" guide like Start here, shown on Home from the results date for two weeks: how to read
+  the UoL results, what a mark under 40 means and what the grades calculator says about it, the resit registration
+  deadline, how to ask for a verification of marks, and whom to talk to at BIBF. The results release dates go on the
+  calendar.
+- **Builds on:** the Start here pattern (`data/guides.ts`, ticks kept in the browser), calendar events (an `event`
+  per release date), the grades calculator's resit rules and what-if targets.
+- **Size:** S, web, with the wording from reps and the UoL dates.
+- **Costs and risks:** it must be right each session, so a rep checks it in May and October. It mustn't sound like
+  official advice: it says where the official rules are.
+- **How we'd know it worked:** visits to the guide and to the grades page in results week.
+- **Status:** proposed.
+
+### IDEA-37. Your projected class in Career Navigator · quick win
+
+- **The moment:** Reem, looking at an MSc: "It says 'a 2:1 or above'. Am I on track?"
+- **The idea:** Career Navigator's further study card reads the grades calculator's marks from this browser and says
+  "On your marks so far: Upper second, 2.4 marks clear of a First's threshold" or "Enter your marks". Nothing leaves
+  the browser.
+- **Builds on:** the calculator's stored marks and `classify()` / `targetsForRemaining()`, Career Navigator's
+  `furtherStudy` card, which already links to the calculator.
+- **Size:** S, web only.
+- **Costs and risks:** marks are cleared on sign-out (D10), so the card says when it has none. No server change, no
+  new personal data.
+- **How we'd know it worked:** clicks from the card to the calculator and back.
+- **Status:** proposed.
+
+## Round 2 · For the rep
+
+### IDEA-38. You asked, we did · quick win
+
+- **The moment:** Layla: "I asked for the 2019 MT1186 paper a month ago. Does anyone read these?" Mohamed: "We
+  answered 30 requests this month and nobody knows."
+- **The idea:** The requests page opens with "Done this month" (answered requests, newest first, with how many said
+  "me too"), and the newsletter editor gets a block that pulls the same list into an issue.
+- **Builds on:** `GET /requests` with status answered, me-too counts, newsletter blocks (the poll block's pattern).
+- **Size:** S, both.
+- **Costs and risks:** none; answered requests are already public.
+- **How we'd know it worked:** new requests after an issue with the block; me-too clicks.
+- **Status:** proposed.
+
+### IDEA-39. What's missing, for the rep
+
+- **The moment:** Mohamed on a Sunday with an hour: "What's the most useful gap to fill this week?"
+- **The idea:** A "Gaps" screen in Manage that lists, by module: sittings with a paper but no examiners' report,
+  papers with no text (scans), modules with no cheat sheet or no lessons, dates still "Not confirmed" within 30 days,
+  and the open requests with the most "me too". Each line links to where you fix it.
+- **Builds on:** `/library/papers`, `LibraryText.status`, the modules' resources and lesson counts, events' `sample`
+  flag, requests' me-too counts, Manage and its boxes (`content.edit`, `library.manage`, `calendar.manage`).
+- **Size:** M, both: one read endpoint and a Manage screen.
+- **Costs and risks:** none for students. Searches that found nothing would be useful too, but logging what people
+  search is personal data, so leave that out.
+- **How we'd know it worked:** gaps closed per month; fewer "Not confirmed" dates in exam weeks.
+- **Status:** proposed.
+
+## Considered and left out (round 2)
+
+- **A weekly class timetable:** MyClass has it, and a second copy would go stale. IDEA-31 covers the changes only.
+- **Saving papers for offline use:** connections in Bahrain are good, and short-lived file links make it fiddly.
+- **"Share to WhatsApp" buttons:** part of R-8, on hold.
+- **Study streaks and leaderboards:** they nag, and lesson views are the only signal.
+- **Anonymous logging of searches with no results:** see IDEA-39.
+
+## Top five (round 2)
+
+Before any of these, IDEA-10 (your papers) is still the most-felt gap from round 1: every Year 2 and 3 countdown is
+wrong.
+
+1. **IDEA-25: one page for tonight's exam.** Round 5 built the parts; this makes them one place on the night that
+   matters most, with nothing new stored.
+2. **IDEA-29: share a note with your module.** It turns private notes into the cheat sheets 15 modules lack, through
+   the review queue that already exists.
+3. **IDEA-31: is there class today?** The question the hub can answer every day, not just in exam weeks, and it
+   reuses IDEA-12's alerts.
+4. **IDEA-26: Noora reads the paper you're on.** The paper text and the AI budget are both there; this is where
+   students get stuck.
+5. **IDEA-27: a past question a day.** A day's work that brings people back daily, once the topic switch is on.
+
+IDEA-33, IDEA-34, IDEA-37 and IDEA-38 are a day each: give them to whoever next works on the board, Home, Career
+Navigator and requests.
