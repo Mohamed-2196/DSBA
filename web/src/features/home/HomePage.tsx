@@ -16,6 +16,7 @@ import { ContinueLearning, useTracking } from '../modules/public';
 import { LatestIssueCard } from '../newsletter/public';
 import { PapersButton, usePapers } from '../papers/public';
 import { ResultsDayCard, StartHereCard } from '../start/public';
+import { DailyCard } from '../daily/public';
 import { addDays, dayKey, formatLongDay, parseDay, todayKey } from '../../lib/dates';
 import { ALL_BLOCKS, BLOCKS, type HomeBlock } from './blocks';
 import { ComingUp } from './ComingUp';
@@ -63,6 +64,7 @@ export default function HomePage() {
   const calendarOn = featureOn('calendar');
   const libraryOn = featureOn('library');
   const forumOn = featureOn('forum');
+  const dailyOn = featureOn('daily');
 
   const now = new Date();
   // Today in Bahrain, as the API counts it; a new object only when the day changes.
@@ -252,8 +254,15 @@ export default function HomePage() {
         </Button>
       </header>
 
-      {blocks.length ? (
+      {blocks.length || dailyOn ? (
         <div className="home-blocks">
+          {dailyOn ? (
+            <div className="home-block home-block--notice home-block--daily">
+              <ErrorBoundary name="Home daily" fallback={null}>
+                <DailyCard />
+              </ErrorBoundary>
+            </div>
+          ) : null}
           <div className="home-blocks__grid">{blocks}</div>
         </div>
       ) : (
