@@ -1,22 +1,6 @@
 // One employer on the board: its logo slot, what it offers, why it is there, the tracks it suits and one button to
 // its own careers or programme page.
-import {
-  ArrowUpRight,
-  Bank,
-  Briefcase,
-  Buildings,
-  CellTower,
-  ChartLineUp,
-  Cloud,
-  CreditCard,
-  Factory,
-  Handshake,
-  Lightning,
-  Scales,
-  TrendUp,
-  Vault,
-  type Icon,
-} from '@phosphor-icons/react';
+import { ArrowUpRight, Buildings } from '@phosphor-icons/react';
 import type { CareerEmployer, CareerOffer, CareerTrack } from '../../api/types';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
@@ -25,26 +9,10 @@ import { applicationLine, dayKeyFromToday, useCalendarEvents, type CalendarEvent
 import { hostOf } from '../../lib/share';
 import { useCareerData } from './context';
 import { webUrl } from './lib/links';
+import { SECTOR_ICONS } from './lib/sectors';
 import { LogoSlot } from './LogoSlot';
 
 type OfferType = CareerOffer['type'];
-
-// Generic icons for the sector line (never a brand mark).
-const SECTOR_ICONS: Record<string, Icon> = {
-  Bank,
-  Investment: ChartLineUp,
-  Regulator: Scales,
-  'Sovereign fund': Vault,
-  'Public body': Buildings,
-  Exchange: TrendUp,
-  'Audit & consulting': Briefcase,
-  Consulting: Handshake,
-  Telecom: CellTower,
-  Technology: Cloud,
-  Fintech: CreditCard,
-  Energy: Lightning,
-  Industry: Factory,
-};
 
 const TYPE_TONE: Record<OfferType, 'cobalt' | 'signal' | 'outline'> = { graduate: 'cobalt', internship: 'signal', careers: 'outline' };
 

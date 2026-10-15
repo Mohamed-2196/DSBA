@@ -6,3 +6,7 @@ export { SeniorListing } from './SeniorListing';
 
 //   useEmployers()      the Career Navigator's employers as { id, name }, for the calendar's careers dates
 export { useEmployers } from './api';
+
+//   <CareerEditor />    Manage's Career Navigator section (holders of career.edit): every part of the page, saved as
+//                       one versioned document, with previews and uploaded logos.
+export { CareerEditor } from './editor/CareerEditor';

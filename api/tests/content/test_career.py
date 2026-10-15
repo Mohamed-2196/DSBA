@@ -231,8 +231,10 @@ def test_logos_are_uploaded_attached_and_let_go(
 
     # taken off: it goes back to uploaded (the sweep deletes it) and leaves the public page
     assert c.put(CAREER, json=save(doc(), 2)).status_code == 200
-    db.refresh(up)
-    assert up.status == UploadStatus.uploaded
+    db.expire_all()
+    fresh_up = db.get(UploadRow, uuid.UUID(logo["uploadId"]))
+    assert fresh_up is not None
+    assert fresh_up.status == UploadStatus.uploaded
     assert client_for().get(logo["mediaUrl"], follow_redirects=False).status_code == 404
 
 

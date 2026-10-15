@@ -27,7 +27,7 @@ function Effort({ level }: { level: CareerCert['effort'] }) {
   );
 }
 
-function CertCard({ cert }: { cert: CareerCert }) {
+export function CertCard({ cert }: { cert: CareerCert }) {
   const { getModule } = useModules();
   const modules = cert.covers.map((id) => getModule(id)).filter((m): m is ModuleSummary => m !== null);
   const url = webUrl(cert.url);

@@ -5,8 +5,6 @@ import { moduleLabel } from '../../lib/modules';
 import { cohortLabel, normalizeYear, YEARS, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, Modal, Select, TextField } from '../../ui';
-import { useAuth } from '../../auth';
-import { useEmployers } from '../career/public';
 import { useCreateEvent, useUpdateEvent } from './api';
 import { EVENT_TYPES, isEventType, TYPE_ORDER } from './eventMeta';
 import type { CalendarEvent, EventInput, EventType } from './types';
@@ -17,6 +15,10 @@ export interface EventFormDialogProps {
   event: CalendarEvent | null;
   /** A date to start a new event on ('YYYY-MM-DD'). */
   defaultDate?: string;
+  /** What a new event starts with (Career Navigator's editor: a careers date for one employer). */
+  preset?: Partial<Pick<FormState, 'type' | 'employerId' | 'title'>>;
+  /** Employers offered for a careers date: passed from the caller to keep dependencies acyclic. */
+  employers?: readonly { id: string; name: string }[];
   onClose: () => void;
   /** `told`: what an edit told students (none for a new event). */
   onSaved: (event: CalendarEvent, created: boolean, told?: DateNotice) => void;
@@ -125,13 +127,12 @@ const API_FIELDS: Record<string, keyof FormState> = {
 const EXAM_TYPES: ReadonlySet<EventType> = new Set(['exam', 'mock']);
 
 /** Moderators: add an event to the calendar, or edit one. */
-export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: EventFormDialogProps) {
+export function EventFormDialog({ open, event, defaultDate, preset, employers = [], onClose, onSaved }: EventFormDialogProps) {
   const uid = useId().replace(/:/g, '');
   const { modules, getModule } = useModules();
-  const employers = useEmployers(useAuth().featureOn('career'));
   const create = useCreateEvent();
   const update = useUpdateEvent();
-  const [form, setForm] = useState<FormState>(() => fromEvent(event, getModule, defaultDate));
+  const [form, setForm] = useState<FormState>(() => ({ ...fromEvent(event, getModule, defaultDate), ...(event ? {} : preset) }));
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const saving = create.isPending || update.isPending;
@@ -139,9 +140,11 @@ export function EventFormDialog({ open, event, defaultDate, onClose, onSaved }: 
   // A fresh form every time the dialog opens (or opens on another event).
   useEffect(() => {
     if (!open) return;
-    setForm(fromEvent(event, getModule, defaultDate));
+    setForm({ ...fromEvent(event, getModule, defaultDate), ...(event ? {} : preset) });
     setErrors({});
     setFormError(null);
+    // `preset` is read when the dialog opens: a new object on every render of the caller must not reset the form.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, event, defaultDate, getModule]);
 
   // A cohort picked here narrows the modules to its own; until then every module is offered.

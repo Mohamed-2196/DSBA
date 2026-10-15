@@ -11,6 +11,7 @@ import { monthKey } from './dates';
 import { EventDrawer } from './EventDrawer';
 import { EventFormDialog, type DateNotice } from './EventFormDialog';
 import { ForYou } from './ForYou';
+import { useEmployers } from '../career/public';
 import { PapersButton, usePapers } from '../papers/public';
 import { SubscribeDialog } from './SubscribeDialog';
 import type { CalendarEvent } from './types';
@@ -26,6 +27,8 @@ export default function CalendarPage() {
   const manages = can('calendar.manage');
   const [subscribing, setSubscribing] = useState(false);
   const [editing, setEditing] = useState<{ event: CalendarEvent | null } | null>(null);
+
+  const employers = useEmployers(useAuth().featureOn('career'));
 
   const description = `Exams, deadlines and term dates for ${year ? (papers ? 'your papers' : cohortLabel(year)) : 'all three years'}. Add any of them to your own calendar.`;
   const actions = (
@@ -53,7 +56,7 @@ export default function CalendarPage() {
         <CalendarBody events={query.data} onEdit={manages ? (e) => setEditing({ event: e }) : undefined} onAdd={manages ? () => setEditing({ event: null }) : undefined} />
       )}
       <SubscribeDialog open={subscribing} year={year} papers={papers} onClose={() => setSubscribing(false)} />
-      <EventEditor editing={editing} onClose={() => setEditing(null)} />
+      <EventEditor editing={editing} employers={employers} onClose={() => setEditing(null)} />
     </Page>
   );
 }
@@ -66,7 +69,7 @@ function toldLine(told: DateNotice | undefined): string {
 }
 
 /** The add/edit dialog, then the page moves to what was saved. */
-function EventEditor({ editing, onClose }: { editing: { event: CalendarEvent | null } | null; onClose: () => void }) {
+function EventEditor({ editing, employers, onClose }: { editing: { event: CalendarEvent | null } | null; employers: readonly { id: string; name: string }[]; onClose: () => void }) {
   const { push } = useToast();
   const [, setEventId] = useQueryParam('event');
   const [, setMonthParam] = useQueryParam('month');
@@ -74,6 +77,7 @@ function EventEditor({ editing, onClose }: { editing: { event: CalendarEvent | n
     <EventFormDialog
       open={!!editing}
       event={editing?.event ?? null}
+      employers={employers}
       onClose={onClose}
       onSaved={(saved, created, told) => {
         onClose();
