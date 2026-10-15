@@ -12,7 +12,7 @@ from pydantic import Field, StringConstraints
 from app.schemas.common import ApiModel
 from app.schemas.library import LibraryKind
 
-BoardLinkType = Literal["event", "lesson", "module", "library_item"]
+BoardLinkType = Literal["event", "my_event", "lesson", "module", "library_item"]
 BoardTemplate = Literal["study", "revision", "assignment", "weekly", "personal", "blank"]
 BoardColor = Literal["cobalt", "teal", "green", "amber", "coral", "slate"]
 Priority = Literal["none", "low", "medium", "high"]
@@ -118,7 +118,8 @@ class ColumnUpdate(ApiModel):
 
 
 class BoardLinkIn(ApiModel):
-    """What a card points at: a calendar event id, a lesson id, a module id or a library item id."""
+    """What a card points at: a calendar event id, one of the student's own events, a lesson id, a module id or a
+    library item id."""
 
     type: BoardLinkType
     id: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=96)]
@@ -129,7 +130,7 @@ class BoardLink(ApiModel):
     id: str
     title: str | None  # None: the thing is gone from the hub
     url: str | None  # where it lives in the web app
-    date: dt.date | None  # an event's last day: the card is due then unless it has its own due date
+    date: dt.date | None  # an event's last day (a repeat's next): the card is due then unless it has its own due date
     kind: LibraryKind | None  # a library item's kind ('past-paper', ...)
     module_id: str | None  # the module a lesson or a library item belongs to
 

@@ -12,9 +12,20 @@ from sqlalchemy.orm import Session
 
 from app.core.access import Feature
 from app.core.errors import conflict, not_found
-from app.models import Board, BoardCard, BoardColumn, CalendarEvent, ItemStatus, LibraryItem, Module, User
+from app.core.time import bahrain_today
+from app.models import (
+    Board,
+    BoardCard,
+    BoardColumn,
+    CalendarEvent,
+    ItemStatus,
+    LibraryItem,
+    Module,
+    PersonalEvent,
+    User,
+)
 from app.schemas.board import BoardLink
-from app.services import access
+from app.services import access, my_calendar
 from app.services.modules import lesson_name, lesson_path, student_lessons
 
 MAX_BOARDS = 20
@@ -158,6 +169,21 @@ def resolve_links(db: Session, user: User | None, keys: Iterable[LinkKey]) -> di
                 date=e.end_date or e.date,
                 kind=None,
                 module_id=e.module_id,
+            )
+    if (ids := wanted.get("my_event")) and user is not None and access.feature_on(db, user, Feature.calendar):
+        uuids = [u for u in (parse_uuid(i) for i in ids) if u is not None]
+        today = bahrain_today()
+        own = select(PersonalEvent).where(PersonalEvent.id.in_(uuids), PersonalEvent.user_id == user.id)
+        for p in db.scalars(own) if uuids else ():
+            day = my_calendar.next_day(p, today) or my_calendar.last_repeat(p)
+            found["my_event", str(p.id)] = BoardLink(
+                type="my_event",
+                id=str(p.id),
+                title=p.title,
+                url=f"/calendar?event=mine-{p.id}",
+                date=day + (p.end_date - p.date) if p.end_date else day,
+                kind=None,
+                module_id=None,
             )
     if ids := wanted.get("library_item"):
         uuids = [u for u in (parse_uuid(i) for i in ids) if u is not None]

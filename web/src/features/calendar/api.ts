@@ -9,7 +9,8 @@ import { api, apiUrl, call } from '../../api/client';
 import { appUrl } from '../../lib/share';
 import type { CohortYear } from '../../state';
 import { dayKeyFromToday, sortEvents } from './queries';
-import type { CalendarEvent, EventFilters, EventInput, EventPatch } from './types';
+import type { CalendarPrefsUpdate } from '../../api/types';
+import type { CalendarEvent, CalendarPrefs, EventFilters, EventInput, EventPatch, PersonalInput, PersonalPatch } from './types';
 
 export const CALENDAR_KEY = ['calendar'] as const;
 
@@ -127,3 +128,99 @@ export function useDeleteEvent() {
     onSuccess: () => qc.invalidateQueries({ queryKey: CALENDAR_KEY }),
   });
 }
+
+// ── A student's own calendar ───────────────────────────────────────────────────────────────────
+//   GET/POST/PATCH/DELETE /api/v1/calendar/mine/events[/id]   their events (each repeat is one event)
+//   GET /api/v1/calendar/mine/events/{id}.ics                 one of them to import
+//   GET/PATCH /api/v1/calendar/mine/settings                  the programme dates they hide, their private feed
+//   POST/DELETE /api/v1/calendar/mine/feed                    a new private feed address, or none
+
+export const mineKeys = {
+  events: [...CALENDAR_KEY, 'mine', 'events'] as const,
+  settings: [...CALENDAR_KEY, 'mine', 'settings'] as const,
+};
+
+/** The signed-in student's own events; off for guests (`enabled`). Kept while the page is open. */
+export function useMyEvents({ enabled }: { enabled: boolean }) {
+  return useQuery({
+    queryKey: mineKeys.events,
+    queryFn: () => call(api.GET('/api/v1/calendar/mine/events')),
+    enabled,
+    staleTime: STALE,
+  });
+}
+
+/** What the student keeps off their calendar, and their private feed. */
+export function useCalendarPrefs({ enabled }: { enabled: boolean }) {
+  return useQuery({
+    queryKey: mineKeys.settings,
+    queryFn: () => call(api.GET('/api/v1/calendar/mine/settings')),
+    enabled,
+    staleTime: STALE,
+  });
+}
+
+export function useCreateMyEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: PersonalInput) => call(api.POST('/api/v1/calendar/mine/events', { body })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: mineKeys.events }),
+  });
+}
+
+export function useUpdateMyEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: PersonalPatch }) =>
+      call(api.PATCH('/api/v1/calendar/mine/events/{event_id}', { params: { path: { event_id: id } }, body: patch })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: mineKeys.events }),
+  });
+}
+
+export function useDeleteMyEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => call(api.DELETE('/api/v1/calendar/mine/events/{event_id}', { params: { path: { event_id: id } } })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: mineKeys.events }),
+  });
+}
+
+/** Hide or show programme dates: each list sent replaces the kept one. Shown at once; put back if the save fails. */
+export function useUpdatePrefs() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CalendarPrefsUpdate) => call(api.PATCH('/api/v1/calendar/mine/settings', { body })),
+    onMutate: async (body) => {
+      await qc.cancelQueries({ queryKey: mineKeys.settings });
+      const before = qc.getQueryData<CalendarPrefs>(mineKeys.settings);
+      if (before) {
+        qc.setQueryData<CalendarPrefs>(mineKeys.settings, {
+          ...before,
+          hiddenEvents: body.hiddenEvents ?? before.hiddenEvents,
+          hiddenModules: body.hiddenModules ?? before.hiddenModules,
+          hiddenTypes: body.hiddenTypes ?? before.hiddenTypes,
+        });
+      }
+      return { before };
+    },
+    onError: (_err, _body, context) => {
+      if (context?.before) qc.setQueryData(mineKeys.settings, context.before);
+    },
+    onSuccess: (saved) => qc.setQueryData(mineKeys.settings, saved),
+  });
+}
+
+/** A new private feed address (the old one stops working), or `off`: none. */
+export function usePrivateFeed() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (action: 'new' | 'off') => call(action === 'new' ? api.POST('/api/v1/calendar/mine/feed') : api.DELETE('/api/v1/calendar/mine/feed')),
+    onSuccess: (saved) => qc.setQueryData(mineKeys.settings, saved),
+  });
+}
+
+/** The private feed's absolute address, for calendar apps. */
+export const privateFeedUrl = (path: string): string => new URL(apiUrl(path as `/api/v1/${string}`), window.location.origin).href;
+
+/** One of the student's events as an .ics file to import. */
+export const myEventIcsUrl = (id: string): string => apiUrl(`/api/v1/calendar/mine/events/${encodeURIComponent(id)}.ics`);

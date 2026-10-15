@@ -86,6 +86,7 @@ CREATE_WINDOW = timedelta(hours=1)
 AGENDA_DAYS = 7
 LINK_GONE = {
     "event": "This date isn't in the calendar any more.",
+    "my_event": "This event isn't on your calendar any more.",
     "lesson": "This lesson doesn't exist.",
     "module": "This module doesn't exist.",
     "library_item": "This file isn't in the library.",
@@ -259,7 +260,7 @@ def board_detail(db: Session, user: User, board: Board) -> BoardDetail:
 def _canonical_link(db: Session, user: User, kind: str, raw: str) -> tuple[str, BoardLink]:
     """The link's stored id and what it points at, or 422 on link.id when there's nothing there for `user`."""
     ident = raw
-    if kind == "library_item" and (u := parse_uuid(raw)) is not None:
+    if kind in ("library_item", "my_event") and (u := parse_uuid(raw)) is not None:
         ident = str(u)
     link = resolve_links(db, user, [(kind, ident)]).get((kind, ident))
     if link is None:

@@ -19,6 +19,7 @@ from app.core.access import ADMIN, REP, STUDENT
 from app.core.errors import ApiError, conflict, forbidden, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
+    CalendarPrefs,
     EmailOutbox,
     ForumReply,
     ForumThread,
@@ -35,6 +36,7 @@ from app.models import (
     Notification,
     PaperQuestion,
     PaperQuestionFlag,
+    PersonalEvent,
     PollVote,
     ReplyVote,
     Report,
@@ -54,6 +56,7 @@ from app.models import (
 from app.schemas.access import RoleSummary
 from app.schemas.auth import (
     AccountExport,
+    ExportCalendarSettings,
     ExportEmail,
     ExportFollow,
     ExportLibraryItem,
@@ -76,6 +79,7 @@ from app.schemas.auth import (
     Preferences,
     PreferencesUpdate,
 )
+from app.schemas.calendar import PersonalEventOut
 from app.schemas.common import UserPublic
 from app.schemas.modules import Progress, ProgressImport
 from app.schemas.notifications import NotificationKind
@@ -830,6 +834,19 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for u in db.scalars(select(NooraUsage).where(NooraUsage.user_id == uid).order_by(NooraUsage.day))
     ]
+    calendar_prefs = db.get(CalendarPrefs, uid)
+    calendar_settings = (
+        ExportCalendarSettings.model_validate(
+            {
+                "hidden_events": list(calendar_prefs.hidden_events),
+                "hidden_modules": list(calendar_prefs.hidden_modules),
+                "hidden_types": list(calendar_prefs.hidden_types),
+                "private_feed": calendar_prefs.feed_salt is not None,
+            }
+        )
+        if calendar_prefs is not None
+        else None
+    )
     return AccountExport(
         user=me_out(user),
         sessions=[sessions.info(s, current) for s in sessions.live(db, uid)],
@@ -872,6 +889,15 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
                 select(VideoSuggestion).where(VideoSuggestion.author_id == uid).order_by(VideoSuggestion.created_at)
             )
         ],
+        calendar_events=[
+            PersonalEventOut.model_validate(e)
+            for e in db.scalars(
+                select(PersonalEvent)
+                .where(PersonalEvent.user_id == uid)
+                .order_by(PersonalEvent.date, PersonalEvent.created_at)
+            )
+        ],
+        calendar_settings=calendar_settings,
     )
 
 
@@ -883,8 +909,9 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
     (objects first: if the bucket fails, nothing is deleted and the person can try again); pending and rejected
     library items go; published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set
     NULL); everything personal (boards, sessions, notifications, queued emails, progress, stars, votes, me-toos,
-    reactions, follows, poll votes, the senior listing) cascades; the sign-in codes stay, anonymised, until the
-    sweep (the rate limits count them). The last active admin can't leave (409 last_admin). The caller commits."""
+    reactions, follows, poll votes, the senior listing, their own calendar) cascades; the sign-in codes stay,
+    anonymised, until the sweep (the rate limits count them). The last active admin can't leave (409 last_admin).
+    The caller commits."""
     if access.is_admin(user):
         access.ensure_admins_remain(db, user)
     uid = user.id

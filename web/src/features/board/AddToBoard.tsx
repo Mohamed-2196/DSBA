@@ -8,7 +8,7 @@ import { Button, type ButtonSize } from '../../ui';
 import { useAddCard, useBoardLinks } from './api';
 
 export interface AddToBoardProps {
-  /** what the card points at: a calendar event, a lesson ('<module>:<chapter>:<video>'), a module or a library item */
+  /** what the card points at: a calendar event, one of the student's own events, a lesson ('<module>:<chapter>:<video>'), a module or a library item */
   link: BoardLinkIn;
   size?: ButtonSize;
   className?: string;

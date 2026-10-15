@@ -328,11 +328,11 @@ def ics_fold(line: str) -> str:
     return (CRLF + " ").join(parts)
 
 
-def _date_value(d: dt.date) -> str:
+def date_value(d: dt.date) -> str:
     return d.strftime("%Y%m%d")
 
 
-def _utc_stamp(t: dt.datetime) -> str:
+def utc_stamp(t: dt.datetime) -> str:
     return t.astimezone(dt.UTC).strftime("%Y%m%dT%H%M%SZ")
 
 
@@ -373,15 +373,15 @@ def event_url(base_url: str, e: CalendarEvent) -> str:
     return f"{base_url.rstrip('/')}/calendar?date={e.date.isoformat()}&event={e.id}"
 
 
-def _vevent(e: CalendarEvent, module: Module | None, now: dt.datetime, base_url: str) -> list[str]:
+def vevent(e: CalendarEvent, module: Module | None, now: dt.datetime, base_url: str) -> list[str]:
     last_day = e.end_date or e.date
     changed = e.updated_at or e.created_at
     lines = [
         "BEGIN:VEVENT",
         f"UID:{e.id}@dsba-hub",
-        f"DTSTAMP:{_utc_stamp(now)}",
-        f"DTSTART;VALUE=DATE:{_date_value(e.date)}",
-        f"DTEND;VALUE=DATE:{_date_value(last_day + dt.timedelta(days=1))}",  # exclusive
+        f"DTSTAMP:{utc_stamp(now)}",
+        f"DTSTART;VALUE=DATE:{date_value(e.date)}",
+        f"DTEND;VALUE=DATE:{date_value(last_day + dt.timedelta(days=1))}",  # exclusive
         f"SUMMARY:{ics_text(summary(e))}",
         f"DESCRIPTION:{ics_text(describe(e, module))}",
     ]
@@ -393,7 +393,7 @@ def _vevent(e: CalendarEvent, module: Module | None, now: dt.datetime, base_url:
         f"URL:{event_url(base_url, e)}",
     ]
     if changed is not None:
-        lines.append(f"LAST-MODIFIED:{_utc_stamp(changed)}")
+        lines.append(f"LAST-MODIFIED:{utc_stamp(changed)}")
     if e.type in ("exam", "deadline"):
         lines += [
             "BEGIN:VALARM",
@@ -406,18 +406,9 @@ def _vevent(e: CalendarEvent, module: Module | None, now: dt.datetime, base_url:
     return lines
 
 
-def build_ics(
-    events: Iterable[CalendarEvent],
-    modules: Mapping[str, Module],
-    *,
-    name: str,
-    base_url: str,
-    now: dt.datetime | None = None,
-    subscription: bool = True,
-) -> str:
-    """A VCALENDAR of `events`. A `subscription` (the feed) tells calendar apps to refresh it every 6 hours; a file
-    to import once (one event) doesn't."""
-    stamp = now or utcnow()
+def ics_document(vevents: Iterable[list[str]], *, name: str, subscription: bool = True) -> str:
+    """A VCALENDAR of `vevents` (each a VEVENT's lines). A `subscription` (a feed) tells calendar apps to refresh it
+    every 6 hours; a file to import once doesn't."""
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
@@ -429,7 +420,22 @@ def build_ics(
     ]
     if subscription:
         lines += ["REFRESH-INTERVAL;VALUE=DURATION:PT6H", "X-PUBLISHED-TTL:PT6H"]
-    for e in events:
-        lines += _vevent(e, modules.get(e.module_id) if e.module_id else None, stamp, base_url)
+    for vevent in vevents:
+        lines += vevent
     lines.append("END:VCALENDAR")
     return CRLF.join(ics_fold(line) for line in lines) + CRLF
+
+
+def build_ics(
+    events: Iterable[CalendarEvent],
+    modules: Mapping[str, Module],
+    *,
+    name: str,
+    base_url: str,
+    now: dt.datetime | None = None,
+    subscription: bool = True,
+) -> str:
+    """A VCALENDAR of programme `events` (ics_document)."""
+    stamp = now or utcnow()
+    vevents = (vevent(e, modules.get(e.module_id) if e.module_id else None, stamp, base_url) for e in events)
+    return ics_document(vevents, name=name, subscription=subscription)

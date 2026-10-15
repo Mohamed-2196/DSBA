@@ -13577,6 +13577,993 @@
         }
       }
     },
+    "/api/v1/calendar/mine/events": {
+      "get": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "My Events",
+        "description": "Your own events, by date. Each repeat is one event: the web app lays out its occurrences.",
+        "operationId": "my_events_api_v1_calendar_mine_events_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PersonalEventOut"
+                  },
+                  "type": "array",
+                  "title": "Response My Events Api V1 Calendar Mine Events Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Add My Event",
+        "description": "An event on your calendar only. Errors: invalid_input (422: dates or times that don't fit together),\ncalendar_full (409), rate_limited (429).",
+        "operationId": "add_my_event_api_v1_calendar_mine_events_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalEventCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalEventOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/mine/events/{event_id}": {
+      "patch": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Edit My Event",
+        "description": "Fields not sent stay; null clears the optional ones. A repeat changes as a whole.",
+        "operationId": "edit_my_event_api_v1_calendar_mine_events__event_id__patch",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalEventUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalEventOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Delete My Event",
+        "description": "Deletes the event, every repeat of it.",
+        "operationId": "delete_my_event_api_v1_calendar_mine_events__event_id__delete",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/mine/events/{event_id}.ics": {
+      "get": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "My Event Ics",
+        "description": "One of your events as an .ics file to import, with its repeat and reminder.",
+        "operationId": "my_event_ics_api_v1_calendar_mine_events__event_id__ics_get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/calendar": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/mine/settings": {
+      "get": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "My Settings",
+        "description": "The programme dates you keep off your calendar, and your private feed's path.",
+        "operationId": "my_settings_api_v1_calendar_mine_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarPrefsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Change My Settings",
+        "description": "Each list sent (hidden dates, modules, types) replaces the one kept; lists not sent stay.",
+        "operationId": "change_my_settings_api_v1_calendar_mine_settings_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarPrefsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarPrefsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/mine/feed": {
+      "post": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "New My Feed",
+        "description": "Turns your private feed on at a new address. An address you had before stops working.",
+        "operationId": "new_my_feed_api_v1_calendar_mine_feed_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarPrefsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Stop My Feed",
+        "description": "Turns your private feed off: its address stops working.",
+        "operationId": "stop_my_feed_api_v1_calendar_mine_feed_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarPrefsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/feeds/calendar/{token}.ics": {
+      "get": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Private Calendar",
+        "description": "A student's own calendar to subscribe to: their year's and papers' dates, less what they hid, and their own\nevents with their repeats and reminders. Works only while the calendar is on for them and the address is\ncurrent. Errors: not_found (404).",
+        "operationId": "private_calendar_api_v1_feeds_calendar__token__ics_get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/calendar": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/career": {
       "get": {
         "tags": [
@@ -18919,6 +19906,23 @@
             },
             "type": "array",
             "title": "Videosuggestions"
+          },
+          "calendarEvents": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalEventOut"
+            },
+            "type": "array",
+            "title": "Calendarevents"
+          },
+          "calendarSettings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExportCalendarSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -18947,7 +19951,9 @@
           "senior",
           "notes",
           "nooraUsage",
-          "videoSuggestions"
+          "videoSuggestions",
+          "calendarEvents",
+          "calendarSettings"
         ],
         "title": "AccountExport",
         "description": "Everything the Hub stores about the signed-in user (GET /me/export)."
@@ -20445,6 +21451,7 @@
             "type": "string",
             "enum": [
               "event",
+              "my_event",
               "lesson",
               "module",
               "library_item"
@@ -20544,6 +21551,7 @@
             "type": "string",
             "enum": [
               "event",
+              "my_event",
               "lesson",
               "module",
               "library_item"
@@ -20563,7 +21571,7 @@
           "id"
         ],
         "title": "BoardLinkIn",
-        "description": "What a card points at: a calendar event id, a lesson id, a module id or a library item id."
+        "description": "What a card points at: a calendar event id, one of the student's own events, a lesson id, a module id or a\nlibrary item id."
       },
       "BoardLinkState": {
         "properties": {
@@ -20571,6 +21579,7 @@
             "type": "string",
             "enum": [
               "event",
+              "my_event",
               "lesson",
               "module",
               "library_item"
@@ -21959,6 +22968,126 @@
           "examDetails"
         ],
         "title": "CalendarGaps"
+      },
+      "CalendarPrefsOut": {
+        "properties": {
+          "hiddenEvents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Hiddenevents"
+          },
+          "hiddenModules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Hiddenmodules"
+          },
+          "hiddenTypes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "exam",
+                "mock",
+                "revision",
+                "deadline",
+                "careers",
+                "event",
+                "break",
+                "term"
+              ]
+            },
+            "type": "array",
+            "title": "Hiddentypes"
+          },
+          "feedPath": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedpath"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hiddenEvents",
+          "hiddenModules",
+          "hiddenTypes",
+          "feedPath"
+        ],
+        "title": "CalendarPrefsOut",
+        "description": "What a student keeps off their calendar, and their private feed. Hidden programme dates leave their list,\nmonth, Home and private feed; the shared feed and other people's calendars are unchanged."
+      },
+      "CalendarPrefsUpdate": {
+        "properties": {
+          "hiddenEvents": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "minLength": 1
+                },
+                "type": "array",
+                "maxItems": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hiddenevents"
+          },
+          "hiddenModules": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+                },
+                "type": "array",
+                "maxItems": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hiddenmodules"
+          },
+          "hiddenTypes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "exam",
+                    "mock",
+                    "revision",
+                    "deadline",
+                    "careers",
+                    "event",
+                    "break",
+                    "term"
+                  ]
+                },
+                "type": "array",
+                "maxItems": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hiddentypes"
+          }
+        },
+        "type": "object",
+        "title": "CalendarPrefsUpdate",
+        "description": "Each list sent replaces the one kept (at most 300 entries); lists not sent stay."
       },
       "CardAside": {
         "properties": {
@@ -23662,6 +24791,7 @@
               "storage_full",
               "limit_reached",
               "already_on_board",
+              "calendar_full",
               "noora_unavailable",
               "noora_budget_reached",
               "noora_busy",
@@ -23936,6 +25066,7 @@
                 "type": "string",
                 "enum": [
                   "event",
+                  "my_event",
                   "lesson",
                   "module",
                   "library_item"
@@ -24125,6 +25256,54 @@
         ],
         "title": "ExportBoardPlan"
       },
+      "ExportCalendarSettings": {
+        "properties": {
+          "hiddenEvents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Hiddenevents"
+          },
+          "hiddenModules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Hiddenmodules"
+          },
+          "hiddenTypes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "exam",
+                "mock",
+                "revision",
+                "deadline",
+                "careers",
+                "event",
+                "break",
+                "term"
+              ]
+            },
+            "type": "array",
+            "title": "Hiddentypes"
+          },
+          "privateFeed": {
+            "type": "boolean",
+            "title": "Privatefeed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hiddenEvents",
+          "hiddenModules",
+          "hiddenTypes",
+          "privateFeed"
+        ],
+        "title": "ExportCalendarSettings",
+        "description": "What this person keeps off their calendar, and whether their private feed is on (its address is a secret,\nleft out)."
+      },
       "ExportEmail": {
         "properties": {
           "kind": {
@@ -24144,6 +25323,7 @@
                   "report_resolved",
                   "request_update",
                   "date_changed",
+                  "event_reminder",
                   "video_suggestion",
                   "bug_report",
                   "board_reminder",
@@ -24576,6 +25756,7 @@
               "report_resolved",
               "request_update",
               "date_changed",
+              "event_reminder",
               "video_suggestion",
               "bug_report",
               "board_reminder",
@@ -29253,6 +30434,7 @@
               "report_resolved",
               "request_update",
               "date_changed",
+              "event_reminder",
               "video_suggestion",
               "bug_report",
               "board_reminder",
@@ -29715,6 +30897,453 @@
           "text"
         ],
         "title": "ParagraphBlock"
+      },
+      "PersonalEventCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "endDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enddate"
+          },
+          "startTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starttime"
+          },
+          "endTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endtime"
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "violet",
+              "teal",
+              "green",
+              "orange",
+              "rose",
+              "slate"
+            ],
+            "title": "Colour",
+            "default": "violet"
+          },
+          "repeat": {
+            "type": "string",
+            "enum": [
+              "none",
+              "daily",
+              "weekly"
+            ],
+            "title": "Repeat",
+            "default": "none"
+          },
+          "repeatUntil": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repeatuntil"
+          },
+          "remind": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  0,
+                  10,
+                  30,
+                  60,
+                  1440
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "date"
+        ],
+        "title": "PersonalEventCreate"
+      },
+      "PersonalEventOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "endDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enddate"
+          },
+          "startTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starttime"
+          },
+          "endTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endtime"
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "violet",
+              "teal",
+              "green",
+              "orange",
+              "rose",
+              "slate"
+            ],
+            "title": "Colour"
+          },
+          "repeat": {
+            "type": "string",
+            "enum": [
+              "none",
+              "daily",
+              "weekly"
+            ],
+            "title": "Repeat"
+          },
+          "repeatUntil": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repeatuntil"
+          },
+          "remind": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  0,
+                  10,
+                  30,
+                  60,
+                  1440
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remind"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "date",
+          "endDate",
+          "startTime",
+          "endTime",
+          "place",
+          "notes",
+          "colour",
+          "repeat",
+          "repeatUntil",
+          "remind",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "PersonalEventOut",
+        "description": "An event a student added for themselves: private to them. Without `startTime` it is all day (through\n`endDate` when set); with it, it runs from `startTime` to `endTime` (or for an hour) on `date`. Times are in\nBahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year)."
+      },
+      "PersonalEventUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "endDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enddate"
+          },
+          "startTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starttime"
+          },
+          "endTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endtime"
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "colour": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "violet",
+                  "teal",
+                  "green",
+                  "orange",
+                  "rose",
+                  "slate"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Colour"
+          },
+          "repeat": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "daily",
+                  "weekly"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repeat"
+          },
+          "repeatUntil": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repeatuntil"
+          },
+          "remind": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  0,
+                  10,
+                  30,
+                  60,
+                  1440
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remind"
+          }
+        },
+        "type": "object",
+        "title": "PersonalEventUpdate",
+        "description": "Fields not sent stay; null clears the end date, times, place, notes, repeat end and reminder."
       },
       "PollBlock": {
         "properties": {

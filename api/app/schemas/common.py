@@ -105,6 +105,8 @@ ErrorCode = Literal[
     "storage_full",  # 409: the files on the student's cards take as much room as they may
     "limit_reached",  # 409: a board's columns, a card's files or comments, or the labels are at their limit
     "already_on_board",  # 409: this event, lesson, module or file already has a card on that board
+    # your own calendar
+    "calendar_full",  # 409: the most events of their own a student may keep
     # Mini Noora's AI answers (R-6)
     "noora_unavailable",  # 503: no AI right now (not set up, or Claude failed): she answers from her script
     "noora_budget_reached",  # 503: the hub's monthly AI budget is spent: she answers from her script

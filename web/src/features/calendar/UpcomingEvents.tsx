@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarBlank } from '@phosphor-icons/react';
 import { cohortLabel, useYear, type CohortYear } from '../../state';
@@ -8,8 +8,12 @@ import { isMine, usePapers } from '../papers/public';
 import { useUpcomingEvents } from './api';
 import { DateLeaf } from './DateLeaf';
 import { dayKey, daysUntil, formatDay, formatLong, parseDay, today as bahrainToday } from '../../lib/dates';
+import { isHidden, occurrences } from './mine';
+import { lastDay, sortEvents } from './queries';
+import type { CalendarEvent } from './types';
+import { useMyCalendar } from './useMyCalendar';
 import { windowCountdown } from './dates';
-import { splitTitle, typeLabel, whenAndWhere } from './eventMeta';
+import { dotClass, kindLabel, leafTone, splitTitle, whenAndWhere } from './eventMeta';
 import './calendar-shared.css';
 import './UpcomingEvents.css';
 
@@ -22,7 +26,8 @@ export interface UpcomingEventsProps {
 
 /**
  * Compact "coming up" list for Home and the forum sidebar: date leaf (weekday, day, month), type
- * dot, title, countdown. Follows the cohort the student browses (plus everyone-dates).
+ * dot, title, countdown. Follows the cohort the student browses (plus everyone-dates); signed in, it leaves out the
+ * programme dates they hid and adds their own events (in their own year, or with no year picked).
  * Each row opens the event on the calendar (/calendar?event=<id>); hosts add their own "Open calendar" link.
  * Adapts to its container's width (container queries).
  * data-hub="upcoming-events".
@@ -32,11 +37,19 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
   const year = forYear === undefined ? browsed : forYear;
   const { getModule } = useModules();
   const [today] = useState(() => bahrainToday());
-  const todayKey = dayKey(today);
   const { year: ownYear, papers: ownPapers } = usePapers();
   const papers = year === ownYear ? ownPapers : null;
-  // With papers, read more and keep the student's own (another paper's dates drop out).
-  const query = useUpcomingEvents({ n: papers ? n * 4 : n, year });
+  const my = useMyCalendar();
+  const prefs = my.prefs;
+  const hides = !!prefs && prefs.hiddenEvents.length + prefs.hiddenModules.length + prefs.hiddenTypes.length > 0;
+  // With papers or hidden dates, read more and keep the student's own (another paper's dates drop out).
+  const query = useUpcomingEvents({ n: papers || hides ? n * 4 : n, year });
+  const showOwn = my.signedIn && (year == null || year === ownYear);
+  const own = useMemo(() => {
+    if (!showOwn || !my.events.length) return [];
+    const from = dayKey(today);
+    return occurrences(my.events).filter((e) => lastDay(e) >= from);
+  }, [showOwn, my.events, today]);
 
   if (query.isPending) {
     return (
@@ -66,10 +79,8 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
     );
   }
 
-  const listed = papers ? query.data.filter((e) => isMine(e, year ?? null, papers)).slice(0, n) : query.data;
-  // A date still open (an application window that started already) sorts by its last day, not its first.
-  const sortKey = (e: (typeof listed)[number]): string => (e.endDate && e.date < todayKey ? e.endDate : e.date);
-  const events = [...listed].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+  const programme = query.data.filter((e) => (!papers || isMine(e, year ?? null, papers)) && !isHidden(e, prefs));
+  const events = sortEvents<CalendarEvent>([...programme, ...own]).slice(0, n);
   if (!events.length) {
     return (
       <div className="cal-upcoming cal-upcoming--empty" data-hub="upcoming-events">
@@ -102,17 +113,17 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
           const name = code && module ? module.name : rest;
           return (
             <li key={e.id}>
-              <Link to={`/calendar?event=${encodeURIComponent(e.id)}`} className={cx('cal-upcoming__row', `cal-upcoming__row--${e.type}`)} data-event-id={e.id}>
-                <DateLeaf date={date} tone={e.type} className="cal-upcoming__date" />
+              <Link to={`/calendar?event=${encodeURIComponent(e.id)}`} className={cx('cal-upcoming__row', e.mine ? 'cal-upcoming__row--mine' : `cal-upcoming__row--${e.type}`)} data-event-id={e.id}>
+                <DateLeaf date={date} tone={leafTone(e)} className="cal-upcoming__date" />
                 <span className="cal-upcoming__body">
                   <span className="cal-upcoming__title">
                     {code ? <span className="cal-upcoming__code">{code}</span> : null}
                     <span className="cal-upcoming__name">{name}</span>
                   </span>
                   <span className="cal-upcoming__meta">
-                    <span className={cx('cal-dot', `cal-dot--${e.type}`)} aria-hidden="true" />
-                    <span>{typeLabel(e.type)}</span>
-                    {e.year == null ? <span className="cal-upcoming__all">All years</span> : null}
+                    <span className={cx('cal-dot', dotClass(e))} aria-hidden="true" />
+                    <span>{kindLabel(e)}</span>
+                    {e.mine ? (e.time ? <span className="cal-upcoming__all">{e.time}</span> : null) : e.year == null ? <span className="cal-upcoming__all">All years</span> : null}
                     {e.sample ? <span className="cal-upcoming__all">Not confirmed</span> : null}
                     {e.type === 'exam' ? <span className="cal-upcoming__all">{whenAndWhere(e)}</span> : null}
                     <span className="visually-hidden">, {formatLong(date)}</span>

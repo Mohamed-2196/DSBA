@@ -25,6 +25,7 @@ import type { CardActions } from './BoardPage';
 
 const LINK_ICON: Record<BoardLink['type'], Icon> = {
   event: CalendarDots,
+  my_event: CalendarDots,
   lesson: PlayCircle,
   module: BookOpen,
   library_item: FileText,

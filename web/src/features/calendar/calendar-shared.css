@@ -68,3 +68,19 @@
 .cal-leaf--careers { --leaf-band: var(--surface-2); --leaf-band-ink: var(--ink); --leaf-edge: var(--line-strong); }
 .cal-leaf--deadline { --leaf-band: var(--highlight-soft); --leaf-band-ink: var(--ink); --leaf-edge: color-mix(in srgb, var(--highlight) 60%, var(--line-strong)); }
 .cal-leaf--today.is-solid { --leaf-band: var(--cobalt); --leaf-band-ink: var(--cobalt-ink); --leaf-edge: var(--cobalt); }
+
+/* A student's own events: the colour they picked (--mine), on a square dot so it never reads as a programme type,
+   and a bar down a list row's or a chip's edge. */
+.cal-colour--violet { --mine: var(--mine-violet); }
+.cal-colour--teal { --mine: var(--mine-teal); }
+.cal-colour--green { --mine: var(--mine-green); }
+.cal-colour--orange { --mine: var(--mine-orange); }
+.cal-colour--rose { --mine: var(--mine-rose); }
+.cal-colour--slate { --mine: var(--mine-slate); }
+.cal-dot--mine { border-radius: 2px; background: var(--mine, var(--mine-violet)); }
+.cal-tone--mine {
+  --tone: var(--mine);
+  --tone-on: var(--surface);
+  --tone-soft: color-mix(in srgb, var(--mine) 12%, var(--surface));
+  --tone-text: var(--mine);
+}
