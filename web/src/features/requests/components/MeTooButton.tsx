@@ -1,5 +1,6 @@
 // "Me too" on a request: toggles at once (api.ts useMeToo rolls back on failure). Guests sign in first. The
-// requester, a suspended account and a closed request see the count without the button working.
+// requester sees "You asked" with how many more want it; a suspended account and a closed request see the count
+// without the button working.
 import { HandWaving } from '@phosphor-icons/react';
 import type { RequestOut } from '../../../api/types';
 import { errorMessage } from '../../../api/errors';
@@ -7,6 +8,7 @@ import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
 import { cx } from '../../../ui';
 import { useMeToo } from '../api';
+import { meTooOfMine } from '../labels';
 import { useMayAsk } from '../useMayAsk';
 
 export function MeTooButton({ request, size = 'md' }: { request: RequestOut; size?: 'md' | 'lg' }) {
@@ -15,7 +17,7 @@ export function MeTooButton({ request, size = 'md' }: { request: RequestOut; siz
   const meToo = useMeToo();
   const { push } = useToast();
   const closed = request.status === 'done' || request.status === 'declined';
-  const why = request.mine ? 'You asked for this, so you’re already counted' : mayAsk === 'suspended' ? 'Your account is suspended' : closed ? 'This request is closed' : null;
+  const why = request.mine ? 'You asked for this' : mayAsk === 'suspended' ? 'Your account is suspended' : closed ? 'This request is closed' : null;
   const count = request.meTooCount;
   const toggle = () => {
     const on = !request.meToo;
@@ -36,7 +38,7 @@ export function MeTooButton({ request, size = 'md' }: { request: RequestOut; siz
       type="button"
       className={cx('req-metoo', `req-metoo--${size}`, request.meToo && 'is-on')}
       aria-pressed={why ? undefined : request.meToo}
-      aria-label={why ? `Me too, ${count}. ${why}` : `Me too, ${count}`}
+      aria-label={request.mine ? meTooOfMine(count) : why ? `Me too, ${count}. ${why}` : `Me too, ${count}`}
       title={why ?? undefined}
       disabled={!!why}
       data-hub="me-too"
@@ -48,8 +50,14 @@ export function MeTooButton({ request, size = 'md' }: { request: RequestOut; siz
       }}
     >
       <HandWaving weight={request.meToo ? 'fill' : 'bold'} aria-hidden="true" className="req-metoo__icon" />
-      <span className="req-metoo__count u-tabular">{count}</span>
-      <span className="req-metoo__label">Me too</span>
+      {request.mine ? (
+        <span className="req-metoo__label">{meTooOfMine(count)}</span>
+      ) : (
+        <>
+          <span className="req-metoo__count u-tabular">{count}</span>
+          <span className="req-metoo__label">Me too</span>
+        </>
+      )}
     </button>
   );
 }

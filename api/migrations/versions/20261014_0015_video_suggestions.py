@@ -4,7 +4,7 @@ Revision ID: 0015
 Revises: 0014
 Create Date: 2026-10-14 21:00:00
 
-Students suggest videos for a module's chapters; content managers accept them as lessons or decline them (IDEA-15).
+Students suggest videos for a module's chapters; content managers accept them as lessons or decline them.
 The feature arrives switched off: an admin switches it on from the Access screen.
 """
 

@@ -1,4 +1,4 @@
-// Suggested videos (IDEA-15): Sara suggests a video for a Year 3 module with no lessons yet; an admin (who holds
+// Suggested videos: Sara suggests a video for a Year 3 module with no lessons yet; an admin (who holds
 // content.edit) adds it as a lesson in a new chapter from Manage; Sara is told, and the lesson is there. The feature
 // arrives switched off, and is switched off again afterwards.
 import { expect, test } from './fixtures';

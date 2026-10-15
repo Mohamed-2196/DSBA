@@ -1,4 +1,4 @@
-// "Suggest a video" under a module's lessons (IDEA-15): a student suggests a YouTube video or playlist, or a class
+// "Suggest a video" under a module's lessons: a student suggests a YouTube video or playlist, or a class
 // recording, for one of the module's chapters, and sees what became of their suggestions. Content managers review
 // them in Manage → Suggested videos. Shown while the feature is on for the viewer.
 import { useState } from 'react';

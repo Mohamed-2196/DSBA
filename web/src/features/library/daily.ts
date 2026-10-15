@@ -1,4 +1,4 @@
-// A past question a day (IDEA-27): one tagged question from the module of your next exam, picked from the date so
+// A past question a day: one tagged question from the module of your next exam, picked from the date so
 // everyone sees the same one that day.
 import type { PaperQuestion } from '../../api/types';
 import { DAY_MS, type DayKey } from '../../lib/dates';

@@ -310,8 +310,5 @@ def load_all(db: Session, only: str | None = None) -> dict[str, int]:
     for name, fn in SECTIONS.items():
         if only and name != only:
             continue
-        try:
-            report[name] = fn(db)
-        except NotImplementedError:
-            report[name] = -1  # not built yet
+        report[name] = fn(db)
     return report

@@ -31,10 +31,9 @@ function DateLink({ link }: { link: Extract<GuideLink, { kind: 'date' }> }) {
   const event = nextDated(events.data, link.title, today);
   if (!event) {
     return (
-      <Link to={`/calendar?types=${link.type}`} className="start-link">
-        {link.label}: not on the calendar yet. Check the calendar
-        <ArrowRight weight="bold" aria-hidden="true" />
-      </Link>
+      <span className="start-step__note">
+        {link.label}: not on the calendar yet. Ask your rep.
+      </span>
     );
   }
   return (

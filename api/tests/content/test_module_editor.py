@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.models import AuditEntry, BoardCard, Lesson, LessonResume, LessonView, Module, Note, User
 from app.seed.loader import load_modules
-from app.services.module_editor import parse_video, video_link
+from app.services.module_editor import Video, parse_video, video_link
 from tests.content.conftest import API
 from tests.lessons import chapters, lesson_id
 
@@ -83,17 +83,17 @@ def public_ids(c: TestClient, module_id: str) -> list[list[str]]:
 @pytest.mark.parametrize(
     ("url", "expected"),
     [
-        ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", {"kind": "youtube", "video_id": "dQw4w9WgXcQ"}),
-        ("https://youtu.be/dQw4w9WgXcQ?t=10", {"kind": "youtube", "video_id": "dQw4w9WgXcQ"}),
-        ("https://www.youtube.com/embed/dQw4w9WgXcQ", {"kind": "youtube", "video_id": "dQw4w9WgXcQ"}),
-        ("https://m.youtube.com/shorts/dQw4w9WgXcQ", {"kind": "youtube", "video_id": "dQw4w9WgXcQ"}),
+        ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", Video("youtube", video_id="dQw4w9WgXcQ")),
+        ("https://youtu.be/dQw4w9WgXcQ?t=10", Video("youtube", video_id="dQw4w9WgXcQ")),
+        ("https://www.youtube.com/embed/dQw4w9WgXcQ", Video("youtube", video_id="dQw4w9WgXcQ")),
+        ("https://m.youtube.com/shorts/dQw4w9WgXcQ", Video("youtube", video_id="dQw4w9WgXcQ")),
         (
             "https://www.youtube.com/playlist?list=PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y",
-            {"kind": "youtube-playlist", "video_id": "PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y"},
+            Video("youtube-playlist", video_id="PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y"),
         ),
         (
             "https://vc.bibf.com/playback/presentation/2.3/abc",
-            {"kind": "bbb", "url": "https://vc.bibf.com/playback/presentation/2.3/abc"},
+            Video("bbb", url="https://vc.bibf.com/playback/presentation/2.3/abc"),
         ),
         ("http://www.youtube.com/watch?v=dQw4w9WgXcQ", None),
         ("https://evil.example.com/watch?v=dQw4w9WgXcQ", None),
@@ -104,14 +104,14 @@ def public_ids(c: TestClient, module_id: str) -> list[list[str]]:
         ("https://vc.bibf.com.example.com/x", None),
     ],
 )
-def test_only_videos_the_app_embeds(url: str, expected: dict[str, str] | None) -> None:
+def test_only_videos_the_app_embeds(url: str, expected: Video | None) -> None:
     assert parse_video(url) == expected
 
 
 def test_a_stored_video_reads_back_as_the_same_link() -> None:
     for kind, ident in (("youtube", "dQw4w9WgXcQ"), ("youtube-playlist", "PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y")):
         parsed = parse_video(video_link(Lesson(kind=kind, video_id=ident)))
-        assert parsed == {"kind": kind, "video_id": ident}
+        assert parsed == Video(kind, video_id=ident)
 
 
 # ── access and reading ───────────────────────────────────────────────────────────────────────

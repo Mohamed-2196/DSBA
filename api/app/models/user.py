@@ -45,7 +45,7 @@ class User(Base):
         str_enum(UserStatus), default=UserStatus.active, server_default=UserStatus.active.value
     )
     preferences: Mapped[dict[str, Any]] = mapped_column(default=dict, server_default=text("'{}'::jsonb"))
-    # The papers this person sits, as module ids: their option and electives, and papers from other years (IDEA-10).
+    # The papers this person sits, as module ids: their option and electives, and papers from other years.
     # Empty: every module of their year. Private: only /me and the export show it.
     papers: Mapped[list[str]] = mapped_column(ARRAY(String(64)), default=list, server_default="{}")
     zone: Mapped[str | None] = mapped_column(String(8))  # the zone's papers they sit (app/schemas/library.py Zone)

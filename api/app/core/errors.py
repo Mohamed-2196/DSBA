@@ -121,10 +121,6 @@ def install_error_handlers(app: FastAPI) -> None:
         code = _STATUS_CODES.get(exc.status_code, "error")
         return JSONResponse(_body(code, str(exc.detail)), status_code=exc.status_code)
 
-    @app.exception_handler(NotImplementedError)
-    async def _todo(_: Request, __: NotImplementedError) -> JSONResponse:
-        return JSONResponse(_body("not_implemented", "This endpoint is not built yet."), status_code=501)
-
     @app.exception_handler(DataError)
     async def _data(request: Request, exc: DataError) -> JSONResponse:
         # A value the database can't store (a NUL byte in text, a number out of range) that got past validation.

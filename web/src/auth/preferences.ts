@@ -1,8 +1,9 @@
 // The signed-in person's preferences (PATCH /me { preferences }): email switches, lesson progress and Home's
 // layout. A change shows at once and goes back if the server says no. Writes share one scope, so a quick run of
 // changes (Home's blocks moved one step at a time) reaches the API in the order it was made.
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../api/client';
+import { PROGRESS_KEY } from '../api/keys';
 import type { Me, PreferencesUpdate } from '../api/types';
 import { ME_KEY } from './queries';
 
@@ -14,6 +15,14 @@ export function applyPreferences(prefs: Me['preferences'], patch: PreferencesUpd
     else if (typeof value === 'boolean') next[key] = value;
   }
   return next;
+}
+
+/** After the server took a change: /me follows it, and lesson progress is fetched again when tracking was switched
+ *  (the API hides what was saved while it is off, and brings it back when it is on). */
+export function preferencesSaved(qc: QueryClient, me: Me, sent: PreferencesUpdate): void {
+  if (typeof sent.trackProgress === 'boolean') void qc.invalidateQueries({ queryKey: PROGRESS_KEY });
+  // Only the last change in flight speaks for the server: an earlier answer is already out of date.
+  if (qc.isMutating({ predicate: (m) => m.options.scope?.id === 'preferences' }) <= 1) qc.setQueryData(ME_KEY, me);
 }
 
 export function useUpdatePreferences() {
@@ -30,9 +39,6 @@ export function useUpdatePreferences() {
     onError: (_e, _v, ctx) => {
       if (ctx?.before) qc.setQueryData(ME_KEY, ctx.before);
     },
-    onSuccess: (me) => {
-      // Only the last change in flight speaks for the server: an earlier answer is already out of date.
-      if (qc.isMutating({ predicate: (m) => m.options.scope?.id === 'preferences' }) <= 1) qc.setQueryData(ME_KEY, me);
-    },
+    onSuccess: (me, preferences) => preferencesSaved(qc, me, preferences),
   });
 }

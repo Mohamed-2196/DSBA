@@ -87,7 +87,6 @@
 .forum-side__title { margin-bottom: var(--sp-12); font-size: var(--fs-16); font-weight: var(--fw-bold); letter-spacing: -0.012em; }
 .forum-side__link { color: var(--cobalt); font-size: var(--fs-14); font-weight: var(--fw-semibold); text-decoration: none; }
 .forum-side__link:hover { text-decoration: underline; }
-.forum-side__more { display: inline-block; margin-top: var(--sp-12); }
 
 /* Categories directory */
 .forum-cats { display: grid; gap: 2px; margin: 0 -8px; }

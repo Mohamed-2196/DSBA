@@ -29,9 +29,6 @@ export function useModule(id: string | null | undefined) {
 
 // ── Progress (signed in) ──────────────────────────────────────────────────────
 
-/** Per account, so one person's progress is never shown to the next one on this browser. */
-export const progressKey = (userId: string) => ['progress', userId] as const;
-
 export function fetchProgress(signal?: AbortSignal): Promise<Progress> {
   return call(api.GET('/api/v1/me/progress', { signal }));
 }

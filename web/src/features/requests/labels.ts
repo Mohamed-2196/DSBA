@@ -78,6 +78,12 @@ export function meTooLine(count: number, meToo: boolean): string | null {
   return `${count} ${count === 1 ? 'other wants' : 'others want'} this too`;
 }
 
+/** The requester's own "me too" button: "You asked", or "You and 2 others" once others want it too. */
+export function meTooOfMine(count: number): string {
+  if (count <= 0) return 'You asked';
+  return `You and ${count} ${count === 1 ? 'other' : 'others'}`;
+}
+
 /** How many asked for a request: the requester and everyone who said "me too". */
 export function askedBy(meTooCount: number): string {
   const n = meTooCount + 1;

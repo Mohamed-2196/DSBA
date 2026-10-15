@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { badgeOf, canDo, featureIsOn, holdsAdmin, isActiveAdmin, managerBoxes, offForOthers, offerOf, offered, showsUpload, type AccessMe } from './access';
+import { FEATURE_KEYS, badgeOf, canDo, featureIsOn, holdsAdmin, isActiveAdmin, managerBoxes, offForOthers, offerOf, offered, showsUpload, type AccessMe, type Feature } from './access';
 
 const role = (slug: string, badge: string | null = null) => ({ id: `id-${slug}`, slug, name: slug, badge });
 const ALL = ['forum', 'library', 'library.uploads', 'newsletter', 'calendar', 'career', 'grades', 'noora', 'notes'] as const;
@@ -98,5 +98,16 @@ describe('showsUpload', () => {
     expect(showsUpload(on('library.uploads'), () => true)).toBe(false);
     expect(showsUpload(on('library'), () => true)).toBe(false);
     expect(showsUpload(on(), (b) => b !== 'library.upload')).toBe(false);
+  });
+});
+
+// Every feature the API knows is in FEATURE_KEYS: a feature missing from the list fails to compile here.
+type MissingFeature = Exclude<Feature, (typeof FEATURE_KEYS)[number]>;
+const everyFeature: [MissingFeature] extends [never] ? true : MissingFeature = true;
+
+describe('FEATURE_KEYS', () => {
+  it('lists every feature once', () => {
+    expect(everyFeature).toBe(true);
+    expect(new Set(FEATURE_KEYS).size).toBe(FEATURE_KEYS.length);
   });
 });

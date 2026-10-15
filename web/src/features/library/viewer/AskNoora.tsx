@@ -1,4 +1,4 @@
-// "Ask Mini Noora" on a past paper (IDEA-4): the student names a question and its page, and her panel opens with
+// "Ask Mini Noora" on a past paper: the student names a question and its page, and her panel opens with
 // it. She reads that page of the paper and the examiners' report for its sitting (the API loads both). Shown only
 // while her AI answers can take a question.
 import { ChatCircleText } from '@phosphor-icons/react';

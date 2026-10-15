@@ -12,8 +12,7 @@
 // Deep links into the page: /calendar?event=<id> (opens the event), ?month=YYYY-MM (the month grid), ?cohort=all,
 // ?types=exam,mock (comma list of event types), ?view=month (phones and tablets: the month instead of the list).
 export { UpcomingEvents } from './UpcomingEvents';
-;
 export { useCalendarEvents, useNextExamForModule } from './api';
 export { applicationLine, EVENT_TYPES, TYPE_ORDER, typeLabel } from './eventMeta';
 export { dayKeyFromToday, eventDate } from './queries';
-export type { CalendarEvent,  EventType } from './types';
+export type { CalendarEvent, EventType } from './types';

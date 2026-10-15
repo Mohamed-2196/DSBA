@@ -1,4 +1,4 @@
-"""The Sunday summary (IDEA-21): one plain-text email a week for each year that opted in, and the same text for reps
+"""The Sunday summary: one plain-text email a week for each year that opted in, and the same text for reps
 to paste into their year's group.
 
 - What it holds, for one year and one week (Sunday to Saturday, in Bahrain): the exams, mocks and deadlines of the

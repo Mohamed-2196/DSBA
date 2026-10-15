@@ -12,7 +12,8 @@ import type { Chapter, ModuleDetail, Progress, ProgressImport, Video } from '../
 import { useAuth } from '../../auth';
 import { useLocalStorage, useToast } from '../../state';
 import { useModules } from '../../state/modules';
-import { deleteModuleProgress, fetchProgress, importProgress, progressKey, putResume, putWatched } from './api';
+import { progressKey } from '../../api/keys';
+import { deleteModuleProgress, fetchProgress, importProgress, putResume, putWatched } from './api';
 import { useTracking } from './tracking';
 
 export interface WatchedMark {

@@ -27,7 +27,7 @@ export function useSetNooraLimits() {
   });
 }
 
-/** What's missing, by the boxes the person holds (IDEA-39). */
+/** What's missing, by the boxes the person holds. */
 export function useGaps() {
   return useQuery({ queryKey: ['admin', 'gaps'] as const, queryFn: () => call(api.GET('/api/v1/admin/gaps')) });
 }

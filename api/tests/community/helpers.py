@@ -16,6 +16,13 @@ from app.models import ForumReply, ForumThread, Notification, Upload, UploadPurp
 API = "/api/v1"
 
 
+def settled(db: Session, user: User, days: int = 40) -> User:
+    """`user` with an account `days` old (seniors need 30)."""
+    user.created_at = utcnow() - timedelta(days=days)
+    db.commit()
+    return user
+
+
 def new_thread(client: TestClient, **fields: Any) -> dict[str, Any]:
     payload = {"title": "How do I find the MGF of a gamma?", "body": "I tried integrating directly.", **fields}
     r = client.post(f"{API}/forum/threads", json=payload)

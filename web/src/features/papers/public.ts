@@ -1,4 +1,4 @@
-// Public API of the papers feature (IDEA-10). Other features import from here only.
+// Public API of the papers feature. Other features import from here only.
 //
 //   usePapers()     { picks, zone, home, year, papers, save, saving }: `papers` is the set of module ids the student
 //                   sits in the browsed year, or null for every module of it.

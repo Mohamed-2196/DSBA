@@ -14,15 +14,10 @@
 //
 // Thread links are /forum/<slug>. Searching the forum is GET /api/v1/search (the ⌘K palette).
 export { HelpBelow } from './HelpBelow';
-;
 export { ModuleThreads } from './ModuleThreads';
-;
 export { useHotThreads } from './api';
 export { ReportButton } from './ReportButton';
-;
 export { ReportsQueue } from './ReportsQueue';
 export { useStartsThreads } from './lib/posting';
 export { MarkdownEditor } from './components/MarkdownEditor';
-;
 export { Prose } from './components/Prose';
-;

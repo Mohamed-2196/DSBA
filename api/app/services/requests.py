@@ -4,7 +4,7 @@ add "me too", and people with requests.manage answer with a status and a public 
 - Everyone reads the open list; the me-too count orders it, and a signed-in student's own requests come first.
 - A status change tells the requester and everyone who said "me too", while the feature is on for them, and goes to
   the audit log. So does removing a request, which makes it gone for everyone.
-- Requests that close themselves (IDEA-19, while requests.autoclose is on): a paper request that names its module
+- Requests that close themselves (while requests.autoclose is on): a paper request that names its module
   and library kind is matched with a published file of that module and kind (and its exam year and zone, when the
   request gives them). The match is conservative and waits: the requester or a rep says yes, which closes the
   request as done and tells everyone who wanted it, or no, which keeps it open. A date request names an unconfirmed
@@ -386,7 +386,13 @@ def set_me_too(db: Session, user: User, req: StudentRequest, on: bool) -> None:
 def _tell(db: Session, req: StudentRequest, actor: User, body: str | None = None) -> int:
     """Notifies the requester and everyone who said "me too" about the request's new status, each while the feature
     is on for them. -> how many were told."""
-    audience = access.audience(db, Feature.requests)
+    return _tell_within(db, access.audience(db, Feature.requests), req, actor, body)
+
+
+def _tell_within(
+    db: Session, audience: ColumnElement[bool] | None, req: StudentRequest, actor: User, body: str | None = None
+) -> int:
+    """_tell() for the people in `audience` (access.audience() of requests, worked out once for many requests)."""
     if audience is None:
         return 0
     wanted = or_(
@@ -443,7 +449,7 @@ def remove(db: Session, user: User, req: StudentRequest, ip: str | None) -> None
     record(db, user, "request.remove", "request", req.id, {"title": req.title, "kind": req.kind}, ip)
 
 
-# ── requests that close themselves (IDEA-19) ────────────────────────────────────────────────
+# ── requests that close themselves ────────────────────────────────────────────────
 
 
 def _fits(req: StudentRequest) -> list[ColumnElement[bool]]:
@@ -555,11 +561,12 @@ def close_for_date(db: Session, user: User, event: CalendarEvent, reply: str, ip
         .with_for_update()
     ).all()
     now = utcnow()
+    audience = access.audience(db, Feature.requests)
     for req in reqs:
         before = req.status
         req.status, req.reply, req.answered_by, req.answered_at = RequestStatus.done, reply, user.id, now
         db.flush()
-        told = _tell(db, req, user)
+        told = _tell_within(db, audience, req, user)
         record(
             db,
             user,

@@ -1,4 +1,4 @@
-"""Past papers by sitting (GET /library/papers, IDEA-1), past questions by topic (/library/questions, IDEA-3), and the
+"""Past papers by sitting (GET /library/papers), past questions by topic (/library/questions), and the
 exam details read again from the names of files imported earlier (python -m app.cli exam-meta)."""
 
 from __future__ import annotations
@@ -106,7 +106,7 @@ def test_tagging_is_off_until_an_admin_switches_it_on(
     me = client_for(student)
     r = me.get(f"{API}/library/items/{paper['id']}/questions")
     assert (r.status_code, r.json()["error"]["code"]) == (404, "feature_off")
-    assert client_for().get(f"{API}/library/papers", params={"module_id": MODULE}).status_code == 200  # IDEA-1 stays
+    assert client_for().get(f"{API}/library/papers", params={"module_id": MODULE}).status_code == 200
     set_feature("library.questions", "everyone")
     assert me.get(f"{API}/library/items/{paper['id']}/questions").json() == []
 

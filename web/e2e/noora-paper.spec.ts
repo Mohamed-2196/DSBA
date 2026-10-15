@@ -1,4 +1,4 @@
-// Asking Mini Noora about a past paper's question (IDEA-4): from the file viewer, the student names the question and
+// Asking Mini Noora about a past paper's question: from the file viewer, the student names the question and
 // its page; her panel opens with the box filled and the paper above it, and the paper goes with each question until
 // it is taken off. Claude is stood in for at the network (the stack has no key). The switch ends as it starts (off).
 import type { Request } from '@playwright/test';

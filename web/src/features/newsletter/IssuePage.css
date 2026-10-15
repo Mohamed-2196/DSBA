@@ -365,7 +365,6 @@
 .nl-pager__meta { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-14); color: var(--ink-2); }
 .nl-issue__subscribe { margin-top: var(--sp-48); }
 
-.nl-loading { display: grid; place-items: center; min-height: 50vh; }
 
 /* ── Responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 1099px) {

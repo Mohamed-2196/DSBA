@@ -1,4 +1,4 @@
-// Your papers and dates (IDEA-10, IDEA-11, IDEA-18): Sara (Year 2) picks Econometrics as her option and the
+// Your papers and dates: Sara (Year 2) picks Econometrics as her option and the
 // calendar leaves out Information Systems' dates; an exam shows its length, rules and source; a careers date shows
 // on its employer's card in Career Navigator.
 import { expect, test } from './fixtures';

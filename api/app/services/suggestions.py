@@ -1,4 +1,4 @@
-"""Suggested videos (IDEA-15): a student suggests a video for a module's chapter, with a title and a line on why;
+"""Suggested videos: a student suggests a video for a module's chapter, with a title and a line on why;
 it waits in Manage → Suggested videos until someone with content.edit accepts it or declines it.
 
 - The link must be one the module editor takes (module_editor.parse_video): a YouTube video or playlist, or a class
@@ -34,7 +34,7 @@ from app.services import access
 from app.services.accounts import public_user
 from app.services.content import record
 from app.services.forum.text import clean_body, clean_title, has_text
-from app.services.module_editor import VIDEO_RULE, get_module, link_of, parse_video
+from app.services.module_editor import VIDEO_RULE, Video, add_lesson, get_module, link_of, parse_video
 from app.services.modules import MODULE_UNKNOWN, new_id
 from app.services.notify import notify
 from app.services.ratelimit import enforce
@@ -71,25 +71,23 @@ def _outs(db: Session, rows: Sequence[VideoSuggestion]) -> list[SuggestionOut]:
         else {}
     )
     return [
-        SuggestionOut.model_validate(
-            {
-                "id": s.id,
-                "module_id": s.module_id,
-                "module_title": modules.get(s.module_id, ""),
-                "chapter_id": s.chapter_id,
-                "chapter_title": chapters.get(s.chapter_id) if s.chapter_id else None,
-                "kind": s.kind,
-                "url": link_of(s.kind, s.video_id, s.url),
-                "title": s.title,
-                "reason": s.reason,
-                "status": s.status.value,
-                "reply": s.reply,
-                "lesson_id": s.lesson_id,
-                "author": public_user(people.get(s.author_id)) if s.author_id else None,
-                "decided_by": public_user(people.get(s.decided_by)) if s.decided_by else None,
-                "decided_at": s.decided_at,
-                "created_at": s.created_at,
-            }
+        SuggestionOut(
+            id=s.id,
+            module_id=s.module_id,
+            module_title=modules.get(s.module_id, ""),
+            chapter_id=s.chapter_id,
+            chapter_title=chapters.get(s.chapter_id) if s.chapter_id else None,
+            kind=s.kind,
+            url=link_of(s.kind, s.video_id, s.url),
+            title=s.title,
+            reason=s.reason,
+            status=s.status.value,
+            reply=s.reply,
+            lesson_id=s.lesson_id,
+            author=public_user(people.get(s.author_id)) if s.author_id else None,
+            decided_by=public_user(people.get(s.decided_by)) if s.decided_by else None,
+            decided_at=s.decided_at,
+            created_at=s.created_at,
         )
         for s in rows
     ]
@@ -139,13 +137,13 @@ def pending_count(db: Session) -> int:
 # ── students ────────────────────────────────────────────────────────────────────────────────
 
 
-def _same_video(model: type[Lesson] | type[VideoSuggestion], video: dict[str, str]) -> ColumnElement[bool]:
-    if video["kind"] == "bbb":
-        return (model.kind == "bbb") & (model.url == video["url"])
-    return (model.kind == video["kind"]) & (model.video_id == video["video_id"])
+def _same_video(model: type[Lesson] | type[VideoSuggestion], video: Video) -> ColumnElement[bool]:
+    if video.kind == "bbb":
+        return (model.kind == "bbb") & (model.url == video.url)
+    return (model.kind == video.kind) & (model.video_id == video.video_id)
 
 
-def _refuse_duplicates(db: Session, module_id: str, video: dict[str, str]) -> None:
+def _refuse_duplicates(db: Session, module_id: str, video: Video) -> None:
     lesson = db.scalar(select(Lesson.id).where(Lesson.module_id == module_id, _same_video(Lesson, video)).limit(1))
     if lesson is not None:
         raise conflict("already_a_lesson", "This video is already a lesson in this module.")
@@ -190,9 +188,9 @@ def create(db: Session, user: User, data: SuggestionCreate) -> VideoSuggestion:
         author_id=user.id,
         module_id=module.id,
         chapter_id=data.chapter_id,
-        kind=video["kind"],
-        video_id=video.get("video_id"),
-        url=video.get("url"),
+        kind=video.kind,
+        video_id=video.video_id,
+        url=video.url,
         title=title,
         reason=reason if has_text(reason) else "",
         status=SuggestionStatus.pending,
@@ -243,24 +241,11 @@ def accept(db: Session, user: User, s: VideoSuggestion, data: SuggestionAccept, 
         if found is None:
             raise invalid("chapterId", "Pick a chapter for the lesson, or name a new one.")
         chapter = found
-    video = {"kind": s.kind, "url": s.url or "", "video_id": s.video_id or ""}
+    video = Video(s.kind, s.video_id, s.url)
     if db.scalar(select(Lesson.id).where(Lesson.module_id == m.id, _same_video(Lesson, video)).limit(1)):
         raise conflict("already_a_lesson", "This video is already a lesson in this module. Decline the suggestion.")
     title = data.title or s.title
-    lesson = Lesson(
-        id=new_id(),
-        module_id=m.id,
-        position=len(chapter.lessons),
-        kind=s.kind,
-        video_id=s.video_id,
-        url=s.url,
-        title=title,
-        unavailable=False,
-        hidden=False,
-    )
-    chapter.lessons.append(lesson)
-    m.version += 1
-    db.flush()
+    lesson = add_lesson(db, m, chapter, video, title)
     s.status = SuggestionStatus.accepted
     s.lesson_id = lesson.id
     s.chapter_id = chapter.id

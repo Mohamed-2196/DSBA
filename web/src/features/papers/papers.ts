@@ -1,4 +1,4 @@
-// Your papers (IDEA-10): which modules a student sits. Picks are module ids: the Year 2 option, the Year 3 electives
+// Your papers: which modules a student sits. Picks are module ids: the Year 2 option, the Year 3 electives
 // and papers from other years (a resit, say). Without picks, a year's papers are all its modules, as before.
 import type { Me, ModuleSummary } from '../../api/types';
 import type { CohortYear } from '../../state';

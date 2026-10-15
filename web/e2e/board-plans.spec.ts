@@ -1,4 +1,4 @@
-// Revision plans and past papers on the study board (IDEA-13, IDEA-14). With the board on, a student plans a
+// Revision plans and past papers on the study board. With the board on, a student plans a
 // module's revision from the module page, finds the plan on the board, and removes it. The switch goes back off.
 import { expect, test } from './fixtures';
 import { api, personaContext, setSwitch } from './support';

@@ -37,6 +37,7 @@ from app.schemas.board import (
 from app.schemas.board import BoardCard as BoardCardOut
 from app.schemas.board import BoardPlan as BoardPlanOut
 from app.services import access, ratelimit
+from app.services.accounts import tracks_progress
 from app.services.content import apply_patch
 from app.services.modules import (
     MODULE_UNKNOWN,
@@ -307,8 +308,11 @@ def _canonical_link(db: Session, user: User, kind: str, raw: str) -> tuple[str, 
     return ident, link
 
 
-def _watched(db: Session, user_id: uuid.UUID, lesson_id: str) -> bool:
-    q = select(LessonView.lesson_id).where(LessonView.user_id == user_id, LessonView.lesson_id == lesson_id)
+def _watched(db: Session, user: User, lesson_id: str) -> bool:
+    """Whether `user` watched the lesson; progress kept while tracking is off stays out of sight."""
+    if not tracks_progress(user):
+        return False
+    q = select(LessonView.lesson_id).where(LessonView.user_id == user.id, LessonView.lesson_id == lesson_id)
     return db.scalar(q) is not None
 
 
@@ -342,7 +346,7 @@ def create_card(db: Session, user: User, body: BoardCardCreate) -> BoardCard:
         title = title or (link.title or "")[:200]
         if link_type == "lesson":
             lesson_id = ident
-            if _watched(db, user.id, ident):
+            if _watched(db, user, ident):
                 column = "done"
         else:
             link_id = ident
@@ -449,7 +453,11 @@ def make_plan(db: Session, user: User, body: BoardPlanCreate) -> BoardPlanMade:
     ).all()
     lessons_on = {lesson for _t, _l, lesson in on_board if lesson}
     items_on = {link for t, link, _ in on_board if t == "library_item" and link}
-    watched = set(db.scalars(select(LessonView.lesson_id).where(LessonView.user_id == user.id)))
+    watched = (
+        set(db.scalars(select(LessonView.lesson_id).where(LessonView.user_id == user.id)))
+        if tracks_progress(user)
+        else set()
+    )
     lessons = [
         lesson.id
         for chapter in visible_chapters(module)

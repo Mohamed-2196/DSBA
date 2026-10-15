@@ -4,7 +4,7 @@ every account at once (a new newsletter issue).
 The notification in the Hub always comes: no email switch can silence it (decision D1). For the kinds that also
 come by email (outbox.EMAIL_SWITCHES: replies, accepted answers, upload reviews, new issues, date changes), an email
 is queued in the same transaction when the person has an email address, keeps that switch on and hasn't had
-EMAIL_MAX_PER_HOUR of them in the last hour (security review SEC-17); the mail worker sends it
+EMAIL_MAX_PER_HOUR of them in the last hour; the mail worker sends it
 (app/services/outbox.py). The emails are plain text: what happened, a link to it, and a link to the switches. Text
 that other people wrote is quoted with its links taken out, so nobody can send a link from the Hub's own address."""
 
@@ -34,8 +34,13 @@ BODY_MAX = 300  # characters of the notification's body quoted in its email
 # Notification emails one person gets in an hour; past it, the notifications still come, in the Hub only. Keeps a
 # busy thread, or someone replying over and over, from flooding an inbox.
 EMAIL_MAX_PER_HOUR = 10
-# Anything a mail app would turn into a link: a scheme, "www.", or a host followed by a path.
-_LINK = re.compile(r"(?i)\b(?:[a-z][a-z0-9+.-]*://\S+|www\.\S+|[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}/\S*)")
+# Anything a mail app would turn into a link: a scheme, "www.", or a host name ending in a letters-only top-level
+# domain, bare or followed by a path, query or port ("bit.ly", "site.com?code=1"). Some mail apps read the full-width
+# and ideographic dots as dots too. The price: "Node.js" and "notes.pdf" read "[link]"; "e.g." stays.
+_DOT = "[.\u3002\uff0e\uff61]"
+_LINK = re.compile(
+    rf"(?i)\b(?:[a-z][a-z0-9+.-]*://\S+|www{_DOT}\S+|[a-z0-9-]+(?:{_DOT}[a-z0-9-]+)*{_DOT}[a-z]{{2,}}\b\S*)"
+)
 LINK_STANDIN = "[link]"
 SETTINGS_PATH = "/account#acct-emails"  # the email switches on Your account
 SWITCH_LABELS: dict[str, str] = {
@@ -49,7 +54,7 @@ SWITCH_LABELS: dict[str, str] = {
 
 
 def hub_path(url: str | None) -> str | None:
-    """`url` when it is a path inside the Hub, else None (security review, finding 18)."""
+    """`url` when it is a path inside the Hub, else None."""
     if url is None or len(url) > URL_MAX or not _HUB_PATH.fullmatch(url):
         return None
     return url
@@ -58,6 +63,11 @@ def hub_path(url: str | None) -> str | None:
 def unlink(text: str) -> str:
     """`text` on one line, each link in it replaced with "[link]"."""
     return " ".join(_LINK.sub(LINK_STANDIN, text).split())
+
+
+def has_link(text: str) -> bool:
+    """Whether `text` holds anything a mail or chat app would turn into a link."""
+    return _LINK.search(text) is not None
 
 
 def switch_footer(switch: str) -> list[str]:

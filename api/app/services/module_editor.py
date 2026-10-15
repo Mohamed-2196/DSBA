@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, NamedTuple
 from urllib.parse import parse_qs, urlsplit
 
 from sqlalchemy import func, select
@@ -59,14 +59,22 @@ EDITED = ("unit_code", "name", "short_name", "year", "description", "icon", "res
 # ── videos ───────────────────────────────────────────────────────────────────────────────────
 
 
-def parse_video(url: str) -> dict[str, str] | None:
-    """A stored video ({kind, video_id} or {kind, url}) from a link the app can embed, or None."""
+class Video(NamedTuple):
+    """A lesson's video as stored: a YouTube video or playlist by id, or a class recording by its link."""
+
+    kind: str
+    video_id: str | None = None
+    url: str | None = None
+
+
+def parse_video(url: str) -> Video | None:
+    """The stored video for a link the app can embed, or None."""
     if not is_https(url):
         return None
     parts = urlsplit(url)
     host = (parts.hostname or "").lower()
     if host == RECORDING_HOST:
-        return {"kind": "bbb", "url": url}
+        return Video("bbb", url=url)
     query = parse_qs(parts.query)
     segments = [s for s in parts.path.split("/") if s]
     video: str | None = None
@@ -79,8 +87,8 @@ def parse_video(url: str) -> dict[str, str] | None:
             video = segments[1]
         elif segments in (["playlist"], ["embed", "videoseries"]):
             playlist = (query.get("list") or [""])[0]
-            return {"kind": "youtube-playlist", "video_id": playlist} if _PLAYLIST_ID.fullmatch(playlist) else None
-    return {"kind": "youtube", "video_id": video} if video and _VIDEO_ID.fullmatch(video) else None
+            return Video("youtube-playlist", video_id=playlist) if _PLAYLIST_ID.fullmatch(playlist) else None
+    return Video("youtube", video_id=video) if video and _VIDEO_ID.fullmatch(video) else None
 
 
 def video_link(lesson: Lesson) -> str:
@@ -89,13 +97,33 @@ def video_link(lesson: Lesson) -> str:
 
 
 def link_of(kind: str, video_id: str | None, url: str | None) -> str:
-    """The link for a stored video ({kind, video_id} or {kind, url}): parse_video() reads it back."""
+    """The link for a stored video: parse_video() reads it back."""
     ident = video_id or ""
     if kind == "bbb":
         return url or ""
     if kind == "youtube-playlist":
         return f"https://www.youtube.com/playlist?list={ident}"
     return ident if ident.startswith("https://") else f"https://www.youtube.com/watch?v={ident}"
+
+
+def add_lesson(db: Session, m: Module, chapter: Chapter, video: Video, title: str) -> Lesson:
+    """A new lesson at the end of `chapter`, shown to students; the module's version moves on, so an editor with it
+    open reloads before saving."""
+    lesson = Lesson(
+        id=new_id(),
+        module_id=m.id,
+        position=len(chapter.lessons),
+        kind=video.kind,
+        video_id=video.video_id,
+        url=video.url,
+        title=title,
+        unavailable=False,
+        hidden=False,
+    )
+    chapter.lessons.append(lesson)
+    m.version += 1
+    db.flush()
+    return lesson
 
 
 # ── reading ──────────────────────────────────────────────────────────────────────────────────
@@ -310,8 +338,7 @@ def _place_chapters(m: Module, body: ModuleSave) -> None:
                 lesson.unavailable = lesson.unavailable and parse_video(video_link(lesson)) == parsed
             else:
                 lesson = Lesson(id=new_id(), module_id=m.id, unavailable=False)
-            lesson.kind = parsed["kind"]
-            lesson.video_id, lesson.url = parsed.get("video_id"), parsed.get("url")
+            lesson.kind, lesson.video_id, lesson.url = parsed
             lesson.title, lesson.channel = item.title or None, item.channel or None
             lesson.hidden, lesson.position = item.hidden, vi
             lessons.append(lesson)

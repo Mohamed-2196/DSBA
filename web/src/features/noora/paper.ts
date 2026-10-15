@@ -1,4 +1,4 @@
-// A past paper's question the student asks Mini Noora about (IDEA-4). The file viewer sets it and opens her chat;
+// A past paper's question the student asks Mini Noora about. The file viewer sets it and opens her chat;
 // her chat sends it with each question until the student takes it off or clears the chat. The API reads the page's
 // words and the examiners' report for the same sitting itself: only the paper's id, the page and the number go.
 import { useSyncExternalStore } from 'react';

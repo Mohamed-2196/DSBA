@@ -41,3 +41,15 @@ test('the account page lists this device, and "Download your data" gives everyth
   expect(Object.keys(data)).toEqual(expect.arrayContaining(['user', 'sessions', 'threads', 'replies', 'libraryItems', 'stars', 'reactions', 'progress', 'notifications', 'votes', 'reports']));
   expect(data.user.email).toBe(run.ali.email);
 });
+
+test('the account page waits for a slow module catalogue instead of failing', async ({ ali }) => {
+  await ali.route('**/api/v1/modules', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    await route.continue();
+  });
+  await ali.goto('/account');
+  await expect(ali.locator('main')).toContainText('This device');
+  await expect(ali.locator('[data-hub="papers-open"]')).toBeVisible({ timeout: 10_000 });
+  await expect(ali.getByText('This page didn’t load')).toHaveCount(0);
+  await ali.unroute('**/api/v1/modules');
+});

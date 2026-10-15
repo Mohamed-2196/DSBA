@@ -208,7 +208,7 @@ def update_event(
     return notice
 
 
-# ── telling students about a change (IDEA-12) ────────────────────────────────────────────────
+# ── telling students about a change ────────────────────────────────────────────────
 
 NOTICE_TYPES = ("exam", "mock", "deadline")  # the dates worth a notification; others change quietly
 

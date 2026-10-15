@@ -17,7 +17,7 @@ export interface NoteChoice {
   onChange: (checked: boolean) => void;
 }
 
-/** A past paper's question her AI reads with each question (IDEA-4), until the student takes it off. */
+/** A past paper's question her AI reads with each question, until the student takes it off. */
 export interface PaperChoice {
   title: string;
   page: number;

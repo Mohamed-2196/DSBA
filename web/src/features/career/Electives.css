@@ -69,6 +69,7 @@
 
 @media (pointer: coarse) {
   .elective__role, .elective__link { min-height: 44px; }
+  .elective__name a { display: inline-flex; align-items: center; min-height: 44px; }
 }
 @media (max-width: 699px) {
   .elective__head { padding: var(--sp-16) var(--sp-16) var(--sp-12); }

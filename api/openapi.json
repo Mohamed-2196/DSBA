@@ -1714,6 +1714,7 @@
           "progress"
         ],
         "summary": "Get Progress",
+        "description": "Empty while the person keeps no progress: what they saved before is kept hidden until they turn it on.",
         "operationId": "get_progress_api_v1_me_progress_get",
         "responses": {
           "200": {
@@ -14018,7 +14019,7 @@
           "seniors"
         ],
         "summary": "My Listing",
-        "description": "The signed-in person's listing, and whether they may have one (Year 3 only).",
+        "description": "The signed-in person's listing, and whether they may have one (Year 3 accounts at least 30 days old).",
         "operationId": "my_listing_api_v1_career_seniors_me_get",
         "responses": {
           "200": {
@@ -14108,7 +14109,7 @@
           "seniors"
         ],
         "summary": "Save Listing",
-        "description": "List yourself, change your topics or line, or pause. Errors: forbidden (403: not in Year 3).",
+        "description": "List yourself, change your topics or line, or pause.\n\nErrors: forbidden (403: not in Year 3, or the account is under 30 days old), invalid (422: the line reads as\nstaff or holds a link).",
         "operationId": "save_listing_api_v1_career_seniors_me_put",
         "requestBody": {
           "content": {
@@ -15099,7 +15100,7 @@
           "noora"
         ],
         "summary": "Ask Noora",
-        "description": "Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the\nnote or the answer. The note goes only when the student ticked \"Include my note\". With `paper`, the server adds\nthat page of the past paper and the examiners' report for its sitting, from the text it read (IDEA-4): 404\nnot_found unless it is a published past paper, 404 feature_off while the library is off for the student.\n\nErrors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly\nbudget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),\nrate_limited (429: a question a moment ago, or an answer still streaming to this student), noora_busy (503: too\nmany answers streaming hub-wide), invalid_input (422: too long).",
+        "description": "Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the\nnote or the answer. The note goes only when the student ticked \"Include my note\". With `paper`, the server adds\nthat page of the past paper and the examiners' report for its sitting, from the text it read: 404\nnot_found unless it is a published past paper, 404 feature_off while the library is off for the student.\n\nErrors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly\nbudget is spent), noora_daily_limit (429: today's questions are used up, retryAfter: midnight in Bahrain),\nrate_limited (429: a question a moment ago, or an answer still streaming to this student), noora_busy (503: too\nmany answers streaming hub-wide), invalid_input (422: too long).",
         "operationId": "ask_noora_api_v1_noora_ask_post",
         "requestBody": {
           "content": {
@@ -19567,7 +19568,6 @@
               "rate_limited",
               "retry",
               "internal",
-              "not_implemented",
               "error",
               "invalid_identifier",
               "sms_unavailable",
@@ -20766,6 +20766,30 @@
             ],
             "title": "Reply"
           },
+          "foundItemId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Founditemid"
+          },
+          "foundAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Foundat"
+          },
           "removed": {
             "type": "boolean",
             "title": "Removed"
@@ -20789,6 +20813,8 @@
           "eventId",
           "status",
           "reply",
+          "foundItemId",
+          "foundAt",
           "removed",
           "createdAt"
         ],
@@ -24214,6 +24240,18 @@
             "type": "boolean",
             "title": "Eligible"
           },
+          "eligibleFrom": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eligiblefrom"
+          },
           "listed": {
             "type": "boolean",
             "title": "Listed"
@@ -24250,7 +24288,7 @@
           "paused"
         ],
         "title": "MySenior",
-        "description": "The signed-in person's listing, and whether they may have one (Year 3 only)."
+        "description": "The signed-in person's listing, and whether they may have one (Year 3 accounts at least 30 days old)."
       },
       "NooraDoneEvent": {
         "properties": {

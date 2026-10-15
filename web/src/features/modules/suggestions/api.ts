@@ -1,4 +1,4 @@
-// Suggested videos (IDEA-15).
+// Suggested videos.
 //   POST /api/v1/video-suggestions                            suggest a video for a chapter (signed in, active)
 //   GET  /api/v1/video-suggestions/mine?moduleId=             your own suggestions
 //   GET  /api/v1/content/video-suggestions?status=            the review queue (content.edit)

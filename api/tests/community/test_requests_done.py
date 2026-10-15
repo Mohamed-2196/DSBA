@@ -1,4 +1,4 @@
-"""You asked, we did (IDEA-38): the requests done in the last 30 days, the latest answered first, behind its switch."""
+"""You asked, we did: the requests done in the last 30 days, the latest answered first, behind its switch."""
 
 from __future__ import annotations
 

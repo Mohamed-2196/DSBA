@@ -2,12 +2,12 @@
 export { ThemeProvider } from './ThemeProvider';
 export { YearProvider } from './YearProvider';
 export { ToastProvider } from './ToastProvider';
-export { useTheme, useYear, useToast,  useAccountYearSync } from './hooks';
-export { useLocalStorage, removeStored,  } from './useLocalStorage';
-export { useQueryParam,  } from './useQueryParam';
+export { useTheme, useYear, useToast, useAccountYearSync } from './hooks';
+export { useLocalStorage, removeStored } from './useLocalStorage';
+export { useQueryParam } from './useQueryParam';
 export { useDebouncedValue } from './useDebouncedValue';
 export { useDocumentTitle } from './useDocumentTitle';
 export { useSingleFlight } from './useSingleFlight';
-export { YEARS, COHORTS, normalizeYear, cohortColor, cohortTextColor, cohortLabel, type CohortYear,  } from './cohort';
+export { YEARS, COHORTS, normalizeYear, cohortColor, cohortTextColor, cohortLabel, type CohortYear } from './cohort';
 export { useMediaQuery, BREAKPOINTS } from './useMediaQuery';
-export type { Theme,    ToastInput,   } from './contexts';
+export type { Theme, ToastInput } from './contexts';

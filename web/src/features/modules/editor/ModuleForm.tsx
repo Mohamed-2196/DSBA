@@ -2,7 +2,7 @@
 // someone else made first (module_changed) offers to load theirs; removing something students' notes, cards, files
 // or threads refer to (content_in_use) says so and suggests hiding it instead.
 import { ArrowLeft, EyeSlash, Trash } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { errorMessage, isApiError } from "../../../api/errors";
 import type { ModuleEdit } from "../../../api/types";
 import { useToast, YEARS } from "../../../state";
@@ -10,12 +10,14 @@ import {
   Badge,
   Button,
   ConfirmDialog,
+  ModuleArt,
   Panel,
   QueryError,
   Select,
   Skeleton,
   Switch,
   TextField,
+  moduleArtSrc,
 } from "../../../ui";
 import { MarkdownEditor } from "../../forum/public";
 import {
@@ -110,6 +112,12 @@ function Editor({
   const remove = useDeleteModule();
   const { push: toast } = useToast();
   const dirty = isDirty(draft, loaded);
+  const heading = useRef<HTMLHeadingElement>(null);
+
+  // Opening a module moves focus to its name, so a screen reader starts there and Tab goes on into the form.
+  useEffect(() => {
+    heading.current?.focus();
+  }, [loaded.id]);
 
   // Leaving the page with unsaved changes asks first.
   useEffect(() => {
@@ -167,7 +175,7 @@ function Editor({
       <div className="medit__head">
         <BackButton onClose={onClose} />
         <div className="medit__title-row">
-          <h3 className="medit__title">
+          <h3 className="medit__title" ref={heading} tabIndex={-1}>
             {loaded.unitCode
               ? `${loaded.unitCode} ${loaded.name}`
               : loaded.name}
@@ -178,23 +186,13 @@ function Editor({
             </Badge>
           ) : null}
         </div>
-        <div className="medit__actions">
-          {!loaded.hidden ? (
+        {!loaded.hidden ? (
+          <div className="medit__actions">
             <Button variant="ghost" to={`/modules/${loaded.id}`}>
               Open the module
             </Button>
-          ) : null}
-          <Button
-            variant="secondary"
-            disabled={!dirty || save.isPending}
-            onClick={() => setDraft(toDraft(loaded))}
-          >
-            Undo changes
-          </Button>
-          <Button onClick={submit} loading={save.isPending} disabled={!dirty}>
-            Save
-          </Button>
-        </div>
+          </div>
+        ) : null}
       </div>
 
       {problem ? (
@@ -235,16 +233,23 @@ function Editor({
             onChange={(e) => set({ year: Number(e.target.value) as 1 | 2 | 3 })}
             options={YEARS.map((y) => ({ value: y, label: `Year ${y}` }))}
           />
-          <Select
-            label="Icon"
-            value={draft.icon}
-            onChange={(e) => set({ icon: e.target.value })}
-            placeholder="The book (default)"
-            options={MODULE_ICONS.map((icon) => ({
-              value: icon,
-              label: icon.replace(/([a-z])([A-Z])/g, "$1 $2"),
-            }))}
-          />
+          {moduleArtSrc(loaded.id) ? (
+            <div className="medit__art">
+              <ModuleArt moduleId={loaded.id} className="medit__art-img" />
+              <p className="medit__art-note">This module has its own picture.</p>
+            </div>
+          ) : (
+            <Select
+              label="Icon"
+              value={draft.icon}
+              onChange={(e) => set({ icon: e.target.value })}
+              placeholder="The book (default)"
+              options={MODULE_ICONS.map((icon) => ({
+                value: icon,
+                label: icon.replace(/([a-z])([A-Z])/g, "$1 $2"),
+              }))}
+            />
+          )}
         </div>
         <MarkdownEditor
           label="Description"
@@ -301,6 +306,25 @@ function Editor({
 
       <ChaptersEditor draft={draft} setDraft={setDraft} errors={fields} />
 
+      {/* In reach while the chapters scroll by: sticks to the bottom of the screen once there is something to save. */}
+      <div className={dirty ? "medit__savebar is-active" : "medit__savebar"}>
+        <span className="medit__savebar-status" role="status">
+          {dirty ? "Unsaved changes" : "No unsaved changes"}
+        </span>
+        <div className="medit__actions">
+          <Button
+            variant="secondary"
+            disabled={!dirty || save.isPending}
+            onClick={() => setDraft(toDraft(loaded))}
+          >
+            Undo changes
+          </Button>
+          <Button onClick={submit} loading={save.isPending} disabled={!dirty}>
+            Save
+          </Button>
+        </div>
+      </div>
+
       <div className="medit__foot">
         <Button
           variant="ghost"
@@ -309,9 +333,6 @@ function Editor({
           className="medit__remove"
         >
           Remove this module
-        </Button>
-        <Button onClick={submit} loading={save.isPending} disabled={!dirty}>
-          Save
         </Button>
       </div>
 

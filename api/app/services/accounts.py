@@ -15,8 +15,8 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, object_session
 
-from app.core.access import ADMIN, STUDENT
-from app.core.errors import ApiError, conflict, invalid, not_found
+from app.core.access import ADMIN, REP, STUDENT
+from app.core.errors import ApiError, conflict, forbidden, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
     BoardCard,
@@ -50,6 +50,7 @@ from app.models import (
     UploadStatus,
     User,
     UserSession,
+    UserStatus,
     VideoSuggestion,
 )
 from app.schemas.access import RoleSummary
@@ -75,6 +76,7 @@ from app.schemas.auth import (
     ExportVote,
     HomeBlock,
     Me,
+    MeUpdate,
     Preferences,
     PreferencesUpdate,
 )
@@ -140,6 +142,31 @@ def update_preferences(user: User, changes: PreferencesUpdate) -> None:
     if blocks is not None:
         merged["home_blocks"] = list(dict.fromkeys(blocks))
     user.preferences = merged  # a new dict: JSONB columns don't see changes made in place
+
+
+def update_profile(user: User, body: MeUpdate) -> None:
+    """Applies PATCH /me: only the fields sent change. A new year clears the papers (another year's choices), and
+    repeated papers are dropped. Raises invalid_display_name (422), or forbidden (403) for a suspended account's
+    new name."""
+    sent = body.model_fields_set
+    if "display_name" in sent:
+        if body.display_name is None:
+            raise invalid("displayName", "Enter a display name.", code="invalid_display_name")
+        staff = any(slug in (ADMIN, REP) for slug in access.access_of(user).slugs)  # Admin and Rep holders only
+        name = clean_display_name(body.display_name, staff=staff)
+        if name != user.display_name:
+            if user.status == UserStatus.suspended:
+                raise forbidden("Your account is suspended, so your name can't change. Contact a student rep.")
+            user.display_name = name
+    if "year" in sent and body.year != user.year:
+        user.year = body.year
+        user.papers = []
+    if "papers" in sent and body.papers is not None:
+        user.papers = list(dict.fromkeys(body.papers))
+    if "zone" in sent:
+        user.zone = body.zone
+    if "preferences" in sent and body.preferences is not None:
+        update_preferences(user, body.preferences)
 
 
 def require_tracking(user: User) -> None:
@@ -476,7 +503,16 @@ def require_lesson(db: Session, lesson_id: str) -> Lesson:
     return lesson
 
 
-def progress_of(db: Session, user_id: uuid.UUID) -> Progress:
+def progress_of(db: Session, user: User) -> Progress:
+    """The lessons watched and the lesson to resume in each module. While the person keeps no progress, what was
+    recorded before stays stored but hidden, and comes back when they turn tracking on again."""
+    if not tracks_progress(user):
+        return Progress.model_validate({"watched": {}, "last": {}})
+    return recorded_progress(db, user.id)
+
+
+def recorded_progress(db: Session, user_id: uuid.UUID) -> Progress:
+    """Everything stored, tracking on or off: the account export holds it all."""
     watched = {
         lesson_id: {"module_id": module_id, "at": at}
         for lesson_id, module_id, at in db.execute(
@@ -565,8 +601,8 @@ def import_progress(db: Session, user_id: uuid.UUID, body: ProgressImport) -> No
 
 
 def export_account(db: Session, user: User, current: UserSession | None) -> AccountExport:
-    """Everything stored about `user` (GET /me/export; code quality review CQ-4: typed, so a field added to a table
-    has to be added here on purpose)."""
+    """Everything stored about `user` (GET /me/export). Typed, so a field added to a table has to be added here on
+    purpose."""
     uid = user.id
     threads = [
         ExportThread(
@@ -673,22 +709,22 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         for r in db.scalars(select(Report).where(Report.reporter_id == uid).order_by(Report.created_at))
     ]
     requests = [
-        ExportRequest.model_validate(
-            {
-                "id": r.id,
-                "kind": r.kind,
-                "title": r.title,
-                "details": r.details,
-                "module_id": r.module_id,
-                "wanted_kind": r.wanted_kind,
-                "exam_year": r.exam_year,
-                "zone": r.zone,
-                "event_id": r.event_id,
-                "status": r.status.value,
-                "reply": r.reply,
-                "removed": r.removed_at is not None,
-                "created_at": r.created_at,
-            }
+        ExportRequest(
+            id=r.id,
+            kind=r.kind,
+            title=r.title,
+            details=r.details,
+            module_id=r.module_id,
+            wanted_kind=r.wanted_kind,
+            exam_year=r.exam_year,
+            zone=r.zone,
+            event_id=r.event_id,
+            status=r.status.value,
+            reply=r.reply,
+            found_item_id=r.found_item_id,
+            found_at=r.found_at,
+            removed=r.removed_at is not None,
+            created_at=r.created_at,
         )
         for r in db.scalars(
             select(StudentRequest).where(StudentRequest.author_id == uid).order_by(StudentRequest.created_at)
@@ -761,9 +797,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         for c in db.scalars(select(BoardCard).where(BoardCard.user_id == uid).order_by(BoardCard.created_at))
     ]
     follows = [
-        ExportFollow.model_validate(
-            {"thread_id": f.thread_id, "thread_slug": slug, "level": f.level, "created_at": f.created_at}
-        )
+        ExportFollow(thread_id=f.thread_id, thread_slug=slug, level=f.level, created_at=f.created_at)
         for f, slug in db.execute(
             select(ThreadFollow, ForumThread.slug)
             .join(ForumThread, ForumThread.id == ThreadFollow.thread_id)
@@ -784,13 +818,11 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
     ]
     listing = db.get(SeniorProfile, uid)
     senior = (
-        ExportSenior.model_validate(
-            {
-                "topics": list(listing.topics),
-                "note": listing.note,
-                "paused": listing.paused,
-                "created_at": listing.created_at,
-            }
+        ExportSenior(
+            topics=list(listing.topics),
+            note=listing.note,
+            paused=listing.paused,
+            created_at=listing.created_at,
         )
         if listing is not None
         else None
@@ -825,7 +857,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         library_items=library_items,
         stars=stars,
         reactions=reactions,
-        progress=progress_of(db, uid),
+        progress=recorded_progress(db, uid),
         notifications=notifications,
         votes=votes,
         reports=reports,

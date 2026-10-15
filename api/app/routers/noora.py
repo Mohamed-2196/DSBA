@@ -37,7 +37,7 @@ STREAM: dict[int | str, dict[str, Any]] = {
 def ask_noora(body: NooraQuestion, user: ActiveUser, db: DB) -> StreamingResponse:
     """Ask Mini Noora. The answer streams as Server-Sent Events. Only counts are stored: never the question, the
     note or the answer. The note goes only when the student ticked "Include my note". With `paper`, the server adds
-    that page of the past paper and the examiners' report for its sitting, from the text it read (IDEA-4): 404
+    that page of the past paper and the examiners' report for its sitting, from the text it read: 404
     not_found unless it is a published past paper, 404 feature_off while the library is off for the student.
 
     Errors, before the stream starts: noora_unavailable (503: no key), noora_budget_reached (503: the hub's monthly

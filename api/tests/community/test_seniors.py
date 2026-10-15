@@ -1,4 +1,4 @@
-"""Seniors who answer (IDEA-17): Year 3 students list themselves, Career Navigator lists them, and "Ask" tells them."""
+"""Seniors who answer: Year 3 students list themselves, Career Navigator lists them, and "Ask" tells them."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.models import User
-from tests.community.helpers import API, notifications_for
+from tests.community.helpers import API, notifications_for, settled
 
 Client = Callable[..., TestClient]
 SetFeature = Callable[..., None]
@@ -16,12 +16,19 @@ MINE = f"{API}/career/seniors/me"
 
 
 def test_a_year_3_student_lists_themselves_pauses_and_leaves(
-    client_for: Client, make_user: Callable[..., User], set_feature: SetFeature
+    client_for: Client, make_user: Callable[..., User], set_feature: SetFeature, db: Session
 ) -> None:
     set_feature("career.seniors", "everyone")
-    reem = make_user(name="Reem A.", year=3)
+    reem = settled(db, make_user(name="Reem A.", year=3))
     me = client_for(reem)
-    assert me.get(MINE).json() == {"eligible": True, "listed": False, "topics": [], "note": "", "paused": False}
+    assert me.get(MINE).json() == {
+        "eligible": True,
+        "eligibleFrom": None,
+        "listed": False,
+        "topics": [],
+        "note": "",
+        "paused": False,
+    }
     body = {"topics": ["internships", "jobs", "internships"], "note": "I did NBB's summer internship."}
     saved = me.put(MINE, json=body).json()
     assert (saved["listed"], saved["topics"]) == (True, ["internships", "jobs"])
@@ -51,7 +58,7 @@ def test_asking_a_senior_tells_them_and_respects_anonymity(
 ) -> None:
     set_feature("career.seniors", "everyone")
     set_feature("forum.anonymous", "everyone")
-    reem = make_user(name="Reem A.", year=3)
+    reem = settled(db, make_user(name="Reem A.", year=3))
     client_for(reem).put(MINE, json={"topics": ["internships"]})
     ask = {"title": "How did you apply to NBB?", "seniorId": str(reem.id)}
     assert client_for(student).post(f"{API}/forum/threads", json=ask).status_code == 201
@@ -65,10 +72,10 @@ def test_asking_a_senior_tells_them_and_respects_anonymity(
 
 
 def test_a_paused_or_unknown_senior_cant_be_asked(
-    client_for: Client, make_user: Callable[..., User], student: User, set_feature: SetFeature
+    client_for: Client, make_user: Callable[..., User], student: User, set_feature: SetFeature, db: Session
 ) -> None:
     set_feature("career.seniors", "everyone")
-    reem = make_user(name="Reem A.", year=3)
+    reem = settled(db, make_user(name="Reem A.", year=3))
     client_for(reem).put(MINE, json={"topics": ["internships"], "paused": True})
     r = client_for(student).post(f"{API}/forum/threads", json={"title": "How did you apply?", "seniorId": str(reem.id)})
     assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["seniorId"])
@@ -79,10 +86,10 @@ def test_a_paused_or_unknown_senior_cant_be_asked(
 
 
 def test_the_listing_is_in_the_export(
-    client_for: Client, make_user: Callable[..., User], set_feature: SetFeature
+    client_for: Client, make_user: Callable[..., User], set_feature: SetFeature, db: Session
 ) -> None:
     set_feature("career.seniors", "everyone")
-    reem = make_user(name="Reem A.", year=3)
+    reem = settled(db, make_user(name="Reem A.", year=3))
     client_for(reem).put(MINE, json={"topics": ["msc"], "note": "MSc at LSE"})
     senior = client_for(reem).get(f"{API}/me/export").json()["senior"]
     assert (senior["topics"], senior["note"], senior["paused"]) == (["msc"], "MSc at LSE", False)

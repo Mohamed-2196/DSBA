@@ -1,4 +1,4 @@
-"""Suggested videos (IDEA-15): students suggest videos for a module's chapters; people with content.edit accept or
+"""Suggested videos: students suggest videos for a module's chapters; people with content.edit accept or
 decline them. The rules live in app/services/suggestions.py."""
 
 from __future__ import annotations

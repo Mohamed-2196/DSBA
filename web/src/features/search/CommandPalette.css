@@ -228,34 +228,12 @@
   height: 9px;
   background: linear-gradient(225deg, var(--surface-2) 50%, var(--line-strong) 50%);
 }
-.cmdk-doc__fmt {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 1px 0;
-  background: var(--navy);
-  color: #fff;
-  font-size: 8px;
-  font-weight: var(--fw-bold);
-  line-height: 10px;
-  text-align: center;
-}
 
 /* Trailing */
 .cmdk-trail { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-12); }
 .cmdk-code { color: var(--ink-2); font-size: var(--fs-14); }
 .cmdk-meta { color: var(--ink-2); font-size: var(--fs-12); white-space: nowrap; }
 .cmdk-meta.is-exam { color: var(--alert-strong); font-weight: var(--fw-semibold); }
-.cmdk-new {
-  padding: 0 6px;
-  border-radius: 3px;
-  background: var(--highlight-shape) center / 100% 100% no-repeat;
-  color: var(--highlight-ink);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-bold);
-  line-height: 18px;
-}
 .cmdk-ext { color: var(--ink-2); font-size: 16px; }
 .cmdk-enter { display: inline-flex; opacity: 0; transition: opacity var(--dur-fast) var(--ease); }
 .cmdk-enter.is-on { opacity: 1; }

@@ -1,4 +1,4 @@
-"""What's missing, for the people who fill it (IDEA-39): the gaps a rep with an hour could close, by module.
+"""What's missing, for the people who fill it: the gaps a rep with an hour could close, by module.
 
 - Library (library.manage): sittings with a past paper and no examiners' report (or a report and no paper), papers
   with no text (scans), and modules with no cheat sheet.

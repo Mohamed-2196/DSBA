@@ -1,4 +1,4 @@
-"""Search inside papers: the words of published PDF and Word files, kept in `library_texts` (IDEA-2).
+"""Search inside papers: the words of published PDF and Word files, kept in `library_texts`.
 
 - The text worker (`python -m app.cli text-worker`) takes published files that have no text row yet, one at a
   time, oldest first: it claims one with a 'working' row (committed at once, so other workers pass it by), reads

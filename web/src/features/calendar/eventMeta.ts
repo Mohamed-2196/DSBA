@@ -9,7 +9,7 @@ export const EVENT_TYPES: Record<EventType, EventTypeMeta> = {
   mock: { label: 'Mock exam', token: '--cobalt', color: 'var(--cobalt)' },
   revision: { label: 'Revision', token: '--signal', color: 'var(--signal)' },
   deadline: { label: 'Deadline', token: '--highlight', color: 'var(--highlight)' },
-  // Application windows of Career Navigator's employers (IDEA-18).
+  // Application windows of Career Navigator's employers.
   careers: { label: 'Careers', token: '--ink', color: 'var(--ink)' },
   // Programme events (Speech Day, launches, socials). Amber is the one warm token the other types leave free; it is
   // also Year 3's cohort colour, so it never appears without the word "Event".

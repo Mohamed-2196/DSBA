@@ -1,4 +1,4 @@
-// A past question a day (IDEA-27): with an Econometrics exam tomorrow and ten tagged questions on its paper, Sara
+// A past question a day: with an Econometrics exam tomorrow and ten tagged questions on its paper, Sara
 // (Year 2) finds the day's question on Home, opens it at its page and keeps the paper on her board.
 // Both switches arrive off, so the spec switches them on and back off.
 import { expect, test } from './fixtures';

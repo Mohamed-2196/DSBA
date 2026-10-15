@@ -1,4 +1,4 @@
-// Home's "A past question a day" (IDEA-27): in the six weeks before your next exam, one tagged past question from that
+// Home's "A past question a day": in the six weeks before your next exam, one tagged past question from that
 // module, the same for everyone that day, opening its paper at the question's page.
 import { ArrowRight } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';

@@ -104,7 +104,6 @@
 
 .forum-reply.is-accepted { background: color-mix(in srgb, var(--signal) 6%, var(--surface)); }
 .forum-reply.is-accepted::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--signal); }
-.forum-reply.is-accepted .forum-reply__nested-line { border-color: color-mix(in srgb, var(--signal) 30%, var(--line)); }
 
 /* Nested replies (one level), with a thread line */
 .forum-replies__nested { display: grid; gap: 2px; margin: 14px 0 2px; padding: 0 0 0 18px; list-style: none; border-left: 2px solid var(--line); }

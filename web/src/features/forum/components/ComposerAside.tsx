@@ -10,7 +10,7 @@ const TIPS = [
   'Ask one clear question in the title.',
   "Say what you've tried so far and where you got stuck.",
   'Pick the module so the right cohort sees it.',
-  'Use `backticks` for formulas and code.',
+  'Put formulas between $ signs, and code in backticks.',
 ];
 
 /** Threads like the one being written: a title, its replies (answered or not), the module and votes. */

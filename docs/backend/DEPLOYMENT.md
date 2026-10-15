@@ -1,14 +1,15 @@
 # Deploying DSBA Hub
 
 Production runs on one server with Docker Compose (`compose.prod.yaml`): Caddy in front, the API, PostgreSQL, the
-mail worker and two daily jobs. Files live in an S3 bucket outside the server. Local development uses
-`compose.yaml` instead.
+mail and text workers, and two daily jobs (backup, sweep). Files live in an S3 bucket outside the server. Local
+development uses `compose.yaml` instead.
 
 ```
 browser ──https──▶ web (Caddy: TLS, the built app, /api/* proxied, security headers, 1 MB body cap)
    │                  └──▶ api (FastAPI, no published port) ──▶ db (PostgreSQL 17, volume pgdata)
    └──presigned POST/GET──▶ bucket (AWS S3, or MinIO behind HTTPS)
 mail: the email outbox (in db) ──SMTP──▶ your mail relay
+texts: published library files ──extract text──▶ search index (in db)
 backup (daily): pg_dump ──▶ backup bucket (its own key)      sweep (daily): uploads, codes, sessions, old files
 ```
 
@@ -19,6 +20,7 @@ backup (daily): pg_dump ──▶ backup bucket (its own key)      sweep (daily)
 - An S3 bucket for files and a second bucket for backups (section 3).
 - An SMTP account for sign-in codes and notification emails (any provider's relay), and a Twilio account if codes
   go out by text too.
+- An Anthropic API key (`DSBA_ANTHROPIC_API_KEY`) if Mini Noora's AI answers (`noora.ai`) are turned on (section 11).
 
 ## 2. Settings
 
@@ -47,6 +49,8 @@ What production refuses (`app/config.py`, `Settings.production_problems`):
 | `DSBA_S3_*` | bucket and keys set, not the development keys; the endpoint set explicitly (empty for AWS S3); what browsers use (`DSBA_S3_PUBLIC_ENDPOINT_URL`, else `DSBA_S3_ENDPOINT_URL`) is `https://`; `DSBA_S3_CREATE_BUCKET` false (the default in production) |
 | `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain |
 | `DSBA_SMS_BACKEND` | `twilio` with its three settings, or `DSBA_SMS_ALLOWED_REGIONS` empty (no texts at all) |
+| `DSBA_ANTHROPIC_API_KEY` | optional; Anthropic API key for Mini Noora AI answers (runs in script mode if unset) |
+| `DSBA_NOORA_MODEL` | optional; Claude model for Noora (defaults to `claude-haiku-4-5-20251001`) |
 
 Also in production: the API docs (`/api/v1/docs`) and `/api/v1/openapi.json` are off (the web app's types come
 from `api/openapi.json` in the repository), and `python -m app.cli dev-login` refuses to run. The API image sets
@@ -338,3 +342,23 @@ Locally, `scripts/seed-real.sh` (without `--prod`) does the same in the `compose
 in the `.env` of your checkout. Without the script, the import alone is
 `docker compose -f compose.prod.yaml run --rm -e DSBA_GOOGLE_API_KEY api python -m app.cli import-drive` with
 `--dry-run`, `--module ID`, `--limit N`, `--pace SECONDS` or `--yes`.
+
+## 11. Mini Noora, the Sunday summary and bug reports
+
+**Mini Noora AI:**
+Mini Noora can answer questions about modules, past papers, exams and formulas with Claude.
+- To enable AI answers in production, provide `DSBA_ANTHROPIC_API_KEY` in `.env` (compose passes it to the API).
+- Turn on the `noora.ai` feature switch in Manage → Access (off by default).
+- Model selection defaults to `claude-haiku-4-5-20251001` (`DSBA_NOORA_MODEL`).
+- If `DSBA_ANTHROPIC_API_KEY` is not set or `noora.ai` is switched off, Noora operates in script mode: she points students directly to modules, lessons, exams and files in the Hub without making external AI calls.
+
+**Sunday summary:**
+The weekly Sunday summary email gives students an overview of the coming week's events, deadlines and activity.
+- Queued with `python -m app.cli weekly-summary` (e.g. from a cron job or scheduled task).
+- Sent by the `mail` worker (`python -m app.cli mail-worker`) to students who keep the Sunday summary switch on in their account settings.
+
+**Bug reports:**
+Students and guests can report issues with steps, expectations, and optional screenshots via "Report a bug" in the account menu or palette.
+- Bug reports are stored in the database (`bug_reports` table) and triaged by staff in Manage → Bugs.
+- No third-party bug tracker integration is needed.
+
