@@ -8,8 +8,9 @@ import { showsUpload, useAuth } from '../../auth';
 import { MagnifyingGlass, X } from '@phosphor-icons/react';
 import { useDebouncedValue, useLocalStorage, useTheme, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Count, HubMark, Kbd, Modal, cx } from '../../ui';
+import { Count, Kbd, Spinner, Modal, cx } from '../../ui';
 import { useStartsThreads } from '../forum/public';
+import { openBugReport } from '../bugs/public';
 import { askNoora, hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
 import { useSearch } from './api';
 import { tokenize } from './match';
@@ -153,6 +154,8 @@ export function CommandPalette() {
     if (item.kind === 'action' && item.run) {
       const run = item.run;
       if (run.type === 'theme') toggleTheme();
+      // After the palette has closed and handed focus back, so the dialog keeps it.
+      else if (run.type === 'bug') requestAnimationFrame(() => openBugReport());
       else if (run.type === 'noora') {
         if (run.act === 'hide') hideMiniNoora();
         else if (run.act === 'show') showMiniNoora();
@@ -253,7 +256,7 @@ export function CommandPalette() {
           onKeyDown={onKeyDown}
           data-hub="cmdk-input"
         />
-        {waiting ? <HubMark size={9} animate="loop" className="cmdk-field__loading" /> : null}
+        {waiting ? <Spinner size={16} className="cmdk-field__loading" /> : null}
         {query ? (
           <button
             type="button"

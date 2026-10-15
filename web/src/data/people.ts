@@ -2,9 +2,6 @@
 // people; they are credited on the footer and the About page.
 // Public-repo rule: never invent quotes or content attributed to real tutors or staff.
 
-export const REPO_URL = 'https://github.com/Mohamed-2196/DSBA';
-/** Where a problem with the Hub itself is reported (About's "Report a problem", decision D6). */
-export const REPORT_PROBLEM_URL = `${REPO_URL}/issues/new`;
 export const MYCLASS_URL = 'https://myclass.bibf.com';
 export const UOL_PORTAL_URL = 'https://my.london.ac.uk/group/student';
 export const LAUNCH_YEAR = 2024;
@@ -15,7 +12,8 @@ export const DISCLAIMER =
 export interface Contributor {
   id: string;
   name: string;
-  role: string;
+  /** what they contributed; null until it's agreed */
+  role: string | null;
   affiliation: string | null;
   url: string | null;
 }
@@ -37,20 +35,19 @@ export const CONTRIBUTORS: Contributor[] = [
     url: null,
   },
   {
-    id: 'yaser-alghsara',
-    name: 'Yaser Alghsara',
-    role: 'Lecture recordings',
-    affiliation: 'BIBF faculty',
-    url: null,
-  },
-  {
-    id: 'sayed-hasan-kadhem',
-    name: 'Dr. Sayed Hasan Kadhem',
-    role: 'Lecture recordings',
-    affiliation: 'BIBF faculty',
+    id: 'mohamed-hujairi',
+    name: 'Mohamed Hujairi',
+    role: null,
+    affiliation: null,
     url: null,
   },
 ];
+
+/** The line under a contributor's name: their role, with their affiliation when they have one; null with no role. */
+export function contributorLine(c: Pick<Contributor, 'role' | 'affiliation'>): string | null {
+  if (!c.role) return null;
+  return c.affiliation ? `${c.role}, ${c.affiliation}` : c.role;
+}
 
 export interface NoteContributor {
   id: string;

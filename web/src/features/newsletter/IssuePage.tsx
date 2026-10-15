@@ -5,7 +5,7 @@ import { isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { formatDay } from '../../lib/dates';
 import { useDocumentTitle, useMediaQuery, useQueryParam } from '../../state';
-import { Badge, Button, EmptyState, HubLogo, HubMark, Page, Panel, QueryError, Skeleton, cx } from '../../ui';
+import { Badge, Button, EmptyState, HubLogo, Page, Panel, QueryError, Skeleton, cx } from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { toCard, useIssue, useIssueDetails, useIssues } from './api';
 import { EditorAvatars } from './components/Blocks';
@@ -45,7 +45,6 @@ function Toc({ issue, active, onGo }: { issue: Issue; active: string | undefined
             <li key={s.id}>
               <button type="button" className={cx('nl-toc__item', on && 'is-active')} aria-current={on ? 'location' : undefined} onClick={() => onGo(s.id)}>
                 <span>{plainText(sectionLabel(s))}</span>
-                {on ? <HubMark size={9} animate="draw" className="nl-toc__mark" /> : null}
               </button>
             </li>
           );

@@ -85,7 +85,7 @@ const ISSUE: IssueContent = {
   dek: 'Three stories.',
   summary: 'A summary.',
   editors: ['Hawra T.', 'Zainab K.'],
-  cover: { tone: 'navy', art: 'brand/newsletter-cover.jpg', lines: [{ section: 'cfa', text: 'Taking participants' }] },
+  cover: { tone: 'navy', art: 'brand/newsletter-cover.jpg', artAlt: 'Cover illustration', lines: [{ section: 'cfa', text: 'Taking participants' }] },
   sections: SECTIONS,
 };
 

@@ -45,8 +45,8 @@ export function ResultHero({ marks, picks, result }: ResultHeroProps) {
   let name: string;
   let body: ReactNode;
   if (state === 'empty') {
-    big = 'Your result';
-    name = 'appears here as you type';
+    big = 'Type a mark';
+    name = 'to see your class';
     body = <EmptyBody />;
   } else if (state === 'partial') {
     big = `${entered} of 13`;
@@ -80,7 +80,7 @@ export function ResultHero({ marks, picks, result }: ResultHeroProps) {
           {state === 'classified' ? `${CLASS_NAME[result.kind]}, average ${result.average.toFixed(2)}` : state === 'resit' ? RESULT.resit : ''}
         </p>
       </div>
-      <Breakdown cells={cells} state={state} nameOf={nameOf} kind={result.kind} />
+      {state !== 'empty' ? <Breakdown cells={cells} state={state} nameOf={nameOf} kind={result.kind} /> : null}
     </section>
   );
 }

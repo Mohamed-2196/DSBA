@@ -1,7 +1,7 @@
 // Small helpers for feature code. (Component files only export components.)
 export { cx } from './internal';
 
-/** 'Sayed Ali M.' → 'SA', 'Mohamed Alnooh' → 'MA', 'Dr. Sayed Hasan Kadhem' → 'SH'. */
+/** 'Sayed Ali M.' → 'SA', 'Mohamed Alnooh' → 'MA', 'Dr. Sara Ali' → 'SA'. */
 export function initials(name: string | null | undefined = ''): string {
   const words = String(name ?? '')
     .replace(/^(dr|prof|mr|mrs|ms)\.?\s+/i, '')

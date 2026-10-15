@@ -1,8 +1,9 @@
-import { DotsThree, Key, SignIn, SignOut, UserCircle, UserCirclePlus, Wrench } from '@phosphor-icons/react';
+import { Bug, DotsThree, Key, SignIn, SignOut, UserCircle, UserCirclePlus, Wrench } from '@phosphor-icons/react';
 import { errorMessage } from '../api/errors';
 import { accountLine, badgeOf, useAuth } from '../auth';
 import { useToast } from '../state';
 import { Avatar, Button, IconButton, Menu, Skeleton, cx, type MenuItem } from '../ui';
+import { openBugReport } from '../features/bugs/public';
 import './ProfileMenu.css';
 
 interface ProfileMenuProps {
@@ -14,7 +15,7 @@ interface ProfileMenuProps {
 
 /**
  * Who is signed in, with the account menu (Finish your profile when it's missing, Your account, Manage for people
- * who hold a manager box, Access for admins, Sign out). Guests get a Sign in button. The line under the name is the
+ * who hold a manager box, Access for admins, Report a bug, Sign out). Guests get a Sign in button. The line under the name is the
  * person's badge when they have one, otherwise their cohort.
  */
 export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenuProps) {
@@ -77,6 +78,7 @@ export function ProfileMenu({ compact = false, placement = 'rail' }: ProfileMenu
     { id: 'account', label: 'Your account', icon: UserCircle, to: '/account' },
     ...(manages ? [{ id: 'manage', label: 'Manage', icon: Wrench, to: '/manage' }] : []),
     ...(isAdmin ? [{ id: 'access', label: 'Access', icon: Key, to: '/admin/access' }] : []),
+    { id: 'bug', label: 'Report a bug', icon: Bug, onSelect: openBugReport },
     { divider: true },
     { id: 'sign-out', label: 'Sign out', icon: SignOut, onSelect: () => void onSignOut() },
   ];

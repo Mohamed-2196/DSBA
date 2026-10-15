@@ -89,7 +89,7 @@ export function ComingUp({
   return (
     <div className="home-coming">
       {head}
-      <UpcomingEvents n={4} year={year} />
+      <UpcomingEvents n={3} year={year} />
     </div>
   );
 }

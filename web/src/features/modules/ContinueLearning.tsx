@@ -35,7 +35,7 @@ function ContinueRow({ item, featured }: { item: Item; featured: boolean }) {
       data-module-id={m.id}
       aria-label={`${resume.kind === 'resume' ? 'Resume' : 'Continue'} ${m.unitCode || m.name}: ${ch.title}, ${position.toLowerCase()}. ${progress.pct}% of the module watched.`}
     >
-      <MiniPoster module={m} c={resume.c} v={resume.v} size={featured ? 'md' : 'sm'} className="mod-cl__poster" />
+      <MiniPoster module={m} size={featured ? 'md' : 'sm'} className="mod-cl__poster" />
       <span className="mod-cl__text">
         <span className="mod-cl__module">
           {m.unitCode ? <span className="mod-cl__code">{m.unitCode}</span> : null}

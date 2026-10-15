@@ -1,30 +1,14 @@
-// Lesson posters. Nothing loads from YouTube or vc.bibf.com until the student presses play, so the poster has to
-// stand on its own: a dark plot plane in the module's cohort colour, the lesson's title, "Video n of m", the
-// source, and the lesson's own trace (deterministic per lesson). A YouTube thumbnail is layered on top only if it
-// actually loads (class recordings and playlists have none).
+// Lesson posters. Nothing plays from YouTube or vc.bibf.com until the student presses play, so the poster stands on
+// its own: the video's real thumbnail when it loads (class recordings and playlists have none), otherwise a plain
+// tile in the module's cohort colour; the lesson's title, "Video n of m", the source and a play button on top.
 import { Play } from '@phosphor-icons/react';
 import { useMemo, type CSSProperties } from 'react';
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
 import { videoThumbnailUrl } from '../../lib/modules';
 import { cx } from '../../ui';
-import { KIND_ICON, KIND_SOURCE, chapterLessons, kindLabel, lessonPosition, lessonTrace } from './lessons';
+import { KIND_ICON, KIND_SOURCE, chapterLessons, kindLabel, lessonPosition } from './lessons';
 import { useThumbnail } from './thumbs';
 import './Poster.css';
-
-const W = 960;
-const H = 540;
-const GRID = 40;
-// The trace band sits in the lower half; its spike rises to just under the play button.
-const TRACE_Y = 296;
-const TRACE_H = 168;
-
-// Graph paper: one path, no ids or patterns needed.
-const GRID_PATH = (() => {
-  let d = '';
-  for (let x = GRID; x < W; x += GRID) d += `M${x} 0V${H}`;
-  for (let y = GRID; y < H; y += GRID) d += `M0 ${y}H${W}`;
-  return d;
-})();
 
 const cohortVars = (year: number) => ({ '--mc': `var(--y${year})`, '--mc-on': `var(--on-y${year})` }) as CSSProperties;
 
@@ -45,8 +29,6 @@ export function LessonPoster({
   const chapter = m.chapters[c];
   const video = chapter.videos[v];
   const count = chapter.videos.length;
-  const key = m.chapters[c].videos[v].id;
-  const trace = useMemo(() => lessonTrace(key, { width: W, height: TRACE_H, points: 38, spikeAt: 0.765 }), [key]);
   const thumb = videoThumbnailUrl(video);
   const thumbOk = useThumbnail(thumb) === 'ok';
   const KindIcon = KIND_ICON[video.kind];
@@ -66,14 +48,6 @@ export function LessonPoster({
       onClick={onPlay}
       aria-label={`Play chapter ${c + 1}${position ? `, ${position.toLowerCase()}` : ''}: ${title}. Loads from ${source}.`}
     >
-      <svg className="mod-poster__plot" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
-        <path className="mod-poster__grid" d={GRID_PATH} />
-        <g transform={`translate(0 ${TRACE_Y})`}>
-          <path className="mod-poster__axis" d={`M0 ${TRACE_H * 0.6}H${W}`} />
-          <path className="mod-poster__trace" d={trace.d} />
-        </g>
-      </svg>
-
       {thumbOk && thumb ? (
         <span className="mod-poster__thumb" aria-hidden="true">
           <img src={thumb} alt="" />
@@ -118,32 +92,20 @@ export function LessonPoster({
 }
 
 /**
- * Small decorative poster for lesson links (Continue learning, Pick up where you left off).
- * Purely visual (aria-hidden): the surrounding link carries the name.
+ * Small play tile for lesson links (Continue learning, Pick up where you left off): the module's code and a play
+ * button on its cohort colour. Purely visual (aria-hidden): the surrounding link carries the name.
  */
 export function MiniPoster({
   module: m,
-  c = 0,
-  v = 0,
   size = 'md',
   className,
 }: {
-  module: Pick<ModuleSummary, 'id' | 'unitCode' | 'shortName' | 'year'>;
-  c?: number;
-  v?: number;
+  module: Pick<ModuleSummary, 'unitCode' | 'shortName' | 'year'>;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }) {
-  const key = `${m.id}:${c}:${v}`; // only the art's seed
-  const trace = useMemo(() => lessonTrace(key, { width: 320, height: 64, points: 18, spikeAt: 0.62, noise: 0.08 }), [key]);
   return (
     <span className={cx('mod-mini', `mod-mini--${size}`, className)} data-theme="dark" style={cohortVars(m.year)} aria-hidden="true">
-      <svg className="mod-mini__plot" viewBox="0 0 320 180" preserveAspectRatio="none">
-        <path className="mod-mini__grid" d="M40 0V180M80 0V180M120 0V180M160 0V180M200 0V180M240 0V180M280 0V180M0 40H320M0 80H320M0 120H320M0 160H320" />
-        <g transform="translate(0 104)">
-          <path className="mod-mini__trace" d={trace.d} />
-        </g>
-      </svg>
       <span className="mod-mini__code">{m.unitCode || m.shortName}</span>
       <span className="mod-mini__play">
         <Play weight="fill" />

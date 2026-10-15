@@ -39,7 +39,6 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("forum", "GET", f"/forum/threads/{NOTHING}"),
     ("forum", "POST", "/forum/threads"),
     ("forum.follow", "PUT", f"/forum/threads/{NOTHING}/follow"),
-    ("forum", "GET", f"/media/{NOTHING}"),
     ("library", "GET", "/library/items"),
     ("library", "GET", "/library/facets"),
     ("library", "GET", f"/library/items/{NOTHING}/download"),
@@ -114,6 +113,8 @@ FEATURE_FREE: dict[str, str] = {
     "/content/modules": "editing modules and lessons: a manager power, gated by its box",
     "/search": "the hub's search",
     "/features": "which features are on",
+    "/bug-reports": "reporting a bug: anywhere in the hub, whatever is switched on",
+    "/admin/bug-reports": "triaging bug reports: admins only",
 }
 # Routes whose feature depends on the request: they check it in code, and the tests below prove it.
 DECIDED_BY_REQUEST: dict[tuple[str, str], str] = {
@@ -124,12 +125,12 @@ DECIDED_BY_REQUEST: dict[tuple[str, str], str] = {
     ("POST", "/admin/reports/{report_id}/resolve"): "resolves the reports of the features on for the viewer",
     ("GET", "/admin/stats"): "counts the features on for the viewer",
     ("GET", "/admin/gaps"): "lists the gaps of the features on for the viewer",
+    ("GET", "/media/{upload_id}"): "a forum picture needs the forum, a newsletter picture the newsletter",
 }
 # Where each feature's routes live: a route under one of these paths must declare that feature.
 AREAS: dict[str, Feature] = {
     "/board": Feature.board,
     "/forum": Feature.forum,
-    "/media": Feature.forum,
     "/library": Feature.library,
     "/newsletter": Feature.newsletter,
     "/calendar": Feature.calendar,

@@ -31,7 +31,8 @@
 }
 .shell-tabbar__item.is-active { color: var(--ink); }
 .shell-tabbar__item:focus-visible { outline-offset: -4px; border-radius: 12px; }
-.shell-tabbar__mark { position: absolute; top: 6px; height: 6px; line-height: 0; }
+.shell-tabbar__mark { position: absolute; top: 0; width: 24px; height: 3px; border-radius: 0 0 3px 3px; background: transparent; }
+.shell-tabbar__item.is-active .shell-tabbar__mark { background: var(--cobalt); }
 .shell-tabbar__icon { position: relative; font-size: 24px; line-height: 0; margin-top: 6px; }
 .shell-tabbar__item.is-active .shell-tabbar__icon { color: var(--cobalt); }
 .shell-tabbar__newdot { position: absolute; top: -1px; right: -4px; width: 8px; height: 8px; border-radius: 999px; background: var(--highlight); box-shadow: 0 0 0 2px var(--surface); }

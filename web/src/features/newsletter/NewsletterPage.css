@@ -35,6 +35,7 @@
   align-items: start;
 }
 .nl-feature__cover { display: block; border-radius: var(--r-page); }
+.nl-soon__art { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border-radius: var(--r-page); box-shadow: var(--shadow-panel); }
 .nl-feature__body { min-width: 0; padding-top: var(--sp-8); }
 .nl-feature__kicker { display: flex; align-items: center; gap: 12px; font-size: var(--fs-14); font-weight: var(--fw-medium); color: var(--ink-2); }
 .nl-feature__title {

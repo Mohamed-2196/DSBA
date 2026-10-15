@@ -1,4 +1,4 @@
-"""Direct-to-S3 uploads and public forum images. Owner: content agent."""
+"""Direct-to-S3 uploads, and the pictures /media serves. Owner: content agent."""
 
 from __future__ import annotations
 
@@ -7,12 +7,11 @@ from uuid import UUID
 from fastapi import status
 from fastapi.responses import RedirectResponse
 
-from app.core.access import Box, Feature
-from app.core.security import DB, ActiveUser, OptionalUser, needs_feature
+from app.core.security import DB, ActiveUser, OptionalUser
 from app.models import UploadPurpose
 from app.routers._base import router_for
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
-from app.services import access, library
+from app.services import library
 from app.services import uploads as svc
 
 router = router_for("uploads")
@@ -25,19 +24,20 @@ MEDIA_CACHE = "private, max-age=240"
 def create_upload(body: UploadCreate, user: ActiveUser, db: DB) -> PresignedUpload:
     """A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,
     .ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to
-    DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the
-    declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file
-    as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
+    DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; newsletter_image (people who
+    manage the newsletter) and bug_screenshot (anyone signed in): PNG, JPEG, WebP up to DSBA_MAX_IMAGE_MB. The
+    extension must match the declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST
+    `fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
 
     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
-    for review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum
-    picture), feature_off (404: the library, its uploads or the forum is switched off)."""
-    svc.require_features(db, user, UploadPurpose(body.purpose))
-    if body.purpose == "library":
-        access.require(user, Box.library_upload)
+    for review; library only), rate_limited (429), forbidden (403: no library.upload, no forum.post for a forum
+    picture, no newsletter.manage for a newsletter picture), feature_off (404: the library, its uploads, the forum
+    or the newsletter is switched off)."""
+    purpose = UploadPurpose(body.purpose)
+    svc.require_features(db, user, purpose)
+    svc.require_box(user, purpose)
+    if purpose == UploadPurpose.library:
         library.check_pending_room(db, user)  # before the file travels: create_item checks again
-    else:
-        access.require(user, Box.forum_post)
     presigned = svc.create_upload(db, user, body)
     db.commit()
     return presigned
@@ -55,14 +55,11 @@ def complete_upload(upload_id: UUID, user: ActiveUser, db: DB) -> UploadOut:
     return out
 
 
-@router.get(
-    "/media/{upload_id}",
-    response_class=RedirectResponse,
-    status_code=status.HTTP_302_FOUND,
-    dependencies=[needs_feature(Feature.forum)],
-)
+@router.get("/media/{upload_id}", response_class=RedirectResponse, status_code=status.HTTP_302_FOUND)
 def media(upload_id: UUID, db: DB, user: OptionalUser) -> RedirectResponse:
-    """A forum image: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). 404 when
-    the post it belongs to is hidden or deleted, except for moderators."""
+    """A picture: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). Its
+    uploader always sees it. A forum image: everyone while its post is visible, moderators always. A newsletter
+    picture: everyone once a published issue shows it, people who manage the newsletter always. A bug screenshot:
+    admins. 404 otherwise; feature_off while the forum or the newsletter is off for the viewer."""
     url = svc.media_redirect_url(db, upload_id, user)
     return RedirectResponse(url, status_code=status.HTTP_302_FOUND, headers={"Cache-Control": MEDIA_CACHE})

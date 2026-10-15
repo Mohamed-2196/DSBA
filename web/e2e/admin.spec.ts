@@ -40,8 +40,8 @@ test('the admin makes Ali a newsletter manager and back; he is told', async ({ a
   expect(me.body.roles.map((r) => r.slug)).toContain('newsletter-manager');
   expect(me.body.boxes).toContain('newsletter.manage');
   await ali.goto('/manage');
-  await expect(ali.getByRole('tab', { name: /Newsletter/ })).toBeVisible();
-  await expect(ali.getByRole('tab', { name: /Reports/ })).toHaveCount(0);
+  await expect(ali.getByRole('navigation', { name: 'Your tools' }).getByRole('button', { name: /Newsletter/ })).toBeVisible();
+  await expect(ali.getByRole('navigation', { name: 'Your tools' }).getByRole('button', { name: /Reports/ })).toHaveCount(0);
 
   row = await findAli(admin, run.ali.email);
   await row.getByRole('button', { name: /^Change the roles of/ }).click();

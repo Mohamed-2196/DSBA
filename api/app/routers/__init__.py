@@ -7,6 +7,7 @@ from app.routers import (
     admin,
     auth,
     board,
+    bugs,
     calendar,
     content,
     features,
@@ -53,5 +54,6 @@ for module in (
     noora,
     summary,
     suggestions,
+    bugs,
 ):
     api_router.include_router(module.router)

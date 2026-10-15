@@ -1,7 +1,7 @@
-// Home: a greeting, then blocks the student can show, hide and reorder (Customize Home). The default puts what's
-// coming and what's to do first, then where they study. Blocks from other features come from their public.ts, each
-// in its own ErrorBoundary with its own loading, empty and error states; a block with nothing to say renders
-// nothing (the notices, the daily question, Continue while lesson progress is off).
+// Home: a greeting, then a grid of equal cards the student can show, hide and reorder (Customize Home): Up next,
+// To-do, Continue, My modules, New files and Forum, with notices and the Ask Noora prompt across the whole width.
+// Blocks from other features come from their public.ts, each in its own ErrorBoundary with its own loading, empty and
+// error states; a notice with nothing to say renders nothing.
 import { useMemo, useState, type ReactNode } from 'react';
 import { SignIn, SlidersHorizontal, SquaresFour } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
@@ -17,11 +17,13 @@ import { LatestIssueCard } from '../newsletter/public';
 import { PapersButton, usePapers } from '../papers/public';
 import { ResultsDayCard, StartHereCard } from '../start/public';
 import { addDays, dayKey, formatLongDay, parseDay, todayKey } from '../../lib/dates';
-import { ALL_BLOCKS, BLOCKS, type HomeBlock } from './blocks';
+import { AskNoora } from './AskNoora';
+import { ALL_BLOCKS, BLOCKS, offeredBlocks, type HomeBlock } from './blocks';
 import { ComingUp } from './ComingUp';
 import { CustomizeHome } from './CustomizeHome';
 import { useHomeLayout } from './layout';
-import { NewInModules } from './NewInModules';
+import { HomeForum } from './HomeForum';
+import { NewFiles } from './NewFiles';
 import { getExamSession } from './session';
 import { greetingFor } from './time';
 import { YourModules } from './YourModules';
@@ -30,11 +32,11 @@ import './HomePage.css';
 /** "Mohamed" from "Mohamed Alnooh". */
 const firstNameOf = (name: string | null | undefined): string | null => name?.trim().split(/\s+/)[0] || null;
 
-/** A block with a heading and an optional action. */
+/** A card with a heading and an optional action. */
 function Block({ id, action, children }: { id: HomeBlock; action?: ReactNode; children: ReactNode }) {
   const titleId = `home-${id}`;
   return (
-    <PageSection className={cx('home-block', `home-block--${id}`)} aria-labelledby={titleId} data-block={id}>
+    <PageSection className={cx('home-block', `home-block--${BLOCKS[id].span}`, `home-block--${id}`)} aria-labelledby={titleId} data-block={id}>
       <SectionHeader id={titleId} title={BLOCKS[id].title} action={action} />
       <ErrorBoundary name={`Home ${id}`}>{children}</ErrorBoundary>
     </PageSection>
@@ -44,7 +46,7 @@ function Block({ id, action, children }: { id: HomeBlock; action?: ReactNode; ch
 /** A block that brings its own card, across the whole width, and renders nothing when it has nothing to say. */
 function Notice({ id, children }: { id: HomeBlock; children: ReactNode }) {
   return (
-    <div className={cx('home-block', 'home-block--notice', `home-block--${id}`)} data-block={id}>
+    <div className={cx('home-block', 'home-block--wide', 'home-block--notice', `home-block--${id}`)} data-block={id}>
       <ErrorBoundary name={`Home ${id}`} fallback={null}>
         {children}
       </ErrorBoundary>
@@ -61,7 +63,6 @@ export default function HomePage() {
   const [customizing, setCustomizing] = useState(false);
   const signedIn = status === 'signed-in';
   const calendarOn = featureOn('calendar');
-  const libraryOn = featureOn('library');
   const forumOn = featureOn('forum');
 
   const now = new Date();
@@ -72,21 +73,9 @@ export default function HomePage() {
   const session = useMemo(() => getExamSession(calendar.data ?? [], activeYear, getModule, today, { papers }), [calendar.data, activeYear, getModule, today, papers]);
   const nextExam = session?.kind === 'exams' && session.next.type === 'exam' ? session.next : null;
 
-  // The blocks this person can have: a block whose feature is off, or that needs an account, isn't offered.
-  const offered: Record<HomeBlock, boolean> = {
-    start_here: true,
-    results_day: calendarOn,
-    coming_up: calendarOn,
-    daily_question: calendarOn && libraryOn,
-    todo: signedIn && featureOn('board'),
-    continue: true,
-    modules: true,
-    new: libraryOn || forumOn,
-    help_below: signedIn && forumOn,
-    newsletter: featureOn('newsletter'),
-  };
-  const offeredKey = ALL_BLOCKS.filter((b) => offered[b]).join();
-  const available = useMemo(() => new Set(offeredKey.split(',').filter(Boolean) as HomeBlock[]), [offeredKey]);
+  // The blocks this person can have: every feature each needs is on, and an account or lesson progress if it needs one.
+  const offeredKey = offeredBlocks(featureOn, { signedIn, tracking: tracking.on }).join();
+  const available = useMemo(() => new Set(ALL_BLOCKS.filter((b) => offeredKey.split(',').includes(b))), [offeredKey]);
   const layout = useHomeLayout(available);
 
   const render = (b: HomeBlock): ReactNode => {
@@ -147,15 +136,15 @@ export default function HomePage() {
               </Button>
             }
           >
-            <BoardTodo n={5} />
+            <BoardTodo n={4} />
           </Block>
         );
       case 'continue':
-        return tracking.on ? (
+        return (
           <Block key={b} id={b}>
             <ContinueLearning />
           </Block>
-        ) : null;
+        );
       case 'modules':
         return (
           <Block
@@ -173,19 +162,39 @@ export default function HomePage() {
             <YourModules year={activeYear} today={today} />
           </Block>
         );
-      case 'new':
+      case 'files':
         return (
           <Block
             key={b}
             id={b}
             action={
-              <Button variant="ghost" size="sm" to={libraryOn ? '/library' : '/forum'}>
-                {libraryOn ? 'Open the library' : 'Open the forum'}
+              <Button variant="ghost" size="sm" to="/library">
+                Open the library
               </Button>
             }
           >
-            <NewInModules year={activeYear} files={libraryOn} threads={forumOn} />
+            <NewFiles year={activeYear} />
           </Block>
+        );
+      case 'forum':
+        return (
+          <Block
+            key={b}
+            id={b}
+            action={
+              <Button variant="ghost" size="sm" to="/forum">
+                Open the forum
+              </Button>
+            }
+          >
+            <HomeForum year={activeYear} />
+          </Block>
+        );
+      case 'noora':
+        return (
+          <Notice key={b} id={b}>
+            <AskNoora />
+          </Notice>
         );
       case 'newsletter':
         return (

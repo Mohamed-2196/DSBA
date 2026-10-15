@@ -344,8 +344,12 @@ def test_home_blocks(client_for: ClientFor, make_user: MakeUser, db: Session) ->
     assert "home_blocks" not in _fresh(db, User, user.id).preferences
     r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["weather"]}})
     assert r.status_code == 422
-    r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["todo"] * 12}})
+    r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["todo"] * 13}})
     assert r.status_code == 422
+    for gone in (["new"], ["files", "new", "forum", "noora"]):  # a block the hub no longer has: dropped on read
+        user.preferences = {"home_blocks": gone}
+        db.commit()
+        assert c.get(f"{API}/me").json()["preferences"]["homeBlocks"] == [b for b in gone if b != "new"]
 
 
 def test_a_suspended_account_keeps_its_name(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:

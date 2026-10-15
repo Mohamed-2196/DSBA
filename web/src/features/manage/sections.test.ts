@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Box, Feature } from '../../auth';
-import { sectionsFor } from './sections';
+import { groupSections, sectionsFor } from './sections';
 
 const holds = (...boxes: Box[]) => (box: Box) => boxes.includes(box);
 const onlyOn = (...features: Feature[]) => (feature: Feature) => features.includes(feature);
@@ -27,7 +27,7 @@ describe('sectionsFor', () => {
   });
 
   it('gives content editors the suggested videos while they are on', () => {
-    expect(sectionsFor(holds('content.edit'), onlyOn('video_suggestions'))).toEqual(['content', 'videos', 'gaps']);
+    expect(sectionsFor(holds('content.edit'), onlyOn('video_suggestions'))).toEqual(['videos', 'content', 'gaps']);
   });
 
   it('gives the Sunday summary to its box while it is on', () => {
@@ -58,5 +58,19 @@ describe('sectionsFor', () => {
 
   it('drops reports when the only area a person moderates is off', () => {
     expect(sectionsFor(holds('forum.moderate'), onlyOn('library'))).toEqual([]);
+  });
+
+  it('gives bug reports to admins only', () => {
+    expect(sectionsFor(holds('stats.view'))).not.toContain('bugs');
+    expect(sectionsFor(holds('stats.view'), undefined, true)).toEqual(['bugs', 'numbers']);
+  });
+});
+
+describe('groupSections', () => {
+  it('groups sections in order and drops empty groups', () => {
+    expect(groupSections(['reports', 'numbers', 'bugs'])).toEqual([
+      { id: 'waiting', label: 'Waiting', sections: ['reports', 'bugs'] },
+      { id: 'look-after', label: 'Look after', sections: ['numbers'] },
+    ]);
   });
 });

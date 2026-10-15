@@ -29,6 +29,7 @@ export { EmptyState } from './EmptyState';
 export { QueryError } from './QueryError';
 export { Skeleton } from './Skeleton';
 export { ProgressRing } from './ProgressRing';
+export { Spinner } from './Spinner';
 export { Sparkline } from './Sparkline';
 export { HubMark } from './HubMark';
 export { HubLogo } from './HubLogo';

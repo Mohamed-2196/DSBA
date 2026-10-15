@@ -2532,7 +2532,7 @@
           "admin"
         ],
         "summary": "Stats",
-        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle\nthem), and the suggested videos waiting for review (for people who edit modules). A feature switched off for the\nviewer counts None.",
+        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle\nthem), the suggested videos waiting for review (for people who edit modules), and the open bug reports (for\nadmins). A feature switched off for the viewer counts None.",
         "operationId": "stats_api_v1_admin_stats_get",
         "responses": {
           "200": {
@@ -6996,7 +6996,7 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file\nas `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429), forbidden (403: no library.upload, or no forum.post for a forum\npicture), feature_off (404: the library, its uploads or the forum is switched off).",
+        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; newsletter_image (people who\nmanage the newsletter) and bug_screenshot (anyone signed in): PNG, JPEG, WebP up to DSBA_MAX_IMAGE_MB. The\nextension must match the declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST\n`fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429), forbidden (403: no library.upload, no forum.post for a forum\npicture, no newsletter.manage for a newsletter picture), feature_off (404: the library, its uploads, the forum\nor the newsletter is switched off).",
         "operationId": "create_upload_api_v1_uploads_post",
         "requestBody": {
           "content": {
@@ -7202,7 +7202,7 @@
           "uploads"
         ],
         "summary": "Media",
-        "description": "A forum image: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). 404 when\nthe post it belongs to is hidden or deleted, except for moderators.",
+        "description": "A picture: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). Its\nuploader always sees it. A forum image: everyone while its post is visible, moderators always. A newsletter\npicture: everyone once a published issue shows it, people who manage the newsletter always. A bug screenshot:\nadmins. 404 otherwise; feature_off while the forum or the newsletter is off for the viewer.",
         "operationId": "media_api_v1_media__upload_id__get",
         "parameters": [
           {
@@ -16197,6 +16197,359 @@
           }
         }
       }
+    },
+    "/api/v1/bug-reports": {
+      "post": {
+        "tags": [
+          "bugs"
+        ],
+        "summary": "Report Bug",
+        "description": "Report a bug, signed in or not. A signed-in reporter may attach a screenshot: an upload of theirs with\npurpose bug_screenshot. Every admin is told in the hub.\n\nErrors: invalid_input (422: `pageUrl` isn't a page of the hub; `screenshotUploadId` isn't your unused\nscreenshot, or you're signed out), rate_limited (429: 10 an hour, 5 an hour for guests from one network).",
+        "operationId": "report_bug_api_v1_bug_reports_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BugReportCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BugReportCreated"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/bug-reports": {
+      "get": {
+        "tags": [
+          "bugs"
+        ],
+        "summary": "Bug Reports",
+        "description": "The reports with this status (open by default), newest first. `openCount` counts every open report.",
+        "operationId": "bug_reports_api_v1_admin_bug_reports_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "open",
+                "fixed",
+                "wont_fix"
+              ],
+              "type": "string",
+              "default": "open",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Page size",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Page size"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "description": "Items to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Items to skip"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BugReportPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/bug-reports/{report_id}": {
+      "patch": {
+        "tags": [
+          "bugs"
+        ],
+        "summary": "Update Bug Report",
+        "description": "Mark a report fixed or won't fix, or open it again. Audited (`bug_report.status`).\n\nErrors: not_found (404).",
+        "operationId": "update_bug_report_api_v1_admin_bug_reports__report_id__patch",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BugReportUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BugReportOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -16496,6 +16849,17 @@
               }
             ],
             "title": "Pendingsuggestions"
+          },
+          "openBugReports": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Openbugreports"
           }
         },
         "type": "object",
@@ -16507,7 +16871,8 @@
           "pendingUploads",
           "openReports",
           "openRequests",
-          "pendingSuggestions"
+          "pendingSuggestions",
+          "openBugReports"
         ],
         "title": "AdminStats",
         "description": "A feature's counts are None while it is switched off for the viewer."
@@ -17324,6 +17689,230 @@
           "label"
         ],
         "title": "BoxOut"
+      },
+      "BugReportCreate": {
+        "properties": {
+          "whatHappened": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Whathappened"
+          },
+          "expected": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Expected",
+            "default": ""
+          },
+          "pageUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Pageurl"
+          },
+          "appVersion": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Appversion"
+          },
+          "browser": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Browser",
+            "default": ""
+          },
+          "screenshotUploadId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screenshotuploadid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "whatHappened",
+          "pageUrl",
+          "appVersion"
+        ],
+        "title": "BugReportCreate",
+        "description": "`pageUrl` is the page the person was on: a path inside the app ('/library/abc?x=1'), or the app's full\naddress, which is cut down to its path."
+      },
+      "BugReportCreated": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "BugReportCreated"
+      },
+      "BugReportOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "fixed",
+              "wont_fix"
+            ],
+            "title": "Status"
+          },
+          "whatHappened": {
+            "type": "string",
+            "title": "Whathappened"
+          },
+          "expected": {
+            "type": "string",
+            "title": "Expected"
+          },
+          "pageUrl": {
+            "type": "string",
+            "title": "Pageurl"
+          },
+          "appVersion": {
+            "type": "string",
+            "title": "Appversion"
+          },
+          "browser": {
+            "type": "string",
+            "title": "Browser"
+          },
+          "reporter": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "screenshotUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screenshoturl"
+          },
+          "resolvedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolvedat"
+          },
+          "resolvedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "createdAt",
+          "status",
+          "whatHappened",
+          "expected",
+          "pageUrl",
+          "appVersion",
+          "browser",
+          "reporter",
+          "screenshotUrl",
+          "resolvedAt",
+          "resolvedBy"
+        ],
+        "title": "BugReportOut"
+      },
+      "BugReportPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BugReportOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "openCount": {
+            "type": "integer",
+            "title": "Opencount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset",
+          "openCount"
+        ],
+        "title": "BugReportPage"
+      },
+      "BugReportUpdate": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "fixed",
+              "wont_fix"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "BugReportUpdate"
       },
       "CalendarEventCreate": {
         "properties": {
@@ -19893,6 +20482,7 @@
                   "request_update",
                   "date_changed",
                   "video_suggestion",
+                  "bug_report",
                   "system"
                 ]
               },
@@ -20323,6 +20913,7 @@
               "request_update",
               "date_changed",
               "video_suggestion",
+              "bug_report",
               "system"
             ],
             "title": "Kind"
@@ -21648,6 +22239,18 @@
             ],
             "title": "Art"
           },
+          "artAlt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artalt"
+          },
           "lines": {
             "items": {
               "$ref": "#/components/schemas/CoverLine"
@@ -21660,7 +22263,7 @@
         },
         "type": "object",
         "title": "IssueCover",
-        "description": "Typographic, or an illustration (`art`, portrait 3:4) with the type over it. A cover shows five lines at most\n(three over an illustration)."
+        "description": "Typographic, or an illustration (`art`, portrait 3:4, described by `artAlt`) with the type over it. A cover\nshows five lines at most (three over an illustration)."
       },
       "IssueCreate": {
         "properties": {
@@ -21857,8 +22460,7 @@
           "alt": {
             "type": "string",
             "maxLength": 500,
-            "title": "Alt",
-            "default": ""
+            "title": "Alt"
           },
           "caption": {
             "anyOf": [
@@ -21878,10 +22480,11 @@
         "required": [
           "src",
           "width",
-          "height"
+          "height",
+          "alt"
         ],
         "title": "IssueFigure",
-        "description": "A picture beside a section's copy. Width and height (pixels) reserve its space while it loads; `alt`\ndescribes it for people who can't see it."
+        "description": "A picture beside a section's copy: a file of the web app, or a newsletter picture uploaded for the issue\n(POST /uploads, purpose newsletter_image). Width and height (pixels) reserve its space while it loads; `alt`\ndescribes it for people who can't see it."
       },
       "IssueSection": {
         "properties": {
@@ -24920,6 +25523,7 @@
               "request_update",
               "date_changed",
               "video_suggestion",
+              "bug_report",
               "system"
             ],
             "title": "Kind"
@@ -25547,11 +26151,13 @@
                     "start_here",
                     "results_day",
                     "coming_up",
-                    "daily_question",
                     "todo",
                     "continue",
                     "modules",
-                    "new",
+                    "files",
+                    "forum",
+                    "noora",
+                    "daily_question",
                     "help_below",
                     "newsletter"
                   ]
@@ -25657,17 +26263,19 @@
                     "start_here",
                     "results_day",
                     "coming_up",
-                    "daily_question",
                     "todo",
                     "continue",
                     "modules",
-                    "new",
+                    "files",
+                    "forum",
+                    "noora",
+                    "daily_question",
                     "help_below",
                     "newsletter"
                   ]
                 },
                 "type": "array",
-                "maxItems": 10
+                "maxItems": 12
               },
               {
                 "type": "null"
@@ -29081,7 +29689,9 @@
             "type": "string",
             "enum": [
               "library",
-              "forum_image"
+              "forum_image",
+              "newsletter_image",
+              "bug_screenshot"
             ],
             "title": "Purpose"
           },

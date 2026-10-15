@@ -8,7 +8,7 @@ import { useDocumentTitle } from '../../state';
 import { Badge, Button, IconButton, Page, Panel, QueryError, Skeleton } from '../../ui';
 import { toCard, useIssueDetails, useIssues } from './api';
 import { DeleteIssueButton, PublishButton } from './components/IssueActions';
-import { IssueCover, type CoverIssue } from './components/IssueCover';
+import { IssueCover } from './components/IssueCover';
 import { Nameplate } from './components/Nameplate';
 import { SubscribeBox } from './components/SubscribeBox';
 import { issueNo, plainText, sectionLabel } from './lib/text';
@@ -93,37 +93,20 @@ function LatestFeature({ issue }: { issue: IssueCard }) {
   );
 }
 
-// The cover of the issue to come: the same type cover, with what an issue can hold as its index.
-const SOON_COVER: CoverIssue = {
-  number: 1,
-  title: 'Coming soon',
-  date: '',
-  cover: {
-    tone: 'paper',
-    art: null,
-    lines: [
-      { section: 'news', text: 'What changed on the Hub' },
-      { section: 'cohorts', text: 'News for your year' },
-      { section: 'deadlines', text: 'Every exam, with a countdown' },
-      { section: 'forum', text: 'What your cohort is asking' },
-      { section: 'library', text: 'Fresh notes and past papers' },
-    ],
-  },
-  sections: [
-    { id: 'news', label: 'News', title: 'What changed on the Hub' },
-    { id: 'cohorts', label: 'Cohort corner', title: 'News for your year' },
-    { id: 'deadlines', label: 'Deadlines and dates', title: 'Every exam, with a countdown' },
-    { id: 'forum', label: 'From the forum', title: 'What your cohort is asking' },
-    { id: 'library', label: 'New in the library', title: 'Fresh notes and past papers' },
-  ],
-};
-
 /** No issue is out yet: what the newsletter will be, and how to get the first one. */
 function ComingSoon({ manages, hasDrafts }: { manages: boolean; hasDrafts: boolean }) {
   return (
     <section className="nl-feature nl-feature--soon" data-hub="newsletter-empty" aria-labelledby="nl-soon-title">
       <div className="nl-feature__cover nl-soon__cover">
-        <IssueCover issue={SOON_COVER} decorative />
+        <img
+          src={`${import.meta.env.BASE_URL}brand/newsletter-cover.jpg`}
+          alt="The DSBA Newsletter illustration"
+          className="nl-soon__art"
+          width={1086}
+          height={1448}
+          loading="lazy"
+          decoding="async"
+        />
       </div>
       <div className="nl-feature__body">
         <p className="nl-feature__kicker">

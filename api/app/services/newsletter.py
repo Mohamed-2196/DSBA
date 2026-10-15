@@ -40,7 +40,7 @@ from app.schemas.newsletter import (
     SignoffBlock,
     StatsAside,
 )
-from app.services import access, polls, ratelimit
+from app.services import access, newsletter_images, polls, ratelimit
 from app.services.content import apply_patch, record
 from app.services.notify import notify_all
 
@@ -219,10 +219,12 @@ def new_draft(body: IssueCreate, author: User | None = None) -> NewsletterIssue:
 
 
 def create_issue(db: Session, user: User, body: IssueCreate, ip: str | None) -> NewsletterIssue:
-    """A new draft."""
+    """A new draft. Its uploaded pictures must be newsletter pictures, and become attached to it."""
     check_slug_free(db, body.slug)
+    shown = newsletter_images.check(db, newsletter_images.pictures(body.cover, body.sections))
     issue = new_draft(body, user)
     _insert(db, issue)
+    newsletter_images.attach(db, issue, shown)
     record(db, user, "newsletter.create", "newsletter_issue", issue.id, issue.title, ip, slug=issue.slug)
     return issue
 
@@ -234,6 +236,18 @@ def update_issue(db: Session, user: User, issue: NewsletterIssue, body: IssueUpd
         check_slug_free(db, body.slug, issue.id)
     if body.sections is not None:
         polls.keep_voted_answers(db, issue, polls.polls_in(read_sections(issue)), polls.polls_in(body.sections))
+    pictures_change = body.cover is not None or body.sections is not None
+    shown = (
+        newsletter_images.check(
+            db,
+            newsletter_images.pictures(
+                body.cover if body.cover is not None else read_cover(issue),
+                body.sections if body.sections is not None else read_sections(issue),
+            ),
+        )
+        if pictures_change
+        else []
+    )
     try:
         with db.begin_nested():  # flushes what was pending before, then holds this edit
             changed = apply_patch(issue, body, EDITABLE, blank=BLANK)
@@ -245,6 +259,8 @@ def update_issue(db: Session, user: User, issue: NewsletterIssue, body: IssueUpd
     except ApiError:
         db.expire(issue)  # drop the unsaved changes
         raise
+    if pictures_change:
+        newsletter_images.attach(db, issue, shown)
     if changed:
         record(
             db,
@@ -260,7 +276,8 @@ def update_issue(db: Session, user: User, issue: NewsletterIssue, body: IssueUpd
 
 
 def delete_issue(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> None:
-    """The audit row keeps the slug, so the seed never brings a deleted issue back."""
+    """The audit row keeps the slug, so the seed never brings a deleted issue back. Its pictures are released."""
+    newsletter_images.release(db, issue)
     record(
         db,
         user,

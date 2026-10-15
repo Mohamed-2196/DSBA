@@ -12,10 +12,10 @@ https://, mailto: or a page of the Hub (app/schemas/links.py). Issues are stored
 from __future__ import annotations
 
 import datetime as dt
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from pydantic import AfterValidator, Field, StringConstraints, model_validator
+from pydantic import AfterValidator, Field, StringConstraints, ValidationInfo, field_validator, model_validator
 from pydantic_core import PydanticCustomError
 
 from app.schemas.common import ApiModel
@@ -72,14 +72,29 @@ class ReactionCounts(ApiModel):
 # ── an issue's content ───────────────────────────────────────────────────────────────────────
 
 
+ALT_RULE = "Describe the picture for people who can't see it."
+
+
+def _described(value: str) -> str:
+    if not value:
+        raise PydanticCustomError("alt_missing", ALT_RULE)
+    return value
+
+
+# What a picture shows, for people who can't see it (screen readers read it out).
+FigureAlt = Annotated[str, StringConstraints(strip_whitespace=True, max_length=500), AfterValidator(_described)]
+CoverAlt = Annotated[str, StringConstraints(strip_whitespace=True, max_length=300), AfterValidator(_described)]
+
+
 class IssueFigure(ApiModel):
-    """A picture beside a section's copy. Width and height (pixels) reserve its space while it loads; `alt`
+    """A picture beside a section's copy: a file of the web app, or a newsletter picture uploaded for the issue
+    (POST /uploads, purpose newsletter_image). Width and height (pixels) reserve its space while it loads; `alt`
     describes it for people who can't see it."""
 
     src: PictureSrc
     width: int = Field(ge=1, le=10_000)
     height: int = Field(ge=1, le=10_000)
-    alt: Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)] = ""
+    alt: FigureAlt
     caption: Short | None = None
 
 
@@ -216,12 +231,28 @@ class CoverLine(ApiModel):
 
 
 class IssueCover(ApiModel):
-    """Typographic, or an illustration (`art`, portrait 3:4) with the type over it. A cover shows five lines at most
-    (three over an illustration)."""
+    """Typographic, or an illustration (`art`, portrait 3:4, described by `artAlt`) with the type over it. A cover
+    shows five lines at most (three over an illustration)."""
 
     tone: CoverTone = "navy"
     art: PictureSrc | None = None
+    art_alt: CoverAlt | None = None  # required with `art`
     lines: list[CoverLine] = Field(default=[], max_length=5)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _alt_sent(cls, data: Any) -> Any:
+        """A missing `artAlt` is checked like one sent as null, so its error names the field as the client does."""
+        if isinstance(data, dict) and "artAlt" not in data and "art_alt" not in data:
+            return {**data, "artAlt": None}
+        return data
+
+    @field_validator("art_alt")
+    @classmethod
+    def _art_described(cls, value: str | None, info: ValidationInfo) -> str | None:
+        if value is None and info.data.get("art") is not None:
+            raise PydanticCustomError("alt_missing", ALT_RULE)
+        return value
 
 
 # ── issues ───────────────────────────────────────────────────────────────────────────────────

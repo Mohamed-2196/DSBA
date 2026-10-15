@@ -156,7 +156,7 @@ export function IssueCover({ issue, decorative = false, className }: { issue: Co
   return (
     <div className={cx('nl-cover', `nl-cover--${cover.tone}`, art ? 'nl-cover--art' : 'nl-cover--type', className)} data-hub="issue-cover">
       <div className="nl-cover__sheet" data-theme="light">
-        {art ? <img className="nl-cover__art" src={art} alt="" decoding="sync" /> : null}
+        {art ? <img className="nl-cover__art" src={art} alt={cover.artAlt ?? ''} decoding="sync" /> : null}
         <svg viewBox={`0 0 ${COVER_W} ${COVER_H}`} className="nl-cover__svg" {...(decorative ? { 'aria-hidden': true, focusable: 'false' } : { role: 'img', 'aria-label': label })}>
           {art ? <ArtCover cover={cover} /> : <TypeCover cover={cover} />}
         </svg>

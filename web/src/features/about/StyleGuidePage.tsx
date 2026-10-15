@@ -10,8 +10,8 @@ import { cohortColor, useToast, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import {
   Avatar, Badge, Button, Chip, CohortBadge, Divider, Drawer, EmptyState, Highlight, IconButton, Kbd, Menu, Modal,
-  ModuleIcon, Page, PageHeader, Panel, ProgressRing, HubLogo, HubMark, SearchField, SectionHeader, SegmentedControl, Select,
-  Skeleton, Sparkline, TabPanel, Tabs, TextArea, TextField, Tooltip, cx,
+  ModuleIcon, Page, PageHeader, Panel, ProgressRing, HubLogo, SearchField, SectionHeader, SegmentedControl, Select,
+  Skeleton, Spinner, TabPanel, Tabs, TextArea, TextField, Tooltip, cx,
 } from '../../ui';
 import { EVENT_TYPES, TYPE_ORDER, useCalendarEvents, type EventType } from '../calendar/public';
 import './StyleGuidePage.css';
@@ -337,7 +337,6 @@ export default function StyleGuidePage() {
   const { modules } = useModules();
   const demo = useDemoModule();
   const { counts: eventCounts, total: eventTotal } = useEventCounts();
-  const [drawKey, setDrawKey] = useState(0);
   const [hlKey, setHlKey] = useState(0);
   const [chips, setChips] = useState<string[]>(['exam']);
   const [tab, setTab] = useState('all');
@@ -389,7 +388,7 @@ export default function StyleGuidePage() {
             <div>
               <h2 className="sg-rules__title">Spend boldness in one place</h2>
               <p className="sg-rules__body">
-                The trace and the highlighter are the signature. Everything else stays quiet: borders before shadows,
+                The highlighter is the signature. Everything else stays quiet: borders before shadows,
                 lists and tables before grids of cards, sentence case, plain verbs.
               </p>
             </div>
@@ -404,21 +403,14 @@ export default function StyleGuidePage() {
           </Panel>
 
           {/* ── Brand ─────────────────────────────────────────────────── */}
-          <Section id="brand" title="Brand" description="The trace marks the active page and is the loader. The logo is a file (data/brand.ts): the “DSBA Hub” lockup and the “DH” tile. The highlighter marks what is new or important.">
+          <Section id="brand" title="Brand" description="A bar marks the active page; a plain ring is the loader. The logo is a file (data/brand.ts): the “DSBA Hub” lockup and the “DH” tile. The highlighter marks what is new or important.">
             <div className="sg-grid sg-grid--2">
               <Specimen
-                title="HubMark"
-                note="size, animate, tone, dot"
-                code={`<HubMark size={24} />\n<HubMark size={40} animate="draw" />   // once\n<HubMark size={22} animate="loop" />   // loader\n<HubLogo variant="tile" size={32} />   // the logo slot`}
+                title="HubLogo, Spinner"
+                note="the logo slot; the loader (size)"
+                code={`<HubLogo variant="tile" size={32} />   // the logo slot\n<Spinner size={18} />   // beside what is loading, inside role="status"`}
                 stageClassName="sg-stage--brand"
               >
-                <div className="sg-mark-row">
-                  <HubMark size={12} />
-                  <HubMark size={18} />
-                  <HubMark size={24} />
-                  <HubMark size={40} tone="ink" />
-                  <span className="sg-mark-inverse"><HubMark size={24} tone="inverse" /></span>
-                </div>
                 <div className="sg-mark-row">
                   <HubLogo variant="tile" size={20} decorative />
                   <HubLogo variant="tile" size={28} decorative />
@@ -426,9 +418,7 @@ export default function StyleGuidePage() {
                   <HubLogo variant="tile" size={64} />
                 </div>
                 <div className="sg-mark-row">
-                  <HubMark key={drawKey} size={40} animate="draw" />
-                  <Replay onClick={() => setDrawKey((k) => k + 1)} />
-                  <span className="sg-mark-loader"><HubMark size={22} animate="loop" /> <span className="sg-caption">Loader</span></span>
+                  <span className="sg-mark-loader" role="status"><Spinner /> <span className="sg-caption">Loading</span></span>
                 </div>
               </Specimen>
 
@@ -876,16 +866,13 @@ export default function StyleGuidePage() {
                 <Button onClick={() => push({ title: 'Thread posted', body: 'Your cohort can see it now.', tone: 'success', action: { label: 'View thread', onClick: () => {} } })}>Success toast</Button>
                 <Button onClick={() => push({ title: 'Upload failed', body: 'The file is over 20 MB. Compress it and try again.', tone: 'alert' })}>Alert toast</Button>
               </Specimen>
-              <Specimen title="ProgressRing, Sparkline" note="value 0–100, size, stroke, color; data, area, dot, label"
-                code={`<ProgressRing value={pct} color={cohortColor(year)} label="Lessons watched" />\n<Sparkline data={[3, 5, 4, 9, 7, 12]} label="Replies per day" area />`}>
+              <Specimen title="ProgressRing" note="value 0–100, size, stroke, color"
+                code={`<ProgressRing value={pct} color={cohortColor(year)} label="Lessons watched" />`}>
                 <ProgressRing value={0} />
                 <ProgressRing value={35} color={cohortColor(1)} />
                 <ProgressRing value={72} size={48} color={cohortColor(2)} />
                 <ProgressRing value={100} size={56} stroke={5} color="var(--signal)" />
                 <ProgressRing value={60} size={20} stroke={3} />
-                <Divider orientation="vertical" />
-                <Sparkline data={[3, 4, 3, 5, 4, 11, 6, 5, 7, 6]} label="Views per day, last 10 days" />
-                <Sparkline data={[2, 3, 3, 5, 6, 5, 8, 9, 12, 14]} area color={cohortColor(2)} label="Replies per day" />
               </Specimen>
             </div>
             <div className="sg-grid sg-grid--2">

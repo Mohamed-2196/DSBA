@@ -1,0 +1,26 @@
+/* Report a bug: the form, and what goes with it. */
+.bug-form { display: grid; gap: var(--sp-16); }
+.bug-form__shot { display: grid; gap: var(--sp-8); justify-items: start; }
+.bug-form__label { font-size: var(--fs-14); font-weight: var(--fw-semibold); color: var(--ink); }
+.bug-form__optional { margin-left: var(--sp-4); color: var(--ink-2); font-weight: var(--fw-medium); }
+.bug-form__hint { margin: 0; color: var(--ink-2); font-size: var(--fs-12); }
+.bug-form__error { margin: 0; color: var(--alert-strong); font-size: var(--fs-14); }
+.bug-form__preview { position: relative; display: flex; align-items: flex-start; gap: var(--sp-8); }
+.bug-form__preview img { max-width: min(100%, 280px); max-height: 180px; border: 1px solid var(--line); border-radius: var(--r-control); object-fit: contain; background: var(--surface-2); }
+.bug-form__sent { padding: var(--sp-12); border-radius: var(--r-control); background: var(--surface-2); font-size: var(--fs-12); color: var(--ink-2); }
+.bug-form__sent-title { margin: 0 0 var(--sp-4); font-weight: var(--fw-semibold); color: var(--ink); }
+.bug-form__sent dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px var(--sp-12); margin: 0; }
+.bug-form__sent dt { color: var(--ink-2); }
+.bug-form__sent dd { margin: 0; overflow-wrap: anywhere; color: var(--ink); }
+
+/* Manage's Bugs section. */
+.bugs { display: grid; gap: var(--sp-16); }
+.bugs-list { display: grid; gap: var(--sp-12); margin: 0; padding: 0; list-style: none; }
+.bug-card { display: grid; gap: var(--sp-8); padding: var(--sp-16); border: 1px solid var(--line); border-radius: var(--r-panel); background: var(--surface); }
+.bug-card__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--sp-4) var(--sp-12); color: var(--ink-2); font-size: var(--fs-12); }
+.bug-card__what { margin: 0; max-width: 75ch; color: var(--ink); font-size: var(--fs-14); white-space: pre-wrap; overflow-wrap: anywhere; }
+.bug-card__expected { margin: 0; max-width: 75ch; color: var(--ink-2); font-size: var(--fs-14); white-space: pre-wrap; overflow-wrap: anywhere; }
+.bug-card__meta { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px var(--sp-12); margin: 0; font-size: var(--fs-12); color: var(--ink-2); }
+.bug-card__meta dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+.bug-card__shot img { display: block; max-width: min(100%, 360px); max-height: 220px; border: 1px solid var(--line); border-radius: var(--r-control); object-fit: contain; background: var(--surface-2); }
+.bug-card__actions { display: flex; flex-wrap: wrap; gap: var(--sp-8); }

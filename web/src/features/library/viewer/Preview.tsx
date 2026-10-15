@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { isApiError } from '../../../api/errors';
 import { formatSize } from '../../../api/uploads';
 import { hostOf } from '../../../lib/share';
-import { Button, HubMark, cx } from '../../../ui';
+import { Button, Spinner, cx } from '../../../ui';
 import { downloadHref, openLinkHref, useFileLink } from '../api';
 import { FileThumb } from '../components/FileThumb';
 import { linkPlace } from '../display';
@@ -34,7 +34,7 @@ function opensIn(tag: string | undefined): string {
 function Loading({ label }: { label: string }) {
   return (
     <div className="lib-preview__loading" role="status">
-      <HubMark size={18} animate="loop" tone="current" />
+      <Spinner />
       <span>{label}</span>
     </div>
   );

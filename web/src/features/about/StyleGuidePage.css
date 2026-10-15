@@ -70,7 +70,6 @@
 /* brand */
 .sg-stage--brand { flex-direction: column; align-items: flex-start; flex-wrap: nowrap; gap: var(--sp-24); }
 .sg-mark-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-24); }
-.sg-mark-inverse { display: inline-grid; place-items: center; padding: 10px 12px; border-radius: var(--r-control); background: var(--navy); }
 .sg-mark-loader { display: inline-flex; align-items: center; gap: var(--sp-8); padding-left: var(--sp-16); border-left: 1px solid var(--line); }
 .sg-hl-display { font-size: var(--fs-39); font-weight: var(--fw-heavy); letter-spacing: var(--tracking-head); line-height: 1.12; text-wrap: balance; }
 .sg-hl-body { max-width: 56ch; font-size: var(--fs-16); }
