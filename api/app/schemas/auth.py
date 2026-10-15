@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time
-from typing import Annotated, Literal, get_args
+from typing import Annotated, Any, Literal, get_args
 from uuid import UUID
 
 from pydantic import Field, StringConstraints, WithJsonSchema
@@ -308,12 +308,22 @@ class ExportBoardPlan(ApiModel):
     created_at: datetime
 
 
+class ExportInk(ApiModel):
+    sheet: int
+    strokes: list[dict[str, Any]]  # schemas/notes.py Stroke
+
+
 class ExportNote(ApiModel):
     id: UUID
     title: str
-    body: str
-    module_id: str | None
+    text: str
+    doc: dict[str, Any]  # the typed text as the editor keeps it
+    paper: str
+    sheets: int
     lesson_id: str | None
+    library_item_id: UUID | None
+    files: list[str]  # the names of its pictures and files
+    ink: list[ExportInk]
     version: int
     created_at: datetime
     updated_at: datetime
@@ -327,6 +337,14 @@ class ExportCalendarSettings(ApiModel):
     hidden_modules: list[str]
     hidden_types: list[EventType]
     private_feed: bool
+
+
+class ExportNotebook(ApiModel):
+    id: UUID
+    title: str
+    module_id: str | None
+    created_at: datetime
+    notes: list[ExportNote]
 
 
 class ExportNooraDay(ApiModel):
@@ -442,7 +460,7 @@ class AccountExport(ApiModel):
     follows: list[ExportFollow]  # forum threads this person follows
     poll_votes: list[ExportPollVote]  # newsletter poll answers
     senior: ExportSenior | None  # the "Ask a senior" listing
-    notes: list[ExportNote]  # private notes
+    notebooks: list[ExportNotebook]  # private notebooks and their notes
     noora_usage: list[ExportNooraDay]  # Mini Noora's AI questions per day
     video_suggestions: list[ExportSuggestion]  # videos this person suggested for lessons
     calendar_events: list[PersonalEventOut]  # events on their own calendar

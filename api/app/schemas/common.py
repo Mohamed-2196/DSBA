@@ -95,10 +95,12 @@ ErrorCode = Literal[
     "already_a_lesson",  # 409: the module already has this video as a lesson
     "already_suggested",  # 409: this video already waits for review for the module
     "suggestion_closed",  # 409: the suggestion was already accepted or declined
-    # notes (R-5)
+    # the notebook (R-5)
     "note_changed",  # 409: the note was saved elsewhere (another tab) since this version: load it, or save over it
+    "ink_changed",  # 409: the sheet's ink was saved elsewhere since this version: load it, or save over it
     "too_many_notes",  # 409: the most notes one student may keep
-    "notes_full",  # 409: the student's notes hold as much text as they may
+    "too_many_notebooks",  # 409: the most notebooks one student may keep
+    "notes_full",  # 409: the student's notebooks hold as much text, ink and files as they may
     # boards
     "board_full",  # 409: the student's boards hold as many cards as they may
     "boards_full",  # 409: the student has as many boards as they may

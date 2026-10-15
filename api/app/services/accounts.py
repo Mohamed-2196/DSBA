@@ -33,6 +33,8 @@ from app.models import (
     NewsletterReaction,
     NooraUsage,
     Note,
+    Notebook,
+    NoteInk,
     Notification,
     PaperQuestion,
     PaperQuestionFlag,
@@ -59,9 +61,11 @@ from app.schemas.auth import (
     ExportCalendarSettings,
     ExportEmail,
     ExportFollow,
+    ExportInk,
     ExportLibraryItem,
     ExportNooraDay,
     ExportNote,
+    ExportNotebook,
     ExportNotification,
     ExportPollVote,
     ExportQuestionTag,
@@ -812,18 +816,43 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         if listing is not None
         else None
     )
-    notes = [
-        ExportNote(
-            id=n.id,
-            title=n.title,
-            body=n.body,
-            module_id=n.module_id,
-            lesson_id=n.lesson_id,
-            version=n.version,
-            created_at=n.created_at,
-            updated_at=n.updated_at,
+    note_rows = list(db.scalars(select(Note).where(Note.user_id == uid).order_by(Note.created_at)))
+    ink_rows = db.scalars(
+        select(NoteInk).where(NoteInk.note_id.in_([n.id for n in note_rows])).order_by(NoteInk.sheet)
+    ).all()
+    note_files = db.execute(
+        select(Upload.note_id, Upload.file_name)
+        .where(Upload.user_id == uid, Upload.purpose == UploadPurpose.note_file, Upload.note_id.is_not(None))
+        .order_by(Upload.created_at)
+    ).all()
+    notes_by_book: dict[uuid.UUID, list[ExportNote]] = {}
+    for n in note_rows:
+        notes_by_book.setdefault(n.notebook_id, []).append(
+            ExportNote(
+                id=n.id,
+                title=n.title,
+                text=n.text,
+                doc=n.doc,
+                paper=n.paper,
+                sheets=n.sheets,
+                lesson_id=n.lesson_id,
+                library_item_id=n.library_item_id,
+                files=[name for note_id, name in note_files if note_id == n.id],
+                ink=[ExportInk(sheet=i.sheet, strokes=i.strokes) for i in ink_rows if i.note_id == n.id],
+                version=n.version,
+                created_at=n.created_at,
+                updated_at=n.updated_at,
+            )
         )
-        for n in db.scalars(select(Note).where(Note.user_id == uid).order_by(Note.created_at))
+    notebooks = [
+        ExportNotebook(
+            id=nb.id,
+            title=nb.title,
+            module_id=nb.module_id,
+            created_at=nb.created_at,
+            notes=notes_by_book.get(nb.id, []),
+        )
+        for nb in db.scalars(select(Notebook).where(Notebook.user_id == uid).order_by(Notebook.created_at))
     ]
     noora = [
         ExportNooraDay(
@@ -870,7 +899,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         follows=follows,
         poll_votes=poll_votes,
         senior=senior,
-        notes=notes,
+        notebooks=notebooks,
         noora_usage=noora,
         video_suggestions=[
             ExportSuggestion(
@@ -905,13 +934,13 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
 
 
 def delete_account(db: Session, user: User, storage: Storage) -> None:
-    """Deletes the account. Files that never reached the library, forum pictures and files on board cards go
-    (objects first: if the bucket fails, nothing is deleted and the person can try again); pending and rejected
-    library items go; published items stay without an uploader; posts stay as 'deleted user' (the foreign keys set
-    NULL); everything personal (boards, sessions, notifications, queued emails, progress, stars, votes, me-toos,
-    reactions, follows, poll votes, the senior listing, their own calendar) cascades; the sign-in codes stay,
-    anonymised, until the sweep (the rate limits count them). The last active admin can't leave (409 last_admin).
-    The caller commits."""
+    """Deletes the account. Files that never reached the library, forum pictures, notebook files, and files on
+    board cards go (objects first: if the bucket fails, nothing is deleted and the person can try again); pending
+    and rejected library items go; published items stay without an uploader; posts stay as 'deleted user' (the
+    foreign keys set NULL); everything personal (boards, sessions, notifications, queued emails, progress,
+    notebooks and notes, stars, votes, me-toos, reactions, follows, poll votes, the senior listing, their own
+    calendar) cascades; the sign-in codes stay, anonymised, until the sweep (the rate limits count them). The
+    last active admin can't leave (409 last_admin). The caller commits."""
     if access.is_admin(user):
         access.ensure_admins_remain(db, user)
     uid = user.id
@@ -930,7 +959,7 @@ def delete_account(db: Session, user: User, storage: Storage) -> None:
                     (Upload.user_id == uid)
                     & or_(
                         Upload.status != UploadStatus.attached,
-                        Upload.purpose.in_([UploadPurpose.forum_image, UploadPurpose.board]),
+                        Upload.purpose.in_([UploadPurpose.forum_image, UploadPurpose.board, UploadPurpose.note_file]),
                     ),
                     Upload.storage_key.in_(item_keys) if item_keys else false(),
                 )

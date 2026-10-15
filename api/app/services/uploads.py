@@ -5,8 +5,8 @@ How a file gets in (docs/reviews/security-design.md, findings 6-8):
      throwaway key, `incoming/<upload id>`, that only accepts the allowlisted type and the declared size.
   2. The browser POSTs the file straight to the bucket.
   3. POST /uploads/{id}/complete checks what actually arrived (size, type, the file's first bytes), then copies it
-     server-side to its final key, `<purpose's prefix>/<uuid>/<safe name>` (library/, forum/, newsletter/, bugs/
-     or board/), and deletes the incoming object. No presigned policy ever allows writing a final key, so a
+     server-side to its final key, `<purpose's prefix>/<uuid>/<safe name>` (library/, forum/, newsletter/, bugs/,
+     board/ or notes/), and deletes the incoming object. No presigned policy ever allows writing a final key, so a
      checked file can't be swapped.
 
 `Upload.storage_key` always names where the object is now: the incoming key while pending, the final key after."""
@@ -102,6 +102,7 @@ ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
     UploadPurpose.newsletter_image: PICTURE_TYPES,
     UploadPurpose.bug_screenshot: PICTURE_TYPES,
     UploadPurpose.board: LIBRARY_TYPES | IMAGE_TYPES,  # a card holds files and pictures
+    UploadPurpose.note_file: LIBRARY_TYPES | IMAGE_TYPES,  # a note's pictures, files and the PDFs it writes over
 }
 # Shown in the browser (PDF viewer, <img>): storage.INLINE_TYPES. Everything else downloads as an attachment.
 IMAGE_CONTENT_TYPES = frozenset(t.content_type for t in IMAGE_TYPES.values())
@@ -114,6 +115,7 @@ FINAL_PREFIXES: dict[UploadPurpose, str] = {
     UploadPurpose.newsletter_image: "newsletter",
     UploadPurpose.bug_screenshot: "bugs",
     UploadPurpose.board: "board",
+    UploadPurpose.note_file: "notes",
 }
 # The box an upload of each purpose needs (None: any active account).
 PURPOSE_BOXES: dict[UploadPurpose, Box | None] = {
@@ -122,6 +124,7 @@ PURPOSE_BOXES: dict[UploadPurpose, Box | None] = {
     UploadPurpose.newsletter_image: Box.newsletter_manage,
     UploadPurpose.bug_screenshot: None,
     UploadPurpose.board: None,
+    UploadPurpose.note_file: None,
 }
 
 
@@ -201,6 +204,11 @@ def _unsupported(purpose: UploadPurpose) -> ApiError:
         msg = (
             "Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, "
             "or a JPG, PNG, WebP or GIF picture."
+        )
+    elif purpose == UploadPurpose.note_file:
+        msg = (
+            "Use a picture (JPG, PNG, WebP or GIF), a PDF, or a Word, Excel, PowerPoint, notebook (.ipynb), R, "
+            "text or CSV file."
         )
     else:
         msg = (
@@ -296,6 +304,7 @@ PURPOSE_FEATURES: dict[UploadPurpose, tuple[Feature, ...]] = {
     UploadPurpose.newsletter_image: (Feature.newsletter,),
     UploadPurpose.bug_screenshot: (),  # bug reports have no switch
     UploadPurpose.board: (Feature.board,),
+    UploadPurpose.note_file: (Feature.notes,),
 }
 
 

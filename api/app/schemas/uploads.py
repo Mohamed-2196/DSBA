@@ -7,7 +7,7 @@ from pydantic import Field, StringConstraints
 
 from app.schemas.common import ApiModel
 
-UploadPurpose = Literal["library", "forum_image", "newsletter_image", "bug_screenshot", "board"]
+UploadPurpose = Literal["library", "forum_image", "newsletter_image", "bug_screenshot", "board", "note_file"]
 
 
 class UploadCreate(ApiModel):

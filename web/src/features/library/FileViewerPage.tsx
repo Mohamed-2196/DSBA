@@ -8,6 +8,7 @@ import {
   FileMagnifyingGlass,
   Info,
   LinkSimple,
+  Notebook,
   PencilSimple,
   Trash,
 } from '@phosphor-icons/react';
@@ -23,6 +24,7 @@ import { Badge, Button, EmptyState, IconButton, Menu, Page, Panel, QueryError, S
 import { useAuth } from '../../auth';
 import { AddToBoard, PaperDone } from '../board/public';
 import { ReportButton } from '../forum/public';
+import { useAnnotate } from '../notes/public';
 import { useLibraryAccess } from './access';
 import { downloadHref, itemPath, libraryKeys, openLinkHref, useLibraryItem } from './api';
 import { DeleteItemDialog, EditItemDialog } from './components/EditItemDialog';
@@ -174,6 +176,14 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   const isPaper = item.kind === 'past-paper' && item.source === 'file' && item.status === 'published';
   const sittings = usePaperSittings(item.moduleId, { enabled: isPaper && item.examYear !== null });
   const report = paperContext(sittings.data?.sittings, item.id)?.reports[0] ?? null;
+  const annotate = useAnnotate();
+
+  const onAnnotate = () => {
+    annotate.mutate(item.id, {
+      onSuccess: (note) => navigate(`/notes/${note.id}`),
+      onError: (err) => push({ title: isApiError(err) ? err.message : 'Couldn’t open notebook.', tone: 'alert' }),
+    });
+  };
 
   const state = location.state as Partial<LinkState> | null;
   const backTo = typeof state?.from === 'string' ? state.from : '/library';
@@ -284,6 +294,18 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           {isPaper ? <TimeMeButton compact={isMobile} onStart={(h) => setEndsAt(Date.now() + h * 3600_000)} /> : null}
           {canManage && moreItems.length ? (
             <Menu align="end" label="More actions" items={moreItems} trigger={<IconButton label="More actions" icon={DotsThree} tooltip={isDesktop} />} />
+          ) : null}
+          {featureOn('notes') && fmt?.tag === 'PDF' && item.status === 'published' ? (
+            <Button
+              variant="secondary"
+              leadingIcon={Notebook}
+              onClick={onAnnotate}
+              loading={annotate.isPending}
+              size={isMobile ? 'sm' : 'md'}
+              data-hub="annotate-in-notebook"
+            >
+              Annotate in my notebook
+            </Button>
           ) : null}
           <AskNoora item={item} page={page} compact={isMobile} />
           {primary}

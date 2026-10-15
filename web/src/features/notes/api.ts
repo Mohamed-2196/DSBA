@@ -1,28 +1,37 @@
-// Notes from the API (TanStack Query). Every note is its writer's alone.
-//   GET    /api/v1/notes            your notes, last edited first: ?q (title and body), ?module_id, ?lesson_id
-//   POST   /api/v1/notes            a new note
-//   GET    /api/v1/notes/{id}       one note, with its whole body
-//   PUT    /api/v1/notes/{id}       save the whole note, with the version it was loaded at (409 note_changed: saved
-//                                  since, in another tab)
+// The notebook from the API (TanStack Query). Every notebook, note and file is its writer's alone.
+//   GET    /api/v1/notebooks                 your notebooks, and how much of your storage they use
+//   POST   /api/v1/notebooks                 a notebook of your own ({ title }) or a module's ({ moduleId })
+//   PATCH  /api/v1/notebooks/{id}            rename it
+//   DELETE /api/v1/notebooks/{id}            it and every note in it
+//   GET    /api/v1/notes                     your notes, last edited first: ?q, ?notebook_id, ?module_id, ?lesson_id
+//   POST   /api/v1/notes                     a new note (in a notebook, a module's notebook, or your own)
+//   POST   /api/v1/notes/annotate            your note written over a library PDF (made, or the one you have)
+//   GET    /api/v1/notes/{id}                one note: its text, ink per sheet, and the PDF it is written over
+//   PUT    /api/v1/notes/{id}                save its text and settings, with the version loaded (409 note_changed)
+//   PUT    /api/v1/notes/{id}/ink/{sheet}    save one sheet's ink, with its version (409 ink_changed)
 //   DELETE /api/v1/notes/{id}
+//   GET    /api/v1/notes/files/{uploadId}    one of your note's pictures or files (a redirect; ?download=true)
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { api, call } from '../../api/client';
+import { API_ORIGIN, api, call } from '../../api/client';
 import { nextOffset } from '../../api/paging';
-import type { Note, NoteCreate, NoteUpdate } from '../../api/types';
+import type { InkSave, InkSheet, Note, NoteCreate, NoteUpdate, Notebook, NotebookCreate } from '../../api/types';
 
 export const NOTES_KEY = ['notes'] as const;
-const PAGE = 20;
+const PAGE = 30;
 
 export interface NoteFilters {
   q?: string;
+  notebookId?: string | null;
   moduleId?: string | null;
   lessonId?: string | null;
 }
 
 export const noteKeys = {
   all: NOTES_KEY,
+  notebooks: [...NOTES_KEY, 'notebooks'] as const,
   lists: [...NOTES_KEY, 'list'] as const,
-  list: (f: NoteFilters) => [...NOTES_KEY, 'list', { q: f.q ?? '', moduleId: f.moduleId ?? null, lessonId: f.lessonId ?? null }] as const,
+  list: (f: NoteFilters) =>
+    [...NOTES_KEY, 'list', { q: f.q ?? '', notebookId: f.notebookId ?? null, moduleId: f.moduleId ?? null, lessonId: f.lessonId ?? null }] as const,
   one: (id: string) => [...NOTES_KEY, 'one', id] as const,
 };
 
@@ -32,6 +41,7 @@ const listQuery = (f: NoteFilters, limit: number, offset: number) =>
       params: {
         query: {
           q: f.q || undefined,
+          notebook_id: f.notebookId ?? undefined,
           module_id: f.moduleId ?? undefined,
           lesson_id: f.lessonId ?? undefined,
           limit,
@@ -40,6 +50,11 @@ const listQuery = (f: NoteFilters, limit: number, offset: number) =>
       },
     }),
   );
+
+/** Your notebooks, the one changed last first, with your storage. */
+export function useNotebooks({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({ queryKey: noteKeys.notebooks, queryFn: () => call(api.GET('/api/v1/notebooks')), enabled });
+}
 
 /** Your notes, a page at a time, last edited first. */
 export function useNotes(filters: NoteFilters, { enabled = true }: { enabled?: boolean } = {}) {
@@ -62,6 +77,8 @@ export function useLessonNotes(moduleId: string, lessonId: string, { enabled = t
 export const fetchNote = (id: string): Promise<Note> => call(api.GET('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } }));
 export const createNote = (body: NoteCreate): Promise<Note> => call(api.POST('/api/v1/notes', { body }));
 export const saveNote = (id: string, body: NoteUpdate): Promise<Note> => call(api.PUT('/api/v1/notes/{note_id}', { params: { path: { note_id: id } }, body }));
+export const saveInk = (id: string, sheet: number, body: InkSave): Promise<InkSheet> =>
+  call(api.PUT('/api/v1/notes/{note_id}/ink/{sheet}', { params: { path: { note_id: id, sheet } }, body }));
 
 export function useNote(id: string | null) {
   return useQuery({
@@ -73,15 +90,29 @@ export function useNote(id: string | null) {
   });
 }
 
-/** After a save: the note's cache entry is the saved note, and the lists are read again. */
+/** After a change: the lists and notebooks are read again. */
+export function notesChanged(qc: QueryClient): void {
+  void qc.invalidateQueries({ queryKey: noteKeys.lists });
+  void qc.invalidateQueries({ queryKey: noteKeys.notebooks });
+}
+
+/** After a save of the text: the note's cache entry is the saved note (its ink kept as the editor has it). */
 export function noteSaved(qc: QueryClient, note: Note): void {
   qc.setQueryData(noteKeys.one(note.id), note);
-  void qc.invalidateQueries({ queryKey: noteKeys.lists });
+  notesChanged(qc);
 }
 
 export function useCreateNote() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: createNote, onSuccess: (note) => noteSaved(qc, note) });
+}
+
+export function useAnnotate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (libraryItemId: string) => call(api.POST('/api/v1/notes/annotate', { body: { libraryItemId } })),
+    onSuccess: (note) => noteSaved(qc, note),
+  });
 }
 
 export function useDeleteNote() {
@@ -90,7 +121,39 @@ export function useDeleteNote() {
     mutationFn: (id: string) => call(api.DELETE('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } })),
     onSuccess: (_, id) => {
       qc.removeQueries({ queryKey: noteKeys.one(id) });
-      void qc.invalidateQueries({ queryKey: noteKeys.lists });
+      notesChanged(qc);
     },
   });
 }
+
+export function useCreateNotebook() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: NotebookCreate): Promise<Notebook> => call(api.POST('/api/v1/notebooks', { body })),
+    onSuccess: () => notesChanged(qc),
+  });
+}
+
+export function useRenameNotebook() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, title }: { id: string; title: string }): Promise<Notebook> =>
+      call(api.PATCH('/api/v1/notebooks/{notebook_id}', { params: { path: { notebook_id: id } }, body: { title } })),
+    onSuccess: () => notesChanged(qc),
+  });
+}
+
+export function useDeleteNotebook() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => call(api.DELETE('/api/v1/notebooks/{notebook_id}', { params: { path: { notebook_id: id } } })),
+    onSuccess: () => {
+      qc.removeQueries({ queryKey: [...NOTES_KEY, 'one'] });
+      notesChanged(qc);
+    },
+  });
+}
+
+/** Where a note's picture or file is read from (a redirect to a short-lived link; only its owner gets one). */
+export const noteFileHref = (uploadId: string, download = false): string =>
+  `${API_ORIGIN}/api/v1/notes/files/${encodeURIComponent(uploadId)}${download ? '?download=true' : ''}`;

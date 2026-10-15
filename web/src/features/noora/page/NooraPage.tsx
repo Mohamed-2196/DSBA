@@ -79,7 +79,7 @@ export default function NooraPage() {
       year,
       moduleId: subject?.moduleId ?? null,
       lessonId: subject?.kind === 'lesson' ? subject.lessonId : null,
-      note: added.note && note.data ? { title: note.data.title, body: note.data.body.slice(0, NOTE_MAX) } : null,
+      note: added.note && note.data ? { title: note.data.title, body: note.data.text.slice(0, NOTE_MAX) } : null,
       paper: paper ? { itemId: paper.itemId, page: paper.page, question: paper.question } : null,
     };
   };

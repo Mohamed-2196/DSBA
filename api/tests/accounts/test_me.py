@@ -31,6 +31,8 @@ from app.models import (
     NewsletterReaction,
     NooraUsage,
     Note,
+    Notebook,
+    NoteInk,
     Notification,
     OtpChallenge,
     OtpPurpose,
@@ -576,6 +578,9 @@ def _thread(db: Session, author: User | None, **kw: Any) -> ForumThread:
     return t
 
 
+STROKE = {"id": "s1", "tool": "pen", "color": "#1f2933", "width": 2.0, "points": [10.0, 20.0, 0.5]}
+
+
 def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module: Module) -> None:
     user = make_user(email="export@example.com", phone="+97333123470")
     other = make_user(email="someone-else@example.com", phone="+97333123471", name="Other Person")
@@ -596,6 +601,7 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
     db.add(item)
     issue = NewsletterIssue(slug=f"n-{uuid.uuid4().hex[:6]}", number=1, title="Issue 1", date=dt.date(2026, 10, 1))
     db.add(issue)
+    book, their_book = uuid.uuid4(), uuid.uuid4()
     db.flush()
     db.add_all(
         [
@@ -606,11 +612,16 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
             LessonView(user_id=user.id, lesson_id=lesson_id(module, 0, 0)),
             Notification(user_id=user.id, kind="thread_reply", title="Someone replied", actor_id=other.id),
             Notification(user_id=other.id, kind="thread_reply", title="Not mine", actor_id=user.id),
-            Note(user_id=user.id, title="Private", body="my-private-note-text", module_id=module.id),
-            Note(user_id=other.id, title="Theirs", body="their-private-note-text"),
+            Notebook(id=book, user_id=user.id, title="Test notebook", module_id=module.id),
+            Notebook(id=their_book, user_id=other.id, title="Their notebook"),
             NooraUsage(user_id=user.id, day=dt.date(2026, 10, 2), questions=3, input_tokens=900, output_tokens=200),
         ]
     )
+    db.flush()
+    note = Note(user_id=user.id, notebook_id=book, title="Private", text="my-private-note-text")
+    db.add_all([note, Note(user_id=other.id, notebook_id=their_book, title="Theirs", text="their-private-note-text")])
+    db.flush()
+    db.add(NoteInk(note_id=note.id, sheet=0, strokes=[STROKE], size_bytes=100))
     db.commit()
     r = client_for(user).get(f"{API}/me/export")
     assert r.status_code == 200, r.text
@@ -630,8 +641,9 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
     assert list(data["progress"]["watched"]) == [lesson_id(module, 0, 0)]
     assert [n["title"] for n in data["notifications"]] == ["Someone replied"]
     assert data["emails"] == []
-    assert [(n["title"], n["body"], n["moduleId"]) for n in data["notes"]] == [
-        ("Private", "my-private-note-text", module.id)
+    assert [(b["title"], b["moduleId"]) for b in data["notebooks"]] == [("Test notebook", module.id)]
+    assert [(n["title"], n["text"], n["ink"]) for n in data["notebooks"][0]["notes"]] == [
+        ("Private", "my-private-note-text", [{"sheet": 0, "strokes": [STROKE]}])
     ]  # SEC-24
     assert data["nooraUsage"] == [{"day": "2026-10-02", "questions": 3, "inputTokens": 900, "outputTokens": 200}]
     assert set(data) == {  # code quality review CQ-4: a typed export, every section on purpose
@@ -657,7 +669,7 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
         "follows",
         "pollVotes",
         "senior",
-        "notes",
+        "notebooks",
         "nooraUsage",
         "videoSuggestions",
         "calendarEvents",

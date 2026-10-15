@@ -11,7 +11,7 @@ from app.core.security import DB, ActiveUser, OptionalUser
 from app.models import UploadPurpose
 from app.routers._base import router_for
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
-from app.services import library
+from app.services import library, notes
 from app.services import uploads as svc
 from app.services.board import files as board_files
 
@@ -27,14 +27,15 @@ def create_upload(body: UploadCreate, user: ActiveUser, db: DB) -> PresignedUplo
     .ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to
     DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; newsletter_image (people who
     manage the newsletter) and bug_screenshot (anyone signed in): PNG, JPEG, WebP up to DSBA_MAX_IMAGE_MB; board
-    (a file on a board card): the library's types and GIF, up to DSBA_MAX_UPLOAD_MB. The extension must match the
+    (a file on a board card): the library's types and GIF, up to DSBA_MAX_UPLOAD_MB; note_file: the library's types
+    and GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room. The extension must match the
     declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file as
     `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
 
     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
-    for review; library only), storage_full (409: the files on the student's cards would pass their limit; board only),
-    rate_limited (429), forbidden (403: no library.upload, no forum.post for a forum picture, no newsletter.manage
-    for a newsletter picture), feature_off (404: the library, its uploads, the forum, the newsletter or the boards
+    for review; library only), storage_full (409: board only), notes_full (409: note_file only), rate_limited (429),
+    forbidden (403: no library.upload, no forum.post for a forum picture, no newsletter.manage for a newsletter
+    picture), feature_off (404: the library, its uploads, the forum, the newsletter, the boards or the notebook
     are switched off)."""
     purpose = UploadPurpose(body.purpose)
     svc.require_features(db, user, purpose)
@@ -43,6 +44,8 @@ def create_upload(body: UploadCreate, user: ActiveUser, db: DB) -> PresignedUplo
         library.check_pending_room(db, user)  # before the file travels: create_item checks again
     elif purpose == UploadPurpose.board:
         board_files.check_storage(db, user, body.size_bytes)
+    elif purpose == UploadPurpose.note_file:
+        notes.check_upload(db, user, body.size_bytes)  # the student's notebooks have room for it
     presigned = svc.create_upload(db, user, body)
     db.commit()
     return presigned

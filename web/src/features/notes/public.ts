@@ -11,5 +11,5 @@
 // what it's about).
 export { LessonNotes } from './LessonNotes';
 export { useOpenNote } from './current';
-export { useNote, useNotes } from './api';
+export { useAnnotate, useNote, useNotes } from './api';
 export type { OpenNote } from './current';

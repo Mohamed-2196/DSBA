@@ -1,5 +1,5 @@
-// Uploading a file straight to the bucket, for every purpose: library files, pictures in forum posts and the
-// newsletter, and screenshots in bug reports.
+// Uploading a file straight to the bucket, for every purpose: library files, pictures in forum posts,
+// the newsletter, screenshots in bug reports, board files, and note files in a student's notebook.
 // The pipeline, its limits, accepted types and messages.
 //   1. POST /api/v1/uploads { purpose, fileName, contentType, sizeBytes } -> a presigned POST (PresignedUpload)
 //   2. POST a form to its url: every entry of `fields` first, then the file as `file` (XHR for progress; no cookies)
@@ -10,7 +10,8 @@ import { api, call } from './client';
 import { ApiError, errorMessage, isApiError } from './errors';
 import type { PresignedUpload, UploadCreate, UploadOut } from './types';
 
-/** What an upload is for: a library file, a picture in a forum post or the newsletter, or a bug report's screenshot. */
+/** What an upload is for: a library file, a picture in a forum post or the newsletter, a bug report screenshot,
+ *  a board file, or a note file. */
 export type UploadPurpose = UploadCreate['purpose'];
 
 export interface UploadRules {
@@ -66,6 +67,8 @@ function acceptFor(types: Readonly<Record<string, string>>, mime: readonly strin
   return [...exts, ...mime].join(',');
 }
 
+const NOTE_TYPES: Readonly<Record<string, string>> = { ...LIBRARY_TYPES, ...IMAGE_TYPES };
+
 export const UPLOAD_RULES: Readonly<Record<UploadPurpose, UploadRules>> = {
   library: {
     types: LIBRARY_TYPES,
@@ -90,32 +93,42 @@ export const UPLOAD_RULES: Readonly<Record<UploadPurpose, UploadRules>> = {
   newsletter_image: {
     types: PICTURE_TYPES,
     maxMb: 8,
-    accept: [PNG, JPEG, WEBP].join(','),
-    summary: 'PNG, JPEG or WebP, up to 8 MB.',
-    allowed: 'Use a PNG, JPEG or WebP image.',
-    refused: 'That file type can’t go in the newsletter.',
-    noun: 'picture',
-    smaller: 'Save a smaller copy and try again.',
+    accept: [PNG, JPEG, WEBP].join(","),
+    summary: "PNG, JPEG or WebP, up to 8 MB.",
+    allowed: "Use a PNG, JPEG or WebP image.",
+    refused: "That file type can’t go in the newsletter.",
+    noun: "picture",
+    smaller: "Save a smaller copy and try again.",
   },
   bug_screenshot: {
     types: PICTURE_TYPES,
     maxMb: 8,
-    accept: [PNG, JPEG, WEBP].join(','),
-    summary: 'PNG, JPEG or WebP, up to 8 MB.',
-    allowed: 'Use a PNG, JPEG or WebP image.',
-    refused: 'That file type can’t be attached.',
-    noun: 'screenshot',
-    smaller: 'Save a smaller copy and try again.',
+    accept: [PNG, JPEG, WEBP].join(","),
+    summary: "PNG, JPEG or WebP, up to 8 MB.",
+    allowed: "Use a PNG, JPEG or WebP image.",
+    refused: "That file type can’t be attached.",
+    noun: "screenshot",
+    smaller: "Save a smaller copy and try again.",
   },
   board: {
     types: BOARD_TYPES,
     maxMb: 50,
-    accept: acceptFor(BOARD_TYPES, [JPEG, PNG, WEBP, 'image/gif']),
-    summary: 'Files and pictures up to 50 MB.',
-    allowed: 'Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, or a picture.',
-    refused: 'This type of file can’t be attached to a card.',
-    noun: 'file',
-    smaller: 'Compress it or choose a smaller file.',
+    accept: acceptFor(BOARD_TYPES, [JPEG, PNG, WEBP, "image/gif"]),
+    summary: "Files and pictures up to 50 MB.",
+    allowed: "Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, or a picture.",
+    refused: "This type of file can’t be attached to a card.",
+    noun: "file",
+    smaller: "Compress it or choose a smaller file.",
+  },
+  note_file: {
+    types: NOTE_TYPES,
+    maxMb: 50,
+    accept: acceptFor(NOTE_TYPES, [JPEG, PNG, WEBP, "image/gif"]),
+    summary: "A picture, a PDF, or a Word, Excel, PowerPoint, notebook, R, text or CSV file. Up to 50 MB.",
+    allowed: "Use a picture (JPG, PNG, WebP or GIF), a PDF, or a Word, Excel, PowerPoint, notebook (.ipynb), R, text or CSV file.",
+    refused: "This type of file can’t go in a note.",
+    noun: "file",
+    smaller: "Compress it or split it into parts.",
   },
 };
 

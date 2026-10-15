@@ -31,7 +31,7 @@ from app.models.library import (
 from app.models.my_calendar import CalendarPrefs, PersonalEvent
 from app.models.newsletter import IssueStatus, NewsletterIssue, NewsletterReaction, PollVote
 from app.models.noora import NooraLimits, NooraUsage
-from app.models.notes import Note
+from app.models.notes import Note, Notebook, NoteInk
 from app.models.outbox import EmailOutbox, OutboxStatus, WeeklySummarySent
 from app.models.requests import RequestMeToo, RequestStatus, StudentRequest
 from app.models.seniors import SeniorProfile
@@ -76,6 +76,8 @@ __all__ = [
     "NooraLimits",
     "NooraUsage",
     "Note",
+    "NoteInk",
+    "Notebook",
     "Notification",
     "OtpChallenge",
     "OtpPurpose",
