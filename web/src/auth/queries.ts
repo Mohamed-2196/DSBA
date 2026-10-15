@@ -26,22 +26,39 @@ export async function resetPersonalQueries(qc: QueryClient): Promise<void> {
 }
 
 /**
- * localStorage keys that hold a signed-in person's own things (recent searches, grades, the forum's unfinished
- * thread). They are removed on sign-out and account deletion, because lab and library computers are shared. Every
- * per-person key starts with 'hub.mine.'.
+ * Storage keys that hold a signed-in person's own things (recent searches, grades, the forum's unfinished thread,
+ * Noora's chats). They are removed on sign-out and account deletion, because lab and library computers are shared.
+ * Every per-person key starts with 'hub.mine.', in localStorage and in sessionStorage.
  */
 export const PERSONAL_STORAGE_PREFIXES = ['hub.mine.'] as const;
 
-/** Remove every personal key, and reset every mounted useLocalStorage() holding one (code quality review CQ-1). */
-export function clearPersonalStorage(): void {
-  let doomed: string[] = [];
+const isPersonalKey = (key: string | null): key is string => key !== null && PERSONAL_STORAGE_PREFIXES.some((p) => key.startsWith(p));
+
+/** The personal keys in one storage area (none when it is unavailable). */
+function personalKeys(area: () => Storage): string[] {
   try {
-    for (let i = 0; i < window.localStorage.length; i++) {
-      const key = window.localStorage.key(i);
-      if (key && PERSONAL_STORAGE_PREFIXES.some((p) => key.startsWith(p))) doomed.push(key);
+    const store = area();
+    const keys: string[] = [];
+    for (let i = 0; i < store.length; i++) {
+      const key = store.key(i);
+      if (isPersonalKey(key)) keys.push(key);
     }
+    return keys;
   } catch {
-    doomed = []; // storage unavailable: nothing was kept
+    return []; // storage unavailable: nothing was kept
   }
-  for (const key of doomed) removeStored(key);
+}
+
+/**
+ * Remove every personal key, and reset every mounted useLocalStorage() holding one (code quality review CQ-1). The
+ * tab's own copies in sessionStorage go too.
+ */
+export function clearPersonalStorage(): void {
+  for (const key of personalKeys(() => window.localStorage)) removeStored(key);
+  const session = personalKeys(() => window.sessionStorage);
+  try {
+    for (const key of session) window.sessionStorage.removeItem(key);
+  } catch {
+    /* storage unavailable: nothing was kept */
+  }
 }

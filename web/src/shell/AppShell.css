@@ -6,6 +6,9 @@
   background: var(--paper);
 }
 .shell-main { min-width: 0; display: flex; flex-direction: column; }
+/* Room under the end of the page while Mini Noora stands at the bottom of the window (MiniNoora.tsx sets it), so the
+   last of the page can always scroll clear of her. */
+.shell-main::after { content: ''; flex: 0 0 var(--noora-clearance, 0px); }
 /* Ultra-wide screens: the shell is one centred column, so the rail stays next to the page instead of at the far
    edge of the screen. */
 @media (min-width: 2200px) {

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isApiError } from '../../api/errors';
 import type { ModuleSummary, NooraQuestion, NooraTurn } from '../../api/types';
-import { AnswerCutOff, askNoora } from './ai';
+import { AnswerCutOff, streamAnswer } from './ai';
 import { replyFromAnswer, visibleText } from './answer';
 import { answer, greeting } from './brain';
 import { release, type Attachment } from './files';
@@ -58,8 +58,8 @@ export interface Chat {
   busy: boolean;
   /** why her AI stopped for this visit (today's questions are used up, the budget is spent...): she uses her script */
   paused: Pause | null;
-  /** true if the message was taken. `edit`: it replaces the last question (and her answer to it) */
-  send: (message: { text: string; attachments?: Attachment[]; edit?: boolean }) => boolean;
+  /** true if the message was taken. `edit`: the id of a question it replaces, with everything after it */
+  send: (message: { text: string; attachments?: Attachment[]; edit?: number | null }) => boolean;
   /** stop the answer on its way: what has arrived stays, marked as stopped */
   stop: () => void;
   /** ask the last question again: her last answer goes */
@@ -170,7 +170,7 @@ export function useChat({ year, calm, ai, initial = [] }: { year: number | null;
         put(reply);
         setPending({ phase: 'done', reply });
       };
-      askNoora(
+      streamAnswer(
         now.question(question.text, history),
         (piece) => {
           partial.current += piece;
@@ -220,11 +220,11 @@ export function useChat({ year, calm, ai, initial = [] }: { year: number | null;
   );
 
   const send = useCallback<Chat['send']>(
-    ({ text, attachments = [], edit = false }) => {
+    ({ text, attachments = [], edit = null }) => {
       const list = shown.current;
-      const at = edit ? lastQuestionAt(list) : -1;
+      const at = edit == null ? -1 : list.findIndex((m) => m.id === edit && m.from === 'me');
       if (at < 0) return ask(list, text, attachments);
-      // An edited question keeps the pictures the first one carried.
+      // An edited question keeps the pictures the first one carried; what came after it goes.
       const before = list[at];
       const kept = before.from === 'me' ? before.attachments : [];
       return ask(list.slice(0, at), text, [...kept, ...attachments]);

@@ -1,9 +1,10 @@
-// The last few conversations saved in this browser (saved.ts): open one to carry on with it, or delete them all.
+// The conversations saved in this browser (saved.ts), in the chat card: open one to carry on with it, go to the full
+// page to search, rename or delete them one by one, or delete them all.
 import { useEffect, useRef } from 'react';
-import { ArrowLeft, ChatsCircle, Trash } from '@phosphor-icons/react';
+import { ArrowLeft, ArrowsOutSimple, ChatsCircle, Trash } from '@phosphor-icons/react';
 import { formatClock, formatDayMonth, todayKey } from '../../lib/dates';
 import { Button, IconButton } from '../../ui';
-import { RECENT_MAX, type SavedChat } from './saved';
+import type { SavedChat } from './saved';
 
 function when(at: number): string {
   return todayKey(at) === todayKey() ? formatClock(at) : formatDayMonth(new Date(at));
@@ -16,9 +17,11 @@ export interface RecentChatsProps {
   onOpen: (chat: SavedChat) => void;
   onBack: () => void;
   onDeleteAll: () => void;
+  /** the full page, where chats can be searched, renamed and deleted */
+  onOpenPage: () => void;
 }
 
-export function RecentChats({ chats, current, onOpen, onBack, onDeleteAll }: RecentChatsProps) {
+export function RecentChats({ chats, current, onOpen, onBack, onDeleteAll, onOpenPage }: RecentChatsProps) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => heading.current?.focus({ preventScroll: true }), []);
   return (
@@ -53,12 +56,15 @@ export function RecentChats({ chats, current, onOpen, onBack, onDeleteAll }: Rec
         ) : (
           <div className="nc-recent__empty">
             <ChatsCircle aria-hidden="true" weight="duotone" />
-            <p>No saved chats yet. Your last {RECENT_MAX} chats show up here.</p>
+            <p>No saved chats yet. Your chats show up here.</p>
           </div>
         )}
       </div>
       <div className="nc-recent__foot">
         <p>Saved in this browser only, never on the Hub’s server.</p>
+        <Button variant="ghost" size="sm" leadingIcon={ArrowsOutSimple} onClick={onOpenPage} data-hub="noora-recent-page">
+          Open full chat
+        </Button>
         <Button variant="ghost" size="sm" leadingIcon={Trash} onClick={onDeleteAll} disabled={!chats.length} data-hub="noora-recent-delete-all">
           Delete all chats
         </Button>

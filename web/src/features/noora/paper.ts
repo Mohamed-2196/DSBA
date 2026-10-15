@@ -4,7 +4,7 @@
 import { useSyncExternalStore } from 'react';
 import { useAuth } from '../../auth';
 import { useNooraStatus } from './ai';
-import { openNoora } from './open';
+import { openCard } from './open';
 import { useMiniNooraHidden } from './visibility';
 
 export interface PaperAsk {
@@ -46,7 +46,7 @@ export function questionNumber(raw: string): string | null {
 /** Ask Mini Noora about a paper's question: opens her chat with it. `from` gets focus back when it closes. */
 export function askAboutPaper(paper: PaperAsk, from: HTMLElement | null = null): void {
   set({ paper, asked: snapshot.asked + 1 });
-  openNoora(from);
+  openCard(from);
 }
 
 /** Stop sending the paper with her questions. */

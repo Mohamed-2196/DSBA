@@ -156,7 +156,7 @@ class Settings(BaseSettings):
     noora_model: str = "claude-haiku-4-5-20251001"
     noora_input_usd_per_mtok: float = Field(default=1.0, ge=0)
     noora_output_usd_per_mtok: float = Field(default=5.0, ge=0)
-    noora_max_answer_tokens: int = Field(default=700, ge=100, le=4000)
+    noora_max_answer_tokens: int = Field(default=1500, ge=100, le=4000)
     noora_answers_at_once: int = Field(default=8, ge=1, le=100)  # answers streaming hub-wide (one per student)
 
     @field_validator(

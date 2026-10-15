@@ -6,8 +6,8 @@ const phone: View = { w: 390, h: 844, ceiling: 56, floor: 780 };
 const box = { w: 56, h: 112 };
 
 describe('where she stands', () => {
-  it('starts at the bottom right, above the floor', () => {
-    expect(homePoint(laptop, box, false)).toEqual({ x: 1440 - 56 - 8, y: 900 - 112 - 24 });
+  it('starts at the bottom right, on the floor', () => {
+    expect(homePoint(laptop, box, false)).toEqual({ x: 1440 - 56 - 8, y: 900 - 112 - 16 });
     expect(homePoint(phone, box, true).y + box.h).toBeLessThanOrEqual(780);
   });
 
@@ -65,6 +65,12 @@ describe('where the chat goes', () => {
     const place = placeChat(homePoint(short, box, false), short, box);
     expect(place.top).toBeGreaterThanOrEqual(64);
     expect(place.top + place.height).toBeLessThanOrEqual(390);
+  });
+
+  it('covers the whole window on a short screen (a phone on its side), so her answers have room', () => {
+    const landscape: View = { w: 844, h: 390, ceiling: 64, floor: 390 };
+    const place = placeChat(homePoint(landscape, box, false), landscape, box, { short: true });
+    expect(place).toMatchObject({ sheet: true, full: true, top: 0, left: 0, width: 844, height: 390 });
   });
 
   it('is a sheet above the tab bar on a phone, with her on top of it', () => {

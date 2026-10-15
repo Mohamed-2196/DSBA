@@ -88,7 +88,7 @@ export async function readAnswer(body: ReadableStream<Uint8Array>, onText: (text
  * before the answer starts (noora_unavailable, noora_budget_reached, noora_busy, noora_daily_limit, rate_limited, feature_off,
  * network...), or AnswerCutOff when it stops part-way.
  */
-export async function askNoora(question: NooraQuestion, onText: (text: string) => void, signal?: AbortSignal): Promise<number> {
+export async function streamAnswer(question: NooraQuestion, onText: (text: string) => void, signal?: AbortSignal): Promise<number> {
   const body = await call(api.POST('/api/v1/noora/ask', { body: question, parseAs: 'stream', signal }));
   if (!body) throw new AnswerCutOff(CUT_OFF, false);
   return readAnswer(body, onText, signal);

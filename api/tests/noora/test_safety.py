@@ -184,6 +184,7 @@ def test_the_page_is_passed_on_only_as_one_of_the_apps_routes(
 
     assert prompt.page(f"/modules/{module.id}?tab=lessons") == f"/modules/{module.id}?tab=lessons"
     assert prompt.page("/modules/x/lessons/y") == "/modules/x/lessons/y"
+    assert prompt.page("/noora") == "/noora"  # her full page
     assert prompt.page("/forum?q=a b") == "/forum"  # a query string that isn't plain is dropped
     for bad in ("/admin/secret", "https://evil.example/", "//evil.example", "/modules/a/b/c", "/notes/x\ny"):
         assert prompt.page(bad) is None, bad

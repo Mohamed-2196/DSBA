@@ -1,5 +1,7 @@
-// Mini Noora, the Hub's floating study helper: a mascot you can pick up and put at either edge of the screen, and a
-// chat card that opens beside her when she is pressed (on a phone, a sheet above the tab bar that she stands on).
+// Mini Noora, the Hub's floating study helper and the quick way into Noora: a mascot you can pick up and put at either
+// edge of the screen, and a chat card that opens beside her when she is pressed (on a phone, a sheet above the tab bar
+// that she stands on; on a short screen, a sheet over the whole window). She stays off the full page (/noora), which
+// is the same Noora with more room. openNoora() reaches the full page through here.
 // This file holds her state and puts the parts together:
 //   Mascot     the draggable sprite (Mascot.tsx)
 //   ChatPanel  the chat and its scripted "brain" (ChatPanel.tsx), fetched on demand so that the shell, which is on
@@ -8,14 +10,14 @@
 // (the first-visit hint has done its job). Hiding her is visibility.ts.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { BREAKPOINTS, useLocalStorage, useMediaQuery, useToast } from '../../state';
 import { ModulesGate } from '../../state/ModulesProvider';
 import { Button, ErrorBoundary, QueryError, cx } from '../../ui';
 import { Face } from './Face';
 import { avoid, clampPoint, fromAnchor, homePoint, perchOnSheet, placeChat, toAnchor, type Anchor, type Point, type Rect, type Side } from './layout';
 import { Mascot, type MascotState } from './Mascot';
-import { askNoora, CHAT_ID, closeNoora, isNooraShortcut, openNoora, toggleNoora, useNooraOpen } from './open';
+import { askNoora, CHAT_ID, closeCard, isNooraShortcut, NOORA_PATH, onGoToPage, openCard, toggleCard, useCardOpen } from './open';
 import { choosePose, heading, lean, motionFor, type ChatMood, type Heading } from './poses';
 import { HEIGHT, figure, preloadSprites } from './sprites';
 import { useDrag } from './useDrag';
@@ -37,8 +39,12 @@ const LOOK_AGAIN = [350, 1500]; // ms after a new page before she checks what sh
 const SETTLED = 220; // ms after the page stops scrolling before she checks again
 const NUDGE: Partial<Record<string, [number, number]>> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 
-/** The controls she steps aside for: primary buttons, form submits, and anything marked data-noora-avoid. */
-const KEY_CONTROLS = '.ui-button--primary, button[type="submit"], [data-noora-avoid]';
+/** The controls she steps aside for: buttons, form submits, and anything marked data-noora-avoid. */
+const KEY_CONTROLS = '.ui-button, button[type="submit"], [data-noora-avoid]';
+/** A screen too short for a card beside her (a phone on its side): the chat covers the window. */
+const SHORT = '(max-height: 480px)';
+/** Room kept under the page while she stands at the bottom, so the end of a page can scroll clear of her. */
+const CLEARANCE_VAR = '--noora-clearance';
 
 function keyControls(): Rect[] {
   const out: Rect[] = [];
@@ -84,24 +90,37 @@ export function MiniNoora() {
   const hidden = useMiniNooraHidden();
   const phone = useMediaQuery(BREAKPOINTS.mobile);
   const onboarding = useOnboardingOpen();
+  const { pathname } = useLocation();
+  const onPage = pathname === NOORA_PATH;
+  const navigate = useNavigate();
+
+  // openNoora() and "Open full chat": to the full page, with what it should open with.
+  useEffect(() => onGoToPage((opening) => navigate(NOORA_PATH, { state: opening })), [navigate]);
 
   useEffect(() => {
     const onKey = (e: globalThis.KeyboardEvent) => {
       if (!isNooraShortcut(e) || e.isComposing) return;
       e.preventDefault();
+      // On the full page the shortcut goes to its text box.
+      const box = onPage ? document.querySelector<HTMLElement>('.np [data-hub="noora-input"]') : null;
+      if (box) {
+        box.focus();
+        return;
+      }
       const from = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
       if (isMiniNooraHidden()) askNoora(from);
-      else toggleNoora(from);
+      else toggleCard(from);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [onPage]);
 
-  return hidden || (phone && onboarding) ? null : <Noora />;
+  return hidden || onPage || (phone && onboarding) ? null : <Noora />;
 }
 
 function Noora() {
   const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const short = useMediaQuery(SHORT);
   const calm = useMediaQuery('(prefers-reduced-motion: reduce)');
   const onboarding = useOnboardingOpen();
   const { pathname } = useLocation();
@@ -111,7 +130,7 @@ function Noora() {
   const card = useRef<HTMLElement>(null);
   const view = useViewport(top, bottom);
   const size = useMemo(() => figure(phone ? HEIGHT.phone : HEIGHT.desktop), [phone]);
-  const open = useNooraOpen();
+  const open = useCardOpen();
 
   // Stored JSON is not trusted: fromAnchor() checks the anchor, and `seen` counts only when it is true.
   const [anchor, setAnchor] = useLocalStorage<Anchor | null>(POS_KEY, null);
@@ -128,9 +147,7 @@ function Noora() {
   const [hintDue, setHintDue] = useState(false);
   const [controls, setControls] = useState<Rect[]>([]);
 
-  useEffect(() => {
-    if (open) setChatWanted(true);
-  }, [open]);
+  if (open && !chatWanted) setChatWanted(true);
 
   // ── Where she is ────────────────────────────────────────────────────────────────────────────────
   // Where she was last put (or her corner), stepped aside from any key control, unless a hand is carrying her.
@@ -139,13 +156,27 @@ function Noora() {
   const free = carry ? carry.point : rest;
   // The chat goes beside her and follows her. While it is open it stays on the side it is on for as long as it fits.
   const chatSide = useRef<Side | null>(null);
-  const place = useMemo(() => placeChat(free, view, size, { phone, prefer: chatSide.current }), [free, view, size, phone]);
+  const place = useMemo(() => placeChat(free, view, size, { phone, short, prefer: chatSide.current }), [free, view, size, phone, short]);
   useEffect(() => {
     chatSide.current = open ? place.side : null;
   }, [open, place]);
-  // On a phone the chat is a sheet over the bottom of the screen, so she hops onto its top edge.
+  // On a phone the chat is a sheet over the bottom of the screen, so she hops onto its top edge. On a short screen it
+  // covers the window, and she steps out of sight until it closes.
   const perched = open && place.sheet;
-  const point = perched ? perchOnSheet(place, view, size) : free;
+  const away = open && place.full;
+  const point = perched && !away ? perchOnSheet(place, view, size) : free;
+
+  // While she stands at the bottom of the window, the page keeps room under its end to scroll clear of her.
+  const atBottom = !carry && view.floor - (rest.y + size.h) < size.h / 2;
+  const clearance = atBottom ? Math.round(view.floor - rest.y + 8) : 0;
+  useEffect(() => {
+    const root = document.documentElement;
+    if (clearance) root.style.setProperty(CLEARANCE_VAR, `${clearance}px`);
+    else root.style.removeProperty(CLEARANCE_VAR);
+    return () => {
+      root.style.removeProperty(CLEARANCE_VAR);
+    };
+  }, [clearance]);
 
   // What she might cover: checked on a new page, when the window changes, once scrolling stops and when she is put
   // down. Not while her chat is open: the card is placed beside her and should not move.
@@ -231,19 +262,16 @@ function Noora() {
   // ── The chat ────────────────────────────────────────────────────────────────────────────────────
   const { push } = useToast();
   const hide = useCallback(() => {
-    closeNoora({ restoreFocus: false });
+    closeCard({ restoreFocus: false });
     hideMiniNoora();
     document.getElementById('main')?.focus({ preventScroll: true });
     push({ title: 'Mini Noora is hidden', body: 'Bring her back from search: type “Noora”.', action: { label: 'Undo', onClick: showMiniNoora }, duration: 8000 });
   }, [push]);
-  const close = useCallback(() => closeNoora(), []);
+  const close = useCallback(() => closeCard(), []);
   // On a phone the sheet would hide the page a link leads to, so it closes. Elsewhere the card stays beside her.
   const follow = useCallback(() => {
-    if (phone) closeNoora({ restoreFocus: false });
+    if (phone) closeCard({ restoreFocus: false });
   }, [phone]);
-  useEffect(() => {
-    if (!open) setMood(null);
-  }, [open]);
 
   useEffect(() => {
     preloadSprites();
@@ -278,7 +306,7 @@ function Noora() {
 
   const openFromHint = () => {
     markSeen();
-    openNoora(button.current);
+    openCard(button.current);
   };
   // Closed from its button: done for good. Focus goes to her, not to the top of the page, when it was on the bubble.
   const closeHint = () => {
@@ -291,13 +319,13 @@ function Noora() {
   const onClick = (e: MouseEvent<HTMLButtonElement>) => {
     if (drag.followsDrag(e)) return; // that click was the end of a drag
     markSeen();
-    toggleNoora(e.currentTarget);
+    toggleCard(e.currentTarget);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
     if (e.key === 'Escape' && open) {
       e.preventDefault();
-      closeNoora();
+      closeCard();
       return;
     }
     // Arrow keys move her: left and right to the other edge, up and down along it (Shift: further).
@@ -344,7 +372,7 @@ function Noora() {
             // Not from a dialog or menu of its own, which closes itself.
             if (!(e.target instanceof Node && e.currentTarget.contains(e.target))) return;
             e.preventDefault();
-            closeNoora();
+            closeCard();
           }}
         >
           {/* If the chat ever fails, she stays and the page carries on; opening it again gives it another go. */}
@@ -364,6 +392,7 @@ function Noora() {
           </ErrorBoundary>
         </section>
       ) : null}
+      {away ? null : (
       <Mascot
         ref={button}
         point={point}
@@ -386,6 +415,7 @@ function Noora() {
         onBlur={() => setFocused(false)}
         {...drag.handlers}
       />
+      )}
     </>,
     document.body,
   );
@@ -396,7 +426,7 @@ function Broken() {
     <div className="ncard-note" role="alert">
       <Face bust="thinking" size={48} />
       <p>Mini Noora stopped working. Close the chat and open it again.</p>
-      <Button size="sm" onClick={() => closeNoora()}>
+      <Button size="sm" onClick={() => closeCard()}>
         Close chat
       </Button>
     </div>

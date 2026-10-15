@@ -4,9 +4,12 @@
 //   useOpenNote()                            the note open in the editor right now ({ id, title, body, moduleId,
 //                                            lessonId }), or null: what Mini Noora may send when the student
 //                                            ticks "Include my note" (R-6)
+//   useNotes(filters), useNote(id)           the student's notes, a page at a time, and one note with its body
+//                                            (Noora's full page adds a note to a question)
 //
 // Pages: /notes (the list) and /notes/:id (the editor; /notes/new starts a note, ?module=&lesson= says
 // what it's about).
 export { LessonNotes } from './LessonNotes';
 export { useOpenNote } from './current';
+export { useNote, useNotes } from './api';
 export type { OpenNote } from './current';
