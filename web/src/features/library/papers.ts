@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import type { LibraryItem, PaperQuestion, PaperQuestionCreate, PaperSittings, Sitting, SittingZone } from '../../api/types';
+import { ZONES } from '../../lib/exams';
 
 export const PAPERS_KEY = ['library', 'papers'] as const;
 export const QUESTIONS_KEY = ['library', 'questions'] as const;
@@ -155,6 +156,64 @@ export function byChapter(questions: PaperQuestion[]): Map<string, PaperQuestion
   return out;
 }
 
+// ── Time me: the clock ────────────────────────────────────────────────────────
+
+/** A countdown: running (until `endsAt`, a timestamp) or paused (`pausedLeft` ms to go). Timestamps, not ticks, so
+ *  it keeps time while the tab is hidden or the phone sleeps. */
+export interface ExamClock {
+  total: number;
+  endsAt: number | null;
+  pausedLeft: number | null;
+}
+
+export const CLOCK_MIN = 60_000; // 1 minute
+export const CLOCK_MAX = 12 * 3600_000; // 12 hours
+
+export const clockStart = (total: number, now: number): ExamClock => ({ total, endsAt: now + total, pausedLeft: null });
+
+export function clockPause(c: ExamClock, now: number): ExamClock {
+  return c.endsAt === null ? c : { ...c, endsAt: null, pausedLeft: Math.max(0, c.endsAt - now) };
+}
+
+export function clockResume(c: ExamClock, now: number): ExamClock {
+  return c.pausedLeft === null ? c : { ...c, endsAt: now + c.pausedLeft, pausedLeft: null };
+}
+
+/** What is left, in ms (0 once time is up). */
+export function clockLeft(c: ExamClock, now: number): number {
+  return c.endsAt !== null ? Math.max(0, c.endsAt - now) : Math.max(0, c.pausedLeft ?? 0);
+}
+
+/** A stored clock, or null for anything else (or one whose time ran out more than 6 hours ago). */
+export function cleanClock(raw: unknown, now: number): ExamClock | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const { total, endsAt, pausedLeft } = raw as Record<string, unknown>;
+  const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
+  if (!num(total) || (total as number) < CLOCK_MIN || (total as number) > CLOCK_MAX) return null;
+  if (num(endsAt) && pausedLeft == null) return (endsAt as number) + 6 * 3600_000 < now ? null : { total: total as number, endsAt: endsAt as number, pausedLeft: null };
+  if (num(pausedLeft) && endsAt == null) return { total: total as number, endsAt: null, pausedLeft: Math.min(pausedLeft as number, total as number) };
+  return null;
+}
+
+/** Hours and minutes as typed, in ms; null unless it is from 1 minute to 12 hours. */
+export function parseDuration(hours: string, minutes: string): number | null {
+  const h = hours.trim() === '' ? 0 : Number(hours);
+  const m = minutes.trim() === '' ? 0 : Number(minutes);
+  if (!Number.isInteger(h) || !Number.isInteger(m) || h < 0 || m < 0 || m > 59) return null;
+  const ms = (h * 60 + m) * 60_000;
+  return ms >= CLOCK_MIN && ms <= CLOCK_MAX ? ms : null;
+}
+
+/** '2 hours', '1 hour 30 minutes', '45 minutes'. */
+export function durationLabel(ms: number): string {
+  const total = Math.round(ms / 60_000);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  const hours = h ? `${h} ${h === 1 ? 'hour' : 'hours'}` : '';
+  const mins = m ? `${m} ${m === 1 ? 'minute' : 'minutes'}` : '';
+  return [hours, mins].filter(Boolean).join(' ') || '0 minutes';
+}
+
 /** The countdown's text: '2:59:59', '0:04:07'. */
 export function clockLabel(ms: number): string {
   const total = Math.max(0, Math.ceil(ms / 1000));
@@ -162,6 +221,43 @@ export function clockLabel(ms: number): string {
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
   return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+/** One card of the past papers grid: a zone's paper with what goes with it, or a sitting's report on its own. */
+export interface PaperCard {
+  key: string;
+  /** what the card opens: the paper, or the report (or solutions) of a sitting that has no paper yet */
+  item: LibraryItem;
+  zone: SittingZone['zone'];
+  reports: LibraryItem[];
+  solutions: LibraryItem[];
+}
+
+/**
+ * A sitting's cards: one per paper (its zone's reports and solutions, then those for every zone), the student's zone
+ * first; a sitting without a paper shows its reports and solutions as cards of their own. `only`: one zone's cards
+ * (and those for every zone).
+ */
+export function sittingCards(sitting: Sitting, yours: SittingZone['zone'], only: SittingZone['zone'] = null): PaperCard[] {
+  const every = sitting.zones.find((z) => z.zone === null);
+  const zones = yourZoneFirst(sitting.zones, yours).filter((z) => !only || z.zone === only || z.zone === null);
+  const cards: PaperCard[] = zones.flatMap((z) =>
+    z.papers.map((item) => ({
+      key: item.id,
+      item,
+      zone: z.zone,
+      reports: z.zone && every ? [...z.reports, ...every.reports] : z.reports,
+      solutions: z.zone && every ? [...z.solutions, ...every.solutions] : z.solutions,
+    })),
+  );
+  if (cards.length || sitting.zones.some((z) => z.papers.length)) return cards;
+  return zones.flatMap((z) => [...z.reports, ...z.solutions].map((item) => ({ key: item.id, item, zone: z.zone, reports: [], solutions: [] })));
+}
+
+/** The zones a module's sittings have papers for, in the library's order. */
+export function zonesIn(sittings: readonly Sitting[]): NonNullable<SittingZone['zone']>[] {
+  const found = new Set(sittings.flatMap((s) => s.zones.filter((z) => z.papers.length).map((z) => z.zone)));
+  return ZONES.filter((z) => found.has(z));
 }
 
 /** A sitting's zones with the student's own zone first (null: as they come). */

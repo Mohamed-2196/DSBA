@@ -1,6 +1,6 @@
 import { useModules } from '../../../state/modules';
 import { Select, TextArea, TextField } from '../../../ui';
-import { RTC_NOTE } from '../display';
+import { RTC_NOTE } from '../../../lib/exams';
 import { EXAM_KINDS, KINDS, isLibraryKind } from '../kinds';
 import { NO_MODULE, type ItemFormErrors, type ItemFormValues } from '../itemForm';
 

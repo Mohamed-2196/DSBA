@@ -5,7 +5,7 @@ import { DAILY_MIN_TAGS, dailyQuestion } from './daily';
 function tag(n: number): PaperQuestion {
   return {
     id: `00000000-0000-0000-0000-${String(n).padStart(12, '0')}`,
-    paper: { id: 'za', slug: 'ec1002-za-may-2024', title: 'EC1002 ZA', examYear: 2024, examSession: 'may', zone: 'A' },
+    paper: { id: 'za', slug: 'ec1002-za-may-2024', title: 'EC1002 ZA', examYear: 2024, examSession: 'may', zone: 'A', coverUrl: null },
     chapterId: 'c1',
     chapterTitle: 'Elasticity',
     question: n,

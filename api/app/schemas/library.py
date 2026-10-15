@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Literal, get_args
 from uuid import UUID
 
 from pydantic import Field, HttpUrl, StringConstraints
@@ -24,10 +24,15 @@ LibraryKind = Literal[
     "vle-materials",
     "other",
 ]
+PAST_PAPER: LibraryKind = "past-paper"
+EXAMINERS_REPORT: LibraryKind = "examiners-report"
+EXAM_SOLUTIONS: LibraryKind = "exam-solutions"
+EXAM_KINDS: tuple[LibraryKind, ...] = (PAST_PAPER, EXAMINERS_REPORT, EXAM_SOLUTIONS)  # the files of a sitting
 ExamSession = Literal["may", "october"]  # the May sitting or the October resits
 # The versions the University of London sets of a paper: zone A, zone B, and for some modules the RTC paper, the one
 # set for Recognised Teaching Centres.
 Zone = Literal["A", "B", "RTC"]
+ZONES: tuple[Zone, ...] = get_args(Zone)
 ItemStatus = Literal["pending", "published", "rejected", "removed"]
 Title = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=200)]
 Description = Annotated[str, StringConstraints(strip_whitespace=True, max_length=2000)]
@@ -56,7 +61,7 @@ class LibraryItem(ApiModel):
     size_bytes: int | None
     format: str | None  # 'PDF', 'DOCX', ... from the file name; None for links
     exam_year: int | None
-    zone: str | None
+    zone: Zone | None
     exam_session: ExamSession | None
     author_name: str | None
     uploaded_by: UserPublic | None
@@ -69,6 +74,7 @@ class LibraryItem(ApiModel):
     is_mine: bool
     can_edit: bool
     match: TextMatch | None  # with a search (q) that found the words inside the file, not in its title
+    cover_url: str | None  # the first page as a small picture (PDF and Word files), once the text worker made it
 
 
 class LibraryPage(Page[LibraryItem]):
@@ -100,7 +106,8 @@ class LibraryItemCreate(ApiModel):
 
 
 class LibraryLinkCreate(ApiModel):
-    """A link to a resource kept elsewhere (Google Drive, the VLE). Moderators only; published at once."""
+    """A link to a resource kept elsewhere (the VLE, a publisher's site); never Google Drive or Docs, whose files the
+    Hub copies instead. Moderators only; published at once."""
 
     url: HttpUrl
     title: Title
@@ -181,7 +188,8 @@ class PaperRef(ApiModel):
     title: str
     exam_year: int | None
     exam_session: ExamSession | None
-    zone: str | None
+    zone: Zone | None
+    cover_url: str | None  # the paper's first page as a small picture (LibraryItem.cover_url)
 
 
 class PaperQuestion(ApiModel):

@@ -1,9 +1,8 @@
-// The Lessons tab's "Past exam questions" for a chapter: the questions students tagged with it, newest sitting first,
-// each opening its paper at the question's page.
+import { Exam } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import type { PaperQuestion } from '../../api/types';
 import { Skeleton } from '../../ui';
-import { sittingLabel, zoneLabel } from './display';
+import { sittingLabel, zoneLabel } from '../../lib/exams';
 import { questionHref, questionLabel, useModuleQuestions } from './papers';
 import './ChapterQuestions.css';
 
@@ -28,17 +27,29 @@ export function ChapterQuestions({ moduleId, chapterId }: { moduleId: string; ch
         <ul role="list" className="lib-chq__list">
           {mine.map((q) => (
             <li key={q.id}>
-              <Link to={questionHref(q)} className="lib-chq__link" title={q.paper.title}>
-                <span className="lib-chq__paper">{paperLabel(q)}</span>
-                <span className="lib-chq__q u-tabular">{questionLabel(q)}</span>
+              <Link to={questionHref(q)} className="lib-chq__card" title={q.paper.title}>
+                <div className="lib-chq__thumb">
+                  {q.paper.coverUrl ? (
+                    <img src={q.paper.coverUrl} alt="" className="lib-chq__cover" loading="lazy" />
+                  ) : (
+                    <div className="lib-chq__fallback">
+                      <Exam aria-hidden="true" weight="duotone" className="lib-chq__icon" />
+                    </div>
+                  )}
+                </div>
+                <div className="lib-chq__info">
+                  <span className="lib-chq__q u-tabular">{questionLabel(q)}</span>
+                  <span className="lib-chq__paper">{paperLabel(q)}</span>
+                </div>
               </Link>
             </li>
           ))}
         </ul>
       ) : (
         <p className="lib-chq__empty">
-          None tagged yet. Open a past paper from the <Link to={`/modules/${encodeURIComponent(moduleId)}?tab=files`}>Files tab</Link> and tag its questions
-          with this chapter.
+          No questions tagged with this chapter yet. Open a past paper from the{' '}
+          <Link to={`/modules/${encodeURIComponent(moduleId)}?tab=files`}>Files tab</Link> and choose “Tag this question”
+          to add one.
         </p>
       )}
     </section>

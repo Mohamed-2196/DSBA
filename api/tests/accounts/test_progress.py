@@ -126,7 +126,6 @@ def test_reset_a_module(client_for: ClientFor, make_user: MakeUser, module: Modu
         short_name="O",
         year=2,
         description="",
-        resources={},
         chapters=chapters(other_id, [{"title": "x", "videos": [{"kind": "youtube", "video_id": "z"}]}]),
     )
     db.add(other)

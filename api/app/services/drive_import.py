@@ -1,25 +1,28 @@
-"""The Drive import: the files in the library's Google Drive folders become library files (python -m app.cli
+"""The Drive import: the files in the modules' Google Drive folders become library files (python -m app.cli
 import-drive; scripts/seed-real.sh runs it after the migrations and the seed).
 
-For every published link item that points at a Drive folder (the course materials, exercises, VLE material,
-past papers and students' notes):
+For every Drive folder the seed recorded (DriveFolder: the course materials, exercises, VLE material, past papers and
+students' notes; a link to a single Drive or Docs file counts as a folder holding that file):
   1. walk the folder: its files, then its subfolders, shortcuts to files and folders followed, each folder once;
   2. plan each file: the library's type comes from its name (Google Docs and Slides are exported as PDF, Sheets as
      XLSX), and what the library doesn't take, what is too big and what an earlier run imported are skipped;
   3. once confirmed, download each file (its bytes counted against the limit, whatever Drive says its size is), check
      its first bytes with the uploads' own check, store it at library/drive/<module>/<Drive file id>/<safe name> and
-     add it as a published file with the link's kind, module and author. Past papers get their exam year, session
-     and zone from their names (exam_names.exam_meta_from_name), examiners' reports and solutions their own kinds,
-     and the papers, reports and solutions in a VLE folder the same (exam_kind).
+     add it as a published file with the folder's kind, module and author, under a tidy title
+     (exam_names.tidy_title). A file whose bytes are already in the library (the same SHA-256) is skipped. Past
+     papers get their exam year, session and zone from their names (exam_names.exam_meta_from_name), examiners'
+     reports and solutions their own kinds, and the papers, reports and solutions in a VLE folder the same
+     (exam_kind).
 
 Imported files are ordinary library files (source `file`): they are served, previewed, edited, removed and swept like
 uploads. `import_key` ('drive/<module>/<file id>') remembers where each came from, so a rerun skips it whatever became
-of it since, even after a rep removed it and the sweep deleted its file. The link items stay.
+of it since, even after a rep removed it and the sweep deleted its file. Students never see the folders themselves:
+the Hub serves the files.
 
 A folder Drive refuses (403 or 404: shared only inside BIBF's Google domain, or not at all) doesn't stop the run: it is
 listed at the end with its module and link, to be shared with "anyone with the link" (or with the service account).
 A file Drive won't hand over (downloads turned off, flagged as abuse, its download quota spent) is skipped with the
-reason and its own Drive link; its folder's link item stays in the library either way. Skipped and failed files get
+reason and its own Drive link (printed for whoever runs the import). Skipped and failed files get
 no import key, so the next run tries them again.
 
 Downloads are paced (`pace` seconds between files) so Google doesn't take the run for automated queries. When it
@@ -29,9 +32,11 @@ Each real run is one entry in the audit log (`library.import`, via cli); a dry r
 
 from __future__ import annotations
 
+import hashlib
 import re
 import tempfile
 import unicodedata
+import uuid
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 
@@ -42,8 +47,17 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError
 from app.core.text import clashes_on, clip
-from app.models import ItemSource, ItemStatus, LibraryItem, Module, UploadPurpose
-from app.schemas.library import EXAM_YEAR_MAX, EXAM_YEAR_MIN, LibraryKind
+from app.models import DriveFolder, LibraryItem, Module, UploadPurpose
+from app.schemas.library import (
+    EXAM_KINDS,
+    EXAM_SOLUTIONS,
+    EXAM_YEAR_MAX,
+    EXAM_YEAR_MIN,
+    EXAMINERS_REPORT,
+    PAST_PAPER,
+    ZONES,
+    LibraryKind,
+)
 from app.services import audit, exam_names, library
 from app.services.drive import (
     FOLDER,
@@ -56,8 +70,8 @@ from app.services.drive import (
     DriveFile,
     Ref,
     TooLargeError,
+    drive_ref,
     file_url,
-    folder_in,
     folder_url,
     printable,
 )
@@ -124,7 +138,7 @@ def _quiet(_: str) -> None:
 
 @dataclass(frozen=True)
 class Source:
-    """A published link item that points at a Drive folder: its files take its kind, module and author."""
+    """A Drive folder (or file) the import reads (DriveFolder): its files take its kind, module and author."""
 
     module: Module | None
     kind: LibraryKind
@@ -132,6 +146,7 @@ class Source:
     url: str
     author_name: str | None
     folder: Ref
+    folder_id: uuid.UUID | None = None  # the DriveFolder row: its imported files point back at it
 
     @property
     def segment(self) -> str:
@@ -181,13 +196,12 @@ class Planned:
 
     @property
     def title(self) -> str:
-        """The name as Drive shows it, without the extension (the library shows the format next to it)."""
-        stem = self.file_name.rsplit(".", 1)[0].strip()
-        return clip(stem or self.file_name, TITLE_MAX)
+        """The name as Drive shows it, tidied (exam_names.tidy_title): no extension, no '_compress' or '(1)'."""
+        return clip(exam_names.tidy_title(self.file_name), TITLE_MAX)
 
     @property
     def description(self) -> str:
-        return f"From the Drive folder {SEP.join((printable(self.source.title, 120), *self.folders))}."
+        return f"In {SEP.join((printable(self.source.title, 120), *self.folders))}."
 
 
 @dataclass(frozen=True)
@@ -227,7 +241,7 @@ class LinkPlan:
 
 @dataclass(frozen=True)
 class OtherLink:
-    """A published link that isn't a Drive folder (a single file, a Google Doc): it stays a link."""
+    """A folder whose link isn't one Drive can be asked about (another site, a malformed link): never read."""
 
     segment: str
     title: str
@@ -343,29 +357,27 @@ def _plural(n: int, word: str, words: str | None = None) -> str:
 
 
 def find_sources(db: Session, module_id: str | None = None) -> tuple[list[Source], list[OtherLink]]:
-    """The library's published links (of one module, or all), as Drive folders to read and the other links. A folder
-    linked twice from one module is read once."""
+    """The Drive folders (of one module, or all), as folders to read and the links Drive can't be asked about. A
+    folder recorded twice for one module is read once."""
     query = (
-        select(LibraryItem, Module)
-        .outerjoin(Module, Module.id == LibraryItem.module_id)
-        .where(LibraryItem.source == ItemSource.link, LibraryItem.status == ItemStatus.published)
-        .order_by(Module.year, Module.position, Module.id, LibraryItem.created_at, LibraryItem.title, LibraryItem.id)
+        select(DriveFolder, Module)
+        .join(Module, Module.id == DriveFolder.module_id)
+        .order_by(Module.year, Module.position, Module.id, DriveFolder.created_at, DriveFolder.title, DriveFolder.id)
     )
     if module_id is not None:
-        query = query.where(LibraryItem.module_id == module_id)
+        query = query.where(DriveFolder.module_id == module_id)
     sources: list[Source] = []
     others: list[OtherLink] = []
     seen: set[tuple[str, str]] = set()
-    for item, module in db.execute(query).tuples():
-        segment = module.id if module else NO_MODULE
-        folder = folder_in(item.url or "")
-        if folder is None or not MODULE_SEGMENT.fullmatch(segment):
-            others.append(OtherLink(segment, item.title, item.url or ""))
+    for folder, module in db.execute(query).tuples():
+        ref = drive_ref(folder.url)
+        if ref is None or not MODULE_SEGMENT.fullmatch(module.id):
+            others.append(OtherLink(module.id, folder.title, folder.url))
             continue
-        if (segment, folder.id) in seen:
+        if (module.id, ref.id) in seen:
             continue
-        seen.add((segment, folder.id))
-        sources.append(Source(module, item.kind, item.title, item.url or "", item.author_name, folder))
+        seen.add((module.id, ref.id))
+        sources.append(Source(module, folder.kind, folder.title, folder.url, folder.author_name, ref, folder.id))
     return sources, others
 
 
@@ -379,7 +391,7 @@ def make_plan(
     seen: set[str] = set()
     links: list[LinkPlan] = []
     if sources:
-        echo(f"Reading {_plural(len(sources), 'Drive folder')} linked from the library:")
+        echo(f"Reading {_plural(len(sources), 'Drive folder')}:")
     for source in sources:
         echo(f"  {source.label}")
         links.append(_plan_link(drive, source, done, seen))
@@ -398,11 +410,14 @@ def _plan_link(drive: Drive, source: Source, done: set[str], seen: set[str]) -> 
     except DriveError as e:
         plan.errors.append(Skipped(source, printable(source.title, 120), e.message))
         return plan
-    if not root.is_folder:
-        plan.errors.append(Skipped(source, printable(source.title, 120), "the link leads to a file, not a folder"))
+    upload_limit = limit_bytes(UploadPurpose.library)
+    if not root.is_folder:  # a link to one file: the folder holds that file only
+        if root.is_shortcut:
+            plan.errors.append(Skipped(source, printable(source.title, 120), "the link leads to a shortcut"))
+            return plan
+        _plan_file(plan, _Found(root, (), cred), done, seen, upload_limit)
         return plan
     plan.folder_name = shown_name(root.name)
-    upload_limit = limit_bytes(UploadPurpose.library)
     for found in _walk(drive, plan, root.ref, cred):
         _plan_file(plan, found, done, seen, upload_limit)
     return plan
@@ -558,22 +573,22 @@ def exam_kind(name: str, folder_kind: LibraryKind) -> ExamKind:
     - A VLE folder: the same for the files whose names say they are a sitting's paper, report or solutions
       ('ST2133 Exam paper - May 2024.pdf'); everything else keeps the folder's kind.
     - Any other folder: its kind, with nothing more."""
-    if folder_kind not in ("past-paper", "vle-materials"):
+    if folder_kind not in (PAST_PAPER, "vle-materials"):
         return ExamKind(folder_kind)
     meta = exam_names.exam_meta_from_name(name)
     if folder_kind == "vle-materials" and meta.sitting is not True:
         return ExamKind(folder_kind)
     year = meta.exam_year
     exam_year = year if isinstance(year, int) and EXAM_YEAR_MIN <= year <= EXAM_YEAR_MAX else None
-    kind: LibraryKind = "past-paper"
+    kind = PAST_PAPER
     if meta.examiners_report is True:
-        kind = "examiners-report"
+        kind = EXAMINERS_REPORT
     elif meta.solutions is True:
-        kind = "exam-solutions"
+        kind = EXAM_SOLUTIONS
     return ExamKind(
         kind=kind,
         exam_year=exam_year,
-        zone=meta.zone if meta.zone in ("A", "B", "RTC") else None,
+        zone=meta.zone if meta.zone in ZONES else None,
         exam_session=meta.session if exam_year is not None and meta.session in ("may", "october") else None,
     )
 
@@ -611,7 +626,7 @@ def run(
             drive.sleep(pace)
         downloaded = True
         try:
-            size = _store(drive, storage, planned)
+            size, digest = _store(drive, storage, planned)
         except _SkipError as s:
             report.skipped.append(Skipped(planned.source, planned.where, s.reason, s.url))
             echo(f"{step}: skipped, {s.reason}" + (f" ({s.url})" if s.url else ""))
@@ -634,6 +649,8 @@ def run(
                 file_name=planned.file_name,
                 size_bytes=size,
                 import_key=planned.import_key,
+                content_hash=digest,
+                drive_folder_id=planned.source.folder_id,
                 exam_year=planned.exam_year,
                 zone=planned.zone,
                 exam_session=planned.exam_session,
@@ -651,9 +668,9 @@ def run(
         echo(f"{step}: imported")
 
 
-def _store(drive: Drive, storage: Storage, planned: Planned) -> int:
+def _store(drive: Drive, storage: Storage, planned: Planned) -> tuple[int, str]:
     """Downloads the file, checks it (its size as counted, its first bytes against its type) and puts it at its key.
-    -> its size. _SkipError when the library can't take it; DriveError when Drive failed."""
+    -> its size and SHA-256. _SkipError when the library can't take it; DriveError when Drive failed."""
     with tempfile.SpooledTemporaryFile(max_size=SPOOL_MAX) as tmp:
         try:
             size, _ = drive.fetch(
@@ -678,13 +695,18 @@ def _store(drive: Drive, storage: Storage, planned: Planned) -> int:
         if not looks_right(planned.file_type, tmp.read(SNIFF_BYTES)):
             what = extension(planned.file_name)
             raise _SkipError(f"what Drive sent isn't a real .{what} file: its first bytes don't match")
+        tmp.seek(0)
+        digest = hashlib.sha256()
+        for chunk in iter(lambda: tmp.read(1024 * 1024), b""):
+            digest.update(chunk)
+        tmp.seek(0)
         try:
             storage.put_file(planned.storage_key, tmp, planned.file_type.content_type)
         except ClientError as e:
             raise BucketError(f"The bucket refused a file ({error_code(e) or 'error'}).") from None
         except BotoCoreError as e:
             raise BucketError(f"The bucket couldn't be reached ({type(e).__name__}).") from None
-    return size
+    return size, digest.hexdigest()
 
 
 def record_run(db: Session, plan: Plan, report: Report, *, module_id: str | None, limit: int | None) -> None:
@@ -893,7 +915,7 @@ def backfill_exam_meta(db: Session, *, dry_run: bool = False) -> ExamBackfill:
     fills what an item lacks: its exam year, session and zone, and its kind when it still has its folder's (a past
     paper that is an examiners' report or solutions, a VLE file that is a sitting's paper). What a rep set stays.
     The caller commits (nothing changes with `dry_run`). Safe to run again."""
-    folder_kinds: tuple[LibraryKind, ...] = ("past-paper", "examiners-report", "exam-solutions", "vle-materials")
+    folder_kinds: tuple[LibraryKind, ...] = (*EXAM_KINDS, "vle-materials")
     items = db.scalars(
         select(LibraryItem)
         .where(
@@ -905,7 +927,7 @@ def backfill_exam_meta(db: Session, *, dry_run: bool = False) -> ExamBackfill:
     ).all()
     out = ExamBackfill(checked=len(items))
     for item in items:
-        folder: LibraryKind = "vle-materials" if item.kind == "vle-materials" else "past-paper"
+        folder: LibraryKind = "vle-materials" if item.kind == "vle-materials" else PAST_PAPER
         exam = exam_kind(item.file_name or "", folder)
         before = (item.kind, item.exam_year, item.exam_session, item.zone)
         kind = exam.kind if item.kind == folder else item.kind
@@ -926,3 +948,24 @@ def backfill_exam_meta(db: Session, *, dry_run: bool = False) -> ExamBackfill:
         if not dry_run:
             item.kind, item.exam_year, item.exam_session, item.zone = after
     return out
+
+
+def tidy_imported_titles(db: Session, *, dry_run: bool = False) -> list[str]:
+    """Imported files whose title is still their file name without its extension get the tidy title
+    (exam_names.tidy_title); a title a rep changed stays. -> 'module · old -> new' per change. The caller commits."""
+    changed: list[str] = []
+    items = db.scalars(
+        select(LibraryItem)
+        .where(LibraryItem.import_key.is_not(None), LibraryItem.file_name.is_not(None))
+        .order_by(LibraryItem.module_id, LibraryItem.title)
+    ).all()
+    for item in items:
+        name = item.file_name or ""
+        raw = clip(name.rsplit(".", 1)[0].strip() or name, TITLE_MAX)
+        tidy = clip(exam_names.tidy_title(name), TITLE_MAX)
+        if item.title != raw or tidy == raw:
+            continue
+        changed.append(f"{item.module_id or 'no module'} \u00b7 {item.title} -> {tidy}")
+        if not dry_run:
+            item.title = tidy
+    return changed

@@ -5415,7 +5415,7 @@
           "library"
         ],
         "summary": "Create Link",
-        "description": "A link to a resource kept elsewhere (https only), published at once.",
+        "description": "A link to a resource kept elsewhere (https only, not Google Drive or Docs), published at once.\nErrors: invalid_input (422: not https, too long, or a Google Drive or Docs link).",
         "operationId": "create_link_api_v1_library_links_post",
         "requestBody": {
           "content": {
@@ -5847,6 +5847,103 @@
                 }
               }
             }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/library/items/{item_id}/cover": {
+      "get": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Cover",
+        "description": "302 to a short-lived link to the file's cover: its first page as a small WebP picture. The browser may keep\nthe redirect a few minutes. Errors: not_found (404: no such file, or no cover).",
+        "operationId": "cover_api_v1_library_items__item_id__cover_get",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Successful Response"
           },
           "400": {
             "content": {
@@ -26667,7 +26764,12 @@
           "zone": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "RTC"
+                ]
               },
               {
                 "type": "null"
@@ -27356,7 +27458,12 @@
           "zone": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "RTC"
+                ]
               },
               {
                 "type": "null"
@@ -28050,7 +28157,12 @@
           "zone": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "RTC"
+                ]
               },
               {
                 "type": "null"
@@ -29460,7 +29572,12 @@
           "zone": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "RTC"
+                ]
               },
               {
                 "type": "null"
@@ -29567,6 +29684,17 @@
                 "type": "null"
               }
             ]
+          },
+          "coverUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverurl"
           }
         },
         "type": "object",
@@ -29597,7 +29725,8 @@
           "starred",
           "isMine",
           "canEdit",
-          "match"
+          "match",
+          "coverUrl"
         ],
         "title": "LibraryItem"
       },
@@ -29968,7 +30097,7 @@
           "kind"
         ],
         "title": "LibraryLinkCreate",
-        "description": "A link to a resource kept elsewhere (Google Drive, the VLE). Moderators only; published at once."
+        "description": "A link to a resource kept elsewhere (the VLE, a publisher's site); never Google Drive or Docs, whose files the\nHub copies instead. Moderators only; published at once."
       },
       "LibraryPage": {
         "properties": {
@@ -30382,9 +30511,6 @@
             ],
             "title": "Icon"
           },
-          "resources": {
-            "$ref": "#/components/schemas/ResourcesIn"
-          },
           "id": {
             "type": "string",
             "maxLength": 64,
@@ -30471,8 +30597,12 @@
             ],
             "title": "Librarycount"
           },
-          "resources": {
-            "$ref": "#/components/schemas/ModuleResources"
+          "shelves": {
+            "items": {
+              "$ref": "#/components/schemas/ModuleShelf"
+            },
+            "type": "array",
+            "title": "Shelves"
           },
           "chapters": {
             "items": {
@@ -30494,7 +30624,7 @@
           "chapterCount",
           "lessonCount",
           "libraryCount",
-          "resources",
+          "shelves",
           "chapters"
         ],
         "title": "ModuleDetail"
@@ -30580,9 +30710,6 @@
             "type": "string",
             "title": "Description"
           },
-          "resources": {
-            "$ref": "#/components/schemas/ModuleResources"
-          },
           "chapters": {
             "items": {
               "$ref": "#/components/schemas/ChapterOut"
@@ -30606,7 +30733,6 @@
           "lessonCount",
           "updatedAt",
           "description",
-          "resources",
           "chapters"
         ],
         "title": "ModuleEdit"
@@ -30734,78 +30860,6 @@
         "title": "ModuleOrder",
         "description": "One year's modules, in their new order: every module of that year, once each."
       },
-      "ModuleResources": {
-        "properties": {
-          "materials": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Materials"
-          },
-          "exercises": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Exercises"
-          },
-          "exercisesNote": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Exercisesnote"
-          },
-          "vle": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Vle"
-          },
-          "olderExams": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Olderexams"
-          },
-          "cheatSheet": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cheatsheet"
-          }
-        },
-        "type": "object",
-        "title": "ModuleResources"
-      },
       "ModuleSave": {
         "properties": {
           "unitCode": {
@@ -30877,9 +30931,6 @@
             ],
             "title": "Icon"
           },
-          "resources": {
-            "$ref": "#/components/schemas/ResourcesIn"
-          },
           "version": {
             "type": "integer",
             "title": "Version"
@@ -30907,6 +30958,38 @@
         ],
         "title": "ModuleSave",
         "description": "The whole module as the editor has it. `version` is the one loaded: if someone saved since, 409\nmodule_changed. Chapters and lessons keep their `id` (a lesson may move to another chapter of the module); one\nleft out is removed."
+      },
+      "ModuleShelf": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "course-materials",
+              "exercises",
+              "past-paper",
+              "vle-materials",
+              "cheat-sheet",
+              "notes"
+            ],
+            "title": "Kind"
+          },
+          "files": {
+            "type": "integer",
+            "title": "Files"
+          },
+          "beingAdded": {
+            "type": "boolean",
+            "title": "Beingadded"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "files",
+          "beingAdded"
+        ],
+        "title": "ModuleShelf",
+        "description": "A kind of file the module has in the library (services/library.py SHELVES: 'past-paper' counts the papers,\nexaminers' reports and solutions together). `files`: published files of that kind. `being_added`: the module has\na Drive folder of that kind the import hasn't brought in yet."
       },
       "ModuleSummary": {
         "properties": {
@@ -32339,13 +32422,29 @@
           "zone": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "RTC"
+                ]
               },
               {
                 "type": "null"
               }
             ],
             "title": "Zone"
+          },
+          "coverUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverurl"
           }
         },
         "type": "object",
@@ -32355,7 +32454,8 @@
           "title",
           "examYear",
           "examSession",
-          "zone"
+          "zone",
+          "coverUrl"
         ],
         "title": "PaperRef"
       },
@@ -33997,7 +34097,8 @@
                 "type": "string",
                 "enum": [
                   "A",
-                  "B"
+                  "B",
+                  "RTC"
                 ]
               },
               {
@@ -34203,7 +34304,12 @@
           "zone": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "RTC"
+                ]
               },
               {
                 "type": "null"
@@ -34357,85 +34463,6 @@
           "offset"
         ],
         "title": "RequestPage"
-      },
-      "ResourcesIn": {
-        "properties": {
-          "materials": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Materials"
-          },
-          "exercises": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Exercises"
-          },
-          "exercisesNote": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 300
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Exercisesnote"
-          },
-          "vle": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Vle"
-          },
-          "olderExams": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Olderexams"
-          },
-          "cheatSheet": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cheatsheet"
-          }
-        },
-        "type": "object",
-        "title": "ResourcesIn",
-        "description": "The module's shared folders: https:// links (empty or null for none)."
       },
       "ResumeUpdate": {
         "properties": {

@@ -132,8 +132,11 @@ class FakeDrive:
     def file(self, node_id: str, name: str, parent: str, content: bytes = PDF, mime: str = PDF_TYPE, **kw: Any) -> Node:
         return self.add(Node(node_id, name, mime, parent, content=content, **kw))
 
-    def google(self, node_id: str, name: str, parent: str, mime: str = DOC, **kw: Any) -> Node:
-        exports = {PDF_TYPE: PDF} if mime in (DOC, SLIDES) else {XLSX_TYPE: XLSX} if mime == SHEET else {}
+    def google(
+        self, node_id: str, name: str, parent: str, mime: str = DOC, exports: dict[str, bytes] | None = None, **kw: Any
+    ) -> Node:
+        if exports is None:
+            exports = {PDF_TYPE: PDF} if mime in (DOC, SLIDES) else {XLSX_TYPE: XLSX} if mime == SHEET else {}
         return self.add(Node(node_id, name, mime, parent, exports=exports, **kw))
 
     def shortcut(self, node_id: str, name: str, parent: str, target: str, **kw: Any) -> Node:

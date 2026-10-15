@@ -12,7 +12,7 @@ from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, check_in, created_ts, str_enum, uuid_pk
-from app.schemas.library import LibraryKind
+from app.schemas.library import ZONES, LibraryKind
 from app.schemas.requests import RequestKind
 
 
@@ -43,6 +43,7 @@ class StudentRequest(Base):
         Index("ix_requests_search", "search_vector", postgresql_using="gin"),
         check_in("kind", get_args(RequestKind)),
         check_in("wanted_kind", get_args(LibraryKind)),
+        check_in("zone", ZONES),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -54,7 +55,7 @@ class StudentRequest(Base):
     # What a paper request wants, so a published file can match it.
     wanted_kind: Mapped[str | None] = mapped_column(String(32))  # app/schemas/library.py LibraryKind
     exam_year: Mapped[int | None] = mapped_column(SmallInteger)
-    zone: Mapped[str | None] = mapped_column(String(8))  # 'A' | 'B'
+    zone: Mapped[str | None] = mapped_column(String(8))  # schemas/library.py Zone
     # The unconfirmed date a date request asks about.
     event_id: Mapped[str | None] = mapped_column(ForeignKey("calendar_events.id", ondelete="SET NULL"))
     # A published file that may be what was asked for, until the requester or a rep says yes or no.

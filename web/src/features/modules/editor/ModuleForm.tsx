@@ -29,7 +29,6 @@ import {
 import { ChaptersEditor } from "./ChaptersEditor";
 import {
   MODULE_ICONS,
-  RESOURCE_FIELDS,
   draftProblems,
   isDirty,
   toDraft,
@@ -266,42 +265,6 @@ function Editor({
           label="Hide from students"
           description="A hidden module leaves the catalogue, search and its page. Its lessons, files and threads stay."
         />
-      </Panel>
-
-      <Panel padding="md" className="medit__panel">
-        <h4 className="medit__section">Shared folders</h4>
-        <div className="medit-form__grid">
-          {RESOURCE_FIELDS.map(([key, label]) => (
-            <TextField
-              key={key}
-              label={label}
-              type="url"
-              inputMode="url"
-              placeholder="https://"
-              value={draft.resources[key]}
-              onChange={(e) =>
-                set({
-                  resources: { ...draft.resources, [key]: e.target.value },
-                })
-              }
-              error={fields[`resources.${key}`]}
-              maxLength={500}
-            />
-          ))}
-          <TextField
-            label="About the exercises"
-            value={draft.resources.exercisesNote}
-            onChange={(e) =>
-              set({
-                resources: {
-                  ...draft.resources,
-                  exercisesNote: e.target.value,
-                },
-              })
-            }
-            maxLength={300}
-          />
-        </div>
       </Panel>
 
       <ChaptersEditor draft={draft} setDraft={setDraft} errors={fields} />

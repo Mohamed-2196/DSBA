@@ -25,15 +25,12 @@ export function downloadsLabel(n: number): string {
   return `${n.toLocaleString('en-GB')} ${n === 1 ? 'download' : 'downloads'}`;
 }
 
-/** Where a link leads, in words: 'Google Drive', 'the VLE', or its host. */
+/** Where a link leads, in words: its host ('vle.london.ac.uk'). */
 export function linkPlace(item: Pick<LibraryItem, 'url'>): string {
-  const host = hostOf(item.url);
-  if (!host) return 'another site';
-  if (host === 'drive.google.com' || host === 'docs.google.com') return 'Google Drive';
-  return host;
+  return hostOf(item.url) || 'another site';
 }
 
-/** 'PDF, 2.4 MB' for files; 'Google Drive' for links. */
+/** 'PDF, 2.4 MB' for files; the host for links. */
 export function sizeLabel(item: LibraryItem): string {
   if (item.source === 'link') return linkPlace(item);
   const f = formatOf(item);
@@ -51,27 +48,6 @@ export function cardMeta(item: LibraryItem, sort: LibrarySort): string {
   if (sort === 'popular') return downloadsLabel(item.downloadCount);
   if (sort === 'title' || sort === 'relevance') return `${kindLabel(item.kind)}, ${sizeLabel(item)}`;
   return `Added ${timeAgo(addedAt(item))}`;
-}
-
-/** 'May 2025' or 'October 2024'; just the year when the session isn't known. */
-export function sittingLabel(examYear: number, session: LibraryItem['examSession']): string {
-  if (session === 'may') return `May ${examYear}`;
-  if (session === 'october') return `October ${examYear}`;
-  return String(examYear);
-}
-
-/** 'Zone A', or 'RTC' for the paper set for Recognised Teaching Centres. */
-export function zoneLabel(zone: string): string {
-  return zone === 'RTC' ? 'RTC' : `Zone ${zone}`;
-}
-
-/** What RTC means, for where zones are shown. */
-export const RTC_NOTE = 'RTC: the paper set for Recognised Teaching Centres.';
-
-/** 'May 2025, Zone A'. */
-export function examLabel(item: Pick<LibraryItem, 'examYear' | 'examSession' | 'zone'>): string | null {
-  if (!item.examYear && !item.zone) return null;
-  return [item.examYear ? sittingLabel(item.examYear, item.examSession) : null, item.zone ? zoneLabel(item.zone) : null].filter(Boolean).join(', ');
 }
 
 export interface StatusInfo {

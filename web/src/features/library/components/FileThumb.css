@@ -31,6 +31,9 @@
   box-shadow: 0 0 0 1px var(--line-strong);
 }
 
+/* The real first page (a WebP from the API), filling the sheet from the top. */
+.lib-thumb__photo { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; background: #fff; }
+
 /* The page itself, laid out at full size. */
 .lib-cover {
   position: absolute;

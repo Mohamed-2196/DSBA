@@ -187,7 +187,6 @@ def module(db: Session) -> Module:
         short_name="Test",
         year=1,
         description="",
-        resources={},
         chapters=chapters(
             m_id,
             [

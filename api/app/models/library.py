@@ -1,5 +1,5 @@
 """The library: files (stored in S3: uploaded by students, or imported from the programme's Google Drive folders) and
-links (the Drive folders themselves, and other resources kept elsewhere), plus stars."""
+links to resources kept elsewhere, plus stars; and the Drive folders the import reads, which nobody is sent to."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import SLUG, Base, check_in, created_ts, str_enum, uuid_pk, year_range
-from app.schemas.library import ExamSession, LibraryKind
+from app.schemas.library import ZONES, ExamSession, LibraryKind
 
 
 class ItemSource(enum.StrEnum):
@@ -46,8 +46,11 @@ class LibraryItem(Base):
         Index("ix_library_items_uploaded_by", "uploaded_by"),  # "Your uploads", account deletion
         Index("ix_library_items_reviewed_by", "reviewed_by"),  # account deletion (SET NULL)
         Index("ix_library_items_search", "search_vector", postgresql_using="gin"),
-        check_in("kind", get_args(LibraryKind)),
+        Index("ix_library_items_content_hash", "content_hash"),  # the same file twice (services/library.py duplicate)
+        Index("ix_library_items_drive_folder", "drive_folder_id"),  # a module's shelves; folder deletion
+        check_in("kind", get_args(LibraryKind)),  # code quality review CQ-15
         check_in("exam_session", get_args(ExamSession)),
+        check_in("zone", ZONES),
         year_range(),
     )
 
@@ -65,13 +68,17 @@ class LibraryItem(Base):
     content_type: Mapped[str | None] = mapped_column(String(127))
     size_bytes: Mapped[int | None] = mapped_column(BigInteger)
     exam_year: Mapped[int | None] = mapped_column(SmallInteger)  # past papers and examiners' reports
-    zone: Mapped[str | None] = mapped_column(String(8))  # 'A' | 'B' | 'RTC' (schemas.library.Zone)
+    zone: Mapped[str | None] = mapped_column(String(8))  # schemas/library.py Zone
     exam_session: Mapped[str | None] = mapped_column(String(8))  # 'may' | 'october' (schemas/library.py ExamSession)
     author_name: Mapped[str | None] = mapped_column(String(120))  # credited author, as typed by the uploader
     # Where a file the server imported came from: 'drive/<module>/<Drive file id>' (python -m app.cli import-drive).
     # A rerun of the import skips it whatever became of the item since: edited, moved, removed, its file swept (the
     # sweep clears storage_key, so the key can't be what remembers). None for uploads and links.
     import_key: Mapped[str | None] = mapped_column(String(200), unique=True)
+    drive_folder_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("drive_folders.id", ondelete="SET NULL"))
+    # SHA-256 of the file's bytes, hex: set by the Drive import and the text worker. Of two published files with the
+    # same bytes, the lists and search show the first only.
+    content_hash: Mapped[str | None] = mapped_column(String(64))
     uploaded_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     status: Mapped[ItemStatus] = mapped_column(str_enum(ItemStatus, 12), default=ItemStatus.pending)
     review_note: Mapped[str | None] = mapped_column(Text)
@@ -101,6 +108,26 @@ Index(
 )
 
 
+class DriveFolder(Base):
+    """A Google Drive folder (or a single Drive or Docs file) that the Drive import copies into the library
+    (services/drive_import.py): its files take its module, kind and author. Seeded from app/seed/data/modules.json.
+    The Hub never shows or links to it: students get the files the import brought in, served from the bucket."""
+
+    __tablename__ = "drive_folders"
+    __table_args__ = (
+        Index("ix_drive_folders_module_url", "module_id", "url", unique=True),
+        check_in("kind", get_args(LibraryKind)),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    module_id: Mapped[str] = mapped_column(ForeignKey("modules.id", ondelete="CASCADE"))
+    kind: Mapped[LibraryKind] = mapped_column(String(32))
+    title: Mapped[str] = mapped_column(String(200))  # 'Course materials', "Mahdi's notes"
+    url: Mapped[str] = mapped_column(Text)
+    author_name: Mapped[str | None] = mapped_column(String(120))  # students' notes: who shared them
+    created_at: Mapped[datetime] = created_ts()
+
+
 class TextStatus(enum.StrEnum):
     working = "working"  # a text worker is reading the file
     done = "done"  # its text is in `body`
@@ -109,9 +136,9 @@ class TextStatus(enum.StrEnum):
 
 
 class LibraryText(Base):
-    """The words of a published PDF or Word file, for search (app/services/paper_text.py). `body` holds its pages
-    in order, separated by form feeds, so a match knows its page. A row is made when a text worker takes the file,
-    and stays: a file is read once."""
+    """The words of a published PDF or Word file, for search (app/services/paper_text.py), and its cover: the first
+    page as a small WebP picture in the bucket. `body` holds its pages in order, separated by form feeds, so a match
+    knows its page. A row is made when a text worker takes the file, and stays: a file is read once."""
 
     __tablename__ = "library_texts"
     __table_args__ = (Index("ix_library_texts_search", "search_vector", postgresql_using="gin"),)
@@ -121,6 +148,7 @@ class LibraryText(Base):
     body: Mapped[str | None] = mapped_column(Text)
     pages: Mapped[int | None] = mapped_column(Integer)  # PDFs only
     error: Mapped[str | None] = mapped_column(String(200))  # why it failed, for the logs and the CLI
+    cover_key: Mapped[str | None] = mapped_column(Text)  # covers/<item id>.webp; None: no cover could be made
     started_at: Mapped[datetime] = created_ts()
     finished_at: Mapped[datetime | None]
     search_vector: Mapped[str] = mapped_column(

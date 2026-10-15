@@ -10,7 +10,8 @@ import { Button, CohortBadge, Count, Kbd, Skeleton, cx, formatDate, timeAgo } fr
 import { downloadHref, itemPath, openLinkHref, useLibraryList } from '../api';
 import type { LinkState } from '../components/FileCard';
 import { FileThumb } from '../components/FileThumb';
-import { addedAt, examLabel, linkPlace, sizeLabel } from '../display';
+import { addedAt, linkPlace, sizeLabel } from '../display';
+import { examLabel } from '../../../lib/exams';
 import { formatOf, kindLabel } from '../kinds';
 import type { LibraryItem } from '../types';
 import { QuestionTags } from './QuestionTags';

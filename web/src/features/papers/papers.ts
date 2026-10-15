@@ -1,12 +1,7 @@
-// Your papers: which modules a student sits. Picks are module ids: the Year 2 option, the Year 3 electives
-// and papers from other years (a resit, say). Without picks, a year's papers are all its modules, as before.
-import type { Me, ModuleSummary } from '../../api/types';
-import type { CohortYear } from '../../state';
-
-export type Zone = NonNullable<Me['zone']>;
-
-/** Every zone the library knows (its Zone type), as the picker names it. */
-export const ZONE_LABELS: Record<Zone, string> = { A: 'Zone A', B: 'Zone B', RTC: 'RTC' };
+// Your modules: which modules a student sits, and their exam zone. Picks are module ids: the Year 2 option, the
+// Year 3 electives and modules from other years (a resit, say). Without picks, a year's modules are all of them.
+import type { ModuleSummary } from '../../api/types';
+import { cohortLabel, type CohortYear } from '../../state';
 
 export interface PaperChoice {
   /** 'Your option' */
@@ -64,6 +59,12 @@ export function modulesFor(year: CohortYear, papers: ReadonlySet<string> | null,
   return [...catalogue.filter((m) => m.year === year && papers.has(m.id)), ...catalogue.filter((m) => m.year !== year && papers.has(m.id))];
 }
 
+/** The one module of a pick-one choice (the Year 2 option), or none: every other module of the choice is dropped. */
+export function pickOnly(picks: readonly string[], id: string | null, choice: PaperChoice): string[] {
+  const rest = picks.filter((p) => !choice.ids.includes(p));
+  return id ? [...rest, id] : rest;
+}
+
 /** Toggle a pick, keeping a choice to its size: picking one more than allowed drops the earliest. */
 export function togglePick(picks: readonly string[], id: string, choice?: PaperChoice): string[] {
   if (picks.includes(id)) return picks.filter((p) => p !== id);
@@ -74,9 +75,11 @@ export function togglePick(picks: readonly string[], id: string, choice?: PaperC
   return next.filter((p) => !drop.has(p));
 }
 
-/** What a button says about someone's papers: 'Every Year 2 module', '5 papers'. */
-export function picksSummary(year: CohortYear | null, papers: ReadonlySet<string> | null): string {
-  if (!year || !papers) return year ? `Every Year ${year} module` : 'Not set';
-  const n = papers.size;
-  return `${n} ${n === 1 ? 'paper' : 'papers'}`;
+/** What the button says: 'Year 2, option not picked', '5 modules', 'every Year 1 module', 'not set'. */
+export function picksSummary(home: CohortYear | null, picks: readonly string[], papers: ReadonlySet<string> | null): string {
+  if (!home) return 'not set';
+  const choice = CHOICES[home];
+  if (choice && !choice.ids.some((id) => picks.includes(id))) return `${cohortLabel(home)}, ${choice.pick === 1 ? 'option' : 'electives'} not picked`;
+  if (!papers) return `every ${cohortLabel(home)} module`;
+  return `${papers.size} ${papers.size === 1 ? 'module' : 'modules'}`;
 }

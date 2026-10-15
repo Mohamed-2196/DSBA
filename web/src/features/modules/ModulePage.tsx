@@ -1,8 +1,8 @@
 // /modules/:moduleId: header (code, name, year, next exam, progress and quick actions) and URL-driven tabs:
 // ?tab=overview|lessons|files|discussion. A lesson has its own address, /modules/:moduleId/lessons/:lessonId (the
 // Lessons tab with that lesson on screen); ?tab=lessons opens where the student left off.
-// The header comes from the catalogue at once; chapters, videos and resources load with GET /modules/{id}.
-import { ArrowSquareOut, BookOpenText, CalendarBlank, CaretLeft, ChatsCircle, Files, Info, MagnifyingGlass, Play, PlayCircle, UploadSimple } from '@phosphor-icons/react';
+// The header comes from the catalogue at once; chapters, videos and shelves load with GET /modules/{id}.
+import { BookOpenText, CalendarBlank, CaretLeft, ChatsCircle, Files, Info, MagnifyingGlass, Play, PlayCircle, UploadSimple } from '@phosphor-icons/react';
 import { useCallback, useEffect, type ReactNode } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { ModuleDetail, ModuleSummary } from '../../api/types';
@@ -20,20 +20,11 @@ import { LessonsTab } from './LessonsTab';
 import { chapterPosition, isModuleTab, lessonHref, moduleTabOn, type ModuleTab } from './lessons';
 import { ModuleOverview } from './ModuleOverview';
 import { computeModuleProgress, computeResumePoint, findLesson, summaryProgress, useProgress, type Fraction, type ResumeKind, type ResumePoint } from './progress';
-import { resourceSummary } from './resources';
+import { resourceSummary, shelfHash, shelfWithFiles } from './resources';
 import { SuggestVideo } from './suggestions/SuggestVideo';
 import './ModulePage.css';
 
 const RESUME_LABEL: Record<ResumeKind, string> = { resume: 'Resume lesson', next: 'Continue', start: 'Start lesson 1', done: 'Watch again' };
-
-function https(url: string | null | undefined): string | null {
-  if (!url) return null;
-  try {
-    return new URL(url).protocol === 'https:' ? url : null;
-  } catch {
-    return null;
-  }
-}
 
 function ModuleHeader({
   summary: m,
@@ -59,9 +50,9 @@ function ModuleHeader({
   const plan = featureOn('board') ? (
     <PlanRevision moduleId={m.id} moduleName={m.unitCode || m.shortName || m.name} examDate={exam?.event.date ?? null} className="mod-head__action" />
   ) : null;
-  const r = detail?.resources;
-  const pastPapers = https(r?.vle) ?? https(r?.olderExams);
-  const studyGuide = https(r?.materials);
+  // The Files tab, at its past papers and its books.
+  const pastPapers = shelfWithFiles(detail, 'past-paper') ? `/modules/${m.id}?tab=files#${shelfHash('past-paper')}` : null;
+  const studyGuide = shelfWithFiles(detail, 'course-materials') ? `/modules/${m.id}?tab=files#${shelfHash('course-materials')}` : null;
   const backTo = year === m.year ? '/modules' : `/modules?year=${m.year}`;
   const resumeChapter = resume && detail ? detail.chapters[resume.c] : null;
 
@@ -154,7 +145,7 @@ function ModuleHeader({
                   <Skeleton width={150} height={40} radius={10} />
                 )}
                 {pastPapers ? (
-                  <Button href={pastPapers} trailingIcon={ArrowSquareOut} aria-label="Past papers (opens in a new tab)" className="mod-head__action">
+                  <Button to={pastPapers} className="mod-head__action">
                     Past papers
                   </Button>
                 ) : null}
@@ -174,12 +165,12 @@ function ModuleHeader({
               </div>
               <div className="mod-head__actions">
                 {studyGuide ? (
-                  <Button variant="primary" href={studyGuide} trailingIcon={ArrowSquareOut} aria-label="Study guide (opens in a new tab)" className="mod-head__action">
+                  <Button variant="primary" to={studyGuide} className="mod-head__action">
                     Study guide
                   </Button>
                 ) : null}
                 {pastPapers ? (
-                  <Button href={pastPapers} trailingIcon={ArrowSquareOut} aria-label="Past papers (opens in a new tab)" className="mod-head__action">
+                  <Button to={pastPapers} className="mod-head__action">
                     Past papers
                   </Button>
                 ) : null}
@@ -219,7 +210,10 @@ function ModuleView({ summary: m, lessonId }: { summary: ModuleSummary; lessonId
   const upload = useLibraryUpload({ moduleId: m.id, year: m.year });
 
   const go = useCallback((to: string) => navigate(to, { replace: true }), [navigate]);
-  const setTab = useCallback((id: string) => go(id === 'overview' ? `/modules/${m.id}` : `/modules/${m.id}?tab=${id}`), [go, m.id]);
+  const setTab = useCallback(
+    (id: string, hash?: string) => go(id === 'overview' ? `/modules/${m.id}` : `/modules/${m.id}?tab=${id}${hash ? `#${hash}` : ''}`),
+    [go, m.id],
+  );
   const selectLesson = useCallback(
     (c: number, v: number) => {
       const id = detail?.chapters[c]?.videos[v]?.id;

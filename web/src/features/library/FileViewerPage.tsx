@@ -35,9 +35,9 @@ import { isNew, linkPlace, moduleTag, pageParam, sizeLabel, statusInfo } from '.
 import { KIND_BY_ID, formatOf } from './kinds';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
-import { AskNoora } from './viewer/AskNoora';
 import { paperContext, usePaperSittings } from './papers';
-import { ExamTimer, TimeMeButton } from './viewer/ExamTimer';
+import { AskNoora } from './viewer/AskNoora';
+import { ExamTimer, TimeMeButton, TimeMeDialog, useExamClock } from './viewer/ExamTimer';
 import { MetaPanel } from './viewer/MetaPanel';
 import { Preview } from './viewer/Preview';
 import './FileViewerPage.css';
@@ -163,7 +163,26 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
   const wide = useMediaQuery('(min-width: 1280px)');
   const [metaPref, setMetaPref] = useState<boolean | null>(null);
   const [dialog, setDialog] = useState<'edit' | 'delete' | null>(null);
-  const [, setParams] = useSearchParams();
+  const [params, setParams] = useSearchParams();
+  const [timeMeOpen, setTimeMeOpen] = useState(false);
+  const isPaper = item.kind === 'past-paper' && item.source === 'file' && item.status === 'published';
+  const { clock, start, pause, resume, stop } = useExamClock(item.id);
+  const sittings = usePaperSittings(item.moduleId, { enabled: isPaper && item.examYear !== null });
+  const report = paperContext(sittings.data?.sittings, item.id)?.reports[0] ?? null;
+
+  useEffect(() => {
+    if (params.get('time') === '1') {
+      setTimeMeOpen(true);
+      setParams(
+        (p) => {
+          p.delete('time');
+          return p;
+        },
+        { replace: true, state: location.state },
+      );
+    }
+  }, [params, setParams, location.state]);
+
   const openPage = (n: number) =>
     setParams(
       (p) => {
@@ -172,10 +191,6 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
       },
       { replace: true, state: location.state },
     );
-  const [endsAt, setEndsAt] = useState<number | null>(null);
-  const isPaper = item.kind === 'past-paper' && item.source === 'file' && item.status === 'published';
-  const sittings = usePaperSittings(item.moduleId, { enabled: isPaper && item.examYear !== null });
-  const report = paperContext(sittings.data?.sittings, item.id)?.reports[0] ?? null;
   const annotate = useAnnotate();
 
   const onAnnotate = () => {
@@ -291,7 +306,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           {item.status === 'published' ? <StarButton on={item.starred} onToggle={() => toggleStar(item)} title={item.title} size="md" tooltip={isDesktop} /> : null}
           {item.status === 'published' ? <IconButton label="Copy link" icon={LinkSimple} onClick={() => void copyLink()} tooltip={isDesktop} className="lib-tb__copy" /> : null}
           {item.status === 'published' && !item.isMine ? <ReportButton targetType="library_item" targetId={item.id} className="lib-tb__report" /> : null}
-          {isPaper ? <TimeMeButton compact={isMobile} onStart={(h) => setEndsAt(Date.now() + h * 3600_000)} /> : null}
+          {isPaper ? <TimeMeButton compact={isMobile} onClick={() => setTimeMeOpen(true)} /> : null}
           {canManage && moreItems.length ? (
             <Menu align="end" label="More actions" items={moreItems} trigger={<IconButton label="More actions" icon={DotsThree} tooltip={isDesktop} />} />
           ) : null}
@@ -326,7 +341,7 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
         </div>
       </div>
 
-      {endsAt !== null ? <ExamTimer endsAt={endsAt} report={report} onStop={() => setEndsAt(null)} /> : null}
+      {clock ? <ExamTimer item={item} clock={clock} report={report} onPause={pause} onResume={resume} onStop={stop} /> : null}
       {status ? <StatusBanner item={item} onEdit={() => setDialog('edit')} onDelete={() => setDialog('delete')} /> : null}
 
       <div className={cx('lib-viewer__body', isDesktop && metaOpen && 'has-meta')}>
@@ -337,6 +352,8 @@ function FileView({ item, page }: { item: LibraryItem; page: number | null }) {
           <MetaPanel id="lib-file-meta" item={item} linkState={linkState} className={isDesktop ? undefined : 'lib-meta--stacked'} onPage={openPage} />
         ) : null}
       </div>
+
+      {timeMeOpen ? <TimeMeDialog open onClose={() => setTimeMeOpen(false)} onStart={start} /> : null}
 
       {dialog === 'edit' ? <EditItemDialog item={item} open onClose={() => setDialog(null)} /> : null}
       {dialog === 'delete' ? (

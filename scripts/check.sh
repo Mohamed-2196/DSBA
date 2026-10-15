@@ -14,6 +14,13 @@
 # is changed (the build goes to a temporary folder).
 set -uo pipefail
 
+for libpq_bin in /opt/homebrew/opt/libpq/bin /usr/local/opt/libpq/bin; do
+  if [[ -d "$libpq_bin" && ":$PATH:" != *":$libpq_bin:"* ]]; then
+    export PATH="$libpq_bin:$PATH"
+    break
+  fi
+done
+
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT

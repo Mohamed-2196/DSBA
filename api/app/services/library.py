@@ -13,9 +13,9 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
-from sqlalchemy import Select, case, delete, func, or_, select, update
+from sqlalchemy import Select, and_, case, delete, exists, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.core.access import Box
@@ -23,6 +23,7 @@ from app.core.errors import ApiError, conflict, forbidden, invalid, not_found, u
 from app.core.text import has_latin, insert_with_unique_slug, short_id, slugify
 from app.core.time import utcnow
 from app.models import (
+    DriveFolder,
     ItemSource,
     ItemStatus,
     LibraryItem,
@@ -35,6 +36,10 @@ from app.models import (
     User,
 )
 from app.schemas.library import (
+    EXAM_KINDS,
+    EXAM_SOLUTIONS,
+    EXAMINERS_REPORT,
+    ZONES,
     FileLink,
     LibraryFacets,
     LibraryItemCreate,
@@ -46,13 +51,15 @@ from app.schemas.library import (
     SittingZone,
 )
 from app.schemas.library import LibraryItem as LibraryItemOut
+from app.schemas.modules import ModuleShelf, ShelfKind
 from app.schemas.notifications import NotificationKind
 from app.services import access, paper_text, ratelimit
 from app.services.accounts import public_user
 from app.services.content import apply_patch, record
+from app.services.exam_names import sitting_key
 from app.services.modules import require_module
 from app.services.notify import notify
-from app.services.paper_text import Match
+from app.services.paper_text import COVER_TYPE, Match
 from app.services.storage import INLINE_TYPES, Storage, get_storage
 from app.services.uploads import extension, serve_type
 
@@ -111,6 +118,7 @@ FORMATS: dict[str, str] = {
     "webp": "WEBP",
     "gif": "GIF",
 }
+GOOGLE_FILE_HOSTS = frozenset({"drive.google.com", "docs.google.com"})  # never linked: the Drive import copies them
 Sort = Literal["new", "popular", "title", "relevance"]
 LINK_MAX = 2000
 
@@ -163,6 +171,21 @@ def find(db: Session, ref: str | uuid.UUID) -> LibraryItem | None:
     return db.scalar(select(LibraryItem).where(LibraryItem.slug == ref))
 
 
+def duplicate() -> ColumnElement[bool]:
+    """The item's file has the same bytes (content_hash) as a published file added before it: the lists, the sittings
+    and search show the first only. Its own page still opens."""
+    first = aliased(LibraryItem)
+    return exists().where(
+        LibraryItem.content_hash.is_not(None),
+        first.content_hash == LibraryItem.content_hash,
+        first.status == ItemStatus.published,
+        or_(
+            first.created_at < LibraryItem.created_at,
+            and_(first.created_at == LibraryItem.created_at, first.id < LibraryItem.id),
+        ),
+    )
+
+
 def get_visible(db: Session, ref: str | uuid.UUID, user: User | None) -> LibraryItem:
     item = find(db, ref)
     if item is None or not can_see(item, user):
@@ -191,6 +214,7 @@ def to_out(
             )
         )
     moderator = manages(user)
+    covers = covered(db, [i.id for i in items if i.source == ItemSource.file])
     out = []
     for i in items:
         mine = user is not None and i.uploaded_by == user.id
@@ -224,10 +248,22 @@ def to_out(
                     "is_mine": mine,
                     "can_edit": can_edit(i, user),
                     "match": vars(found[i.id]) if found and i.id in found else None,
+                    "cover_url": cover_path(i.id) if i.id in covers else None,
                 }
             )
         )
     return out
+
+
+def covered(db: Session, item_ids: Sequence[uuid.UUID]) -> set[uuid.UUID]:
+    """The items among these that have a cover."""
+    if not item_ids:
+        return set()
+    return set(
+        db.scalars(
+            select(LibraryText.item_id).where(LibraryText.item_id.in_(item_ids), LibraryText.cover_key.is_not(None))
+        )
+    )
 
 
 def one_out(db: Session, item: LibraryItem, user: User | None) -> LibraryItemOut:
@@ -290,7 +326,10 @@ def list_items(
 ) -> tuple[list[LibraryItemOut], int]:
     if (f.starred or f.mine) and user is None:
         raise unauthenticated("Sign in to see your files.")
-    q: Select[tuple[LibraryItem]] = select(LibraryItem).where(LibraryItem.status.in_(_visible_statuses(user, f)))
+    statuses = _visible_statuses(user, f)
+    q: Select[tuple[LibraryItem]] = select(LibraryItem).where(LibraryItem.status.in_(statuses))
+    if statuses == [ItemStatus.published] and not f.mine:
+        q = q.where(~duplicate())
     if f.mine and user is not None:
         q = q.where(LibraryItem.uploaded_by == user.id)
     if f.starred and user is not None:
@@ -314,7 +353,7 @@ def list_items(
         q = q.outerjoin(Module, Module.id == LibraryItem.module_id).where(
             or_(in_doc, paper_text.content_match(tsquery))
         )
-        rank = [in_doc.desc(), func.ts_rank(doc, tsquery).desc()]
+        rank = [in_doc.desc(), *your_year_first(user), func.ts_rank(doc, tsquery).desc()]
 
     total = db.scalar(select(func.count()).select_from(q.order_by(None).subquery())) or 0
     newest = func.coalesce(LibraryItem.published_at, LibraryItem.created_at)
@@ -332,8 +371,15 @@ def list_items(
     return to_out(db, items, user, found), total
 
 
+def your_year_first(user: User | None) -> list[ColumnElement[Any]]:
+    """Ordering that puts the files of the person's own year first (none for guests and people without a year)."""
+    if user is None or user.year is None:
+        return []
+    return [(LibraryItem.year == user.year).is_(True).desc()]
+
+
 def facets(db: Session) -> LibraryFacets:
-    published = LibraryItem.status == ItemStatus.published
+    published = and_(LibraryItem.status == ItemStatus.published, ~duplicate())
 
     def counts(col: Any) -> dict[str, int]:
         rows = db.execute(select(col, func.count()).where(published, col.is_not(None)).group_by(col)).all()
@@ -348,17 +394,59 @@ def facets(db: Session) -> LibraryFacets:
     )
 
 
+# ── a module's shelves ───────────────────────────────────────────────────────────────────────
+
+# What the module page groups: a shelf and the kinds of file on it.
+SHELVES: dict[ShelfKind, tuple[LibraryKind, ...]] = {
+    "course-materials": ("course-materials", "subject-guide", "study-guide", "reading"),
+    "exercises": ("exercises",),
+    "past-paper": EXAM_KINDS,
+    "vle-materials": ("vle-materials",),
+    "cheat-sheet": ("cheat-sheet",),
+    "notes": ("notes",),
+}
+
+
+def module_shelves(db: Session, module_id: str) -> list[ModuleShelf]:
+    """The module's shelves that have files, or a Drive folder the import hasn't brought in yet, in SHELVES order."""
+    counts = dict(
+        db.execute(
+            select(LibraryItem.kind, func.count())
+            .where(
+                LibraryItem.module_id == module_id,
+                LibraryItem.source == ItemSource.file,
+                LibraryItem.status == ItemStatus.published,
+                ~duplicate(),
+            )
+            .group_by(LibraryItem.kind)
+        )
+        .tuples()
+        .all()
+    )
+    imported = (
+        select(LibraryItem.id)
+        .where(LibraryItem.drive_folder_id == DriveFolder.id, LibraryItem.status == ItemStatus.published)
+        .exists()
+    )
+    waiting = set(db.scalars(select(DriveFolder.kind).where(DriveFolder.module_id == module_id, ~imported)))
+    out: list[ModuleShelf] = []
+    for shelf, kinds in SHELVES.items():
+        files = sum(counts.get(k, 0) for k in kinds)
+        coming = any(k in waiting for k in kinds)
+        if files or coming:
+            out.append(ModuleShelf(kind=shelf, files=files, being_added=coming and not files))
+    return out
+
+
 # ── past papers by sitting ───────────────────────────────────────────────────────────────────
 
-EXAM_KINDS: tuple[LibraryKind, ...] = ("past-paper", "examiners-report", "exam-solutions")
 _SESSION_ORDER = {"october": 0, "may": 1, None: 2}  # newest first within a year: the resits come after May
-_ZONE_ORDER = {"A": 0, "B": 1, "RTC": 2, None: 3}
+_ZONE_ORDER: dict[str | None, int] = {**{z: n for n, z in enumerate(ZONES)}, None: len(ZONES)}
 
 
 def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
-    """A module's published papers, reports and solutions, grouped by sitting (exam year and session) and zone,
-    newest first; those without an exam year go to `other`. Titles sort each list. Files only: the links to Drive
-    folders stay in the library's lists."""
+    """A module's published papers, reports and solutions, grouped by sitting (exam_names.sitting_key) and zone,
+    newest first; those without an exam year go to `other`. Titles sort each list."""
     require_module(db, module_id)
     items = db.scalars(
         select(LibraryItem)
@@ -367,6 +455,7 @@ def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
             LibraryItem.source == ItemSource.file,
             LibraryItem.status == ItemStatus.published,
             LibraryItem.kind.in_(EXAM_KINDS),
+            ~duplicate(),
         )
         .order_by(func.lower(LibraryItem.title), LibraryItem.id)
     ).all()
@@ -374,15 +463,16 @@ def sittings(db: Session, user: User | None, module_id: str) -> PaperSittings:
     groups: dict[tuple[int, str | None], dict[str | None, SittingZone]] = {}
     other = []
     for i in items:
-        if i.exam_year is None:
+        key = sitting_key(i)
+        if key is None:
             other.append(out[i.id])
             continue
-        zones = groups.setdefault((i.exam_year, i.exam_session), {})
+        zones = groups.setdefault(key, {})
         zone = i.zone if i.zone in _ZONE_ORDER else None
         bucket = zones.setdefault(zone, SittingZone(zone=zone, papers=[], reports=[], solutions=[]))
-        if i.kind == "examiners-report":
+        if i.kind == EXAMINERS_REPORT:
             bucket.reports.append(out[i.id])
-        elif i.kind == "exam-solutions":
+        elif i.kind == EXAM_SOLUTIONS:
             bucket.solutions.append(out[i.id])
         else:
             bucket.papers.append(out[i.id])
@@ -499,6 +589,12 @@ def create_link(db: Session, user: User, body: LibraryLinkCreate, ip: str | None
         raise invalid("url", "Remove the user name and password from the link.")
     if len(url) > LINK_MAX:
         raise invalid("url", "This link is too long.")
+    if (body.url.host or "").lower() in GOOGLE_FILE_HOSTS:
+        raise invalid(
+            "url",
+            "The Hub keeps its own copy of files instead of sending students to Google Drive. Upload the file, or "
+            "ask an admin to add the folder to the Drive import.",
+        )
     module = require_module(db, body.module_id)
     now = utcnow()
     item = LibraryItem(
@@ -533,6 +629,8 @@ def create_imported(
     file_name: str,
     size_bytes: int,
     import_key: str,
+    content_hash: str | None = None,
+    drive_folder_id: uuid.UUID | None = None,
     exam_year: int | None = None,
     zone: str | None = None,
     exam_session: str | None = None,
@@ -557,6 +655,8 @@ def create_imported(
         exam_session=exam_session,
         author_name=author_name or None,
         import_key=import_key,
+        content_hash=content_hash,
+        drive_folder_id=drive_folder_id,
         status=ItemStatus.published,
         published_at=REFERENCE_PUBLISHED_AT,
     )
@@ -646,7 +746,7 @@ def review(
 
 def sweep_files(db: Session, storage: Storage | None = None, now: datetime | None = None) -> int:
     """For the daily sweep: deletes from the bucket the files of items rejected or removed more than FILE_GRACE ago
-    (security review SEC-14), with their upload rows and their text; the item rows stay, without a file. -> how many
+    (security review SEC-14), with their covers, upload rows and text; the item rows stay, without a file. -> how many
     files. The caller commits. Safe to run again: a file already gone is skipped."""
     cutoff = (now or utcnow()) - FILE_GRACE
     decided = func.coalesce(LibraryItem.updated_at, LibraryItem.reviewed_at, LibraryItem.created_at)
@@ -663,6 +763,9 @@ def sweep_files(db: Session, storage: Storage | None = None, now: datetime | Non
         if item.storage_key is None:
             continue
         st.delete(item.storage_key)
+        cover = db.scalar(select(LibraryText.cover_key).where(LibraryText.item_id == item.id))
+        if cover:
+            st.delete(cover)
         db.execute(delete(Upload).where(Upload.storage_key == item.storage_key))
         db.execute(delete(LibraryText).where(LibraryText.item_id == item.id))
         item.storage_key = None
@@ -708,6 +811,20 @@ def preview_link(item: LibraryItem, storage: Storage | None = None) -> FileLink:
     st = storage or get_storage()
     url = st.presigned_get(item.storage_key, file_name=item.file_name or "file", inline=True, content_type=content_type)
     return FileLink(url=url, expires_in=st.settings.download_url_ttl_seconds)
+
+
+def cover_path(item_id: uuid.UUID) -> str:
+    """Where the web app loads a file's cover (GET /library/items/{id}/cover)."""
+    return f"/api/v1/library/items/{item_id}/cover"
+
+
+def cover_link(db: Session, item: LibraryItem, storage: Storage | None = None) -> str:
+    """A short-lived link to the file's cover (its first page, WebP). 404 when it has none or was removed."""
+    row = db.get(LibraryText, item.id)
+    if item.status == ItemStatus.removed or row is None or row.cover_key is None:
+        raise not_found("This file has no cover.")
+    st = storage or get_storage()
+    return st.presigned_get(row.cover_key, file_name="cover.webp", inline=True, content_type=COVER_TYPE)
 
 
 def set_star(db: Session, user: User, item: LibraryItem, on: bool) -> bool:

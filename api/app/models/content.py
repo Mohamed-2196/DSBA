@@ -44,7 +44,6 @@ class Module(Base):
     year: Mapped[int] = mapped_column(SmallInteger)
     description: Mapped[str] = mapped_column(Text, default="")
     icon: Mapped[str | None] = mapped_column(String(40))  # a Phosphor icon name
-    resources: Mapped[dict[str, Any]] = mapped_column(default=dict)  # materials, exercises, vle, olderExams, ...
     position: Mapped[int] = mapped_column(Integer, default=0)
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # left out of students' views
     version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")

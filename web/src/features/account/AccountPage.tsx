@@ -469,11 +469,11 @@ export default function AccountPage() {
       ) : null}
 
       <PageSection aria-labelledby="acct-papers">
-        <SectionHeader id="acct-papers" title="Your papers" description="Your option, electives and any paper from another year, and your zone. Only you see them." />
+        <SectionHeader id="acct-papers" title="Your modules" description="Your option or electives, any module from another year, and your exam zone. Only you see them." />
         {/* The page doesn't wait for the module catalogue; picking papers needs it. */}
         <ModulesGate
           fallback={<Skeleton lines={1} />}
-          error={(retry, error, retrying) => <QueryError error={error} title="Your papers didn’t load" onRetry={retry} retrying={retrying} size="sm" />}
+          error={(retry, error, retrying) => <QueryError error={error} title="Your modules didn’t load" onRetry={retry} retrying={retrying} size="sm" />}
         >
           <PapersButton />
         </ModulesGate>

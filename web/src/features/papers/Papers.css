@@ -6,7 +6,7 @@
 .papers__year-name { margin: var(--sp-8) 0 0; color: var(--ink-2); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
 .papers__note { margin: 0; max-width: 65ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
 .papers__error { margin: 0; color: var(--alert-strong); font-size: var(--fs-14); font-weight: var(--fw-medium); }
-.papers .ui-seg { justify-self: start; max-width: 100%; }
+.papers__zones { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr)); gap: var(--sp-8); }
 .papers-check {
   display: flex;
   align-items: flex-start;

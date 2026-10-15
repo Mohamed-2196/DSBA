@@ -25,7 +25,6 @@ const loaded: ModuleEdit = {
   lessonCount: 3,
   updatedAt: null,
   description: 'Means and **medians**.',
-  resources: { materials: 'https://drive.google.com/x', exercises: null, exercisesNote: null, vle: null, olderExams: null, cheatSheet: null },
   chapters: [
     { id: 'chone', title: 'One', hidden: false, lessons: [lesson('la', 'aaaaaaaaaaa'), lesson('lb', 'bbbbbbbbbbb')] },
     { id: 'chtwo', title: 'Two', hidden: true, lessons: [lesson('lc', 'ccccccccccc')] },
@@ -39,8 +38,6 @@ describe('the module draft', () => {
     const body = toSave(toDraft(loaded), loaded.version);
     expect(body.version).toBe(4);
     expect(body.unitCode).toBe('ST1215');
-    expect(body.resources?.materials).toBe('https://drive.google.com/x');
-    expect(body.resources?.vle).toBeNull();
     expect(body.chapters?.map((c) => [c.id, c.hidden])).toEqual([
       ['chone', false],
       ['chtwo', true],

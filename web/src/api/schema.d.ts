@@ -954,7 +954,8 @@ export interface paths {
         put?: never;
         /**
          * Create Link
-         * @description A link to a resource kept elsewhere (https only), published at once.
+         * @description A link to a resource kept elsewhere (https only, not Google Drive or Docs), published at once.
+         *     Errors: invalid_input (422: not https, too long, or a Google Drive or Docs link).
          */
         post: operations["create_link_api_v1_library_links_post"];
         delete?: never;
@@ -1022,6 +1023,27 @@ export interface paths {
          *     Errors: no_preview (409) for links and other formats: download them instead.
          */
         get: operations["file_link_api_v1_library_items__item_id__file_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/library/items/{item_id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cover
+         * @description 302 to a short-lived link to the file's cover: its first page as a small WebP picture. The browser may keep
+         *     the redirect a few minutes. Errors: not_found (404: no such file, or no cover).
+         */
+        get: operations["cover_api_v1_library_items__item_id__cover_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5185,7 +5207,7 @@ export interface components {
             /** Examyear */
             examYear: number | null;
             /** Zone */
-            zone: string | null;
+            zone: ("A" | "B" | "RTC") | null;
             /** Authorname */
             authorName: string | null;
             /**
@@ -5463,7 +5485,7 @@ export interface components {
             /** Examyear */
             examYear: number | null;
             /** Zone */
-            zone: string | null;
+            zone: ("A" | "B" | "RTC") | null;
             /** Eventid */
             eventId: string | null;
             /**
@@ -5718,7 +5740,7 @@ export interface components {
             /** Examyear */
             examYear: number | null;
             /** Zone */
-            zone: string | null;
+            zone: ("A" | "B" | "RTC") | null;
         };
         /** FurtherStudy */
         FurtherStudy: {
@@ -6152,7 +6174,7 @@ export interface components {
             /** Examyear */
             examYear: number | null;
             /** Zone */
-            zone: string | null;
+            zone: ("A" | "B" | "RTC") | null;
             /** Examsession */
             examSession: ("may" | "october") | null;
             /** Authorname */
@@ -6181,6 +6203,8 @@ export interface components {
             /** Canedit */
             canEdit: boolean;
             match: components["schemas"]["TextMatch"] | null;
+            /** Coverurl */
+            coverUrl: string | null;
         };
         /**
          * LibraryItemCreate
@@ -6237,7 +6261,8 @@ export interface components {
         };
         /**
          * LibraryLinkCreate
-         * @description A link to a resource kept elsewhere (Google Drive, the VLE). Moderators only; published at once.
+         * @description A link to a resource kept elsewhere (the VLE, a publisher's site); never Google Drive or Docs, whose files the
+         *     Hub copies instead. Moderators only; published at once.
          */
         LibraryLinkCreate: {
             /**
@@ -6372,7 +6397,6 @@ export interface components {
             description: string;
             /** Icon */
             icon?: ("BookOpenText" | "Brain" | "Briefcase" | "ChartBar" | "ChartLineUp" | "ChartScatter" | "Coins" | "Database" | "Function" | "ListChecks" | "Megaphone" | "PresentationChart" | "Scales" | "Sigma" | "Storefront" | "TerminalWindow" | "WaveSine") | null;
-            resources?: components["schemas"]["ResourcesIn"];
             /** Id */
             id: string;
         };
@@ -6401,7 +6425,8 @@ export interface components {
             lessonCount: number;
             /** Librarycount */
             libraryCount: number | null;
-            resources: components["schemas"]["ModuleResources"];
+            /** Shelves */
+            shelves: components["schemas"]["ModuleShelf"][];
             /** Chapters */
             chapters: components["schemas"]["Chapter"][];
         };
@@ -6436,7 +6461,6 @@ export interface components {
             updatedAt: string | null;
             /** Description */
             description: string;
-            resources: components["schemas"]["ModuleResources"];
             /** Chapters */
             chapters: components["schemas"]["ChapterOut"][];
         };
@@ -6483,21 +6507,6 @@ export interface components {
             /** Ids */
             ids: string[];
         };
-        /** ModuleResources */
-        ModuleResources: {
-            /** Materials */
-            materials?: string | null;
-            /** Exercises */
-            exercises?: string | null;
-            /** Exercisesnote */
-            exercisesNote?: string | null;
-            /** Vle */
-            vle?: string | null;
-            /** Olderexams */
-            olderExams?: string | null;
-            /** Cheatsheet */
-            cheatSheet?: string | null;
-        };
         /**
          * ModuleSave
          * @description The whole module as the editor has it. `version` is the one loaded: if someone saved since, 409
@@ -6523,7 +6532,6 @@ export interface components {
             description: string;
             /** Icon */
             icon?: ("BookOpenText" | "Brain" | "Briefcase" | "ChartBar" | "ChartLineUp" | "ChartScatter" | "Coins" | "Database" | "Function" | "ListChecks" | "Megaphone" | "PresentationChart" | "Scales" | "Sigma" | "Storefront" | "TerminalWindow" | "WaveSine") | null;
-            resources?: components["schemas"]["ResourcesIn"];
             /** Version */
             version: number;
             /**
@@ -6533,6 +6541,23 @@ export interface components {
             hidden: boolean;
             /** Chapters */
             chapters?: components["schemas"]["ChapterIn"][];
+        };
+        /**
+         * ModuleShelf
+         * @description A kind of file the module has in the library (services/library.py SHELVES: 'past-paper' counts the papers,
+         *     examiners' reports and solutions together). `files`: published files of that kind. `being_added`: the module has
+         *     a Drive folder of that kind the import hasn't brought in yet.
+         */
+        ModuleShelf: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "course-materials" | "exercises" | "past-paper" | "vle-materials" | "cheat-sheet" | "notes";
+            /** Files */
+            files: number;
+            /** Beingadded */
+            beingAdded: boolean;
         };
         /** ModuleSummary */
         ModuleSummary: {
@@ -7118,7 +7143,9 @@ export interface components {
             /** Examsession */
             examSession: ("may" | "october") | null;
             /** Zone */
-            zone: string | null;
+            zone: ("A" | "B" | "RTC") | null;
+            /** Coverurl */
+            coverUrl: string | null;
         };
         /**
          * PaperSittings
@@ -7690,7 +7717,7 @@ export interface components {
             /** Examyear */
             examYear?: number | null;
             /** Zone */
-            zone?: ("A" | "B") | null;
+            zone?: ("A" | "B" | "RTC") | null;
             /** Eventid */
             eventId?: string | null;
         };
@@ -7760,7 +7787,7 @@ export interface components {
             /** Examyear */
             examYear: number | null;
             /** Zone */
-            zone: string | null;
+            zone: ("A" | "B" | "RTC") | null;
             event: components["schemas"]["RequestEvent"] | null;
             found: components["schemas"]["FoundItem"] | null;
             /**
@@ -7796,24 +7823,6 @@ export interface components {
             limit: number;
             /** Offset */
             offset: number;
-        };
-        /**
-         * ResourcesIn
-         * @description The module's shared folders: https:// links (empty or null for none).
-         */
-        ResourcesIn: {
-            /** Materials */
-            materials?: string | null;
-            /** Exercises */
-            exercises?: string | null;
-            /** Exercisesnote */
-            exercisesNote?: string | null;
-            /** Vle */
-            vle?: string | null;
-            /** Olderexams */
-            olderExams?: string | null;
-            /** Cheatsheet */
-            cheatSheet?: string | null;
         };
         /** ResumeUpdate */
         ResumeUpdate: {
@@ -8815,8 +8824,8 @@ export type ModuleDetail = components['schemas']['ModuleDetail'];
 export type ModuleEdit = components['schemas']['ModuleEdit'];
 export type ModuleEditSummary = components['schemas']['ModuleEditSummary'];
 export type ModuleOrder = components['schemas']['ModuleOrder'];
-export type ModuleResources = components['schemas']['ModuleResources'];
 export type ModuleSave = components['schemas']['ModuleSave'];
+export type ModuleShelf = components['schemas']['ModuleShelf'];
 export type ModuleSummary = components['schemas']['ModuleSummary'];
 export type MySenior = components['schemas']['MySenior'];
 export type NooraDoneEvent = components['schemas']['NooraDoneEvent'];
@@ -8880,7 +8889,6 @@ export type RequestEvent = components['schemas']['RequestEvent'];
 export type RequestGap = components['schemas']['RequestGap'];
 export type RequestOut = components['schemas']['RequestOut'];
 export type RequestPage = components['schemas']['RequestPage'];
-export type ResourcesIn = components['schemas']['ResourcesIn'];
 export type ResumeUpdate = components['schemas']['ResumeUpdate'];
 export type ReviewDecision = components['schemas']['ReviewDecision'];
 export type RoleCatalogue = components['schemas']['RoleCatalogue'];
@@ -13637,6 +13645,89 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["FileLink"];
                 };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    cover_api_v1_library_items__item_id__cover_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {

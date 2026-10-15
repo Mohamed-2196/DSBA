@@ -16,6 +16,7 @@ from app.models.content import (
 )
 from app.models.forum import FollowLevel, ForumReply, ForumThread, PostStatus, ReplyVote, ThreadFollow, ThreadVote
 from app.models.library import (
+    DriveFolder,
     ItemSource,
     ItemStatus,
     LibraryItem,
@@ -55,6 +56,7 @@ __all__ = [
     "Channel",
     "Chapter",
     "ContentDoc",
+    "DriveFolder",
     "EmailOutbox",
     "FeatureSwitch",
     "FeatureSwitchRole",

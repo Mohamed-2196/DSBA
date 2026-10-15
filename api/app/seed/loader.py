@@ -1,9 +1,9 @@
 """Loads the reference content in app/seed/data/*.json: modules, calendar dates, newsletter issues, the Career
-Navigator document and the library's links.
+Navigator document and the Drive folders the import copies into the library.
 
 Idempotent: running it again adds what is missing and never overwrites what moderators changed through the API.
 Something a moderator deleted stays deleted: calendar events and newsletter issues are looked up in the audit log
-(calendar.delete, newsletter.delete), and removed library items keep their row with status `removed`.
+(calendar.delete, newsletter.delete).
 Modules are starting content only: they load into an empty catalogue, and after that content managers edit them in
 the app (a module they removed stays removed).
 Newsletter issues and the career document go through the schemas the API checks writes with, and are stored in
@@ -22,23 +22,19 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.text import slugify, unique_slug
 from app.models import (
     AuditEntry,
     CalendarEvent,
     Chapter,
     ContentDoc,
-    ItemSource,
-    ItemStatus,
+    DriveFolder,
     Lesson,
-    LibraryItem,
     Module,
     NewsletterIssue,
 )
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCreate
 from app.services import career, newsletter
-from app.services.library import REFERENCE_PUBLISHED_AT
 
 DATA = Path(__file__).parent / "data"
 
@@ -86,7 +82,6 @@ def load_modules(db: Session) -> int:
                 description=m.get("description") or "",
                 icon=m.get("icon"),
                 position=m.get("position", 0),
-                resources=m.get("resources") or {},
                 chapters=chapters,
             )
         )
@@ -177,15 +172,14 @@ def load_career(db: Session) -> int:
     return 1
 
 
-# ── library: the links of each module ────────────────────────────────────────────────────────
+# ── the Drive folders the import reads ───────────────────────────────────────────────────────
 
 
 @dataclass(frozen=True)
-class SeedLink:
+class SeedFolder:
     kind: str
     title: str
     url: str
-    description: str
     author_name: str | None = None
 
 
@@ -198,37 +192,24 @@ def _clean_name(name: str) -> str:
     return name[i:].strip()
 
 
-def module_links(m: dict[str, Any]) -> Iterator[SeedLink]:
-    """A module's shared folders and students' notes as library links, each URL once per module."""
+def module_folders(m: dict[str, Any]) -> Iterator[SeedFolder]:
+    """A module's shared Drive folders (and files) and students' notes, as the import's sources, each URL once."""
     r: dict[str, Any] = m.get("resources") or {}
-    code = m.get("unitCode") or m["name"]
-    links: list[SeedLink] = []
+    folders: list[SeedFolder] = []
     if r.get("materials"):
-        links.append(
-            SeedLink(
-                "course-materials",
-                "Course materials",
-                r["materials"],
-                f"The books and study guide for {code}, in the shared folder.",
-            )
-        )
+        folders.append(SeedFolder("course-materials", "Course materials", r["materials"]))
     if r.get("exercises"):
-        note = (r.get("exercisesNote") or "").strip()
-        links.append(SeedLink("exercises", "Exercises", r["exercises"], note or "Practice questions for this module."))
-    vle, older = r.get("vle"), r.get("olderExams")
-    if vle and vle == older:  # one folder holds both: it is where the past papers are
-        links.append(
-            SeedLink(
-                "past-paper", "VLE and older exams", vle, "Past papers from the VLE and older sittings, in one folder."
-            )
-        )
-    else:
-        if vle:
-            links.append(SeedLink("vle-materials", "VLE materials", vle, "Papers and material from the VLE."))
-        if older:
-            links.append(SeedLink("past-paper", "Past exams", older, "Older papers from earlier sittings."))
+        folders.append(SeedFolder("exercises", "Exercises", r["exercises"]))
+    if r.get("vle"):
+        # One folder can hold both: then it is where the past papers are.
+        if r["vle"] == r.get("olderExams"):
+            folders.append(SeedFolder("past-paper", "VLE and older exams", r["vle"]))
+        else:
+            folders.append(SeedFolder("vle-materials", "VLE materials", r["vle"]))
+    if r.get("olderExams"):
+        folders.append(SeedFolder("past-paper", "Past exams", r["olderExams"]))
     if r.get("cheatSheet"):
-        links.append(SeedLink("cheat-sheet", "Cheat sheet", r["cheatSheet"], "A quick-reference sheet for revision."))
+        folders.append(SeedFolder("cheat-sheet", "Cheat sheet", r["cheatSheet"]))
     for note in m.get("notes") or []:
         url, raw = note.get("url"), (note.get("name") or "").strip()
         if not url or not raw:
@@ -236,71 +217,49 @@ def module_links(m: dict[str, Any]) -> Iterator[SeedLink]:
         author = (note.get("author") or "").strip() or None
         name = _clean_name(raw) or raw
         title = f"{author}'s notes" if author and author == raw else name
-        description = f"Shared by {author}." if author else "Shared by a student."
-        links.append(SeedLink("notes", title, url, description, author))
+        folders.append(SeedFolder("notes", title, url, author))
 
     seen: set[str] = set()
-    for link in links:
-        if not link.url.startswith("https://") or link.url in seen:
+    for folder in folders:
+        if not folder.url.startswith("https://") or folder.url in seen:
             continue
-        seen.add(link.url)
-        yield link
+        seen.add(folder.url)
+        yield folder
 
 
-def _slug_base(module: Module, title: str) -> str:
-    plain = title.replace("'", "").replace("\u2019", "")
-    return slugify(f"{module.unit_code or module.id} {plain}")
-
-
-def load_library(db: Session) -> int:
-    modules = {m.id: m for m in db.scalars(select(Module))}
-    known: list[tuple[str | None, str | None, str]] = [
-        (mid, url, slug)
-        for mid, url, slug in db.execute(
-            select(LibraryItem.module_id, LibraryItem.url, LibraryItem.slug).where(
-                LibraryItem.source == ItemSource.link
-            )
-        )
-    ]
+def load_drive_folders(db: Session) -> int:
+    """The modules' Drive folders, for the import (DriveFolder): new ones are added, existing ones left as they are."""
+    modules = set(db.scalars(select(Module.id)))
+    known = set(db.execute(select(DriveFolder.module_id, DriveFolder.url)).tuples())
     n = 0
     for spec in read("modules"):
-        module = modules.get(spec["id"])
-        if module is None:
+        if spec["id"] not in modules:
             continue
-        for link in module_links(spec):
-            base = _slug_base(module, link.title)
-            # Already there (in any state), even if a moderator moved it to another module since.
-            if any(
-                u == link.url and (mid == module.id or s == base or s.startswith(f"{base}-")) for mid, u, s in known
-            ):
+        for folder in module_folders(spec):
+            if (spec["id"], folder.url) in known:
                 continue
-            item = LibraryItem(
-                slug=unique_slug(db, LibraryItem.slug, base, fallback="link"),
-                source=ItemSource.link,
-                kind=link.kind,
-                title=link.title,
-                description=link.description,
-                module_id=module.id,
-                year=module.year,
-                url=link.url,
-                author_name=link.author_name,
-                status=ItemStatus.published,
-                published_at=REFERENCE_PUBLISHED_AT,  # before anything students share
+            db.add(
+                DriveFolder(
+                    module_id=spec["id"],
+                    kind=folder.kind,
+                    title=folder.title,
+                    url=folder.url,
+                    author_name=folder.author_name,
+                )
             )
-            db.add(item)
-            db.flush()
-            known.append((module.id, link.url, item.slug))
+            known.add((spec["id"], folder.url))
             n += 1
+    db.flush()
     return n
 
 
-# Order matters: library links and calendar events refer to modules.
+# Order matters: Drive folders and calendar events refer to modules.
 SECTIONS: dict[str, Callable[[Session], int]] = {
     "modules": load_modules,
     "calendar": load_calendar,
     "newsletter": load_newsletter,
     "career": load_career,
-    "library": load_library,
+    "drive-folders": load_drive_folders,
 }
 
 

@@ -11,7 +11,8 @@ from sqlalchemy import CheckConstraint, ForeignKey, Index, SmallInteger, String,
 from sqlalchemy.dialects.postgresql import ARRAY, INET
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, created_ts, str_enum, uuid_pk, year_range
+from app.models.base import Base, check_in, created_ts, str_enum, uuid_pk, year_range
+from app.schemas.library import ZONES
 
 
 class UserStatus(enum.StrEnum):
@@ -33,6 +34,7 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         CheckConstraint("email IS NOT NULL OR phone IS NOT NULL", name="has_identifier"),
+        check_in("zone", ZONES),
         year_range(),
     )
 
@@ -48,7 +50,7 @@ class User(Base):
     # The papers this person sits, as module ids: their option and electives, and papers from other years.
     # Empty: every module of their year. Private: only /me and the export show it.
     papers: Mapped[list[str]] = mapped_column(ARRAY(String(64)), default=list, server_default="{}")
-    zone: Mapped[str | None] = mapped_column(String(8))  # the zone's papers they sit (app/schemas/library.py Zone)
+    zone: Mapped[str | None] = mapped_column(String(8))  # the zone whose papers they sit (schemas/library.py Zone)
     created_at: Mapped[datetime] = created_ts()
     last_seen_at: Mapped[datetime | None]
 

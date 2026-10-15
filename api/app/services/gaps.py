@@ -45,8 +45,8 @@ from app.schemas.gaps import (
     ScanGap,
     SittingGap,
 )
+from app.schemas.library import EXAM_KINDS, EXAMINERS_REPORT, PAST_PAPER
 from app.services import access
-from app.services.library import EXAM_KINDS
 
 GAP_BOXES = (Box.library_manage, Box.content_edit, Box.calendar_manage, Box.requests_manage)
 LIST_MAX = 50
@@ -64,8 +64,11 @@ def _modules(db: Session) -> dict[str, GapModule]:
 
 
 def _sittings(db: Session, modules: dict[str, GapModule]) -> list[SittingGap]:
-    papers = func.bool_or(LibraryItem.kind == "past-paper")
-    reports = func.bool_or(LibraryItem.kind == "examiners-report")
+    """Sittings (exam_names.sitting_key: exam year and session) with a paper but no examiners' report, or the other
+    way round. Zones are left out on purpose: one report usually covers every zone of a sitting, so a rep looks for
+    it per sitting, not per zone."""
+    papers = func.bool_or(LibraryItem.kind == PAST_PAPER)
+    reports = func.bool_or(LibraryItem.kind == EXAMINERS_REPORT)
     rows = db.execute(
         select(LibraryItem.module_id, LibraryItem.exam_year, LibraryItem.exam_session, papers, reports)
         .where(
@@ -73,7 +76,7 @@ def _sittings(db: Session, modules: dict[str, GapModule]) -> list[SittingGap]:
             LibraryItem.source == ItemSource.file,
             LibraryItem.module_id.in_(modules),
             LibraryItem.exam_year.is_not(None),
-            LibraryItem.kind.in_(("past-paper", "examiners-report")),
+            LibraryItem.kind.in_((PAST_PAPER, EXAMINERS_REPORT)),
         )
         .group_by(LibraryItem.module_id, LibraryItem.exam_year, LibraryItem.exam_session)
         .having(papers.is_distinct_from(reports))

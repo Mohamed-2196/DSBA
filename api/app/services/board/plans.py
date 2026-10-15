@@ -14,6 +14,7 @@ from app.core.errors import invalid, not_found
 from app.core.time import bahrain_today, utcnow
 from app.models import BoardCard, BoardColumn, BoardPlan, ItemStatus, LessonView, LibraryItem, Module, User
 from app.schemas.board import BoardPlanCreate, BoardPlanMade
+from app.schemas.library import PAST_PAPER
 from app.services import access, ratelimit
 from app.services.accounts import tracks_progress
 from app.services.board.boards import main_board
@@ -24,7 +25,6 @@ from app.services.modules import MODULE_UNKNOWN, visible_chapters, visible_lesso
 PLAN_LIMIT = 20
 PLAN_WINDOW = timedelta(hours=1)
 PLAN_HORIZON_DAYS = 366
-PAST_PAPER = "past-paper"
 
 
 def _interleave(lessons: list[str], papers: list[str]) -> list[tuple[str, str]]:

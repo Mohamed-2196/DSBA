@@ -57,7 +57,7 @@ def test_a_module_with_its_lessons_and_published_files(
     assert detail["chapterCount"] == len(spec["chapters"]) == len(detail["chapters"])
     assert detail["lessonCount"] == sum(len(c.get("videos", [])) for c in spec["chapters"])
     summary = next(m for m in guest.get(f"{API}/modules").json() if m["id"] == spec["id"])
-    assert summary == {k: v for k, v in detail.items() if k not in ("resources", "chapters")}
+    assert summary == {k: v for k, v in detail.items() if k not in ("shelves", "chapters")}
     r = guest.get(f"{API}/modules/no-such-module")
     assert (r.status_code, r.json()["error"]["message"]) == (404, "This module doesn't exist.")
 

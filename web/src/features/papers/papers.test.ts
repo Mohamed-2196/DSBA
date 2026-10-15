@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ModuleSummary } from '../../api/types';
-import { CHOICES, cleanPicks, isMine, modulesFor, papersFor, picksSummary, togglePick } from './papers';
+import { CHOICES, cleanPicks, isMine, modulesFor, papersFor, pickOnly, picksSummary, togglePick } from './papers';
 
 const mod = (id: string, year: 1 | 2 | 3): ModuleSummary => ({
   id,
@@ -80,7 +80,17 @@ it('cleanPicks trusts nothing stored', () => {
 });
 
 it('picksSummary', () => {
-  expect(picksSummary(2, null)).toBe('Every Year 2 module');
-  expect(picksSummary(2, new Set(['a']))).toBe('1 paper');
-  expect(picksSummary(null, null)).toBe('Not set');
+  expect(picksSummary(1, [], null)).toBe('every Year 1 module');
+  expect(picksSummary(2, [], null)).toBe('Year 2, option not picked');
+  expect(picksSummary(3, ['statistics'], null)).toBe('Year 3, electives not picked');
+  expect(picksSummary(2, ['econometrics'], new Set(['a', 'b']))).toBe('2 modules');
+  expect(picksSummary(2, ['econometrics'], new Set(['a']))).toBe('1 module');
+  expect(picksSummary(null, [], null)).toBe('not set');
+});
+
+it('pickOnly keeps one module of a pick-one choice', () => {
+  const choice = CHOICES[2];
+  if (!choice) throw new Error('Year 2 has an option');
+  expect(pickOnly(['statistics', 'econometrics'], 'information-systems', choice)).toEqual(['statistics', 'information-systems']);
+  expect(pickOnly(['statistics', 'econometrics'], null, choice)).toEqual(['statistics']);
 });

@@ -1,7 +1,7 @@
 """Command line: python -m app.cli <command>.
 
 openapi            print the OpenAPI document (the web app generates its types from it)
-seed [--only X]    load the reference content (modules, calendar, newsletter, career, library links)
+seed [--only X]    load the reference content (modules, calendar, newsletter, career, the Drive folders to import)
 set-role ID ROLE...  make the account with this email or phone number hold exactly these roles (slugs; audited)
 backup             pg_dump the database into the backup bucket, encrypted at rest, and keep the newest
                    DSBA_BACKUP_KEEP (docs/backend/DEPLOYMENT.md: where backups go, and how to restore one)
@@ -14,16 +14,19 @@ mail-worker        send the queued emails (notifications, account notices, Sunda
                    08:00 Bahrain time it queues the week's summaries itself
 weekly-summary     queue this week's Sunday summary now, for everyone who has it on and hasn't had it this week
                    (--preview YEAR: print that year's text and send nothing)
-import-drive       copy the files of the library's Google Drive folders into the library: prints the plan, asks,
+import-drive       copy the files of the modules' Google Drive folders into the library: prints the plan, asks,
                    imports, and lists the folders Drive refused (--dry-run: only the plan; --module ID; --limit N
                    files; --pace S: seconds between downloads, default 2; --yes: no question). Safe to run again:
                    it tries skipped and failed files again. Needs DSBA_GOOGLE_API_KEY (DEPLOYMENT.md, 10)
 exam-meta          read the exam year, session, zone and kind of the past papers, reports and solutions the Drive
-                   import brought in, from their names, and fill what each lacks (--dry-run: only list them)
+                   import brought in, from their names, fill what each lacks, and tidy their titles (--dry-run:
+                   only list them)
 text-worker        read the words of each newly published PDF and Word file, for search inside papers; runs until
                    stopped. Several can run side by side.
 extract-texts      read the words of the published files that have none yet (the backfill), then stop (--retry:
                    read failed and empty files again too; --limit N files)
+make-covers        make the cover (the first page as a small picture) of the published PDF and Word files read
+                   before covers existed, then stop (--limit N files)
 dev-login ID       development only: print a session token for an account (created if needed, holding Student;
                    --role gives one more role)
 
@@ -327,6 +330,25 @@ def cmd_extract_texts(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_make_covers(args: argparse.Namespace) -> int:
+    """The covers' backfill: the files whose text was read before covers existed."""
+    from app.services import paper_text
+
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
+    sessions = get_sessionmaker()
+    storage = get_storage()
+    with sessions() as db:
+        todo = paper_text.without_cover(db, args.limit)
+    print(f"{len(todo)} file(s) without a cover")
+    made = 0
+    for item in todo:
+        with sessions() as db:
+            made += paper_text.make_cover(db, item, storage)
+            db.commit()
+    print(f"made {made} cover(s); {len(todo) - made} file(s) gave none")
+    return 0
+
+
 def cmd_weekly_summary(args: argparse.Namespace) -> int:
     """The Sunday summary on demand: the mail worker queues it on Sunday mornings by itself."""
     from app.core.time import bahrain_today
@@ -374,8 +396,9 @@ def cmd_import_drive(args: argparse.Namespace) -> int:
 
 
 def cmd_exam_meta(args: argparse.Namespace) -> int:
-    """Imported papers, reports and VLE files get the exam details their names give (backfill_exam_meta)."""
-    from app.services.drive_import import backfill_exam_meta
+    """Imported papers, reports and VLE files get the exam details their names give (backfill_exam_meta), and
+    imported files the tidy titles (tidy_imported_titles)."""
+    from app.services.drive_import import backfill_exam_meta, tidy_imported_titles
 
     with get_sessionmaker()() as db:
         result = backfill_exam_meta(db, dry_run=args.dry_run)
@@ -383,6 +406,10 @@ def cmd_exam_meta(args: argparse.Namespace) -> int:
             print(f"  {line}")
         verb = "Would change" if args.dry_run else "Changed"
         print(f"{verb} {len(result.changed)} of {result.checked} imported papers, reports and VLE files.")
+        titles = tidy_imported_titles(db, dry_run=args.dry_run)
+        for line in titles:
+            print(f"  {line}")
+        print(f"{'Would tidy' if args.dry_run else 'Tidied'} {len(titles)} imported titles.")
         if not args.dry_run:
             db.commit()
     return 0
@@ -458,7 +485,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("openapi").set_defaults(fn=cmd_openapi)
     sp = sub.add_parser("seed")
-    sp.add_argument("--only", choices=["modules", "calendar", "newsletter", "career", "library"], default=None)
+    sp.add_argument("--only", choices=["modules", "calendar", "newsletter", "career", "drive-folders"], default=None)
     sp.set_defaults(fn=cmd_seed)
     sr = sub.add_parser("set-role")
     sr.add_argument("identifier")
@@ -498,6 +525,9 @@ def main(argv: list[str] | None = None) -> int:
     et.add_argument("--retry", action="store_true", help="read failed and empty files again too")
     et.add_argument("--limit", metavar="N", type=_positive, default=None, help="read at most N files this run")
     et.set_defaults(fn=cmd_extract_texts)
+    mc = sub.add_parser("make-covers")
+    mc.add_argument("--limit", metavar="N", type=_positive, default=None, help="at most N files this run")
+    mc.set_defaults(fn=cmd_make_covers)
     dl = sub.add_parser("dev-login")
     dl.add_argument("identifier")
     dl.add_argument("--role", default=None, metavar="ROLE", help="give this role too (a slug, such as rep or admin)")

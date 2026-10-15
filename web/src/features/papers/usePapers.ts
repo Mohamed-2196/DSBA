@@ -1,11 +1,12 @@
-// Your papers, wherever they are kept: on the account when signed in, in this browser for a guest.
+// Your modules and exam zone, wherever they are kept: on the account when signed in, in this browser for a guest.
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { api, call } from '../../api/client';
 import { ME_KEY, useAuth } from '../../auth';
 import { normalizeYear, useLocalStorage, useYear, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { cleanPicks, papersFor, ZONE_LABELS, type Zone } from './papers';
+import { isZone, type Zone } from '../../lib/exams';
+import { cleanPicks, papersFor } from './papers';
 
 const GUEST_KEY = 'hub.papers';
 
@@ -14,7 +15,7 @@ interface Stored {
   zone: Zone | null;
 }
 
-const cleanZone = (raw: unknown): Zone | null => (typeof raw === 'string' && raw in ZONE_LABELS ? (raw as Zone) : null);
+const cleanZone = (raw: unknown): Zone | null => (isZone(raw) ? raw : null);
 
 export interface PapersValue {
   /** what was picked (module ids, and 'abstract-maths') */

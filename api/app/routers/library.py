@@ -37,6 +37,7 @@ from app.services import past_questions
 from app.services.search import text_query, words
 
 router = router_for("library", needs_feature(Feature.library))
+COVER_CACHE = "private, max-age=240"  # less than the link lives (download_url_ttl_seconds, 300 s)
 Uploader = Annotated[User, requires(Box.library_upload)]
 LibraryManager = Annotated[User, requires(Box.library_manage)]
 QUESTIONS = [needs_feature(Feature.library_questions)]
@@ -122,7 +123,8 @@ def create_item(body: LibraryItemCreate, request: Request, user: Uploader, db: D
 
 @router.post("/library/links", response_model=LibraryItem, status_code=status.HTTP_201_CREATED)
 def create_link(body: LibraryLinkCreate, request: Request, user: LibraryManager, db: DB) -> LibraryItem:
-    """A link to a resource kept elsewhere (https only), published at once."""
+    """A link to a resource kept elsewhere (https only, not Google Drive or Docs), published at once.
+    Errors: invalid_input (422: not https, too long, or a Google Drive or Docs link)."""
     item = svc.create_link(db, user, body, client_ip(request))
     db.commit()
     return svc.one_out(db, item, user)
@@ -162,6 +164,14 @@ def file_link(item_id: UUID, db: DB, user: OptionalUser) -> FileLink:
 
     Errors: no_preview (409) for links and other formats: download them instead."""
     return svc.preview_link(svc.get_visible(db, item_id, user))
+
+
+@router.get("/library/items/{item_id}/cover", response_class=RedirectResponse, status_code=status.HTTP_302_FOUND)
+def cover(item_id: UUID, db: DB, user: OptionalUser) -> RedirectResponse:
+    """302 to a short-lived link to the file's cover: its first page as a small WebP picture. The browser may keep
+    the redirect a few minutes. Errors: not_found (404: no such file, or no cover)."""
+    target = svc.cover_link(db, svc.get_visible(db, item_id, user))
+    return RedirectResponse(target, status_code=status.HTTP_302_FOUND, headers={"Cache-Control": COVER_CACHE})
 
 
 @router.put("/library/items/{item_id}/star", response_model=StarResult)

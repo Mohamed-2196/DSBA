@@ -184,7 +184,7 @@ def test_search_finds_words_inside_papers_with_their_page(
     inside = hits[1]
     assert inside["page"] == 3
     assert inside["url"] == f"/library/{read['paper'].slug}?page=3"
-    assert inside["meta"] == "ST2133 · Past paper · Page 3"
+    assert inside["meta"] == "Past paper · ST2133 · Page 3"
     assert "Cramer-Rao lower bound" in inside["snippet"]
     word = client_for().get(f"{API}/search", params={"q": "likelihood", "types": "library"}).json()["library"]
     assert [(h["title"], h["page"]) for h in word] == [("Week 3 notes", None)]

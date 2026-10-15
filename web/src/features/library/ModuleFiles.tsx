@@ -1,7 +1,7 @@
 // The module page's Files tab: the module's library items grouped by type, with Upload and a way into the
 // library already filtered to the module.
 import { ArrowSquareOut, Books, DownloadSimple, UploadSimple } from '@phosphor-icons/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { showsUpload, useAuth } from '../../auth';
 import { PaperDone } from '../board/public';
@@ -13,7 +13,8 @@ import { FileThumb } from './components/FileThumb';
 import { PaperSittings } from './components/PaperSittings';
 import { StarButton } from './components/StarButton';
 import { UploadDialog } from './components/UploadDialog';
-import { addedAt, examLabel, isNew, linkPlace, moduleTag, sizeLabel } from './display';
+import { addedAt, isNew, linkPlace, moduleTag, sizeLabel } from './display';
+import { examLabel } from '../../lib/exams';
 import { EXAM_KINDS, KINDS, type LibraryKind } from './kinds';
 import type { LibraryItem } from './types';
 import { useStar } from './useStar';
@@ -91,6 +92,21 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
     </Panel>
   );
 
+  // '#papers' or '#files-<kind>' (from the Overview tab's shelves): scroll there once that part is on screen (the
+  // sittings load on their own, so look a few times).
+  const hash = location.hash.slice(1);
+  const ready = !!files.data;
+  useEffect(() => {
+    if (!ready || !/^(papers|files-[a-z-]+)$/.test(hash)) return undefined;
+    let tries = 0;
+    const t = window.setInterval(() => {
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ block: 'start' });
+      if (el || ++tries > 20) window.clearInterval(t);
+    }, 150);
+    return () => window.clearInterval(t);
+  }, [ready, hash]);
+
   const openUpload = () => setUpload((u) => ({ open: true, key: u.key + 1 }));
   const startUpload = () => {
     if (requireAuth('Sign in to upload a file', openUpload)) openUpload();
@@ -133,7 +149,7 @@ export default function ModuleFiles({ moduleId }: { moduleId: string }) {
       <div className="lib-mf__groups">
         <PaperSittings moduleId={moduleId} linkState={linkState} renderOther={fileList} board={board} />
         {groups.map(({ kind, items }) => (
-          <section key={kind.id} className="lib-mf__group" aria-labelledby={`lib-mf-${kind.id}`}>
+          <section key={kind.id} id={`files-${kind.id}`} className="lib-mf__group" aria-labelledby={`lib-mf-${kind.id}`}>
             <h3 id={`lib-mf-${kind.id}`} className="lib-mf__h">
               {kind.plural}
               <span className="lib-mf__count">{items.length}</span>

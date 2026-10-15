@@ -41,7 +41,6 @@ from app.schemas.modules import (
     ModuleFields,
     ModuleOrder,
     ModuleSave,
-    ResourcesIn,
 )
 from app.services.content import record
 from app.services.modules import new_id
@@ -54,8 +53,7 @@ RECORDING_HOST = "vc.bibf.com"  # class recordings (BigBlueButton): the app embe
 VIDEO_RULE = "Paste a YouTube video or playlist link, or a class recording link from vc.bibf.com."
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{6,20}")
 _PLAYLIST_ID = re.compile(r"[A-Za-z0-9_-]{10,64}")
-RESOURCE_FIELDS = ("materials", "exercises", "vle", "older_exams", "cheat_sheet")
-EDITED = ("unit_code", "name", "short_name", "year", "description", "icon", "resources", "hidden", "chapters")
+EDITED = ("unit_code", "name", "short_name", "year", "description", "icon", "hidden", "chapters")
 
 # ── videos ───────────────────────────────────────────────────────────────────────────────────
 
@@ -169,9 +167,7 @@ def edit_view(m: Module) -> ModuleEdit:
         )
         for c in m.chapters
     ]
-    return ModuleEdit.model_validate(
-        {**_summary(m), "description": m.description, "resources": m.resources, "chapters": chapters}
-    )
+    return ModuleEdit.model_validate({**_summary(m), "description": m.description, "chapters": chapters})
 
 
 def list_for_editing(db: Session) -> list[ModuleEditSummary]:
@@ -188,21 +184,6 @@ def get_module(db: Session, module_id: str, *, lock: bool = False) -> Module:
 
 
 # ── checks ───────────────────────────────────────────────────────────────────────────────────
-
-
-def _resources(r: ResourcesIn) -> dict[str, Any]:
-    """Stored as the seed has them (camelCase), without the empty ones. Each link must be https://."""
-    out: dict[str, Any] = {}
-    for field in RESOURCE_FIELDS:
-        value = getattr(r, field)
-        if not value:
-            continue
-        if not is_https(value):
-            raise invalid(f"resources.{field}", "Use an https:// link.")
-        out[ResourcesIn.model_fields[field].alias or field] = value
-    if r.exercises_note:
-        out["exercisesNote"] = r.exercises_note
-    return out
 
 
 def _check_unit_code(db: Session, code: str | None, *, other_than: str | None = None) -> None:
@@ -224,7 +205,6 @@ def _fields(db: Session, body: ModuleFields, *, module_id: str | None = None) ->
         "year": body.year,
         "description": body.description,
         "icon": body.icon,
-        "resources": _resources(body.resources),
     }
 
 

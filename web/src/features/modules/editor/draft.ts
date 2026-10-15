@@ -28,18 +28,8 @@ export interface Draft {
   description: string;
   icon: string;
   hidden: boolean;
-  resources: Record<ResourceKey, string>;
   chapters: DraftChapter[];
 }
-
-export const RESOURCE_FIELDS = [
-  ['materials', 'Course materials'],
-  ['exercises', 'Exercises'],
-  ['vle', 'VLE materials'],
-  ['olderExams', 'Older exams'],
-  ['cheatSheet', 'Cheat sheet'],
-] as const;
-export type ResourceKey = (typeof RESOURCE_FIELDS)[number][0] | 'exercisesNote';
 
 export const MODULE_ICONS = [
   'BookOpenText', 'Brain', 'Briefcase', 'ChartBar', 'ChartLineUp', 'ChartScatter', 'Coins', 'Database', 'Function',
@@ -51,7 +41,6 @@ let made = 0;
 export const newKey = (prefix: string) => `${prefix}-${++made}`;
 
 export function toDraft(m: ModuleEdit): Draft {
-  const r = m.resources;
   return {
     unitCode: m.unitCode ?? '',
     name: m.name,
@@ -60,14 +49,6 @@ export function toDraft(m: ModuleEdit): Draft {
     description: m.description,
     icon: m.icon ?? '',
     hidden: m.hidden,
-    resources: {
-      materials: r.materials ?? '',
-      exercises: r.exercises ?? '',
-      exercisesNote: r.exercisesNote ?? '',
-      vle: r.vle ?? '',
-      olderExams: r.olderExams ?? '',
-      cheatSheet: r.cheatSheet ?? '',
-    },
     chapters: m.chapters.map((ch) => ({
       key: `c-${ch.id}`,
       id: ch.id,
@@ -89,7 +70,6 @@ const orNull = (s: string) => (s.trim() ? s.trim() : null);
 const isIcon = (s: string): s is IconName => (MODULE_ICONS as readonly string[]).includes(s);
 
 export function toSave(d: Draft, version: number): ModuleSave {
-  const r = d.resources;
   return {
     version,
     unitCode: orNull(d.unitCode),
@@ -99,14 +79,6 @@ export function toSave(d: Draft, version: number): ModuleSave {
     description: d.description.trim(),
     icon: isIcon(d.icon) ? d.icon : null,
     hidden: d.hidden,
-    resources: {
-      materials: orNull(r.materials),
-      exercises: orNull(r.exercises),
-      exercisesNote: orNull(r.exercisesNote),
-      vle: orNull(r.vle),
-      olderExams: orNull(r.olderExams),
-      cheatSheet: orNull(r.cheatSheet),
-    },
     chapters: d.chapters.map((ch) => ({
       title: ch.title.trim(),
       hidden: ch.hidden,

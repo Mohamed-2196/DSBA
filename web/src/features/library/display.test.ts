@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { LibraryItem } from '../../api/types';
-import { addedAt, cardMeta, downloadsLabel, examLabel, isNew, linkPlace, matchLine, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
+import { addedAt, cardMeta, downloadsLabel, isNew, linkPlace, matchLine, moduleTag, pageParam, sizeLabel, statusInfo } from './display';
+import { examLabel } from '../../lib/exams';
 
 const DAY = 24 * 3600 * 1000;
 const NOW = Date.parse('2026-10-12T12:00:00Z');
@@ -35,6 +36,7 @@ function item(patch: Partial<LibraryItem> = {}): LibraryItem {
     isMine: false,
     canEdit: false,
     match: null,
+    coverUrl: null,
     ...patch,
   };
 }
@@ -61,8 +63,6 @@ describe('labels', () => {
   });
 
   it('says where a link leads', () => {
-    expect(linkPlace({ url: 'https://drive.google.com/drive/folders/x' })).toBe('Google Drive');
-    expect(linkPlace({ url: 'https://docs.google.com/document/d/x' })).toBe('Google Drive');
     expect(linkPlace({ url: 'https://vle.example.ac.uk/x' })).toBe('vle.example.ac.uk');
     expect(linkPlace({ url: null })).toBe('another site');
     expect(linkPlace({ url: 'javascript:alert(1)' })).toBe('another site');
@@ -72,7 +72,7 @@ describe('labels', () => {
   it('gives a file’s format and size, and a link’s place', () => {
     expect(sizeLabel(item())).toBe('PDF, 412 KB');
     expect(sizeLabel(item({ format: 'JPG', fileName: 'board.jpg', contentType: 'image/jpeg', sizeBytes: 3.4 * 1024 * 1024 }))).toBe('JPG, 3.4 MB');
-    expect(sizeLabel(item({ source: 'link', url: 'https://drive.google.com/x', format: null, fileName: null, sizeBytes: null }))).toBe('Google Drive');
+    expect(sizeLabel(item({ source: 'link', url: 'https://vle.example.ac.uk/x', format: null, fileName: null, sizeBytes: null }))).toBe('vle.example.ac.uk');
   });
 
   it('tags a module by its code, or its short name', () => {

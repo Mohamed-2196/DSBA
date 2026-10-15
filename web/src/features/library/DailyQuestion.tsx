@@ -6,7 +6,7 @@ import { inDays, type DayKey } from '../../lib/dates';
 import { Button, PageSection, Panel, SectionHeader } from '../../ui';
 import { AddToBoard } from '../board/public';
 import { DAILY_WINDOW_DAYS, dailyQuestion } from './daily';
-import { sittingLabel, zoneLabel } from './display';
+import { sittingLabel, zoneLabel } from '../../lib/exams';
 import { questionHref, useModuleQuestions } from './papers';
 import './DailyQuestion.css';
 

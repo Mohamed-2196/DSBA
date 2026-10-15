@@ -153,9 +153,9 @@ def test_one_search_box_for_everything(content: None, client_for: Clients) -> No
     assert module["snippet"]
     # library items match through their module's name
     assert {h["meta"] for h in res["library"]} == {
-        "ST2133 · Course materials",
-        "ST2133 · Past paper",
-        "ST2133 · Students\u2019 notes",
+        "Course materials · ST2133",
+        "Past paper · ST2133",
+        "Students\u2019 notes · ST2133",
     }
     assert all(h["url"].startswith("/library/st2133-") for h in res["library"])
     # events by title (the October exam names the module)
