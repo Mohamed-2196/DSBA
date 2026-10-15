@@ -12,7 +12,8 @@ import { downloadHref, itemPath, openLinkHref, useFileLink, useLibraryList } fro
 import { EditItemDialog } from './components/EditItemDialog';
 import { FileThumb } from './components/FileThumb';
 import { ReviewActions } from './components/ReviewActions';
-import { examLabel, linkPlace } from './display';
+import { linkPlace } from './display';
+import { examLabel } from '../../lib/exams';
 import { formatOf, kindLabel, previewKind } from './kinds';
 import type { LibraryItem } from './types';
 import './UploadsQueue.css';

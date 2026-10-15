@@ -190,6 +190,8 @@
 .lib-timer__clock { font-size: var(--fs-16); font-weight: var(--fw-heavy); }
 
 .lib-qtags { display: grid; gap: var(--sp-12); }
+.lib-qtags__header { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-8); }
+.lib-qtags__desc { margin: 0; color: var(--ink-2); font-size: var(--fs-13); line-height: 1.4; }
 .lib-qtags__list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
 .lib-qtags__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-8); padding: var(--sp-4) 0; border-bottom: 1px solid var(--line); }
 .lib-qtags__row:last-child { border-bottom: 0; }
@@ -198,8 +200,9 @@ button.lib-qtags__q { min-height: 32px; color: var(--cobalt); text-decoration: u
 .lib-qtags__chapter { flex: 1 1 8rem; min-width: 0; color: var(--ink); overflow-wrap: anywhere; }
 .lib-qtags__flags { color: var(--alert, var(--ink-2)); font-size: var(--fs-12); }
 .lib-qtags__acts { display: inline-flex; gap: 2px; margin-left: auto; }
-.lib-qtags__empty { margin: 0; color: var(--ink-2); }
-.lib-qtags__form { display: grid; gap: var(--sp-12); padding: var(--sp-12); border-radius: var(--r-sm, 8px); background: var(--surface-2); }
+.lib-qtags__empty { display: grid; gap: var(--sp-8); margin: 0; color: var(--ink-2); }
+.lib-qtags__empty p { margin: 0; }
+.lib-qtags__form { display: grid; gap: var(--sp-12); padding: var(--sp-4) 0; }
 .lib-qtags__fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); }
 
 @media (pointer: coarse) {

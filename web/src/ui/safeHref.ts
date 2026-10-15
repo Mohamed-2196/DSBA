@@ -13,9 +13,13 @@ const SPACE_CONTROL_OR_BACKSLASH = /[\u0000-\u0020\u007f-\u00a0\u00ad\u1680\u180
 // Any origin works: an app path must resolve to the origin it is resolved against, whatever that origin is.
 const PROBE_ORIGIN = 'https://hub.invalid';
 
+// The Hub serves its files itself (the Drive import copies the programme's folders into the library), so nothing
+// sends a student to Google Drive or Docs: such a link shows as plain text.
+const GOOGLE_FILE_HOSTS = new Set(['drive.google.com', 'docs.google.com']);
+
 /**
  * internal: a path in this app ('/forum/abc', never '//host', '/\host' or '/\t/host');
- * external: an absolute http(s) or mailto URL; anything else (javascript:, data:, relative junk, a link with
+ * external: an absolute http(s) or mailto URL, except Google Drive and Docs; anything else (javascript:, data:, relative junk, a link with
  * whitespace, a control character or a backslash in it): null, so render the label as plain text.
  */
 export function safeHref(raw: string | null | undefined): SafeHref | null {
@@ -31,6 +35,7 @@ export function safeHref(raw: string | null | undefined): SafeHref | null {
   }
   try {
     const u = new URL(s);
+    if (GOOGLE_FILE_HOSTS.has(u.hostname.toLowerCase())) return null;
     if (u.protocol === 'https:' || u.protocol === 'http:' || u.protocol === 'mailto:') return { kind: 'external', href: u.href };
   } catch {
     /* not a URL */

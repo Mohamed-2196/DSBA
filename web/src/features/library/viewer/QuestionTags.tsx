@@ -1,13 +1,13 @@
 // The paper page's "Questions by topic": tag a question with one of the module's chapters, see the tags, flag a
 // wrong one, remove your own (people who manage the library remove any).
-import { Flag, Trash } from '@phosphor-icons/react';
+import { Flag, Tag, Trash } from '@phosphor-icons/react';
 import { useQuery } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { LibraryItem, PaperQuestion } from '../../../api/types';
 import { useAuth } from '../../../auth';
 import { useToast } from '../../../state';
-import { Button, IconButton, Select, Skeleton, TextField } from '../../../ui';
+import { Button, IconButton, Modal, Select, Skeleton, TextField } from '../../../ui';
 import { moduleDetailQuery } from '../../modules/public';
 import { questionLabel, useFlagQuestion, usePaperQuestions, useRemoveQuestion, useTagQuestion } from '../papers';
 
@@ -66,18 +66,36 @@ function TagRow({ tag, onPage }: { tag: PaperQuestion; onPage: (page: number) =>
   );
 }
 
-/** Shown on a module's published past paper while the feature is on. `onPage` opens the PDF at a page. */
-export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (page: number) => void }) {
-  const { requireAuth, me } = useAuth();
+/** Dialog to tag a question number, page, and chapter in one place. */
+export function TagQuestionDialog({
+  open,
+  onClose,
+  item,
+  chapters,
+}: {
+  open: boolean;
+  onClose: () => void;
+  item: LibraryItem;
+  chapters: Array<{ id: string; title: string }>;
+}) {
   const { push } = useToast();
-  const tags = usePaperQuestions(item.id);
-  const module = useQuery({ ...moduleDetailQuery(item.moduleId ?? ''), enabled: !!item.moduleId });
   const tag = useTagQuestion(item.id);
   const [question, setQuestion] = useState('');
   const [chapter, setChapter] = useState('');
   const [page, setPage] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const chapters = module.data?.chapters ?? [];
+
+  const reset = () => {
+    setQuestion('');
+    setChapter('');
+    setPage('');
+    setError(null);
+  };
+
+  const handleClose = () => {
+    reset();
+    onClose();
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -86,26 +104,97 @@ export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (pag
       setError('Pick the question and the chapter it’s on.');
       return;
     }
-    const run = () =>
-      tag.mutate(
-        { question: Number(question), chapterId: chapter, page: page ? Number(page) : null },
-        {
-          onSuccess: (t) => {
-            push({ title: `Tagged ${questionLabel(t)}: ${t.chapterTitle}`, tone: 'success' });
-            setQuestion('');
-            setPage('');
-          },
-          onError: (err) => setError(isApiError(err) && err.code === 'already_tagged' ? err.message : errorMessage(err)),
+    tag.mutate(
+      { question: Number(question), chapterId: chapter, page: page ? Number(page) : null },
+      {
+        onSuccess: (t) => {
+          push({ title: `Tagged ${questionLabel(t)}: ${t.chapterTitle}`, tone: 'success' });
+          handleClose();
         },
-      );
+        onError: (err) => setError(isApiError(err) && err.code === 'already_tagged' ? err.message : errorMessage(err)),
+      },
+    );
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={handleClose}
+      title="Tag this question"
+      description="Link a question from this paper to its chapter so classmates can find it on the Lessons tab."
+      size="sm"
+      footer={
+        <>
+          <Button variant="ghost" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit" form="tag-question-form" loading={tag.isPending} data-hub="tag-question-submit">
+            Tag question
+          </Button>
+        </>
+      }
+    >
+      <form id="tag-question-form" className="lib-qtags__form" onSubmit={submit} noValidate>
+        <div className="lib-qtags__fields">
+          <Select label="Question" value={question} onChange={(e) => setQuestion(e.target.value)}>
+            <option value="">Pick</option>
+            {QUESTIONS.map((n) => (
+              <option key={n} value={n}>
+                Q{n}
+              </option>
+            ))}
+          </Select>
+          <TextField
+            label="Page"
+            inputMode="numeric"
+            value={page}
+            onChange={(e) => setPage(e.target.value.replace(/\D/g, '').slice(0, 3))}
+            hint="Optional"
+          />
+        </div>
+        <Select label="Chapter" value={chapter} onChange={(e) => setChapter(e.target.value)} error={error ?? undefined}>
+          <option value="">Pick a chapter</option>
+          {chapters.map((c, i) => (
+            <option key={c.id} value={c.id}>
+              {i + 1}. {c.title}
+            </option>
+          ))}
+        </Select>
+      </form>
+    </Modal>
+  );
+}
+
+/** Shown on a module's published past paper while the feature is on. `onPage` opens the PDF at a page. */
+export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (page: number) => void }) {
+  const { requireAuth, me } = useAuth();
+  const tags = usePaperQuestions(item.id);
+  const module = useQuery({ ...moduleDetailQuery(item.moduleId ?? ''), enabled: !!item.moduleId });
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const chapters = module.data?.chapters ?? [];
+  const canTag = me?.status !== 'suspended' && chapters.length > 0;
+
+  const openDialog = () => {
+    const run = () => setDialogOpen(true);
     if (requireAuth('Sign in to tag questions', run)) run();
   };
 
   return (
     <section className="lib-qtags" aria-labelledby="lib-qtags-h" data-hub="question-tags">
-      <h2 id="lib-qtags-h" className="lib-meta__h">
-        Questions by topic
-      </h2>
+      <div className="lib-qtags__header">
+        <h2 id="lib-qtags-h" className="lib-meta__h">
+          Questions by topic
+        </h2>
+        {canTag && tags.data?.length ? (
+          <Button size="sm" variant="secondary" leadingIcon={Tag} onClick={openDialog}>
+            Tag a question
+          </Button>
+        ) : null}
+      </div>
+      <p className="lib-qtags__desc">
+        Practice past questions organized by topic. Tag questions to help classmates revise for each chapter on the Lessons tab.
+      </p>
+
       {tags.isPending ? (
         <Skeleton lines={2} />
       ) : tags.data?.length ? (
@@ -115,40 +204,24 @@ export function QuestionTags({ item, onPage }: { item: LibraryItem; onPage: (pag
           ))}
         </ul>
       ) : (
-        <p className="lib-qtags__empty">No questions tagged yet. Tag one so it shows under its chapter on the Lessons tab.</p>
+        <div className="lib-qtags__empty">
+          <p>No questions tagged yet. Tag one so it shows under its chapter on the Lessons tab.</p>
+          {canTag ? (
+            <Button size="sm" variant="secondary" leadingIcon={Tag} onClick={openDialog}>
+              Tag this question
+            </Button>
+          ) : null}
+        </div>
       )}
-      {me?.status === 'suspended' || !chapters.length ? null : (
-        <form className="lib-qtags__form" onSubmit={submit} noValidate>
-          <div className="lib-qtags__fields">
-            <Select label="Question" value={question} onChange={(e) => setQuestion(e.target.value)}>
-              <option value="">Pick</option>
-              {QUESTIONS.map((n) => (
-                <option key={n} value={n}>
-                  Q{n}
-                </option>
-              ))}
-            </Select>
-            <TextField
-              label="Page"
-              inputMode="numeric"
-              value={page}
-              onChange={(e) => setPage(e.target.value.replace(/\D/g, '').slice(0, 3))}
-              hint="Optional"
-            />
-          </div>
-          <Select label="Chapter" value={chapter} onChange={(e) => setChapter(e.target.value)} error={error ?? undefined}>
-            <option value="">Pick a chapter</option>
-            {chapters.map((c, i) => (
-              <option key={c.id} value={c.id}>
-                {i + 1}. {c.title}
-              </option>
-            ))}
-          </Select>
-          <Button type="submit" loading={tag.isPending} fullWidth>
-            Tag the question
-          </Button>
-        </form>
-      )}
+
+      {dialogOpen ? (
+        <TagQuestionDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          item={item}
+          chapters={chapters}
+        />
+      ) : null}
     </section>
   );
 }

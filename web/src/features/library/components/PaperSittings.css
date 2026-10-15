@@ -1,35 +1,54 @@
-/* The Files tab's past papers by sitting. */
-.lib-sit__list { margin: 0; padding: 0; list-style: none; }
-.lib-sit { display: grid; grid-template-columns: 9rem minmax(0, 1fr); align-items: baseline; gap: var(--sp-8) var(--sp-16); padding: var(--sp-12) var(--sp-16); border-bottom: 1px solid var(--line); }
-.lib-sit:last-child { border-bottom: 0; }
-.lib-sit__when { margin: 0; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-bold); }
-.lib-sit__zones { display: flex; flex-wrap: wrap; gap: var(--sp-8) var(--sp-24); min-width: 0; }
-.lib-sit__zone { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); min-width: 0; }
-.lib-sit__zone-name { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
-.lib-sit__files { display: flex; flex-wrap: wrap; gap: var(--sp-8); margin: 0; padding: 0; list-style: none; }
-.lib-sit__file {
+/* The Files tab's past papers: sittings, newest first, each a row of paper cards with their real first pages. */
+.pp__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-12) var(--sp-16); }
+.pp__head .lib-mf__h { flex: 1 1 16rem; align-items: center; margin: 0; }
+.pp__icon { flex: 0 0 auto; width: 20px; height: 20px; color: var(--ink-2); }
+.pp__head .ui-seg { max-width: 100%; }
+.pp__intro { max-width: 70ch; margin: 0; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.45; }
+.pp__note { max-width: 70ch; margin: 0; color: var(--ink-2); font-size: var(--fs-12); }
+.pp__more { display: flex; justify-content: center; }
+.pp__sittings { margin: 0; padding: 0; list-style: none; }
+
+.pp-sitting { display: grid; gap: var(--sp-12); padding: var(--sp-16); border-bottom: 1px solid var(--line); }
+.pp-sitting:last-child { border-bottom: 0; }
+.pp-sitting__when { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-4) var(--sp-12); margin: 0; color: var(--ink); font-size: var(--fs-16); font-weight: var(--fw-bold); }
+.pp-sitting__kind { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+.pp-sitting__none { color: var(--ink-3); font-size: var(--fs-12); font-weight: var(--fw-medium); }
+
+.pp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: var(--sp-16); margin: 0; padding: 0; list-style: none; }
+.pp-card { display: grid; grid-template-rows: auto 1fr; min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-panel); background: var(--surface); }
+.pp-card__cover {
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-16) var(--sp-12) 0;
+  overflow: hidden;
+  height: 168px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+}
+.pp-card__cover .lib-thumb { align-self: flex-start; }
+.pp-card__cover:hover .lib-thumb__sheet { box-shadow: 0 0 0 1px var(--ink-3), 0 6px 18px rgb(0 0 0 / 12%); }
+.pp-card__body { display: grid; align-content: start; gap: var(--sp-8); padding: var(--sp-12); }
+.pp-card__name { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-8); margin: 0; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-bold); }
+.pp-card__more { display: flex; flex-wrap: wrap; gap: var(--sp-4) var(--sp-12); margin: 0; padding: 0; list-style: none; }
+.pp-card__link {
   display: inline-flex;
   align-items: center;
+  gap: var(--sp-4);
   min-height: 32px;
-  padding: 2px 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--ink);
+  color: var(--cobalt);
   font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
   text-decoration: none;
-  white-space: nowrap;
 }
-.lib-sit__file:hover { border-color: var(--ink-3); background: var(--surface-2); }
-.lib-sit__none { margin: 0; color: var(--ink-3); font-size: var(--fs-12); align-self: center; }
-.lib-sit__note { max-width: 75ch; margin: 0; color: var(--ink-2); font-size: var(--fs-12); }
-.lib-sit__more { display: flex; justify-content: center; }
+.pp-card__link:hover { text-decoration: underline; text-underline-offset: 0.18em; }
 
 @media (pointer: coarse) {
-  .lib-sit__file { min-height: 44px; padding: 0 16px; }
+  .pp-card__link { min-height: 44px; }
 }
 
 @media (max-width: 699px) {
-  .lib-sit { grid-template-columns: minmax(0, 1fr); padding: var(--sp-12); }
+  .pp-sitting { padding: var(--sp-12); }
+  .pp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-12); }
+  .pp-card__cover { height: 136px; padding: var(--sp-12) var(--sp-8) 0; }
+  .pp-card__cover .lib-thumb { --s: 0.15; }
 }

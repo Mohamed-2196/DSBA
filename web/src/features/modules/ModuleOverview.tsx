@@ -1,49 +1,46 @@
-// Overview tab: the module's shared folders (each opens in a new tab), a way into its library files and to share
-// one (decision D6: contributing means uploading), progress, "Pick up where you left off" and the module's upcoming
-// dates from the calendar.
-import { ArrowSquareOut, CalendarBlank, CheckCircle, Files, UploadSimple } from '@phosphor-icons/react';
+// Overview tab: the module's shelves (books, past papers, notes, ... each opening the Files tab at its part), a way to
+// share a file (decision D6: contributing means uploading), progress, "Pick up where you left off" and the module's
+// upcoming dates from the calendar.
+import { CalendarBlank, CheckCircle, Files, UploadSimple } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { ModuleDetail } from '../../api/types';
 import { useAuth } from '../../auth';
 import { cohortColor } from '../../state';
-import { Button, Panel, SectionHeader, Skeleton, countOf, cx, formatDate } from '../../ui';
+import { Badge, Button, Panel, SectionHeader, Skeleton, countOf, cx, formatDate } from '../../ui';
 import { daysUntil } from '../../lib/dates';
 import { typeLabel } from '../calendar/public';
 import { useModuleDates } from './exams';
 import { chapterPosition, lastOpenedLabel, lessonHref } from './lessons';
 import { MiniPoster } from './Poster';
 import { computeChapterProgress, type ProgressState, type ResumeKind, type ResumePoint } from './progress';
-import { buildResources, joinAnd, type ResourceEntry } from './resources';
+import { buildShelves, joinAnd, type Shelf } from './resources';
 
 const PICKUP_TITLE: Record<ResumeKind, string> = { resume: 'Pick up where you left off', next: 'Up next', start: 'Start the lessons', done: 'All lessons watched' };
 const PICKUP_ACTION: Record<ResumeKind, string> = { resume: 'Resume lesson', next: 'Continue', start: 'Start lesson 1', done: 'Watch again' };
 const MAX_CHAPTERS = 6;
 
-function ResourceRow({ entry }: { entry: ResourceEntry }) {
-  const Icon = entry.icon;
+function ShelfRow({ shelf, onTab }: { shelf: Shelf; onTab: (tab: string, hash?: string) => void }) {
+  const Icon = shelf.icon;
   return (
-    <div className={cx('mod-res__entry', `mod-res__entry--${entry.id}`)}>
+    <div className={cx('mod-res__entry', `mod-res__entry--${shelf.kind}`)} data-hub="module-shelf">
       <dt className="mod-res__label">
         <Icon weight="duotone" className="mod-res__icon" aria-hidden="true" />
-        <span>{entry.label}</span>
+        <span>{shelf.label}</span>
       </dt>
       <dd className="mod-res__body">
-        {entry.description ? <p className="mod-res__desc">{entry.description}</p> : null}
-        {entry.note ? (
-          <blockquote className="mod-res__note">
-            <p>{entry.note}</p>
-          </blockquote>
-        ) : null}
-        {entry.links.length ? (
-          <div className="mod-res__actions">
-            {entry.links.map((l) => (
-              <Button key={l.href + l.label} size="sm" href={l.href} trailingIcon={ArrowSquareOut} aria-label={l.ariaLabel}>
-                {l.label}
-              </Button>
-            ))}
-          </div>
-        ) : null}
+        <p className="mod-res__desc">{shelf.beingAdded ? 'Being added: these files are on their way into the Hub. Check back soon.' : shelf.description}</p>
+        <div className="mod-res__actions">
+          {shelf.beingAdded ? (
+            <Badge tone="neutral" size="sm">
+              Being added
+            </Badge>
+          ) : (
+            <Button size="sm" leadingIcon={Files} onClick={() => onTab('files', shelf.hash)} aria-label={`${shelf.label}: ${countOf(shelf.files, 'file')}`}>
+              {shelf.kind === 'past-paper' ? 'See past papers' : `Open ${countOf(shelf.files, 'file')}`}
+            </Button>
+          )}
+        </div>
       </dd>
     </div>
   );
@@ -236,13 +233,13 @@ export function ModuleOverview({
   /** null while the library is switched off */
   libraryCount: number | null;
   onOpenLesson: (c: number, v: number) => void;
-  onTab: (tab: string) => void;
+  onTab: (tab: string, hash?: string) => void;
   /** Open the library's upload dialog for this module (guests sign in first); null while uploading isn't offered. */
   onUpload: (() => void) | null;
 }) {
   const { featureOn } = useAuth();
   const libraryOn = featureOn('library');
-  const { entries, missing } = useMemo(() => buildResources(m), [m]);
+  const { shelves, missing } = useMemo(() => buildShelves(m), [m]);
   const name = m.unitCode || m.name;
 
   return (
@@ -251,7 +248,7 @@ export function ModuleOverview({
         <SectionHeader
           id="mod-res-title"
           title="Resources"
-          description={libraryOn ? 'The module’s shared folders open in a new tab. Files students share are in the library.' : 'The module’s shared folders open in a new tab.'}
+          description="Everything opens here in the Hub: read it in your browser or download it."
           action={
             libraryOn ? (
               <Button variant="ghost" size="sm" leadingIcon={Files} onClick={() => onTab('files')} className="mod-ov__files">
@@ -262,15 +259,15 @@ export function ModuleOverview({
         />
         <Panel as="div" padding="none" className="mod-res" data-hub="module-resources">
           <dl className="mod-res__list">
-            {entries.map((e) => (
-              <ResourceRow key={e.id} entry={e} />
+            {shelves.map((sh) => (
+              <ShelfRow key={sh.kind} shelf={sh} onTab={onTab} />
             ))}
-            {libraryOn ? <LibraryRow count={libraryCount} name={name} onTab={onTab} onUpload={onUpload} /> : null}
+            {libraryOn && !shelves.length ? <LibraryRow count={libraryCount} name={name} onTab={onTab} onUpload={onUpload} /> : null}
           </dl>
-          {missing.length ? (
+          {libraryOn && missing.length ? (
             <div className="mod-res__missing">
               <p>
-                <span className="mod-res__missing-label">No shared folder yet for</span> {joinAnd(missing)}.
+                <span className="mod-res__missing-label">Nobody has shared</span> {joinAnd(missing)} for {name} yet.
               </p>
               {onUpload ? (
                 <Button size="sm" variant="ghost" leadingIcon={UploadSimple} onClick={onUpload}>

@@ -468,7 +468,7 @@ export default function AccountPage() {
       ) : null}
 
       <PageSection aria-labelledby="acct-papers">
-        <SectionHeader id="acct-papers" title="Your papers" description="Your option, electives and any paper from another year, and your zone. Only you see them." />
+        <SectionHeader id="acct-papers" title="Your modules" description="Your option or electives, any module from another year, and your exam zone. Only you see them." />
         <PapersButton />
       </PageSection>
 
