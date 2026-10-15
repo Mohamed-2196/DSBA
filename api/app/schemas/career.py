@@ -1,22 +1,27 @@
-"""The Career Navigator's content: one document that admins replace as a whole (PUT /career).
+"""The Career Navigator's content: one document that holders of career.edit save as a whole (PUT /career).
 
-Typed (code quality review CQ-4) so the API refuses what the page can't show, and the web app's types are generated
-from these models. Ids are short slugs that the document's parts refer to each other by (a role's skills, an
-employer's tracks, a certificate's roles); the API checks those references, and that module ids name real modules.
-Links to other sites are https://; links inside the Hub are pages of it ('/forum/new?title=…')."""
+Typed so the API refuses what the page can't show, and the web app's types are generated from these models. Ids are
+short slugs that the document's parts refer to each other by (a role's skills, an employer's tracks, a certificate's
+roles); the API checks those references, and that module ids name real modules. Links to other sites are https://;
+links inside the Hub are pages of it ('/forum/new?title=…').
+
+Tracks, employers, certificates, roles and checklist items can be hidden: the editor keeps them, the public page
+doesn't show them (services/career.py public_doc)."""
 
 from __future__ import annotations
 
 from collections.abc import Iterable
+from datetime import datetime
 from typing import Annotated, Literal
+from uuid import UUID
 
 from pydantic import Field, StringConstraints, model_validator
 from pydantic_core import PydanticCustomError
 
-from app.schemas.common import ApiModel
+from app.schemas.common import ApiModel, UserPublic
 from app.schemas.links import HttpsUrl, HubLink
 
-# An id the document refers to (also an employer's logo file name: public/logos/employers/<id>.png).
+# An id the document refers to (also the name of a bundled logo file: public/logos/employers/<id>.png).
 CareerId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", min_length=1, max_length=64)]
 ModuleId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", min_length=1, max_length=64)]
 Mono = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=6)]  # initials on a tile
@@ -36,6 +41,15 @@ class CareerTrack(ApiModel):
     short: Short
     about: Text
     modules: list[ModuleId] = Field(default=[], max_length=20)  # the closest modules, by id
+    hidden: bool = False
+
+
+class CareerLogo(ApiModel):
+    """A logo an editor uploaded (purpose career_logo), served by GET /career/logos/{uploadId}. Only an organisation's
+    own logo file, used with its permission: `permission` says who agreed and when."""
+
+    upload_id: UUID
+    permission: Text
 
 
 class CareerOffer(ApiModel):
@@ -55,6 +69,8 @@ class CareerEmployer(ApiModel):
     why: Text
     url: HttpsUrl  # its own careers or programme page
     cta: CareerCta
+    logo: CareerLogo | None = None  # None: the bundled file if there is one, else the initials
+    hidden: bool = False
 
 
 class FeaturedLogo(ApiModel):
@@ -98,6 +114,8 @@ class CareerCert(ApiModel):
     covers: list[ModuleId] = Field(default=[], max_length=20)  # modules that already teach part of it
     covers_note: Text | None = None
     roles: list[CareerId] = Field(default=[], max_length=20)  # role ids it helps with
+    logo: CareerLogo | None = None
+    hidden: bool = False
 
 
 # What to do about a skill DSBA never takes past an intro.
@@ -144,6 +162,7 @@ class CareerRole(ApiModel):
     skills: list[CareerId] = Field(default=[], max_length=30)  # skill ids, most important first
     ask: Text  # the question "Ask seniors about this role" starts a thread with
     close: dict[CareerId, CloseStep] = Field(default={})  # this role's own step for a skill (by skill id)
+    hidden: bool = False
 
 
 class SkillTaught(ApiModel):
@@ -186,6 +205,7 @@ class CareerChecklistItem(ApiModel):
     title: Name
     hint: Text
     link: ChecklistLink | None = None
+    hidden: bool = False
 
 
 class OfferTypeLabel(ApiModel):
@@ -266,6 +286,11 @@ class CareerDoc(ApiModel):
         tracks, roles, skills = {t.id for t in self.tracks}, {r.id for r in self.roles}, set(self.skills)
         certs, employers = {c.id for c in self.certs}, {e.id for e in self.employers}
         _known([self.default_role_id], roles, "role")
+        if any(r.hidden for r in self.roles if r.id == self.default_role_id):
+            raise PydanticCustomError("hidden_default", "The role the page opens on can't be hidden.")
+        logos = [x.upload_id for x in self._logo_list()]
+        if len(set(logos)) != len(logos):
+            raise PydanticCustomError("shared_logo", "Two employers or certificates use the same logo file.")
         _known((t for e in self.employers for t in e.tracks), tracks, "track")
         _known((s for r in self.roles for s in [*r.skills, *r.close]), skills, "skill")
         _known((r for c in self.certs for r in c.roles), roles, "role")
@@ -291,3 +316,33 @@ class CareerDoc(ApiModel):
         refs += [x.module for x in steps if isinstance(x, CloseLesson | CloseFile)]
         refs += [i.link.module for i in self.checklist if isinstance(i.link, ChecklistLesson)]
         return [*refs, *self.chosen]
+
+    def logo_uploads(self) -> set[UUID]:
+        """The uploads the document's logos are (each is attached while the document uses it)."""
+        return {x.upload_id for x in self._logo_list()}
+
+    def _logo_list(self) -> list[CareerLogo]:
+        return [e.logo for e in self.employers if e.logo] + [c.logo for c in self.certs if c.logo]
+
+
+class CareerContent(ApiModel):
+    """Career Navigator as the public page shows it (hidden parts left out). `data` is None until it is loaded."""
+
+    data: CareerDoc | None
+    updated_at: datetime | None
+
+
+class CareerEditable(ApiModel):
+    """The whole document for its editors, hidden parts included, with the version a save must name."""
+
+    data: CareerDoc | None
+    version: int  # 0 until the document exists
+    updated_at: datetime | None
+    updated_by: UserPublic | None
+
+
+class CareerSave(ApiModel):
+    """PUT /career: the whole document, and the version it was edited from."""
+
+    version: int = Field(ge=0)
+    data: CareerDoc

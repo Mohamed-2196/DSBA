@@ -1,4 +1,4 @@
-"""The content area's shared rules (library, calendar, newsletter, career), and the Career Navigator document.
+"""The content area's shared rules (library, calendar, newsletter, career).
 
 - apply_patch(): one way to apply a PATCH body (fields that are not sent stay; null clears what may be cleared).
 - record(): every audit row about content names its target in `data.title`, for the activity log (ST-9).
@@ -12,17 +12,8 @@ from typing import Any
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.core.errors import invalid
-from app.core.links import json_size
-from app.core.time import utcnow
-from app.models import ContentDoc, User
-from app.schemas.career import CareerDoc
-from app.schemas.misc import CareerContent
+from app.models import User
 from app.services import audit
-from app.services.modules import unknown_modules
-
-CAREER_KEY = "career"
-CAREER_MAX_BYTES = 512 * 1024  # as JSON; the launch document is about 40 KB
 
 
 def apply_patch(
@@ -72,40 +63,3 @@ def record(
 ) -> None:
     """An audit row about content: `data.title` names what it was about ("published “ST2133 notes”")."""
     audit.record(db, actor, action, target_type, target_id, {"title": title, **data}, ip=ip)
-
-
-# ── the Career Navigator ─────────────────────────────────────────────────────────────────────
-
-
-def career(db: Session) -> CareerContent:
-    """The document, or no data until it is loaded."""
-    doc = db.get(ContentDoc, CAREER_KEY)
-    if doc is None:
-        return CareerContent(data=None, updated_at=None)
-    return CareerContent(data=CareerDoc.model_validate(doc.data), updated_at=doc.updated_at)
-
-
-def stored_career(body: CareerDoc) -> dict[str, Any]:
-    """The document as it is stored: camelCase JSON with every field, nulls included (`featured` and `furtherStudy`
-    must be present, even empty), so it reads back exactly as it was written."""
-    return body.model_dump(mode="json", by_alias=True)
-
-
-def replace_career(db: Session, user: User, body: CareerDoc, ip: str | None) -> CareerContent:
-    """Replaces the whole document (admins). Every module it names must exist; 512 KB of JSON at most."""
-    data = stored_career(body)
-    size = json_size(data)
-    if size > CAREER_MAX_BYTES:
-        raise invalid("request", "This document is too large.")
-    missing = unknown_modules(db, body.module_refs())
-    if missing:
-        raise invalid("request", f"There is no module “{missing[0]}”.")
-    doc = db.get(ContentDoc, CAREER_KEY)
-    if doc is None:
-        doc = ContentDoc(key=CAREER_KEY)
-        db.add(doc)
-    doc.data = data
-    doc.updated_at = utcnow()
-    doc.updated_by = user.id
-    record(db, user, "career.update", "content_doc", CAREER_KEY, "Career Navigator", ip, bytes=size)
-    return CareerContent(data=body, updated_at=doc.updated_at)

@@ -14,6 +14,9 @@
 // ?month=YYYY-MM (the month grid), ?cohort=all, ?types=exam,mock (comma list of event types; 'mine' for their own),
 // ?view=month (phones and tablets: the month instead of the list).
 export { UpcomingEvents } from './UpcomingEvents';
+//   <EventFormDialog open event preset? onClose onSaved />   add or edit a date (holders of calendar.manage);
+//                                            `preset` fills a new one (Career Navigator's editor: a careers date).
+export { EventFormDialog } from './EventFormDialog';
 export { useCalendarEvents, useNextExamForModule } from './api';
 export { applicationLine, EVENT_TYPES, TYPE_ORDER, typeLabel } from './eventMeta';
 export { dayKeyFromToday, eventDate } from './queries';

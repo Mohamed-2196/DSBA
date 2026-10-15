@@ -38,6 +38,28 @@ const driveImport = (d: Record<string, unknown>): string => {
   return `imported ${formatCount(n)} ${n === 1 ? 'file' : 'files'} from Google Drive${notes.length ? ` (${notes.join(', ')})` : ''}`;
 };
 
+/** Career Navigator's parts, as its editor names them. */
+const CAREER_PARTS: Record<string, string> = {
+  employers: 'employers',
+  tracks: 'tracks',
+  roles: 'roles',
+  defaultRoleId: 'the first role',
+  skills: 'skills',
+  chosen: 'electives',
+  certs: 'certificates',
+  certNote: 'certificates',
+  featured: 'the featured competition',
+  checklist: 'the checklist',
+  furtherStudy: 'further study',
+  checkedOn: 'the date links were checked',
+  initialCount: 'page text',
+  offerTypes: 'page text',
+  ctaLabel: 'page text',
+  effortLabel: 'page text',
+  depthLabel: 'page text',
+  yearHints: 'page text',
+};
+
 /** An admin's identifier change (account recovery): data.from and data.to are masked ("s•••@example.com"). */
 const IDENTIFIER_NOUN: Record<string, string> = { email: 'email address', phone: 'phone number' };
 
@@ -93,7 +115,10 @@ const ACTIONS: Record<string, Describe> = {
   'newsletter.update': (d) => `edited the newsletter issue${quoted(d.title) || ' (untitled)'}`,
   'newsletter.publish': (d) => `published the newsletter issue${quoted(d.title) || ' (untitled)'}`,
   'newsletter.delete': (d) => `deleted the newsletter issue${quoted(d.title) || ' (untitled)'}`,
-  'career.update': () => 'updated the Career Navigator',
+  'career.update': (d) => {
+    const parts = [...new Set(names(d.parts).map((p) => CAREER_PARTS[p] ?? p))];
+    return parts.length ? `edited Career Navigator: ${parts.join(', ')}` : 'edited Career Navigator';
+  },
   'suggestion.accept': (d) => `added a suggested video as a lesson:${quoted(d.title)}`,
   'suggestion.decline': (d) => `declined a suggested video:${quoted(d.title)}`,
 };

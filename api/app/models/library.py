@@ -180,12 +180,13 @@ class UploadPurpose(enum.StrEnum):
     bug_screenshot = "bug_screenshot"  # a screenshot attached to a bug report
     board = "board"  # a file or picture on a board card
     note_file = "note_file"  # a picture, file or PDF in a student's own note
+    career_logo = "career_logo"  # an employer's or a certificate's logo on Career Navigator
 
 
 class UploadStatus(enum.StrEnum):
     pending = "pending"  # a presigned upload was handed out; the object may not exist yet
     uploaded = "uploaded"  # the object exists and matched what was declared
-    attached = "attached"  # in use by an item, post, issue, bug report, card or note
+    attached = "attached"  # in use by an item, post, issue, bug report, card, note or logo
 
 
 class Upload(Base):

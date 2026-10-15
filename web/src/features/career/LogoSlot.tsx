@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import type { CareerLogo } from '../../api/types';
 import { cx } from '../../ui';
-import { logoUrl, type LogoKind } from './lib/logos';
+import { logoSrc, type LogoKind } from './lib/logos';
 import './LogoSlot.css';
 
 type LogoState = 'loading' | 'ok' | 'missing';
@@ -11,8 +12,10 @@ const seen = new Map<string, LogoState>();
 
 export interface LogoSlotProps {
   kind?: LogoKind;
-  /** Data id, which is also the file name. */
+  /** Data id, which is also the bundled file's name. */
   id: string;
+  /** The logo an editor uploaded; without one, the bundled file. */
+  logo?: CareerLogo | null;
   /** One to four characters for the fallback tile. */
   mono?: string;
   size?: 'sm' | 'md';
@@ -20,14 +23,15 @@ export interface LogoSlotProps {
 }
 
 /**
- * A slot for an official logo, supplied as a file: public/logos/employers/<id>.png or public/logos/certs/<id>.png.
+ * A slot for an official logo: the one an editor uploaded with the organisation's permission, else a bundled file
+ * (public/logos/employers/<id>.png or public/logos/certs/<id>.png).
  * The image sits on a white rounded tile (contain, padded, a fixed box) so marks of any shape line up across a grid.
  * Until the file exists the slot shows a neutral monogram tile: the organisation's initials in the app's own type and
  * palette. Nothing here draws, traces or colours a brand mark.
  * Decorative: the organisation's name is always printed next to the slot.
  */
-export function LogoSlot({ kind = 'employer', id, mono = '', size = 'md', className }: LogoSlotProps) {
-  const src = logoUrl(kind, id);
+export function LogoSlot({ kind = 'employer', id, logo, mono = '', size = 'md', className }: LogoSlotProps) {
+  const src = logoSrc(kind, id, logo);
   const [state, setState] = useState<LogoState>(() => seen.get(src) ?? 'loading');
   const settle = (next: LogoState) => {
     seen.set(src, next);

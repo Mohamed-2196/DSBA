@@ -15,7 +15,7 @@ const mod = (id: string, year: 1 | 2 | 3): ModuleSummary => ({
   libraryCount: null,
 });
 
-const role = (id: string, skills: string[]): CareerRole => ({ id, label: id, title: id, about: '', tools: [], skills, ask: '', close: {} });
+const role = (id: string, skills: string[]): CareerRole => ({ id, label: id, title: id, about: '', tools: [], skills, ask: '', close: {}, hidden: false });
 
 // Only the fields electives() reads; the rest of the document doesn't matter here.
 const doc = {

@@ -27,7 +27,7 @@ function Effort({ level }: { level: CareerCert['effort'] }) {
   );
 }
 
-function CertCard({ cert }: { cert: CareerCert }) {
+export function CertCard({ cert }: { cert: CareerCert }) {
   const { getModule } = useModules();
   const modules = cert.covers.map((id) => getModule(id)).filter((m): m is ModuleSummary => m !== null);
   const url = webUrl(cert.url);
@@ -36,7 +36,7 @@ function CertCard({ cert }: { cert: CareerCert }) {
     <Panel as="li" padding="none" id={`career-cert-${cert.id}`} className="career-cert" data-hub="career-cert" data-cert-id={cert.id}>
       <div className="career-cert__top">
         {url ? (
-          <LogoSlot kind="cert" id={cert.id} mono={cert.mono ?? ''} />
+          <LogoSlot kind="cert" id={cert.id} logo={cert.logo} mono={cert.mono ?? ''} />
         ) : (
           // Self-study has no issuer and so no logo: a generic icon keeps the same box.
           <span className="career-cert__icon" aria-hidden="true">

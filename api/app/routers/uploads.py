@@ -28,15 +28,16 @@ def create_upload(body: UploadCreate, user: ActiveUser, db: DB) -> PresignedUplo
     DSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; newsletter_image (people who
     manage the newsletter) and bug_screenshot (anyone signed in): PNG, JPEG, WebP up to DSBA_MAX_IMAGE_MB; board
     (a file on a board card): the library's types and GIF, up to DSBA_MAX_UPLOAD_MB; note_file: the library's types
-    and GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room. The extension must match the
-    declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file as
-    `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.
+    and GIF, up to DSBA_MAX_UPLOAD_MB, while the student's notebooks have room; career_logo: PNG, JPEG, WebP up to
+    DSBA_MAX_IMAGE_MB. The extension must match the declared type (for .ipynb and .r, `application/octet-stream` is
+    accepted too). POST `fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads
+    per hour.
 
     Errors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting
     for review; library only), storage_full (409: board only), notes_full (409: note_file only), rate_limited (429),
     forbidden (403: no library.upload, no forum.post for a forum picture, no newsletter.manage for a newsletter
-    picture), feature_off (404: the library, its uploads, the forum, the newsletter, the boards or the notebook
-    are switched off)."""
+    picture, no career.edit for a logo), feature_off (404: the library, its uploads, the forum, the newsletter,
+    the boards, the notebook or Career Navigator are switched off)."""
     purpose = UploadPurpose(body.purpose)
     svc.require_features(db, user, purpose)
     svc.require_box(user, purpose)

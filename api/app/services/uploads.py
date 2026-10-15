@@ -26,7 +26,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.core.access import Box, Feature
 from app.core.errors import ApiError, conflict, not_found
-from app.core.links import media_path
+from app.core.links import career_logo_path, media_path
 from app.core.time import utcnow
 from app.models import (
     ForumReply,
@@ -94,7 +94,7 @@ IMAGE_TYPES: dict[str, FileType] = {
     "webp": _WEBP,
     "gif": FileType("image/gif", (), (b"GIF87a", b"GIF89a")),
 }
-# Newsletter pictures and bug screenshots: still images only.
+# Newsletter pictures, bug screenshots and organisation logos: still images only (no SVG, never a GIF).
 PICTURE_TYPES: dict[str, FileType] = {"png": _PNG, "jpg": _JPEG, "jpeg": _JPEG, "webp": _WEBP}
 ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
     UploadPurpose.library: LIBRARY_TYPES,
@@ -103,6 +103,7 @@ ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
     UploadPurpose.bug_screenshot: PICTURE_TYPES,
     UploadPurpose.board: LIBRARY_TYPES | IMAGE_TYPES,  # a card holds files and pictures
     UploadPurpose.note_file: LIBRARY_TYPES | IMAGE_TYPES,  # a note's pictures, files and the PDFs it writes over
+    UploadPurpose.career_logo: PICTURE_TYPES,
 }
 # Shown in the browser (PDF viewer, <img>): storage.INLINE_TYPES. Everything else downloads as an attachment.
 IMAGE_CONTENT_TYPES = frozenset(t.content_type for t in IMAGE_TYPES.values())
@@ -116,6 +117,7 @@ FINAL_PREFIXES: dict[UploadPurpose, str] = {
     UploadPurpose.bug_screenshot: "bugs",
     UploadPurpose.board: "board",
     UploadPurpose.note_file: "notes",
+    UploadPurpose.career_logo: "career",
 }
 # The box an upload of each purpose needs (None: any active account).
 PURPOSE_BOXES: dict[UploadPurpose, Box | None] = {
@@ -125,6 +127,7 @@ PURPOSE_BOXES: dict[UploadPurpose, Box | None] = {
     UploadPurpose.bug_screenshot: None,
     UploadPurpose.board: None,
     UploadPurpose.note_file: None,
+    UploadPurpose.career_logo: Box.career_edit,
 }
 
 
@@ -166,7 +169,7 @@ def serve_type(file_name: str | None) -> str:
 
 def limit_bytes(purpose: UploadPurpose) -> int:
     s = get_settings()
-    mb = s.max_image_mb if purpose in IMAGE_PURPOSES else s.max_upload_mb
+    mb = s.max_image_mb if purpose in IMAGE_PURPOSES or purpose == UploadPurpose.career_logo else s.max_upload_mb
     return mb * 1024 * 1024
 
 
@@ -178,8 +181,18 @@ def _final_key(up: Upload) -> str:
     return f"{FINAL_PREFIXES[up.purpose]}/{uuid.uuid4()}/{safe_file_name(up.file_name)}"
 
 
+def _shown_at(up: Upload) -> str | None:
+    """Where a checked picture is shown from: a picture's /media link, or a logo's /career/logos link."""
+    if up.status == UploadStatus.pending:
+        return None
+    if up.purpose in IMAGE_PURPOSES:
+        return media_url(up.id)
+    if up.purpose == UploadPurpose.career_logo:
+        return career_logo_path(up.id)
+    return None
+
+
 def to_out(up: Upload) -> UploadOut:
-    is_image = up.purpose in IMAGE_PURPOSES and up.status != UploadStatus.pending
     return UploadOut.model_validate(
         {
             "upload_id": up.id,
@@ -187,7 +200,7 @@ def to_out(up: Upload) -> UploadOut:
             "file_name": up.file_name,
             "content_type": up.content_type,
             "size_bytes": up.size_bytes,
-            "media_url": media_url(up.id) if is_image else None,
+            "media_url": _shown_at(up),
         }
     )
 
@@ -200,6 +213,8 @@ def _unsupported(purpose: UploadPurpose) -> ApiError:
         msg = "Use a PNG, JPEG, WebP or GIF image."
     elif purpose in IMAGE_PURPOSES:
         msg = "Use a PNG, JPEG or WebP image."
+    elif purpose == UploadPurpose.career_logo:
+        msg = "Use the logo as a PNG, JPEG or WebP picture."
     elif purpose == UploadPurpose.board:
         msg = (
             "Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, "
@@ -305,6 +320,7 @@ PURPOSE_FEATURES: dict[UploadPurpose, tuple[Feature, ...]] = {
     UploadPurpose.bug_screenshot: (),  # bug reports have no switch
     UploadPurpose.board: (Feature.board,),
     UploadPurpose.note_file: (Feature.notes,),
+    UploadPurpose.career_logo: (Feature.career,),
 }
 
 

@@ -4,6 +4,7 @@ import { Badge } from '../../ui';
 import { hostOf } from '../../lib/share';
 import { useCareerData } from './context';
 import { webUrl } from './lib/links';
+import { logoOf } from './lib/logos';
 import { LogoSlot } from './LogoSlot';
 
 /**
@@ -11,12 +12,13 @@ import { LogoSlot } from './LogoSlot';
  * is the programme office (no deadline is shown, and none is invented).
  */
 export function FeaturedCompetition() {
-  const { featured: f } = useCareerData();
+  const doc = useCareerData();
+  const f = doc.featured;
   if (!f) return null;
   const url = webUrl(f.url);
   return (
     <aside id={`career-opp-${f.id}`} className="career-featured" aria-labelledby="career-featured-title" data-hub="career-featured" data-opp-id={f.id}>
-      <LogoSlot kind={f.logo.kind} id={f.logo.id} mono={f.mono} size="sm" />
+      <LogoSlot kind={f.logo.kind} id={f.logo.id} logo={logoOf(doc, f.logo.kind, f.logo.id)} mono={f.mono} size="sm" />
       <div className="career-featured__text">
         <div className="career-featured__head">
           <h2 id="career-featured-title" className="career-featured__title">

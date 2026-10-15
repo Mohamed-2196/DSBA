@@ -235,7 +235,7 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
     assert rep.patch(f"{API}/library/items/{moved.id}", json={"moduleId": elsewhere.id}).status_code == 200
     career = {**read("career"), "checkedOn": "1 January 2027"}
     admin = client_for(make_user(name="Admin", roles=("student", "admin")))
-    assert admin.put(f"{API}/career", json=career).status_code == 200
+    assert admin.put(f"{API}/career", json={"version": 1, "data": career}).status_code == 200
 
     again = load_all(db)
     db.commit()

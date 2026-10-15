@@ -15,6 +15,7 @@ import { typeLabel } from './eventMeta';
 import { ForYou } from './ForYou';
 import { myCalendar, occurrenceId } from './mine';
 import { MyEventDialog } from './MyEventDialog';
+import { useEmployers } from '../career/public';
 import { PapersDialog, usePapers } from '../papers/public';
 import { SubscribeDialog } from './SubscribeDialog';
 import type { CalendarEvent, PersonalEvent } from './types';
@@ -27,8 +28,9 @@ export default function CalendarPage() {
   const query = useCalendarEvents();
   const { year } = useYear();
   const { papers } = usePapers();
-  const { can, requireAuth } = useAuth();
+  const { can, featureOn, requireAuth } = useAuth();
   const manages = can('calendar.manage');
+  const employers = useEmployers(featureOn('career'));
   const my = useMyCalendar();
   const [subscribing, setSubscribing] = useState(false);
   const [customising, setCustomising] = useState(false);
@@ -93,7 +95,7 @@ export default function CalendarPage() {
         />
       ) : null}
       <PapersDialog open={pickingPapers} onClose={() => setPickingPapers(false)} />
-      <EventEditor editing={editing} onClose={() => setEditing(null)} />
+      <EventEditor editing={editing} employers={employers} onClose={() => setEditing(null)} />
       <MyEventEditor editing={editingMine} onClose={() => setEditingMine(null)} />
     </Page>
   );
@@ -129,7 +131,7 @@ function toldLine(told: DateNotice | undefined): string {
 }
 
 /** The add/edit dialog, then the page moves to what was saved. */
-function EventEditor({ editing, onClose }: { editing: { event: CalendarEvent | null } | null; onClose: () => void }) {
+function EventEditor({ editing, employers, onClose }: { editing: { event: CalendarEvent | null } | null; employers: readonly { id: string; name: string }[]; onClose: () => void }) {
   const { push } = useToast();
   const [, setEventId] = useQueryParam('event');
   const [, setMonthParam] = useQueryParam('month');
@@ -137,6 +139,7 @@ function EventEditor({ editing, onClose }: { editing: { event: CalendarEvent | n
     <EventFormDialog
       open={!!editing}
       event={editing?.event ?? null}
+      employers={employers}
       onClose={onClose}
       onSaved={(saved, created, told) => {
         onClose();

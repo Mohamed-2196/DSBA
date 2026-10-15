@@ -1,11 +1,12 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
 import { BookOpenText, Bug, CalendarCheck, CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, HandWaving, ListMagnifyingGlass, Newspaper, Power, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
-import { useId, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { normalizeYear, useQueryParam } from '../../state';
 import { Button, EmptyState, ErrorBoundary, Count, Page, PageHeader, Panel, QueryError, Select, Skeleton, cx, formatCount } from '../../ui';
 import { ActivityLog, PeopleList } from '../access/public';
+import { CareerEditor } from '../career/public';
 import { ReportsQueue } from '../forum/public';
 import { ModulesEditor, SuggestionsQueue } from '../modules/public';
 import { FlaggedQuestions, UploadsQueue } from '../library/public';
@@ -129,7 +130,7 @@ const BODIES: Record<SectionId, () => ReactNode> = {
   newsletter: () => <Drafts />,
   calendar: () => <LinkOut icon={CalendarDots} title="The calendar" body="Add, edit and delete events from the calendar itself." to="/calendar" label="Open the calendar" />,
   summary: () => <SummaryForMe />,
-  career: () => <LinkOut icon={Compass} title="Career Navigator" body="Its content is edited on Career Navigator." to="/career" label="Open Career Navigator" />,
+  career: () => <CareerEditor />,
   content: () => <ModulesEditor />,
   videos: () => <SuggestionsQueue />,
   gaps: () => <Gaps />,
@@ -137,6 +138,9 @@ const BODIES: Record<SectionId, () => ReactNode> = {
   people: () => <PeopleList />,
   activity: () => <ActivityLog />,
 };
+
+/** The tabs that hold a draft. */
+const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['career']);
 
 const HEADER = <PageHeader title="Manage" description="Your tools, and what’s waiting for you. Every action is logged." />;
 
@@ -207,6 +211,8 @@ function ManageScreen() {
   };
   const [tab, setTab] = useQueryParam('tab', sections[0] ?? 'reports');
   const current = sections.find((id) => id === tab) ?? sections[0];
+  // An editor keeps its unsaved draft while another tab is open: once visited, its panel stays mounted (hidden).
+  const [visited, setVisited] = useState<ReadonlySet<SectionId>>(() => new Set(current ? [current] : []));
   if (!current) {
     return (
       <Page className="manage">
@@ -221,11 +227,25 @@ function ManageScreen() {
     <Page className="manage">
       {HEADER}
       <div className="manage-layout">
-        <ManageNav sections={sections} current={current} counts={counts} onPick={(id) => setTab(id, { replace: true })} />
-        <section className="manage-panel" aria-label={SECTIONS[current].label} key={current}>
-          <h2 className="manage-panel__title">{SECTIONS[current].label}</h2>
-          <ErrorBoundary name={`Manage:${current}`}>{BODIES[current]()}</ErrorBoundary>
-        </section>
+        <ManageNav
+          sections={sections}
+          current={current}
+          counts={counts}
+          onPick={(id) => {
+            setVisited((v) => new Set([...v, current, id]));
+            setTab(id, { replace: true });
+          }}
+        />
+        {sections.map((id) => {
+          const active = id === current;
+          if (!active && !(KEEP_DRAFTS.has(id) && visited.has(id))) return null;
+          return (
+            <section key={id} className="manage-panel" aria-label={SECTIONS[id].label} hidden={!active}>
+              <h2 className="manage-panel__title">{SECTIONS[id].label}</h2>
+              <ErrorBoundary name={`Manage:${id}`}>{BODIES[id]()}</ErrorBoundary>
+            </section>
+          );
+        })}
       </div>
     </Page>
   );

@@ -1,22 +1,6 @@
 // One employer on the board: its logo slot, what it offers, why it is there, the tracks it suits and one button to
 // its own careers or programme page.
-import {
-  ArrowUpRight,
-  Bank,
-  Briefcase,
-  Buildings,
-  CellTower,
-  ChartLineUp,
-  Cloud,
-  CreditCard,
-  Factory,
-  Handshake,
-  Lightning,
-  Scales,
-  TrendUp,
-  Vault,
-  type Icon,
-} from '@phosphor-icons/react';
+import { ArrowUpRight, Buildings } from '@phosphor-icons/react';
 import type { CareerEmployer, CareerOffer, CareerTrack } from '../../api/types';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
@@ -25,26 +9,10 @@ import { applicationLine, dayKeyFromToday, useCalendarEvents, type CalendarEvent
 import { hostOf } from '../../lib/share';
 import { useCareerData } from './context';
 import { webUrl } from './lib/links';
+import { SECTOR_ICONS } from './lib/sectors';
 import { LogoSlot } from './LogoSlot';
 
 type OfferType = CareerOffer['type'];
-
-// Generic icons for the sector line (never a brand mark).
-const SECTOR_ICONS: Record<string, Icon> = {
-  Bank,
-  Investment: ChartLineUp,
-  Regulator: Scales,
-  'Sovereign fund': Vault,
-  'Public body': Buildings,
-  Exchange: TrendUp,
-  'Audit & consulting': Briefcase,
-  Consulting: Handshake,
-  Telecom: CellTower,
-  Technology: Cloud,
-  Fintech: CreditCard,
-  Energy: Lightning,
-  Industry: Factory,
-};
 
 const TYPE_TONE: Record<OfferType, 'cobalt' | 'signal' | 'outline'> = { graduate: 'cobalt', internship: 'signal', careers: 'outline' };
 
@@ -84,7 +52,7 @@ export function EmployerCard({ employer, track, tracks }: { employer: CareerEmpl
   return (
     <Panel as="li" padding="none" id={`career-emp-${employer.id}`} className="career-emp" data-hub="career-employer" data-employer-id={employer.id} data-offer-types={types.join(' ')}>
       <div className="career-emp__top">
-        <LogoSlot kind="employer" id={employer.id} mono={employer.mono} />
+        <LogoSlot kind="employer" id={employer.id} logo={employer.logo} mono={employer.mono} />
         <ul role="list" className="career-emp__types" aria-label="What it offers">
           {types.map((t) => (
             <li key={t}>

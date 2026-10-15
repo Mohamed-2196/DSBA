@@ -175,11 +175,13 @@ class CalendarEvent(Base):
 
 
 class ContentDoc(Base):
-    """A JSON document edited as a whole by admins (the Career Navigator's employers, certificates, roles, ...)."""
+    """A JSON document edited as a whole (the Career Navigator's employers, certificates, roles, ...). `version` goes up
+    with every save, so an editor working from an older one is refused instead of overwriting someone's changes."""
 
     __tablename__ = "content_docs"
 
     key: Mapped[str] = mapped_column(String(64), primary_key=True)  # 'career'
     data: Mapped[dict[str, Any]] = mapped_column(default=dict)
+    version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     updated_at: Mapped[datetime] = created_ts()
     updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))

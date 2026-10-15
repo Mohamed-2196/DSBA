@@ -15,7 +15,7 @@ import './CareerPage.css';
 const TITLE = 'Career Navigator';
 const DESCRIPTION = 'Graduate programmes, internships and careers pages at employers in Bahrain.';
 
-function CareerBody({ data }: { data: CareerDoc }) {
+export function CareerBody({ data }: { data: CareerDoc }) {
   const { activeYear } = useYear();
   const [roleParam, setRoleParam] = useQueryParam('role', data.defaultRoleId);
   const role = data.roles.find((r) => r.id === roleParam) ?? data.roles.find((r) => r.id === data.defaultRoleId) ?? data.roles[0];
