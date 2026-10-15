@@ -58,14 +58,15 @@ test('a paper sits with its report, Sara times herself, tags a question and find
 
     await sara.goto('/modules/economics?tab=files');
     const sittings = sara.locator('[data-hub="paper-sittings"]');
+    // Imported papers may share the sitting, so a label can carry a number ("Paper 2").
     const may = sittings.getByRole('listitem').filter({ has: sara.getByRole('heading', { name: 'May 2024' }) });
-    await expect(may.getByRole('link', { name: `Examiners’ report: EC1002 commentary May 2024 [e2e ${run.tag}]` })).toBeVisible();
-    await may.getByRole('link', { name: `Paper: EC1002 ZA May 2024 [e2e ${run.tag}]` }).click();
+    await expect(may.getByRole('link', { name: new RegExp(`^Examiners’ report( \\d)?: EC1002 commentary May 2024 \\[e2e ${run.tag}\\]$`) })).toBeVisible();
+    await may.getByRole('link', { name: new RegExp(`^Paper( \\d)?: EC1002 ZA May 2024 \\[e2e ${run.tag}\\]$`) }).click();
     await expect(sara).toHaveURL(new RegExp(`/library/${paper.slug}$`));
 
     const sitting = sara.locator('[data-hub="file-sitting"]');
     await expect(sitting.getByRole('heading', { name: 'May 2024 sitting' })).toBeVisible();
-    await expect(sitting.getByRole('link', { name: /Examiners’ report/ })).toBeVisible();
+    await expect(sitting.getByRole('link', { name: /Examiners’ report/ }).and(sara.getByTitle(`EC1002 commentary May 2024 [e2e ${run.tag}]`))).toBeVisible();
 
     await sara.getByRole('button', { name: 'Time me' }).click();
     await sara.getByRole('menuitem', { name: '1 hour' }).click();
@@ -80,7 +81,7 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     await tags.getByRole('button', { name: 'Tag the question' }).click();
     await expect(tags.getByRole('listitem').filter({ hasText: chapter })).toContainText('Q3 (p. 2)');
 
-    await sara.goto('/modules/economics');
+    await sara.goto('/modules/economics?tab=lessons');
     const past = sara.locator('[data-hub="chapter-questions"]');
     await expect(past.getByRole('heading', { name: 'Past exam questions on this chapter' })).toBeVisible();
     await past.getByRole('link', { name: /May 2024, Zone A\s*Q3 \(p\. 2\)/ }).click();

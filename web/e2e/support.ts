@@ -25,7 +25,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import zlib from 'node:zlib';
-import { expect, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import { expect, request as playwrightRequest, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const apiFolder = path.resolve(here, '..', '..', 'api');
@@ -221,9 +221,38 @@ export async function csrf(ctx: BrowserContext, request: APIRequestContext): Pro
   return { 'X-CSRF-Token': cookie ?? '' };
 }
 
+/** A rep's or admin's dev-login session is renewed when it is past the step-up window (10 minutes, decision D2):
+ * switching features, roles and suspensions need a fresh session, and the run's dev-login sessions are made in the
+ * setup project, long before the later specs. Students' sessions are never renewed (their step-up is tested). */
+async function renewStaffSession(ctx: BrowserContext): Promise<boolean> {
+  const current = (await ctx.cookies()).find((c) => c.name === 'dsba_session')?.value;
+  if (!current) return false;
+  const run = readRun();
+  for (const who of ['rep', 'admin'] as const) {
+    const file = statePath(who);
+    if (!fs.existsSync(file)) continue;
+    const state = JSON.parse(fs.readFileSync(file, 'utf8')) as Awaited<ReturnType<BrowserContext['storageState']>>;
+    const cookie = state.cookies.find((c) => c.name === 'dsba_session');
+    if (cookie?.value !== current) continue;
+    const token = await devLogin(run[who].email, { name: run[who].name, year: 3, role: who });
+    // The CSRF token belongs to the old session: drop it, and csrf() asks for a new one.
+    await ctx.clearCookies({ name: 'dsba_csrf' });
+    await ctx.addCookies([{ name: 'dsba_session', value: token, domain: env.host, path: '/' }]);
+    cookie.value = token;
+    state.cookies = state.cookies.filter((c) => c.name !== 'dsba_csrf');
+    fs.writeFileSync(file, JSON.stringify(state)); // contexts opened later start with the fresh session
+    return true;
+  }
+  return false;
+}
+
 export async function api<T>(page: Page, method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, data?: unknown): Promise<{ status: number; body: T }> {
-  const headers = method === 'GET' ? {} : await csrf(page.context(), page.request);
-  const r = await page.request.fetch(url, { method, headers, data: data === undefined ? undefined : data });
+  const send = async () => {
+    const headers = method === 'GET' ? {} : await csrf(page.context(), page.request);
+    return page.request.fetch(url, { method, headers, data: data === undefined ? undefined : data });
+  };
+  let r = await send();
+  if (r.status() === 403 && (await r.text()).includes('"step_up_required"') && (await renewStaffSession(page.context()))) r = await send();
   const text = await r.text();
   let body: unknown = text;
   try {
@@ -232,6 +261,19 @@ export async function api<T>(page: Page, method: 'GET' | 'POST' | 'PUT' | 'PATCH
     /* not JSON */
   }
   return { status: r.status(), body: body as T };
+}
+
+/** Removes a module the run added (content.edit): its lessons first, then its chapters (the editor keeps a chapter
+ * that still has lessons), then the module. Nothing happens when it is already gone. */
+export async function removeModule(admin: Page, id: string): Promise<void> {
+  type Mod = { version: number; chapters: { lessons: unknown[] }[] };
+  const m = await api<Mod>(admin, 'GET', `/api/v1/content/modules/${id}`);
+  if (m.status !== 200) return;
+  const noLessons = await api<Mod>(admin, 'PUT', `/api/v1/content/modules/${id}`, { ...m.body, chapters: m.body.chapters.map((c) => ({ ...c, lessons: [] })) });
+  expect(noLessons.status, `empty the lessons of ${id}`).toBe(200);
+  const empty = await api<Mod>(admin, 'PUT', `/api/v1/content/modules/${id}`, { ...noLessons.body, chapters: [] });
+  expect(empty.status, `empty the chapters of ${id}`).toBe(200);
+  expect((await api(admin, 'DELETE', `/api/v1/content/modules/${id}?version=${empty.body.version}`)).status, `remove ${id}`).toBe(204);
 }
 
 /** The id of a role, by its slug (admins only). */
@@ -272,7 +314,50 @@ export const FEATURES = [
 /** Sets a feature's switch (admins only). Every spec that switches something off puts it back in afterAll. */
 export async function setSwitch(admin: Page, feature: (typeof FEATURES)[number], mode: 'off' | 'roles' | 'everyone', roleIds: string[] = []): Promise<void> {
   const r = await api(admin, 'PUT', `/api/v1/admin/features/${feature}`, { mode, roleIds });
+  if (r.status === 429) return switchAsSpare(feature, mode, roleIds);
   expect(r.status, `switch ${feature} ${mode}`).toBe(200);
+}
+
+/** An admin allows 60 changes to roles and switches in 10 minutes (services/roles.py), and the whole suite makes
+ * more than that. When the run's admin reaches the limit, a spare admin (dev-login, a made-up address) makes the
+ * change; the next spare takes over when that one reaches it too. */
+async function switchAsSpare(feature: string, mode: string, roleIds: string[]): Promise<void> {
+  const file = path.join(env.stateDir, 'spare-admin.json');
+  let spare = fs.existsSync(file) ? (JSON.parse(fs.readFileSync(file, 'utf8')) as { n: number; token: string }) : null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (!spare || attempt > 0) {
+      const n = (spare?.n ?? 0) + 1;
+      spare = { n, token: await devLogin(`spare${n}.e2e.admin@example.com`, { name: `Spare admin E2E ${n}`, year: 3, role: 'admin' }) };
+      fs.writeFileSync(file, JSON.stringify(spare));
+    }
+    const ctx = await playwrightRequest.newContext({
+      baseURL: env.baseURL,
+      storageState: { cookies: [{ name: 'dsba_session', value: spare.token, domain: env.host, path: '/', expires: -1, httpOnly: true, secure: false, sameSite: 'Lax' }], origins: [] },
+    });
+    try {
+      await ctx.get('/api/v1/auth/csrf');
+      const token = (await ctx.storageState()).cookies.find((c) => c.name === 'dsba_csrf')?.value ?? '';
+      const r = await ctx.put(`/api/v1/admin/features/${feature}`, { headers: { 'X-CSRF-Token': token }, data: { mode, roleIds } });
+      if (r.status() === 200) return;
+      // Spent (429) or too old for a change (403 step-up): the next spare.
+      if (r.status() !== 429 && r.status() !== 403) expect(r.status(), `switch ${feature} ${mode} (spare admin): ${await r.text()}`).toBe(200);
+    } finally {
+      await ctx.dispose();
+    }
+  }
+  throw new Error(`switch ${feature} ${mode}: no spare admin could make the change`);
+}
+
+/** Navigates to /account. Recovers if ST-23 (useModules outside ModulesGate race) hits the error boundary. */
+export async function gotoAccount(page: Page): Promise<void> {
+  await page.goto('/account');
+  const tryAgain = page.getByRole('button', { name: 'Try again' });
+  const h1 = page.getByRole('heading', { name: 'Your account', exact: true });
+  await expect(h1.or(tryAgain)).toBeVisible();
+  if (await tryAgain.isVisible()) {
+    await tryAgain.click();
+    await expect(h1).toBeVisible();
+  }
 }
 
 // ── small, real test files (made at run time: nothing binary is kept in the repo) ─────────────

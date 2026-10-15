@@ -54,3 +54,18 @@ test('a student asks, a classmate says me too, a rep answers and the student is 
     if (id) await api(rep, 'DELETE', `/api/v1/requests/${id}`);
   }
 });
+
+test('ST-19: a double tap on "Send request" sends one request', async ({ ali, rep, run }) => {
+  test.fail(true, 'ST-19: the request dialog has no guard against a second press, so a double tap makes two requests');
+  const title = `Double tap [e2e ${run.tag}]`;
+  await ali.goto('/requests');
+  await ali.getByRole('button', { name: 'New request' }).click();
+  const dialog = ali.getByRole('dialog', { name: 'Ask for something' });
+  await dialog.getByLabel('Title').fill(title);
+  await dialog.getByRole('button', { name: 'Send request' }).dblclick();
+  await expect(ali).toHaveURL(/\/requests\/[0-9a-f-]{36}$/);
+  await expect.poll(async () => (await api<{ items: { title: string }[] }>(ali, 'GET', `/api/v1/requests?q=${encodeURIComponent(run.tag)}`)).body.items.length).toBeGreaterThan(0);
+  const made = (await api<{ items: { id: string; title: string }[] }>(ali, 'GET', `/api/v1/requests?q=${encodeURIComponent(run.tag)}`)).body.items.filter((r) => r.title === title);
+  for (const r of made) await api(rep, 'DELETE', `/api/v1/requests/${r.id}`);
+  expect(made).toHaveLength(1);
+});

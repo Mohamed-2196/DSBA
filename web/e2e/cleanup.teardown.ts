@@ -4,9 +4,10 @@
 // didn't create is touched. E2E_KEEP=1 leaves the accounts and posts in place.
 import fs from 'node:fs';
 import { test as teardown, expect } from '@playwright/test';
-import { api, env, FEATURES, personaContext, readRun, statePath, waitForCode } from './support';
+import { api, env, FEATURES, gotoAccount, personaContext, readRun, setSwitch, statePath, waitForCode } from './support';
 
-teardown.describe.configure({ mode: 'serial' });
+// In order (one worker), but not serial: a failed step must not skip the clean-up after it.
+teardown.describe.configure({ mode: 'default' });
 
 teardown('every feature is switched back on for everyone', async ({ browser }) => {
   if (!fs.existsSync(statePath('admin'))) return;
@@ -16,10 +17,7 @@ teardown('every feature is switched back on for everyone', async ({ browser }) =
   const now = await api<{ feature: string; mode: string }[]>(page, 'GET', '/api/v1/admin/features');
   expect(now.status).toBe(200);
   const on = new Set(now.body.filter((f) => f.mode === 'everyone').map((f) => f.feature));
-  for (const feature of FEATURES.filter((f) => !on.has(f))) {
-    const r = await api(page, 'PUT', `/api/v1/admin/features/${feature}`, { mode: 'everyone', roleIds: [] });
-    expect(r.status, `switch ${feature} on`).toBe(200);
-  }
+  for (const feature of FEATURES.filter((f) => !on.has(f))) await setSwitch(page, feature, 'everyone');
   await ctx.close();
 });
 
@@ -37,7 +35,7 @@ teardown('the students download their data and delete their accounts; their post
     }
     const mine = await api<{ items: { slug: string }[] }>(page, 'GET', '/api/v1/forum/threads?mine=true&limit=50');
 
-    await page.goto('/account');
+    await gotoAccount(page);
     const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download', exact: true }).click()]);
     const data = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
     expect(data.user.id).toBe(me.body.id);

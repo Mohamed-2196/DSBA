@@ -4,7 +4,7 @@
 // yesterday would. About 5 codes: two emails and three texts.
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { ageSessions, api, mailedSince, newestText, personaContext, readRun, saveRun, statePath, waitForCode } from './support';
+import { ageSessions, api, gotoAccount, mailedSince, newestText, personaContext, readRun, saveRun, statePath, waitForCode } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -32,7 +32,7 @@ test('Sara changes her email address: a code to her current address first, then 
   expect(before.email).toBeTruthy();
   await ageSessions(before.id, 11);
 
-  await page.goto('/account');
+  await gotoAccount(page);
   await page.getByRole('button', { name: 'Change your email address' }).click();
   const change = page.getByRole('dialog').filter({ hasText: 'Change your email address' });
   const newEmail = `sara.e2e.${run.tag}.new@example.com`;
@@ -43,6 +43,16 @@ test('Sara changes her email address: a code to her current address first, then 
   // The API answers step_up_required; the app asks for a code to the address she has now.
   const stepUp = page.locator('[data-hub="step-up"]');
   await expect(stepUp).toContainText('Confirm it’s you');
+  const sendAgain = stepUp.getByRole('button', { name: 'Send the code again' });
+  const codeBox = stepUp.getByLabel('6-digit code');
+  await expect(codeBox.or(sendAgain)).toBeVisible();
+  if (await sendAgain.isVisible()) {
+    const alert = await stepUp.locator('.signin__alert').textContent();
+    const waitSeconds = parseInt(alert?.match(/(\d+)\s*second/)?.[1] ?? '30', 10);
+    await page.waitForTimeout((waitSeconds + 1) * 1000);
+    await sendAgain.click();
+    await expect(codeBox).toBeVisible();
+  }
   await expect(stepUp).toContainText(`To change how you sign in, enter the code we sent to ${before.email}.`);
   const code = await waitForCode('email', before.email ?? '', since);
   await stepUp.getByLabel('6-digit code').fill(code === '000000' ? '111111' : '000000');
@@ -73,7 +83,7 @@ test('Sara changes her phone number, confirming by text instead of email', async
   await ageSessions(before.id, 11);
   const next = newMobile(run.sara.e164);
 
-  await page.goto('/account');
+  await gotoAccount(page);
   await page.getByRole('button', { name: 'Change your phone number' }).click();
   const change = page.getByRole('dialog').filter({ hasText: 'Change your phone number' });
   await change.getByLabel('New phone number').fill(next.local);
@@ -106,7 +116,7 @@ test('closing "Confirm it’s you" changes nothing', async ({ browser }) => {
   const page = await ctx.newPage();
   const before = await me(page);
   await ageSessions(before.id, 11);
-  await page.goto('/account');
+  await gotoAccount(page);
   await page.getByRole('button', { name: 'Remove your phone number' }).click();
   await page.getByRole('dialog').filter({ hasText: 'Remove your phone number?' }).getByRole('button', { name: 'Remove', exact: true }).click();
   const stepUp = page.locator('[data-hub="step-up"]');

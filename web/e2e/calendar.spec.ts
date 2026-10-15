@@ -103,7 +103,7 @@ test('a rep adds, edits and deletes an event; students see each change', async (
   await expect(confirm).toHaveCount(0);
   const left = await api<{ id: string }[]>(sara, 'GET', `/api/v1/calendar/events?from=${date}&to=${date}`);
   expect(left.body.map((e) => e.id)).not.toContain(id);
-  expect(await feed()).not.toContain(`[e2e ${run.tag}]`);
+  expect(await feed()).not.toContain(`UID:${id}@`); // other events of this run stay in the feed
 });
 
 test('ST-2: an event for a Year 2 module added with the default cohort is a Year 2 event', async ({ rep, run }) => {

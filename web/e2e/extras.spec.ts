@@ -6,6 +6,7 @@ test('Career Navigator lists where to apply and filters by track', async ({ gues
   await guest.goto('/career');
   await expect(guest.getByRole('heading', { name: 'Career Navigator', level: 1 })).toBeVisible();
   const roles = guest.locator('main').getByRole('link', { name: /See (open roles|the programme)/ });
+  await expect(roles.first()).toBeVisible(); // the cards load after the heading
   const all = await roles.count();
   expect(all).toBeGreaterThan(5);
   await guest.getByText('Data science & analytics', { exact: false }).first().click();

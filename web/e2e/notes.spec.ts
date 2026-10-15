@@ -39,7 +39,7 @@ test('a student writes a note, finds it and deletes it', async ({ sara, run }) =
   await sara.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
   await expect(sara).toHaveURL(/\/notes$/);
   const left = await api<{ items: { title: string }[] }>(sara, 'GET', `/api/v1/notes?q=${encodeURIComponent(run.tag)}`);
-  expect(left.body.items).toHaveLength(0);
+  expect(left.body.items.map((n) => n.title)).not.toContain(title); // another spec's note may share the run's tag
 });
 
 test('a lesson keeps its own notes', async ({ sara, run }) => {

@@ -55,7 +55,10 @@ test('without a Claude key she answers from her script, with a notice', async ({
   const chat = await openNoora(page);
   await chat.getByLabel('Message Mini Noora').fill('When is my next exam?');
   await chat.getByLabel('Message Mini Noora').press('Enter');
-  await expect(chat.locator('[data-hub="noora-notice"]')).toContainText('from my script');
+  // Her status says the AI is off (no key), so she says so above the chat; an answer that was already on its way
+  // when the status came carries the notice instead. Either way the student is told, and she answers.
+  await expect(chat.locator('[data-hub="noora-message"][data-from="noora"]').last()).toContainText('Your next exam');
+  await expect(chat).toContainText('from my script');
   await expect(chat.locator('[data-hub="noora-foot"]')).toContainText('stays in this browser');
   await ctx.close();
 });
@@ -86,16 +89,17 @@ test('the open note goes only when the student ticks Include my note, for one qu
   const page = await ctx.newPage();
   const asked = await standIn(page);
   await page.goto('/notes/new');
-  await page.locator('[data-hub="note-title"]').fill(`Moments [e2e ${run.tag}]`);
+  await page.locator('[data-hub="note-title"]').fill(`Moments for Noora [e2e ${run.tag}]`);
   await page.locator('[data-hub="note-body"]').fill('M(t) = E[e^{tX}]');
   await expect(page.locator('[data-hub="note-status"]')).toHaveText('Saved');
   const chat = await openNoora(page);
   const include = chat.locator('[data-hub="noora-include-note"]');
-  await include.getByRole('checkbox').check();
+  await include.click(); // the chip is the label; its checkbox is visually hidden
+  await expect(include.getByRole('checkbox')).toBeChecked();
   await chat.getByLabel('Message Mini Noora').fill('Is my note right?');
   await chat.getByLabel('Message Mini Noora').press('Enter');
   await expect(chat.locator('[data-hub="noora-refs"]').first()).toBeVisible();
-  expect(asked[0]?.postDataJSON()).toMatchObject({ note: { title: `Moments [e2e ${run.tag}]`, body: 'M(t) = E[e^{tX}]' } });
+  expect(asked[0]?.postDataJSON()).toMatchObject({ note: { title: `Moments for Noora [e2e ${run.tag}]`, body: 'M(t) = E[e^{tX}]' } });
   await expect(include.getByRole('checkbox')).not.toBeChecked();
   await chat.getByLabel('Message Mini Noora').fill('And the variance?');
   await chat.getByLabel('Message Mini Noora').press('Enter');

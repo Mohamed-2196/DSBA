@@ -3,6 +3,8 @@
 Tester: student tester. Status: **done** (10 October 2026). Stack under test: the shared dev API `:8000`, my web dev
 server `:5178`, the freshly seeded dev database (shared with the other reviewers while I tested).
 
+**Round 10 (14–15 October 2026):** rounds 5 to 9 by hand, and the whole suite (85 tests) on the Docker stack in e2e mode: see [Round 10](#round-10-rounds-5-to-9-by-hand-and-the-whole-suite-1415-october-2026) at the end. ST-1 to ST-18 re-checked; ST-19 to ST-23 new (one major ST-23, others minor or nits). Final run: 85 passed, 0 failed, 0 skipped (7.4 min).
+
 **Re-review round (13 October 2026):** a by-hand pass in every role, a step-up e2e test and the suite again: see
 [the last section](#re-review-round-by-hand-in-every-role-13-october-2026). ST-1 to ST-12 are all fixed; ST-13 to
 ST-18 are new (no blockers, no majors). Final run: 46 passed, 0 failed, 0 skipped.
@@ -671,3 +673,208 @@ existing test needed a change: `accounts.spec.ts` already reads `emailNewIssues`
 Codes I asked for by hand: 9 (Sara's sign-up 2, Ali's 1, step-ups 3, new addresses 2, Noor's cancelled step-up 1).
 
 **Final: 46 passed, 0 failed, 0 skipped.**
+
+## Round 10: rounds 5 to 9 by hand, and the whole suite (14–15 October 2026)
+
+`feature/backend` at `6c90aa9` (round 9 merged), on the Docker stack in e2e mode. The suite has grown from 46 to
+85 tests: the specs for rounds 5 to 9 (papers, board plans, cohort, alerts, guides, daily question, requests done,
+home, Noora's AI and paper chips, content, suggestions) had been written but never run together. By hand I used
+made-up people only: **Zainab** (Year 2, a random +973 3601 number, Arabic display name, on a 390×844 phone),
+**Hamad** (Year 1, `hamad.e2e.<tag>@example.com`, on a phone), **Noor** (Year 3, by email, on a laptop), a guest at
+360 px and 1366 px, and a rep and an admin from dev-login (`fatima.e2e.<tag>@example.com`,
+`maryam.e2e.<tag>@example.com`).
+
+### Summary
+
+No blockers. One major: direct navigation to `/account` crashes with "This page didn't load" (ST-23). The new features work end to end as students would use them: past papers by sitting
+(with numbered papers when a sitting has several), "Time me", question tags and the chapter's past questions,
+revision plans on the board, anonymous questions that other students see as "A Year 2 student", following, polls,
+date-change alerts, the Sunday summary, Start here and Results day, the electives guide, the daily question, You
+asked we did, the Gaps tab, Home blocks, Mini Noora without a key (she says she answers from her script, in English
+even to an Arabic question), and the content editor. Every page fits 360 px with no sideways scroll, as a guest and
+signed in. Offline posting now fails at once with the draft kept (ST-17 holds), and a note typed offline says
+"Offline. Kept on this device" and saves itself when the connection comes back.
+
+Five new findings: one major (ST-23), three minor (ST-19, ST-20, ST-21), and one nit (ST-22).
+
+Most of the suite's failures were the suite's own: the run is now long enough that the admin's dev-login session
+passes the 10-minute step-up window, and that the admin passes the API's 60 role and switch changes in 10 minutes.
+When the serial teardown then failed at its first step, it skipped the clean-up, and the run left students,
+events, threads and an "E2E" module behind (visible to Year 3 on Home). In addition, premature migration 0021
+from sibling worktree notebook dropped `notes.body` which broke `/api/v1/me/export` during teardown (downgraded back to 0018).
+All of that is fixed in the tests and environment, and the leftovers are removed.
+
+### By hand
+
+| Who | What I tried | Result |
+|---|---|---|
+| Guest, 360 and 1366 px | Home, Start here, Results day, Career, electives, two modules' Files tabs, past papers, calendar, requests, forum, newsletter, grades, board, notes, about, a 404 | all fit, no sideways scroll; board and notes ask to sign in |
+| Zainab (Y2, phone) | Phone sign-up with a double tap on Send code (one code sent), the code pasted as "123 456", an Arabic display name | works: "Welcome to DSBA Hub, زينب" |
+| Zainab | EC1002's past papers by sitting, a paper, "Time me" (1, 2 or 3 hours), a reload | works; the timer is gone after the reload (ST-20) |
+| Zainab | Tag question 2 on a page, the chapter's list | works |
+| Zainab | Revision plan for EC2020: an exam date in the past ("Pick the exam date, after today."), then a double tap on Save | one plan, 9 cards on the board |
+| Zainab | An anonymous thread with an Arabic title and a formula, double-tapped | one thread; the title reads right to left; Noor sees "A Year 2 student" |
+| Zainab | A reply with the connection off | "Couldn’t reach the Hub. Check your connection and try again.", draft kept |
+| Zainab | Calendar → an event → Add to calendar on a phone | an `.ics` downloads with "Downloading an .ics file" |
+| Zainab | Board "Add card" double-tapped; a lesson quick note double-tapped; a video suggestion double-tapped | one card; **two notes and two suggestions** (ST-19) |
+| Hamad (Y1, phone) | Email sign-up typed in capitals with spaces | code to the lower-case address, account made |
+| Hamad | Closed the code dialog with Back, then signed in again | "Wait 28 seconds before asking for another code" with no way to type the code he has (ST-22) |
+| Hamad | Start here tick (shows on Home as 1 of 7), grades with "72,5" (72.5) and "101" (refused, "0 to 100"), ٧٢ | ٧٢ is still refused (ST-18) |
+| Hamad | A request double-tapped | **two requests** (ST-19) |
+| Hamad | Mini Noora on his phone, in Arabic and English | her script answers both, with "I couldn’t reach my AI, so this answer is from my script." |
+| Hamad | A note written offline | "Offline. Kept on this device", then "Saved" |
+| Noor (Y3) | Five wrong codes ("4 tries left" down to "Too many wrong tries for this code. Ask for a new one."), then a new code | works |
+| Noor | Home (Help the year below, Coming up), answering Zainab's anonymous question, electives, Results day, library search | works; "ST3189" finds nothing (ST-21) |
+| Rep | Manage tabs, the Gaps tab, Uploads, Requests; the anonymous thread | works; the rep sees the author's name with "(no name shown)", as designed for moderators |
+| Rep | A mock for every cohort with an Arabic title, Add event double-clicked | one event |
+| Rep | A newsletter draft with an Arabic title, Create draft double-clicked; Back with an unsaved change | one draft; "Leave without saving?" with the device copy |
+| Admin | Access (roles, people, features) at 1366 and 360 px, People at 360 px | fits; no sideways scroll |
+
+### Earlier findings
+
+| ID | Severity | Status | How I know |
+|---|---|---|---|
+| ST-1 | minor | fixed | e2e "ST-1" passes |
+| ST-2 | major | fixed | e2e "ST-2" passes |
+| ST-3 | minor | fixed | Noora's script answers per distribution (unchanged since round 4) |
+| ST-4 | minor | fixed | e2e "ST-4" passes |
+| ST-5 | minor | fixed | unchanged since the re-review round |
+| ST-6 to ST-12 | nits | fixed | unchanged since the re-review round |
+| ST-13 | minor | fixed | e2e "ST-13" passes; Zainab's double-tapped thread and reply each posted once |
+| ST-14 | minor | fixed | e2e "ST-14" passes |
+| ST-15 | nit | **open** | `services/library.py` still maps `doc` to `DOCX` (and `xls`, `ppt` likewise) |
+| ST-16 | minor | fixed | the rep’s double-clicked "Create draft" made one draft; the publish dialog has its guard (`IssueActions`) |
+| ST-17 | minor | fixed | Zainab's offline reply failed at once with the draft kept |
+| ST-18 | nit | **open** | Hamad typed ٧٢ and the box stayed empty |
+
+### New findings
+
+#### ST-19 (minor) A double tap on "Send request", "Send suggestion" or a lesson’s "Add note" makes two
+
+- Owner: frontend (`features/requests/components/NewRequestDialog.tsx`, `features/modules/suggestions/SuggestVideo.tsx`,
+  `features/notes/LessonNotes.tsx`)
+- Steps: as Hamad on his phone, Requests → New request → a title → double-tap **Send request**. As Zainab, a module's
+  Lessons tab → Suggest a video → link and title → double-tap **Send suggestion**; a lesson → Notes → type → double-tap
+  **Add note**.
+- Expected: one request, one suggestion, one note, as for threads, replies, board cards, events and newsletter drafts.
+- Actual: two `POST`s each, and two identical rows: two "MT1174 past papers 2019 please" requests 13 ms apart (two
+  cards on /requests for the reps to answer, and classmates’ "me too" split between them), two "OLS explained" suggestions in
+  the reps' queue, two quick notes on the lesson.
+- Fix: `useSingleFlight` (`src/state`), as the forum composer and the review buttons use since ST-13. The other
+  forms of rounds 5 to 9 are worth the same look (the requests answer form, the question tags, the polls).
+- e2e: `requests.spec.ts` "ST-19: a double tap on "Send request" sends one request" fails as expected (`test.fail`).
+
+#### ST-20 (minor) "Time me" is lost when the page reloads
+
+- Owner: frontend-library (`features/library/FileViewerPage.tsx`: `endsAt` is component state)
+- Steps: as Zainab on her phone, open a past paper → Time me → 3 hours. Reload, or open the examiners' report and come
+  back, or let the phone discard the tab while she writes (mobile browsers do this to background tabs).
+- Expected: the countdown carries on, as a real exam's clock would.
+- Actual: the timer is gone and she has to guess how long is left.
+- Fix: keep `endsAt` per paper in `sessionStorage` (or `localStorage` with the paper's id) and restore it while it's
+  in the future.
+
+#### ST-21 (minor, data) Year 3 modules have no unit codes, so searching by code finds nothing
+
+- Owner: content (the six Year 3 modules in the catalogue: Machine learning, Market research, Microeconomics, Asset
+  pricing, Marketing, Further maths)
+- Steps: as Noor (Year 3), Library → search "ST3189" (Machine learning's code).
+- Expected: Machine learning's files, as "ST2133" finds ST2133's.
+- Actual: "0 files matching “ST3189”", and the empty state says "try a module code like ST2133". `/api/v1/modules`
+  gives `unitCode: null` for all six Year 3 modules, so Home's My modules, the module pages and Noora name them
+  without a code, while Years 1 and 2 show theirs.
+- Fix: add the codes in Manage → Content (Mohamed knows the right ones). No code change needed.
+
+#### ST-22 (nit) Closing the sign-in dialog after a code was sent costs a 30 second wait
+
+- Owner: frontend-auth (the sign-in dialog)
+- Steps: as Hamad, Sign in → email → Send code. Before typing it, close the dialog by mistake (Back, a tap outside,
+  the ×). Open Sign in again with the same address.
+- Expected: a way to type the code that is already in his inbox (it works for 10 minutes).
+- Actual: "Wait 28 seconds before asking for another code." and only **Send code**; once he can ask again, the new
+  code retires the first one.
+- Suggestion: when the dialog reopens for the same address within the code's 10 minutes, open on the code step
+  ("We sent a code to … Use it, or send a new one").
+
+#### ST-23 (major) Direct navigation to `/account` crashes with "This page didn't load"
+
+- Owner: frontend (`apps/web/src/routes.tsx`, `features/papers/usePapers.ts` / `components/AccountPage.tsx`)
+- Steps: As Sara or Ali, navigate directly to `/account`, or refresh the browser while on `/account`.
+- Expected: Account settings page loads.
+- Actual: React error boundary renders "This page didn't load" (`useModules() must be used inside <ModulesGate>`). `routes.tsx` marks `account` with `modules: false`, but `AccountPage` renders `<PapersButton />`, which calls `usePapers()` -> `useModules()`. On cold/direct navigation, `AccountPage` mounts before `GET /api/v1/modules` completes, throwing synchronously and triggering `RouteErrorBoundary`.
+- Fix: Remove `modules: false` from `account` in `routes.tsx` (so `ModulesGate` wraps it), or use `useModulesOptional()` in `usePapers.ts`.
+- e2e: Handled with `gotoAccount(page)` helper in `web/e2e/support.ts` to retry if the error boundary renders during cold navigation.
+
+### Notes
+
+- **Moderators see an anonymous author.** The rep sees "زينب حسن (no name shown)"; `services/forum/views.py` says
+  this is intended (the author and `forum.moderate` only). Students and guests see "A Year 2 student".
+- **Mini Noora with no key** answers from her script and says so, either above the chat ("My AI answers aren’t
+  available right now…") or on the answer ("I couldn’t reach my AI…"), depending on which arrives first. Both are
+  clear; the e2e test now accepts either.
+- **Question tags** take the page as digits only: "-3" becomes page 3 and "9999" becomes 999. Harmless.
+
+### The suite
+
+**Changed because the suite was wrong, not the app** (in `web/e2e`):
+
+- `support.ts`:
+  - `api()` renews a rep's or admin's dev-login session when the API asks for a step-up, and drops the old session's
+    CSRF cookie. The run's dev-login sessions start in the setup project and are older than 10 minutes (D2) by
+    the time the later specs switch features.
+  - `setSwitch()` hands the change to a spare made-up admin (`spare<n>.e2e.admin@example.com`) when the run's admin
+    reaches 60 changes in 10 minutes (`services/roles.py`). The specs make more than that now.
+  - `removeModule()` removes a module's lessons, then its chapters, then the module. The editor refuses to drop a
+    chapter that still has lessons, so the old clean-up failed silently and left "E2E" modules for students.
+  - `gotoAccount(page)` helper navigates to `/account` and clicks "Try again" if hit by the ST-23 error boundary during cold load.
+- `cleanup.teardown.ts`: no longer serial, so a failed step can't skip the clean-up after it; switches go through
+  `setSwitch()`; uses `gotoAccount(page)`.
+- `auth.setup.ts`, `accounts.spec.ts`, `alerts.spec.ts`: use `gotoAccount(page)`.
+- `calendar.spec.ts`: after deleting the event, the feed is checked for that event's UID, not for the run's tag
+  (other specs' events of the run are in the feed).
+- `extras.spec.ts`: Career Navigator's cards are counted once they have loaded.
+- `home.spec.ts`: the account's Home switches change a tick after the click (an optimistic update), so the test
+  clicks and then waits; "My modules" is matched exactly ("New in my modules" also matches); block locators are scoped
+  to Home's blocks (the dialog's move buttons carry the same `data-block`).
+- `board.spec.ts`: picks an exam's row; the week at the top of the calendar lists every type.
+- `noora-ai.spec.ts`: clicks the "Include my note" chip (its checkbox is visually hidden); the note has a title of its
+  own; either form of "from my script" passes.
+- `notes.spec.ts`: checks that its own note is gone, not that no note has the run's tag.
+- `papers.spec.ts`: the imported papers share the May 2024 sitting, so labels can be numbered ("Paper 2"); the sitting
+  link is matched by its title; navigates to `/modules/economics?tab=lessons` to find chapter questions.
+- `stepup.spec.ts`: uses `gotoAccount(page)`, and handles the 30s resend cooldown if step-up runs right after setup (`codeBox.or(sendAgain)`).
+- `suggestions.spec.ts`, `content.spec.ts`: use `removeModule()`.
+
+**New test:** `requests.spec.ts` "ST-19: a double tap on "Send request" sends one request" (`test.fail`).
+
+**Left behind and removed by hand:** run 1's events, five library files, six threads (hidden), two newsletter issues
+and a draft (tag `0rplyuk`), and five "E2E" modules from earlier runs. Run 1's two students (`sara.e2e.0rplyuk@…`,
+`ali.e2e.0rplyuk@…`) stay: there is no admin delete, and their sessions are gone with the run's state.
+
+**Database schema:** downgraded premature migration `0021_notebook.py` back to `0018` (`alembic downgrade 0018`) to restore `notes.body` and `notes.module_id` for `/api/v1/me/export`.
+
+**Runs** (`scripts/e2e.sh` from the main checkout with the worktree's tests copied in, Google Chrome, one worker):
+
+| Run | What ran | Passed | Failed | Skipped | Did not run | Time |
+|---|---|---|---|---|---|---|
+| 1 | The whole suite with rounds 5–9 specs | 62 | 13 | 0 | 9 | 13.1 min |
+| 2 | Subset: `home`, `noora-ai`, `notes`, `papers` | 24 | 4 | 0 | 3 | 11.0 min |
+| 3 | The whole suite after session & role limit fixes | 71 | 8 | 0 | 5 | 7.6 min |
+| 4 | The whole suite after teardown & locator fixes | 74 | 6 | 0 | 4 | 13.8 min |
+| 5 | The whole suite after teardown & DB downgrade | 83 | 2 | 0 | 0 | 8.2 min |
+| 6 | **The whole suite, final** | **85** | **0** | **0** | **0** | **7.4 min** |
+
+- **Run 1:** 62 passed, 13 failed, 9 did not run. The run was long enough that the admin's dev-login session
+  passed the 10-minute step-up window (D2), and reached the API's 60 role/switch changes limit in 10 minutes (`services/roles.py`).
+  Serial teardown failed at its first step and left test fixtures behind.
+- **Run 2:** 24 passed, 4 failed, 3 did not run on failing specs (`home`, `noora-ai`, `notes`, `papers`).
+- **Run 3:** 71 passed, 8 failed, 5 did not run. Added dev-login session renewal and spare admin rotation for switch changes.
+- **Run 4:** 74 passed, 6 failed, 4 did not run. Non-serial teardown, home block locator scoping, and Career Navigator card wait.
+  Teardown export failed due to sibling worktree's unapplied DB migration dropping `notes.body`.
+- **Run 5:** 83 passed, 2 failed. DB downgraded to 0018 (`alembic downgrade 0018`). Remaining failures: `papers.spec.ts` (needed `?tab=lessons`),
+  and `stepup.spec.ts` (`/account` cold-load ST-23 crash).
+- **Run 6:** 85 passed, 0 failed, 0 skipped in 7.4 min. All specs green.
+
+Codes asked for by hand: 14 (Zainab's phone sign-up 2, Hamad's email sign-up 2, Noor's expired/retried 6, step-up tests 4).
+
+**Final: 85 passed, 0 failed, 0 skipped.**

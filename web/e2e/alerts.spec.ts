@@ -1,7 +1,7 @@
 // Alerts: a rep moves a Year 2 mock with "Tell Year 2" ticked and Sara (Year 2) gets a notification; the Sunday
 // summary (switched off at first) shows reps this week's text on Manage, and Sara turns its email on.
 import { expect, test } from './fixtures';
-import { api, personaContext, remember, setSwitch } from './support';
+import { api, gotoAccount, personaContext, remember, setSwitch } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -48,7 +48,7 @@ test('reps see the Sunday summary to paste, and a student turns its email on', a
   await panel.getByRole('radio', { name: 'Year 2' }).click();
   await expect(panel.getByLabel('The summary for Year 2')).toContainText('Your week in DSBA Hub, Year 2');
 
-  await sara.goto('/account');
+  await gotoAccount(sara);
   const toggle = sara.getByRole('switch', { name: /Sunday summary/ });
   await expect(toggle).not.toBeChecked();
   await toggle.click();

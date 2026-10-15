@@ -2,7 +2,7 @@
 // content.edit) adds it as a lesson in a new chapter from Manage; Sara is told, and the lesson is there. The feature
 // arrives switched off, and is switched off again afterwards.
 import { expect, test } from './fixtures';
-import { api, personaContext, setSwitch } from './support';
+import { api, personaContext, removeModule, setSwitch } from './support';
 
 interface Note {
   kind: string;
@@ -45,11 +45,7 @@ test('a student suggests a video and a content editor adds it as a lesson', asyn
     await sara.goto(told?.url ?? `/modules/${id}?tab=lessons`);
     await expect(sara.getByRole('heading', { name: title })).toBeVisible();
   } finally {
-    const m = await api<{ version: number }>(admin, 'GET', `/api/v1/content/modules/${id}`);
-    if (m.status === 200) {
-      const emptied = await api<{ version: number }>(admin, 'PUT', `/api/v1/content/modules/${id}`, { ...m.body, chapters: [] });
-      await api(admin, 'DELETE', `/api/v1/content/modules/${id}?version=${emptied.body.version}`);
-    }
+    await removeModule(admin, id);
   }
 });
 

@@ -1,7 +1,7 @@
 // Editing modules, end to end: an admin (who holds content.edit) adds a module, gives it a chapter and a lesson,
 // sees students get it, hides it, and removes it once it's empty again.
 import { expect, test } from './fixtures';
-import { api } from './support';
+import { api, removeModule } from './support';
 
 test('a content editor adds a module with a lesson, hides it and removes it', async ({ admin, sara, run }) => {
   const id = `e2e-module-${run.tag}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-');
@@ -35,10 +35,6 @@ test('a content editor adds a module with a lesson, hides it and removes it', as
     const hidden = await api(sara, 'GET', `/api/v1/modules/${id}`);
     expect(hidden.status).toBe(404);
   } finally {
-    const m = await api<{ version: number; chapters: unknown[] }>(admin, 'GET', `/api/v1/content/modules/${id}`);
-    if (m.status === 200) {
-      const emptied = await api<{ version: number }>(admin, 'PUT', `/api/v1/content/modules/${id}`, { ...m.body, chapters: [] });
-      await api(admin, 'DELETE', `/api/v1/content/modules/${id}?version=${emptied.body.version}`);
-    }
+    await removeModule(admin, id);
   }
 });

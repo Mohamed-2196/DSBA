@@ -3,7 +3,7 @@
 // progress across signing out and back in; adding an email. Ali: email, on a phone-sized screen. Rep and admin:
 // dev-login. About 5 codes per run (the API allows 30 per IP per hour).
 import { test as setup, expect, type Page } from '@playwright/test';
-import { api, devLogin, env, newRun, prepareContext, readRun, statePath, waitForCode } from './support';
+import { api, devLogin, env, gotoAccount, newRun, prepareContext, readRun, statePath, waitForCode } from './support';
 
 setup.describe.configure({ mode: 'serial' });
 
@@ -160,7 +160,7 @@ setup('Sara adds an email address to her phone account', async ({ browser }) => 
   const ctx = await browser.newContext({ baseURL: env.baseURL, storageState: statePath('sara') });
   await prepareContext(ctx);
   const page = await ctx.newPage();
-  await page.goto('/account');
+  await gotoAccount(page);
   await page.getByRole('button', { name: 'Add email' }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('New email address').fill(run.sara.email);
