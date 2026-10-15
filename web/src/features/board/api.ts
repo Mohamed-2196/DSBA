@@ -1,175 +1,376 @@
-// The study board from the API. Every change shows at once and is rolled back if the API refuses it.
-//   GET    /api/v1/board                       every card, To do first, each column in order
-//   POST   /api/v1/board/cards                 a card at the end of its column (or from a hub link)
-//   PATCH  /api/v1/board/cards/{id}            title, note, due date
-//   PUT    /api/v1/board/cards/{id}/place      a column, after a card or at the top
-//   DELETE /api/v1/board/cards/{id}
-//   POST   /api/v1/board/plans                 plan a module's revision to the exam (cards for what's left)
-//   DELETE /api/v1/board/plans/{moduleId}      remove a plan and its cards still to do
-// Writes share one mutation scope, so they reach the API in the order they were made.
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+// The boards and cards from the API. Every change shows at once and queries update on settlement.
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
 import { errorMessage } from '../../api/errors';
-import type { Board, BoardCard, BoardCardCreate, BoardCardUpdate, BoardPlanCreate } from '../../api/types';
+import type {
+  BoardCardCreate,
+  BoardCardDetail,
+  BoardCardUpdate,
+  BoardCreate,
+  BoardPlanCreate,
+  BoardUpdate,
+  ColumnCreate,
+  ColumnUpdate,
+  LabelCreate,
+  LabelUpdate,
+} from '../../api/types';
 import { useToast } from '../../state';
-import { appendCard, placeCard, type Column } from './board';
 
-export const BOARD_KEY = ['board'] as const;
+export const BOARDS_KEY = ['boards'] as const;
+export const BOARD_KEY = (id: string | null | undefined) => ['board', id] as const;
+export const AGENDA_KEY = ['board-agenda'] as const;
+export const LINKS_KEY = ['board-links'] as const;
+export const CARD_DETAIL_KEY = (id: string | null | undefined) => ['board-card', id] as const;
 const SCOPE = { id: 'board' };
 
-/** A card added here that the API hasn't saved yet. */
-export const isUnsaved = (card: Pick<BoardCard, 'id'>): boolean => card.id.startsWith('unsaved-');
 
-export function useBoard({ enabled = true }: { enabled?: boolean } = {}) {
+
+export function useBoards({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
-    queryKey: BOARD_KEY,
-    queryFn: () => call(api.GET('/api/v1/board')),
+    queryKey: BOARDS_KEY,
+    queryFn: () => call(api.GET('/api/v1/boards')),
     enabled,
-    // Watching a lesson elsewhere can move a card: read it again whenever the board opens.
     refetchOnMount: 'always',
   });
 }
 
-async function edit(qc: QueryClient, change: (cards: BoardCard[]) => BoardCard[]): Promise<{ before: Board | undefined }> {
-  await qc.cancelQueries({ queryKey: BOARD_KEY });
-  const before = qc.getQueryData<Board>(BOARD_KEY);
-  if (before) qc.setQueryData<Board>(BOARD_KEY, { ...before, cards: change(before.cards) });
-  return { before };
+export function useBoard(boardId: string | null | undefined, { enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: BOARD_KEY(boardId),
+    queryFn: () => call(api.GET('/api/v1/boards/{board_id}', { params: { path: { board_id: boardId! } } })),
+    enabled: enabled && !!boardId,
+    refetchOnMount: 'always',
+  });
 }
 
-function rollback(qc: QueryClient, ctx: { before: Board | undefined } | undefined) {
-  if (ctx?.before) qc.setQueryData(BOARD_KEY, ctx.before);
+export function useAgenda({ days = 14, enabled = true }: { days?: number; enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: [...AGENDA_KEY, days],
+    queryFn: () => call(api.GET('/api/v1/board-agenda', { params: { query: { days } } })),
+    enabled,
+    refetchOnMount: 'always',
+  });
 }
 
-/** Rolls the board back and says why, wherever the change was made (the dialog that made it may be gone). */
-function useFailure(title: string) {
+export function useBoardLinks({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: LINKS_KEY,
+    queryFn: () => call(api.GET('/api/v1/board-links')),
+    enabled,
+    refetchOnMount: 'always',
+  });
+}
+
+export function useCardDetail(cardId: string | null | undefined, { enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: CARD_DETAIL_KEY(cardId),
+    queryFn: () => call(api.GET('/api/v1/board-cards/{card_id}', { params: { path: { card_id: cardId! } } })),
+    enabled: enabled && !!cardId,
+  });
+}
+
+export function useCreateBoard() {
   const qc = useQueryClient();
   const toast = useToast();
-  return (e: unknown, ctx: { before: Board | undefined } | undefined) => {
-    rollback(qc, ctx);
-    toast.push({ tone: 'alert', title, body: errorMessage(e) });
-  };
+  return useMutation({
+    mutationFn: (body: BoardCreate) => call(api.POST('/api/v1/boards', { body })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The board wasn’t created', body: errorMessage(e) }),
+    onSuccess: (board) => {
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      return board;
+    },
+  });
 }
 
-const replaceCard = (qc: QueryClient, id: string, card: BoardCard) =>
-  qc.setQueryData<Board>(BOARD_KEY, (b) => (b ? { ...b, cards: b.cards.map((c) => (c.id === id ? card : c)) } : b));
+export function useUpdateBoard() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: BoardUpdate }) =>
+      call(api.PATCH('/api/v1/boards/{board_id}', { params: { path: { board_id: id } }, body: patch })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The board wasn’t saved', body: errorMessage(e) }),
+    onSuccess: (_board, { id }) => {
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      void qc.invalidateQueries({ queryKey: BOARD_KEY(id) });
+    },
+  });
+}
+
+export function usePlaceBoard() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ id, afterId }: { id: string; afterId: string | null }) =>
+      call(api.PUT('/api/v1/boards/{board_id}/place', { params: { path: { board_id: id } }, body: { afterId } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The board wasn’t reordered', body: errorMessage(e) }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+    },
+  });
+}
+
+export function useDeleteBoard() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: (id: string) => call(api.DELETE('/api/v1/boards/{board_id}', { params: { path: { board_id: id } } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The board wasn’t deleted', body: errorMessage(e) }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      void qc.invalidateQueries({ queryKey: AGENDA_KEY });
+      void qc.invalidateQueries({ queryKey: LINKS_KEY });
+    },
+  });
+}
+
+export function useAddColumn() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ boardId, body }: { boardId: string; body: ColumnCreate }) =>
+      call(api.POST('/api/v1/boards/{board_id}/columns', { params: { path: { board_id: boardId } }, body })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The column wasn’t added', body: errorMessage(e) }),
+    onSuccess: (_summary, { boardId }) => {
+      void qc.invalidateQueries({ queryKey: BOARD_KEY(boardId) });
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+    },
+  });
+}
+
+export function useUpdateColumn() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ boardId, columnId, patch }: { boardId: string; columnId: string; patch: ColumnUpdate }) =>
+      call(api.PATCH('/api/v1/boards/{board_id}/columns/{column_id}', { params: { path: { board_id: boardId, column_id: columnId } }, body: patch })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The column wasn’t saved', body: errorMessage(e) }),
+    onSuccess: (_summary, { boardId }) => {
+      void qc.invalidateQueries({ queryKey: BOARD_KEY(boardId) });
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      void qc.invalidateQueries({ queryKey: AGENDA_KEY });
+    },
+  });
+}
+
+export function usePlaceColumn() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ boardId, columnId, afterId }: { boardId: string; columnId: string; afterId: string | null }) =>
+      call(api.PUT('/api/v1/boards/{board_id}/columns/{column_id}/place', { params: { path: { board_id: boardId, column_id: columnId } }, body: { afterId } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The column wasn’t moved', body: errorMessage(e) }),
+    onSuccess: (_summary, { boardId }) => {
+      void qc.invalidateQueries({ queryKey: BOARD_KEY(boardId) });
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+    },
+  });
+}
+
+export function useDeleteColumn() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ boardId, columnId, moveTo }: { boardId: string; columnId: string; moveTo?: string | null }) =>
+      call(api.DELETE('/api/v1/boards/{board_id}/columns/{column_id}', { params: { path: { board_id: boardId, column_id: columnId }, query: { moveTo: moveTo ?? undefined } } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The column wasn’t deleted', body: errorMessage(e) }),
+    onSuccess: (_summary, { boardId }) => {
+      void qc.invalidateQueries({ queryKey: BOARD_KEY(boardId) });
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      void qc.invalidateQueries({ queryKey: AGENDA_KEY });
+    },
+  });
+}
+
+export function useCreateLabel() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: (body: LabelCreate) => call(api.POST('/api/v1/board-labels', { body })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The label wasn’t added', body: errorMessage(e) }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+    },
+  });
+}
+
+export function useUpdateLabel() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: LabelUpdate }) =>
+      call(api.PATCH('/api/v1/board-labels/{label_id}', { params: { path: { label_id: id } }, body: patch })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The label wasn’t saved', body: errorMessage(e) }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      void qc.invalidateQueries({ queryKey: ['board'] });
+    },
+  });
+}
+
+export function useDeleteLabel() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: (id: string) => call(api.DELETE('/api/v1/board-labels/{label_id}', { params: { path: { label_id: id } } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The label wasn’t deleted', body: errorMessage(e) }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      void qc.invalidateQueries({ queryKey: ['board'] });
+    },
+  });
+}
 
 export function useAddCard() {
   const qc = useQueryClient();
-  const failed = useFailure('The card wasn’t added');
+  const toast = useToast();
   return useMutation({
     scope: SCOPE,
-    mutationFn: (body: BoardCardCreate) => call(api.POST('/api/v1/board/cards', { body })),
-    onMutate: async (body) => {
-      const now = new Date().toISOString();
-      const temp: BoardCard = {
-        id: `unsaved-${now}-${Math.random().toString(36).slice(2)}`,
-        column: body.column ?? 'todo',
-        title: body.title ?? '',
-        note: body.note ?? null,
-        dueDate: body.dueDate ?? null,
-        link: null,
-        planModuleId: null,
-        planDate: null,
-        createdAt: now,
-        doneAt: body.column === 'done' ? now : null,
-      };
-      // A card from the hub waits for its title and place from the API; one written here shows at once.
-      const ctx = body.link ? await edit(qc, (cards) => cards) : await edit(qc, (cards) => appendCard(cards, temp));
-      return { ...ctx, tempId: temp.id };
-    },
-    onError: (e, body, ctx) => {
-      if (body.link) rollback(qc, ctx); // the hub's button says why itself
-      else failed(e, ctx);
-    },
-    onSuccess: (card, _v, ctx) =>
-      qc.setQueryData<Board>(BOARD_KEY, (b) => {
-        if (!b) return b;
-        const saved = b.cards.some((c) => c.id === ctx.tempId) ? b.cards.map((c) => (c.id === ctx.tempId ? card : c)) : null;
-        return { ...b, cards: saved ?? appendCard(b.cards, card) };
-      }),
-    onSettled: (_d, _e, body) => {
-      // A card from the hub lands where the API put it (a watched lesson goes to Done).
-      if (body.link) void qc.invalidateQueries({ queryKey: BOARD_KEY });
+    mutationFn: (body: BoardCardCreate) => call(api.POST('/api/v1/board-cards', { body })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The card wasn’t added', body: errorMessage(e) }),
+    onSuccess: (card) => {
+      void qc.invalidateQueries({ queryKey: BOARD_KEY(card.boardId) });
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      void qc.invalidateQueries({ queryKey: AGENDA_KEY });
+      void qc.invalidateQueries({ queryKey: LINKS_KEY });
+      return card;
     },
   });
 }
 
 export function useUpdateCard() {
   const qc = useQueryClient();
-  const failed = useFailure('The card wasn’t saved');
+  const toast = useToast();
   return useMutation({
     scope: SCOPE,
     mutationFn: ({ id, patch }: { id: string; patch: BoardCardUpdate }) =>
-      call(api.PATCH('/api/v1/board/cards/{card_id}', { params: { path: { card_id: id } }, body: patch })),
-    onMutate: ({ id, patch }) =>
-      edit(qc, (cards) =>
-        cards.map((c) =>
-          c.id === id
-            ? {
-                ...c,
-                title: patch.title ?? c.title,
-                note: 'note' in patch ? (patch.note ?? null) : c.note,
-                dueDate: 'dueDate' in patch ? (patch.dueDate ?? null) : c.dueDate,
-              }
-            : c,
-        ),
-      ),
-    onError: (e, _v, ctx) => failed(e, ctx),
-    onSuccess: (card, { id }) => replaceCard(qc, id, card),
+      call(api.PATCH('/api/v1/board-cards/{card_id}', { params: { path: { card_id: id } }, body: patch })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The card wasn’t saved', body: errorMessage(e) }),
+    onSuccess: (card) => {
+      qc.setQueryData(CARD_DETAIL_KEY(card.id), (prev: BoardCardDetail | undefined) => (prev ? { ...prev, ...card } : prev));
+      void qc.invalidateQueries({ queryKey: BOARD_KEY(card.boardId) });
+      void qc.invalidateQueries({ queryKey: AGENDA_KEY });
+      void qc.invalidateQueries({ queryKey: CARD_DETAIL_KEY(card.id) });
+    },
   });
 }
 
 export function useMoveCard() {
   const qc = useQueryClient();
-  const failed = useFailure('The card wasn’t moved');
+  const toast = useToast();
   return useMutation({
     scope: SCOPE,
-    mutationFn: ({ id, column, afterId }: { id: string; column: Column; afterId: string | null }) =>
-      call(api.PUT('/api/v1/board/cards/{card_id}/place', { params: { path: { card_id: id } }, body: { column, afterId } })),
-    onMutate: ({ id, column, afterId }) => edit(qc, (cards) => placeCard(cards, id, column, afterId, new Date().toISOString())),
-    onError: (e, _v, ctx) => {
-      failed(e, ctx);
-      void qc.invalidateQueries({ queryKey: BOARD_KEY });
+    mutationFn: ({ id, columnId, afterId }: { id: string; columnId: string; afterId: string | null }) =>
+      call(api.PUT('/api/v1/board-cards/{card_id}/place', { params: { path: { card_id: id } }, body: { columnId, afterId } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The card wasn’t moved', body: errorMessage(e) }),
+    onSuccess: (card) => {
+      void qc.invalidateQueries({ queryKey: BOARD_KEY(card.boardId) });
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      void qc.invalidateQueries({ queryKey: AGENDA_KEY });
+      void qc.invalidateQueries({ queryKey: CARD_DETAIL_KEY(card.id) });
     },
-    onSuccess: (card, { id }) => replaceCard(qc, id, card),
   });
 }
 
 export function useDeleteCard() {
   const qc = useQueryClient();
-  const failed = useFailure('The card wasn’t deleted');
+  const toast = useToast();
   return useMutation({
     scope: SCOPE,
-    mutationFn: (id: string) => call(api.DELETE('/api/v1/board/cards/{card_id}', { params: { path: { card_id: id } } })),
-    onMutate: (id) => edit(qc, (cards) => cards.filter((c) => c.id !== id)),
-    onError: (e, _v, ctx) => failed(e, ctx),
+    mutationFn: (id: string) => call(api.DELETE('/api/v1/board-cards/{card_id}', { params: { path: { card_id: id } } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The card wasn’t deleted', body: errorMessage(e) }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['board'] });
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      void qc.invalidateQueries({ queryKey: AGENDA_KEY });
+      void qc.invalidateQueries({ queryKey: LINKS_KEY });
+    },
   });
 }
 
-/** Plans a module's revision. The board reloads with the plan's cards; the caller says how many were added. */
+export function useAttachFile() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ cardId, uploadId }: { cardId: string; uploadId: string }) =>
+      call(api.POST('/api/v1/board-cards/{card_id}/attachments', { params: { path: { card_id: cardId } }, body: { uploadId } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The file wasn’t attached', body: errorMessage(e) }),
+    onSuccess: (_attachment, { cardId }) => {
+      void qc.invalidateQueries({ queryKey: CARD_DETAIL_KEY(cardId) });
+      void qc.invalidateQueries({ queryKey: ['board'] });
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+    },
+  });
+}
+
+export function useDetachFile() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ cardId, uploadId }: { cardId: string; uploadId: string }) =>
+      call(api.DELETE('/api/v1/board-cards/{card_id}/attachments/{upload_id}', { params: { path: { card_id: cardId, upload_id: uploadId } } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The file wasn’t removed', body: errorMessage(e) }),
+    onSuccess: (_res, { cardId }) => {
+      void qc.invalidateQueries({ queryKey: CARD_DETAIL_KEY(cardId) });
+      void qc.invalidateQueries({ queryKey: ['board'] });
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+    },
+  });
+}
+
+export function useAddComment() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ cardId, body }: { cardId: string; body: string }) =>
+      call(api.POST('/api/v1/board-cards/{card_id}/comments', { params: { path: { card_id: cardId } }, body: { body } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The comment wasn’t added', body: errorMessage(e) }),
+    onSuccess: (_comment, { cardId }) => {
+      void qc.invalidateQueries({ queryKey: CARD_DETAIL_KEY(cardId) });
+      void qc.invalidateQueries({ queryKey: ['board'] });
+    },
+  });
+}
+
+export function useDeleteComment() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ cardId, commentId }: { cardId: string; commentId: string }) =>
+      call(api.DELETE('/api/v1/board-cards/{card_id}/comments/{comment_id}', { params: { path: { card_id: cardId, comment_id: commentId } } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The comment wasn’t deleted', body: errorMessage(e) }),
+    onSuccess: (_res, { cardId }) => {
+      void qc.invalidateQueries({ queryKey: CARD_DETAIL_KEY(cardId) });
+      void qc.invalidateQueries({ queryKey: ['board'] });
+    },
+  });
+}
+
 export function useMakePlan() {
   const qc = useQueryClient();
   return useMutation({
     scope: SCOPE,
-    mutationFn: (body: BoardPlanCreate) => call(api.POST('/api/v1/board/plans', { body })),
-    onSettled: () => qc.invalidateQueries({ queryKey: BOARD_KEY }),
+    mutationFn: (body: BoardPlanCreate) => call(api.POST('/api/v1/board-plans', { body })),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['board'] });
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      void qc.invalidateQueries({ queryKey: AGENDA_KEY });
+      void qc.invalidateQueries({ queryKey: LINKS_KEY });
+    },
   });
 }
 
-/** Removes a module's plan and its cards still to do. */
 export function useDeletePlan() {
   const qc = useQueryClient();
   const toast = useToast();
   return useMutation({
     scope: SCOPE,
-    mutationFn: (moduleId: string) => call(api.DELETE('/api/v1/board/plans/{module_id}', { params: { path: { module_id: moduleId } } })),
-    onMutate: (moduleId) =>
-      edit(qc, (cards) => cards.filter((c) => c.planModuleId !== moduleId || c.column === 'done')),
-    onError: (e, _v, ctx) => {
-      rollback(qc, ctx);
-      toast.push({ tone: 'alert', title: 'The plan wasn’t removed', body: errorMessage(e) });
+    mutationFn: (moduleId: string) => call(api.DELETE('/api/v1/board-plans/{module_id}', { params: { path: { module_id: moduleId } } })),
+    onError: (e) => toast.push({ tone: 'alert', title: 'The plan wasn’t removed', body: errorMessage(e) }),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['board'] });
+      void qc.invalidateQueries({ queryKey: BOARDS_KEY });
+      void qc.invalidateQueries({ queryKey: AGENDA_KEY });
+      void qc.invalidateQueries({ queryKey: LINKS_KEY });
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: BOARD_KEY }),
   });
 }

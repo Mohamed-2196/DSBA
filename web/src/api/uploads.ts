@@ -58,6 +58,7 @@ const LIBRARY_TYPES: Readonly<Record<string, string>> = {
 
 const IMAGE_TYPES: Readonly<Record<string, string>> = { png: PNG, jpg: JPEG, jpeg: JPEG, webp: WEBP, gif: 'image/gif' };
 const PICTURE_TYPES: Readonly<Record<string, string>> = { png: PNG, jpg: JPEG, jpeg: JPEG, webp: WEBP };
+const BOARD_TYPES: Readonly<Record<string, string>> = { ...LIBRARY_TYPES, gif: 'image/gif' };
 
 /** The picker lists extensions, plus the picture types so phones offer their photos and camera. */
 function acceptFor(types: Readonly<Record<string, string>>, mime: readonly string[]): string {
@@ -105,6 +106,16 @@ export const UPLOAD_RULES: Readonly<Record<UploadPurpose, UploadRules>> = {
     refused: 'That file type can’t be attached.',
     noun: 'screenshot',
     smaller: 'Save a smaller copy and try again.',
+  },
+  board: {
+    types: BOARD_TYPES,
+    maxMb: 50,
+    accept: acceptFor(BOARD_TYPES, [JPEG, PNG, WEBP, 'image/gif']),
+    summary: 'Files and pictures up to 50 MB.',
+    allowed: 'Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, or a picture.',
+    refused: 'This type of file can’t be attached to a card.',
+    noun: 'file',
+    smaller: 'Compress it or choose a smaller file.',
   },
 };
 

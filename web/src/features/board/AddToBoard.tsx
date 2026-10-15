@@ -5,7 +5,7 @@ import { errorMessage, isApiError } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { useToast } from '../../state';
 import { Button, type ButtonSize } from '../../ui';
-import { useAddCard, useBoard } from './api';
+import { useAddCard, useBoardLinks } from './api';
 
 export interface AddToBoardProps {
   /** what the card points at: a calendar event, a lesson ('<module>:<chapter>:<video>'), a module or a library item */
@@ -19,15 +19,17 @@ export interface AddToBoardProps {
 export function AddToBoard({ link, size = 'sm', className }: AddToBoardProps) {
   const { status, requireAuth } = useAuth();
   const signedIn = status === 'signed-in';
-  const board = useBoard({ enabled: signedIn });
+  const links = useBoardLinks({ enabled: signedIn });
   const add = useAddCard();
   const toast = useToast();
   const navigate = useNavigate();
-  const onBoard = board.data?.cards.some((c) => c.link?.type === link.type && c.link.id === link.id) ?? false;
+  const match = links.data?.find((l) => l.type === link.type && l.id === link.id);
+  const onBoard = !!match;
 
   if (onBoard) {
+    const to = match.boardId ? `/board?board=${match.boardId}&card=${match.cardId}` : '/board';
     return (
-      <Button size={size} variant="ghost" to="/board" leadingIcon={CheckCircle} className={className} data-hub="board-on">
+      <Button size={size} variant="ghost" to={to} leadingIcon={CheckCircle} className={className} data-hub="board-on">
         On your board
       </Button>
     );
@@ -35,16 +37,16 @@ export function AddToBoard({ link, size = 'sm', className }: AddToBoardProps) {
 
   const run = () =>
     add.mutate(
-      { link, column: 'todo' },
+      { link, priority: 'none' },
       {
         onSuccess: (card) =>
           toast.push({
             tone: 'success',
-            title: card.column === 'done' ? 'Added to Done on your board' : 'Added to your board',
-            action: { label: 'Open board', onClick: () => void navigate('/board') },
+            title: card.doneAt ? 'Added to Done on your board' : 'Added to your board',
+            action: { label: 'Open board', onClick: () => void navigate(`/board?board=${card.boardId}&card=${card.id}`) },
           }),
         onError: (e) => {
-          if (isApiError(e) && e.code === 'already_on_board') return; // the board reloads, and this becomes "On your board"
+          if (isApiError(e) && e.code === 'already_on_board') return; // the board links reload, and this becomes "On your board"
           toast.push({ tone: 'alert', title: 'It wasn’t added to your board', body: errorMessage(e) });
         },
       },

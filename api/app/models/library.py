@@ -178,12 +178,13 @@ class UploadPurpose(enum.StrEnum):
     forum_image = "forum_image"
     newsletter_image = "newsletter_image"  # a newsletter issue's cover art or a section's figure
     bug_screenshot = "bug_screenshot"  # a screenshot attached to a bug report
+    board = "board"  # a file or picture on a board card
 
 
 class UploadStatus(enum.StrEnum):
     pending = "pending"  # a presigned upload was handed out; the object may not exist yet
     uploaded = "uploaded"  # the object exists and matched what was declared
-    attached = "attached"  # in use by a library item, a forum post, a newsletter issue or a bug report
+    attached = "attached"  # in use by a library item, a forum post, a newsletter issue, a bug report or a board card
 
 
 class Upload(Base):
@@ -192,7 +193,9 @@ class Upload(Base):
     A forum image belongs to the post that shows it, set when the post is saved: `thread_id` for a thread's body,
     `reply_id` for a reply's. /media serves it only while that post is visible (security review, finding 8).
     A newsletter picture belongs to the issue that shows it (`newsletter_issue_id`), and a screenshot to its bug
-    report (`bug_report_id`). Uploads that are never attached to anything are swept after a day."""
+    report (`bug_report_id`). A board file belongs to its card (`card_id`, set when it is attached) and is served
+    to its owner only; when the card goes, `card_id` empties and the sweep deletes the file. Uploads that are never
+    attached to anything are swept after a day."""
 
     __tablename__ = "uploads"
     __table_args__ = (
@@ -200,6 +203,7 @@ class Upload(Base):
         Index("ix_uploads_user_created", "user_id", "created_at"),  # uploads per user per hour; account deletion
         Index("ix_uploads_newsletter_issue", "newsletter_issue_id"),  # an issue's pictures
         Index("ix_uploads_bug_report", "bug_report_id"),  # a report's screenshot
+        Index("ix_uploads_card", "card_id"),  # a card's files; removing a card (SET NULL)
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -218,3 +222,4 @@ class Upload(Base):
         ForeignKey("newsletter_issues.id", ondelete="SET NULL")
     )
     bug_report_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("bug_reports.id", ondelete="SET NULL"))
+    card_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("board_cards.id", ondelete="SET NULL"))

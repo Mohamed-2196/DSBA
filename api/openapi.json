@@ -6996,7 +6996,7 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; newsletter_image (people who\nmanage the newsletter) and bug_screenshot (anyone signed in): PNG, JPEG, WebP up to DSBA_MAX_IMAGE_MB. The\nextension must match the declared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST\n`fields` and then the file as `file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), rate_limited (429), forbidden (403: no library.upload, no forum.post for a forum\npicture, no newsletter.manage for a newsletter picture), feature_off (404: the library, its uploads, the forum\nor the newsletter is switched off).",
+        "description": "A presigned POST for one file. library: PDF, Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx,\n.ppt), notebooks (.ipynb), R scripts (.r), text (.txt), CSV and pictures (.jpg, .jpeg, .png, .webp), up to\nDSBA_MAX_UPLOAD_MB; forum_image: PNG, JPEG, WebP, GIF up to DSBA_MAX_IMAGE_MB; newsletter_image (people who\nmanage the newsletter) and bug_screenshot (anyone signed in): PNG, JPEG, WebP up to DSBA_MAX_IMAGE_MB; board\n(a file on a board card): the library's types and GIF, up to DSBA_MAX_UPLOAD_MB. The extension must match the\ndeclared type (for .ipynb and .r, `application/octet-stream` is accepted too). POST `fields` and then the file as\n`file` to `url`, then call /uploads/{id}/complete. 20 uploads per hour.\n\nErrors: unsupported_type (422), too_large (422), too_many_pending (409: a student already has 10 files waiting\nfor review; library only), storage_full (409: the files on the student's cards would pass their limit; board only),\nrate_limited (429), forbidden (403: no library.upload, no forum.post for a forum picture, no newsletter.manage\nfor a newsletter picture), feature_off (404: the library, its uploads, the forum, the newsletter or the boards\nare switched off).",
         "operationId": "create_upload_api_v1_uploads_post",
         "requestBody": {
           "content": {
@@ -14380,21 +14380,121 @@
         }
       }
     },
-    "/api/v1/board": {
+    "/api/v1/boards": {
       "get": {
         "tags": [
           "board"
         ],
-        "summary": "Get Board",
-        "description": "Every card, To do first, each column in its order. Linked things are read as they are now; a thing that's\ngone has a link with no title.",
-        "operationId": "get_board_api_v1_board_get",
+        "summary": "List Boards",
+        "description": "Every board (active ones in order, then the archived ones), the student's labels, and what they hold of\ntheir limits.",
+        "operationId": "list_boards_api_v1_boards_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Board"
+                  "$ref": "#/components/schemas/Boards"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Create Board",
+        "description": "A board after the others, with the template's columns. Errors: boards_full (409), rate_limited (429).",
+        "operationId": "create_board_api_v1_boards_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoardCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardSummary"
                 }
               }
             }
@@ -14472,13 +14572,1442 @@
         }
       }
     },
-    "/api/v1/board/cards": {
+    "/api/v1/boards/{board_id}": {
+      "get": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Get Board Detail",
+        "description": "The board, its cards column by column, each in order, and its revision plans. Linked things are read as\nthey are now; a thing that's gone has a link with no title.",
+        "operationId": "get_board_detail_api_v1_boards__board_id__get",
+        "parameters": [
+          {
+            "name": "board_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Board Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Update Board",
+        "description": "Name, emoji, colour, archived. A board back from the archive goes after the active ones.",
+        "operationId": "update_board_api_v1_boards__board_id__patch",
+        "parameters": [
+          {
+            "name": "board_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Board Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoardUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardSummary"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Delete Board",
+        "description": "The board with its columns, cards, comments, files and revision plans.",
+        "operationId": "delete_board_api_v1_boards__board_id__delete",
+        "parameters": [
+          {
+            "name": "board_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Board Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/boards/{board_id}/place": {
+      "put": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Place Board",
+        "description": "Among the active boards, after `afterId` or first. Errors: retry (409).",
+        "operationId": "place_board_api_v1_boards__board_id__place_put",
+        "parameters": [
+          {
+            "name": "board_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Board Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AfterId"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardSummary"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/boards/{board_id}/columns": {
+      "post": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Add Column",
+        "description": "A column at the end of the board. Errors: limit_reached (409).",
+        "operationId": "add_column_api_v1_boards__board_id__columns_post",
+        "parameters": [
+          {
+            "name": "board_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Board Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ColumnCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardSummary"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/boards/{board_id}/columns/{column_id}": {
+      "patch": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Update Column",
+        "description": "Rename it, or mark it done (its cards count as done) or not.",
+        "operationId": "update_column_api_v1_boards__board_id__columns__column_id__patch",
+        "parameters": [
+          {
+            "name": "board_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Board Id"
+            }
+          },
+          {
+            "name": "column_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Column Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ColumnUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardSummary"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Delete Column",
+        "description": "Deletes the column; its cards move to the end of `moveTo` first. Errors: invalid_input on moveTo when the\ncolumn has cards and `moveTo` isn't another column of the board (422), limit_reached for the last column\n(409).",
+        "operationId": "delete_column_api_v1_boards__board_id__columns__column_id__delete",
+        "parameters": [
+          {
+            "name": "board_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Board Id"
+            }
+          },
+          {
+            "name": "column_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Column Id"
+            }
+          },
+          {
+            "name": "moveTo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Moveto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardSummary"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/boards/{board_id}/columns/{column_id}/place": {
+      "put": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Place Column",
+        "description": "After the column `afterId`, or first. Errors: retry (409).",
+        "operationId": "place_column_api_v1_boards__board_id__columns__column_id__place_put",
+        "parameters": [
+          {
+            "name": "board_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Board Id"
+            }
+          },
+          {
+            "name": "column_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Column Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AfterId"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardSummary"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/board-agenda": {
+      "get": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Agenda",
+        "description": "The cards not done on the active boards that are overdue or due within `days`: by day, then time.",
+        "operationId": "agenda_api_v1_board_agenda_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 31,
+              "minimum": 0,
+              "default": 7,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Agenda"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/board-links": {
+      "get": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Board Links",
+        "description": "Every calendar date, lesson, module and library file on the student's boards, and whether it's done.",
+        "operationId": "board_links_api_v1_board_links_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BoardLinkState"
+                  },
+                  "type": "array",
+                  "title": "Response Board Links Api V1 Board Links Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/board-labels": {
+      "post": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Create Label",
+        "description": "Errors: invalid_input on name when another label has it (422), limit_reached (409).",
+        "operationId": "create_label_api_v1_board_labels_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardLabel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/board-labels/{label_id}": {
+      "patch": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Update Label",
+        "description": "Errors: invalid_input on name when another label has it (422).",
+        "operationId": "update_label_api_v1_board_labels__label_id__patch",
+        "parameters": [
+          {
+            "name": "label_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Label Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardLabel"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Delete Label",
+        "description": "The label goes from every card.",
+        "operationId": "delete_label_api_v1_board_labels__label_id__delete",
+        "parameters": [
+          {
+            "name": "label_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Label Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/board-cards": {
       "post": {
         "tags": [
           "board"
         ],
         "summary": "Create Card",
-        "description": "A card at the end of its column; a lesson already watched goes to Done. Errors: board_full (409),\nalready_on_board (409), invalid_input on `link.id` when the thing isn't there (422), rate_limited (429).",
+        "description": "A card at the end of a column: `columnId`, or the first column of `boardId`, or of the student's first board\n(made from the Study template when there's none). A lesson already watched goes to the board's first done\ncolumn. Errors: board_full (409), already_on_board (409), invalid_input on `link.id` when the thing isn't there\n(422), rate_limited (429).",
         "operationId": "create_card_api_v1_board_cards_post",
         "requestBody": {
           "content": {
@@ -14574,13 +16103,115 @@
         }
       }
     },
-    "/api/v1/board/cards/{card_id}": {
+    "/api/v1/board-cards/{card_id}": {
+      "get": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Get Card Detail",
+        "description": "The card with its files and comments.",
+        "operationId": "get_card_detail_api_v1_board_cards__card_id__get",
+        "parameters": [
+          {
+            "name": "card_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Card Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardCardDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
       "patch": {
         "tags": [
           "board"
         ],
         "summary": "Update Card",
-        "description": "Fields that are not sent stay; null clears the note or the due date.",
+        "description": "Fields that are not sent stay; null clears. A checklist replaces the whole checklist. Errors: invalid_input\non coverId when it isn't one of the card's pictures, on labelIds for a label that's gone (422).",
         "operationId": "update_card_api_v1_board_cards__card_id__patch",
         "parameters": [
           {
@@ -14692,6 +16323,7 @@
           "board"
         ],
         "summary": "Delete Card",
+        "description": "The card with its comments and files.",
         "operationId": "delete_card_api_v1_board_cards__card_id__delete",
         "parameters": [
           {
@@ -14782,13 +16414,13 @@
         }
       }
     },
-    "/api/v1/board/cards/{card_id}/place": {
+    "/api/v1/board-cards/{card_id}/place": {
       "put": {
         "tags": [
           "board"
         ],
         "summary": "Move Card",
-        "description": "Puts the card in a column, after `afterId` or at the top. Errors: retry (409) when `afterId` is no longer\nin that column.",
+        "description": "Puts the card in a column (of any of the student's boards), after `afterId` or at the top. Errors: retry\n(409) when `afterId` is no longer in that column, already_on_board (409).",
         "operationId": "move_card_api_v1_board_cards__card_id__place_put",
         "parameters": [
           {
@@ -14896,13 +16528,551 @@
         }
       }
     },
-    "/api/v1/board/plans": {
+    "/api/v1/board-cards/{card_id}/attachments": {
+      "post": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Attach File",
+        "description": "Attaches a checked upload (purpose 'board'); the first picture becomes the cover. Errors: not_found (404),\nnot_uploaded (409), limit_reached (409).",
+        "operationId": "attach_file_api_v1_board_cards__card_id__attachments_post",
+        "parameters": [
+          {
+            "name": "card_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Card Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachmentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardAttachment"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/board-cards/{card_id}/attachments/{upload_id}": {
+      "delete": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Detach File",
+        "description": "Deletes the file. Errors: storage_unavailable (503).",
+        "operationId": "detach_file_api_v1_board_cards__card_id__attachments__upload_id__delete",
+        "parameters": [
+          {
+            "name": "card_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Card Id"
+            }
+          },
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Upload Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/board-cards/{card_id}/comments": {
+      "post": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Add Comment",
+        "description": "A comment to self. Errors: limit_reached (409), rate_limited (429).",
+        "operationId": "add_comment_api_v1_board_cards__card_id__comments_post",
+        "parameters": [
+          {
+            "name": "card_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Card Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardComment"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/board-cards/{card_id}/comments/{comment_id}": {
+      "delete": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Delete Comment",
+        "operationId": "delete_comment_api_v1_board_cards__card_id__comments__comment_id__delete",
+        "parameters": [
+          {
+            "name": "card_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Card Id"
+            }
+          },
+          {
+            "name": "comment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Comment Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/board-files/{upload_id}": {
+      "get": {
+        "tags": [
+          "board"
+        ],
+        "summary": "Open File",
+        "description": "302 to a short-lived link to one of the student's card files: shown in the browser for pictures and PDFs,\ndownloaded otherwise. 404 for anyone else.",
+        "operationId": "open_file_api_v1_board_files__upload_id__get",
+        "parameters": [
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Upload Id"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/board-plans": {
       "post": {
         "tags": [
           "board"
         ],
         "summary": "Make Plan",
-        "description": "Plans a module's revision up to the exam: a card for each lesson not watched yet and a past paper every few\ndays. Planning the module again keeps its cards, adds what's missing and takes the new date. Errors:\ninvalid_input on `moduleId` or `examDate` (422), board_full (409), rate_limited (429).",
+        "description": "Plans a module's revision up to the exam: a card for each lesson not watched yet and a past paper every few\ndays, in the board's first column. Planning the module again keeps its cards and board, adds what's missing and\ntakes the new date. Errors: invalid_input on `moduleId` or `examDate` (422), board_full (409), rate_limited\n(429).",
         "operationId": "make_plan_api_v1_board_plans_post",
         "requestBody": {
           "content": {
@@ -14998,7 +17168,7 @@
         }
       }
     },
-    "/api/v1/board/plans/{module_id}": {
+    "/api/v1/board-plans/{module_id}": {
       "delete": {
         "tags": [
           "board"
@@ -16684,12 +18854,19 @@
             "type": "array",
             "title": "Emails"
           },
-          "board": {
+          "boards": {
             "items": {
-              "$ref": "#/components/schemas/ExportBoardCard"
+              "$ref": "#/components/schemas/ExportBoard"
             },
             "type": "array",
-            "title": "Board"
+            "title": "Boards"
+          },
+          "boardLabels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Boardlabels"
           },
           "boardPlans": {
             "items": {
@@ -16762,7 +18939,8 @@
           "questionTags",
           "questionFlags",
           "emails",
-          "board",
+          "boards",
+          "boardLabels",
           "boardPlans",
           "follows",
           "pollVotes",
@@ -17059,6 +19237,298 @@
         "title": "AdminUserUpdate",
         "description": "Only the fields sent change. `status` needs people.suspend; only admins suspend or restore an admin. `email`\nand `phone` are the account-recovery action (security review SEC-9), for admins only: they replace the account's\naddress (`null` removes it; one must stay), end every session of the account, send a notice to the address that\nwas replaced or removed, and are audited (`user.identifier`)."
       },
+      "AfterId": {
+        "properties": {
+          "afterId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Afterid"
+          }
+        },
+        "type": "object",
+        "title": "AfterId",
+        "description": "Right after `afterId`, or first with null."
+      },
+      "Agenda": {
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date",
+            "title": "Today"
+          },
+          "until": {
+            "type": "string",
+            "format": "date",
+            "title": "Until"
+          },
+          "cards": {
+            "items": {
+              "$ref": "#/components/schemas/AgendaCard"
+            },
+            "type": "array",
+            "title": "Cards"
+          }
+        },
+        "type": "object",
+        "required": [
+          "today",
+          "until",
+          "cards"
+        ],
+        "title": "Agenda",
+        "description": "Cards not done on the active boards that are due by `until`: by day, then time, then board."
+      },
+      "AgendaCard": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "boardId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Boardid"
+          },
+          "columnId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Columnid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "dueTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duetime"
+          },
+          "remindBefore": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  0,
+                  15,
+                  60,
+                  1440,
+                  2880
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remindbefore"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "none",
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Priority"
+          },
+          "labelIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Labelids"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItem"
+            },
+            "type": "array",
+            "title": "Checklist"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BoardLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "planModuleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planmoduleid"
+          },
+          "planDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plandate"
+          },
+          "coverUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverurl"
+          },
+          "attachmentCount": {
+            "type": "integer",
+            "title": "Attachmentcount"
+          },
+          "commentCount": {
+            "type": "integer",
+            "title": "Commentcount"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "doneAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doneat"
+          },
+          "boardName": {
+            "type": "string",
+            "title": "Boardname"
+          },
+          "boardEmoji": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boardemoji"
+          },
+          "boardColor": {
+            "type": "string",
+            "enum": [
+              "cobalt",
+              "teal",
+              "green",
+              "amber",
+              "coral",
+              "slate"
+            ],
+            "title": "Boardcolor"
+          },
+          "due": {
+            "type": "string",
+            "format": "date",
+            "title": "Due"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "boardId",
+          "columnId",
+          "title",
+          "description",
+          "dueDate",
+          "dueTime",
+          "remindBefore",
+          "priority",
+          "labelIds",
+          "checklist",
+          "link",
+          "planModuleId",
+          "planDate",
+          "coverUrl",
+          "attachmentCount",
+          "commentCount",
+          "createdAt",
+          "doneAt",
+          "boardName",
+          "boardEmoji",
+          "boardColor",
+          "due"
+        ],
+        "title": "AgendaCard"
+      },
+      "AttachmentCreate": {
+        "properties": {
+          "uploadId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uploadid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uploadId"
+        ],
+        "title": "AttachmentCreate",
+        "description": "A file uploaded with purpose 'board' (POST /uploads, then /uploads/{id}/complete)."
+      },
       "AuditOut": {
         "properties": {
           "id": {
@@ -17155,36 +19625,6 @@
         ],
         "title": "AuditPage"
       },
-      "Board": {
-        "properties": {
-          "cards": {
-            "items": {
-              "$ref": "#/components/schemas/BoardCard"
-            },
-            "type": "array",
-            "title": "Cards"
-          },
-          "plans": {
-            "items": {
-              "$ref": "#/components/schemas/BoardPlan"
-            },
-            "type": "array",
-            "title": "Plans"
-          },
-          "limit": {
-            "type": "integer",
-            "title": "Limit"
-          }
-        },
-        "type": "object",
-        "required": [
-          "cards",
-          "plans",
-          "limit"
-        ],
-        "title": "Board",
-        "description": "Every card, by column, each column in its order, and the revision plans."
-      },
       "BoardCard": {
         "properties": {
           "id": {
@@ -17192,20 +19632,21 @@
             "format": "uuid",
             "title": "Id"
           },
-          "column": {
+          "boardId": {
             "type": "string",
-            "enum": [
-              "todo",
-              "doing",
-              "done"
-            ],
-            "title": "Column"
+            "format": "uuid",
+            "title": "Boardid"
+          },
+          "columnId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Columnid"
           },
           "title": {
             "type": "string",
             "title": "Title"
           },
-          "note": {
+          "description": {
             "anyOf": [
               {
                 "type": "string"
@@ -17214,7 +19655,7 @@
                 "type": "null"
               }
             ],
-            "title": "Note"
+            "title": "Description"
           },
           "dueDate": {
             "anyOf": [
@@ -17227,6 +19668,61 @@
               }
             ],
             "title": "Duedate"
+          },
+          "dueTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duetime"
+          },
+          "remindBefore": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  0,
+                  15,
+                  60,
+                  1440,
+                  2880
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remindbefore"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "none",
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Priority"
+          },
+          "labelIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Labelids"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItem"
+            },
+            "type": "array",
+            "title": "Checklist"
           },
           "link": {
             "anyOf": [
@@ -17261,6 +19757,25 @@
             ],
             "title": "Plandate"
           },
+          "coverUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverurl"
+          },
+          "attachmentCount": {
+            "type": "integer",
+            "title": "Attachmentcount"
+          },
+          "commentCount": {
+            "type": "integer",
+            "title": "Commentcount"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -17282,13 +19797,22 @@
         "type": "object",
         "required": [
           "id",
-          "column",
+          "boardId",
+          "columnId",
           "title",
-          "note",
+          "description",
           "dueDate",
+          "dueTime",
+          "remindBefore",
+          "priority",
+          "labelIds",
+          "checklist",
           "link",
           "planModuleId",
           "planDate",
+          "coverUrl",
+          "attachmentCount",
+          "commentCount",
           "createdAt",
           "doneAt"
         ],
@@ -17296,6 +19820,30 @@
       },
       "BoardCardCreate": {
         "properties": {
+          "boardId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boardid"
+          },
+          "columnId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Columnid"
+          },
           "title": {
             "anyOf": [
               {
@@ -17309,17 +19857,17 @@
             ],
             "title": "Title"
           },
-          "note": {
+          "description": {
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 2000
+                "maxLength": 10000
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Note"
+            "title": "Description"
           },
           "dueDate": {
             "anyOf": [
@@ -17333,15 +19881,37 @@
             ],
             "title": "Duedate"
           },
-          "column": {
+          "dueTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duetime"
+          },
+          "priority": {
             "type": "string",
             "enum": [
-              "todo",
-              "doing",
-              "done"
+              "none",
+              "low",
+              "medium",
+              "high"
             ],
-            "title": "Column",
-            "default": "todo"
+            "title": "Priority",
+            "default": "none"
+          },
+          "labelIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Labelids"
           },
           "link": {
             "anyOf": [
@@ -17356,18 +19926,224 @@
         },
         "type": "object",
         "title": "BoardCardCreate",
-        "description": "A card at the end of a column. With a link and no title, the card takes the linked thing's title. A lesson\nalready watched starts in Done."
+        "description": "A card at the end of a column: `columnId`, or the first column of `boardId`, or of the student's first board\n(made from the Study template when there is none). With a link and no title, the card takes the linked thing's\ntitle. A lesson already watched starts in the board's first done column."
+      },
+      "BoardCardDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "boardId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Boardid"
+          },
+          "columnId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Columnid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "dueTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duetime"
+          },
+          "remindBefore": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  0,
+                  15,
+                  60,
+                  1440,
+                  2880
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remindbefore"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "none",
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Priority"
+          },
+          "labelIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Labelids"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItem"
+            },
+            "type": "array",
+            "title": "Checklist"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BoardLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "planModuleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planmoduleid"
+          },
+          "planDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plandate"
+          },
+          "coverUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverurl"
+          },
+          "attachmentCount": {
+            "type": "integer",
+            "title": "Attachmentcount"
+          },
+          "commentCount": {
+            "type": "integer",
+            "title": "Commentcount"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "doneAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doneat"
+          },
+          "attachments": {
+            "items": {
+              "$ref": "#/components/schemas/CardAttachment"
+            },
+            "type": "array",
+            "title": "Attachments"
+          },
+          "comments": {
+            "items": {
+              "$ref": "#/components/schemas/CardComment"
+            },
+            "type": "array",
+            "title": "Comments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "boardId",
+          "columnId",
+          "title",
+          "description",
+          "dueDate",
+          "dueTime",
+          "remindBefore",
+          "priority",
+          "labelIds",
+          "checklist",
+          "link",
+          "planModuleId",
+          "planDate",
+          "coverUrl",
+          "attachmentCount",
+          "commentCount",
+          "createdAt",
+          "doneAt",
+          "attachments",
+          "comments"
+        ],
+        "title": "BoardCardDetail",
+        "description": "A card with its files and its comments to self, oldest comment first."
       },
       "BoardCardMove": {
         "properties": {
-          "column": {
+          "columnId": {
             "type": "string",
-            "enum": [
-              "todo",
-              "doing",
-              "done"
-            ],
-            "title": "Column"
+            "format": "uuid",
+            "title": "Columnid"
           },
           "afterId": {
             "anyOf": [
@@ -17384,10 +20160,10 @@
         },
         "type": "object",
         "required": [
-          "column"
+          "columnId"
         ],
         "title": "BoardCardMove",
-        "description": "Puts the card in `column`, right after the card `afterId`, or at the top with null."
+        "description": "Puts the card in `columnId` (on any of the student's boards), right after the card `afterId`, or at the top\nwith null."
       },
       "BoardCardUpdate": {
         "properties": {
@@ -17404,17 +20180,17 @@
             ],
             "title": "Title"
           },
-          "note": {
+          "description": {
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 2000
+                "maxLength": 10000
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Note"
+            "title": "Description"
           },
           "dueDate": {
             "anyOf": [
@@ -17427,11 +20203,241 @@
               }
             ],
             "title": "Duedate"
+          },
+          "dueTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duetime"
+          },
+          "remindBefore": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  0,
+                  15,
+                  60,
+                  1440,
+                  2880
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remindbefore"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "labelIds": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array",
+                "maxItems": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Labelids"
+          },
+          "checklist": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ChecklistItem"
+                },
+                "type": "array",
+                "maxItems": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checklist"
+          },
+          "coverId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverid"
           }
         },
         "type": "object",
         "title": "BoardCardUpdate",
-        "description": "Fields that are not sent stay; null clears the note or the due date."
+        "description": "Fields that are not sent stay; null clears. A checklist replaces the card's whole checklist."
+      },
+      "BoardColumn": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "done"
+        ],
+        "title": "BoardColumn"
+      },
+      "BoardCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "emoji": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emoji"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "cobalt",
+              "teal",
+              "green",
+              "amber",
+              "coral",
+              "slate"
+            ],
+            "title": "Color",
+            "default": "cobalt"
+          },
+          "template": {
+            "type": "string",
+            "enum": [
+              "study",
+              "revision",
+              "assignment",
+              "weekly",
+              "personal",
+              "blank"
+            ],
+            "title": "Template",
+            "default": "blank"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "BoardCreate",
+        "description": "A board after the others, with the template's columns."
+      },
+      "BoardDetail": {
+        "properties": {
+          "board": {
+            "$ref": "#/components/schemas/BoardSummary"
+          },
+          "cards": {
+            "items": {
+              "$ref": "#/components/schemas/BoardCard"
+            },
+            "type": "array",
+            "title": "Cards"
+          },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/BoardPlan"
+            },
+            "type": "array",
+            "title": "Plans"
+          }
+        },
+        "type": "object",
+        "required": [
+          "board",
+          "cards",
+          "plans"
+        ],
+        "title": "BoardDetail",
+        "description": "One board: its columns in order, its cards (each column's in order, columns in order) and its revision\nplans, nearest exam first."
+      },
+      "BoardLabel": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "cobalt",
+              "teal",
+              "green",
+              "amber",
+              "coral",
+              "slate"
+            ],
+            "title": "Color"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "color"
+        ],
+        "title": "BoardLabel"
       },
       "BoardLink": {
         "properties": {
@@ -17559,6 +20565,48 @@
         "title": "BoardLinkIn",
         "description": "What a card points at: a calendar event id, a lesson id, a module id or a library item id."
       },
+      "BoardLinkState": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "event",
+              "lesson",
+              "module",
+              "library_item"
+            ],
+            "title": "Type"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "cardId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Cardid"
+          },
+          "boardId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Boardid"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "id",
+          "cardId",
+          "boardId",
+          "done"
+        ],
+        "title": "BoardLinkState",
+        "description": "A hub thing that is on one of the student's boards."
+      },
       "BoardPlan": {
         "properties": {
           "moduleId": {
@@ -17568,6 +20616,11 @@
           "moduleName": {
             "type": "string",
             "title": "Modulename"
+          },
+          "boardId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Boardid"
           },
           "examDate": {
             "type": "string",
@@ -17595,6 +20648,7 @@
         "required": [
           "moduleId",
           "moduleName",
+          "boardId",
           "examDate",
           "paperEvery",
           "left",
@@ -17623,6 +20677,18 @@
             "minimum": 1.0,
             "title": "Paperevery",
             "default": 3
+          },
+          "boardId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boardid"
           }
         },
         "type": "object",
@@ -17631,7 +20697,7 @@
           "examDate"
         ],
         "title": "BoardPlanCreate",
-        "description": "Plans a module's revision up to `examDate`: a card for each lesson not watched yet and a past paper every\n`paperEvery` days. Planning the same module again keeps its cards, adds what's missing and takes the new date."
+        "description": "Plans a module's revision up to `examDate` on `boardId` (the student's first board when not sent): a card for\neach lesson not watched yet and a past paper every `paperEvery` days. Planning the same module again keeps its\ncards and board, adds what's missing and takes the new date."
       },
       "BoardPlanMade": {
         "properties": {
@@ -17649,6 +20715,225 @@
           "added"
         ],
         "title": "BoardPlanMade"
+      },
+      "BoardSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "emoji": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emoji"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "cobalt",
+              "teal",
+              "green",
+              "amber",
+              "coral",
+              "slate"
+            ],
+            "title": "Color"
+          },
+          "template": {
+            "type": "string",
+            "enum": [
+              "study",
+              "revision",
+              "assignment",
+              "weekly",
+              "personal",
+              "blank"
+            ],
+            "title": "Template"
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived"
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/BoardColumn"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "open": {
+            "type": "integer",
+            "title": "Open"
+          },
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "emoji",
+          "color",
+          "template",
+          "archived",
+          "columns",
+          "open",
+          "done"
+        ],
+        "title": "BoardSummary"
+      },
+      "BoardUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "emoji": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emoji"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cobalt",
+                  "teal",
+                  "green",
+                  "amber",
+                  "coral",
+                  "slate"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "archived": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived"
+          }
+        },
+        "type": "object",
+        "title": "BoardUpdate",
+        "description": "Fields that are not sent stay; null clears the emoji."
+      },
+      "BoardUsage": {
+        "properties": {
+          "boards": {
+            "type": "integer",
+            "title": "Boards"
+          },
+          "maxBoards": {
+            "type": "integer",
+            "title": "Maxboards"
+          },
+          "cards": {
+            "type": "integer",
+            "title": "Cards"
+          },
+          "maxCards": {
+            "type": "integer",
+            "title": "Maxcards"
+          },
+          "storageBytes": {
+            "type": "integer",
+            "title": "Storagebytes"
+          },
+          "maxStorageBytes": {
+            "type": "integer",
+            "title": "Maxstoragebytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "boards",
+          "maxBoards",
+          "cards",
+          "maxCards",
+          "storageBytes",
+          "maxStorageBytes"
+        ],
+        "title": "BoardUsage",
+        "description": "What the student holds and may hold, over every board (archived ones too)."
+      },
+      "Boards": {
+        "properties": {
+          "boards": {
+            "items": {
+              "$ref": "#/components/schemas/BoardSummary"
+            },
+            "type": "array",
+            "title": "Boards"
+          },
+          "labels": {
+            "items": {
+              "$ref": "#/components/schemas/BoardLabel"
+            },
+            "type": "array",
+            "title": "Labels"
+          },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/BoardPlan"
+            },
+            "type": "array",
+            "title": "Plans"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/BoardUsage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "boards",
+          "labels",
+          "plans",
+          "usage"
+        ],
+        "title": "Boards",
+        "description": "Every board, active ones in order first, then the archived ones; the student's labels; the revision plans,\nnearest exam first; the limits."
       },
       "BoxOut": {
         "properties": {
@@ -18716,6 +22001,76 @@
         "title": "CardAside",
         "description": "A typographic card beside the copy: a kicker, a short title in a highlight, a line of text."
       },
+      "CardAttachment": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "fileName": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "contentType": {
+            "type": "string",
+            "title": "Contenttype"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "title": "Sizebytes"
+          },
+          "image": {
+            "type": "boolean",
+            "title": "Image"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "fileName",
+          "contentType",
+          "sizeBytes",
+          "image",
+          "url",
+          "createdAt"
+        ],
+        "title": "CardAttachment"
+      },
+      "CardComment": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "body",
+          "createdAt"
+        ],
+        "title": "CardComment"
+      },
       "CareerCert": {
         "properties": {
           "id": {
@@ -19778,6 +23133,34 @@
         ],
         "title": "ChecklistForum"
       },
+      "ChecklistItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "ChecklistItem"
+      },
       "ChecklistLesson": {
         "properties": {
           "kind": {
@@ -19963,6 +23346,72 @@
           "text"
         ],
         "title": "CloseOpps"
+      },
+      "ColumnCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ColumnCreate",
+        "description": "A column at the end of the board."
+      },
+      "ColumnUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "done": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Done"
+          }
+        },
+        "type": "object",
+        "title": "ColumnUpdate"
+      },
+      "CommentCreate": {
+        "properties": {
+          "body": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Body"
+          }
+        },
+        "type": "object",
+        "required": [
+          "body"
+        ],
+        "title": "CommentCreate"
       },
       "Contributor": {
         "properties": {
@@ -20209,6 +23658,9 @@
               "too_many_notes",
               "notes_full",
               "board_full",
+              "boards_full",
+              "storage_full",
+              "limit_reached",
               "already_on_board",
               "noora_unavailable",
               "noora_budget_reached",
@@ -20317,6 +23769,82 @@
         ],
         "title": "EventGap"
       },
+      "ExportBoard": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "emoji": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emoji"
+          },
+          "color": {
+            "type": "string",
+            "title": "Color"
+          },
+          "template": {
+            "type": "string",
+            "title": "Template"
+          },
+          "archivedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archivedat"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/ExportBoardColumn"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "cards": {
+            "items": {
+              "$ref": "#/components/schemas/ExportBoardCard"
+            },
+            "type": "array",
+            "title": "Cards"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "emoji",
+          "color",
+          "template",
+          "archivedAt",
+          "createdAt",
+          "columns",
+          "cards"
+        ],
+        "title": "ExportBoard"
+      },
       "ExportBoardCard": {
         "properties": {
           "id": {
@@ -20326,18 +23854,13 @@
           },
           "column": {
             "type": "string",
-            "enum": [
-              "todo",
-              "doing",
-              "done"
-            ],
             "title": "Column"
           },
           "title": {
             "type": "string",
             "title": "Title"
           },
-          "note": {
+          "description": {
             "anyOf": [
               {
                 "type": "string"
@@ -20346,7 +23869,7 @@
                 "type": "null"
               }
             ],
-            "title": "Note"
+            "title": "Description"
           },
           "dueDate": {
             "anyOf": [
@@ -20359,6 +23882,53 @@
               }
             ],
             "title": "Duedate"
+          },
+          "dueTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duetime"
+          },
+          "remindBefore": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remindbefore"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "none",
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Priority"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Labels"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItem"
+            },
+            "type": "array",
+            "title": "Checklist"
           },
           "linkType": {
             "anyOf": [
@@ -20399,6 +23969,20 @@
             ],
             "title": "Planmoduleid"
           },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/ExportBoardFile"
+            },
+            "type": "array",
+            "title": "Files"
+          },
+          "comments": {
+            "items": {
+              "$ref": "#/components/schemas/ExportBoardComment"
+            },
+            "type": "array",
+            "title": "Comments"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -20422,21 +24006,99 @@
           "id",
           "column",
           "title",
-          "note",
+          "description",
           "dueDate",
+          "dueTime",
+          "remindBefore",
+          "priority",
+          "labels",
+          "checklist",
           "linkType",
           "linkId",
           "planModuleId",
+          "files",
+          "comments",
           "createdAt",
           "doneAt"
         ],
         "title": "ExportBoardCard"
+      },
+      "ExportBoardColumn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "done"
+        ],
+        "title": "ExportBoardColumn"
+      },
+      "ExportBoardComment": {
+        "properties": {
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "body",
+          "createdAt"
+        ],
+        "title": "ExportBoardComment"
+      },
+      "ExportBoardFile": {
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "contentType": {
+            "type": "string",
+            "title": "Contenttype"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "title": "Sizebytes"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fileName",
+          "contentType",
+          "sizeBytes",
+          "createdAt"
+        ],
+        "title": "ExportBoardFile"
       },
       "ExportBoardPlan": {
         "properties": {
           "moduleId": {
             "type": "string",
             "title": "Moduleid"
+          },
+          "boardId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Boardid"
           },
           "examDate": {
             "type": "string",
@@ -20456,6 +24118,7 @@
         "type": "object",
         "required": [
           "moduleId",
+          "boardId",
           "examDate",
           "paperEvery",
           "createdAt"
@@ -20483,6 +24146,7 @@
                   "date_changed",
                   "video_suggestion",
                   "bug_report",
+                  "board_reminder",
                   "system"
                 ]
               },
@@ -20914,6 +24578,7 @@
               "date_changed",
               "video_suggestion",
               "bug_report",
+              "board_reminder",
               "system"
             ],
             "title": "Kind"
@@ -22906,6 +26571,72 @@
         "type": "object",
         "title": "IssueUpdate",
         "description": "Fields that are not sent stay as they are."
+      },
+      "LabelCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "cobalt",
+              "teal",
+              "green",
+              "amber",
+              "coral",
+              "slate"
+            ],
+            "title": "Color",
+            "default": "cobalt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "LabelCreate"
+      },
+      "LabelUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cobalt",
+                  "teal",
+                  "green",
+                  "amber",
+                  "coral",
+                  "slate"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          }
+        },
+        "type": "object",
+        "title": "LabelUpdate"
       },
       "LastLesson": {
         "properties": {
@@ -25524,6 +29255,7 @@
               "date_changed",
               "video_suggestion",
               "bug_report",
+              "board_reminder",
               "system"
             ],
             "title": "Kind"
@@ -29691,7 +33423,8 @@
               "library",
               "forum_image",
               "newsletter_image",
-              "bug_screenshot"
+              "bug_screenshot",
+              "board"
             ],
             "title": "Purpose"
           },

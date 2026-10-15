@@ -5,9 +5,9 @@ seed [--only X]    load the reference content (modules, calendar, newsletter, ca
 set-role ID ROLE...  make the account with this email or phone number hold exactly these roles (slugs; audited)
 backup             pg_dump the database into the backup bucket, encrypted at rest, and keep the newest
                    DSBA_BACKUP_KEEP (docs/backend/DEPLOYMENT.md: where backups go, and how to restore one)
-sweep              delete what is no longer needed: uploads never attached to anything (after a day), sign-in
-                   codes older than two days, sessions that expired or were revoked more than 30 days ago, and
-                   the files of library items rejected or removed more than a week ago
+sweep              delete what is no longer needed: uploads never attached to anything or whose board card is gone
+                   (after a day), sign-in codes older than two days, sessions that expired or were revoked more
+                   than 30 days ago, and the files of library items rejected or removed more than a week ago
 setup-bucket       create the bucket if needed and set its CORS and lifecycle rules (production: once)
 mail-worker        send the queued emails (notifications, account notices, Sunday summaries) with retries; runs
                    until stopped (--once: until nothing is due). Several can run side by side. On Sunday from
@@ -52,7 +52,7 @@ from app.config import Settings, get_settings
 from app.core.access import Feature
 from app.core.time import utcnow
 from app.db import get_sessionmaker
-from app.models import AccessRole, OtpChallenge, Upload, UploadStatus, User, UserSession
+from app.models import AccessRole, OtpChallenge, Upload, UploadPurpose, UploadStatus, User, UserSession
 from app.services.storage import get_storage, s3_client
 
 if TYPE_CHECKING:
@@ -242,9 +242,9 @@ class SweepReport:
 
 
 def sweep() -> SweepReport:
-    """Deletes uploads never attached to anything (objects first, then rows), old sign-in codes, sessions that
-    ended long ago, the files of library items rejected or removed a week ago, and the addresses kept on bug
-    reports. Safe to run at any time and to run again."""
+    """Deletes uploads never attached to anything, or whose board card is gone (objects first, then rows), old
+    sign-in codes, sessions that ended long ago, the files of library items rejected or removed a week ago, and
+    the addresses kept on bug reports. Safe to run at any time and to run again."""
     from app.services.bugs import clear_old_ips
     from app.services.library import sweep_files
     from app.services.otp import KEEP_CHALLENGES
@@ -252,9 +252,11 @@ def sweep() -> SweepReport:
     now = utcnow()
     storage = get_storage()
     with get_sessionmaker()() as db:
-        stale = db.scalars(
-            select(Upload).where(Upload.status != UploadStatus.attached, Upload.created_at < now - UPLOAD_GRACE)
-        ).all()
+        unused = or_(
+            Upload.status != UploadStatus.attached,
+            (Upload.purpose == UploadPurpose.board) & Upload.card_id.is_(None),  # its card was deleted
+        )
+        stale = db.scalars(select(Upload).where(unused, Upload.created_at < now - UPLOAD_GRACE)).all()
         for up in stale:
             storage.delete(up.storage_key)  # a pending upload's incoming object may never have arrived: still fine
             db.delete(up)

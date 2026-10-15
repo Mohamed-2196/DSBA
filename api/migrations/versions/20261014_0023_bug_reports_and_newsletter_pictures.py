@@ -18,7 +18,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0023"
-down_revision: str | None = "0018"
+down_revision: str | None = "0019"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -37,8 +37,9 @@ NOTIFICATION_KINDS = (
     "followed_answer",
     "senior_question",
     "video_suggestion",
+    "board_reminder",
 )
-UPLOAD_PURPOSES = ("library", "forum_image")
+UPLOAD_PURPOSES = ("library", "forum_image", "board")
 NEW_PURPOSES = ("newsletter_image", "bug_screenshot")
 
 

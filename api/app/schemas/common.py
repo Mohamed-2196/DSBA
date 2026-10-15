@@ -99,9 +99,12 @@ ErrorCode = Literal[
     "note_changed",  # 409: the note was saved elsewhere (another tab) since this version: load it, or save over it
     "too_many_notes",  # 409: the most notes one student may keep
     "notes_full",  # 409: the student's notes hold as much text as they may
-    # the study board (R-4)
-    "board_full",  # 409: the board holds as many cards as it may
-    "already_on_board",  # 409: this event, lesson, module or file already has a card
+    # boards
+    "board_full",  # 409: the student's boards hold as many cards as they may
+    "boards_full",  # 409: the student has as many boards as they may
+    "storage_full",  # 409: the files on the student's cards take as much room as they may
+    "limit_reached",  # 409: a board's columns, a card's files or comments, or the labels are at their limit
+    "already_on_board",  # 409: this event, lesson, module or file already has a card on that board
     # Mini Noora's AI answers (R-6)
     "noora_unavailable",  # 503: no AI right now (not set up, or Claude failed): she answers from her script
     "noora_budget_reached",  # 503: the hub's monthly AI budget is spent: she answers from her script

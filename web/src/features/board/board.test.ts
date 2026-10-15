@@ -1,43 +1,80 @@
 import { describe, expect, it } from 'vitest';
-import type { BoardCard } from '../../api/types';
-import { afterIdAt, afterIdBefore, appendCard, counts, dueLabel, dueOf, isOverdue, isPastPaper, nudge, parseScore, placeCard, planPace, sittingsDone, splitDone } from './board';
+import type { AgendaCard, BoardCard, BoardColumn } from '../../api/types';
+import {
+  afterIdAt,
+  afterIdBefore,
+  agendaSections,
+  appendCard,
+  checklistProgress,
+  counts,
+  dueLabel,
+  dueOf,
+  isOverdue,
+  isPastPaper,
+  matches,
+  moveItem,
+  neighbourColumn,
+  nudge,
+  parseScore,
+  placeCard,
+  planPace,
+  sittingsDone,
+  splitDone,
+  storageText,
+  templateOf,
+} from './board';
 import { cleanScores } from './scores';
 
-const card = (id: string, column: BoardCard['column'], extra: Partial<BoardCard> = {}): BoardCard => ({
+const card = (id: string, columnId: string, extra: Partial<BoardCard> = {}): BoardCard => ({
   id,
-  column,
+  boardId: 'b1',
+  columnId,
   title: id,
-  note: null,
+  description: null,
   dueDate: null,
+  dueTime: null,
+  remindBefore: null,
+  priority: 'none',
+  labelIds: [],
+  checklist: [],
   link: null,
   planModuleId: null,
   planDate: null,
+  coverUrl: null,
+  attachmentCount: 0,
+  commentCount: 0,
   createdAt: '2026-10-01T08:00:00Z',
-  doneAt: column === 'done' ? '2026-10-10T08:00:00Z' : null,
+  doneAt: columnId === 'done' ? '2026-10-10T08:00:00Z' : null,
   ...extra,
 });
 
+const cols: BoardColumn[] = [
+  { id: 'todo', name: 'To do', done: false },
+  { id: 'doing', name: 'In progress', done: false },
+  { id: 'done', name: 'Done', done: true },
+];
+
 const board = [card('a', 'todo'), card('b', 'todo'), card('c', 'todo'), card('d', 'doing'), card('e', 'done')];
-const ids = (cards: BoardCard[]) => cards.map((c) => `${c.column}:${c.id}`);
+const ids = (cards: BoardCard[]) => cards.map((c) => `${c.columnId}:${c.id}`);
 
 describe('placeCard', () => {
   it('moves a card after another in its column', () => {
-    expect(ids(placeCard(board, 'a', 'todo', 'c', 'now'))).toEqual(['todo:b', 'todo:c', 'todo:a', 'doing:d', 'done:e']);
+    expect(ids(placeCard(board, cols, 'a', 'todo', 'c', 'now'))).toEqual(['todo:b', 'todo:c', 'todo:a', 'doing:d', 'done:e']);
   });
   it('puts a card at the top of another column and marks when it was done', () => {
-    const moved = placeCard(board, 'b', 'done', null, '2026-10-13T09:00:00Z');
+    const moved = placeCard(board, cols, 'b', 'done', null, '2026-10-13T09:00:00Z');
     expect(ids(moved)).toEqual(['todo:a', 'todo:c', 'doing:d', 'done:b', 'done:e']);
     expect(moved.find((c) => c.id === 'b')?.doneAt).toBe('2026-10-13T09:00:00Z');
-    expect(placeCard(moved, 'b', 'todo', null, 'x').find((c) => c.id === 'b')?.doneAt).toBeNull();
+    expect(placeCard(moved, cols, 'b', 'todo', null, 'x').find((c) => c.id === 'b')?.doneAt).toBeNull();
   });
   it('leaves the board as it was for an unknown card', () => {
-    expect(ids(placeCard(board, 'zz', 'done', null, 'now'))).toEqual(ids(board));
+    expect(ids(placeCard(board, cols, 'zz', 'done', null, 'now'))).toEqual(ids(board));
   });
 });
 
 describe('positions from the screen', () => {
   it('appends a new card to the end of its column', () => {
-    expect(ids(appendCard(board, card('f', 'doing')))).toEqual(['todo:a', 'todo:b', 'todo:c', 'doing:d', 'doing:f', 'done:e']);
+    expect(ids(appendCard(board, cols, card('f', 'doing')))).toEqual(['todo:a', 'todo:b', 'todo:c', 'doing:d', 'doing:f', 'done:e']);
   });
   it('finds the card to go after for a drop before a card', () => {
     expect(afterIdBefore(board, 'c', 'todo', 'b')).toBe('a');
@@ -59,6 +96,12 @@ describe('positions from the screen', () => {
   });
   it('counts the cards in each column', () => {
     expect(counts(board)).toEqual({ todo: 3, doing: 1, done: 1 });
+  });
+  it('finds neighbour columns', () => {
+    expect(neighbourColumn(cols, 'todo', 1)?.id).toBe('doing');
+    expect(neighbourColumn(cols, 'todo', -1)).toBeNull();
+    expect(neighbourColumn(cols, 'done', 1)).toBeNull();
+    expect(neighbourColumn(cols, 'done', -1)?.id).toBe('doing');
   });
 });
 
@@ -82,6 +125,53 @@ describe('due dates', () => {
     expect(dueLabel('2026-10-16', '2026-10-13', '')).toBe('Due in 3 days');
     expect(dueLabel('2026-11-30', '2026-10-13', 'Mon 30 Nov')).toBe('Due Mon 30 Nov');
     expect(dueLabel('2026-10-12', '2026-10-13', '')).toBe('Overdue by 1 day');
+    expect(dueLabel('2026-10-13', '2026-10-13', '', '14:30:00')).toBe('Due today at 14:30');
+  });
+});
+
+describe('checklists', () => {
+  it('calculates checklist progress', () => {
+    const items = [
+      { id: '1', text: 'Step 1', done: true },
+      { id: '2', text: 'Step 2', done: false },
+      { id: '3', text: 'Step 3', done: true },
+    ];
+    expect(checklistProgress(items)).toEqual({ done: 2, total: 3 });
+  });
+  it('moves items up and down', () => {
+    const items = [
+      { id: '1', text: 'Step 1', done: false },
+      { id: '2', text: 'Step 2', done: false },
+    ];
+    expect(moveItem(items, '2', -1).map((i) => i.id)).toEqual(['2', '1']);
+    expect(moveItem(items, '1', -1).map((i) => i.id)).toEqual(['1', '2']);
+  });
+});
+
+describe('filters and agenda', () => {
+  it('matches cards by labels and due filter', () => {
+    const c1 = card('1', 'todo', { labelIds: ['l1', 'l2'], dueDate: '2026-10-14' });
+    const c2 = card('2', 'todo', { labelIds: ['l1'], dueDate: '2026-10-20' });
+    expect(matches(c1, { labels: ['l1'], due: 'any' }, '2026-10-14')).toBe(true);
+    expect(matches(c1, { labels: ['l2'], due: 'today' }, '2026-10-14')).toBe(true);
+    expect(matches(c2, { labels: ['l2'], due: 'any' }, '2026-10-14')).toBe(false);
+    expect(matches(c2, { labels: [], due: 'week' }, '2026-10-14')).toBe(true);
+  });
+  it('groups agenda into sections', () => {
+    const ac = (id: string, due: string): AgendaCard => ({
+      ...card(id, 'todo'),
+      boardName: 'Study',
+      boardEmoji: '📚',
+      boardColor: 'cobalt',
+      due,
+    });
+    const cards = [ac('1', '2026-10-13'), ac('2', '2026-10-14'), ac('3', '2026-10-15'), ac('4', '2026-10-18')];
+    const sections = agendaSections(cards, '2026-10-14');
+    expect(sections.map((s) => s.id)).toEqual(['overdue', 'today', 'tomorrow', 'week']);
+    expect(sections.find((s) => s.id === 'overdue')?.cards.map((c) => c.id)).toEqual(['1']);
+    expect(sections.find((s) => s.id === 'today')?.cards.map((c) => c.id)).toEqual(['2']);
+    expect(sections.find((s) => s.id === 'tomorrow')?.cards.map((c) => c.id)).toEqual(['3']);
+    expect(sections.find((s) => s.id === 'week')?.cards.map((c) => c.id)).toEqual(['4']);
   });
 });
 
@@ -133,5 +223,13 @@ describe('past papers', () => {
     expect(cleanScores({ a: 50, b: 'x', c: 140, d: 0 })).toEqual({ a: 50, d: 0 });
     expect(cleanScores([1, 2])).toEqual({});
     expect(cleanScores(null)).toEqual({});
+  });
+  it('formats storage text', () => {
+    expect(storageText(3.5 * 1024 * 1024, 200 * 1024 * 1024)).toBe('3.5 MB of 200 MB');
+    expect(storageText(25 * 1024 * 1024, 200 * 1024 * 1024)).toBe('25 MB of 200 MB');
+  });
+  it('finds template info', () => {
+    expect(templateOf('study').columns).toEqual(['To do', 'In progress', 'Done']);
+    expect(templateOf('assignment').columns).toEqual(['Research', 'Draft', 'Review', 'Submitted']);
   });
 });

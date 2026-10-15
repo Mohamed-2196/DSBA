@@ -27,9 +27,9 @@ def test_progress_off_hides_what_was_recorded_and_on_brings_it_back(
     assert c.put(f"{API}/me/progress/lessons/{lesson_id(module, 0, 1)}", json={"watched": True}).status_code == 409
     assert c.get(f"{API}/me/progress").json() == {"watched": {}, "last": {}}
     # A card for the lesson doesn't jump to Done on hidden progress.
-    card = c.post(f"{API}/board/cards", json={"link": {"type": "lesson", "id": lesson}})
+    card = c.post(f"{API}/board-cards", json={"link": {"type": "lesson", "id": lesson}})
     assert card.status_code == 201, card.text
-    assert card.json()["column"] != "done"
+    assert card.json()["doneAt"] is None
     # The export still holds everything stored about the person.
     assert lesson in c.get(f"{API}/me/export").json()["progress"]["watched"]
     # On again: it comes back.

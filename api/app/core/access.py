@@ -68,7 +68,7 @@ class Feature(enum.StrEnum):
     noora = "noora"  # Mini Noora, in the web app: nothing in the API
     noora_ai = "noora.ai"  # her answers from Claude (Mini Noora stays scripted without it)
     notes = "notes"  # each student's private notes
-    board = "board"  # each student's private study board
+    board = "board"  # each student's private boards
     requests = "requests"
     requests_autoclose = "requests.autoclose"  # paper and date requests that close themselves
     requests_done = "requests.done"  # the requests done lately, on the requests page and in the newsletter
@@ -182,7 +182,9 @@ FEATURES: dict[Feature, FeatureInfo] = {
         "Mini Noora's AI answers", "Her answers from Claude. She answers from her script instead."
     ),
     Feature.notes: FeatureInfo("Notes", "Students' private notes. They're kept, and come back when it's on again."),
-    Feature.board: FeatureInfo("Study board", "Each student's study board, and the add-to-board buttons."),
+    Feature.board: FeatureInfo(
+        "Boards", "Each student's boards, cards, files on cards and reminders, and the add-to-board buttons."
+    ),
     Feature.requests: FeatureInfo("Requests", "Students' requests, their me-toos and the answers."),
     Feature.requests_autoclose: FeatureInfo(
         "Requests that close themselves",

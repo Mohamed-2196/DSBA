@@ -21,6 +21,7 @@ NotificationKind = Literal[
     "date_changed",  # an exam, mock or deadline of your year moved, or was confirmed
     "video_suggestion",  # a video you suggested was added as a lesson, or declined
     "bug_report",  # admins: someone reported a bug
+    "board_reminder",  # a card on your board is due soon
     "system",
 ]
 

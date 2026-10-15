@@ -253,7 +253,7 @@ def test_moves_keep_progress_notes_and_cards(
     note = s.post(f"{API}/notes", json={"title": "On b", "moduleId": mid, "lessonId": b})
     assert note.status_code == 201, note.text
     for lesson in (a, b):
-        assert s.post(f"{API}/board/cards", json={"link": {"type": "lesson", "id": lesson}}).status_code == 201
+        assert s.post(f"{API}/board-cards", json={"link": {"type": "lesson", "id": lesson}}).status_code == 201
 
     c = client_for(manager)
     m = load(c, mid)
@@ -276,7 +276,8 @@ def test_moves_keep_progress_notes_and_cards(
     assert stored.lesson_id == b
     cards = {x.title: x.lesson_id for x in db.scalars(select(BoardCard).where(BoardCard.user_id == student.id))}
     assert cards == {"Test: Video aaaaaaaaaaa": a, "Test: Video bbbbbbbbbbb": b}
-    board = s.get(f"{API}/board").json()["cards"]
+    first = s.get(f"{API}/boards").json()["boards"][0]["id"]
+    board = s.get(f"{API}/boards/{first}").json()["cards"]
     assert {x["link"]["url"] for x in board} == {f"/modules/{mid}/lessons/{a}", f"/modules/{mid}/lessons/{b}"}
     db.expire_all()
     now = db.get(Module, mid)
@@ -336,7 +337,7 @@ def test_removing_a_lesson_with_notes_or_cards_is_refused(
     if what == "note":
         r = s.post(f"{API}/notes", json={"title": "On b", "moduleId": mid, "lessonId": b})
     else:
-        r = s.post(f"{API}/board/cards", json={"link": {"type": "lesson", "id": b}})
+        r = s.post(f"{API}/board-cards", json={"link": {"type": "lesson", "id": b}})
     assert r.status_code == 201
     assert s.put(f"{API}/me/progress/lessons/{a}", json={"watched": True}).status_code == 200
     assert s.put(f"{API}/me/progress/resume", json={"lessonId": a}).status_code == 200
