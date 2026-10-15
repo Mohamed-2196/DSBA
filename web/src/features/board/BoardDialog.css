@@ -1,0 +1,117 @@
+.board-dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-20);
+}
+
+.board-dialog__label {
+  display: block;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--sp-8);
+  color: var(--ink);
+}
+
+.board-dialog__template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sp-8);
+}
+
+.board-dialog__template-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-12);
+  padding: var(--sp-12);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
+
+.board-dialog__template-card:hover {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
+
+.board-dialog__template-card.is-selected {
+  border-color: var(--cobalt);
+  background: var(--cobalt-soft);
+}
+
+.board-dialog__template-emoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.board-dialog__template-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.board-dialog__template-info strong {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+}
+
+.board-dialog__template-info span {
+  font-size: var(--fs-12);
+  color: var(--ink-2);
+}
+
+.board-dialog__emoji-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+}
+
+.board-dialog__emoji-btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
+
+.board-dialog__emoji-btn:hover {
+  background: var(--surface-2);
+}
+
+.board-dialog__emoji-btn.is-selected {
+  border-color: var(--cobalt);
+  outline: 2px solid var(--cobalt);
+  background: var(--surface-2);
+}
+
+.board-dialog__color-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-12);
+}
+
+.board-dialog__color-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.board-dialog__color-btn:hover {
+  transform: scale(1.1);
+}
+
+.board-dialog__color-btn.is-selected {
+  border-color: var(--ink);
+  transform: scale(1.15);
+}

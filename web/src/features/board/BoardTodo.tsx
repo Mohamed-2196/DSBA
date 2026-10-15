@@ -1,27 +1,25 @@
-// Home's "My to-do": the study board's In progress and To do cards, in board order, with when each is due. A card
-// that points at something in the hub opens it; the others open the board.
+// Home's "My to-do": overdue and upcoming cards across the student's active boards.
 import { Kanban } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
-import type { BoardCard } from '../../api/types';
-import { Badge, Button, EmptyState, Panel, QueryError, Skeleton, cx, safeInternalPath } from '../../ui';
+import type { AgendaCard } from '../../api/types';
+import { Badge, Button, EmptyState, Panel, QueryError, Skeleton, safeInternalPath } from '../../ui';
 import { formatDay, todayKey } from '../../lib/dates';
-import { useBoard } from './api';
-import { cardsIn, dueLabel, dueOf, isOverdue } from './board';
+import { useAgenda } from './api';
+import { dueLabel, isOverdue } from './board';
 import './BoardTodo.css';
 
-function TodoRow({ card, today }: { card: BoardCard; today: string }) {
-  const due = dueOf(card);
+function TodoRow({ card, today }: { card: AgendaCard; today: string }) {
   const overdue = isOverdue(card, today);
-  const to = (card.link?.url ? safeInternalPath(card.link.url) : null) ?? '/board';
-  const when = due ? (overdue ? 'Overdue' : dueLabel(due, today, formatDay(due, { weekday: 'short', month: 'short', year: false }))) : null;
+  const to = (card.link?.url ? safeInternalPath(card.link.url) : null) ?? `/board?board=${card.boardId}&card=${card.id}`;
+  const when = overdue ? 'Overdue' : dueLabel(card.due, today, formatDay(card.due, { weekday: 'short', month: 'short', year: false }));
   return (
     <li>
       <Link to={to} className="board-todo__row">
-        <span className={cx('board-todo__dot', card.column === 'doing' && 'is-doing')} aria-hidden="true" />
+        <span className="board-todo__dot" style={{ background: `var(--${card.boardColor === 'slate' ? 'ink-3' : card.boardColor})` }} aria-hidden="true" />
         <span className="board-todo__text">
           <span className="board-todo__title">{card.title}</span>
           <span className="board-todo__meta">
-            {card.column === 'doing' ? 'In progress' : 'To do'}
+            <span>{card.boardEmoji ? `${card.boardEmoji} ` : ''}{card.boardName}</span>
             {when && !overdue ? <span>{when}</span> : null}
           </span>
         </span>
@@ -35,15 +33,15 @@ function TodoRow({ card, today }: { card: BoardCard; today: string }) {
   );
 }
 
-/** The first `n` cards still to finish (In progress first), or an invitation to plan the week. */
+/** The first `n` cards due soon or overdue across active boards, or an invitation to add cards. */
 export function BoardTodo({ n = 5 }: { n?: number }) {
-  const board = useBoard();
+  const agenda = useAgenda({ days: 14 });
   const today = todayKey();
 
-  if (board.isPending) {
+  if (agenda.isPending) {
     return (
       <Panel padding="none" className="board-todo" aria-busy="true">
-        <span className="visually-hidden">Loading your board</span>
+        <span className="visually-hidden">Loading your to-do</span>
         <div className="board-todo__loading" aria-hidden="true">
           <Skeleton width="70%" height={14} />
           <Skeleton width="55%" height={14} />
@@ -52,38 +50,38 @@ export function BoardTodo({ n = 5 }: { n?: number }) {
       </Panel>
     );
   }
-  if (board.isError) {
-    return <QueryError error={board.error} title="Your board didn’t load" size="sm" onRetry={() => void board.refetch()} retrying={board.isFetching} />;
+  if (agenda.isError) {
+    return <QueryError error={agenda.error} title="Your to-do didn’t load" size="sm" onRetry={() => void agenda.refetch()} retrying={agenda.isFetching} />;
   }
-  const open = [...cardsIn(board.data.cards, 'doing'), ...cardsIn(board.data.cards, 'todo')];
-  if (!open.length) {
+  const cards = agenda.data.cards;
+  if (!cards.length) {
     return (
       <Panel padding="none" data-hub="home-todo">
         <EmptyState
           size="sm"
           icon={Kanban}
-          title="Nothing to do on your board"
-          body="Add lessons, past papers and dates to your study board to plan your week."
+          title="Nothing to do right now"
+          body="Add tasks, lessons and deadlines to your boards to plan your study."
           action={
             <Button size="sm" to="/board">
-              Open my board
+              Open my boards
             </Button>
           }
         />
       </Panel>
     );
   }
-  const more = open.length - n;
+  const more = cards.length - n;
   return (
     <Panel padding="none" className="board-todo" data-hub="home-todo">
       <ul role="list" className="board-todo__list">
-        {open.slice(0, n).map((c) => (
+        {cards.slice(0, n).map((c) => (
           <TodoRow key={c.id} card={c} today={today} />
         ))}
       </ul>
       {more > 0 ? (
-        <Link to="/board" className="board-todo__more">
-          {more} more on your board
+        <Link to="/board?view=today" className="board-todo__more">
+          {more} more on your boards
         </Link>
       ) : null}
     </Panel>

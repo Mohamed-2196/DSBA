@@ -2,17 +2,17 @@ import { CheckCircle } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import { useAuth } from '../../auth';
 import { Badge } from '../../ui';
-import { useBoard } from './api';
+import { useBoardLinks } from './api';
 import { sittingsDone, type Paper } from './board';
 import { usePaperScores } from './scores';
 
-/** The library items done on the signed-in student's board (none for guests, or with the board off). */
+/** The library items done on the signed-in student's boards (none for guests, or with the board off). */
 function useDoneItems(): Set<string> {
   const { status, featureOn } = useAuth();
-  const board = useBoard({ enabled: status === 'signed-in' && featureOn('board') });
+  const links = useBoardLinks({ enabled: status === 'signed-in' && featureOn('board') });
   return useMemo(
-    () => new Set((board.data?.cards ?? []).filter((c) => c.column === 'done' && c.link?.type === 'library_item').map((c) => c.link?.id ?? '')),
-    [board.data],
+    () => new Set((links.data ?? []).filter((l) => l.type === 'library_item' && l.done).map((l) => l.id)),
+    [links.data],
   );
 }
 
