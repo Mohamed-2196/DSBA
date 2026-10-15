@@ -4,11 +4,12 @@ import { moduleArtSrc } from './moduleArtSrc';
 describe('moduleArtSrc', () => {
   it('points a module with an illustration at its file under public/modules', () => {
     expect(moduleArtSrc('econometrics')).toBe(`${import.meta.env.BASE_URL}modules/module-ec2020.png`);
+    expect(moduleArtSrc('information-systems')).toBe(`${import.meta.env.BASE_URL}modules/module-is2184.png`);
+    expect(moduleArtSrc('machine-learning')).toBe(`${import.meta.env.BASE_URL}modules/module-machine-learning.png`);
   });
 
   it('is null for a module without one, or no module', () => {
-    expect(moduleArtSrc('information-systems')).toBeNull();
-    expect(moduleArtSrc('machine-learning')).toBeNull();
+    expect(moduleArtSrc('abstract-maths')).toBeNull();
     expect(moduleArtSrc(null)).toBeNull();
     expect(moduleArtSrc('')).toBeNull();
     expect(moduleArtSrc('constructor')).toBeNull();

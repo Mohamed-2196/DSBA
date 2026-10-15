@@ -10,6 +10,13 @@ const ART: Readonly<Record<string, string>> = {
   'programming-data-science': 'module-st2195.png',
   'business-analytics': 'module-st2187.png',
   econometrics: 'module-ec2020.png',
+  'information-systems': 'module-is2184.png',
+  'machine-learning': 'module-machine-learning.png',
+  'market-research': 'module-market-research.png',
+  microeconomics: 'module-microeconomics.png',
+  'asset-pricing': 'module-asset-pricing.png',
+  'marketing-management': 'module-marketing-management.png',
+  'further-maths-economists': 'module-further-maths.png',
 };
 
 /** The illustration's URL for a module, or null when it has none. */
