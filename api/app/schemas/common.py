@@ -116,6 +116,11 @@ ErrorCode = Literal[
     "noora_budget_reached",  # 503: the hub's monthly AI budget is spent: she answers from her script
     "noora_busy",  # 503: too many answers are streaming hub-wide right now: she answers from her script
     "noora_daily_limit",  # 429: the student's questions for today are used up (retryAfter: Bahrain midnight)
+    # Daily puzzles
+    "unknown_word",  # 422: a guess the game doesn't know as a word
+    "already_tried",  # 409: the same guess (word, group or line) again
+    "game_over",  # 409: the play is finished: no more moves
+    "not_out_yet",  # 404: a day whose puzzles aren't out yet, or before the first one
 ]
 
 

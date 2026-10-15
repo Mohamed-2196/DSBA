@@ -1,0 +1,217 @@
+.daily-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-24);
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--content-pad) 16px;
+}
+
+.daily-theme-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-16);
+  padding: var(--sp-20) var(--sp-24);
+  border-radius: var(--r-panel);
+  background: linear-gradient(135deg, var(--navy) 0%, #153e90 100%);
+  color: #FFFFFF;
+  box-shadow: 0 6px 16px rgba(10, 31, 68, 0.12);
+}
+
+.daily-theme-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.daily-theme-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--highlight);
+}
+
+.daily-theme-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--fs-25);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-heading);
+}
+
+.daily-theme-blurb {
+  margin: 0;
+  font-size: var(--fs-14);
+  opacity: 0.9;
+  max-width: 60ch;
+}
+
+.daily-countdown-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: var(--fs-12);
+  opacity: 0.85;
+}
+
+.daily-countdown-time {
+  font-family: var(--font-mono);
+  font-size: var(--fs-18);
+  font-weight: var(--fw-bold);
+  color: var(--highlight);
+}
+
+/* Today's Stats Bar */
+.daily-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-12);
+}
+
+.daily-stat-tile {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  padding: var(--sp-16);
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  box-shadow: 0 2px 6px rgba(10, 31, 68, 0.04);
+}
+
+.daily-stat-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-control);
+  background-color: var(--surface-2);
+  flex-shrink: 0;
+}
+
+.daily-stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.daily-stat-num {
+  font-size: var(--fs-20);
+  font-weight: var(--fw-bold);
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.daily-stat-label {
+  font-size: var(--fs-13);
+  color: var(--ink-2);
+  margin-top: 2px;
+}
+
+/* Games Grid */
+.daily-games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--sp-16);
+}
+
+.daily-game-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--sp-16);
+  padding: var(--sp-20);
+  border-radius: var(--r-panel);
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 8px rgba(10, 31, 68, 0.04);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+
+.daily-game-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(10, 31, 68, 0.08);
+}
+
+.daily-game-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-12);
+}
+
+.daily-game-icon-title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+}
+
+.daily-game-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-control);
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.daily-game-card-title {
+  margin: 0;
+  font-size: var(--fs-18);
+  font-weight: var(--fw-bold);
+  color: var(--ink);
+}
+
+.daily-game-card-tagline {
+  margin: var(--sp-8) 0 0;
+  font-size: var(--fs-14);
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+
+.daily-game-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+}
+
+.daily-game-status-won {
+  background-color: var(--signal-soft);
+  color: var(--signal-strong);
+}
+
+.daily-game-status-lost {
+  background-color: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.daily-game-status-playing {
+  background-color: var(--cobalt-soft);
+  color: var(--cobalt);
+}
+
+.daily-game-status-new {
+  background-color: var(--surface-2);
+  color: var(--ink-3);
+}
+
+.daily-game-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--sp-12);
+  border-top: 1px solid var(--line);
+}

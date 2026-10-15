@@ -3278,6 +3278,131 @@ export interface paths {
         patch: operations["update_bug_report_api_v1_admin_bug_reports__report_id__patch"];
         trace?: never;
     };
+    "/api/v1/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Today
+         * @description Today's set: the theme, each game and how far you got, your points and streak (signed in).
+         */
+        get: operations["today_api_v1_daily_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/daily/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Calendar
+         * @description The month's days with puzzles out, and how many games you finished on each.
+         */
+        get: operations["calendar_api_v1_daily_calendar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/daily/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Leaderboard
+         * @description The players who chose to show their name, by points: this week's (from Sunday) or of all time.
+         */
+        get: operations["leaderboard_api_v1_daily_leaderboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/daily/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Me
+         * @description Your totals, streak, badges and whether your name shows on the leaderboard.
+         */
+        get: operations["me_api_v1_daily_me_get"];
+        /**
+         * Update Me
+         * @description Shows or hides your name on the leaderboard.
+         */
+        put: operations["update_me_api_v1_daily_me_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/daily/{day}/{game}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Play
+         * @description A game on a day, and your play of it so far. Errors: not_out_yet (404), invalid_input on `variant` (422).
+         */
+        get: operations["get_play_api_v1_daily__day___game__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/daily/{day}/{game}/moves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Make Move
+         * @description One move, checked on the server. Signed in, it's kept, and today's first play of a game scores. Errors:
+         *     invalid_input on `move` (422), unknown_word (422), already_tried (409), game_over (409), not_out_yet (404).
+         */
+        post: operations["make_move_api_v1_daily__day___game__moves_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3342,6 +3467,10 @@ export interface components {
             /** Calendarevents */
             calendarEvents: components["schemas"]["PersonalEventOut"][];
             calendarSettings: components["schemas"]["ExportCalendarSettings"] | null;
+            /** Dailyplays */
+            dailyPlays: components["schemas"]["ExportDailyPlay"][];
+            /** Dailyshowonboard */
+            dailyShowOnBoard: boolean;
         };
         /**
          * AdminStats
@@ -3527,6 +3656,19 @@ export interface components {
             libraryItemId: string;
         };
         /**
+         * AnswerMove
+         * @description The answer to the quiz's next question: the index of an option.
+         */
+        AnswerMove: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "answer";
+            /** Choice */
+            choice: number;
+        };
+        /**
          * AttachmentCreate
          * @description A file uploaded with purpose 'board' (POST /uploads, then /uploads/{id}/complete).
          */
@@ -3568,6 +3710,17 @@ export interface components {
             limit: number;
             /** Offset */
             offset: number;
+        };
+        /** Badge */
+        Badge: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            /** Earned */
+            earned: boolean;
         };
         /** BoardCard */
         BoardCard: {
@@ -3929,6 +4082,18 @@ export interface components {
             /** Added */
             added: number;
         };
+        /** BoardRow */
+        BoardRow: {
+            /** Rank */
+            rank: number;
+            user: components["schemas"]["UserPublic"];
+            /** Points */
+            points: number;
+            /** Played */
+            played: number;
+            /** You */
+            you: boolean;
+        };
         /** BoardSummary */
         BoardSummary: {
             /**
@@ -4104,6 +4269,20 @@ export interface components {
              * @enum {string}
              */
             status: "open" | "fixed" | "wont_fix";
+        };
+        /** CalendarDay */
+        CalendarDay: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Theme */
+            theme: string;
+            /** Done */
+            done: number;
+            /** Points */
+            points: number;
         };
         /** CalendarEventCreate */
         CalendarEventCreate: {
@@ -4678,6 +4857,13 @@ export interface components {
             /** Blurb */
             blurb: string;
         };
+        /** Cell */
+        Cell: {
+            /** Row */
+            row: number;
+            /** Col */
+            col: number;
+        };
         /**
          * CertFile
          * @description A library file to study from instead of an official page (self-study).
@@ -4904,6 +5090,66 @@ export interface components {
             /** Roles */
             roles: string;
         };
+        /** DailyCalendar */
+        DailyCalendar: {
+            /** Month */
+            month: string;
+            /** Total */
+            total: number;
+            /** Days */
+            days: components["schemas"]["CalendarDay"][];
+        };
+        /** DailyMe */
+        DailyMe: {
+            /** Showonboard */
+            showOnBoard: boolean;
+            stats: components["schemas"]["DailyStats"];
+            streak: components["schemas"]["Streak"];
+            /** Badges */
+            badges: components["schemas"]["Badge"][];
+        };
+        /** DailyMeIn */
+        DailyMeIn: {
+            /** Showonboard */
+            showOnBoard: boolean;
+        };
+        /** DailyStats */
+        DailyStats: {
+            /** Played */
+            played: number;
+            /** Won */
+            won: number;
+            /** Points */
+            points: number;
+            /** Weekpoints */
+            weekPoints: number;
+        };
+        /** DailyToday */
+        DailyToday: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /**
+             * Firstday
+             * Format: date
+             */
+            firstDay: string;
+            theme: components["schemas"]["Theme"];
+            /** Games */
+            games: components["schemas"]["GameDay"][];
+            /** Done */
+            done: number;
+            /** Points */
+            points: number;
+            streak: components["schemas"]["Streak"] | null;
+            /**
+             * Nextat
+             * Format: date-time
+             */
+            nextAt: string;
+        };
         /**
          * DateWindow
          * @description The dates a deadlines section lists (either end may be open).
@@ -4941,7 +5187,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
             /** Message */
             message: string;
             /** Fields */
@@ -5115,6 +5361,33 @@ export interface components {
             hiddenTypes: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term")[];
             /** Privatefeed */
             privateFeed: boolean;
+        };
+        /** ExportDailyPlay */
+        ExportDailyPlay: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Game */
+            game: string;
+            /** Variant */
+            variant: string;
+            /** Status */
+            status: string;
+            /** Scored */
+            scored: boolean;
+            /** Points */
+            points: number;
+            /** Moves */
+            moves: unknown[];
+            /**
+             * Startedat
+             * Format: date-time
+             */
+            startedAt: string;
+            /** Finishedat */
+            finishedAt: string | null;
         };
         /**
          * ExportEmail
@@ -5618,7 +5891,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions";
+            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions" | "daily";
             /** Label */
             label: string;
             /** Hides */
@@ -5644,7 +5917,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions" | "daily")[];
         };
         /** FileLink */
         FileLink: {
@@ -5652,6 +5925,19 @@ export interface components {
             url: string;
             /** Expiresin */
             expiresIn: number;
+        };
+        /**
+         * FindMove
+         * @description A straight line of letters in the word search, from its first letter to its last.
+         */
+        FindMove: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "find";
+            start: components["schemas"]["Cell"];
+            end: components["schemas"]["Cell"];
         };
         /** FollowRequest */
         FollowRequest: {
@@ -5718,6 +6004,15 @@ export interface components {
             /** Confirm */
             confirm: boolean;
         };
+        /** FoundGroup */
+        FoundGroup: {
+            /** Label */
+            label: string;
+            /** Level */
+            level: number;
+            /** Words */
+            words: string[];
+        };
         /**
          * FoundItem
          * @description A published library file that may be what a request asked for.
@@ -5757,6 +6052,45 @@ export interface components {
             /** Label */
             label: string;
         };
+        /**
+         * GameDay
+         * @description A game on the hub: its card, and how far the viewer got.
+         */
+        GameDay: {
+            info: components["schemas"]["GameInfo"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "playing" | "won" | "lost";
+            /** Points */
+            points: number;
+            /** Scored */
+            scored: boolean;
+        };
+        /**
+         * GameInfo
+         * @description A game as the hub lists it: how to play and how it scores.
+         */
+        GameInfo: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "word" | "groups" | "search" | "quiz" | "nearest" | "sudoku";
+            /** Title */
+            title: string;
+            /** Tagline */
+            tagline: string;
+            /** Howto */
+            howTo: string[];
+            /** Scoring */
+            scoring: string;
+            /** Variants */
+            variants: string[];
+            /** Maxpoints */
+            maxPoints: number;
+        };
         /** GapModule */
         GapModule: {
             /** Id */
@@ -5777,6 +6111,61 @@ export interface components {
             /** Requests */
             requests: components["schemas"]["RequestGap"][] | null;
         };
+        /**
+         * GiveUpMove
+         * @description Ends the play as lost and shows the answer.
+         */
+        GiveUpMove: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "give-up";
+        };
+        /**
+         * GroupMove
+         * @description Four words picked as one group.
+         */
+        GroupMove: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "group";
+            /** Words */
+            words: string[];
+        };
+        /** GroupsView */
+        GroupsView: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "groups";
+            /** Words */
+            words: string[];
+            /** Found */
+            found: components["schemas"]["FoundGroup"][];
+            /** Mistakesleft */
+            mistakesLeft: number;
+            /** Guesses */
+            guesses: string[][];
+            /** Oneaway */
+            oneAway: boolean;
+        };
+        /**
+         * GuessMove
+         * @description A word: the word game's guess, or a guess at the secret word in Nearest neighbour.
+         */
+        GuessMove: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "guess";
+            /** Word */
+            word: string;
+        };
         /** Health */
         Health: {
             /**
@@ -5796,6 +6185,20 @@ export interface components {
             storage: "ok" | "error";
             /** Version */
             version: string;
+        };
+        /**
+         * HintMove
+         * @description A hint, for a few points: Sudoku fills `cell` (or a cell it picks), the word search shows where a word
+         *     starts, Nearest neighbour reveals a closer word.
+         */
+        HintMove: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "hint";
+            /** Cell */
+            cell?: number | null;
         };
         /**
          * InkSave
@@ -6044,6 +6447,23 @@ export interface components {
              * Format: date-time
              */
             at: string;
+        };
+        /** Leaderboard */
+        Leaderboard: {
+            /**
+             * Period
+             * @enum {string}
+             */
+            period: "week" | "all";
+            /** Year */
+            year: number | null;
+            /** Since */
+            since: string | null;
+            /** Rows */
+            rows: components["schemas"]["BoardRow"][];
+            you: components["schemas"]["BoardRow"] | null;
+            /** Yourpoints */
+            yourPoints: number | null;
         };
         /**
          * LessonGap
@@ -6336,7 +6756,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions" | "daily")[];
             /**
              * Status
              * @enum {string}
@@ -6586,6 +7006,22 @@ export interface components {
             libraryCount: number | null;
         };
         /**
+         * MoveIn
+         * @description One move. Signed in, the play is kept on the server and `history` is ignored. A guest's play lives in their
+         *     browser: it sends the moves made so far as `history`, and nothing is saved.
+         */
+        MoveIn: {
+            /**
+             * Variant
+             * @default
+             */
+            variant: string;
+            /** Move */
+            move?: (components["schemas"]["GuessMove"] | components["schemas"]["GroupMove"] | components["schemas"]["FindMove"] | components["schemas"]["AnswerMove"] | components["schemas"]["PlaceMove"] | components["schemas"]["HintMove"] | components["schemas"]["GiveUpMove"]) | null;
+            /** History */
+            history?: (components["schemas"]["GuessMove"] | components["schemas"]["GroupMove"] | components["schemas"]["FindMove"] | components["schemas"]["AnswerMove"] | components["schemas"]["PlaceMove"] | components["schemas"]["HintMove"] | components["schemas"]["GiveUpMove"])[];
+        };
+        /**
          * MySenior
          * @description The signed-in person's listing, and whether they may have one (Year 3 accounts at least 30 days old).
          */
@@ -6602,6 +7038,29 @@ export interface components {
             note: string;
             /** Paused */
             paused: boolean;
+        };
+        /** NearestGuess */
+        NearestGuess: {
+            /** Word */
+            word: string;
+            /** Rank */
+            rank: number;
+            /** Hint */
+            hint: boolean;
+        };
+        /** NearestView */
+        NearestView: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "nearest";
+            /** Vocabulary */
+            vocabulary: number;
+            /** Guesses */
+            guesses: components["schemas"]["NearestGuess"][];
+            /** Answer */
+            answer: string | null;
         };
         /**
          * NooraDoneEvent
@@ -7292,6 +7751,68 @@ export interface components {
             remind?: (0 | 10 | 30 | 60 | 1440) | null;
         };
         /**
+         * PlaceMove
+         * @description A digit in a Sudoku cell (0-80, reading order).
+         */
+        PlaceMove: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "place";
+            /** Cell */
+            cell: number;
+            /** Digit */
+            digit: number;
+        };
+        /**
+         * Play
+         * @description One person's play of one game on one day, as it stands.
+         */
+        Play: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /**
+             * Game
+             * @enum {string}
+             */
+            game: "word" | "groups" | "search" | "quiz" | "nearest" | "sudoku";
+            /** Variant */
+            variant: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "playing" | "won" | "lost";
+            /** Scored */
+            scored: boolean;
+            /** Points */
+            points: number;
+            /** Mistakes */
+            mistakes: number;
+            /** Hints */
+            hints: number;
+            /** Seconds */
+            seconds: number | null;
+            /** Toofast */
+            tooFast: boolean;
+            /** Result */
+            result: string | null;
+            /** Share */
+            share: string | null;
+            /** View */
+            view: components["schemas"]["WordView"] | components["schemas"]["GroupsView"] | components["schemas"]["SearchView"] | components["schemas"]["QuizView"] | components["schemas"]["NearestView"] | components["schemas"]["SudokuView"];
+        };
+        /** PlayOut */
+        PlayOut: {
+            info: components["schemas"]["GameInfo"];
+            theme: components["schemas"]["Theme"];
+            play: components["schemas"]["Play"];
+        };
+        /**
          * PollBlock
          * @description A question to the cohort with two to five answers: one vote per signed-in student, and the counts once you
          *     have voted (needs the newsletter.polls feature). `id` keeps its votes: it is unique in the issue and stays put
@@ -7498,6 +8019,38 @@ export interface components {
             };
             /** Emailed */
             emailed: boolean;
+        };
+        /** QuizAnswered */
+        QuizAnswered: {
+            /** Choice */
+            choice: number;
+            /** Answer */
+            answer: number;
+            /** Correct */
+            correct: boolean;
+            /** Explain */
+            explain: string;
+        };
+        /** QuizQuestion */
+        QuizQuestion: {
+            /** Prompt */
+            prompt: string;
+            /** Options */
+            options: string[];
+            /** Source */
+            source: string | null;
+        };
+        /** QuizView */
+        QuizView: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "quiz";
+            /** Questions */
+            questions: components["schemas"]["QuizQuestion"][];
+            /** Answered */
+            answered: components["schemas"]["QuizAnswered"][];
         };
         /** ReactionCounts */
         ReactionCounts: {
@@ -7941,6 +8494,13 @@ export interface components {
              */
             text: "empty" | "failed";
         };
+        /** SearchFound */
+        SearchFound: {
+            /** Word */
+            word: string;
+            start: components["schemas"]["Cell"];
+            end: components["schemas"]["Cell"];
+        };
         /** SearchHit */
         SearchHit: {
             /**
@@ -7979,6 +8539,24 @@ export interface components {
             lessons: components["schemas"]["SearchHit"][];
             /** Events */
             events: components["schemas"]["SearchHit"][];
+        };
+        /** SearchView */
+        SearchView: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "search";
+            /** Grid */
+            grid: string[];
+            /** Words */
+            words: string[];
+            /** Found */
+            found: components["schemas"]["SearchFound"][];
+            /** Hints */
+            hints: components["schemas"]["Cell"][];
+            /** Misses */
+            misses: number;
         };
         /**
          * Senior
@@ -8188,6 +8766,19 @@ export interface components {
             /** Limitbytes */
             limitBytes: number;
         };
+        /** Streak */
+        Streak: {
+            /** Current */
+            current: number;
+            /** Best */
+            best: number;
+            /** Playedtoday */
+            playedToday: boolean;
+            /** Freezeready */
+            freezeReady: boolean;
+            /** Frozendays */
+            frozenDays: string[];
+        };
         /**
          * Stroke
          * @description One line drawn with the pen or the highlighter. `points` is x, y, pressure (0-1), x, y, pressure, … in sheet
@@ -8207,6 +8798,26 @@ export interface components {
             width: number;
             /** Points */
             points: number[];
+        };
+        /** SudokuView */
+        SudokuView: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "sudoku";
+            /**
+             * Difficulty
+             * @enum {string}
+             */
+            difficulty: "easy" | "medium" | "hard";
+            /** Givens */
+            givens: number[];
+            /** Filled */
+            filled: number[];
+            /** Hinted */
+            hinted: number[];
+            wrong: components["schemas"]["PlaceMove"] | null;
         };
         /**
          * SuggestionAccept
@@ -8359,6 +8970,15 @@ export interface components {
             snippet: string;
             /** Page */
             page: number | null;
+        };
+        /** Theme */
+        Theme: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Blurb */
+            blurb: string;
         };
         /** ThreadCreate */
         ThreadCreate: {
@@ -8658,6 +9278,29 @@ export interface components {
              */
             at: string;
         };
+        /** WordRow */
+        WordRow: {
+            /** Word */
+            word: string;
+            /** Marks */
+            marks: ("hit" | "near" | "miss")[];
+        };
+        /** WordView */
+        WordView: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "word";
+            /** Length */
+            length: number;
+            /** Maxguesses */
+            maxGuesses: number;
+            /** Rows */
+            rows: components["schemas"]["WordRow"][];
+            /** Answer */
+            answer: string | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -8675,9 +9318,11 @@ export type AfterId = components['schemas']['AfterId'];
 export type Agenda = components['schemas']['Agenda'];
 export type AgendaCard = components['schemas']['AgendaCard'];
 export type AnnotateRequest = components['schemas']['AnnotateRequest'];
+export type AnswerMove = components['schemas']['AnswerMove'];
 export type AttachmentCreate = components['schemas']['AttachmentCreate'];
 export type AuditOut = components['schemas']['AuditOut'];
 export type AuditPage = components['schemas']['AuditPage'];
+export type Badge = components['schemas']['Badge'];
 export type BoardCard = components['schemas']['BoardCard'];
 export type BoardCardCreate = components['schemas']['BoardCardCreate'];
 export type BoardCardDetail = components['schemas']['BoardCardDetail'];
@@ -8693,6 +9338,7 @@ export type BoardLinkState = components['schemas']['BoardLinkState'];
 export type BoardPlan = components['schemas']['BoardPlan'];
 export type BoardPlanCreate = components['schemas']['BoardPlanCreate'];
 export type BoardPlanMade = components['schemas']['BoardPlanMade'];
+export type BoardRow = components['schemas']['BoardRow'];
 export type BoardSummary = components['schemas']['BoardSummary'];
 export type BoardUpdate = components['schemas']['BoardUpdate'];
 export type BoardUsage = components['schemas']['BoardUsage'];
@@ -8703,6 +9349,7 @@ export type BugReportCreated = components['schemas']['BugReportCreated'];
 export type BugReportOut = components['schemas']['BugReportOut'];
 export type BugReportPage = components['schemas']['BugReportPage'];
 export type BugReportUpdate = components['schemas']['BugReportUpdate'];
+export type CalendarDay = components['schemas']['CalendarDay'];
 export type CalendarEventCreate = components['schemas']['CalendarEventCreate'];
 export type CalendarEventOut = components['schemas']['CalendarEventOut'];
 export type CalendarEventSaved = components['schemas']['CalendarEventSaved'];
@@ -8727,6 +9374,7 @@ export type CareerSave = components['schemas']['CareerSave'];
 export type CareerSkill = components['schemas']['CareerSkill'];
 export type CareerTrack = components['schemas']['CareerTrack'];
 export type CategoryOut = components['schemas']['CategoryOut'];
+export type Cell = components['schemas']['Cell'];
 export type CertFile = components['schemas']['CertFile'];
 export type Chapter = components['schemas']['Chapter'];
 export type ChapterIn = components['schemas']['ChapterIn'];
@@ -8747,6 +9395,11 @@ export type Contributor = components['schemas']['Contributor'];
 export type CoverLine = components['schemas']['CoverLine'];
 export type CtaBlock = components['schemas']['CtaBlock'];
 export type CtaLabels = components['schemas']['CtaLabels'];
+export type DailyCalendar = components['schemas']['DailyCalendar'];
+export type DailyMe = components['schemas']['DailyMe'];
+export type DailyMeIn = components['schemas']['DailyMeIn'];
+export type DailyStats = components['schemas']['DailyStats'];
+export type DailyToday = components['schemas']['DailyToday'];
 export type DateWindow = components['schemas']['DateWindow'];
 export type DoneRequests = components['schemas']['DoneRequests'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
@@ -8759,6 +9412,7 @@ export type ExportBoardComment = components['schemas']['ExportBoardComment'];
 export type ExportBoardFile = components['schemas']['ExportBoardFile'];
 export type ExportBoardPlan = components['schemas']['ExportBoardPlan'];
 export type ExportCalendarSettings = components['schemas']['ExportCalendarSettings'];
+export type ExportDailyPlay = components['schemas']['ExportDailyPlay'];
 export type ExportEmail = components['schemas']['ExportEmail'];
 export type ExportFollow = components['schemas']['ExportFollow'];
 export type ExportInk = components['schemas']['ExportInk'];
@@ -8781,17 +9435,26 @@ export type FeatureOut = components['schemas']['FeatureOut'];
 export type FeaturedLogo = components['schemas']['FeaturedLogo'];
 export type FeaturesOut = components['schemas']['FeaturesOut'];
 export type FileLink = components['schemas']['FileLink'];
+export type FindMove = components['schemas']['FindMove'];
 export type FollowRequest = components['schemas']['FollowRequest'];
 export type FollowResult = components['schemas']['FollowResult'];
 export type ForumMeta = components['schemas']['ForumMeta'];
 export type ForumStats = components['schemas']['ForumStats'];
 export type FoundAnswer = components['schemas']['FoundAnswer'];
+export type FoundGroup = components['schemas']['FoundGroup'];
 export type FoundItem = components['schemas']['FoundItem'];
 export type FurtherStudy = components['schemas']['FurtherStudy'];
 export type FurtherStudyAction = components['schemas']['FurtherStudyAction'];
+export type GameDay = components['schemas']['GameDay'];
+export type GameInfo = components['schemas']['GameInfo'];
 export type GapModule = components['schemas']['GapModule'];
 export type Gaps = components['schemas']['Gaps'];
+export type GiveUpMove = components['schemas']['GiveUpMove'];
+export type GroupMove = components['schemas']['GroupMove'];
+export type GroupsView = components['schemas']['GroupsView'];
+export type GuessMove = components['schemas']['GuessMove'];
 export type Health = components['schemas']['Health'];
+export type HintMove = components['schemas']['HintMove'];
 export type InkSave = components['schemas']['InkSave'];
 export type InkSheet = components['schemas']['InkSheet'];
 export type IssueCover = components['schemas']['IssueCover'];
@@ -8804,6 +9467,7 @@ export type IssueUpdate = components['schemas']['IssueUpdate'];
 export type LabelCreate = components['schemas']['LabelCreate'];
 export type LabelUpdate = components['schemas']['LabelUpdate'];
 export type LastLesson = components['schemas']['LastLesson'];
+export type Leaderboard = components['schemas']['Leaderboard'];
 export type LessonGap = components['schemas']['LessonGap'];
 export type LessonIn = components['schemas']['LessonIn'];
 export type LessonOut = components['schemas']['LessonOut'];
@@ -8827,7 +9491,10 @@ export type ModuleOrder = components['schemas']['ModuleOrder'];
 export type ModuleSave = components['schemas']['ModuleSave'];
 export type ModuleShelf = components['schemas']['ModuleShelf'];
 export type ModuleSummary = components['schemas']['ModuleSummary'];
+export type MoveIn = components['schemas']['MoveIn'];
 export type MySenior = components['schemas']['MySenior'];
+export type NearestGuess = components['schemas']['NearestGuess'];
+export type NearestView = components['schemas']['NearestView'];
 export type NooraDoneEvent = components['schemas']['NooraDoneEvent'];
 export type NooraErrorEvent = components['schemas']['NooraErrorEvent'];
 export type NooraLimitsIn = components['schemas']['NooraLimitsIn'];
@@ -8864,6 +9531,9 @@ export type ParagraphBlock = components['schemas']['ParagraphBlock'];
 export type PersonalEventCreate = components['schemas']['PersonalEventCreate'];
 export type PersonalEventOut = components['schemas']['PersonalEventOut'];
 export type PersonalEventUpdate = components['schemas']['PersonalEventUpdate'];
+export type PlaceMove = components['schemas']['PlaceMove'];
+export type Play = components['schemas']['Play'];
+export type PlayOut = components['schemas']['PlayOut'];
 export type PollBlock = components['schemas']['PollBlock'];
 export type PollResult = components['schemas']['PollResult'];
 export type PollVoteRequest = components['schemas']['PollVoteRequest'];
@@ -8874,6 +9544,9 @@ export type PresignedUpload = components['schemas']['PresignedUpload'];
 export type Progress = components['schemas']['Progress'];
 export type ProgressImport = components['schemas']['ProgressImport'];
 export type PublishedIssue = components['schemas']['PublishedIssue'];
+export type QuizAnswered = components['schemas']['QuizAnswered'];
+export type QuizQuestion = components['schemas']['QuizQuestion'];
+export type QuizView = components['schemas']['QuizView'];
 export type ReactionCounts = components['schemas']['ReactionCounts'];
 export type Reply = components['schemas']['Reply'];
 export type ReplyCreate = components['schemas']['ReplyCreate'];
@@ -8897,8 +9570,10 @@ export type RoleOut = components['schemas']['RoleOut'];
 export type RoleSummary = components['schemas']['RoleSummary'];
 export type RoleUpdate = components['schemas']['RoleUpdate'];
 export type ScanGap = components['schemas']['ScanGap'];
+export type SearchFound = components['schemas']['SearchFound'];
 export type SearchHit = components['schemas']['SearchHit'];
 export type SearchResults = components['schemas']['SearchResults'];
+export type SearchView = components['schemas']['SearchView'];
 export type Senior = components['schemas']['Senior'];
 export type SeniorUpdate = components['schemas']['SeniorUpdate'];
 export type SessionInfo = components['schemas']['SessionInfo'];
@@ -8916,7 +9591,9 @@ export type StatsAside = components['schemas']['StatsAside'];
 export type StepUpResult = components['schemas']['StepUpResult'];
 export type StepUpStart = components['schemas']['StepUpStart'];
 export type StorageUse = components['schemas']['StorageUse'];
+export type Streak = components['schemas']['Streak'];
 export type Stroke = components['schemas']['Stroke'];
+export type SudokuView = components['schemas']['SudokuView'];
 export type SuggestionAccept = components['schemas']['SuggestionAccept'];
 export type SuggestionCreate = components['schemas']['SuggestionCreate'];
 export type SuggestionDecline = components['schemas']['SuggestionDecline'];
@@ -8926,6 +9603,7 @@ export type SummaryPreview = components['schemas']['SummaryPreview'];
 export type SwitchUpdate = components['schemas']['SwitchUpdate'];
 export type TagOut = components['schemas']['TagOut'];
 export type TextMatch = components['schemas']['TextMatch'];
+export type Theme = components['schemas']['Theme'];
 export type ThreadCreate = components['schemas']['ThreadCreate'];
 export type ThreadDetail = components['schemas']['ThreadDetail'];
 export type ThreadModeration = components['schemas']['ThreadModeration'];
@@ -8939,6 +9617,8 @@ export type UserRolesUpdate = components['schemas']['UserRolesUpdate'];
 export type Video = components['schemas']['Video'];
 export type VoteResult = components['schemas']['VoteResult'];
 export type WatchedLesson = components['schemas']['WatchedLesson'];
+export type WordRow = components['schemas']['WordRow'];
+export type WordView = components['schemas']['WordView'];
 export type $defs = Record<string, never>;
 export interface operations {
     health_api_v1_health_get: {
@@ -12073,7 +12753,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions";
+                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions" | "daily";
             };
             cookie?: never;
         };
@@ -25295,6 +25975,608 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BugReportOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    today_api_v1_daily_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyToday"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    calendar_api_v1_daily_calendar_get: {
+        parameters: {
+            query: {
+                month: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyCalendar"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    leaderboard_api_v1_daily_leaderboard_get: {
+        parameters: {
+            query?: {
+                period?: "week" | "all";
+                year?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Leaderboard"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    me_api_v1_daily_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyMe"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_me_api_v1_daily_me_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DailyMeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyMe"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_play_api_v1_daily__day___game__get: {
+        parameters: {
+            query?: {
+                variant?: string;
+            };
+            header?: never;
+            path: {
+                day: string;
+                game: "word" | "groups" | "search" | "quiz" | "nearest" | "sudoku";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    make_move_api_v1_daily__day___game__moves_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+                game: "word" | "groups" | "search" | "quiz" | "nearest" | "sudoku";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayOut"];
                 };
             };
             /** @description Bad Request */

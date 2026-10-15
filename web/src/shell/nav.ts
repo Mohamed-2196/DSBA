@@ -1,5 +1,5 @@
 // Navigation config for the shell (rail, mobile tab bar, More drawer).
-import { Books, Calculator, CalendarDots, ChatTeardropText, ChatsCircle, Compass, GraduationCap, HandWaving, House, Kanban, Newspaper, NotePencil, SquaresFour, Bank, type Icon } from '@phosphor-icons/react';
+import { Books, Calculator, CalendarDots, ChatTeardropText, ChatsCircle, Compass, GameController, GraduationCap, HandWaving, House, Kanban, Newspaper, NotePencil, SquaresFour, Bank, type Icon } from '@phosphor-icons/react';
 import { MYCLASS_URL, UOL_PORTAL_URL } from '../data/people';
 import type { Feature } from '../auth';
 
@@ -37,6 +37,7 @@ export const NAV: NavItem[] = [
   { id: 'grades', label: 'Grades', to: '/grades', icon: Calculator, feature: 'grades' },
   { id: 'notes', label: 'Notes', to: '/notes', icon: NotePencil, feature: 'notes', signedIn: true },
   { id: 'board', label: 'Study board', to: '/board', icon: Kanban, feature: 'board', signedIn: true },
+  { id: 'daily', label: 'Daily', to: '/daily', icon: GameController, feature: 'daily', isNew: true },
   { id: 'requests', label: 'Requests', to: '/requests', icon: HandWaving, feature: 'requests' },
 ];
 
@@ -48,4 +49,4 @@ export const EXTERNAL_LINKS: ExternalLink[] = [
 /** Mobile bottom tabs (+ "More"). */
 export const MOBILE_TAB_IDS = ['home', 'modules', 'noora', 'library', 'forum'];
 /** Routes that live under "More" on mobile. */
-export const MORE_IDS = ['newsletter', 'career', 'calendar', 'grades', 'notes', 'board', 'requests'];
+export const MORE_IDS = ['daily', 'newsletter', 'career', 'calendar', 'grades', 'notes', 'board', 'requests'];

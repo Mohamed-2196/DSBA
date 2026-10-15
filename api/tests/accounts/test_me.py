@@ -674,6 +674,8 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
         "videoSuggestions",
         "calendarEvents",
         "calendarSettings",
+        "dailyPlays",
+        "dailyShowOnBoard",
     }
     text = json.dumps(data)
     for private in ("someone-else@example.com", "+97333123471", "Their answer", "Not mine", "their-private-note-text"):

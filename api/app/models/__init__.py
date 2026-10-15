@@ -14,6 +14,7 @@ from app.models.content import (
     SuggestionStatus,
     VideoSuggestion,
 )
+from app.models.daily import DailyPlay, DailyProfile
 from app.models.forum import FollowLevel, ForumReply, ForumThread, PostStatus, ReplyVote, ThreadFollow, ThreadVote
 from app.models.library import (
     DriveFolder,
@@ -56,6 +57,8 @@ __all__ = [
     "Channel",
     "Chapter",
     "ContentDoc",
+    "DailyPlay",
+    "DailyProfile",
     "DriveFolder",
     "EmailOutbox",
     "FeatureSwitch",

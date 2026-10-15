@@ -20,6 +20,8 @@ from app.core.errors import ApiError, conflict, forbidden, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
     CalendarPrefs,
+    DailyPlay,
+    DailyProfile,
     EmailOutbox,
     ForumReply,
     ForumThread,
@@ -59,6 +61,7 @@ from app.schemas.access import RoleSummary
 from app.schemas.auth import (
     AccountExport,
     ExportCalendarSettings,
+    ExportDailyPlay,
     ExportEmail,
     ExportFollow,
     ExportInk,
@@ -927,6 +930,13 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
             )
         ],
         calendar_settings=calendar_settings,
+        daily_plays=[
+            ExportDailyPlay.model_validate(p)
+            for p in db.scalars(
+                select(DailyPlay).where(DailyPlay.user_id == uid).order_by(DailyPlay.day, DailyPlay.started_at)
+            )
+        ],
+        daily_show_on_board=bool(db.scalar(select(DailyProfile.show_on_board).where(DailyProfile.user_id == uid))),
     )
 
 

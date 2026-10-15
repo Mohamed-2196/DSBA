@@ -435,6 +435,18 @@ class ExportEmail(ApiModel):
     sent_at: datetime | None
 
 
+class ExportDailyPlay(ApiModel):
+    day: date
+    game: str
+    variant: str
+    status: str
+    scored: bool
+    points: int
+    moves: list[Any]
+    started_at: datetime
+    finished_at: datetime | None
+
+
 class AccountExport(ApiModel):
     """Everything the Hub stores about the signed-in user (GET /me/export)."""
 
@@ -465,3 +477,5 @@ class AccountExport(ApiModel):
     video_suggestions: list[ExportSuggestion]  # videos this person suggested for lessons
     calendar_events: list[PersonalEventOut]  # events on their own calendar
     calendar_settings: ExportCalendarSettings | None  # the programme dates they hide, and their private feed
+    daily_plays: list[ExportDailyPlay]  # daily puzzles played, with their moves
+    daily_show_on_board: bool  # the name shows on Daily's leaderboard
