@@ -42,7 +42,6 @@ def module(db: Session) -> Module:
         year=1,
         description="",
         position=100,
-        resources={},
         chapters=chapters(
             mid,
             [
@@ -167,12 +166,10 @@ def test_create_edit_and_audit(client_for: Clients, manager: User, db: Session) 
             **{k: v for k, v in body.items() if k != "id"},
             "version": 1,
             "description": "**Fairness**, privacy and $p$-values.",
-            "resources": {"materials": "https://drive.google.com/drive/folders/x"},
             "chapters": [{"title": "Fairness", "lessons": [{"url": "https://youtu.be/dQw4w9WgXcQ", "title": "Intro"}]}],
         },
     )
     assert saved["version"] == 2
-    assert saved["resources"]["materials"] == "https://drive.google.com/drive/folders/x"
     public = c.get(f"{API}/modules/data-ethics").json()
     chapter, lesson = saved["chapters"][0], saved["chapters"][0]["lessons"][0]
     assert len(chapter["id"]) == len(lesson["id"]) == 8
@@ -227,13 +224,6 @@ def test_unsafe_videos_are_refused(client_for: Clients, manager: User, module: M
     r = c.put(f"{API}/content/modules/{module.id}", json=m)
     assert r.status_code == 422
     assert "chapters.1.lessons.0.url" in r.json()["error"]["fields"]
-
-
-def test_resources_must_be_https(client_for: Clients, manager: User, module: Module) -> None:
-    c = client_for(manager)
-    m = load(c, module.id)
-    r = c.put(f"{API}/content/modules/{module.id}", json={**m, "resources": {"vle": "javascript:alert(1)"}})
-    assert r.status_code == 422
 
 
 # ── moving lessons: what refers to them stays with them ─────────────────────────────────────

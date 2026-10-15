@@ -37,7 +37,7 @@ def read_url(item: dict[str, Any]) -> str:
 
 
 def link(client: TestClient, **body: Any) -> Any:
-    payload = {"url": "https://drive.google.com/drive/folders/abc", "title": "Past exams", "kind": "past-paper"}
+    payload = {"url": "https://example.com/past-exams", "title": "Past exams", "kind": "past-paper"}
     payload.update(body)
     return client.post(f"{API}/library/links", json=payload)
 
@@ -313,7 +313,7 @@ def test_moderators_add_https_links(
     assert r.status_code == 201, r.text
     item = r.json()
     assert (item["source"], item["status"], item["format"], item["year"]) == ("link", "published", None, 2)
-    assert item["url"] == "https://drive.google.com/drive/folders/abc"
+    assert item["url"] == "https://example.com/past-exams"
     assert item["slug"] == "ec2020-past-exams"
     assert "library.link" in audit_actions(db)
 
@@ -323,12 +323,13 @@ def test_moderators_add_https_links(
         "url": "Remove the user name and password from the link."
     }
     assert link(rep, url="https://example.com/" + "x" * 2000).status_code == 422
+    assert link(rep, url="https://drive.google.com/drive/folders/abc").status_code == 422
     assert link(client_for(student)).status_code == 403
     assert link(client_for()).status_code == 401
 
     guest = client_for()
     r = guest.get(item_url(item, "/download"), follow_redirects=False)
-    assert (r.status_code, r.headers["location"]) == (302, "https://drive.google.com/drive/folders/abc")
+    assert (r.status_code, r.headers["location"]) == (302, "https://example.com/past-exams")
     assert guest.get(read_url(item)).json()["downloadCount"] == 1
     assert guest.get(item_url(item, "/file")).json()["error"]["code"] == "no_preview"
     assert link(rep, moduleId="econometrics").json()["slug"] == "ec2020-past-exams-2"
@@ -603,7 +604,7 @@ def test_the_activity_log_names_every_file(
     assert rows[2].data["fields"] == ["module_id", "title", "year"]
     assert rows[3].data["was"] == "published"
     assert rows[4].data["own"] is True
-    assert rows[5].data["url"] == "https://drive.google.com/drive/folders/abc"
+    assert rows[5].data["url"] == "https://example.com/past-exams"
     assert all(e.data["actorName"] == "Maryam Rep" for e in rows)
 
 

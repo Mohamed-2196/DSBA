@@ -209,7 +209,7 @@ class ExportLibraryItem(ApiModel):
     content_type: str | None
     size_bytes: int | None
     exam_year: int | None
-    zone: str | None
+    zone: Zone | None
     author_name: str | None
     status: ItemStatus
     review_note: str | None
@@ -312,7 +312,7 @@ class ExportRequest(ApiModel):
     module_id: str | None
     wanted_kind: LibraryKind | None
     exam_year: int | None
-    zone: str | None
+    zone: Zone | None
     event_id: str | None
     status: RequestStatus
     reply: str | None

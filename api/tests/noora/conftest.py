@@ -117,7 +117,6 @@ def module(db: Session) -> Module:
         short_name="Distribution theory",
         year=2,
         description="",
-        resources={},
         chapters=chapters(
             m_id,
             [

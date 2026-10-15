@@ -36,6 +36,7 @@ from app.schemas.misc import SearchHit, SearchResults, SearchType
 from app.services import access, paper_text
 from app.services import library as lib
 from app.services.calendar import TYPE_LABELS, cohort_label
+from app.services.exam_names import zone_label
 from app.services.forum.taxonomy import CATEGORY_BY_ID
 from app.services.forum.text import to_plain_text  # a post reads the same in search as in the forum (CQ-6)
 from app.services.newsletter import issue_text
@@ -142,16 +143,36 @@ def _threads(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int)
     return hits
 
 
-def _library(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int) -> list[SearchHit]:
-    """Files whose title, description, author or module match first; then those that match only inside (their
-    snippet and page come from the text)."""
+def _library_meta(item: LibraryItem, module: str | None) -> list[str]:
+    """What tells two files apart, first: 'May 2021 examiners\u2019 report', 'zone A', then the module
+    ('ST2133'); for other files their kind and module."""
+    if item.exam_year is not None:
+        when = f"{(item.exam_session or '').capitalize()} {item.exam_year}".strip()
+        meta = [f"{when} {lib.kind_label(item.kind).lower()}"]
+        if item.zone:
+            meta.append(zone_label(item.zone))
+        return [*meta, module or ""]
+    return [lib.kind_label(item.kind), module or ""]
+
+
+def _library(
+    db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int, viewer: User | None
+) -> list[SearchHit]:
+    """Files whose title, description, author or module match first (the viewer's year first among them); then
+    those that match only inside (their snippet and page come from the text). A second copy of a file is left out
+    (library.duplicate)."""
     doc = lib.search_document()
     in_doc = doc.bool_op("@@")(tsq)
     rows = db.execute(
         select(LibraryItem, Module.unit_code, Module.short_name)
         .outerjoin(Module, Module.id == LibraryItem.module_id)
-        .where(LibraryItem.status == ItemStatus.published, or_(in_doc, paper_text.content_match(tsq)))
-        .order_by(in_doc.desc(), func.ts_rank(doc, tsq).desc(), LibraryItem.published_at.desc().nulls_last())
+        .where(LibraryItem.status == ItemStatus.published, ~lib.duplicate(), or_(in_doc, paper_text.content_match(tsq)))
+        .order_by(
+            in_doc.desc(),
+            *lib.your_year_first(viewer),
+            func.ts_rank(doc, tsq).desc(),
+            LibraryItem.published_at.desc().nulls_last(),
+        )
         .limit(limit)
     ).all()
     inside = paper_text.matches(db, [item.id for item, _, _ in rows if not lib.says(item, terms)], terms)
@@ -159,7 +180,7 @@ def _library(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int)
     for item, code, short in rows:
         about = item.description or (f"By {item.author_name}" if item.author_name else None) or item.file_name
         found = inside.get(item.id)
-        meta = [code or short, lib.kind_label(item.kind)]
+        meta = _library_meta(item, code or short)
         if found and found.page:
             meta.append(f"Page {found.page}")
         hits.append(
@@ -360,7 +381,7 @@ def run_search(db: Session, q: str, types: list[SearchType] | None, limit: int, 
     if "thread" in want:
         results.threads = _threads(db, tsq, terms, limit)
     if "library" in want:
-        results.library = _library(db, tsq, terms, limit)
+        results.library = _library(db, tsq, terms, limit, viewer)
     if "issue" in want:
         results.issues = _issues(db, tsq, terms, limit)
     if "module" in want:

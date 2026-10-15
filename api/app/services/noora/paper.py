@@ -17,8 +17,10 @@ from sqlalchemy.orm import Session
 from app.core.access import Feature
 from app.core.errors import not_found
 from app.models import ItemSource, ItemStatus, LibraryItem, LibraryText, TextStatus, User
+from app.schemas.library import EXAMINERS_REPORT, PAST_PAPER
 from app.schemas.noora import NooraPaper
 from app.services import access
+from app.services.exam_names import zone_label
 from app.services.noora.prompt import data
 from app.services.paper_text import PAGE_BREAK
 
@@ -54,7 +56,7 @@ def report_for(db: Session, paper: LibraryItem) -> LibraryItem | None:
     if paper.exam_year is None or paper.module_id is None:
         return None
     q = select(LibraryItem).where(
-        LibraryItem.kind == "examiners-report",
+        LibraryItem.kind == EXAMINERS_REPORT,
         LibraryItem.status == ItemStatus.published,
         LibraryItem.source == ItemSource.file,
         LibraryItem.module_id == paper.module_id,
@@ -74,7 +76,7 @@ def load(db: Session, user: User, asked: NooraPaper) -> AskedQuestion:
     paper = db.get(LibraryItem, asked.item_id)
     if (
         paper is None
-        or paper.kind != "past-paper"
+        or paper.kind != PAST_PAPER
         or paper.source != ItemSource.file
         or paper.status != ItemStatus.published
     ):
@@ -121,7 +123,7 @@ def _sitting(item: LibraryItem) -> str:
     if item.exam_session:
         parts.append(f"{item.exam_session} session")
     if item.zone:
-        parts.append(f"zone {item.zone}")
+        parts.append(zone_label(item.zone))
     return ", ".join(parts)
 
 

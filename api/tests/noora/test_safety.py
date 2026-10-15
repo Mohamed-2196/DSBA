@@ -69,7 +69,6 @@ def hidden_module(db: Session) -> Module:
         short_name="Draft",
         year=3,
         description="",
-        resources={},
         hidden=True,
         chapters=chapters(m_id, [{"title": "Draft chapter", "videos": [{"kind": "youtube", "video_id": "z"}]}]),
     )

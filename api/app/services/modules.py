@@ -152,5 +152,8 @@ def module_detail(db: Session, module_id: str, *, library: bool) -> ModuleDetail
     m = db.get(Module, module_id)
     if m is None or m.hidden:
         raise not_found("This module doesn't exist.")
+    from app.services.library import module_shelves  # library -> modules (require_module)
+
     count = published_counts(db, m.id).get(m.id, 0) if library else None
-    return ModuleDetail.model_validate({**_summary(m, count), "resources": m.resources, "chapters": chapters_out(m)})
+    shelves = module_shelves(db, m.id) if library else []
+    return ModuleDetail.model_validate({**_summary(m, count), "shelves": shelves, "chapters": chapters_out(m)})

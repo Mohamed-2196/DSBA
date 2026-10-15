@@ -44,7 +44,6 @@ def module(db: Session) -> Module:
         year=3,
         description="",
         position=100,
-        resources={},
         chapters=chapters(
             mid,
             [
@@ -61,7 +60,7 @@ def module(db: Session) -> Module:
 @pytest.fixture
 def empty(db: Session) -> Module:
     """A Year 3 module with no chapters yet."""
-    m = Module(id=f"sugg-empty-{uuid.uuid4().hex[:6]}", name="Asset pricing", short_name="AP", year=3, resources={})
+    m = Module(id=f"sugg-empty-{uuid.uuid4().hex[:6]}", name="Asset pricing", short_name="AP", year=3)
     db.add(m)
     db.commit()
     return m

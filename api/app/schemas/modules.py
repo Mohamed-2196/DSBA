@@ -32,13 +32,17 @@ class Chapter(ApiModel):
     videos: list[Video]
 
 
-class ModuleResources(ApiModel):
-    materials: str | None = None
-    exercises: str | None = None
-    exercises_note: str | None = None
-    vle: str | None = None
-    older_exams: str | None = None
-    cheat_sheet: str | None = None
+ShelfKind = Literal["course-materials", "exercises", "past-paper", "vle-materials", "cheat-sheet", "notes"]
+
+
+class ModuleShelf(ApiModel):
+    """A kind of file the module has in the library (services/library.py SHELVES: 'past-paper' counts the papers,
+    examiners' reports and solutions together). `files`: published files of that kind. `being_added`: the module has
+    a Drive folder of that kind the import hasn't brought in yet."""
+
+    kind: ShelfKind
+    files: int
+    being_added: bool
 
 
 class ModuleSummary(ApiModel):
@@ -55,7 +59,7 @@ class ModuleSummary(ApiModel):
 
 
 class ModuleDetail(ModuleSummary):
-    resources: ModuleResources
+    shelves: list[ModuleShelf]  # empty while the library is off for you
     chapters: list[Chapter]
 
 
@@ -118,17 +122,6 @@ Title = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, ma
 Optional200 = Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)]
 
 
-class ResourcesIn(ApiModel):
-    """The module's shared folders: https:// links (empty or null for none)."""
-
-    materials: Link | None = None
-    exercises: Link | None = None
-    exercises_note: Annotated[str, StringConstraints(strip_whitespace=True, max_length=300)] | None = None
-    vle: Link | None = None
-    older_exams: Link | None = None
-    cheat_sheet: Link | None = None
-
-
 class ModuleFields(ApiModel):
     unit_code: UnitCode | None = None  # 'ST2133'; unique
     name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=120)]
@@ -136,7 +129,6 @@ class ModuleFields(ApiModel):
     year: Year
     description: Annotated[str, StringConstraints(strip_whitespace=True, max_length=4000)] = ""  # Markdown
     icon: ModuleIconName | None = None
-    resources: ResourcesIn = Field(default_factory=ResourcesIn)
 
 
 class ModuleCreate(ModuleFields):
@@ -201,7 +193,6 @@ class ModuleEditSummary(ApiModel):
 
 class ModuleEdit(ModuleEditSummary):
     description: str
-    resources: ModuleResources
     chapters: list[ChapterOut]
 
 

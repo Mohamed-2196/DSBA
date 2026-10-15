@@ -18,6 +18,8 @@ dependencies = [
     "google-auth>=2.30,<3",
     "anthropic>=1.13,<2",
     "pypdf>=6.1,<7",
+    "pypdfium2>=4.30,<6",
+    "pillow>=11,<13",
 ]
 
 [dependency-groups]
@@ -52,7 +54,7 @@ plugins = ["pydantic.mypy"]
 exclude = ["migrations/"]
 
 [[tool.mypy.overrides]]
-module = ["moto.*", "phonenumbers.*"]
+module = ["moto.*", "phonenumbers.*", "pypdfium2.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

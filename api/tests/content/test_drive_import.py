@@ -28,7 +28,7 @@ from sqlalchemy.orm import Session
 from app import cli
 from app.config import Settings, get_settings
 from app.core.time import utcnow
-from app.models import AuditEntry, ItemSource, ItemStatus, LibraryItem, Module, User
+from app.models import AuditEntry, DriveFolder, ItemSource, ItemStatus, LibraryItem, Module, User
 from app.services import drive as drive_module
 from app.services import exam_names
 from app.services.drive import Drive, connect
@@ -42,6 +42,7 @@ from tests.content.fake_drive import (
     FOLDER,
     FORM,
     PDF,
+    PDF_TYPE,
     PNG,
     SERVICE_EMAIL,
     SHEET,
@@ -99,7 +100,7 @@ def run(db: Session, drive: Drive, storage: Storage, modules: dict[str, Module],
 
 def link(
     db: Session,
-    module_id: str | None,
+    module_id: str,
     folder_id: str,
     *,
     kind: str = "course-materials",
@@ -107,23 +108,20 @@ def link(
     author: str | None = None,
     resource_key: str | None = None,
     url: str | None = None,
-) -> LibraryItem:
-    """A published link item, as the seed makes them."""
+) -> DriveFolder:
+    """A Drive folder row, as the seed makes them."""
     query = f"?resourcekey={resource_key}" if resource_key else "?usp=sharing"
-    item = LibraryItem(
-        slug=f"link-{uuid.uuid4().hex[:10]}",
-        source=ItemSource.link,
+    folder = DriveFolder(
+        id=uuid.uuid4(),
+        module_id=module_id,
         kind=kind,
         title=title,
-        module_id=module_id,
         url=url or f"https://drive.google.com/drive/folders/{folder_id}{query}",
         author_name=author,
-        status=ItemStatus.published,
-        published_at=REFERENCE_PUBLISHED_AT,
     )
-    db.add(item)
+    db.add(folder)
     db.commit()
-    return item
+    return folder
 
 
 def imported(db: Session) -> dict[str, LibraryItem]:
@@ -166,7 +164,7 @@ def test_a_dry_run_prints_the_plan_and_changes_nothing(
     fake.google("gdoc1", "Summary", "wk1")
     fake.file("mp41", "recording.mp4", "wk1", content=b"\x00\x00\x00\x18ftypmp42", mime="video/mp4")
     link(db, "statistics", "mat1")
-    link(db, "statistics", "", title="Feras's notes", url="https://drive.google.com/file/d/1H37pHRq/view")
+    link(db, "statistics", "", title="Feras's notes", url="https://not-google.example.com/notes")
 
     assert run(dry_run=True) == 0
     plan = text(out)
@@ -179,7 +177,7 @@ def test_a_dry_run_prints_the_plan_and_changes_nothing(
     assert "    + Week 1 \u203a Summary.pdf (Google Docs, as PDF)" in out
     assert "    - Week 1 \u203a recording.mp4: the library doesn't take .mp4 files" in out
     assert "Links that aren't Drive folders stay links: 1" in plan
-    assert "  statistics \u00b7 Feras's notes: https://drive.google.com/file/d/1H37pHRq/view" in out
+    assert "  statistics \u00b7 Feras's notes: https://not-google.example.com/notes" in out
     assert "To import: 3 files (" in plan
     assert out[-1] == "Dry run: nothing was imported."
     assert imported(db) == {}
@@ -207,9 +205,9 @@ def test_files_become_published_library_files_of_the_links_kind_module_and_autho
     fake.folder("mat1", "Materials")
     fake.file("pdf1", "Subject guide.pdf", "mat1")
     fake.folder("wk1", "Week 1", parent="mat1")
-    fake.google("gdoc1", "Summary", "wk1")
+    fake.google("gdoc1", "Summary", "wk1", exports={PDF_TYPE: PDF + b" summary"})
     fake.google("gsheet1", "Marks", "wk1", mime=SHEET)
-    fake.google("gslides1", "Slides 1", "wk1", mime=SLIDES)
+    fake.google("gslides1", "Slides 1", "wk1", mime=SLIDES, exports={PDF_TYPE: PDF + b" slides"})
     fake.folder("notes1", "Mahdi notes")
     fake.file("png1", "board.png", "notes1", content=PNG, mime="image/png")
     link(db, "statistics", "mat1")
@@ -226,10 +224,10 @@ def test_files_become_published_library_files_of_the_links_kind_module_and_autho
         "library/drive/statistics/pdf1/Subject-guide.pdf",
         "drive/statistics/pdf1",
     )
-    assert guide.description == "From the Drive folder Course materials."
+    assert guide.description == "In Course materials."
     assert (guide.uploaded_by, guide.author_name, guide.published_at) == (None, None, REFERENCE_PUBLISHED_AT)
     assert guide.slug.startswith("st1215-subject-guide")
-    assert items["Summary.pdf"].description == "From the Drive folder Course materials \u203a Week 1."
+    assert items["Summary.pdf"].description == "In Course materials \u203a Week 1."
     assert (items["Marks.xlsx"].content_type, items["Marks.xlsx"].size_bytes) == (XLSX_TYPE, len(XLSX))
     board = items["board.png"]
     assert (board.kind, board.author_name, board.module_id, board.year) == ("notes", "Mahdi", "economics", 1)
@@ -512,7 +510,7 @@ def test_shortcuts_are_followed_each_folder_is_read_once_and_resource_keys_go_al
     assert run() == 0
     items = imported(db)
     assert sorted(items) == ["a.pdf", "b.pdf"]
-    assert items["a.pdf"].description == "From the Drive folder Course materials \u203a Week 1."
+    assert items["a.pdf"].description == "In Course materials \u203a Week 1."
     assert items["b.pdf"].import_key == "drive/statistics/f2"
     assert "    - c shortcut: a shortcut to a file Drive won't show (404 notFound)" in out
     assert len([r for r in fake.requests if listing("mat1")(r)]) == 2  # two pages, once: not again via sc2
@@ -641,7 +639,7 @@ def test_a_file_drive_wont_hand_over_is_skipped_with_its_link_and_tried_again_ne
         },
     ]
     db.refresh(folder)
-    assert folder.status == ItemStatus.published  # the folder's link stays
+    assert db.get(DriveFolder, folder.id) is not None  # the folder's row stays
 
     out.clear()
     assert run() == 0  # Drive hands them over now
@@ -675,7 +673,7 @@ def test_a_file_another_run_saves_at_the_same_moment_fails_and_the_run_goes_on(
     monkeypatch.setattr(storage, "put_file", put_while_another_run_saves_a)
     assert run() == 1
     assert "  statistics: a.pdf: it couldn't be saved: run the import again" in out
-    assert sorted(i.title for i in imported(db).values()) == ["a", "b"]
+    assert sorted(i.title.lower() for i in imported(db).values()) == ["a", "b"]
 
 
 def test_a_bad_key_stops_the_import_before_anything_happens(

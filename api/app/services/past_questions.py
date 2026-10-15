@@ -18,18 +18,17 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import conflict, forbidden, invalid, not_found
 from app.models import Chapter, ItemStatus, LibraryItem, PaperQuestion, PaperQuestionFlag, User
+from app.schemas.library import PAST_PAPER, PaperQuestionCreate, PaperRef
 from app.schemas.library import PaperQuestion as PaperQuestionOut
-from app.schemas.library import PaperQuestionCreate, PaperRef
 from app.services.content import record
-from app.services.library import manages
+from app.services.library import cover_path, covered, manages
 from app.services.modules import require_module
 from app.services.ratelimit import enforce
 
 TAGS_PER_HOUR = 60
-PAPER_KIND = "past-paper"
 
 
-def _paper(item: LibraryItem) -> PaperRef:
+def _paper(item: LibraryItem, covers: set[uuid.UUID]) -> PaperRef:
     return PaperRef.model_validate(
         {
             "id": item.id,
@@ -38,6 +37,7 @@ def _paper(item: LibraryItem) -> PaperRef:
             "exam_year": item.exam_year,
             "exam_session": item.exam_session,
             "zone": item.zone,
+            "cover_url": cover_path(item.id) if item.id in covers else None,
         }
     )
 
@@ -58,13 +58,14 @@ def to_out(db: Session, tags: Sequence[PaperQuestion], user: User | None) -> lis
             )
         )
     moderator = manages(user)
+    covers = covered(db, list(items))
     out = []
     for t in tags:
         mine = user is not None and t.tagged_by == user.id
         out.append(
             PaperQuestionOut(
                 id=t.id,
-                paper=_paper(items[t.item_id]),
+                paper=_paper(items[t.item_id], covers),
                 chapter_id=t.chapter_id,
                 chapter_title=chapters[t.chapter_id].title,
                 question=t.question,
@@ -83,7 +84,7 @@ def _published_paper(db: Session, item_id: uuid.UUID) -> LibraryItem:
     item = db.get(LibraryItem, item_id)
     if item is None or item.status != ItemStatus.published:
         raise not_found("This file doesn't exist or isn't public yet.")
-    if item.kind != PAPER_KIND or item.module_id is None:
+    if item.kind != PAST_PAPER or item.module_id is None:
         raise conflict("not_a_paper", "Only a module's past papers have questions to tag.")
     return item
 

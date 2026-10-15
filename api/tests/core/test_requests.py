@@ -14,10 +14,8 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import field_name
 from app.core.links import LINK_RULE
-from app.models import AuditEntry, ItemSource, LibraryItem, User
-from app.seed.loader import load_library, load_modules
+from app.models import AuditEntry, User
 from app.services.audit import record
-from app.services.library import REFERENCE_PUBLISHED_AT
 from app.services.notify import hub_path, notify
 from tests.core.helpers import API, new_thread, share_pdf
 
@@ -118,14 +116,6 @@ def test_removed_items_answer_404_on_download_and_file(
         r = rep.get(url, follow_redirects=False)  # ...but nothing to open
         assert r.status_code == 404, url
         assert r.json()["error"]["code"] == "not_found"
-
-
-def test_seeded_links_were_published_before_anything_shared_since(db: Session) -> None:
-    load_modules(db)
-    assert load_library(db) > 0
-    db.commit()
-    dates = set(db.scalars(select(LibraryItem.published_at).where(LibraryItem.source == ItemSource.link)))
-    assert dates == {REFERENCE_PUBLISHED_AT}
 
 
 # ── notifications link only inside the Hub (finding 18) ─────────────────────────────────────

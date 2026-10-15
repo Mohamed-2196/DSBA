@@ -247,20 +247,41 @@ def parse_file(raw: object) -> DriveFile | None:
     )
 
 
-def folder_in(url: str) -> Ref | None:
-    """The Drive folder a library link points at ('https://drive.google.com/drive/folders/<id>', with or without
-    '/u/<n>' and '?resourcekey=<key>'), or None for anything else: a single file, a Google Doc, another site."""
+_DRIVE_PATHS = (
+    re.compile(r"/drive/(?:u/\d{1,2}/)?folders/([A-Za-z0-9_-]{1,100})/?"),  # a folder
+    re.compile(r"/file/d/([A-Za-z0-9_-]{1,100})(?:/(?:view|edit|preview))?/?"),  # a file
+)
+_DOCS_PATH = re.compile(r"/(?:document|spreadsheets|presentation)/d/([A-Za-z0-9_-]{1,100})(?:/[a-z]*)?/?")
+
+
+def drive_ref(url: str) -> Ref | None:
+    """The Drive folder or file a link points at, or None for anything else (another site, a malformed link):
+    'https://drive.google.com/drive/folders/<id>' (with or without '/u/<n>'), '.../file/d/<id>/view',
+    '.../open?id=<id>' and 'https://docs.google.com/document/d/<id>/edit' (Docs, Sheets and Slides), each with its
+    '?resourcekey=<key>' when it has one."""
     try:
         parts = urlsplit(url)
     except ValueError:
         return None
-    if parts.scheme != "https" or parts.hostname != "drive.google.com":
+    if parts.scheme != "https":
         return None
-    match = re.fullmatch(r"/drive/(?:u/\d{1,2}/)?folders/([A-Za-z0-9_-]{1,100})/?", parts.path)
-    if match is None:
+    query = parse_qs(parts.query)
+    found: str | None = None
+    if parts.hostname == "drive.google.com":
+        for pattern in _DRIVE_PATHS:
+            match = pattern.fullmatch(parts.path)
+            if match:
+                found = match.group(1)
+                break
+        if found is None and parts.path == "/open":
+            found = (query.get("id") or [""])[0] or None
+    elif parts.hostname == "docs.google.com":
+        match = _DOCS_PATH.fullmatch(parts.path)
+        found = match.group(1) if match else None
+    if found is None or not DRIVE_ID.fullmatch(found):
         return None
-    key = (parse_qs(parts.query).get("resourcekey") or [""])[0]
-    return Ref(match.group(1), key if DRIVE_ID.fullmatch(key) else None)
+    key = (query.get("resourcekey") or [""])[0]
+    return Ref(found, key if DRIVE_ID.fullmatch(key) else None)
 
 
 def folder_url(ref: Ref) -> str:

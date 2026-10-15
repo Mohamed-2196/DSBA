@@ -36,6 +36,7 @@ from app.schemas.board import (
 )
 from app.schemas.board import BoardCard as BoardCardOut
 from app.schemas.board import BoardPlan as BoardPlanOut
+from app.schemas.library import PAST_PAPER
 from app.services import access, ratelimit
 from app.services.content import apply_patch
 from app.services.modules import (
@@ -62,7 +63,6 @@ LinkKey = tuple[str, str]
 PLAN_LIMIT = 20
 PLAN_WINDOW = timedelta(hours=1)
 PLAN_HORIZON_DAYS = 366
-PAST_PAPER = "past-paper"
 
 
 # ── reading ─────────────────────────────────────────────────────────────────────────────────

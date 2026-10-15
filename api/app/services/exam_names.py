@@ -20,7 +20,7 @@ Mocks, preliminary and sample papers belong to no sitting: their names give noth
 from __future__ import annotations
 
 import re
-from typing import NamedTuple
+from typing import NamedTuple, Protocol
 
 from app.schemas.library import ExamSession, Zone
 
@@ -75,9 +75,48 @@ def _zone(text: str) -> Zone | None:
     return None
 
 
+_EXTENSION = re.compile(r"\.[A-Za-z0-9]{1,5}$")
+_COMPRESSED = re.compile(r"[\s_-]*\b(compress(ed)?|min)\b\s*$", re.IGNORECASE)
+_COPY = re.compile(r"\s*(\(\d{1,2}\)|\bcopy\b)\s*$", re.IGNORECASE)
+_COPY_OF = re.compile(r"^copy of\s+", re.IGNORECASE)
+
+
+def tidy_title(file_name: str) -> str:
+    """A file's title from its name: 'calculus-concepts-and-methods_compress.pdf' -> 'Calculus concepts and methods',
+    '1. Function Characteristics - workbook (1).pdf' -> '1. Function Characteristics - workbook'. Drops the extension,
+    'Copy of', a trailing '(1)', 'copy' or '_compress', reads underscores (and the hyphens of a name with no spaces) as
+    spaces, mends the mis-encoded dash ('â'), and starts with a capital. The name itself when nothing is left."""
+    text = _EXTENSION.sub("", file_name.strip())
+    text = text.replace(" \u00e2 ", " \u2013 ").replace("_", " ")
+    for _ in range(3):  # 'notes (1) copy_compress'
+        text = _COMPRESSED.sub("", _COPY.sub("", text)).strip()
+    text = _COPY_OF.sub("", text)
+    if " " not in text and text.count("-") >= 2:
+        text = text.replace("-", " ")
+    text = re.sub(r"\s+", " ", text).strip(" -\u2013")
+    if not text:
+        return file_name.strip()
+    return text[0].upper() + text[1:]
+
+
 def zone_label(zone: str) -> str:
     """'zone A', or 'RTC' for the Recognised Teaching Centre paper."""
     return "RTC" if zone == "RTC" else f"zone {zone}"
+
+
+class _Sat(Protocol):
+    @property
+    def exam_year(self) -> int | None: ...
+    @property
+    def exam_session(self) -> str | None: ...
+
+
+def sitting_key(item: _Sat) -> tuple[int, str | None] | None:
+    """The sitting a paper, report or solutions belong to: (exam year, session), or None without an exam year. Every
+    zone of a sitting shares it: the library splits a sitting by zone after grouping by this key."""
+    if item.exam_year is None:
+        return None
+    return (item.exam_year, item.exam_session)
 
 
 def exam_meta_from_name(name: str) -> ExamMeta:

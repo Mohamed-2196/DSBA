@@ -24,7 +24,7 @@ from app.services.drive import (
     ServiceAccount,
     TooLargeError,
     connect,
-    folder_in,
+    drive_ref,
     parse_file,
 )
 from tests.content.fake_drive import (
@@ -77,8 +77,12 @@ def settings(monkeypatch: pytest.MonkeyPatch) -> Settings:
         ("https://drive.google.com/drive/u/0/folders/1AbC/", Ref("1AbC")),
         ("https://drive.google.com/drive/folders/1AbC?resourcekey=0-xYz_9", Ref("1AbC", "0-xYz_9")),
         ("https://drive.google.com/drive/folders/1AbC?resourcekey=bad/key", Ref("1AbC")),
-        ("https://drive.google.com/file/d/1AbC/view", None),  # a single file stays a link
-        ("https://docs.google.com/document/d/1AbC/edit", None),
+        ("https://drive.google.com/file/d/1AbC/view?usp=drive_link", Ref("1AbC")),  # a single file
+        ("https://drive.google.com/open?id=1AbC", Ref("1AbC")),
+        ("https://docs.google.com/document/d/1AbC/edit?usp=drive_link", Ref("1AbC")),
+        ("https://docs.google.com/spreadsheets/d/1AbC", Ref("1AbC")),
+        ("https://docs.google.com/forms/d/1AbC/viewform", None),
+        ("https://drive.google.com/open?id=1A'bC", None),
         ("http://drive.google.com/drive/folders/1AbC", None),
         ("https://drive.google.com.evil.example/drive/folders/1AbC", None),
         ("https://drive.google.com/drive/folders/1A'bC", None),
@@ -86,8 +90,8 @@ def settings(monkeypatch: pytest.MonkeyPatch) -> Settings:
         ("not a url at all", None),
     ],
 )
-def test_only_drive_folder_links_are_read(url: str, expected: Ref | None) -> None:
-    assert folder_in(url) == expected
+def test_only_drive_folder_and_file_links_are_read(url: str, expected: Ref | None) -> None:
+    assert drive_ref(url) == expected
 
 
 def test_drive_entries_that_could_escape_a_query_a_header_or_a_key_are_left_out() -> None:
