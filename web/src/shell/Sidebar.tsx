@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { ArrowSquareOut } from '@phosphor-icons/react';
 import { useAuth } from '../auth';
 import { BREAKPOINTS, useMediaQuery } from '../state';
-import { Badge, HubLogo, Tooltip, cx } from '../ui';
+import { Badge, BrandLogo, HubLogo, Tooltip, cx } from '../ui';
 import { EXTERNAL_LINKS, NAV, type ExternalLink, type NavItem as NavConfig } from './nav';
 import { visibleNav } from './visibility';
 import { YearSwitcher } from './YearSwitcher';
@@ -55,7 +55,9 @@ function ExternalItem({ item, collapsed }: { item: ExternalLink; collapsed: bool
       aria-label={`${item.label} (opens in a new tab)`}
       data-hub={`ext-${item.id}`}
     >
-      <span className="shell-nav__icon">{createElement(item.icon, { 'aria-hidden': true })}</span>
+      <span className="shell-nav__icon">
+        <BrandLogo name={item.logo} height={collapsed ? 20 : item.logoHeight ?? 18} decorative />
+      </span>
       <span className="shell-nav__label">{item.label}</span>
       <ArrowSquareOut className="shell-nav__out" aria-hidden="true" />
     </a>

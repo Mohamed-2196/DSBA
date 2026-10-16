@@ -31,6 +31,7 @@ export { Skeleton } from './Skeleton';
 export { ProgressRing } from './ProgressRing';
 export { Spinner } from './Spinner';
 export { HubLogo } from './HubLogo';
+export { BrandLogo, type BrandLogoName, type BrandLogoProps } from './BrandLogo';
 export { Highlight } from './Highlight';
 export { Kbd } from './Kbd';
 export { TeX } from './TeX';

@@ -1,7 +1,8 @@
 // Navigation config for the shell (rail, mobile tab bar, More drawer).
-import { Books, Calculator, CalendarDots, ChatTeardropText, ChatsCircle, Compass, GameController, GraduationCap, HandWaving, House, Kanban, Newspaper, NotePencil, SquaresFour, Bank, type Icon } from '@phosphor-icons/react';
+import { Books, Calculator, CalendarDots, ChatTeardropText, ChatsCircle, Compass, GameController, HandWaving, House, Kanban, Newspaper, NotePencil, SquaresFour, type Icon } from '@phosphor-icons/react';
 import { MYCLASS_URL, UOL_PORTAL_URL } from '../data/people';
 import type { Feature } from '../auth';
+import type { BrandLogoName } from '../ui';
 
 export interface NavItem {
   id: string;
@@ -22,7 +23,8 @@ export interface ExternalLink {
   id: string;
   label: string;
   href: string;
-  icon: Icon;
+  logo: BrandLogoName;
+  logoHeight?: number;
 }
 
 export const NAV: NavItem[] = [
@@ -42,8 +44,8 @@ export const NAV: NavItem[] = [
 ];
 
 export const EXTERNAL_LINKS: ExternalLink[] = [
-  { id: 'myclass', label: 'BIBF MyClass', href: MYCLASS_URL, icon: GraduationCap },
-  { id: 'uol', label: 'UoL portal', href: UOL_PORTAL_URL, icon: Bank },
+  { id: 'myclass', label: 'BIBF MyClass', href: MYCLASS_URL, logo: 'myclass', logoHeight: 20 },
+  { id: 'uol', label: 'UoL portal', href: UOL_PORTAL_URL, logo: 'uol', logoHeight: 22 },
 ];
 
 /** Mobile bottom tabs (+ "More"). */

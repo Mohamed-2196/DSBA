@@ -4,7 +4,7 @@ import { useAuth } from '../../auth';
 import { AddToBoard } from '../board/public';
 import { BREAKPOINTS, useMediaQuery, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { Badge, Button, CohortBadge, cx, Drawer, IconButton, ModuleIcon } from '../../ui';
+import { Badge, Button, CohortBadge, cx, Drawer, IconButton, ModuleArt, ModuleIcon, moduleArtSrc } from '../../ui';
 import { dayKey, daysUntil, formatLong, formatMonthYear, formatShort, formatShortYear, parseDay, weekdayOf } from '../../lib/dates';
 import { useCopyLink } from '../../lib/useCopyLink';
 import { AddExamsToCalendar, AddToCalendar } from './AddToCalendar';
@@ -178,9 +178,13 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
             Module
           </h3>
           <div className="cal-drawer__module">
-            <span className="cal-drawer__module-icon" aria-hidden="true">
-              <ModuleIcon moduleId={module.id} weight="duotone" />
-            </span>
+            {moduleArtSrc(module.id, module.artUrl) ? (
+              <ModuleArt moduleId={module.id} artUrl={module.artUrl} className="cal-drawer__module-art" />
+            ) : (
+              <span className="cal-drawer__module-icon" aria-hidden="true">
+                <ModuleIcon moduleId={module.id} weight="duotone" />
+              </span>
+            )}
             <span className="cal-drawer__module-text">
               {module.unitCode || code ? <span className="u-code cal-drawer__module-code">{module.unitCode || code}</span> : null}
               <span className="cal-drawer__module-name">{module.name}</span>

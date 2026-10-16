@@ -9,7 +9,7 @@ import type { ModuleDetail, ModuleSummary } from '../../api/types';
 import { COHORTS, cohortColor, useDocumentTitle, useYear } from '../../state';
 import { useAuth } from '../../auth';
 import { useModules } from '../../state/modules';
-import { Badge, Button, CohortBadge, EmptyState, ErrorBoundary, ModuleIcon, Page, Panel, ProgressRing, QueryError, Skeleton, TabPanel, Tabs, countOf } from '../../ui';
+import { Badge, Button, CohortBadge, EmptyState, ErrorBoundary, ModuleArt, ModuleIcon, Page, Panel, ProgressRing, QueryError, Skeleton, TabPanel, Tabs, countOf, moduleArtSrc } from '../../ui';
 import { PlanRevision } from '../board/public';
 import { ModuleThreads, Prose } from '../forum/public';
 import { ModuleFiles, useLibraryUpload } from '../library/public';
@@ -55,6 +55,7 @@ function ModuleHeader({
   const studyGuide = shelfWithFiles(detail, 'course-materials') ? `/modules/${m.id}?tab=files#${shelfHash('course-materials')}` : null;
   const backTo = year === m.year ? '/modules' : `/modules?year=${m.year}`;
   const resumeChapter = resume && detail ? detail.chapters[resume.c] : null;
+  const hasArt = moduleArtSrc(m.id, m.artUrl) != null;
 
   let resumeNote: string | null = null;
   if (resume?.kind === 'done') resumeNote = 'You have watched every video.';
@@ -77,14 +78,19 @@ function ModuleHeader({
       <div className="mod-head__grid">
         <div className="mod-head__main">
           <h1 className="mod-head__title">
-            {m.unitCode ? (
+            {hasArt ? (
+              <ModuleArt moduleId={m.id} artUrl={m.artUrl} className="mod-head__art" />
+            ) : m.unitCode ? (
               <span className="mod-head__code u-code">{m.unitCode}</span>
             ) : (
               <span className="mod-head__plate" aria-hidden="true">
                 <ModuleIcon moduleId={m.id} weight="duotone" />
               </span>
             )}
-            <span className="mod-head__name">{m.name}</span>
+            <span className="mod-head__heading">
+              {hasArt && m.unitCode ? <span className="mod-head__label u-code">{m.unitCode} </span> : null}
+              <span className="mod-head__name">{m.name}</span>
+            </span>
           </h1>
           {m.description ? (
             <div className="mod-head__desc">

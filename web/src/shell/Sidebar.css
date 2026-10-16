@@ -91,7 +91,7 @@
 /* student portals: plain links after the nav */
 .shell-rail__links { margin-top: var(--sp-12); padding-top: var(--sp-12); border-top: 1px solid var(--line); }
 .shell-nav__item--ext { font-size: var(--fs-14); height: 38px; }
-.shell-nav__item--ext .shell-nav__icon { font-size: 19px; color: var(--ink-3); }
+.shell-nav__item--ext .shell-nav__icon { width: 24px; min-width: 24px; font-size: 19px; color: var(--ink-3); }
 .shell-nav__out { flex: 0 0 auto; font-size: 14px; color: var(--ink-3); }
 .shell-nav__item--ext:hover .shell-nav__out { color: var(--cobalt); }
 

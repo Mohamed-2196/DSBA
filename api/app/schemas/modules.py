@@ -53,6 +53,7 @@ class ModuleSummary(ApiModel):
     year: Year
     description: str
     icon: str | None
+    art_url: str | None = None
     chapter_count: int
     lesson_count: int
     library_count: int | None  # published library items for this module; None while the library is off for you
@@ -129,6 +130,7 @@ class ModuleFields(ApiModel):
     year: Year
     description: Annotated[str, StringConstraints(strip_whitespace=True, max_length=4000)] = ""  # Markdown
     icon: ModuleIconName | None = None
+    art_url: Link | None = None
 
 
 class ModuleCreate(ModuleFields):
@@ -183,6 +185,7 @@ class ModuleEditSummary(ApiModel):
     short_name: str
     year: Year
     icon: str | None
+    art_url: str | None = None
     hidden: bool
     position: int
     version: int

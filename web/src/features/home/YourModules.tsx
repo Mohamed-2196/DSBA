@@ -26,14 +26,14 @@ function metaFor(m: ModuleSummary, watched: number): string {
 
 function ModuleRow({ m, exam }: { m: ModuleSummary; exam: NextExam | null }) {
   const progress = useModuleProgress(m.id);
-  const hasArt = moduleArtSrc(m.id) != null;
+  const hasArt = moduleArtSrc(m.id, m.artUrl) != null;
   const pct = progress.total > 0 ? Math.round((progress.watched / progress.total) * 100) : 0;
   return (
     <li>
       <Link to={`/modules/${m.id}`} className="home-mods__row" aria-label={`${m.unitCode ? `${m.unitCode} ` : ''}${m.name}${exam ? `, exam ${formatLongDay(exam.date)}` : ''}`}>
         {hasArt ? (
           <span className="home-mods__lead">
-            <ModuleArt moduleId={m.id} className="home-mods__art" />
+            <ModuleArt moduleId={m.id} artUrl={m.artUrl} className="home-mods__art" />
           </span>
         ) : m.unitCode ? (
           <span className="home-mods__code u-code" aria-hidden="true">

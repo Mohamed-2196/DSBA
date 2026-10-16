@@ -9,7 +9,7 @@ import { useAuth } from '../../auth';
 import { ELECTIVES } from '../../data/guides';
 import { PapersButton } from '../papers/public';
 import { useModules } from '../../state/modules';
-import { Badge, Button, EmptyState, ModuleIcon, Page, PageHeader, Panel, QueryError, Skeleton } from '../../ui';
+import { Badge, Button, EmptyState, ModuleArt, ModuleIcon, Page, PageHeader, Panel, QueryError, Skeleton, moduleArtSrc } from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { useCareer } from './api';
 import { askLink } from './lib/links';
@@ -29,9 +29,13 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
   return (
     <Panel as="article" padding="none" radius="feature" className="elective" aria-labelledby={headingId} data-hub="elective" data-module-id={m.id}>
       <header className="elective__head">
-        <span className="elective__plate" aria-hidden="true">
-          <ModuleIcon moduleId={m.id} weight="duotone" />
-        </span>
+        {moduleArtSrc(m.id, m.artUrl) ? (
+          <ModuleArt moduleId={m.id} artUrl={m.artUrl} className="elective__art" />
+        ) : (
+          <span className="elective__plate" aria-hidden="true">
+            <ModuleIcon moduleId={m.id} weight="duotone" />
+          </span>
+        )}
         <h2 id={headingId} className="elective__name">
           <Link to={`/modules/${encodeURIComponent(m.id)}`}>{m.name}</Link>
         </h2>

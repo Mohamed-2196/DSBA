@@ -65,7 +65,6 @@ export default function HomePage() {
   const signedIn = status === 'signed-in';
   const calendarOn = featureOn('calendar');
   const forumOn = featureOn('forum');
-  const dailyOn = featureOn('daily');
 
   const now = new Date();
   // Today in Bahrain, as the API counts it; a new object only when the day changes.
@@ -212,6 +211,20 @@ export default function HomePage() {
             <LatestIssueCard />
           </Block>
         );
+      case 'daily':
+        return (
+          <Block
+            key={b}
+            id={b}
+            action={
+              <Button variant="ghost" size="sm" to="/daily">
+                Open Daily
+              </Button>
+            }
+          >
+            <DailyCard />
+          </Block>
+        );
     }
   };
 
@@ -263,15 +276,8 @@ export default function HomePage() {
         </Button>
       </header>
 
-      {blocks.length || dailyOn ? (
+      {blocks.length ? (
         <div className="home-blocks">
-          {dailyOn ? (
-            <div className="home-block home-block--notice home-block--daily">
-              <ErrorBoundary name="Home daily" fallback={null}>
-                <DailyCard />
-              </ErrorBoundary>
-            </div>
-          ) : null}
           <div className="home-blocks__grid">{blocks}</div>
         </div>
       ) : (

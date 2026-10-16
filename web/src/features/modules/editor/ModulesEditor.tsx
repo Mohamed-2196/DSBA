@@ -6,16 +6,20 @@ import {
   DotsSixVertical,
   EyeSlash,
   Plus,
+  Trash,
+  UploadSimple,
 } from "@phosphor-icons/react";
-import { useState, type DragEvent, type FormEvent } from "react";
+import { useRef, useState, type DragEvent, type FormEvent } from "react";
 import { errorMessage, isApiError } from "../../../api/errors";
 import type { ModuleEditSummary } from "../../../api/types";
+import { uploadFile } from "../../../api/uploads";
 import { useQueryParam, useToast, YEARS } from "../../../state";
 import {
   Badge,
   Button,
   IconButton,
   Modal,
+  ModuleArt,
   ModuleIcon,
   Panel,
   QueryError,
@@ -23,6 +27,7 @@ import {
   Skeleton,
   TextField,
   cx,
+  moduleArtSrc,
 } from "../../../ui";
 import {
   useCreateModule,
@@ -169,7 +174,11 @@ function YearList({
               onDrop={(e) => drop(e, m.id)}
             >
               <DotsSixVertical className="medit__grip" aria-hidden="true" />
-              <ModuleIcon name={m.icon} size={22} className="medit__icon" />
+              {moduleArtSrc(m.id, m.artUrl) ? (
+                <ModuleArt moduleId={m.id} artUrl={m.artUrl} className="medit__art" />
+              ) : (
+                <ModuleIcon name={m.icon} size={22} className="medit__icon" />
+              )}
               <button
                 type="button"
                 className="medit__open"
@@ -237,14 +246,35 @@ function AddModule({
   const [id, setId] = useState("");
   const [idTouched, setIdTouched] = useState(false);
   const [year, setYear] = useState<1 | 2 | 3>(1);
+  const [artUrl, setArtUrl] = useState<string | null>(null);
+  const [uploadingArt, setUploadingArt] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [problems, setProblems] = useState<Record<string, string>>({});
   const address = idTouched ? id : slugOf(name);
+
+  const handleArtUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingArt(true);
+    try {
+      const out = await uploadFile("module_art", file);
+      if (out.mediaUrl) {
+        setArtUrl(out.mediaUrl);
+      }
+    } catch (err) {
+      setProblems((p) => ({ ...p, other: errorMessage(err) }));
+    } finally {
+      setUploadingArt(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const close = () => {
     setName("");
     setShortName("");
     setId("");
     setIdTouched(false);
+    setArtUrl(null);
     setProblems({});
     create.reset();
     onClose();
@@ -267,6 +297,7 @@ function AddModule({
         shortName: shortName.trim(),
         year,
         description: "",
+        artUrl: artUrl,
       },
       {
         onSuccess: (m) => {
@@ -341,6 +372,55 @@ function AddModule({
           onChange={(e) => setYear(Number(e.target.value) as 1 | 2 | 3)}
           options={YEARS.map((y) => ({ value: y, label: `Year ${y}` }))}
         />
+        <div className="medit__art-section">
+          <label className="ui-field__label">Illustration / Logo (optional)</label>
+          <div className="medit__art-control">
+            {artUrl ? (
+              <div className="medit__art-preview">
+                <ModuleArt artUrl={artUrl} className="medit__art-img" />
+                <div className="medit__art-actions">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    leadingIcon={UploadSimple}
+                    loading={uploadingArt}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Change
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    leadingIcon={Trash}
+                    onClick={() => setArtUrl(null)}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="medit__art-empty">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  leadingIcon={UploadSimple}
+                  loading={uploadingArt}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Upload logo
+                </Button>
+                <span className="medit__art-hint">PNG, JPG or WebP</span>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              style={{ display: "none" }}
+              onChange={handleArtUpload}
+            />
+          </div>
+        </div>
         {problems.other ? (
           <p className="medit__error" role="alert">
             {problems.other}

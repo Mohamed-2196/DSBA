@@ -32017,6 +32017,18 @@
             ],
             "title": "Icon"
           },
+          "artUrl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arturl"
+          },
           "id": {
             "type": "string",
             "maxLength": 64,
@@ -32083,6 +32095,17 @@
               }
             ],
             "title": "Icon"
+          },
+          "artUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arturl"
           },
           "chapterCount": {
             "type": "integer",
@@ -32179,6 +32202,17 @@
               }
             ],
             "title": "Icon"
+          },
+          "artUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arturl"
           },
           "hidden": {
             "type": "boolean",
@@ -32287,6 +32321,17 @@
               }
             ],
             "title": "Icon"
+          },
+          "artUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arturl"
           },
           "hidden": {
             "type": "boolean",
@@ -32437,6 +32482,18 @@
             ],
             "title": "Icon"
           },
+          "artUrl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arturl"
+          },
           "version": {
             "type": "integer",
             "title": "Version"
@@ -32545,6 +32602,17 @@
               }
             ],
             "title": "Icon"
+          },
+          "artUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arturl"
           },
           "chapterCount": {
             "type": "integer",
@@ -34989,7 +35057,8 @@
                     "noora",
                     "daily_question",
                     "help_below",
-                    "newsletter"
+                    "newsletter",
+                    "daily"
                   ]
                 },
                 "type": "array"
@@ -35101,11 +35170,12 @@
                     "noora",
                     "daily_question",
                     "help_below",
-                    "newsletter"
+                    "newsletter",
+                    "daily"
                   ]
                 },
                 "type": "array",
-                "maxItems": 12
+                "maxItems": 13
               },
               {
                 "type": "null"
@@ -38799,7 +38869,8 @@
               "bug_screenshot",
               "board",
               "note_file",
-              "career_logo"
+              "career_logo",
+              "module_art"
             ],
             "title": "Purpose"
           },

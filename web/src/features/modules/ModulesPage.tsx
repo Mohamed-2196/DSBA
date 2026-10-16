@@ -36,7 +36,7 @@ function ModuleRow({
   const uid = useId();
   const qc = useQueryClient();
   const hasLessons = m.lessonCount > 0;
-  const hasArt = moduleArtSrc(m.id) != null;
+  const hasArt = moduleArtSrc(m.id, m.artUrl) != null;
   // With an illustration, the unit code moves next to the name as a label.
   const labelled = hasArt ? [m.unitCode && `${uid}-code`, `${uid}-name`] : [`${uid}-anchor`, `${uid}-name`];
   const described = [`${uid}-desc`, `${uid}-counts`, showExam && `${uid}-exam`, showProgress && `${uid}-prog`].filter(Boolean).join(' ');
@@ -54,7 +54,7 @@ function ModuleRow({
       >
         <span className="mod-row__anchor" id={`${uid}-anchor`}>
           {hasArt ? (
-            <ModuleArt moduleId={m.id} className="mod-row__art" />
+            <ModuleArt moduleId={m.id} artUrl={m.artUrl} className="mod-row__art" />
           ) : m.unitCode ? (
             <span className="mod-row__code u-code">{m.unitCode}</span>
           ) : (

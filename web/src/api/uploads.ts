@@ -141,6 +141,16 @@ export const UPLOAD_RULES: Readonly<Record<UploadPurpose, UploadRules>> = {
     noun: 'logo',
     smaller: 'Save a smaller copy and try again.',
   },
+  module_art: {
+    types: PICTURE_TYPES,
+    maxMb: 8,
+    accept: [PNG, JPEG, WEBP].join(','),
+    summary: 'Module logo or picture: PNG, JPEG or WebP, up to 8 MB.',
+    allowed: 'Use a PNG, JPEG or WebP image.',
+    refused: 'That file type can’t be a module logo.',
+    noun: 'picture',
+    smaller: 'Save a smaller copy and try again.',
+  },
 };
 
 export function maxUploadBytes(purpose: UploadPurpose): number {

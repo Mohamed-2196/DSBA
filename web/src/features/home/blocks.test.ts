@@ -65,6 +65,6 @@ describe('offeredBlocks', () => {
     expect(offeredBlocks(on(), { signedIn: false, tracking: true })).toContain('continue');
   });
   it('puts the dashboard first by default', () => {
-    expect(STUDENT_DEFAULT).toEqual(['start_here', 'results_day', 'coming_up', 'todo', 'continue', 'modules', 'files', 'forum', 'noora']);
+    expect(STUDENT_DEFAULT).toEqual(['start_here', 'results_day', 'coming_up', 'todo', 'continue', 'modules', 'files', 'forum', 'daily', 'noora']);
   });
 });

@@ -209,6 +209,7 @@ class UploadPurpose(enum.StrEnum):
     board = "board"  # a file or picture on a board card
     note_file = "note_file"  # a picture, file or PDF in a student's own note
     career_logo = "career_logo"  # an employer's or a certificate's logo on Career Navigator
+    module_art = "module_art"  # a module's logo or illustration in the catalogue
 
 
 class UploadStatus(enum.StrEnum):

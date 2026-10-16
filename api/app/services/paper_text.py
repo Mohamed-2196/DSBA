@@ -263,7 +263,7 @@ def _fetch(item: Claimed, storage: Storage) -> bytes:
     return data
 
 
-def without_cover(db: Session, limit: int | None = None) -> list[Claimed]:
+def without_cover(db: Session, limit: int | None = None, *, pdf_only: bool = False) -> list[Claimed]:
     """Published files read before covers existed: text read (with or without words), no cover yet."""
     query = (
         select(LibraryItem.id, LibraryItem.file_name, LibraryItem.storage_key)
@@ -275,6 +275,8 @@ def without_cover(db: Session, limit: int | None = None) -> list[Claimed]:
         )
         .order_by(LibraryItem.published_at.asc().nulls_last(), LibraryItem.id)
     )
+    if pdf_only:
+        query = query.where(LibraryItem.file_name.ilike("%.pdf"))
     if limit is not None:
         query = query.limit(limit)
     return [Claimed(i, name, key) for i, name, key in db.execute(query).all()]
@@ -346,9 +348,26 @@ def run_worker(
         signal.signal(signal.SIGTERM, _stop)
         signal.signal(signal.SIGINT, _stop)
     log.info("text worker started")
+    attempted_covers: set[uuid.UUID] = set()
     while not stop.is_set():
         try:
             counts = drain(sessions, storage, stop=stop)
+            if not any(counts.values()) and not stop.is_set():
+                with sessions() as db:
+                    missing = [c for c in without_cover(db, limit=25, pdf_only=True) if c.id not in attempted_covers]
+                if missing:
+                    made = 0
+                    for item in missing:
+                        if stop.is_set():
+                            break
+                        attempted_covers.add(item.id)
+                        with sessions() as db:
+                            if make_cover(db, item, storage):
+                                made += 1
+                            db.commit()
+                    if made:
+                        log.info("text worker backfilled %d cover(s)", made)
+                        continue
         except SQLAlchemyError:
             log.exception("text worker: database error; trying again in %.0f s", poll_seconds)
             counts = {}

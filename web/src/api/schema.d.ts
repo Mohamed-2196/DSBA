@@ -6817,6 +6817,8 @@ export interface components {
             description: string;
             /** Icon */
             icon?: ("BookOpenText" | "Brain" | "Briefcase" | "ChartBar" | "ChartLineUp" | "ChartScatter" | "Coins" | "Database" | "Function" | "ListChecks" | "Megaphone" | "PresentationChart" | "Scales" | "Sigma" | "Storefront" | "TerminalWindow" | "WaveSine") | null;
+            /** Arturl */
+            artUrl?: string | null;
             /** Id */
             id: string;
         };
@@ -6839,6 +6841,8 @@ export interface components {
             description: string;
             /** Icon */
             icon: string | null;
+            /** Arturl */
+            artUrl?: string | null;
             /** Chaptercount */
             chapterCount: number;
             /** Lessoncount */
@@ -6867,6 +6871,8 @@ export interface components {
             year: 1 | 2 | 3;
             /** Icon */
             icon: string | null;
+            /** Arturl */
+            artUrl?: string | null;
             /** Hidden */
             hidden: boolean;
             /** Position */
@@ -6901,6 +6907,8 @@ export interface components {
             year: 1 | 2 | 3;
             /** Icon */
             icon: string | null;
+            /** Arturl */
+            artUrl?: string | null;
             /** Hidden */
             hidden: boolean;
             /** Position */
@@ -6952,6 +6960,8 @@ export interface components {
             description: string;
             /** Icon */
             icon?: ("BookOpenText" | "Brain" | "Briefcase" | "ChartBar" | "ChartLineUp" | "ChartScatter" | "Coins" | "Database" | "Function" | "ListChecks" | "Megaphone" | "PresentationChart" | "Scales" | "Sigma" | "Storefront" | "TerminalWindow" | "WaveSine") | null;
+            /** Arturl */
+            artUrl?: string | null;
             /** Version */
             version: number;
             /**
@@ -6998,6 +7008,8 @@ export interface components {
             description: string;
             /** Icon */
             icon: string | null;
+            /** Arturl */
+            artUrl?: string | null;
             /** Chaptercount */
             chapterCount: number;
             /** Lessoncount */
@@ -7903,7 +7915,7 @@ export interface components {
              */
             trackProgress: boolean;
             /** Homeblocks */
-            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter")[] | null;
+            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
         };
         /**
          * PreferencesUpdate
@@ -7926,7 +7938,7 @@ export interface components {
             /** Trackprogress */
             trackProgress?: boolean | null;
             /** Homeblocks */
-            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter")[] | null;
+            homeBlocks?: ("start_here" | "results_day" | "coming_up" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[] | null;
         };
         /**
          * PresignedUpload
@@ -9183,7 +9195,7 @@ export interface components {
              * Purpose
              * @enum {string}
              */
-            purpose: "library" | "forum_image" | "newsletter_image" | "bug_screenshot" | "board" | "note_file" | "career_logo";
+            purpose: "library" | "forum_image" | "newsletter_image" | "bug_screenshot" | "board" | "note_file" | "career_logo" | "module_art";
             /** Filename */
             fileName: string;
             /** Contenttype */

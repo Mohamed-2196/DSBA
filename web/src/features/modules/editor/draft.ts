@@ -27,6 +27,7 @@ export interface Draft {
   year: 1 | 2 | 3;
   description: string;
   icon: string;
+  artUrl: string | null;
   hidden: boolean;
   chapters: DraftChapter[];
 }
@@ -48,6 +49,7 @@ export function toDraft(m: ModuleEdit): Draft {
     year: m.year,
     description: m.description,
     icon: m.icon ?? '',
+    artUrl: m.artUrl ?? null,
     hidden: m.hidden,
     chapters: m.chapters.map((ch) => ({
       key: `c-${ch.id}`,
@@ -78,6 +80,7 @@ export function toSave(d: Draft, version: number): ModuleSave {
     year: d.year,
     description: d.description.trim(),
     icon: isIcon(d.icon) ? d.icon : null,
+    artUrl: d.artUrl ? d.artUrl.trim() : null,
     hidden: d.hidden,
     chapters: d.chapters.map((ch) => ({
       title: ch.title.trim(),

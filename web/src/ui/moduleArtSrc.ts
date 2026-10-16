@@ -20,7 +20,8 @@ const ART: Readonly<Record<string, string>> = {
 };
 
 /** The illustration's URL for a module, or null when it has none. */
-export function moduleArtSrc(moduleId: string | null | undefined): string | null {
+export function moduleArtSrc(moduleId: string | null | undefined, artUrl?: string | null): string | null {
+  if (artUrl) return artUrl;
   const file = moduleId && Object.hasOwn(ART, moduleId) ? ART[moduleId] : undefined;
   return file ? `${import.meta.env.BASE_URL}modules/${file}` : null;
 }

@@ -1,139 +1,127 @@
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle, Flame, GameController, Play, Trophy } from '@phosphor-icons/react';
-import { Button, Panel } from '../../ui';
+import { CheckCircle, Flame, Trophy } from '@phosphor-icons/react';
+import { Panel, QueryError, Skeleton, cx } from '../../ui';
 import { useDailyToday } from './api';
 import { GAME_REGISTRY } from './games/registry';
 import type { GameId } from './types';
+import './DailyCard.css';
+
+const SHORT_HINTS: Record<GameId, string> = {
+  word: '5-letter word',
+  groups: '4 groups of 4',
+  search: '8 hidden words',
+  quiz: '5 quick questions',
+  nearest: 'Secret word',
+  sudoku: '9×9 logic grid',
+};
 
 export function DailyCard() {
-  const { data: today, isLoading } = useDailyToday();
+  const { data: today, isLoading, isError, error, refetch, isFetching } = useDailyToday();
 
   if (isLoading) {
     return (
-      <Panel style={{ padding: 'var(--sp-20)' }}>
-        <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-3)' }}>
-          Loading daily puzzles...
+      <Panel padding="none" className="home-daily" aria-busy="true">
+        <span className="visually-hidden">Loading daily puzzles</span>
+        <div className="home-daily__loading" aria-hidden="true">
+          <Skeleton width="45%" height={16} />
+          <Skeleton width="80%" height={14} />
+          <Skeleton width="65%" height={14} />
         </div>
       </Panel>
     );
   }
 
+  if (isError) {
+    return (
+      <QueryError
+        error={error}
+        title="Daily puzzles didn’t load"
+        size="sm"
+        onRetry={() => void refetch()}
+        retrying={isFetching}
+      />
+    );
+  }
+
   if (!today) return null;
 
+  const total = today.games.length || 1;
+  const pct = Math.round((today.done / total) * 100);
+
   return (
-    <Panel style={{ padding: 'var(--sp-20)', display: 'flex', flexDirection: 'column', gap: 'var(--sp-16)' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--r-control)',
-              backgroundColor: 'var(--navy)',
-              color: 'var(--cobalt-ink)',
-            }}
-          >
-            <GameController size={20} weight="fill" />
-          </div>
-          <div>
-            <h3 style={{ margin: 0, fontSize: 'var(--fs-16)', fontWeight: 'var(--fw-bold)', color: 'var(--ink)' }}>
-              Today&apos;s Daily
-            </h3>
-            <span style={{ fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>
-              {today.theme.title}
+    <Panel padding="none" className="home-daily" data-hub="home-daily">
+      <div className="home-daily__head">
+        <div className="home-daily__theme">
+          <span className="home-daily__kicker">This week’s theme</span>
+          <span className="home-daily__title">{today.theme.title}</span>
+        </div>
+
+        <div className="home-daily__stats">
+          {today.streak && today.streak.current > 0 ? (
+            <span className="home-daily__pill home-daily__pill--streak" title="Current day streak">
+              <Flame size={13} weight="fill" aria-hidden="true" />
+              <span className="u-tabular">{today.streak.current}d</span>
             </span>
-          </div>
+          ) : null}
+          <span className="home-daily__pill u-tabular">
+            {today.done} of {today.games.length} solved
+          </span>
+          <span className="home-daily__pill home-daily__pill--pts u-tabular">
+            <Trophy size={13} weight="fill" aria-hidden="true" />
+            <span>+{today.points} pts</span>
+          </span>
         </div>
 
-        {today.streak && today.streak.current > 0 && (
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '2px 8px',
-              borderRadius: 'var(--r-pill)',
-              backgroundColor: 'var(--highlight-soft)',
-              color: '#A35E00',
-              fontSize: 'var(--fs-12)',
-              fontWeight: 'var(--fw-bold)',
-            }}
-          >
-            <Flame size={14} weight="fill" />
-            <span>{today.streak.current} day streak</span>
-          </div>
-        )}
+        {pct > 0 ? (
+          <span
+            className="home-daily__bar"
+            style={{ '--pct': `${pct}%` } as CSSProperties}
+            aria-hidden="true"
+          />
+        ) : null}
       </div>
 
-      {/* Progress & Points Bar */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: 'var(--sp-10) var(--sp-14)',
-          borderRadius: 'var(--r-control)',
-          backgroundColor: 'var(--surface-2)',
-          fontSize: 'var(--fs-13)',
-        }}
-      >
-        <span style={{ fontWeight: 'var(--fw-medium)', color: 'var(--ink)' }}>
-          {today.done} of {today.games.length} completed
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'var(--fw-bold)', color: 'var(--signal-strong)' }}>
-          <Trophy size={14} weight="fill" />
-          <span>+{today.points} pts</span>
-        </div>
-      </div>
-
-      {/* Mini Game Icons Row */}
-      <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between' }}>
+      <ul role="list" className="home-daily__grid">
         {today.games.map((g) => {
-          const plugin = GAME_REGISTRY[g.info.id as GameId];
-          const isDone = g.status === 'won' || g.status === 'lost';
+          const id = g.info.id as GameId;
+          const plugin = GAME_REGISTRY[id];
+          const Icon = plugin?.icon;
+          const isWon = g.status === 'won';
+          const isLost = g.status === 'lost';
+          const isPlaying = g.status === 'playing';
+          const isDone = isWon || isLost;
+
           return (
-            <Link
-              key={g.info.id}
-              to={`/daily/${g.info.id}`}
-              style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '42px',
-                height: '42px',
-                borderRadius: 'var(--r-control)',
-                backgroundColor: isDone ? 'var(--signal-soft)' : 'var(--surface-2)',
-                color: isDone ? 'var(--signal-strong)' : 'var(--ink-2)',
-                border: '1px solid var(--line)',
-                textDecoration: 'none',
-              }}
-              title={g.info.title}
-            >
-              {plugin && <plugin.icon size={20} />}
-              {isDone && (
-                <div style={{ position: 'absolute', top: -4, right: -4 }}>
-                  <CheckCircle size={14} weight="fill" color="var(--signal)" />
-                </div>
-              )}
-            </Link>
+            <li key={g.info.id} className="home-daily__cell">
+              <Link
+                to={`/daily/${g.info.id}`}
+                className={cx('home-daily__item', isDone && 'home-daily__item--done')}
+                style={{ '--game-c': plugin?.accentColor } as CSSProperties}
+              >
+                <span className="home-daily__icon" aria-hidden="true">
+                  {Icon ? <Icon size={18} weight="duotone" /> : null}
+                </span>
+                <span className="home-daily__text">
+                  <span className="home-daily__name">{plugin?.title ?? g.info.title}</span>
+                  {isWon ? (
+                    <span className="home-daily__meta home-daily__meta--won">
+                      <CheckCircle size={13} weight="fill" aria-hidden="true" />
+                      <span className="u-tabular">Solved · +{g.points} pts</span>
+                    </span>
+                  ) : isLost ? (
+                    <span className="home-daily__meta u-tabular">Completed · +{g.points} pts</span>
+                  ) : isPlaying ? (
+                    <span className="home-daily__meta home-daily__meta--playing">In progress</span>
+                  ) : (
+                    <span className="home-daily__meta">{SHORT_HINTS[id] ?? g.info.tagline}</span>
+                  )}
+                </span>
+              </Link>
+            </li>
           );
         })}
-      </div>
-
-      {/* Play Link */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--sp-4)' }}>
-        <Link to="/daily">
-          <Button variant="primary" size="sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <Play size={14} weight="fill" />
-            <span>Open Daily</span>
-          </Button>
-        </Link>
-      </div>
+      </ul>
     </Panel>
   );
 }

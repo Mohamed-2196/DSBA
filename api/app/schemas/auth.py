@@ -69,6 +69,7 @@ HomeBlock = Literal[
     "daily_question",  # a past exam question before the next exam
     "help_below",  # unanswered questions from the years below (Years 2 and 3)
     "newsletter",  # the latest issue of The DSBA Newsletter
+    "daily",  # Today's Daily puzzles
 ]
 MAX_HOME_BLOCKS = len(get_args(HomeBlock))
 

@@ -47,6 +47,7 @@ class Module(Base):
     position: Mapped[int] = mapped_column(Integer, default=0)
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # left out of students' views
     version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    art_url: Mapped[str | None] = mapped_column(String(500))
     updated_at: Mapped[datetime | None] = mapped_column(onupdate=func.now())
 
     chapters: Mapped[list[Chapter]] = relationship(

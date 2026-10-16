@@ -11,10 +11,14 @@
   --font-sans: 'Schibsted Grotesk Variable', 'Schibsted Grotesk', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Newsreader Variable', 'Newsreader', 'IBM Plex Sans Arabic', Georgia, 'Times New Roman', serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  /* major third, 16px base */
+  /* major third, 16px base (+ intermediate steps used across feature views) */
+  --fs-11: 0.6875rem;
   --fs-12: 0.75rem;
+  --fs-13: 0.8125rem;
   --fs-14: 0.875rem;
+  --fs-15: 0.9375rem;
   --fs-16: 1rem;
+  --fs-18: 1.125rem;
   --fs-20: 1.25rem;
   --fs-25: 1.5625rem;
   --fs-31: 1.9375rem;
@@ -25,6 +29,7 @@
   --lh-display: 1.05;     /* 49+ */
   --lh-heading: 1.2;      /* 20–39 */
   --lh-sans: 1.55;        /* sans body */
+  --lh-body: var(--lh-sans);
   --lh-serif: 1.65;       /* serif body */
   --tracking-head: -0.02em;
   --tracking-display: -0.03em;
@@ -38,11 +43,16 @@
   --fw-bold: 700;
   --fw-heavy: 800;
 
-  /* Space (4/8/12/16/24/32/48/64/96) */
+  /* Space (4/8/12/16/24/32/48/64/96 + intermediate steps) */
+  --sp-2: 2px;
   --sp-4: 4px;
+  --sp-6: 6px;
   --sp-8: 8px;
+  --sp-10: 10px;
   --sp-12: 12px;
+  --sp-14: 14px;
   --sp-16: 16px;
+  --sp-20: 20px;
   --sp-24: 24px;
   --sp-32: 32px;
   --sp-48: 48px;
@@ -51,7 +61,9 @@
 
   /* Radii by hierarchy */
   --r-pill: 999px;     /* chips, pills, badges */
+  --r-full: var(--r-pill);
   --r-control: 10px;   /* inputs, buttons */
+  --r-sm: 8px;
   --r-panel: 16px;     /* panels, menus, toasts */
   --r-feature: 24px;   /* large feature panels, modals, drawers */
   --r-page: 4px;       /* document pages */
@@ -60,6 +72,7 @@
   /* Motion: 150–250ms, one easing */
   --ease: cubic-bezier(.2, .8, .2, 1);
   --dur-fast: 150ms;
+  --t-fast: var(--dur-fast) var(--ease);
   --dur: 200ms;
   --dur-slow: 250ms;
 
@@ -158,6 +171,11 @@
   --art-tile-stroke: #DCE5F2;
   --scrim: rgba(10, 31, 68, .42);
   --focus-color: var(--cobalt);
+  --surface-1: var(--surface);
+  --surface-hover: var(--surface-2);
+  --shadow-sm: 0 1px 3px rgba(10, 31, 68, .08);
+  --shadow-md: 0 6px 18px rgba(10, 31, 68, .12);
+  --shadow-panel: 0 8px 24px -8px rgba(10, 31, 68, .14);
   --show-on-light: block;              /* theme-conditional display (BrandLogo) */
   --show-on-dark: none;
 }
@@ -218,6 +236,11 @@
   --art-tile-stroke: transparent;
   --scrim: rgba(2, 8, 20, .62);
   --focus-color: var(--cobalt);
+  --surface-1: var(--surface);
+  --surface-hover: var(--surface-2);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, .28);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, .38);
+  --shadow-panel: 0 8px 24px -8px rgba(0, 0, 0, .45);
   --show-on-light: none;
   --show-on-dark: block;
 }

@@ -104,11 +104,14 @@ ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
     UploadPurpose.board: LIBRARY_TYPES | IMAGE_TYPES,  # a card holds files and pictures
     UploadPurpose.note_file: LIBRARY_TYPES | IMAGE_TYPES,  # a note's pictures, files and the PDFs it writes over
     UploadPurpose.career_logo: PICTURE_TYPES,
+    UploadPurpose.module_art: PICTURE_TYPES,
 }
 # Shown in the browser (PDF viewer, <img>): storage.INLINE_TYPES. Everything else downloads as an attachment.
 IMAGE_CONTENT_TYPES = frozenset(t.content_type for t in IMAGE_TYPES.values())
 # The purposes /media serves (as '/api/v1/media/<id>'): pictures, never library files.
-IMAGE_PURPOSES = frozenset({UploadPurpose.forum_image, UploadPurpose.newsletter_image, UploadPurpose.bug_screenshot})
+IMAGE_PURPOSES = frozenset(
+    {UploadPurpose.forum_image, UploadPurpose.newsletter_image, UploadPurpose.bug_screenshot, UploadPurpose.module_art}
+)
 # Where each purpose's checked files live in the bucket.
 FINAL_PREFIXES: dict[UploadPurpose, str] = {
     UploadPurpose.library: "library",
@@ -118,6 +121,7 @@ FINAL_PREFIXES: dict[UploadPurpose, str] = {
     UploadPurpose.board: "board",
     UploadPurpose.note_file: "notes",
     UploadPurpose.career_logo: "career",
+    UploadPurpose.module_art: "modules",
 }
 # The box an upload of each purpose needs (None: any active account).
 PURPOSE_BOXES: dict[UploadPurpose, Box | None] = {
@@ -128,6 +132,7 @@ PURPOSE_BOXES: dict[UploadPurpose, Box | None] = {
     UploadPurpose.board: None,
     UploadPurpose.note_file: None,
     UploadPurpose.career_logo: Box.career_edit,
+    UploadPurpose.module_art: Box.content_edit,
 }
 
 
@@ -321,6 +326,7 @@ PURPOSE_FEATURES: dict[UploadPurpose, tuple[Feature, ...]] = {
     UploadPurpose.board: (Feature.board,),
     UploadPurpose.note_file: (Feature.notes,),
     UploadPurpose.career_logo: (Feature.career,),
+    UploadPurpose.module_art: (),
 }
 
 
@@ -408,6 +414,8 @@ def can_view_image(db: Session, up: Upload, viewer: User | None) -> bool:
     newsletter picture: people who manage the newsletter, and everyone once a published issue shows it; a forum
     image: see _can_view_forum_image)."""
     if viewer is not None and up.user_id == viewer.id:
+        return True
+    if up.purpose == UploadPurpose.module_art:
         return True
     if up.purpose == UploadPurpose.bug_screenshot:
         return access.is_admin(viewer)

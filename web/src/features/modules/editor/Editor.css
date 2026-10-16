@@ -41,6 +41,12 @@
 .medit__art { display: flex; align-items: center; gap: var(--sp-12); min-width: 0; }
 .medit__art-img { flex: 0 0 auto; width: 56px; height: 56px; }
 .medit__art-note { margin: 0; color: var(--ink-2); font-size: var(--fs-14); }
+.medit__art-section { display: flex; flex-direction: column; gap: var(--sp-8); }
+.medit__art-control { display: flex; align-items: center; gap: var(--sp-12); min-height: 56px; }
+.medit__art-preview { display: flex; align-items: center; gap: var(--sp-12); flex-wrap: wrap; }
+.medit__art-actions { display: flex; align-items: center; gap: var(--sp-8); }
+.medit__art-empty { display: flex; align-items: center; gap: var(--sp-12); flex-wrap: wrap; }
+.medit__art-hint { color: var(--ink-2); font-size: var(--fs-12); }
 .medit__section { margin: 0 0 var(--sp-12); font-size: var(--fs-16); }
 .medit__panel { display: grid; gap: var(--sp-16); min-width: 0; }
 .medit__panel > .medit__section { margin: 0; }

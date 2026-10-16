@@ -14,6 +14,7 @@ import {
   Rows,
   SquaresFour,
   Star,
+  Swatches,
   UploadSimple,
   UserCircle,
   type Icon,
@@ -28,6 +29,7 @@ import { itemPath, useLibraryFacets, useLibraryList, useLibraryPages } from './a
 import { FileCard, type LinkState } from './components/FileCard';
 import { FileTable } from './components/FileTable';
 import { FileThumb } from './components/FileThumb';
+import { useCoverStyle } from './components/coverStyle';
 import { UploadDialog } from './components/UploadDialog';
 import { YourUploads } from './components/YourUploads';
 import { addedAt, isNew, moduleTag } from './display';
@@ -157,6 +159,7 @@ export default function LibraryPage() {
   const { getModule, getModulesForYear } = useModules();
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
   const [params, update] = useLibraryParams();
+  const [coverStyle, setCoverStyle] = useCoverStyle();
   const toggleStar = useStar();
   const searchRef = useRef<HTMLElement>(null);
   const [upload, setUpload] = useState({ open: false, key: 0 });
@@ -518,6 +521,14 @@ export default function LibraryPage() {
                 Your uploads
               </Chip>
             ) : null}
+            <Chip
+              selected={coverStyle === 'styled'}
+              onChange={(on) => setCoverStyle(on ? 'styled' : 'original')}
+              icon={Swatches}
+              title="Switch between original file covers and generated title covers"
+            >
+              Styled covers
+            </Chip>
             <Menu
               align="end"
               label="Sort files"

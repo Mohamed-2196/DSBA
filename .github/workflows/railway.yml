@@ -1,0 +1,28 @@
+# Verifies health and responsiveness of the deployed Railway dev environment on push to feature/backend
+name: Railway Dev Deploy Health
+
+on:
+  push:
+    branches:
+      - feature/backend
+  workflow_dispatch:
+
+jobs:
+  verify-deployment:
+    name: Verify Railway Dev Environment
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Wait for Railway deployment to settle
+        run: sleep 30
+
+      - name: Check Railway Web & API Health
+        run: |
+          echo "Checking Railway dev endpoint..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://web-dev-254f.up.railway.app/api/v1/health)
+          echo "Health endpoint returned HTTP $STATUS"
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Health check failed with status $STATUS"
+            exit 1
+          fi
+          echo "Railway dev environment is healthy and online!"

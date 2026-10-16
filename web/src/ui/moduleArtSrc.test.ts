@@ -14,4 +14,9 @@ describe('moduleArtSrc', () => {
     expect(moduleArtSrc('')).toBeNull();
     expect(moduleArtSrc('constructor')).toBeNull();
   });
+
+  it('returns custom artUrl when provided', () => {
+    expect(moduleArtSrc('econometrics', '/api/v1/media/123')).toBe('/api/v1/media/123');
+    expect(moduleArtSrc('abstract-maths', '/api/v1/media/456')).toBe('/api/v1/media/456');
+  });
 });

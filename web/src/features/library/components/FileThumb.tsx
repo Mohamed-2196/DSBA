@@ -7,24 +7,40 @@ import { isNew, linkPlace, moduleTag } from '../display';
 import { zoneLabel } from '../../../lib/exams';
 import { formatOf, kindLabel } from '../kinds';
 import type { LibraryItem } from '../types';
+import { useCoverStyle, type CoverStyle } from './coverStyle';
 import './FileThumb.css';
 
 export type ThumbSize = 'grid' | 'strip' | 'list' | 'related' | 'mini';
+export type { CoverStyle };
 
 /**
- * A file's cover: its real first page (`coverUrl`, made by the API's text worker) for PDF and Word files, or else an
- * A4 title page set in the module's cohort colour (module code, kind, title, format), laid out at full page size and
- * scaled down, so every size reads as the same document. Decorative: the surrounding link names the file.
+ * A file's cover: by default (`'original'`) its real first page (`coverUrl`, made by the API's text worker) for PDF
+ * and Word files, or when toggled to `'styled'` (or when no cover image exists) an A4 title page set in the module's
+ * cohort colour (module code, kind, title, format), laid out at full page size and scaled down.
  */
-export function FileThumb({ item, size = 'grid', newTag = false, className }: { item: LibraryItem; size?: ThumbSize; newTag?: boolean; className?: string }) {
+export function FileThumb({
+  item,
+  size = 'grid',
+  newTag = false,
+  coverStyle,
+  className,
+}: {
+  item: LibraryItem;
+  size?: ThumbSize;
+  newTag?: boolean;
+  coverStyle?: CoverStyle;
+  className?: string;
+}) {
   const { getModule } = useModules();
+  const [storedStyle] = useCoverStyle();
+  const effectiveStyle = coverStyle ?? storedStyle;
   const m: ModuleSummary | null = getModule(item.moduleId);
   const year = m?.year ?? item.year ?? null;
   const fmt = formatOf(item);
   const isLink = item.source === 'link';
   const code = moduleTag(m);
   const [broken, setBroken] = useState(false);
-  const photo = item.coverUrl && !broken ? item.coverUrl : null;
+  const photo = effectiveStyle === 'original' && item.coverUrl && !broken ? item.coverUrl : null;
   return (
     <span className={cx('lib-thumb', `lib-thumb--${size}`, isLink && 'is-link', className)} aria-hidden="true">
       <span className="lib-thumb__paper" data-theme="light">

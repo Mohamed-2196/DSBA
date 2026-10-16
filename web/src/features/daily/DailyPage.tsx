@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   CheckCircle,
   Clock,
@@ -184,16 +183,14 @@ export default function DailyPage() {
                         <span style={{ fontSize: 'var(--fs-13)', color: 'var(--ink-2)', fontWeight: 'var(--fw-medium)' }}>
                           Max {gameDay.info.maxPoints} pts
                         </span>
-                        <Link to={`/daily/${gameDay.info.id}`}>
-                          <Button
-                            variant={isWon || isLost ? 'secondary' : 'primary'}
-                            size="sm"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                          >
-                            <Play size={14} weight="fill" />
-                            <span>{isWon || isLost ? 'Review' : isPlaying ? 'Continue' : 'Play'}</span>
-                          </Button>
-                        </Link>
+                        <Button
+                          to={`/daily/${gameDay.info.id}`}
+                          variant={isWon || isLost ? 'secondary' : 'primary'}
+                          size="sm"
+                          leadingIcon={Play}
+                        >
+                          {isWon || isLost ? 'Review' : isPlaying ? 'Continue' : 'Play'}
+                        </Button>
                       </div>
                     </div>
                   );

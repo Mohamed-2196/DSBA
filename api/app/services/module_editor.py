@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import re
+import uuid
 from collections.abc import Iterable
 from typing import Any, NamedTuple
 from urllib.parse import parse_qs, urlsplit
@@ -18,7 +19,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError, conflict, invalid, not_found
-from app.core.links import is_https
+from app.core.links import MEDIA_PATH, is_https
 from app.models import (
     BoardCard,
     CalendarEvent,
@@ -30,6 +31,9 @@ from app.models import (
     Note,
     Notebook,
     StudentRequest,
+    Upload,
+    UploadPurpose,
+    UploadStatus,
     User,
 )
 from app.schemas.modules import (
@@ -53,7 +57,7 @@ RECORDING_HOST = "vc.bibf.com"  # class recordings (BigBlueButton): the app embe
 VIDEO_RULE = "Paste a YouTube video or playlist link, or a class recording link from vc.bibf.com."
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{6,20}")
 _PLAYLIST_ID = re.compile(r"[A-Za-z0-9_-]{10,64}")
-EDITED = ("unit_code", "name", "short_name", "year", "description", "icon", "hidden", "chapters")
+EDITED = ("unit_code", "name", "short_name", "year", "description", "icon", "art_url", "hidden", "chapters")
 
 # ── videos ───────────────────────────────────────────────────────────────────────────────────
 
@@ -136,6 +140,7 @@ def _summary(m: Module) -> dict[str, Any]:
         "short_name": m.short_name,
         "year": m.year,
         "icon": m.icon,
+        "art_url": m.art_url,
         "hidden": m.hidden,
         "position": m.position,
         "version": m.version,
@@ -205,7 +210,22 @@ def _fields(db: Session, body: ModuleFields, *, module_id: str | None = None) ->
         "year": body.year,
         "description": body.description,
         "icon": body.icon,
+        "art_url": body.art_url,
     }
+
+
+def _attach_art(db: Session, art_url: str | None) -> None:
+    if not art_url:
+        return
+    m = MEDIA_PATH.fullmatch(art_url.strip())
+    if m:
+        try:
+            upload_id = uuid.UUID(m.group(1))
+            up = db.get(Upload, upload_id)
+            if up and up.purpose == UploadPurpose.module_art:
+                up.status = UploadStatus.attached
+        except ValueError:
+            pass
 
 
 def _chapters_snapshot(m: Module) -> list[dict[str, Any]]:
@@ -249,6 +269,7 @@ def create_module(db: Session, user: User, body: ModuleCreate, ip: str | None) -
         raise conflict("slug_taken", "Another module has this address. Choose another one.")
     last = db.scalar(select(func.max(Module.position)))
     m = Module(id=body.id, position=(last if last is not None else -1) + 1, **_fields(db, body))
+    _attach_art(db, body.art_url)
     db.add(m)
     db.flush()
     record(db, user, "module.create", "module", m.id, m.name, ip, after=_snapshot(m))
@@ -343,6 +364,7 @@ def save_module(db: Session, user: User, module_id: str, body: ModuleSave, ip: s
         for name, value in {**fields, "hidden": body.hidden}.items():
             setattr(m, name, value)
         _place_chapters(m, body)
+    _attach_art(db, body.art_url)
     db.flush()
     after = _snapshot(m)
     if after == before:

@@ -44,12 +44,13 @@ export const BLOCKS: Readonly<Record<HomeBlock, BlockInfo>> = {
     span: 'wide',
   },
   newsletter: { title: 'The DSBA Newsletter', description: 'The latest issue.', features: ['newsletter'], span: 'card' },
+  daily: { title: 'Today’s Daily', description: 'Six daily data science, finance, and logic puzzles.', features: ['daily'], span: 'card' },
 };
 
 export const ALL_BLOCKS = Object.keys(BLOCKS) as HomeBlock[];
 
 /** Everyone's Home before they change it: the dashboard. Notices show only when they have something to say. */
-export const STUDENT_DEFAULT: readonly HomeBlock[] = ['start_here', 'results_day', 'coming_up', 'todo', 'continue', 'modules', 'files', 'forum', 'noora'];
+export const STUDENT_DEFAULT: readonly HomeBlock[] = ['start_here', 'results_day', 'coming_up', 'todo', 'continue', 'modules', 'files', 'forum', 'daily', 'noora'];
 
 /** A guest's: the same, without what needs an account. */
 export const GUEST_DEFAULT: readonly HomeBlock[] = STUDENT_DEFAULT.filter((b) => !BLOCKS[b].account);

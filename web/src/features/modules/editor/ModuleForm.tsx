@@ -1,10 +1,11 @@
 // One module in the editor: its details, its shared folders, and its chapters and lessons, saved together. A save
 // someone else made first (module_changed) offers to load theirs; removing something students' notes, cards, files
 // or threads refer to (content_in_use) says so and suggests hiding it instead.
-import { ArrowLeft, EyeSlash, Trash } from "@phosphor-icons/react";
+import { ArrowLeft, EyeSlash, Trash, UploadSimple } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { errorMessage, isApiError } from "../../../api/errors";
 import type { ModuleEdit } from "../../../api/types";
+import { uploadFile } from "../../../api/uploads";
 import { useToast, YEARS } from "../../../state";
 import {
   Badge,
@@ -112,6 +113,26 @@ function Editor({
   const { push: toast } = useToast();
   const dirty = isDirty(draft, loaded);
   const heading = useRef<HTMLHeadingElement>(null);
+  const [uploadingArt, setUploadingArt] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleArtUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingArt(true);
+    try {
+      const out = await uploadFile("module_art", file);
+      if (out.mediaUrl) {
+        set({ artUrl: out.mediaUrl });
+        toast({ title: "Picture uploaded. Save to apply changes.", tone: "success" });
+      }
+    } catch (err) {
+      toast({ title: "Failed to upload picture", body: errorMessage(err), tone: "alert" });
+    } finally {
+      setUploadingArt(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   // Opening a module moves focus to its name, so a screen reader starts there and Tab goes on into the form.
   useEffect(() => {
@@ -232,23 +253,67 @@ function Editor({
             onChange={(e) => set({ year: Number(e.target.value) as 1 | 2 | 3 })}
             options={YEARS.map((y) => ({ value: y, label: `Year ${y}` }))}
           />
-          {moduleArtSrc(loaded.id) ? (
-            <div className="medit__art">
-              <ModuleArt moduleId={loaded.id} className="medit__art-img" />
-              <p className="medit__art-note">This module has its own picture.</p>
+          <div className="medit__art-section">
+            <label className="ui-field__label">Module Illustration / Logo</label>
+            <div className="medit__art-control">
+              {moduleArtSrc(loaded.id, draft.artUrl) ? (
+                <div className="medit__art-preview">
+                  <ModuleArt moduleId={loaded.id} artUrl={draft.artUrl} className="medit__art-img" />
+                  <div className="medit__art-actions">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      leadingIcon={UploadSimple}
+                      loading={uploadingArt}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Change picture
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      leadingIcon={Trash}
+                      onClick={() => set({ artUrl: null })}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="medit__art-empty">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    leadingIcon={UploadSimple}
+                    loading={uploadingArt}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Upload logo / picture
+                  </Button>
+                  <span className="medit__art-hint">PNG, JPG or WebP up to 8 MB</span>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                style={{ display: "none" }}
+                onChange={handleArtUpload}
+              />
             </div>
-          ) : (
-            <Select
-              label="Icon"
-              value={draft.icon}
-              onChange={(e) => set({ icon: e.target.value })}
-              placeholder="The book (default)"
-              options={MODULE_ICONS.map((icon) => ({
-                value: icon,
-                label: icon.replace(/([a-z])([A-Z])/g, "$1 $2"),
-              }))}
-            />
-          )}
+            {!moduleArtSrc(loaded.id, draft.artUrl) && (
+              <Select
+                label="Fallback Icon"
+                value={draft.icon}
+                onChange={(e) => set({ icon: e.target.value })}
+                placeholder="The book (default)"
+                options={MODULE_ICONS.map((icon) => ({
+                  value: icon,
+                  label: icon.replace(/([a-z])([A-Z])/g, "$1 $2"),
+                }))}
+              />
+            )}
+          </div>
         </div>
         <MarkdownEditor
           label="Description"

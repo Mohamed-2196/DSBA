@@ -2,7 +2,7 @@ import { createElement, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ArrowUpRight, Bug, DotsThreeOutline, Info, UploadSimple } from '@phosphor-icons/react';
 import { useAuth } from '../auth';
-import { Divider, Drawer, cx } from '../ui';
+import { BrandLogo, Divider, Drawer, cx } from '../ui';
 import { openBugReport } from '../features/bugs/public';
 import { EXTERNAL_LINKS, MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav';
 import { visibleNav } from './visibility';
@@ -110,7 +110,7 @@ export function MobileNav() {
             {EXTERNAL_LINKS.map((item) => (
               <li key={item.id}>
                 <a href={item.href} target="_blank" rel="noopener noreferrer" className="shell-more__item">
-                  {createElement(item.icon, { 'aria-hidden': true })}
+                  <BrandLogo name={item.logo} height={item.logoHeight ?? 20} decorative />
                   <span>
                     {item.label}
                     <span className="visually-hidden"> (opens in a new tab)</span>
