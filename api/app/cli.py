@@ -481,8 +481,17 @@ def cmd_dev_login(args: argparse.Namespace) -> int:
         db.flush()
         token = new_token()
         db.add(UserSession(user_id=user.id, token_hash=hash_token(token), expires_at=utcnow() + timedelta(days=7)))
-        db.commit()
     print(token)
+    return 0
+
+
+def cmd_enable_features(_: argparse.Namespace) -> int:
+    from sqlalchemy import text
+
+    with get_sessionmaker()() as db:
+        db.execute(text("UPDATE feature_switches SET mode = 'everyone'"))
+        db.commit()
+    print("All feature switches enabled for everyone.")
     return 0
 
 
@@ -543,6 +552,7 @@ def main(argv: list[str] | None = None) -> int:
     dl.add_argument("--name", default=None)
     dl.add_argument("--year", type=int, choices=[1, 2, 3], default=None)
     dl.set_defaults(fn=cmd_dev_login)
+    sub.add_parser("enable-features").set_defaults(fn=cmd_enable_features)
     args = p.parse_args(argv)
     return int(args.fn(args))
 
