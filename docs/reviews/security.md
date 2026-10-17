@@ -67,7 +67,7 @@ copy makes:
 | SEC-30, SEC-31, SEC-32 | | | **fixed** | Bare domains, Noora's chats on shared computers, lesson progress when off |
 | SEC-35 | nit | community | **fixed** (the rest is a product call) | Seniors: 30-day-old Year 3 accounts, no staff words or links |
 | SEC-34 | nit | Noora | open (unverified) | Uploaded papers' words still go in the system prompt |
-| SEC-19 | nit | content | open | `?mine=1&status=removed` still lists a student's removed files |
+| SEC-19 | nit | content | **fixed** | `?mine=1&status=removed` still lists a student's removed files |
 | SEC-11 | nit | accounts | open | "A d m i n" still passes the staff-name rule |
 | SEC-14 | minor | Mohamed | partly fixed | The site-wide upload budget still waits on Mohamed (SEC-39 makes it matter more) |
 
@@ -384,8 +384,9 @@ copy makes:
 - **SEC-35 (fixed in code).** A Year 3 account lists itself once it is 30 days old, and the line can't claim a staff
   role or hold a link. A rep confirming each senior stays Mohamed's call.
 - **SEC-34 (open, unverified).** `ask.py:279` still appends the paper's block to the system prompt.
-- **SEC-19 (open, nit).** `library.py:309` still returns `[ItemStatus(f.status)]` for `mine`, `removed` included.
-  Proof: `test_sec19_your_files_still_lists_removed_ones`.
+- **SEC-19 (fixed).** `_visible_statuses()` (`library.py`) lists removed files under `mine` only for the library's
+  managers, as `can_see()` has it; anyone else asking for them gets an empty list.
+  `test_your_files_never_list_a_removed_one_unless_you_manage_the_library` (`tests/content/test_library.py`) checks it.
 - **SEC-11 (open, nit).** `looks()` (`accounts.py:366`) still keeps spaces and hyphens. Proof:
   `test_sec11_a_spaced_out_staff_word_is_still_a_display_name` ("A d m i n", "Ad-min", "D S B A Team" and
   "Student R e p" are all accepted).

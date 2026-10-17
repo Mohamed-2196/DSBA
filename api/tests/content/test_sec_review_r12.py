@@ -1,5 +1,5 @@
-"""The round 12 security review's proofs for module art, the library's "your files" list and the file reader's
-environment. Each test passes while the problem it names is still there."""
+"""The round 12 security review's proofs for module art and the file reader's environment. Each test passes while
+the problem it names is still there."""
 
 from __future__ import annotations
 
@@ -22,7 +22,6 @@ from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
 UploadFile = Callable[..., dict[str, Any]]
-Share = Callable[..., dict[str, Any]]
 NEW_MODULE = {"id": "data-ethics", "unitCode": "is3001", "name": "Data ethics", "shortName": "Ethics", "year": 3}
 
 
@@ -86,17 +85,6 @@ def test_sec42_an_upload_that_was_never_checked_becomes_module_art_and_media_ser
     shown = client_for().get(art, follow_redirects=False)  # a guest
     assert shown.status_code == 302
     assert f"incoming/{up.id}" in shown.headers["location"]
-
-
-def test_sec19_your_files_still_lists_removed_ones(
-    client_for: Clients, make_user: Callable[..., User], share_file: Share
-) -> None:
-    """Re-check of SEC-19: `mine` with a status lists that status, removed included."""
-    student = client_for(make_user(name="Sara Student"))
-    item = share_file(student, title="Old notes")
-    assert student.delete(f"{API}/library/items/{item['id']}").status_code == 204
-    listed = student.get(f"{API}/library/items", params={"mine": True, "status": "removed"}).json()["items"]
-    assert [(i["id"], i["status"]) for i in listed] == [(item["id"], "removed")]
 
 
 @pytest.mark.skipif(sys.platform != "linux", reason="/proc is Linux's; production and CI run Linux")
