@@ -30,8 +30,9 @@ export interface TodayViewProps {
 export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) {
   const today = todayKey();
   const agenda = useAgenda({ days: TODAY_DAYS });
-  // Ticked here, the card stays (struck through) until the agenda comes back without it.
-  const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
+  // Ticked here, a card stays (struck through) until the agenda comes back: without it, or with it again when the
+  // move failed.
+  const [ticked, setTicked] = useState<{ on: unknown; ids: ReadonlySet<string> }>({ on: null, ids: new Set() });
 
   if (agenda.isPending) {
     return (
@@ -70,7 +71,7 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
             {s.cards.map((card) => {
               const board = boards.find((b) => b.id === card.boardId);
               const canTick = !readOnly && board != null && doneColumn(board.columns) != null;
-              const done = ticked.has(card.id);
+              const done = ticked.on === agenda.data && ticked.ids.has(card.id);
               const overdue = s.id === 'overdue';
               const when = whenText(s.id, card, today);
               return (
@@ -82,7 +83,7 @@ export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) 
                         checked={done}
                         disabled={done}
                         onChange={() => {
-                          setTicked((prev) => new Set(prev).add(card.id));
+                          setTicked((prev) => ({ on: agenda.data, ids: new Set(prev.on === agenda.data ? prev.ids : []).add(card.id) }));
                           onDone(card);
                         }}
                       />
