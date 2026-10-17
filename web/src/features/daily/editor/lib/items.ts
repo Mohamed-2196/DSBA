@@ -1,6 +1,6 @@
 // The Daily puzzles editor's pure parts: the games it edits, a blank item for each, how a group's words are typed,
 // what names an item, and the API's field errors as the forms show them.
-import type { GroupData, ItemOut, QuizData } from '../../../../api/types';
+import type { ItemOut, QuizData } from '../../../../api/types';
 
 export type ContentGame = ItemOut['game'];
 export type ItemData = ItemOut['data'];
@@ -115,11 +115,6 @@ export function rightOption(data: QuizData): string {
 export function listWords(words: readonly string[]): string {
   if (words.length <= 1) return words.join('');
   return `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`;
-}
-
-/** The level's short name for a group's badge. */
-export function levelLabel(data: GroupData): string {
-  return `Level ${data.level}`;
 }
 
 /**
