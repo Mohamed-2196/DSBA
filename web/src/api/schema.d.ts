@@ -3381,7 +3381,8 @@ export interface paths {
         };
         /**
          * Get Play
-         * @description A game on a day, and your play of it so far. Errors: not_out_yet (404), invalid_input on `variant` (422).
+         * @description A game on a day, and your play of it so far. The day's puzzle is made and kept the first time anyone asks
+         *     for it. Errors: not_out_yet (404), invalid_input on `variant` (422).
          */
         get: operations["get_play_api_v1_daily__day___game__get"];
         put?: never;
@@ -3407,6 +3408,367 @@ export interface paths {
          *     invalid_input on `move` (422), unknown_word (422), already_tried (409), game_over (409), not_out_yet (404).
          */
         post: operations["make_move_api_v1_daily__day___game__moves_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Overview
+         * @description The themes (the rotation first) with what each has and lacks, the weeks to come, and the lists' sizes.
+         */
+        get: operations["overview_api_v1_content_daily_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/themes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Theme
+         * @description A new theme, out of the rotation. Errors: invalid_input (422), slug_taken (409).
+         */
+        post: operations["create_theme_api_v1_content_daily_themes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/themes/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Order Themes
+         * @description The rotation in a new order; weeks that started keep their themes. Errors: puzzle_changed (409: the rotation
+         *     changed since it was loaded).
+         */
+        post: operations["order_themes_api_v1_content_daily_themes_order_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/themes/{theme_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save Theme
+         * @description A theme's title, line and place in the rotation. Errors: not_found (404), invalid_input (422: the rotation
+         *     keeps one theme), puzzle_changed (409), theme_not_ready (409: it lacks what a game needs to join).
+         */
+        put: operations["save_theme_api_v1_content_daily_themes__theme_id__put"];
+        post?: never;
+        /**
+         * Delete Theme
+         * @description Deletes a theme that never ran and has no items. Errors: not_found (404), puzzle_changed (409),
+         *     content_in_use (409).
+         */
+        delete: operations["delete_theme_api_v1_content_daily_themes__theme_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/weeks/{week_start}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Week
+         * @description Names the theme of a week to come (theme null: the rotation's turn). Errors: invalid_input (422: not a Sunday,
+         *     a week that started, more than a year ahead, an unknown theme), theme_not_ready (409).
+         */
+        put: operations["set_week_api_v1_content_daily_weeks__week_start__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Items
+         * @description A game's items by theme and status (active, retired or all), found by any of their words; with how many
+         *     days each ran on and the last.
+         */
+        get: operations["list_items_api_v1_content_daily_items_get"];
+        put?: never;
+        /**
+         * Create Item
+         * @description A new item. Errors: invalid_input (422, on the field: the game's rules, or one like it exists).
+         */
+        post: operations["create_item_api_v1_content_daily_items_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/items/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save Item
+         * @description Saves the whole item, if nobody saved it since `version`. Days that are out keep it as it was. Errors:
+         *     not_found (404), invalid_input (422), puzzle_changed (409), theme_not_ready (409).
+         */
+        put: operations["save_item_api_v1_content_daily_items__item_id__put"];
+        post?: never;
+        /**
+         * Delete Item
+         * @description Deletes an item that never ran. Errors: not_found (404), puzzle_changed (409), content_in_use (409: it ran;
+         *     retire it), theme_not_ready (409).
+         */
+        delete: operations["delete_item_api_v1_content_daily_items__item_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/items/{item_id}/retire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retire Item
+         * @description It never runs again; the days it ran keep it. Errors: not_found (404), puzzle_changed (409), theme_not_ready
+         *     (409: its theme runs and would be left short).
+         */
+        post: operations["retire_item_api_v1_content_daily_items__item_id__retire_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/items/{item_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore Item
+         * @description Brings a retired item back, checked again. Errors: not_found (404), invalid_input (422), puzzle_changed (409).
+         */
+        post: operations["restore_item_api_v1_content_daily_items__item_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Items
+         * @description Pasted items in bulk: a word list, or quiz questions and groups as CSV or spreadsheet rows with a header.
+         *     `dryRun` checks each row and saves nothing; otherwise the rows that pass are added together. Errors:
+         *     invalid_input (422: no rows, more than 500, a header that lacks a column).
+         */
+        post: operations["import_items_api_v1_content_daily_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/bundle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Bundle
+         * @description Admins: a Daily content file, as `python -m app.cli daily-content import` takes it. It adds what the database
+         *     lacks and leaves what is there, so the same file twice changes nothing; `dryRun` says what it would add and leave,
+         *     and changes nothing. Audited with counts. Errors: forbidden (403: not an admin), invalid_input (422 on `content`:
+         *     not a content file, or over 1 MB).
+         */
+        post: operations["import_bundle_api_v1_content_daily_bundle_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/guesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Guess List
+         * @description The word game's guess list: its size, and the first words starting with `q`.
+         */
+        get: operations["guess_list_api_v1_content_daily_guesses_get"];
+        put?: never;
+        /**
+         * Add Guesses
+         * @description Adds pasted words to the guess list (`dryRun`: only says what would happen). Errors: invalid_input (422).
+         */
+        post: operations["add_guesses_api_v1_content_daily_guesses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/guesses/{word}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Guess
+         * @description Takes a word off the guess list. Errors: not_found (404), content_in_use (409: an answer word, or guessed in
+         *     a kept play).
+         */
+        delete: operations["remove_guess_api_v1_content_daily_guesses__word__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/vocabulary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vocabulary
+         * @description Nearest neighbour's words, alphabetical: those starting with `q`, or tagged with it.
+         */
+        get: operations["vocabulary_api_v1_content_daily_vocabulary_get"];
+        put?: never;
+        /**
+         * Add Vocabulary
+         * @description A new word, with its tags and close words; the secret words' rankings are worked out again. Errors:
+         *     invalid_input (422).
+         */
+        post: operations["add_vocabulary_api_v1_content_daily_vocabulary_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/vocabulary/{word}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save Vocabulary
+         * @description A word's tags and close words. Errors: not_found (404), invalid_input (422), puzzle_changed (409).
+         */
+        put: operations["save_vocabulary_api_v1_content_daily_vocabulary__word__put"];
+        post?: never;
+        /**
+         * Delete Vocabulary
+         * @description Deletes a word that isn't a secret word. Errors: not_found (404), puzzle_changed (409), content_in_use (409).
+         */
+        delete: operations["delete_vocabulary_api_v1_content_daily_vocabulary__word__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content/daily/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview
+         * @description A day's puzzles: as they went out for a day that's out, otherwise as the content would make them. Nothing is
+         *     stored (only Daily's own seed, the first time it's needed). Errors: invalid_input (422: before the first day, or
+         *     more than a year ahead).
+         */
+        get: operations["preview_api_v1_content_daily_preview_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4376,6 +4738,53 @@ export interface components {
              */
             status: "open" | "fixed" | "wont_fix";
         };
+        /** BundleCounts */
+        BundleCounts: {
+            /** Added */
+            added: number;
+            /** Kept */
+            kept: number;
+        };
+        /** BundleGameCounts */
+        BundleGameCounts: {
+            /** Added */
+            added: number;
+            /** Kept */
+            kept: number;
+            /**
+             * Game
+             * @enum {string}
+             */
+            game: "word" | "groups" | "search" | "quiz" | "nearest";
+        };
+        /**
+         * BundleIn
+         * @description A Daily content file, as `python -m app.cli daily-content export` writes it: its text. `dryRun` says what it
+         *     would add and leave, and changes nothing.
+         */
+        BundleIn: {
+            /** Content */
+            content: string;
+            /**
+             * Dryrun
+             * @default false
+             */
+            dryRun: boolean;
+        };
+        /** BundleReport */
+        BundleReport: {
+            /** Applied */
+            applied: boolean;
+            themes: components["schemas"]["BundleCounts"];
+            guesses: components["schemas"]["BundleCounts"];
+            vocabulary: components["schemas"]["BundleCounts"];
+            /** Items */
+            items: components["schemas"]["BundleGameCounts"][];
+            /** Rotation */
+            rotation: string[];
+            /** Problems */
+            problems: string[];
+        };
         /** CalendarDay */
         CalendarDay: {
             /**
@@ -5205,6 +5614,29 @@ export interface components {
             /** Days */
             days: components["schemas"]["CalendarDay"][];
         };
+        /** DailyContentOverview */
+        DailyContentOverview: {
+            /**
+             * Today
+             * Format: date
+             */
+            today: string;
+            /**
+             * Firstday
+             * Format: date
+             */
+            firstDay: string;
+            /** Themes */
+            themes: components["schemas"]["ThemeOut"][];
+            /** Weeks */
+            weeks: components["schemas"]["WeekOut"][];
+            /** Guesswords */
+            guessWords: number;
+            /** Vocabularywords */
+            vocabularyWords: number;
+            /** Tags */
+            tags: string[];
+        };
         /** DailyMe */
         DailyMe: {
             /** Showonboard */
@@ -5286,6 +5718,17 @@ export interface components {
             /** To */
             to?: string | null;
         };
+        /** DayPreview */
+        DayPreview: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            theme: components["schemas"]["Theme"];
+            /** Games */
+            games: components["schemas"]["PreviewGame"][];
+        };
         /**
          * DoneRequests
          * @description The requests done in the `days` up to `until` (a day in Bahrain), the latest answered first: "You asked, we
@@ -5327,7 +5770,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet" | "puzzle_changed" | "theme_not_ready";
             /** Message */
             message: string;
             /** Fields */
@@ -6228,6 +6671,22 @@ export interface components {
             label: string;
         };
         /**
+         * GameCounts
+         * @description Items in use (not retired), per game.
+         */
+        GameCounts: {
+            /** Word */
+            word: number;
+            /** Groups */
+            groups: number;
+            /** Search */
+            search: number;
+            /** Quiz */
+            quiz: number;
+            /** Nearest */
+            nearest: number;
+        };
+        /**
          * GameDay
          * @description A game on the hub: its card, and how far the viewer got.
          */
@@ -6298,6 +6757,24 @@ export interface components {
             kind: "give-up";
         };
         /**
+         * GroupData
+         * @description Groups: what the group's words share (shown once it's found), how hard it is (1 plainest to 4 trickiest), and
+         *     its words: four or more, a day shows four of them. No word may be in two groups of the same theme.
+         */
+        GroupData: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            game: "groups";
+            /** Label */
+            label: string;
+            /** Level */
+            level: number;
+            /** Words */
+            words: string[];
+        };
+        /**
          * GroupMove
          * @description Four words picked as one group.
          */
@@ -6327,6 +6804,36 @@ export interface components {
             guesses: string[][];
             /** Oneaway */
             oneAway: boolean;
+        };
+        /** GuessAdd */
+        GuessAdd: {
+            /** Text */
+            text: string;
+            /**
+             * Dryrun
+             * @default false
+             */
+            dryRun: boolean;
+        };
+        /** GuessAddReport */
+        GuessAddReport: {
+            /** New */
+            new: string[];
+            /** Known */
+            known: string[];
+            /** Refused */
+            refused: string[];
+            /** Total */
+            total: number;
+        };
+        /** GuessList */
+        GuessList: {
+            /** Total */
+            total: number;
+            /** Words */
+            words: string[];
+            /** More */
+            more: boolean;
         };
         /**
          * GuessMove
@@ -6431,6 +6938,52 @@ export interface components {
             kind: "hint";
             /** Cell */
             cell?: number | null;
+        };
+        /**
+         * ImportIn
+         * @description Items pasted in bulk. Word lists (the word, word search, Nearest neighbour's secret words): words separated
+         *     by new lines, commas or spaces. Quiz questions and groups: CSV or a spreadsheet's rows, with a header row (the
+         *     editor shows the columns). `dryRun` checks every row and saves nothing. `addGuesses` (the word only) adds the
+         *     answer words to the guess list too.
+         */
+        ImportIn: {
+            /**
+             * Game
+             * @enum {string}
+             */
+            game: "word" | "groups" | "search" | "quiz" | "nearest";
+            /** Theme */
+            theme: string;
+            /** Text */
+            text: string;
+            /**
+             * Dryrun
+             * @default false
+             */
+            dryRun: boolean;
+            /**
+             * Addguesses
+             * @default false
+             */
+            addGuesses: boolean;
+        };
+        /** ImportReport */
+        ImportReport: {
+            /** Rows */
+            rows: components["schemas"]["ImportRow"][];
+            /** Added */
+            added: number;
+        };
+        /** ImportRow */
+        ImportRow: {
+            /** Line */
+            line: number;
+            /** Text */
+            text: string;
+            /** Data */
+            data: (components["schemas"]["WordData"] | components["schemas"]["GroupData"] | components["schemas"]["SearchData"] | components["schemas"]["QuizData"] | components["schemas"]["NearestData"]) | null;
+            /** Problem */
+            problem: string | null;
         };
         /**
          * InkInfo
@@ -6672,6 +7225,62 @@ export interface components {
             editors?: string[] | null;
             /** Sections */
             sections?: components["schemas"]["IssueSection"][] | null;
+        };
+        /** ItemCreate */
+        ItemCreate: {
+            /** Theme */
+            theme: string;
+            /** Data */
+            data: components["schemas"]["WordData"] | components["schemas"]["GroupData"] | components["schemas"]["SearchData"] | components["schemas"]["QuizData"] | components["schemas"]["NearestData"];
+        };
+        /** ItemOut */
+        ItemOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Game
+             * @enum {string}
+             */
+            game: "word" | "groups" | "search" | "quiz" | "nearest";
+            /** Theme */
+            theme: string;
+            /** Data */
+            data: components["schemas"]["WordData"] | components["schemas"]["GroupData"] | components["schemas"]["SearchData"] | components["schemas"]["QuizData"] | components["schemas"]["NearestData"];
+            /** Retired */
+            retired: boolean;
+            /** Version */
+            version: number;
+            /** Uses */
+            uses: number;
+            /** Lastused */
+            lastUsed: string | null;
+            /** Closest */
+            closest: string[] | null;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /**
+         * ItemSave
+         * @description The whole item, and the version it was edited from.
+         */
+        ItemSave: {
+            /** Theme */
+            theme: string;
+            /** Data */
+            data: components["schemas"]["WordData"] | components["schemas"]["GroupData"] | components["schemas"]["SearchData"] | components["schemas"]["QuizData"] | components["schemas"]["NearestData"];
+            /** Version */
+            version: number;
+        };
+        /** ItemVersion */
+        ItemVersion: {
+            /** Version */
+            version: number;
         };
         /** LabelCreate */
         LabelCreate: {
@@ -7304,6 +7913,19 @@ export interface components {
             /** Paused */
             paused: boolean;
         };
+        /**
+         * NearestData
+         * @description Nearest neighbour: a secret word. It must be in the vocabulary.
+         */
+        NearestData: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            game: "nearest";
+            /** Word */
+            word: string;
+        };
         /** NearestGuess */
         NearestGuess: {
             /** Word */
@@ -7842,6 +8464,28 @@ export interface components {
             /** Feature */
             feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions" | "daily") | null;
         };
+        /** Page[ItemOut] */
+        Page_ItemOut_: {
+            /** Items */
+            items: components["schemas"]["ItemOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** Page[VocabularyOut] */
+        Page_VocabularyOut_: {
+            /** Items */
+            items: components["schemas"]["VocabularyOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
         /** PaperQuestion */
         PaperQuestion: {
             /**
@@ -8244,6 +8888,96 @@ export interface components {
             /** Maxbytes */
             maxBytes: number;
         };
+        /** PreviewGame */
+        PreviewGame: {
+            /**
+             * Game
+             * @enum {string}
+             */
+            game: "word" | "groups" | "search" | "quiz" | "nearest";
+            /** Fixed */
+            fixed: boolean;
+            /** Puzzle */
+            puzzle: (components["schemas"]["PreviewWord"] | components["schemas"]["PreviewGroups"] | components["schemas"]["PreviewSearch"] | components["schemas"]["PreviewQuiz"] | components["schemas"]["PreviewNearest"]) | null;
+            /** Problem */
+            problem: string | null;
+        };
+        /** PreviewGroup */
+        PreviewGroup: {
+            /** Label */
+            label: string;
+            /** Level */
+            level: number;
+            /** Words */
+            words: string[];
+        };
+        /** PreviewGroups */
+        PreviewGroups: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            game: "groups";
+            /** Groups */
+            groups: components["schemas"]["PreviewGroup"][];
+        };
+        /** PreviewNearest */
+        PreviewNearest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            game: "nearest";
+            /** Target */
+            target: string;
+            /** Closest */
+            closest: string[];
+        };
+        /** PreviewQuestion */
+        PreviewQuestion: {
+            /** Prompt */
+            prompt: string;
+            /** Options */
+            options: string[];
+            /** Answer */
+            answer: number;
+            /** Explain */
+            explain: string;
+            /** Source */
+            source: string | null;
+        };
+        /** PreviewQuiz */
+        PreviewQuiz: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            game: "quiz";
+            /** Questions */
+            questions: components["schemas"]["PreviewQuestion"][];
+        };
+        /** PreviewSearch */
+        PreviewSearch: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            game: "search";
+            /** Words */
+            words: string[];
+            /** Grid */
+            grid: string[];
+        };
+        /** PreviewWord */
+        PreviewWord: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            game: "word";
+            /** Answer */
+            answer: string;
+        };
         /** Progress */
         Progress: {
             /** Watched */
@@ -8325,6 +9059,28 @@ export interface components {
             correct: boolean;
             /** Explain */
             explain: string;
+        };
+        /**
+         * QuizData
+         * @description The quiz: a question, its options (2 to 6, one of them right: `answer` is its index) and the explanation shown
+         *     after answering. A question can name the module it comes from (`moduleId`). The options are shuffled each day.
+         */
+        QuizData: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            game: "quiz";
+            /** Question */
+            question: string;
+            /** Options */
+            options: string[];
+            /** Answer */
+            answer: number;
+            /** Explanation */
+            explanation: string;
+            /** Moduleid */
+            moduleId?: string | null;
         };
         /** QuizQuestion */
         QuizQuestion: {
@@ -8825,6 +9581,19 @@ export interface components {
              * @enum {string}
              */
             text: "empty" | "failed";
+        };
+        /**
+         * SearchData
+         * @description Word search: a word to hide in the grid, 4 to 10 letters.
+         */
+        SearchData: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            game: "search";
+            /** Word */
+            word: string;
         };
         /** SearchFound */
         SearchFound: {
@@ -9428,6 +10197,60 @@ export interface components {
             /** Blurb */
             blurb: string;
         };
+        /** ThemeCreate */
+        ThemeCreate: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Blurb
+             * @default
+             */
+            blurb: string;
+        };
+        /**
+         * ThemeOrder
+         * @description The themes in the rotation, in their new order.
+         */
+        ThemeOrder: {
+            /** Ids */
+            ids: string[];
+        };
+        /** ThemeOut */
+        ThemeOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Blurb */
+            blurb: string;
+            /** Inrotation */
+            inRotation: boolean;
+            /** Position */
+            position: number;
+            /** Version */
+            version: number;
+            counts: components["schemas"]["GameCounts"];
+            /** Problems */
+            problems: string[];
+            /** Used */
+            used: boolean;
+        };
+        /** ThemeSave */
+        ThemeSave: {
+            /** Title */
+            title: string;
+            /**
+             * Blurb
+             * @default
+             */
+            blurb: string;
+            /** Inrotation */
+            inRotation: boolean;
+            /** Version */
+            version: number;
+        };
         /** ThreadCreate */
         ThreadCreate: {
             /** Title */
@@ -9709,6 +10532,42 @@ export interface components {
              */
             unavailable: boolean;
         };
+        /** VocabularyIn */
+        VocabularyIn: {
+            /** Word */
+            word: string;
+            /** Tags */
+            tags: string[];
+            /** Near */
+            near?: string[];
+        };
+        /** VocabularyOut */
+        VocabularyOut: {
+            /** Word */
+            word: string;
+            /** Tags */
+            tags: string[];
+            /** Near */
+            near: string[];
+            /** Secretin */
+            secretIn: string | null;
+            /** Version */
+            version: number;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** VocabularySave */
+        VocabularySave: {
+            /** Tags */
+            tags: string[];
+            /** Near */
+            near?: string[];
+            /** Version */
+            version: number;
+        };
         /** VoteResult */
         VoteResult: {
             /** Votecount */
@@ -9737,6 +10596,41 @@ export interface components {
             href: string;
             /** Label */
             label: string;
+        };
+        /** WeekOut */
+        WeekOut: {
+            /**
+             * Weekstart
+             * Format: date
+             */
+            weekStart: string;
+            /** Theme */
+            theme: string;
+            /** Pinned */
+            pinned: boolean;
+            /** Started */
+            started: boolean;
+        };
+        /**
+         * WeekSave
+         * @description The theme for a week to come, or null to follow the rotation.
+         */
+        WeekSave: {
+            /** Theme */
+            theme?: string | null;
+        };
+        /**
+         * WordData
+         * @description The word: an answer, five letters, in the guess list.
+         */
+        WordData: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            game: "word";
+            /** Word */
+            word: string;
         };
         /** WordRow */
         WordRow: {
@@ -9809,6 +10703,10 @@ export type BugReportCreated = components['schemas']['BugReportCreated'];
 export type BugReportOut = components['schemas']['BugReportOut'];
 export type BugReportPage = components['schemas']['BugReportPage'];
 export type BugReportUpdate = components['schemas']['BugReportUpdate'];
+export type BundleCounts = components['schemas']['BundleCounts'];
+export type BundleGameCounts = components['schemas']['BundleGameCounts'];
+export type BundleIn = components['schemas']['BundleIn'];
+export type BundleReport = components['schemas']['BundleReport'];
 export type CalendarDay = components['schemas']['CalendarDay'];
 export type CalendarEventCreate = components['schemas']['CalendarEventCreate'];
 export type CalendarEventOut = components['schemas']['CalendarEventOut'];
@@ -9856,12 +10754,14 @@ export type CoverLine = components['schemas']['CoverLine'];
 export type CtaBlock = components['schemas']['CtaBlock'];
 export type CtaLabels = components['schemas']['CtaLabels'];
 export type DailyCalendar = components['schemas']['DailyCalendar'];
+export type DailyContentOverview = components['schemas']['DailyContentOverview'];
 export type DailyMe = components['schemas']['DailyMe'];
 export type DailyMeIn = components['schemas']['DailyMeIn'];
 export type DailyStats = components['schemas']['DailyStats'];
 export type DailyToday = components['schemas']['DailyToday'];
 export type DateLink = components['schemas']['DateLink'];
 export type DateWindow = components['schemas']['DateWindow'];
+export type DayPreview = components['schemas']['DayPreview'];
 export type DoneRequests = components['schemas']['DoneRequests'];
 export type Electives = components['schemas']['Electives'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
@@ -9908,13 +10808,18 @@ export type FoundGroup = components['schemas']['FoundGroup'];
 export type FoundItem = components['schemas']['FoundItem'];
 export type FurtherStudy = components['schemas']['FurtherStudy'];
 export type FurtherStudyAction = components['schemas']['FurtherStudyAction'];
+export type GameCounts = components['schemas']['GameCounts'];
 export type GameDay = components['schemas']['GameDay'];
 export type GameInfo = components['schemas']['GameInfo'];
 export type GapModule = components['schemas']['GapModule'];
 export type Gaps = components['schemas']['Gaps'];
 export type GiveUpMove = components['schemas']['GiveUpMove'];
+export type GroupData = components['schemas']['GroupData'];
 export type GroupMove = components['schemas']['GroupMove'];
 export type GroupsView = components['schemas']['GroupsView'];
+export type GuessAdd = components['schemas']['GuessAdd'];
+export type GuessAddReport = components['schemas']['GuessAddReport'];
+export type GuessList = components['schemas']['GuessList'];
 export type GuessMove = components['schemas']['GuessMove'];
 export type GuidePlace = components['schemas']['GuidePlace'];
 export type GuideStep = components['schemas']['GuideStep'];
@@ -9923,6 +10828,9 @@ export type GuidesEditable = components['schemas']['GuidesEditable'];
 export type GuidesSave = components['schemas']['GuidesSave'];
 export type Health = components['schemas']['Health'];
 export type HintMove = components['schemas']['HintMove'];
+export type ImportIn = components['schemas']['ImportIn'];
+export type ImportReport = components['schemas']['ImportReport'];
+export type ImportRow = components['schemas']['ImportRow'];
 export type InkInfo = components['schemas']['InkInfo'];
 export type InkSave = components['schemas']['InkSave'];
 export type InkSheet = components['schemas']['InkSheet'];
@@ -9934,6 +10842,10 @@ export type IssueFigure = components['schemas']['IssueFigure'];
 export type IssueSection = components['schemas']['IssueSection'];
 export type IssueSummary = components['schemas']['IssueSummary'];
 export type IssueUpdate = components['schemas']['IssueUpdate'];
+export type ItemCreate = components['schemas']['ItemCreate'];
+export type ItemOut = components['schemas']['ItemOut'];
+export type ItemSave = components['schemas']['ItemSave'];
+export type ItemVersion = components['schemas']['ItemVersion'];
 export type LabelCreate = components['schemas']['LabelCreate'];
 export type LabelUpdate = components['schemas']['LabelUpdate'];
 export type LastLesson = components['schemas']['LastLesson'];
@@ -9963,6 +10875,7 @@ export type ModuleShelf = components['schemas']['ModuleShelf'];
 export type ModuleSummary = components['schemas']['ModuleSummary'];
 export type MoveIn = components['schemas']['MoveIn'];
 export type MySenior = components['schemas']['MySenior'];
+export type NearestData = components['schemas']['NearestData'];
 export type NearestGuess = components['schemas']['NearestGuess'];
 export type NearestView = components['schemas']['NearestView'];
 export type NooraDoneEvent = components['schemas']['NooraDoneEvent'];
@@ -9995,6 +10908,8 @@ export type OtpChallengeOut = components['schemas']['OtpChallengeOut'];
 export type OtpStartRequest = components['schemas']['OtpStartRequest'];
 export type OtpVerifyRequest = components['schemas']['OtpVerifyRequest'];
 export type PageLink = components['schemas']['PageLink'];
+export type PageItemOut = components['schemas']['Page_ItemOut_'];
+export type PageVocabularyOut = components['schemas']['Page_VocabularyOut_'];
 export type PaperQuestion = components['schemas']['PaperQuestion'];
 export type PaperQuestionCreate = components['schemas']['PaperQuestionCreate'];
 export type PaperRef = components['schemas']['PaperRef'];
@@ -10013,10 +10928,19 @@ export type PostImage = components['schemas']['PostImage'];
 export type Preferences = components['schemas']['Preferences'];
 export type PreferencesUpdate = components['schemas']['PreferencesUpdate'];
 export type PresignedUpload = components['schemas']['PresignedUpload'];
+export type PreviewGame = components['schemas']['PreviewGame'];
+export type PreviewGroup = components['schemas']['PreviewGroup'];
+export type PreviewGroups = components['schemas']['PreviewGroups'];
+export type PreviewNearest = components['schemas']['PreviewNearest'];
+export type PreviewQuestion = components['schemas']['PreviewQuestion'];
+export type PreviewQuiz = components['schemas']['PreviewQuiz'];
+export type PreviewSearch = components['schemas']['PreviewSearch'];
+export type PreviewWord = components['schemas']['PreviewWord'];
 export type Progress = components['schemas']['Progress'];
 export type ProgressImport = components['schemas']['ProgressImport'];
 export type PublishedIssue = components['schemas']['PublishedIssue'];
 export type QuizAnswered = components['schemas']['QuizAnswered'];
+export type QuizData = components['schemas']['QuizData'];
 export type QuizQuestion = components['schemas']['QuizQuestion'];
 export type QuizView = components['schemas']['QuizView'];
 export type ReactionCounts = components['schemas']['ReactionCounts'];
@@ -10044,6 +10968,7 @@ export type RoleSummary = components['schemas']['RoleSummary'];
 export type RoleUpdate = components['schemas']['RoleUpdate'];
 export type SavedLink = components['schemas']['SavedLink'];
 export type ScanGap = components['schemas']['ScanGap'];
+export type SearchData = components['schemas']['SearchData'];
 export type SearchFound = components['schemas']['SearchFound'];
 export type SearchHit = components['schemas']['SearchHit'];
 export type SearchResults = components['schemas']['SearchResults'];
@@ -10086,6 +11011,10 @@ export type TagOut = components['schemas']['TagOut'];
 export type TermStart = components['schemas']['TermStart'];
 export type TextMatch = components['schemas']['TextMatch'];
 export type Theme = components['schemas']['Theme'];
+export type ThemeCreate = components['schemas']['ThemeCreate'];
+export type ThemeOrder = components['schemas']['ThemeOrder'];
+export type ThemeOut = components['schemas']['ThemeOut'];
+export type ThemeSave = components['schemas']['ThemeSave'];
 export type ThreadCreate = components['schemas']['ThreadCreate'];
 export type ThreadDetail = components['schemas']['ThreadDetail'];
 export type ThreadModeration = components['schemas']['ThreadModeration'];
@@ -10097,9 +11026,15 @@ export type UploadOut = components['schemas']['UploadOut'];
 export type UserPublic = components['schemas']['UserPublic'];
 export type UserRolesUpdate = components['schemas']['UserRolesUpdate'];
 export type Video = components['schemas']['Video'];
+export type VocabularyIn = components['schemas']['VocabularyIn'];
+export type VocabularyOut = components['schemas']['VocabularyOut'];
+export type VocabularySave = components['schemas']['VocabularySave'];
 export type VoteResult = components['schemas']['VoteResult'];
 export type WatchedLesson = components['schemas']['WatchedLesson'];
 export type WebLink = components['schemas']['WebLink'];
+export type WeekOut = components['schemas']['WeekOut'];
+export type WeekSave = components['schemas']['WeekSave'];
+export type WordData = components['schemas']['WordData'];
 export type WordRow = components['schemas']['WordRow'];
 export type WordView = components['schemas']['WordView'];
 export type $defs = Record<string, never>;
@@ -27146,6 +28081,1919 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlayOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    overview_api_v1_content_daily_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyContentOverview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_theme_api_v1_content_daily_themes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ThemeCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyContentOverview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    order_themes_api_v1_content_daily_themes_order_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ThemeOrder"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyContentOverview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_theme_api_v1_content_daily_themes__theme_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ThemeSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyContentOverview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_theme_api_v1_content_daily_themes__theme_id__delete: {
+        parameters: {
+            query: {
+                version: number;
+            };
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyContentOverview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    set_week_api_v1_content_daily_weeks__week_start__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                week_start: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WeekSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyContentOverview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_items_api_v1_content_daily_items_get: {
+        parameters: {
+            query: {
+                game: "word" | "groups" | "search" | "quiz" | "nearest";
+                theme?: string | null;
+                status?: "active" | "retired" | "all";
+                q?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ItemOut_"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_item_api_v1_content_daily_items_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_item_api_v1_content_daily_items__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_item_api_v1_content_daily_items__item_id__delete: {
+        parameters: {
+            query: {
+                version: number;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    retire_item_api_v1_content_daily_items__item_id__retire_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemVersion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    restore_item_api_v1_content_daily_items__item_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemVersion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    import_items_api_v1_content_daily_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportReport"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    import_bundle_api_v1_content_daily_bundle_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BundleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BundleReport"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    guess_list_api_v1_content_daily_guesses_get: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuessList"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    add_guesses_api_v1_content_daily_guesses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuessAdd"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuessAddReport"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    remove_guess_api_v1_content_daily_guesses__word__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                word: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    vocabulary_api_v1_content_daily_vocabulary_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_VocabularyOut_"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    add_vocabulary_api_v1_content_daily_vocabulary_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VocabularyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_vocabulary_api_v1_content_daily_vocabulary__word__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                word: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VocabularySave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_vocabulary_api_v1_content_daily_vocabulary__word__delete: {
+        parameters: {
+            query: {
+                version: number;
+            };
+            header?: never;
+            path: {
+                word: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preview_api_v1_content_daily_preview_get: {
+        parameters: {
+            query: {
+                day: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DayPreview"];
                 };
             };
             /** @description Bad Request */

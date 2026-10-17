@@ -1,16 +1,15 @@
-"""Sudoku: three puzzles a day (easy, medium, hard), each with exactly one solution. Every digit is checked on the
-server, so the solution never reaches the browser before the end; pencil marks and undo stay in the browser."""
+"""Sudoku: three puzzles a day (easy, medium, hard), each with exactly one solution, made from Daily's seed and
+stored the first time they're asked for. Every digit is checked on the server, so the solution never reaches the
+browser before the end; pencil marks and undo stay in the browser."""
 
 from __future__ import annotations
 
 import datetime as dt
 from dataclasses import dataclass, field
-from functools import cache
-from typing import cast
+from typing import Any, cast
 
 from sqlalchemy.orm import Session
 
-from app.config import get_settings
 from app.schemas.daily import HintMove, Move, PlaceMove, SudokuDifficulty, SudokuView
 from app.services.daily import content
 from app.services.daily.games.base import Game, Status, bad_move
@@ -38,10 +37,9 @@ class SudokuState:
     gave_up: bool = False
 
 
-@cache
-def _make(day: dt.date, difficulty: SudokuDifficulty, _key: str) -> Puzzle:
-    givens, solution = generate(content.rng("sudoku", day, difficulty), difficulty)
-    return Puzzle(difficulty, tuple(givens), tuple(solution))
+def _make(seed: bytes, day: dt.date, difficulty: SudokuDifficulty) -> dict[str, Any]:
+    givens, solution = generate(content.rng(seed, "sudoku", day, difficulty), difficulty)
+    return {"givens": givens, "solution": solution}
 
 
 def _hint_cell(puzzle: Puzzle, state: SudokuState) -> int:
@@ -72,7 +70,9 @@ class SudokuGame(Game[Puzzle, SudokuState]):
     min_seconds = 40
 
     def puzzle(self, db: Session, day: dt.date, variant: str) -> Puzzle:
-        return _make(day, cast(SudokuDifficulty, variant), get_settings().secret_key.get_secret_value())
+        difficulty = cast(SudokuDifficulty, variant)
+        data = content.seeded_puzzle(db, self.id, variant, day, lambda seed: _make(seed, day, difficulty))
+        return Puzzle(difficulty, tuple(data["givens"]), tuple(data["solution"]))
 
     def start(self, puzzle: Puzzle) -> SudokuState:
         return SudokuState()

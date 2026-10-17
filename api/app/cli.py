@@ -31,6 +31,9 @@ make-covers        make the cover (the first page as a small picture) of the pub
                    (text-worker, extract-texts and make-covers need only the database and the bucket settings)
 texts-role         create the text worker's database role, or set its password (DSBA_TEXTS_DB_PASSWORD), with only
                    what the worker needs; production runs it after every migration
+daily-content import FILE   add the Daily puzzles' content from a file kept out of the repository (themes, guess
+                   words, vocabulary, items; what the database has stays as it is). export FILE writes the database's
+                   content to one (it holds every answer: keep it private)
 dev-login ID       development only: print a session token for an account (created if needed, holding Student;
                    --role gives one more role)
 enable-features    development only: switch every feature on for everyone (each change goes to the activity log)
@@ -484,12 +487,41 @@ def _seconds(value: str) -> float:
     return n
 
 
-def cmd_daily_neighbours(_: argparse.Namespace) -> int:
-    """Works out Nearest neighbour's ranks from its vocabulary (after editing data/nearest.json)."""
-    from app.services.daily.games.nearest import write_ranks
+def cmd_daily_content(args: argparse.Namespace) -> int:
+    from pathlib import Path
 
-    write_ranks()
-    return 0
+    from app.core.errors import ApiError
+    from app.services.daily import bundle
+
+    path = Path(args.file)
+    with get_sessionmaker()() as db:
+        if args.action == "export":
+            data = bundle.export(db)
+            path.write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+            print(f"wrote {len(data['items'])} items and {len(data['vocabulary'])} vocabulary words to {path}")
+            print("It holds every answer: keep it out of the repository.")
+            return 0
+        try:
+            content = bundle.read(path.read_text(encoding="utf-8"))
+        except OSError as e:
+            print(f"can't read {path}: {e}", file=sys.stderr)
+            return 1
+        except ApiError as e:
+            print(f"{path}: {e.message}", file=sys.stderr)
+            return 1
+        result = bundle.load(db, content)
+        db.commit()
+    items = sum(c["added"] for c in result.items.values())
+    kept = sum(c["kept"] for c in result.items.values())
+    print(
+        f"added {result.themes['added']} themes, {result.guesses['added']} guess words, "
+        f"{result.vocabulary['added']} vocabulary words and {items} items ({kept} were there already)"
+    )
+    if result.rotation:
+        print(f"the rotation: {', '.join(result.rotation)}")
+    for problem in result.problems:
+        print(f"not imported: {problem}", file=sys.stderr)
+    return 1 if result.problems else 0
 
 
 def cmd_dev_login(args: argparse.Namespace) -> int:
@@ -558,7 +590,9 @@ def main(argv: list[str] | None = None) -> int:
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("openapi").set_defaults(fn=cmd_openapi)
     sp = sub.add_parser("seed")
-    sp.add_argument("--only", choices=["modules", "calendar", "newsletter", "career", "drive-folders"], default=None)
+    sp.add_argument(
+        "--only", choices=["modules", "calendar", "newsletter", "career", "drive-folders", "daily"], default=None
+    )
     sp.set_defaults(fn=cmd_seed)
     sr = sub.add_parser("set-role")
     sr.add_argument("identifier")
@@ -571,7 +605,6 @@ def main(argv: list[str] | None = None) -> int:
     sr.set_defaults(fn=cmd_set_role)
     sub.add_parser("backup").set_defaults(fn=cmd_backup)
     sub.add_parser("sweep").set_defaults(fn=cmd_sweep)
-    sub.add_parser("daily-neighbours").set_defaults(fn=cmd_daily_neighbours)
     sub.add_parser("setup-bucket").set_defaults(fn=cmd_setup_bucket)
     mw = sub.add_parser("mail-worker")
     mw.add_argument("--once", action="store_true", help="stop when nothing is due")
@@ -603,6 +636,10 @@ def main(argv: list[str] | None = None) -> int:
     mc.add_argument("--limit", metavar="N", type=_positive, default=None, help="at most N files this run")
     mc.set_defaults(fn=cmd_make_covers)
     sub.add_parser("texts-role").set_defaults(fn=cmd_texts_role)
+    dc = sub.add_parser("daily-content")
+    dc.add_argument("action", choices=["import", "export"])
+    dc.add_argument("file", metavar="FILE")
+    dc.set_defaults(fn=cmd_daily_content)
     dl = sub.add_parser("dev-login")
     dl.add_argument("identifier")
     dl.add_argument("--role", default=None, metavar="ROLE", help="give this role too (a slug, such as rep or admin)")

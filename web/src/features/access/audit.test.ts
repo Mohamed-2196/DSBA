@@ -7,6 +7,13 @@ const entry = (action: string, data: Record<string, unknown>, targetType: string
   ({ id: '1', action, targetType, targetId: 't1', data, createdAt: '2026-10-12T10:00:00Z', actor: { id: 'a1', displayName: 'Hassan A.' } }) as unknown as AuditOut;
 
 describe('describeAudit', () => {
+  it('describes the Daily puzzles editor’s changes', () => {
+    expect(describeAudit(entry('daily.item.retire', { title: 'The word: TREND' }))).toBe('retired a Daily puzzle: “The word: TREND”');
+    expect(describeAudit(entry('daily.schedule.update', { title: 'the week of 25 Oct 2026' }))).toBe('changed the Daily theme for the week of 25 Oct 2026');
+    expect(describeAudit(entry('daily.guesses.add', { title: '3 words', count: 3 }))).toBe('added 3 words to the Daily guess list');
+    expect(describeAudit(entry('daily.content.import', { via: 'cli' }))).toBe('loaded the Daily puzzles’ content from a file (from the server)');
+  });
+
   it('names the newsletter issue', () => {
     expect(describeAudit(entry('newsletter.publish', { title: 'The pilot' }))).toBe('published the newsletter issue “The pilot”');
     expect(describeAudit(entry('newsletter.update', { title: 'Week 3' }))).toBe('edited the newsletter issue “Week 3”');
