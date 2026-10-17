@@ -1,3 +1,477 @@
+# Security review: round 11
+
+Reviewer: security. Scope: `feature/backend` from `e73f70e` to `c25b735`: everything round 11 merged, about 86,000
+lines. That covers:
+- bug reports with screenshots, newsletter pictures, Home and the shell;
+- the notebook: pictures, files, ink, writing over PDFs and library files;
+- many boards per student: columns, labels, checklists, files, comments, reminders and templates;
+- each student's own calendar and its private .ics feed;
+- the Career Navigator editor with uploaded logos, and module art;
+- Daily: six puzzles, streaks, badges and an opt-in leaderboard;
+- the full /noora page and Noora's broadened prompt;
+- library covers (the text worker now renders untrusted PDFs and Word files), shelves, sittings and exam zones;
+- the `enable-features` and `dev-login` commands, `.github/workflows/railway.yml` and the deployment it checks.
+
+Every earlier finding was re-checked. No application code was changed.
+
+How it was checked:
+- Reading every new router and service, the web code that renders or stores what students write, and the deploy
+  files.
+- Proof tests, one or more per finding that can be shown in-process. All of them pass, which means each problem is
+  real. There are 18; the Linux-only one is skipped on macOS and runs in CI:
+  - `api/tests/notes/test_sec_review_r12.py` (SEC-36);
+  - `api/tests/core/test_sec_review_r12.py` (SEC-37, SEC-40, SEC-44);
+  - `api/tests/board/test_sec_review_r12.py` (SEC-38, SEC-39, SEC-45);
+  - `api/tests/daily/test_sec_review_r12.py` (SEC-41, SEC-45, SEC-46);
+  - `api/tests/content/test_sec_review_r12.py` (SEC-42, and the re-checks of SEC-19 and SEC-33);
+  - `api/tests/accounts/test_sec_review_r12.py` (the re-check of SEC-11).
+- SEC-33's re-check also ran in the production image on Linux: a throwaway `docker run --rm --network none` of
+  `dsba-hub-texts` with a made-up secret. No running container was touched.
+- A few read-only GETs to the Railway deployment that `railway.yml` checks (health, the API docs, the CSRF cookie,
+  the home page's headers and one Daily puzzle), to see which mode it runs in (SEC-43). Nobody signed in or up there.
+- `npm audit --omit=dev`: 1 high (SEC-48). Python is pinned with hashes: pypdf 6.20.1, pypdfium2 5.14.0, Pillow
+  12.3.0. `git grep` for keys finds only the tests' fakes, and round 11 added no email address or phone number.
+- Not done, as asked: no Docker restarts and no e2e run. Findings marked "unverified" come from reading the code.
+
+## Summary (round 11)
+
+**One major, no blocker.** Ownership holds everywhere round 11 added personal data:
+- another student's notebook, note, sheet, file, board, column, card, label, comment, reminder, calendar event or
+  Daily play answers 404, for reads and writes;
+- every new route declares its feature switch (bug reports have none, on purpose), and every write goes through the
+  CSRF check;
+- the new upload purposes keep the allowlist, the `incoming/` copy and the first-bytes check, except module art
+  (SEC-42);
+- nothing new renders HTML: `TeX` is still the only `dangerouslySetInnerHTML`.
+
+The problems are about how much one free account can store and load, a secret that lands in logs, and promises the
+copy makes:
+
+| ID | Severity | Owner | Status | Title |
+|---|---|---|---|---|
+| SEC-36 | **major** | notes (`services/notes.py:64`) | open | One free account keeps 250 MB of ink and text in Postgres, and every read loads all of it at once |
+| SEC-37 | minor | deployment (`api/Dockerfile:37`, `routers/feeds.py:20`) | open | The private calendar feed's secret is written to the API's access log on every poll |
+| SEC-38 | minor | boards (`services/board/common.py:33`) | open | No total on the text a student's boards hold: about 880 MB of rows per free account |
+| SEC-39 | minor | boards, uploads (`services/board/files.py:124`) | open | Detaching a board file gives its slot back to the 20-uploads-an-hour limit |
+| SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | open | Bug reports and their screenshots are left out of the export and outlive the account |
+| SEC-41 | minor | Daily (`services/daily/plays.py:165`) | open | Every Daily answer is available before the scored play, so anyone can top the leaderboard |
+| SEC-42 | minor | content (`schemas/modules.py:121`, `services/module_editor.py:217`) | open | Module art skips the picture rules: any address, and an upload that was never checked |
+| SEC-43 | minor | deployment (`.github/workflows/railway.yml:22`) | open (partly verified) | The public Railway dev deployment runs outside production mode |
+| SEC-44 | nit | bugs (`services/bugs.py:85`) | open | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
+| SEC-45 | nit | Daily, boards | open | Crafted input turns Daily and board requests into 500s |
+| SEC-46 | nit | Daily (`services/daily/content.py:61`) | open | Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones |
+| SEC-47 | nit | uploads (`routers/uploads.py:47`) | open (unverified) | The board and notebook quotas are checked before the upload lock |
+| SEC-48 | nit | web (`web/package.json:31`) | open (not reachable) | `npm audit`: pdf.js 5.7.284 has a high advisory |
+| SEC-33 | minor | content, deployment | **still open** (half fixed) | The reader's environment is empty, but it can read the worker's secrets from /proc |
+| SEC-27 | minor | notes | **reopened** (see SEC-36) | A free account's notes are no longer capped at 10 MB |
+| SEC-30, SEC-31, SEC-32 | | | **fixed** | Bare domains, Noora's chats on shared computers, lesson progress when off |
+| SEC-35 | nit | community | **fixed** (the rest is a product call) | Seniors: 30-day-old Year 3 accounts, no staff words or links |
+| SEC-34 | nit | Noora | open (unverified) | Uploaded papers' words still go in the system prompt |
+| SEC-19 | nit | content | open | `?mine=1&status=removed` still lists a student's removed files |
+| SEC-11 | nit | accounts | open | "A d m i n" still passes the staff-name rule |
+| SEC-14 | minor | Mohamed | partly fixed | The site-wide upload budget still waits on Mohamed (SEC-39 makes it matter more) |
+
+---
+
+## New findings (round 11)
+
+### SEC-36. One free account keeps 250 MB of ink and text in Postgres, and every read loads all of it at once (major; the outage is extrapolated, not run)
+
+- **Owner:** notes. **Where:**
+  - `api/app/services/notes.py:64`: `STORAGE_LIMIT = 250 * 1024 * 1024` is one budget for typed text, ink and files
+    together. All of it may be ink (`note_ink.strokes`) or text (`notes.doc`), which live in Postgres, not the
+    bucket. Round 11 (77e69b0) replaced SEC-27's 10 MB cap with it: 25 times as much.
+  - `api/app/schemas/notes.py:22-23`, `:78` and `:93`: a sheet may hold 4,000 strokes of 18,000 numbers, about
+    650 MB of JSON. The API has no byte cap of its own on a sheet or a request; only Caddy's
+    `request_body max_size 1MB` (`web/deploy/Caddyfile:34`) stops a big one.
+  - `notes.py:66` and `:510`: `SAVES_PER_MINUTE` counts saves of one note, not of one person. A note takes ink on
+    1,300 sheets, and 60 new notes are allowed an hour, so nothing slows the filling.
+  - `notes.py:286` (`to_out`, behind `GET /notes/{id}`) loads and checks every sheet of the note for one response,
+    and `services/accounts.py:823` (`GET /me/export`, no rate limit) loads every sheet of the account.
+  - `notes.py:88` (`storage_used`) re-serialises all the student's text (`octet_length(doc::text)`) on every
+    `GET /notebooks` and every save that changes text.
+- **What an attacker does:**
+  - They sign up with any address, open one note and save sheets of 0.97 MB each, which pass Caddy. About 260
+    requests put 250 MB in Postgres; in-process, 52 MB took 5 s.
+  - Then they call `GET /notes/{id}` and `GET /me/export` in parallel, in a loop. Measured in-process with 52.5 MB
+    of ink, the note read took 8.3 s and about 380 MB of Python allocations, 7 times the ink; the export took 4.4 s
+    and about 300 MB.
+  - At 250 MB that is about 40 s and 2 GB per request. A few at once would likely exhaust a small server's memory:
+    the `api` service has no memory limit in `compose.prod.yaml`, and the parsing holds Python's lock, so every
+    other request waits meanwhile. That last step was not run against a server.
+  - Each account also adds 250 MB to the database's disk and to every nightly backup.
+- **Proof:**
+  - `test_sec36_one_account_keeps_250_mb_of_ink_and_every_read_loads_all_of_it`: eleven saves under 1 MB each put
+    more than 10 MB in `note_ink` against a 250 MiB limit; one note read and two exports each return all of it; the
+    note read's memory peak is more than 4 times the ink.
+  - `test_sec36_the_api_takes_a_sheet_of_any_size_only_caddy_stops_it`: a 3 MB sheet is accepted in one request.
+- **Fix:**
+  - Split the budget: keep 250 MB for files in the bucket, and cap what lives in Postgres (ink and text) at about
+    25 MB per student, as two totals in `check_room`. A dense handwritten page is 50 to 100 KB.
+  - Cap one sheet in the API (for example `SHEET_MAX_BYTES = 512_000`, 422 above it), and lower `MAX_STROKES` and
+    `MAX_POINTS` to match.
+  - Count saves per person as well as per note.
+  - Make `GET /notes/{id}` return each sheet's number and version without its strokes, and add
+    `GET /notes/{id}/ink/{sheet}` for the web app to call as a sheet comes into view.
+  - Build the export in the background into the bucket and hand out a link, or stream it; allow it about 3 times an
+    hour.
+  - Keep a running byte total per student instead of re-summing `octet_length(doc::text)`.
+  - Give the `api` service a memory limit in `compose.prod.yaml`, so the worst case is a restart, not the server.
+
+### SEC-37. The private calendar feed's secret is written to the API's access log on every poll (minor)
+
+- **Owner:** deployment. **Where:**
+  - `api/Dockerfile:37`: the image starts uvicorn without `--no-access-log` or a log config of its own, so uvicorn's
+    default writes every request line, path included, to the container's output (`docker compose logs api`, and
+    Railway's log viewer).
+  - `api/app/routers/feeds.py:20`: the feed's secret is the path, `/api/v1/feeds/calendar/<secret>.ics`
+    (`services/my_calendar.py:228`).
+- **What happens:** a student subscribes Google, Outlook or Apple Calendar to their private feed. Each poll, every
+  few hours for as long as the subscription lasts, writes `GET /api/v1/feeds/calendar/<secret>.ics` to the log.
+  - Anyone who reads the logs (whoever has the server, Railway's project members, wherever the logs are shipped)
+    can open that student's calendar: their own events, with their notes and places, and the papers they sit.
+  - The baseline says logs carry no tokens. The feed is the one place the Hub puts a bearer secret in a URL path.
+  - Caddy writes no access log (the Caddyfile has no `log`), so production's only copy is the API's. On Railway,
+    the edge's HTTP logs may keep paths too (unverified).
+- **Proof:** `test_sec37_the_private_feeds_secret_is_written_to_the_apis_access_log` checks the Dockerfile's `CMD`,
+  starts uvicorn on the app with the image's defaults, polls a real feed as a calendar app does (200), and finds
+  `GET /api/v1/feeds/calendar/<secret>.ics HTTP/1.1` in the `uvicorn.access` log.
+- **Fix:**
+  - Add `--no-access-log` to the `CMD`; or keep access logs and install a `logging.Filter` on `uvicorn.access` (in
+    `app/main.py`) that writes `/api/v1/feeds/calendar/…` instead of the secret.
+  - Add a test that no access log line holds a feed secret.
+  - If Caddy ever gets a `log` directive, filter the path there too.
+
+### SEC-38. No total on the text a student's boards hold: about 880 MB of rows per free account (minor)
+
+- **Owner:** boards. **Where:**
+  - `api/app/services/board/common.py:33` and `:36`: `MAX_CARDS = 1000` over every board, `MAX_COMMENTS = 100` per
+    card.
+  - `api/app/schemas/board.py:27-29` and `:214`: a description holds 10,000 characters, a checklist 50 items of 200,
+    a comment 2,000.
+  - `api/app/services/board/cards.py:381` and `routers/board.py:211`: saving a card has no rate limit.
+  - `api/app/services/board/boards.py:117`: `storage_used()` counts file bytes only.
+- **What an attacker does:**
+  - A script makes 1,000 cards (about 8 hours at 120 an hour; revision plans' cards don't count against that) and
+    fills each description and checklist with 4-byte characters: about 80 KB a card, 80 MB an account.
+  - It then adds comments at 120 an hour (about 23 MB a day), up to 800 KB a card. In all, about 880 MB per
+    account, or 220 MB in plain ASCII.
+  - Accounts are free, so the server's disk and every nightly backup fill first. SEC-27 gave notes a total (raised
+    since, SEC-36); boards never had one.
+- **Proof:** `test_sec38_boards_hold_hundreds_of_megabytes_of_text_per_account`: 121 saves of one card in a row all
+  answer 200, one card stores more than 880,000 bytes (`octet_length` in Postgres), and `usage.storageBytes` stays 0.
+- **Fix:**
+  - Give boards a byte total per student, for example 10 MB: title, description, `checklist::text` and comments.
+    Check it under the student's lock when a card is made or saved and when a comment is added (409 `boards_full`).
+  - Or lower the limits: 2,000-character descriptions and 20 comments a card.
+  - Put a light limit on saving a card, for example 600 saves an hour.
+
+### SEC-39. Detaching a board file gives its slot back to the 20-uploads-an-hour limit (minor)
+
+- **Owner:** boards, uploads. **Where:**
+  - `api/app/services/uploads.py:241`: `check_rate()` counts the person's upload rows from the last hour,
+    "whatever became of them".
+  - `api/app/services/board/files.py:124`: `detach()` deletes the row (`db.delete(up)`). It is the only thing a
+    student can do that deletes upload rows.
+- **What an attacker does:** a script uploads a 50 MB board file, attaches it, detaches it and starts again. It never
+  meets the hourly limit, so one free account pushes any amount of data per hour through the bucket: S3 requests
+  and transfer on AWS, disk and bandwidth on a MinIO server. The 200 MB a student may keep is never exceeded.
+  The other per-hour limits on boards (cards, comments, boards, plans) count rows the same way, so deleting refills
+  them too, though only for the student's own rows.
+- **Proof:** `test_sec39_detaching_a_board_file_gives_its_slot_back_to_the_hourly_upload_limit`: the 21st upload
+  answers 429; then 20 more succeed in the same hour, one after each attach and detach.
+- **Fix:** count uploads in something a detach can't remove: keep the row with a `removed` status and the object
+  deleted (the sweep deletes the row later), or count presigned uploads in a small events table. This also makes the
+  site-wide budget (SEC-14) easier to add.
+
+### SEC-40. Bug reports and their screenshots are left out of the export and outlive the account (minor)
+
+- **Owner:** accounts, bugs. **Where:**
+  - `api/app/services/accounts.py:610`: `export_account()` has no bug reports, although Your account says the
+    download holds "Everything the Hub keeps about you" (`web/src/features/account/AccountPage.tsx:398`).
+  - `accounts.py:946`: `delete_account()` deletes attached uploads only for forum, board and note purposes, so a
+    report's screenshot stays in the bucket; `models/bugs.py:35` sets the report's `user_id` to NULL and keeps the
+    text and the browser. Your account says "Your personal data goes for good" (`AccountPage.tsx:410`).
+- **What happens:** a screenshot is a picture of the student's screen: often their name, sometimes their email
+  address, grades, notes or the Account page itself. The report holds what they wrote, the page and their browser
+  and screen size. After deletion, admins still see all of it, with no end date; the student never saw it in
+  their export. (Keeping it was a choice, `test_a_deleted_account_leaves_its_reports_and_their_screenshots`, but
+  the copy promises otherwise; ASVS V8.3.)
+- **Proof:** `test_sec40_a_students_bug_reports_and_screenshots_are_not_in_the_export_and_outlive_the_account`.
+- **Fix:**
+  - Add `bugReports` to the export: the words, page, version, browser, status, dates and the screenshot's name.
+  - On deletion, delete the person's bug screenshots (objects first, as for notes) and either delete their reports or
+    keep them without the browser line, and say which in the deletion dialog.
+  - Give screenshots an end: the sweep deletes those of reports closed more than 90 days ago.
+
+### SEC-41. Every Daily answer is available before the scored play, so anyone can top the leaderboard (minor)
+
+- **Owner:** Daily. **Where:**
+  - `api/app/services/daily/plays.py:165`: a guest's play is built from the `history` the browser sends, and
+    `GiveUpMove` (`schemas/daily.py:74`) ends it with the answer: the word (`games/word.py:108`), the target
+    (`games/nearest.py:171`), the grid, the groups or the word positions. Nothing is kept, so anyone can do it for
+    today's set, as often as they like, without an account.
+  - The answer banks are in the public repository (`api/app/services/daily/data/`): `quiz.json` holds 130 questions
+    with their right option, served in the file's order (`games/quiz.py:43`); `groups.json` lists every group;
+    `nearest_ranks.json` ranks every word against every target. The keyed seed (`content.py:61`) only hides which
+    item falls on which day.
+  - `plays.py:217`: "too fast" applies only when there is more than one move, the word game and Nearest neighbour
+    have `min_seconds = 0` (`games/base.py:34`), and the clock starts at the first kept move (`plays.py:206`), not
+    when the puzzle was first shown.
+- **What an attacker does:** a student gives up today's word in a private window and reads the answer. Signed in,
+  their first guess is the scored play: a one-move win, 100 points, `seconds: 0`, not too fast. They answer the
+  quiz and the groups from the repository, and Sudoku and the word search fall to any solver. They take the top
+  score every day, top the weekly and all-time boards with their name, and collect the badges. No personal data is
+  involved; the harm is a public ranking that rewards looking answers up.
+- **Proof:** `test_sec41_a_guest_gives_up_and_a_signed_in_player_scores_full_points_in_one_move` and
+  `test_sec41_the_public_repository_answers_todays_quiz`.
+- **Fix:**
+  - A play that isn't kept gets no answer for today: a guest's give-up or loss returns `answer: null` ("Sign in to
+    see the answer, or come back tomorrow"). Past days can still show it.
+  - Start the clock when a signed-in player first opens today's puzzle (create the row then), and apply "too fast"
+    to one-move wins too.
+  - Shuffle each quiz question's options with the day's keyed random generator.
+  - Move the answer banks out of the public repository (into the bucket, loaded at start-up).
+  - Or decide the board is just for fun, and say so on it.
+
+### SEC-42. Module art skips the picture rules: any address, and an upload that was never checked (minor)
+
+- **Owner:** content. **Where:**
+  - `api/app/schemas/modules.py:121` and `:133`: `art_url` is `Link`, a bare string of up to 500 characters with no
+    rule. The web app puts it straight into `<img src>` on the catalogue, Home, the forum, the calendar and
+    Electives (`web/src/ui/moduleArtSrc.ts:24`).
+  - `api/app/services/module_editor.py:217`: `_attach_art()` marks any `module_art` upload attached, whatever its
+    status, a pending one too. `/media` then serves it to everyone (`services/uploads.py:418`) from its
+    `incoming/<id>` key.
+  - `api/migrations/versions/20261016_0026_module_art.py` added `modules.art_url` but not `'module_art'` to
+    `ck_uploads_uploadpurpose` (last set by `20261014_0023`, `:106`). In any database built from the migrations, a
+    module art upload is an IntegrityError, a 500. No test covers module art, and the drift test doesn't compare
+    CHECK constraints.
+- **What a content editor can do (staff only, hence minor):**
+  - Point a module's picture at another host, so every visitor's browser calls it with their address. Production's
+    CSP blocks other hosts in `img-src`, but not `data:` images, and it applies only where the Caddyfile serves the
+    app. The rule in `core/links.py` (pictures from the Hub only) exists for exactly this.
+  - Once the CHECK is fixed: start a module art upload, POST any bytes as `image/png`, never call `complete`, and
+    name it as the art. The first-bytes check never runs, and the object stays rewritable through the presigned POST
+    until it expires; the bucket's lifecycle rule then deletes it after a day, leaving a broken picture.
+- **Proof:**
+  - `test_sec42_a_modules_art_url_takes_any_address_and_every_visitor_loads_it`: another host, `data:`,
+    `javascript:` and `//host` are all stored and served.
+  - `test_sec42_module_art_uploads_fail_the_databases_purpose_check`.
+  - `test_sec42_an_upload_that_was_never_checked_becomes_module_art_and_media_serves_it`: with the CHECK dropped
+    inside the test's own transaction, a guest's `/media` redirect points at `incoming/<id>`.
+- **Fix:**
+  - Type `art_url` as `PictureSrc` (`app/schemas/links.py`): an uploaded image or a file of the web app.
+  - In `_attach_art()`, accept only a `module_art` upload that is `uploaded` or `attached` (422 on `artUrl`
+    otherwise), and release the module's previous art so the sweep removes it.
+  - Add a migration that puts `'module_art'` in `ck_uploads_uploadpurpose`, a test that every `UploadPurpose` value
+    can be stored, and tests for module art.
+  - Serve module art only while a visible module uses it, like newsletter pictures.
+
+### SEC-43. The public Railway dev deployment runs outside production mode (minor; partly verified)
+
+- **Owner:** deployment. **Where:**
+  - `.github/workflows/railway.yml:22` names `https://web-dev-254f.up.railway.app`, in a public repository.
+  - That deployment answers `GET /api/v1/docs` and `/api/v1/openapi.json` with 200, which happens only when
+    `DSBA_ENV` isn't `production` (`app/main.py:39`). So `Settings.production_problems()` (`config.py:242`) never ran
+    there, and `dev-login` and `enable-features` (`cli.py:456`, `:490`) work there.
+- **What it means:** nothing checks that deployment's settings, and two of development's behaviours are risky on the
+  internet:
+  - with the console backends, development writes every email and text in full, sign-in codes included, to the log
+    (`services/mailer.py:105`, `services/sms.py:95`);
+  - `dev-login` makes a 7-day session for any account, admin included, with no audit row, for anyone with Railway
+    shell access.
+  - What was seen from outside is better: both cookies are `__Host-` and Secure, and the web app has the Caddyfile's
+    CSP. A Daily grid served there differs from the one the public development secret makes, so it probably has its
+    own `DSBA_SECRET_KEY` (not conclusive).
+  - Not visible from outside, so unverified: the mail and SMS backends, raised limits, the S3 keys, and
+    `DSBA_TRUSTED_PROXIES`. If that is empty, every visitor shares Caddy's address: wrong codes for one email lock
+    that email out for everyone, and the per-network code limit is shared by all.
+  - `railway.yml` has no `permissions:` block, so its token gets the repository's defaults; it needs none.
+- **Proof:** read-only GETs: `/api/v1/health` 200, `/api/v1/docs` 200, `/api/v1/openapi.json` 200.
+- **Fix:**
+  - Run it with `DSBA_ENV=production` and the settings that asks for. The API then refuses anything unsafe, and both
+    commands refuse to run.
+  - If it must stay in development, keep it off the public internet (Railway's private networking, or basic auth in
+    its Caddy) and use only made-up accounts there.
+  - Make `dev-login` record an audit row, and add `permissions: {}` to `railway.yml`.
+
+### SEC-44. Guests' bug reports have no hub-wide cap, and each one notifies every admin (nit)
+
+- **Owner:** bugs. **Where:** `api/app/services/bugs.py:85`: guests get 5 reports an hour per network (an IPv6 /64)
+  and nothing hub-wide; `:143` notifies every active admin of each one. Each report stores up to 4,300 characters.
+- **What happens:** one home or phone connection with a /56 has 256 /64s: 1,280 reports an hour, each a notification
+  for every admin, burying real reports and real notifications. It is the only guest write that reaches staff.
+- **Proof:** `test_sec44_guests_on_many_networks_send_admins_reports_without_a_hub_wide_cap`: six /64s send 30
+  reports, and each admin gets 30 notifications.
+- **Fix:** a hub-wide cap on guest reports (for example 30 an hour; past it, 429 with "Sign in to report"), and one
+  notification per admin while unread ones of the kind are waiting ("12 new bug reports").
+
+### SEC-45. Crafted input turns Daily and board requests into 500s (nit)
+
+- **Owner:** Daily, boards. **Where:**
+  - `api/app/services/daily/plays.py:80` and `:165` replay a guest's `history` (up to 400 moves) without checking
+    `max_moves` or whether the play is over: a sixth quiz answer runs past five questions (`games/quiz.py:130`,
+    IndexError), and a hint after a full Sudoku finds no empty cell (`games/sudoku.py:51`, ValueError).
+  - `plays.py:269`: `/daily/calendar?month=9999-12` overflows (OverflowError).
+  - `api/app/services/board/reminders.py:41`: a reminder on a card due in year 1 overflows; `due_date` takes any date
+    (`schemas/board.py:197`, `:209`).
+- **What happens:** anyone, without an account for the Daily ones, gets a 500 and writes a traceback to the log. No
+  data leaks; a script can flood the log. Same class as SEC-5.
+- **Proof:** `test_sec45_crafted_guest_histories_and_months_end_in_500s` and
+  `test_sec45_a_reminder_on_a_card_due_in_year_1_crashes_the_request`.
+- **Fix:** `_replay` stops with 422 `game_over` at a move after the end or past `max_moves`; the quiz and the Sudoku
+  hint refuse with `bad_move`; `calendar_of` refuses years outside 2026 to next year; `due_date` is limited to
+  2000-2100 (422 on `dueDate`).
+
+### SEC-46. Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones (nit)
+
+- **Owner:** Daily. **Where:** `api/app/services/daily/content.py:61` seeds every daily choice from
+  `DSBA_SECRET_KEY` (Search and Sudoku cache their puzzle under it: `games/search.py:131`, `games/sudoku.py:75`);
+  `plays.py:151`, `:165` and `:171` replay a kept play against whatever the current key makes, and price it again
+  when it finishes (`:214-218`).
+- **What happens:** changing the key is the response to a leak. Afterwards a won, scored word play shows as
+  `playing`; the student guesses the new answer and the same scored row is finished and priced a second time.
+  Because rotating the key breaks Daily, people may put it off.
+- **Proof:** `test_sec46_rotating_the_secret_key_reopens_a_finished_scored_play`: won for 100, `playing` after the
+  change, won again for 90, still scored.
+- **Fix:** seed Daily from a stable `DSBA_DAILY_SEED` of its own, or store each day's puzzle ids in a `daily_sets`
+  table the first time the day is made; never price a play that already has `finished_at`.
+
+### SEC-47. The board and notebook quotas are checked before the upload lock (nit, unverified)
+
+- **Owner:** uploads. **Where:** `api/app/routers/uploads.py:47` and `:49` run `board_files.check_storage()` and
+  `notes.check_upload()` before `create_upload()` (`:50`), which takes the `uploads:{user}` advisory lock.
+- **What happens:** up to 20 parallel `POST /uploads`, each declaring 50 MB, can all read the same total and all
+  pass: up to 1 GB against the board's 200 MB. Not shown: the tests share one database connection.
+- **Fix:** take `ratelimit.lock(db, f"uploads:{user.id}")` first, or move both checks into `create_upload()` after
+  `check_rate()`.
+
+### SEC-48. `npm audit`: pdf.js 5.7.284 has a high advisory (nit, not reachable)
+
+- **Owner:** web. **Where:** `web/package.json:31` (`pdfjs-dist` `^5.7.284`, locked at 5.7.284).
+  GHSA-hq66-cqwq-w95j (CVE-2026-16633): arbitrary JavaScript when a PDF is opened with `enableScripting` on and no
+  CSP; fixed in 6.2.108.
+- **Why it is a nit:** the notebook only draws pages to a canvas (`web/src/features/notes/surface/PdfPage.tsx:38`),
+  with no annotation layer, so pdf.js's `enableScripting` stays off (it is opt-in outside its own viewer).
+  Production's CSP has no `unsafe-inline` or `unsafe-eval` either.
+- **Fix:** move to pdfjs-dist 6.4 or later, and pass `isEvalSupported: false` and `enableXfa: false` to
+  `getDocument()` (`web/src/features/notes/pdf.ts:48`), so the next pdf.js advisory doesn't depend on the CSP.
+
+---
+
+## Earlier findings, re-checked (round 11)
+
+- **SEC-33 (still open; half fixed).** `paper_text.py:91` gives the reader `PATH` and `PYTHONPATH` only, and
+  `:121` uses it. But the reader runs as the same user as the text worker, and on Linux a process may read
+  `/proc/<pid>/environ` of another process of its own user. Code running in the reader reads every secret back from
+  its parent, and `compose.prod.yaml` still gives `texts` the API's whole environment (`<<: *api`).
+  - Proof: `test_sec33_the_reader_runs_as_the_worker_so_it_can_read_the_workers_secrets` (Linux only; it runs in
+    CI). Also run in the production image (`docker run --rm --network none … dsba-hub-texts`, user 10001): the child
+    read the made-up `DSBA_SECRET_KEY` and the database password from its parent.
+  - Fix: in the text worker, before it starts readers, call `prctl(PR_SET_DUMPABLE, 0)` (one `ctypes` call): its
+    `/proc` files then need `CAP_SYS_PTRACE`, which the reader doesn't have. Give `texts` only the database URL and the
+    S3 settings, ideally a database role that can only read `library_items` and write `library_texts`, and S3 keys
+    that can only read `library/` and write `covers/`.
+- **SEC-27 (reopened).** `MAX_BYTES = 10_000_000` became `STORAGE_LIMIT = 250 MiB` for text, ink and files together.
+  See SEC-36.
+- **SEC-30 (fixed).** `notify.py:41` catches bare domains, `?query`, `:port` and the full-width dots;
+  `tests/accounts/test_sec_review_r10.py` now checks it.
+- **SEC-31 (fixed).** Noora's chats are `hub.mine.noora.chats` (localStorage) and `hub.mine.noora.chat`
+  (sessionStorage), which sign-out and deletion clear; `web/src/auth/secReviewR10.test.ts` checks it.
+- **SEC-32 (fixed).** Progress is hidden while tracking is off and kept for when it's on again, as the copy now says;
+  `tests/board/test_sec_review_r10.py` checks it.
+- **SEC-35 (fixed in code).** A Year 3 account lists itself once it is 30 days old, and the line can't claim a staff
+  role or hold a link. A rep confirming each senior stays Mohamed's call.
+- **SEC-34 (open, unverified).** `ask.py:279` still appends the paper's block to the system prompt.
+- **SEC-19 (open, nit).** `library.py:309` still returns `[ItemStatus(f.status)]` for `mine`, `removed` included.
+  Proof: `test_sec19_your_files_still_lists_removed_ones`.
+- **SEC-11 (open, nit).** `looks()` (`accounts.py:366`) still keeps spaces and hyphens. Proof:
+  `test_sec11_a_spaced_out_staff_word_is_still_a_display_name` ("A d m i n", "Ad-min", "D S B A Team" and
+  "Student R e p" are all accepted).
+- **SEC-14 (partly fixed).** Unchanged; SEC-39 means a single account's hourly throughput has no ceiling either.
+- **SEC-1 to SEC-10, SEC-12, SEC-13, SEC-15 to SEC-18, SEC-20 to SEC-26, SEC-28, SEC-29 (fixed, still).** Round 11
+  didn't change sessions, CSRF, OTP, headers or the settings checks. Noora's budget, locking and step-up are as they
+  were; her longest answer went from 700 to 1,500 tokens (`config.py:159`), which doubles each answer's reserved
+  worst case against the monthly budget.
+
+## What round 11 added: checked and sound
+
+- **Your own calendar.**
+  - Events and settings are found by `user_id`; another student's event answers 404.
+  - The feed's secret is an HMAC under the server key of the account and a random 128-bit salt (256 bits, 43
+    characters). It is found by its SHA-256, compared in constant time, and never stored.
+  - A new link retires the old one, "Turn the link off" works, and the feed follows the calendar switch.
+  - The feed answers `private, no-store`, `no-referrer` and `noindex`; text is escaped (`ics_text`); the secret is in
+    no page URL, no ICS line and no email, and the service worker never touches `/api`. SEC-37 is the one leak.
+  - 500 events at most, 60 new ones an hour, lists of 300 at most; reminders go to the owner only, in the Hub.
+- **Bug reports.** Admins alone list and triage them, audited; the reporter is a `UserPublic`. A screenshot must be
+  the reporter's own unused `bug_screenshot` (PNG, JPEG or WebP, checked), and `/media` shows it to its uploader and
+  admins only. `pageUrl` must be a page of the Hub and is linked through `safeInternalPath`. A guest's address is
+  forgotten after a day. Admins are told in the Hub only, never by email.
+- **Career Navigator editor.** `career.edit` on the whole document and every save; saves name a version (409
+  otherwise) and are audited with what changed. Hidden parts are left out of the public document. Links are https or
+  Hub pages. Logos are PNG, JPEG or WebP (never SVG), up to `DSBA_MAX_IMAGE_MB`, checked by their first bytes, and
+  shown to everyone only while the document uses them.
+- **Newsletter pictures.** Only `newsletter.manage` uploads them; an issue takes only checked newsletter pictures,
+  through `PictureSrc`, with alt text; everyone sees one only once a published issue shows it.
+- **Notebook.** Every note and notebook query filters on `user_id`, moves into another student's notebook answer 404,
+  and there are no bulk endpoints. `/notes/files/{id}` serves only the caller's own live `note_file` uploads, with
+  the allowlist's type, inline only for PDFs and pictures, and never as an open redirect. Writing over a library
+  file needs a published PDF the student can see; nothing is copied, and it stops once the file isn't published.
+  Typed text allows only the editor's own nodes and plain attributes, 24 levels and 400 KB, and http, https or
+  mailto links. The export holds notebooks, notes, ink and file names; deletion removes them and their files.
+  Drafts sit under `hub.mine.notes.`.
+- **Boards.** Every board, column, card, label, comment, file and plan loads through a `user_id` check; foreign ids in
+  moves, `afterId`, `labelIds` and plans are refused. Only the student's own checked `board` upload attaches;
+  `/board-files/{id}` serves the owner only, while the file is on a card. Templates are a server-side list.
+  Reminders reach the owner only, in the Hub. Descriptions, comments and checklists render as plain text. The export
+  holds all of it.
+- **Daily.** While a play is live, no game sends its answer. A signed-in play is replayed from stored moves (the
+  client's `history` is ignored), each game takes only its own moves, and `max_moves` holds. The server decides the
+  one scored play per game and day under a lock, with a unique index behind it. Times come from the server clock.
+  The leaderboard is opt-in, rebuilt on every request (opting out removes past weeks), active accounts only, and
+  `UserPublic` only. The export holds plays and the board choice; deletion removes both.
+- **The /noora page.** Chats stay in the browser under `hub.mine.`; attached files never leave it. Added context is
+  loaded on the server (visible modules, published papers) or is the student's own note. The broadened prompt keeps
+  the rules: no live assessments, no harm, and nothing inside `<student_note>` or `<hub_data>` is an instruction.
+- **Covers.** Only published PDF and Word files up to 60 MB are read, in the child with 60 s and 1 GB (Linux).
+  PDFium draws the first page at most 360 pixels wide; a Word thumbnail is JPEG or PNG, at most 4 MB unpacked and
+  40 megapixels, with Pillow's bomb warnings as errors; the cover is at most 256 KB of WebP. Covers are served through
+  `get_visible()` and deleted with the file by the sweep.
+- **Commands.** `dev-login` and `enable-features` refuse in production; `enable-features` writes an audit row for each
+  switch.
+- **Service worker.** Unchanged: the new pages are navigations that get the shell, and `/api`, other origins and
+  non-GETs go to the network untouched.
+
+## Outside security, noticed on the way
+
+- **Lost pictures in notes.** A picture pasted into a second note stays attached to the first; deleting the first
+  marks it unused, and the sweep deletes it a day after upload while the second note still shows it. Fix:
+  `_let_go_of_files` keeps uploads that another of the student's notes shows.
+- **Module art can't be uploaded** in any migrated database (SEC-42).
+- **Board reminders link to `/board?b=…`** (`services/board/reminders.py:81`), but the board page reads `?board=`.
+- **The mail worker's loop** (`services/outbox.py:233-251`) catches only `SQLAlchemyError`: any other exception from
+  the Sunday summary or the reminder jobs would stop all notification email (no input found that raises one).
+- **Partner logos.** 4e11d03 put the BIBF, University of London and myclass logos in the sidebar after round 9 had
+  taken partner logos out. Real logos make the Hub look official, which helps a look-alike phishing page too.
+  Whether to show them, and with whose permission, is Mohamed's call.
+- **`hub.timeMe.<item>`** (the exam timer) isn't under `hub.mine.`, so sign-out leaves which papers were timed.
+
+## Top three things to do (round 11)
+
+1. **Cap what one account keeps in Postgres, and stop loading it all at once (SEC-36, SEC-38).** Split the notebook's
+   budget (files in the bucket, about 25 MB of ink and text), cap a sheet in the API, load sheets one by one, build
+   the export in the background, give boards a byte total, and give the `api` service a memory limit.
+2. **Keep secrets out of logs and out of the reader's reach (SEC-37, SEC-33, SEC-43).** Run uvicorn with
+   `--no-access-log` (or filter the feed path), make the text worker non-dumpable and give `texts` only what it
+   needs, and run the Railway deployment in production mode or keep it private.
+3. **Close the upload gaps (SEC-39, SEC-42, SEC-47).** Count uploads in a way detaching can't undo, check quotas under
+   the upload lock, and put module art through `PictureSrc`, the completed-upload check and a migration that adds
+   `'module_art'` to the purpose CHECK. Then make the export and deletion cover bug reports (SEC-40).
+
+---
+
 # Security review: rounds 5 to 9
 
 Reviewer: security. Scope: `feature/backend` from `53b7387` (the round 4 review's snapshot) to `6c90aa9`, everything
