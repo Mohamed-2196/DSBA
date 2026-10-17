@@ -11,9 +11,15 @@ ARG VITE_CSRF_COOKIE=__Host-dsba_csrf
 # (docs/backend/DEPLOYMENT.md, section 9); an empty host means https://us.i.posthog.com.
 ARG VITE_POSTHOG_KEY=
 ARG VITE_POSTHOG_HOST=
+# The commit the app is built from: its version in the footer and in index.html, where the deploy check
+# (scripts/check-deploy.sh) reads it. Railway passes RAILWAY_GIT_COMMIT_SHA to a build that declares it;
+# VITE_APP_VERSION, when given, wins.
+ARG RAILWAY_GIT_COMMIT_SHA=
+ARG VITE_APP_VERSION=
 ENV VITE_CSRF_COOKIE=${VITE_CSRF_COOKIE} \
     VITE_POSTHOG_KEY=${VITE_POSTHOG_KEY} \
-    VITE_POSTHOG_HOST=${VITE_POSTHOG_HOST}
+    VITE_POSTHOG_HOST=${VITE_POSTHOG_HOST} \
+    VITE_APP_VERSION=${VITE_APP_VERSION:-$RAILWAY_GIT_COMMIT_SHA}
 RUN npx tsc -p tsconfig.json \
     && npx vite build --logLevel warn \
     && node deploy/csp-hashes.mjs dist/index.html > /app/csp-script-hashes
