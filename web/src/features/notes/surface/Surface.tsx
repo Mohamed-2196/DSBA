@@ -563,7 +563,7 @@ export function Surface({
             <button type="button" onClick={duplicate}>
               <Copy aria-hidden="true" /> Duplicate
             </button>
-            <button type="button" onClick={recolour} title={`Make it the ${pens.pen.color === pens.highlighter.color ? 'chosen' : 'pen’s'} colour`}>
+            <button type="button" onClick={recolour} title="Give it the colours the pen and the highlighter have now">
               <PaintBucket aria-hidden="true" /> Recolour
             </button>
             <button type="button" onClick={removeSelection} className="is-danger">
