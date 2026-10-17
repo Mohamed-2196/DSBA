@@ -4,7 +4,8 @@ import { ArrowSquareOut } from '@phosphor-icons/react';
 import { useAuth } from '../auth';
 import { BREAKPOINTS, useMediaQuery } from '../state';
 import { Badge, BrandLogo, HubLogo, Tooltip, cx } from '../ui';
-import { EXTERNAL_LINKS, NAV, type ExternalLink, type NavItem as NavConfig } from './nav';
+import { NAV, type NavItem as NavConfig } from './nav';
+import { usePortalLinks, type PortalLink } from './portals';
 import { visibleNav } from './visibility';
 import { YearSwitcher } from './YearSwitcher';
 import { ThemeToggle } from './ThemeToggle';
@@ -45,7 +46,7 @@ function NavItem({ item, collapsed }: { item: NavConfig; collapsed: boolean }) {
   );
 }
 
-function ExternalItem({ item, collapsed }: { item: ExternalLink; collapsed: boolean }) {
+function ExternalItem({ item, collapsed }: { item: PortalLink; collapsed: boolean }) {
   const a = (
     <a
       href={item.href}
@@ -79,6 +80,7 @@ function ExternalItem({ item, collapsed }: { item: ExternalLink; collapsed: bool
 export function Sidebar() {
   const collapsed = useMediaQuery(BREAKPOINTS.tablet);
   const { featureOn, me } = useAuth();
+  const portals = usePortalLinks();
   return (
     // The column wrapper runs the full page height (surface + border); the rail inside is sticky.
     <div className="shell-rail-col">
@@ -106,7 +108,7 @@ export function Sidebar() {
 
           <nav className="shell-rail__links" aria-label="Student portals">
             <ul role="list">
-              {EXTERNAL_LINKS.map((item) => (
+              {portals.map((item) => (
                 <li key={item.id}>
                   <ExternalItem item={item} collapsed={collapsed} />
                 </li>

@@ -27,7 +27,8 @@ export interface Draft {
   year: 1 | 2 | 3;
   description: string;
   icon: string;
-  artUrl: string | null;
+  /** a picture of the app or an uploaded image (ModuleEdit.art), or null for none */
+  art: string | null;
   hidden: boolean;
   chapters: DraftChapter[];
 }
@@ -49,7 +50,7 @@ export function toDraft(m: ModuleEdit): Draft {
     year: m.year,
     description: m.description,
     icon: m.icon ?? '',
-    artUrl: m.artUrl ?? null,
+    art: m.art,
     hidden: m.hidden,
     chapters: m.chapters.map((ch) => ({
       key: `c-${ch.id}`,
@@ -70,6 +71,8 @@ export function toDraft(m: ModuleEdit): Draft {
 
 const orNull = (s: string) => (s.trim() ? s.trim() : null);
 const isIcon = (s: string): s is IconName => (MODULE_ICONS as readonly string[]).includes(s);
+/** The icon as the API takes it: one of MODULE_ICONS, or null for the default book. */
+export const iconName = (s: string): IconName | null => (isIcon(s) ? s : null);
 
 export function toSave(d: Draft, version: number): ModuleSave {
   return {
@@ -79,8 +82,8 @@ export function toSave(d: Draft, version: number): ModuleSave {
     shortName: d.shortName.trim(),
     year: d.year,
     description: d.description.trim(),
-    icon: isIcon(d.icon) ? d.icon : null,
-    artUrl: d.artUrl ? d.artUrl.trim() : null,
+    icon: iconName(d.icon),
+    art: d.art,
     hidden: d.hidden,
     chapters: d.chapters.map((ch) => ({
       title: ch.title.trim(),
