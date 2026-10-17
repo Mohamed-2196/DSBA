@@ -1,6 +1,7 @@
 """Test harness shared by every area (owned by the lead; areas add their own fixtures in tests/<area>/conftest.py).
 
-- A throw-away Postgres database per test run (DSBA_TEST_ADMIN_URL), migrated with Alembic.
+- A throw-away Postgres database per test run (DSBA_TEST_ADMIN_URL), migrated with Alembic; with pytest-xdist
+  (`-n 4`, as scripts/check.sh runs it) each worker makes its own.
 - Each test runs inside a transaction that is rolled back afterwards: handlers' commits are savepoints.
 - S3 is moto's in-process mock, its bucket made once for the run: a "browser upload" in a test is
   storage.client.put_object(...).
