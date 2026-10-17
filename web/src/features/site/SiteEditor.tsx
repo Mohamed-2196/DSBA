@@ -11,14 +11,17 @@ import { useModules } from '../../state/modules';
 import { Chip, Drawer, IconButton, Panel, QueryError, Select, Skeleton, TextArea, TextField, cx } from '../../ui';
 import { MarkdownEditor } from '../forum/public';
 import { useReloadSite, useSaveSite, useSiteForEditing } from './api';
+import { HOME_BLOCKS } from '../home/public';
+import { TourStepCard } from '../onboarding/public';
 import { AboutMain } from './AboutPage';
+import { HomeTourSection, SearchSection } from './HomeAndSearch';
 import { docErrors, hasErrorUnder } from './editor/errors';
 import { focusDocStatus, newItemId } from './editor/doc';
 import { DocFrame, ListEditor, type DocProblem } from './editor/kit';
 import { contributorLine, copyrightYears, type SiteLinkKey } from './lib/site';
 import './Site.css';
 
-type Section = 'links' | 'about' | 'people' | 'notes' | 'footer';
+type Section = 'links' | 'about' | 'people' | 'notes' | 'footer' | 'home' | 'search';
 
 const SECTIONS: { id: Section; label: string; about: string; parts: string[] }[] = [
   { id: 'links', label: 'Links', about: 'The sites the hub sends students to. The sidebar shows MyClass’s and the University’s logos beside the first two.', parts: ['links'] },
@@ -26,6 +29,8 @@ const SECTIONS: { id: Section; label: string; about: string; parts: string[] }[]
   { id: 'people', label: 'Contributors', about: 'The people who built the hub and supplied its materials, in the footer and on About, in this order.', parts: ['contributors'] },
   { id: 'notes', label: 'Students who shared notes', about: 'Credited by name on About; each module links to its notes in the library.', parts: ['noteCredits'] },
   { id: 'footer', label: 'Footer and notes', about: 'The footer’s words, and the note under every class the grades calculator works out.', parts: ['tagline', 'disclaimer', 'copyrightHolder', 'launchYear', 'gradesNote'] },
+  { id: 'home', label: 'Home and the tour', about: 'Home for a student who hasn’t arranged their own, and the steps of the tour a new student may take.', parts: ['homeBlocks', 'tour'] },
+  { id: 'search', label: 'Search', about: 'Other words students type for modules, and what search suggests before anything is typed.', parts: ['searchNicknames', 'searchSuggestions'] },
 ];
 
 const LINKS: { key: SiteLinkKey; title: string }[] = [
@@ -61,7 +66,10 @@ function Editor({ loaded, section, setSection }: { loaded: SiteEditable; section
   const reload = useReloadSite();
   const { push: toast } = useToast();
   const dirty = useMemo(() => JSON.stringify(doc) !== JSON.stringify(saved), [doc, saved]);
-  const savedIds = useMemo(() => new Set([...saved.contributors.map((c) => c.id), ...saved.noteCredits.map((n) => n.id)]), [saved]);
+  const savedIds = useMemo(
+    () => new Set([...saved.contributors.map((c) => c.id), ...saved.noteCredits.map((n) => n.id), ...saved.tour.map((t) => t.id), ...saved.searchNicknames.map((n) => n.id)]),
+    [saved],
+  );
   const set = (patch: Partial<SiteDoc>) => setDoc((d) => ({ ...d, ...patch }));
   const err = (path: string) => fields[path];
 
@@ -77,7 +85,7 @@ function Editor({ loaded, section, setSection }: { loaded: SiteEditable; section
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'site_changed') return setProblem({ kind: 'changed', what: 'the site settings' });
-          const found = docErrors(isApiError(e) ? e.fields : {}, ['contributors', 'noteCredits']);
+          const found = docErrors(isApiError(e) ? e.fields : {}, ['contributors', 'noteCredits', 'tour', 'searchNicknames']);
           setFields(found.fields);
           const marked = Object.keys(found.fields).length ? ['Some fields need a look before saving. They’re marked below.'] : [];
           setProblem({ kind: 'other', messages: [...found.general, ...marked].length ? [...found.general, ...marked] : [errorMessage(e)] });
@@ -144,6 +152,8 @@ function Editor({ loaded, section, setSection }: { loaded: SiteEditable; section
           </ListEditor>
         ) : null}
         {section === 'notes' ? <NotesSection doc={doc} set={set} fields={fields} savedIds={savedIds} /> : null}
+        {section === 'home' ? <HomeTourSection doc={doc} set={set} err={err} fields={fields} savedIds={savedIds} /> : null}
+        {section === 'search' ? <SearchSection doc={doc} set={set} err={err} fields={fields} savedIds={savedIds} /> : null}
         {section === 'footer' ? (
           <div className="dedit-grid">
             <TextArea className="dedit-grid__wide" label="Who makes the hub" hint="The footer’s line under the logo." value={doc.tagline} onChange={(e) => set({ tagline: e.target.value })} error={err('tagline')} rows={2} maxLength={300} required />
@@ -166,13 +176,45 @@ function Editor({ loaded, section, setSection }: { loaded: SiteEditable; section
         ) : null}
       </DocFrame>
 
-      <Drawer open={previewing} onClose={() => setPreviewing(false)} title="Preview" description="About and the footer with your changes, as everyone will see them once you save." width="min(1100px, 100vw)">
+      <Drawer open={previewing} onClose={() => setPreviewing(false)} title="Preview" description="The site settings with your changes, as everyone will see them once you save." width="min(1100px, 100vw)">
         {previewing ? (
           <div className="dedit-preview">
-            <p className="dedit-preview__label">About</p>
-            <AboutMain site={doc} numbers={false} />
-            <p className="dedit-preview__label">Footer</p>
-            <FooterPreview site={doc} />
+            {section === 'home' ? (
+              <>
+                <p className="dedit-preview__label">Home for a new student, in order</p>
+                <ol className="site-preview__blocks">
+                  {doc.homeBlocks.map((b) => (
+                    <li key={b}>{HOME_BLOCKS[b].title}</li>
+                  ))}
+                </ol>
+                <p className="dedit-preview__label">The tour</p>
+                {doc.tour.map((step, i) => (
+                  <TourStepCard key={step.id} step={step} n={i + 1} of={doc.tour.length} />
+                ))}
+              </>
+            ) : section === 'search' ? (
+              <>
+                <p className="dedit-preview__label">Try searching for</p>
+                <ul role="list" className="site-preview__chips">
+                  {doc.searchSuggestions.map((q) => (
+                    <li key={q}>{q}</li>
+                  ))}
+                </ul>
+                <p className="dedit-preview__label">Other words for modules</p>
+                <ul className="site-preview__blocks">
+                  {doc.searchNicknames.map((n) => (
+                    <li key={n.id}>{`${n.word}: modules named “${n.finds}…”`}</li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <>
+                <p className="dedit-preview__label">About</p>
+                <AboutMain site={doc} numbers={false} />
+                <p className="dedit-preview__label">Footer</p>
+                <FooterPreview site={doc} />
+              </>
+            )}
           </div>
         ) : null}
       </Drawer>

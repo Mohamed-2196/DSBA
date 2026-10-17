@@ -39301,6 +39301,36 @@
         ],
         "title": "SearchHit"
       },
+      "SearchNickname": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "word": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9]{1,20}$",
+            "title": "Word"
+          },
+          "finds": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^[A-Za-z0-9]+(?: [A-Za-z0-9]+)*$",
+            "title": "Finds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "word",
+          "finds"
+        ],
+        "title": "SearchNickname",
+        "description": "A word students type for modules: search also finds the modules with a word of their name starting with\n`finds` ('stats' finds every module named \"\u2026 statistics \u2026\")."
+      },
       "SearchResults": {
         "properties": {
           "query": {
@@ -39775,6 +39805,58 @@
             "maximum": 2100.0,
             "minimum": 2000.0,
             "title": "Launchyear"
+          },
+          "homeBlocks": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "start_here",
+                "results_day",
+                "coming_up",
+                "todo",
+                "continue",
+                "modules",
+                "files",
+                "forum",
+                "noora",
+                "daily_question",
+                "help_below",
+                "newsletter",
+                "daily"
+              ]
+            },
+            "type": "array",
+            "maxItems": 13,
+            "minItems": 1,
+            "title": "Homeblocks"
+          },
+          "tour": {
+            "items": {
+              "$ref": "#/components/schemas/TourStep"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Tour"
+          },
+          "searchNicknames": {
+            "items": {
+              "$ref": "#/components/schemas/SearchNickname"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Searchnicknames"
+          },
+          "searchSuggestions": {
+            "items": {
+              "type": "string",
+              "maxLength": 60,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 6,
+            "minItems": 1,
+            "title": "Searchsuggestions"
           }
         },
         "type": "object",
@@ -39788,7 +39870,11 @@
           "gradesNote",
           "disclaimer",
           "copyrightHolder",
-          "launchYear"
+          "launchYear",
+          "homeBlocks",
+          "tour",
+          "searchNicknames",
+          "searchSuggestions"
         ],
         "title": "SiteDoc"
       },
@@ -41497,6 +41583,47 @@
         },
         "type": "object",
         "title": "ThreadUpdate"
+      },
+      "TourStep": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "art": {
+            "type": "string",
+            "enum": [
+              "search",
+              "library",
+              "forum"
+            ],
+            "title": "Art"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Body"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "art",
+          "title",
+          "body"
+        ],
+        "title": "TourStep",
+        "description": "A step of the tour a new student may take (\"Take the tour\" in the year prompt). Text between `backticks` shows\nas a key to press, and {mod} as the platform's key: \u2318 on a Mac, Ctrl elsewhere."
       },
       "UploadCreate": {
         "properties": {

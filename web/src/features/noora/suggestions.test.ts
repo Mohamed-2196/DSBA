@@ -1,6 +1,6 @@
 // The questions Mini Noora offers for each page, and that her brain answers every one of them.
 import { describe, expect, it, vi } from 'vitest';
-import type { ModuleDetail, ModuleSummary } from '../../api/types';
+import type { ModuleDetail, ModuleSummary, NooraDoc } from '../../api/types';
 import type { Feature } from '../../auth';
 
 vi.mock('../calendar/public', () => ({
@@ -15,8 +15,8 @@ vi.mock('../modules/public', () => ({
 
 const { answer, buildKnowledge } = await import('./brain');
 const { pageSuggestions } = await import('./suggestions');
-const { seedScript } = await import('./seedScript');
-const SCRIPT = seedScript();
+const { readSeed } = await import('../../testing/seed');
+const SCRIPT = readSeed<NooraDoc>('noora').script;
 
 const summary = (id: string, unitCode: string, name: string, year: number): ModuleSummary =>
   ({ id, unitCode, name, shortName: name, year, description: `${name}.`, chapterCount: 1, lessonCount: 2 }) as ModuleSummary;

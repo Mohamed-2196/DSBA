@@ -9138,6 +9138,19 @@ export interface components {
             /** Page */
             page: number | null;
         };
+        /**
+         * SearchNickname
+         * @description A word students type for modules: search also finds the modules with a word of their name starting with
+         *     `finds` ('stats' finds every module named "… statistics …").
+         */
+        SearchNickname: {
+            /** Id */
+            id: string;
+            /** Word */
+            word: string;
+            /** Finds */
+            finds: string;
+        };
         /** SearchResults */
         SearchResults: {
             /** Query */
@@ -9305,6 +9318,14 @@ export interface components {
             copyrightHolder: string;
             /** Launchyear */
             launchYear: number;
+            /** Homeblocks */
+            homeBlocks: ("start_here" | "results_day" | "coming_up" | "todo" | "continue" | "modules" | "files" | "forum" | "noora" | "daily_question" | "help_below" | "newsletter" | "daily")[];
+            /** Tour */
+            tour: components["schemas"]["TourStep"][];
+            /** Searchnicknames */
+            searchNicknames: components["schemas"]["SearchNickname"][];
+            /** Searchsuggestions */
+            searchSuggestions: string[];
         };
         /**
          * SiteEditable
@@ -9890,6 +9911,24 @@ export interface components {
             /** Tags */
             tags?: string[] | null;
         };
+        /**
+         * TourStep
+         * @description A step of the tour a new student may take ("Take the tour" in the year prompt). Text between `backticks` shows
+         *     as a key to press, and {mod} as the platform's key: ⌘ on a Mac, Ctrl elsewhere.
+         */
+        TourStep: {
+            /** Id */
+            id: string;
+            /**
+             * Art
+             * @enum {string}
+             */
+            art: "search" | "library" | "forum";
+            /** Title */
+            title: string;
+            /** Body */
+            body: string;
+        };
         /** UploadCreate */
         UploadCreate: {
             /**
@@ -10326,6 +10365,7 @@ export type SavedLink = components['schemas']['SavedLink'];
 export type ScanGap = components['schemas']['ScanGap'];
 export type SearchFound = components['schemas']['SearchFound'];
 export type SearchHit = components['schemas']['SearchHit'];
+export type SearchNickname = components['schemas']['SearchNickname'];
 export type SearchResults = components['schemas']['SearchResults'];
 export type SearchView = components['schemas']['SearchView'];
 export type Senior = components['schemas']['Senior'];
@@ -10371,6 +10411,7 @@ export type ThreadModeration = components['schemas']['ThreadModeration'];
 export type ThreadPage = components['schemas']['ThreadPage'];
 export type ThreadSummary = components['schemas']['ThreadSummary'];
 export type ThreadUpdate = components['schemas']['ThreadUpdate'];
+export type TourStep = components['schemas']['TourStep'];
 export type UploadCreate = components['schemas']['UploadCreate'];
 export type UploadOut = components['schemas']['UploadOut'];
 export type UserPublic = components['schemas']['UserPublic'];

@@ -96,5 +96,100 @@
   "gradesNote": "Worked out in this browser from the University’s rules, by students. It isn’t your official result: check with the University.",
   "disclaimer": "A student-run project. Not affiliated with or endorsed by the University of London. All linked materials belong to their respective owners.",
   "copyrightHolder": "Mohamed Alnooh",
-  "launchYear": 2024
+  "launchYear": 2024,
+  "homeBlocks": [
+    "start_here",
+    "results_day",
+    "coming_up",
+    "todo",
+    "continue",
+    "modules",
+    "files",
+    "forum",
+    "daily",
+    "noora"
+  ],
+  "tour": [
+    {
+      "id": "search",
+      "art": "search",
+      "title": "Search everything",
+      "body": "Press `{mod}``K` or `/` from any page to find a module, a past paper, a thread or an exam date."
+    },
+    {
+      "id": "library",
+      "art": "library",
+      "title": "Files open right here",
+      "body": "Notes, past papers and study guides open in the library’s reader, and download in one click. Share yours, too: a student rep checks each one first."
+    },
+    {
+      "id": "forum",
+      "art": "forum",
+      "title": "Ask your cohort",
+      "body": "The forum is for questions, answers and study groups. When there is news from the programme, you will find it in The DSBA Newsletter."
+    }
+  ],
+  "searchNicknames": [
+    {
+      "id": "stats",
+      "word": "stats",
+      "finds": "statistic"
+    },
+    {
+      "id": "stat",
+      "word": "stat",
+      "finds": "statistic"
+    },
+    {
+      "id": "maths",
+      "word": "maths",
+      "finds": "mathemat"
+    },
+    {
+      "id": "math",
+      "word": "math",
+      "finds": "mathemat"
+    },
+    {
+      "id": "metrics",
+      "word": "metrics",
+      "finds": "econometric"
+    },
+    {
+      "id": "ml",
+      "word": "ml",
+      "finds": "machine learning"
+    },
+    {
+      "id": "ai",
+      "word": "ai",
+      "finds": "machine learning"
+    },
+    {
+      "id": "coding",
+      "word": "coding",
+      "finds": "programming"
+    },
+    {
+      "id": "python",
+      "word": "python",
+      "finds": "programming"
+    },
+    {
+      "id": "sql",
+      "word": "sql",
+      "finds": "programming"
+    },
+    {
+      "id": "ba",
+      "word": "ba",
+      "finds": "business analytics"
+    }
+  ],
+  "searchSuggestions": [
+    "Econometrics",
+    "Past papers",
+    "Regression",
+    "ST2133"
+  ]
 }

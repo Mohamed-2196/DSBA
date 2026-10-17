@@ -106,6 +106,14 @@ def test_a_stale_site_save_is_refused(
         (lambda d: d.update(about="[Click](javascript:alert(1))"), "data.about"),
         (lambda d: d.update(launchYear=1999), "data.launchYear"),
         (lambda d: d.update(tagline=" "), "data.tagline"),
+        (lambda d: d["homeBlocks"].append("modules"), "data"),
+        (lambda d: d["homeBlocks"].append("weather"), "data.homeBlocks.10"),
+        (lambda d: d.update(homeBlocks=[]), "data.homeBlocks"),
+        (lambda d: d["tour"][0].update(art="rocket"), "data.tour.0.art"),
+        (lambda d: d.update(tour=[]), "data.tour"),
+        (lambda d: d["searchNicknames"][0].update(word="big data"), "data.searchNicknames.0.word"),
+        (lambda d: d["searchNicknames"][0].update(finds="stat.*"), "data.searchNicknames.0.finds"),
+        (lambda d: d.update(searchSuggestions=[]), "data.searchSuggestions"),
     ],
 )
 def test_the_site_is_checked(

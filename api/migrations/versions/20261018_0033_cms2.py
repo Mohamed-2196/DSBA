@@ -1,4 +1,4 @@
-"""forum categories and tags as tables
+"""forum categories and tags as tables; new parts of the site settings
 
 Revision ID: 0033
 Revises: 0028
@@ -7,11 +7,16 @@ Create Date: 2026-10-18 09:00:00
 The forum's categories and tags become tables that moderators edit in Manage → Forum, filled here with the ones the
 forum has had so far. A thread's category is a foreign key to its category: a category that threads use can't be
 deleted, only retired (it stops being offered and its threads keep it).
+
+Site settings gain Home's blocks for a new student, the tour's steps, and search's nicknames and suggestions. Site
+settings saved before this get them as they start (app/seed/data/site.json); unsaved ones read the seed anyway.
 """
 
 from __future__ import annotations
 
+import json
 from collections.abc import Sequence
+from typing import Any
 
 import sqlalchemy as sa
 from alembic import op
@@ -42,6 +47,55 @@ TAGS = (
     ("campus", "Campus"),
     ("lost-and-found", "Lost and found"),
 )
+
+SITE_ADDITIONS: dict[str, Any] = {
+    "homeBlocks": [
+        "start_here",
+        "results_day",
+        "coming_up",
+        "todo",
+        "continue",
+        "modules",
+        "files",
+        "forum",
+        "daily",
+        "noora",
+    ],
+    "tour": [
+        {
+            "id": "search",
+            "art": "search",
+            "title": "Search everything",
+            "body": "Press `{mod}``K` or `/` from any page to find a module, a past paper, a thread or an exam date.",
+        },
+        {
+            "id": "library",
+            "art": "library",
+            "title": "Files open right here",
+            "body": "Notes, past papers and study guides open in the library\u2019s reader, and download in one click. Share yours, too: a student rep checks each one first.",
+        },
+        {
+            "id": "forum",
+            "art": "forum",
+            "title": "Ask your cohort",
+            "body": "The forum is for questions, answers and study groups. When there is news from the programme, you will find it in The DSBA Newsletter.",
+        },
+    ],
+    "searchNicknames": [
+        {"id": "stats", "word": "stats", "finds": "statistic"},
+        {"id": "stat", "word": "stat", "finds": "statistic"},
+        {"id": "maths", "word": "maths", "finds": "mathemat"},
+        {"id": "math", "word": "math", "finds": "mathemat"},
+        {"id": "metrics", "word": "metrics", "finds": "econometric"},
+        {"id": "ml", "word": "ml", "finds": "machine learning"},
+        {"id": "ai", "word": "ai", "finds": "machine learning"},
+        {"id": "coding", "word": "coding", "finds": "programming"},
+        {"id": "python", "word": "python", "finds": "programming"},
+        {"id": "sql", "word": "sql", "finds": "programming"},
+        {"id": "ba", "word": "ba", "finds": "business analytics"},
+    ],
+    "searchSuggestions": ["Econometrics", "Past papers", "Regression", "ST2133"],
+}
 
 
 def upgrade() -> None:
@@ -82,9 +136,18 @@ def upgrade() -> None:
         ["id"],
         ondelete="RESTRICT",
     )
+    op.execute(
+        sa.text(
+            "UPDATE content_docs SET data = data || CAST(:extra AS jsonb) WHERE key = 'site' AND data->'homeBlocks' IS NULL"
+        ).bindparams(extra=json.dumps(SITE_ADDITIONS, ensure_ascii=False))
+    )
 
 
 def downgrade() -> None:
+    op.execute(
+        "UPDATE content_docs SET data = data - 'homeBlocks' - 'tour' - 'searchNicknames' - 'searchSuggestions' "
+        "WHERE key = 'site'"
+    )
     op.drop_constraint(op.f("fk_forum_threads_category_forum_categories"), "forum_threads", type_="foreignkey")
     op.drop_table("forum_tags")
     op.drop_table("forum_categories")

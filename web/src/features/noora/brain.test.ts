@@ -1,6 +1,6 @@
 // Mini Noora's answers about MGFs (student test ST-3) and exam dates, on a small made-up catalogue.
 import { describe, expect, it, vi } from 'vitest';
-import type { ModuleDetail, ModuleSummary } from '../../api/types';
+import type { ModuleDetail, ModuleSummary, NooraDoc } from '../../api/types';
 import type { Feature } from '../../auth';
 import type { CalendarEvent } from '../calendar/public';
 
@@ -17,8 +17,8 @@ vi.mock('../modules/public', () => ({
 
 const { answer, buildKnowledge } = await import('./brain');
 const { DISTRIBUTIONS, LAPLACE_MGF_STEPS, MGF_DEFINITION } = await import('./formulas');
-const { seedScript } = await import('./seedScript');
-const SCRIPT = seedScript();
+const { readSeed } = await import('../../testing/seed');
+const SCRIPT = readSeed<NooraDoc>('noora').script;
 
 const summary = (id: string, unitCode: string, name: string, year: number): ModuleSummary =>
   ({ id, unitCode, name, shortName: name, year, description: `${name}.`, chapterCount: 1, lessonCount: 3 }) as ModuleSummary;

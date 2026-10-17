@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { ModuleSummary } from '../../../api/types';
-import { seedScript } from '../seedScript';
+import type { ModuleSummary, NooraDoc } from '../../../api/types';
+import { readSeed } from '../../../testing/seed';
 import { fill, starters } from './starters';
 
-const CARDS = seedScript().starters;
+const CARDS = readSeed<NooraDoc>('noora').script.starters;
 
 describe('fill', () => {
   it('drops the brackets and selects what was in them', () => {

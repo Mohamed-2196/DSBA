@@ -90,8 +90,6 @@ export const GROUPS: Record<GroupId, { label: string; cap?: number; noun?: strin
 
 const CONTENT_ORDER: readonly GroupId[] = ['modules', 'lessons', 'files', 'threads', 'issues', 'events'];
 
-export const SUGGESTIONS = ['Econometrics', 'Past papers', 'Regression', 'ST2133'];
-
 /** Pages (also the "Go to" list on an empty query); runSearch leaves out those of a switched-off feature. */
 export const PAGE_ENTRIES: Item[] = (
   [
@@ -275,6 +273,8 @@ export interface SearchInput {
   offers: Record<OfferId, boolean>;
   /** The sites the palette opens, once Site settings have loaded. */
   portals?: readonly Portal[];
+  /** What to try searching for before anything is typed (Site settings' searchSuggestions), once they have loaded. */
+  suggestions?: readonly string[];
   now?: Date;
 }
 
@@ -300,7 +300,7 @@ export function textOf(query: string): string {
   return query.replace(YEAR_RE, ' ').replace(/\s+/g, ' ').trim();
 }
 
-export function runSearch({ query, year, theme, nooraHidden = false, expanded, recent, results, getModule, getModulesForYear, isOn, offers, portals = [], now = new Date() }: SearchInput): Results {
+export function runSearch({ query, year, theme, nooraHidden = false, expanded, recent, results, getModule, getModulesForYear, isOn, offers, portals = [], suggestions = [], now = new Date() }: SearchInput): Results {
   const cohortMatch = YEAR_RE.exec(query);
   const cohort = cohortMatch ? Number(cohortMatch[1]) : null;
   const text = textOf(query);
@@ -328,7 +328,7 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
   if (!tokens.length) {
     const groups: Omit<Group, 'label'>[] = [];
     if (recent.length) groups.push({ id: 'recent', items: recent.map((q) => ({ id: `recent:${q}`, kind: 'recent', group: 'recent', title: q, query: q })), total: 0 });
-    else groups.push({ id: 'suggested', items: SUGGESTIONS.map((q) => ({ id: `suggest:${q}`, kind: 'suggestion', group: 'suggested', title: q, query: q })), total: 0 });
+    else if (suggestions.length) groups.push({ id: 'suggested', items: suggestions.map((q) => ({ id: `suggest:${q}`, kind: 'suggestion', group: 'suggested', title: q, query: q })), total: 0 });
     groups.push({
       id: 'quick',
       items: actions.filter((a) => a.id === 'action:new-thread' || a.id === 'action:upload' || a.id === 'action:theme' || a.id.startsWith('action:year-')).map((a) => ({ ...a, group: 'quick' })),

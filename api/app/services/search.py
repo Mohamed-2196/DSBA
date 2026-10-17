@@ -34,7 +34,7 @@ from app.models import (
     User,
 )
 from app.schemas.misc import SearchHit, SearchResults, SearchType
-from app.services import access, paper_text
+from app.services import access, paper_text, site
 from app.services import library as lib
 from app.services.calendar import TYPE_LABELS, cohort_label
 from app.services.exam_names import zone_label
@@ -50,22 +50,6 @@ TYPE_FEATURES: dict[SearchType, Feature] = {
     "issue": Feature.newsletter,
     "event": Feature.calendar,
 }
-
-# What students type for modules: other names that find them.
-MODULE_ALIASES: dict[str, tuple[str, ...]] = {
-    "stats": ("statistic",),
-    "stat": ("statistic",),
-    "maths": ("mathemat",),
-    "math": ("mathemat",),
-    "metrics": ("econometric",),
-    "ml": ("machine learning",),
-    "ai": ("machine learning",),
-    "coding": ("programming",),
-    "python": ("programming",),
-    "sql": ("programming",),
-    "ba": ("business analytics",),
-}
-
 
 # ── the query ────────────────────────────────────────────────────────────────────────────────
 
@@ -224,8 +208,17 @@ def _issues(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int) 
     return hits
 
 
-def _module_word(word: str) -> ColumnElement[bool]:
-    options = [word, *MODULE_ALIASES.get(word, ())]
+def nicknames(db: Session) -> dict[str, tuple[str, ...]]:
+    """What students type for modules, and the start of a word of the names it finds ('stats': 'statistic'): Site
+    settings' search nicknames."""
+    found: dict[str, tuple[str, ...]] = {}
+    for n in site.site(db).search_nicknames:
+        found[n.word] = (*found.get(n.word, ()), n.finds)
+    return found
+
+
+def _module_word(word: str, aliases: dict[str, tuple[str, ...]]) -> ColumnElement[bool]:
+    options = [word, *aliases.get(word, ())]
     return or_(
         Module.unit_code.ilike(f"%{word}%"),
         *(_starts_word(Module.name, w) for w in options),
@@ -234,9 +227,10 @@ def _module_word(word: str) -> ColumnElement[bool]:
 
 
 def _modules(db: Session, terms: list[str], limit: int) -> list[SearchHit]:
+    aliases = nicknames(db)
     mods = db.scalars(
         select(Module)
-        .where(Module.hidden.is_(False), *(_module_word(t) for t in terms))
+        .where(Module.hidden.is_(False), *(_module_word(t, aliases) for t in terms))
         .order_by(Module.position, Module.id)
         .limit(limit)
     ).all()

@@ -23,6 +23,13 @@ const file = { type: 'library', id: 'f1', title: 'MGF notes', snippet: null, url
 const results = (over: Partial<SearchResults> = {}): SearchResults => ({ query: 'mgf', threads: [], library: [], issues: [], modules: [], lessons: [], events: [], ...over });
 
 describe('runSearch', () => {
+  it('offers what Site settings suggest searching for, until there are recent searches', () => {
+    const suggestions = ['Regression', 'ST2133'];
+    expect(ids(runSearch({ ...base, suggestions }))).toEqual(expect.arrayContaining(['suggest:Regression', 'suggest:ST2133']));
+    expect(ids(runSearch({ ...base, suggestions, recent: ['mgf'] }))).not.toContain('suggest:Regression');
+    expect(runSearch(base).groups.map((g) => g.id)).not.toContain('suggested');
+  });
+
   it('shows every page and quick action while every feature is on', () => {
     const r = ids(runSearch(base));
     expect(r).toContain('page:/calendar');

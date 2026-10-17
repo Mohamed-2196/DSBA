@@ -1,6 +1,6 @@
-// Home's blocks: which there are, what each needs, the default layout, and the rules for showing, hiding and moving
-// them. Pure, so they can be tested. The layout is saved as the list of blocks shown, in order (the account's
-// homeBlocks, or this browser's for a guest); null means the default.
+// Home's blocks: which there are, what each needs, and the rules for showing, hiding and moving them. Pure, so they
+// can be tested. The layout is saved as the list of blocks shown, in order (the account's homeBlocks, or this
+// browser's for a guest); null means the default, which is Site settings' homeBlocks (admins edit it).
 import type { Me } from '../../api/types';
 import type { Feature } from '../../auth';
 
@@ -49,11 +49,10 @@ export const BLOCKS: Readonly<Record<HomeBlock, BlockInfo>> = {
 
 export const ALL_BLOCKS = Object.keys(BLOCKS) as HomeBlock[];
 
-/** Everyone's Home before they change it: the dashboard. Notices show only when they have something to say. */
-export const STUDENT_DEFAULT: readonly HomeBlock[] = ['start_here', 'results_day', 'coming_up', 'todo', 'continue', 'modules', 'files', 'forum', 'daily', 'noora'];
-
-/** A guest's: the same, without what needs an account. */
-export const GUEST_DEFAULT: readonly HomeBlock[] = STUDENT_DEFAULT.filter((b) => !BLOCKS[b].account);
+/** A guest's Home before they change it: the hub's default for students, without what needs an account. */
+export function guestDefault(student: readonly HomeBlock[]): HomeBlock[] {
+  return student.filter((b) => !BLOCKS[b].account);
+}
 
 /** The blocks this person can have: every feature a block needs is on, and an account or lesson progress if it needs one. */
 export function offeredBlocks(featureOn: (f: Feature) => boolean, { signedIn, tracking }: { signedIn: boolean; tracking: boolean }): HomeBlock[] {
