@@ -3,8 +3,10 @@
 A file comes in through the upload flow (POST /uploads with purpose 'board', the browser's POST to the bucket, then
 /uploads/{id}/complete) and is attached to a card here: it becomes 'attached' with the card's id, so the daily sweep
 keeps it. Only its owner can open it (GET /board-files/{id}: a short-lived link, shown in the browser for pictures
-and PDFs). Deleting it removes the object at once; deleting its card or board leaves it without a card, and the
-sweep deletes it. The files on one student's cards take at most MAX_STORAGE_BYTES."""
+and PDFs). Taking it off its card deletes the object at once and leaves its row without a card; deleting its card or
+board leaves it without a card too. The sweep deletes such rows a day after the upload, so each still counts towards
+the hourly upload limit and taking files off cards never makes room for more uploads. The files on one student's
+cards take at most MAX_STORAGE_BYTES; a file without a card no longer counts."""
 
 from __future__ import annotations
 
@@ -19,7 +21,7 @@ from app.core.errors import ApiError, conflict, not_found
 from app.models import BoardCard, BoardComment, Upload, UploadPurpose, UploadStatus, User
 from app.schemas.board import BoardCardDetail, CardAttachment, CardComment, CommentCreate
 from app.services import ratelimit
-from app.services.board.boards import storage_used
+from app.services.board.boards import check_text, storage_used
 from app.services.board.cards import card_out, file_url
 from app.services.board.common import MAX_ATTACHMENTS, MAX_COMMENTS, MAX_STORAGE_BYTES
 from app.services.storage import Storage, get_storage
@@ -111,7 +113,8 @@ def _card_file(db: Session, card: BoardCard, upload_id: uuid.UUID) -> Upload:
 
 
 def detach(db: Session, card: BoardCard, upload_id: uuid.UUID, storage: Storage | None = None) -> None:
-    """Deletes the file from the bucket, then its row; a cover that was this file goes too."""
+    """Deletes the file from the bucket and takes it off the card; a cover that was this file goes too. The row stays,
+    without a card, until the sweep: it still counts towards the hourly upload limit."""
     up = _card_file(db, card, upload_id)
     try:
         (storage or get_storage()).delete(up.storage_key)
@@ -121,7 +124,7 @@ def detach(db: Session, card: BoardCard, upload_id: uuid.UUID, storage: Storage 
         ) from e
     if card.cover_id == up.id:
         card.cover_id = None
-    db.delete(up)
+    up.card_id = None
 
 
 def file_link(db: Session, user: User, upload_id: uuid.UUID, storage: Storage | None = None) -> str:
@@ -144,7 +147,8 @@ def file_link(db: Session, user: User, upload_id: uuid.UUID, storage: Storage | 
 
 
 def add_comment(db: Session, user: User, card: BoardCard, body: CommentCreate) -> CardComment:
-    """409 limit_reached at MAX_COMMENTS on a card; 429 after COMMENT_LIMIT comments in an hour."""
+    """409 limit_reached at MAX_COMMENTS on a card; 409 board_full past the student's text total; 429 after
+    COMMENT_LIMIT comments in an hour."""
     ratelimit.enforce(
         db,
         f"board-comments:{user.id}",
@@ -157,6 +161,7 @@ def add_comment(db: Session, user: User, card: BoardCard, body: CommentCreate) -
     count = db.scalar(select(func.count()).select_from(BoardComment).where(BoardComment.card_id == card.id)) or 0
     if count >= MAX_COMMENTS:
         raise conflict("limit_reached", f"A card holds {MAX_COMMENTS} comments. Delete some first.")
+    check_text(db, user, len(body.body.encode()))
     comment = BoardComment(card_id=card.id, body=body.body)
     db.add(comment)
     db.flush()

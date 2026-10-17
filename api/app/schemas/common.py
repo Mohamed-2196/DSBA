@@ -104,7 +104,7 @@ ErrorCode = Literal[
     "too_many_notebooks",  # 409: the most notebooks one student may keep
     "notes_full",  # 409: the student's notebooks hold as much text, ink and files as they may
     # boards
-    "board_full",  # 409: the student's boards hold as many cards as they may
+    "board_full",  # 409: the student's boards hold as many cards, or as much text, as they may
     "boards_full",  # 409: the student has as many boards as they may
     "storage_full",  # 409: the files on the student's cards take as much room as they may
     "limit_reached",  # 409: a board's columns, a card's files or comments, or the labels are at their limit

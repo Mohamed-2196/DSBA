@@ -7,7 +7,8 @@ import datetime as dt
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import Field, StringConstraints
+from pydantic import AfterValidator, Field, StringConstraints
+from pydantic_core import PydanticCustomError
 
 from app.schemas.common import ApiModel
 from app.schemas.library import LibraryKind
@@ -28,6 +29,16 @@ CardDescription = Annotated[str, StringConstraints(strip_whitespace=True, max_le
 ChecklistText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
 CommentBody = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2000)]
 ItemId = Annotated[str, StringConstraints(min_length=1, max_length=40, pattern=r"^[A-Za-z0-9_-]+$")]
+DUE_FIRST, DUE_LAST = dt.date(2000, 1, 1), dt.date(2100, 12, 31)  # the due dates a card may have
+
+
+def _due(value: dt.date) -> dt.date:
+    if not DUE_FIRST <= value <= DUE_LAST:
+        raise PydanticCustomError("due_date", "Pick a due date between 2000 and 2100.")
+    return value
+
+
+DueDate = Annotated[dt.date, AfterValidator(_due)]
 
 
 # ── boards and columns ─────────────────────────────────────────────────────────────────────
@@ -194,7 +205,7 @@ class BoardCardCreate(ApiModel):
     column_id: UUID | None = None
     title: CardTitle | None = None
     description: CardDescription | None = None
-    due_date: dt.date | None = None
+    due_date: DueDate | None = None
     due_time: dt.time | None = None
     priority: Priority = "none"
     label_ids: list[UUID] = Field(default_factory=list, max_length=10)
@@ -206,7 +217,7 @@ class BoardCardUpdate(ApiModel):
 
     title: CardTitle | None = None
     description: CardDescription | None = None
-    due_date: dt.date | None = None
+    due_date: DueDate | None = None
     due_time: dt.time | None = None
     remind_before: RemindBefore | None = None
     priority: Priority | None = None

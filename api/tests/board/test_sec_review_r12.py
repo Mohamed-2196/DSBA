@@ -1,20 +1,24 @@
-"""The round 12 security review's proofs for Boards. Each test passes while the problem it describes is still there;
-when one fails, the problem is fixed and the test goes."""
+"""The round 12 security review's findings for Boards, as regression tests: each asserts the fix (SEC-38, SEC-39, and
+the board half of SEC-45)."""
 
 from __future__ import annotations
 
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from datetime import timedelta
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import Text, cast, func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import BoardCard, BoardComment, User
+from app import cli
+from app.core.time import utcnow
+from app.models import Upload, User
 from app.services import uploads
-from app.services.board import common
+from app.services.board import boards, common
 from tests.board.conftest import API, add
 from tests.core.helpers import PDF, upload
 
@@ -28,61 +32,95 @@ def put(c: TestClient, storage: Any) -> str:
     return upload(c, storage, purpose="board", name="notes.pdf", content_type="application/pdf", body=PDF)
 
 
-def test_sec38_boards_hold_hundreds_of_megabytes_of_text_per_account(
-    client_for: ClientFor, make_user: MakeUser, db: Session
+def test_sec38_the_text_on_a_students_cards_has_a_total(
+    client_for: ClientFor, make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    c = client_for(make_user())
+    """Titles, descriptions, checklists and comments count towards one total per student (10 MB). A change that
+    would pass it answers 409 board_full and changes nothing; a change that takes text away is always saved."""
+    assert common.MAX_TEXT_BYTES == 10 * 1024 * 1024
+    monkeypatch.setattr(boards, "MAX_TEXT_BYTES", 60_000)
+    student = make_user()
+    c = client_for(student)
     card = add(c, title="Plan")
-    # Saving a card has no rate limit: more saves than any hourly limit on the boards all go through.
-    for i in range(121):
-        assert c.patch(f"{API}/board-cards/{card['id']}", json={"description": f"v{i}"}).status_code == 200
-    checklist = [{"id": f"item-{i}", "text": WIDE * 200} for i in range(50)]
-    big = {"title": WIDE * 200, "description": WIDE * 10_000, "checklist": checklist}
-    assert c.patch(f"{API}/board-cards/{card['id']}", json=big).status_code == 200
-    for _ in range(common.MAX_COMMENTS):
-        r = c.post(f"{API}/board-cards/{card['id']}/comments", json={"body": WIDE * 2000})
-        assert r.status_code == 201, r.text
+    url = f"{API}/board-cards/{card['id']}"
 
-    card_id = uuid.UUID(card["id"])
-    on_card = db.scalar(
-        select(
-            func.octet_length(BoardCard.title)
-            + func.octet_length(BoardCard.description)
-            + func.octet_length(cast(BoardCard.checklist, Text))
-        ).where(BoardCard.id == card_id)
-    )
-    in_comments = db.scalar(
-        select(func.sum(func.octet_length(BoardComment.body))).where(BoardComment.card_id == card_id)
-    )
-    per_card = int(on_card or 0) + int(in_comments or 0)
-    assert per_card > 880_000  # one card: 40 KB of description, 40 KB of checklist, 800 KB of comments
-    assert common.MAX_CARDS * per_card > 880_000_000  # about 880 MB of Postgres rows per free account
-    # Nothing counts it: the only total the boards keep is the files' bytes.
-    assert c.get(f"{API}/boards").json()["usage"]["storageBytes"] == 0
+    assert c.patch(url, json={"description": WIDE * 10_000}).status_code == 200  # 40 KB
+    checklist = [{"id": f"item-{i}", "text": WIDE * 200} for i in range(50)]  # 40 KB more
+    r = c.patch(url, json={"checklist": checklist})
+    assert r.status_code == 409, r.text
+    assert r.json()["error"]["code"] == "board_full"
+    assert c.get(url).json()["checklist"] == []
+
+    comments = f"{API}/board-cards/{card['id']}/comments"
+    assert c.post(comments, json={"body": WIDE * 2000}).status_code == 201  # 8 KB: 48 KB in all
+    assert c.post(comments, json={"body": WIDE * 2000}).status_code == 201  # 56 KB
+    r = c.post(comments, json={"body": WIDE * 2000})
+    assert r.status_code == 409, r.text  # 64 KB would pass the total
+    assert len(c.get(url).json()["comments"]) == 2
+
+    r = c.post(f"{API}/board-cards", json={"title": WIDE * 200, "description": WIDE * 2000})
+    assert r.status_code == 409, r.text
+    assert r.json()["error"]["code"] == "board_full"
+
+    # Over the total (it was lowered): taking text away still saves, adding more doesn't.
+    monkeypatch.setattr(boards, "MAX_TEXT_BYTES", 10_000)
+    assert boards.text_used(db, student.id) > 10_000
+    assert c.patch(url, json={"description": WIDE * 5_000}).status_code == 200
+    assert c.patch(url, json={"description": WIDE * 6_000}).status_code == 409
+    assert c.patch(url, json={"title": "Mind"}).status_code == 200  # no more text than before: saved
+    assert c.patch(url, json={"title": "Mind map"}).status_code == 409
 
 
-def test_sec39_detaching_a_board_file_gives_its_slot_back_to_the_hourly_upload_limit(
-    client_for: ClientFor, make_user: MakeUser, storage: Any
+def test_sec39_taking_a_file_off_a_card_keeps_its_place_in_the_hourly_upload_limit(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """Detaching deletes the object at once and frees its room, but the upload still counts towards the 20 an hour;
+    the sweep deletes its row a day after the upload."""
     c = client_for(make_user())
     card = add(c, title="Scratch")
     ids = [put(c, storage) for _ in range(uploads.UPLOADS_PER_HOUR)]
     one_more = {"purpose": "board", "fileName": "a.pdf", "contentType": "application/pdf", "sizeBytes": len(PDF)}
-    assert c.post(f"{API}/uploads", json=one_more).status_code == 429  # the limit holds...
-    made = len(ids)
-    for _ in range(uploads.UPLOADS_PER_HOUR):  # ...until each file is attached and detached: its row is deleted
-        up = ids.pop()
-        assert c.post(f"{API}/board-cards/{card['id']}/attachments", json={"uploadId": up}).status_code == 201
-        assert c.delete(f"{API}/board-cards/{card['id']}/attachments/{up}").status_code == 204
-        ids.append(put(c, storage))  # 201 again, inside the same hour
-        made += 1
-    assert made == 2 * uploads.UPLOADS_PER_HOUR  # and so on, as often as a script likes
+    assert c.post(f"{API}/uploads", json=one_more).status_code == 429
+
+    up = ids[0]
+    assert c.post(f"{API}/board-cards/{card['id']}/attachments", json={"uploadId": up}).status_code == 201
+    key = db.scalar(select(Upload.storage_key).where(Upload.id == uuid.UUID(up)))
+    assert key
+    assert c.delete(f"{API}/board-cards/{card['id']}/attachments/{up}").status_code == 204
+    assert c.post(f"{API}/uploads", json=one_more).status_code == 429  # its place stays taken
+
+    assert c.get(f"{API}/board-cards/{card['id']}").json()["attachments"] == []
+    assert c.get(f"{API}/board-files/{up}").status_code == 404
+    assert storage.client.list_objects_v2(Bucket=storage.bucket, Prefix=key).get("KeyCount", 0) == 0  # gone at once
+    assert c.post(f"{API}/board-cards/{card['id']}/attachments", json={"uploadId": up}).status_code == 404
+    # It no longer takes room: only the other uploads, not attached yet, do.
+    assert c.get(f"{API}/boards").json()["usage"]["storageBytes"] == (uploads.UPLOADS_PER_HOUR - 1) * len(PDF)
+
+    # A day after the upload, the sweep deletes the row.
+    row = db.get(Upload, uuid.UUID(up))
+    assert row is not None
+    assert row.card_id is None
+    row.created_at = utcnow() - timedelta(days=2)
+    db.commit()
+
+    @contextmanager
+    def same_session() -> Iterator[Session]:
+        yield db
+
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: same_session)
+    cli.sweep()
+    db.expire_all()
+    assert db.get(Upload, uuid.UUID(up)) is None
 
 
-def test_sec45_a_reminder_on_a_card_due_in_year_1_crashes_the_request(
-    client_for: ClientFor, make_user: MakeUser
-) -> None:
+@pytest.mark.parametrize("due", ["0001-01-01", "1999-12-31", "2101-01-01", "9999-12-31"])
+def test_sec45_a_cards_due_date_is_between_2000_and_2100(client_for: ClientFor, make_user: MakeUser, due: str) -> None:
     c = client_for(make_user())
     card = add(c, title="Ancient")
-    with pytest.raises(OverflowError):  # a 500 for the student: the due date has no range
-        c.patch(f"{API}/board-cards/{card['id']}", json={"dueDate": "0001-01-01", "remindBefore": 1440})
+    url = f"{API}/board-cards/{card['id']}"
+    r = c.patch(url, json={"dueDate": due, "remindBefore": 1440})
+    assert r.status_code == 422, r.text
+    assert r.json()["error"]["fields"]["dueDate"] == "Pick a due date between 2000 and 2100."
+    assert c.post(f"{API}/board-cards", json={"title": "Old", "dueDate": due}).status_code == 422
+    assert c.patch(url, json={"dueDate": "2100-12-31", "remindBefore": 2880}).status_code == 200
+    assert c.patch(url, json={"dueDate": "2000-01-01", "remindBefore": 2880}).status_code == 200

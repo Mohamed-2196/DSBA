@@ -225,7 +225,8 @@ class Upload(Base):
     `reply_id` for a reply's. /media serves it only while that post is visible (security review, finding 8).
     A newsletter picture belongs to the issue that shows it (`newsletter_issue_id`), and a screenshot to its bug
     report (`bug_report_id`). A board file belongs to its card (`card_id`, set when it is attached) and is served
-    to its owner only; when the card goes, `card_id` empties and the sweep deletes the file. A note's file belongs
+    to its owner only; when it is taken off its card, or the card goes, `card_id` empties and the sweep deletes the
+    row (and the object, if it is still there). A note's file belongs
     to the note that shows it (`note_id`), and only its owner ever gets a link to it. Uploads that are never
     attached to anything are swept after a day; a note's files once the note is gone.
     """
