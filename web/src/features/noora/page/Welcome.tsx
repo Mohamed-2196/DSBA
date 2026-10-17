@@ -19,8 +19,8 @@ export interface WelcomeProps {
   onSignIn: (() => void) | null;
 }
 
-/** A laptop's or a tablet's short screen (NooraPage.css tightens the welcome there too). */
-const SHORT = '(min-width: 700px) and (max-height: 880px)';
+/** A short screen or a phone (NooraPage.css tightens the welcome there too). */
+const SHORT = '(max-height: 880px), (max-width: 699px) and (max-height: 960px)';
 
 export function Welcome({ name, starters, onStart, paused, onSignIn }: WelcomeProps) {
   const short = useMediaQuery(SHORT);

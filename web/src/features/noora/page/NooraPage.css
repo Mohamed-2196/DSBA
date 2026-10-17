@@ -281,9 +281,9 @@ html:has(.np--full) { overflow: hidden; }
   .np-add { justify-content: center; width: 44px; padding: 0; }
   .np-add > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
-/* A laptop's or a tablet's short screen: the welcome tightens so all of it fits above the composer. The cards say
-   what the lead says. */
-@media (min-width: 700px) and (max-height: 880px) {
+/* A short screen (most laptops, tablets on their side) or a phone: the welcome tightens so all of it fits above the
+   composer. The cards say what the lead says. */
+@media (max-height: 880px), (max-width: 699px) and (max-height: 960px) {
   .np-welcome { gap: var(--sp-12); padding-block: var(--sp-12); }
   .np-welcome__lead { display: none; }
   .np-starter { padding-block: 10px; }
