@@ -4,25 +4,34 @@ import { errorMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { cohortLabel, useQueryParam, useToast, useYear } from '../../state';
 import { Button, ConfirmDialog, Page, PageHeader, PageSection, QueryError, Skeleton } from '../../ui';
-import { formatLong, parseDay, todayKey, today as bahrainToday } from '../../lib/dates';
-import { useCalendarEvents, useDeleteEvent, useDeleteMyEvent } from './api';
+import { formatLong, formatLongDay, parseDay, todayKey, today as bahrainToday, type DayKey } from '../../lib/dates';
+import { useCalendarEvents, useDeleteEvent, useDeleteMyEvent, useDeleteMyOccurrence } from './api';
 import { Browse } from './Browse';
 import { CustomiseDialog } from './CustomiseDialog';
 import { monthKey } from './dates';
 import { EventDrawer } from './EventDrawer';
 import { EventFormDialog, type DateNotice } from './EventFormDialog';
-import { typeLabel } from './eventMeta';
+import { typePlural } from './eventMeta';
 import { ForYou } from './ForYou';
-import { myCalendar, occurrenceId } from './mine';
+import { myCalendar, occurrenceId, repeats } from './mine';
 import { MyEventDialog } from './MyEventDialog';
+import { ScopeChoice } from './ScopeChoice';
 import { useEmployers } from '../career/public';
 import { PapersDialog, usePapers } from '../papers/public';
 import { SubscribeDialog } from './SubscribeDialog';
-import type { CalendarEvent, PersonalEvent } from './types';
+import type { CalendarEvent, ChangeScope, PersonalEvent } from './types';
 import { monthOfEvent, useCalendarView } from './useCalendarView';
 import { useMyCalendar, type HiddenKind, type MyCalendar } from './useMyCalendar';
 import './calendar-shared.css';
 import './CalendarPage.css';
+
+/** The student's own event being added or edited: `day` is the day it opened on; a new `session` mounts a fresh form. */
+interface MineEditing {
+  open: boolean;
+  event: PersonalEvent | null;
+  day: DayKey;
+  session: number;
+}
 
 export default function CalendarPage() {
   const query = useCalendarEvents();
@@ -36,12 +45,23 @@ export default function CalendarPage() {
   const [customising, setCustomising] = useState(false);
   const [pickingPapers, setPickingPapers] = useState(false);
   const [editing, setEditing] = useState<{ event: CalendarEvent | null } | null>(null);
-  const [editingMine, setEditingMine] = useState<{ event: PersonalEvent | null } | null>(null);
+  const [editingMine, setEditingMine] = useState<MineEditing>(() => ({ open: false, event: null, day: todayKey(), session: 0 }));
   const events = useMemo(() => (query.data ? myCalendar(query.data, my.events, my.prefs) : []), [query.data, my.events, my.prefs]);
 
-  const description = `Exams, deadlines and term dates for ${year ? (papers ? 'your papers' : cohortLabel(year)) : 'all three years'}${my.signedIn ? ', with your own events' : ''}. Hide what you don’t need, and add any of it to your own calendar app.`;
-  const addMine = () => {
-    if (requireAuth('Sign in to add your own events', () => setEditingMine({ event: null }))) setEditingMine({ event: null });
+  const whose = year ? (papers ? 'your papers' : cohortLabel(year)) : 'all three years';
+  const description = my.signedIn
+    ? `Exams, deadlines and term dates for ${whose}, with your own events. Hide what you don’t need, and add any of it to your own calendar app.`
+    : `Exams, deadlines and term dates for ${whose}. Add any of it to your own calendar app, or sign in to add events of your own.`;
+
+  /** A new event of the student's own on `day` (today without one); a guest signs in first. */
+  const addMine = (day: DayKey = todayKey()) => {
+    const go = () => setEditingMine((m) => ({ open: true, event: null, day, session: m.session + 1 }));
+    if (requireAuth('Sign in to add your own events', go)) go();
+  };
+  /** Edit the student's own event from one of its days. */
+  const editMine = (e: CalendarEvent) => {
+    const own = e.mine;
+    if (own) setEditingMine((m) => ({ open: true, event: own, day: e.date, session: m.session + 1 }));
   };
   const actions = (
     <>
@@ -58,7 +78,7 @@ export default function CalendarPage() {
           Programme date
         </Button>
       ) : null}
-      <Button variant="primary" leadingIcon={CalendarPlus} onClick={addMine} data-hub="calendar-mine-add">
+      <Button variant="primary" leadingIcon={CalendarPlus} onClick={() => addMine()} data-hub="calendar-mine-add">
         New event
       </Button>
     </>
@@ -77,8 +97,9 @@ export default function CalendarPage() {
           calendarEmpty={!query.data.length && !my.events.length}
           my={my}
           onEdit={manages ? (e) => setEditing({ event: e }) : undefined}
-          onAdd={manages ? () => setEditing({ event: null }) : undefined}
-          onEditMine={(e) => (e.mine ? setEditingMine({ event: e.mine }) : undefined)}
+          onAddDate={manages ? () => setEditing({ event: null }) : undefined}
+          onAddMine={addMine}
+          onEditMine={editMine}
         />
       )}
       <SubscribeDialog open={subscribing} year={year} papers={papers} my={my} onClose={() => setSubscribing(false)} />
@@ -96,28 +117,28 @@ export default function CalendarPage() {
       ) : null}
       <PapersDialog open={pickingPapers} onClose={() => setPickingPapers(false)} />
       <EventEditor editing={editing} employers={employers} onClose={() => setEditing(null)} />
-      <MyEventEditor editing={editingMine} onClose={() => setEditingMine(null)} />
+      <MyEventEditor editing={editingMine} onClose={() => setEditingMine((m) => ({ ...m, open: false }))} />
     </Page>
   );
 }
 
-/** The add/edit dialog for the student's own events, then the page moves to what was saved. */
-function MyEventEditor({ editing, onClose }: { editing: { event: PersonalEvent | null } | null; onClose: () => void }) {
+/** The add/edit dialog for the student's own events, then the page moves to the day saved. */
+function MyEventEditor({ editing, onClose }: { editing: MineEditing; onClose: () => void }) {
   const { push } = useToast();
   const [, setEventId] = useQueryParam('event');
   const [, setMonthParam] = useQueryParam('month');
-  const [day] = useState(() => todayKey());
   return (
     <MyEventDialog
-      open={!!editing}
-      event={editing?.event ?? null}
-      defaultDate={day}
+      key={editing.session}
+      open={editing.open}
+      event={editing.event}
+      day={editing.day}
       onClose={onClose}
-      onSaved={(saved, created) => {
+      onSaved={(saved, created, day) => {
         onClose();
-        setMonthParam(saved.date.slice(0, 7), { replace: true });
-        setEventId(occurrenceId(saved, saved.date), { replace: true });
-        push({ tone: 'success', title: created ? 'Added to your calendar' : 'Changes saved', body: `${saved.title}, ${formatLong(parseDay(saved.date))}. Only you see it.` });
+        setMonthParam(day.slice(0, 7), { replace: true });
+        setEventId(occurrenceId(saved, day), { replace: true });
+        push({ tone: 'success', title: created ? 'Added to your calendar' : 'Changes saved', body: `${saved.title}, ${formatLong(parseDay(day))}. Only you see it.` });
       }}
     />
   );
@@ -145,7 +166,7 @@ function EventEditor({ editing, employers, onClose }: { editing: { event: Calend
         onClose();
         setMonthParam(monthKey(monthOfEvent(saved)), { replace: true });
         setEventId(saved.id, { replace: true });
-        push({ tone: 'success', title: created ? 'Event added' : 'Changes saved', body: `${saved.title}, ${formatLong(parseDay(saved.date))}.${toldLine(told)}` });
+        push({ tone: 'success', title: created ? 'Date added' : 'Changes saved', body: `${saved.title}, ${formatLong(parseDay(saved.date))}.${toldLine(told)}` });
       }}
     />
   );
@@ -176,6 +197,16 @@ function CalendarSkeleton() {
   );
 }
 
+/** The confirm button of a deletion: what goes, said plainly. */
+const DELETE_LABEL: Record<ChangeScope, string> = { one: 'Delete this event', following: 'Delete these events', all: 'Delete all events' };
+
+/** The toast after a deletion of the student's own: what went. */
+function deletedLine(title: string, day: DayKey, scope: ChangeScope, repeating: boolean): string {
+  if (!repeating || scope === 'all') return `${title} is off your calendar.`;
+  const when = formatLongDay(parseDay(day));
+  return scope === 'one' ? `${title} on ${when} is off your calendar.` : `${title}, from ${when} on, is off your calendar.`;
+}
+
 interface CalendarBodyProps {
   /** programme dates on the student's calendar, and their own events' occurrences */
   events: CalendarEvent[];
@@ -184,39 +215,52 @@ interface CalendarBodyProps {
   my: MyCalendar;
   /** moderators only */
   onEdit?: (e: CalendarEvent) => void;
-  onAdd?: () => void;
+  onAddDate?: () => void;
+  /** a new event of the student's own (on a day) */
+  onAddMine: (day?: DayKey) => void;
   onEditMine: (e: CalendarEvent) => void;
 }
 
-function CalendarBody({ events, calendarEmpty, my, onEdit, onAdd, onEditMine }: CalendarBodyProps) {
+function CalendarBody({ events, calendarEmpty, my, onEdit, onAddDate, onAddMine, onEditMine }: CalendarBodyProps) {
   const { push } = useToast();
   const remove = useDeleteEvent();
   const removeMine = useDeleteMyEvent();
+  const removeDay = useDeleteMyOccurrence();
   // Today in Bahrain, read once per visit: relative dates stay the same while the page is open.
   const [today] = useState(() => bahrainToday());
   const view = useCalendarView(events, today, my.signedIn);
   const { eventId, open, close } = view;
   const [deleting, setDeleting] = useState<CalendarEvent | null>(null);
-  const [deletingMine, setDeletingMine] = useState<CalendarEvent | null>(null);
+  const [deletingMine, setDeletingMine] = useState<{ event: CalendarEvent; scope: ChangeScope } | null>(null);
   const { setHidden } = my;
 
   const hide = (e: CalendarEvent, kind: HiddenKind, value: string) => {
     setHidden(kind, value, true);
     close();
-    const what = kind === 'hiddenEvents' ? e.title : kind === 'hiddenTypes' ? `Every ${typeLabel(value).toLowerCase()}` : `Every ${e.unitCode ?? 'module'} date`;
-    push({ tone: 'success', title: 'Hidden from your calendar', body: `${what} is off your calendar. Customise shows it again.`, action: { label: 'Undo', onClick: () => setHidden(kind, value, false) } });
+    const body =
+      kind === 'hiddenEvents'
+        ? `${e.title} is off your calendar.`
+        : kind === 'hiddenTypes'
+          ? `All ${typePlural(value)} are off your calendar.`
+          : `All ${e.unitCode ?? 'module'} dates are off your calendar.`;
+    const again = kind === 'hiddenEvents' ? 'Customise shows it again.' : 'Customise shows them again.';
+    push({ tone: 'success', title: 'Hidden from your calendar', body: `${body} ${again}`, action: { label: 'Undo', onClick: () => setHidden(kind, value, false) } });
   };
 
+  const own = deletingMine?.event.mine ?? null;
+  const ownRepeats = !!own && repeats(own);
+  const deletingBusy = removeMine.isPending || removeDay.isPending;
+  const deletingError = removeMine.error ?? removeDay.error;
   const confirmDeleteMine = () => {
-    const gone = deletingMine?.mine;
-    if (!gone) return;
-    removeMine.mutate(gone.id, {
-      onSuccess: () => {
-        setDeletingMine(null);
-        close();
-        push({ tone: 'success', title: 'Event deleted', body: `${gone.title} is off your calendar.` });
-      },
-    });
+    if (!deletingMine || !own) return;
+    const { event: occurrence, scope } = deletingMine;
+    const done = () => {
+      setDeletingMine(null);
+      close();
+      push({ tone: 'success', title: 'Event deleted', body: deletedLine(own.title, occurrence.date, scope, ownRepeats) });
+    };
+    if (scope === 'all' || !ownRepeats) removeMine.mutate(own.id, { onSuccess: done });
+    else removeDay.mutate({ id: own.id, day: occurrence.date, scope }, { onSuccess: done });
   };
 
   const confirmDelete = () => {
@@ -226,19 +270,22 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAdd, onEditMine }: 
       onSuccess: () => {
         setDeleting(null);
         if (eventId === gone.id) close();
-        push({ tone: 'success', title: 'Event deleted', body: `${gone.title} is off the calendar.` });
+        push({ tone: 'success', title: 'Date deleted', body: `${gone.title} is off the calendar.` });
       },
     });
   };
 
   return (
     <>
+      {my.loadError ? (
+        <QueryError error={my.loadError} title="Your own events didn’t load" size="sm" onRetry={my.retry} retrying={my.retrying} className="cal-mine-error" />
+      ) : null}
       <PageSection>
         <ForYou year={view.year} nextExam={view.nextExam} week={view.week} today={today} todayKey={view.todayKey} selectedId={eventId} onOpen={open} />
       </PageSection>
 
       <PageSection>
-        <Browse view={view} today={today} calendarEmpty={calendarEmpty} onAdd={onAdd} />
+        <Browse view={view} today={today} calendarEmpty={calendarEmpty} onAddDate={onAddDate} onAddMine={onAddMine} />
       </PageSection>
 
       <EventDrawer
@@ -262,31 +309,41 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAdd, onEditMine }: 
         onEditMine={onEditMine}
         onDeleteMine={(e) => {
           removeMine.reset();
-          setDeletingMine(e);
+          removeDay.reset();
+          setDeletingMine({ event: e, scope: e.mine && repeats(e.mine) ? 'one' : 'all' });
         }}
         onHide={my.signedIn && my.prefs ? hide : undefined}
       />
       <ConfirmDialog
         open={!!deletingMine}
-        title="Delete this event?"
+        title={ownRepeats ? 'Delete a repeating event?' : 'Delete this event?'}
         body={
-          deletingMine?.mine ? (
-            <p>
-              <b>{deletingMine.title}</b>
-              {deletingMine.mine.repeat === 'none' ? `, ${formatLong(parseDay(deletingMine.date))},` : ', every repeat of it,'} comes off your calendar and your private link. This can’t be undone.
-            </p>
+          deletingMine && own ? (
+            ownRepeats ? (
+              <p>
+                <b>{own.title}</b> repeats. Choose what to delete. It comes off your calendar and your private link, and can’t be undone.
+              </p>
+            ) : (
+              <p>
+                <b>{own.title}</b>, {formatLong(parseDay(deletingMine.event.date))}, comes off your calendar and your private link. This can’t be undone.
+              </p>
+            )
           ) : null
         }
-        confirmLabel="Delete event"
+        confirmLabel={ownRepeats && deletingMine ? DELETE_LABEL[deletingMine.scope] : 'Delete event'}
         tone="danger"
-        busy={removeMine.isPending}
-        error={removeMine.isError ? errorMessage(removeMine.error, 'The event wasn’t deleted. Try again.') : null}
+        busy={deletingBusy}
+        error={deletingError ? errorMessage(deletingError, 'The event wasn’t deleted. Try again.') : null}
         onConfirm={confirmDeleteMine}
         onClose={() => setDeletingMine(null)}
-      />
+      >
+        {deletingMine && own && ownRepeats ? (
+          <ScopeChoice legend="Delete" value={deletingMine.scope} onChange={(scope) => setDeletingMine({ ...deletingMine, scope })} event={own} day={deletingMine.event.date} disabled={deletingBusy} />
+        ) : null}
+      </ConfirmDialog>
       <ConfirmDialog
         open={!!deleting}
-        title="Delete this event?"
+        title="Delete this date?"
         body={
           deleting ? (
             <p>
@@ -294,10 +351,10 @@ function CalendarBody({ events, calendarEmpty, my, onEdit, onAdd, onEditMine }: 
             </p>
           ) : null
         }
-        confirmLabel="Delete event"
+        confirmLabel="Delete date"
         tone="danger"
         busy={remove.isPending}
-        error={remove.isError ? errorMessage(remove.error, 'The event wasn’t deleted. Try again.') : null}
+        error={remove.isError ? errorMessage(remove.error, 'The date wasn’t deleted. Try again.') : null}
         onConfirm={confirmDelete}
         onClose={() => setDeleting(null)}
       />

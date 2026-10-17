@@ -10,7 +10,8 @@ import { appUrl } from '../../lib/share';
 import type { CohortYear } from '../../state';
 import { dayKeyFromToday, sortEvents } from './queries';
 import type { CalendarPrefsUpdate } from '../../api/types';
-import type { CalendarEvent, CalendarPrefs, EventFilters, EventInput, EventPatch, PersonalInput, PersonalPatch } from './types';
+import type { DayKey } from '../../lib/dates';
+import type { CalendarEvent, CalendarPrefs, DayScope, EventFilters, EventInput, EventPatch, PersonalInput, PersonalPatch } from './types';
 
 export const CALENDAR_KEY = ['calendar'] as const;
 
@@ -31,7 +32,7 @@ export const calendarKeys = {
 };
 
 // The calendar changes a few times a term: keep what was read for five minutes.
-const STALE = 5 * 60_000;
+export const STALE = 5 * 60_000;
 
 export async function fetchEvents(filters: EventFilters = {}): Promise<CalendarEvent[]> {
   const f = clean(filters);
@@ -131,6 +132,8 @@ export function useDeleteEvent() {
 
 // ── A student's own calendar ───────────────────────────────────────────────────────────────────
 //   GET/POST/PATCH/DELETE /api/v1/calendar/mine/events[/id]   their events (each repeat is one event)
+//   PATCH/DELETE /api/v1/calendar/mine/events/{id}/occurrences/{day}?scope=one|following
+//                                                             one day of a repeat, or it and the later ones
 //   GET /api/v1/calendar/mine/events/{id}.ics                 one of them to import
 //   GET/PATCH /api/v1/calendar/mine/settings                  the programme dates they hide, their private feed
 //   POST/DELETE /api/v1/calendar/mine/feed                    a new private feed address, or none
@@ -139,6 +142,9 @@ export const mineKeys = {
   events: [...CALENDAR_KEY, 'mine', 'events'] as const,
   settings: [...CALENDAR_KEY, 'mine', 'settings'] as const,
 };
+
+/** Saves of what a student hides: each sends whole lists, so they go one at a time, in the order they were made. */
+const PREFS_SAVE = [...CALENDAR_KEY, 'mine', 'settings', 'save'] as const;
 
 /** The signed-in student's own events; off for guests (`enabled`). Kept while the page is open. */
 export function useMyEvents({ enabled }: { enabled: boolean }) {
@@ -185,28 +191,55 @@ export function useDeleteMyEvent() {
   });
 }
 
-/** Hide or show programme dates: each list sent replaces the kept one. Shown at once; put back if the save fails. */
+/** A change made from one day of a repeat (`one`: that day only; `following`: it and the later ones). The answer is
+ *  the event that now holds the day. */
+export function useEditMyOccurrence() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, day, scope, patch }: { id: string; day: DayKey; scope: DayScope; patch: PersonalPatch }) =>
+      call(api.PATCH('/api/v1/calendar/mine/events/{event_id}/occurrences/{day}', { params: { path: { event_id: id, day }, query: { scope } }, body: patch })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: mineKeys.events }),
+  });
+}
+
+/** Takes one day off a repeat (`one`), or it and the later ones (`following`). */
+export function useDeleteMyOccurrence() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, day, scope }: { id: string; day: DayKey; scope: DayScope }) =>
+      call(api.DELETE('/api/v1/calendar/mine/events/{event_id}/occurrences/{day}', { params: { path: { event_id: id, day }, query: { scope } } })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: mineKeys.events }),
+  });
+}
+
+/**
+ * Hide or show programme dates: each list sent replaces the kept one. Shown at once. Saves go one at a time; when one
+ * fails, the calendar reads back what the server kept.
+ */
 export function useUpdatePrefs() {
   const qc = useQueryClient();
   return useMutation({
+    mutationKey: PREFS_SAVE,
+    scope: { id: PREFS_SAVE.join('.') },
     mutationFn: (body: CalendarPrefsUpdate) => call(api.PATCH('/api/v1/calendar/mine/settings', { body })),
     onMutate: async (body) => {
       await qc.cancelQueries({ queryKey: mineKeys.settings });
-      const before = qc.getQueryData<CalendarPrefs>(mineKeys.settings);
-      if (before) {
-        qc.setQueryData<CalendarPrefs>(mineKeys.settings, {
-          ...before,
-          hiddenEvents: body.hiddenEvents ?? before.hiddenEvents,
-          hiddenModules: body.hiddenModules ?? before.hiddenModules,
-          hiddenTypes: body.hiddenTypes ?? before.hiddenTypes,
-        });
-      }
-      return { before };
+      qc.setQueryData<CalendarPrefs>(mineKeys.settings, (before) =>
+        before
+          ? {
+              ...before,
+              hiddenEvents: body.hiddenEvents ?? before.hiddenEvents,
+              hiddenModules: body.hiddenModules ?? before.hiddenModules,
+              hiddenTypes: body.hiddenTypes ?? before.hiddenTypes,
+            }
+          : before,
+      );
     },
-    onError: (_err, _body, context) => {
-      if (context?.before) qc.setQueryData(mineKeys.settings, context.before);
+    onError: () => qc.invalidateQueries({ queryKey: mineKeys.settings }),
+    onSuccess: (saved) => {
+      // a later save still on its way keeps what it shows until it answers
+      if (qc.isMutating({ mutationKey: PREFS_SAVE }) <= 1) qc.setQueryData(mineKeys.settings, saved);
     },
-    onSuccess: (saved) => qc.setQueryData(mineKeys.settings, saved),
   });
 }
 
@@ -215,7 +248,7 @@ export function usePrivateFeed() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (action: 'new' | 'off') => call(action === 'new' ? api.POST('/api/v1/calendar/mine/feed') : api.DELETE('/api/v1/calendar/mine/feed')),
-    onSuccess: (saved) => qc.setQueryData(mineKeys.settings, saved),
+    onSuccess: (saved) => qc.setQueryData<CalendarPrefs>(mineKeys.settings, (before) => (before ? { ...before, feedPath: saved.feedPath } : saved)),
   });
 }
 

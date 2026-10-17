@@ -90,7 +90,7 @@ const toYear = (v: string): CohortYear | null => (v ? normalizeYear(Number(v)) :
 function validate(f: FormState): FieldErrors {
   const errors: FieldErrors = {};
   const title = f.title.trim();
-  if (title.length < 3) errors.title = 'Give the event a title of at least 3 characters.';
+  if (title.length < 3) errors.title = 'Give the date a title of at least 3 characters.';
   else if (title.length > 160) errors.title = 'Keep the title under 160 characters.';
   if (!DATE_RE.test(f.date)) errors.date = 'Choose the date.';
   if (f.endDate && !DATE_RE.test(f.endDate)) errors.endDate = 'Choose an end date, or leave it empty.';
@@ -126,7 +126,7 @@ const API_FIELDS: Record<string, keyof FormState> = {
 
 const EXAM_TYPES: ReadonlySet<EventType> = new Set(['exam', 'mock']);
 
-/** Moderators: add an event to the calendar, or edit one. */
+/** Moderators: add a programme date to the calendar, or edit one. */
 export function EventFormDialog({ open, event, defaultDate, preset, employers = [], onClose, onSaved }: EventFormDialogProps) {
   const uid = useId().replace(/:/g, '');
   const { modules, getModule } = useModules();
@@ -206,7 +206,7 @@ export function EventFormDialog({ open, event, defaultDate, preset, employers = 
         }
         setErrors(mapped);
         if (!Object.keys(mapped).length) setFormError(err.message);
-      } else setFormError(errorMessage(err, 'The event wasn’t saved. Try again.'));
+      } else setFormError(errorMessage(err, 'The date wasn’t saved. Try again.'));
     };
     const tellable = TOLD_TYPES.has(form.type);
     if (event) {
@@ -227,7 +227,7 @@ export function EventFormDialog({ open, event, defaultDate, preset, employers = 
     <Modal
       open={open}
       onClose={saving ? () => undefined : onClose}
-      title={event ? 'Edit event' : 'Add an event'}
+      title={event ? 'Edit programme date' : 'New programme date'}
       description={event ? 'Changes show on everyone’s calendar and in the calendar feed.' : 'It shows on the calendar of the cohort you choose, and in the calendar feed.'}
       size="md"
       className="cal-form-dialog"
@@ -237,7 +237,7 @@ export function EventFormDialog({ open, event, defaultDate, preset, employers = 
             Cancel
           </Button>
           <Button variant="primary" type="submit" form={`cal-form-${uid}`} loading={saving} data-hub="calendar-save">
-            {event ? 'Save changes' : 'Add event'}
+            {event ? 'Save changes' : 'Add date'}
           </Button>
         </>
       }

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { findEvent, isHidden, lastRepeat, myCalendar, occurrenceDays, occurrences, reminderLabel, repeatLabel, seriesOf, timeRange } from './mine';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { dayOrder, findEvent, isHidden, lastRepeat, myCalendar, occurrenceDays, occurrences, oneRowPerRepeat, reminderLabel, repeatLabel, repeatShort, seriesOf, timeRange } from './mine';
 import { filterEvents } from './queries';
 import type { CalendarEvent, CalendarPrefs, PersonalEvent } from './types';
 
@@ -16,6 +16,7 @@ const own = (over: Partial<PersonalEvent> = {}): PersonalEvent => ({
   colour: 'teal',
   repeat: 'none',
   repeatUntil: null,
+  skipped: [],
   remind: null,
   createdAt: '2026-10-01T00:00:00Z',
   updatedAt: '2026-10-01T00:00:00Z',
@@ -50,6 +51,26 @@ describe('occurrences', () => {
     expect(occurrenceDays(own())).toEqual(['2026-10-05']);
   });
 
+  it('crosses month and year ends on the right days', () => {
+    // Sunday 25 October, weekly: 1, 8, 15 and 22 November are Sundays too
+    expect(occurrenceDays(own({ date: '2026-10-25', repeat: 'weekly', repeatUntil: '2026-11-22' }))).toEqual(['2026-10-25', '2026-11-01', '2026-11-08', '2026-11-15', '2026-11-22']);
+    expect(occurrenceDays(own({ date: '2026-10-29', repeat: 'daily', repeatUntil: '2026-11-03' }))).toEqual(['2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01', '2026-11-02', '2026-11-03']);
+    expect(occurrenceDays(own({ date: '2026-12-30', repeat: 'daily', repeatUntil: '2027-01-02' }))).toEqual(['2026-12-30', '2026-12-31', '2027-01-01', '2027-01-02']);
+    expect(occurrenceDays(own({ date: '2028-02-22', repeat: 'weekly', repeatUntil: '2028-03-07' }))).toEqual(['2028-02-22', '2028-02-29', '2028-03-07']); // a leap year
+  });
+
+  it('leaves out the days taken off a repeat, and lists one row per repeat', () => {
+    const gym = own({ date: '2026-10-25', repeat: 'weekly', repeatUntil: '2026-11-22', skipped: ['2026-11-01', '2026-11-15'] });
+    expect(occurrenceDays(gym)).toEqual(['2026-10-25', '2026-11-08', '2026-11-22']);
+    expect(occurrenceDays(own({ skipped: ['2026-10-05'] }))).toEqual(['2026-10-05']); // a single event has its day
+    const other = { ...own({ title: 'Dentist', date: '2026-11-08' }), id: '0d4c2b9e-1111-4222-8333-944455556666' };
+    const all = myCalendar([programme('exam-1', { date: '2026-11-08' })], [gym, other], null);
+    expect(oneRowPerRepeat(all).map((e) => `${e.date} ${e.title}`)).toEqual(['2026-10-25 Gym', '2026-11-08 exam-1', '2026-11-08 Dentist']);
+    expect(repeatShort(gym)).toBe('Sundays');
+    expect(repeatShort(own({ repeat: 'daily' }))).toBe('Every day');
+    expect(repeatShort(own())).toBeNull();
+  });
+
   it('gives each occurrence the shape the lists take', () => {
     const [first, second] = occurrences([own({ repeat: 'weekly', repeatUntil: '2026-10-12', startTime: '18:00:00', endTime: '19:30:00', place: 'Gym' })]);
     expect(first).toMatchObject({ id: `mine-${ID}-2026-10-05`, date: '2026-10-05', time: '18:00–19:30', place: 'Gym', year: null, type: 'event' });
@@ -67,6 +88,40 @@ describe('occurrences', () => {
     expect(findEvent(events, `mine-${ID}`, '2026-10-13')?.date).toBe('2026-10-19');
     expect(findEvent(events, `mine-${ID}`, '2027-01-01')?.date).toBe('2026-10-26');
     expect(findEvent(events, 'nothing', '2026-10-13')).toBeNull();
+    // a link to a day taken off the repeat opens its next day
+    const skipped = occurrences([own({ repeat: 'weekly', repeatUntil: '2026-10-26', skipped: ['2026-10-12'] })]);
+    expect(findEvent(skipped, `mine-${ID}-2026-10-12`, '2026-10-06')?.date).toBe('2026-10-19');
+  });
+});
+
+describe('on a device in a daylight-saving zone', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('still lands each repeat on its day when the clocks change', () => {
+    vi.stubEnv('TZ', 'Europe/London'); // the clocks go back on Sunday 25 October 2026
+    expect(new Date(2026, 9, 25, 12).getTimezoneOffset()).toBe(0); // the zone took
+    expect(occurrenceDays(own({ date: '2026-10-18', repeat: 'weekly', repeatUntil: '2026-11-08' }))).toEqual(['2026-10-18', '2026-10-25', '2026-11-01', '2026-11-08']);
+    expect(occurrenceDays(own({ date: '2026-10-24', repeat: 'daily', repeatUntil: '2026-10-27' }))).toEqual(['2026-10-24', '2026-10-25', '2026-10-26', '2026-10-27']);
+    vi.stubEnv('TZ', 'America/Los_Angeles'); // and on Sunday 1 November there
+    expect(occurrenceDays(own({ date: '2026-10-25', repeat: 'weekly', repeatUntil: '2026-11-15' }))).toEqual(['2026-10-25', '2026-11-01', '2026-11-08', '2026-11-15']);
+  });
+});
+
+describe('a day on the month grid', () => {
+  it('puts what starts that day first: exams and deadlines, their own events by time, other dates, then running windows', () => {
+    const window = programme('window', { type: 'careers', date: '2026-10-13', endDate: '2026-10-24' });
+    const deadline = programme('deadline', { type: 'deadline', date: '2026-10-20' });
+    const mock = programme('mock', { type: 'mock', date: '2026-10-20' });
+    const exam = programme('exam', { date: '2026-10-20' });
+    const [late] = occurrences([own({ title: 'Late', date: '2026-10-20', startTime: '18:00:00' })]);
+    const [early] = occurrences([{ ...own({ title: 'Early', date: '2026-10-20', startTime: '08:00:00' }), id: '1d4c2b9e-1111-4222-8333-944455556666' }]);
+    const [allDay] = occurrences([{ ...own({ title: 'All day', date: '2026-10-20' }), id: '2d4c2b9e-1111-4222-8333-944455556666' }]);
+    if (!late || !early || !allDay) throw new Error('no occurrence');
+    const order = dayOrder([window, mock, deadline, late, exam, early, allDay], '2026-10-20').map((e) => e.title);
+    expect(order).toEqual(['deadline', 'exam', 'All day', 'Early', 'Late', 'mock', 'window']);
+    expect(dayOrder([window], '2026-10-13').map((e) => e.title)).toEqual(['window']); // its first day
   });
 });
 

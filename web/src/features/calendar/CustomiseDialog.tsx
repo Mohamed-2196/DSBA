@@ -68,7 +68,7 @@ export function CustomiseDialog({ open, onClose, my, programme, onPapers }: Cust
           <h3 id="cal-cust-types" className="cal-customise__h">
             Types of date you keep
           </h3>
-          <p className="cal-customise__line">Turn a type off to hide every date of it.</p>
+          <p className="cal-customise__line">Turn a type off to hide all its dates.</p>
           <div className="cal-customise__types" role="group" aria-label="Types of date on your calendar">
             {TYPE_ORDER.map((type) => (
               <Chip key={type} size="sm" selected={!hiddenTypes.has(type)} onChange={(on) => my.setHidden('hiddenTypes', type, !on)} color={EVENT_TYPES[type].color} className={cx('cal-typechip', `cal-typechip--${type}`)} disabled={!prefs}>
@@ -87,7 +87,7 @@ export function CustomiseDialog({ open, onClose, my, programme, onPapers }: Cust
               {hiddenModules.map((m) => (
                 <li key={m.id}>
                   <span className="cal-customise__what">
-                    <span className="cal-customise__name">Every {m.unitCode || m.shortName} date</span>
+                    <span className="cal-customise__name">All {m.unitCode || m.shortName} dates</span>
                     <span className="cal-customise__meta">{m.name}</span>
                   </span>
                   <Button size="sm" variant="ghost" onClick={() => my.setHidden('hiddenModules', m.id, false)}>
@@ -113,9 +113,9 @@ export function CustomiseDialog({ open, onClose, my, programme, onPapers }: Cust
             <p className="cal-customise__line">Nothing hidden. To hide a date, open it and choose “Hide this date”.</p>
           )}
         </section>
-        {my.error ? (
+        {my.saveError ? (
           <p className="cal-form__error" role="alert">
-            {errorMessage(my.error, 'That change wasn’t saved. Try again.')}
+            {errorMessage(my.saveError, 'That change wasn’t saved. Try again.')}
           </p>
         ) : null}
       </div>

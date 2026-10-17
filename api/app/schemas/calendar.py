@@ -86,6 +86,8 @@ class CalendarEventSaved(CalendarEventOut):
 # The colours a student's own events can take (the web app draws each with its own token).
 PersonalColour = Literal["violet", "teal", "green", "orange", "rose", "slate"]
 Repeat = Literal["none", "daily", "weekly"]
+# What a change or a deletion made from one day of a repeat covers: that day only, or that day and every later one.
+OccurrenceScope = Literal["one", "following"]
 # Minutes before the start a reminder comes; an all-day event "starts" at 09:00 (services/my_calendar.py).
 Reminder = Literal[0, 10, 30, 60, 1440]
 MAX_HIDDEN = 300
@@ -98,7 +100,8 @@ ModuleId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9][a-z0-9-]{0,63}$"
 class PersonalEventOut(ApiModel):
     """An event a student added for themselves: private to them. Without `startTime` it is all day (through
     `endDate` when set); with it, it runs from `startTime` to `endTime` (or for an hour) on `date`. Times are in
-    Bahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year)."""
+    Bahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year), except on the
+    `skipped` days."""
 
     id: UUID
     title: str
@@ -111,6 +114,7 @@ class PersonalEventOut(ApiModel):
     colour: PersonalColour
     repeat: Repeat
     repeat_until: dt.date | None
+    skipped: list[dt.date]  # days taken off the repeat, oldest first
     remind: Reminder | None  # minutes before; None: no reminder
     created_at: datetime
     updated_at: datetime

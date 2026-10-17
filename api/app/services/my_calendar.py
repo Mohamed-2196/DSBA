@@ -3,8 +3,8 @@ feed, and the reminders for their events.
 
 Times are Bahrain times (core.time.BAHRAIN, UTC+3 all year). A timed event runs from its start time to its end
 time, or for an hour. An all-day event "starts" at 09:00 for its reminder. A repeat runs every day or week from
-the event's date until its repeat end, or for REPEAT_DAYS without one; the web app, the feed (RRULE) and the
-reminders all count the same occurrences."""
+the event's date until its repeat end, or for REPEAT_DAYS without one, less the days taken off it (`skipped`); the
+web app, the feed (RRULE and EXDATE) and the reminders all count the same occurrences."""
 
 from __future__ import annotations
 
@@ -25,11 +25,13 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.core.access import Feature
 from app.core.errors import ApiError, conflict, invalid, not_found
+from app.core.text import slugify
 from app.core.time import BAHRAIN, utcnow
 from app.models import CalendarEvent, CalendarPrefs, Module, PersonalEvent, User
 from app.schemas.calendar import (
     CalendarPrefsOut,
     CalendarPrefsUpdate,
+    OccurrenceScope,
     PersonalEventCreate,
     PersonalEventUpdate,
 )
@@ -48,6 +50,7 @@ ALL_DAY_AT = dt.time(9, 0)  # when an all-day event's reminder counts from
 DEFAULT_LENGTH = timedelta(hours=1)
 REMINDER_GRACE = timedelta(minutes=15)  # a reminder still goes out this long after its event started
 EVENT_GONE = "This event isn't on your calendar any more."
+DAY_GONE = "This event isn't on that day any more. Refresh the calendar and try again."
 EDITABLE = (
     "title",
     "date",
@@ -62,6 +65,8 @@ EDITABLE = (
     "remind",
 )
 CLEARABLE = ("end_date", "start_time", "end_time", "place", "notes", "repeat_until", "remind")
+# What a change to one day of a repeat can set: that day becomes an event of its own, which doesn't repeat.
+ONE_DAY = tuple(f for f in EDITABLE if f not in ("repeat", "repeat_until"))
 
 # The choices inside a year that a student's papers pick from (web/src/features/papers/papers.ts CHOICES, which the
 # web app's "Your papers" shows): without a pick from a year's choice, every module of the year counts.
@@ -81,19 +86,39 @@ def last_repeat(e: PersonalEvent) -> dt.date:
     return e.repeat_until or e.date + timedelta(days=REPEAT_DAYS)
 
 
+def _step(e: PersonalEvent) -> int:
+    return 7 if e.repeat == "weekly" else 1
+
+
+def on_repeat(e: PersonalEvent, day: dt.date) -> bool:
+    """Whether the repeat of `e` lands on `day`, skipped days included."""
+    return e.date <= day <= last_repeat(e) and (day - e.date).days % _step(e) == 0
+
+
 def occurrence_days(e: PersonalEvent, start: dt.date, end: dt.date) -> Iterator[dt.date]:
-    """The days occurrences of `e` start on, from `start` to `end` inclusive."""
-    step = 7 if e.repeat == "weekly" else 1
+    """The days occurrences of `e` start on, from `start` to `end` inclusive (skipped days left out)."""
+    step = _step(e)
     first, last = e.date, min(last_repeat(e), end)
     if start > first and e.repeat != "none":
         first += timedelta(days=-(-(start - first).days // step) * step)  # the first occurrence on or after start
+    skipped = set(e.skipped or ())
     day = first
     while day <= last:
-        if day >= start:
+        if day >= start and day not in skipped:
             yield day
         if e.repeat == "none":
             return
         day += timedelta(days=step)
+
+
+def first_day(e: PersonalEvent) -> dt.date | None:
+    """The day of the first occurrence of `e`, or None when every day of it was taken off."""
+    return next(occurrence_days(e, e.date, last_repeat(e)), None)
+
+
+def is_occurrence(e: PersonalEvent, day: dt.date) -> bool:
+    """Whether an occurrence of `e` starts on `day`."""
+    return next(occurrence_days(e, day, day), None) == day
 
 
 def starts_at(e: PersonalEvent, day: dt.date) -> datetime:
@@ -136,17 +161,24 @@ def _check(e: PersonalEvent) -> None:
         raise invalid("endTime", "The end time has to be after the start time.")
     if e.repeat == "none":
         e.repeat_until = None
+        if e.skipped:
+            e.skipped = []
     elif e.end_date is not None:
         raise invalid("repeat", "A repeating event is on one day. Clear the last day, or don't repeat it.")
     if e.repeat_until is not None and e.repeat_until < e.date:
         raise invalid("repeatUntil", "The repeat can't end before the first day.")
     if e.repeat_until is not None and e.repeat_until > e.date + timedelta(days=REPEAT_DAYS * 2):
         raise invalid("repeatUntil", "A repeat can run for two years at most.")
+    # days taken off the repeat stay off only while the repeat still lands on them
+    kept = sorted({d for d in e.skipped or () if on_repeat(e, d)})
+    if kept != list(e.skipped or ()):
+        e.skipped = kept
+    if first_day(e) is None:
+        raise invalid("repeatUntil", "Every day of this repeat was deleted. Delete the event instead.")
 
 
-def create_event(db: Session, user: User, body: PersonalEventCreate) -> PersonalEvent:
-    """409 calendar_full at MAX_EVENTS, 429 after CREATE_LIMIT new events in an hour, 422 for dates and times that
-    don't fit together."""
+def _room_for_one_more(db: Session, user: User) -> None:
+    """429 after CREATE_LIMIT new events in an hour, 409 calendar_full at MAX_EVENTS."""
     ratelimit.enforce(
         db,
         f"personal-events:{user.id}",
@@ -159,6 +191,12 @@ def create_event(db: Session, user: User, body: PersonalEventCreate) -> Personal
     count = db.scalar(select(func.count()).select_from(PersonalEvent).where(PersonalEvent.user_id == user.id)) or 0
     if count >= MAX_EVENTS:
         raise conflict("calendar_full", f"Your calendar holds {MAX_EVENTS} of your own events. Delete old ones first.")
+
+
+def create_event(db: Session, user: User, body: PersonalEventCreate) -> PersonalEvent:
+    """409 calendar_full at MAX_EVENTS, 429 after CREATE_LIMIT new events in an hour, 422 for dates and times that
+    don't fit together."""
+    _room_for_one_more(db, user)
     event = PersonalEvent(
         id=uuid.uuid4(),
         user_id=user.id,
@@ -196,6 +234,65 @@ def update_event(db: Session, event: PersonalEvent, body: PersonalEventUpdate) -
 
 def delete_event(db: Session, event: PersonalEvent) -> None:
     db.delete(event)
+
+
+def _copy(e: PersonalEvent, **changes: object) -> PersonalEvent:
+    """A new event with the fields of `e`, and `changes` on top."""
+    fields: dict[str, object] = {f: getattr(e, f) for f in (*EDITABLE, "skipped")}
+    fields["skipped"] = list(e.skipped or ())
+    return PersonalEvent(id=uuid.uuid4(), user_id=e.user_id, **{**fields, **changes})
+
+
+def change_occurrence(
+    db: Session, user: User, event: PersonalEvent, day: dt.date, scope: OccurrenceScope, body: PersonalEventUpdate
+) -> PersonalEvent:
+    """A change made from one day of `event`. `one`: that day becomes an event of its own with the change, and the
+    repeat skips it. `following`: the repeat ends the day before, and a new one with the change runs from that day to
+    where the old one ended. A change from the first day with `following`, or to an event that doesn't repeat, is a
+    change to the whole event. 404 not_found when no occurrence starts on `day`, 422 for dates and times that don't
+    fit together, 409 calendar_full and 429 as for a new event. -> the event that now holds that day."""
+    if not is_occurrence(event, day):
+        raise not_found(DAY_GONE)
+    if event.repeat == "none" or (scope == "following" and day == first_day(event)):
+        update_event(db, event, body)
+        return event
+    _room_for_one_more(db, user)
+    if scope == "one":
+        new = _copy(event, date=day, repeat="none", repeat_until=None, skipped=[])
+        apply_patch(new, body, ONE_DAY, clearable=CLEARABLE)
+    else:
+        new = _copy(event, date=day, repeat_until=last_repeat(event), skipped=[d for d in event.skipped if d > day])
+        apply_patch(new, body, EDITABLE, clearable=CLEARABLE)
+    _check(new)
+    _take_off(db, event, day, scope)
+    db.add(new)
+    db.flush()
+    return new
+
+
+def _take_off(db: Session, event: PersonalEvent, day: dt.date, scope: OccurrenceScope) -> None:
+    """Takes `day` off the repeat of `event` (`one`), or ends the repeat the day before (`following`; `day` is later
+    than its first day). An event left without a day is deleted."""
+    if scope == "one":
+        event.skipped = sorted({*event.skipped, day})
+    else:
+        event.repeat_until = day - timedelta(days=1)
+        event.skipped = [d for d in event.skipped if d < day]
+    if first_day(event) is None:
+        db.delete(event)
+    else:
+        event.updated_at = utcnow()
+
+
+def delete_occurrence(db: Session, event: PersonalEvent, day: dt.date, scope: OccurrenceScope) -> None:
+    """Takes `day` off the repeat (`one`), or that day and every later one (`following`). An event left without a
+    day is deleted. 404 not_found when no occurrence starts on `day`."""
+    if not is_occurrence(event, day):
+        raise not_found(DAY_GONE)
+    if event.repeat == "none" or (scope == "following" and day == first_day(event)):
+        db.delete(event)
+    else:
+        _take_off(db, event, day, scope)
 
 
 # ── what a student keeps off their calendar ──────────────────────────────────────────────────
@@ -357,6 +454,11 @@ def personal_vevent(e: PersonalEvent, now: datetime, base_url: str) -> list[str]
         # UNTIL takes DTSTART's type: a date for an all-day event, the last start in UTC for a timed one
         stamp = programme.date_value(until) if e.start_time is None else _utc(until, e.start_time or ALL_DAY_AT)
         lines.append(f"RRULE:FREQ={'WEEKLY' if e.repeat == 'weekly' else 'DAILY'};UNTIL={stamp}")
+        if e.skipped:  # EXDATE takes DTSTART's type too
+            if e.start_time is None:
+                lines.append(f"EXDATE;VALUE=DATE:{','.join(programme.date_value(d) for d in e.skipped)}")
+            else:
+                lines.append(f"EXDATE:{','.join(_utc(d, e.start_time) for d in e.skipped)}")
     lines.append(f"SUMMARY:{programme.ics_text(e.title)}")
     if e.notes:
         lines.append(f"DESCRIPTION:{programme.ics_text(e.notes)}")
@@ -391,6 +493,16 @@ def event_ics(e: PersonalEvent) -> str:
     """One of a student's events as a file to import once."""
     vevent = personal_vevent(e, utcnow(), get_settings().web_base_url)
     return programme.ics_document([vevent], name=e.title, subscription=False)
+
+
+def ics_file_name(e: PersonalEvent) -> str:
+    """'study-group.ics': the file name an event downloads as."""
+    return f"{slugify(e.title, 60) or 'my-event'}.ics"
+
+
+def occurrence_url(e: PersonalEvent, day: dt.date) -> str:
+    """The calendar page open on the occurrence of `e` on `day` (the web app's occurrence ids)."""
+    return f"/calendar?event=mine-{e.id}" if e.repeat == "none" else f"/calendar?event=mine-{e.id}-{day.isoformat()}"
 
 
 # ── reminders ────────────────────────────────────────────────────────────────────────────────
@@ -437,7 +549,7 @@ def send_reminders(db: Session, now: datetime | None = None) -> int:
                 user = db.get(User, e.user_id)
                 readers[e.user_id] = user is not None and access.feature_on(db, user, Feature.calendar)
             if readers[e.user_id]:
-                url = f"/calendar?event=mine-{e.id}&date={day.isoformat()}"
+                url = occurrence_url(e, day)
                 notify(db, e.user_id, "event_reminder", e.title, body=_reminder_body(e, day, today), url=url)
                 sent += 1
     return sent

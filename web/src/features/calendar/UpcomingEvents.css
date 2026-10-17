@@ -75,3 +75,4 @@
 .cal-upcoming__row--loading { cursor: default; }
 .cal-upcoming__row--loading:hover { background: none; }
 .cal-upcoming__row--loading .cal-upcoming__body { gap: 8px; }
+.cal-upcoming__error { margin-bottom: var(--sp-8); }
