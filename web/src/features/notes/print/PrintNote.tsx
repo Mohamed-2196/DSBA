@@ -29,6 +29,22 @@ interface PrintNoteProps {
   onDone: () => void;
 }
 
+/** A sheet's ruling, squares or dots as lines and dots of its own: printed sharp (a page's patterned background is
+ *  turned into a picture for paper, and its fine lines get lost). */
+function PaperRules({ paper, height }: { paper: Paper; height: number }) {
+  if (paper === 'blank') return null;
+  const rows = Array.from({ length: Math.floor((height - 25) / 32) + 1 }, (_, k) => 25 + 32 * k);
+  const cols = Array.from({ length: Math.floor((SHEET_WIDTH - 8) / 32) + 1 }, (_, k) => 8 + 32 * k);
+  return (
+    <svg className="nb-print__rules" width={SHEET_WIDTH} height={height} viewBox={`0 0 ${SHEET_WIDTH} ${height}`}>
+      {paper === 'dotted'
+        ? rows.flatMap((y) => cols.map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r={1.8} />))
+        : rows.map((y) => <line key={`h${y}`} x1={0} x2={SHEET_WIDTH} y1={y + 0.7} y2={y + 0.7} />)}
+      {paper === 'grid' ? cols.map((x) => <line key={`v${x}`} x1={x + 0.6} x2={x + 0.6} y1={0} y2={height} />) : null}
+    </svg>
+  );
+}
+
 /** The typed text on one page of paper: a copy of the text on screen, shifted to that page. */
 function PrintText({ source, page }: { source: HTMLElement | null; page: number }) {
   const box = useRef<HTMLDivElement>(null);
@@ -134,7 +150,7 @@ export function PrintNote({ title, sheets, paper, pdf, strokesOf, textSource, on
           {sheets.map((s, i) => (
             <section key={s.index} className={cx('nb-print__page', i === sheets.length - 1 && 'is-last')}>
               <div
-                className={cx('nb-print__sheet', s.kind === 'paper' && `nb-paper--${paper}`)}
+                className={cx('nb-print__sheet', s.kind === 'paper' && `is-${paper}`)}
                 style={{
                   width: SHEET_WIDTH,
                   height: s.height,
@@ -143,6 +159,7 @@ export function PrintNote({ title, sheets, paper, pdf, strokesOf, textSource, on
                 }}
               >
                 {s.kind === 'pdf' && images[s.index] ? <img className="nb-print__pdf" src={images[s.index]} alt="" /> : null}
+                {s.kind === 'paper' ? <PaperRules paper={paper} height={s.height} /> : null}
                 {s.kind === 'paper' ? <PrintText source={text} page={s.index - PAPER_BASE} /> : null}
                 <svg className="nb-print__ink" width={SHEET_WIDTH} height={s.height} viewBox={`0 0 ${SHEET_WIDTH} ${s.height}`}>
                   <StrokePaths strokes={strokesOf(s.index) as readonly InkStroke[]} />

@@ -27,6 +27,10 @@
     print-color-adjust: exact;
   }
   .nb-print__pdf { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .nb-print__rules { position: absolute; inset: 0; }
+  .nb-print__rules line { stroke: var(--page-rule); stroke-width: 1.4px; }
+  .nb-print__sheet.is-grid .nb-print__rules line { stroke: var(--page-grid); stroke-width: 1.2px; }
+  .nb-print__rules circle { fill: var(--page-dot); }
   .nb-print__text { position: absolute; }
   .nb-print__ink { position: absolute; inset: 0; overflow: visible; }
   /* the editor's own controls stay on screen */
