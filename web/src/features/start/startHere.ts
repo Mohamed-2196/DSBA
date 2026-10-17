@@ -1,5 +1,5 @@
-// Start here: when Year 1's card shows, which calendar date the "Register" step points at, and the ticks kept in the
-// browser. Plain functions over the guide's data (data/guides.ts), tested in startHere.test.ts.
+// The guides: when Year 1's Start here card and the Results day card show, which calendar date a step points at, and
+// the ticks kept in the browser. Plain functions over the guides (GET /guides), tested in startHere.test.ts.
 import { addDaysToKey, type DayKey } from '../../lib/dates';
 
 const pad = (n: number): string => String(n).padStart(2, '0');

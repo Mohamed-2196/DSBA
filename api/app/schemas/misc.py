@@ -34,3 +34,4 @@ class Health(ApiModel):
     database: Literal["ok", "error"]
     storage: Literal["ok", "error"]
     version: str
+    commit: str | None  # the commit the API runs (a git hash), when the deploy says it

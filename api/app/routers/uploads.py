@@ -68,7 +68,8 @@ def complete_upload(upload_id: UUID, user: ActiveUser, db: DB) -> UploadOut:
 def media(upload_id: UUID, db: DB, user: OptionalUser) -> RedirectResponse:
     """A picture: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). Its
     uploader always sees it. A forum image: everyone while its post is visible, moderators always. A newsletter
-    picture: everyone once a published issue shows it, people who manage the newsletter always. A bug screenshot:
-    admins. 404 otherwise; feature_off while the forum or the newsletter is off for the viewer."""
+    picture: everyone once a published issue shows it, people who manage the newsletter always. A module's art:
+    everyone while a module students see shows it, people who edit modules always. A bug screenshot: admins. 404
+    otherwise; feature_off while the forum or the newsletter is off for the viewer."""
     url = svc.media_redirect_url(db, upload_id, user)
     return RedirectResponse(url, status_code=status.HTTP_302_FOUND, headers={"Cache-Control": MEDIA_CACHE})

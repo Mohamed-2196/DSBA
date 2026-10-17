@@ -1,13 +1,29 @@
 // Which of Manage's sections a person gets, from their boxes and the features that are on for them.
 import type { Box, Feature } from '../../auth';
 
-export type SectionId = 'reports' | 'uploads' | 'requests' | 'bugs' | 'newsletter' | 'summary' | 'calendar' | 'career' | 'content' | 'videos' | 'gaps' | 'numbers' | 'people' | 'activity';
+export type SectionId =
+  | 'reports'
+  | 'uploads'
+  | 'requests'
+  | 'bugs'
+  | 'newsletter'
+  | 'summary'
+  | 'calendar'
+  | 'career'
+  | 'content'
+  | 'guides'
+  | 'videos'
+  | 'gaps'
+  | 'numbers'
+  | 'people'
+  | 'activity'
+  | 'site';
 
 type Can = (box: Box) => boolean;
 type On = (feature: Feature) => boolean;
 
-/** Bug reports are an Admin power, not a box. */
-const ADMIN_ONLY: readonly SectionId[] = ['bugs'];
+/** Bug reports and Site settings are Admin powers, not boxes. */
+const ADMIN_ONLY: readonly SectionId[] = ['bugs', 'site'];
 
 const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
   ['reports', (can, on) => (can('forum.moderate') && on('forum')) || (can('library.manage') && on('library')) || (can('requests.manage') && on('requests'))],
@@ -20,10 +36,12 @@ const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
   ['summary', (can, on) => can('summary.share') && on('summary')],
   ['career', (can, on) => can('career.edit') && on('career')],
   ['content', (can) => can('content.edit')],
+  ['guides', (can) => can('guides.edit')],
   ['gaps', (can, on) => (can('library.manage') && on('library')) || can('content.edit') || (can('calendar.manage') && on('calendar')) || (can('requests.manage') && on('requests'))],
   ['numbers', (can) => can('stats.view')],
   ['people', (can) => can('people.suspend')],
   ['activity', (can) => can('audit.read')],
+  ['site', () => true],
 ];
 
 const everyFeature: On = () => true;
@@ -40,8 +58,8 @@ export interface SectionGroup {
 
 const GROUPS: readonly SectionGroup[] = [
   { id: 'waiting', label: 'Waiting', sections: ['reports', 'uploads', 'requests', 'videos', 'bugs'] },
-  { id: 'publish', label: 'Publish', sections: ['newsletter', 'calendar', 'summary', 'career', 'content'] },
-  { id: 'look-after', label: 'Look after', sections: ['gaps', 'numbers', 'people', 'activity'] },
+  { id: 'publish', label: 'Publish', sections: ['newsletter', 'calendar', 'summary', 'career', 'content', 'guides'] },
+  { id: 'look-after', label: 'Look after', sections: ['gaps', 'numbers', 'people', 'activity', 'site'] },
 ];
 
 /** The person's sections in Manage's groups (Waiting, Publish, Look after), leaving out empty groups. */

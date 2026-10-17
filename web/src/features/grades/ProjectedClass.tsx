@@ -1,9 +1,9 @@
 // "On your marks so far": the calculator's marks from this browser, read and classified here. Nothing is sent.
 import { ArrowRight, ArrowSquareOut } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
-import { UOL_RULES } from '../../data/guides';
 import { useModulesOptional } from '../../state/modules';
 import { cx } from '../../ui';
+import { httpsHref, useSite } from '../site/public';
 import { CLASS_NAME, CLASS_SHORT } from './bands';
 import { SUBJECTS } from './classify';
 import { projectClass, type Projection } from './projection';
@@ -36,6 +36,8 @@ export interface ProjectedClassProps {
 export function ProjectedClass({ calculatorLink = true, className }: ProjectedClassProps) {
   const { marks, picks } = useCalculatorRecord();
   const catalogue = useModulesOptional();
+  const site = useSite().data;
+  const regulations = httpsHref(site?.links.regulations.url);
   const p = projectClass(marks);
   const nameOf = (i: number): string => {
     const subject = SUBJECTS[i];
@@ -88,14 +90,18 @@ export function ProjectedClass({ calculatorLink = true, className }: ProjectedCl
   return (
     <div className={cx('projected', className)} data-hub="projected-class" data-state={p.state}>
       {body}
-      <p className="projected__check">
-        {UOL_RULES.check}{' '}
-        <a href={UOL_RULES.regulations.href} target="_blank" rel="noopener noreferrer" className="projected__link">
-          {UOL_RULES.regulations.label}
-          <ArrowSquareOut weight="bold" aria-hidden="true" />
-          <span className="visually-hidden"> (opens in a new tab)</span>
-        </a>
-      </p>
+      {site ? (
+        <p className="projected__check">
+          {site.gradesNote}{' '}
+          {regulations ? (
+            <a href={regulations} target="_blank" rel="noopener noreferrer" className="projected__link">
+              {site.links.regulations.label}
+              <ArrowSquareOut weight="bold" aria-hidden="true" />
+              <span className="visually-hidden"> (opens in a new tab)</span>
+            </a>
+          ) : null}
+        </p>
+      ) : null}
       {calculatorLink ? (
         <Link to="/grades" className="projected__link">
           {p.state === 'empty' ? 'Enter your marks' : 'Open the grades calculator'}

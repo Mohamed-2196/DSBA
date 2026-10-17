@@ -59,11 +59,11 @@ def test_the_baseline_seeds_the_roles_and_every_switch(scratch: tuple[Config, En
         ).tuples()
         assert dict(boxes.all()) == {
             "admin": None,
-            "content-manager": "calendar.manage,career.edit,content.edit",
+            "content-manager": "calendar.manage,career.edit,content.edit,guides.edit",
             "newsletter-manager": "newsletter.manage",
             "rep": (
-                "calendar.manage,forum.moderate,library.manage,newsletter.manage,requests.manage,stats.view,"
-                "summary.share"
+                "calendar.manage,forum.moderate,guides.edit,library.manage,newsletter.manage,requests.manage,"
+                "stats.view,summary.share"
             ),
             "student": "forum.post,library.upload,newsletter.react,reports.create",
         }

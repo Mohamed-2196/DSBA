@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowCounterClockwise, CaretDown, Flask, LockSimple } from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
-import { UOL_RULES } from '../../data/guides';
 import { BREAKPOINTS, useLocalStorage, useMediaQuery, useQueryParam, useToast } from '../../state';
 import { Button, cx, Menu, Page, PageHeader, PageSection, SectionHeader } from '../../ui';
+import { httpsHref, useSite } from '../site/public';
 import { CLASS_NAME, CLASS_SHORT } from './bands';
 import { classify, normalizeGrades, type BandId, type ChoiceSlot, type Classification, type Picks } from './classify';
 import { readRecord, STORAGE_KEY } from './record';
@@ -151,6 +151,27 @@ const BAND_ROWS: [BandId, string, string, string][] = [
   ['fail', 'Fail', '0–39', '–'],
 ];
 
+/** Where the rules come from: Site settings' note on the calculator and its link to the programme regulations. */
+function SourceNote() {
+  const site = useSite().data;
+  if (!site) return null;
+  const regulations = httpsHref(site.links.regulations.url);
+  return (
+    <p className="grades-how__note" data-hub="grades-source">
+      {site.gradesNote} The rules are in regulations 8.7 and 8.8 of the{' '}
+      {regulations ? (
+        <a href={regulations} target="_blank" rel="noopener noreferrer">
+          {site.links.regulations.label}
+          <span className="visually-hidden"> (opens in a new tab)</span>
+        </a>
+      ) : (
+        site.links.regulations.label
+      )}
+      .
+    </p>
+  );
+}
+
 function Rules() {
   return (
     <div className="grades-how">
@@ -224,14 +245,7 @@ function Rules() {
             ))}
           </tbody>
         </table>
-        <p className="grades-how__note" data-hub="grades-source">
-          {UOL_RULES.check} The rules are in regulations 8.7 and 8.8 of the{' '}
-          <a href={UOL_RULES.regulations.href} target="_blank" rel="noopener noreferrer">
-            {UOL_RULES.regulations.label}
-            <span className="visually-hidden"> (opens in a new tab)</span>
-          </a>
-          .
-        </p>
+        <SourceNote />
       </div>
     </div>
   );

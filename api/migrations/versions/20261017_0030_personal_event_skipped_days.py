@@ -1,7 +1,7 @@
 """a student's repeating event can lose one of its days
 
 Revision ID: 0030
-Revises: 0026
+Revises: 0028
 Create Date: 2026-10-17 21:30:00
 
 "Delete only this one" and "change only this one" take a day off a repeat: personal_events.skipped lists those
@@ -17,7 +17,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0030"
-down_revision: str | None = "0026"
+down_revision: str | None = "0028"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

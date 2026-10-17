@@ -10,6 +10,7 @@ const mod = (id: string, year: 1 | 2 | 3): ModuleSummary => ({
   shortName: id,
   description: '',
   icon: null,
+  art: null,
   chapterCount: 0,
   lessonCount: 0,
   libraryCount: null,
