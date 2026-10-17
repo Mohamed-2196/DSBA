@@ -8,8 +8,11 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from app.services.storage import INCOMING_PREFIX, INCOMING_RULE_ID, Storage, safe_file_name
+from tests.core.conftest import SetOption
 
 
 @pytest.mark.parametrize(
@@ -75,6 +78,21 @@ def test_copy_sets_the_type_again(storage: Storage) -> None:
     assert info is not None
     assert (info.size, info.content_type) == (8, "image/png")
     assert storage.head(src) is not None  # the caller deletes the source once the copy is in place
+
+
+def test_in_development_the_api_prepares_the_bucket_when_it_starts(
+    app: FastAPI, storage: Storage, set_option: SetOption
+) -> None:
+    set_option("s3_create_bucket", True)
+    set_option("web_origins", ["http://127.0.0.1:5199"])
+    storage.client.delete_bucket_cors(Bucket=storage.bucket)
+    storage.client.delete_bucket_lifecycle(Bucket=storage.bucket)
+    with TestClient(app):  # its start-up
+        pass
+    cors = storage.client.get_bucket_cors(Bucket=storage.bucket)["CORSRules"]
+    assert cors[0]["AllowedOrigins"] == ["http://127.0.0.1:5199"]
+    rules = storage.client.get_bucket_lifecycle_configuration(Bucket=storage.bucket)["Rules"]
+    assert [r["ID"] for r in rules] == [INCOMING_RULE_ID]
 
 
 def test_incoming_uploads_expire_after_a_day(storage: Storage) -> None:

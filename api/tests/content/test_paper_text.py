@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import io
 import json
 import os
 import secrets
@@ -11,6 +12,7 @@ import sys
 import uuid
 from collections.abc import Callable, Iterator
 from datetime import timedelta
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -27,7 +29,7 @@ from app.config import get_settings
 from app.core.time import utcnow
 from app.db import sessions_for
 from app.models import ItemSource, ItemStatus, LibraryItem, LibraryText, Module, Note, TextStatus, User, UserSession
-from app.services import paper_text
+from app.services import paper_text, text_extract
 from app.services.paper_text import ReadError, read_pages
 from app.services.text_extract import MAX_CHARS
 from tests.content.conftest import API
@@ -76,6 +78,24 @@ def _text(db: Session, item: LibraryItem) -> LibraryText:
     return row
 
 
+@pytest.fixture
+def reader_here(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The reader's child process, run in this process instead: the same reading and the same answer, without
+    starting Python again for every file. The reader's own tests and one worker test keep the real child process."""
+
+    def run(cmd: list[str], *, input: bytes, **_: Any) -> subprocess.CompletedProcess[bytes]:
+        assert cmd[1:3] == ["-m", "app.services.text_extract"]
+        stdin, sys.stdin = sys.stdin, io.TextIOWrapper(io.BytesIO(input))
+        try:
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                code = text_extract.main(cmd[3:])
+        finally:
+            sys.stdin = stdin
+        return subprocess.CompletedProcess(cmd, code, out.getvalue().encode(), b"")
+
+    monkeypatch.setattr(paper_text, "subprocess", SimpleNamespace(run=run, TimeoutExpired=subprocess.TimeoutExpired))
+
+
 # ── reading files ────────────────────────────────────────────────────────────────────────────
 
 
@@ -98,6 +118,7 @@ def test_a_reader_that_takes_too_long_is_stopped() -> None:
         read_pages("pdf", make_pdf(PAPER), time_limit=0.001)
 
 
+@pytest.mark.usefixtures("reader_here")
 def test_text_is_capped() -> None:
     pages = read_pages("pdf", make_pdf(["word " * 2000] * 200))
     assert sum(len(p) for p in pages) <= MAX_CHARS
@@ -119,6 +140,7 @@ def papers(db: Session, storage: Any, modules: dict[str, Module]) -> dict[str, L
 
 
 def test_the_worker_reads_each_published_file_once(db: Session, storage: Any, papers: dict[str, LibraryItem]) -> None:
+    """End to end, each file read in a child process of its own."""
     assert paper_text.waiting(db) == 4
     counts = paper_text.drain(_sessions(db), storage)
     assert counts == {TextStatus.working: 0, TextStatus.done: 2, TextStatus.empty: 1, TextStatus.failed: 1}
@@ -138,6 +160,7 @@ def test_the_worker_reads_each_published_file_once(db: Session, storage: Any, pa
     assert sum(paper_text.drain(_sessions(db), storage).values()) == 0  # nothing is read twice
 
 
+@pytest.mark.usefixtures("reader_here")
 def test_files_too_big_are_not_read(
     db: Session, storage: Any, papers: dict[str, LibraryItem], monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -148,6 +171,7 @@ def test_files_too_big_are_not_read(
     assert "bigger than" in (row.error or "")
 
 
+@pytest.mark.usefixtures("reader_here")
 def test_a_stale_claim_is_taken_again(db: Session, storage: Any, papers: dict[str, LibraryItem]) -> None:
     paper_text.drain(_sessions(db), storage)
     row = _text(db, papers["paper"])
@@ -157,6 +181,7 @@ def test_a_stale_claim_is_taken_again(db: Session, storage: Any, papers: dict[st
     assert _text(db, papers["paper"]).status == TextStatus.done
 
 
+@pytest.mark.usefixtures("reader_here")
 def test_the_backfill_command(
     db: Session,
     storage: Any,
@@ -179,7 +204,7 @@ def test_the_backfill_command(
 
 
 @pytest.fixture
-def read(db: Session, storage: Any, papers: dict[str, LibraryItem]) -> dict[str, LibraryItem]:
+def read(db: Session, storage: Any, papers: dict[str, LibraryItem], reader_here: None) -> dict[str, LibraryItem]:
     paper_text.drain(_sessions(db), storage)
     return papers
 
@@ -330,6 +355,7 @@ def owner(engine: Engine) -> Iterator[sessionmaker[Session]]:
     separate.dispose()
 
 
+@pytest.mark.usefixtures("reader_here")
 def test_the_workers_database_role_reaches_only_what_the_worker_needs(
     owner: sessionmaker[Session],
     engine: Engine,

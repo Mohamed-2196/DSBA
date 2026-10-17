@@ -1,28 +1,37 @@
-# Verifies health and responsiveness of the deployed Railway dev environment on push to feature/backend
-name: Railway Dev Deploy Health
+# Railway deploys every push to feature/backend to the dev environment: the API and the web app, each from its
+# Dockerfile, with the pushed commit in RAILWAY_GIT_COMMIT_SHA. This waits (up to ten minutes) until both run the
+# pushed commit, then checks the API's health and the web app's bundle (scripts/check-deploy.sh), and fails when the
+# commit isn't live or isn't healthy. It only reads the deployed site; it never talks to Railway.
+name: Railway dev deploy
 
 on:
   push:
-    branches:
-      - feature/backend
+    branches: [feature/backend]
   workflow_dispatch:
 
-jobs:
-  verify-deployment:
-    name: Verify Railway Dev Environment
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - name: Wait for Railway deployment to settle
-        run: sleep 30
+# The job's token gets no permissions (security review SEC-43): it reads the public repository and the site only.
+permissions: {}
 
-      - name: Check Railway Web & API Health
-        run: |
-          echo "Checking Railway dev endpoint..."
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://web-dev-254f.up.railway.app/api/v1/health)
-          echo "Health endpoint returned HTTP $STATUS"
-          if [ "$STATUS" -ne 200 ]; then
-            echo "Health check failed with status $STATUS"
-            exit 1
-          fi
-          echo "Railway dev environment is healthy and online!"
+# A newer push replaces both the deploy and this check of the older one.
+concurrency:
+  group: railway-dev
+  cancel-in-progress: true
+
+jobs:
+  live:
+    name: The pushed commit is live on dev
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      DEPLOY_URL: https://web-dev-254f.up.railway.app
+      DEPLOY_TIMEOUT: "600"
+      DEPLOY_POLL: "15"
+    steps:
+      # The script at the pushed commit, read without a token (the repository is public; no checkout needed).
+      - name: Get the check
+        run: >-
+          curl -fsSL --retry 3 -o check-deploy.sh
+          "https://raw.githubusercontent.com/$GITHUB_REPOSITORY/$GITHUB_SHA/scripts/check-deploy.sh"
+
+      - name: Wait for the deploy, then check its health and bundle
+        run: bash check-deploy.sh "$DEPLOY_URL" "$GITHUB_SHA"

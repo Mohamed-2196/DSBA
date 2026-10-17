@@ -45,7 +45,10 @@ function serviceWorker(): Plugin {
   };
 }
 
-/** The build's version for bug reports: VITE_APP_VERSION when set (CI, Docker), else the commit, else 'dev'. */
+/**
+ * The build's version, shown in the footer and sent with bug reports: VITE_APP_VERSION when set (the Docker image sets
+ * it from the commit Railway builds), else the commit, else 'dev'.
+ */
 function appVersion(env: Record<string, string>): string {
   if (env.VITE_APP_VERSION) return env.VITE_APP_VERSION.slice(0, 40);
   try {
@@ -55,15 +58,24 @@ function appVersion(env: Record<string, string>): string {
   }
 }
 
+/** The version in index.html as well (<meta name="app-version">), where a deploy check reads which build is live. */
+function versionMeta(version: string): Plugin {
+  return {
+    name: 'dsba-version-meta',
+    transformIndexHtml: () => [{ tag: 'meta', attrs: { name: 'app-version', content: version }, injectTo: 'head' }],
+  };
+}
+
 // The app is served from the same origin as the API: in development Vite proxies /api to the backend,
 // in production a reverse proxy does (see compose.yaml and docs/backend/DEPLOYMENT.md).
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const api = env.VITE_DEV_API_TARGET || 'http://127.0.0.1:8000';
+  const version = appVersion(env);
   return {
     base: env.VITE_BASE || '/',
-    plugins: [react(), serviceWorker()],
-    define: { __APP_VERSION__: JSON.stringify(appVersion(env)) },
+    plugins: [react(), serviceWorker(), versionMeta(version)],
+    define: { __APP_VERSION__: JSON.stringify(version) },
     server: {
       host: env.VITE_DEV_HOST || '127.0.0.1',
       port: 5173,

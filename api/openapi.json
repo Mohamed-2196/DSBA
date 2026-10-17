@@ -11,7 +11,7 @@
           "health"
         ],
         "summary": "Health",
-        "description": "Liveness and dependencies: the database and the object store.",
+        "description": "Liveness and dependencies (the database and the object store), and the commit this API runs, so a deploy can\nbe checked against the push that made it.",
         "operationId": "health_api_v1_health_get",
         "responses": {
           "200": {
@@ -29848,6 +29848,17 @@
           "version": {
             "type": "string",
             "title": "Version"
+          },
+          "commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commit"
           }
         },
         "type": "object",
@@ -29855,7 +29866,8 @@
           "status",
           "database",
           "storage",
-          "version"
+          "version",
+          "commit"
         ],
         "title": "Health"
       },

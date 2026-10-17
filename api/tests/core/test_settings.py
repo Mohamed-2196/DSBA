@@ -12,8 +12,9 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from app import main
+from app import cli, main
 from app.config import DEV_SECRET, ConfigError, Settings, check
+from tests.core.conftest import SetOption
 
 API_ROOT = Path(__file__).resolve().parents[2]
 REMOVE = object()
@@ -159,8 +160,9 @@ def test_docs_and_schema_are_off_in_production(monkeypatch: pytest.MonkeyPatch, 
 
 def _run(env: dict[str, str], *args: str) -> subprocess.CompletedProcess[str]:
     base = {k: v for k, v in os.environ.items() if not k.startswith("DSBA_")}
+    # The timeout only stops a hang: importing the whole app can take a minute on a machine busy with other tests.
     return subprocess.run(  # noqa: S603 - this interpreter, fixed arguments
-        [sys.executable, *args], cwd=API_ROOT, env={**base, **env}, capture_output=True, text=True, timeout=60
+        [sys.executable, *args], cwd=API_ROOT, env={**base, **env}, capture_output=True, text=True, timeout=300
     )
 
 
@@ -172,12 +174,12 @@ def test_the_api_refuses_to_start_with_unsafe_production_settings() -> None:
     assert "- DSBA_EMAIL_BACKEND must be smtp" in done.stderr
 
 
-def test_dev_login_is_refused_in_production() -> None:
-    env = {f"DSBA_{k.upper()}": str(v) for k, v in GOOD.items()}
-    done = _run(env, "-m", "app.cli", "dev-login", "someone@example.com")
-    assert done.returncode == 1
-    assert "dev-login is disabled in production" in done.stderr
-    assert done.stdout == ""
+def test_dev_login_is_refused_in_production(set_option: SetOption, capsys: pytest.CaptureFixture[str]) -> None:
+    set_option("env", "production")
+    assert cli.main(["dev-login", "someone@example.com"]) == 1
+    out = capsys.readouterr()
+    assert "dev-login is disabled in production" in out.err
+    assert out.out == ""
 
 
 TEXTS_ONLY = {  # what compose.prod.yaml gives the text worker
@@ -206,14 +208,14 @@ def test_the_text_worker_is_checked_for_the_database_and_the_bucket_only() -> No
     ]
 
 
-def test_the_text_worker_starts_with_only_its_settings_and_the_api_does_not() -> None:
-    env = {f"DSBA_{k.upper()}": str(v) for k, v in TEXTS_ONLY.items()}
-    worker = _run(env, "-c", "from app import cli; cli.texts_worker(); print('ready')")
-    assert (worker.returncode, worker.stdout.strip()) == (0, "ready"), worker.stderr
-    api = _run(env, "-c", "import app.main")
-    assert api.returncode != 0
-    assert "- DSBA_SECRET_KEY must be a random string" in api.stderr
-    nothing = _run({"DSBA_ENV": "production"}, "-c", "from app import cli; cli.texts_worker()")
-    assert nothing.returncode != 0
-    assert "- DSBA_DATABASE_URL is not set" in nothing.stderr
-    assert "DSBA_SECRET_KEY" not in nothing.stderr
+def test_the_text_worker_starts_with_only_its_settings_and_the_api_does_not(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name, value in TEXTS_ONLY.items():
+        monkeypatch.setenv(f"DSBA_{name.upper()}", str(value))
+    sessions, storage = cli.texts_worker()
+    assert (sessions.kw["bind"].url.database, storage.bucket) == ("dsba", "dsba-hub")
+    with pytest.raises(ConfigError, match="DSBA_SECRET_KEY must be a random string"):
+        check(Settings())  # what the API starts with
+    monkeypatch.delenv("DSBA_DATABASE_URL")
+    with pytest.raises(ConfigError) as refused:
+        cli.texts_worker()
+    assert refused.value.problems == ["DSBA_DATABASE_URL is not set: the default is the development database."]
