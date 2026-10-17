@@ -1,11 +1,11 @@
 // /notes: student's notebooks and notes, last edited first, with search, notebook filtering, and creation.
 import { Book, DotsThree, FilePdf, Folder, FolderPlus, MagnifyingGlass, NotePencil, PencilSimple, Plus, Trash } from '@phosphor-icons/react';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import type { Notebook, NoteSummary } from '../../api/types';
 import { Gate, useAuth } from '../../auth';
 import { moduleLabel } from '../../lib/modules';
-import { useDebouncedValue, useQueryParam } from '../../state';
+import { useDebouncedValue, useQueryParam, useToast } from '../../state';
 import { useModules } from '../../state/modules';
 import {
   Badge,
@@ -27,9 +27,10 @@ import {
   timeAgo,
 } from '../../ui';
 import { remainingCount } from '../../api/paging';
-import { formatSize } from '../../api/uploads';
-import { useCreateNotebook, useDeleteNotebook, useNotebooks, useNotes, useRenameNotebook } from './api';
-import { draftIds, lessonLabel, noteLabel, plainExcerpt } from './draft';
+import { checkUpload, fileExtension, formatSize, progressPercent, uploadErrorMessage, uploadFile } from '../../api/uploads';
+import { useCreateNote, useCreateNotebook, useDeleteNotebook, useNotebooks, useNotes, useRenameNotebook } from './api';
+import { EMPTY_DOC, draftIds, lessonLabel, noteLabel, plainExcerpt } from './draft';
+import { TITLE_MAX } from './limits';
 import { useLessonPlace } from './lessonPlace';
 import './Notes.css';
 
@@ -67,6 +68,60 @@ function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
         </span>
       </Link>
     </li>
+  );
+}
+
+/** A note written over a PDF of the student's own (lecture slides, a worksheet): it uploads, then opens to write on. */
+function WriteOnPdf({ notebookId }: { notebookId: string | null }) {
+  const navigate = useNavigate();
+  const create = useCreateNote();
+  const { push } = useToast();
+  const input = useRef<HTMLInputElement>(null);
+  const [percent, setPercent] = useState<number | null>(null);
+
+  const start = async (file: File) => {
+    const problem = fileExtension(file.name) === 'pdf' ? checkUpload('note_file', file) : 'Choose a PDF file.';
+    if (problem) {
+      push({ title: `${file.name} wasn’t added`, body: problem, tone: 'alert' });
+      return;
+    }
+    setPercent(0);
+    try {
+      const out = await uploadFile('note_file', file, { onProgress: (p) => setPercent(progressPercent(p)) });
+      const note = await create.mutateAsync({
+        title: file.name.replace(/\.pdf$/i, '').trim().slice(0, TITLE_MAX),
+        doc: EMPTY_DOC,
+        paper: 'lined',
+        sheets: 0,
+        pdfUploadId: out.uploadId,
+        ...(notebookId ? { notebookId } : {}),
+      });
+      navigate(`/notes/${note.id}`);
+    } catch (e) {
+      push({ title: `${file.name} wasn’t added`, body: uploadErrorMessage(e, 'note_file'), tone: 'alert' });
+    } finally {
+      setPercent(null);
+    }
+  };
+
+  return (
+    <>
+      <input
+        ref={input}
+        type="file"
+        accept="application/pdf,.pdf"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = '';
+          if (file) void start(file);
+        }}
+        data-hub="note-pdf-input"
+      />
+      <Button leadingIcon={FilePdf} onClick={() => input.current?.click()} loading={percent !== null} data-hub="note-from-pdf">
+        {percent !== null ? `Uploading ${percent}%` : 'Write on a PDF'}
+      </Button>
+    </>
   );
 }
 
@@ -198,10 +253,11 @@ function NotesList() {
         description="Your notes, handwriting, formulas and PDF annotations. Kept private to you."
         actions={
           readOnly ? null : (
-            <div style={{ display: 'flex', gap: 'var(--sp-8)' }}>
+            <div className="notes-new">
               <Button leadingIcon={FolderPlus} onClick={() => setNewBookOpen(true)} data-hub="new-notebook">
                 New notebook
               </Button>
+              <WriteOnPdf notebookId={selectedNotebookId || null} />
               <Button
                 variant="primary"
                 leadingIcon={Plus}
