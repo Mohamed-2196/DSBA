@@ -12,7 +12,7 @@ D11). Admin holds every box. Last checked 2026-10-17 (round 12).
 | Chapters and lessons (YouTube videos and playlists, class recordings), their order and hiding | Manage → Modules → a module | `content.edit` | `modules.json` |
 | Videos students suggest for a chapter | Manage → Suggested videos (accept or decline) | `content.edit` | students |
 | Library files, their details, removing them | the library: uploads wait in Manage → Uploads; a manager edits an item with "Edit details" on its page | `library.manage` (students upload with `library.upload`) | uploads, and the Drive import (`python -m app.cli import-drive`) |
-| Past questions tagged by chapter | a paper's viewer; flags in Manage → Uploads | `library.manage` | students and reps |
+| Past questions tagged by chapter | a paper's viewer; flagged tags wait in Manage → Uploads | signed-in students tag; `library.manage` keeps or removes flagged ones | students |
 | The newsletter: issues, sections, cover and pictures with descriptions, polls, publishing, edits after publishing | Manage → Newsletter (every issue, New issue) and each issue's editor, `/newsletter/<slug>/edit` | `newsletter.manage` | `api/app/seed/data/newsletter.json` (two drafts) |
 | Programme dates: exams, deadlines, careers dates, term dates, with time, place, rules, source and "not confirmed" | the calendar, "Programme date" and each event's Edit | `calendar.manage` | `api/app/seed/data/calendar.json` |
 | Career Navigator: employers and their logos, tracks, roles, skills, electives, certificates, the featured competition, the checklist, further study, the page's labels and year lines | Manage → Career Navigator | `career.edit` | `api/app/seed/data/career.json`, loaded once |
