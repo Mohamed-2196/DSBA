@@ -2,7 +2,6 @@
 import { Button, Kbd, Modal } from '../../../ui';
 import { GAMES } from '../games/registry';
 import type { GameInfo } from '../types';
-import { GameTile } from './GameGlyph';
 
 export function RulesDialog({ open, onClose, info }: { open: boolean; onClose: () => void; info: GameInfo }) {
   const { Example, keys } = GAMES[info.id];
@@ -21,7 +20,6 @@ export function RulesDialog({ open, onClose, info }: { open: boolean; onClose: (
       }
     >
       <div className="dg-rules__body">
-        <GameTile game={info.id} size={48} className="dg-rules__tile" />
         <ol className="dg-rules__list">
           {info.howTo.map((rule) => (
             <li key={rule}>{rule}</li>

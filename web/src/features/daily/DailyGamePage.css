@@ -184,7 +184,6 @@
 
 /* ── How to play ─────────────────────────────────────────────────────────────────────────────────── */
 .dg-rules__body { display: grid; gap: var(--sp-16); }
-.dg-rules__tile { justify-self: start; }
 .dg-rules__list {
   display: grid;
   gap: var(--sp-8);

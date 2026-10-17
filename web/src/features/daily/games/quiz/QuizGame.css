@@ -114,6 +114,13 @@
   .dq-card { gap: var(--sp-10); }
   .dq-option { min-height: 48px; padding-block: 6px; }
 }
+/* Wide and short (a phone on its side): the answers two by two. */
+@media (max-height: 500px) and (min-width: 600px) {
+  .dq { width: min(100%, 820px); }
+  .dq-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dq-prompt { font-size: var(--fs-18); }
+  .dq-option { min-height: 44px; font-size: var(--fs-14); }
+}
 
 /* The rules' example. */
 .dq-eg .dq-option { cursor: default; min-height: 44px; font-size: var(--fs-14); }

@@ -144,7 +144,7 @@ export function WordGame({ out, busy, play, flash, paused }: GameProps) {
         {said}
       </p>
 
-      <div className="dw-keys" role="group" aria-label="Keyboard">
+      <div className={cx('dw-keys', over && 'is-over')} role="group" aria-label="Keyboard">
         {KEY_ROWS.map((keys, i) => (
           <div key={i} className="dw-keys__row">
             {keys.map((key) => {

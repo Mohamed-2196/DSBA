@@ -162,6 +162,19 @@
   .ds { gap: var(--sp-6); }
   .ds-word { padding: 2px 8px; font-size: var(--fs-12); }
 }
+/* A phone on its side: the grid on the left, the words and the hint on the right. */
+@media (max-height: 500px) {
+  .ds {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-content: center;
+    column-gap: var(--sp-16);
+  }
+  .ds-grid-wrap { grid-row: 1 / -1; grid-column: 1; width: auto; height: 100%; }
+  .ds-words { grid-column: 2; align-self: center; justify-content: flex-start; }
+  .ds-foot { grid-column: 2; width: 100%; }
+}
 
 /* The rules' example: four by four letters with one word found. */
 .ds-eg {

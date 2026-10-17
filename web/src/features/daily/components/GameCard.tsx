@@ -21,7 +21,7 @@ export function GameCard({ game }: { game: GameDay }) {
       </span>
       <span className="dh-card__foot">
         <span className={cx('dy-chip', status.tone === 'won' && 'dy-chip--won', status.tone === 'playing' && 'dy-chip--playing', 'dy-num')}>{status.label}</span>
-        <span className="dh-card__go" aria-hidden="true">
+        <span className="dh-card__go" aria-hidden="true" data-noora-avoid="">
           {status.action}
         </span>
       </span>

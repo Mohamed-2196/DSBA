@@ -126,6 +126,8 @@
 .dw-key:hover:not(:disabled) { filter: brightness(.97); }
 .dw-key:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
 .dw-key:disabled { cursor: default; opacity: .6; }
+/* Once the play is over the keyboard stays as a record of the letters tried. */
+.dw-keys.is-over .dw-key:disabled { opacity: 1; box-shadow: none; }
 .dw-key.is-hit { background: var(--dy-hit); color: var(--dy-on-hit); }
 .dw-key.is-near { background: var(--dy-near); color: var(--dy-on-near); }
 .dw-key.is-miss { background: var(--dy-miss); color: var(--dy-on-miss); opacity: .75; }

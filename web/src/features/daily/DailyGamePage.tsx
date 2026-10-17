@@ -99,6 +99,8 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
   const [resultOpen, setResultOpen] = useState(false);
   const [confirmGiveUp, setConfirmGiveUp] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // From the finishing move until its result opens: the game's last animation plays undisturbed.
+  const [finishing, setFinishing] = useState(false);
   const paused = rulesOpen || resultOpen || confirmGiveUp || menuOpen;
   const resultTimer = useRef<number>();
   // After a dialog, the keyboard goes back to the game (not to whatever the dialog would fall back on).
@@ -130,8 +132,12 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
       try {
         const next = await mutateAsync(m);
         if (before && !isOver(before) && isOver(next.play.status) && plugin.resultDelay !== null) {
+          setFinishing(true);
           window.clearTimeout(resultTimer.current);
-          resultTimer.current = window.setTimeout(() => setResultOpen(true), m.kind === 'give-up' ? 300 : plugin.resultDelay);
+          resultTimer.current = window.setTimeout(() => {
+            setFinishing(false);
+            setResultOpen(true);
+          }, m.kind === 'give-up' ? 300 : plugin.resultDelay);
         }
         return { ok: true, out: next };
       } catch (e) {
@@ -208,7 +214,7 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
         ) : null}
       </section>
 
-      {out && over ? <DoneStrip out={out} secret={secret} onOpen={() => setResultOpen(true)} /> : null}
+      {out && over && !finishing ? <DoneStrip out={out} secret={secret} onOpen={() => setResultOpen(true)} /> : null}
 
       {out ? (
         <>
@@ -249,7 +255,7 @@ function Notice({ out, isToday, signedIn, scoredVariant, onSignIn }: { out: Play
   if (!signedIn) {
     return (
       <p className="dg-notice">
-        <span>Playing as a guest: points and streaks need an account.</span>
+        <span>Your points aren’t kept as a guest.</span>
         <Button variant="ghost" size="sm" leadingIcon={SignIn} onClick={onSignIn}>
           Sign in
         </Button>
