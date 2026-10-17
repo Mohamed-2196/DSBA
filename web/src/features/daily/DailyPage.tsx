@@ -95,7 +95,7 @@ function Head({ today }: { today: DailyToday }) {
           {streak ? (
             <p className={cx('dh-fact', streak.current > 0 && 'is-lit')}>
               <Flame weight={streak.current > 0 ? 'fill' : 'regular'} aria-hidden="true" />
-              <span className="dy-num">{streak.current === 1 ? '1-day streak' : `${streak.current}-day streak`}</span>
+              <span className="dy-num">{streak.current === 0 ? 'Start a streak today' : `${streak.current}-day streak`}</span>
               {streak.freezeReady && streak.current > 0 ? (
                 <span className="dh-fact__freeze" title="Miss a day this week and your streak carries on">
                   <Snowflake weight="fill" aria-hidden="true" />
