@@ -138,10 +138,10 @@ def test_excerpts() -> None:
     assert text.excerpt(arabic).endswith("مرحبا…")
 
 
-def test_first_image_is_an_uploaded_forum_image() -> None:
+def test_pictures_are_uploaded_forum_images_in_order() -> None:
     image = str(uuid.uuid4())
-    assert text.first_image(f"![cat](/api/v1/media/{image})") == {"src": f"/api/v1/media/{image}", "alt": "cat"}
-    assert text.first_image(f"Text ![inline one](/api/v1/media/{image}) text")["alt"] == "inline one"  # type: ignore[index]
+    assert text.pictures(f"![cat](/api/v1/media/{image})") == [{"src": f"/api/v1/media/{image}", "alt": "cat"}]
+    assert text.pictures(f"Text ![inline one](/api/v1/media/{image}) text")[0]["alt"] == "inline one"
     for src in (
         "https://example.com/cat.png",  # other sites would see every reader's IP
         "http://example.com/cat.png",
@@ -152,12 +152,14 @@ def test_first_image_is_an_uploaded_forum_image() -> None:
         f"/api/v1/media/{image.upper()}",
         "/api/v1/media/../../etc/passwd",
     ):
-        assert text.first_image(f"![x]({src})") is None, src
-    assert text.first_image(f"```\n![x](/api/v1/media/{image})\n```") is None  # inside code
-    assert text.first_image(f"`![x](/api/v1/media/{image})`") is None
+        assert text.pictures(f"![x]({src})") == [], src
+    assert text.pictures(f"```\n![x](/api/v1/media/{image})\n```") == []  # inside code
+    assert text.pictures(f"`![x](/api/v1/media/{image})`") == []
     second = str(uuid.uuid4())
-    found = text.first_image(f"![a](https://x.example/a.png)\n\n![b](/api/v1/media/{second})")
-    assert found == {"src": f"/api/v1/media/{second}", "alt": "b"}
+    found = text.pictures(
+        f"![a](https://x.example/a.png)\n\n![b](/api/v1/media/{second})\n\n![c](/api/v1/media/{image})"
+    )
+    assert [p["alt"] for p in found] == ["b", "c"]
 
 
 def test_media_references() -> None:

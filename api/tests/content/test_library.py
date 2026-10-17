@@ -394,12 +394,13 @@ def test_filters_sorts_search_and_facets(
     assert (mods["advanced-stats-distribution"], mods["economics"], mods["statistics"]) == (2, 1, 0)
 
 
-def test_items_are_read_by_slug(client_for: Clients, moderator: User, share_file: Share) -> None:
+def test_items_are_read_by_slug_or_by_id(client_for: Clients, moderator: User, share_file: Share) -> None:
     item = share_file(client_for(moderator), title="Week 1 slides")
     guest = client_for()
     assert guest.get(f"{API}/library/items/week-1-slides").json()["id"] == item["id"]
-    assert guest.get(item_url(item)).status_code == 404  # an id is for the routes that act on the item
+    assert guest.get(item_url(item)).json()["slug"] == "week-1-slides"
     assert guest.get(f"{API}/library/items/no-such-slug").status_code == 404
+    assert guest.get(f"{API}/library/items/{uuid.uuid4()}").status_code == 404
 
 
 def test_a_title_used_twice_gets_its_own_address(client_for: Clients, moderator: User, share_file: Share) -> None:

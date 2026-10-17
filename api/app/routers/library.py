@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import Query, Request, Response, status
+from fastapi import Path, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 
 from app.core.access import Box, Feature
@@ -99,10 +99,14 @@ def papers(db: DB, user: OptionalUser, module_id: str) -> PaperSittings:
     return svc.sittings(db, user, module_id)
 
 
-@router.get("/library/items/{slug}", response_model=LibraryItem)
-def get_item(slug: str, db: DB, user: OptionalUser) -> LibraryItem:
-    """By slug. Unpublished items: only their uploader and the library's managers."""
-    return svc.one_out(db, svc.get_visible(db, slug, user), user)
+@router.get("/library/items/{ref}", response_model=LibraryItem)
+def get_item(
+    ref: Annotated[str, Path(description="The item's slug (every link uses it), or its id.")],
+    db: DB,
+    user: OptionalUser,
+) -> LibraryItem:
+    """One item, by its slug or its id. Unpublished items: only their uploader and the library's managers."""
+    return svc.one_out(db, svc.get_visible(db, ref, user), user)
 
 
 @router.post(

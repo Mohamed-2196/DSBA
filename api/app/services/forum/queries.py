@@ -122,7 +122,7 @@ def list_threads(db: Session, viewer: User | None, f: ThreadFilters, sort: Sort,
     order = order_by(sort, utcnow(), pinned_first=search is None)
     rows = db.execute(summary_select(viewer).where(*conds).order_by(*order).limit(limit).offset(offset)).all()
     access.prefetch(db, [row[1] for row in rows])
-    return ThreadPage(items=summaries(rows, viewer), total=total or 0, limit=limit, offset=offset)
+    return ThreadPage(items=summaries(db, rows, viewer), total=total or 0, limit=limit, offset=offset)
 
 
 def hot_threads(db: Session, viewer: User | None, n: int, year: int | None) -> list[ThreadSummary]:
@@ -133,7 +133,7 @@ def hot_threads(db: Session, viewer: User | None, n: int, year: int | None) -> l
     order = order_by("hot", utcnow(), pinned_first=False)
     rows = db.execute(summary_select(viewer).where(*conds).order_by(*order).limit(n)).all()
     access.prefetch(db, [row[1] for row in rows])
-    return summaries(rows, viewer)
+    return summaries(db, rows, viewer)
 
 
 def related_threads(db: Session, viewer: User | None, t: ForumThread, n: int) -> list[ThreadSummary]:
@@ -159,7 +159,7 @@ def related_threads(db: Session, viewer: User | None, t: ForumThread, n: int) ->
         .limit(n)
     ).all()
     access.prefetch(db, [row[1] for row in rows])
-    return summaries(rows, viewer)
+    return summaries(db, rows, viewer)
 
 
 # ── stats ───────────────────────────────────────────────────────────────────────────────────────────

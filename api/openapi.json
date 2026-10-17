@@ -5307,23 +5307,25 @@
         }
       }
     },
-    "/api/v1/library/items/{slug}": {
+    "/api/v1/library/items/{ref}": {
       "get": {
         "tags": [
           "library"
         ],
         "summary": "Get Item",
-        "description": "By slug. Unpublished items: only their uploader and the library's managers.",
-        "operationId": "get_item_api_v1_library_items__slug__get",
+        "description": "One item, by its slug or its id. Unpublished items: only their uploader and the library's managers.",
+        "operationId": "get_item_api_v1_library_items__ref__get",
         "parameters": [
           {
-            "name": "slug",
+            "name": "ref",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Slug"
-            }
+              "description": "The item's slug (every link uses it), or its id.",
+              "title": "Ref"
+            },
+            "description": "The item's slug (every link uses it), or its id."
           }
         ],
         "responses": {

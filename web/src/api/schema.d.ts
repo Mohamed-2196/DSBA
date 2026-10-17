@@ -923,7 +923,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/library/items/{slug}": {
+    "/api/v1/library/items/{ref}": {
         parameters: {
             query?: never;
             header?: never;
@@ -932,9 +932,9 @@ export interface paths {
         };
         /**
          * Get Item
-         * @description By slug. Unpublished items: only their uploader and the library's managers.
+         * @description One item, by its slug or its id. Unpublished items: only their uploader and the library's managers.
          */
-        get: operations["get_item_api_v1_library_items__slug__get"];
+        get: operations["get_item_api_v1_library_items__ref__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -13891,12 +13891,13 @@ export interface operations {
             };
         };
     };
-    get_item_api_v1_library_items__slug__get: {
+    get_item_api_v1_library_items__ref__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                slug: string;
+                /** @description The item's slug (every link uses it), or its id. */
+                ref: string;
             };
             cookie?: never;
         };
