@@ -1,13 +1,13 @@
-"""The round 12 security review's findings for Daily. The play's flow (SEC-41's answers and clock, SEC-45) is fixed
-and tested here as regressions. The proofs left (SEC-41's answer banks, SEC-46) still pass while those problems are
-there; they belong to the move of the puzzles' content into the database."""
+"""The round 12 security review's findings for Daily, all fixed and tested here as regressions: the play's flow
+(SEC-41's answers and clock, SEC-45), the content half of SEC-41 (no answer bank in the repository, the quiz's options
+in each day's order) and SEC-46 (kept puzzles survive a new secret key)."""
 
 from __future__ import annotations
 
 import datetime as dt
-import json
 import os
 from collections.abc import Callable, Iterator
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -22,9 +22,11 @@ from app.models import DailyPlay, User
 from app.services.daily import content
 from app.services.daily.games import GAMES
 from app.services.daily.games.nearest import NearestGame
-from app.services.daily.games.quiz import QuizGame
 from app.services.daily.games.word import WordGame
 from tests.daily.conftest import API
+
+APP = Path(__file__).resolve().parents[2] / "app"
+DAILY_SEED = APP / "seed" / "data" / "daily"
 
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
@@ -40,6 +42,11 @@ def yesterday() -> str:
 
 def move(c: TestClient, game: str, body: dict[str, Any] | None, day: str | None = None, **extra: Any) -> Any:
     return c.post(f"{API}/daily/{day or today()}/{game}/moves", json={"move": body, **extra})
+
+
+def answer_of(db: Session, day: dt.date) -> str:
+    word: str = GAMES["word"].puzzle(db, day, "").answer
+    return word
 
 
 # ── SEC-41: the play's flow ───────────────────────────────────────────────────────────────────────
@@ -63,7 +70,7 @@ def test_sec41_a_guest_play_of_todays_set_shows_no_answer(client_for: ClientFor,
     assert (answered["correct"], answered["answer"]) == (False, questions[0].answer)
     # Past days are practice: they show their answers to anyone.
     past = move(guest, "word", {"kind": "give-up"}, day=yesterday()).json()["play"]["view"]
-    assert past["answer"] == GAMES["word"].puzzle(db, bahrain_today() - dt.timedelta(days=1), "")
+    assert past["answer"] == answer_of(db, bahrain_today() - dt.timedelta(days=1))
 
 
 def test_sec41_signed_in_the_answer_shows_once_the_play_is_over(client_for: ClientFor, make_user: MakeUser) -> None:
@@ -99,7 +106,7 @@ def test_sec41_a_one_move_win_straight_away_is_too_fast(
     player = make_user(name="Quick Fingers")
     c = client_for(player)
     assert c.put(f"{API}/daily/me", json={"showOnBoard": True}).status_code == 200
-    answer = GAMES["word"].puzzle(db, bahrain_today(), "")
+    answer = answer_of(db, bahrain_today())
     c.get(f"{API}/daily/{today()}/word")
     play = move(c, "word", {"kind": "guess", "word": answer}).json()["play"]
     assert (play["status"], play["scored"], play["tooFast"], play["points"]) == ("won", True, True, 0)
@@ -115,46 +122,20 @@ def test_sec41_a_one_move_win_straight_away_is_too_fast(
     assert move(other, "word", {"kind": "guess", "word": answer}).json()["play"]["points"] == 100
 
 
-def test_sec41_quiz_options_come_in_the_days_own_order(client_for: ClientFor, db: Session) -> None:
-    bank = {q["question"]: q for q in json.loads((content.DATA / "quiz.json").read_text(encoding="utf-8"))}
-    questions = client_for().get(f"{API}/daily/{today()}/quiz").json()["play"]["view"]["questions"]
-    served = GAMES["quiz"].puzzle(db, bahrain_today(), "")
-    reordered = 0
-    for q, kept in zip(questions, served, strict=True):
-        listed = bank.get(q["prompt"])
-        if listed is None:
-            continue  # the question about the hub's modules
-        assert sorted(q["options"]) == sorted(listed["options"])
-        assert q["options"][kept.answer] == listed["options"][listed["answer"]]  # the right answer moved with it
-        reordered += q["options"] != listed["options"]
-    assert reordered >= 1
+# ── SEC-41: the content ───────────────────────────────────────────────────────────────────────────
 
 
-# ── SEC-41: the answer banks (content: still open) ────────────────────────────────────────────────
-
-
-def test_sec41_the_public_repository_answers_todays_quiz(
-    client_for: ClientFor, make_user: MakeUser, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    # quiz.json is in the public repository: each question's right option can be read off it by its text.
-    bank = {q["question"]: q for q in json.loads((content.DATA / "quiz.json").read_text(encoding="utf-8"))}
-    monkeypatch.setattr(QuizGame, "min_seconds", 0)  # a person spreads the five answers over five seconds
-    c = client_for(make_user())
-    questions = c.get(f"{API}/daily/{today()}/quiz").json()["play"]["view"]["questions"]
-    from_the_file = 0
-    for q in questions:
-        listed = bank.get(q["prompt"])
-        if q["source"] is not None or listed is None:  # the question about the hub's modules
-            choice = 0
-        else:
-            choice = q["options"].index(listed["options"][listed["answer"]])
-            from_the_file += 1
-        play = move(c, "quiz", {"kind": "answer", "choice": choice}).json()["play"]
-        if listed is not None:
-            assert play["view"]["answered"][-1]["correct"] is True
-    assert from_the_file >= 4
-    assert (play["status"], play["scored"]) == ("won", True)
-    assert play["points"] >= 80
+def test_sec41_the_repository_holds_no_answers_and_the_quiz_shuffles_its_options(db: Session) -> None:
+    # The puzzles live in the database (Manage, or a content file kept out of the repository); the repository's Daily
+    # data is the themes and a public word list, and no answer bank is left anywhere in the app.
+    assert sorted(p.name for p in DAILY_SEED.iterdir()) == ["guesses.txt", "themes.json"]
+    banks = ("quiz.json", "groups.json", "words.json", "search.json", "nearest.json", "nearest_ranks.json")
+    assert not [p for name in banks for p in APP.rglob(name)]
+    # A question's right option moves from day to day: its stored order gives nothing away.
+    places = {
+        q.answer for n in range(8) for q in GAMES["quiz"].puzzle(db, content.FIRST_DAY + dt.timedelta(days=n), "")[:-1]
+    }
+    assert len(places) > 1
 
 
 # ── SEC-45 ────────────────────────────────────────────────────────────────────────────────────────
@@ -191,35 +172,33 @@ def test_sec45_crafted_guest_histories_and_months_are_refused(raw_client: TestCl
         assert (r.status_code, r.json()["error"]["fields"]) == (422, {"month": "There are no puzzles in that year."})
 
 
-# ── SEC-46 (content: still open) ──────────────────────────────────────────────────────────────────
+# ── SEC-46 ────────────────────────────────────────────────────────────────────────────────────────
 
 
-def test_sec46_rotating_the_secret_key_reopens_a_finished_scored_play(
+def test_sec46_rotating_the_secret_key_leaves_kept_puzzles_and_finished_plays_as_they_are(
     client_for: ClientFor, make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    # Each day's puzzles are kept the first time they're made, and Daily seeds its choices with a key of its own
+    # (daily_seed), so a new DSBA_SECRET_KEY changes nothing that's out.
     monkeypatch.setattr(WordGame, "min_seconds", 0)  # the clock isn't what this is about
     c = client_for(make_user())
-    answer = GAMES["word"].puzzle(db, bahrain_today(), "")
+    answer = answer_of(db, bahrain_today())
+    sudoku = GAMES["sudoku"].puzzle(db, bahrain_today(), "easy")
     won = move(c, "word", {"kind": "guess", "word": answer}).json()["play"]
     assert (won["status"], won["scored"], won["points"]) == ("won", True, 100)
 
     old = os.environ["DSBA_SECRET_KEY"]
     try:
-        # DSBA_SECRET_KEY is rotated after a leak: today's word changes under the kept play.
-        for n in range(20):
-            os.environ["DSBA_SECRET_KEY"] = f"a-new-secret-after-a-leak-{n}-{'x' * 24}"
-            get_settings.cache_clear()
-            new_answer = GAMES["word"].puzzle(db, bahrain_today(), "")
-            if new_answer != answer:
-                break
-        assert new_answer != answer
-        reopened = c.get(f"{API}/daily/{today()}/word").json()["play"]
-        assert (reopened["status"], reopened["scored"], reopened["view"]["answer"]) == ("playing", True, None)
-        # The CSRF token is bound with the key too: take the new one, then finish the play again.
+        os.environ["DSBA_SECRET_KEY"] = f"a-new-secret-after-a-leak-{'x' * 24}"
+        get_settings.cache_clear()
+        assert answer_of(db, bahrain_today()) == answer
+        assert GAMES["sudoku"].puzzle(db, bahrain_today(), "easy") == sudoku
+        kept = c.get(f"{API}/daily/{today()}/word").json()["play"]
+        assert (kept["status"], kept["scored"], kept["points"], kept["view"]["answer"]) == ("won", True, 100, answer)
         c.get(f"{API}/auth/csrf")
         c.headers["X-CSRF-Token"] = c.cookies.get("dsba_csrf") or ""
-        again = move(c, "word", {"kind": "guess", "word": new_answer}).json()["play"]
-        assert (again["status"], again["scored"], again["points"]) == ("won", True, 90)  # scored a second time
+        again = move(c, "word", {"kind": "guess", "word": "CRANE"})
+        assert (again.status_code, again.json()["error"]["code"]) == (409, "game_over")
     finally:
         os.environ["DSBA_SECRET_KEY"] = old
         get_settings.cache_clear()

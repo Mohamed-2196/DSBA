@@ -1,19 +1,23 @@
-"""The word: a five-letter word from the week's theme in six guesses. Each guess must be a word; its letters come back
-marked as in the right place, in the word elsewhere, or not in it."""
+"""The word: a five-letter word from the week's theme in six guesses. Each guess must be in the guess list; its
+letters come back marked as in the right place, in the word elsewhere, or not in it."""
 
 from __future__ import annotations
 
 import datetime as dt
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from functools import cache
+from typing import Any
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import conflict
+from app.models import DailyGuessWord
 from app.schemas.daily import GuessMove, LetterMark, Move, WordRow, WordView
 from app.services.daily import content
-from app.services.daily.games.base import Game, Status, bad_move, unknown_word
+from app.services.daily.content import Entry, Uses
+from app.services.daily.games.base import ContentGame, Status, bad_move, unknown_word
 
 LENGTH = 5
 MAX_GUESSES = 6
@@ -21,19 +25,26 @@ POINTS = (100, 90, 80, 65, 50, 35)  # by the guess that found it
 SQUARES = {"hit": "🟩", "near": "🟨", "miss": "⬜"}
 
 
-@cache
-def answers() -> dict[str, tuple[str, ...]]:
-    """The answers by theme."""
-    return {theme: tuple(words) for theme, words in content.load("words.json").items()}
+def in_guess_list(db: Session, word: str) -> bool:
+    return db.scalar(select(DailyGuessWord.word).where(DailyGuessWord.word == word)) is not None
 
 
-@cache
-def guesses() -> frozenset[str]:
-    """Every word a guess may be: the dictionary's five-letter words, plurals of its four-letter ones, a few words
-    it's too old to know, and every answer."""
-    listed = (content.DATA / "guesses.txt").read_text(encoding="utf-8").split()
-    listed += (content.DATA / "guesses_extra.txt").read_text(encoding="utf-8").split()
-    return frozenset(w.upper() for w in listed) | {w for words in answers().values() for w in words}
+def _guess_list(db: Session) -> Callable[[str], bool]:
+    """A check against the guess list, asking the database once per word."""
+    known: dict[str, bool] = {}
+
+    def check(word: str) -> bool:
+        if word not in known:
+            known[word] = in_guess_list(db, word)
+        return known[word]
+
+    return check
+
+
+@dataclass(frozen=True)
+class Puzzle:
+    answer: str
+    is_word: Callable[[str], bool] = field(compare=False, repr=False)
 
 
 def marks(guess: str, answer: str) -> list[LetterMark]:
@@ -55,7 +66,7 @@ class WordState:
     gave_up: bool = False
 
 
-class WordGame(Game[str, WordState]):
+class WordGame(ContentGame[Puzzle, WordState]):
     id = "word"
     title = "The Word"
     tagline = "Guess the week's five-letter word in six tries."
@@ -71,45 +82,54 @@ class WordGame(Game[str, WordState]):
     max_moves = MAX_GUESSES + 1
     min_seconds = 4  # from opening the puzzle: a first-guess win any faster was looked up
 
-    def puzzle(self, db: Session, day: dt.date, variant: str) -> str:
-        return content.pick(answers()[content.theme_of(day).id], self.id, day)
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
+        return content.spread(pool, used, day, 1, self.id, seed)
 
-    def start(self, puzzle: str) -> WordState:
+    def build(self, db: Session, day: dt.date, chosen: list[Entry], seed: bytes) -> Puzzle:
+        return Puzzle(str(chosen[0].data["word"]), _guess_list(db))
+
+    def dump(self, puzzle: Puzzle) -> dict[str, Any]:
+        return {"answer": puzzle.answer}
+
+    def load(self, db: Session, data: dict[str, Any]) -> Puzzle:
+        return Puzzle(str(data["answer"]), _guess_list(db))
+
+    def start(self, puzzle: Puzzle) -> WordState:
         return WordState()
 
-    def apply(self, puzzle: str, state: WordState, move: Move) -> str:
+    def apply(self, puzzle: Puzzle, state: WordState, move: Move) -> str:
         if not isinstance(move, GuessMove):
             state.gave_up = True
             return "gave-up"
         word = move.word.strip().upper()
         if len(word) != LENGTH or not word.isalpha() or not word.isascii():
             raise bad_move("Guesses are five letters.")
-        if word not in guesses():
+        if word != puzzle.answer and not puzzle.is_word(word):
             raise unknown_word("That's not in our word list. Try another word.")
         if any(row.word == word for row in state.rows):
             raise conflict("already_tried", "You've tried that word already.")
-        state.rows.append(WordRow(word=word, marks=marks(word, puzzle)))
-        return "hit" if word == puzzle else "miss"
+        state.rows.append(WordRow(word=word, marks=marks(word, puzzle.answer)))
+        return "hit" if word == puzzle.answer else "miss"
 
-    def status(self, puzzle: str, state: WordState) -> Status:
-        if state.rows and state.rows[-1].word == puzzle:
+    def status(self, puzzle: Puzzle, state: WordState) -> Status:
+        if state.rows and state.rows[-1].word == puzzle.answer:
             return "won"
         if state.gave_up or len(state.rows) >= MAX_GUESSES:
             return "lost"
         return "playing"
 
-    def points(self, puzzle: str, state: WordState, variant: str, seconds: int) -> int:
+    def points(self, puzzle: Puzzle, state: WordState, variant: str, seconds: int) -> int:
         return POINTS[len(state.rows) - 1] if self.status(puzzle, state) == "won" else 0
 
     def counts(self, state: WordState) -> tuple[int, int]:
         return 0, 0
 
-    def view(self, puzzle: str, state: WordState, over: bool) -> WordView:
+    def view(self, puzzle: Puzzle, state: WordState, over: bool) -> WordView:
         return WordView(
-            kind="word", length=LENGTH, max_guesses=MAX_GUESSES, rows=state.rows, answer=puzzle if over else None
+            kind="word", length=LENGTH, max_guesses=MAX_GUESSES, rows=state.rows, answer=puzzle.answer if over else None
         )
 
-    def share(self, puzzle: str, state: WordState, status: Status) -> str:
+    def share(self, puzzle: Puzzle, state: WordState, status: Status) -> str:
         tries = str(len(state.rows)) if status == "won" else "X"
         grid = "\n".join("".join(SQUARES[m] for m in row.marks) for row in state.rows)
         return f"{self.title} {tries}/{MAX_GUESSES}\n{grid}".rstrip()

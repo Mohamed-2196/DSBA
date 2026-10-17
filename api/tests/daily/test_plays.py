@@ -166,7 +166,7 @@ def test_a_suspended_account_cant_play(client_for: ClientFor, make_user: MakeUse
 
 
 def word_of(db: Session, day: str | None = None) -> str:
-    answer: str = GAMES["word"].puzzle(db, dt.date.fromisoformat(day or today()), "")
+    answer: str = GAMES["word"].puzzle(db, dt.date.fromisoformat(day or today()), "").answer
     return answer
 
 

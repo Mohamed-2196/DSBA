@@ -21380,7 +21380,7 @@
           "daily"
         ],
         "summary": "Get Play",
-        "description": "A game on a day, and your play of it so far: signed in, the first look at today's starts its clock. Errors:\nnot_out_yet (404), invalid_input on `variant` (422).",
+        "description": "A game on a day, and your play of it so far. The day's puzzle is made and kept the first time anyone asks\nfor it; signed in, the first look at today's starts its clock. Errors: not_out_yet (404), invalid_input on\n`variant` (422).",
         "operationId": "get_play_api_v1_daily__day___game__get",
         "parameters": [
           {
@@ -21559,6 +21559,2422 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PlayOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily": {
+      "get": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Overview",
+        "description": "The themes (the rotation first) with what each has and lacks, the weeks to come, and the lists' sizes.",
+        "operationId": "overview_api_v1_content_daily_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyContentOverview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/themes": {
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Create Theme",
+        "description": "A new theme, out of the rotation. Errors: invalid_input (422), slug_taken (409).",
+        "operationId": "create_theme_api_v1_content_daily_themes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThemeCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyContentOverview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/themes/order": {
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Order Themes",
+        "description": "The rotation in a new order; weeks that started keep their themes. Errors: puzzle_changed (409: the rotation\nchanged since it was loaded).",
+        "operationId": "order_themes_api_v1_content_daily_themes_order_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThemeOrder"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyContentOverview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/themes/{theme_id}": {
+      "put": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Save Theme",
+        "description": "A theme's title, line and place in the rotation. Errors: not_found (404), invalid_input (422: the rotation\nkeeps one theme), puzzle_changed (409), theme_not_ready (409: it lacks what a game needs to join).",
+        "operationId": "save_theme_api_v1_content_daily_themes__theme_id__put",
+        "parameters": [
+          {
+            "name": "theme_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 32,
+              "title": "Theme Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThemeSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyContentOverview"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Delete Theme",
+        "description": "Deletes a theme that never ran and has no items. Errors: not_found (404), puzzle_changed (409),\ncontent_in_use (409).",
+        "operationId": "delete_theme_api_v1_content_daily_themes__theme_id__delete",
+        "parameters": [
+          {
+            "name": "theme_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 32,
+              "title": "Theme Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyContentOverview"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/weeks/{week_start}": {
+      "put": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Set Week",
+        "description": "Names the theme of a week to come (theme null: the rotation's turn). Errors: invalid_input (422: not a Sunday,\na week that started, more than a year ahead, an unknown theme), theme_not_ready (409).",
+        "operationId": "set_week_api_v1_content_daily_weeks__week_start__put",
+        "parameters": [
+          {
+            "name": "week_start",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Week Start"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WeekSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyContentOverview"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/items": {
+      "get": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "List Items",
+        "description": "A game's items by theme and status (active, retired or all), found by any of their words; with how many\ndays each ran on and the last.",
+        "operationId": "list_items_api_v1_content_daily_items_get",
+        "parameters": [
+          {
+            "name": "game",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "word",
+                "groups",
+                "search",
+                "quiz",
+                "nearest"
+              ],
+              "type": "string",
+              "title": "Game"
+            }
+          },
+          {
+            "name": "theme",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Theme"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "active",
+                "retired",
+                "all"
+              ],
+              "type": "string",
+              "default": "active",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_ItemOut_"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Create Item",
+        "description": "A new item. Errors: invalid_input (422, on the field: the game's rules, or one like it exists).",
+        "operationId": "create_item_api_v1_content_daily_items_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/items/{item_id}": {
+      "put": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Save Item",
+        "description": "Saves the whole item, if nobody saved it since `version`. Days that are out keep it as it was. Errors:\nnot_found (404), invalid_input (422), puzzle_changed (409), theme_not_ready (409).",
+        "operationId": "save_item_api_v1_content_daily_items__item_id__put",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Delete Item",
+        "description": "Deletes an item that never ran. Errors: not_found (404), puzzle_changed (409), content_in_use (409: it ran;\nretire it), theme_not_ready (409).",
+        "operationId": "delete_item_api_v1_content_daily_items__item_id__delete",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/items/{item_id}/retire": {
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Retire Item",
+        "description": "It never runs again; the days it ran keep it. Errors: not_found (404), puzzle_changed (409), theme_not_ready\n(409: its theme runs and would be left short).",
+        "operationId": "retire_item_api_v1_content_daily_items__item_id__retire_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemVersion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/items/{item_id}/restore": {
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Restore Item",
+        "description": "Brings a retired item back, checked again. Errors: not_found (404), invalid_input (422), puzzle_changed (409).",
+        "operationId": "restore_item_api_v1_content_daily_items__item_id__restore_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemVersion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/import": {
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Import Items",
+        "description": "Pasted items in bulk: a word list, or quiz questions and groups as CSV or spreadsheet rows with a header.\n`dryRun` checks each row and saves nothing; otherwise the rows that pass are added together. Errors:\ninvalid_input (422: no rows, more than 500, a header that lacks a column).",
+        "operationId": "import_items_api_v1_content_daily_import_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/bundle": {
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Import Bundle",
+        "description": "Admins: a Daily content file, as `python -m app.cli daily-content import` takes it. It adds what the database\nlacks and leaves what is there, so the same file twice changes nothing; `dryRun` says what it would add and leave,\nand changes nothing. Audited with counts. Errors: forbidden (403: not an admin), invalid_input (422 on `content`:\nnot a content file, or over 1 MB).",
+        "operationId": "import_bundle_api_v1_content_daily_bundle_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BundleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BundleReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/guesses": {
+      "get": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Guess List",
+        "description": "The word game's guess list: its size, and the first words starting with `q`.",
+        "operationId": "guess_list_api_v1_content_daily_guesses_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 5,
+              "default": "",
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuessList"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Add Guesses",
+        "description": "Adds pasted words to the guess list (`dryRun`: only says what would happen). Errors: invalid_input (422).",
+        "operationId": "add_guesses_api_v1_content_daily_guesses_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuessAdd"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuessAddReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/guesses/{word}": {
+      "delete": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Remove Guess",
+        "description": "Takes a word off the guess list. Errors: not_found (404), content_in_use (409: an answer word, or guessed in\na kept play).",
+        "operationId": "remove_guess_api_v1_content_daily_guesses__word__delete",
+        "parameters": [
+          {
+            "name": "word",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 40,
+              "title": "Word"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/vocabulary": {
+      "get": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Vocabulary",
+        "description": "Nearest neighbour's words, alphabetical: those starting with `q`, or tagged with it.",
+        "operationId": "vocabulary_api_v1_content_daily_vocabulary_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 40,
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_VocabularyOut_"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Add Vocabulary",
+        "description": "A new word, with its tags and close words; the secret words' rankings are worked out again. Errors:\ninvalid_input (422).",
+        "operationId": "add_vocabulary_api_v1_content_daily_vocabulary_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VocabularyIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabularyOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/vocabulary/{word}": {
+      "put": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Save Vocabulary",
+        "description": "A word's tags and close words. Errors: not_found (404), invalid_input (422), puzzle_changed (409).",
+        "operationId": "save_vocabulary_api_v1_content_daily_vocabulary__word__put",
+        "parameters": [
+          {
+            "name": "word",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 40,
+              "title": "Word"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VocabularySave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabularyOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Delete Vocabulary",
+        "description": "Deletes a word that isn't a secret word. Errors: not_found (404), puzzle_changed (409), content_in_use (409).",
+        "operationId": "delete_vocabulary_api_v1_content_daily_vocabulary__word__delete",
+        "parameters": [
+          {
+            "name": "word",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 40,
+              "title": "Word"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/content/daily/preview": {
+      "get": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Preview",
+        "description": "A day's puzzles: as they went out for a day that's out, otherwise as the content would make them. Nothing is\nstored (only Daily's own seed, the first time it's needed). Errors: invalid_input (422: before the first day, or\nmore than a year ahead).",
+        "operationId": "preview_api_v1_content_daily_preview_get",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayPreview"
                 }
               }
             }
@@ -24822,6 +27238,123 @@
         ],
         "title": "BugReportUpdate"
       },
+      "BundleCounts": {
+        "properties": {
+          "added": {
+            "type": "integer",
+            "title": "Added"
+          },
+          "kept": {
+            "type": "integer",
+            "title": "Kept"
+          }
+        },
+        "type": "object",
+        "required": [
+          "added",
+          "kept"
+        ],
+        "title": "BundleCounts"
+      },
+      "BundleGameCounts": {
+        "properties": {
+          "added": {
+            "type": "integer",
+            "title": "Added"
+          },
+          "kept": {
+            "type": "integer",
+            "title": "Kept"
+          },
+          "game": {
+            "type": "string",
+            "enum": [
+              "word",
+              "groups",
+              "search",
+              "quiz",
+              "nearest"
+            ],
+            "title": "Game"
+          }
+        },
+        "type": "object",
+        "required": [
+          "added",
+          "kept",
+          "game"
+        ],
+        "title": "BundleGameCounts"
+      },
+      "BundleIn": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 1000000,
+            "title": "Content"
+          },
+          "dryRun": {
+            "type": "boolean",
+            "title": "Dryrun",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "BundleIn",
+        "description": "A Daily content file, as `python -m app.cli daily-content export` writes it: its text. `dryRun` says what it\nwould add and leave, and changes nothing."
+      },
+      "BundleReport": {
+        "properties": {
+          "applied": {
+            "type": "boolean",
+            "title": "Applied"
+          },
+          "themes": {
+            "$ref": "#/components/schemas/BundleCounts"
+          },
+          "guesses": {
+            "$ref": "#/components/schemas/BundleCounts"
+          },
+          "vocabulary": {
+            "$ref": "#/components/schemas/BundleCounts"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BundleGameCounts"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "rotation": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rotation"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Problems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "applied",
+          "themes",
+          "guesses",
+          "vocabulary",
+          "items",
+          "rotation",
+          "problems"
+        ],
+        "title": "BundleReport"
+      },
       "CalendarDay": {
         "properties": {
           "day": {
@@ -27491,6 +30024,60 @@
         ],
         "title": "DailyCalendar"
       },
+      "DailyContentOverview": {
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date",
+            "title": "Today"
+          },
+          "firstDay": {
+            "type": "string",
+            "format": "date",
+            "title": "Firstday"
+          },
+          "themes": {
+            "items": {
+              "$ref": "#/components/schemas/ThemeOut"
+            },
+            "type": "array",
+            "title": "Themes"
+          },
+          "weeks": {
+            "items": {
+              "$ref": "#/components/schemas/WeekOut"
+            },
+            "type": "array",
+            "title": "Weeks"
+          },
+          "guessWords": {
+            "type": "integer",
+            "title": "Guesswords"
+          },
+          "vocabularyWords": {
+            "type": "integer",
+            "title": "Vocabularywords"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "today",
+          "firstDay",
+          "themes",
+          "weeks",
+          "guessWords",
+          "vocabularyWords",
+          "tags"
+        ],
+        "title": "DailyContentOverview"
+      },
       "DailyMe": {
         "properties": {
           "showOnBoard": {
@@ -27694,6 +30281,32 @@
         "title": "DateWindow",
         "description": "The dates a deadlines section lists (either end may be open)."
       },
+      "DayPreview": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/Theme"
+          },
+          "games": {
+            "items": {
+              "$ref": "#/components/schemas/PreviewGame"
+            },
+            "type": "array",
+            "title": "Games"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "theme",
+          "games"
+        ],
+        "title": "DayPreview"
+      },
       "DoneRequests": {
         "properties": {
           "since": {
@@ -27849,7 +30462,9 @@
               "unknown_word",
               "already_tried",
               "game_over",
-              "not_out_yet"
+              "not_out_yet",
+              "puzzle_changed",
+              "theme_not_ready"
             ],
             "title": "Code"
           },
@@ -30291,6 +32906,40 @@
         ],
         "title": "FurtherStudyAction"
       },
+      "GameCounts": {
+        "properties": {
+          "word": {
+            "type": "integer",
+            "title": "Word"
+          },
+          "groups": {
+            "type": "integer",
+            "title": "Groups"
+          },
+          "search": {
+            "type": "integer",
+            "title": "Search"
+          },
+          "quiz": {
+            "type": "integer",
+            "title": "Quiz"
+          },
+          "nearest": {
+            "type": "integer",
+            "title": "Nearest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "word",
+          "groups",
+          "search",
+          "quiz",
+          "nearest"
+        ],
+        "title": "GameCounts",
+        "description": "Items in use (not retired), per game."
+      },
       "GameDay": {
         "properties": {
           "info": {
@@ -30498,6 +33147,44 @@
         "title": "GiveUpMove",
         "description": "Ends the play as lost and shows the answer."
       },
+      "GroupData": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "const": "groups",
+            "title": "Game"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Label"
+          },
+          "level": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Level"
+          },
+          "words": {
+            "items": {
+              "type": "string",
+              "maxLength": 160
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Words"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "label",
+          "level",
+          "words"
+        ],
+        "title": "GroupData",
+        "description": "Groups: what the group's words share (shown once it's found), how hard it is (1 plainest to 4 trickiest), and\nits words: four or more, a day shows four of them. No word may be in two groups of the same theme."
+      },
       "GroupMove": {
         "properties": {
           "kind": {
@@ -30575,6 +33262,88 @@
           "oneAway"
         ],
         "title": "GroupsView"
+      },
+      "GuessAdd": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 200000,
+            "title": "Text"
+          },
+          "dryRun": {
+            "type": "boolean",
+            "title": "Dryrun",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "GuessAdd"
+      },
+      "GuessAddReport": {
+        "properties": {
+          "new": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "New"
+          },
+          "known": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Known"
+          },
+          "refused": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Refused"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "new",
+          "known",
+          "refused",
+          "total"
+        ],
+        "title": "GuessAddReport"
+      },
+      "GuessList": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "words": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Words"
+          },
+          "more": {
+            "type": "boolean",
+            "title": "More"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "words",
+          "more"
+        ],
+        "title": "GuessList"
       },
       "GuessMove": {
         "properties": {
@@ -30869,6 +33638,138 @@
         ],
         "title": "HintMove",
         "description": "A hint, for a few points: Sudoku fills `cell` (or a cell it picks), the word search shows where a word\nstarts, Nearest neighbour reveals a closer word."
+      },
+      "ImportIn": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "enum": [
+              "word",
+              "groups",
+              "search",
+              "quiz",
+              "nearest"
+            ],
+            "title": "Game"
+          },
+          "theme": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Theme"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 200000,
+            "title": "Text"
+          },
+          "dryRun": {
+            "type": "boolean",
+            "title": "Dryrun",
+            "default": false
+          },
+          "addGuesses": {
+            "type": "boolean",
+            "title": "Addguesses",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "theme",
+          "text"
+        ],
+        "title": "ImportIn",
+        "description": "Items pasted in bulk. Word lists (the word, word search, Nearest neighbour's secret words): words separated\nby new lines, commas or spaces. Quiz questions and groups: CSV or a spreadsheet's rows, with a header row (the\neditor shows the columns). `dryRun` checks every row and saves nothing. `addGuesses` (the word only) adds the\nanswer words to the guess list too."
+      },
+      "ImportReport": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ImportRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "added": {
+            "type": "integer",
+            "title": "Added"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rows",
+          "added"
+        ],
+        "title": "ImportReport"
+      },
+      "ImportRow": {
+        "properties": {
+          "line": {
+            "type": "integer",
+            "title": "Line"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/WordData"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GroupData"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SearchData"
+                  },
+                  {
+                    "$ref": "#/components/schemas/QuizData"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NearestData"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "game",
+                  "mapping": {
+                    "groups": "#/components/schemas/GroupData",
+                    "nearest": "#/components/schemas/NearestData",
+                    "quiz": "#/components/schemas/QuizData",
+                    "search": "#/components/schemas/SearchData",
+                    "word": "#/components/schemas/WordData"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Problem"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line",
+          "text",
+          "data",
+          "problem"
+        ],
+        "title": "ImportRow"
       },
       "InkInfo": {
         "properties": {
@@ -31645,6 +34546,228 @@
         "type": "object",
         "title": "IssueUpdate",
         "description": "Fields that are not sent stay as they are."
+      },
+      "ItemCreate": {
+        "properties": {
+          "theme": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Theme"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WordData"
+              },
+              {
+                "$ref": "#/components/schemas/GroupData"
+              },
+              {
+                "$ref": "#/components/schemas/SearchData"
+              },
+              {
+                "$ref": "#/components/schemas/QuizData"
+              },
+              {
+                "$ref": "#/components/schemas/NearestData"
+              }
+            ],
+            "title": "Data",
+            "discriminator": {
+              "propertyName": "game",
+              "mapping": {
+                "groups": "#/components/schemas/GroupData",
+                "nearest": "#/components/schemas/NearestData",
+                "quiz": "#/components/schemas/QuizData",
+                "search": "#/components/schemas/SearchData",
+                "word": "#/components/schemas/WordData"
+              }
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "theme",
+          "data"
+        ],
+        "title": "ItemCreate"
+      },
+      "ItemOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "game": {
+            "type": "string",
+            "enum": [
+              "word",
+              "groups",
+              "search",
+              "quiz",
+              "nearest"
+            ],
+            "title": "Game"
+          },
+          "theme": {
+            "type": "string",
+            "title": "Theme"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WordData"
+              },
+              {
+                "$ref": "#/components/schemas/GroupData"
+              },
+              {
+                "$ref": "#/components/schemas/SearchData"
+              },
+              {
+                "$ref": "#/components/schemas/QuizData"
+              },
+              {
+                "$ref": "#/components/schemas/NearestData"
+              }
+            ],
+            "title": "Data",
+            "discriminator": {
+              "propertyName": "game",
+              "mapping": {
+                "groups": "#/components/schemas/GroupData",
+                "nearest": "#/components/schemas/NearestData",
+                "quiz": "#/components/schemas/QuizData",
+                "search": "#/components/schemas/SearchData",
+                "word": "#/components/schemas/WordData"
+              }
+            }
+          },
+          "retired": {
+            "type": "boolean",
+            "title": "Retired"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "uses": {
+            "type": "integer",
+            "title": "Uses"
+          },
+          "lastUsed": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastused"
+          },
+          "closest": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closest"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "game",
+          "theme",
+          "data",
+          "retired",
+          "version",
+          "uses",
+          "lastUsed",
+          "closest",
+          "updatedAt"
+        ],
+        "title": "ItemOut"
+      },
+      "ItemSave": {
+        "properties": {
+          "theme": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Theme"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WordData"
+              },
+              {
+                "$ref": "#/components/schemas/GroupData"
+              },
+              {
+                "$ref": "#/components/schemas/SearchData"
+              },
+              {
+                "$ref": "#/components/schemas/QuizData"
+              },
+              {
+                "$ref": "#/components/schemas/NearestData"
+              }
+            ],
+            "title": "Data",
+            "discriminator": {
+              "propertyName": "game",
+              "mapping": {
+                "groups": "#/components/schemas/GroupData",
+                "nearest": "#/components/schemas/NearestData",
+                "quiz": "#/components/schemas/QuizData",
+                "search": "#/components/schemas/SearchData",
+                "word": "#/components/schemas/WordData"
+              }
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "theme",
+          "data",
+          "version"
+        ],
+        "title": "ItemSave",
+        "description": "The whole item, and the version it was edited from."
+      },
+      "ItemVersion": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "ItemVersion"
       },
       "LabelCreate": {
         "properties": {
@@ -33918,6 +37041,27 @@
         "title": "MySenior",
         "description": "The signed-in person's listing, and whether they may have one (Year 3 accounts at least 30 days old)."
       },
+      "NearestData": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "const": "nearest",
+            "title": "Game"
+          },
+          "word": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Word"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "word"
+        ],
+        "title": "NearestData",
+        "description": "Nearest neighbour: a secret word. It must be in the vocabulary."
+      },
       "NearestGuess": {
         "properties": {
           "word": {
@@ -35228,6 +38372,68 @@
         ],
         "title": "PageLink"
       },
+      "Page_ItemOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[ItemOut]"
+      },
+      "Page_VocabularyOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/VocabularyOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[VocabularyOut]"
+      },
       "PaperQuestion": {
         "properties": {
           "id": {
@@ -36458,6 +39664,270 @@
         "title": "PresignedUpload",
         "description": "POST a multipart form to `url`: every entry of `fields` first, then the file as `file`."
       },
+      "PreviewGame": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "enum": [
+              "word",
+              "groups",
+              "search",
+              "quiz",
+              "nearest"
+            ],
+            "title": "Game"
+          },
+          "fixed": {
+            "type": "boolean",
+            "title": "Fixed"
+          },
+          "puzzle": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PreviewWord"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewGroups"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewSearch"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewQuiz"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PreviewNearest"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "game",
+                  "mapping": {
+                    "groups": "#/components/schemas/PreviewGroups",
+                    "nearest": "#/components/schemas/PreviewNearest",
+                    "quiz": "#/components/schemas/PreviewQuiz",
+                    "search": "#/components/schemas/PreviewSearch",
+                    "word": "#/components/schemas/PreviewWord"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Puzzle"
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Problem"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "fixed",
+          "puzzle",
+          "problem"
+        ],
+        "title": "PreviewGame"
+      },
+      "PreviewGroup": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "words": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Words"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "level",
+          "words"
+        ],
+        "title": "PreviewGroup"
+      },
+      "PreviewGroups": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "const": "groups",
+            "title": "Game"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/PreviewGroup"
+            },
+            "type": "array",
+            "title": "Groups"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "groups"
+        ],
+        "title": "PreviewGroups"
+      },
+      "PreviewNearest": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "const": "nearest",
+            "title": "Game"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target"
+          },
+          "closest": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Closest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "target",
+          "closest"
+        ],
+        "title": "PreviewNearest"
+      },
+      "PreviewQuestion": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "answer": {
+            "type": "integer",
+            "title": "Answer"
+          },
+          "explain": {
+            "type": "string",
+            "title": "Explain"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prompt",
+          "options",
+          "answer",
+          "explain",
+          "source"
+        ],
+        "title": "PreviewQuestion"
+      },
+      "PreviewQuiz": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "const": "quiz",
+            "title": "Game"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/PreviewQuestion"
+            },
+            "type": "array",
+            "title": "Questions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "questions"
+        ],
+        "title": "PreviewQuiz"
+      },
+      "PreviewSearch": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "const": "search",
+            "title": "Game"
+          },
+          "words": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Words"
+          },
+          "grid": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Grid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "words",
+          "grid"
+        ],
+        "title": "PreviewSearch"
+      },
+      "PreviewWord": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "const": "word",
+            "title": "Game"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "answer"
+        ],
+        "title": "PreviewWord"
+      },
       "Progress": {
         "properties": {
           "watched": {
@@ -36645,6 +40115,62 @@
           "explain"
         ],
         "title": "QuizAnswered"
+      },
+      "QuizData": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "const": "quiz",
+            "title": "Game"
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Question"
+          },
+          "options": {
+            "items": {
+              "type": "string",
+              "maxLength": 160
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Options"
+          },
+          "answer": {
+            "type": "integer",
+            "maximum": 7.0,
+            "minimum": 0.0,
+            "title": "Answer"
+          },
+          "explanation": {
+            "type": "string",
+            "maxLength": 600,
+            "title": "Explanation"
+          },
+          "moduleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moduleid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "question",
+          "options",
+          "answer",
+          "explanation"
+        ],
+        "title": "QuizData",
+        "description": "The quiz: a question, its options (2 to 6, one of them right: `answer` is its index) and the explanation shown\nafter answering. A question can name the module it comes from (`moduleId`). The options are shuffled each day."
       },
       "QuizQuestion": {
         "properties": {
@@ -38193,6 +41719,27 @@
         ],
         "title": "ScanGap",
         "description": "A published paper, report or solutions file the text reader found no words in (a scan), or couldn't read:\nsearch finds it by its title only, and Mini Noora can't read it."
+      },
+      "SearchData": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "const": "search",
+            "title": "Game"
+          },
+          "word": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Word"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "word"
+        ],
+        "title": "SearchData",
+        "description": "Word search: a word to hide in the grid, 4 to 10 letters."
       },
       "SearchFound": {
         "properties": {
@@ -39888,6 +43435,137 @@
         ],
         "title": "Theme"
       },
+      "ThemeCreate": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Title"
+          },
+          "blurb": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Blurb",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "ThemeCreate"
+      },
+      "ThemeOrder": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "ThemeOrder",
+        "description": "The themes in the rotation, in their new order."
+      },
+      "ThemeOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "blurb": {
+            "type": "string",
+            "title": "Blurb"
+          },
+          "inRotation": {
+            "type": "boolean",
+            "title": "Inrotation"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/GameCounts"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Problems"
+          },
+          "used": {
+            "type": "boolean",
+            "title": "Used"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "blurb",
+          "inRotation",
+          "position",
+          "version",
+          "counts",
+          "problems",
+          "used"
+        ],
+        "title": "ThemeOut"
+      },
+      "ThemeSave": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Title"
+          },
+          "blurb": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Blurb",
+            "default": ""
+          },
+          "inRotation": {
+            "type": "boolean",
+            "title": "Inrotation"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "inRotation",
+          "version"
+        ],
+        "title": "ThemeSave"
+      },
       "ThreadCreate": {
         "properties": {
           "title": {
@@ -40781,6 +44459,124 @@
         "title": "Video",
         "description": "A lesson: one video of a chapter. `id` is the lesson's own, for good: its address is\n/modules/<module id>/lessons/<id>."
       },
+      "VocabularyIn": {
+        "properties": {
+          "word": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Word"
+          },
+          "tags": {
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Tags"
+          },
+          "near": {
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Near"
+          }
+        },
+        "type": "object",
+        "required": [
+          "word",
+          "tags"
+        ],
+        "title": "VocabularyIn"
+      },
+      "VocabularyOut": {
+        "properties": {
+          "word": {
+            "type": "string",
+            "title": "Word"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "near": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Near"
+          },
+          "secretIn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secretin"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "word",
+          "tags",
+          "near",
+          "secretIn",
+          "version",
+          "updatedAt"
+        ],
+        "title": "VocabularyOut"
+      },
+      "VocabularySave": {
+        "properties": {
+          "tags": {
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Tags"
+          },
+          "near": {
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Near"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tags",
+          "version"
+        ],
+        "title": "VocabularySave"
+      },
       "VoteResult": {
         "properties": {
           "voteCount": {
@@ -40845,6 +44641,75 @@
           "label"
         ],
         "title": "WebLink"
+      },
+      "WeekOut": {
+        "properties": {
+          "weekStart": {
+            "type": "string",
+            "format": "date",
+            "title": "Weekstart"
+          },
+          "theme": {
+            "type": "string",
+            "title": "Theme"
+          },
+          "pinned": {
+            "type": "boolean",
+            "title": "Pinned"
+          },
+          "started": {
+            "type": "boolean",
+            "title": "Started"
+          }
+        },
+        "type": "object",
+        "required": [
+          "weekStart",
+          "theme",
+          "pinned",
+          "started"
+        ],
+        "title": "WeekOut"
+      },
+      "WeekSave": {
+        "properties": {
+          "theme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theme"
+          }
+        },
+        "type": "object",
+        "title": "WeekSave",
+        "description": "The theme for a week to come, or null to follow the rotation."
+      },
+      "WordData": {
+        "properties": {
+          "game": {
+            "type": "string",
+            "const": "word",
+            "title": "Game"
+          },
+          "word": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Word"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "word"
+        ],
+        "title": "WordData",
+        "description": "The word: an answer, five letters, in the guess list."
       },
       "WordRow": {
         "properties": {

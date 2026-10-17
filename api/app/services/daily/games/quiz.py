@@ -1,12 +1,13 @@
-"""The quiz: five quick questions, four from the bank on the week's theme and one about the programme's modules
-(a chapter, a year or a unit code), made from the modules as they are in the hub."""
+"""The quiz: five quick questions, four from the week's theme and one about the programme's modules (a chapter, a
+year or a unit code), made from the modules as they are in the hub on the day it's made. A theme's question can name
+the module it comes from; its options are shuffled each day."""
 
 from __future__ import annotations
 
 import datetime as dt
 import random
-from dataclasses import dataclass, field
-from functools import cache
+from dataclasses import asdict, dataclass, field
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -14,9 +15,11 @@ from sqlalchemy.orm import Session
 from app.models import Module
 from app.schemas.daily import AnswerMove, Move, QuizAnswered, QuizQuestion, QuizView
 from app.services.daily import content
-from app.services.daily.games.base import Game, Status, bad_move
+from app.services.daily.content import Entry, Uses
+from app.services.daily.games.base import ContentGame, Status, bad_move
 
 QUESTIONS = 5
+FROM_THEME = QUESTIONS - 1  # the fifth is about the modules
 POINTS_EACH = 20
 TO_WIN = 3  # right answers for a win
 
@@ -36,23 +39,26 @@ class QuizState:
     gave_up: bool = False
 
 
-@cache
-def bank() -> dict[str, tuple[Question, ...]]:
-    out: dict[str, list[Question]] = {}
-    for q in content.load("quiz.json"):
-        out.setdefault(q["theme"], []).append(Question(q["question"], tuple(q["options"]), q["answer"], q["explain"]))
-    return {theme: tuple(qs) for theme, qs in out.items()}
+def module_label(module: Module) -> str:
+    """How a question names its module: 'ST2133 Distribution theory'."""
+    return f"{module.unit_code} {module.short_name}" if module.unit_code else module.short_name
+
+
+def _from_theme(db: Session, day: dt.date, entry: Entry, seed: bytes) -> Question:
+    """A theme's question as the day asks it: its options in the day's order."""
+    data = entry.data
+    options = list(data["options"])
+    right = options[data["answer"]]
+    content.rng(seed, "quiz", day, entry.id).shuffle(options)
+    module = db.get(Module, data["moduleId"]) if data.get("moduleId") else None
+    source = module_label(module) if module is not None else None
+    return Question(data["question"], tuple(options), options.index(right), data["explanation"], source)
 
 
 def _shuffled(r: random.Random, right: str, wrong: list[str]) -> tuple[tuple[str, ...], int]:
     options = [right, *wrong]
     r.shuffle(options)
     return tuple(options), options.index(right)
-
-
-def _reordered(r: random.Random, q: Question) -> Question:
-    options, answer = _shuffled(r, q.options[q.answer], [o for i, o in enumerate(q.options) if i != q.answer])
-    return Question(q.prompt, options, answer, q.explain, q.source)
 
 
 def module_question(modules: list[Module], r: random.Random) -> Question | None:
@@ -105,7 +111,7 @@ def module_question(modules: list[Module], r: random.Random) -> Question | None:
     )
 
 
-class QuizGame(Game[tuple[Question, ...], QuizState]):
+class QuizGame(ContentGame[tuple[Question, ...], QuizState]):
     id = "quiz"
     title = "The Daily Query"
     tagline = "Five quick questions on the week's theme and your modules."
@@ -120,13 +126,22 @@ class QuizGame(Game[tuple[Question, ...], QuizState]):
     max_moves = QUESTIONS + 1
     min_seconds = 5
 
-    def puzzle(self, db: Session, day: dt.date, variant: str) -> tuple[Question, ...]:
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
+        return content.spread(pool, used, day, FROM_THEME, self.id, seed)
+
+    def build(self, db: Session, day: dt.date, chosen: list[Entry], seed: bytes) -> tuple[Question, ...]:
         modules = list(db.scalars(select(Module).where(Module.hidden.is_(False))))
-        about = module_question(modules, content.rng(self.id, day, "modules"))
-        picked = content.pick_many(bank()[content.theme_of(day).id], QUESTIONS - (about is not None), self.id, day)
-        # Each question's options in the day's own order, so the bank's order gives nothing away.
-        r = content.rng(self.id, day, "options")
-        return (*(_reordered(r, q) for q in picked), *([about] if about else []))
+        about = module_question(modules, content.rng(seed, self.id, day, "modules"))
+        return (*(_from_theme(db, day, e, seed) for e in chosen), *([about] if about else []))
+
+    def dump(self, puzzle: tuple[Question, ...]) -> dict[str, Any]:
+        return {"questions": [asdict(q) for q in puzzle]}
+
+    def load(self, db: Session, data: dict[str, Any]) -> tuple[Question, ...]:
+        return tuple(
+            Question(q["prompt"], tuple(q["options"]), q["answer"], q["explain"], q["source"])
+            for q in data["questions"]
+        )
 
     def start(self, puzzle: tuple[Question, ...]) -> QuizState:
         return QuizState()

@@ -121,6 +121,23 @@ const ACTIONS: Record<string, Describe> = {
   },
   'suggestion.accept': (d) => `added a suggested video as a lesson:${quoted(d.title)}`,
   'suggestion.decline': (d) => `declined a suggested video:${quoted(d.title)}`,
+  'daily.item.create': (d) => `added a Daily puzzle:${quoted(d.title)}`,
+  'daily.item.update': (d) => `edited a Daily puzzle:${quoted(d.title)}`,
+  'daily.item.retire': (d) => `retired a Daily puzzle:${quoted(d.title)}`,
+  'daily.item.restore': (d) => `brought back a Daily puzzle:${quoted(d.title)}`,
+  'daily.item.delete': (d) => `deleted a Daily puzzle:${quoted(d.title)}`,
+  'daily.item.import': (d) => `imported Daily puzzles:${quoted(d.title)}`,
+  'daily.content.import': (d) => `loaded the Daily puzzles’ content from a file${via(d)}`,
+  'daily.theme.create': (d) => `added the Daily theme${quoted(d.title)}`,
+  'daily.theme.update': (d) => `edited the Daily theme${quoted(d.title)}`,
+  'daily.theme.delete': (d) => `deleted the Daily theme${quoted(d.title)}`,
+  'daily.theme.order': () => 'changed the order of the Daily themes',
+  'daily.schedule.update': (d) => `changed the Daily theme for ${str(d.title) ?? 'a week'}`,
+  'daily.guesses.add': (d) => `added ${formatCount(count(d.count))} ${count(d.count) === 1 ? 'word' : 'words'} to the Daily guess list`,
+  'daily.guesses.remove': (d) => `took${quoted(d.title)} off the Daily guess list`,
+  'daily.vocabulary.create': (d) => `added${quoted(d.title)} to Nearest neighbour’s vocabulary`,
+  'daily.vocabulary.update': (d) => `edited${quoted(d.title)} in Nearest neighbour’s vocabulary`,
+  'daily.vocabulary.delete': (d) => `deleted${quoted(d.title)} from Nearest neighbour’s vocabulary`,
 };
 
 /** What happened, as the end of a sentence that starts with who did it. */

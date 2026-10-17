@@ -159,7 +159,7 @@ def _play_out(
     share = f"DSBA Daily #{number_of(day)}\n{game.share(puzzle, replay.state, played)}" if over else None
     return PlayOut(
         info=game.info(),
-        theme=content.theme_of(day),
+        theme=content.theme_of(db, day),
         play=Play(
             day=day,
             number=number_of(day),
@@ -268,7 +268,7 @@ def _keep(
     row.status = status
     row.mistakes, row.hints = game.counts(replay.state)
     row.updated_at = now
-    if status in FINISHED:
+    if status in FINISHED and row.finished_at is None:  # a play is priced once, when it first finishes
         row.finished_at = now
         seconds = int((now - row.started_at).total_seconds())
         row.too_fast = status == "won" and seconds < game.min_seconds
@@ -313,7 +313,7 @@ def today_of(db: Session, user: User | None) -> DailyToday:
         day=today,
         number=number_of(today),
         first_day=content.FIRST_DAY,
-        theme=content.theme_of(today),
+        theme=content.theme_of(db, today),
         games=games,
         done=sum(g.status in FINISHED for g in games),
         points=sum(g.points for g in games),
@@ -343,12 +343,13 @@ def calendar_of(db: Session, user: User | None, month: str) -> DailyCalendar:
                 finished.setdefault(day, set()).add(game)
             if scored:
                 points[day] = points.get(day, 0) + earned
-    days = []
-    d = start
-    while d <= end:
-        done = [g for g in GAMES if g in finished.get(d, set())]
-        days.append(CalendarDay(day=d, theme=content.theme_of(d), finished=done, points=points.get(d, 0)))
-        d += dt.timedelta(days=1)
+    span = [start + dt.timedelta(days=n) for n in range((end - start).days + 1)]
+    days = [
+        CalendarDay(
+            day=d, theme=theme, finished=[g for g in GAMES if g in finished.get(d, set())], points=points.get(d, 0)
+        )
+        for d, theme in zip(span, content.themes_of(db, span), strict=True)
+    ]
     return DailyCalendar(month=month, total=len(GAMES), days=days)
 
 

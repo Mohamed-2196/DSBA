@@ -64,8 +64,9 @@ def update_me(body: DailyMeIn, db: DB, user: ActiveUser) -> DailyMe:
 
 @router.get("/daily/{day}/{game}", response_model=PlayOut)
 def get_play(day: dt.date, game: GameId, db: DB, user: OptionalUser, variant: str = "") -> PlayOut:
-    """A game on a day, and your play of it so far: signed in, the first look at today's starts its clock. Errors:
-    not_out_yet (404), invalid_input on `variant` (422)."""
+    """A game on a day, and your play of it so far. The day's puzzle is made and kept the first time anyone asks
+    for it; signed in, the first look at today's starts its clock. Errors: not_out_yet (404), invalid_input on
+    `variant` (422)."""
     out = svc.get_play(db, user, day, game, variant)
     db.commit()
     return out

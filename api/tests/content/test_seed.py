@@ -15,6 +15,9 @@ from sqlalchemy.orm import Session
 from app.models import (
     CalendarEvent,
     ContentDoc,
+    DailyGuessWord,
+    DailyItem,
+    DailyTheme,
     DriveFolder,
     IssueStatus,
     LibraryItem,
@@ -25,7 +28,7 @@ from app.models import (
 from app.schemas.calendar import EventType
 from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCover, IssueSection
-from app.seed.loader import load_all, module_folders, read, seed_issue
+from app.seed.loader import daily_guess_words, load_all, module_folders, read, seed_issue
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
@@ -125,15 +128,24 @@ def test_module_folders_rules() -> None:
 def test_seed_loads_everything_once(db: Session) -> None:
     files = {name: len(read(name)) for name in ("modules", "calendar", "newsletter")}
     folders = expected_folders()
-    assert first_load(db) == {**files, "career": 1, "drive-folders": folders}
+    themes = len(read("daily/themes"))
+    assert first_load(db) == {**files, "career": 1, "drive-folders": folders, "daily": themes}
     totals = (count(db, Module), count(db, CalendarEvent), count(db, NewsletterIssue), count(db, ContentDoc))
     assert totals == (files["modules"], files["calendar"], files["newsletter"], 1)
     assert (count(db, DriveFolder), count(db, LibraryItem)) == (folders, 0)  # the library holds no Drive links
+    # Daily: the themes, out of the rotation until they have puzzles, and the guess list; no puzzles (they're kept
+    # out of the repository)
+    assert (count(db, DailyTheme), count(db, DailyGuessWord), count(db, DailyItem)) == (
+        themes,
+        len(daily_guess_words()),
+        0,
+    )
+    assert not db.scalar(select(func.count()).select_from(DailyTheme).where(DailyTheme.in_rotation))
 
     # run it again: nothing is added, and the modules stay as they are
     again = load_all(db)
     db.commit()
-    assert again == {"modules": 0, "calendar": 0, "newsletter": 0, "career": 0, "drive-folders": 0}
+    assert again == {"modules": 0, "calendar": 0, "newsletter": 0, "career": 0, "drive-folders": 0, "daily": 0}
     assert (count(db, CalendarEvent), count(db, NewsletterIssue), count(db, DriveFolder)) == (
         files["calendar"],
         files["newsletter"],
@@ -213,7 +225,7 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
 
     again = load_all(db)
     db.commit()
-    assert again == {"modules": 0, "calendar": 0, "newsletter": 0, "career": 0, "drive-folders": 0}
+    assert again == {"modules": 0, "calendar": 0, "newsletter": 0, "career": 0, "drive-folders": 0, "daily": 0}
     edited = db.get(CalendarEvent, edited_event)
     assert edited is not None
     assert edited.place == "Hall 2"

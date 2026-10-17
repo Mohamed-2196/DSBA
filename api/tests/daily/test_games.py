@@ -125,8 +125,8 @@ def test_nearest_ranks_guesses_and_hints_get_closer(client_for: ClientFor, make_
     r = move(c, "nearest", {"kind": "guess", "word": "zzzzqq"})
     assert r.json()["error"]["code"] == "unknown_word"
     # A word it doesn't know, with known words it may have meant.
-    r = move(c, "nearest", {"kind": "guess", "word": "databse"})
-    assert (r.status_code, r.json()["error"]["message"]) == (422, "We don't know “databse”. Try database or dataset.")
+    r = move(c, "nearest", {"kind": "guess", "word": "varience"})
+    assert (r.status_code, r.json()["error"]["message"]) == (422, "We don't know “varience”. Try variance.")
     hint = move(c, "nearest", {"kind": "hint"}).json()["play"]["view"]["guesses"][-1]
     assert hint["hint"] is True
     assert hint["rank"] < len(p.by_rank)
@@ -177,7 +177,7 @@ def test_the_calendar_lists_days_out_and_what_you_finished(
     cal = c.get(f"{API}/daily/calendar", params={"month": month}).json()
     assert cal["days"][-1]["day"] == today().isoformat()
     assert (cal["days"][-1]["finished"], cal["total"]) == (["word"], len(GAMES))
-    assert cal["days"][-1]["theme"] == content.theme_of(today()).model_dump(by_alias=True)
+    assert cal["days"][-1]["theme"] == content.theme_of(db, today()).model_dump(by_alias=True)
     assert c.get(f"{API}/daily/calendar", params={"month": "2026-13"}).status_code == 422
     assert c.get(f"{API}/daily/calendar", params={"month": "2020-01"}).status_code == 422
     assert c.get(f"{API}/daily/calendar", params={"month": "2026-09"}).json()["days"] == []  # before the first day
