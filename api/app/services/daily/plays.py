@@ -291,24 +291,22 @@ def calendar_of(db: Session, user: User | None, month: str) -> DailyCalendar:
     after = (first + dt.timedelta(days=32)).replace(day=1)
     today = bahrain_today()
     start, end = max(first, content.FIRST_DAY), min(after - dt.timedelta(days=1), today)
-    done: dict[dt.date, int] = {}
+    finished: dict[dt.date, set[str]] = {}
     points: dict[dt.date, int] = {}
     if user and start <= end:
-        q = (
-            select(
-                DailyPlay.day,
-                func.count(DailyPlay.game.distinct()).filter(DailyPlay.status.in_(FINISHED)),
-                func.coalesce(func.sum(DailyPlay.points).filter(DailyPlay.scored), 0),
-            )
-            .where(DailyPlay.user_id == user.id, DailyPlay.day.between(start, end))
-            .group_by(DailyPlay.day)
+        q = select(DailyPlay.day, DailyPlay.game, DailyPlay.status, DailyPlay.scored, DailyPlay.points).where(
+            DailyPlay.user_id == user.id, DailyPlay.day.between(start, end)
         )
-        for day, n, p in db.execute(q):
-            done[day], points[day] = n, p
+        for day, game, status, scored, earned in db.execute(q):
+            if status in FINISHED:
+                finished.setdefault(day, set()).add(game)
+            if scored:
+                points[day] = points.get(day, 0) + earned
     days = []
     d = start
     while d <= end:
-        days.append(CalendarDay(day=d, theme=content.theme_of(d), done=done.get(d, 0), points=points.get(d, 0)))
+        done = [g for g in GAMES if g in finished.get(d, set())]
+        days.append(CalendarDay(day=d, theme=content.theme_of(d), finished=done, points=points.get(d, 0)))
         d += dt.timedelta(days=1)
     return DailyCalendar(month=month, total=len(GAMES), days=days)
 

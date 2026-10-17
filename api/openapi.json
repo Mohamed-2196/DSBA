@@ -24142,9 +24142,20 @@
           "theme": {
             "$ref": "#/components/schemas/Theme"
           },
-          "done": {
-            "type": "integer",
-            "title": "Done"
+          "finished": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "word",
+                "groups",
+                "search",
+                "quiz",
+                "nearest",
+                "sudoku"
+              ]
+            },
+            "type": "array",
+            "title": "Finished"
           },
           "points": {
             "type": "integer",
@@ -24155,7 +24166,7 @@
         "required": [
           "day",
           "theme",
-          "done",
+          "finished",
           "points"
         ],
         "title": "CalendarDay"

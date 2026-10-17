@@ -260,7 +260,7 @@ class DailyToday(ApiModel):
 class CalendarDay(ApiModel):
     day: dt.date
     theme: Theme
-    done: int  # games finished (any play, practice included)
+    finished: list[GameId]  # the games you finished that day (any play, practice included), in the hub's order
     points: int  # scored points
 
 

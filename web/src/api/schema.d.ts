@@ -4278,8 +4278,8 @@ export interface components {
              */
             day: string;
             theme: components["schemas"]["Theme"];
-            /** Done */
-            done: number;
+            /** Finished */
+            finished: ("word" | "groups" | "search" | "quiz" | "nearest" | "sudoku")[];
             /** Points */
             points: number;
         };

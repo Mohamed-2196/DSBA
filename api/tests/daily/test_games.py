@@ -164,7 +164,7 @@ def test_the_calendar_lists_days_out_and_what_you_finished(
     month = today().strftime("%Y-%m")
     cal = c.get(f"{API}/daily/calendar", params={"month": month}).json()
     assert cal["days"][-1]["day"] == today().isoformat()
-    assert (cal["days"][-1]["done"], cal["total"]) == (1, len(GAMES))
+    assert (cal["days"][-1]["finished"], cal["total"]) == (["word"], len(GAMES))
     assert cal["days"][-1]["theme"] == content.theme_of(today()).model_dump(by_alias=True)
     assert c.get(f"{API}/daily/calendar", params={"month": "2026-13"}).status_code == 422
     assert c.get(f"{API}/daily/calendar", params={"month": "2020-01"}).json()["days"] == []
