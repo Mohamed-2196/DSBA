@@ -124,9 +124,12 @@ def detach(db: Session, card: BoardCard, upload_id: uuid.UUID, storage: Storage 
     db.delete(up)
 
 
-def file_link(db: Session, user: User, upload_id: uuid.UUID, storage: Storage | None = None) -> str:
-    """A short-lived link to one of the student's card files: shown in the browser for a picture or a PDF,
-    downloaded otherwise. 404 for anyone else's, and for a file no longer on a card."""
+def file_link(
+    db: Session, user: User, upload_id: uuid.UUID, *, download: bool = False, storage: Storage | None = None
+) -> str:
+    """A short-lived link to one of the student's card files: shown in the browser for a picture or a PDF (other
+    files download), or saved under its name with `download`. 404 for anyone else's, and for a file no longer on a
+    card."""
     up = db.get(Upload, upload_id)
     if (
         up is None
@@ -140,7 +143,7 @@ def file_link(db: Session, user: User, upload_id: uuid.UUID, storage: Storage | 
     if ft is None:
         raise not_found(FILE_GONE)
     st = storage or get_storage()
-    return st.presigned_get(up.storage_key, file_name=up.file_name, content_type=ft.content_type, inline=True)
+    return st.presigned_get(up.storage_key, file_name=up.file_name, content_type=ft.content_type, inline=not download)
 
 
 def add_comment(db: Session, user: User, card: BoardCard, body: CommentCreate) -> CardComment:

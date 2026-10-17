@@ -19001,7 +19001,7 @@
           "board"
         ],
         "summary": "Open File",
-        "description": "302 to a short-lived link to one of the student's card files: shown in the browser for pictures and PDFs,\ndownloaded otherwise. 404 for anyone else.",
+        "description": "302 to a short-lived link to one of the student's card files: shown in the browser for pictures and PDFs\n(other files download), or, with `download`, saved under its name. 404 for anyone else.",
         "operationId": "open_file_api_v1_board_files__upload_id__get",
         "parameters": [
           {
@@ -19012,6 +19012,16 @@
               "type": "string",
               "format": "uuid",
               "title": "Upload Id"
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Download"
             }
           }
         ],

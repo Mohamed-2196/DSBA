@@ -2953,8 +2953,8 @@ export interface paths {
         };
         /**
          * Open File
-         * @description 302 to a short-lived link to one of the student's card files: shown in the browser for pictures and PDFs,
-         *     downloaded otherwise. 404 for anyone else.
+         * @description 302 to a short-lived link to one of the student's card files: shown in the browser for pictures and PDFs
+         *     (other files download), or, with `download`, saved under its name. 404 for anyone else.
          */
         get: operations["open_file_api_v1_board_files__upload_id__get"];
         put?: never;
@@ -24663,7 +24663,9 @@ export interface operations {
     };
     open_file_api_v1_board_files__upload_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                download?: boolean;
+            };
             header?: never;
             path: {
                 upload_id: string;
