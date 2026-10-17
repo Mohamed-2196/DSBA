@@ -1,4 +1,4 @@
-// Home: a greeting, then a grid of equal cards the student can show, hide and reorder (Customize Home): Up next,
+// Home: a greeting, then a grid of equal cards the student can show, hide and reorder (Customise Home): Up next,
 // To-do, Continue, My modules, New files and Forum, with notices and the Ask Noora prompt across the whole width.
 // Blocks from other features come from their public.ts, each in its own ErrorBoundary with its own loading, empty and
 // error states; a notice with nothing to say renders nothing.
@@ -269,7 +269,7 @@ export default function HomePage() {
           ) : null}
         </div>
         <Button size="sm" leadingIcon={SlidersHorizontal} onClick={() => setCustomizing(true)} className="home-head__custom" data-hub="home-customize-open">
-          Customize Home
+          Customise Home
         </Button>
       </header>
 
@@ -285,7 +285,7 @@ export default function HomePage() {
             body="Choose what to show here: your next exam, your to-do, your modules and more."
             action={
               <Button variant="primary" onClick={() => setCustomizing(true)}>
-                Customize Home
+                Customise Home
               </Button>
             }
           />

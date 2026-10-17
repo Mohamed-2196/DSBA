@@ -1,4 +1,4 @@
-/* Home: greeting, then the blocks (Customize Home sets which, and their order). */
+/* Home: greeting, then the blocks (Customise Home sets which, and their order). */
 
 /* ── Greeting ──────────────────────────────────────────────────────── */
 .home-head {
@@ -118,7 +118,7 @@
 .home-next__unit { margin-top: 4px; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
 .home-next__soon { font-size: var(--fs-14); font-weight: var(--fw-bold); }
 .home-next__text { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
-.home-next__label { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); text-transform: uppercase; letter-spacing: 0.06em; }
+.home-next__label { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
 .home-next__name {
   display: inline-flex;
   flex-wrap: wrap;
@@ -270,7 +270,7 @@
 .home-list__when { flex: 0 0 auto; color: var(--ink-2); font-size: var(--fs-12); white-space: nowrap; }
 .home-list__loading { display: grid; gap: var(--sp-16); padding: var(--sp-16); }
 
-/* ── Customize Home ────────────────────────────────────────────────── */
+/* ── Customise Home ────────────────────────────────────────────────── */
 .home-custom { display: grid; margin: 0 0 var(--sp-16); }
 .home-custom__row { display: flex; align-items: center; gap: var(--sp-12); padding: var(--sp-12) 0; }
 .home-custom__row + .home-custom__row { border-top: 1px solid var(--line); }
