@@ -83,6 +83,7 @@ def load_modules(db: Session) -> int:
                 year=m["year"],
                 description=m.get("description") or "",
                 icon=m.get("icon"),
+                art=m.get("art"),
                 position=m.get("position", 0),
                 chapters=chapters,
             )

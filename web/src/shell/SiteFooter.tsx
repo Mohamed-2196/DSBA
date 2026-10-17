@@ -1,17 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
-import { CONTRIBUTORS, COPYRIGHT_HOLDER, contributorLine, DISCLAIMER, LAUNCH_YEAR, MYCLASS_URL, UOL_PORTAL_URL } from '../data/people';
+import { contributorLine, copyrightYears, httpsHref, useSite } from '../features/site/public';
+import { shortVersion } from '../lib/version';
 import { HubLogo } from '../ui';
 import { UPLOAD_PATH, useStartUpload, useUploadShown } from './upload';
 import './SiteFooter.css';
 
-/** Footer inside the content column: contributors, links, disclaimer, copyright. */
+/** Footer inside the content column: links, who makes the hub, contributors, disclaimer, copyright (Site settings). */
 export function SiteFooter() {
   const { status, me } = useAuth();
   const startUpload = useStartUpload();
   const uploadShown = useUploadShown();
-  const current = new Date().getFullYear();
-  const range = current > LAUNCH_YEAR ? `${LAUNCH_YEAR}–${current}` : `${LAUNCH_YEAR}`;
+  const site = useSite().data;
   return (
     <footer className="shell-footer">
       <div className="shell-footer__inner">
@@ -34,35 +34,46 @@ export function SiteFooter() {
                 Upload a file
               </Link>
             ) : null}
-            <a href={MYCLASS_URL} target="_blank" rel="noopener noreferrer">
-              BIBF MyClass
-            </a>
-            <a href={UOL_PORTAL_URL} target="_blank" rel="noopener noreferrer">
-              UoL student portal
-            </a>
+            {site
+              ? [site.links.myclass, site.links.uolPortal].map((l) => {
+                  const href = httpsHref(l.url);
+                  return href ? (
+                    <a key={l.label} href={href} target="_blank" rel="noopener noreferrer">
+                      {l.label}
+                    </a>
+                  ) : null;
+                })
+              : null}
           </nav>
         </div>
-        <p className="shell-footer__affil">Made by DSBA students at BIBF, studying for a University of London degree.</p>
-        <ul role="list" className="shell-footer__people" aria-label="Contributors">
-          {CONTRIBUTORS.map((c) => (
-            <li key={c.id}>
-              {c.url ? (
-                <a href={c.url} target="_blank" rel="noopener noreferrer" className="shell-footer__name">
-                  {c.name}
-                </a>
-              ) : (
-                <span className="shell-footer__name">{c.name}</span>
-              )}
-              {contributorLine(c) ? <span className="shell-footer__role">{contributorLine(c)}</span> : null}
-            </li>
-          ))}
-        </ul>
-        <div className="shell-footer__legal">
-          <p>{DISCLAIMER}</p>
-          <p>
-            © {range} {COPYRIGHT_HOLDER}. All rights reserved.
-          </p>
-        </div>
+        {site ? (
+          <>
+            <p className="shell-footer__affil">{site.tagline}</p>
+            {site.contributors.length ? (
+              <ul role="list" className="shell-footer__people" aria-label="Contributors">
+                {site.contributors.map((c) => (
+                  <li key={c.id}>
+                    {httpsHref(c.url) ? (
+                      <a href={httpsHref(c.url) ?? undefined} target="_blank" rel="noopener noreferrer" className="shell-footer__name">
+                        {c.name}
+                      </a>
+                    ) : (
+                      <span className="shell-footer__name">{c.name}</span>
+                    )}
+                    {contributorLine(c) ? <span className="shell-footer__role">{contributorLine(c)}</span> : null}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <div className="shell-footer__legal">
+              <p>{site.disclaimer}</p>
+              <p>
+                © {copyrightYears(site.launchYear)} {site.copyrightHolder}. All rights reserved.
+              </p>
+              <p>Version {shortVersion(__APP_VERSION__)}</p>
+            </div>
+          </>
+        ) : null}
       </div>
     </footer>
   );

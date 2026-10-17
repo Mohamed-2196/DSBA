@@ -1,6 +1,6 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
-import { BookOpenText, Bug, CalendarCheck, CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, HandWaving, ListMagnifyingGlass, Newspaper, Power, PuzzlePiece, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
+import { BookOpenText, Bug, CalendarCheck, CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, GearSix, HandWaving, ListChecks, ListMagnifyingGlass, Newspaper, Power, PuzzlePiece, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
 import { useId, useState, type ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { normalizeYear, useQueryParam } from '../../state';
@@ -12,7 +12,9 @@ import { ReportsQueue } from '../forum/public';
 import { ModulesEditor, SuggestionsQueue } from '../modules/public';
 import { FlaggedQuestions, UploadsQueue } from '../library/public';
 import { RequestsQueue } from '../requests/public';
-import { useIssues } from '../newsletter/public';
+import { IssuesManager } from '../newsletter/public';
+import { SiteEditor } from '../site/public';
+import { GuidesEditor } from '../start/public';
 import { useAdminStats } from './api';
 import { Gaps } from './Gaps';
 import { NooraNumbers } from './NooraNumbers';
@@ -32,11 +34,13 @@ const SECTIONS: Record<SectionId, { label: string; icon: Icon }> = {
   career: { label: 'Career Navigator', icon: Compass },
   content: { label: 'Modules', icon: BookOpenText },
   daily: { label: 'Daily puzzles', icon: PuzzlePiece },
+  guides: { label: 'Guides', icon: ListChecks },
   videos: { label: 'Suggested videos', icon: YoutubeLogo },
   gaps: { label: 'Gaps', icon: ListMagnifyingGlass },
   numbers: { label: 'Numbers', icon: ChartBar },
   people: { label: 'People', icon: UsersThree },
   activity: { label: 'Activity', icon: ClockCounterClockwise },
+  site: { label: 'Site settings', icon: GearSix },
 };
 
 const NUMBERS = [
@@ -81,31 +85,6 @@ function HubNumbers() {
   );
 }
 
-function Drafts() {
-  const issues = useIssues({ includeDrafts: true });
-  if (issues.isError) return <QueryError error={issues.error} title="Drafts didn’t load" onRetry={() => void issues.refetch()} retrying={issues.isFetching} size="sm" />;
-  const drafts = (issues.data ?? []).filter((i) => i.status === 'draft');
-  return (
-    <Panel padding="none">
-      {issues.isPending ? (
-        <Skeleton lines={3} />
-      ) : drafts.length ? (
-        <ul role="list" className="manage-list">
-          {drafts.map((d) => (
-            <li key={d.id}>
-              <Button variant="ghost" to={`/newsletter/${d.slug}/edit`}>
-                {d.title}
-              </Button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <EmptyState size="sm" icon={Newspaper} title="No drafts" body="Start the next issue from the newsletter page." action={<Button to="/newsletter">Open the newsletter</Button>} />
-      )}
-    </Panel>
-  );
-}
-
 function LinkOut({ icon, title, body, to, label }: { icon: Icon; title: string; body: string; to: string; label: string }) {
   return (
     <Panel padding="none">
@@ -129,21 +108,23 @@ const BODIES: Record<SectionId, () => ReactNode> = {
   ),
   requests: () => <RequestsQueue />,
   bugs: () => <BugReports />,
-  newsletter: () => <Drafts />,
+  newsletter: () => <IssuesManager />,
   calendar: () => <LinkOut icon={CalendarDots} title="The calendar" body="Add, edit and delete events from the calendar itself." to="/calendar" label="Open the calendar" />,
   summary: () => <SummaryForMe />,
   career: () => <CareerEditor />,
   content: () => <ModulesEditor />,
   daily: () => <DailyContentEditor />,
+  guides: () => <GuidesEditor />,
   videos: () => <SuggestionsQueue />,
   gaps: () => <Gaps />,
   numbers: () => <Numbers />,
   people: () => <PeopleList />,
   activity: () => <ActivityLog />,
+  site: () => <SiteEditor />,
 };
 
 /** The tabs that hold a draft. */
-const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['career']);
+const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['career', 'guides', 'site']);
 
 const HEADER = <PageHeader title="Manage" description="Your tools, and what’s waiting for you. Every action is logged." />;
 

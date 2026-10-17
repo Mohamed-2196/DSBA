@@ -178,8 +178,8 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
             Module
           </h3>
           <div className="cal-drawer__module">
-            {moduleArtSrc(module.id, module.artUrl) ? (
-              <ModuleArt moduleId={module.id} artUrl={module.artUrl} className="cal-drawer__module-art" />
+            {moduleArtSrc(module.art) ? (
+              <ModuleArt art={module.art} className="cal-drawer__module-art" />
             ) : (
               <span className="cal-drawer__module-icon" aria-hidden="true">
                 <ModuleIcon moduleId={module.id} weight="duotone" />

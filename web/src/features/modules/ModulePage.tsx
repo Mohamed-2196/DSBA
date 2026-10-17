@@ -55,7 +55,7 @@ function ModuleHeader({
   const studyGuide = shelfWithFiles(detail, 'course-materials') ? `/modules/${m.id}?tab=files#${shelfHash('course-materials')}` : null;
   const backTo = year === m.year ? '/modules' : `/modules?year=${m.year}`;
   const resumeChapter = resume && detail ? detail.chapters[resume.c] : null;
-  const hasArt = moduleArtSrc(m.id, m.artUrl) != null;
+  const hasArt = moduleArtSrc(m.art) != null;
 
   let resumeNote: string | null = null;
   if (resume?.kind === 'done') resumeNote = 'You have watched every video.';
@@ -79,7 +79,7 @@ function ModuleHeader({
         <div className="mod-head__main">
           <h1 className="mod-head__title">
             {hasArt ? (
-              <ModuleArt moduleId={m.id} artUrl={m.artUrl} className="mod-head__art" />
+              <ModuleArt art={m.art} className="mod-head__art" />
             ) : m.unitCode ? (
               <span className="mod-head__code u-code">{m.unitCode}</span>
             ) : (

@@ -27,6 +27,7 @@ from app.routers import (
     reports,
     requests,
     seniors,
+    site,
     suggestions,
     summary,
     uploads,
@@ -61,5 +62,6 @@ for module in (
     bugs,
     daily,
     daily_content,
+    site,
 ):
     api_router.include_router(module.router)

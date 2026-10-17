@@ -2,21 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { moduleArtSrc } from './moduleArtSrc';
 
 describe('moduleArtSrc', () => {
-  it('points a module with an illustration at its file under public/modules', () => {
-    expect(moduleArtSrc('econometrics')).toBe(`${import.meta.env.BASE_URL}modules/module-ec2020.png`);
-    expect(moduleArtSrc('information-systems')).toBe(`${import.meta.env.BASE_URL}modules/module-is2184.png`);
-    expect(moduleArtSrc('machine-learning')).toBe(`${import.meta.env.BASE_URL}modules/module-machine-learning.png`);
+  it('loads a picture of the app from under the app’s base path', () => {
+    expect(moduleArtSrc('modules/module-ec2020.png')).toBe(`${import.meta.env.BASE_URL}modules/module-ec2020.png`);
   });
 
-  it('is null for a module without one, or no module', () => {
-    expect(moduleArtSrc('abstract-maths')).toBeNull();
+  it('loads an uploaded picture from the API', () => {
+    expect(moduleArtSrc('/api/v1/media/0b5f3f8e-1d2c-4c5b-9a6e-2f1d3c4b5a69')).toBe('/api/v1/media/0b5f3f8e-1d2c-4c5b-9a6e-2f1d3c4b5a69');
+  });
+
+  it('is null without art, or for anything that isn’t a picture of the hub', () => {
     expect(moduleArtSrc(null)).toBeNull();
     expect(moduleArtSrc('')).toBeNull();
-    expect(moduleArtSrc('constructor')).toBeNull();
-  });
-
-  it('returns custom artUrl when provided', () => {
-    expect(moduleArtSrc('econometrics', '/api/v1/media/123')).toBe('/api/v1/media/123');
-    expect(moduleArtSrc('abstract-maths', '/api/v1/media/456')).toBe('/api/v1/media/456');
+    expect(moduleArtSrc('https://tracker.example.com/logo.png')).toBeNull();
+    expect(moduleArtSrc('javascript:alert(1)')).toBeNull();
   });
 });

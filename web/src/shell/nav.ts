@@ -1,8 +1,6 @@
 // Navigation config for the shell (rail, mobile tab bar, More drawer).
 import { Books, Calculator, CalendarDots, ChatTeardropText, ChatsCircle, Compass, GameController, HandWaving, House, Kanban, Newspaper, NotePencil, SquaresFour, type Icon } from '@phosphor-icons/react';
-import { MYCLASS_URL, UOL_PORTAL_URL } from '../data/people';
 import type { Feature } from '../auth';
-import type { BrandLogoName } from '../ui';
 
 export interface NavItem {
   id: string;
@@ -19,14 +17,6 @@ export interface NavItem {
   signedIn?: true;
 }
 
-export interface ExternalLink {
-  id: string;
-  label: string;
-  href: string;
-  logo: BrandLogoName;
-  logoHeight?: number;
-}
-
 export const NAV: NavItem[] = [
   { id: 'home', label: 'Home', to: '/', icon: House, end: true },
   { id: 'modules', label: 'Modules', to: '/modules', icon: SquaresFour },
@@ -41,11 +31,6 @@ export const NAV: NavItem[] = [
   { id: 'board', label: 'Study board', to: '/board', icon: Kanban, feature: 'board', signedIn: true },
   { id: 'daily', label: 'Daily', to: '/daily', icon: GameController, feature: 'daily', isNew: true },
   { id: 'requests', label: 'Requests', to: '/requests', icon: HandWaving, feature: 'requests' },
-];
-
-export const EXTERNAL_LINKS: ExternalLink[] = [
-  { id: 'myclass', label: 'BIBF MyClass', href: MYCLASS_URL, logo: 'myclass', logoHeight: 20 },
-  { id: 'uol', label: 'UoL portal', href: UOL_PORTAL_URL, logo: 'uol', logoHeight: 22 },
 ];
 
 /** Mobile bottom tabs (+ "More"). */

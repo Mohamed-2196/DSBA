@@ -66,6 +66,7 @@ commands (backups, the daily sweep, roles, the OpenAPI document).
 ```sh
 scripts/check.sh          # everything CI runs, for the API and the web app
 scripts/check.sh api      # or one of them: scripts/check.sh web
+scripts/check.sh api --fail-fast   # stop at the first failure, as CI does
 ```
 
 Turn on the pre-push hook once per clone with `scripts/install-hooks.sh`. Before each push it runs the checks for
@@ -75,11 +76,13 @@ unit tests. `SKIP_CHECKS=1 git push` skips it, and `FULL_CHECKS=1 git push` runs
 `scripts/check.sh` runs these: the lockfiles, ruff, ruff format, mypy and pytest for the API; tsc, ESLint, the unit
 tests and a production build for the web app; and the drift checks (the migrations build exactly the models' schema
 and can be undone, `api/openapi.json` is what the API serves, and `web/src/api/schema.d.ts` is generated from it).
-CI (`.github/workflows/ci.yml`) runs it on every push and pull request.
+CI (`.github/workflows/ci.yml`) runs it with `--fail-fast` on every push and on pull requests into `feature/backend`.
 
 - **API tests:** `cd api && uv run --no-sync pytest tests/community -q` for one area. Each run creates its own
   database on the server named by `DSBA_TEST_ADMIN_URL` (default
-  `postgresql+psycopg://dsba:dsba@127.0.0.1:5432/postgres`); S3 is moto, in-process.
+  `postgresql+psycopg://dsba:dsba@127.0.0.1:5432/postgres`); S3 is moto, in-process. The whole suite runs on up to
+  four workers, each with a database of its own: `uv run --no-sync pytest -n auto --maxprocesses 4` (as
+  `scripts/check.sh` runs it).
 - **Web unit tests:** `cd web && npm test` (Vitest). Put `name.test.ts` next to the module it checks.
 - **End-to-end:** `cd web && npx playwright test`, against a running stack. It signs up two students with real
   codes, so it reads the API's emails and texts from files (settings in `web/e2e/support.ts`).

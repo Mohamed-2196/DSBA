@@ -1,0 +1,100 @@
+{
+  "tagline": "Made by DSBA students at BIBF, studying for a University of London degree.",
+  "aboutIntro": "A student-run hub for the Data Science and Business Analytics programme at BIBF, studied for a University of London degree.",
+  "about": "DSBA Hub has what you need for each module — books and study guides, notes shared by students, exercises, past exams, cheat sheets and recorded lessons — with a forum for all three cohorts, a library you can read without leaving the app, lessons that can remember where you stopped, Career Navigator, a full calendar, a degree classification calculator and The DSBA Newsletter.\n\nAnyone can read it. Sign in with your email or phone number to ask and answer in the forum, share files, react to the newsletter and, if you choose, keep your lesson progress on every device. The grade calculator is the exception: the marks you type into it never leave your browser.\n\nIt does not replace your email, the VLE, BIBF MyClass, the UoL student portal or your WhatsApp groups. It gives them one place to start.",
+  "links": {
+    "myclass": {
+      "label": "BIBF MyClass",
+      "note": "Lecture slides, announcements and coursework",
+      "url": "https://myclass.bibf.com"
+    },
+    "uolPortal": {
+      "label": "UoL student portal",
+      "note": "Exam entries, results and your student record",
+      "url": "https://my.london.ac.uk/group/student"
+    },
+    "regulations": {
+      "label": "Programme regulations 2025–26",
+      "note": "The University’s rules for the degree: credits, resits and classification",
+      "url": "https://www.london.ac.uk/sites/default/files/progregs-emfss-online-and-rtc-taught-2025-26.pdf"
+    },
+    "results": {
+      "label": "Exam entry and results",
+      "note": "Entering exams, results days and rechecks",
+      "url": "https://www.london.ac.uk/current-students/examinations-assessment/examination-entry-results"
+    }
+  },
+  "contributors": [
+    {
+      "id": "mohamed-alnooh",
+      "name": "Mohamed Alnooh",
+      "role": "Creator and maintainer",
+      "affiliation": null,
+      "url": "https://github.com/Mohamed-2196"
+    },
+    {
+      "id": "feras-alsadadi",
+      "name": "Feras Alsadadi",
+      "role": "Historical past exams",
+      "affiliation": null,
+      "url": null
+    },
+    {
+      "id": "mohamed-hujairi",
+      "name": "Mohamed Hujairi",
+      "role": null,
+      "affiliation": null,
+      "url": null
+    }
+  ],
+  "noteCredits": [
+    {
+      "id": "mahdi",
+      "name": "Mahdi",
+      "modules": [
+        "economics",
+        "information-systems"
+      ]
+    },
+    {
+      "id": "mohamed-hasan",
+      "name": "Mohamed Hasan",
+      "modules": [
+        "economics"
+      ]
+    },
+    {
+      "id": "feras",
+      "name": "Feras",
+      "modules": [
+        "business"
+      ]
+    },
+    {
+      "id": "nasser",
+      "name": "Nasser",
+      "modules": [
+        "statistics"
+      ]
+    },
+    {
+      "id": "mariam-nasser",
+      "name": "Mariam Nasser",
+      "modules": [
+        "statistics"
+      ]
+    },
+    {
+      "id": "mohamed",
+      "name": "Mohamed",
+      "modules": [
+        "advanced-stats-distribution",
+        "business-analytics"
+      ]
+    }
+  ],
+  "gradesNote": "Worked out in this browser from the University’s rules, by students. It isn’t your official result: check with the University.",
+  "disclaimer": "A student-run project. Not affiliated with or endorsed by the University of London. All linked materials belong to their respective owners.",
+  "copyrightHolder": "Mohamed Alnooh",
+  "launchYear": 2024
+}

@@ -7,6 +7,7 @@
     "year": 1,
     "description": "Explore fundamental economic concepts and their impact on everyday life and decision-making.",
     "icon": "ChartLineUp",
+    "art": "modules/module-ec1002.png",
     "position": 0,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/10-bmpUWIF6OjWW7IRmTieHvOLatgXK1s",
@@ -660,6 +661,7 @@
     "year": 1,
     "description": "Examine key principles of business and management.",
     "icon": "Briefcase",
+    "art": "modules/module-mn1178.png",
     "position": 1,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1IUDX2mKk4WfB0Ai8KM5skSWszQ0wwvGB",
@@ -899,6 +901,7 @@
     "year": 1,
     "description": "Delve into sophisticated mathematical theories and their real-world applications.",
     "icon": "Function",
+    "art": "modules/module-mt1186.png",
     "position": 2,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1OoirkioHtZGzmI9M1JXMkvE6exSUUiJx",
@@ -1529,6 +1532,7 @@
     "year": 1,
     "description": "Master the art of data interpretation and predictive modeling.",
     "icon": "ChartBar",
+    "art": "modules/module-st1215.png",
     "position": 3,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1EQX5mEJUOd6mlqrS4FkRNuZ1ofxum8ez",
@@ -1904,6 +1908,7 @@
     "year": 2,
     "description": "Deep dive into advanced statistical distribution theories and their applications.",
     "icon": "WaveSine",
+    "art": "modules/module-st2133.png",
     "position": 4,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1tQdHFpyDt8PECkNB5iK_PIVZf-oCC_fR",
@@ -2209,6 +2214,7 @@
     "year": 2,
     "description": "Master advanced statistical inference techniques and hypothesis testing.",
     "icon": "Scales",
+    "art": "modules/module-st2134.png",
     "position": 5,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1lAEhLnaBz5t7JaRtRhb27FLFePgmZaIm",
@@ -2395,6 +2401,7 @@
     "year": 2,
     "description": "Learn programming languages and tools essential for data science applications.",
     "icon": "TerminalWindow",
+    "art": "modules/module-st2195.png",
     "position": 6,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1D4RrwCClsxrIRrV0CnhTGTpZI5DFAHDi",
@@ -2752,6 +2759,7 @@
     "year": 2,
     "description": "Apply analytical methods to solve complex business problems and drive decision-making.",
     "icon": "PresentationChart",
+    "art": "modules/module-st2187.png",
     "position": 7,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1OFKhC9jh_Ax-cIP8ZmTLOJet4zNsqHgg",
@@ -3210,6 +3218,7 @@
     "year": 2,
     "description": "Study economic relationships using statistical methods and mathematical models.",
     "icon": "ChartScatter",
+    "art": "modules/module-ec2020.png",
     "position": 8,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/18mjbHAtmreWKvop-yx_HQlAm7wwclowI",
@@ -3335,6 +3344,7 @@
     "year": 2,
     "description": "Understand information systems design, implementation, and management in organizations.",
     "icon": "Database",
+    "art": "modules/module-is2184.png",
     "position": 9,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/14Ljj9Xyc7MT2Ri4fP_oI46ILhN1JIlOJ",
@@ -3361,6 +3371,7 @@
     "year": 3,
     "description": "Study supervised and unsupervised learning methods, and how models are trained and evaluated.",
     "icon": "Brain",
+    "art": "modules/module-machine-learning.png",
     "position": 10,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1L-t8lQegkEzglFVPEX3NybaWvI0faVX9",
@@ -3381,6 +3392,7 @@
     "year": 3,
     "description": "Apply statistical techniques to survey data and consumer research problems.",
     "icon": "ListChecks",
+    "art": "modules/module-market-research.png",
     "position": 11,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1qkJhwLxi-lQpJEh55xiIEOOpLT10XP89",
@@ -3401,6 +3413,7 @@
     "year": 3,
     "description": "Analyse consumer and firm behaviour, market structures, and welfare in depth.",
     "icon": "Storefront",
+    "art": "modules/module-microeconomics.png",
     "position": 12,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1yT9qq6krw9r2WhAt_3ihW3jxrU_MdFWc",
@@ -3421,6 +3434,7 @@
     "year": 3,
     "description": "Examine how financial assets are valued and how risk and return are related.",
     "icon": "Coins",
+    "art": "modules/module-asset-pricing.png",
     "position": 13,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/10WkXNxJG7nWL9DICHgdVAj5xi9bS1WtN",
@@ -3441,6 +3455,7 @@
     "year": 3,
     "description": "Plan and evaluate marketing strategy, from segmentation through to the marketing mix.",
     "icon": "Megaphone",
+    "art": "modules/module-marketing-management.png",
     "position": 14,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1P3iHqYSe4qPwVRW6baj475Rsi_mpbP2h",
@@ -3461,6 +3476,7 @@
     "year": 3,
     "description": "Build the advanced mathematical tools used in economic analysis and optimisation.",
     "icon": "Sigma",
+    "art": "modules/module-further-maths.png",
     "position": 15,
     "resources": {
       "materials": "https://drive.google.com/drive/folders/1a6lakhRK3st9DRRGlGKPiCKNaTGoczIR",

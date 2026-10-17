@@ -4,7 +4,8 @@ import { ArrowUpRight, Bug, DotsThreeOutline, Info, UploadSimple } from '@phosph
 import { useAuth } from '../auth';
 import { BrandLogo, Divider, Drawer, cx } from '../ui';
 import { openBugReport } from '../features/bugs/public';
-import { EXTERNAL_LINKS, MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav';
+import { MOBILE_TAB_IDS, MORE_IDS, NAV } from './nav';
+import { usePortalLinks } from './portals';
 import { visibleNav } from './visibility';
 import { YearSwitcher } from './YearSwitcher';
 import { ThemeToggle } from './ThemeToggle';
@@ -18,6 +19,7 @@ export function MobileNav() {
   const startUpload = useStartUpload();
   const uploadShown = useUploadShown();
   const { featureOn, me } = useAuth();
+  const portals = usePortalLinks();
   const nav = visibleNav(NAV, featureOn, !!me);
   const tabs = nav.filter((n) => MOBILE_TAB_IDS.includes(n.id));
   const more = nav.filter((n) => MORE_IDS.includes(n.id));
@@ -107,7 +109,7 @@ export function MobileNav() {
           </ul>
           <Divider />
           <ul role="list" className="shell-more__list">
-            {EXTERNAL_LINKS.map((item) => (
+            {portals.map((item) => (
               <li key={item.id}>
                 <a href={item.href} target="_blank" rel="noopener noreferrer" className="shell-more__item">
                   <BrandLogo name={item.logo} height={item.logoHeight ?? 20} decorative />

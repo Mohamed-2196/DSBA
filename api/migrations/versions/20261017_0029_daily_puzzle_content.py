@@ -1,8 +1,8 @@
 """Daily puzzles' content in the database: themes and their schedule, puzzle items, the guess list, Nearest
 neighbour's vocabulary, each day's stored puzzles and Daily's own seed
 
-Revision ID: 0027
-Revises: 0026
+Revision ID: 0029
+Revises: 0028
 Create Date: 2026-10-17 21:20:00
 
 The puzzles' content was in JSON files in the public repository. It moves into tables that content editors change in
@@ -20,8 +20,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0027"
-down_revision: str | None = "0026"
+revision: str = "0029"
+down_revision: str | None = "0028"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

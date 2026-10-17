@@ -8,6 +8,7 @@ at start-up."""
 from __future__ import annotations
 
 import ipaddress
+import re
 from functools import lru_cache
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
@@ -159,6 +160,12 @@ class Settings(BaseSettings):
     noora_max_answer_tokens: int = Field(default=1500, ge=100, le=4000)
     noora_answers_at_once: int = Field(default=8, ge=1, le=100)  # answers streaming hub-wide (one per student)
 
+    # The commit this API runs (`commit`), which /health reports so a deploy can be checked against the push that made
+    # it: DSBA_COMMIT_SHA, else the RAILWAY_GIT_COMMIT_SHA Railway sets for a deploy from GitHub. Anything but a
+    # commit hash reads as unknown.
+    commit_sha: str | None = None
+    railway_git_commit_sha: str | None = Field(default=None, validation_alias="RAILWAY_GIT_COMMIT_SHA")
+
     @field_validator(
         "s3_endpoint_url",
         "s3_public_endpoint_url",
@@ -177,6 +184,13 @@ class Settings(BaseSettings):
     @classmethod
     def _empty_is_none(cls, v: object) -> object:
         return None if v == "" else v
+
+    @field_validator("commit_sha", "railway_git_commit_sha", mode="before")
+    @classmethod
+    def _commit_hash(cls, v: object) -> object:
+        if isinstance(v, str) and re.fullmatch(r"[0-9a-fA-F]{7,40}", v.strip()):
+            return v.strip().lower()
+        return None
 
     @field_validator("web_origins", "admin_identifiers", "sms_allowed_regions", mode="before")
     @classmethod
@@ -226,6 +240,10 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.env == "production"
+
+    @property
+    def commit(self) -> str | None:
+        return self.commit_sha or self.railway_git_commit_sha
 
     def problems(self) -> list[str]:
         """What stops these settings from working in their environment, one plain sentence per problem.
