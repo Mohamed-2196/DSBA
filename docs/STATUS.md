@@ -102,6 +102,8 @@ library and uploads work there.
 - **Roadmap questions:** each feature in `docs/ROADMAP.md` lists what he needs to decide. R-1 (roles) comes first.
 - **Ideas to approve:** 24 proposals in `docs/ideas.md` (IDEA-1 to IDEA-24), merged 2026-10-13.
 - **Product calls:**
+  - Daily puzzles: edits apply from tomorrow, so today's puzzle can't be corrected. Add an admin "fix today's
+    puzzle" button? And should a connections group hold exactly four words, or 4 to 8 with a day showing four?
   - Should notification emails stay on by default?
   - Should there be a site-wide daily upload budget (SEC-14)?
   - Should a rep confirm seniors, beyond the 30-day rule?
