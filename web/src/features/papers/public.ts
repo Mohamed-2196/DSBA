@@ -6,6 +6,7 @@
 //   isMine(e, year, papers)      does a calendar event count for the student
 //   modulesFor(year, papers, catalogue)   the modules to list for them
 //   <PapersDialog open onClose />, <PapersButton />   pick them ("Your modules", with the exam zone)
+//   papersNote(home, picks, papers)   what Home says under the modules it lists, and its button's words
 export { usePapers } from './usePapers';
-export { isMine, modulesFor } from './papers';
+export { isMine, modulesFor, papersNote } from './papers';
 export { PapersDialog, PapersButton } from './PapersDialog';

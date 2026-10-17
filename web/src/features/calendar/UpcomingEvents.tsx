@@ -125,6 +125,7 @@ export function UpcomingEvents({ n = 5, year: forYear }: UpcomingEventsProps) {
                 <span className="cal-upcoming__body">
                   <span className="cal-upcoming__title">
                     {code ? <span className="cal-upcoming__code">{code}</span> : null}
+                    {code ? ' ' : null}
                     <span className="cal-upcoming__name">{name}</span>
                   </span>
                   <span className="cal-upcoming__meta">

@@ -56,7 +56,7 @@ export function BoardTodo({ n = 5 }: { n?: number }) {
   const cards = agenda.data.cards;
   if (!cards.length) {
     return (
-      <Panel padding="none" data-hub="home-todo">
+      <Panel padding="none" className="board-todo board-todo--empty" data-hub="home-todo">
         <EmptyState
           size="sm"
           icon={Kanban}

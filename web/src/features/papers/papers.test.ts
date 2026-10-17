@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ModuleSummary } from '../../api/types';
-import { CHOICES, cleanPicks, isMine, modulesFor, papersFor, pickOnly, picksSummary, togglePick } from './papers';
+import { CHOICES, cleanPicks, isMine, modulesFor, papersFor, papersNote, pickOnly, picksSummary, togglePick } from './papers';
 
 const mod = (id: string, year: 1 | 2 | 3): ModuleSummary => ({
   id,
@@ -87,6 +87,14 @@ it('picksSummary', () => {
   expect(picksSummary(2, ['econometrics'], new Set(['a', 'b']))).toBe('2 modules');
   expect(picksSummary(2, ['econometrics'], new Set(['a']))).toBe('1 module');
   expect(picksSummary(null, [], null)).toBe('not set');
+});
+
+it('papersNote says what Home lists and what is left to pick', () => {
+  expect(papersNote(null, [], null)).toBeNull();
+  expect(papersNote(2, [], null)).toEqual({ text: 'Pick your Year 2 option to list only the modules you sit.', action: 'Pick your option' });
+  expect(papersNote(3, [], null)?.action).toBe('Pick your electives');
+  expect(papersNote(1, [], null)).toEqual({ text: 'Every Year 1 module.', action: 'Change' });
+  expect(papersNote(2, ['econometrics'], new Set(['a', 'b', 'c']))).toEqual({ text: 'The 3 modules you sit.', action: 'Change' });
 });
 
 it('pickOnly keeps one module of a pick-one choice', () => {

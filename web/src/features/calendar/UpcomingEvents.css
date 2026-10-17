@@ -27,14 +27,15 @@
 .cal-upcoming__title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
+  overflow-wrap: break-word;
   overflow: hidden;
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
   line-height: 1.35;
 }
 .cal-upcoming__code {
-  margin-right: 6px;
+  margin-right: 2px;
   font-weight: var(--fw-heavy);
   font-variant-numeric: tabular-nums lining-nums;
   letter-spacing: -0.005em;
@@ -61,8 +62,8 @@
 }
 .cal-upcoming__count.is-soon.is-exam { color: var(--alert-strong); }
 
-/* Narrow containers (forum sidebar): the title gets the full width, the countdown shares the meta line. */
-@container (max-width: 340px) {
+/* Narrow containers (a phone, the forum sidebar): the title gets the full width, the countdown shares the meta line. */
+@container (max-width: 420px) {
   .cal-upcoming__row { grid-template-columns: 44px minmax(0, 1fr) auto; row-gap: 4px; column-gap: 12px; padding: 12px 14px; }
   .cal-upcoming__date { grid-row: 1 / span 2; width: 44px; }
   .cal-upcoming__body { display: contents; }

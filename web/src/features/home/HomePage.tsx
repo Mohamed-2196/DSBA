@@ -14,7 +14,7 @@ import { HelpBelow } from '../forum/public';
 import { DailyQuestion } from '../library/public';
 import { ContinueLearning, useTracking } from '../modules/public';
 import { LatestIssueCard } from '../newsletter/public';
-import { PapersButton, usePapers } from '../papers/public';
+import { usePapers } from '../papers/public';
 import { ResultsDayCard, StartHereCard } from '../start/public';
 import { DailyCard } from '../daily/public';
 import { addDays, dayKey, formatLongDay, parseDay, todayKey } from '../../lib/dates';
@@ -133,7 +133,7 @@ export default function HomePage() {
             id={b}
             action={
               <Button variant="ghost" size="sm" to="/board">
-                Open my board
+                Open my boards
               </Button>
             }
           >
@@ -152,15 +152,12 @@ export default function HomePage() {
             key={b}
             id={b}
             action={
-              <span className="home-block__actions">
-                {year ? <PapersButton /> : null}
-                <Button variant="ghost" size="sm" to="/modules">
-                  All modules
-                </Button>
-              </span>
+              <Button variant="ghost" size="sm" to="/modules">
+                All modules
+              </Button>
             }
           >
-            <YourModules year={activeYear} today={today} />
+            <YourModules year={activeYear} today={today} mine={year !== null} />
           </Block>
         );
       case 'files':
