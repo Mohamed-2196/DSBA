@@ -102,7 +102,7 @@ export function MiniPoster({
   size = 'md',
   className,
 }: {
-  module: Pick<ModuleSummary, 'id' | 'unitCode' | 'shortName' | 'year' | 'artUrl'>;
+  module: Pick<ModuleSummary, 'unitCode' | 'shortName' | 'year' | 'art'>;
   /** the lesson it opens */
   video: Video | null | undefined;
   size?: 'sm' | 'md' | 'lg';
@@ -110,7 +110,7 @@ export function MiniPoster({
 }) {
   const thumb = videoThumbnailUrl(video);
   const thumbOk = useThumbnail(thumb) === 'ok';
-  const art = moduleArtSrc(m.id, m.artUrl);
+  const art = moduleArtSrc(m.art);
   return (
     <span className={cx('mod-mini', `mod-mini--${size}`, thumbOk && 'has-thumb', className)} style={cohortVars(m.year)} aria-hidden="true">
       {thumbOk && thumb ? (
