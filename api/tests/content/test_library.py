@@ -177,6 +177,29 @@ def test_a_rejected_upload_tells_the_uploader_why(
     assert me.post(item_url(item, "/review"), json={"decision": "publish"}).status_code == 403
 
 
+def test_your_files_never_list_a_removed_one_unless_you_manage_the_library(
+    client_for: Clients, student: User, moderator: User, share_file: Share
+) -> None:
+    """A removed file answers 404 to its uploader, so asking "your files" for removed ones lists nothing; the
+    library's managers, who may open removed files, still find their own."""
+    me, rep = client_for(student), client_for(moderator)
+    item = share_file(me, title="Old notes")
+    assert me.delete(item_url(item)).status_code == 204
+    assert me.get(read_url(item)).status_code == 404
+    asks: list[dict[str, str | bool]] = [{"mine": True, "status": "removed"}, {"mine": True}]
+    for params in asks:
+        page = me.get(f"{API}/library/items", params=params).json()
+        assert (page["items"], page["total"]) == ([], 0), params
+    for status in ("pending", "published", "rejected"):
+        assert me.get(f"{API}/library/items", params={"mine": True, "status": status}).status_code == 200
+
+    own = share_file(rep, title="Old slides")
+    assert rep.delete(item_url(own)).status_code == 204
+    page = rep.get(f"{API}/library/items", params={"mine": True, "status": "removed"}).json()
+    assert [(i["id"], i["status"]) for i in page["items"]] == [(own["id"], "removed")]
+    assert rep.get(f"{API}/library/items", params={"mine": True}).json()["total"] == 0
+
+
 def test_moderators_publish_their_own_uploads_at_once(
     client_for: Clients, moderator: User, share_file: Share, db: Session
 ) -> None:

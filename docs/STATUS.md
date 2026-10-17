@@ -44,7 +44,7 @@ Each builder reviews its area against Mohamed's requests (`docs/feedback/2026-10
 Antigravity), fixes what's wrong, and reports findings marked FIXED or OPEN. Branches `round12/<name>` in
 `../dsba-<name>`; the lead merges and re-chains migrations (0027 onwards).
 
-| Branch | State (2026-10-17, stopped at the usage limit; resume each by reading its worktree and `git log`) |
+| Branch | State (2026-10-18: the five stopped builders resumed; the lead merges as each reports) |
 | --- | --- |
 | `round12/speed` | **merged**: one app per test run, xdist, CI fail-fast, deploys report their commit |
 | `round12/rev-sec` | **merged**: SEC-36 to SEC-48 with proof tests; SEC-43 accepted (dev site stays open, made-up accounts only) |
@@ -53,10 +53,11 @@ Antigravity), fixes what's wrong, and reports findings marked FIXED or OPEN. Bra
 | `round12/daily-cms` | stopped near the end: content in the database, Manage editor, tests passing (`../dsba-dailycms`, 0027) |
 | `round12/notebook` | stopped before the iPad pen/touch QA; SEC-36 and SEC-48 committed; the body-limit middleware must count real bytes (`../dsba-notebook`) |
 | `round12/polish` | stopped after merging feature/backend and renumbering its migration (`../dsba-polish`) |
-| `round12/secfix` | stopped; SEC-40/44/47/33/11/19 in progress (`../dsba-secfix`) |
+| `round12/secfix` | resumed: SEC-40/44/47/33/11/19 (`../dsba-secfix`, 0031) |
+| `round12/cms2` | started 2026-10-18: forum categories and guidelines, Noora's instructions and scripted answers, Home defaults, search and copy in Manage (`../dsba-cms2`, 0033) |
 
-Next: resume the five stopped branches, merge each (re-chain migrations after 0028), then a CMS round for grade rules,
-forum categories and guidelines, Noora's prompt and Home defaults; then the full e2e run. Mohamed's calls: guests keep
+Next: merge each branch as it reports (migrations chain after 0028: daily-cms 0029, polish 0030, secfix 0031,
+notebook 0032, cms2 0033), then the full e2e run and a code-quality review of rounds 11 and 12. Mohamed's calls: guests keep
 playing today's Daily (leaderboard says it's for fun); the Railway dev site needs a storage bucket set up before the
 library and uploads work there.
 
@@ -101,12 +102,17 @@ library and uploads work there.
 - **Roadmap questions:** each feature in `docs/ROADMAP.md` lists what he needs to decide. R-1 (roles) comes first.
 - **Ideas to approve:** 24 proposals in `docs/ideas.md` (IDEA-1 to IDEA-24), merged 2026-10-13.
 - **Product calls:**
+  - Bug reports (defaults chosen 2026-10-18): deleted with the reporter's account rather than kept anonymised;
+    screenshots kept 90 days after a report closes. Names that spell a staff word across spaces or dots ("A. D.
+    Minhas") are refused.
+  - Daily puzzles: edits apply from tomorrow, so today's puzzle can't be corrected. Add an admin "fix today's
+    puzzle" button? And should a connections group hold exactly four words, or 4 to 8 with a day showing four?
   - Should notification emails stay on by default?
   - Should there be a site-wide daily upload budget (SEC-14)?
   - Should a rep confirm seniors, beyond the 30-day rule?
   - A "shared computer" sign-in with a shorter session, and sessions that end after some days without use (S-2)?
   - Should an "I'm not a student" mode show all years?
-- **To deploy:** a server, a domain, an S3 bucket with its keys, an SMTP account, Twilio for texts, and an Anthropic
+- **To deploy:** a server, a domain, an S3 bucket with its keys (plus a second key for the text worker), an SMTP account, Twilio for texts, and an Anthropic
   API key for Noora. `docs/backend/DEPLOYMENT.md` has the full list.
 
 ## How the team works

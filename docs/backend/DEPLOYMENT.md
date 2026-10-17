@@ -17,7 +17,8 @@ backup (daily): pg_dump ──▶ backup bucket (its own key)      sweep (daily)
 
 - A server with Docker and the Compose plugin, ports 80 and 443 open, and a DNS name pointing at it
   (`DSBA_DOMAIN`, e.g. `hub.example.com`). Caddy gets and renews the certificate itself.
-- An S3 bucket for files and a second bucket for backups (section 3).
+- An S3 bucket for files and a second bucket for backups (section 3), with a key for the API, one for the text
+  worker that can only read the library's files and write their covers (section 3), and one for backups (section 7).
 - An SMTP account for sign-in codes and notification emails (any provider's relay), and a Twilio account if codes
   go out by text too.
 - An Anthropic API key (`DSBA_ANTHROPIC_API_KEY`) if Mini Noora's AI answers (`noora.ai`) are turned on (section 11).
@@ -56,6 +57,14 @@ Also in production: the API docs (`/api/v1/docs`) and `/api/v1/openapi.json` are
 from `api/openapi.json` in the repository), and `python -m app.cli dev-login` refuses to run. The API image sets
 `DSBA_ENV=production` itself, so a container started without settings fails instead of running in development mode.
 
+**The text worker** (`texts`) gets only `DSBA_ENV`, its database URL and the bucket settings, and checks only those
+(`Settings.texts_problems`): it opens files anyone could have uploaded, so it holds no secret key, mail, texts or AI
+key. Its database URL uses its own role, `dsba_texts`, with the password `DSBA_TEXTS_DB_PASSWORD` (letters, digits,
+`-` and `_`: it goes in the URL as it is). The `migrate` service creates the role after the migrations, or sets its
+password again, with only what the worker needs: reading `library_items` and noting each file's hash, and keeping
+the words in `library_texts` (`python -m app.cli texts-role`, `paper_text.WORKER_GRANTS`). Its bucket key is its own
+too (section 3).
+
 ## 3. Object storage
 
 **Supported stores:** AWS S3, and MinIO (served over HTTPS to browsers). Browsers upload with a presigned POST
@@ -81,6 +90,23 @@ rows and the objects it knows about).
 **The API's key** needs `s3:PutObject`, `s3:GetObject` and `s3:DeleteObject` on `arn:aws:s3:::<bucket>/*`
 (presigned uploads and downloads, the checks and the server-side copy after an upload, removals) and
 `s3:ListBucket` on `arn:aws:s3:::<bucket>` (the health check's HEAD on the bucket). Nothing on the backup bucket.
+
+**The text worker's key** (`DSBA_TEXTS_S3_ACCESS_KEY_ID`, `DSBA_TEXTS_S3_SECRET_ACCESS_KEY`) only reads the
+library's files and writes their covers:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Effect": "Allow", "Action": "s3:GetObject", "Resource": "arn:aws:s3:::<bucket>/library/*" },
+    { "Effect": "Allow", "Action": "s3:PutObject", "Resource": "arn:aws:s3:::<bucket>/covers/*" }
+  ]
+}
+```
+
+On AWS, attach it to an IAM user of its own. On MinIO, the same JSON is a policy:
+`mc admin policy create <alias> dsba-texts texts.json`, then `mc admin user add <alias> <key> <secret>` and
+`mc admin policy attach <alias> dsba-texts --user <key>`.
 
 **`DSBA_BUCKET_ORIGIN`** is the origin presigned URLs point at; the Content-Security-Policy allows uploads to it,
 and images, PDF previews and media from it. With `DSBA_S3_FORCE_PATH_STYLE=false` on AWS that is
@@ -135,9 +161,13 @@ the person turned that switch off, changed their address or deleted the account.
 
 **Text of papers.** Search finds words inside published PDF and Word files. The `texts` service
 (`python -m app.cli text-worker`) reads each newly published file once, in a child process limited to 60 seconds
-and 1 GB, and skips files over 60 MB; scans have no text and stay findable by title only. After deploying it the
-first time, or after a big import, read the files already there: `docker compose -f compose.prod.yaml run --rm api
-python -m app.cli extract-texts` (`--retry` reads failed and empty files again).
+and 1 GB, and skips files over 60 MB; scans have no text and stay findable by title only. The child process can't
+see the worker's settings: its environment holds none, and the worker makes itself non-dumpable before it starts
+one, so the child (the same user) can't read them from `/proc/<worker>/environ` or the worker's memory either. And
+the worker holds only its own database role and bucket key (section 2). After deploying it the first time, or after
+a big import, read the files already there: `docker compose -f compose.prod.yaml run --rm texts python -m app.cli
+extract-texts` (`--retry` reads failed and empty files again; `make-covers` makes the covers of files read before
+covers existed).
 
 ## 5. Client addresses and the proxy
 
@@ -249,7 +279,9 @@ The `sweep` service runs `python -m app.cli sweep` when it starts and every 24 h
   the row;
 - sign-in codes older than two days (the longest rate-limit window is a day);
 - sessions that expired or were revoked more than 30 days ago;
-- the files of library items rejected or removed more than a week ago (the item stays, without its file).
+- the files of library items rejected or removed more than a week ago (the item stays, without its file);
+- the addresses kept on guests' bug reports after a day, and the screenshots of bug reports closed (fixed or won't
+  fix) more than 90 days ago (the report stays, without its screenshot).
 
 ## 9. Analytics (optional)
 

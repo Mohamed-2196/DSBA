@@ -247,6 +247,56 @@ def test_look_alike_staff_names_are_refused(client_for: ClientFor, make_user: Ma
 @pytest.mark.parametrize(
     "typed",
     [
+        "A d m i n",
+        "Ad-min",
+        "Ad.min Sara",
+        "Ad'min",
+        "Ad min",
+        "Sara A-d-m-i-n",
+        "Ad-ministrator",
+        "A d r n i n",  # r + n reads as m across the gap too
+        "D S B A Team",
+        "D.S.B.A.",
+        "B I B F",
+        "Student R e p",
+        "StudentRep",
+        "Student-Rep Ali",
+        "Mod erator",
+        "\u0410 d m i n",  # a Cyrillic A, spaced out
+    ],
+)
+def test_staff_words_spelt_out_across_spaces_dots_and_hyphens_are_refused(
+    client_for: ClientFor, make_user: MakeUser, typed: str
+) -> None:
+    r = client_for(make_user(name="Before")).patch(f"{API}/me", json={"displayName": typed})
+    assert r.status_code == 422, r.text
+    assert r.json()["error"]["code"] == "invalid_display_name"
+
+
+@pytest.mark.parametrize(
+    "typed",
+    [
+        "Ahmad Mina",
+        "Habib Fakhro",
+        "Saad Minhas",
+        "Adam Inayat",
+        "Mohamed Al-Dosari",
+        "Reem D'Souza",
+        "Hamad B. Ibrahim",
+    ],
+)
+def test_names_that_only_end_and_begin_a_staff_word_are_fine(
+    client_for: ClientFor, make_user: MakeUser, typed: str
+) -> None:
+    """'Ahmad Mina' holds a-d-m-i-n across its space, and 'Habib Fakhro' b-i-b-f: neither starts a staff word."""
+    r = client_for(make_user(name="Before")).patch(f"{API}/me", json={"displayName": typed})
+    assert r.status_code == 200, r.text
+    assert r.json()["displayName"] == typed
+
+
+@pytest.mark.parametrize(
+    "typed",
+    [
         "\u041c\u0430\u0440\u0438\u044f \u0418\u0432\u0430\u043d\u043e\u0432\u0430",
         "\u03a3\u03bf\u03c6\u03af\u03b1 P.",
         "Ali 2",
@@ -659,6 +709,7 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
         "notifications",
         "votes",
         "reports",
+        "bugReports",
         "requests",
         "meToos",
         "questionTags",

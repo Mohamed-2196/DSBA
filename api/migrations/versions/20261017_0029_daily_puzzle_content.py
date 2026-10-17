@@ -2,7 +2,7 @@
 neighbour's vocabulary, each day's stored puzzles and Daily's own seed
 
 Revision ID: 0029
-Revises: 0028
+Revises: 0031
 Create Date: 2026-10-17 21:20:00
 
 The puzzles' content was in JSON files in the public repository. It moves into tables that content editors change in
@@ -21,7 +21,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0029"
-down_revision: str | None = "0028"
+down_revision: str | None = "0031"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

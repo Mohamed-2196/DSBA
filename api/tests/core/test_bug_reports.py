@@ -196,6 +196,64 @@ def test_five_reports_an_hour_for_guests_on_one_network(browser_at: BrowserAt) -
     assert browser_at("203.0.113.6").post(REPORTS, json=report()).status_code == 201
 
 
+def test_thirty_reports_an_hour_from_guests_on_every_network_together(
+    browser_at: BrowserAt, make_user: MakeUser, db: Session
+) -> None:
+    """One home or phone connection holds many /64 networks, each with its own five reports an hour: past 30 from
+    guests in all, a guest is asked to sign in, and signed-in people still report."""
+    admins = [make_user(name="Head Admin", roles=ADMIN), make_user(name="Second Admin", roles=ADMIN)]
+    long = report(whatHappened="x" * 2000, expected="y" * 2000, browser="z" * 300)
+    for network in range(1, 7):
+        guest = browser_at(f"2001:db8:{network:x}::1")
+        for _ in range(5):
+            assert guest.post(REPORTS, json=long).status_code == 201
+    r = browser_at("2001:db8:7::1").post(REPORTS, json=report())
+    assert r.status_code == 429
+    error = r.json()["error"]
+    assert error["message"].startswith(
+        "A lot of reports came in from people who aren't signed in. Sign in to send yours, or try again in "
+    )
+    assert error["retryAfter"] > 0
+    assert db.scalar(select(func.count()).select_from(BugReport).where(BugReport.user_id.is_(None))) == 30
+    signed_in = browser_at("2001:db8:7::1", make_user(name="Sara Student"))
+    assert signed_in.post(REPORTS, json=report()).status_code == 201
+    for admin in admins:  # one notification each, counting every report
+        told = db.scalars(
+            select(Notification.title).where(Notification.user_id == admin.id, Notification.kind == "bug_report")
+        ).all()
+        assert told == ["31 new bug reports"]
+
+
+def test_admins_hear_of_new_reports_in_one_notification_while_it_is_unread(
+    client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    boss, deputy = make_user(name="Head Admin", roles=ADMIN), make_user(name="Second Admin", roles=ADMIN)
+    guest, me = client_for(), client_for(boss)
+
+    def told(admin: User) -> set[tuple[str, str | None, bool]]:
+        """(title, words, unread) of each bug report notification the admin has."""
+        db.expire_all()
+        rows = db.scalars(
+            select(Notification).where(Notification.user_id == admin.id, Notification.kind == "bug_report")
+        ).all()
+        return {(n.title, n.body, n.read_at is None) for n in rows}
+
+    for words in ("The upload button does nothing.", "Search shows nothing.", "The calendar is blank."):
+        assert guest.post(REPORTS, json=report(whatHappened=words)).status_code == 201
+    assert told(boss) == {("3 new bug reports", "The calendar is blank.", True)}
+    page = me.get(f"{API}/notifications").json()
+    assert (page["unreadCount"], page["items"][0]["title"], page["items"][0]["actor"]) == (1, "3 new bug reports", None)
+
+    assert me.post(f"{API}/notifications/read-all").status_code == 204
+    assert client_for(deputy).post(REPORTS, json=report(whatHappened="Grades won't load.")).status_code == 201
+    read_one = ("3 new bug reports", "The calendar is blank.", False)
+    assert told(boss) == {("New bug report", "Grades won't load.", True), read_one}
+    assert told(deputy) == {("3 new bug reports", "The calendar is blank.", True)}  # not told of their own
+    assert me.post(REPORTS, json=report(whatHappened="Dark mode flickers.")).status_code == 201
+    assert told(deputy) == {("4 new bug reports", "Dark mode flickers.", True)}
+    assert told(boss) == {("New bug report", "Grades won't load.", True), read_one}
+
+
 def test_admins_list_reports_by_status_newest_first(client_for: ClientFor, make_user: MakeUser) -> None:
     boss = client_for(make_user(name="Head Admin", roles=ADMIN))
     ids = [client_for().post(REPORTS, json=report(whatHappened=f"Bug {i}")).json()["id"] for i in range(3)]
@@ -253,24 +311,58 @@ def test_admin_stats_count_open_reports_for_admins_only(client_for: ClientFor, m
     assert rep.get(f"{API}/admin/stats").json()["openBugReports"] is None
 
 
-def test_a_deleted_account_leaves_its_reports_and_their_screenshots(
+def test_deleting_the_account_deletes_its_reports_and_their_screenshots(
     client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session
 ) -> None:
+    admin = make_user(name="Head Admin", roles=ADMIN)
+    guest_report = uuid.UUID(client_for().post(REPORTS, json=report(whatHappened="A guest's words.")).json()["id"])
     user = make_user()
     c = client_for(user)
-    shot = screenshot(c, storage)
-    rid = uuid.UUID(c.post(REPORTS, json=report(screenshotUploadId=shot)).json()["id"])
+    shot, unused = screenshot(c, storage), screenshot(c, storage)
+    rid = uuid.UUID(
+        c.post(REPORTS, json=report(whatHappened="My grades page is blank.", screenshotUploadId=shot)).json()["id"]
+    )
+    key = db.get_one(Upload, uuid.UUID(shot)).storage_key
+    assert db.scalar(select(Notification.body).where(Notification.user_id == admin.id)) == "My grades page is blank."
+
     assert c.delete(f"{API}/me").status_code in (200, 204)
     db.expire_all()
-    saved, up = db.get(BugReport, rid), db.get(Upload, uuid.UUID(shot))
-    assert saved is not None
-    assert up is not None
-    assert (saved.user_id, up.user_id, up.status) == (None, None, UploadStatus.attached)
-    assert storage.head(up.storage_key) is not None
+    assert db.get(BugReport, rid) is None
+    assert (db.get(Upload, uuid.UUID(shot)), db.get(Upload, uuid.UUID(unused))) == (None, None)
+    assert storage.head(key) is None
+    told = db.scalars(select(Notification).where(Notification.user_id == admin.id)).all()
+    assert [(n.title, n.body) for n in told] == [("2 new bug reports", None)]  # their words are gone from it too
+    boss = client_for(admin)
+    assert [r["id"] for r in boss.get(QUEUE).json()["items"]] == [str(guest_report)]  # everyone else's stay
+    assert _status(boss, f"{API}/media/{shot}") == 404
+
+
+def test_your_bug_reports_are_in_your_data_download(client_for: ClientFor, make_user: MakeUser, storage: Any) -> None:
+    me, other = client_for(make_user(name="Sara Student")), client_for(make_user(name="Omar Classmate"))
+    shot = screenshot(me, storage)
+    first = me.post(REPORTS, json=report(screenshotUploadId=shot)).json()["id"]
+    second = me.post(REPORTS, json=report(whatHappened="Search shows nothing.", expected="", browser="")).json()["id"]
+    assert other.post(REPORTS, json=report(whatHappened="Not mine.")).status_code == 201
     boss = client_for(make_user(name="Head Admin", roles=ADMIN))
-    listed = boss.get(QUEUE).json()["items"][0]
-    assert (listed["reporter"], listed["screenshotUrl"]) == (None, f"/api/v1/media/{shot}")
-    assert _status(boss, f"{API}/media/{shot}") == 302
+    assert boss.patch(f"{QUEUE}/{first}", json={"status": "fixed"}).status_code == 200
+
+    export = me.get(f"{API}/me/export")
+    assert export.status_code == 200
+    sent = export.json()["bugReports"]
+    assert [(r["id"], r["status"], r["screenshot"]) for r in sent] == [
+        (first, "fixed", "screen.png"),
+        (second, "open", None),
+    ]
+    assert {k: sent[0][k] for k in ("whatHappened", "expected", "pageUrl", "appVersion", "browser")} == {
+        "whatHappened": "The upload button does nothing.",
+        "expected": "The file picker opens.",
+        "pageUrl": "/library?module=economics",
+        "appVersion": "2.0.0-test",
+        "browser": "Safari 19 on iPhone",
+    }
+    assert sent[0]["resolvedAt"] is not None
+    assert (sent[1]["resolvedAt"], sent[1]["expected"], sent[1]["browser"]) == (None, "", "")
+    assert "Not mine." not in export.text
 
 
 def test_the_sweep_keeps_screenshots_and_forgets_old_addresses(
@@ -299,6 +391,48 @@ def test_the_sweep_keeps_screenshots_and_forgets_old_addresses(
     db.expire_all()
     assert db.get(Upload, uuid.UUID(shot)) is not None
     assert [str(db.get(BugReport, i).ip) for i in (old, new)] == ["None", "203.0.113.10"]  # type: ignore[union-attr]
+
+
+def test_the_sweep_deletes_the_screenshots_of_reports_closed_90_days_ago(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    @contextmanager
+    def same_session() -> Iterator[Session]:
+        yield db
+
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: same_session)
+    c = client_for(make_user())
+    boss = client_for(make_user(name="Head Admin", roles=ADMIN))
+    sent: dict[str, tuple[str, str]] = {}  # what became of it -> (report id, screenshot id)
+    for fate in ("open", "closed long ago", "closed lately", "reopened"):
+        shot = screenshot(c, storage)
+        sent[fate] = (c.post(REPORTS, json=report(screenshotUploadId=shot)).json()["id"], shot)
+    for fate in ("closed long ago", "closed lately", "reopened"):
+        assert boss.patch(f"{QUEUE}/{sent[fate][0]}", json={"status": "wont_fix"}).status_code == 200
+    assert boss.patch(f"{QUEUE}/{sent['reopened'][0]}", json={"status": "open"}).status_code == 200
+    db.execute(update(Upload).values(created_at=Upload.created_at - timedelta(days=120)))
+    db.execute(update(BugReport).values(created_at=BugReport.created_at - timedelta(days=120)))
+    closed_at = BugReport.resolved_at - timedelta(days=91)
+    db.execute(
+        update(BugReport).where(BugReport.id == uuid.UUID(sent["closed long ago"][0])).values(resolved_at=closed_at)
+    )
+    db.commit()
+    gone_key = db.get_one(Upload, uuid.UUID(sent["closed long ago"][1])).storage_key
+
+    assert cli.sweep().bug_screenshots == 1
+    db.expire_all()
+    assert db.get(Upload, uuid.UUID(sent["closed long ago"][1])) is None
+    assert storage.head(gone_key) is None
+    for fate in ("open", "closed lately", "reopened"):
+        up = db.get(Upload, uuid.UUID(sent[fate][1]))
+        assert up is not None, fate
+        assert storage.head(up.storage_key) is not None, fate
+    shown = {r["id"]: r["screenshotUrl"] for r in boss.get(QUEUE, params={"status": "wont_fix"}).json()["items"]}
+    assert shown == {
+        sent["closed long ago"][0]: None,
+        sent["closed lately"][0]: f"/api/v1/media/{sent['closed lately'][1]}",
+    }
+    assert db.get(BugReport, uuid.UUID(sent["closed long ago"][0])) is not None  # the report stays
 
 
 def test_a_checked_screenshot_comes_back_with_its_media_url(

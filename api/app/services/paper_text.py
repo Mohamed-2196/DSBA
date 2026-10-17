@@ -12,19 +12,26 @@ the first page of each as a small WebP picture in the bucket (covers/<item id>.w
   existed.
 - Guards: only files up to MAX_FILE_BYTES are read; the reading itself runs in a child process
   (app/services/text_extract.py) that is killed after TIME_LIMIT seconds and limited to MEMORY_LIMIT bytes, with
-  its pages and characters capped, and given no secrets: its environment holds PATH and PYTHONPATH only (security
-  review SEC-33). A file that trips any of these is marked failed and never tried again on its
-  own. A claim left 'working' longer than STALE (a worker died) is taken again.
+  its pages and characters capped. The reader can't see the worker's settings: its environment holds PATH and
+  PYTHONPATH only, and the worker makes itself non-dumpable before it starts one (keep_secrets_from_readers()), so
+  the reader, which runs as the same user, can't read them back from /proc either. A file that trips any of these
+  is marked failed and never tried again on its own. A claim left 'working' longer than STALE (a worker died) is
+  taken again.
+- The worker itself needs only the bucket and two tables: in production it connects as its own database role
+  (WORKER_ROLE, set up by set_up_worker_role() after every migration), and compose.prod.yaml gives it no other
+  setting.
 - Searching: content_match() is the condition "its text matches", served by the GIN index on library_texts;
   matches() finds the page and the words around the first match, for the result's snippet."""
 
 from __future__ import annotations
 
 import base64
+import ctypes
 import hashlib
 import json
 import logging
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -37,7 +44,9 @@ from datetime import timedelta
 from types import FrameType
 from typing import Any
 
+from psycopg import sql
 from sqlalchemy import and_, delete, func, or_, select, update
+from sqlalchemy import text as sql_text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -93,6 +102,23 @@ def _child_env() -> dict[str, str]:
     return {"PATH": os.environ.get("PATH", ""), "PYTHONPATH": _API_ROOT}
 
 
+_PR_SET_DUMPABLE = 4  # prctl(2)
+
+
+def keep_secrets_from_readers() -> None:
+    """Makes this process non-dumpable (Linux). A reader runs as the same user, and a process may read the /proc
+    files of another of its user (environ, mem, open files) unless that one is non-dumpable: then they need
+    CAP_SYS_PTRACE, which a reader never has. So code that a hostile file gets running in a reader can't read the
+    worker's settings back. Raises OSError if Linux refuses: then no reader starts. Elsewhere (macOS, in development)
+    there is no /proc to read."""
+    if sys.platform != "linux":
+        return
+    libc = ctypes.CDLL(None, use_errno=True)
+    if libc.prctl(_PR_SET_DUMPABLE, 0, 0, 0, 0) != 0:
+        err = ctypes.get_errno()
+        raise OSError(err, f"can't keep the worker's settings from the reader: {os.strerror(err)}")
+
+
 @dataclass(frozen=True)
 class Reading:
     pages: list[str] | None  # None when the text wasn't asked for
@@ -110,6 +136,7 @@ def read_file(
         cmd.append("--cover")
     if not text:
         cmd.append("--no-text")
+    keep_secrets_from_readers()
     try:
         done = subprocess.run(  # noqa: S603 - fixed argv: this interpreter, our module, a format from FORMATS
             cmd,
@@ -169,6 +196,41 @@ def _note_hash(db: Session, item_id: uuid.UUID, data: bytes) -> None:
         .where(LibraryItem.id == item_id, LibraryItem.content_hash.is_(None))
         .values(content_hash=hashlib.sha256(data).hexdigest())
     )
+
+
+# ── the worker's database role ───────────────────────────────────────────────────────────────
+
+WORKER_ROLE = "dsba_texts"
+WORKER_PASSWORD = re.compile(r"[A-Za-z0-9_-]{24,200}")  # it goes in the worker's database URL as it is
+# What the worker does with the database: reads published files' rows (claim(), without_cover(), waiting()), notes
+# their hash (_note_hash(), which the model stamps with updated_at; claim()'s FOR UPDATE needs an UPDATE privilege
+# too) and keeps their words.
+WORKER_GRANTS = (
+    "GRANT SELECT, UPDATE (content_hash, updated_at) ON library_items TO {role}",
+    "GRANT SELECT, INSERT, UPDATE, DELETE ON library_texts TO {role}",
+)
+
+
+def set_up_worker_role(db: Session, password: str, role: str = WORKER_ROLE) -> None:
+    """Creates the worker's database role, or sets its password, with WORKER_GRANTS and no other privilege on any
+    table. Run as the database's owner after every migration (`python -m app.cli texts-role`), so the grants follow
+    the tables. Raises ValueError for a password that can't go in a URL as it is. The caller commits."""
+    if not WORKER_PASSWORD.fullmatch(password):
+        raise ValueError("Use 24 or more letters, digits, - and _ for the text worker's database password.")
+    name = sql.Identifier(role)
+    exists = db.scalar(sql_text("SELECT 1 FROM pg_roles WHERE rolname = :role"), {"role": role})
+    login = "ALTER ROLE {} LOGIN PASSWORD {}" if exists else "CREATE ROLE {} LOGIN PASSWORD {}"
+    statements = [
+        sql.SQL(login).format(name, sql.Literal(password)),
+        sql.SQL("REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {}").format(name),  # column privileges too
+        *(sql.SQL(grant).format(role=name) for grant in WORKER_GRANTS),
+    ]
+    cursor = db.connection().connection.cursor()  # the session's transaction, with no parameters to parse
+    try:
+        for statement in statements:
+            cursor.execute(statement)
+    finally:
+        cursor.close()
 
 
 # ── the queue ────────────────────────────────────────────────────────────────────────────────

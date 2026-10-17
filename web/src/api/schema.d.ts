@@ -3226,10 +3226,12 @@ export interface paths {
         /**
          * Report Bug
          * @description Report a bug, signed in or not. A signed-in reporter may attach a screenshot: an upload of theirs with
-         *     purpose bug_screenshot. Every admin is told in the hub.
+         *     purpose bug_screenshot. Every admin is told in the hub, in one notification that counts the reports while it is
+         *     unread.
          *
          *     Errors: invalid_input (422: `pageUrl` isn't a page of the hub; `screenshotUploadId` isn't your unused
-         *     screenshot, or you're signed out), rate_limited (429: 10 an hour, 5 an hour for guests from one network).
+         *     screenshot, or you're signed out), rate_limited (429: 10 an hour; for guests, 5 an hour from one network and 30
+         *     an hour from every network together).
          */
         post: operations["report_bug_api_v1_bug_reports_post"];
         delete?: never;
@@ -3895,6 +3897,8 @@ export interface components {
             votes: components["schemas"]["ExportVote"][];
             /** Reports */
             reports: components["schemas"]["ExportReport"][];
+            /** Bugreports */
+            bugReports: components["schemas"]["ExportBugReport"][];
             /** Requests */
             requests: components["schemas"]["ExportRequest"][];
             /** Metoos */
@@ -5919,6 +5923,41 @@ export interface components {
              * Format: date-time
              */
             createdAt: string;
+        };
+        /**
+         * ExportBugReport
+         * @description A bug report the person sent, in their data download (GET /me/export).
+         */
+        ExportBugReport: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "fixed" | "wont_fix";
+            /** Whathappened */
+            whatHappened: string;
+            /** Expected */
+            expected: string;
+            /** Pageurl */
+            pageUrl: string;
+            /** Appversion */
+            appVersion: string;
+            /** Browser */
+            browser: string;
+            /** Screenshot */
+            screenshot: string | null;
+            /** Resolvedat */
+            resolvedAt: string | null;
         };
         /**
          * ExportCalendarSettings
@@ -10710,6 +10749,7 @@ export type ExportBoardColumn = components['schemas']['ExportBoardColumn'];
 export type ExportBoardComment = components['schemas']['ExportBoardComment'];
 export type ExportBoardFile = components['schemas']['ExportBoardFile'];
 export type ExportBoardPlan = components['schemas']['ExportBoardPlan'];
+export type ExportBugReport = components['schemas']['ExportBugReport'];
 export type ExportCalendarSettings = components['schemas']['ExportCalendarSettings'];
 export type ExportDailyPlay = components['schemas']['ExportDailyPlay'];
 export type ExportEmail = components['schemas']['ExportEmail'];
