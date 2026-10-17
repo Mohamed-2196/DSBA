@@ -1,31 +1,32 @@
-// Boards: personal task manager. Many boards started from templates, columns, cards with rich details,
-// checklists, attachments, comments, reminders, filters, list view, and today agenda across all boards.
+// Boards: a student's own boards for study and everyday tasks. Tabs switch between Today (what's due on every board)
+// and each board, shown as columns or as a list; a card opens in a drawer. Only the student sees their boards.
 import {
   Archive,
+  ArrowCounterClockwise,
   ArrowLeft,
   ArrowRight,
   CalendarCheck,
-  CheckCircle,
-  CheckSquare,
-  Clock,
+  CaretDown,
+  Columns,
   DotsThree,
   Funnel,
   Kanban,
   ListBullets,
   PencilSimple,
   Plus,
+  Sun,
   Tag,
   Trash,
 } from '@phosphor-icons/react';
-import { useMemo, useState, type DragEvent, type FormEvent } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import type { BoardCard, BoardColumn, BoardLabel, BoardPlan, BoardSummary } from '../../api/types';
+import { useEffect, useId, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import type { AgendaCard, BoardCard, BoardColumn, BoardLabel, BoardPlan, BoardSummary } from '../../api/types';
 import { useAuth } from '../../auth';
 import { formatDay, todayKey } from '../../lib/dates';
-import { BREAKPOINTS, useMediaQuery } from '../../state';
+import { BREAKPOINTS, useMediaQuery, useToast } from '../../state';
 import {
-  Badge,
   Button,
+  Chip,
   ConfirmDialog,
   EmptyState,
   IconButton,
@@ -34,71 +35,62 @@ import {
   PageHeader,
   QueryError,
   SegmentedControl,
-  Select,
   Skeleton,
+  TabPanel,
+  Tabs,
   cx,
   type MenuItem,
 } from '../../ui';
 import {
-  useAddCard,
   useAgenda,
   useBoard,
   useBoards,
   useDeleteBoard,
+  useDeleteCard,
   useDeletePlan,
   useMoveCard,
   usePlaceBoard,
   usePlaceColumn,
   useUpdateBoard,
+  useUpdateColumn,
 } from './api';
 import {
   afterIdBefore,
-  agendaSections,
   cardsIn,
-  checklistProgress,
   colorVar,
-  counts,
   doneColumn,
-  dueLabel,
-  dueOf,
   DUE_FILTERS,
   isFiltering,
-  isOverdue,
   isPastPaper,
   lastIn,
   matches,
+  neighbourColumn,
   NO_FILTER,
   nudge,
+  placeCard,
   planPace,
   storageText,
   type CardFilter,
 } from './board';
 import { BoardDialog } from './BoardDialog';
+import { BoardStart } from './BoardStart';
 import { CardDetailDrawer } from './CardDetailDrawer';
-import { CardItem } from './CardItem';
-import { ColumnDialog } from './ColumnDialog';
+import { ColumnDialog, DeleteColumnDialog } from './ColumnDialog';
+import { KanbanView, type ColumnActions, type DropPlace } from './KanbanView';
 import { LabelDialog } from './LabelDialog';
+import { ListView } from './ListView';
 import { ScoreDialog } from './ScoreDialog';
-import { usePaperScores, type Scores } from './scores';
+import { usePaperScores } from './scores';
+import { TODAY_DAYS, TodayView } from './TodayView';
+import type { Adding, CardActions, FocusRequest } from './types';
+import { useScrollEdges } from './useScrollEdges';
 import './BoardPage.css';
 
-export interface CardActions {
-  readOnly: boolean;
-  scores: Scores;
-  onScore: (card: BoardCard) => void;
-  onOpenDetail: (cardId: string) => void;
-  onDelete: (card: BoardCard) => void;
-  onMove: (card: BoardCard, columnId: string) => void;
-  onNudge: (card: BoardCard, by: -1 | 1) => void;
-  canNudge: (card: BoardCard, by: -1 | 1) => boolean;
-  dragging: string | null;
-  onDragStart: (card: BoardCard) => void;
-  onDragEnd: () => void;
-  onDropAt: (
-    columnId: string,
-    place: { before: string; after?: undefined } | { after: string | null; before?: undefined },
-  ) => void;
-}
+const DESCRIPTION = 'Plan study, coursework and everyday tasks. Only you see your boards.';
+
+const pickTablist = (el: HTMLDivElement) => el.querySelector<HTMLElement>('[role="tablist"]');
+
+type View = 'board' | 'list' | 'today';
 
 export default function BoardPage() {
   const { status, openSignIn } = useAuth();
@@ -106,11 +98,11 @@ export default function BoardPage() {
   if (status !== 'signed-in') {
     return (
       <Page width="wide" className="board-page">
-        <PageHeader title="Boards" description="Your personal task manager. Only you see your boards." />
+        <PageHeader title="Boards" description={DESCRIPTION} />
         <EmptyState
           icon={Kanban}
-          title="Sign in to use your boards"
-          body="Your boards, tasks and checklists are private to your student account."
+          title="Sign in to use boards"
+          body="Your boards hold study plans, coursework and to-dos, and they’re private to your student account."
           action={
             <Button variant="primary" onClick={() => openSignIn()}>
               Sign in
@@ -125,530 +117,582 @@ export default function BoardPage() {
 
 function BoardApp() {
   const { me } = useAuth();
-  const readOnly = me?.status === 'suspended';
+  const suspended = me?.status === 'suspended';
   const isPhone = useMediaQuery(BREAKPOINTS.mobile);
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const [scores, setScore] = usePaperScores();
-  const [scoring, setScoring] = useState<BoardCard | null>(null);
-  const [unplanning, setUnplanning] = useState<BoardPlan | null>(null);
-
-  // Dialogs
-  const [editingBoard, setEditingBoard] = useState<BoardSummary | null | 'new'>(null);
-  const [editingColumn, setEditingColumn] = useState<BoardColumn | null | 'new'>(null);
-  const [showLabelsDialog, setShowLabelsDialog] = useState(false);
-  const [deletingBoard, setDeletingBoard] = useState<BoardSummary | null>(null);
-
-  // Filter state
-  const [filter, setFilter] = useState<CardFilter>(NO_FILTER);
-  const [showFilters, setShowFilters] = useState(false);
-
-  // Dragging state
-  const [dragging, setDragging] = useState<string | null>(null);
-  const [phoneColumnId, setPhoneColumnId] = useState<string | null>(null);
-
-  // API hooks
-  const boardsQuery = useBoards();
-  const activeBoards = useMemo(() => boardsQuery.data?.boards.filter((b) => !b.archived) ?? [], [boardsQuery.data]);
-  const archivedBoards = useMemo(() => boardsQuery.data?.boards.filter((b) => b.archived) ?? [], [boardsQuery.data]);
-  const allLabels = useMemo(() => boardsQuery.data?.labels ?? [], [boardsQuery.data]);
-  const labelMap = useMemo(() => Object.fromEntries(allLabels.map((l) => [l.id, l])), [allLabels]);
-
-  const view = (searchParams.get('view') as 'board' | 'list' | 'today') || 'board';
-  const boardIdParam = searchParams.get('board');
-  const activeCardId = searchParams.get('card');
-
-  // Active board selection
-  const currentBoard = useMemo(() => {
-    if (boardIdParam) {
-      const match = boardsQuery.data?.boards.find((b) => b.id === boardIdParam);
-      if (match) return match;
-    }
-    return activeBoards[0] ?? null;
-  }, [boardIdParam, boardsQuery.data, activeBoards]);
-
-  const setView = (v: 'board' | 'list' | 'today') => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('view', v);
-      return next;
-    });
-  };
-
-  const setBoardId = (id: string) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('board', id);
-      return next;
-    });
-  };
-
-  const openCardDetail = (cardId: string | null) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (cardId) next.set('card', cardId);
-      else next.delete('card');
-      return next;
-    });
-  };
-
-  // Board details
-  const boardDetail = useBoard(currentBoard?.id, { enabled: !!currentBoard?.id && view !== 'today' });
-  const move = useMoveCard();
-  const placeBoard = usePlaceBoard();
-  const placeColumn = usePlaceColumn();
-  const updateBoard = useUpdateBoard();
-  const deleteBoard = useDeleteBoard();
-  const removePlan = useDeletePlan();
-  const addCard = useAddCard();
-
+  const navigate = useNavigate();
+  const toast = useToast();
+  const filterId = useId();
+  const [params, setParams] = useSearchParams();
+  const view: View = params.get('view') === 'list' ? 'list' : params.get('view') === 'today' ? 'today' : 'board';
+  const boardParam = params.get('board');
+  const cardParam = params.get('card');
   const today = todayKey();
+
+  const boardsQuery = useBoards();
+  const agenda = useAgenda({ days: TODAY_DAYS });
+  const boards = useMemo(() => boardsQuery.data?.boards ?? [], [boardsQuery.data]);
+  const active = boards.filter((b) => !b.archived);
+  const archived = boards.filter((b) => b.archived);
+  const current = (boardParam ? boards.find((b) => b.id === boardParam) : undefined) ?? active[0] ?? null;
+  const detail = useBoard(view === 'today' ? null : current?.id);
+  const labels = useMemo(() => boardsQuery.data?.labels ?? [], [boardsQuery.data]);
+  const labelMap = useMemo(() => Object.fromEntries(labels.map((l) => [l.id, l])) as Record<string, BoardLabel>, [labels]);
+
+  const move = useMoveCard();
+  const removeCard = useDeleteCard();
+  const updateBoard = useUpdateBoard();
+  const placeBoard = usePlaceBoard();
+  const removeBoard = useDeleteBoard();
+  const placeColumn = usePlaceColumn();
+  const updateColumn = useUpdateColumn();
+  const removePlan = useDeletePlan();
+  const [scores, setScore] = usePaperScores();
+  const tabEdges = useScrollEdges<HTMLDivElement>(true, pickTablist);
+
+  const [filter, setFilter] = useState<CardFilter>(NO_FILTER);
+  const [showFilter, setShowFilter] = useState(false);
+  const [boardDialog, setBoardDialog] = useState<BoardSummary | 'new' | null>(null);
+  const [columnDialog, setColumnDialog] = useState<BoardColumn | 'new' | null>(null);
+  const [deletingColumn, setDeletingColumn] = useState<BoardColumn | null>(null);
+  const [labelsOpen, setLabelsOpen] = useState(false);
+  const [deletingBoard, setDeletingBoard] = useState<BoardSummary | null>(null);
+  const [deletingCard, setDeletingCard] = useState<BoardCard | null>(null);
+  const [unplanning, setUnplanning] = useState<BoardPlan | null>(null);
+  const [scoring, setScoring] = useState<BoardCard | null>(null);
+  const [phoneColumnId, setPhoneColumnId] = useState<string | null>(null);
+  const [adding, setAdding] = useState<Adding | null>(null);
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [focus, setFocus] = useState<FocusRequest | null>(null);
+  const [said, setSaid] = useState({ text: '', n: 0 });
+  // A card opened here pushed a history entry: closing it goes back, so Back doesn't open it again.
+  const [openedHere, setOpenedHere] = useState(false);
+  // A board made, archived or deleted here: its tab (or the next board's) takes focus once it's drawn.
+  const [tabFocus, setTabFocus] = useState<string | null>(null);
+  useEffect(() => {
+    if (!tabFocus) return;
+    const tab = document.getElementById(`boards-tab-${tabFocus}`);
+    if (!tab) return;
+    tab.focus();
+    setTabFocus(null);
+  }, [tabFocus, boardsQuery.data]);
+
+  /** Says what just happened to a screen reader: each message is a new node, so the same words twice are read twice. */
+  const announce = (text: string) => setSaid((prev) => ({ text, n: prev.n + 1 }));
+
+  const go = (next: { board?: string | null; view?: View; card?: string | null }, push = false) =>
+    setParams(
+      (prev) => {
+        const p = new URLSearchParams(prev);
+        if (next.board !== undefined) {
+          if (next.board) p.set('board', next.board);
+          else p.delete('board');
+        }
+        if (next.view !== undefined) {
+          if (next.view === 'board') p.delete('view');
+          else p.set('view', next.view);
+        }
+        if (next.card !== undefined) {
+          if (next.card) p.set('card', next.card);
+          else p.delete('card');
+        }
+        return p;
+      },
+      { replace: !push },
+    );
+
+  const openCard = (card: Pick<BoardCard, 'id'>) => {
+    setOpenedHere(true);
+    go({ card: card.id }, true);
+  };
+  const closeCard = () => {
+    if (openedHere) {
+      setOpenedHere(false);
+      navigate(-1);
+    } else go({ card: null });
+  };
 
   if (boardsQuery.isPending) return <BoardSkeleton />;
   if (boardsQuery.isError) {
     return (
       <Page width="wide" className="board-page">
-        <PageHeader title="Boards" />
-        <QueryError
-          error={boardsQuery.error}
-          title="Your boards didn’t load"
-          onRetry={() => void boardsQuery.refetch()}
-          retrying={boardsQuery.isFetching}
-        />
+        <PageHeader title="Boards" description={DESCRIPTION} />
+        <QueryError error={boardsQuery.error} title="Your boards didn’t load" onRetry={() => void boardsQuery.refetch()} retrying={boardsQuery.isFetching} />
       </Page>
     );
   }
 
-  // If student has no boards at all
-  if (activeBoards.length === 0 && archivedBoards.length === 0) {
-    return (
-      <Page width="wide" className="board-page">
-        <PageHeader title="Boards" description="Your personal task manager." />
-        <EmptyState
-          icon={Kanban}
-          title="Create your first board"
-          body="Manage your revision, assignments, weekly schedule and personal to-dos."
-          action={
-            <Button variant="primary" leadingIcon={Plus} onClick={() => setEditingBoard('new')}>
-              Create a board
-            </Button>
-          }
-        />
-        {editingBoard ? (
-          <BoardDialog
-            board={null}
-            onClose={() => setEditingBoard(null)}
-            onCreated={(id) => setBoardId(id)}
-          />
-        ) : null}
-      </Page>
-    );
-  }
+  const names = boards.map((b) => b.name);
+  const columns = current?.columns ?? [];
+  const allCards = detail.data?.cards ?? [];
+  const filtering = isFiltering(filter);
+  const shownCards = allCards.filter((c) => matches(c, filter, today));
+  const readOnly = suspended || current?.archived === true;
+  const phoneColumn = columns.find((c) => c.id === phoneColumnId)?.id ?? columns[0]?.id ?? null;
+  const dueNow = agenda.data ? agenda.data.cards.filter((c) => c.due <= today).length : null;
 
-  const rawCards = boardDetail.data?.cards ?? [];
-  const filteredCards = rawCards.filter((c) => matches(c, filter, today));
-  const columns = currentBoard?.columns ?? [];
-  const colCounts = counts(filteredCards);
-  const activeColId = phoneColumnId && columns.some((c) => c.id === phoneColumnId) ? phoneColumnId : columns[0]?.id;
+  // ── moving cards ─────────────────────────────────────────────────────────────────────────
+
+  /** After a move, focus goes back to the card once it shows where it went, or to the column on a phone when the
+   *  card left it. */
+  const refocus = (card: BoardCard, columnId: string, afterId: string | null, part: 'title' | 'menu') => {
+    const at = Date.now();
+    if (isPhone && view === 'board' && columnId !== phoneColumn && phoneColumn) {
+      setFocus({ kind: 'column', columnId: phoneColumn, at });
+      return;
+    }
+    const placed = placeCard(allCards, columns, card.id, columnId, afterId, '').filter((c) => c.id === card.id || matches(c, filter, today));
+    const there = cardsIn(placed, columnId);
+    const prevId = there[there.findIndex((c) => c.id === card.id) - 1]?.id ?? null;
+    setFocus({ kind: 'card', cardId: card.id, columnId, prevId, part, at });
+  };
+
+  /** A card deleted from the board: focus goes to the card that took its place (or the one above), else to its
+   *  column. */
+  const focusAfterRemoving = (card: BoardCard) => {
+    const there = cardsIn(shownCards, card.columnId);
+    const rest = there.filter((c) => c.id !== card.id);
+    const i = there.findIndex((c) => c.id === card.id);
+    const next = rest[i] ?? rest[i - 1];
+    const at = Date.now();
+    if (!next) {
+      setFocus({ kind: 'column', columnId: card.columnId, at });
+      return;
+    }
+    setFocus({ kind: 'card', cardId: next.id, columnId: next.columnId, prevId: rest[rest.indexOf(next) - 1]?.id ?? null, part: 'title', at });
+  };
+
+  const moveTo = (card: BoardCard, columnId: string, afterId: string | null) => {
+    const column = columns.find((c) => c.id === columnId);
+    move.mutate({ id: card.id, boardId: card.boardId, columnId, afterId });
+    if (column?.done && card.doneAt == null && isPastPaper(card)) setScoring(card);
+    return column;
+  };
 
   const cardActions: CardActions = {
     readOnly,
     scores,
     onScore: setScoring,
-    onOpenDetail: (cardId) => openCardDetail(cardId),
-    onDelete: (card) => {
-      // delete card directly
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        if (next.get('card') === card.id) next.delete('card');
-        return next;
-      });
+    onOpen: openCard,
+    onDelete: setDeletingCard,
+    onMove: (card, columnId, part) => {
+      const column = moveTo(card, columnId, null);
+      announce(`Moved to ${column?.name ?? 'another column'}.`);
+      refocus(card, columnId, null, part);
     },
-    onMove: (card, colId) => {
-      move.mutate({ id: card.id, columnId: colId, afterId: null });
-      const targetCol = columns.find((c) => c.id === colId);
-      if (targetCol?.done && isPastPaper(card)) setScoring(card);
+    onNudge: (card, by, part) => {
+      const after = nudge(allCards, card.id, by);
+      if (after === undefined) {
+        announce(by === -1 ? 'It’s already at the top.' : 'It’s already at the bottom.');
+        return;
+      }
+      move.mutate({ id: card.id, boardId: card.boardId, columnId: card.columnId, afterId: after });
+      announce(by === -1 ? 'Moved up.' : 'Moved down.');
+      refocus(card, card.columnId, after, part);
     },
-    onNudge: (card, by) => {
-      const after = nudge(rawCards, card.id, by);
-      if (after !== undefined) move.mutate({ id: card.id, columnId: card.columnId, afterId: after });
+    canNudge: (card, by) => nudge(allCards, card.id, by) !== undefined,
+    onStep: (card, by, part) => {
+      const next = neighbourColumn(columns, card.columnId, by);
+      if (!next) {
+        announce(by === -1 ? 'It’s in the first column.' : 'It’s in the last column.');
+        return;
+      }
+      moveTo(card, next.id, null);
+      announce(`Moved to ${next.name}.`);
+      refocus(card, next.id, null, part);
     },
-    canNudge: (card, by) => nudge(rawCards, card.id, by) !== undefined,
     dragging,
     onDragStart: (card) => setDragging(card.id),
     onDragEnd: () => setDragging(null),
-    onDropAt: (colId, place) => {
-      const card = rawCards.find((c) => c.id === dragging);
+    focus,
+    onFocused: () => setFocus(null),
+  };
+
+  const columnActions: ColumnActions = {
+    onAdd: () => setColumnDialog('new'),
+    onRename: setColumnDialog,
+    onDelete: setDeletingColumn,
+    onMove: (column, by) => {
+      if (!current) return;
+      const i = columns.findIndex((c) => c.id === column.id);
+      const others = columns.filter((c) => c.id !== column.id);
+      const to = i + by;
+      if (to < 0 || to >= columns.length) return;
+      placeColumn.mutate({ boardId: current.id, columnId: column.id, afterId: to === 0 ? null : (others[to - 1]?.id ?? null) });
+      announce(by === -1 ? `${column.name} moved left.` : `${column.name} moved right.`);
+    },
+    onToggleDone: (column) => {
+      if (!current) return;
+      updateColumn.mutate({ boardId: current.id, columnId: column.id, patch: { done: !column.done } });
+      announce(column.done ? `Cards in ${column.name} no longer count as done.` : `Cards in ${column.name} count as done.`);
+    },
+    onDrop: (column: BoardColumn, place: DropPlace) => {
+      const card = allCards.find((c) => c.id === dragging);
       setDragging(null);
-      if (!card || place.before === card.id) return;
-      const after = place.before !== undefined ? afterIdBefore(rawCards, card.id, colId, place.before) : place.after;
-      move.mutate({ id: card.id, columnId: colId, afterId: after });
-      const targetCol = columns.find((c) => c.id === colId);
-      if (targetCol?.done && isPastPaper(card)) setScoring(card);
+      if (!card || ('before' in place && place.before === card.id)) return;
+      const afterId = 'before' in place ? afterIdBefore(allCards, card.id, column.id, place.before) : lastIn(allCards, column.id, card.id);
+      const there = cardsIn(allCards, card.columnId);
+      const now = there[there.findIndex((c) => c.id === card.id) - 1]?.id ?? null;
+      if (card.columnId === column.id && afterId === now) return;
+      moveTo(card, column.id, afterId);
+      announce(card.columnId === column.id ? 'Moved.' : `Moved to ${column.name}.`);
     },
   };
 
-  // Reordering board among active boards
-  const currentBoardIndex = activeBoards.findIndex((b) => b.id === currentBoard?.id);
-  const canMoveBoardLeft = currentBoardIndex > 0;
-  const canMoveBoardRight = currentBoardIndex >= 0 && currentBoardIndex < activeBoards.length - 1;
-
-  const handleMoveBoard = (by: -1 | 1) => {
-    if (!currentBoard) return;
-    const targetIndex = currentBoardIndex + by;
-    if (targetIndex < 0 || targetIndex >= activeBoards.length) return;
-    const afterId = by === -1 ? (targetIndex === 0 ? null : activeBoards[targetIndex - 1]?.id ?? null) : activeBoards[targetIndex]?.id ?? null;
-    placeBoard.mutate({ id: currentBoard.id, afterId });
+  const toggleDone = (card: BoardCard | AgendaCard) => {
+    const board = boards.find((b) => b.id === card.boardId);
+    if (!board) return;
+    const target = card.doneAt ? board.columns.find((c) => !c.done) : doneColumn(board.columns);
+    if (!target) return;
+    move.mutate({ id: card.id, boardId: card.boardId, columnId: target.id, afterId: null });
+    announce(card.doneAt ? `Back in ${target.name}.` : `Done: moved to ${target.name}.`);
+    if (!card.doneAt && isPastPaper(card)) setScoring(card);
   };
 
-  const boardMenuItems: MenuItem[] = [
-    {
-      id: 'edit',
-      label: 'Edit board',
-      icon: PencilSimple,
-      onSelect: () => setEditingBoard(currentBoard),
-    },
-    {
-      id: 'move-left',
-      label: 'Move left',
-      icon: ArrowLeft,
-      disabled: !canMoveBoardLeft,
-      onSelect: () => handleMoveBoard(-1),
-    },
-    {
-      id: 'move-right',
-      label: 'Move right',
-      icon: ArrowRight,
-      disabled: !canMoveBoardRight,
-      onSelect: () => handleMoveBoard(1),
-    },
-    { divider: true, id: 'd1' },
-    {
-      id: 'archive',
-      label: currentBoard?.archived ? 'Unarchive board' : 'Archive board',
-      icon: Archive,
-      onSelect: () => {
-        if (!currentBoard) return;
-        updateBoard.mutate({ id: currentBoard.id, patch: { archived: !currentBoard.archived } });
+  // ── boards ───────────────────────────────────────────────────────────────────────────────
+
+  const openBoard = (id: string) => {
+    setFilter(NO_FILTER);
+    setAdding(null);
+    setPhoneColumnId(null);
+    go({ board: id, view: view === 'today' ? 'board' : view, card: null });
+  };
+  /** A new board: open it, and give its tab focus. */
+  const opened = (id: string) => {
+    openBoard(id);
+    setTabFocus(id);
+  };
+
+  const archive = (board: BoardSummary) =>
+    updateBoard.mutate(
+      { id: board.id, patch: { archived: true } },
+      {
+        onSuccess: () => {
+          const next = active.find((b) => b.id !== board.id);
+          go({ board: next?.id ?? null, card: null });
+          setTabFocus(next?.id ?? 'today');
+          toast.push({
+            tone: 'success',
+            title: `${board.name} is archived`,
+            body: 'Its cards are kept. Find it under All boards.',
+            action: { label: 'Undo', onClick: () => updateBoard.mutate({ id: board.id, patch: { archived: false } }, { onSuccess: () => go({ board: board.id }) }) },
+          });
+        },
       },
-    },
-    {
-      id: 'delete',
-      label: 'Delete board',
-      icon: Trash,
-      danger: true,
-      onSelect: () => setDeletingBoard(currentBoard),
-    },
+    );
+
+  const moveBoard = (board: BoardSummary, by: -1 | 1) => {
+    const i = active.findIndex((b) => b.id === board.id);
+    const others = active.filter((b) => b.id !== board.id);
+    const to = i + by;
+    if (i < 0 || to < 0 || to >= active.length) return;
+    placeBoard.mutate({ id: board.id, afterId: to === 0 ? null : (others[to - 1]?.id ?? null) });
+    announce(by === -1 ? `${board.name} moved left.` : `${board.name} moved right.`);
+  };
+
+  const boardMenu = (board: BoardSummary): MenuItem[] => {
+    const i = active.findIndex((b) => b.id === board.id);
+    return [
+      { id: 'edit', label: 'Edit board', icon: PencilSimple, onSelect: () => setBoardDialog(board) },
+      { id: 'column', label: 'Add column', icon: Columns, onSelect: () => setColumnDialog('new') },
+      { id: 'labels', label: 'Labels', icon: Tag, onSelect: () => setLabelsOpen(true) },
+      { id: 'left', label: 'Move board left', icon: ArrowLeft, disabled: i <= 0, onSelect: () => moveBoard(board, -1) },
+      { id: 'right', label: 'Move board right', icon: ArrowRight, disabled: i < 0 || i >= active.length - 1, onSelect: () => moveBoard(board, 1) },
+      { divider: true, id: 'd' },
+      { id: 'archive', label: 'Archive board', icon: Archive, onSelect: () => archive(board) },
+      { id: 'delete', label: 'Delete board', icon: Trash, danger: true, onSelect: () => setDeletingBoard(board) },
+    ];
+  };
+
+  const allBoardsMenu: MenuItem[] = [
+    { heading: 'Boards', id: 'h1' },
+    ...active.map(
+      (b): MenuItem => ({
+        id: b.id,
+        label: <BoardName board={b} />,
+        hint: current?.id === b.id && view !== 'today' ? 'Current' : b.open ? `${b.open} to do` : undefined,
+        onSelect: () => openBoard(b.id),
+      }),
+    ),
+    ...(archived.length
+      ? ([{ divider: true, id: 'd' }, { heading: 'Archived', id: 'h2' }, ...archived.map((b): MenuItem => ({ id: b.id, label: <BoardName board={b} />, icon: Archive, onSelect: () => openBoard(b.id) }))] satisfies MenuItem[])
+      : []),
+    ...(suspended ? [] : ([{ divider: true, id: 'd3' }, { id: 'new', label: 'New board', icon: Plus, onSelect: () => setBoardDialog('new') }] satisfies MenuItem[])),
   ];
 
-  return (
-    <Page width="wide" className="board-page">
-      {/* Top Bar: Board Selector, View Switcher & Action buttons */}
-      <div className="board-page__header">
-        <div className="board-page__selector-row">
-          <div className="board-page__picker">
-            <Select
-              label="Select board"
-              hideLabel
-              value={view === 'today' ? 'today' : (currentBoard?.id ?? '')}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val === 'today') {
-                  setView('today');
-                } else if (val === 'new') {
-                  setEditingBoard('new');
-                } else {
-                  if (view === 'today') setView('board');
-                  setBoardId(val);
-                }
-              }}
-              options={[
-                ...activeBoards.map((b) => ({
-                  value: b.id,
-                  label: `${b.emoji ? `${b.emoji} ` : ''}${b.name} (${b.open} open)`,
-                })),
-                ...(archivedBoards.length > 0
-                  ? [
-                      { value: '---', label: '── Archived ──', disabled: true },
-                      ...archivedBoards.map((b) => ({
-                        value: b.id,
-                        label: `📦 ${b.name} (archived)`,
-                      })),
-                    ]
-                  : []),
-                { value: 'today', label: '📅 Today across all boards' },
-                { value: 'new', label: '➕ New board…' },
-              ]}
-            />
+  const tabValue = view === 'today' ? 'today' : current && !current.archived ? current.id : null;
+  const usage = boardsQuery.data.usage;
+
+  const panel =
+    view === 'today' ? (
+      <TodayView boards={boards} readOnly={suspended} onOpen={openCard} onDone={toggleDone} />
+    ) : !current ? (
+      <BoardStart taken={names} readOnly={suspended} onStarted={opened} />
+    ) : (
+      <>
+        {current.archived ? (
+          <div className="board-archived" data-hub="board-archived">
+            <Archive aria-hidden="true" className="board-archived__icon" />
+            <p className="board-archived__text">
+              <strong>{current.name} is archived.</strong> Its cards are kept but stay out of Today. Bring it back to change it.
+            </p>
+            {suspended ? null : (
+              <div className="board-archived__actions">
+                <Button leadingIcon={ArrowCounterClockwise} onClick={() => updateBoard.mutate({ id: current.id, patch: { archived: false } })} loading={updateBoard.isPending}>
+                  Bring back
+                </Button>
+                <Button variant="ghost" leadingIcon={Trash} onClick={() => setDeletingBoard(current)}>
+                  Delete
+                </Button>
+              </div>
+            )}
           </div>
+        ) : null}
 
-          {view !== 'today' && currentBoard ? (
-            <div className="board-page__board-actions">
-              <span
-                className="board-page__board-dot"
-                style={{ backgroundColor: colorVar(currentBoard.color) }}
-                aria-hidden="true"
-              />
-              <Menu
-                label="Board actions"
-                items={boardMenuItems}
-                trigger={
-                  <IconButton
-                    label="Board options"
-                    icon={DotsThree}
-                    size="sm"
-                    data-hub="board-menu"
-                  />
-                }
-              />
-            </div>
-          ) : null}
-
-          {/* View switcher: Board / List / Today */}
-          <div className="board-page__views">
-            <SegmentedControl
-              label="View"
-              value={view}
-              onChange={(v) => setView(v as 'board' | 'list' | 'today')}
-              options={[
-                { value: 'board', label: 'Board', icon: Kanban },
-                { value: 'list', label: 'List', icon: ListBullets },
-                { value: 'today', label: 'Today', icon: Clock },
-              ]}
-            />
-          </div>
-
-          {/* Quick buttons */}
-          <div className="board-page__quick-buttons">
-            <Button
-              size="sm"
-              variant={isFiltering(filter) ? 'primary' : 'ghost'}
-              leadingIcon={Funnel}
-              onClick={() => setShowFilters((v) => !v)}
-            >
-              Filter
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              leadingIcon={Tag}
-              onClick={() => setShowLabelsDialog(true)}
-            >
-              Labels
-            </Button>
-            {!readOnly && view !== 'today' && currentBoard && columns.length > 0 ? (
+        <div className="board-toolbar" data-hub="board-toolbar">
+          <SegmentedControl
+            label="Show cards as"
+            size="sm"
+            value={view}
+            onChange={(v) => go({ view: v })}
+            options={[
+              { value: 'board', label: 'Columns', icon: Kanban },
+              { value: 'list', label: 'List', icon: ListBullets },
+            ]}
+          />
+          <Button
+            size="sm"
+            variant={filtering ? 'secondary' : 'ghost'}
+            leadingIcon={Funnel}
+            aria-expanded={showFilter}
+            aria-controls={filterId}
+            onClick={() => setShowFilter((v) => !v)}
+            data-hub="board-filter"
+          >
+            {filtering ? `Filter on` : 'Filter'}
+          </Button>
+          <span className="board-toolbar__end">
+            {readOnly || isPhone || view !== 'board' || !columns.length ? null : (
               <Button
                 size="sm"
                 variant="primary"
                 leadingIcon={Plus}
                 onClick={() => {
-                  addCard.mutate(
-                    {
-                      boardId: currentBoard.id,
-                      columnId: columns[0]?.id as string,
-                      title: 'New card',
-                      priority: 'none',
-                    },
-                    {
-                      onSuccess: (newCard) => openCardDetail(newCard.id),
-                    },
-                  );
+                  const target = columns[0]?.id;
+                  if (target) setAdding({ columnId: target, at: Date.now() });
                 }}
+                data-hub="board-add-card"
               >
                 Add card
               </Button>
-            ) : null}
-          </div>
+            )}
+            {suspended || current.archived ? null : (
+              <Menu label={`Board ${current.name}`} align="end" items={boardMenu(current)} trigger={<IconButton label="Board options" icon={DotsThree} variant="secondary" size="sm" data-hub="board-menu" />} />
+            )}
+          </span>
         </div>
 
-        {/* Filter Drawer / Bar */}
-        {showFilters ? (
-          <div className="board-page__filters-bar">
-            <div className="board-page__filter-group">
-              <span className="board-page__filter-label">Due:</span>
-              <div className="board-page__filter-pills">
-                {DUE_FILTERS.map((df) => (
-                  <button
-                    type="button"
-                    key={df.id}
-                    className={cx('board-page__filter-pill', filter.due === df.id && 'is-active')}
-                    onClick={() => setFilter((f) => ({ ...f, due: df.id }))}
-                  >
-                    {df.label}
-                  </button>
-                ))}
-              </div>
+        {showFilter ? (
+          <div className="board-filter" id={filterId} role="group" aria-label="Filter cards">
+            <div className="board-filter__group" role="group" aria-label="By due date">
+              <span className="board-filter__label" aria-hidden="true">
+                Due
+              </span>
+              {DUE_FILTERS.map((d) => (
+                <Chip key={d.id} size="sm" selected={filter.due === d.id} onChange={() => setFilter((f) => ({ ...f, due: d.id }))}>
+                  {d.label}
+                </Chip>
+              ))}
             </div>
-
-            {allLabels.length > 0 ? (
-              <div className="board-page__filter-group">
-                <span className="board-page__filter-label">Labels:</span>
-                <div className="board-page__filter-pills">
-                  {allLabels.map((l) => {
-                    const active = filter.labels.includes(l.id);
-                    return (
-                      <button
-                        type="button"
-                        key={l.id}
-                        className={cx('board-page__filter-pill', active && 'is-active')}
-                        style={
-                          active
-                            ? { backgroundColor: colorVar(l.color), color: '#fff', borderColor: colorVar(l.color) }
-                            : undefined
-                        }
-                        onClick={() =>
-                          setFilter((f) => ({
-                            ...f,
-                            labels: active ? f.labels.filter((id) => id !== l.id) : [...f.labels, l.id],
-                          }))
-                        }
-                      >
-                        {l.name}
-                      </button>
-                    );
-                  })}
-                </div>
+            {labels.length ? (
+              <div className="board-filter__group" role="group" aria-label="By label">
+                <span className="board-filter__label" aria-hidden="true">
+                  Labels
+                </span>
+                {labels.map((l) => {
+                  const on = filter.labels.includes(l.id);
+                  return (
+                    <Chip
+                      key={l.id}
+                      size="sm"
+                      color={colorVar(l.color)}
+                      selected={on}
+                      onChange={() => setFilter((f) => ({ ...f, labels: on ? f.labels.filter((id) => id !== l.id) : [...f.labels, l.id] }))}
+                    >
+                      {l.name}
+                    </Chip>
+                  );
+                })}
               </div>
-            ) : null}
-
-            {isFiltering(filter) ? (
-              <Button size="sm" variant="ghost" onClick={() => setFilter(NO_FILTER)}>
-                Clear filters
-              </Button>
             ) : null}
           </div>
         ) : null}
-      </div>
+        {filtering ? (
+          <p className="board-filter__summary" role="status">
+            Showing {shownCards.length} of {allCards.length} cards.{' '}
+            <button type="button" className="board-filter__clear" onClick={() => setFilter(NO_FILTER)}>
+              Clear the filter
+            </button>
+          </p>
+        ) : null}
 
-      {readOnly ? (
-        <p className="board-page__notice">Your account is suspended, so your boards are read only.</p>
-      ) : null}
-
-      {/* Revision plans for this board */}
-      {view !== 'today' && boardDetail.data?.plans.length ? (
-        <ul role="list" className="board-plans" aria-label="Revision plans">
-          {boardDetail.data.plans.map((p) => (
-            <PlanRow key={p.moduleId} plan={p} readOnly={readOnly} onRemove={() => setUnplanning(p)} />
-          ))}
-        </ul>
-      ) : null}
-
-      {/* VIEW: TODAY (Across all boards) */}
-      {view === 'today' ? (
-        <TodayView onOpenCard={openCardDetail} />
-      ) : view === 'list' ? (
-        /* VIEW: LIST */
-        <ListView
-          columns={columns}
-          cards={filteredCards}
-          labels={labelMap}
-          today={today}
-          readOnly={readOnly}
-          onOpenCard={openCardDetail}
-        />
-      ) : (
-        /* VIEW: BOARD (Kanban) */
-        <div className="board-kanban-container">
-          {isPhone && columns.length > 1 ? (
-            <SegmentedControl
-              label="Column"
-              fullWidth
-              className="board-page__switch"
-              value={activeColId ?? columns[0]?.id ?? ''}
-              onChange={(val) => setPhoneColumnId(val)}
-              options={columns.map((c) => ({
-                value: c.id,
-                label: `${c.name} ${colCounts[c.id] ?? 0}`,
-              }))}
-            />
-          ) : null}
-
-          <div className={cx('board', isPhone && 'board--one')}>
-            {(isPhone && activeColId ? columns.filter((c) => c.id === activeColId) : columns).map((c, idx, arr) => (
-              <KanbanColumn
-                key={c.id}
-                column={c}
-                index={idx}
-                total={arr.length}
-                boardId={currentBoard?.id ?? ''}
-                cards={cardsIn(filteredCards, c.id)}
-                columns={columns}
-                labels={labelMap}
-                today={today}
-                actions={cardActions}
-                readOnly={readOnly}
-                onEditColumn={() => setEditingColumn(c)}
-                onMoveColumn={(by) => {
-                  if (!currentBoard) return;
-                  const targetIdx = idx + by;
-                  if (targetIdx < 0 || targetIdx >= arr.length) return;
-                  const afterId = by === -1 ? (targetIdx === 0 ? null : (arr[targetIdx - 1]?.id ?? null)) : (arr[targetIdx]?.id ?? null);
-                  placeColumn.mutate({ boardId: currentBoard.id, columnId: c.id, afterId });
-                }}
-              />
+        {detail.data?.plans.length ? (
+          <ul role="list" className="board-plans" aria-label="Revision plans on this board">
+            {detail.data.plans.map((p) => (
+              <PlanRow key={p.moduleId} plan={p} readOnly={readOnly} onRemove={() => setUnplanning(p)} />
             ))}
+          </ul>
+        ) : null}
 
-            {!readOnly && !isPhone ? (
-              <button
-                type="button"
-                className="board-col__add-col-btn"
-                onClick={() => setEditingColumn('new')}
-              >
-                <Plus aria-hidden="true" />
-                <span>Add column</span>
-              </button>
-            ) : null}
+        {detail.isError ? (
+          <QueryError error={detail.error} title="This board didn’t load" onRetry={() => void detail.refetch()} retrying={detail.isFetching} />
+        ) : detail.isPending ? (
+          <ColumnsSkeleton count={Math.min(columns.length || 3, 4)} />
+        ) : view === 'list' ? (
+          <ListView
+            board={current}
+            cards={shownCards}
+            filtering={filtering}
+            labels={labelMap}
+            today={today}
+            readOnly={readOnly}
+            onOpen={openCard}
+            onToggleDone={toggleDone}
+            onClearFilter={() => setFilter(NO_FILTER)}
+          />
+        ) : (
+          <KanbanView
+            board={current}
+            cards={shownCards}
+            labels={labelMap}
+            today={today}
+            readOnly={readOnly}
+            actions={cardActions}
+            columnActions={columnActions}
+            phoneColumnId={phoneColumn}
+            onPhoneColumn={setPhoneColumnId}
+            adding={adding}
+            onAdding={(id) => {
+              setAdding(id ? { columnId: id, at: Date.now() } : null);
+              if (id && isPhone) setPhoneColumnId(id);
+            }}
+          />
+        )}
+      </>
+    );
+
+  return (
+    <Page width="wide" className="board-page">
+      <PageHeader
+        title="Boards"
+        description={DESCRIPTION}
+        actions={
+          suspended || isPhone || !boards.length ? null : (
+            <Button leadingIcon={Plus} onClick={() => setBoardDialog('new')} data-hub="board-new">
+              New board
+            </Button>
+          )
+        }
+      />
+
+      {suspended ? <p className="board-page__notice">Your account is suspended, so your boards are read only.</p> : null}
+
+      {!boards.length ? (
+        <BoardStart taken={names} readOnly={suspended} onStarted={opened} />
+      ) : (
+        <>
+          <div ref={tabEdges.ref} className={cx('board-tabs', tabEdges.start && 'has-more-start', tabEdges.end && 'has-more-end')}>
+            <Tabs
+              idBase="boards"
+              label="Your boards"
+              className="board-tabs__list"
+              value={tabValue}
+              onChange={(id) => (id === 'today' ? go({ view: 'today', card: null }) : openBoard(id))}
+              tabs={[
+                { id: 'today', label: 'Today', icon: Sun, count: dueNow || null },
+                ...active.map((b) => ({ id: b.id, label: <BoardName board={b} />, count: b.open })),
+              ]}
+            />
+            <Menu
+              label="All boards"
+              align="end"
+              items={allBoardsMenu}
+              trigger={
+                <Button size="sm" variant="ghost" trailingIcon={CaretDown} className="board-tabs__all" data-hub="board-all">
+                  All boards
+                </Button>
+              }
+            />
           </div>
-        </div>
+          {tabValue ? (
+            <TabPanel idBase="boards" id={tabValue} value={tabValue} className="board-panel">
+              {panel}
+            </TabPanel>
+          ) : (
+            <section className="board-panel" aria-label={current ? `${current.name} (archived)` : 'Boards'}>
+              {panel}
+            </section>
+          )}
+        </>
       )}
 
-      {/* Footer: Usage & Storage Limits */}
-      {boardsQuery.data?.usage ? (
-        <footer className="board-page__footer">
+      {boards.length ? (
+        <p className="board-page__usage">
           <span>
-            {boardsQuery.data.usage.boards} of {boardsQuery.data.usage.maxBoards} boards
+            {usage.boards} of {usage.maxBoards} boards
           </span>
-          <span>•</span>
           <span>
-            {boardsQuery.data.usage.cards} of {boardsQuery.data.usage.maxCards} cards
+            {usage.cards.toLocaleString('en-GB')} of {usage.maxCards.toLocaleString('en-GB')} cards
           </span>
-          <span>•</span>
-          <span>{storageText(boardsQuery.data.usage.storageBytes, boardsQuery.data.usage.maxStorageBytes)} storage</span>
-        </footer>
+          <span>{storageText(usage.storageBytes, usage.maxStorageBytes)} of files</span>
+        </p>
       ) : null}
 
-      {/* MODALS */}
-      {editingBoard ? (
-        <BoardDialog
-          board={editingBoard === 'new' ? null : editingBoard}
-          onClose={() => setEditingBoard(null)}
-          onCreated={(id) => setBoardId(id)}
+      {boardDialog ? (
+        <BoardDialog board={boardDialog === 'new' ? null : boardDialog} taken={names} onClose={() => setBoardDialog(null)} onCreated={opened} />
+      ) : null}
+      {columnDialog && current ? <ColumnDialog boardId={current.id} column={columnDialog === 'new' ? null : columnDialog} onClose={() => setColumnDialog(null)} /> : null}
+      {deletingColumn && current ? (
+        <DeleteColumnDialog
+          boardId={current.id}
+          column={deletingColumn}
+          others={columns.filter((c) => c.id !== deletingColumn.id)}
+          cardCount={cardsIn(allCards, deletingColumn.id).length}
+          onClose={() => setDeletingColumn(null)}
         />
       ) : null}
+      {labelsOpen ? <LabelDialog labels={labels} onClose={() => setLabelsOpen(false)} /> : null}
 
-      {editingColumn && currentBoard ? (
-        <ColumnDialog
-          boardId={currentBoard.id}
-          column={editingColumn === 'new' ? null : editingColumn}
-          otherColumns={columns.filter((c) => editingColumn === 'new' || c.id !== editingColumn.id)}
-          cardCount={editingColumn !== 'new' ? cardsIn(rawCards, editingColumn.id).length : 0}
-          onClose={() => setEditingColumn(null)}
-        />
-      ) : null}
-
-      {showLabelsDialog ? (
-        <LabelDialog labels={allLabels} onClose={() => setShowLabelsDialog(false)} />
-      ) : null}
-
-      {activeCardId && currentBoard ? (
+      {cardParam ? (
         <CardDetailDrawer
-          cardId={activeCardId}
-          boardId={currentBoard.id}
-          columns={columns}
-          boards={boardsQuery.data?.boards ?? []}
-          labels={allLabels}
-          readOnly={readOnly}
-          onClose={() => openCardDetail(null)}
+          cardId={cardParam}
+          boards={boards}
+          labels={labels}
+          readOnly={suspended}
+          onClose={closeCard}
+          onMoveColumn={(card, columnId) => {
+            const board = boards.find((b) => b.id === card.boardId);
+            const column = board?.columns.find((c) => c.id === columnId);
+            move.mutate({ id: card.id, boardId: card.boardId, columnId, afterId: null });
+            if (column?.done && card.doneAt == null && isPastPaper(card)) setScoring(card);
+            announce(`Moved to ${column?.name ?? 'another column'}.`);
+          }}
+          onMoveBoard={(card, boardId) => {
+            const target = boards.find((b) => b.id === boardId);
+            const column = target?.columns[0];
+            if (!target || !column) return;
+            move.mutate(
+              { id: card.id, boardId: card.boardId, toBoardId: target.id, columnId: column.id, afterId: null },
+              {
+                onSuccess: () => {
+                  setOpenedHere(false);
+                  go({ board: target.id, view: view === 'today' ? 'today' : view, card: card.id });
+                  announce(`Moved to ${target.name}.`);
+                },
+              },
+            );
+          }}
+          onDelete={setDeletingCard}
+          onManageLabels={() => setLabelsOpen(true)}
         />
       ) : null}
 
@@ -665,22 +709,48 @@ function BoardApp() {
       ) : null}
 
       <ConfirmDialog
-        open={!!deletingBoard}
-        title={deletingBoard ? `Delete board “${deletingBoard.name}”?` : ''}
-        body="This board, all its columns, cards, files and revision plans will be permanently removed."
-        confirmLabel="Delete board"
+        open={!!deletingCard}
+        title={deletingCard ? `Delete “${deletingCard.title}”?` : ''}
+        body="Its checklist, files and comments go with it. This can’t be undone."
+        confirmLabel="Delete card"
         tone="danger"
         onConfirm={() => {
-          if (deletingBoard) deleteBoard.mutate(deletingBoard.id);
-          setDeletingBoard(null);
+          if (deletingCard) {
+            removeCard.mutate({ id: deletingCard.id, boardId: deletingCard.boardId });
+            if (cardParam === deletingCard.id) closeCard();
+            else focusAfterRemoving(deletingCard);
+            announce('Card deleted.');
+          }
+          setDeletingCard(null);
+        }}
+        onClose={() => setDeletingCard(null)}
+      />
+      <ConfirmDialog
+        open={!!deletingBoard}
+        title={deletingBoard ? `Delete ${deletingBoard.name}?` : ''}
+        body="Its columns, cards, files and revision plans go with it. This can’t be undone. To keep them out of the way instead, archive the board."
+        confirmLabel="Delete board"
+        tone="danger"
+        busy={removeBoard.isPending}
+        onConfirm={() => {
+          const board = deletingBoard;
+          if (!board) return;
+          removeBoard.mutate(board.id, {
+            onSuccess: () => {
+              const next = active.find((b) => b.id !== board.id);
+              setDeletingBoard(null);
+              go({ board: next?.id ?? null, card: null });
+              setTabFocus(next?.id ?? 'today');
+              announce(`${board.name} deleted.`);
+            },
+          });
         }}
         onClose={() => setDeletingBoard(null)}
       />
-
       <ConfirmDialog
         open={!!unplanning}
-        title={unplanning ? `Remove your ${unplanning.moduleName} plan?` : ''}
-        body="Its cards still to do go from your board. The ones you’ve done stay."
+        title={unplanning ? `Remove your ${unplanning.moduleName} revision plan?` : ''}
+        body="Its cards still to do leave the board. The ones you’ve done stay."
         confirmLabel="Remove plan"
         tone="danger"
         onConfirm={() => {
@@ -689,413 +759,26 @@ function BoardApp() {
         }}
         onClose={() => setUnplanning(null)}
       />
+
+      <div className="visually-hidden" role="status" aria-live="polite">
+        <span key={said.n}>{said.text}</span>
+      </div>
     </Page>
   );
 }
 
-// ── Kanban Column Component ─────────────────────────────────────────────────────────────
-
-interface KanbanColumnProps {
-  column: BoardColumn;
-  index: number;
-  total: number;
-  boardId: string;
-  cards: BoardCard[];
-  columns: readonly BoardColumn[];
-  labels: Record<string, BoardLabel>;
-  today: string;
-  actions: CardActions;
-  readOnly: boolean;
-  onEditColumn: () => void;
-  onMoveColumn?: (by: -1 | 1) => void;
-}
-
-const END = 'end';
-
-function KanbanColumn({
-  column,
-  index,
-  total,
-  boardId,
-  cards,
-  columns,
-  labels,
-  today,
-  actions,
-  readOnly,
-  onEditColumn,
-  onMoveColumn,
-}: KanbanColumnProps) {
-  const [over, setOver] = useState<string | null>(null);
-  const [quickTitle, setQuickTitle] = useState('');
-  const [addingQuick, setAddingQuick] = useState(false);
-  const addCard = useAddCard();
-
-  const dropping = actions.dragging != null;
-  const last = lastIn(cards, column.id, actions.dragging);
-
-  const drop = (e: DragEvent, target: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setOver(null);
-    actions.onDropAt(column.id, target === END ? { after: last } : { before: target });
-  };
-
-  const allow = (e: DragEvent, target: string) => {
-    if (!dropping) return;
-    e.preventDefault();
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = 'move';
-    if (over !== target) setOver(target);
-  };
-
-  const handleQuickAdd = (e: FormEvent) => {
-    e.preventDefault();
-    const t = quickTitle.trim();
-    if (!t) return;
-    addCard.mutate(
-      { boardId, columnId: column.id, title: t, priority: 'none' },
-      {
-        onSuccess: () => {
-          setQuickTitle('');
-          setAddingQuick(false);
-        },
-      },
-    );
-  };
-
+/** A board's name as tabs and menus show it: its colour, its icon if it has one, its name. */
+function BoardName({ board }: { board: BoardSummary }) {
   return (
-    <section
-      className={cx('board-col', dropping && over != null && 'is-over')}
-      aria-label={column.name}
-      onDragOver={(e) => allow(e, END)}
-      onDragLeave={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOver(null);
-      }}
-      onDrop={(e) => drop(e, END)}
-    >
-      <header className="board-col__header">
-        <h2 className="board-col__h">
-          <span>{column.name}</span>
-          <span className="board-col__count">{cards.length}</span>
-          {column.done ? (
-            <CheckCircle aria-label="Done column" className="board-col__done-icon" weight="fill" />
-          ) : null}
-        </h2>
-
-        {!readOnly ? (
-          <Menu
-            align="end"
-            trigger={
-              <IconButton
-                label={`Column options for ${column.name}`}
-                icon={DotsThree}
-                size="sm"
-              />
-            }
-            items={[
-              { id: 'edit', label: 'Edit column', icon: PencilSimple, onSelect: onEditColumn },
-              {
-                id: 'left',
-                label: 'Move left',
-                icon: ArrowLeft,
-                disabled: index === 0,
-                onSelect: () => onMoveColumn?.(-1),
-              },
-              {
-                id: 'right',
-                label: 'Move right',
-                icon: ArrowRight,
-                disabled: index === total - 1,
-                onSelect: () => onMoveColumn?.(1),
-              },
-            ]}
-          />
-        ) : null}
-      </header>
-
-      {cards.length === 0 ? <p className="board-col__empty">No cards in this column.</p> : null}
-
-      <ul role="list" className="board-col__list">
-        {cards.map((card) => (
-          <li
-            key={card.id}
-            className={cx(
-              'board-col__item',
-              dropping && over === card.id && card.id !== actions.dragging && 'is-drop-before',
-            )}
-            onDragOver={(e) => allow(e, card.id)}
-            onDrop={(e) => drop(e, card.id)}
-          >
-            <CardItem
-              card={card}
-              columns={columns}
-              labels={labels}
-              today={today}
-              actions={actions}
-              unsaved={false}
-            />
-          </li>
-        ))}
-      </ul>
-
-      {/* Quick Add Card */}
-      {!readOnly ? (
-        addingQuick ? (
-          <form className="board-col__quick-add-form" onSubmit={handleQuickAdd}>
-            <input
-              type="text"
-              className="board-col__quick-input"
-              value={quickTitle}
-              onChange={(e) => setQuickTitle(e.target.value)}
-              placeholder="Card title…"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') setAddingQuick(false);
-              }}
-            />
-            <div className="board-col__quick-actions">
-              <Button size="sm" type="submit" disabled={!quickTitle.trim()}>
-                Add
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setAddingQuick(false)}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        ) : (
-          <button
-            type="button"
-            className="board-col__quick-add-btn"
-            onClick={() => setAddingQuick(true)}
-          >
-            <Plus aria-hidden="true" />
-            <span>Add a card</span>
-          </button>
-        )
-      ) : null}
-    </section>
+    <span className="board-name">
+      <span className="board-name__dot" style={{ background: colorVar(board.color) }} aria-hidden="true" />
+      {board.emoji ? <span aria-hidden="true">{board.emoji}</span> : null}
+      <span className="board-name__text">{board.name}</span>
+    </span>
   );
 }
 
-// ── List View Component ─────────────────────────────────────────────────────────────────
-
-interface ListViewProps {
-  columns: readonly BoardColumn[];
-  cards: BoardCard[];
-  labels: Record<string, BoardLabel>;
-  today: string;
-  readOnly: boolean;
-  onOpenCard: (cardId: string) => void;
-}
-
-function ListView({ columns, cards, labels, today, readOnly, onOpenCard }: ListViewProps) {
-  const move = useMoveCard();
-  const doneCol = doneColumn(columns);
-  const todoCol = columns.find((c) => !c.done) ?? columns[0];
-
-  const toggleDone = (card: BoardCard) => {
-    if (readOnly) return;
-    const isDone = card.doneAt != null;
-    const targetCol = isDone ? todoCol : doneCol;
-    if (targetCol) move.mutate({ id: card.id, columnId: targetCol.id, afterId: null });
-  };
-
-  if (cards.length === 0) {
-    return (
-      <div className="board-list-empty">
-        <EmptyState
-          size="sm"
-          icon={ListBullets}
-          title="No cards match your filter"
-          body="Try selecting another filter or adding new cards."
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="board-list-view">
-      <ul role="list" className="board-list-items">
-        {cards.map((card) => {
-          const isDone = card.doneAt != null;
-          const due = dueOf(card);
-          const overdue = isOverdue(card, today);
-          const check = card.checklist?.length ? checklistProgress(card.checklist) : null;
-          const col = columns.find((c) => c.id === card.columnId);
-
-          return (
-            <li key={card.id} className={cx('board-list-row', isDone && 'is-done')}>
-              <input
-                type="checkbox"
-                checked={isDone}
-                disabled={readOnly}
-                onChange={() => toggleDone(card)}
-                className="board-list-checkbox"
-                aria-label={`Mark “${card.title}” as ${isDone ? 'not done' : 'done'}`}
-              />
-              <button
-                type="button"
-                className="board-list-title"
-                onClick={() => onOpenCard(card.id)}
-              >
-                {card.title}
-              </button>
-
-              <div className="board-list-meta">
-                {col ? <Badge size="sm">{col.name}</Badge> : null}
-
-                {card.priority === 'high' ? (
-                  <Badge tone="alert" size="sm">
-                    High
-                  </Badge>
-                ) : card.priority === 'medium' ? (
-                  <Badge tone="signal" size="sm">
-                    Med
-                  </Badge>
-                ) : null}
-
-                {card.labelIds?.map((lid) => {
-                  const l = labels[lid];
-                  if (!l) return null;
-                  return (
-                    <span
-                      key={lid}
-                      className="board-card__label-tag"
-                      style={{ color: colorVar(l.color) }}
-                    >
-                      <span
-                        className="board-card__label-dot"
-                        style={{ backgroundColor: colorVar(l.color) }}
-                        aria-hidden="true"
-                      />
-                      {l.name}
-                    </span>
-                  );
-                })}
-
-                {check ? (
-                  <span className="board-card__meta-item">
-                    <CheckSquare aria-hidden="true" />
-                    <span>
-                      {check.done}/{check.total}
-                    </span>
-                  </span>
-                ) : null}
-
-                {due && !isDone ? (
-                  <span className={cx('board-card__due', overdue && 'is-overdue')}>
-                    {overdue ? 'Overdue' : dueLabel(due, today, formatDay(due, { month: 'short', year: false }), card.dueTime)}
-                  </span>
-                ) : null}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
-
-// ── Today View Component (Across All Boards) ────────────────────────────────────────────
-
-function TodayView({ onOpenCard }: { onOpenCard: (cardId: string) => void }) {
-  const today = todayKey();
-  const {
-    data: agData,
-    isPending: agPending,
-    isError: agError,
-    error: agErr,
-    refetch: agRefetch,
-  } = useAgenda({ days: 14 });
-
-  if (agPending) {
-    return (
-      <div className="board-today-loading" aria-busy="true">
-        <Skeleton height={32} width="40%" />
-        <Skeleton height={72} />
-        <Skeleton height={72} />
-      </div>
-    );
-  }
-
-  if (agError) {
-    return (
-      <QueryError
-        error={agErr}
-        title="Agenda didn’t load"
-        onRetry={() => void agRefetch()}
-      />
-    );
-  }
-
-  const sections = agData ? agendaSections(agData.cards, today) : [];
-
-  if (sections.length === 0) {
-    return (
-      <div className="board-today-empty">
-        <EmptyState
-          size="sm"
-          icon={Clock}
-          title="All caught up"
-          body="No tasks are due today or in the next week across your boards."
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="board-today-view">
-      {sections.map((sec) => (
-        <section key={sec.id} className="board-today-section">
-          <h2 className="board-today-h">{sec.title} ({sec.cards.length})</h2>
-          <ul role="list" className="board-today-list">
-            {sec.cards.map((c) => (
-              <li key={c.id} className="board-today-item">
-                <button
-                  type="button"
-                  className="board-today-card-btn"
-                  onClick={() => onOpenCard(c.id)}
-                >
-                  <span
-                    className="board-today-dot"
-                    style={{ backgroundColor: colorVar(c.boardColor) }}
-                    aria-hidden="true"
-                  />
-                  <div className="board-today-info">
-                    <span className="board-today-title">{c.title}</span>
-                    <span className="board-today-meta">
-                      <span>{c.boardEmoji ? `${c.boardEmoji} ` : ''}{c.boardName}</span>
-                      <span>•</span>
-                      <span>{formatDay(c.due, { weekday: 'short', month: 'short', year: false })}</span>
-                      {c.dueTime ? <span>at {c.dueTime.slice(0, 5)}</span> : null}
-                    </span>
-                  </div>
-                  {c.priority === 'high' ? (
-                    <Badge tone="alert" size="sm">
-                      High
-                    </Badge>
-                  ) : null}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-    </div>
-  );
-}
-
-
-function PlanRow({
-  plan,
-  readOnly,
-  onRemove,
-}: {
-  plan: BoardPlan;
-  readOnly: boolean;
-  onRemove: () => void;
-}) {
+function PlanRow({ plan, readOnly, onRemove }: { plan: BoardPlan; readOnly: boolean; onRemove: () => void }) {
   const total = plan.left + plan.done;
   return (
     <li className="board-plan" data-hub="board-plan-row">
@@ -1104,9 +787,7 @@ function PlanRow({
         <strong>{plan.moduleName} revision</strong>
         <span>
           {plan.done} of {total} done. {planPace(plan)}
-          {plan.left && plan.daysLeft > 0
-            ? ` until the exam on ${formatDay(plan.examDate, { weekday: 'short', month: 'short', year: false })}.`
-            : ''}
+          {plan.left && plan.daysLeft > 0 ? ` until the exam on ${formatDay(plan.examDate, { weekday: 'short', month: 'short', year: false })}.` : ''}
         </span>
       </p>
       {readOnly ? null : (
@@ -1118,19 +799,29 @@ function PlanRow({
   );
 }
 
+function ColumnsSkeleton({ count }: { count: number }) {
+  return (
+    <div className={cx('board-columns', 'board-columns--loading')} aria-busy="true">
+      <span className="visually-hidden">Loading the board</span>
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className="board-col" aria-hidden="true">
+          <Skeleton height={18} width="45%" />
+          <Skeleton height={76} radius={10} />
+          <Skeleton height={76} radius={10} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function BoardSkeleton() {
   return (
     <Page width="wide" className="board-page" aria-busy="true">
-      <PageHeader title="Boards" />
-      <div className="board" aria-hidden="true">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="board-col">
-            <Skeleton height={20} width="40%" />
-            <Skeleton height={88} radius={12} />
-            <Skeleton height={88} radius={12} />
-          </div>
-        ))}
+      <PageHeader title="Boards" description={DESCRIPTION} />
+      <div className="board-tabs" aria-hidden="true">
+        <Skeleton height={20} width={280} />
       </div>
+      <ColumnsSkeleton count={3} />
     </Page>
   );
 }

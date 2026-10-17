@@ -2,6 +2,7 @@ import { useId, useState, type FormEvent } from 'react';
 import type { BoardCard } from '../../api/types';
 import { Button, Modal, TextField } from '../../ui';
 import { parseScore } from './board';
+import './BoardDialog.css';
 
 export interface ScoreDialogProps {
   card: BoardCard;
