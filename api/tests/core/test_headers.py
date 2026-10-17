@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 import httpx2
+import pytest
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
@@ -39,6 +40,7 @@ def test_every_kind_of_answer_is_protected(client_for: Clients, student: User) -
         assert r.headers["cache-control"] == "no-store"
 
 
+@pytest.mark.own_app
 def test_handlers_may_choose_a_cache_policy_except_for_signed_in_json(
     app: FastAPI, client_for: Clients, student: User
 ) -> None:

@@ -44,6 +44,7 @@ def test_offsets_have_an_upper_bound(client_for: Clients) -> None:
         assert c.get(f"{API}{path}", params={"offset": 100_000}).status_code == 200
 
 
+@pytest.mark.own_app
 def test_a_value_the_database_refuses_is_invalid_input(app: FastAPI, client_for: Clients, student: User) -> None:
     @app.post("/api/v1/_store")
     def store(db: DB, body: dict[str, str]) -> None:
@@ -54,6 +55,7 @@ def test_a_value_the_database_refuses_is_invalid_input(app: FastAPI, client_for:
     assert r.json()["error"]["code"] == "invalid_input"
 
 
+@pytest.mark.own_app
 def test_an_unhandled_error_keeps_the_headers(app: FastAPI) -> None:
     @app.get("/api/v1/_boom")
     def boom() -> None:

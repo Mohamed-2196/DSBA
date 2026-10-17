@@ -4,15 +4,29 @@
 #   scripts/check.sh        # the API and the web app
 #   scripts/check.sh api    # or only one of them
 #   scripts/check.sh web
+#   scripts/check.sh api --fail-fast   # CI: stop at the first failed check, and pytest at its first failed test
 #
 # Set up once: `cd api && uv sync` and `cd web && npm ci`. The API tests need a PostgreSQL server where they may
 # create databases (DSBA_TEST_ADMIN_URL, default postgresql+psycopg://dsba:dsba@127.0.0.1:5432/postgres;
 # `docker compose up -d db` starts one) and a pg_dump of the same major version or newer. The end-to-end suite is
 # not part of this: it needs the whole stack in Docker (`scripts/e2e.sh`, see README.md).
 #
-# Every check runs even when an earlier one fails; the failures are listed at the end. Nothing in the repository
-# is changed (the build goes to a temporary folder).
+# Without --fail-fast every check runs even when an earlier one fails, and the failures are listed at the end.
+# Nothing in the repository is changed (the build goes to a temporary folder).
 set -uo pipefail
+
+target=all
+fail_fast=0
+for arg in "$@"; do
+  case "$arg" in
+    api | web | all) target="$arg" ;;
+    --fail-fast) fail_fast=1 ;;
+    *)
+      echo "usage: scripts/check.sh [api|web] [--fail-fast]" >&2
+      exit 2
+      ;;
+  esac
+done
 
 for libpq_bin in /opt/homebrew/opt/libpq/bin /usr/local/opt/libpq/bin; do
   if [[ -d "$libpq_bin" && ":$PATH:" != *":$libpq_bin:"* ]]; then
@@ -26,7 +40,19 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 failed=()
 
-# check <name> <command...>: runs the command and records it when it fails (a log group of its own on GitHub).
+# The failed checks, or that all passed; then exit.
+report() {
+  if ((${#failed[@]})); then
+    printf '\n%d check(s) failed:\n' "${#failed[@]}"
+    printf '  - %s\n' "${failed[@]}"
+    exit 1
+  fi
+  printf '\nAll checks passed.\n'
+  exit 0
+}
+
+# check <name> <command...>: runs the command and records it when it fails (a log group of its own on GitHub). With
+# --fail-fast, the first failure ends the run.
 check() {
   local name="$1" status
   shift
@@ -37,7 +63,9 @@ check() {
   if ((status != 0)); then
     failed+=("$name")
     if [[ -n "${GITHUB_ACTIONS:-}" ]]; then echo "::error::$name failed"; else echo "FAILED: $name"; fi
+    ((fail_fast)) && report
   fi
+  return 0
 }
 
 # api/requirements.txt (what the API image installs, hashes included) is uv.lock exported.
@@ -64,8 +92,14 @@ check_api() {
   check "api: ruff format" uv run --no-sync ruff format --check .
   check "api: mypy" uv run --no-sync mypy app tests
   # tests/core/test_drift.py: the migrations build the models' schema (alembic check), every migration can be
-  # undone, and api/openapi.json is what the app serves
-  check "api: pytest" uv run --no-sync pytest
+  # undone, and api/openapi.json is what the app serves. Up to four workers (pytest-xdist), each with a database of
+  # its own; more would crowd a PostgreSQL that other checkouts' tests share.
+  local parallel=(-n auto --maxprocesses 4 --dist worksteal)
+  if ((fail_fast)); then
+    check "api: pytest" uv run --no-sync pytest "${parallel[@]}" -x
+  else
+    check "api: pytest" uv run --no-sync pytest "${parallel[@]}"
+  fi
 }
 
 check_web() {
@@ -79,22 +113,12 @@ check_web() {
   check "web: build" npx --no-install vite build --outDir "$tmp/dist" --emptyOutDir --logLevel warn
 }
 
-case "${1:-all}" in
+case "$target" in
   api) check_api ;;
   web) check_web ;;
   all)
     check_api
     check_web
     ;;
-  *)
-    echo "usage: scripts/check.sh [api|web]" >&2
-    exit 2
-    ;;
 esac
-
-if ((${#failed[@]})); then
-  printf '\n%d check(s) failed:\n' "${#failed[@]}"
-  printf '  - %s\n' "${failed[@]}"
-  exit 1
-fi
-printf '\nAll checks passed.\n'
+report

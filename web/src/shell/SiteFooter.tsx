@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { CONTRIBUTORS, COPYRIGHT_HOLDER, contributorLine, DISCLAIMER, LAUNCH_YEAR, MYCLASS_URL, UOL_PORTAL_URL } from '../data/people';
+import { shortVersion } from '../lib/version';
 import { HubLogo } from '../ui';
 import { UPLOAD_PATH, useStartUpload, useUploadShown } from './upload';
 import './SiteFooter.css';
@@ -62,6 +63,7 @@ export function SiteFooter() {
           <p>
             © {range} {COPYRIGHT_HOLDER}. All rights reserved.
           </p>
+          <p>Version {shortVersion(__APP_VERSION__)}</p>
         </div>
       </div>
     </footer>

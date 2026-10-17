@@ -1,8 +1,11 @@
 """Test harness shared by every area (owned by the lead; areas add their own fixtures in tests/<area>/conftest.py).
 
-- A throw-away Postgres database per test run (DSBA_TEST_ADMIN_URL), migrated with Alembic.
+- A throw-away Postgres database per test run (DSBA_TEST_ADMIN_URL), migrated with Alembic; on pytest-xdist's
+  workers (scripts/check.sh runs up to four) each worker makes its own.
 - Each test runs inside a transaction that is rolled back afterwards: handlers' commits are savepoints.
-- S3 is moto's in-process mock: a "browser upload" in a test is storage.client.put_object(...).
+- S3 is moto's in-process mock, its bucket made once for the run: a "browser upload" in a test is
+  storage.client.put_object(...).
+- One app serves every test (shared_app), with each test's own database session.
 - client_for(user) gives a TestClient with the CSRF cookie and header set, signed in as `user` (or a guest). With a
   session the CSRF token is the one bound to it; after a sign-in or sign-out through the API, copy the new cookie
   into the header (as the web app does before every request).
@@ -30,6 +33,10 @@ from app.models import User
 
 ADMIN_URL = os.environ.get("DSBA_TEST_ADMIN_URL", "postgresql+psycopg://dsba:dsba@127.0.0.1:5432/postgres")
 HERE = os.path.dirname(__file__)
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line("markers", "own_app: the test adds routes, so it gets an app of its own (not shared)")
 
 
 @pytest.fixture(scope="session")
@@ -60,8 +67,11 @@ def settings_env(database_url: str) -> Iterator[None]:
         "DSBA_S3_BUCKET": "dsba-test",
         "DSBA_S3_ACCESS_KEY_ID": "testing",
         "DSBA_S3_SECRET_ACCESS_KEY": "testing",
+        "DSBA_S3_CREATE_BUCKET": "false",  # made once for the run (bucket below), not by every client's start-up
         "DSBA_EMAIL_BACKEND": "console",
         "DSBA_SMS_BACKEND": "console",
+        "DSBA_COMMIT_SHA": "",  # the commit /health reports: unknown, whatever the shell running the tests says
+        "RAILWAY_GIT_COMMIT_SHA": "",
         "AWS_DEFAULT_REGION": "us-east-1",
     }
     old = {k: os.environ.get(k) for k in env}
@@ -106,28 +116,48 @@ def db(engine: Engine) -> Iterator[Session]:
         conn.close()
 
 
+@pytest.fixture(scope="session")
+def shared_app(settings_env: None) -> FastAPI:
+    """The app the tests talk to. FastAPI prepares a route (its dependencies and response checks) the first time an
+    app matches a request against it, so one app for the whole run prepares each route once, not once per test."""
+    from app.main import create_app
+
+    return create_app()
+
+
 @pytest.fixture
-def app(db: Session) -> Iterator[FastAPI]:
+def app(request: pytest.FixtureRequest, db: Session, bucket: None) -> Iterator[FastAPI]:
+    """The app, with the test's own database session and the run's bucket. A test marked own_app adds routes, so it
+    gets a new app."""
     from app.db import get_db
     from app.main import create_app
 
-    application = create_app()
+    own = request.node.get_closest_marker("own_app") is not None
+    application: FastAPI = create_app() if own else request.getfixturevalue("shared_app")
 
     def _db() -> Iterator[Session]:
         yield db
 
+    routes = len(application.router.routes)
     application.dependency_overrides[get_db] = _db
     yield application
     application.dependency_overrides.clear()
+    assert own or len(application.router.routes) == routes, "this test adds routes: mark it @pytest.mark.own_app"
+
+
+@pytest.fixture(scope="session")
+def bucket(settings_env: None) -> None:
+    """The run's bucket in moto, made once (the app's start-up makes it in development, not in the tests)."""
+    from app.services.storage import get_storage
+
+    get_storage().ensure_bucket(["http://testserver"])
 
 
 @pytest.fixture
-def storage(settings_env: None):  # type: ignore[no-untyped-def]
+def storage(bucket: None):  # type: ignore[no-untyped-def]
     from app.services.storage import get_storage
 
-    s = get_storage()
-    s.ensure_bucket(["http://testserver"])
-    return s
+    return get_storage()
 
 
 @pytest.fixture
