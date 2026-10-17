@@ -8,7 +8,7 @@ export type HomeBlock = NonNullable<Me['preferences']['homeBlocks']>[number];
 
 export interface BlockInfo {
   title: string;
-  /** what it shows, for Customize Home */
+  /** what it shows, for Customise Home */
   description: string;
   /** every feature it needs on; a block missing one isn't offered */
   features: readonly Feature[];

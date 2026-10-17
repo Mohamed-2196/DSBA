@@ -165,10 +165,14 @@ def can_edit(item: LibraryItem, user: User | None) -> bool:
 
 
 def find(db: Session, ref: str | uuid.UUID) -> LibraryItem | None:
-    """By id (the routes that act on an item), or by slug (reading one: every link uses the slug)."""
-    if isinstance(ref, uuid.UUID):
-        return db.get(LibraryItem, ref)
-    return db.scalar(select(LibraryItem).where(LibraryItem.slug == ref))
+    """By id, or by slug (every link uses the slug; reading one takes either, so an address with the id opens it
+    too)."""
+    if isinstance(ref, str):
+        try:
+            ref = uuid.UUID(ref)
+        except ValueError:
+            return db.scalar(select(LibraryItem).where(LibraryItem.slug == ref))
+    return db.get(LibraryItem, ref)
 
 
 def duplicate() -> ColumnElement[bool]:

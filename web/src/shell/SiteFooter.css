@@ -1,8 +1,8 @@
 .shell-footer { margin-top: var(--sp-32); border-top: 1px solid var(--line); }
 .shell-footer__inner {
-  max-width: calc(var(--content-max) + 2 * var(--content-pad));
+  max-width: calc(var(--content-max) + var(--page-pad-left) + var(--page-pad-right));
   margin-inline: auto;
-  padding: var(--sp-32) var(--content-pad) var(--sp-48);
+  padding: var(--sp-32) var(--page-pad-right) var(--sp-48) var(--page-pad-left);
   display: grid;
   gap: var(--sp-24);
 }

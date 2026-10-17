@@ -2,7 +2,7 @@ import { CalendarPlus, EyeSlash, LinkSimple, PencilSimple, Trash } from '@phosph
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import { AddToBoard } from '../board/public';
-import { BREAKPOINTS, useMediaQuery, type CohortYear } from '../../state';
+import { BREAKPOINTS, useMediaQuery, useToast, type CohortYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Badge, Button, CohortBadge, cx, Drawer, IconButton, ModuleArt, ModuleIcon, moduleArtSrc } from '../../ui';
 import { dayKey, daysUntil, formatLong, formatMonthYear, formatShort, formatShortYear, parseDay, weekdayOf } from '../../lib/dates';
@@ -10,7 +10,7 @@ import { useCopyLink } from '../../lib/useCopyLink';
 import { AddExamsToCalendar, AddToCalendar } from './AddToCalendar';
 import { eventPageUrl, myEventIcsUrl } from './api';
 import { countdownLabel } from './dates';
-import { dotClass, sourceLine, splitTitle, TYPE_BADGE_TONE, typeLabel, whenAndWhere, windowLeft } from './eventMeta';
+import { dotClass, sourceLine, splitTitle, TYPE_BADGE_TONE, typeLabel, typePlural, whenAndWhere, windowLeft } from './eventMeta';
 import { reminderLabel, repeatLabel } from './mine';
 import type { CalendarEvent, EventType } from './types';
 import type { HiddenKind } from './useMyCalendar';
@@ -44,7 +44,9 @@ export interface EventDrawerProps {
 export function EventDrawer({ event, papers, events, today, year, hasExams, onClose, onOpen, onEdit, onDelete, onEditMine, onDeleteMine, onHide }: EventDrawerProps) {
   const isMobile = useMediaQuery(BREAKPOINTS.mobile);
   const copy = useCopyLink();
+  const { push } = useToast();
   const copyLink = (e: CalendarEvent) => copy(eventPageUrl(e), 'Anyone with the link sees this date on the DSBA Hub calendar.');
+  const onDownload = () => push({ tone: 'info', title: 'Downloading an .ics file', body: 'Open it to add the event to your calendar.' });
   return (
     <Drawer
       open={!!event}
@@ -57,18 +59,22 @@ export function EventDrawer({ event, papers, events, today, year, hasExams, onCl
       footer={
         event?.mine ? (
           <div className="cal-drawer__footer">
-            {onEditMine ? <IconButton label="Edit this event" icon={PencilSimple} variant="secondary" tooltip tooltipSide="top" onClick={() => onEditMine(event)} data-hub="calendar-mine-edit" /> : null}
+            {onEditMine ? (
+              <Button leadingIcon={PencilSimple} onClick={() => onEditMine(event)} data-hub="calendar-mine-edit">
+                Edit
+              </Button>
+            ) : null}
             {onDeleteMine ? <IconButton label="Delete this event" icon={Trash} variant="secondary" tooltip tooltipSide="top" onClick={() => onDeleteMine(event)} data-hub="calendar-mine-delete" /> : null}
             <span className="cal-drawer__spacer" />
-            <Button variant="primary" leadingIcon={CalendarPlus} href={myEventIcsUrl(event.mine.id)} download external={false}>
+            <Button variant="primary" leadingIcon={CalendarPlus} href={myEventIcsUrl(event.mine.id)} download external={false} onClick={onDownload}>
               Add to calendar
             </Button>
           </div>
         ) : event ? (
           <div className="cal-drawer__footer">
-            <IconButton label="Copy link to this event" icon={LinkSimple} variant="secondary" tooltip tooltipSide="top" onClick={() => void copyLink(event)} />
-            {onEdit ? <IconButton label="Edit this event" icon={PencilSimple} variant="secondary" tooltip tooltipSide="top" onClick={() => onEdit(event)} data-hub="calendar-edit" /> : null}
-            {onDelete ? <IconButton label="Delete this event" icon={Trash} variant="secondary" tooltip tooltipSide="top" onClick={() => onDelete(event)} data-hub="calendar-delete" /> : null}
+            <IconButton label="Copy link to this date" icon={LinkSimple} variant="secondary" tooltip tooltipSide="top" onClick={() => void copyLink(event)} />
+            {onEdit ? <IconButton label="Edit this date" icon={PencilSimple} variant="secondary" tooltip tooltipSide="top" onClick={() => onEdit(event)} data-hub="calendar-edit" /> : null}
+            {onDelete ? <IconButton label="Delete this date" icon={Trash} variant="secondary" tooltip tooltipSide="top" onClick={() => onDelete(event)} data-hub="calendar-delete" /> : null}
             <span className="cal-drawer__spacer" />
             <AddToCalendar event={event} />
           </div>
@@ -259,18 +265,18 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
           <h3 id="cal-drawer-hide" className="cal-drawer__h">
             Don’t need it?
           </h3>
-          <p className="cal-drawer__note">Hidden dates leave your list, month, Home and private feed. Show them again from Customise.</p>
+          <p className="cal-drawer__note">Hidden dates leave your list, month, Home and private link. Show them again from Customise.</p>
           <div className="cal-drawer__hide">
             <Button size="sm" leadingIcon={EyeSlash} onClick={() => onHide(event, 'hiddenEvents', event.id)} data-hub="calendar-hide">
               Hide this date
             </Button>
             {module ? (
               <Button size="sm" variant="ghost" onClick={() => onHide(event, 'hiddenModules', module.id)}>
-                Hide every {module.unitCode || module.shortName} date
+                Hide all {module.unitCode || module.shortName} dates
               </Button>
             ) : null}
             <Button size="sm" variant="ghost" onClick={() => onHide(event, 'hiddenTypes', event.type)}>
-              Hide every {typeLabel(event.type).toLowerCase()}
+              Hide all {typePlural(event.type)}
             </Button>
           </div>
         </section>
@@ -279,7 +285,15 @@ function DrawerContent({ event, events, today, onOpen, examsYear, papers, onHide
   );
 }
 
-/** One of the student's own events: when, where, its repeat, reminder and notes. Only they see it. */
+/** The days ahead taken off a repeat: 'Sun 1 Nov, Sun 8 Nov', 'Sun 1 Nov, Sun 8 Nov, Sun 15 Nov and 2 more'. */
+function skippedLine(skipped: readonly string[], today: string): string | null {
+  const ahead = skipped.filter((d) => d >= today);
+  if (!ahead.length) return null;
+  const shown = ahead.slice(0, 3).map((d) => formatShort(parseDay(d)));
+  return ahead.length > 3 ? `${shown.join(', ')} and ${ahead.length - 3} more` : shown.join(', ');
+}
+
+/** One of the student's own events: when, where, its repeat (and the days taken off it), reminder and notes. */
 function MineContent({ event, events, today, onOpen }: { event: CalendarEvent; events: CalendarEvent[]; today: Date; onOpen: (e: CalendarEvent) => void }) {
   const { featureOn } = useAuth();
   const mine = event.mine;
@@ -292,6 +306,7 @@ function MineContent({ event, events, today, onOpen }: { event: CalendarEvent; e
   const repeat = repeatLabel(mine);
   const reminder = reminderLabel(mine.remind, !mine.startTime);
   const where = [event.time ?? 'All day', event.place].filter(Boolean).join(', ');
+  const notOn = skippedLine(mine.skipped, dayKey(today));
   return (
     <div className={cx('cal-drawer__content', `cal-colour--${mine.colour}`)}>
       <div className="cal-drawer__badges">
@@ -327,6 +342,12 @@ function MineContent({ event, events, today, onOpen }: { event: CalendarEvent; e
               <dd>{repeat}</dd>
             </div>
           ) : null}
+          {notOn ? (
+            <div>
+              <dt>Not on</dt>
+              <dd>{notOn}</dd>
+            </div>
+          ) : null}
           {reminder ? (
             <div>
               <dt>Reminder</dt>
@@ -360,7 +381,7 @@ function MineContent({ event, events, today, onOpen }: { event: CalendarEvent; e
       ) : null}
 
       <p className="cal-drawer__note">
-        Only you see this event. {repeat ? 'Changes apply to every repeat.' : ''}
+        Only you see this event.
         {reminder ? ' Its reminder comes as a notification here, and from your calendar app if you subscribe to your private link.' : ''}
       </p>
     </div>

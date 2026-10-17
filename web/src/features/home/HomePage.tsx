@@ -1,4 +1,4 @@
-// Home: a greeting, then a grid of equal cards the student can show, hide and reorder (Customize Home): Up next,
+// Home: a greeting, then a grid of equal cards the student can show, hide and reorder (Customise Home): Up next,
 // To-do, Continue, My modules, New files and Forum, with notices and the Ask Noora prompt across the whole width.
 // Blocks from other features come from their public.ts, each in its own ErrorBoundary with its own loading, empty and
 // error states; a notice with nothing to say renders nothing.
@@ -9,12 +9,12 @@ import { COHORTS, YEARS, useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, CohortBadge, EmptyState, ErrorBoundary, Menu, Page, PageSection, Panel, SectionHeader, cx } from '../../ui';
 import { BoardTodo } from '../board/public';
-import { useCalendarEvents } from '../calendar/public';
+import { useMyCalendarEvents } from '../calendar/public';
 import { HelpBelow } from '../forum/public';
 import { DailyQuestion } from '../library/public';
 import { ContinueLearning, useTracking } from '../modules/public';
 import { LatestIssueCard } from '../newsletter/public';
-import { PapersButton, usePapers } from '../papers/public';
+import { usePapers } from '../papers/public';
 import { ResultsDayCard, StartHereCard } from '../start/public';
 import { DailyCard } from '../daily/public';
 import { addDays, dayKey, formatLongDay, parseDay, todayKey } from '../../lib/dates';
@@ -70,7 +70,7 @@ export default function HomePage() {
   // Today in Bahrain, as the API counts it; a new object only when the day changes.
   const todayIs = todayKey(now);
   const today = useMemo(() => parseDay(todayIs), [todayIs]);
-  const calendar = useCalendarEvents({ from: todayIs, to: dayKey(addDays(today, 120)) }, { enabled: calendarOn });
+  const calendar = useMyCalendarEvents({ from: todayIs, to: dayKey(addDays(today, 120)) }, { enabled: calendarOn });
   const session = useMemo(() => getExamSession(calendar.data ?? [], activeYear, getModule, today, { papers }), [calendar.data, activeYear, getModule, today, papers]);
   const nextExam = session?.kind === 'exams' && session.next.type === 'exam' ? session.next : null;
 
@@ -133,7 +133,7 @@ export default function HomePage() {
             id={b}
             action={
               <Button variant="ghost" size="sm" to="/board">
-                Open my board
+                Open my boards
               </Button>
             }
           >
@@ -152,15 +152,12 @@ export default function HomePage() {
             key={b}
             id={b}
             action={
-              <span className="home-block__actions">
-                {year ? <PapersButton /> : null}
-                <Button variant="ghost" size="sm" to="/modules">
-                  All modules
-                </Button>
-              </span>
+              <Button variant="ghost" size="sm" to="/modules">
+                All modules
+              </Button>
             }
           >
-            <YourModules year={activeYear} today={today} />
+            <YourModules year={activeYear} today={today} mine={year !== null} />
           </Block>
         );
       case 'files':
@@ -272,7 +269,7 @@ export default function HomePage() {
           ) : null}
         </div>
         <Button size="sm" leadingIcon={SlidersHorizontal} onClick={() => setCustomizing(true)} className="home-head__custom" data-hub="home-customize-open">
-          Customize Home
+          Customise Home
         </Button>
       </header>
 
@@ -288,7 +285,7 @@ export default function HomePage() {
             body="Choose what to show here: your next exam, your to-do, your modules and more."
             action={
               <Button variant="primary" onClick={() => setCustomizing(true)}>
-                Customize Home
+                Customise Home
               </Button>
             }
           />

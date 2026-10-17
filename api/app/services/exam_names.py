@@ -20,6 +20,7 @@ Mocks, preliminary and sample papers belong to no sitting: their names give noth
 from __future__ import annotations
 
 import re
+import unicodedata
 from typing import NamedTuple, Protocol
 
 from app.schemas.library import ExamSession, Zone
@@ -76,23 +77,33 @@ def _zone(text: str) -> Zone | None:
 
 
 _EXTENSION = re.compile(r"\.[A-Za-z0-9]{1,5}$")
+# A document's extension left inside the name, as when a Word file was saved as a PDF ('Notes.docx.pdf').
+_DOC_EXTENSION = re.compile(r"\.(pdf|docx?|pptx?|xlsx?|odt|rtf)(?=[\s)\]]|$)", re.IGNORECASE)
 _COMPRESSED = re.compile(r"[\s_-]*\b(compress(ed)?|min)\b\s*$", re.IGNORECASE)
 _COPY = re.compile(r"\s*(\(\d{1,2}\)|\bcopy\b)\s*$", re.IGNORECASE)
 _COPY_OF = re.compile(r"^copy of\s+", re.IGNORECASE)
+_GLUED_BRACKET = re.compile(r"(?<=[A-Za-z])\((?=[A-Za-z])")
+_UNIT = re.compile(r"\b([A-Za-z]{2}\d{3,4}[A-Za-z]?)\b")
 
 
 def tidy_title(file_name: str) -> str:
     """A file's title from its name: 'calculus-concepts-and-methods_compress.pdf' -> 'Calculus concepts and methods',
-    '1. Function Characteristics - workbook (1).pdf' -> '1. Function Characteristics - workbook'. Drops the extension,
-    'Copy of', a trailing '(1)', 'copy' or '_compress', reads underscores (and the hyphens of a name with no spaces) as
-    spaces, mends the mis-encoded dash ('â'), and starts with a capital. The name itself when nothing is left."""
-    text = _EXTENSION.sub("", file_name.strip())
+    '1. Function Characteristics - workbook (1).pdf' -> '1. Function Characteristics - workbook'. Drops the extension
+    (and a document's extension left inside the name: 'Notes.docx.pdf'), 'Copy of', a trailing '(1)', 'copy' or
+    '_compress', reads underscores (and the hyphens of a name with no spaces) as spaces, mends the mis-encoded dash
+    ('â'), puts a space before a bracket glued to a word, writes unit codes in capitals ('ec1002' -> 'EC1002') and
+    starts with a capital. The name itself when nothing is left. Accents are composed first (a Mac writes 'â' as 'a'
+    and a combining circumflex)."""
+    text = _EXTENSION.sub("", unicodedata.normalize("NFC", file_name.strip()))
+    text = _DOC_EXTENSION.sub("", text)
     text = text.replace(" \u00e2 ", " \u2013 ").replace("_", " ")
     for _ in range(3):  # 'notes (1) copy_compress'
         text = _COMPRESSED.sub("", _COPY.sub("", text)).strip()
     text = _COPY_OF.sub("", text)
     if " " not in text and text.count("-") >= 2:
         text = text.replace("-", " ")
+    text = _GLUED_BRACKET.sub(" (", text)
+    text = _UNIT.sub(lambda m: m.group(1).upper(), text)
     text = re.sub(r"\s+", " ", text).strip(" -\u2013")
     if not text:
         return file_name.strip()

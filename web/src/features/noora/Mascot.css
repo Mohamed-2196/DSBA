@@ -1,6 +1,23 @@
 /* Mini Noora, the floating mascot. Where she is comes from MiniNoora.tsx; how she moves is here.
    She sits above the page and its menus, and below dialogs, the command palette and toasts. */
 
+/* Her lane: a strip at the edge of the page column where she rests, kept clear of the page so she never covers it.
+   MiniNoora.tsx puts the side on <html data-noora-lane>; pages, the top bar and the footer pad themselves to the
+   lane's width on that side (--page-pad-left/right in styles/tokens.css). The lane is her figure's width plus 8 px on
+   each side: 54 px wide at 1100 px and up, 40 px below (sprites.ts HEIGHT, layout.ts LANE_PAD). Phones have no lane:
+   she waits in the tab bar's Noora tab. */
+@media (min-width: 700px) {
+  :root[data-noora-lane='left']:has(#main .ui-page) { --page-reserve-left: 56px; }
+  :root[data-noora-lane='right']:has(#main .ui-page) { --page-reserve-right: 56px; }
+}
+@media (min-width: 1100px) {
+  :root[data-noora-lane='left']:has(#main .ui-page) { --page-reserve-left: 70px; }
+  :root[data-noora-lane='right']:has(#main .ui-page) { --page-reserve-right: 70px; }
+}
+/* Only pages built on .ui-page keep her lane clear. On any other (the file viewer, an editor) there is no lane: she
+   waits out of sight until her chat is opened, and comes with it. */
+:root:not(:has(#main .ui-page)) .noora:not([data-open]) { display: none; }
+
 /* Rulers for the room the top bar and the phone tab bar take. CSS knows the tokens and the safe-area insets; JS reads
    these elements' heights and keeps her between them (useViewport.ts). */
 .noora-ruler {

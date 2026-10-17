@@ -255,7 +255,7 @@ class SweepReport:
 
 
 def sweep() -> SweepReport:
-    """Deletes uploads never attached to anything, or whose board card is gone (objects first, then rows), old
+    """Deletes uploads never attached to anything, or board files off their card (objects first, then rows), old
     sign-in codes, sessions that ended long ago, the files of library items rejected or removed a week ago, the
     addresses kept on bug reports and the screenshots of reports closed long ago. Safe to run at any time and to
     run again."""
@@ -268,7 +268,7 @@ def sweep() -> SweepReport:
     with get_sessionmaker()() as db:
         unused = or_(
             Upload.status != UploadStatus.attached,
-            (Upload.purpose == UploadPurpose.board) & Upload.card_id.is_(None),  # its card was deleted
+            (Upload.purpose == UploadPurpose.board) & Upload.card_id.is_(None),  # off its card, or the card is gone
         )
         stale = db.scalars(select(Upload).where(unused, Upload.created_at < now - UPLOAD_GRACE)).all()
         for up in stale:

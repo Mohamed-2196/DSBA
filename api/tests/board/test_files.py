@@ -58,7 +58,12 @@ def test_files_and_pictures_on_a_card(client_for: ClientFor, make_user: MakeUser
 
     shown = c.get(f"{API}/board-files/{photo}", follow_redirects=False)
     assert shown.status_code == 302
-    assert "inline" in shown.headers["location"] or "response-content-disposition=inline" in shown.headers["location"]
+    assert "response-content-disposition=inline" in shown.headers["location"]
+    pdf_link = c.get(f"{API}/board-files/{pdf}", follow_redirects=False).headers["location"]
+    assert "response-content-disposition=inline" in pdf_link
+    saved = c.get(f"{API}/board-files/{pdf}?download=true", follow_redirects=False)
+    assert saved.status_code == 302
+    assert "response-content-disposition=attachment" in saved.headers["location"]
     other = client_for(make_user(name="Omar Classmate"))
     assert other.get(f"{API}/board-files/{photo}", follow_redirects=False).status_code == 404
     assert other.post(f"{API}/board-cards/{card['id']}/attachments", json={"uploadId": pdf}).status_code == 404

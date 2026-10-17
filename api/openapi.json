@@ -5307,23 +5307,25 @@
         }
       }
     },
-    "/api/v1/library/items/{slug}": {
+    "/api/v1/library/items/{ref}": {
       "get": {
         "tags": [
           "library"
         ],
         "summary": "Get Item",
-        "description": "By slug. Unpublished items: only their uploader and the library's managers.",
-        "operationId": "get_item_api_v1_library_items__slug__get",
+        "description": "One item, by its slug or its id. Unpublished items: only their uploader and the library's managers.",
+        "operationId": "get_item_api_v1_library_items__ref__get",
         "parameters": [
           {
-            "name": "slug",
+            "name": "ref",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Slug"
-            }
+              "description": "The item's slug (every link uses it), or its id.",
+              "title": "Ref"
+            },
+            "description": "The item's slug (every link uses it), or its id."
           }
         ],
         "responses": {
@@ -14742,7 +14744,7 @@
           "calendar"
         ],
         "summary": "Edit My Event",
-        "description": "Fields not sent stay; null clears the optional ones. A repeat changes as a whole.",
+        "description": "Fields not sent stay; null clears the optional ones. A repeat changes as a whole (one day of it: the\noccurrence route below). Errors: not_found (404), invalid_input (422).",
         "operationId": "edit_my_event_api_v1_calendar_mine_events__event_id__patch",
         "parameters": [
           {
@@ -14854,7 +14856,7 @@
           "calendar"
         ],
         "summary": "Delete My Event",
-        "description": "Deletes the event, every repeat of it.",
+        "description": "Deletes the event, every repeat of it. Errors: not_found (404).",
         "operationId": "delete_my_event_api_v1_calendar_mine_events__event_id__delete",
         "parameters": [
           {
@@ -14945,13 +14947,270 @@
         }
       }
     },
+    "/api/v1/calendar/mine/events/{event_id}/occurrences/{day}": {
+      "patch": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Edit My Occurrence",
+        "description": "A change made from one day of a repeat. `scope=one`: that day becomes an event of its own with the change;\n`following`: a new repeat with the change runs from that day, and the old one ends the day before. Returns the\nevent that now holds the day. Errors: not_found (404) when no occurrence of the event starts on `day`,\ninvalid_input (422), calendar_full (409), rate_limited (429).",
+        "operationId": "edit_my_occurrence_api_v1_calendar_mine_events__event_id__occurrences__day__patch",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "one",
+                "following"
+              ],
+              "type": "string",
+              "default": "one",
+              "title": "Scope"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalEventUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalEventOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Delete My Occurrence",
+        "description": "Takes one day off a repeat (`scope=one`), or that day and every later one (`following`); an event left\nwithout a day is deleted. Errors: not_found (404) when no occurrence of the event starts on `day`.",
+        "operationId": "delete_my_occurrence_api_v1_calendar_mine_events__event_id__occurrences__day__delete",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "one",
+                "following"
+              ],
+              "type": "string",
+              "default": "one",
+              "title": "Scope"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/calendar/mine/events/{event_id}.ics": {
       "get": {
         "tags": [
           "calendar"
         ],
         "summary": "My Event Ics",
-        "description": "One of your events as an .ics file to import, with its repeat and reminder.",
+        "description": "One of your events as an .ics file to import, with its repeat and reminder. Errors: not_found (404).",
         "operationId": "my_event_ics_api_v1_calendar_mine_events__event_id__ics_get",
         "parameters": [
           {
@@ -19114,7 +19373,7 @@
           "board"
         ],
         "summary": "Open File",
-        "description": "302 to a short-lived link to one of the student's card files: shown in the browser for pictures and PDFs,\ndownloaded otherwise. 404 for anyone else.",
+        "description": "302 to a short-lived link to one of the student's card files: shown in the browser for pictures and PDFs\n(other files download), or, with `download`, saved under its name. 404 for anyone else.",
         "operationId": "open_file_api_v1_board_files__upload_id__get",
         "parameters": [
           {
@@ -19125,6 +19384,16 @@
               "type": "string",
               "format": "uuid",
               "title": "Upload Id"
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Download"
             }
           }
         ],
@@ -38900,6 +39169,14 @@
             ],
             "title": "Repeatuntil"
           },
+          "skipped": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Skipped"
+          },
           "remind": {
             "anyOf": [
               {
@@ -38942,12 +39219,13 @@
           "colour",
           "repeat",
           "repeatUntil",
+          "skipped",
           "remind",
           "createdAt",
           "updatedAt"
         ],
         "title": "PersonalEventOut",
-        "description": "An event a student added for themselves: private to them. Without `startTime` it is all day (through\n`endDate` when set); with it, it runs from `startTime` to `endTime` (or for an hour) on `date`. Times are in\nBahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year)."
+        "description": "An event a student added for themselves: private to them. Without `startTime` it is all day (through\n`endDate` when set); with it, it runs from `startTime` to `endTime` (or for an hour) on `date`. Times are in\nBahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year), except on the\n`skipped` days."
       },
       "PersonalEventUpdate": {
         "properties": {

@@ -1,21 +1,26 @@
-// Mini Noora, the Hub's floating study helper and the quick way into Noora: a mascot you can pick up and put at either
-// edge of the screen, and a chat card that opens beside her when she is pressed (on a phone, a sheet above the tab bar
-// that she stands on; on a short screen, a sheet over the whole window). She stays off the full page (/noora), which
-// is the same Noora with more room. openNoora() reaches the full page through here.
+// Mini Noora, the Hub's floating study helper and the quick way into Noora: a mascot you can pick up and carry, and a
+// chat card that opens beside her when she is pressed (on a phone, a sheet above the tab bar that she stands on; on a
+// short screen, a sheet over the whole window). openNoora() reaches the full page (/noora) through here.
+// Where she rests: in her lane, a strip at the left or right edge of the page column that pages keep clear (layout.ts,
+// Mascot.css), so she never covers the page. Let go anywhere, she goes to the nearer lane at that height. A phone has
+// no room for a lane: there she waits in the tab bar's Noora tab and comes out with her chat. She also waits out of
+// sight on the full page, on the daily games (away.ts) and on pages without a lane (Mascot.css); her chat still
+// opens there, and she comes with it.
 // This file holds her state and puts the parts together:
 //   Mascot     the draggable sprite (Mascot.tsx)
 //   ChatPanel  the chat and its scripted "brain" (ChatPanel.tsx), fetched on demand so that the shell, which is on
 //              every page, only carries the mascot
-// She remembers two things in localStorage: hub.noora.pos (the edge and height she was put at) and hub.noora.seen
-// (the first-visit hint has done its job). Hiding her is visibility.ts.
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
+// She remembers two things in localStorage: hub.noora.pos (her lane and height) and hub.noora.seen (the first-visit
+// hint has done its job). Hiding her is visibility.ts.
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BREAKPOINTS, useLocalStorage, useMediaQuery, useToast } from '../../state';
 import { ModulesGate } from '../../state/ModulesProvider';
 import { Button, ErrorBoundary, QueryError, cx } from '../../ui';
+import { restsAway } from './away';
 import { Face } from './Face';
-import { avoid, clampPoint, fromAnchor, homePoint, perchOnSheet, placeChat, toAnchor, type Anchor, type Point, type Rect, type Side } from './layout';
+import { avoid, clampPoint, fromAnchor, hintSide, homePoint, nearestSide, perchOnSheet, placeChat, toAnchor, type Anchor, type Point, type Rect, type Side, type Span } from './layout';
 import { Mascot, type MascotState } from './Mascot';
 import { askNoora, CHAT_ID, closeCard, isNooraShortcut, NOORA_PATH, onGoToPage, openCard, toggleCard, useCardOpen } from './open';
 import { choosePose, heading, lean, motionFor, type ChatMood, type Heading } from './poses';
@@ -34,7 +39,8 @@ const SEEN_KEY = 'hub.noora.seen';
 const WALK_FRAME = 125; // ms per frame: carried sideways, she walks at 8 frames a second
 const LANDING = 900; // ms she looks pleased after being put down
 const HINT_DELAY = 1400; // ms before the first-visit hint speaks up
-const HINT_STAYS = 12_000; // ms it stays before it has done its job (it never covers a form for long)
+const HINT_STAYS = 12_000; // ms it stays before it has done its job
+const HINT_BUBBLE = { w: 260, h: 96 }; // the most room the hint takes (Mascot.css .noora__hint)
 const LOOK_AGAIN = [350, 1500]; // ms after a new page before she checks what she might cover (it may still be loading)
 const SETTLED = 220; // ms after the page stops scrolling before she checks again
 const NUDGE: Partial<Record<string, [number, number]>> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
@@ -43,8 +49,6 @@ const NUDGE: Partial<Record<string, [number, number]>> = { ArrowLeft: [-1, 0], A
 const KEY_CONTROLS = '.ui-button, button[type="submit"], [data-noora-avoid]';
 /** A screen too short for a card beside her (a phone on its side): the chat covers the window. */
 const SHORT = '(max-height: 480px)';
-/** Room kept under the page while she stands at the bottom, so the end of a page can scroll clear of her. */
-const CLEARANCE_VAR = '--noora-clearance';
 
 function keyControls(): Rect[] {
   const out: Rect[] = [];
@@ -57,8 +61,24 @@ function keyControls(): Rect[] {
   return out;
 }
 
+/** Where the page's content is, edge to edge (its pages and the footer, without their padding), or null without one. */
+function pageSpan(): Span | null {
+  if (!document.querySelector('#main .ui-page')) return null;
+  let left = Infinity;
+  let right = -Infinity;
+  for (const el of document.querySelectorAll<HTMLElement>('#main .ui-page, .shell-footer__inner')) {
+    const r = el.getBoundingClientRect();
+    if (!r.width) continue;
+    const s = getComputedStyle(el);
+    left = Math.min(left, r.left + parseFloat(s.paddingLeft));
+    right = Math.max(right, r.right - parseFloat(s.paddingRight));
+  }
+  return Number.isFinite(left) && Number.isFinite(right) ? { left: Math.round(left), right: Math.round(right) } : null;
+}
+
 const sameRects = (a: readonly Rect[], b: readonly Rect[]): boolean =>
   a.length === b.length && a.every((r, i) => r.x === b[i].x && r.y === b[i].y && r.w === b[i].w && r.h === b[i].h);
+const sameSpan = (a: Span | null, b: Span | null): boolean => a === b || (a !== null && b !== null && a.left === b.left && a.right === b.right);
 
 interface Carried {
   point: Point;
@@ -70,7 +90,7 @@ interface Carried {
 // The year prompt or the tour (onboarding announces both on <html data-onboarding>: 'prompt' or 'open').
 const onboardingIsUp = (): boolean => document.documentElement.dataset.onboarding != null;
 
-/** true while onboarding's prompt or tour is up: her first-visit hint waits, and on a phone she does too. */
+/** true while onboarding's prompt or tour is up: her first-visit hint waits. */
 function useOnboardingOpen(): boolean {
   const [up, setUp] = useState(onboardingIsUp);
   useEffect(() => {
@@ -83,13 +103,11 @@ function useOnboardingOpen(): boolean {
 }
 
 /**
- * Mounted once by the shell while the `noora` feature is on. Nothing at all while she is hidden, or on a phone while
- * the year prompt takes the bottom of the screen. Her keyboard shortcut works either way: it brings her back.
+ * Mounted once by the shell while the `noora` feature is on. Nothing at all while she is hidden or on the full page.
+ * Her keyboard shortcut works either way: it brings her back, or goes to the full page's text box.
  */
 export function MiniNoora() {
   const hidden = useMiniNooraHidden();
-  const phone = useMediaQuery(BREAKPOINTS.mobile);
-  const onboarding = useOnboardingOpen();
   const { pathname } = useLocation();
   const onPage = pathname === NOORA_PATH;
   const navigate = useNavigate();
@@ -115,11 +133,12 @@ export function MiniNoora() {
     return () => window.removeEventListener('keydown', onKey);
   }, [onPage]);
 
-  return hidden || onPage || (phone && onboarding) ? null : <Noora />;
+  return hidden || onPage ? null : <Noora away={restsAway(pathname)} />;
 }
 
-function Noora() {
+function Noora({ away }: { away: boolean }) {
   const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const wide = useMediaQuery(BREAKPOINTS.desktop);
   const short = useMediaQuery(SHORT);
   const calm = useMediaQuery('(prefers-reduced-motion: reduce)');
   const onboarding = useOnboardingOpen();
@@ -129,7 +148,7 @@ function Noora() {
   const button = useRef<HTMLButtonElement>(null);
   const card = useRef<HTMLElement>(null);
   const view = useViewport(top, bottom);
-  const size = useMemo(() => figure(phone ? HEIGHT.phone : HEIGHT.desktop), [phone]);
+  const size = useMemo(() => figure(wide ? HEIGHT.desktop : HEIGHT.compact), [wide]);
   const open = useCardOpen();
 
   // Stored JSON is not trusted: fromAnchor() checks the anchor, and `seen` counts only when it is true.
@@ -146,12 +165,15 @@ function Noora() {
   const [focused, setFocused] = useState(false);
   const [hintDue, setHintDue] = useState(false);
   const [controls, setControls] = useState<Rect[]>([]);
+  const [page, setPage] = useState<Span | null>(null);
 
   if (open && !chatWanted) setChatWanted(true);
 
   // ── Where she is ────────────────────────────────────────────────────────────────────────────────
-  // Where she was last put (or her corner), stepped aside from any key control, unless a hand is carrying her.
-  const home = useMemo(() => fromAnchor(anchor, view, size) ?? homePoint(view, size, phone), [anchor, view, size, phone]);
+  // In her lane, at the height she was put at (or at the bottom of the right lane), stepped aside from any control
+  // that reaches into it, unless a hand is carrying her.
+  const home = useMemo(() => fromAnchor(anchor, view, size) ?? homePoint(view, size), [anchor, view, size]);
+  const side: Side = nearestSide(home, view, size);
   const rest = useMemo(() => avoid(home, view, size, controls), [home, view, size, controls]);
   const free = carry ? carry.point : rest;
   // The chat goes beside her and follows her. While it is open it stays on the side it is on for as long as it fits.
@@ -163,29 +185,30 @@ function Noora() {
   // On a phone the chat is a sheet over the bottom of the screen, so she hops onto its top edge. On a short screen it
   // covers the window, and she steps out of sight until it closes.
   const perched = open && place.sheet;
-  const away = open && place.full;
-  const point = perched && !away ? perchOnSheet(place, view, size) : free;
+  const point = perched && !place.full ? perchOnSheet(place, view, size) : free;
+  // At rest on a phone, or on a page she stays away from, she is out of sight: she comes out with her chat.
+  const shown = open ? !place.full : !phone && !away;
 
-  // While she stands at the bottom of the window, the page keeps room under its end to scroll clear of her.
-  const atBottom = !carry && view.floor - (rest.y + size.h) < size.h / 2;
-  const clearance = atBottom ? Math.round(view.floor - rest.y + 8) : 0;
-  useEffect(() => {
+  // Pages keep her lane clear while she rests in it (Mascot.css). Before paint, so a page never jumps under her.
+  useLayoutEffect(() => {
+    if (away) return undefined;
     const root = document.documentElement;
-    if (clearance) root.style.setProperty(CLEARANCE_VAR, `${clearance}px`);
-    else root.style.removeProperty(CLEARANCE_VAR);
+    root.dataset.nooraLane = side;
     return () => {
-      root.style.removeProperty(CLEARANCE_VAR);
+      delete root.dataset.nooraLane;
     };
-  }, [clearance]);
+  }, [away, side]);
 
-  // What she might cover: checked on a new page, when the window changes, once scrolling stops and when she is put
-  // down. Not while her chat is open: the card is placed beside her and should not move.
+  // What she might cover, and where the page is: checked on a new page, when the window changes, once scrolling stops
+  // and when she is put down. Not while her chat is open: the card is placed beside her and should not move.
   const lookAround = useCallback(() => {
     const next = keyControls();
     setControls((prev) => (sameRects(prev, next) ? prev : next));
+    const span = pageSpan();
+    setPage((prev) => (sameSpan(prev, span) ? prev : span));
   }, []);
   useEffect(() => {
-    if (open) return undefined;
+    if (open || !shown) return undefined;
     const timers = LOOK_AGAIN.map((ms) => window.setTimeout(lookAround, ms));
     let settle = 0;
     const onScroll = () => {
@@ -200,7 +223,7 @@ function Noora() {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
-  }, [open, pathname, lookAround]);
+  }, [open, shown, pathname, view, lookAround]);
 
   // ── Picking her up ──────────────────────────────────────────────────────────────────────────────
   const at = useRef(point); // her position right now, for the handlers below
@@ -232,7 +255,7 @@ function Noora() {
     onEnd: ({ dragged }) => {
       setPressed(false);
       if (!dragged) return;
-      // She snaps to the nearer edge and keeps the height she was let go at.
+      // She goes to the nearer lane and keeps the height she was let go at.
       setAnchor(toAnchor(at.current, view, size));
       setCarry(null);
       setLanded(true);
@@ -288,15 +311,13 @@ function Noora() {
   }, []);
 
   // ── The first-visit hint ────────────────────────────────────────────────────────────────────────
-  // Only on Home, where nothing it could cover is being filled in, and only for a while.
-  const onHome = pathname === '/';
+  // Once, beside her, and only where it covers none of the page (a wide screen with room in its margin).
   useEffect(() => {
-    if (seen || onboarding || !onHome) return undefined;
+    if (seen || onboarding || !shown) return undefined;
     const due = setTimeout(() => setHintDue(true), HINT_DELAY);
     return () => clearTimeout(due);
-  }, [seen, onboarding, onHome]);
-  const hintSide: Side = point.x + size.w / 2 > view.w / 2 ? 'left' : 'right';
-  const hint = hintDue && onHome && !seen && !onboarding && !open && !carried ? hintSide : null;
+  }, [seen, onboarding, shown]);
+  const hint = hintDue && shown && !seen && !onboarding && !open && !carried ? hintSide(point, view, size, page, HINT_BUBBLE) : null;
   const hinting = hint !== null;
   useEffect(() => {
     if (!hinting) return undefined;
@@ -328,7 +349,7 @@ function Noora() {
       closeCard();
       return;
     }
-    // Arrow keys move her: left and right to the other edge, up and down along it (Shift: further).
+    // Arrow keys move her: left and right to the other lane, up and down along it (Shift: further).
     const dir = NUDGE[e.key];
     if (!dir || perched || e.altKey || e.ctrlKey || e.metaKey) return;
     e.preventDefault();
@@ -392,30 +413,30 @@ function Noora() {
           </ErrorBoundary>
         </section>
       ) : null}
-      {away ? null : (
-      <Mascot
-        ref={button}
-        point={point}
-        size={size}
-        pose={pose}
-        mirrored={pose === 'talking' && faceLeft}
-        state={state}
-        motion={calm ? 'breathe' : motionFor({ chat: chatMood, lively })}
-        tilt={carry ? carry.tilt : 0}
-        open={open}
-        chatId={CHAT_ID}
-        hint={hint}
-        onHintClick={openFromHint}
-        onHintClose={closeHint}
-        onClick={onClick}
-        onKeyDown={onKeyDown}
-        onPointerEnter={(e: PointerEvent<HTMLButtonElement>) => setHovered(e.pointerType !== 'touch')}
-        onPointerLeave={() => setHovered(false)}
-        onFocus={(e: FocusEvent<HTMLButtonElement>) => setFocused(e.currentTarget.matches(':focus-visible'))}
-        onBlur={() => setFocused(false)}
-        {...drag.handlers}
-      />
-      )}
+      {shown || carried ? (
+        <Mascot
+          ref={button}
+          point={point}
+          size={size}
+          pose={pose}
+          mirrored={pose === 'talking' && faceLeft}
+          state={state}
+          motion={calm ? 'breathe' : motionFor({ chat: chatMood, lively })}
+          tilt={carry ? carry.tilt : 0}
+          open={open}
+          chatId={CHAT_ID}
+          hint={hint}
+          onHintClick={openFromHint}
+          onHintClose={closeHint}
+          onClick={onClick}
+          onKeyDown={onKeyDown}
+          onPointerEnter={(e: PointerEvent<HTMLButtonElement>) => setHovered(e.pointerType !== 'touch')}
+          onPointerLeave={() => setHovered(false)}
+          onFocus={(e: FocusEvent<HTMLButtonElement>) => setFocused(e.currentTarget.matches(':focus-visible'))}
+          onBlur={() => setFocused(false)}
+          {...drag.handlers}
+        />
+      ) : null}
     </>,
     document.body,
   );

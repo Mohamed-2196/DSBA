@@ -124,27 +124,29 @@
 }
 
 /* ── Mini poster (Continue learning, Pick up where you left off) ───────── */
+/* The lesson's thumbnail fills the tile; without one, the module's illustration sits on its cohort tint. The play
+   badge is in the bottom corner, or in the middle of the large tile. */
 .mod-mini {
   container: mod-mini / inline-size;
   position: relative;
-  display: block;
+  display: grid;
+  place-items: center;
   flex: 0 0 auto;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   isolation: isolate;
   border-radius: var(--r-control);
-  background: color-mix(in oklab, var(--mc) 15%, var(--paper));
+  background: color-mix(in oklab, var(--mc) 14%, var(--surface));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 9%, transparent);
   color: var(--ink);
 }
 .mod-mini--sm { width: 96px; border-radius: 8px; }
 .mod-mini--md { width: 136px; }
 .mod-mini--lg { width: 100%; border-radius: 12px; }
+.mod-mini__thumb { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; }
+.mod-mini__art { position: absolute; inset: 11% 0; width: 100%; height: 78%; max-width: none; object-fit: contain; filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--scrim) 25%, transparent)); }
 .mod-mini__code {
-  position: absolute;
-  left: 8cqi;
-  top: 7cqi;
-  font-size: clamp(11px, 9cqi, 28px);
+  font-size: clamp(11px, 13cqi, 28px);
   font-weight: var(--fw-heavy);
   font-variant-numeric: tabular-nums lining-nums;
   letter-spacing: -0.02em;
@@ -152,15 +154,23 @@
 }
 .mod-mini__play {
   position: absolute;
-  right: 7cqi;
-  top: 7cqi;
+  right: 6cqi;
+  bottom: 7cqi;
   display: grid;
   place-items: center;
-  width: clamp(18px, 15cqi, 44px);
+  width: clamp(20px, 15cqi, 52px);
   aspect-ratio: 1;
   border-radius: var(--r-pill);
   background: var(--mc);
   color: var(--mc-on);
-  font-size: clamp(9px, 6.5cqi, 18px);
+  font-size: clamp(10px, 6.5cqi, 20px);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--scrim) 30%, transparent);
+  transition: transform var(--dur-fast) var(--ease);
 }
 .mod-mini__play svg { margin-left: 9%; }
+/* Over a video's own picture the badge goes in the middle of the large tile, as a player's does. */
+.mod-mini--lg.has-thumb .mod-mini__play { right: auto; bottom: auto; }
+a:hover > .mod-mini .mod-mini__play { transform: scale(1.06); }
+@media (prefers-reduced-motion: reduce) {
+  .mod-mini__play { transition: none; }
+}

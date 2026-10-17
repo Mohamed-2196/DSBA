@@ -1,11 +1,11 @@
 .ui-page {
   width: 100%;
-  max-width: calc(var(--content-max) + 2 * var(--content-pad));
+  max-width: calc(var(--content-max) + var(--page-pad-left) + var(--page-pad-right));
   margin-inline: auto;
-  padding: var(--sp-32) var(--content-pad) var(--sp-64);
+  padding: var(--sp-32) var(--page-pad-right) var(--sp-64) var(--page-pad-left);
 }
-.ui-page--wide { max-width: calc(var(--content-max-wide) + 2 * var(--content-pad)); }
-.ui-page--narrow { max-width: calc(var(--content-max-narrow) + 2 * var(--content-pad)); }
+.ui-page--wide { max-width: calc(var(--content-max-wide) + var(--page-pad-left) + var(--page-pad-right)); }
+.ui-page--narrow { max-width: calc(var(--content-max-narrow) + var(--page-pad-left) + var(--page-pad-right)); }
 
 .ui-page-header {
   display: flex;

@@ -5,17 +5,17 @@ import { daysBetween, formatDay, monthName, parseDay, type DayKey } from '../../
 import type { CalendarEvent, EventType, EventTypeMeta } from './types';
 
 export const EVENT_TYPES: Record<EventType, EventTypeMeta> = {
-  exam: { label: 'Exam', token: '--alert', color: 'var(--alert)' },
-  mock: { label: 'Mock exam', token: '--cobalt', color: 'var(--cobalt)' },
-  revision: { label: 'Revision', token: '--signal', color: 'var(--signal)' },
-  deadline: { label: 'Deadline', token: '--highlight', color: 'var(--highlight)' },
+  exam: { label: 'Exam', plural: 'exams', token: '--alert', color: 'var(--alert)' },
+  mock: { label: 'Mock exam', plural: 'mock exams', token: '--cobalt', color: 'var(--cobalt)' },
+  revision: { label: 'Revision', plural: 'revision sessions', token: '--signal', color: 'var(--signal)' },
+  deadline: { label: 'Deadline', plural: 'deadlines', token: '--highlight', color: 'var(--highlight)' },
   // Application windows of Career Navigator's employers.
-  careers: { label: 'Careers', token: '--ink', color: 'var(--ink)' },
+  careers: { label: 'Careers', plural: 'careers dates', token: '--ink', color: 'var(--ink)' },
   // Programme events (Speech Day, launches, socials). Amber is the one warm token the other types leave free; it is
   // also Year 3's cohort colour, so it never appears without the word "Event".
-  event: { label: 'Event', token: '--y3', color: 'var(--y3)' },
-  break: { label: 'Break', token: '--ink-3', color: 'var(--ink-3)' },
-  term: { label: 'Term dates', token: '--ink-2', color: 'var(--ink-2)' },
+  event: { label: 'Event', plural: 'events', token: '--y3', color: 'var(--y3)' },
+  break: { label: 'Break', plural: 'breaks', token: '--ink-3', color: 'var(--ink-3)' },
+  term: { label: 'Term dates', plural: 'term dates', token: '--ink-2', color: 'var(--ink-2)' },
 };
 
 /** Legend / filter order. Also the order of importance when one day holds several events. */
@@ -38,6 +38,9 @@ export const TYPE_BADGE_TONE: Record<EventType, BadgeTone> = {
 };
 
 export const typeLabel = (type: string): string => (isEventType(type) ? EVENT_TYPES[type].label : 'Event');
+
+/** A type's dates together, inside a sentence: 'exams', 'mock exams', 'careers dates'. */
+export const typePlural = (type: string): string => (isEventType(type) ? EVENT_TYPES[type].plural : 'dates');
 
 /**
  * Title split for typographic display: { code: 'ST2134', rest: 'Advanced Statistics: … (October exam)' }.

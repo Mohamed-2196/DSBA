@@ -1,6 +1,7 @@
 // The boards' rules, kept out of the components so they can be tested: templates and colours, moves, due dates and
 // times, checklists, filters, the agenda's sections, revision plans and past papers.
-import type { AgendaCard, BoardCard, BoardColumn, BoardPlan, BoardSummary, ChecklistItem } from '../../api/types';
+import type { AgendaCard, BoardCard, BoardCardUpdate, BoardColumn, BoardPlan, BoardSummary, ChecklistItem } from '../../api/types';
+import { formatSize } from '../../api/uploads';
 import { addDaysToKey, daysBetween, type DayKey } from '../../lib/dates';
 
 export type BoardColor = BoardSummary['color'];
@@ -15,23 +16,33 @@ export interface TemplateInfo {
   name: string;
   /** what it's for, in a few words */
   blurb: string;
-  /** its columns, as the API makes them */
+  /** its columns, as the API makes them; the last one counts as done */
   columns: readonly string[];
   /** a name for a board made from it */
   suggested: string;
-  emoji: string;
+  /** the colour a board made from it starts with */
+  color: BoardColor;
 }
 
+/** The templates a student starts a board from. The API's "revision" template is left out: it is three renamed
+ *  Study columns, and its name promises the revision plan that "Plan my revision" on a module makes. */
 export const TEMPLATES: readonly TemplateInfo[] = [
-  { id: 'study', name: 'Study', blurb: 'What to study, what you’re on, what’s done.', columns: ['To do', 'In progress', 'Done'], suggested: 'Study', emoji: '📚' },
-  { id: 'revision', name: 'Revision plan', blurb: 'Lessons and past papers up to an exam.', columns: ['To revise', 'Revising', 'Revised'], suggested: 'Exam revision', emoji: '🎯' },
-  { id: 'assignment', name: 'Assignment', blurb: 'From research to hand-in.', columns: ['Research', 'Draft', 'Review', 'Submitted'], suggested: 'Coursework', emoji: '✍️' },
-  { id: 'weekly', name: 'Weekly planner', blurb: 'A column for each day of the week.', columns: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Done'], suggested: 'This week', emoji: '🗓️' },
-  { id: 'personal', name: 'Personal', blurb: 'Errands and everything else.', columns: ['Today', 'This week', 'Later', 'Done'], suggested: 'Personal', emoji: '🏠' },
-  { id: 'blank', name: 'Blank', blurb: 'Two columns to make your own.', columns: ['To do', 'Done'], suggested: 'New board', emoji: '📌' },
+  { id: 'study', name: 'Study', blurb: 'What to study, what you’re on and what’s done.', columns: ['To do', 'In progress', 'Done'], suggested: 'Study', color: 'cobalt' },
+  { id: 'assignment', name: 'Assignment', blurb: 'Coursework from research to hand-in.', columns: ['Research', 'Draft', 'Review', 'Submitted'], suggested: 'Coursework', color: 'coral' },
+  { id: 'weekly', name: 'Weekly planner', blurb: 'A column for each day of the week.', columns: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Done'], suggested: 'This week', color: 'teal' },
+  { id: 'personal', name: 'Personal', blurb: 'Errands and everything outside study.', columns: ['Today', 'This week', 'Later', 'Done'], suggested: 'Personal', color: 'green' },
+  { id: 'blank', name: 'Blank', blurb: 'Two columns to make your own.', columns: ['To do', 'Done'], suggested: 'My board', color: 'slate' },
 ];
 
-export const templateOf = (id: BoardTemplate): TemplateInfo => TEMPLATES.find((t) => t.id === id) ?? (TEMPLATES[TEMPLATES.length - 1] as TemplateInfo);
+/** The template's own name, or "Study 2", "Study 3"… when a board already has it (case aside). */
+export function startName(suggested: string, taken: readonly string[]): string {
+  const names = new Set(taken.map((n) => n.trim().toLowerCase()));
+  if (!names.has(suggested.toLowerCase())) return suggested;
+  for (let i = 2; ; i += 1) {
+    const name = `${suggested} ${i}`;
+    if (!names.has(name.toLowerCase())) return name;
+  }
+}
 
 export const COLORS: readonly { id: BoardColor; label: string }[] = [
   { id: 'cobalt', label: 'Blue' },
@@ -42,7 +53,7 @@ export const COLORS: readonly { id: BoardColor; label: string }[] = [
   { id: 'slate', label: 'Grey' },
 ];
 
-/** The design token a board or label colour is drawn with. */
+/** The design token a board or label colour fills a dot or a bar with. */
 export function colorVar(color: BoardColor): string {
   const tokens: Record<BoardColor, string> = {
     cobalt: 'var(--cobalt)',
@@ -55,6 +66,20 @@ export function colorVar(color: BoardColor): string {
   return tokens[color] ?? 'var(--cobalt)';
 }
 
+/** The same colour for small text: each one reads at AA on a surface, in both themes. */
+export function colorInk(color: BoardColor): string {
+  const tokens: Record<BoardColor, string> = {
+    cobalt: 'var(--cobalt)',
+    teal: 'var(--y1-strong)',
+    green: 'var(--signal-strong)',
+    amber: 'var(--y3-strong)',
+    coral: 'var(--alert-strong)',
+    slate: 'var(--ink-2)',
+  };
+  return tokens[color] ?? 'var(--cobalt)';
+}
+
+/** Icons a student may give a board (optional: a board's colour already tells boards apart). */
 export const EMOJI_CHOICES = ['📚', '🎯', '✍️', '🗓️', '🏠', '📌', '💼', '🧪', '📊', '💡', '🏃', '🛒'] as const;
 
 export const PRIORITIES: readonly { id: Priority; label: string }[] = [
@@ -100,15 +125,18 @@ export function placeCard(cards: readonly BoardCard[], columns: readonly BoardCo
   return inColumnOrder([...rest.filter((c) => c.columnId !== columnId), ...columnCards], columns);
 }
 
+/** The list with `id` moved to right after `afterId` (null: first), as the API places boards and columns. */
+export function placeAfter<T extends { id: string }>(list: readonly T[], id: string, afterId: string | null): T[] {
+  const item = list.find((x) => x.id === id);
+  if (!item || afterId === id) return [...list];
+  const rest = list.filter((x) => x.id !== id);
+  const at = afterId === null ? 0 : rest.findIndex((x) => x.id === afterId) + 1;
+  if (at === 0 && afterId !== null) return [...list];
+  return [...rest.slice(0, at), item, ...rest.slice(at)];
+}
+
 /** A new card at the end of its column. */
 export const appendCard = (cards: readonly BoardCard[], columns: readonly BoardColumn[], card: BoardCard): BoardCard[] => inColumnOrder([...cards, card], columns);
-
-/** The card to go after when `id` lands at `index` of `columnId` (counted without the card itself). */
-export function afterIdAt(cards: readonly BoardCard[], id: string, columnId: string, index: number): string | null {
-  const target = cardsIn(cards, columnId).filter((c) => c.id !== id);
-  const i = Math.max(0, Math.min(index, target.length));
-  return i === 0 ? null : (target[i - 1]?.id ?? null);
-}
 
 /** The card to go after when `id` is dropped right before `beforeId` in `columnId`. */
 export function afterIdBefore(cards: readonly BoardCard[], id: string, columnId: string, beforeId: string): string | null {
@@ -133,11 +161,16 @@ export function nudge(cards: readonly BoardCard[], id: string, by: -1 | 1): stri
   return to === 0 ? null : (others[to - 1]?.id ?? null);
 }
 
-/** The column before or after the card's, for the keyboard ("[" and "]"), or null at either end. */
+/** The column before or after the card's, for Alt+Left and Alt+Right, or null at either end. */
 export function neighbourColumn(columns: readonly BoardColumn[], columnId: string, by: -1 | 1): BoardColumn | null {
   const i = columns.findIndex((c) => c.id === columnId);
   return i < 0 ? null : (columns[i + by] ?? null);
 }
+
+/** A column's name in a list of columns to pick from: "Waiting (done)" when its cards count as done and its name
+ *  doesn't say so. */
+export const columnLabel = (column: Pick<BoardColumn, 'name' | 'done'>): string =>
+  column.done && !/\bdone\b/i.test(column.name) ? `${column.name} (done)` : column.name;
 
 /** The first column marked done, where "Mark done" sends a card. */
 export const doneColumn = (columns: readonly BoardColumn[]): BoardColumn | null => columns.find((c) => c.done) ?? null;
@@ -201,6 +234,41 @@ export function moveItem(items: readonly ChecklistItem[], id: string, by: -1 | 1
   const out = [...items];
   [out[i], out[j]] = [out[j] as ChecklistItem, out[i] as ChecklistItem];
   return out;
+}
+
+// ── what a card says, and changes to it ────────────────────────────────────────────────────
+
+/** A description (Markdown) as one line of plain text, for the preview on a card: marks, link addresses, list
+ *  bullets and headings' hashes go; words stay, snake_case included. */
+export function plainText(markdown: string | null | undefined): string {
+  if (!markdown) return '';
+  return markdown
+    .replace(/```[^\n]*\n?/g, ' ')
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^[ \t]{0,3}(?:#{1,6}[ \t]+|>[ \t]?|[-*+][ \t]+(?:\[[ xX]\][ \t]+)?|\d{1,3}[.)][ \t]+)/gm, '')
+    .replace(/(\*\*|__|~~)(?=\S)([^\n]*?\S)\1/g, '$2')
+    .replace(/(^|[^\w*])[*_](?=\S)([^*_\n]*?\S)[*_](?![\w*])/g, '$1$2')
+    .replace(/`+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** The card as the API will send it back after `patch` (fields not sent stay; null clears; clearing the due date
+ *  clears the time). For showing a change at once, before the answer comes. */
+export function patchCard<T extends BoardCard>(card: T, patch: BoardCardUpdate): T {
+  const next: T = { ...card };
+  if (patch.title != null) next.title = patch.title;
+  if (patch.description !== undefined) next.description = patch.description || null;
+  if (patch.dueDate !== undefined) next.dueDate = patch.dueDate;
+  if (patch.dueTime !== undefined) next.dueTime = patch.dueTime;
+  if (next.dueDate == null) next.dueTime = null;
+  if (patch.remindBefore !== undefined) next.remindBefore = patch.remindBefore;
+  if (patch.priority != null) next.priority = patch.priority;
+  if (patch.labelIds != null) next.labelIds = patch.labelIds;
+  if (patch.checklist != null) next.checklist = patch.checklist;
+  if (patch.coverId !== undefined) next.coverUrl = patch.coverId ? `/api/v1/board-files/${patch.coverId}` : null;
+  return next;
 }
 
 // ── filters and the agenda ─────────────────────────────────────────────────────────────────
@@ -302,6 +370,5 @@ export function parseScore(raw: string): number | null | undefined {
 
 /** "3.4 MB of 200 MB". */
 export function storageText(used: number, max: number): string {
-  const mb = (n: number) => (n >= 10 * 1024 * 1024 ? `${Math.round(n / (1024 * 1024))} MB` : `${(n / (1024 * 1024)).toFixed(1)} MB`);
-  return `${mb(used)} of ${mb(max)}`;
+  return `${formatSize(used)} of ${formatSize(max)}`;
 }

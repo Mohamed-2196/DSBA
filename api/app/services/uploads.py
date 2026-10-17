@@ -415,17 +415,37 @@ def media_redirect_url(
     screenshot. 404 for anything else (library files never go out this way) and for a picture the viewer may not see
     (can_view_image); feature_off while the picture's feature is off for the viewer."""
     up = db.get(Upload, upload_id)
-    servable = (UploadStatus.uploaded, UploadStatus.attached)
-    if up is None or up.purpose not in IMAGE_PURPOSES or up.status not in servable:
+    if up is None or up.purpose not in IMAGE_PURPOSES or up.status not in _SERVABLE:
         raise not_found("This image doesn't exist.")
     require_features(db, viewer, up.purpose)
-    ft = file_type_for(up.file_name, up.purpose)
-    if ft is None or ft.content_type not in IMAGE_CONTENT_TYPES or up.content_type != ft.content_type:
-        raise not_found("This image doesn't exist.")
-    if not can_view_image(db, up, viewer):
+    ft = _image_type(up)
+    if ft is None or not can_view_image(db, up, viewer):
         raise not_found("This image doesn't exist.")
     st = storage or get_storage()
     return st.presigned_get(up.storage_key, file_name=up.file_name, content_type=ft.content_type, inline=True)
+
+
+_SERVABLE = (UploadStatus.uploaded, UploadStatus.attached)
+
+
+def _image_type(up: Upload) -> FileType | None:
+    """The picture's allowlisted type, or None when the upload isn't a picture as the allowlist sees it."""
+    ft = file_type_for(up.file_name, up.purpose)
+    if ft is None or ft.content_type not in IMAGE_CONTENT_TYPES or up.content_type != ft.content_type:
+        return None
+    return ft
+
+
+def shows_image(db: Session, up: Upload | None, viewer: User | None) -> bool:
+    """Whether /media would show the viewer this picture (its feature aside): it is still there, a picture, and theirs
+    to see. Lists use it so that they never point at a picture that isn't."""
+    return (
+        up is not None
+        and up.purpose in IMAGE_PURPOSES
+        and up.status in _SERVABLE
+        and _image_type(up) is not None
+        and can_view_image(db, up, viewer)
+    )
 
 
 def can_view_image(db: Session, up: Upload, viewer: User | None) -> bool:

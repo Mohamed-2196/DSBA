@@ -13,14 +13,16 @@ from typing import Any
 from sqlalchemy import ColumnElement, Row, and_, exists, or_, select
 from sqlalchemy.orm import Session
 
-from app.models import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVote, User
+from app.core.links import MEDIA_PATH
+from app.models import ForumReply, ForumThread, PostStatus, ReplyVote, ThreadVote, Upload, User
 from app.schemas.forum import Reply, ThreadDetail, ThreadSummary
 from app.services import access
 from app.services.accounts import public_user
 from app.services.forum import follows
 from app.services.forum.taxonomy import thread_year
-from app.services.forum.text import excerpt, first_image
+from app.services.forum.text import excerpt, pictures
 from app.services.forum.visibility import REPLY_OPTS, can_read_reply, gone, moderates
+from app.services.uploads import shows_image
 
 
 def _text(post: ForumThread | ForumReply) -> str:
@@ -42,8 +44,30 @@ def names_author(t: ForumThread, viewer: User | None) -> bool:
     return not t.anonymous or (viewer is not None and t.author_id == viewer.id) or moderates(viewer)
 
 
+def first_pictures(
+    db: Session, threads: Sequence[ForumThread], viewer: User | None
+) -> dict[uuid.UUID, dict[str, str] | None]:
+    """Each thread's first picture the viewer can open, {src, alt}, or None: a picture whose upload is gone (its
+    author deleted their account) or that they may not see is passed over, so a list never points at one that won't
+    load. One query for all the threads' pictures."""
+    found = {t.id: pictures(_text(t)) for t in threads}
+    ids = {uuid.UUID(m.group(1)) for shown in found.values() for p in shown if (m := MEDIA_PATH.fullmatch(p["src"]))}
+    uploads = {u.id: u for u in db.scalars(select(Upload).where(Upload.id.in_(ids)))} if ids else {}
+
+    def opens(p: dict[str, str]) -> bool:
+        m = MEDIA_PATH.fullmatch(p["src"])
+        return m is not None and shows_image(db, uploads.get(uuid.UUID(m.group(1))), viewer)
+
+    return {tid: next((p for p in shown if opens(p)), None) for tid, shown in found.items()}
+
+
 def summary_dict(
-    t: ForumThread, author: User | None, year: int | None, voted: bool, viewer: User | None
+    t: ForumThread,
+    author: User | None,
+    year: int | None,
+    voted: bool,
+    viewer: User | None,
+    image: dict[str, str] | None,
 ) -> dict[str, Any]:
     text = _text(t)
     return {
@@ -67,15 +91,16 @@ def summary_dict(
         "pinned": t.pinned,
         "locked": t.locked,
         "status": t.status.value,
-        "image": first_image(text),
+        "image": image,
         "is_mine": viewer is not None and t.author_id == viewer.id,
     }
 
 
-def summaries(rows: Sequence[Row[Any]], viewer: User | None) -> list[ThreadSummary]:
+def summaries(db: Session, rows: Sequence[Row[Any]], viewer: User | None) -> list[ThreadSummary]:
     """Rows of queries.summary_select() as ThreadSummary."""
+    images = first_pictures(db, [row[0] for row in rows], viewer)
     return [
-        ThreadSummary.model_validate(summary_dict(t, author, year, bool(voted), viewer))
+        ThreadSummary.model_validate(summary_dict(t, author, year, bool(voted), viewer, images[t.id]))
         for t, author, year, voted in rows
     ]
 
@@ -153,7 +178,7 @@ def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDet
                 .where(ReplyVote.user_id == viewer.id, ForumReply.thread_id == t.id)
             )
         )
-    data = summary_dict(t, author, thread_year(db, t), voted, viewer)
+    data = summary_dict(t, author, thread_year(db, t), voted, viewer, first_pictures(db, [t], viewer)[t.id])
     data.update(
         body=_text(t),
         edited_at=t.edited_at,

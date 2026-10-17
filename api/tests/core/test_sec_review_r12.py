@@ -1,5 +1,5 @@
-"""The round 12 security review's proof for the private calendar feed's address. The test passes while the problem
-it names is still there."""
+"""The round 12 security review's test for the private calendar feed's address (SEC-37, fixed): the feed's secret
+never reaches the access log."""
 
 from __future__ import annotations
 
@@ -46,20 +46,18 @@ def uvicorn_loggers() -> Iterator[None]:
         logger.handlers, logger.level, logger.propagate = handlers, level, propagate
 
 
-def test_sec37_the_private_feeds_secret_is_written_to_the_apis_access_log(
+def test_sec37_the_private_feeds_secret_never_reaches_the_apis_access_log(
     app: FastAPI,
     client_for: ClientFor,
     make_user: MakeUser,
     set_feature: Callable[..., None],
     uvicorn_loggers: None,
 ) -> None:
-    """The image starts uvicorn without --no-access-log, so uvicorn's default logging writes every request line,
-    path included, to the container's output: a calendar app polling a student's private feed puts the feed's
-    secret there every few hours."""
+    """The image starts uvicorn with its access log on. A calendar app polling a student's private feed is logged
+    with /api/v1/feeds/calendar/….ics as the path: the feed's secret never reaches the container's output."""
     cmd = next(line for line in DOCKERFILE.read_text().splitlines() if line.startswith("CMD"))
     assert "uvicorn" in cmd
     assert "--no-access-log" not in cmd
-    assert "--log-config" not in cmd
 
     set_feature("calendar", "everyone")
     student = client_for(make_user(name="Sara Student"))
@@ -84,12 +82,12 @@ def test_sec37_the_private_feeds_secret_is_written_to_the_apis_access_log(
         assert server.started
         port = server.servers[0].sockets[0].getsockname()[1]
         with httpx.Client(trust_env=False, timeout=10) as calendar_app:
-            r = calendar_app.get(f"http://127.0.0.1:{port}{feed}")
+            r = calendar_app.get(f"http://127.0.0.1:{port}{feed}?refresh=1")
         assert r.status_code == 200, r.text
         assert "SUMMARY:Dentist" in r.text
     finally:
         server.should_exit = True
         thread.join(timeout=10)
-    logged = [line for line in lines.lines if secret in line]
-    assert logged, lines.lines
-    assert f"GET {feed} HTTP/1.1" in logged[0]
+    assert lines.lines
+    assert not [line for line in lines.lines if secret in line], lines.lines
+    assert any(f"GET {API}/feeds/calendar/….ics?refresh=1 HTTP/1.1" in line for line in lines.lines), lines.lines

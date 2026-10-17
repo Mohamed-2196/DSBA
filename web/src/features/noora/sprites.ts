@@ -17,8 +17,11 @@ export const bustUrl = (bust: Bust): string => url(`bust-${bust}`);
 // The full-body canvas (sprites.json → canvas.full): 680 × 784, her feet on y = 768, her body centred on x = 340.
 // Standing still she fills the middle half of the width, from y = 60 down to her feet. The pixels are 2×.
 const CANVAS = { w: 680, h: 784, feetY: 768, headY: 60, bodyW: 340 };
-/** How tall she stands, head to feet, in CSS pixels. */
-export const HEIGHT = { desktop: 112, phone: 84 };
+/**
+ * How tall she stands, head to feet, in CSS pixels: on screens 1100 px and wider, and on narrower ones. Her lane
+ * (Mascot.css) is as wide as she is at these heights (54 and 40 px) plus 8 px on each side.
+ */
+export const HEIGHT = { desktop: 112, compact: 84 };
 
 export interface Figure {
   w: number;

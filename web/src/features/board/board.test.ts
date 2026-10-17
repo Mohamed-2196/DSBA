@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { AgendaCard, BoardCard, BoardColumn } from '../../api/types';
 import {
-  afterIdAt,
   afterIdBefore,
   agendaSections,
   appendCard,
   checklistProgress,
+  colorInk,
+  COLORS,
+  columnLabel,
   counts,
   dueLabel,
   dueOf,
@@ -16,12 +18,16 @@ import {
   neighbourColumn,
   nudge,
   parseScore,
+  patchCard,
+  placeAfter,
   placeCard,
+  plainText,
   planPace,
   sittingsDone,
   splitDone,
+  startName,
   storageText,
-  templateOf,
+  TEMPLATES,
 } from './board';
 import { cleanScores } from './scores';
 
@@ -82,17 +88,21 @@ describe('positions from the screen', () => {
     expect(afterIdBefore(board, 'a', 'todo', 'b')).toBeNull(); // without the moving card, b is first
     expect(afterIdBefore(board, 'd', 'todo', 'c')).toBe('b');
   });
-  it('finds the card to go after for an index', () => {
-    expect(afterIdAt(board, 'a', 'todo', 0)).toBeNull();
-    expect(afterIdAt(board, 'a', 'todo', 2)).toBe('c');
-    expect(afterIdAt(board, 'd', 'todo', 99)).toBe('c');
-  });
   it('moves up and down within the column, and not past its ends', () => {
     expect(nudge(board, 'b', -1)).toBeNull();
     expect(nudge(board, 'b', 1)).toBe('c');
     expect(nudge(board, 'a', -1)).toBeUndefined();
     expect(nudge(board, 'c', 1)).toBeUndefined();
     expect(nudge(board, 'd', 1)).toBeUndefined();
+  });
+  it('places a board or a column after another, or first', () => {
+    const list = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    const order = (xs: { id: string }[]) => xs.map((x) => x.id).join('');
+    expect(order(placeAfter(list, 'a', 'c'))).toBe('bca');
+    expect(order(placeAfter(list, 'c', null))).toBe('cab');
+    expect(order(placeAfter(list, 'b', 'a'))).toBe('abc');
+    expect(order(placeAfter(list, 'b', 'gone'))).toBe('abc');
+    expect(order(placeAfter(list, 'gone', 'a'))).toBe('abc');
   });
   it('counts the cards in each column', () => {
     expect(counts(board)).toEqual({ todo: 3, doing: 1, done: 1 });
@@ -227,9 +237,60 @@ describe('past papers', () => {
   it('formats storage text', () => {
     expect(storageText(3.5 * 1024 * 1024, 200 * 1024 * 1024)).toBe('3.5 MB of 200 MB');
     expect(storageText(25 * 1024 * 1024, 200 * 1024 * 1024)).toBe('25 MB of 200 MB');
+    expect(storageText(48 * 1024, 200 * 1024 * 1024)).toBe('48 KB of 200 MB');
   });
-  it('finds template info', () => {
-    expect(templateOf('study').columns).toEqual(['To do', 'In progress', 'Done']);
-    expect(templateOf('assignment').columns).toEqual(['Research', 'Draft', 'Review', 'Submitted']);
+});
+
+describe('templates and colours', () => {
+  it('offers the templates with the columns the API makes, the last one done', () => {
+    expect(TEMPLATES.map((t) => t.id)).toEqual(['study', 'assignment', 'weekly', 'personal', 'blank']);
+    expect(TEMPLATES.find((t) => t.id === 'study')?.columns).toEqual(['To do', 'In progress', 'Done']);
+    expect(TEMPLATES.find((t) => t.id === 'assignment')?.columns).toEqual(['Research', 'Draft', 'Review', 'Submitted']);
+    expect(TEMPLATES.find((t) => t.id === 'weekly')?.columns).toHaveLength(8);
+  });
+  it('names a new board after its template, numbered when the name is taken', () => {
+    expect(startName('Study', [])).toBe('Study');
+    expect(startName('Study', ['study ', 'Personal'])).toBe('Study 2');
+    expect(startName('Study', ['Study', 'Study 2'])).toBe('Study 3');
+  });
+  it('names a done column in a picker only when its name doesn’t say so', () => {
+    expect(columnLabel({ name: 'Done', done: true })).toBe('Done');
+    expect(columnLabel({ name: 'Submitted', done: true })).toBe('Submitted (done)');
+    expect(columnLabel({ name: 'Done and dusted', done: true })).toBe('Done and dusted');
+    expect(columnLabel({ name: 'To do', done: false })).toBe('To do');
+  });
+  it('has a text colour for every board colour', () => {
+    expect(COLORS.map((c) => colorInk(c.id))).toEqual([
+      'var(--cobalt)',
+      'var(--y1-strong)',
+      'var(--signal-strong)',
+      'var(--y3-strong)',
+      'var(--alert-strong)',
+      'var(--ink-2)',
+    ]);
+  });
+});
+
+describe('what a card says', () => {
+  it('turns a Markdown description into one line of plain text', () => {
+    expect(plainText('Focus on **price elasticity** and the worked examples.\n\n- 3.1\n- 3.2')).toBe(
+      'Focus on price elasticity and the worked examples. 3.1 3.2',
+    );
+    expect(plainText('## Plan\n1. Read [chapter 3](https://example.com/ch3)\n2. Try `lm()` on _the_ data')).toBe(
+      'Plan Read chapter 3 Try lm() on the data',
+    );
+    expect(plainText('Rename file_name and my_var_2')).toBe('Rename file_name and my_var_2');
+    expect(plainText('> a quote\n- [x] done item')).toBe('a quote done item');
+    expect(plainText(null)).toBe('');
+  });
+  it('applies a change the way the API will', () => {
+    const c = card('a', 'todo', { dueDate: '2026-10-20', dueTime: '09:00:00', description: 'x' });
+    expect(patchCard(c, { title: 'New title' })).toMatchObject({ title: 'New title', dueDate: '2026-10-20', description: 'x' });
+    expect(patchCard(c, { dueDate: null })).toMatchObject({ dueDate: null, dueTime: null });
+    expect(patchCard(c, { description: null }).description).toBeNull();
+    expect(patchCard(c, { labelIds: ['l1'], priority: 'high' })).toMatchObject({ labelIds: ['l1'], priority: 'high' });
+    expect(patchCard(c, { coverId: 'u1' }).coverUrl).toBe('/api/v1/board-files/u1');
+    expect(patchCard(c, { coverId: null }).coverUrl).toBeNull();
+    expect(patchCard(c, {})).toEqual(c);
   });
 });

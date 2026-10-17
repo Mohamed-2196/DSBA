@@ -7,7 +7,7 @@ import { usePapers } from '../papers/public';
 import { addDaysToKey, dayKey } from '../../lib/dates';
 import { addMonths, monthKey, monthOfDate, type MonthRef, parseMonthKey, sameMonth } from './dates';
 import { isEventType, TYPE_ORDER } from './eventMeta';
-import { findEvent as findIn } from './mine';
+import { findEvent as findIn, oneRowPerRepeat } from './mine';
 import { eventDate, filterEvents, lastDay, nextExamFor, upcomingFrom, weekAhead, weekEnd, type NextExam } from './queries';
 import type { CalendarEvent, EventFilter } from './types';
 
@@ -42,7 +42,7 @@ export interface CalendarView {
   visible: CalendarEvent[];
   /** the day the list starts on: after the week ahead when the top of the page already lists it, else today */
   listFrom: string;
-  /** `visible` from `listFrom` on, in list order */
+  /** `visible` from `listFrom` on, in list order; a repeat of the student's own is one row, at its next day */
   list: CalendarEvent[];
   /** phones and tablets: the list or the month */
   mode: CalendarMode;
@@ -87,9 +87,9 @@ export function useCalendarView(events: CalendarEvent[], today: Date, signedIn =
   const listFrom = afterWeek ? addDaysToKey(weekEnd(todayKey), 1) : todayKey;
   const list = useMemo(() => {
     const upcoming = upcomingFrom(visible, listFrom);
-    if (!afterWeek) return upcoming;
+    if (!afterWeek) return oneRowPerRepeat(upcoming);
     const inWeek = new Set(week.map((e) => e.id));
-    return upcoming.filter((e) => !inWeek.has(e.id));
+    return oneRowPerRepeat(upcoming.filter((e) => !inWeek.has(e.id)));
   }, [visible, listFrom, afterWeek, week]);
 
   const defaultMonth = useMemo(() => {

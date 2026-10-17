@@ -5,7 +5,7 @@ import type { AgendaCard } from '../../api/types';
 import { Badge, Button, EmptyState, Panel, QueryError, Skeleton, safeInternalPath } from '../../ui';
 import { formatDay, todayKey } from '../../lib/dates';
 import { useAgenda } from './api';
-import { dueLabel, isOverdue } from './board';
+import { colorVar, dueLabel, isOverdue } from './board';
 import './BoardTodo.css';
 
 function TodoRow({ card, today }: { card: AgendaCard; today: string }) {
@@ -15,7 +15,7 @@ function TodoRow({ card, today }: { card: AgendaCard; today: string }) {
   return (
     <li>
       <Link to={to} className="board-todo__row">
-        <span className="board-todo__dot" style={{ background: `var(--${card.boardColor === 'slate' ? 'ink-3' : card.boardColor})` }} aria-hidden="true" />
+        <span className="board-todo__dot" style={{ background: colorVar(card.boardColor) }} aria-hidden="true" />
         <span className="board-todo__text">
           <span className="board-todo__title">{card.title}</span>
           <span className="board-todo__meta">
@@ -56,7 +56,7 @@ export function BoardTodo({ n = 5 }: { n?: number }) {
   const cards = agenda.data.cards;
   if (!cards.length) {
     return (
-      <Panel padding="none" data-hub="home-todo">
+      <Panel padding="none" className="board-todo board-todo--empty" data-hub="home-todo">
         <EmptyState
           size="sm"
           icon={Kanban}

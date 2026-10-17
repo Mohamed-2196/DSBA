@@ -1,9 +1,9 @@
 // The full page's starter cards: one per kind of help, so a student sees at a glance that Noora answers anything they
-// study, not only questions about the Hub. A card fills the text box with a question to finish: the part in [square
-// brackets] is selected, so typing replaces it. Pure: no React.
+// study, as well as where things are in the Hub. Eight, so they fill rows of four or of two. A card fills the text box
+// with a question to finish: the part in [square brackets] is selected, so typing replaces it. Pure: no React.
 import type { ModuleSummary } from '../../../api/types';
 
-export type StarterId = 'explain' | 'solve' | 'quiz' | 'plan' | 'summarise' | 'career' | 'write';
+export type StarterId = 'explain' | 'solve' | 'quiz' | 'plan' | 'summarise' | 'career' | 'write' | 'find';
 
 export interface Starter {
   id: StarterId;
@@ -26,6 +26,7 @@ export function starters(modules: readonly ModuleSummary[], year: number | null)
     { id: 'summarise', title: 'Summarise a paper', example: 'An article, a chapter or my notes', template: 'Summarise this in five bullet points, then list the key terms: [paste the text]' },
     { id: 'career', title: 'Career advice', example: 'Skills for a data analyst role', template: 'What should I learn for [a data analyst role], and which modules help?' },
     { id: 'write', title: 'Write or proofread', example: 'Clearer wording for coursework', template: 'Proofread this and suggest clearer wording, keeping my meaning: [paste your text]' },
+    { id: 'find', title: 'Find it in the Hub', example: 'Past papers, lessons and exam dates', template: `Where are [the past papers for ${code}]?` },
   ];
 }
 

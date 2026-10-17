@@ -924,7 +924,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/library/items/{slug}": {
+    "/api/v1/library/items/{ref}": {
         parameters: {
             query?: never;
             header?: never;
@@ -933,9 +933,9 @@ export interface paths {
         };
         /**
          * Get Item
-         * @description By slug. Unpublished items: only their uploader and the library's managers.
+         * @description One item, by its slug or its id. Unpublished items: only their uploader and the library's managers.
          */
-        get: operations["get_item_api_v1_library_items__slug__get"];
+        get: operations["get_item_api_v1_library_items__ref__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2312,16 +2312,45 @@ export interface paths {
         post?: never;
         /**
          * Delete My Event
-         * @description Deletes the event, every repeat of it.
+         * @description Deletes the event, every repeat of it. Errors: not_found (404).
          */
         delete: operations["delete_my_event_api_v1_calendar_mine_events__event_id__delete"];
         options?: never;
         head?: never;
         /**
          * Edit My Event
-         * @description Fields not sent stay; null clears the optional ones. A repeat changes as a whole.
+         * @description Fields not sent stay; null clears the optional ones. A repeat changes as a whole (one day of it: the
+         *     occurrence route below). Errors: not_found (404), invalid_input (422).
          */
         patch: operations["edit_my_event_api_v1_calendar_mine_events__event_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/calendar/mine/events/{event_id}/occurrences/{day}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete My Occurrence
+         * @description Takes one day off a repeat (`scope=one`), or that day and every later one (`following`); an event left
+         *     without a day is deleted. Errors: not_found (404) when no occurrence of the event starts on `day`.
+         */
+        delete: operations["delete_my_occurrence_api_v1_calendar_mine_events__event_id__occurrences__day__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit My Occurrence
+         * @description A change made from one day of a repeat. `scope=one`: that day becomes an event of its own with the change;
+         *     `following`: a new repeat with the change runs from that day, and the old one ends the day before. Returns the
+         *     event that now holds the day. Errors: not_found (404) when no occurrence of the event starts on `day`,
+         *     invalid_input (422), calendar_full (409), rate_limited (429).
+         */
+        patch: operations["edit_my_occurrence_api_v1_calendar_mine_events__event_id__occurrences__day__patch"];
         trace?: never;
     };
     "/api/v1/calendar/mine/events/{event_id}.ics": {
@@ -2333,7 +2362,7 @@ export interface paths {
         };
         /**
          * My Event Ics
-         * @description One of your events as an .ics file to import, with its repeat and reminder.
+         * @description One of your events as an .ics file to import, with its repeat and reminder. Errors: not_found (404).
          */
         get: operations["my_event_ics_api_v1_calendar_mine_events__event_id__ics_get"];
         put?: never;
@@ -2961,8 +2990,8 @@ export interface paths {
         };
         /**
          * Open File
-         * @description 302 to a short-lived link to one of the student's card files: shown in the browser for pictures and PDFs,
-         *     downloaded otherwise. 404 for anyone else.
+         * @description 302 to a short-lived link to one of the student's card files: shown in the browser for pictures and PDFs
+         *     (other files download), or, with `download`, saved under its name. 404 for anyone else.
          */
         get: operations["open_file_api_v1_board_files__upload_id__get"];
         put?: never;
@@ -8611,7 +8640,8 @@ export interface components {
          * PersonalEventOut
          * @description An event a student added for themselves: private to them. Without `startTime` it is all day (through
          *     `endDate` when set); with it, it runs from `startTime` to `endTime` (or for an hour) on `date`. Times are in
-         *     Bahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year).
+         *     Bahrain. A repeat runs every day or week from `date` until `repeatUntil` (none: for a year), except on the
+         *     `skipped` days.
          */
         PersonalEventOut: {
             /**
@@ -8648,6 +8678,8 @@ export interface components {
             repeat: "none" | "daily" | "weekly";
             /** Repeatuntil */
             repeatUntil: string | null;
+            /** Skipped */
+            skipped: string[];
             /** Remind */
             remind: (0 | 10 | 30 | 60 | 1440) | null;
             /**
@@ -15297,12 +15329,13 @@ export interface operations {
             };
         };
     };
-    get_item_api_v1_library_items__slug__get: {
+    get_item_api_v1_library_items__ref__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                slug: string;
+                /** @description The item's slug (every link uses it), or its id. */
+                ref: string;
             };
             cookie?: never;
         };
@@ -22726,6 +22759,184 @@ export interface operations {
             };
         };
     };
+    delete_my_occurrence_api_v1_calendar_mine_events__event_id__occurrences__day__delete: {
+        parameters: {
+            query?: {
+                scope?: "one" | "following";
+            };
+            header?: never;
+            path: {
+                event_id: string;
+                day: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    edit_my_occurrence_api_v1_calendar_mine_events__event_id__occurrences__day__patch: {
+        parameters: {
+            query?: {
+                scope?: "one" | "following";
+            };
+            header?: never;
+            path: {
+                event_id: string;
+                day: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonalEventUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalEventOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     my_event_ics_api_v1_calendar_mine_events__event_id__ics_get: {
         parameters: {
             query?: never;
@@ -26155,7 +26366,9 @@ export interface operations {
     };
     open_file_api_v1_board_files__upload_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                download?: boolean;
+            };
             header?: never;
             path: {
                 upload_id: string;

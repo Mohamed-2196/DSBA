@@ -3,7 +3,6 @@ import { useModules } from '../../../state/modules';
 import { Badge } from '../../../ui';
 import { itemPath } from '../api';
 import { cardMeta, matchLine, moduleTag, statusInfo } from '../display';
-import { extensionOf } from '../kinds';
 import type { LibraryItem, LibrarySort } from '../types';
 import { FileThumb, type ThumbSize } from './FileThumb';
 import { StarButton } from './StarButton';
@@ -28,18 +27,14 @@ export function FileCard({
 }) {
   const { getModule } = useModules();
   const code = moduleTag(getModule(item.moduleId));
-  const ext = item.source === 'file' ? extensionOf(item.fileName)?.toLowerCase() : null;
   const status = statusInfo(item.status);
   const titleHasCode = !!code && item.title.toLowerCase().startsWith(code.toLowerCase());
   const found = matchLine(item);
   return (
     <article className="lib-card" data-hub="file-card">
       <Link to={itemPath(item)} state={linkState} className="lib-card__link">
-        <FileThumb item={item} size={thumbSize} newTag />
-        <span className="lib-card__title">
-          {item.title}
-          {ext ? <span className="lib-card__ext">.{ext}</span> : null}
-        </span>
+        <FileThumb item={item} size={thumbSize} newTag formatTag />
+        <span className="lib-card__title">{item.title}</span>
         {found ? <span className="lib-card__match">{found}</span> : null}
         {status ? (
           <Badge tone={status.tone} size="sm" className="lib-card__status">

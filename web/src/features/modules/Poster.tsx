@@ -3,9 +3,9 @@
 // tile in the module's cohort colour; the lesson's title, "Video n of m", the source and a play button on top.
 import { Play } from '@phosphor-icons/react';
 import { useMemo, type CSSProperties } from 'react';
-import type { ModuleDetail, ModuleSummary } from '../../api/types';
+import type { ModuleDetail, ModuleSummary, Video } from '../../api/types';
 import { videoThumbnailUrl } from '../../lib/modules';
-import { cx } from '../../ui';
+import { cx, moduleArtSrc } from '../../ui';
 import { KIND_ICON, KIND_SOURCE, chapterLessons, kindLabel, lessonPosition } from './lessons';
 import { useThumbnail } from './thumbs';
 import './Poster.css';
@@ -92,21 +92,34 @@ export function LessonPoster({
 }
 
 /**
- * Small play tile for lesson links (Continue learning, Pick up where you left off): the module's code and a play
- * button on its cohort colour. Purely visual (aria-hidden): the surrounding link carries the name.
+ * Small preview for lesson links (Continue learning, Pick up where you left off): the lesson's own video thumbnail
+ * when it loads (YouTube's), otherwise the module's illustration on its cohort tint, with a play badge. Purely visual
+ * (aria-hidden): the surrounding link carries the name.
  */
 export function MiniPoster({
   module: m,
+  video,
   size = 'md',
   className,
 }: {
-  module: Pick<ModuleSummary, 'unitCode' | 'shortName' | 'year'>;
+  module: Pick<ModuleSummary, 'unitCode' | 'shortName' | 'year' | 'art'>;
+  /** the lesson it opens */
+  video: Video | null | undefined;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }) {
+  const thumb = videoThumbnailUrl(video);
+  const thumbOk = useThumbnail(thumb) === 'ok';
+  const art = moduleArtSrc(m.art);
   return (
-    <span className={cx('mod-mini', `mod-mini--${size}`, className)} data-theme="dark" style={cohortVars(m.year)} aria-hidden="true">
-      <span className="mod-mini__code">{m.unitCode || m.shortName}</span>
+    <span className={cx('mod-mini', `mod-mini--${size}`, thumbOk && 'has-thumb', className)} style={cohortVars(m.year)} aria-hidden="true">
+      {thumbOk && thumb ? (
+        <img className="mod-mini__thumb" src={thumb} alt="" referrerPolicy="no-referrer" decoding="async" />
+      ) : art ? (
+        <img className="mod-mini__art" src={art} alt="" width={512} height={512} decoding="async" />
+      ) : (
+        <span className="mod-mini__code">{m.unitCode || m.shortName}</span>
+      )}
       <span className="mod-mini__play">
         <Play weight="fill" />
       </span>

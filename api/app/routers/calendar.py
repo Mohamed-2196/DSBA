@@ -23,6 +23,7 @@ from app.schemas.calendar import (
     CalendarPrefsOut,
     CalendarPrefsUpdate,
     EventType,
+    OccurrenceScope,
     PersonalEventCreate,
     PersonalEventOut,
     PersonalEventUpdate,
@@ -173,7 +174,8 @@ def add_my_event(body: PersonalEventCreate, user: ActiveUser, db: DB) -> Persona
 
 @router.patch("/calendar/mine/events/{event_id}", response_model=PersonalEventOut)
 def edit_my_event(event_id: UUID, body: PersonalEventUpdate, user: ActiveUser, db: DB) -> PersonalEventOut:
-    """Fields not sent stay; null clears the optional ones. A repeat changes as a whole."""
+    """Fields not sent stay; null clears the optional ones. A repeat changes as a whole (one day of it: the
+    occurrence route below). Errors: not_found (404), invalid_input (422)."""
     event = mine.get_event(db, user, event_id)
     mine.update_event(db, event, body)
     db.commit()
@@ -182,19 +184,47 @@ def edit_my_event(event_id: UUID, body: PersonalEventUpdate, user: ActiveUser, d
 
 @router.delete("/calendar/mine/events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_my_event(event_id: UUID, user: ActiveUser, db: DB) -> Response:
-    """Deletes the event, every repeat of it."""
+    """Deletes the event, every repeat of it. Errors: not_found (404)."""
     mine.delete_event(db, mine.get_event(db, user, event_id))
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.patch("/calendar/mine/events/{event_id}/occurrences/{day}", response_model=PersonalEventOut)
+def edit_my_occurrence(
+    event_id: UUID, day: dt.date, body: PersonalEventUpdate, user: ActiveUser, db: DB, scope: OccurrenceScope = "one"
+) -> PersonalEventOut:
+    """A change made from one day of a repeat. `scope=one`: that day becomes an event of its own with the change;
+    `following`: a new repeat with the change runs from that day, and the old one ends the day before. Returns the
+    event that now holds the day. Errors: not_found (404) when no occurrence of the event starts on `day`,
+    invalid_input (422), calendar_full (409), rate_limited (429)."""
+    event = mine.change_occurrence(db, user, mine.get_event(db, user, event_id), day, scope, body)
+    db.commit()
+    return PersonalEventOut.model_validate(event)
+
+
+@router.delete("/calendar/mine/events/{event_id}/occurrences/{day}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_my_occurrence(
+    event_id: UUID, day: dt.date, user: ActiveUser, db: DB, scope: OccurrenceScope = "one"
+) -> Response:
+    """Takes one day off a repeat (`scope=one`), or that day and every later one (`following`); an event left
+    without a day is deleted. Errors: not_found (404) when no occurrence of the event starts on `day`."""
+    mine.delete_occurrence(db, mine.get_event(db, user, event_id), day, scope)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/calendar/mine/events/{event_id}.ics", response_class=Response, responses=ICS)
 def my_event_ics(event_id: UUID, user: CurrentUser, db: DB) -> Response:
-    """One of your events as an .ics file to import, with its repeat and reminder."""
+    """One of your events as an .ics file to import, with its repeat and reminder. Errors: not_found (404)."""
+    event = mine.get_event(db, user, event_id)
     return Response(
-        content=mine.event_ics(mine.get_event(db, user, event_id)).encode("utf-8"),
+        content=mine.event_ics(event).encode("utf-8"),
         media_type="text/calendar; charset=utf-8",
-        headers={"Content-Disposition": 'attachment; filename="my-event.ics"', "Cache-Control": PRIVATE_FEED_CACHE},
+        headers={
+            "Content-Disposition": f'attachment; filename="{mine.ics_file_name(event)}"',
+            "Cache-Control": PRIVATE_FEED_CACHE,
+        },
     )
 
 

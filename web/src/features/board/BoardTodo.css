@@ -1,5 +1,7 @@
 /* Home's "My to-do": the board's open cards as a quiet list. */
 .board-todo { overflow: hidden; }
+/* Nothing to do: the message sits in the middle of the card, however tall its row makes it. */
+.board-todo--empty { display: grid; align-content: center; }
 .board-todo__list li + li { border-top: 1px solid var(--line); }
 .board-todo__row {
   display: flex;
@@ -13,10 +15,18 @@
 }
 .board-todo__row:hover { background: var(--surface-2); }
 .board-todo__row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus-color); }
-.board-todo__dot { flex: 0 0 auto; width: 10px; height: 10px; border: 2px solid var(--line-strong); border-radius: var(--r-pill); }
-.board-todo__dot.is-doing { border-color: var(--cobalt); background: var(--cobalt); }
+.board-todo__dot { flex: 0 0 auto; width: 10px; height: 10px; border-radius: var(--r-pill); }
 .board-todo__text { flex: 1 1 auto; min-width: 0; display: grid; gap: 1px; }
-.board-todo__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.board-todo__title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  line-height: 1.35;
+  overflow-wrap: break-word;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
 .board-todo__meta { display: flex; flex-wrap: wrap; gap: 0 var(--sp-8); color: var(--ink-2); font-size: var(--fs-12); }
 .board-todo__more {
   display: flex;

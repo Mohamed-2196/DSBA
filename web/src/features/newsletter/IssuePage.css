@@ -377,8 +377,8 @@
   .nl-toc__list {
     display: flex;
     gap: var(--sp-8);
-    margin: 0 calc(-1 * var(--content-pad));
-    padding: 2px var(--content-pad) 6px;
+    margin: 0 calc(-1 * var(--page-pad-right)) 0 calc(-1 * var(--page-pad-left));
+    padding: 2px var(--page-pad-right) 6px var(--page-pad-left);
     overflow-x: auto;
     scrollbar-width: none;
   }

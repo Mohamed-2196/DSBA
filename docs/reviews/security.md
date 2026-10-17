@@ -50,15 +50,15 @@ copy makes:
 | ID | Severity | Owner | Status | Title |
 |---|---|---|---|---|
 | SEC-36 | **major** | notes (`services/notes.py:64`) | **fixed** (c6e6676) | One free account keeps 250 MB of ink and text in Postgres, and every read loads all of it at once |
-| SEC-37 | minor | deployment (`api/Dockerfile:37`, `routers/feeds.py:20`) | open | The private calendar feed's secret is written to the API's access log on every poll |
-| SEC-38 | minor | boards (`services/board/common.py:33`) | open | No total on the text a student's boards hold: about 880 MB of rows per free account |
-| SEC-39 | minor | boards, uploads (`services/board/files.py:124`) | open | Detaching a board file gives its slot back to the 20-uploads-an-hour limit |
+| SEC-37 | minor | deployment (`api/Dockerfile:37`, `routers/feeds.py:20`) | **fixed** (2c21b15) | The private calendar feed's secret is written to the API's access log on every poll |
+| SEC-38 | minor | boards (`services/board/common.py:33`) | **fixed** (2c0ab51) | No total on the text a student's boards hold: about 880 MB of rows per free account |
+| SEC-39 | minor | boards, uploads (`services/board/files.py:124`) | **fixed** (2c0ab51) | Detaching a board file gives its slot back to the 20-uploads-an-hour limit |
 | SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | **fixed** (round12/secfix) | Bug reports and their screenshots are left out of the export and outlive the account |
 | SEC-41 | minor | Daily (`services/daily/plays.py:165`) | **partly fixed** (content half, round12/daily-cms) | Every Daily answer is available before the scored play, so anyone can top the leaderboard |
 | SEC-42 | minor | content (`schemas/modules.py:121`, `services/module_editor.py:217`) | **fixed** (round12/cms) | Module art skips the picture rules: any address, and an upload that was never checked |
 | SEC-43 | minor | deployment (`.github/workflows/railway.yml:22`) | accepted (Mohamed, 2026-10-17) | The public Railway dev deployment runs outside production mode |
 | SEC-44 | nit | bugs (`services/bugs.py:85`) | **fixed** (round12/secfix) | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
-| SEC-45 | nit | Daily, boards | open | Crafted input turns Daily and board requests into 500s |
+| SEC-45 | nit | Daily, boards | open (boards fixed, 2c0ab51) | Crafted input turns Daily and board requests into 500s |
 | SEC-46 | nit | Daily (`services/daily/content.py:61`) | **fixed** (round12/daily-cms) | Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones |
 | SEC-47 | nit | uploads (`routers/uploads.py:47`) | **fixed** (round12/secfix) | The board and notebook quotas are checked before the upload lock |
 | SEC-48 | nit | web (`web/package.json:31`) | **fixed** (c6e6676) | `npm audit`: pdf.js 5.7.284 has a high advisory |
@@ -158,6 +158,11 @@ copy makes:
     `app/main.py`) that writes `/api/v1/feeds/calendar/…` instead of the secret.
   - Add a test that no access log line holds a feed secret.
   - If Caddy ever gets a `log` directive, filter the path there too.
+- **Fixed (2c21b15):** the access log stays on, with a filter on `uvicorn.access` (`app/core/logs.py`, installed in
+  `create_app()`) that writes the feed's path as `/api/v1/feeds/calendar/….ics`; the error handlers' log lines redact
+  it the same way. `test_sec37_the_private_feeds_secret_never_reaches_the_apis_access_log` polls a real feed through
+  uvicorn with the image's defaults and finds the redacted line and no secret; `tests/core/test_logs.py` covers the
+  filter. Caddy still writes no access log.
 
 ### SEC-38. No total on the text a student's boards hold: about 880 MB of rows per free account (minor)
 
@@ -182,6 +187,11 @@ copy makes:
     Check it under the student's lock when a card is made or saved and when a comment is added (409 `boards_full`).
   - Or lower the limits: 2,000-character descriptions and 20 comments a card.
   - Put a light limit on saving a card, for example 600 saves an hour.
+- **Fixed (2c0ab51):** the text on a student's cards (titles, descriptions, checklists as JSON text, comments) has a
+  10 MB total (`common.MAX_TEXT_BYTES`), checked under the `board-text:{user}` lock before a card is made or saved and
+  before a comment is added: 409 `board_full`. A save that adds no text is always taken, so a student over the total
+  can still trim. `test_sec38_the_text_on_a_students_cards_has_a_total`. No limit on saves per hour: there is no row
+  per save to count, and the total bounds what a script can keep.
 
 ### SEC-39. Detaching a board file gives its slot back to the 20-uploads-an-hour limit (minor)
 
@@ -200,6 +210,10 @@ copy makes:
 - **Fix:** count uploads in something a detach can't remove: keep the row with a `removed` status and the object
   deleted (the sweep deletes the row later), or count presigned uploads in a small events table. This also makes the
   site-wide budget (SEC-14) easier to add.
+- **Fixed (2c0ab51):** `detach()` deletes the object at once and keeps the row without a card, as a deleted card's
+  files are kept; the sweep deletes it a day after the upload. It still counts towards the hourly limit, no longer
+  takes room, can't be opened or attached again. `test_sec39_taking_a_file_off_a_card_keeps_its_place_in_the_hourly_upload_limit`.
+  The boards' own hourly limits (cards, comments) still count rows a student can delete.
 
 ### SEC-40. Bug reports and their screenshots are left out of the export and outlive the account (minor)
 
@@ -380,6 +394,9 @@ copy makes:
 - **Fix:** `_replay` stops with 422 `game_over` at a move after the end or past `max_moves`; the quiz and the Sudoku
   hint refuse with `bad_move`; `calendar_of` refuses years outside 2026 to next year; `due_date` is limited to
   2000-2100 (422 on `dueDate`).
+- **Boards fixed (2c0ab51):** a card's `dueDate` is between 2000 and 2100 (422 on `dueDate`: "Pick a due date between
+  2000 and 2100."), when it is made and when it is saved, so its reminder is always a real moment.
+  `test_sec45_a_cards_due_date_is_between_2000_and_2100`. The Daily half is still open.
 
 ### SEC-46. Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones (nit)
 

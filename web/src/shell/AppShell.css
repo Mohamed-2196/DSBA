@@ -6,9 +6,6 @@
   background: var(--paper);
 }
 .shell-main { min-width: 0; display: flex; flex-direction: column; }
-/* Room under the end of the page while Mini Noora stands at the bottom of the window (MiniNoora.tsx sets it), so the
-   last of the page can always scroll clear of her. */
-.shell-main::after { content: ''; flex: 0 0 var(--noora-clearance, 0px); }
 /* Ultra-wide screens: the shell is one centred column, so the rail stays next to the page instead of at the far
    edge of the screen. */
 @media (min-width: 2200px) {
@@ -48,7 +45,7 @@
 /* "Off for others" above a page an admin opens while its feature is off for everyone else. */
 .route-off-for-others {
   width: 100%;
-  max-width: calc(var(--content-max-wide) + 2 * var(--content-pad));
+  max-width: calc(var(--content-max-wide) + var(--page-pad-left) + var(--page-pad-right));
   margin: 0 auto calc(-1 * var(--sp-16));
-  padding: var(--sp-16) var(--content-pad) 0;
+  padding: var(--sp-16) var(--page-pad-right) 0 var(--page-pad-left);
 }

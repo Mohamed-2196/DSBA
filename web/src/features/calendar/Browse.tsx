@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import { CalendarBlank, ListBullets, Plus, SquaresFour } from '@phosphor-icons/react';
+import { CalendarBlank, CalendarPlus, ListBullets, Plus, SquaresFour } from '@phosphor-icons/react';
 import { BREAKPOINTS, cohortLabel, useMediaQuery } from '../../state';
 import { Button, Chip, cx, EmptyState, SegmentedControl } from '../../ui';
-import { formatShort, parseDay } from '../../lib/dates';
+import { formatShort, parseDay, type DayKey } from '../../lib/dates';
 import { monthTitle } from './dates';
 import { DayList } from './DayList';
 import { EVENT_TYPES, TYPE_ORDER, typeLabel } from './eventMeta';
@@ -17,15 +17,18 @@ export interface BrowseProps {
   today: Date;
   /** nothing at all on the calendar */
   calendarEmpty: boolean;
-  /** reps can add the first date */
-  onAdd?: () => void;
+  /** reps can add the first programme date */
+  onAddDate?: () => void;
+  /** a new event of the student's own (on a day of the month) */
+  onAddMine: (day?: DayKey) => void;
 }
 
 /**
- * Every date ahead, as one list. Laptops and wider show the month grid beside it; phones and tablets switch between
- * the list and the month. Whose dates and which types are picked above both.
+ * Every date ahead, as one list: a repeat of the student's own is one row, at its next day. Laptops and wider show
+ * the month grid beside it; phones and tablets switch between the list and the month. Whose dates and which types
+ * are picked above both.
  */
-export function Browse({ view, today, calendarEmpty, onAdd }: BrowseProps) {
+export function Browse({ view, today, calendarEmpty, onAddDate, onAddMine }: BrowseProps) {
   const wide = useMediaQuery(BREAKPOINTS.desktop);
   const phone = useMediaQuery(BREAKPOINTS.mobile);
   const showList = wide || view.mode === 'list';
@@ -57,10 +60,10 @@ export function Browse({ view, today, calendarEmpty, onAdd }: BrowseProps) {
         {showList ? (
           <div className="cal-list" data-hub="calendar-list">
             <p className="cal-list__from">{from}</p>
-            <UpcomingList view={view} today={today} calendarEmpty={calendarEmpty} onAdd={onAdd} />
+            <UpcomingList view={view} today={today} calendarEmpty={calendarEmpty} onAddDate={onAddDate} onAddMine={onAddMine} />
           </div>
         ) : null}
-        {showMonth ? <MonthPanel view={view} today={today} compact={phone} /> : null}
+        {showMonth ? <MonthPanel view={view} today={today} compact={phone} onAdd={onAddMine} /> : null}
       </div>
     </section>
   );
@@ -105,14 +108,23 @@ function Filters({ view }: { view: CalendarView }) {
   );
 }
 
-function UpcomingList({ view, today, calendarEmpty, onAdd }: BrowseProps) {
+function UpcomingList({ view, today, calendarEmpty, onAddDate, onAddMine }: BrowseProps) {
   const { list, listFrom, eventId, cohortYear, open, types, clearTypes, setAllYears } = view;
   const months = useMemo(() => groupByMonth(list, listFrom), [list, listFrom]);
 
   if (!months.length) {
     let title = 'Nothing else on the calendar yet';
+    let body = 'New dates show up here as soon as they’re announced.';
     let action = null;
-    if (types.size) {
+    if (types.size === 1 && types.has('mine')) {
+      title = 'None of your own events ahead';
+      body = 'Add the things you plan around: study groups, deadlines of your own, appointments.';
+      action = (
+        <Button size="sm" variant="primary" leadingIcon={CalendarPlus} onClick={() => onAddMine()}>
+          New event
+        </Button>
+      );
+    } else if (types.size) {
       title = 'No dates of these types ahead';
       action = (
         <Button size="sm" onClick={clearTypes}>
@@ -121,9 +133,9 @@ function UpcomingList({ view, today, calendarEmpty, onAdd }: BrowseProps) {
       );
     } else if (calendarEmpty) {
       title = 'The calendar is empty';
-      action = onAdd ? (
-        <Button size="sm" variant="primary" leadingIcon={Plus} onClick={onAdd}>
-          Add event
+      action = onAddDate ? (
+        <Button size="sm" variant="primary" leadingIcon={Plus} onClick={onAddDate}>
+          Add a date
         </Button>
       ) : null;
     } else if (cohortYear) {
@@ -136,7 +148,7 @@ function UpcomingList({ view, today, calendarEmpty, onAdd }: BrowseProps) {
     }
     return (
       <div className="cal-list__empty">
-        <EmptyState size="sm" icon={CalendarBlank} title={title} body="New dates show up here as soon as they’re announced." action={action} />
+        <EmptyState size="sm" icon={CalendarBlank} title={title} body={body} action={action} />
       </div>
     );
   }

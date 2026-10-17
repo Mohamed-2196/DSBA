@@ -22,12 +22,15 @@ export function FileThumb({
   item,
   size = 'grid',
   newTag = false,
+  formatTag = false,
   coverStyle,
   className,
 }: {
   item: LibraryItem;
   size?: ThumbSize;
   newTag?: boolean;
+  /** the file's format as a small tag in the cover's corner (a styled cover prints it on the page already) */
+  formatTag?: boolean;
   coverStyle?: CoverStyle;
   className?: string;
 }) {
@@ -86,6 +89,7 @@ export function FileThumb({
           )}
         </span>
       </span>
+      {formatTag && photo && fmt ? <span className="lib-thumb__fmt">{fmt.tag}</span> : null}
       {newTag && isNew(item) ? (
         <Badge tone="highlight" size="sm" className="lib-thumb__new">
           New
