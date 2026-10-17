@@ -1,214 +1,165 @@
-import { useEffect, useState } from 'react';
-import {
-  CheckCircle,
-  Clock,
-  Flame,
-  GameController,
-  Play,
-  Sparkle,
-  Trophy,
-} from '@phosphor-icons/react';
-import { Button, Page, PageHeader, QueryError, Skeleton, Tabs } from '../../ui';
-import { useDailyToday } from './api';
-import { GAME_REGISTRY } from './games/registry';
+// The Daily (/daily): today's set of six puzzles under the week's theme, how far you got, your streak and the time
+// to the next set; then past days to practise, the leaderboard and your stats.
+import { useQueryClient } from '@tanstack/react-query';
+import { Flame, Snowflake } from '@phosphor-icons/react';
+import { useAuth } from '../../auth';
+import { useQueryParam } from '../../state';
+import { Button, Page, ProgressRing, QueryError, Skeleton, TabPanel, Tabs, cx } from '../../ui';
+import { dailyKeys, useDailyToday } from './api';
+import { ArchiveView } from './components/ArchiveView';
+import { Countdown } from './components/Countdown';
+import { GameCard } from './components/GameCard';
 import { LeaderboardView } from './components/LeaderboardView';
-import { CalendarArchiveView } from './components/CalendarArchiveView';
-import { BadgesView } from './components/BadgesView';
-import { formatCountdown } from './lib/time';
-import type { GameDay } from './types';
+import { StatsView } from './components/StatsView';
+import { dayLabel } from './lib/days';
+import type { DailyToday } from './types';
+import './daily.css';
 import './DailyPage.css';
 
+type Tab = 'today' | 'past' | 'board' | 'you';
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'today', label: 'Today' },
+  { id: 'past', label: 'Past days' },
+  { id: 'board', label: 'Leaderboard' },
+  { id: 'you', label: 'Your stats' },
+];
+
 export default function DailyPage() {
-  const { data: today, isLoading, error, refetch } = useDailyToday();
-  const [activeTab, setActiveTab] = useState('puzzles');
-  const [countdown, setCountdown] = useState('');
-
-  // Live countdown update
-  useEffect(() => {
-    if (!today?.nextAt) return;
-    const interval = setInterval(() => {
-      setCountdown(formatCountdown(today.nextAt));
-    }, 1000);
-    setCountdown(formatCountdown(today.nextAt));
-    return () => clearInterval(interval);
-  }, [today?.nextAt]);
-
-  const tabs = [
-    { id: 'puzzles', label: "Today's Puzzles" },
-    { id: 'leaderboard', label: 'Leaderboard' },
-    { id: 'calendar', label: 'Archive' },
-    { id: 'badges', label: 'My Stats & Badges' },
-  ];
+  const today = useDailyToday();
+  const [tabParam, setTab] = useQueryParam('tab', 'today');
+  const tab: Tab = TABS.some((t) => t.id === tabParam) ? (tabParam as Tab) : 'today';
 
   return (
-    <Page>
-      <PageHeader
-        title="Daily"
-        description="Fresh data science, finance, and logic puzzles released every midnight in Bahrain."
-      />
-
-      <div className="daily-page-container">
-        {isLoading && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-16)' }}>
-            <Skeleton style={{ height: '120px', borderRadius: 'var(--r-panel)' }} />
-            <Skeleton style={{ height: '70px', borderRadius: 'var(--r-panel)' }} />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 'var(--sp-16)' }}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} style={{ height: '180px', borderRadius: 'var(--r-panel)' }} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <QueryError
-            title="Could not load daily puzzles"
-            error={error}
-            onRetry={() => refetch()}
-          />
-        )}
-
-        {today && (
-          <>
-            {/* Weekly Theme Banner */}
-            <div className="daily-theme-banner">
-              <div className="daily-theme-left">
-                <div className="daily-theme-pill">
-                  <Sparkle size={16} weight="fill" />
-                  <span>Weekly Theme</span>
-                </div>
-                <h2 className="daily-theme-title">{today.theme.title}</h2>
-                <p className="daily-theme-blurb">{today.theme.blurb}</p>
-              </div>
-
-              <div className="daily-countdown-box">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Clock size={16} />
-                  <span>Next puzzles in:</span>
-                </div>
-                <span className="daily-countdown-time">{countdown || '00:00:00'}</span>
-              </div>
-            </div>
-
-            {/* Daily Stats Bar */}
-            <div className="daily-stats-bar">
-              <div className="daily-stat-tile">
-                <div className="daily-stat-icon-box" style={{ color: 'var(--cobalt)' }}>
-                  <GameController size={24} weight="fill" />
-                </div>
-                <div className="daily-stat-info">
-                  <span className="daily-stat-num">{today.done} / {today.games.length}</span>
-                  <span className="daily-stat-label">Puzzles Completed</span>
-                </div>
-              </div>
-
-              <div className="daily-stat-tile">
-                <div className="daily-stat-icon-box" style={{ color: 'var(--signal-strong)' }}>
-                  <Trophy size={24} weight="fill" />
-                </div>
-                <div className="daily-stat-info">
-                  <span className="daily-stat-num">+{today.points}</span>
-                  <span className="daily-stat-label">Points Today</span>
-                </div>
-              </div>
-
-              {today.streak && (
-                <div className="daily-stat-tile">
-                  <div className="daily-stat-icon-box" style={{ color: '#F08C00' }}>
-                    <Flame size={24} weight="fill" />
-                  </div>
-                  <div className="daily-stat-info">
-                    <span className="daily-stat-num">{today.streak.current} Days</span>
-                    <span className="daily-stat-label">
-                      Streak {today.streak.freezeReady ? '❄️ Freeze Ready' : ''}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Tabs Navigation */}
-            <Tabs
-              tabs={tabs}
-              value={activeTab}
-              onChange={setActiveTab}
-              label="Daily sections"
-            />
-
-            {/* Tab: Today's Puzzles */}
-            {activeTab === 'puzzles' && (
-              <div className="daily-games-grid" role="region" aria-label="Today's games set">
-                {today.games.map((gameDay: GameDay) => {
-                  const plugin = GAME_REGISTRY[gameDay.info.id];
-                  if (!plugin) return null;
-                  const { title, tagline, icon: Icon, accentColor } = plugin;
-
-                  const isWon = gameDay.status === 'won';
-                  const isLost = gameDay.status === 'lost';
-                  const isPlaying = gameDay.status === 'playing';
-
-                  let statusLabel = 'Ready to play';
-                  let statusClass = 'daily-game-status-new';
-
-                  if (isWon) {
-                    statusLabel = `Solved • +${gameDay.points} pts`;
-                    statusClass = 'daily-game-status-won';
-                  } else if (isLost) {
-                    statusLabel = `Completed • +${gameDay.points} pts`;
-                    statusClass = 'daily-game-status-lost';
-                  } else if (isPlaying) {
-                    statusLabel = 'In Progress';
-                    statusClass = 'daily-game-status-playing';
-                  }
-
-                  return (
-                    <div key={gameDay.info.id} className="daily-game-card">
-                      <div>
-                        <div className="daily-game-card-top">
-                          <div className="daily-game-icon-title">
-                            <div className="daily-game-card-icon" style={{ backgroundColor: accentColor }}>
-                              <Icon size={24} weight="bold" />
-                            </div>
-                            <h3 className="daily-game-card-title">{title}</h3>
-                          </div>
-                          <span className={`daily-game-status-badge ${statusClass}`}>
-                            {isWon && <CheckCircle size={14} weight="fill" />}
-                            <span>{statusLabel}</span>
-                          </span>
-                        </div>
-                        <p className="daily-game-card-tagline">{tagline}</p>
-                      </div>
-
-                      <div className="daily-game-card-footer">
-                        <span style={{ fontSize: 'var(--fs-13)', color: 'var(--ink-2)', fontWeight: 'var(--fw-medium)' }}>
-                          Max {gameDay.info.maxPoints} pts
-                        </span>
-                        <Button
-                          to={`/daily/${gameDay.info.id}`}
-                          variant={isWon || isLost ? 'secondary' : 'primary'}
-                          size="sm"
-                          leadingIcon={Play}
-                        >
-                          {isWon || isLost ? 'Review' : isPlaying ? 'Continue' : 'Play'}
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Tab: Leaderboard */}
-            {activeTab === 'leaderboard' && <LeaderboardView />}
-
-            {/* Tab: Archive Calendar */}
-            {activeTab === 'calendar' && <CalendarArchiveView />}
-
-            {/* Tab: Badges & My Stats */}
-            {activeTab === 'badges' && <BadgesView />}
-          </>
-        )}
-      </div>
+    <Page className="dy dh">
+      {today.isError ? (
+        <>
+          <h1 className="dh-title">Daily puzzles</h1>
+          <QueryError error={today.error} title="Today’s puzzles didn’t load" onRetry={() => void today.refetch()} retrying={today.isFetching} />
+        </>
+      ) : today.isPending ? (
+        <HubSkeleton />
+      ) : (
+        <>
+          <Head today={today.data} />
+          <Tabs idBase="daily" tabs={TABS} value={tab} onChange={(id) => setTab(id, { replace: true })} label="Daily" className="dh-tabs" />
+          <TabPanel idBase="daily" id="today" value={tab} className="dh-panel">
+            <TodayView today={today.data} />
+          </TabPanel>
+          <TabPanel idBase="daily" id="past" value={tab} className="dh-panel">
+            <ArchiveView today={today.data} />
+          </TabPanel>
+          <TabPanel idBase="daily" id="board" value={tab} className="dh-panel">
+            <LeaderboardView />
+          </TabPanel>
+          <TabPanel idBase="daily" id="you" value={tab} className="dh-panel">
+            <StatsView />
+          </TabPanel>
+        </>
+      )}
     </Page>
+  );
+}
+
+function Head({ today }: { today: DailyToday }) {
+  const { me, openSignIn } = useAuth();
+  const qc = useQueryClient();
+  const total = today.games.length;
+  const allDone = today.done >= total;
+  const streak = today.streak;
+  return (
+    <header className="dh-head">
+      <div className="dh-head__text">
+        <p className="dh-kicker dy-num">
+          Daily #{today.number} · {dayLabel(today.day, today.day)}
+        </p>
+        <h1 className="dh-title">Daily puzzles</h1>
+        <p className="dh-theme">
+          <span className="dh-theme__name">{today.theme.title}</span>
+          <span className="dh-theme__blurb">{today.theme.blurb}</span>
+        </p>
+      </div>
+
+      <section className="dh-summary" aria-label="Today so far">
+        <div className="dh-summary__progress">
+          <ProgressRing value={(today.done / Math.max(total, 1)) * 100} size={64} stroke={6} color="var(--signal)" label={`${today.done} of ${total} done`}>
+            <span className="dh-summary__ring dy-num">
+              {today.done}/{total}
+            </span>
+          </ProgressRing>
+          <div className="dh-summary__lines">
+            <p className="dh-summary__big">{allDone ? 'All six done' : today.done ? `${today.done} of ${total} done` : 'Six new puzzles'}</p>
+            <p className="dh-summary__small dy-num">{me ? `${today.points} points today` : 'Playing as a guest'}</p>
+          </div>
+        </div>
+        <div className="dh-summary__facts">
+          {streak ? (
+            <p className={cx('dh-fact', streak.current > 0 && 'is-lit')}>
+              <Flame weight={streak.current > 0 ? 'fill' : 'regular'} aria-hidden="true" />
+              <span className="dy-num">{streak.current === 1 ? '1-day streak' : `${streak.current}-day streak`}</span>
+              {streak.freezeReady && streak.current > 0 ? (
+                <span className="dh-fact__freeze" title="Miss a day this week and your streak carries on">
+                  <Snowflake weight="fill" aria-hidden="true" />
+                  Freeze ready
+                </span>
+              ) : null}
+            </p>
+          ) : (
+            <p className="dh-fact">
+              <Button variant="ghost" size="sm" onClick={() => openSignIn()}>
+                Sign in to keep a streak
+              </Button>
+            </p>
+          )}
+          <p className="dh-fact">
+            <span>New puzzles in</span>
+            <strong>
+              <Countdown to={today.nextAt} onDone={() => void qc.invalidateQueries({ queryKey: dailyKeys.today() })} />
+            </strong>
+          </p>
+        </div>
+      </section>
+    </header>
+  );
+}
+
+function TodayView({ today }: { today: DailyToday }) {
+  const allDone = today.done >= today.games.length;
+  return (
+    <>
+      {allDone ? (
+        <p className="dh-done dy-rise">That’s all six for today. A new set comes out at midnight.</p>
+      ) : null}
+      <ul className="dh-games" aria-label="Today’s puzzles">
+        {today.games.map((g) => (
+          <li key={g.info.id}>
+            <GameCard game={g} />
+          </li>
+        ))}
+      </ul>
+      <p className="dh-foot">Everyone gets the same puzzles. They change at midnight in Bahrain.</p>
+    </>
+  );
+}
+
+function HubSkeleton() {
+  return (
+    <div aria-busy="true">
+      <span className="visually-hidden">Loading today’s puzzles</span>
+      <div className="dh-head">
+        <div className="dh-head__text">
+          <Skeleton width="12em" />
+          <Skeleton width="9em" height={40} />
+          <Skeleton width="18em" />
+        </div>
+        <Skeleton width={320} height={120} radius="var(--r-panel)" />
+      </div>
+      <ul className="dh-games">
+        {Array.from({ length: 6 }, (_, i) => (
+          <li key={i}>
+            <Skeleton height={148} radius="var(--r-panel)" />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

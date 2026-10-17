@@ -1,0 +1,196 @@
+/* Sudoku: difficulty and counts on top, the grid as big as fits, then the tools and the digits. On a phone on its
+   side, the grid goes left and the controls right. */
+
+.dsu {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-10);
+  padding: var(--sp-8) var(--sp-8) var(--sp-8);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dsu-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-8); width: min(100%, 520px); }
+.dsu-stats { display: flex; gap: var(--sp-12); margin: 0; color: var(--ink-2); font-size: var(--fs-13); font-weight: var(--fw-semibold); }
+.dsu-stats .has-mistakes { color: var(--alert-strong); }
+@media (prefers-reduced-motion: no-preference) {
+  .dsu-stats .has-mistakes { animation: dsu-bump 380ms var(--ease); }
+}
+@keyframes dsu-bump {
+  40% { transform: scale(1.15); }
+}
+
+/* Square and as big as fits: shrinking with the screen's height when there isn't room. */
+.dsu-board-wrap {
+  flex: 0 1 auto;
+  min-height: 0;
+  width: min(100%, 540px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  container-type: size;
+}
+
+.dsu-board {
+  --side: min(100cqw, 100cqh, 540px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  width: var(--side);
+  height: var(--side);
+  padding: 2px;
+  border-radius: var(--r-sm);
+  background: var(--ink-2);
+}
+.dsu-box { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line-strong); }
+.dsu-box:first-child { border-top-left-radius: 6px; overflow: hidden; }
+.dsu-box:nth-child(3) { border-top-right-radius: 6px; overflow: hidden; }
+.dsu-box:nth-child(7) { border-bottom-left-radius: 6px; overflow: hidden; }
+.dsu-box:last-child { border-bottom-right-radius: 6px; overflow: hidden; }
+
+.dsu-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: var(--surface);
+  color: var(--cobalt);
+  font: inherit;
+  font-size: calc(var(--side) / 9 * .56);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.dsu-cell.is-given { color: var(--ink); font-weight: var(--fw-heavy); }
+.dsu-cell.is-hinted { color: var(--cobalt); }
+.dsu-cell.is-hinted::after {
+  content: '';
+  position: absolute;
+  top: 12%;
+  right: 12%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--y3);
+}
+.dsu-cell.is-peer { background: color-mix(in srgb, var(--surface-2) 70%, var(--surface)); }
+.dsu-cell.is-same { background: color-mix(in srgb, var(--highlight) 34%, var(--surface)); }
+.dsu-cell.is-selected { background: color-mix(in srgb, var(--cobalt) 22%, var(--surface)); box-shadow: inset 0 0 0 2px var(--cobalt); }
+.dsu-cell.is-wrong { color: var(--alert-strong); background: var(--alert-soft); }
+.dsu-cell:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -3px; }
+
+.dsu-notes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  padding: 6%;
+  color: var(--ink-2);
+  font-size: calc(var(--side) / 9 * .24);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+}
+.dsu-notes > span { display: grid; place-items: center; }
+.dsu-notes > .is-same { color: var(--cobalt); font-weight: var(--fw-heavy); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .dsu-cell.is-placed .dsu-digit, .dsu-cell.is-hinted .dsu-digit { animation: dsu-pop 220ms var(--ease); }
+  .dsu-cell.is-wrong .dsu-digit { animation: dsu-shake 380ms var(--ease); }
+  .dsu-board.is-solved .dsu-cell { animation: dsu-wave 520ms var(--ease) both; animation-delay: calc(var(--d, 0) * 45ms); }
+}
+@keyframes dsu-pop {
+  0% { transform: scale(.4); opacity: 0; }
+  70% { transform: scale(1.15); opacity: 1; }
+}
+@keyframes dsu-shake {
+  20%, 60% { transform: translateX(-3px); }
+  40%, 80% { transform: translateX(3px); }
+}
+@keyframes dsu-wave {
+  40% { background: color-mix(in srgb, var(--dy-hit) 40%, var(--surface)); transform: scale(.94); }
+}
+
+.dsu-controls { display: grid; gap: var(--sp-8); width: min(100%, 520px); }
+.dsu-tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-6); }
+.dsu-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 48px;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--r-control);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+.dsu-tool svg { font-size: 22px; }
+.dsu-tool:hover:not(:disabled) { background: var(--surface-2); color: var(--ink); }
+.dsu-tool:disabled { opacity: .4; cursor: default; }
+.dsu-tool.is-on { background: var(--cobalt-soft); color: var(--cobalt); }
+
+.dsu-pad { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 5px; }
+.dsu-key {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 58px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--dy-key);
+  color: var(--cobalt);
+  box-shadow: var(--dy-press);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 80ms var(--ease);
+}
+.dsu-key:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
+.dsu-key:disabled { opacity: .35; cursor: default; }
+.dsu-key__digit { font-size: var(--fs-25); font-weight: var(--fw-bold); line-height: 1; }
+.dsu-key__left { position: absolute; bottom: 4px; color: var(--ink-3); font-size: 10px; font-weight: var(--fw-bold); }
+.dsu-pad.is-noting .dsu-key { color: var(--ink-2); }
+.dsu-pad.is-noting .dsu-key__digit { font-size: var(--fs-18); }
+
+@media (max-height: 700px) {
+  .dsu-key { height: 50px; }
+  .dsu-tool { min-height: 44px; }
+}
+
+/* A phone on its side: the grid on the left, the controls on the right. */
+@media (max-height: 500px) {
+  .dsu {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--sp-16);
+  }
+  .dsu-board-wrap { grid-row: 1 / -1; grid-column: 1; width: auto; height: 100%; aspect-ratio: 1; }
+  .dsu-top, .dsu-controls { grid-column: 2; width: 100%; }
+  .dsu-pad { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .dsu-key { height: 42px; }
+  .dsu-key__digit { font-size: var(--fs-20); }
+  .dsu-tool { min-height: 40px; flex-direction: row; gap: 6px; }
+}
+
+/* The rules' example. */
+.dsu-eg { display: grid; gap: var(--sp-10); margin: 0; padding: 0; list-style: none; font-size: var(--fs-14); line-height: 1.45; color: var(--ink-2); }
+.dsu-eg li { display: flex; align-items: flex-start; gap: var(--sp-10); }
+.dsu-eg svg { flex: 0 0 auto; margin-top: 2px; font-size: 20px; color: var(--cobalt); }
+.dsu-eg strong { color: var(--ink); }

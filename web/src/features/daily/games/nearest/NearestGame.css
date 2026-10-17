@@ -1,0 +1,126 @@
+/* Nearest Neighbour: the guess box, the best so far, the latest guess, and every guess closest first. */
+
+.dn {
+  --dn-found: var(--dy-hit);
+  --dn-close: var(--signal);
+  --dn-warm: var(--y3);
+  --dn-cold: var(--ink-3);
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-12);
+  width: min(100%, 600px);
+  margin: 0 auto;
+  padding: var(--sp-8) var(--sp-12) var(--sp-8);
+}
+
+.dn-form { display: flex; gap: var(--sp-8); }
+.dn-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 48px;
+  padding: 0 var(--sp-14);
+  border: 1.5px solid var(--control-border);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-18);
+  font-weight: var(--fw-semibold);
+}
+.dn-input::placeholder { color: var(--ink-3); font-weight: var(--fw-regular); }
+.dn-input:focus { border-color: var(--cobalt); outline: none; box-shadow: 0 0 0 3px var(--cobalt-soft); }
+@media (max-width: 420px) {
+  .dn-form { flex-wrap: wrap; }
+  .dn-input { flex-basis: 100%; }
+  .dn-form > :not(.dn-input) { flex: 1 1 0; }
+}
+
+.dn-answer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--sp-12) var(--sp-16);
+  border-radius: var(--r-panel);
+  background: var(--surface-2);
+  text-align: center;
+}
+.dn-answer.is-won { background: color-mix(in srgb, var(--dy-hit) 16%, var(--surface)); }
+.dn-answer__label { color: var(--ink-2); font-size: var(--fs-13); font-weight: var(--fw-semibold); }
+.dn-answer__word { font-size: var(--fs-25); font-weight: var(--fw-heavy); letter-spacing: .02em; }
+
+.dn-best { display: grid; gap: 6px; }
+.dn-best__head { display: flex; justify-content: space-between; gap: var(--sp-8); color: var(--ink-2); font-size: var(--fs-13); }
+.dn-best__head strong { color: var(--ink); }
+.dn-best .dn-meter { height: 10px; }
+
+.dn-meter {
+  position: relative;
+  display: block;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.dn-meter__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--fill);
+  border-radius: inherit;
+  background: var(--dn-cold);
+  transition: width 420ms var(--ease);
+}
+.dn-meter.is-warm .dn-meter__fill { background: var(--dn-warm); }
+.dn-meter.is-close .dn-meter__fill { background: var(--dn-close); }
+.dn-meter.is-found .dn-meter__fill { background: var(--dn-found); }
+
+.dn-latest { display: grid; gap: 4px; }
+.dn-latest__label { color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
+
+.dn-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  margin: 0;
+  padding: 0 0 var(--sp-8);
+  overflow-y: auto;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+
+.dn-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(60px, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-12);
+  min-height: 44px;
+  padding: 0 var(--sp-12);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.dn-row__word { display: flex; align-items: center; gap: 6px; min-width: 0; font-weight: var(--fw-bold); overflow-wrap: anywhere; }
+.dn-row__hint { padding: 1px 6px; border-radius: var(--r-pill); background: var(--highlight-soft); color: var(--y3-strong); font-size: var(--fs-11); font-weight: var(--fw-bold); }
+.dn-row__rank { min-width: 3.4em; color: var(--ink-2); font-weight: var(--fw-bold); text-align: right; }
+.dn-row.is-found { box-shadow: inset 0 0 0 2px var(--dn-found); }
+.dn-row.is-found .dn-row__rank, .dn-row.is-close .dn-row__rank { color: var(--signal-strong); }
+.dn-row.is-warm .dn-row__rank { color: var(--y3-strong); }
+@media (prefers-reduced-motion: no-preference) {
+  .dn-row.is-fresh { animation: dn-fresh 1.1s var(--ease); }
+}
+@keyframes dn-fresh {
+  0% { background: color-mix(in srgb, var(--highlight) 55%, var(--surface)); }
+  100% { background: var(--surface); }
+}
+
+.dn-empty { margin: auto 0; padding: var(--sp-24) var(--sp-16); text-align: center; }
+.dn-empty__title { margin: 0 0 4px; font-size: var(--fs-18); font-weight: var(--fw-heavy); }
+.dn-empty__body { margin: 0 auto; max-width: 42ch; color: var(--ink-2); font-size: var(--fs-14); line-height: 1.5; }
+
+/* The rules' example. */
+.dn-eg { display: grid; gap: 6px; }
+.dg-rules .dn-eg { --dn-found: var(--dy-hit); --dn-close: var(--signal); --dn-warm: var(--y3); --dn-cold: var(--ink-3); }

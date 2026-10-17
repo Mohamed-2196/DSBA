@@ -1,0 +1,135 @@
+/* Correlations: a 4 by 4 board that takes the height it's given, found groups as coloured bars on top. */
+
+.dgr {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-12);
+  padding: var(--sp-8) var(--sp-4) var(--sp-8);
+}
+
+.dgr-lede { margin: 0; color: var(--ink-2); font-size: var(--fs-14); text-align: center; }
+
+/* Four rows of tiles at their full height while there's room; shorter on a short screen. */
+.dgr-board-wrap {
+  flex: 0 1 380px;
+  min-height: 0;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  container-type: size;
+}
+
+.dgr-board {
+  --gap: 8px;
+  --row: min(calc((100cqh - (var(--rows, 4) - 1) * var(--gap)) / var(--rows, 4)), 86px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: var(--row);
+  gap: var(--gap);
+  width: min(100cqw, 640px);
+}
+
+.dgr-word {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 0 6px;
+  border: 0;
+  border-radius: var(--r-control);
+  background: var(--dy-key);
+  color: var(--ink);
+  box-shadow: var(--dy-press);
+  font: inherit;
+  font-size: clamp(var(--fs-13), 3.6cqw, var(--fs-18));
+  font-weight: var(--fw-heavy);
+  letter-spacing: .01em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform 90ms var(--ease);
+}
+.dgr-word--sm { font-size: clamp(var(--fs-12), 2.9cqw, var(--fs-16)); }
+.dgr-word--xs { font-size: clamp(10.5px, 2.45cqw, var(--fs-14)); letter-spacing: 0; }
+.dgr-word:hover:not(:disabled):not(.is-picked) { background: color-mix(in srgb, var(--dy-key) 80%, var(--ink) 6%); }
+.dgr-word:active:not(:disabled) { transform: scale(.97); }
+.dgr-word.is-picked { background: var(--dy-pick); color: var(--dy-on-pick); box-shadow: none; }
+.dgr-word:disabled { cursor: default; opacity: .7; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .dgr-word.is-sending { animation: dgr-hop 360ms var(--ease) both; animation-delay: calc(var(--n, 0) * 80ms); }
+  .dgr-word.is-wrong { animation: dgr-shake 420ms var(--ease); }
+  .dgr-group.is-fresh { animation: dgr-found 520ms var(--ease) both; }
+  .dgr-dot.is-used { animation: dgr-spend 380ms var(--ease) both; }
+}
+@keyframes dgr-hop {
+  40% { transform: translateY(-14%); }
+}
+@keyframes dgr-shake {
+  15%, 55% { transform: translateX(-6px); }
+  35%, 75% { transform: translateX(6px); }
+}
+@keyframes dgr-found {
+  0% { transform: scale(.94); opacity: 0; }
+  60% { transform: scale(1.02); opacity: 1; }
+  100% { transform: none; }
+}
+@keyframes dgr-spend {
+  0% { transform: scale(1.3); }
+  100% { transform: scale(.6); opacity: .25; }
+}
+
+/* A group found: its level's colour, the name over its words. */
+.dgr-group {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 12px;
+  border-radius: var(--r-control);
+  color: var(--dy-on-level);
+  text-align: center;
+}
+.dgr-group--1 { background: var(--dy-l1); }
+.dgr-group--2 { background: var(--dy-l2); }
+.dgr-group--3 { background: var(--dy-l3); }
+.dgr-group--4 { background: var(--dy-l4); }
+.dgr-group__label { font-size: var(--fs-14); font-weight: var(--fw-heavy); letter-spacing: .04em; text-transform: uppercase; }
+.dgr-group__words { font-size: var(--fs-14); font-weight: var(--fw-medium); overflow-wrap: anywhere; }
+
+.dgr-mistakes { display: flex; align-items: center; gap: var(--sp-8); color: var(--ink-2); font-size: var(--fs-14); }
+.dgr-mistakes__dots { display: inline-flex; gap: 6px; }
+.dgr-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ink-2); }
+.dgr-dot.is-used { opacity: .2; transform: scale(.6); }
+
+.dgr-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-8); }
+
+@media (max-height: 640px) {
+  .dgr { gap: var(--sp-8); }
+  .dgr-lede { display: none; }
+}
+@media (max-width: 380px) {
+  .dgr-board { --gap: 6px; }
+  .dgr-actions { gap: 6px; }
+}
+
+/* The rules' example. */
+.dgr-eg { display: grid; }
+.dgr-eg .dgr-group { min-height: 56px; }
+.dgr-eg-levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.dgr-eg-level {
+  padding: 6px 4px;
+  border-radius: var(--r-sm);
+  color: var(--dy-on-level);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
