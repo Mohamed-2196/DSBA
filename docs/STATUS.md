@@ -102,6 +102,9 @@ library and uploads work there.
 - **Roadmap questions:** each feature in `docs/ROADMAP.md` lists what he needs to decide. R-1 (roles) comes first.
 - **Ideas to approve:** 24 proposals in `docs/ideas.md` (IDEA-1 to IDEA-24), merged 2026-10-13.
 - **Product calls:**
+  - Bug reports (defaults chosen 2026-10-18): deleted with the reporter's account rather than kept anonymised;
+    screenshots kept 90 days after a report closes. Names that spell a staff word across spaces or dots ("A. D.
+    Minhas") are refused.
   - Daily puzzles: edits apply from tomorrow, so today's puzzle can't be corrected. Add an admin "fix today's
     puzzle" button? And should a connections group hold exactly four words, or 4 to 8 with a day showing four?
   - Should notification emails stay on by default?
@@ -109,7 +112,7 @@ library and uploads work there.
   - Should a rep confirm seniors, beyond the 30-day rule?
   - A "shared computer" sign-in with a shorter session, and sessions that end after some days without use (S-2)?
   - Should an "I'm not a student" mode show all years?
-- **To deploy:** a server, a domain, an S3 bucket with its keys, an SMTP account, Twilio for texts, and an Anthropic
+- **To deploy:** a server, a domain, an S3 bucket with its keys (plus a second key for the text worker), an SMTP account, Twilio for texts, and an Anthropic
   API key for Noora. `docs/backend/DEPLOYMENT.md` has the full list.
 
 ## How the team works
