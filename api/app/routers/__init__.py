@@ -11,6 +11,7 @@ from app.routers import (
     calendar,
     content,
     daily,
+    daily_content,
     features,
     feeds,
     forum,
@@ -59,5 +60,6 @@ for module in (
     suggestions,
     bugs,
     daily,
+    daily_content,
 ):
     api_router.include_router(module.router)

@@ -506,16 +506,17 @@ def save_item(db: Session, user: User, item_id: uuid.UUID, body: ItemSave, ip: s
     _lock_themes(db, item.theme_id, body.theme)
     checked = check_item(db, body.theme, body.data, item.id)
     before = _snapshot(item)
-    item.theme_id, item.data, item.key = body.theme, checked.data, checked.key
-    after = _snapshot(item)
+    after = {**before, "theme": body.theme, "data": checked.data}
     if after == before:
         return item_out(db, item)
-    item.version += 1
-    item.updated_at = utcnow()
-    if item.game == "nearest":
-        rank_secret_words(db, [item])
-    if not item.retired:
-        _ensure_ready(db, {before["theme"], item.theme_id})
+    with db.begin_nested():  # undone if it leaves a theme short
+        item.theme_id, item.data, item.key = body.theme, checked.data, checked.key
+        item.version += 1
+        item.updated_at = utcnow()
+        if item.game == "nearest":
+            rank_secret_words(db, [item])
+        if not item.retired:
+            _ensure_ready(db, {before["theme"], item.theme_id})
     record(
         db, user, "daily.item.update", "daily_item", item.id, _label(item), ip, game=item.game, **_change(before, after)
     )
@@ -531,11 +532,12 @@ def set_retired(db: Session, user: User, item_id: uuid.UUID, retired: bool, vers
     _lock_themes(db, item.theme_id)
     if not retired:
         check_item(db, item.theme_id, ITEM_DATA.validate_python({"game": item.game, **item.data}), item.id)
-    item.retired = retired
-    item.version += 1
-    item.updated_at = utcnow()
-    if retired:
-        _ensure_ready(db, {item.theme_id})
+    with db.begin_nested():  # undone if it leaves a theme short
+        item.retired = retired
+        item.version += 1
+        item.updated_at = utcnow()
+        if retired:
+            _ensure_ready(db, {item.theme_id})
     action = "daily.item.retire" if retired else "daily.item.restore"
     record(db, user, action, "daily_item", item.id, _label(item), ip, game=item.game)
     return item_out(db, item)
@@ -552,13 +554,12 @@ def delete_item(db: Session, user: User, item_id: uuid.UUID, version: int, ip: s
             "content_in_use", f"It ran on {ran} {days}, which keep it. Retire it instead, so it doesn't run again."
         )
     _lock_themes(db, item.theme_id)
-    record(
-        db, user, "daily.item.delete", "daily_item", item.id, _label(item), ip, game=item.game, before=_snapshot(item)
-    )
-    db.delete(item)
-    if not item.retired:
-        _ensure_ready(db, {item.theme_id})
-    db.flush()
+    before = _snapshot(item)
+    with db.begin_nested():  # undone if it leaves a theme short
+        db.delete(item)
+        if not before["retired"]:
+            _ensure_ready(db, {before["theme"]})
+    record(db, user, "daily.item.delete", "daily_item", item_id, _label(item), ip, game=item.game, before=before)
 
 
 # ── Nearest neighbour's vocabulary and rankings ──────────────────────────────────────────────
