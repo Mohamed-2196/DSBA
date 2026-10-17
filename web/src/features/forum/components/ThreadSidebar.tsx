@@ -21,12 +21,12 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
   const exam = useNextExamForModule(module.id, { enabled: featureOn('calendar') }).data ?? null;
   const posts = mayTry('forum.post');
   const days = exam ? daysUntil(exam.date) : null;
-  const hasArt = moduleArtSrc(module.id, module.artUrl) != null;
+  const hasArt = moduleArtSrc(module.art) != null;
   return (
     <section className="forum-tside__card" aria-label="Module" style={{ '--forum-c': cohortTextColor(module.year) } as CSSProperties}>
       {hasArt ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-10)', marginBottom: 'var(--sp-6)' }}>
-          <ModuleArt moduleId={module.id} artUrl={module.artUrl} />
+          <ModuleArt art={module.art} />
           {module.unitCode ? <span className="forum-tside__code" style={{ marginBottom: 0 }}>{module.unitCode}</span> : null}
         </div>
       ) : module.unitCode ? (

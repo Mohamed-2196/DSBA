@@ -1,41 +1,17 @@
-// One module in the editor: its details, its shared folders, and its chapters and lessons, saved together. A save
-// someone else made first (module_changed) offers to load theirs; removing something students' notes, cards, files
-// or threads refer to (content_in_use) says so and suggests hiding it instead.
-import { ArrowLeft, EyeSlash, Trash, UploadSimple } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
-import { errorMessage, isApiError } from "../../../api/errors";
-import type { ModuleEdit } from "../../../api/types";
-import { uploadFile } from "../../../api/uploads";
-import { useToast, YEARS } from "../../../state";
-import {
-  Badge,
-  Button,
-  ConfirmDialog,
-  ModuleArt,
-  Panel,
-  QueryError,
-  Select,
-  Skeleton,
-  Switch,
-  TextField,
-  moduleArtSrc,
-} from "../../../ui";
-import { MarkdownEditor } from "../../forum/public";
-import {
-  useDeleteModule,
-  useModuleForEditing,
-  useReloadModule,
-  useSaveModule,
-} from "./api";
-import { ChaptersEditor } from "./ChaptersEditor";
-import {
-  MODULE_ICONS,
-  draftProblems,
-  isDirty,
-  toDraft,
-  toSave,
-  type Draft,
-} from "./draft";
+// One module in the editor: its details, its picture, and its chapters and lessons, saved together. A save someone
+// else made first (module_changed) offers to load theirs; removing something students' notes, cards, files or threads
+// refer to (content_in_use) says so and suggests hiding it instead.
+import { ArrowLeft, EyeSlash, Trash } from '@phosphor-icons/react';
+import { useEffect, useRef, useState } from 'react';
+import { errorMessage, isApiError } from '../../../api/errors';
+import type { ModuleEdit } from '../../../api/types';
+import { useToast, YEARS } from '../../../state';
+import { Badge, Button, ConfirmDialog, Panel, QueryError, Select, Skeleton, Switch, TextField } from '../../../ui';
+import { MarkdownEditor } from '../../forum/public';
+import { useDeleteModule, useModuleForEditing, useReloadModule, useSaveModule } from './api';
+import { ArtField } from './ArtField';
+import { ChaptersEditor } from './ChaptersEditor';
+import { draftProblems, isDirty, toDraft, toSave, type Draft } from './draft';
 
 interface Props {
   id: string;
@@ -48,13 +24,7 @@ export function ModuleForm({ id, onClose }: Props) {
     return (
       <div className="medit">
         <BackButton onClose={onClose} />
-        <QueryError
-          error={query.error}
-          title="This module didn’t load"
-          onRetry={() => void query.refetch()}
-          retrying={query.isFetching}
-          size="sm"
-        />
+        <QueryError error={query.error} title="This module didn’t load" onRetry={() => void query.refetch()} retrying={query.isFetching} size="sm" />
       </div>
     );
   }
@@ -69,40 +39,20 @@ export function ModuleForm({ id, onClose }: Props) {
     );
   }
   // A new version (saved here, or loaded again) starts a new draft.
-  return (
-    <Editor
-      key={`${query.data.id}@${query.data.version}`}
-      loaded={query.data}
-      onClose={onClose}
-    />
-  );
+  return <Editor key={`${query.data.id}@${query.data.version}`} loaded={query.data} onClose={onClose} />;
 }
 
 function BackButton({ onClose }: { onClose: () => void }) {
   return (
-    <Button
-      variant="ghost"
-      leadingIcon={ArrowLeft}
-      onClick={onClose}
-      className="medit__back"
-    >
+    <Button variant="ghost" leadingIcon={ArrowLeft} onClick={onClose} className="medit__back">
       All modules
     </Button>
   );
 }
 
-type Problem =
-  | { kind: "changed" }
-  | { kind: "in-use"; message: string }
-  | { kind: "other"; message: string };
+type Problem = { kind: 'changed' } | { kind: 'in-use'; message: string } | { kind: 'other'; message: string };
 
-function Editor({
-  loaded,
-  onClose,
-}: {
-  loaded: ModuleEdit;
-  onClose: () => void;
-}) {
+function Editor({ loaded, onClose }: { loaded: ModuleEdit; onClose: () => void }) {
   const [draft, setDraft] = useState<Draft>(() => toDraft(loaded));
   const [fields, setFields] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<Problem | null>(null);
@@ -113,26 +63,6 @@ function Editor({
   const { push: toast } = useToast();
   const dirty = isDirty(draft, loaded);
   const heading = useRef<HTMLHeadingElement>(null);
-  const [uploadingArt, setUploadingArt] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleArtUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingArt(true);
-    try {
-      const out = await uploadFile("module_art", file);
-      if (out.mediaUrl) {
-        set({ artUrl: out.mediaUrl });
-        toast({ title: "Picture uploaded. Save to apply changes.", tone: "success" });
-      }
-    } catch (err) {
-      toast({ title: "Failed to upload picture", body: errorMessage(err), tone: "alert" });
-    } finally {
-      setUploadingArt(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
 
   // Opening a module moves focus to its name, so a screen reader starts there and Tab goes on into the form.
   useEffect(() => {
@@ -143,8 +73,8 @@ function Editor({
   useEffect(() => {
     if (!dirty) return undefined;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }));
@@ -153,26 +83,17 @@ function Editor({
     setFields(found);
     setProblem(null);
     if (Object.keys(found).length) {
-      setProblem({
-        kind: "other",
-        message: "Some fields need a look before saving.",
-      });
+      setProblem({ kind: 'other', message: 'Some fields need a look before saving.' });
       return;
     }
     save.mutate(toSave(draft, loaded.version), {
-      onSuccess: () =>
-        toast({
-          title: "Saved. Students see the changes now.",
-          tone: "success",
-        }),
+      onSuccess: () => toast({ title: 'Saved. Students see the changes now.', tone: 'success' }),
       onError: (e) => {
-        if (isApiError(e) && e.code === "module_changed")
-          setProblem({ kind: "changed" });
-        else if (isApiError(e) && e.code === "content_in_use")
-          setProblem({ kind: "in-use", message: e.message });
+        if (isApiError(e) && e.code === 'module_changed') setProblem({ kind: 'changed' });
+        else if (isApiError(e) && e.code === 'content_in_use') setProblem({ kind: 'in-use', message: e.message });
         else {
           setFields(isApiError(e) ? e.fields : {});
-          setProblem({ kind: "other", message: errorMessage(e) });
+          setProblem({ kind: 'other', message: errorMessage(e) });
         }
       },
     });
@@ -182,13 +103,12 @@ function Editor({
       { id: loaded.id, version: loaded.version },
       {
         onSuccess: () => {
-          toast({ title: `${loaded.name} was removed.`, tone: "success" });
+          toast({ title: `${loaded.name} was removed.`, tone: 'success' });
           onClose();
         },
       },
     );
-  const inUse =
-    isApiError(remove.error) && remove.error.code === "content_in_use";
+  const inUse = isApiError(remove.error) && remove.error.code === 'content_in_use';
 
   return (
     <div className="medit">
@@ -196,9 +116,7 @@ function Editor({
         <BackButton onClose={onClose} />
         <div className="medit__title-row">
           <h3 className="medit__title" ref={heading} tabIndex={-1}>
-            {loaded.unitCode
-              ? `${loaded.unitCode} ${loaded.name}`
-              : loaded.name}
+            {loaded.unitCode ? `${loaded.unitCode} ${loaded.name}` : loaded.name}
           </h3>
           {loaded.hidden ? (
             <Badge tone="neutral" icon={EyeSlash} size="sm">
@@ -215,30 +133,13 @@ function Editor({
         ) : null}
       </div>
 
-      {problem ? (
-        <ProblemBanner problem={problem} onReload={() => void reload()} />
-      ) : null}
+      {problem ? <ProblemBanner problem={problem} onReload={() => void reload()} /> : null}
 
       <Panel padding="md" className="medit__panel">
         <h4 className="medit__section">Details</h4>
         <div className="medit-form__grid">
-          <TextField
-            label="Name"
-            value={draft.name}
-            onChange={(e) => set({ name: e.target.value })}
-            error={fields.name}
-            required
-            maxLength={120}
-          />
-          <TextField
-            label="Short name"
-            hint="On cards and in menus."
-            value={draft.shortName}
-            onChange={(e) => set({ shortName: e.target.value })}
-            error={fields.shortName}
-            required
-            maxLength={60}
-          />
+          <TextField label="Name" value={draft.name} onChange={(e) => set({ name: e.target.value })} error={fields.name} required maxLength={120} />
+          <TextField label="Short name" hint="On cards and in menus." value={draft.shortName} onChange={(e) => set({ shortName: e.target.value })} error={fields.shortName} required maxLength={60} />
           <TextField
             label="Unit code"
             hint="Like ST2133. Leave it empty if there is none."
@@ -247,74 +148,9 @@ function Editor({
             error={fields.unitCode}
             maxLength={6}
           />
-          <Select
-            label="Year"
-            value={draft.year}
-            onChange={(e) => set({ year: Number(e.target.value) as 1 | 2 | 3 })}
-            options={YEARS.map((y) => ({ value: y, label: `Year ${y}` }))}
-          />
-          <div className="medit__art-section">
-            <label className="ui-field__label">Module Illustration / Logo</label>
-            <div className="medit__art-control">
-              {moduleArtSrc(loaded.id, draft.artUrl) ? (
-                <div className="medit__art-preview">
-                  <ModuleArt moduleId={loaded.id} artUrl={draft.artUrl} className="medit__art-img" />
-                  <div className="medit__art-actions">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      leadingIcon={UploadSimple}
-                      loading={uploadingArt}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      Change picture
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      leadingIcon={Trash}
-                      onClick={() => set({ artUrl: null })}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="medit__art-empty">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    leadingIcon={UploadSimple}
-                    loading={uploadingArt}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    Upload logo / picture
-                  </Button>
-                  <span className="medit__art-hint">PNG, JPG or WebP up to 8 MB</span>
-                </div>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                style={{ display: "none" }}
-                onChange={handleArtUpload}
-              />
-            </div>
-            {!moduleArtSrc(loaded.id, draft.artUrl) && (
-              <Select
-                label="Fallback Icon"
-                value={draft.icon}
-                onChange={(e) => set({ icon: e.target.value })}
-                placeholder="The book (default)"
-                options={MODULE_ICONS.map((icon) => ({
-                  value: icon,
-                  label: icon.replace(/([a-z])([A-Z])/g, "$1 $2"),
-                }))}
-              />
-            )}
-          </div>
+          <Select label="Year" value={draft.year} onChange={(e) => set({ year: Number(e.target.value) as 1 | 2 | 3 })} options={YEARS.map((y) => ({ value: y, label: `Year ${y}` }))} />
         </div>
+        <ArtField art={draft.art} icon={draft.icon} unitCode={draft.unitCode} onArt={(art) => set({ art })} onIcon={(icon) => set({ icon })} error={fields.art} />
         <MarkdownEditor
           label="Description"
           hint="Markdown works: **bold**, *italic*, lists, links and $formulas$."
@@ -335,16 +171,12 @@ function Editor({
       <ChaptersEditor draft={draft} setDraft={setDraft} errors={fields} />
 
       {/* In reach while the chapters scroll by: sticks to the bottom of the screen once there is something to save. */}
-      <div className={dirty ? "medit__savebar is-active" : "medit__savebar"}>
+      <div className={dirty ? 'medit__savebar is-active' : 'medit__savebar'}>
         <span className="medit__savebar-status" role="status">
-          {dirty ? "Unsaved changes" : "No unsaved changes"}
+          {dirty ? 'Unsaved changes' : 'No unsaved changes'}
         </span>
         <div className="medit__actions">
-          <Button
-            variant="secondary"
-            disabled={!dirty || save.isPending}
-            onClick={() => setDraft(toDraft(loaded))}
-          >
+          <Button variant="secondary" disabled={!dirty || save.isPending} onClick={() => setDraft(toDraft(loaded))}>
             Undo changes
           </Button>
           <Button onClick={submit} loading={save.isPending} disabled={!dirty}>
@@ -354,12 +186,7 @@ function Editor({
       </div>
 
       <div className="medit__foot">
-        <Button
-          variant="ghost"
-          leadingIcon={Trash}
-          onClick={() => setRemoving(true)}
-          className="medit__remove"
-        >
+        <Button variant="ghost" leadingIcon={Trash} onClick={() => setRemoving(true)} className="medit__remove">
           Remove this module
         </Button>
       </div>
@@ -368,8 +195,8 @@ function Editor({
         open={removing}
         title={`Remove ${loaded.name}?`}
         body="Only a module nothing refers to can be removed. Hiding it keeps everything, out of students’ sight."
-        confirmLabel={inUse ? "Hide it instead" : "Remove"}
-        tone={inUse ? "primary" : "danger"}
+        confirmLabel={inUse ? 'Hide it instead' : 'Remove'}
+        tone={inUse ? 'primary' : 'danger'}
         busy={remove.isPending || save.isPending}
         error={remove.error ? errorMessage(remove.error) : null}
         onConfirm={() => {
@@ -378,18 +205,11 @@ function Editor({
             onSuccess: () => {
               setRemoving(false);
               remove.reset();
-              toast({
-                title: `${loaded.name} is hidden from students.`,
-                tone: "success",
-              });
+              toast({ title: `${loaded.name} is hidden from students.`, tone: 'success' });
             },
             onError: (e) => {
               setRemoving(false);
-              setProblem(
-                isApiError(e) && e.code === "module_changed"
-                  ? { kind: "changed" }
-                  : { kind: "other", message: errorMessage(e) },
-              );
+              setProblem(isApiError(e) && e.code === 'module_changed' ? { kind: 'changed' } : { kind: 'other', message: errorMessage(e) });
             },
           });
         }}
@@ -402,20 +222,11 @@ function Editor({
   );
 }
 
-function ProblemBanner({
-  problem,
-  onReload,
-}: {
-  problem: Problem;
-  onReload: () => void;
-}) {
-  if (problem.kind === "changed") {
+function ProblemBanner({ problem, onReload }: { problem: Problem; onReload: () => void }) {
+  if (problem.kind === 'changed') {
     return (
       <div className="medit__banner" role="alert">
-        <p>
-          Someone else saved this module while you were editing. Load their
-          version, then make your changes again.
-        </p>
+        <p>Someone else saved this module while you were editing. Load their version, then make your changes again.</p>
         <Button size="sm" onClick={onReload}>
           Load it again
         </Button>

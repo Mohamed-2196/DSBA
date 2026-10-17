@@ -1,6 +1,6 @@
 // Uploading a file straight to the bucket, for every purpose: library files, pictures in forum posts,
-// the newsletter, screenshots in bug reports, board files, note files in a student's notebook, and
-// Career Navigator's logos.
+// the newsletter, screenshots in bug reports, board files, note files in a student's notebook,
+// Career Navigator's logos and modules' logos or pictures.
 // The pipeline, its limits, accepted types and messages.
 //   1. POST /api/v1/uploads { purpose, fileName, contentType, sizeBytes } -> a presigned POST (PresignedUpload)
 //   2. POST a form to its url: every entry of `fields` first, then the file as `file` (XHR for progress; no cookies)
@@ -12,7 +12,7 @@ import { ApiError, errorMessage, isApiError } from './errors';
 import type { PresignedUpload, UploadCreate, UploadOut } from './types';
 
 /** What an upload is for: a library file, a picture in a forum post or the newsletter, a bug report screenshot,
- *  a board file, a note file, or a logo on Career Navigator. */
+ *  a board file, a note file, a logo on Career Navigator, or a module's logo or picture. */
 export type UploadPurpose = UploadCreate['purpose'];
 
 export interface UploadRules {
@@ -145,9 +145,9 @@ export const UPLOAD_RULES: Readonly<Record<UploadPurpose, UploadRules>> = {
     types: PICTURE_TYPES,
     maxMb: 8,
     accept: [PNG, JPEG, WEBP].join(','),
-    summary: 'Module logo or picture: PNG, JPEG or WebP, up to 8 MB.',
-    allowed: 'Use a PNG, JPEG or WebP image.',
-    refused: 'That file type can’t be a module logo.',
+    summary: 'PNG, JPEG or WebP, up to 8 MB. A square picture on a transparent background fits best.',
+    allowed: 'Use a PNG, JPEG or WebP picture.',
+    refused: 'That file type can’t be a module’s picture.',
     noun: 'picture',
     smaller: 'Save a smaller copy and try again.',
   },

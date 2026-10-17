@@ -81,7 +81,7 @@ export function NewIssueDialog({ open, nextNumber, onClose }: { open: boolean; n
       open={open}
       onClose={create.isPending ? () => undefined : onClose}
       title="Start a new issue"
-      description="It starts as a draft: only student reps see it until you publish it."
+      description="It starts as a draft: only people who manage the newsletter see it until you publish it."
       size="md"
       footer={
         <>

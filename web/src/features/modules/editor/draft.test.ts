@@ -18,6 +18,7 @@ const loaded: ModuleEdit = {
   shortName: 'Statistics',
   year: 1,
   icon: 'ChartBar',
+  art: 'modules/module-st1215.png',
   hidden: false,
   position: 3,
   version: 4,

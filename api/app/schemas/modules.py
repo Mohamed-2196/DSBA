@@ -6,6 +6,7 @@ from typing import Annotated, Literal
 from pydantic import Field, StringConstraints
 
 from app.schemas.common import ApiModel, Year
+from app.schemas.links import PictureSrc
 
 VideoKind = Literal["youtube", "youtube-playlist", "bbb"]
 LessonId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]{1,16}$")]  # app/services/modules.py new_id()
@@ -53,7 +54,7 @@ class ModuleSummary(ApiModel):
     year: Year
     description: str
     icon: str | None
-    art_url: str | None = None
+    art: str | None  # 'modules/module-ec1002.png' (a picture of the web app) or '/api/v1/media/<id>' (uploaded)
     chapter_count: int
     lesson_count: int
     library_count: int | None  # published library items for this module; None while the library is off for you
@@ -129,8 +130,8 @@ class ModuleFields(ApiModel):
     short_name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=60)]
     year: Year
     description: Annotated[str, StringConstraints(strip_whitespace=True, max_length=4000)] = ""  # Markdown
-    icon: ModuleIconName | None = None
-    art_url: Link | None = None
+    icon: ModuleIconName | None = None  # shown while the module has no art
+    art: PictureSrc | None = None  # its logo or illustration: a picture of the web app, or a module_art upload
 
 
 class ModuleCreate(ModuleFields):
@@ -185,7 +186,7 @@ class ModuleEditSummary(ApiModel):
     short_name: str
     year: Year
     icon: str | None
-    art_url: str | None = None
+    art: str | None
     hidden: bool
     position: int
     version: int

@@ -11,7 +11,7 @@
           "health"
         ],
         "summary": "Health",
-        "description": "Liveness and dependencies: the database and the object store.",
+        "description": "Liveness and dependencies (the database and the object store), and the commit this API runs, so a deploy can\nbe checked against the push that made it.",
         "operationId": "health_api_v1_health_get",
         "responses": {
           "200": {
@@ -7300,7 +7300,7 @@
           "uploads"
         ],
         "summary": "Media",
-        "description": "A picture: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). Its\nuploader always sees it. A forum image: everyone while its post is visible, moderators always. A newsletter\npicture: everyone once a published issue shows it, people who manage the newsletter always. A bug screenshot:\nadmins. 404 otherwise; feature_off while the forum or the newsletter is off for the viewer.",
+        "description": "A picture: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). Its\nuploader always sees it. A forum image: everyone while its post is visible, moderators always. A newsletter\npicture: everyone once a published issue shows it, people who manage the newsletter always. A module's art:\neveryone while a module students see shows it, people who edit modules always. A bug screenshot: admins. 404\notherwise; feature_off while the forum or the newsletter is off for the viewer.",
         "operationId": "media_api_v1_media__upload_id__get",
         "parameters": [
           {
@@ -21635,6 +21635,574 @@
           }
         }
       }
+    },
+    "/api/v1/site": {
+      "get": {
+        "tags": [
+          "site"
+        ],
+        "summary": "Site",
+        "description": "The hub's own words and links: the footer, About, the sidebar's links to BIBF and the University.",
+        "operationId": "site_api_v1_site_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteDoc"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "site"
+        ],
+        "summary": "Save Site",
+        "description": "Save the site settings, if nobody saved them since `version`. Audited with what changed, before and after.\n\nErrors: site_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't\nfit, a link that isn't https://, a module that doesn't exist, an id used twice).",
+        "operationId": "save_site_api_v1_site_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiteSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/site/edit": {
+      "get": {
+        "tags": [
+          "site"
+        ],
+        "summary": "Site For Editing",
+        "description": "The site settings with the version a save names (0 until the first save).",
+        "operationId": "site_for_editing_api_v1_site_edit_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/guides": {
+      "get": {
+        "tags": [
+          "site"
+        ],
+        "summary": "Guides",
+        "description": "Start here, Results day and Choosing your electives.",
+        "operationId": "guides_api_v1_guides_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuidesDoc"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "site"
+        ],
+        "summary": "Save Guides",
+        "description": "Save every guide, if nobody saved them since `version`. Audited with what changed, before and after.\n\nErrors: guides_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't\nfit, a link that isn't https:// or a page of the Hub, a step id used twice).",
+        "operationId": "save_guides_api_v1_guides_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuidesSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuidesEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/guides/edit": {
+      "get": {
+        "tags": [
+          "site"
+        ],
+        "summary": "Guides For Editing",
+        "description": "The guides with the version a save names (0 until the first save).",
+        "operationId": "guides_for_editing_api_v1_guides_edit_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuidesEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -23996,6 +24564,7 @@
               "calendar.manage",
               "career.edit",
               "content.edit",
+              "guides.edit",
               "requests.manage",
               "summary.share",
               "stats.view",
@@ -27033,6 +27602,44 @@
         ],
         "title": "DailyToday"
       },
+      "DateLink": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "date",
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "deadline",
+              "event"
+            ],
+            "title": "Type"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "title",
+          "type",
+          "label"
+        ],
+        "title": "DateLink",
+        "description": "The next calendar date of this type whose title contains `title`: 'Deadline Sunday 1 November'."
+      },
       "DateWindow": {
         "properties": {
           "from": {
@@ -27098,6 +27705,43 @@
         "title": "DoneRequests",
         "description": "The requests done in the `days` up to `until` (a day in Bahrain), the latest answered first: \"You asked, we\ndid\". `total` counts them all; `items` holds the first `limit`."
       },
+      "Electives": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "intro": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Intro"
+          },
+          "pick": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 1.0,
+            "title": "Pick"
+          },
+          "disclaimer": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Disclaimer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "intro",
+          "pick",
+          "disclaimer"
+        ],
+        "title": "Electives",
+        "description": "/career/electives: the Year 3 electives side by side, built from the modules and Career Navigator."
+      },
       "ErrorDetail": {
         "properties": {
           "code": {
@@ -27159,6 +27803,8 @@
               "module_changed",
               "content_in_use",
               "career_changed",
+              "site_changed",
+              "guides_changed",
               "already_a_lesson",
               "already_suggested",
               "suggestion_closed",
@@ -29843,6 +30489,198 @@
         "title": "GuessMove",
         "description": "A word: the word game's guess, or a guess at the secret word in Nearest neighbour."
       },
+      "GuidePlace": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "whose": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Whose"
+          },
+          "what": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "What"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "myclass",
+                  "uolPortal",
+                  "regulations",
+                  "results"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "whose",
+          "what"
+        ],
+        "title": "GuidePlace",
+        "description": "One of the sites Start here tells apart."
+      },
+      "GuideStep": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "hint": {
+            "type": "string",
+            "maxLength": 600,
+            "title": "Hint"
+          },
+          "links": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/WebLink"
+                },
+                {
+                  "$ref": "#/components/schemas/SavedLink"
+                },
+                {
+                  "$ref": "#/components/schemas/PageLink"
+                },
+                {
+                  "$ref": "#/components/schemas/DateLink"
+                },
+                {
+                  "$ref": "#/components/schemas/InstallLink"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "kind",
+                "mapping": {
+                  "date": "#/components/schemas/DateLink",
+                  "install": "#/components/schemas/InstallLink",
+                  "page": "#/components/schemas/PageLink",
+                  "site": "#/components/schemas/SavedLink",
+                  "web": "#/components/schemas/WebLink"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Links",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "hint"
+        ],
+        "title": "GuideStep"
+      },
+      "GuidesDoc": {
+        "properties": {
+          "startHere": {
+            "$ref": "#/components/schemas/StartHere"
+          },
+          "resultsDay": {
+            "$ref": "#/components/schemas/ResultsDay"
+          },
+          "electives": {
+            "$ref": "#/components/schemas/Electives"
+          }
+        },
+        "type": "object",
+        "required": [
+          "startHere",
+          "resultsDay",
+          "electives"
+        ],
+        "title": "GuidesDoc"
+      },
+      "GuidesEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GuidesDoc"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy"
+        ],
+        "title": "GuidesEditable",
+        "description": "The guides for their editors, with the version a save must name (0 until the first save)."
+      },
+      "GuidesSave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/GuidesDoc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "GuidesSave",
+        "description": "PUT /guides: every guide, and the version they were edited from."
+      },
       "Health": {
         "properties": {
           "status": {
@@ -29872,6 +30710,17 @@
           "version": {
             "type": "string",
             "title": "Version"
+          },
+          "commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commit"
           }
         },
         "type": "object",
@@ -29879,7 +30728,8 @@
           "status",
           "database",
           "storage",
-          "version"
+          "version",
+          "commit"
         ],
         "title": "Health"
       },
@@ -29979,6 +30829,21 @@
           "version"
         ],
         "title": "InkSheet"
+      },
+      "InstallLink": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "install",
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "InstallLink",
+        "description": "\"Install the app\", or how to add it to an iPhone's home screen."
       },
       "IssueCover": {
         "properties": {
@@ -31872,6 +32737,7 @@
                 "calendar.manage",
                 "career.edit",
                 "content.edit",
+                "guides.edit",
                 "requests.manage",
                 "summary.share",
                 "stats.view",
@@ -32149,17 +33015,18 @@
             ],
             "title": "Icon"
           },
-          "artUrl": {
+          "art": {
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 500
+                "maxLength": 300,
+                "minLength": 1
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Arturl"
+            "title": "Art"
           },
           "id": {
             "type": "string",
@@ -32228,7 +33095,7 @@
             ],
             "title": "Icon"
           },
-          "artUrl": {
+          "art": {
             "anyOf": [
               {
                 "type": "string"
@@ -32237,7 +33104,7 @@
                 "type": "null"
               }
             ],
-            "title": "Arturl"
+            "title": "Art"
           },
           "chapterCount": {
             "type": "integer",
@@ -32282,6 +33149,7 @@
           "year",
           "description",
           "icon",
+          "art",
           "chapterCount",
           "lessonCount",
           "libraryCount",
@@ -32335,7 +33203,7 @@
             ],
             "title": "Icon"
           },
-          "artUrl": {
+          "art": {
             "anyOf": [
               {
                 "type": "string"
@@ -32344,7 +33212,7 @@
                 "type": "null"
               }
             ],
-            "title": "Arturl"
+            "title": "Art"
           },
           "hidden": {
             "type": "boolean",
@@ -32398,6 +33266,7 @@
           "shortName",
           "year",
           "icon",
+          "art",
           "hidden",
           "position",
           "version",
@@ -32454,7 +33323,7 @@
             ],
             "title": "Icon"
           },
-          "artUrl": {
+          "art": {
             "anyOf": [
               {
                 "type": "string"
@@ -32463,7 +33332,7 @@
                 "type": "null"
               }
             ],
-            "title": "Arturl"
+            "title": "Art"
           },
           "hidden": {
             "type": "boolean",
@@ -32506,6 +33375,7 @@
           "shortName",
           "year",
           "icon",
+          "art",
           "hidden",
           "position",
           "version",
@@ -32614,17 +33484,18 @@
             ],
             "title": "Icon"
           },
-          "artUrl": {
+          "art": {
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 500
+                "maxLength": 300,
+                "minLength": 1
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Arturl"
+            "title": "Art"
           },
           "version": {
             "type": "integer",
@@ -32735,7 +33606,7 @@
             ],
             "title": "Icon"
           },
-          "artUrl": {
+          "art": {
             "anyOf": [
               {
                 "type": "string"
@@ -32744,7 +33615,7 @@
                 "type": "null"
               }
             ],
-            "title": "Arturl"
+            "title": "Art"
           },
           "chapterCount": {
             "type": "integer",
@@ -32775,6 +33646,7 @@
           "year",
           "description",
           "icon",
+          "art",
           "chapterCount",
           "lessonCount",
           "libraryCount"
@@ -33553,6 +34425,43 @@
         "title": "NoteCreate",
         "description": "A new note: in `notebookId`, or in the module's notebook (made when it isn't there yet), or in the student's\nfirst notebook of their own. `pdfUploadId` writes it over a PDF the student uploaded (purpose note_file)."
       },
+      "NoteCredit": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "modules": {
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "type": "array",
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Modules"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "modules"
+        ],
+        "title": "NoteCredit",
+        "description": "A student who shared their notes, and the modules the notes are for. About credits them by name, each module\nlinking to its notes in the library."
+      },
       "NotePage": {
         "properties": {
           "items": {
@@ -34144,6 +35053,71 @@
           "code"
         ],
         "title": "OtpVerifyRequest"
+      },
+      "PageLink": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "page",
+            "title": "Kind"
+          },
+          "to": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "To"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "feature": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "forum",
+                  "forum.help-below",
+                  "forum.anonymous",
+                  "forum.follow",
+                  "library",
+                  "library.uploads",
+                  "library.questions",
+                  "library.daily-question",
+                  "newsletter",
+                  "newsletter.polls",
+                  "calendar",
+                  "career",
+                  "career.seniors",
+                  "grades",
+                  "noora",
+                  "noora.ai",
+                  "notes",
+                  "board",
+                  "requests",
+                  "requests.autoclose",
+                  "requests.done",
+                  "summary",
+                  "video_suggestions",
+                  "daily"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "to",
+          "label"
+        ],
+        "title": "PageLink"
       },
       "PaperQuestion": {
         "properties": {
@@ -36626,6 +37600,60 @@
         ],
         "title": "RequestPage"
       },
+      "ResultsDay": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "intro": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Intro"
+          },
+          "eventTitle": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Eventtitle"
+          },
+          "weeks": {
+            "type": "integer",
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Weeks"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/GuideStep"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Steps"
+          },
+          "sourcesIntro": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Sourcesintro"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "intro",
+          "eventTitle",
+          "weeks",
+          "steps",
+          "sourcesIntro"
+        ],
+        "title": "ResultsDay",
+        "description": "What results mean and what to do next: Home's card for `weeks` weeks from each results date on the calendar\n(an event whose title contains `event_title`), and /results-day."
+      },
       "ResumeUpdate": {
         "properties": {
           "lessonId": {
@@ -36728,6 +37756,7 @@
                 "calendar.manage",
                 "career.edit",
                 "content.edit",
+                "guides.edit",
                 "requests.manage",
                 "summary.share",
                 "stats.view",
@@ -36802,6 +37831,7 @@
                 "calendar.manage",
                 "career.edit",
                 "content.edit",
+                "guides.edit",
                 "requests.manage",
                 "summary.share",
                 "stats.view",
@@ -36916,6 +37946,7 @@
                     "calendar.manage",
                     "career.edit",
                     "content.edit",
+                    "guides.edit",
                     "requests.manage",
                     "summary.share",
                     "stats.view",
@@ -36951,6 +37982,39 @@
         ],
         "title": "RoleUpdate",
         "description": "Only the fields sent change; `badge: null` removes the badge, and `boxes` replaces them as a whole."
+      },
+      "SavedLink": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "site",
+            "title": "Kind"
+          },
+          "link": {
+            "type": "string",
+            "enum": [
+              "myclass",
+              "uolPortal",
+              "regulations",
+              "results"
+            ],
+            "title": "Link"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "link",
+          "label"
+        ],
+        "title": "SavedLink",
+        "description": "One of the hub's saved links: it follows Site settings when the address changes."
       },
       "ScanGap": {
         "properties": {
@@ -37471,6 +38535,263 @@
         ],
         "title": "SimilarRequest"
       },
+      "SiteContributor": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "affiliation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affiliation"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "SiteContributor",
+        "description": "Someone who built the hub or supplied its materials: in the footer and on About, in this order."
+      },
+      "SiteDoc": {
+        "properties": {
+          "tagline": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Tagline"
+          },
+          "aboutIntro": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Aboutintro"
+          },
+          "about": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "About"
+          },
+          "links": {
+            "$ref": "#/components/schemas/SiteLinks"
+          },
+          "contributors": {
+            "items": {
+              "$ref": "#/components/schemas/SiteContributor"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Contributors"
+          },
+          "noteCredits": {
+            "items": {
+              "$ref": "#/components/schemas/NoteCredit"
+            },
+            "type": "array",
+            "maxItems": 60,
+            "title": "Notecredits"
+          },
+          "gradesNote": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Gradesnote"
+          },
+          "disclaimer": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Disclaimer"
+          },
+          "copyrightHolder": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Copyrightholder"
+          },
+          "launchYear": {
+            "type": "integer",
+            "maximum": 2100.0,
+            "minimum": 2000.0,
+            "title": "Launchyear"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tagline",
+          "aboutIntro",
+          "about",
+          "links",
+          "contributors",
+          "noteCredits",
+          "gradesNote",
+          "disclaimer",
+          "copyrightHolder",
+          "launchYear"
+        ],
+        "title": "SiteDoc"
+      },
+      "SiteEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SiteDoc"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy"
+        ],
+        "title": "SiteEditable",
+        "description": "The document for admins, with the version a save must name (0 until the first save: the starting content)."
+      },
+      "SiteLink": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Note"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "note",
+          "url"
+        ],
+        "title": "SiteLink",
+        "description": "A link to another site, as the hub names it."
+      },
+      "SiteLinks": {
+        "properties": {
+          "myclass": {
+            "$ref": "#/components/schemas/SiteLink"
+          },
+          "uolPortal": {
+            "$ref": "#/components/schemas/SiteLink"
+          },
+          "regulations": {
+            "$ref": "#/components/schemas/SiteLink"
+          },
+          "results": {
+            "$ref": "#/components/schemas/SiteLink"
+          }
+        },
+        "type": "object",
+        "required": [
+          "myclass",
+          "uolPortal",
+          "regulations",
+          "results"
+        ],
+        "title": "SiteLinks"
+      },
+      "SiteSave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SiteDoc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "SiteSave",
+        "description": "PUT /site: the whole document, and the version it was edited from."
+      },
       "Sitting": {
         "properties": {
           "examYear": {
@@ -37647,6 +38968,80 @@
           "starred"
         ],
         "title": "StarResult"
+      },
+      "StartHere": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "intro": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Intro"
+          },
+          "termStart": {
+            "$ref": "#/components/schemas/TermStart"
+          },
+          "weeks": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Weeks"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/GuideStep"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Steps"
+          },
+          "done": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Done"
+          },
+          "placesTitle": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Placestitle"
+          },
+          "placesIntro": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Placesintro"
+          },
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/GuidePlace"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Places",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "intro",
+          "termStart",
+          "weeks",
+          "steps",
+          "done",
+          "placesTitle",
+          "placesIntro"
+        ],
+        "title": "StartHere",
+        "description": "Year 1's first weeks: Home's card for Year 1 from the first day of term for `weeks` weeks, and /start-here."
       },
       "StatItem": {
         "properties": {
@@ -38302,6 +39697,28 @@
           "label"
         ],
         "title": "TagOut"
+      },
+      "TermStart": {
+        "properties": {
+          "month": {
+            "type": "integer",
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Month"
+          },
+          "day": {
+            "type": "integer",
+            "maximum": 31.0,
+            "minimum": 1.0,
+            "title": "Day"
+          }
+        },
+        "type": "object",
+        "required": [
+          "month",
+          "day"
+        ],
+        "title": "TermStart"
       },
       "TextMatch": {
         "properties": {
@@ -39281,6 +40698,34 @@
           "at"
         ],
         "title": "WatchedLesson"
+      },
+      "WebLink": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "web",
+            "title": "Kind"
+          },
+          "href": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Href"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "href",
+          "label"
+        ],
+        "title": "WebLink"
       },
       "WordRow": {
         "properties": {

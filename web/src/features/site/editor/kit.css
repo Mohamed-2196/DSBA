@@ -1,0 +1,128 @@
+/* Documents edited whole in Manage (Site settings, the guides): the frame, its save bar, and lists that open into
+   forms. Everything stacks on phones and wraps, never scrolls sideways; buttons are 44 px on touch screens (the design
+   system's own rule). */
+.dedit { display: grid; gap: var(--sp-16); min-width: 0; }
+.dedit__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-12);
+}
+.dedit__intro { display: grid; gap: var(--sp-4); min-width: 0; }
+.dedit__actions { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+.dedit__note { margin: 0; max-width: 75ch; color: var(--ink-2); font-size: var(--fs-14); }
+.dedit__empty { margin: 0; color: var(--ink-2); }
+.dedit__error { margin: 0; color: var(--alert-strong); font-size: var(--fs-14); }
+.dedit__banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8) var(--sp-12);
+  padding: var(--sp-12) var(--sp-16);
+  border: 1px solid var(--alert-strong);
+  border-radius: var(--r-panel);
+  background: var(--alert-soft);
+  color: var(--ink);
+}
+.dedit__banner p { margin: 0; flex: 1 1 24ch; max-width: 75ch; }
+.dedit__nav { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+.dedit__nav-error { box-shadow: inset 0 0 0 2px var(--alert-strong); }
+.dedit__panel { display: grid; gap: var(--sp-16); min-width: 0; }
+.dedit__section-head { display: grid; gap: var(--sp-4); }
+.dedit__section { margin: 0; font-size: var(--fs-16); }
+.dedit__savebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8) var(--sp-16);
+  padding: var(--sp-12) var(--sp-16);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface);
+}
+.dedit__savebar.is-active { position: sticky; bottom: var(--sp-16); z-index: var(--z-sticky); box-shadow: var(--shadow-float); }
+
+.dedit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--sp-12) var(--sp-16);
+  align-items: start;
+}
+.dedit-grid__wide { grid-column: 1 / -1; min-width: 0; }
+.dedit-group {
+  display: grid;
+  gap: var(--sp-12);
+  margin: 0;
+  padding: var(--sp-12) var(--sp-16) var(--sp-16);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  min-width: 0;
+}
+.dedit-group__legend { padding: 0 var(--sp-4); font-weight: var(--fw-semibold); }
+
+/* a list of items that open into forms */
+.dedit-list { display: grid; gap: var(--sp-12); justify-items: start; min-width: 0; }
+.dedit-list__items { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-8); width: 100%; }
+.dedit-item { border: 1px solid var(--line); border-radius: var(--r-control); background: var(--surface); min-width: 0; }
+.dedit-item.is-open { border-color: var(--cobalt); }
+.dedit-item.has-error { border-color: var(--alert-strong); }
+.dedit-item__row { display: flex; align-items: center; gap: var(--sp-8) var(--sp-12); padding: var(--sp-4) var(--sp-8) var(--sp-4) var(--sp-12); min-width: 0; }
+.dedit-item__open {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  align-content: center;
+  column-gap: var(--sp-8);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.dedit-item__open:hover .dedit-item__title { color: var(--cobalt); }
+.dedit-item__title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); font-weight: var(--fw-semibold); overflow-wrap: anywhere; }
+.dedit-item__meta { grid-column: 1; color: var(--ink-2); font-size: var(--fs-14); overflow-wrap: anywhere; }
+.dedit-item__caret { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--ink-3); transition: transform var(--dur-fast, 120ms) ease; }
+.dedit-item.is-open .dedit-item__caret { transform: rotate(180deg); }
+.dedit-item__tools { display: flex; flex: none; align-items: center; gap: var(--sp-4); }
+.dedit-item__form { display: grid; gap: var(--sp-16); padding: var(--sp-12) var(--sp-16) var(--sp-16); border-top: 1px solid var(--line); min-width: 0; }
+
+/* rows edited in place */
+.dedit-rows { display: grid; gap: var(--sp-8); justify-items: start; min-width: 0; width: 100%; }
+.dedit-rows__items { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-8); width: 100%; }
+.dedit-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--sp-8) var(--sp-12);
+  padding: var(--sp-8) var(--sp-12) var(--sp-12);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  min-width: 0;
+}
+.dedit-row__fields { flex: 1 1 20rem; min-width: 0; }
+.dedit-row__tools { display: flex; flex: none; align-items: center; gap: var(--sp-4); margin-left: auto; }
+
+/* the preview drawer */
+.dedit-preview { display: grid; gap: var(--sp-24); min-width: 0; }
+.dedit-preview__label {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 699px) {
+  .dedit__actions { width: 100%; }
+  .dedit-item__row { flex-wrap: wrap; }
+  .dedit-item__tools { margin-left: auto; }
+}

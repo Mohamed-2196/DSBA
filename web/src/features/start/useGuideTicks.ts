@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { RESULTS_DAY, START_HERE } from '../../data/guides';
+import type { GuideStep } from '../../api/types';
 import { useLocalStorage } from '../../state';
 import { doneSteps, toggleStep } from './startHere';
 
@@ -11,16 +11,14 @@ export interface GuideTicks {
 
 /**
  * A guide's ticks, kept in this browser under `key` as a JSON array of step ids, e.g. ["portal","modules"].
- * Not personal: each guide is the same for everyone.
+ * Not personal: each guide is the same for everyone. A step that was removed simply stops counting.
  */
-export function useGuideTicks(key: string, stepIds: readonly string[]): GuideTicks {
+export function useGuideTicks(key: string, steps: readonly GuideStep[]): GuideTicks {
   const [stored, setStored] = useLocalStorage<unknown>(key, []);
-  const done = useMemo(() => doneSteps(stored, stepIds), [stored, stepIds]);
-  return { done, total: stepIds.length, toggle: (id: string) => setStored((prev: unknown) => toggleStep(prev, id)) };
+  const ids = useMemo(() => steps.map((s) => s.id), [steps]);
+  const done = useMemo(() => doneSteps(stored, ids), [stored, ids]);
+  return { done, total: ids.length, toggle: (id: string) => setStored((prev: unknown) => toggleStep(prev, id)) };
 }
 
-const START_IDS = START_HERE.steps.map((s) => s.id);
-const RESULTS_IDS = RESULTS_DAY.steps.map((s) => s.id);
-
-export const useStartTicks = (): GuideTicks => useGuideTicks('hub.start.checklist', START_IDS);
-export const useResultsTicks = (): GuideTicks => useGuideTicks('hub.results.checklist', RESULTS_IDS);
+export const useStartTicks = (steps: readonly GuideStep[]): GuideTicks => useGuideTicks('hub.start.checklist', steps);
+export const useResultsTicks = (steps: readonly GuideStep[]): GuideTicks => useGuideTicks('hub.results.checklist', steps);
