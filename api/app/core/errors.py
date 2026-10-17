@@ -18,6 +18,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.core.headers import ERROR_HEADERS
+from app.core.logs import redact_path
 from app.schemas.common import ErrorCode
 
 log = logging.getLogger("dsba.errors")
@@ -126,13 +127,16 @@ def install_error_handlers(app: FastAPI) -> None:
         # A value the database can't store (a NUL byte in text, a number out of range) that got past validation.
         # Logged without the SQL and its parameters, which may hold personal data.
         log.warning(
-            "the database refused a value on %s %s (%s)", request.method, request.url.path, type(exc.orig).__name__
+            "the database refused a value on %s %s (%s)",
+            request.method,
+            redact_path(request.url.path),
+            type(exc.orig).__name__,
         )
         return JSONResponse(_body("invalid_input", "Some fields are not valid."), status_code=422)
 
     @app.exception_handler(Exception)
     async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
-        log.exception("unhandled error on %s %s", request.method, request.url.path, exc_info=exc)
+        log.exception("unhandled error on %s %s", request.method, redact_path(request.url.path), exc_info=exc)
         # Made outside the security headers middleware (Starlette's error middleware wraps it): add them here.
         return JSONResponse(
             _body("internal", "Something went wrong on our side."), status_code=500, headers=ERROR_HEADERS

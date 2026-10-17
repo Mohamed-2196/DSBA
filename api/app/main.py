@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.core.errors import ControlCharactersMiddleware, install_error_handlers
 from app.core.headers import SecurityHeadersMiddleware
+from app.core.logs import keep_secrets_out_of_access_log
 from app.core.security import CSRFMiddleware, ForwardedSchemeMiddleware
 from app.routers import api_router
 from app.routers.health import VERSION
@@ -34,6 +35,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 def create_app() -> FastAPI:
     s = get_settings()  # in production: refuses to start with unsafe settings (app.config.ConfigError)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    keep_secrets_out_of_access_log()  # the private calendar feed's secret is in its path
     # The interactive docs and the schema are for development: the web app's types come from api/openapi.json in
     # the repository, never from the running API.
     docs = not s.is_production
