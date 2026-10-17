@@ -131,13 +131,14 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
       const before = query.data?.play.status;
       try {
         const next = await mutateAsync(m);
-        if (before && !isOver(before) && isOver(next.play.status) && plugin.resultDelay !== null) {
+        const delay = m.kind === 'give-up' ? 300 : plugin.resultDelay;
+        if (before && !isOver(before) && isOver(next.play.status) && delay !== null) {
           setFinishing(true);
           window.clearTimeout(resultTimer.current);
           resultTimer.current = window.setTimeout(() => {
             setFinishing(false);
             setResultOpen(true);
-          }, m.kind === 'give-up' ? 300 : plugin.resultDelay);
+          }, delay);
         }
         return { ok: true, out: next };
       } catch (e) {
