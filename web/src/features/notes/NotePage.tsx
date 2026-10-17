@@ -330,7 +330,8 @@ function NoteDesk({ noteId, readOnly, fresh, editor, doc, ink, pdf }: NoteDeskPr
     const pages = pdf.state.status === 'ready' ? pdf.state.pdf.pages : [];
     return sheetsOf(pages, doc.sheets);
   }, [pdf.state, doc.sheets]);
-  const typedPages = textSheets(textHeight);
+  // the pages the typed text is on (none while there is none)
+  const typedPages = textEditor && !textEditor.isEmpty ? textSheets(textHeight) : 0;
 
   const onPage = useCallback(
     (action: PageAction) => {
