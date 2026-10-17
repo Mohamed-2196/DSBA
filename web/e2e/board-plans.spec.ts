@@ -1,13 +1,16 @@
-// Revision plans and past papers on the study board. With the board on, a student plans a
-// module's revision from the module page, finds the plan on the board, and removes it. The switch goes back off.
+// Revision plans and past papers on a board. With boards on, a student plans a module's revision from the module
+// page, finds the plan on its board, and removes it. The switch goes back off.
 import { expect, test } from './fixtures';
 import { api, personaContext, setSwitch } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-interface Board {
-  cards: { title: string; column: string; planModuleId: string | null; planDate: string | null }[];
-  plans: { moduleId: string; left: number }[];
+interface Boards {
+  plans: { moduleId: string; boardId: string; left: number }[];
+}
+interface BoardDetail {
+  board: { columns: { id: string; done: boolean }[] };
+  cards: { columnId: string; planModuleId: string | null; planDate: string | null }[];
 }
 
 test('a student plans a module’s revision to the exam date and removes the plan', async ({ sara, admin }) => {
@@ -21,18 +24,21 @@ test('a student plans a module’s revision to the exam date and removes the pla
   await dialog.locator('[data-hub="board-plan-save"]').click();
   await expect(dialog).toBeHidden();
 
-  const board = async () => (await api<Board>(sara, 'GET', '/api/v1/board')).body;
-  await expect.poll(async () => (await board()).plans.some((p) => p.moduleId === 'economics')).toBe(true);
-  const planned = (await board()).cards.filter((c) => c.planModuleId === 'economics' && c.column !== 'done');
+  const plan = async () => (await api<Boards>(sara, 'GET', '/api/v1/boards')).body.plans.find((p) => p.moduleId === 'economics');
+  await expect.poll(async () => (await plan()) !== undefined).toBe(true);
+  const boardId = (await plan())?.boardId ?? '';
+  const detail = (await api<BoardDetail>(sara, 'GET', `/api/v1/boards/${boardId}`)).body;
+  const done = new Set(detail.board.columns.filter((c) => c.done).map((c) => c.id));
+  const planned = detail.cards.filter((c) => c.planModuleId === 'economics' && !done.has(c.columnId));
   expect(planned.length).toBeGreaterThan(0);
   expect(planned.every((c) => c.planDate !== null && c.planDate < exam)).toBe(true);
 
-  await sara.goto('/board');
+  await sara.goto(`/board?board=${boardId}`);
   const row = sara.locator('[data-hub="board-plan-row"]').filter({ hasText: 'revision' }).first();
   await expect(row).toBeVisible();
   await row.getByRole('button', { name: 'Remove plan' }).click();
   await sara.getByRole('dialog').getByRole('button', { name: 'Remove plan' }).click();
-  await expect.poll(async () => (await board()).plans.some((p) => p.moduleId === 'economics')).toBe(false);
+  await expect.poll(async () => (await plan()) === undefined).toBe(true);
 });
 
 test.afterAll(async ({ browser }) => {
