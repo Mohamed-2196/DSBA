@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import { CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { CalendarPlus, CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { Button, cx, IconButton } from '../../ui';
-import { dayKey, formatLongDay, parseDay } from '../../lib/dates';
+import { dayKey, formatLongDay, parseDay, type DayKey } from '../../lib/dates';
 import { addMonths, monthKey, monthTitle } from './dates';
 import { DayList } from './DayList';
+import { dayOrder } from './mine';
 import { MonthGrid } from './MonthGrid';
 import { groupByDay } from './queries';
 import type { CalendarView } from './useCalendarView';
@@ -15,10 +16,12 @@ export interface MonthPanelProps {
   today: Date;
   /** phones: dots for days, and the picked day's dates under the grid */
   compact: boolean;
+  /** a new event of the student's own on a day */
+  onAdd: (day: DayKey) => void;
 }
 
 /** A month on a grid, with its arrows and "Today". data-hub="calendar-month". */
-export function MonthPanel({ view, today, compact }: MonthPanelProps) {
+export function MonthPanel({ view, today, compact, onAdd }: MonthPanelProps) {
   const { month, monthEvents, goMonth, goToday, isCurrentMonth, eventId, cohortYear, open } = view;
   const before = addMonths(month, -1);
   const after = addMonths(month, 1);
@@ -38,16 +41,16 @@ export function MonthPanel({ view, today, compact }: MonthPanelProps) {
         </span>
       </div>
       {compact ? (
-        <CompactMonth view={view} today={today} key={monthKey(month)} />
+        <CompactMonth view={view} today={today} onAdd={onAdd} key={monthKey(month)} />
       ) : (
-        <MonthGrid month={month} events={monthEvents} today={today} selectedId={eventId} showCohort={!cohortYear} labelledBy={MONTH_TITLE_ID} onOpen={open} onNavigate={goMonth} />
+        <MonthGrid month={month} events={monthEvents} today={today} selectedId={eventId} showCohort={!cohortYear} labelledBy={MONTH_TITLE_ID} onOpen={open} onNavigate={goMonth} onAdd={onAdd} />
       )}
     </section>
   );
 }
 
 /** Phones: the grid with a dot per date, and the picked day's dates under it (today, or the month's first date). */
-function CompactMonth({ view, today }: { view: CalendarView; today: Date }) {
+function CompactMonth({ view, today, onAdd }: { view: CalendarView; today: Date; onAdd: (day: DayKey) => void }) {
   const { month, monthEvents, goMonth, eventId, cohortYear, open } = view;
   const byDay = useMemo(() => groupByDay(monthEvents), [monthEvents]);
   const inMonth = (key: string) => key.startsWith(monthKey(month));
@@ -55,7 +58,7 @@ function CompactMonth({ view, today }: { view: CalendarView; today: Date }) {
   const firstWithEvents = [...byDay.keys()].filter(inMonth).sort()[0] ?? null;
   const [picked, setPicked] = useState<string | null>(null);
   const day = picked && inMonth(picked) ? picked : inMonth(todayKey) ? todayKey : firstWithEvents;
-  const events = day ? (byDay.get(day) ?? []) : [];
+  const events = day ? dayOrder(byDay.get(day) ?? [], day) : [];
 
   return (
     <>
@@ -75,7 +78,12 @@ function CompactMonth({ view, today }: { view: CalendarView; today: Date }) {
       <div className="cal-month__day" aria-live="polite">
         {day ? (
           <>
-            <h4 className="cal-month__day-title">{formatLongDay(parseDay(day))}</h4>
+            <div className="cal-month__day-head">
+              <h4 className="cal-month__day-title">{formatLongDay(parseDay(day))}</h4>
+              <Button size="sm" variant="ghost" leadingIcon={CalendarPlus} onClick={() => onAdd(day)} data-hub="calendar-day-add">
+                New event
+              </Button>
+            </div>
             {events.length ? (
               <DayList days={[{ key: day, date: parseDay(day), events }]} today={today} selectedId={eventId} showCohort={!cohortYear} onOpen={open} className="cal-month__day-list" />
             ) : (

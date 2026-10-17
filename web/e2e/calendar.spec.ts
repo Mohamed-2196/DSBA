@@ -42,7 +42,8 @@ test('a student browses the calendar and subscribes: the feed is a valid calenda
 
   await sara.locator('[data-hub="calendar-subscribe-open"]').click();
   const dialog = sara.getByRole('dialog');
-  const link = await dialog.getByLabel('Calendar link').inputValue();
+  await dialog.getByRole('radio', { name: 'All years' }).click(); // signed in, their own private link comes first
+  const link = await dialog.getByLabel('Calendar link', { exact: true }).inputValue();
   expect(link).toMatch(/\/api\/v1\/calendar\/feed\.ics(\?year=\d)?$/);
   const feed = await sara.request.get(link);
   expect(feed.status()).toBe(200);
@@ -67,7 +68,7 @@ async function addEvent(rep: Page, fields: { title: string; date: string; cohort
   await dialog.getByLabel('Place').fill(fields.place);
   const [resp] = await Promise.all([
     rep.waitForResponse((r) => r.url().endsWith('/api/v1/calendar/events') && r.request().method() === 'POST'),
-    dialog.getByRole('button', { name: 'Add event' }).click(),
+    dialog.getByRole('button', { name: 'Add date' }).click(),
   ]);
   expect(resp.status(), await resp.text()).toBe(201);
   const id = (await resp.json()).id as string;
@@ -98,8 +99,8 @@ test('a rep adds, edits and deletes an event; students see each change', async (
 
   await rep.goto(`/calendar?event=${encodeURIComponent(id)}`);
   await rep.locator('[data-hub="calendar-delete"]').click();
-  const confirm = rep.getByRole('dialog').filter({ hasText: 'Delete this event?' });
-  await confirm.getByRole('button', { name: 'Delete event' }).click();
+  const confirm = rep.getByRole('dialog').filter({ hasText: 'Delete this date?' });
+  await confirm.getByRole('button', { name: 'Delete date' }).click();
   await expect(confirm).toHaveCount(0);
   const left = await api<{ id: string }[]>(sara, 'GET', `/api/v1/calendar/events?from=${date}&to=${date}`);
   expect(left.body.map((e) => e.id)).not.toContain(id);

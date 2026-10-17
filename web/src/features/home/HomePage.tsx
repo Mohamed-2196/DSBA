@@ -9,7 +9,7 @@ import { COHORTS, YEARS, useYear } from '../../state';
 import { useModules } from '../../state/modules';
 import { Button, CohortBadge, EmptyState, ErrorBoundary, Menu, Page, PageSection, Panel, SectionHeader, cx } from '../../ui';
 import { BoardTodo } from '../board/public';
-import { useCalendarEvents } from '../calendar/public';
+import { useMyCalendarEvents } from '../calendar/public';
 import { HelpBelow } from '../forum/public';
 import { DailyQuestion } from '../library/public';
 import { ContinueLearning, useTracking } from '../modules/public';
@@ -70,7 +70,7 @@ export default function HomePage() {
   // Today in Bahrain, as the API counts it; a new object only when the day changes.
   const todayIs = todayKey(now);
   const today = useMemo(() => parseDay(todayIs), [todayIs]);
-  const calendar = useCalendarEvents({ from: todayIs, to: dayKey(addDays(today, 120)) }, { enabled: calendarOn });
+  const calendar = useMyCalendarEvents({ from: todayIs, to: dayKey(addDays(today, 120)) }, { enabled: calendarOn });
   const session = useMemo(() => getExamSession(calendar.data ?? [], activeYear, getModule, today, { papers }), [calendar.data, activeYear, getModule, today, papers]);
   const nextExam = session?.kind === 'exams' && session.next.type === 'exam' ? session.next : null;
 

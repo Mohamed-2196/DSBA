@@ -141,6 +141,7 @@
 .cal-month__title { flex: 1 1 auto; min-width: 0; font-size: var(--fs-20); font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: 1.2; }
 .cal-month__arrows { display: flex; gap: 6px; }
 .cal-month__day { margin-top: var(--sp-16); }
+.cal-month__day-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-8); }
 .cal-month__day-title { font-size: var(--fs-16); font-weight: var(--fw-bold); letter-spacing: -0.01em; }
 .cal-month__day-list .cal-days__day { grid-template-columns: minmax(0, 1fr); padding-top: var(--sp-4); }
 .cal-month__day-list .cal-days__leaf { display: none; }
@@ -259,6 +260,46 @@
   font-weight: var(--fw-semibold);
 }
 .cal-day__more:hover { background: var(--surface-2); color: var(--ink); }
+/* The day's number opens the day (every date on it, and a new event of the student's own). */
+button.cal-day__num { cursor: pointer; transition: background-color var(--dur-fast) var(--ease); }
+button.cal-day__num:hover { background: var(--surface-2); }
+.cal-day.is-today button.cal-day__num:hover { background: var(--cobalt-hover); }
+button.cal-day__num:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: 1px; }
+@media (pointer: coarse) {
+  .cal-day__more { min-height: 44px; padding-inline: 8px; }
+  /* the top of a day is its number's 44px target */
+  .cal-grid:not(.cal-grid--compact) .cal-day__head { min-height: 44px; }
+  .cal-grid:not(.cal-grid--compact) button.cal-day__num::after { content: ''; position: absolute; inset: 0 0 auto; height: 51px; }
+}
+
+/* A day of the grid, opened */
+.cal-daymenu { display: grid; gap: var(--sp-8); padding: var(--sp-12); }
+.cal-daymenu__title { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-bold); }
+.cal-daymenu__list { display: grid; gap: 2px; margin: 0 calc(-1 * var(--sp-8)); padding: 0; }
+.cal-daymenu__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  text-align: left;
+}
+.cal-daymenu__row:hover { background: var(--surface-2); }
+.cal-daymenu__row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus-color); }
+.cal-daymenu__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--fw-semibold); }
+.cal-daymenu__meta { color: var(--ink-2); font-size: var(--fs-12); white-space: nowrap; }
+.cal-daymenu__cohort { font-weight: var(--fw-bold); }
+.cal-daymenu__empty { color: var(--ink-2); font-size: var(--fs-14); }
+.cal-daymenu__foot { padding-top: var(--sp-4); border-top: 1px solid var(--line); }
+.cal-daymenu__foot .ui-button { margin-top: var(--sp-8); }
+@media (pointer: coarse) {
+  .cal-daymenu__row { min-height: 44px; }
+}
 
 /* Phones: a day is its number and a dot per date; a tap on a day picks it (every cell is at least 46px square at
    360px wide). */
@@ -430,7 +471,6 @@
 .cal-chip--mine:hover { box-shadow: inset 3px 0 0 var(--mine), inset 0 0 0 1px var(--line-strong); }
 .cal-chip--mine.is-selected { box-shadow: inset 3px 0 0 var(--mine), inset 0 0 0 2px var(--ink); }
 .cal-chip--mine.is-past { --chip-bg: var(--surface-2); }
-.cal-chip__time { flex: 0 0 auto; color: var(--ink-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); }
 .cal-typechip--mine .cal-dot { margin-right: 2px; }
 .cal-mine-badge {
   display: inline-flex;
@@ -446,8 +486,38 @@
 .cal-drawer__notes { max-width: 65ch; color: var(--ink); font-size: var(--fs-14); line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
 .cal-drawer__hide { display: flex; flex-wrap: wrap; gap: var(--sp-8); margin-top: var(--sp-8); }
 
-/* the form: start and end side by side, the colour swatches */
-.cal-form__times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-12); }
+/* the form: the day with its start and end on one row (two rows on phones), the colour swatches */
+.cal-form__when { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--sp-16); }
+.cal-form__when.has-times { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); }
+.cal-form__when .ui-control__input { min-width: 0; }
+@media (max-width: 699px) {
+  .cal-form__when.has-times { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cal-form__when.has-times .cal-form__day { grid-column: 1 / -1; }
+}
+
+/* Which days of a repeat a change or a deletion covers */
+.cal-scope { min-width: 0; margin: 0; padding: 0; border: 0; }
+.cal-scope__legend { margin-bottom: var(--sp-8); padding: 0; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.cal-scope__list { display: grid; gap: 6px; }
+.cal-scope__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  cursor: pointer;
+}
+.cal-scope__item.is-picked { border-color: var(--cobalt); box-shadow: inset 0 0 0 1px var(--cobalt); background: color-mix(in srgb, var(--cobalt-soft) 55%, var(--surface)); }
+.cal-scope__item:has(input:focus-visible) { outline: var(--focus-width) solid var(--focus-color); outline-offset: var(--focus-offset); }
+.cal-scope__radio { width: 18px; height: 18px; margin: 0; flex: 0 0 auto; accent-color: var(--cobalt); }
+.cal-scope__text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--sp-8); min-width: 0; }
+.cal-scope__label { color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
+.cal-scope__hint { color: var(--ink-2); font-size: var(--fs-12); }
+.cal-scope:disabled .cal-scope__item { cursor: not-allowed; opacity: 0.6; }
+.ui-confirm .cal-scope { margin-top: var(--sp-16); }
 .cal-colours { margin: 0; padding: 0; border: 0; min-width: 0; }
 .cal-colours__legend { margin-bottom: var(--sp-8); padding: 0; color: var(--ink); font-size: var(--fs-14); font-weight: var(--fw-semibold); }
 .cal-colours__list { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
@@ -495,4 +565,17 @@
   .cal-drawer__hide .ui-button,
   .cal-subscribe__manage .ui-button,
   .cal-customise .ui-button { min-height: 44px; }
+}
+
+/* The kept careers dates' dot is ink, like a picked chip: a ring keeps it seen. */
+.cal-typechip--careers.is-selected .ui-chip__dot { box-shadow: 0 0 0 1.5px var(--paper); }
+
+/* Their own events didn't load: said above the calendar, which still shows the programme dates. */
+.cal-mine-error { margin-bottom: var(--sp-24); }
+
+/* While an event's details are open beside the page, toasts sit to their left, so they never cover its buttons.
+   (Phones: the drawer is a sheet from the bottom, and toasts move to the top.) */
+@media (min-width: 700px) {
+  body:has(.cal-drawer) .ui-toaster { right: calc(min(480px, 100vw) + var(--sp-16)); }
+  body:has(.cal-drawer) .ui-toast { width: min(380px, calc(100vw - 480px - 2 * var(--sp-16))); }
 }

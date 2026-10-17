@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type Keyboard
 import { cohortTextColor } from '../../state';
 import { useModules } from '../../state/modules';
 import { cx } from '../../ui';
-import { addDays, dayKey, formatLong, isWeekend, WEEKDAYS } from '../../lib/dates';
+import { addDays, dayKey, formatLong, isWeekend, WEEKDAYS, type DayKey } from '../../lib/dates';
 import { monthMatrix, monthOfDate, type MonthRef } from './dates';
+import { DayMenu } from './DayMenu';
 import { chipClass, chipText, dotClass, eventSummary } from './eventMeta';
+import { dayOrder } from './mine';
 import { groupByDay } from './queries';
 import type { CalendarEvent } from './types';
 
@@ -24,20 +26,31 @@ export interface MonthGridProps {
   onSelectDay?: (key: string) => void;
   onOpen: (e: CalendarEvent) => void;
   onNavigate: (month: MonthRef) => void;
+  /** a new event of the student's own on a day (offered where a day opens) */
+  onAdd?: (day: DayKey) => void;
 }
+
+/** Opens the day of the grid cell `el` is in: a click on its number. */
+const openDay = (el: Element | null) => el?.closest('[role="gridcell"]')?.querySelector<HTMLButtonElement>('.cal-day__num')?.click();
 
 /**
  * Month grid (ARIA grid, Sunday first, Fri/Sat weekend). One tab stop: arrow keys move by day/week,
- * Home/End to the week's ends, PageUp/PageDown change month, Enter opens the day's first event
- * (in `compact`, picks the day). A multi-day event (a break) sits on each of its days. On phones (`compact`) a day
- * shows dots instead of chips and a tap on it picks it; the page lists the picked day's dates under the grid.
+ * Home/End to the week's ends, PageUp/PageDown change month, Enter opens the day: every date on it and a new event
+ * of the student's own (in `compact`, picks the day). A day shows its first dates (what starts that day, exams first,
+ * then the student's own) and "N more", which opens the day too; its number opens it as well. A multi-day event (a
+ * break) sits on each of its days. On phones (`compact`) a day shows dots instead and a tap on it picks it; the page
+ * lists the picked day's dates under the grid.
  * data-hub="calendar-grid" on the grid, "calendar-event" on each event.
  */
-export function MonthGrid({ month, events, today, selectedId, showCohort, labelledBy, compact = false, selectedDay = null, onSelectDay, onOpen, onNavigate }: MonthGridProps) {
+export function MonthGrid({ month, events, today, selectedId, showCohort, labelledBy, compact = false, selectedDay = null, onSelectDay, onOpen, onNavigate, onAdd }: MonthGridProps) {
   const { y, m } = month;
   const { getModule } = useModules();
   const weeks = useMemo(() => monthMatrix({ y, m }), [y, m]);
-  const byDay = useMemo(() => groupByDay(events), [events]);
+  const byDay = useMemo(() => {
+    const days = groupByDay(events);
+    for (const [key, list] of days) days.set(key, dayOrder(list, key));
+    return days;
+  }, [events]);
   const todayKey = dayKey(today);
   const gridRef = useRef<HTMLDivElement>(null);
   const wantFocus = useRef(false);
@@ -68,6 +81,8 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>, date: Date) => {
+    // keys pressed in an opened day reach the cell through React's tree (the day is in a portal): they are the day's
+    if (!(e.target instanceof Node) || !e.currentTarget.contains(e.target)) return;
     const steps: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
     const step = steps[e.key];
     if (step) {
@@ -81,17 +96,10 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
       const dir = e.key === 'PageUp' ? -1 : 1;
       const lastDay = new Date(date.getFullYear(), date.getMonth() + dir + 1, 0).getDate();
       moveTo(new Date(date.getFullYear(), date.getMonth() + dir, Math.min(date.getDate(), lastDay)));
-    } else if (e.key === 'Enter' || e.key === ' ') {
-      if (compact && onSelectDay) {
-        e.preventDefault();
-        onSelectDay(dayKey(date));
-        return;
-      }
-      const first = byDay.get(dayKey(date))?.[0];
-      if (first) {
-        e.preventDefault();
-        onOpen(first);
-      }
+    } else if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
+      e.preventDefault();
+      if (compact) onSelectDay?.(dayKey(date));
+      else openDay(e.currentTarget);
     }
   };
 
@@ -113,7 +121,7 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
             const isToday = key === todayKey;
             const past = date < today;
             const label = `${formatLong(date)}${isToday ? ', today' : ''}${list.length ? `, ${list.length} event${list.length > 1 ? 's' : ''}: ${list.map(eventSummary).join('; ')}` : ''}`;
-            const more = list[MAX_CHIPS];
+            const more = list.length - MAX_CHIPS;
             const picked = compact && key === selectedDay;
             return (
               <div
@@ -131,9 +139,21 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                   if (e.target === e.currentTarget) setFocusKey(key);
                 }}
               >
-                <span className="cal-day__head" aria-hidden="true">
-                  <span className="cal-day__num">{date.getDate()}</span>
-                  {isToday && !compact ? <span className="cal-day__today">Today</span> : null}
+                <span className="cal-day__head">
+                  {compact ? (
+                    <span className="cal-day__num" aria-hidden="true">
+                      {date.getDate()}
+                    </span>
+                  ) : (
+                    <DayMenu day={key} events={list} showCohort={showCohort} onOpen={onOpen} onAdd={onAdd} className="cal-day__num">
+                      {date.getDate()}
+                    </DayMenu>
+                  )}
+                  {isToday && !compact ? (
+                    <span className="cal-day__today" aria-hidden="true">
+                      Today
+                    </span>
+                  ) : null}
                 </span>
                 {compact ? (
                   list.length ? (
@@ -147,6 +167,7 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                   <span className="cal-day__events">
                     {list.slice(0, MAX_CHIPS).map((ev) => {
                       const { code, line } = chipText(ev, getModule(ev.moduleId));
+                      const time = ev.mine?.startTime?.slice(0, 5) ?? null;
                       return (
                         <button
                           key={ev.id}
@@ -160,7 +181,6 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                         >
                           <span className="cal-chip__top">
                             <span className={cx('cal-dot', dotClass(ev))} aria-hidden="true" />
-                            {ev.mine?.startTime ? <span className="cal-chip__time u-tabular">{ev.mine.startTime.slice(0, 5)}</span> : null}
                             <span className={cx('cal-chip__title', code && 'u-code')}>{code || line}</span>
                             {showCohort && ev.year ? (
                               <span className="cal-chip__cohort" style={{ color: cohortTextColor(ev.year) }}>
@@ -168,13 +188,13 @@ export function MonthGrid({ month, events, today, selectedId, showCohort, labell
                               </span>
                             ) : null}
                           </span>
-                          {code ? <span className="cal-chip__line">{line}</span> : null}
+                          {code ? <span className="cal-chip__line">{line}</span> : time ? <span className="cal-chip__line">{time}</span> : null}
                         </button>
                       );
                     })}
-                    {more ? (
-                      <button type="button" tabIndex={-1} className="cal-day__more" onClick={() => onOpen(more)}>
-                        {list.length - MAX_CHIPS} more
+                    {more > 0 ? (
+                      <button type="button" tabIndex={-1} className="cal-day__more" onClick={(e) => openDay(e.currentTarget)}>
+                        {more} more
                       </button>
                     ) : null}
                   </span>
