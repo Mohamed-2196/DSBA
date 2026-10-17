@@ -91,3 +91,10 @@ def test_a_year_of_daily_puzzles_builds(db: Session) -> None:
                 puzzle = game.puzzle(db, day, variant)
                 assert puzzle == game.puzzle(db, day, variant)
                 game.view(puzzle, game.start(puzzle), over=True)
+
+
+def test_groups_puzzles_have_one_group_of_each_level(db: Session) -> None:
+    for n in range(0, 120, 3):
+        day = content.FIRST_DAY + dt.timedelta(days=n)
+        levels = [g.level for g in GAMES["groups"].puzzle(db, day, "").groups]
+        assert levels == [1, 2, 3, 4], (day, levels)

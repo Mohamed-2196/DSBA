@@ -61,6 +61,11 @@ def _no_shared_words(chosen: list[Group], group: Group) -> bool:
     return all(not set(group.words) & set(c.words) for c in chosen)
 
 
+def _one_per_level(chosen: list[Group], group: Group) -> bool:
+    """A group of a level not chosen yet: the board runs plainest to trickiest, one colour each."""
+    return all(c.level != group.level for c in chosen) and _no_shared_words(chosen, group)
+
+
 class GroupsGame(Game[Puzzle, GroupsState]):
     id = "groups"
     title = "Correlations"
@@ -78,7 +83,10 @@ class GroupsGame(Game[Puzzle, GroupsState]):
 
     def puzzle(self, db: Session, day: dt.date, variant: str) -> Puzzle:
         pool = bank()[content.theme_of(day).id]
-        chosen = content.pick_many(pool, GROUPS, self.id, day, _no_shared_words)
+        try:
+            chosen = content.pick_many(pool, GROUPS, self.id, day, _one_per_level)
+        except ValueError:  # a theme without a group at every level
+            chosen = content.pick_many(pool, GROUPS, self.id, day, _no_shared_words)
         r = content.rng(self.id, day, "words")
         groups: list[Group] = []
         for g in sorted(chosen, key=lambda g: (g.level, g.id)):
