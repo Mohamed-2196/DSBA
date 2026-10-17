@@ -50,7 +50,7 @@ copy makes:
 | ID | Severity | Owner | Status | Title |
 |---|---|---|---|---|
 | SEC-36 | **major** | notes (`services/notes.py:64`) | open | One free account keeps 250 MB of ink and text in Postgres, and every read loads all of it at once |
-| SEC-37 | minor | deployment (`api/Dockerfile:37`, `routers/feeds.py:20`) | open | The private calendar feed's secret is written to the API's access log on every poll |
+| SEC-37 | minor | deployment (`api/Dockerfile:37`, `routers/feeds.py:20`) | **fixed** (2c21b15) | The private calendar feed's secret is written to the API's access log on every poll |
 | SEC-38 | minor | boards (`services/board/common.py:33`) | open | No total on the text a student's boards hold: about 880 MB of rows per free account |
 | SEC-39 | minor | boards, uploads (`services/board/files.py:124`) | open | Detaching a board file gives its slot back to the 20-uploads-an-hour limit |
 | SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | open | Bug reports and their screenshots are left out of the export and outlive the account |
@@ -141,6 +141,11 @@ copy makes:
     `app/main.py`) that writes `/api/v1/feeds/calendar/…` instead of the secret.
   - Add a test that no access log line holds a feed secret.
   - If Caddy ever gets a `log` directive, filter the path there too.
+- **Fixed (2c21b15):** the access log stays on, with a filter on `uvicorn.access` (`app/core/logs.py`, installed in
+  `create_app()`) that writes the feed's path as `/api/v1/feeds/calendar/….ics`; the error handlers' log lines redact
+  it the same way. `test_sec37_the_private_feeds_secret_never_reaches_the_apis_access_log` polls a real feed through
+  uvicorn with the image's defaults and finds the redacted line and no secret; `tests/core/test_logs.py` covers the
+  filter. Caddy still writes no access log.
 
 ### SEC-38. No total on the text a student's boards hold: about 880 MB of rows per free account (minor)
 
