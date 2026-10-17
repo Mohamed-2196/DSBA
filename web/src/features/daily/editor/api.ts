@@ -130,11 +130,12 @@ export function useImportItems() {
   });
 }
 
-export function useGuessList(q: string) {
+export function useGuessList(q: string, enabled = true) {
   return useQuery({
     queryKey: dailyContentKeys.guesses(q),
     queryFn: ({ signal }) => call(api.GET('/api/v1/content/daily/guesses', { params: { query: { q } }, signal })),
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
 
@@ -152,13 +153,14 @@ export function useRemoveGuess() {
   return useItemWrite((word: string) => call(api.DELETE('/api/v1/content/daily/guesses/{word}', { params: { path: { word } } })));
 }
 
-export function useVocabulary(q: string) {
+export function useVocabulary(q: string, enabled = true) {
   return useInfiniteQuery({
     queryKey: dailyContentKeys.vocabulary(q),
     queryFn: ({ pageParam, signal }) => call(api.GET('/api/v1/content/daily/vocabulary', { params: { query: { q, limit: PAGE, offset: pageParam } }, signal })),
     initialPageParam: 0,
     getNextPageParam: nextOffset,
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
 

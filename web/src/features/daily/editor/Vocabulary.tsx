@@ -49,7 +49,7 @@ export function Vocabulary({ tags }: { tags: string[] }) {
           <ul className="dcms-items">
             {words.map((w) => (
               <li key={w.word} className="dcms-item">
-                <button type="button" className="dcms-item__open" onClick={() => setEditing(w)} aria-label={`Edit ${w.word}`}>
+                <button type="button" className="dcms-item__open" onClick={() => setEditing(w)}>
                   <span className="dcms-item__title">
                     <span className="dcms-item__text">{w.word}</span>
                     {w.secretIn ? (

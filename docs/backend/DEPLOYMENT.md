@@ -102,6 +102,19 @@ library (section 10).
 `DSBA_ADMIN_IDENTIFIERS` gives the Admin role, when they first sign in, to the people listed there. `set-role` sets
 exactly the roles you name, and writes an audit entry.
 
+**Daily puzzles' content.** The seed loads the Daily themes (out of the rotation) and the public guess list, but no
+puzzles: the answers stay out of the repository. Load the content file, kept privately, then edit it in Manage →
+Daily puzzles:
+
+```sh
+docker compose -f compose.prod.yaml run --rm -v /path/to/daily-content.json:/tmp/daily.json:ro api \
+  python -m app.cli daily-content import /tmp/daily.json
+```
+
+It adds what the database lacks and never overwrites what editors changed; themes join the rotation once every game
+has what it needs. `daily-content export FILE` writes the database's content back to a file (it holds every answer:
+keep it private).
+
 **Updating:** `git pull && docker compose -f compose.prod.yaml up -d --build`. The `migrate` service applies new
 migrations before the API starts. Run `seed` again after updates that change the reference content (it never
 overwrites what reps changed).

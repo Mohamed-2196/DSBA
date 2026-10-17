@@ -115,7 +115,7 @@ const ANSWER = /^[A-Z]{5}$/;
 /** An answer word, and whether the guess list has it (one tap adds it). */
 function AnswerField({ word, error, onChange }: { word: string; error?: string; onChange: (word: string) => void }) {
   const complete = ANSWER.test(word);
-  const guesses = useGuessList(complete ? word : '');
+  const guesses = useGuessList(word, complete);
   const add = useAddGuesses();
   const known = complete && guesses.data?.words.includes(word);
   let hint: ReactNode = 'Five letters, A to Z, in the guess list so players can type it.';
@@ -152,7 +152,7 @@ function AnswerField({ word, error, onChange }: { word: string; error?: string; 
 /** A secret word, and whether the vocabulary has it. */
 function SecretField({ word, error, onChange }: { word: string; error?: string; onChange: (word: string) => void }) {
   const complete = /^[a-z]{2,24}$/.test(word);
-  const found = useVocabulary(complete ? word : '');
+  const found = useVocabulary(word, complete);
   const known = found.data?.pages[0]?.items.some((w) => w.word === word);
   let hint: ReactNode = 'A word from the vocabulary, a to z. Its closeness to every other word comes from their tags.';
   if (complete && found.data && !found.isPlaceholderData) {

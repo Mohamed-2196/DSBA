@@ -215,7 +215,7 @@ function ItemRow({ item, themeTitle, busy, onOpen, onRetire, onRemove }: ItemRow
   const title = titleOf(item.data);
   return (
     <li className={cx('dcms-item', item.retired && 'is-retired')}>
-      <button type="button" className="dcms-item__open" onClick={onOpen} aria-label={`Edit “${title}”`}>
+      <button type="button" className="dcms-item__open" onClick={onOpen}>
         <span className={cx('dcms-item__title', (item.game === 'word' || item.game === 'search') && 'is-word')}>
           <span className="dcms-item__text">{title}</span>
           {item.data.game === 'groups' ? (
