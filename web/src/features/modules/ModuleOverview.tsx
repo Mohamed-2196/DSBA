@@ -92,7 +92,7 @@ function PickUp({ module: m, resume }: { module: ModuleDetail; resume: ResumePoi
         aria-label={`${PICKUP_ACTION[resume.kind]}: chapter ${resume.c + 1}, ${ch.title}`}
         onClick={() => window.scrollTo({ top: 0 })}
       >
-        <MiniPoster module={m} size="lg" />
+        <MiniPoster module={m} video={video} size="lg" />
         <span className="mod-pick__text">
           <span className="mod-pick__pos">{chapterPosition(resume.c, video, resume.v, ch.videos.length)}</span>
           <span className="mod-pick__title">{ch.title}</span>
