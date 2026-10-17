@@ -126,8 +126,9 @@ def shared_app(settings_env: None) -> FastAPI:
 
 
 @pytest.fixture
-def app(request: pytest.FixtureRequest, db: Session) -> Iterator[FastAPI]:
-    """The app, with the test's own database session. A test marked own_app adds routes, so it gets a new app."""
+def app(request: pytest.FixtureRequest, db: Session, bucket: None) -> Iterator[FastAPI]:
+    """The app, with the test's own database session and the run's bucket. A test marked own_app adds routes, so it
+    gets a new app."""
     from app.db import get_db
     from app.main import create_app
 
@@ -146,6 +147,7 @@ def app(request: pytest.FixtureRequest, db: Session) -> Iterator[FastAPI]:
 
 @pytest.fixture(scope="session")
 def bucket(settings_env: None) -> None:
+    """The run's bucket in moto, made once (the app's start-up makes it in development, not in the tests)."""
     from app.services.storage import get_storage
 
     get_storage().ensure_bucket(["http://testserver"])
