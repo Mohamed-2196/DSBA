@@ -282,10 +282,12 @@ export const MessageList = memo(function MessageList(props: MessageListProps) {
     const below = el.scrollHeight - question.offsetTop + ROOM_ABOVE;
     spacer.style.height = `${Math.max(0, el.clientHeight - below)}px`;
   }, []);
+  // The newest message; an empty chat shows its hello (or the page's welcome) from the top.
   const toNewest = useCallback(() => {
     anchor.current = null;
     makeRoom();
-    if (list.current) list.current.scrollTop = list.current.scrollHeight;
+    const el = list.current;
+    if (el) el.scrollTop = el.querySelector('[data-mid]') ? el.scrollHeight : 0;
   }, [makeRoom]);
   const jump = () => {
     setAway(false);

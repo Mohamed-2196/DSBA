@@ -25,12 +25,17 @@ describe('starters', () => {
 
   it('offers every kind of help, each with something to fill in', () => {
     const list = starters([], null);
-    expect(list.map((s) => s.id)).toEqual(['explain', 'solve', 'quiz', 'plan', 'summarise', 'career', 'write']);
+    expect(list.map((s) => s.id)).toEqual(['explain', 'solve', 'quiz', 'plan', 'summarise', 'career', 'write', 'find']);
     for (const s of list) expect(s.template).toMatch(/\[[^\]]+\]/);
+  });
+
+  it('fills whole rows of four or of two', () => {
+    expect(starters([], null).length % 4).toBe(0);
   });
 
   it('uses a module of the student’s year', () => {
     expect(starters([st], 2).find((s) => s.id === 'plan')?.template).toContain('[ST2133]');
     expect(starters([st], 1).find((s) => s.id === 'plan')?.template).toContain('[my next exam]');
+    expect(starters([st], 2).find((s) => s.id === 'find')?.template).toBe('Where are [the past papers for ST2133]?');
   });
 });
