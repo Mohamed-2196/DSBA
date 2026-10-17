@@ -5,6 +5,7 @@
 // Undo and redo go through the note's timeline (useTimeline), so they take back handwriting too: the editor's own
 // shortcuts call it.
 import { Extension } from '@tiptap/core';
+import { NodeSelection } from '@tiptap/pm/state';
 import { Placeholder } from '@tiptap/extensions';
 import { TaskItem, TaskList } from '@tiptap/extension-list';
 import { useEditor, type Editor } from '@tiptap/react';
@@ -73,6 +74,23 @@ export function useNoteText({ doc, readOnly, onChange, onReady, onFiles, onUndo,
               return true;
             },
           }),
+        }),
+        Extension.create({
+          name: 'noteBlockKeys',
+          // Tab on a selected picture or file goes to its toolbar (Escape there comes back)
+          addKeyboardShortcuts() {
+            return {
+              Tab: ({ editor: e }) => {
+                const sel = e.state.selection;
+                if (!(sel instanceof NodeSelection) || !['image', 'attachment'].includes(sel.node.type.name)) return false;
+                const dom = e.view.nodeDOM(sel.from);
+                const first = dom instanceof HTMLElement ? dom.querySelector<HTMLElement>('.nb-blockbar button:not(:disabled), .nb-blockbar a') : null;
+                if (!first) return false;
+                first.focus();
+                return true;
+              },
+            };
+          },
         }),
       ],
       content: Array.isArray(doc.content) && doc.content.length ? doc : null,

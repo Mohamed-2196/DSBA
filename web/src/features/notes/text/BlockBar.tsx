@@ -17,6 +17,13 @@ export function BlockBar({ label, children }: { label: string; children: ReactNo
       onMouseDown={(e) => {
         if (!(e.target instanceof HTMLElement && e.target.closest('a'))) e.preventDefault();
       }}
+      onKeyDown={(e) => {
+        // Escape goes back to the text, with the picture or file still selected
+        if (e.key !== 'Escape') return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.closest<HTMLElement>('.ProseMirror')?.focus();
+      }}
     >
       {children}
     </div>
