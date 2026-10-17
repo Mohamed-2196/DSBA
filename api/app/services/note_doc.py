@@ -1,8 +1,9 @@
 """A note's typed text: a ProseMirror document as the web app's editor writes it (web/src/features/notes/text).
 
 `check()` accepts only the nodes and marks the editor has, small scalar attributes, and links to the web; it
-answers the document's plain text (for search, excerpts and Mini Noora) and the uploads its pictures and files
-use. The web app renders the document through the editor's schema, never as HTML."""
+answers the document's plain text (for search, excerpts and Mini Noora: a picture's caption and description, a file's
+name) and the uploads its pictures and files use. The web app renders the document through the editor's schema,
+never as HTML."""
 
 from __future__ import annotations
 
@@ -126,10 +127,9 @@ def check(doc: dict[str, Any]) -> Checked:
             return
         if kind in FILE_NODES:
             out.uploads.add(_upload_id(attrs))
-            label = attrs.get("name") if kind == "attachment" else attrs.get("alt")
+            labels = [attrs.get("name")] if kind == "attachment" else [attrs.get("caption"), attrs.get("alt")]
             end_line()
-            if isinstance(label, str) and label.strip():
-                lines.append(label.strip())
+            lines.extend(label.strip() for label in labels if isinstance(label, str) and label.strip())
             return
         if kind == "blockMath":
             end_line()

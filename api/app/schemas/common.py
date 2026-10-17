@@ -74,7 +74,7 @@ ErrorCode = Literal[
     "poll_closed",  # 409: the poll takes no more votes
     "poll_has_votes",  # 409: a poll's answers can't change once it has votes
     "unsupported_type",  # 422: a file type the library or the forum doesn't take
-    "too_large",  # 422
+    "too_large",  # 422 (an upload), 413 (a request body refused unread: core/limits.py)
     "not_uploaded",  # 409: the file never reached the bucket
     "mismatch",  # 422: the file isn't what its name says
     "no_preview",  # 404/409: this file has no preview

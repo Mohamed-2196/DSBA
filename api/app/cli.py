@@ -7,7 +7,8 @@ backup             pg_dump the database into the backup bucket, encrypted at res
                    DSBA_BACKUP_KEEP (docs/backend/DEPLOYMENT.md: where backups go, and how to restore one)
 sweep              delete what is no longer needed: uploads never attached to anything or whose board card is gone
                    (after a day), sign-in codes older than two days, sessions that expired or were revoked more
-                   than 30 days ago, and the files of library items rejected or removed more than a week ago
+                   than 30 days ago, the files of library items rejected or removed more than a week ago, and the
+                   screenshots of bug reports closed more than 90 days ago
 setup-bucket       create the bucket if needed and set its CORS and lifecycle rules (production: once)
 mail-worker        send the queued emails (notifications, account notices, Sunday summaries) with retries; runs
                    until stopped (--once: until nothing is due). Several can run side by side. On Sunday from
@@ -27,6 +28,9 @@ extract-texts      read the words of the published files that have none yet (the
                    read failed and empty files again too; --limit N files)
 make-covers        make the cover (the first page as a small picture) of the published PDF and Word files read
                    before covers existed, then stop (--limit N files)
+                   (text-worker, extract-texts and make-covers need only the database and the bucket settings)
+texts-role         create the text worker's database role, or set its password (DSBA_TEXTS_DB_PASSWORD), with only
+                   what the worker needs; production runs it after every migration
 dev-login ID       development only: print a session token for an account (created if needed, holding Student;
                    --role gives one more role)
 enable-features    development only: switch every feature on for everyone (each change goes to the activity log)
@@ -51,13 +55,14 @@ from typing import TYPE_CHECKING, Any, cast
 from botocore.exceptions import BotoCoreError, ClientError
 from sqlalchemy import CursorResult, delete, or_, select
 from sqlalchemy.engine import make_url
+from sqlalchemy.orm import Session, sessionmaker
 
-from app.config import Settings, get_settings
+from app.config import Settings, get_settings, texts_settings
 from app.core.access import Feature
 from app.core.time import utcnow
-from app.db import get_sessionmaker
+from app.db import get_sessionmaker, make_engine, sessions_for
 from app.models import AccessRole, OtpChallenge, Upload, UploadPurpose, UploadStatus, User, UserSession
-from app.services.storage import get_storage, s3_client
+from app.services.storage import Storage, get_storage, s3_client
 
 if TYPE_CHECKING:
     from mypy_boto3_s3 import S3Client
@@ -243,13 +248,15 @@ class SweepReport:
     sessions: int
     files: int = 0  # files of rejected or removed library items
     bug_report_ips: int = 0  # guests' addresses on bug reports, forgotten once the rate limit no longer counts them
+    bug_screenshots: int = 0  # screenshots of bug reports closed long ago
 
 
 def sweep() -> SweepReport:
     """Deletes uploads never attached to anything, or whose board card is gone (objects first, then rows), old
-    sign-in codes, sessions that ended long ago, the files of library items rejected or removed a week ago, and
-    the addresses kept on bug reports. Safe to run at any time and to run again."""
-    from app.services.bugs import clear_old_ips
+    sign-in codes, sessions that ended long ago, the files of library items rejected or removed a week ago, the
+    addresses kept on bug reports and the screenshots of reports closed long ago. Safe to run at any time and to
+    run again."""
+    from app.services.bugs import clear_old_ips, sweep_screenshots
     from app.services.library import sweep_files
     from app.services.otp import KEEP_CHALLENGES
 
@@ -271,17 +278,23 @@ def sweep() -> SweepReport:
         dead = delete(UserSession).where(or_(UserSession.expires_at < ended, UserSession.revoked_at < ended))
         sessions = cast(CursorResult[Any], db.execute(dead)).rowcount
         bug_report_ips = clear_old_ips(db)
+        bug_screenshots = sweep_screenshots(db, storage, now)
         db.commit()
     return SweepReport(
-        uploads=len(stale), challenges=challenges, sessions=sessions, files=files, bug_report_ips=bug_report_ips
+        uploads=len(stale),
+        challenges=challenges,
+        sessions=sessions,
+        files=files,
+        bug_report_ips=bug_report_ips,
+        bug_screenshots=bug_screenshots,
     )
 
 
 def cmd_sweep(_: argparse.Namespace) -> int:
     r = sweep()
     print(
-        f"swept {r.uploads} upload(s), {r.files} library file(s), {r.challenges} sign-in code(s) "
-        f"and {r.sessions} session(s)"
+        f"swept {r.uploads} upload(s), {r.files} library file(s), {r.bug_screenshots} bug screenshot(s), "
+        f"{r.challenges} sign-in code(s) and {r.sessions} session(s)"
     )
     return 0
 
@@ -302,12 +315,39 @@ def cmd_mail_worker(args: argparse.Namespace) -> int:
     return run_worker(get_sessionmaker(), once=args.once, poll_seconds=args.poll)
 
 
+def texts_worker() -> tuple[sessionmaker[Session], Storage]:
+    """The text worker's database sessions and bucket, from its own settings: in production it is given only those
+    (compose.prod.yaml), so the API's checks of everything else don't apply (config.texts_settings())."""
+    settings = texts_settings()
+    return sessions_for(make_engine(settings.database_url)), Storage(settings)
+
+
 def cmd_text_worker(args: argparse.Namespace) -> int:
     """Reads published files' text until stopped (SIGTERM or Ctrl-C)."""
     from app.services.paper_text import run_worker
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    return run_worker(get_sessionmaker(), get_storage(), poll_seconds=args.poll)
+    sessions, storage = texts_worker()
+    return run_worker(sessions, storage, poll_seconds=args.poll)
+
+
+def cmd_texts_role(_: argparse.Namespace) -> int:
+    """Sets up the text worker's database role (paper_text.set_up_worker_role()), as the database's owner."""
+    from app.services import paper_text
+
+    password = get_settings().texts_db_password
+    if password is None:
+        print("DSBA_TEXTS_DB_PASSWORD is not set: the text worker's database role was left as it is.", file=sys.stderr)
+        return 1
+    with get_sessionmaker()() as db:
+        try:
+            paper_text.set_up_worker_role(db, password.get_secret_value(), paper_text.WORKER_ROLE)
+        except ValueError as e:
+            print(f"DSBA_TEXTS_DB_PASSWORD: {e}", file=sys.stderr)
+            return 1
+        db.commit()
+    print(f"the text worker's database role {paper_text.WORKER_ROLE} is set up")
+    return 0
 
 
 def cmd_extract_texts(args: argparse.Namespace) -> int:
@@ -316,14 +356,14 @@ def cmd_extract_texts(args: argparse.Namespace) -> int:
     from app.services import paper_text
 
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
-    sessions = get_sessionmaker()
+    sessions, storage = texts_worker()
     with sessions() as db:
         if args.retry:
             again = paper_text.forget(db, (TextStatus.failed, TextStatus.empty))
             db.commit()
             print(f"reading {again} failed or empty file(s) again")
         print(f"{paper_text.waiting(db)} file(s) to read")
-    counts = paper_text.drain(sessions, get_storage(), limit=args.limit)
+    counts = paper_text.drain(sessions, storage, limit=args.limit)
     print(
         f"read {sum(counts.values())} file(s): {counts[TextStatus.done]} with text, "
         f"{counts[TextStatus.empty]} without (scans), {counts[TextStatus.failed]} failed"
@@ -336,8 +376,7 @@ def cmd_make_covers(args: argparse.Namespace) -> int:
     from app.services import paper_text
 
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
-    sessions = get_sessionmaker()
-    storage = get_storage()
+    sessions, storage = texts_worker()
     with sessions() as db:
         todo = paper_text.without_cover(db, args.limit)
     print(f"{len(todo)} file(s) without a cover")
@@ -563,6 +602,7 @@ def main(argv: list[str] | None = None) -> int:
     mc = sub.add_parser("make-covers")
     mc.add_argument("--limit", metavar="N", type=_positive, default=None, help="at most N files this run")
     mc.set_defaults(fn=cmd_make_covers)
+    sub.add_parser("texts-role").set_defaults(fn=cmd_texts_role)
     dl = sub.add_parser("dev-login")
     dl.add_argument("identifier")
     dl.add_argument("--role", default=None, metavar="ROLE", help="give this role too (a slug, such as rep or admin)")

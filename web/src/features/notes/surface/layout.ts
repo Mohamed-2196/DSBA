@@ -1,15 +1,26 @@
-// Where each sheet of a note sits on screen. A note is a column of sheets, all SHEET_WIDTH units wide: its PDF's
-// pages first (each its own shape, with a gap between), then its paper (A4 sheets, one after the other, the typed
-// text flowing down them). Ink is kept per sheet, in that sheet's units: sheets 0-999 are the PDF's pages, and
-// paper sheets count from PAPER_BASE, so a PDF that can't be read never moves the writing on the paper.
+// Where each sheet of a note sits, in sheet units. A note is a column of sheets, all SHEET_WIDTH units wide: its
+// PDF's pages first (each its own shape, with a gap between), then its paper (sheets of PAPER_LINES ruled lines, one
+// after the other, the typed text flowing down them). Ink is kept per sheet, in that sheet's units: sheets 0-999 are
+// the PDF's pages, and paper sheets count from PAPER_BASE, so a PDF that can't be read never moves the writing on the
+// paper.
+//
+// Everything on the page is laid out in units and the whole column is scaled for the zoom, so the typed text wraps the
+// same way at every zoom and on every device: handwriting next to a word stays next to it.
 export const SHEET_WIDTH = 800;
-export const SHEET_HEIGHT = 1131;
-export const PAPER_BASE = 1000;
-/** Pixels between two PDF pages, and between the PDF and the paper (at any zoom). */
-export const PAGE_GAP = 16;
-export const PAPER_GAP = 28;
-/** The text's line height on paper, in units: ruled paper is ruled at it. */
+/** The text's line height, in units: ruled paper is ruled at it, and every block of text keeps to it. */
 export const LINE = 32;
+/** Ruled lines on one sheet of paper: a page break always falls between two lines of text. */
+export const PAPER_LINES = 35;
+/** A sheet of paper: A4's shape, rounded to whole lines (A4 itself is 1131 units). */
+export const SHEET_HEIGHT = LINE * PAPER_LINES;
+export const PAPER_BASE = 1000;
+/** Units between two PDF pages, and between the PDF and the paper. */
+export const PAGE_GAP = 24;
+
+/** Where the typed text sits on the paper: two lines down, inside side margins. */
+export const TEXT_TOP = 2 * LINE;
+export const TEXT_SIDE = 72;
+export const TEXT_WIDTH = SHEET_WIDTH - 2 * TEXT_SIDE;
 
 export const MIN_ZOOM = 0.3;
 export const MAX_ZOOM = 4;
@@ -33,45 +44,48 @@ export function sheetsOf(pdfPages: readonly { width: number; height: number }[],
 }
 
 export interface Placed extends SheetSpec {
-  /** top edge in pixels from the top of the column, at the zoom given */
+  /** top edge in units from the top of the column */
   top: number;
-  /** height in pixels */
-  px: number;
 }
 
 export interface Layout {
   sheets: Placed[];
-  /** where the paper begins (pixels), and how tall it is */
+  /** where the paper begins, and how tall it is (units) */
   paperTop: number;
   paperHeight: number;
+  /** the whole column (units) */
   height: number;
-  width: number;
 }
 
-export function layoutSheets(sheets: readonly SheetSpec[], zoom: number): Layout {
+export function layoutSheets(sheets: readonly SheetSpec[]): Layout {
   const placed: Placed[] = [];
   let y = 0;
   let paperTop = -1;
   let prev: SheetSpec['kind'] | null = null;
   for (const s of sheets) {
-    if (prev === 'pdf') y += s.kind === 'pdf' ? PAGE_GAP : PAPER_GAP;
+    if (prev === 'pdf') y += PAGE_GAP;
     if (s.kind === 'paper' && paperTop < 0) paperTop = y;
-    const px = s.height * zoom;
-    placed.push({ ...s, top: y, px });
-    y += px;
+    placed.push({ ...s, top: y });
+    y += s.height;
     prev = s.kind;
   }
   const paperHeight = paperTop < 0 ? 0 : y - paperTop;
-  return { sheets: placed, paperTop: paperTop < 0 ? y : paperTop, paperHeight, height: y, width: SHEET_WIDTH * zoom };
+  return { sheets: placed, paperTop: paperTop < 0 ? y : paperTop, paperHeight, height: y };
 }
 
-/** The sheet at a point (pixels in the column), or the nearest one above or below it. */
+/** The sheet at a height in the column (units), or the nearest one above or below it. */
 export function sheetAt(layout: Layout, y: number): Placed | null {
   const { sheets } = layout;
   if (!sheets.length) return null;
-  for (const s of sheets) if (y < s.top + s.px) return s;
+  for (const s of sheets) if (y < s.top + s.height) return s;
   return sheets[sheets.length - 1];
 }
 
 /** The zoom that fits a sheet's width in `available` pixels (with a margin), within the zoom range. */
 export const fitZoom = (available: number, margin = 24): number => clampZoom(Math.min(1.5, (available - margin * 2) / SHEET_WIDTH));
+
+/** Sheets of paper the typed text needs: it starts TEXT_TOP down the first one and keeps a line free at the end. */
+export const paperFor = (textHeight: number): number => Math.max(1, Math.ceil((TEXT_TOP + textHeight + LINE) / SHEET_HEIGHT));
+
+/** How many sheets of paper the typed text runs onto, for a text `textHeight` units tall. */
+export const textSheets = (textHeight: number): number => (textHeight > 0 ? Math.ceil((TEXT_TOP + textHeight) / SHEET_HEIGHT) : 0);
