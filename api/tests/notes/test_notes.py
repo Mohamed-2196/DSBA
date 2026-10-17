@@ -491,8 +491,8 @@ def test_ink_sheets_are_bounded(client_for: ClientFor, make_user: MakeUser) -> N
 # ── files ────────────────────────────────────────────────────────────────────────────────────
 
 
-def picture_doc(upload_id: str, file_id: str | None = None, **attrs: Any) -> dict[str, Any]:
-    picture = {"upload": upload_id, "alt": "Whiteboard"} | attrs
+def picture_doc(upload_id: str, file_id: str | None = None, attrs: dict[str, Any] | None = None) -> dict[str, Any]:
+    picture = {"upload": upload_id, "alt": "Whiteboard"} | (attrs or {})
     content: list[dict[str, Any]] = [{"type": "image", "attrs": picture}]
     if file_id:
         content.append({"type": "attachment", "attrs": {"upload": file_id, "name": "data.csv", "size": 12}})
@@ -543,7 +543,7 @@ def test_a_picture_keeps_its_place_crop_and_caption(client_for: ClientFor, make_
     picture = upload(c, storage, purpose="note_file", name="board.png", content_type="image/png", body=PNG)
     edited = {"caption": "Bayes, week 4", "width": 0.6, "x": 1, "ratio": 1.6, "rotate": 90}
     crop = {"cropX": 0.1, "cropY": 0.2, "cropW": 0.5, "cropH": 0.6}
-    note = new_note(c, doc=picture_doc(picture, **edited, **crop))
+    note = new_note(c, doc=picture_doc(picture, attrs=edited | crop))
     assert note["text"] == "Bayes, week 4\nWhiteboard"
     assert note["doc"]["content"][0]["attrs"] == {"upload": picture, "alt": "Whiteboard"} | edited | crop
     found = c.get(f"{API}/notes", params={"q": "week 4"}).json()["items"]
