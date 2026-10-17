@@ -4,6 +4,8 @@ switched off by default, exported and deleted with the account."""
 
 from __future__ import annotations
 
+import json
+import tracemalloc
 from collections.abc import Callable
 from typing import Any
 
@@ -12,12 +14,14 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import LibraryItem, Module, Note, Notebook, Upload, UploadStatus, User, UserStatus
+from app.models import LibraryItem, Module, Note, Notebook, NoteInk, Upload, UploadStatus, User, UserStatus
+from app.schemas.notes import INK_BODY_MAX, MAX_POINTS, MAX_STROKES, SHEET_MAX_BYTES
 from app.services import notes as svc
 from tests.core.helpers import PDF, PNG, share_pdf, upload
 from tests.lessons import lesson_id
 
 API = "/api/v1"
+JSON_BODY = {"Content-Type": "application/json"}
 ClientFor = Callable[..., TestClient]
 MakeUser = Callable[..., User]
 
@@ -69,7 +73,9 @@ def test_notes_go_to_their_modules_notebook_or_my_notebook(
     assert by_id[first["notebookId"]]["noteCount"] == 2
     assert by_id[loose["notebookId"]]["title"] == "My notebook"
     assert books["items"][0]["id"] == first["notebookId"]  # changed last first
-    assert 0 < books["storage"]["usedBytes"] < books["storage"]["limitBytes"]
+    storage = books["storage"]
+    assert 0 < storage["writingBytes"] < storage["writingLimitBytes"] == svc.WRITING_LIMIT
+    assert (storage["filesBytes"], storage["filesLimitBytes"]) == (0, svc.FILES_LIMIT)
     # asking for the module's notebook answers the one there is
     again = c.post(f"{API}/notebooks", json={"moduleId": module.id})
     assert (again.status_code, again.json()["id"]) == (201, first["notebookId"])
@@ -302,23 +308,100 @@ def test_how_many_notes_and_how_fast(
     assert r.headers["Retry-After"]
 
 
-def test_storage_is_capped(client_for: ClientFor, make_user: MakeUser, monkeypatch: pytest.MonkeyPatch) -> None:
-    """A free account can't fill the disk: text, ink and files together hold STORAGE_LIMIT bytes."""
+def test_text_and_ink_are_capped_apart_from_files(
+    client_for: ClientFor, make_user: MakeUser, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """What lives in the database (typed text and ink) has a budget of its own, much smaller than the files'
+    (security review SEC-36): one free account can't fill the database."""
+    assert svc.WRITING_LIMIT <= 25 * 1024 * 1024 < svc.FILES_LIMIT
     c = client_for(make_user())
     note = new_note(c, "short")
-    used = c.get(f"{API}/notebooks").json()["storage"]["usedBytes"]
-    monkeypatch.setattr(svc, "STORAGE_LIMIT", used + 300)
+    used = c.get(f"{API}/notebooks").json()["storage"]["writingBytes"]
+    monkeypatch.setattr(svc, "WRITING_LIMIT", used + 300)
     r = save(c, note, doc=doc("x" * 400))
     assert (r.status_code, r.json()["error"]["code"]) == (409, "notes_full")
+    assert "text and handwriting" in r.json()["error"]["message"]
     assert save(c, note, title="Renamed").status_code == 200  # the text unchanged: no check
     r = ink(c, note, 0, [stroke(n=40)], 0)
     assert (r.status_code, r.json()["error"]["code"]) == (409, "notes_full")
     assert ink(c, note, 0, [stroke(n=2)], 0).status_code == 200
-    r = c.post(
-        f"{API}/uploads",
-        json={"purpose": "note_file", "fileName": "big.pdf", "contentType": "application/pdf", "sizeBytes": 5000},
-    )
+    file = {"purpose": "note_file", "fileName": "big.pdf", "contentType": "application/pdf", "sizeBytes": 5000}
+    assert c.post(f"{API}/uploads", json=file).status_code == 201  # files have their own room
+    monkeypatch.setattr(svc, "FILES_LIMIT", 4000)
+    r = c.post(f"{API}/uploads", json=file)
     assert (r.status_code, r.json()["error"]["code"]) == (409, "notes_full")
+    assert "pictures and files" in r.json()["error"]["message"]
+
+
+def test_one_sheet_holds_at_most_sheet_max_bytes(client_for: ClientFor, make_user: MakeUser) -> None:
+    """A sheet's ink is capped by the API itself, and a request far over the cap is refused unread (SEC-36)."""
+    c = client_for(make_user())
+    note = new_note(c)
+    sheet = svc.PAPER_SHEETS_FROM
+
+    def body(strokes: int, numbers: int) -> bytes:
+        drawn = [
+            {"id": f"s{i}", "tool": "pen", "color": "#1f2933", "width": 2.5, "points": [12345.67] * numbers}
+            for i in range(strokes)
+        ]
+        return json.dumps({"strokes": drawn, "version": 0}, separators=(",", ":")).encode()
+
+    over = body(5, 12_000)  # about 600 KB: within one request's ceiling, over one sheet's
+    assert SHEET_MAX_BYTES < len(over) <= INK_BODY_MAX
+    r = c.put(f"{API}/notes/{note['id']}/ink/{sheet}", content=over, headers=JSON_BODY)
+    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["strokes"])
+    huge = body(18, 18_000)  # about 3 MB
+    r = c.put(f"{API}/notes/{note['id']}/ink/{sheet}", content=huge, headers=JSON_BODY)
+    assert (r.status_code, r.json()["error"]["code"]) == (413, "too_large")
+    assert MAX_STROKES * MAX_POINTS <= 8_000_000  # the schema's own ceiling came down with it
+    fits = body(3, 12_000)
+    assert c.put(f"{API}/notes/{note['id']}/ink/{sheet}", content=fits, headers=JSON_BODY).status_code == 200
+
+
+def test_a_note_is_read_without_its_ink_and_each_sheet_on_its_own(
+    client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    """Reading a note never loads its handwriting: the note lists its sheets, and each sheet is read alone (SEC-36)."""
+    c = client_for(make_user())
+    note = new_note(c)
+    points = [12345.67] * 12_000
+    big = [{"id": f"s{i}", "tool": "pen", "color": "#1f2933", "width": 2.5, "points": points} for i in range(3)]
+    for k in range(2):
+        r = ink(c, note, svc.PAPER_SHEETS_FROM + k, big, 0)
+        assert r.status_code == 200, r.text[:200]
+    in_postgres = db.scalar(select(func.sum(NoteInk.size_bytes)).where(NoteInk.note_id == note["id"]))
+    assert in_postgres is not None
+    assert in_postgres > 600_000
+    tracemalloc.start()
+    try:
+        opened = c.get(f"{API}/notes/{note['id']}")
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+    assert opened.status_code == 200
+    assert opened.json()["ink"] == [{"sheet": 1000, "version": 1}, {"sheet": 1001, "version": 1}]
+    assert len(opened.content) < 5_000
+    assert peak < in_postgres / 2  # nothing like the ink's size
+    sheet = c.get(f"{API}/notes/{note['id']}/ink/1001").json()
+    assert (sheet["sheet"], sheet["version"], len(sheet["strokes"])) == (1001, 1, 3)
+    assert c.get(f"{API}/notes/{note['id']}/ink/1005").json() == {"sheet": 1005, "strokes": [], "version": 0}
+    other = client_for(make_user())
+    assert other.get(f"{API}/notes/{note['id']}/ink/1000").status_code == 404
+
+
+def test_saves_are_counted_per_student_too(
+    client_for: ClientFor, make_user: MakeUser, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Filling many notes at once is as slow as filling one (SEC-36)."""
+    c = client_for(make_user())
+    first, second = new_note(c), new_note(c)
+    monkeypatch.setattr(svc, "PERSON_SAVES_PER_MINUTE", 3)
+    assert ink(c, first, 0, [stroke("a")], 0).status_code == 200
+    assert ink(c, second, 0, [stroke("b")], 0).status_code == 200
+    assert ink(c, first, 1, [stroke("c")], 0).status_code == 200
+    r = ink(c, second, 1, [stroke("d")], 0)
+    assert (r.status_code, r.json()["error"]["code"]) == (429, "rate_limited")
+    assert r.headers["Retry-After"]
 
 
 def test_sizes_are_capped(client_for: ClientFor, make_user: MakeUser, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -346,7 +429,9 @@ def test_ink_saves_per_sheet_with_versions(client_for: ClientFor, make_user: Mak
     assert (r.status_code, r.json()["error"]["code"]) == (409, "ink_changed")
     assert ink(tab_two, note, 0, [stroke("a")], 1).json()["version"] == 2
     loaded = tab_one.get(f"{API}/notes/{note['id']}").json()
-    assert [(s["sheet"], s["version"], len(s["strokes"])) for s in loaded["ink"]] == [(0, 2, 1), (2, 1, 1)]
+    assert loaded["ink"] == [{"sheet": 0, "version": 2}, {"sheet": 2, "version": 1}]
+    sheets = [tab_one.get(f"{API}/notes/{note['id']}/ink/{s['sheet']}").json() for s in loaded["ink"]]
+    assert [[x["id"] for x in s["strokes"]] for s in sheets] == [["a"], ["c"]]
     assert loaded["version"] == note["version"]  # ink doesn't change the text's version
     cleared = ink(tab_one, note, 2, [], 1)  # an empty sheet is removed
     assert cleared.json() == {"sheet": 2, "strokes": [], "version": 0}
@@ -473,6 +558,7 @@ def test_annotate_a_library_pdf_makes_or_reopens_one_note(
     assert (note["title"], note["onPdf"], note["sheets"], note["moduleId"]) == ("Paper May 2024", True, 0, module.id)
     assert note["pdf"] == {
         "libraryItemId": item["id"],
+        "slug": item["slug"],
         "uploadId": None,
         "title": "Paper May 2024",
         "available": True,
@@ -506,7 +592,13 @@ def test_a_pdf_of_your_own(client_for: ClientFor, make_user: MakeUser, storage: 
     r = c.post(f"{API}/notes", json={"title": "Slides", "sheets": 0, "pdfUploadId": pdf})
     assert r.status_code == 201, r.text
     note = r.json()
-    assert note["pdf"] == {"libraryItemId": None, "uploadId": pdf, "title": "slides.pdf", "available": True}
+    assert note["pdf"] == {
+        "libraryItemId": None,
+        "slug": None,
+        "uploadId": pdf,
+        "title": "slides.pdf",
+        "available": True,
+    }
     assert (note["onPdf"], note["sheets"]) == (True, 0)
     assert save(c, note, doc=doc("No pictures")).status_code == 200  # the PDF stays attached
     db.expire_all()

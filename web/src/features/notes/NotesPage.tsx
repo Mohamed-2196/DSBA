@@ -70,6 +70,21 @@ function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
   );
 }
 
+/** How much of one of the notebooks' two budgets is used. */
+function StorageMeter({ label, used, limit }: { label: string; used: number; limit: number }) {
+  const percent = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+  return (
+    <div className="notebooks-storage__item">
+      <p>
+        {label}: {formatSize(used)} of {formatSize(limit)}
+      </p>
+      <div className="notebooks-storage__meter" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
+        <div className={percent >= 90 ? 'notebooks-storage__fill is-nearly-full' : 'notebooks-storage__fill'} style={{ width: `${percent}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function NotebookDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { modules } = useModules();
   const createBook = useCreateNotebook();
@@ -175,7 +190,6 @@ function NotesList() {
 
   const notebooks = notebooksQuery.data?.items ?? [];
   const storage = notebooksQuery.data?.storage;
-  const storagePercent = storage ? Math.min(100, Math.round((storage.usedBytes / storage.limitBytes) * 100)) : 0;
 
   return (
     <Page width="default">
@@ -261,13 +275,9 @@ function NotesList() {
           </ul>
 
           {storage ? (
-            <div className="notebooks-storage">
-              <div>
-                Storage: {formatSize(storage.usedBytes)} of {formatSize(storage.limitBytes)}
-              </div>
-              <div className="notebooks-storage__meter">
-                <div className="notebooks-storage__fill" style={{ width: `${storagePercent}%` }} />
-              </div>
+            <div className="notebooks-storage" data-hub="notes-storage">
+              <StorageMeter label="Text and handwriting" used={storage.writingBytes} limit={storage.writingLimitBytes} />
+              <StorageMeter label="Pictures and files" used={storage.filesBytes} limit={storage.filesLimitBytes} />
             </div>
           ) : null}
         </aside>

@@ -6,8 +6,11 @@
   writer chooses: load the newer one, or save theirs over it.
 - Pictures and files are uploads (purpose note_file) that the note's text refers to: a save attaches them to the
   note and lets go of the ones it no longer shows (the sweep deletes those).
-- Limits: MAX_NOTEBOOKS and MAX_NOTES per student, STORAGE_LIMIT across their text, ink and files, CREATES_PER_HOUR
-  new notes, SAVES_PER_MINUTE saves of one note (text and ink together: the web app saves about once a second)."""
+- Limits: MAX_NOTEBOOKS and MAX_NOTES per student; WRITING_LIMIT across their typed text and ink (in the database)
+  and FILES_LIMIT across their files (in file storage); SHEET_MAX_BYTES of ink on one sheet; CREATES_PER_HOUR new
+  notes; SAVES_PER_MINUTE saves of one note (text and ink together: the web app saves about once a second) and
+  PERSON_SAVES_PER_MINUTE of all of a student's notes.
+- A note is read without its ink, and each sheet's ink on its own: no request loads more than one sheet's."""
 
 from __future__ import annotations
 
@@ -40,6 +43,8 @@ from app.models import (
 from app.schemas.notes import (
     EXCERPT_LENGTH,
     MAX_SHEETS,
+    SHEET_MAX_BYTES,
+    InkInfo,
     InkSave,
     InkSheet,
     NotebookCreate,
@@ -61,9 +66,11 @@ from app.services.uploads import serve_type
 
 MAX_NOTEBOOKS = 100
 MAX_NOTES = 2000
-STORAGE_LIMIT = 250 * 1024 * 1024  # a student's typed text, ink and files together
+WRITING_LIMIT = 25 * 1024 * 1024  # a student's typed text and ink, in the database: hundreds of dense pages
+FILES_LIMIT = 250 * 1024 * 1024  # a student's pictures, files and PDFs, in file storage
 CREATES_PER_HOUR = 60
 SAVES_PER_MINUTE = 240
+PERSON_SAVES_PER_MINUTE = 400
 SAVE_WINDOW = timedelta(minutes=1)
 SEARCH_MAX = 100
 PAPER_SHEETS_FROM = 1000  # sheets 0-999 are a PDF's pages, 1000 and up its paper (schemas/notes.py MAX_SHEETS)
@@ -85,8 +92,8 @@ def _json_bytes(value: object) -> int:
 # ── storage ──────────────────────────────────────────────────────────────────────────────────
 
 
-def storage_used(db: Session, user: User) -> int:
-    """Bytes the student's notebooks hold: typed text (as stored), ink, and files."""
+def writing_used(db: Session, user: User) -> int:
+    """Bytes of the student's typed text (as stored) and ink."""
     text_bytes = db.scalar(
         select(func.coalesce(func.sum(func.octet_length(cast(Note.doc, TextType))), 0)).where(Note.user_id == user.id)
     )
@@ -95,29 +102,56 @@ def storage_used(db: Session, user: User) -> int:
         .join(Note, Note.id == NoteInk.note_id)
         .where(Note.user_id == user.id)
     )
+    return int(text_bytes or 0) + int(ink_bytes or 0)
+
+
+def files_used(db: Session, user: User) -> int:
+    """Bytes of the student's note files: pictures, files and PDFs."""
     file_bytes = db.scalar(
         select(func.coalesce(func.sum(Upload.size_bytes), 0)).where(
             Upload.user_id == user.id, Upload.purpose == UploadPurpose.note_file
         )
     )
-    return int(text_bytes or 0) + int(ink_bytes or 0) + int(file_bytes or 0)
+    return int(file_bytes or 0)
 
 
 def storage_use(db: Session, user: User) -> StorageUse:
-    return StorageUse(used_bytes=storage_used(db, user), limit_bytes=STORAGE_LIMIT)
+    return StorageUse(
+        writing_bytes=writing_used(db, user),
+        writing_limit_bytes=WRITING_LIMIT,
+        files_bytes=files_used(db, user),
+        files_limit_bytes=FILES_LIMIT,
+    )
 
 
-def check_room(db: Session, user: User, more: int) -> None:
-    """409 notes_full when `more` bytes would take the student's notebooks past STORAGE_LIMIT. Holds the student's
+def _mb(limit: int) -> int:
+    return limit // (1024 * 1024)
+
+
+def check_writing(db: Session, user: User, more: int) -> None:
+    """409 notes_full when `more` bytes of text or ink would take the student past WRITING_LIMIT. Holds the student's
     notebook lock until the transaction ends, so parallel saves count one after the other."""
     if more <= 0:
         return
     ratelimit.lock(db, f"notes:{user.id}")
-    if storage_used(db, user) + more > STORAGE_LIMIT:
-        mb = STORAGE_LIMIT // (1024 * 1024)
+    if writing_used(db, user) + more > WRITING_LIMIT:
         raise conflict(
             "notes_full",
-            f"Your notebooks are full ({mb} MB). Delete some notes, pictures or files to make room for this.",
+            f"Your notes are full: their text and handwriting take {_mb(WRITING_LIMIT)} MB. "
+            "Delete some notes or pages to make room.",
+        )
+
+
+def check_files(db: Session, user: User, more: int) -> None:
+    """409 notes_full when a file of `more` bytes would take the student's note files past FILES_LIMIT."""
+    if more <= 0:
+        return
+    ratelimit.lock(db, f"notes:{user.id}")
+    if files_used(db, user) + more > FILES_LIMIT:
+        raise conflict(
+            "notes_full",
+            f"Your notes' pictures and files take {_mb(FILES_LIMIT)} MB, the most they can. "
+            "Delete some to make room for this one.",
         )
 
 
@@ -268,13 +302,21 @@ def _pdf_of(db: Session, note: Note) -> NotePdf | None:
         item = db.get(LibraryItem, note.library_item_id)
         ok = item is not None and item.status == ItemStatus.published and item.storage_key is not None
         return NotePdf(
-            library_item_id=note.library_item_id, upload_id=None, title=item.title if item else "", available=ok
+            library_item_id=note.library_item_id,
+            slug=item.slug if item else None,
+            upload_id=None,
+            title=item.title if item else "",
+            available=ok,
         )
     if note.pdf_upload_id is not None:
         up = db.get(Upload, note.pdf_upload_id)
         ok = up is not None and up.status in LIVE_UPLOADS
         return NotePdf(
-            library_item_id=None, upload_id=note.pdf_upload_id, title=up.file_name if up else "", available=ok
+            library_item_id=None,
+            slug=None,
+            upload_id=note.pdf_upload_id,
+            title=up.file_name if up else "",
+            available=ok,
         )
     return None
 
@@ -285,7 +327,9 @@ def _on_pdf(note: Note) -> bool:
 
 def to_out(db: Session, note: Note) -> NoteOut:
     nb = db.get(Notebook, note.notebook_id)
-    ink = db.scalars(select(NoteInk).where(NoteInk.note_id == note.id).order_by(NoteInk.sheet)).all()
+    ink = db.execute(
+        select(NoteInk.sheet, NoteInk.version).where(NoteInk.note_id == note.id).order_by(NoteInk.sheet)
+    ).all()
     return NoteOut.model_validate(
         {
             "id": note.id,
@@ -303,7 +347,7 @@ def to_out(db: Session, note: Note) -> NoteOut:
             "paper": note.paper,
             "sheets": note.sheets,
             "pdf": _pdf_of(db, note),
-            "ink": [InkSheet(sheet=i.sheet, strokes=i.strokes, version=i.version) for i in ink],
+            "ink": [InkInfo(sheet=sheet, version=version) for sheet, version in ink],
         }
     )
 
@@ -451,7 +495,7 @@ def create_note(db: Session, user: User, body: NoteCreate) -> Note:
     checked = note_doc.check(body.doc)
     pdf = _pdf_upload(db, user, body.pdf_upload_id) if body.pdf_upload_id is not None else None
     _creating(db, user)
-    check_room(db, user, _json_bytes(body.doc))
+    check_writing(db, user, _json_bytes(body.doc))
     now = utcnow()
     note = Note(
         user_id=user.id,
@@ -506,12 +550,19 @@ def annotate(db: Session, user: User, item_id: uuid.UUID) -> tuple[Note, bool]:
     return note, True
 
 
-def _count_save(note: Note) -> None:
-    """One more save of the note in this minute, or 429 when there were SAVES_PER_MINUTE already."""
+def _count_save(db: Session, user: User, note: Note) -> None:
+    """One more save of the note in this minute, or 429 when there were SAVES_PER_MINUTE of it already, or
+    PERSON_SAVES_PER_MINUTE of all the student's notes (counted under the student's notebook lock)."""
     now = utcnow()
     if now - note.saves_since >= SAVE_WINDOW:
         note.saves_since, note.saves = now, 0
-    if note.saves >= SAVES_PER_MINUTE:
+    ratelimit.lock(db, f"notes:{user.id}")
+    others = db.scalar(
+        select(func.coalesce(func.sum(Note.saves), 0)).where(
+            Note.user_id == user.id, Note.id != note.id, Note.saves_since > now - SAVE_WINDOW
+        )
+    )
+    if note.saves >= SAVES_PER_MINUTE or note.saves + int(others or 0) >= PERSON_SAVES_PER_MINUTE:
         wait = max(1, int((note.saves_since + SAVE_WINDOW - now).total_seconds()) + 1)
         raise rate_limited(wait, "You're saving very fast. Your note is kept on this device: it saves in a moment.")
     note.saves += 1
@@ -542,9 +593,9 @@ def update_note(db: Session, user: User, note_id: uuid.UUID, body: NoteUpdate) -
     if all(getattr(note, k) == v for k, v in fields.items()):
         return note
     checked = note_doc.check(body.doc) if body.doc != note.doc else None
-    _count_save(note)
+    _count_save(db, user, note)
     if checked is not None:
-        check_room(db, user, _json_bytes(body.doc) - _json_bytes(note.doc))
+        check_writing(db, user, _json_bytes(body.doc) - _json_bytes(note.doc))
         note.text = checked.text
         _attach(db, user, note, checked.uploads)
     for k, v in fields.items():
@@ -564,11 +615,13 @@ def save_ink(db: Session, user: User, note_id: uuid.UUID, sheet: int, body: InkS
     if (row.version if row is not None else 0) != body.version:
         raise conflict("ink_changed", "This page was written on in another tab or on another device.")
     strokes = [s.model_dump(mode="json") for s in body.strokes]
+    size = _json_bytes(strokes) if strokes else 0
+    if size > SHEET_MAX_BYTES:
+        raise invalid("strokes", "This page holds too much handwriting. Go on writing on a new page.")
     if row is not None and row.strokes == strokes:
         return InkSheet(sheet=sheet, strokes=body.strokes, version=row.version)
-    size = _json_bytes(strokes) if strokes else 0
-    _count_save(note)
-    check_room(db, user, size - (row.size_bytes if row is not None else 0))
+    _count_save(db, user, note)
+    check_writing(db, user, size - (row.size_bytes if row is not None else 0))
     now = utcnow()
     if not strokes:
         if row is not None:
@@ -583,6 +636,17 @@ def save_ink(db: Session, user: User, note_id: uuid.UUID, sheet: int, body: InkS
         row.version += 1
     db.flush()
     return InkSheet(sheet=sheet, strokes=body.strokes, version=row.version)
+
+
+def get_ink(db: Session, user: User, note_id: uuid.UUID, sheet: int) -> InkSheet:
+    """One sheet's ink (an empty sheet at version 0 when it has none)."""
+    if not 0 <= sheet < MAX_SHEET_INDEX:
+        raise not_found("This sheet doesn't exist.")
+    note = _own(db, user, note_id)
+    row = db.get(NoteInk, (note.id, sheet))
+    if row is None:
+        return InkSheet(sheet=sheet, strokes=[], version=0)
+    return InkSheet.model_validate({"sheet": sheet, "strokes": row.strokes, "version": row.version})
 
 
 def delete_note(db: Session, user: User, note_id: uuid.UUID) -> None:
@@ -609,4 +673,4 @@ def file_url(db: Session, user: User, upload_id: uuid.UUID, *, download: bool, s
 
 def check_upload(db: Session, user: User, size_bytes: int) -> None:
     """Before a note file travels: the student's notebooks have room for it."""
-    check_room(db, user, size_bytes)
+    check_files(db, user, size_bytes)

@@ -13002,7 +13002,7 @@
           "notes"
         ],
         "summary": "Get Note",
-        "description": "The note with its typed text, its ink and the PDF it is written over.",
+        "description": "The note with its typed text, the PDF it is written over, and the sheets that have ink (each one is read with\nGET /notes/{id}/ink/{sheet}).",
         "operationId": "get_note_api_v1_notes__note_id__get",
         "parameters": [
           {
@@ -13312,7 +13312,7 @@
           "notes"
         ],
         "summary": "Save Ink",
-        "description": "Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).\nSend the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:\nnotes_full (409), rate_limited (429).",
+        "description": "Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).\nSend the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:\ninvalid_input (422: more than SHEET_MAX_BYTES of ink on the sheet), too_large (413: a request far bigger than\nthat, refused unread), notes_full (409), rate_limited (429).",
         "operationId": "save_ink_api_v1_notes__note_id__ink__sheet__put",
         "parameters": [
           {
@@ -13347,6 +13347,119 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InkSheet"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Get Ink",
+        "description": "One sheet's ink (the note lists the sheets that have some): an empty sheet at version 0 when it has none.",
+        "operationId": "get_ink_api_v1_notes__note_id__ink__sheet__get",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Note Id"
+            }
+          },
+          {
+            "name": "sheet",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMaximum": 1300,
+              "title": "Sheet"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -29798,6 +29911,25 @@
         "title": "HintMove",
         "description": "A hint, for a few points: Sudoku fills `cell` (or a cell it picks), the word search shows where a word\nstarts, Nearest neighbour reveals a closer word."
       },
+      "InkInfo": {
+        "properties": {
+          "sheet": {
+            "type": "integer",
+            "title": "Sheet"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sheet",
+          "version"
+        ],
+        "title": "InkInfo",
+        "description": "A sheet that has ink, without the ink: read it with GET /notes/{id}/ink/{sheet}."
+      },
       "InkSave": {
         "properties": {
           "strokes": {
@@ -29805,7 +29937,7 @@
               "$ref": "#/components/schemas/Stroke"
             },
             "type": "array",
-            "maxItems": 4000,
+            "maxItems": 2000,
             "title": "Strokes"
           },
           "version": {
@@ -33310,7 +33442,7 @@
           },
           "ink": {
             "items": {
-              "$ref": "#/components/schemas/InkSheet"
+              "$ref": "#/components/schemas/InkInfo"
             },
             "type": "array",
             "title": "Ink"
@@ -33466,6 +33598,17 @@
             ],
             "title": "Libraryitemid"
           },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          },
           "uploadId": {
             "anyOf": [
               {
@@ -33490,12 +33633,13 @@
         "type": "object",
         "required": [
           "libraryItemId",
+          "slug",
           "uploadId",
           "title",
           "available"
         ],
         "title": "NotePdf",
-        "description": "The PDF a note is written over: a library file (`libraryItemId`, read with /library/items/{id}/file) or the\nstudent's own (`uploadId`, read with /notes/files/{id}). `available` is false once the file is gone."
+        "description": "The PDF a note is written over: a library file (`libraryItemId`, read with /library/items/{id}/file, its page\nat /library/{slug}) or the student's own (`uploadId`, read with /notes/files/{id}). `available` is false once the\nfile is gone."
       },
       "NoteSummary": {
         "properties": {
@@ -37614,22 +37758,32 @@
       },
       "StorageUse": {
         "properties": {
-          "usedBytes": {
+          "writingBytes": {
             "type": "integer",
-            "title": "Usedbytes"
+            "title": "Writingbytes"
           },
-          "limitBytes": {
+          "writingLimitBytes": {
             "type": "integer",
-            "title": "Limitbytes"
+            "title": "Writinglimitbytes"
+          },
+          "filesBytes": {
+            "type": "integer",
+            "title": "Filesbytes"
+          },
+          "filesLimitBytes": {
+            "type": "integer",
+            "title": "Fileslimitbytes"
           }
         },
         "type": "object",
         "required": [
-          "usedBytes",
-          "limitBytes"
+          "writingBytes",
+          "writingLimitBytes",
+          "filesBytes",
+          "filesLimitBytes"
         ],
         "title": "StorageUse",
-        "description": "What the student's notebooks hold (typed text, ink, pictures and files) against what they may hold."
+        "description": "What the student's notebooks hold against what they may hold: the typed text and handwriting (kept in the\ndatabase), and the pictures, files and PDFs (kept in file storage)."
       },
       "Streak": {
         "properties": {
@@ -37699,7 +37853,7 @@
               "type": "number"
             },
             "type": "array",
-            "maxItems": 18000,
+            "maxItems": 12000,
             "minItems": 3,
             "title": "Points"
           }
