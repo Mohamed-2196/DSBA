@@ -121,8 +121,10 @@ copy makes:
   - Two budgets: `WRITING_LIMIT` (25 MB of typed text and ink, in Postgres) and `FILES_LIMIT` (250 MB of files, in
     the bucket), each checked on its own (`check_writing`, `check_files`); `GET /notebooks` reports both.
   - One sheet holds at most `SHEET_MAX_BYTES` (512 KB) of ink: 422 above it. `MAX_STROKES` is 2,000 and
-    `MAX_POINTS` 4,000. `core/limits.py` refuses an ink save whose Content-Length is over `INK_BODY_MAX` (1 MB)
-    unread, with 413 too_large, so the API keeps the cap without Caddy.
+    `MAX_POINTS` 4,000. `core/limits.py` caps an ink save's body at `INK_BODY_MAX` (1 MB) without Caddy: a declared
+    Content-Length over it is refused unread (413 too_large) and one that isn't a number with 400; the body itself
+    is counted as it arrives, so a chunked request stops at the ceiling too (413), and the route gets it whole only
+    when it fits (`test_an_ink_save_is_capped_however_it_is_sent`).
   - Saves count per student too: `PERSON_SAVES_PER_MINUTE` (400) across all their notes, besides 240 per note.
   - `GET /notes/{id}` lists the sheets with ink and their versions, without strokes; `GET /notes/{id}/ink/{sheet}`
     reads one sheet. The web app reads them a few at a time and lets nothing be drawn until all are in.

@@ -1,7 +1,10 @@
-"""Request bodies refused before they are read: a route's own ceiling on the size its Content-Length declares
-(413 too_large). Caddy caps every body at 1 MB in production; these keep a route's promise without it (security review
-SEC-36: one sheet of ink is never parsed whole when it is far too big). Browsers always declare the size of the JSON
-they send."""
+"""Request bodies a route caps for itself, whatever the proxy in front does. For a route with a ceiling:
+
+- a declared Content-Length over it is refused at once, unread (413 too_large), and one that isn't a number with
+  400 bad_request;
+- the body is then read here, its size added up as it arrives (a chunked request declares none): past the ceiling
+  the reading stops and the answer is 413 too_large;
+- a body within it is handed to the route as one piece, so the route never sees more than its ceiling."""
 
 from __future__ import annotations
 
@@ -9,7 +12,11 @@ import re
 from collections.abc import Sequence
 
 from fastapi.responses import JSONResponse
-from starlette.types import ASGIApp, Receive, Scope, Send
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+
+def _refuse(status: int, code: str, message: str) -> JSONResponse:
+    return JSONResponse({"error": {"code": code, "message": message}}, status_code=status)
 
 
 class BodyLimitMiddleware:
@@ -26,11 +33,38 @@ class BodyLimitMiddleware:
         return None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] == "http":
-            most = self._most(scope)
-            declared = dict(scope.get("headers", [])).get(b"content-length", b"")
-            if most is not None and declared.isdigit() and int(declared) > most:
-                body = {"error": {"code": "too_large", "message": "This is too much to save at once."}}
-                await JSONResponse(body, status_code=413)(scope, receive, send)
+        most = self._most(scope) if scope["type"] == "http" else None
+        if most is None:
+            await self.app(scope, receive, send)
+            return
+        declared = dict(scope.get("headers", [])).get(b"content-length")
+        if declared is not None:
+            if not declared.isdigit():
+                await _refuse(400, "bad_request", "This request's size isn't a number.")(scope, receive, send)
                 return
-        await self.app(scope, receive, send)
+            if int(declared) > most:
+                await _refuse(413, "too_large", "This is too much to save at once.")(scope, receive, send)
+                return
+
+        body = bytearray()
+        while True:
+            message = await receive()
+            if message["type"] == "http.disconnect":
+                return  # the client went away: nothing to answer
+            body += message.get("body", b"")
+            if len(body) > most:
+                await _refuse(413, "too_large", "This is too much to save at once.")(scope, receive, send)
+                return
+            if not message.get("more_body", False):
+                break
+
+        handed = False
+
+        async def replay() -> Message:
+            nonlocal handed
+            if not handed:
+                handed = True
+                return {"type": "http.request", "body": bytes(body), "more_body": False}
+            return await receive()
+
+        await self.app(scope, replay, send)

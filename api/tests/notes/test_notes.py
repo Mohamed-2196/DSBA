@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 import tracemalloc
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from typing import Any
 
 import pytest
@@ -311,8 +311,8 @@ def test_how_many_notes_and_how_fast(
 def test_text_and_ink_are_capped_apart_from_files(
     client_for: ClientFor, make_user: MakeUser, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """What lives in the database (typed text and ink) has a budget of its own, much smaller than the files'
-    (security review SEC-36): one free account can't fill the database."""
+    """What lives in the database (typed text and ink) has a budget of its own, much smaller than the files':
+    one free account can't fill the database."""
     assert svc.WRITING_LIMIT <= 25 * 1024 * 1024 < svc.FILES_LIMIT
     c = client_for(make_user())
     note = new_note(c, "short")
@@ -334,7 +334,7 @@ def test_text_and_ink_are_capped_apart_from_files(
 
 
 def test_one_sheet_holds_at_most_sheet_max_bytes(client_for: ClientFor, make_user: MakeUser) -> None:
-    """A sheet's ink is capped by the API itself, and a request far over the cap is refused unread (SEC-36)."""
+    """A sheet's ink is capped by the API itself, and a request far over the cap is refused unread."""
     c = client_for(make_user())
     note = new_note(c)
     sheet = svc.PAPER_SHEETS_FROM
@@ -358,10 +358,36 @@ def test_one_sheet_holds_at_most_sheet_max_bytes(client_for: ClientFor, make_use
     assert c.put(f"{API}/notes/{note['id']}/ink/{sheet}", content=fits, headers=JSON_BODY).status_code == 200
 
 
+def test_an_ink_save_is_capped_however_it_is_sent(client_for: ClientFor, make_user: MakeUser) -> None:
+    """The ceiling holds without a proxy in front: a chunked body is counted as it arrives, a size that isn't a number
+    is refused, and a body just under the ceiling goes through."""
+    c = client_for(make_user())
+    note = new_note(c)
+    url = f"{API}/notes/{note['id']}/ink/{svc.PAPER_SHEETS_FROM}"
+    sheet = json.dumps({"strokes": [stroke("a")], "version": 0}).encode()
+    padded = sheet + b" " * (INK_BODY_MAX - len(sheet))  # JSON with spaces after it: exactly the ceiling
+    assert len(padded) == INK_BODY_MAX
+
+    def chunks(body: bytes, size: int = 65_536) -> Iterator[bytes]:
+        for i in range(0, len(body), size):
+            yield body[i : i + size]
+
+    r = c.put(url, content=chunks(padded + b" "), headers=JSON_BODY)  # chunked, no Content-Length: one byte over
+    assert "content-length" not in {k.lower() for k in r.request.headers}
+    assert (r.status_code, r.json()["error"]["code"]) == (413, "too_large")
+    r = c.put(url, content=padded, headers=JSON_BODY | {"Content-Length": "lots"})
+    assert (r.status_code, r.json()["error"]["code"]) == (400, "bad_request")
+    r = c.put(url, content=chunks(padded), headers=JSON_BODY)  # chunked, at the ceiling
+    assert r.status_code == 200, r.text[:200]
+    under = padded[:-1].replace(b'"version": 0', b'"version": 1')  # with its size declared, a byte under
+    r = c.put(url, content=under, headers=JSON_BODY)
+    assert r.status_code == 200, r.text[:200]
+
+
 def test_a_note_is_read_without_its_ink_and_each_sheet_on_its_own(
     client_for: ClientFor, make_user: MakeUser, db: Session
 ) -> None:
-    """Reading a note never loads its handwriting: the note lists its sheets, and each sheet is read alone (SEC-36)."""
+    """Reading a note never loads its handwriting: the note lists its sheets, and each sheet is read alone."""
     c = client_for(make_user())
     note = new_note(c)
     points = [12345.67] * 12_000
@@ -392,7 +418,7 @@ def test_a_note_is_read_without_its_ink_and_each_sheet_on_its_own(
 def test_saves_are_counted_per_student_too(
     client_for: ClientFor, make_user: MakeUser, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Filling many notes at once is as slow as filling one (SEC-36)."""
+    """Filling many notes at once is as slow as filling one."""
     c = client_for(make_user())
     first, second = new_note(c), new_note(c)
     monkeypatch.setattr(svc, "PERSON_SAVES_PER_MINUTE", 3)
