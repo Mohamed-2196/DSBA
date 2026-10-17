@@ -395,8 +395,8 @@ function YourData() {
         <div className="acct-data__text">
           <h3 className="acct-data__title">Download your data</h3>
           <p>
-            Everything the Hub keeps about you, as a JSON file: your profile, devices, posts, votes, reports, uploads, stars, reactions, progress,
-            notifications and the emails we sent you.
+            Everything the Hub keeps about you, as a JSON file: your profile, devices, posts, votes, reports, bug reports, uploads, stars, reactions,
+            progress, notifications and the emails we sent you.
           </p>
         </div>
         <Button leadingIcon={DownloadSimple} onClick={() => void download()} loading={downloading}>

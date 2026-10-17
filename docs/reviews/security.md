@@ -53,22 +53,22 @@ copy makes:
 | SEC-37 | minor | deployment (`api/Dockerfile:37`, `routers/feeds.py:20`) | open | The private calendar feed's secret is written to the API's access log on every poll |
 | SEC-38 | minor | boards (`services/board/common.py:33`) | open | No total on the text a student's boards hold: about 880 MB of rows per free account |
 | SEC-39 | minor | boards, uploads (`services/board/files.py:124`) | open | Detaching a board file gives its slot back to the 20-uploads-an-hour limit |
-| SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | open | Bug reports and their screenshots are left out of the export and outlive the account |
+| SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | **fixed** (round12/secfix) | Bug reports and their screenshots are left out of the export and outlive the account |
 | SEC-41 | minor | Daily (`services/daily/plays.py:165`) | open | Every Daily answer is available before the scored play, so anyone can top the leaderboard |
 | SEC-42 | minor | content (`schemas/modules.py:121`, `services/module_editor.py:217`) | **fixed** (round12/cms) | Module art skips the picture rules: any address, and an upload that was never checked |
 | SEC-43 | minor | deployment (`.github/workflows/railway.yml:22`) | accepted (Mohamed, 2026-10-17) | The public Railway dev deployment runs outside production mode |
-| SEC-44 | nit | bugs (`services/bugs.py:85`) | open | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
+| SEC-44 | nit | bugs (`services/bugs.py:85`) | **fixed** (round12/secfix) | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
 | SEC-45 | nit | Daily, boards | open | Crafted input turns Daily and board requests into 500s |
 | SEC-46 | nit | Daily (`services/daily/content.py:61`) | open | Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones |
-| SEC-47 | nit | uploads (`routers/uploads.py:47`) | open (unverified) | The board and notebook quotas are checked before the upload lock |
+| SEC-47 | nit | uploads (`routers/uploads.py:47`) | **fixed** (round12/secfix) | The board and notebook quotas are checked before the upload lock |
 | SEC-48 | nit | web (`web/package.json:31`) | open (not reachable) | `npm audit`: pdf.js 5.7.284 has a high advisory |
-| SEC-33 | minor | content, deployment | **still open** (half fixed) | The reader's environment is empty, but it can read the worker's secrets from /proc |
+| SEC-33 | minor | content, deployment | **fixed** (round12/secfix) | The reader's environment is empty, but it can read the worker's secrets from /proc |
 | SEC-27 | minor | notes | **reopened** (see SEC-36) | A free account's notes are no longer capped at 10 MB |
 | SEC-30, SEC-31, SEC-32 | | | **fixed** | Bare domains, Noora's chats on shared computers, lesson progress when off |
 | SEC-35 | nit | community | **fixed** (the rest is a product call) | Seniors: 30-day-old Year 3 accounts, no staff words or links |
 | SEC-34 | nit | Noora | open (unverified) | Uploaded papers' words still go in the system prompt |
-| SEC-19 | nit | content | open | `?mine=1&status=removed` still lists a student's removed files |
-| SEC-11 | nit | accounts | open | "A d m i n" still passes the staff-name rule |
+| SEC-19 | nit | content | **fixed** (round12/secfix) | `?mine=1&status=removed` still lists a student's removed files |
+| SEC-11 | nit | accounts | **fixed** (round12/secfix) | "A d m i n" still passes the staff-name rule |
 | SEC-14 | minor | Mohamed | partly fixed | The site-wide upload budget still waits on Mohamed (SEC-39 makes it matter more) |
 
 ---
@@ -203,6 +203,18 @@ copy makes:
   - On deletion, delete the person's bug screenshots (objects first, as for notes) and either delete their reports or
     keep them without the browser line, and say which in the deletion dialog.
   - Give screenshots an end: the sweep deletes those of reports closed more than 90 days ago.
+- **Fixed:**
+  - The export has `bugReports`: the words, page, version, browser, status, dates and the screenshot's file name
+    (`bugs.export()`); the download's description on Your account names bug reports.
+  - Deleting the account deletes the person's screenshots (objects first, with the other uploads) and their reports:
+    `bug_reports.user_id` is `ON DELETE CASCADE` (migration 0031), so a report without a reporter is a guest's.
+    Admins' notifications stop quoting the deleted reports (`bugs.unquote()`). The deletion dialog lists bug reports
+    among what is deleted.
+  - The sweep deletes the screenshots of reports closed more than 90 days ago (`bugs.sweep_screenshots()`); the
+    report stays.
+  - `tests/core/test_bug_reports.py` checks all three (`test_your_bug_reports_are_in_your_data_download`,
+    `test_deleting_the_account_deletes_its_reports_and_their_screenshots`,
+    `test_the_sweep_deletes_the_screenshots_of_reports_closed_90_days_ago`).
 
 ### SEC-41. Every Daily answer is available before the scored play, so anyone can top the leaderboard (minor)
 
@@ -321,6 +333,12 @@ copy makes:
   reports, and each admin gets 30 notifications.
 - **Fix:** a hub-wide cap on guest reports (for example 30 an hour; past it, 429 with "Sign in to report"), and one
   notification per admin while unread ones of the kind are waiting ("12 new bug reports").
+- **Fixed:** guests send at most 30 reports an hour from every network together (`PER_HOUR_ALL_GUESTS`; past it, 429
+  "A lot of reports came in from people who aren't signed in. Sign in to send yours, or try again in …"), and
+  `_tell_admins()` keeps one unread notification per admin that counts up ("31 new bug reports", the newest report's
+  words) instead of adding one per report. `tests/core/test_bug_reports.py` checks both
+  (`test_thirty_reports_an_hour_from_guests_on_every_network_together`,
+  `test_admins_hear_of_new_reports_in_one_notification_while_it_is_unread`).
 
 ### SEC-45. Crafted input turns Daily and board requests into 500s (nit)
 
@@ -361,6 +379,10 @@ copy makes:
   pass: up to 1 GB against the board's 200 MB. Not shown: the tests share one database connection.
 - **Fix:** take `ratelimit.lock(db, f"uploads:{user.id}")` first, or move both checks into `create_upload()` after
   `check_rate()`.
+- **Fixed:** `create_upload()` (`services/uploads.py`) checks the library's pending files, the boards' bytes and the
+  notebooks' bytes after `check_rate()`, under the person's upload lock; the router no longer checks them first.
+  `test_two_uploads_at_once_cannot_both_fit_in_the_room_left` (`tests/board/test_files.py`) races two requests on
+  connections of their own: one gets in, the other gets `storage_full` (with the old order both got in).
 
 ### SEC-48. `npm audit`: pdf.js 5.7.284 has a high advisory (nit, not reachable)
 
@@ -377,7 +399,7 @@ copy makes:
 
 ## Earlier findings, re-checked (round 11)
 
-- **SEC-33 (still open; half fixed).** `paper_text.py:91` gives the reader `PATH` and `PYTHONPATH` only, and
+- **SEC-33 (fixed).** `paper_text.py:91` gives the reader `PATH` and `PYTHONPATH` only, and
   `:121` uses it. But the reader runs as the same user as the text worker, and on Linux a process may read
   `/proc/<pid>/environ` of another process of its own user. Code running in the reader reads every secret back from
   its parent, and `compose.prod.yaml` still gives `texts` the API's whole environment (`<<: *api`).
@@ -388,6 +410,26 @@ copy makes:
     `/proc` files then need `CAP_SYS_PTRACE`, which the reader doesn't have. Give `texts` only the database URL and the
     S3 settings, ideally a database role that can only read `library_items` and write `library_texts`, and S3 keys
     that can only read `library/` and write `covers/`.
+  - **Fixed:**
+    - `read_file()` calls `keep_secrets_from_readers()` (`paper_text.py`) before it starts a reader:
+      `prctl(PR_SET_DUMPABLE, 0)`, so the worker's `/proc` files need `CAP_SYS_PTRACE`; Linux refusing it raises and
+      no reader starts.
+    - `texts` gets only `DSBA_ENV`, its database URL and the bucket settings (`compose.prod.yaml`), and checks only
+      those (`config.texts_settings()`, `Settings.texts_problems()`): no secret key, SMTP, Twilio or Anthropic key.
+    - Its database URL uses the role `dsba_texts`, which `migrate` sets up after every migration
+      (`python -m app.cli texts-role`, `DSBA_TEXTS_DB_PASSWORD`) with `SELECT, UPDATE (content_hash, updated_at)` on
+      `library_items` and `SELECT, INSERT, UPDATE, DELETE` on `library_texts`, nothing else.
+    - Its bucket key is its own (`DSBA_TEXTS_S3_*`): `GetObject` on `library/*`, `PutObject` on `covers/*`
+      (`DEPLOYMENT.md`, sections 2 to 4).
+    - Tests: `test_a_reader_cannot_read_the_workers_settings_back_from_proc` (Linux, CI; a reader reads the
+      environment of a worker that hasn't read a file yet, and gets `PermissionError` once it has),
+      `test_the_workers_database_role_reaches_only_what_the_worker_needs` (the worker reads a real PDF as the role;
+      users, sessions, notes and other columns are refused), and two in `test_settings.py`.
+    - Checked in the production image too (user 10001, no capabilities, `--network none`): the reader saw a made-up
+      `DSBA_SECRET_KEY` before the worker had read a file and got `PermissionError` after, while still returning the
+      page's text and a cover. Against a throwaway PostgreSQL 17, `alembic upgrade head && python -m app.cli
+      texts-role` ran twice; the worker, started with only its settings, connected as `dsba_texts` and was refused
+      `users`, `user_sessions` and a title change. The API refuses to start with those same settings.
 - **SEC-27 (reopened).** `MAX_BYTES = 10_000_000` became `STORAGE_LIMIT = 250 MiB` for text, ink and files together.
   See SEC-36.
 - **SEC-30 (fixed).** `notify.py:41` catches bare domains, `?query`, `:port` and the full-width dots;
@@ -399,11 +441,14 @@ copy makes:
 - **SEC-35 (fixed in code).** A Year 3 account lists itself once it is 30 days old, and the line can't claim a staff
   role or hold a link. A rep confirming each senior stays Mohamed's call.
 - **SEC-34 (open, unverified).** `ask.py:279` still appends the paper's block to the system prompt.
-- **SEC-19 (open, nit).** `library.py:309` still returns `[ItemStatus(f.status)]` for `mine`, `removed` included.
-  Proof: `test_sec19_your_files_still_lists_removed_ones`.
-- **SEC-11 (open, nit).** `looks()` (`accounts.py:366`) still keeps spaces and hyphens. Proof:
-  `test_sec11_a_spaced_out_staff_word_is_still_a_display_name` ("A d m i n", "Ad-min", "D S B A Team" and
-  "Student R e p" are all accepted).
+- **SEC-19 (fixed).** `_visible_statuses()` (`library.py`) lists removed files under `mine` only for the library's
+  managers, as `can_see()` has it; anyone else asking for them gets an empty list.
+  `test_your_files_never_list_a_removed_one_unless_you_manage_the_library` (`tests/content/test_library.py`) checks it.
+- **SEC-11 (fixed).** `reads_as_staff()` (`accounts.py`) also reads a staff word spelt out from the start of a word
+  across spaces, dots, apostrophes and hyphens ("A d m i n", "Ad-min", "D S B A Team", "Student R e p", "StudentRep",
+  "Mod erator"), on top of the look-alike letters. Names that only end and begin one across a space ("Ahmad Mina",
+  "Habib Fakhro") still pass; initials before a surname that starts the rest ("A. D. Minhas") are refused, the
+  price of the rule. `tests/accounts/test_me.py` checks both lists.
 - **SEC-14 (partly fixed).** Unchanged; SEC-39 means a single account's hourly throughput has no ceiling either.
 - **SEC-1 to SEC-10, SEC-12, SEC-13, SEC-15 to SEC-18, SEC-20 to SEC-26, SEC-28, SEC-29 (fixed, still).** Round 11
   didn't change sessions, CSRF, OTP, headers or the settings checks. Noora's budget, locking and step-up are as they

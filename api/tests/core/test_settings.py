@@ -180,3 +180,42 @@ def test_dev_login_is_refused_in_production(set_option: SetOption, capsys: pytes
     out = capsys.readouterr()
     assert "dev-login is disabled in production" in out.err
     assert out.out == ""
+
+
+TEXTS_ONLY = {  # what compose.prod.yaml gives the text worker
+    k: GOOD[k]
+    for k in (
+        "env",
+        "database_url",
+        "s3_endpoint_url",
+        "s3_region",
+        "s3_access_key_id",
+        "s3_secret_access_key",
+        "s3_bucket",
+    )
+}
+
+
+def test_the_text_worker_is_checked_for_the_database_and_the_bucket_only() -> None:
+    worker = Settings(_env_file=None, **TEXTS_ONLY)
+    assert worker.texts_problems() == []
+    assert len(worker.problems()) >= 5  # the API refuses to start with them: no secret key, mail, origins...
+    nothing = Settings(_env_file=None, env="production")
+    assert [p.split()[0] for p in nothing.texts_problems()] == [
+        "DSBA_DATABASE_URL",
+        "DSBA_S3_ACCESS_KEY_ID",
+        "DSBA_S3_ENDPOINT_URL",
+    ]
+
+
+def test_the_text_worker_starts_with_only_its_settings_and_the_api_does_not(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name, value in TEXTS_ONLY.items():
+        monkeypatch.setenv(f"DSBA_{name.upper()}", str(value))
+    sessions, storage = cli.texts_worker()
+    assert (sessions.kw["bind"].url.database, storage.bucket) == ("dsba", "dsba-hub")
+    with pytest.raises(ConfigError, match="DSBA_SECRET_KEY must be a random string"):
+        check(Settings())  # what the API starts with
+    monkeypatch.delenv("DSBA_DATABASE_URL")
+    with pytest.raises(ConfigError) as refused:
+        cli.texts_worker()
+    assert refused.value.problems == ["DSBA_DATABASE_URL is not set: the default is the development database."]
