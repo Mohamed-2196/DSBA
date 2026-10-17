@@ -1,12 +1,13 @@
 # Status
 
 This is the handoff between sessions: where the work stands, what's next and what Mohamed still has to decide.
-Update it whenever you finish or start something. Last updated 2026-10-14, when round 11 started on Mohamed's Mac.
+Update it whenever you finish or start something. Last updated 2026-10-17, when round 12 started.
 
 ## Where things stand
 
-`feature/backend` holds the real product: the API and the strict-TypeScript web app built on it. Nothing is
-deployed yet.
+`feature/backend` holds the real product: the API and the strict-TypeScript web app built on it. Every push to it
+deploys to the Railway **dev** environment (https://web-dev-254f.up.railway.app, all features on); production is not
+deployed.
 
 - **Rounds 1 to 4.** The API and the web app for accounts, the forum, the library on S3, the newsletter, the
   calendar, Career Navigator, search, notifications and Manage; roles and feature switches (R-1, R-10), notes,
@@ -27,49 +28,51 @@ deployed yet.
 - **Round 10.** Reviews of rounds 5 to 9: security (SEC-30 to SEC-35), code quality (CQ-30 to CQ-46) and UI/UX
   (UX-28 to UX-43), in `docs/reviews/`. No blockers. Mohamed's own test feedback is
   `docs/feedback/2026-10-14-mohamed.md` (F-1 to F-14).
-- **Last checks.** On round 10: 1,096 API tests and 655 Vitest tests, mypy strict, knip clean.
+- **Round 11 (merged 2026-10-15/16).** Started by Claude builders, cut off by the usage limit, then finished and
+  merged by Antigravity (Gemini): sidebar and Home dashboard grid, report a bug, newsletter pictures, no Drive in the
+  UI and papers with real covers, the notebook (ink, PDF annotation), the full /noora page, the Career Navigator
+  editor, each student's own calendar, boards for everyday tasks, the Daily puzzles with Sudoku (migration 0025).
+  Antigravity also added module art uploads (0026), picture editing in notes, real library covers by default, the
+  MyClass and UoL logos on the sidebar links (Mohamed's request), the seven missing module icons, the Railway dev
+  deploy and an `enable-features` command. Mohamed is not happy with the result, the Daily games most of all.
+- **Last checks (2026-10-17, c25b735).** 1,253 API tests and 749 Vitest tests green after fixing a stale test and
+  a dev-login bug Antigravity introduced; the API suite now takes about 11 minutes (round 12 speeds it up).
 
-## In flight: round 11
+## In flight: round 12 (review and finish round 11)
 
-Eight builders, each on `round11/<name>` in `../dsba-<name>`, off `feature/backend`; the lead merges and re-chains
-migrations. They cover Mohamed's feedback (F-1 to F-14) and the round 10 findings:
+Each builder reviews its area against Mohamed's requests (`docs/feedback/2026-10-14-mohamed.md` and what he asked
+Antigravity), fixes what's wrong, and reports findings marked FIXED or OPEN. Branches `round12/<name>` in
+`../dsba-<name>`; the lead merges and re-chains migrations (0027 onwards).
 
 | Branch | Covers |
 | --- | --- |
-| `round11/shell` | sidebar scrolling, newsletter pictures, Home options, no pulse motif, report a bug (F-1, F-2, F-3, F-5, F-14) |
-| `round11/papers2` | no Google Drive in the UI, papers by sitting with real covers (F-6, F-7) |
-| `round11/notebook` | writing over documents and richer notes (F-8, F-12) |
-| `round11/noora4` | Noora as a full assistant (F-9) |
-| `round11/career` | Career Navigator editable in Manage (F-10) |
-| `round11/calendar3` | each student's own calendar (F-11) |
-| `round11/board3` | boards for everyday tasks (F-13) |
-| `round11/fixes` | review findings outside those areas |
-
-`round11/fixes` decisions:
-- **Lesson progress off (SEC-32):** nothing new is saved, and what was saved before is kept but hidden (not served,
-  not used by the board) until tracking is on again. The export still holds it.
-- **Seniors (SEC-35):** a Year 3 account can list itself once it is 30 days old. The line can't claim a staff role
-  or hold a link. A rep-confirmed year would be stronger; it needs a column and a queue in Manage.
-- **Links in emails (SEC-30):** bare domains are taken out too, so "Node.js" and "notes.pdf" read "[link]" in
-  emails and the Sunday summary.
+| `round12/daily` | the Daily hub and every game: look, feel, fun and zero bugs on desktop and phone (Mohamed's top complaint) |
+| `round12/daily-cms` | Daily puzzle content in the database and editable in Manage (0027) |
+| `round12/notebook` | deep QA of the notebook: pen, pictures (move, resize, crop), PDF annotation, iPad |
+| `round12/cms` | a complete CMS: inventory in `docs/backend/CMS.md`, guides and site settings editable (0028) |
+| `round12/polish` | Noora never covering content, the /noora layout, real video thumbnails, clean file titles, the board and personal calendar end to end |
+| `round12/speed` | the API tests back under 3 minutes, CI, a Railway check that the latest commit is live |
+| `round12/rev-sec` | security review of round 11 (SEC-36 onwards) |
 
 ## Operating notes
 
 - **New features arrive switched off.** Turn them on in Manage → Access.
 - **The Docker stack** runs from the main checkout (compose project `dsba-hub`). `scripts/e2e.sh` switches it to
   e2e mode and `--restore` switches it back. Nobody runs `docker compose down`: the API's pytest uses its Postgres.
-- **Drive import:** 105 files in. Google blocks the network for "automated queries" after bursts; the importer
-  paces itself and waits the block out, and a re-run picks up the rest. Skipped: 8 IS2184 videos and one 60 MB PDF.
-  After merging RTC changes, run `python -m app.cli exam-meta` to give imported files their zone.
+- **Drive import:** done locally: 747 files served from MinIO, 3 links left. Google blocks the network for
+  "automated queries" after bursts; the importer paces itself and waits the block out. Skipped: 8 IS2184 videos and
+  one 60 MB PDF.
 - **Local database:** keep it (it holds the import). When a migration was edited in place, apply the change by
   hand instead of rebuilding.
 - **Test accounts (local):** mohamed.admin@example.com (admin), rami.rep@example.com (rep),
-  sara.student@example.com (Year 2); codes in Mailpit.
+  sara.student@example.com (Year 2); codes in Mailpit, or `python -m app.cli dev-login <email>` for a session token.
+  `python -m app.cli enable-features` switches everything on (development only).
+- **Local data:** the database holds leftovers from e2e runs (titles with `[e2e …]`); harmless.
 - **Python 3.12** is pinned in `api/.python-version`, matching the image and CI.
 - **Workers:** in production, the `mail` worker sends queued notifications and Sunday summaries; the `texts` worker (`python -m app.cli text-worker`) extracts text from published PDFs and Word files for search.
 - **Noora AI env:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` power AI answers; without the key Noora runs in script mode.
 - **PWA:** installs via `/manifest.webmanifest` and `/sw.js`; the service worker caches the app shell and static assets.
-- **Bug reports coming:** student bug reporting with optional screenshots (F-14) is being built in `round11/shell` (`bug_reports` table, Manage → Bugs).
+- **Bug reports:** anyone can report a bug with an optional screenshot; admins triage them in Manage → Bugs.
 
 ## Next
 
@@ -84,9 +87,8 @@ migrations. They cover Mohamed's feedback (F-1 to F-14) and the round 10 finding
 
 ## Waiting on Mohamed
 
-- **Module icons (7):** IS2184 and the six Year 3 modules. Mohamed regenerates them from
-  `docs/design/asset-prompts-round2.md`; the next agent reviews and wires them in as `web/public/modules/README.md`
-  describes.
+- **Module icons:** all 16 are in. Antigravity generated the last seven (IS2184 and Year 3) itself; they still
+  need a strict style review against `module-ec1002.png` and `module-st2133.png`.
 - **Content gaps:** the six Year 3 modules have no unit codes; none of the 10 October exams has a time or place;
   each VLE MCQ window is two one-day events; IS2184 and every Year 3 module have no lessons.
 - **`exam_meta_from_name()`:** the real past-paper name patterns, in `api/app/services/exam_names.py`.
