@@ -15,16 +15,22 @@ from app.config import get_settings
 CONNECT_ARGS = {"options": "-c timezone=UTC"}
 
 
+def make_engine(url: str) -> Engine:
+    return create_engine(url, pool_pre_ping=True, pool_size=10, max_overflow=10, connect_args=CONNECT_ARGS)
+
+
+def sessions_for(engine: Engine) -> sessionmaker[Session]:
+    return sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+
+
 @lru_cache
 def get_engine() -> Engine:
-    return create_engine(
-        get_settings().database_url, pool_pre_ping=True, pool_size=10, max_overflow=10, connect_args=CONNECT_ARGS
-    )
+    return make_engine(get_settings().database_url)
 
 
 @lru_cache
 def get_sessionmaker() -> sessionmaker[Session]:
-    return sessionmaker(bind=get_engine(), autoflush=False, expire_on_commit=False)
+    return sessions_for(get_engine())
 
 
 def get_db() -> Iterator[Session]:

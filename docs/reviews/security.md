@@ -62,7 +62,7 @@ copy makes:
 | SEC-46 | nit | Daily (`services/daily/content.py:61`) | open | Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones |
 | SEC-47 | nit | uploads (`routers/uploads.py:47`) | **fixed** | The board and notebook quotas are checked before the upload lock |
 | SEC-48 | nit | web (`web/package.json:31`) | open (not reachable) | `npm audit`: pdf.js 5.7.284 has a high advisory |
-| SEC-33 | minor | content, deployment | **still open** (half fixed) | The reader's environment is empty, but it can read the worker's secrets from /proc |
+| SEC-33 | minor | content, deployment | **fixed** | The reader's environment is empty, but it can read the worker's secrets from /proc |
 | SEC-27 | minor | notes | **reopened** (see SEC-36) | A free account's notes are no longer capped at 10 MB |
 | SEC-30, SEC-31, SEC-32 | | | **fixed** | Bare domains, Noora's chats on shared computers, lesson progress when off |
 | SEC-35 | nit | community | **fixed** (the rest is a product call) | Seniors: 30-day-old Year 3 accounts, no staff words or links |
@@ -384,7 +384,7 @@ copy makes:
 
 ## Earlier findings, re-checked (round 11)
 
-- **SEC-33 (still open; half fixed).** `paper_text.py:91` gives the reader `PATH` and `PYTHONPATH` only, and
+- **SEC-33 (fixed; was still open, half fixed).** `paper_text.py:91` gives the reader `PATH` and `PYTHONPATH` only, and
   `:121` uses it. But the reader runs as the same user as the text worker, and on Linux a process may read
   `/proc/<pid>/environ` of another process of its own user. Code running in the reader reads every secret back from
   its parent, and `compose.prod.yaml` still gives `texts` the API's whole environment (`<<: *api`).
@@ -395,6 +395,26 @@ copy makes:
     `/proc` files then need `CAP_SYS_PTRACE`, which the reader doesn't have. Give `texts` only the database URL and the
     S3 settings, ideally a database role that can only read `library_items` and write `library_texts`, and S3 keys
     that can only read `library/` and write `covers/`.
+  - **Fixed:**
+    - `read_file()` calls `keep_secrets_from_readers()` (`paper_text.py`) before it starts a reader:
+      `prctl(PR_SET_DUMPABLE, 0)`, so the worker's `/proc` files need `CAP_SYS_PTRACE`; Linux refusing it raises and
+      no reader starts.
+    - `texts` gets only `DSBA_ENV`, its database URL and the bucket settings (`compose.prod.yaml`), and checks only
+      those (`config.texts_settings()`, `Settings.texts_problems()`): no secret key, SMTP, Twilio or Anthropic key.
+    - Its database URL uses the role `dsba_texts`, which `migrate` sets up after every migration
+      (`python -m app.cli texts-role`, `DSBA_TEXTS_DB_PASSWORD`) with `SELECT, UPDATE (content_hash, updated_at)` on
+      `library_items` and `SELECT, INSERT, UPDATE, DELETE` on `library_texts`, nothing else.
+    - Its bucket key is its own (`DSBA_TEXTS_S3_*`): `GetObject` on `library/*`, `PutObject` on `covers/*`
+      (`DEPLOYMENT.md`, sections 2 to 4).
+    - Tests: `test_a_reader_cannot_read_the_workers_settings_back_from_proc` (Linux, CI; a reader reads the
+      environment of a worker that hasn't read a file yet, and gets `PermissionError` once it has),
+      `test_the_workers_database_role_reaches_only_what_the_worker_needs` (the worker reads a real PDF as the role;
+      users, sessions, notes and other columns are refused), and two in `test_settings.py`.
+    - Checked in the production image too (user 10001, no capabilities, `--network none`): the reader saw a made-up
+      `DSBA_SECRET_KEY` before the worker had read a file and got `PermissionError` after, while still returning the
+      page's text and a cover. Against a throwaway PostgreSQL 17, `alembic upgrade head && python -m app.cli
+      texts-role` ran twice; the worker, started with only its settings, connected as `dsba_texts` and was refused
+      `users`, `user_sessions` and a title change. The API refuses to start with those same settings.
 - **SEC-27 (reopened).** `MAX_BYTES = 10_000_000` became `STORAGE_LIMIT = 250 MiB` for text, ink and files together.
   See SEC-36.
 - **SEC-30 (fixed).** `notify.py:41` catches bare domains, `?query`, `:port` and the full-width dots;

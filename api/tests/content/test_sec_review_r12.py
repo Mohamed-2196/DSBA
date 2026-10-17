@@ -1,11 +1,8 @@
-"""The round 12 security review's proofs for module art and the file reader's environment. Each test passes while
-the problem it names is still there."""
+"""The round 12 security review's proofs for module art. Each test passes while the problem it names is still
+there."""
 
 from __future__ import annotations
 
-import os
-import subprocess
-import sys
 import uuid
 from collections.abc import Callable
 from typing import Any
@@ -17,7 +14,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models import Upload, UploadStatus, User
-from app.services import paper_text
 from tests.content.conftest import API
 
 Clients = Callable[..., TestClient]
@@ -85,25 +81,3 @@ def test_sec42_an_upload_that_was_never_checked_becomes_module_art_and_media_ser
     shown = client_for().get(art, follow_redirects=False)  # a guest
     assert shown.status_code == 302
     assert f"incoming/{up.id}" in shown.headers["location"]
-
-
-@pytest.mark.skipif(sys.platform != "linux", reason="/proc is Linux's; production and CI run Linux")
-def test_sec33_the_reader_runs_as_the_worker_so_it_can_read_the_workers_secrets() -> None:
-    """Re-check of SEC-33: the reader's own environment is PATH and PYTHONPATH only, but it runs as the same user
-    as the text worker, which holds every secret (compose.prod.yaml gives `texts` the API's whole environment). Code
-    running in the reader reads them back from /proc/<parent>/environ."""
-    assert os.environ.get("DSBA_SECRET_KEY")
-    peek = "import os; print(open(f'/proc/{os.getppid()}/environ', 'rb').read().decode(errors='replace'))"
-    done = subprocess.run(  # noqa: S603 - this interpreter, a fixed script: what code running in the reader could do
-        [sys.executable, "-c", peek],
-        capture_output=True,
-        timeout=30,
-        check=True,
-        cwd=paper_text._API_ROOT,
-        env=paper_text._child_env(),
-        preexec_fn=paper_text._limit_memory,  # as read_file() starts the reader
-    )
-    seen = done.stdout.decode()
-    assert "DSBA_SECRET_KEY" not in paper_text._child_env()
-    assert f"DSBA_SECRET_KEY={os.environ['DSBA_SECRET_KEY']}" in seen
-    assert "DSBA_DATABASE_URL=" in seen

@@ -178,3 +178,42 @@ def test_dev_login_is_refused_in_production() -> None:
     assert done.returncode == 1
     assert "dev-login is disabled in production" in done.stderr
     assert done.stdout == ""
+
+
+TEXTS_ONLY = {  # what compose.prod.yaml gives the text worker
+    k: GOOD[k]
+    for k in (
+        "env",
+        "database_url",
+        "s3_endpoint_url",
+        "s3_region",
+        "s3_access_key_id",
+        "s3_secret_access_key",
+        "s3_bucket",
+    )
+}
+
+
+def test_the_text_worker_is_checked_for_the_database_and_the_bucket_only() -> None:
+    worker = Settings(_env_file=None, **TEXTS_ONLY)
+    assert worker.texts_problems() == []
+    assert len(worker.problems()) >= 5  # the API refuses to start with them: no secret key, mail, origins...
+    nothing = Settings(_env_file=None, env="production")
+    assert [p.split()[0] for p in nothing.texts_problems()] == [
+        "DSBA_DATABASE_URL",
+        "DSBA_S3_ACCESS_KEY_ID",
+        "DSBA_S3_ENDPOINT_URL",
+    ]
+
+
+def test_the_text_worker_starts_with_only_its_settings_and_the_api_does_not() -> None:
+    env = {f"DSBA_{k.upper()}": str(v) for k, v in TEXTS_ONLY.items()}
+    worker = _run(env, "-c", "from app import cli; cli.texts_worker(); print('ready')")
+    assert (worker.returncode, worker.stdout.strip()) == (0, "ready"), worker.stderr
+    api = _run(env, "-c", "import app.main")
+    assert api.returncode != 0
+    assert "- DSBA_SECRET_KEY must be a random string" in api.stderr
+    nothing = _run({"DSBA_ENV": "production"}, "-c", "from app import cli; cli.texts_worker()")
+    assert nothing.returncode != 0
+    assert "- DSBA_DATABASE_URL is not set" in nothing.stderr
+    assert "DSBA_SECRET_KEY" not in nothing.stderr

@@ -121,6 +121,10 @@ class Settings(BaseSettings):
     download_url_ttl_seconds: int = 300
     max_upload_mb: int = 50
     max_image_mb: int = 8
+    # The text worker's own database role, which may only read published files' rows and keep their words
+    # (`python -m app.cli texts-role` sets it up after the migrations; compose.prod.yaml gives the worker only it and
+    # the bucket). Letters, digits, - and _: it goes in the worker's database URL.
+    texts_db_password: SecretStr | None = None
 
     # Backups (`python -m app.cli backup`). Without DSBA_BACKUP_BUCKET they go to the main bucket under
     # DSBA_BACKUP_PREFIX; give them their own bucket and a key of their own (DSBA_BACKUP_ACCESS_KEY_ID and
@@ -172,6 +176,7 @@ class Settings(BaseSettings):
         "google_api_key",
         "google_service_account_file",
         "anthropic_api_key",
+        "texts_db_password",
         mode="before",
     )
     @classmethod
@@ -251,8 +256,7 @@ class Settings(BaseSettings):
                 "DSBA_SECRET_KEY must be a random string of at least 32 characters, not the development one "
                 '(python -c "import secrets; print(secrets.token_urlsafe(48))").'
             )
-        if "database_url" not in given:
-            add("DSBA_DATABASE_URL is not set: the default is the development database.")
+        problems.extend(self._database_problems())
 
         # Cookies, origins and addresses
         if not self.cookie_secure:
@@ -290,22 +294,7 @@ class Settings(BaseSettings):
                     )
 
         # Object storage
-        if not self.s3_bucket:
-            add("DSBA_S3_BUCKET is empty.")
-        key_id, key = self.s3_access_key_id, self.s3_secret_access_key.get_secret_value()
-        if key_id in ("", DEV_S3_ACCESS_KEY) or key in ("", DEV_S3_SECRET):
-            add("DSBA_S3_ACCESS_KEY_ID and DSBA_S3_SECRET_ACCESS_KEY must be set (not the development keys).")
-        public = self.s3_public_endpoint_url or self.s3_endpoint_url
-        if "s3_endpoint_url" not in given:
-            add(
-                "DSBA_S3_ENDPOINT_URL must be set: your store's endpoint, or empty for AWS S3 (the default is the "
-                "development emulator)."
-            )
-        elif public is not None and not _is_https_url(public):
-            add(
-                "Browsers reach the bucket directly: DSBA_S3_PUBLIC_ENDPOINT_URL (or DSBA_S3_ENDPOINT_URL) must be "
-                "https://."
-            )
+        problems.extend(self._storage_problems())
         if self.s3_create_bucket:
             add("DSBA_S3_CREATE_BUCKET must be false: set the bucket up once with `python -m app.cli setup-bucket`.")
 
@@ -329,6 +318,38 @@ class Settings(BaseSettings):
                 )
             elif not (self.twilio_account_sid and self.twilio_auth_token and self.twilio_from):
                 add("DSBA_TWILIO_ACCOUNT_SID, DSBA_TWILIO_AUTH_TOKEN and DSBA_TWILIO_FROM must be set for texts.")
+        return problems
+
+    def texts_problems(self) -> list[str]:
+        """What makes these settings unfit for the text worker in production. It reads published files from the bucket
+        and keeps their words in the database, and holds nothing else (compose.prod.yaml), so only those two are
+        checked."""
+        return [*self._database_problems(), *self._storage_problems()]
+
+    def _database_problems(self) -> list[str]:
+        if "database_url" not in self.model_fields_set:
+            return ["DSBA_DATABASE_URL is not set: the default is the development database."]
+        return []
+
+    def _storage_problems(self) -> list[str]:
+        problems: list[str] = []
+        add = problems.append
+        if not self.s3_bucket:
+            add("DSBA_S3_BUCKET is empty.")
+        key_id, key = self.s3_access_key_id, self.s3_secret_access_key.get_secret_value()
+        if key_id in ("", DEV_S3_ACCESS_KEY) or key in ("", DEV_S3_SECRET):
+            add("DSBA_S3_ACCESS_KEY_ID and DSBA_S3_SECRET_ACCESS_KEY must be set (not the development keys).")
+        public = self.s3_public_endpoint_url or self.s3_endpoint_url
+        if "s3_endpoint_url" not in self.model_fields_set:
+            add(
+                "DSBA_S3_ENDPOINT_URL must be set: your store's endpoint, or empty for AWS S3 (the default is the "
+                "development emulator)."
+            )
+        elif public is not None and not _is_https_url(public):
+            add(
+                "Browsers reach the bucket directly: DSBA_S3_PUBLIC_ENDPOINT_URL (or DSBA_S3_ENDPOINT_URL) must be "
+                "https://."
+            )
         return problems
 
 
@@ -357,3 +378,13 @@ def check(settings: Settings) -> Settings:
 @lru_cache
 def get_settings() -> Settings:
     return check(Settings())
+
+
+def texts_settings() -> Settings:
+    """The text worker's settings (`text-worker`, `extract-texts`, `make-covers`): in production only the database
+    and the bucket are checked, the only settings it is given. Raises ConfigError naming every problem."""
+    settings = Settings()
+    problems = settings.texts_problems() if settings.is_production else []
+    if problems:
+        raise ConfigError(problems)
+    return settings
