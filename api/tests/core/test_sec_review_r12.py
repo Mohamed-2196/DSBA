@@ -16,11 +16,9 @@ import pytest
 import uvicorn
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import BugReport, Notification, Upload, User
-from tests.core.conftest import BrowserAt
+from app.models import BugReport, Upload, User
 from tests.core.helpers import API, PNG, upload
 
 ClientFor = Callable[..., TestClient]
@@ -137,25 +135,3 @@ def test_sec40_a_students_bug_reports_and_screenshots_are_not_in_the_export_and_
     assert (report.what_happened, report.browser) == (words, "Safari 19 on iOS, 390x844")
     assert picture is not None
     assert storage.head(picture.storage_key) is not None  # the screenshot's object is still in the bucket
-
-
-def test_sec44_guests_on_many_networks_send_admins_reports_without_a_hub_wide_cap(
-    browser_at: BrowserAt, make_user: MakeUser, db: Session
-) -> None:
-    """Five reports an hour per network and nothing hub-wide: every report from every network is a notification for
-    every admin, with up to 4,300 characters stored each."""
-    admins = [make_user(name="Head Admin", roles=ADMIN), make_user(name="Second Admin", roles=ADMIN)]
-    body = {"whatHappened": "x" * 2000, "expected": "y" * 2000, "pageUrl": "/", "appVersion": "1", "browser": "z" * 300}
-    networks = [f"2001:db8:{n:x}::1" for n in range(1, 7)]  # six /64s: one home or phone network has thousands
-    for peer in networks:
-        guest = browser_at(peer)
-        for _ in range(5):
-            assert guest.post(f"{API}/bug-reports", json=body).status_code == 201
-    for admin in admins:
-        told = db.scalar(
-            select(func.count())
-            .select_from(Notification)
-            .where(Notification.user_id == admin.id, Notification.kind == "bug_report")
-        )
-        assert told == 5 * len(networks)
-    assert db.scalar(select(func.count()).select_from(BugReport).where(BugReport.user_id.is_(None))) == 30

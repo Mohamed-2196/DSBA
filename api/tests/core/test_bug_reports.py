@@ -196,6 +196,64 @@ def test_five_reports_an_hour_for_guests_on_one_network(browser_at: BrowserAt) -
     assert browser_at("203.0.113.6").post(REPORTS, json=report()).status_code == 201
 
 
+def test_thirty_reports_an_hour_from_guests_on_every_network_together(
+    browser_at: BrowserAt, make_user: MakeUser, db: Session
+) -> None:
+    """One home or phone connection holds many /64 networks, each with its own five reports an hour: past 30 from
+    guests in all, a guest is asked to sign in, and signed-in people still report."""
+    admins = [make_user(name="Head Admin", roles=ADMIN), make_user(name="Second Admin", roles=ADMIN)]
+    long = report(whatHappened="x" * 2000, expected="y" * 2000, browser="z" * 300)
+    for network in range(1, 7):
+        guest = browser_at(f"2001:db8:{network:x}::1")
+        for _ in range(5):
+            assert guest.post(REPORTS, json=long).status_code == 201
+    r = browser_at("2001:db8:7::1").post(REPORTS, json=report())
+    assert r.status_code == 429
+    error = r.json()["error"]
+    assert error["message"].startswith(
+        "A lot of reports came in from people who aren't signed in. Sign in to send yours, or try again in "
+    )
+    assert error["retryAfter"] > 0
+    assert db.scalar(select(func.count()).select_from(BugReport).where(BugReport.user_id.is_(None))) == 30
+    signed_in = browser_at("2001:db8:7::1", make_user(name="Sara Student"))
+    assert signed_in.post(REPORTS, json=report()).status_code == 201
+    for admin in admins:  # one notification each, counting every report
+        told = db.scalars(
+            select(Notification.title).where(Notification.user_id == admin.id, Notification.kind == "bug_report")
+        ).all()
+        assert told == ["31 new bug reports"]
+
+
+def test_admins_hear_of_new_reports_in_one_notification_while_it_is_unread(
+    client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    boss, deputy = make_user(name="Head Admin", roles=ADMIN), make_user(name="Second Admin", roles=ADMIN)
+    guest, me = client_for(), client_for(boss)
+
+    def told(admin: User) -> set[tuple[str, str | None, bool]]:
+        """(title, words, unread) of each bug report notification the admin has."""
+        db.expire_all()
+        rows = db.scalars(
+            select(Notification).where(Notification.user_id == admin.id, Notification.kind == "bug_report")
+        ).all()
+        return {(n.title, n.body, n.read_at is None) for n in rows}
+
+    for words in ("The upload button does nothing.", "Search shows nothing.", "The calendar is blank."):
+        assert guest.post(REPORTS, json=report(whatHappened=words)).status_code == 201
+    assert told(boss) == {("3 new bug reports", "The calendar is blank.", True)}
+    page = me.get(f"{API}/notifications").json()
+    assert (page["unreadCount"], page["items"][0]["title"], page["items"][0]["actor"]) == (1, "3 new bug reports", None)
+
+    assert me.post(f"{API}/notifications/read-all").status_code == 204
+    assert client_for(deputy).post(REPORTS, json=report(whatHappened="Grades won't load.")).status_code == 201
+    read_one = ("3 new bug reports", "The calendar is blank.", False)
+    assert told(boss) == {("New bug report", "Grades won't load.", True), read_one}
+    assert told(deputy) == {("3 new bug reports", "The calendar is blank.", True)}  # not told of their own
+    assert me.post(REPORTS, json=report(whatHappened="Dark mode flickers.")).status_code == 201
+    assert told(deputy) == {("4 new bug reports", "Dark mode flickers.", True)}
+    assert told(boss) == {("New bug report", "Grades won't load.", True), read_one}
+
+
 def test_admins_list_reports_by_status_newest_first(client_for: ClientFor, make_user: MakeUser) -> None:
     boss = client_for(make_user(name="Head Admin", roles=ADMIN))
     ids = [client_for().post(REPORTS, json=report(whatHappened=f"Bug {i}")).json()["id"] for i in range(3)]

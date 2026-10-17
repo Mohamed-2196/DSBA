@@ -1,9 +1,12 @@
 """Bug reports: anyone, guests included, reports what went wrong on a page; admins triage them in Manage.
 
-- A signed-in person may send 10 an hour, a guest 5 an hour from one network (client_ip(), an IPv6 /64).
+- A signed-in person may send 10 an hour, a guest 5 an hour from one network (client_ip(), an IPv6 /64), and guests
+  30 an hour all together: past that, a guest is asked to sign in.
 - A signed-in reporter may attach a screenshot: their own bug_screenshot upload, checked and not yet used. It becomes
   attached to the report, so the sweep keeps it; /media shows it to its uploader and to admins only.
-- Every active admin hears of a new report in the hub (never by email); an admin isn't told of their own.
+- Every active admin hears of new reports in the hub (never by email), one notification at a time: while it is
+  unread, the next report counts it up ("3 new bug reports") instead of adding another. An admin isn't told of their
+  own.
 - An admin marks a report fixed or won't fix (audited), or opens it again.
 Services leave the commit to the handler."""
 
@@ -15,7 +18,7 @@ from datetime import timedelta
 from typing import Any, cast
 from urllib.parse import urlsplit
 
-from sqlalchemy import ColumnElement, CursorResult, and_, func, select, update
+from sqlalchemy import ColumnElement, CursorResult, and_, func, select, true, update
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -27,6 +30,7 @@ from app.models import (
     AccessRole,
     BugReport,
     BugStatus,
+    Notification,
     RoleGrant,
     Upload,
     UploadPurpose,
@@ -41,10 +45,12 @@ from app.services.accounts import public_user
 from app.services.notify import notify_all
 
 PER_HOUR_SIGNED_IN = 10
-PER_HOUR_GUEST = 5
+PER_HOUR_GUEST = 5  # from one network
+PER_HOUR_ALL_GUESTS = 30
 WINDOW = timedelta(hours=1)
 KEEP_IP = timedelta(days=1)  # a guest's address counts for the limit only within WINDOW: the sweep clears it after
 TOO_MANY = "You've sent a lot of reports. Try again in {}."
+GUESTS_FULL = "A lot of reports came in from people who aren't signed in. Sign in to send yours, or try again in {}."
 PAGE_RULE = "Give the address of a page of the hub, like /library."
 SCREENSHOT_RULE = "Attach a screenshot you uploaded for this report."
 EXCERPT = 120
@@ -91,6 +97,15 @@ def _check_rate(db: Session, reporter: User | None, ip: str | None) -> None:
         window=WINDOW,
         message=TOO_MANY,
     )
+    ratelimit.enforce(  # one home or phone connection holds many networks
+        db,
+        "bug-reports:guests",
+        BugReport.created_at,
+        [BugReport.user_id.is_(None)],
+        limit=PER_HOUR_ALL_GUESTS,
+        window=WINDOW,
+        message=GUESTS_FULL,
+    )
 
 
 def _screenshot(db: Session, reporter: User | None, upload_id: uuid.UUID) -> Upload:
@@ -113,6 +128,40 @@ def _admins() -> ColumnElement[bool]:
         select(RoleGrant.user_id).join(AccessRole, AccessRole.id == RoleGrant.role_id).where(AccessRole.slug == ADMIN)
     )
     return and_(User.status == UserStatus.active, User.id.in_(holders))
+
+
+def _tell_admins(db: Session, reporter: User | None, report: BugReport, excerpt: str) -> None:
+    """Every active admin but the reporter hears of the report: an admin whose bug report notification is still
+    unread sees it count up, with this report's words, and moves to the top; the others get a new one."""
+    ratelimit.lock(db, "bug-reports:admins")  # two reports at once both count
+    waiting = db.scalars(
+        select(Notification)
+        .join(User, User.id == Notification.user_id)
+        .where(
+            Notification.kind == "bug_report",
+            Notification.read_at.is_(None),
+            _admins(),
+            User.id != reporter.id if reporter is not None else true(),
+        )
+        .with_for_update(of=Notification)
+    ).all()
+    newest = {"bugReportId": str(report.id)}
+    for n in waiting:
+        count = int(n.data.get("count", 1)) + 1
+        n.title, n.body, n.actor_id = f"{count} new bug reports", excerpt, None
+        n.data = {**newest, "count": count}
+        n.created_at = utcnow()
+    notify_all(
+        db,
+        "bug_report",
+        "New bug report",
+        body=excerpt,
+        url="/manage/bugs",
+        actor=reporter,
+        data={**newest, "count": 1},
+        email=False,
+        only=and_(_admins(), User.id.not_in([n.user_id for n in waiting])),
+    )
 
 
 def create(db: Session, reporter: User | None, body: BugReportCreate, ip: str | None) -> BugReport:
@@ -140,17 +189,7 @@ def create(db: Session, reporter: User | None, body: BugReportCreate, ip: str | 
         screenshot.status = UploadStatus.attached
         screenshot.bug_report_id = report.id
     excerpt = body.what_happened if len(body.what_happened) <= EXCERPT else body.what_happened[: EXCERPT - 1] + "…"
-    notify_all(
-        db,
-        "bug_report",
-        "New bug report",
-        body=excerpt,
-        url="/manage/bugs",
-        actor=reporter,
-        data={"bugReportId": str(report.id)},
-        email=False,
-        only=_admins(),
-    )
+    _tell_admins(db, reporter, report, excerpt)
     return report
 
 

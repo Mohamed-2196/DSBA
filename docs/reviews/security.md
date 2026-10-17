@@ -57,7 +57,7 @@ copy makes:
 | SEC-41 | minor | Daily (`services/daily/plays.py:165`) | open | Every Daily answer is available before the scored play, so anyone can top the leaderboard |
 | SEC-42 | minor | content (`schemas/modules.py:121`, `services/module_editor.py:217`) | open | Module art skips the picture rules: any address, and an upload that was never checked |
 | SEC-43 | minor | deployment (`.github/workflows/railway.yml:22`) | open (partly verified) | The public Railway dev deployment runs outside production mode |
-| SEC-44 | nit | bugs (`services/bugs.py:85`) | open | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
+| SEC-44 | nit | bugs (`services/bugs.py:85`) | **fixed** | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
 | SEC-45 | nit | Daily, boards | open | Crafted input turns Daily and board requests into 500s |
 | SEC-46 | nit | Daily (`services/daily/content.py:61`) | open | Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones |
 | SEC-47 | nit | uploads (`routers/uploads.py:47`) | **fixed** | The board and notebook quotas are checked before the upload lock |
@@ -306,6 +306,12 @@ copy makes:
   reports, and each admin gets 30 notifications.
 - **Fix:** a hub-wide cap on guest reports (for example 30 an hour; past it, 429 with "Sign in to report"), and one
   notification per admin while unread ones of the kind are waiting ("12 new bug reports").
+- **Fixed:** guests send at most 30 reports an hour from every network together (`PER_HOUR_ALL_GUESTS`; past it, 429
+  "A lot of reports came in from people who aren't signed in. Sign in to send yours, or try again in …"), and
+  `_tell_admins()` keeps one unread notification per admin that counts up ("31 new bug reports", the newest report's
+  words) instead of adding one per report. `tests/core/test_bug_reports.py` checks both
+  (`test_thirty_reports_an_hour_from_guests_on_every_network_together`,
+  `test_admins_hear_of_new_reports_in_one_notification_while_it_is_unread`).
 
 ### SEC-45. Crafted input turns Daily and board requests into 500s (nit)
 
