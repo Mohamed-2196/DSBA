@@ -49,7 +49,7 @@ copy makes:
 
 | ID | Severity | Owner | Status | Title |
 |---|---|---|---|---|
-| SEC-36 | **major** | notes (`services/notes.py:64`) | open | One free account keeps 250 MB of ink and text in Postgres, and every read loads all of it at once |
+| SEC-36 | **major** | notes (`services/notes.py:64`) | **fixed** (c6e6676) | One free account keeps 250 MB of ink and text in Postgres, and every read loads all of it at once |
 | SEC-37 | minor | deployment (`api/Dockerfile:37`, `routers/feeds.py:20`) | open | The private calendar feed's secret is written to the API's access log on every poll |
 | SEC-38 | minor | boards (`services/board/common.py:33`) | open | No total on the text a student's boards hold: about 880 MB of rows per free account |
 | SEC-39 | minor | boards, uploads (`services/board/files.py:124`) | open | Detaching a board file gives its slot back to the 20-uploads-an-hour limit |
@@ -61,7 +61,7 @@ copy makes:
 | SEC-45 | nit | Daily, boards | open | Crafted input turns Daily and board requests into 500s |
 | SEC-46 | nit | Daily (`services/daily/content.py:61`) | open | Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones |
 | SEC-47 | nit | uploads (`routers/uploads.py:47`) | open (unverified) | The board and notebook quotas are checked before the upload lock |
-| SEC-48 | nit | web (`web/package.json:31`) | open (not reachable) | `npm audit`: pdf.js 5.7.284 has a high advisory |
+| SEC-48 | nit | web (`web/package.json:31`) | **fixed** (c6e6676) | `npm audit`: pdf.js 5.7.284 has a high advisory |
 | SEC-33 | minor | content, deployment | **still open** (half fixed) | The reader's environment is empty, but it can read the worker's secrets from /proc |
 | SEC-27 | minor | notes | **reopened** (see SEC-36) | A free account's notes are no longer capped at 10 MB |
 | SEC-30, SEC-31, SEC-32 | | | **fixed** | Bare domains, Noora's chats on shared computers, lesson progress when off |
@@ -117,6 +117,21 @@ copy makes:
     hour.
   - Keep a running byte total per student instead of re-summing `octet_length(doc::text)`.
   - Give the `api` service a memory limit in `compose.prod.yaml`, so the worst case is a restart, not the server.
+- **Fixed** in c6e6676 (round 12, `round12/notebook`):
+  - Two budgets: `WRITING_LIMIT` (25 MB of typed text and ink, in Postgres) and `FILES_LIMIT` (250 MB of files, in
+    the bucket), each checked on its own (`check_writing`, `check_files`); `GET /notebooks` reports both.
+  - One sheet holds at most `SHEET_MAX_BYTES` (512 KB) of ink: 422 above it. `MAX_STROKES` is 2,000 and
+    `MAX_POINTS` 4,000. `core/limits.py` refuses an ink save whose Content-Length is over `INK_BODY_MAX` (1 MB)
+    unread, with 413 too_large, so the API keeps the cap without Caddy.
+  - Saves count per student too: `PERSON_SAVES_PER_MINUTE` (400) across all their notes, besides 240 per note.
+  - `GET /notes/{id}` lists the sheets with ink and their versions, without strokes; `GET /notes/{id}/ink/{sheet}`
+    reads one sheet. The web app reads them a few at a time and lets nothing be drawn until all are in.
+  - Regression tests in `tests/notes/test_notes.py`: `test_text_and_ink_are_capped_apart_from_files`,
+    `test_one_sheet_holds_at_most_sheet_max_bytes`, `test_a_note_is_read_without_its_ink_and_each_sheet_on_its_own`
+    (the read's memory peak stays under half of the note's ink) and `test_saves_are_counted_per_student_too`.
+  - Still open: the export loads the account's text and ink at once (now at most 25 MB of it) and has no rate
+    limit of its own; `storage_used` still sums `octet_length(doc::text)` (bounded by the same 25 MB); the memory
+    limit in `compose.prod.yaml` is the lead's call.
 
 ### SEC-37. The private calendar feed's secret is written to the API's access log on every poll (minor)
 
@@ -357,6 +372,9 @@ copy makes:
   Production's CSP has no `unsafe-inline` or `unsafe-eval` either.
 - **Fix:** move to pdfjs-dist 6.4 or later, and pass `isEvalSupported: false` and `enableXfa: false` to
   `getDocument()` (`web/src/features/notes/pdf.ts:48`), so the next pdf.js advisory doesn't depend on the CSP.
+- **Fixed** in c6e6676: pdfjs-dist 6.4.299 (`npm audit --omit=dev`: 0 vulnerabilities), opened with
+  `enableXfa: false`. pdf.js 6 has no eval path left: the `isEvalSupported` option no longer exists, and neither
+  build calls `new Function` or `eval`.
 
 ---
 
