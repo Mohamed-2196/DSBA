@@ -125,6 +125,7 @@ class SearchFound(ApiModel):
     word: str
     start: Cell
     end: Cell
+    revealed: bool = False  # shown at the end of a lost play: the player didn't find it
 
 
 class SearchView(ApiModel):

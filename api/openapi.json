@@ -36908,6 +36908,11 @@
           },
           "end": {
             "$ref": "#/components/schemas/Cell"
+          },
+          "revealed": {
+            "type": "boolean",
+            "title": "Revealed",
+            "default": false
           }
         },
         "type": "object",

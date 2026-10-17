@@ -177,7 +177,7 @@ class SearchGame(Game[Puzzle, SearchState]):
         if over:
             have = {f.word for f in found}
             found += [
-                SearchFound(word=p.word, start=_cell(p.start), end=_cell(p.end))
+                SearchFound(word=p.word, start=_cell(p.start), end=_cell(p.end), revealed=True)
                 for p in puzzle.placed
                 if p.word not in have
             ]

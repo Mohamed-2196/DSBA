@@ -85,6 +85,17 @@ def test_word_search_reads_lines_both_ways(client_for: ClientFor, make_user: Mak
     for placed in p.placed[1:]:
         play = move(c, "search", {"kind": "find", "start": cell(placed.start), "end": cell(placed.end)}).json()["play"]
     assert (play["status"], play["points"]) == ("won", 90)
+    assert not any(f["revealed"] for f in play["view"]["found"])
+
+
+def test_word_search_given_up_reveals_the_words_left(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+    c = client_for(make_user())
+    p = puzzle(db, "search")
+    first = p.placed[0]
+    move(c, "search", {"kind": "find", "start": cell(first.start), "end": cell(first.end)})
+    view = move(c, "search", {"kind": "give-up"}).json()["play"]["view"]
+    assert [(f["word"], f["revealed"]) for f in view["found"]][:2] == [(first.word, False), (p.placed[1].word, True)]
+    assert len(view["found"]) == len(p.placed)
 
 
 def test_the_quiz_explains_each_answer_and_scores_right_ones(

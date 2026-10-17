@@ -8517,6 +8517,11 @@ export interface components {
             word: string;
             start: components["schemas"]["Cell"];
             end: components["schemas"]["Cell"];
+            /**
+             * Revealed
+             * @default false
+             */
+            revealed: boolean;
         };
         /** SearchHit */
         SearchHit: {
