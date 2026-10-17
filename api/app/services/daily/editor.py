@@ -433,7 +433,8 @@ def _escape(q: str) -> str:
 def list_items(
     db: Session, game: ContentGame, theme: str | None, status: ItemStatus, q: str, limit: int, offset: int
 ) -> Page[ItemOut]:
-    """A game's items, by theme and status, found by any of their words: in use first, then alphabetical."""
+    """A game's items, by theme and status, found by any of their words: in use first, by theme (and a group's
+    level), then alphabetical."""
     where: list[Any] = [DailyItem.game == game]
     if theme:
         where.append(DailyItem.theme_id == theme)
@@ -449,11 +450,13 @@ def list_items(
         )
         where.append(or_(*(f.ilike(pattern, escape="\\") for f in fields)))
     total = db.scalar(select(func.count()).select_from(DailyItem).where(*where)) or 0
+    order = (DailyItem.retired, DailyTheme.position, DailyItem.theme_id, DailyItem.data["level"].as_integer())
     rows = list(
         db.scalars(
             select(DailyItem)
+            .join(DailyTheme, DailyTheme.id == DailyItem.theme_id)
             .where(*where)
-            .order_by(DailyItem.retired, DailyItem.key, DailyItem.id)
+            .order_by(*order, DailyItem.key, DailyItem.id)
             .limit(limit)
             .offset(offset)
         )

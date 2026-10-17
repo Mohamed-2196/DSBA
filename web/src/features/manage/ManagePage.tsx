@@ -1,12 +1,13 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
-import { BookOpenText, Bug, CalendarCheck, CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, HandWaving, ListMagnifyingGlass, Newspaper, Power, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
+import { BookOpenText, Bug, CalendarCheck, CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, HandWaving, ListMagnifyingGlass, Newspaper, Power, PuzzlePiece, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
 import { useId, useState, type ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { normalizeYear, useQueryParam } from '../../state';
 import { Button, EmptyState, ErrorBoundary, Count, Page, PageHeader, Panel, QueryError, Select, Skeleton, cx, formatCount } from '../../ui';
 import { ActivityLog, PeopleList } from '../access/public';
 import { CareerEditor } from '../career/public';
+import { DailyContentEditor } from '../daily/public';
 import { ReportsQueue } from '../forum/public';
 import { ModulesEditor, SuggestionsQueue } from '../modules/public';
 import { FlaggedQuestions, UploadsQueue } from '../library/public';
@@ -30,6 +31,7 @@ const SECTIONS: Record<SectionId, { label: string; icon: Icon }> = {
   summary: { label: 'Sunday summary', icon: CalendarCheck },
   career: { label: 'Career Navigator', icon: Compass },
   content: { label: 'Modules', icon: BookOpenText },
+  daily: { label: 'Daily puzzles', icon: PuzzlePiece },
   videos: { label: 'Suggested videos', icon: YoutubeLogo },
   gaps: { label: 'Gaps', icon: ListMagnifyingGlass },
   numbers: { label: 'Numbers', icon: ChartBar },
@@ -132,6 +134,7 @@ const BODIES: Record<SectionId, () => ReactNode> = {
   summary: () => <SummaryForMe />,
   career: () => <CareerEditor />,
   content: () => <ModulesEditor />,
+  daily: () => <DailyContentEditor />,
   videos: () => <SuggestionsQueue />,
   gaps: () => <Gaps />,
   numbers: () => <Numbers />,

@@ -1,7 +1,7 @@
 // Which of Manage's sections a person gets, from their boxes and the features that are on for them.
 import type { Box, Feature } from '../../auth';
 
-export type SectionId = 'reports' | 'uploads' | 'requests' | 'bugs' | 'newsletter' | 'summary' | 'calendar' | 'career' | 'content' | 'videos' | 'gaps' | 'numbers' | 'people' | 'activity';
+export type SectionId = 'reports' | 'uploads' | 'requests' | 'bugs' | 'newsletter' | 'summary' | 'calendar' | 'career' | 'content' | 'daily' | 'videos' | 'gaps' | 'numbers' | 'people' | 'activity';
 
 type Can = (box: Box) => boolean;
 type On = (feature: Feature) => boolean;
@@ -20,6 +20,7 @@ const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
   ['summary', (can, on) => can('summary.share') && on('summary')],
   ['career', (can, on) => can('career.edit') && on('career')],
   ['content', (can) => can('content.edit')],
+  ['daily', (can, on) => can('content.edit') && on('daily')],
   ['gaps', (can, on) => (can('library.manage') && on('library')) || can('content.edit') || (can('calendar.manage') && on('calendar')) || (can('requests.manage') && on('requests'))],
   ['numbers', (can) => can('stats.view')],
   ['people', (can) => can('people.suspend')],
@@ -40,7 +41,7 @@ export interface SectionGroup {
 
 const GROUPS: readonly SectionGroup[] = [
   { id: 'waiting', label: 'Waiting', sections: ['reports', 'uploads', 'requests', 'videos', 'bugs'] },
-  { id: 'publish', label: 'Publish', sections: ['newsletter', 'calendar', 'summary', 'career', 'content'] },
+  { id: 'publish', label: 'Publish', sections: ['newsletter', 'calendar', 'summary', 'career', 'content', 'daily'] },
   { id: 'look-after', label: 'Look after', sections: ['gaps', 'numbers', 'people', 'activity'] },
 ];
 
