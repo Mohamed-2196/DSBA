@@ -29,7 +29,7 @@ import {
   UploadSimple,
   type Icon,
 } from '@phosphor-icons/react';
-import { Kbd, ModuleIcon, cx } from '../../ui';
+import { Kbd, ModuleArt, ModuleIcon, cx, moduleArtSrc } from '../../ui';
 import { formatMonthShort } from '../../lib/dates';
 import { matchRanges } from './match';
 import type { IconName, Item } from './search';
@@ -89,7 +89,9 @@ function DateTile({ when, type }: { when: Date; type: string | null }) {
 export function Leading({ item }: { item: Item }) {
   switch (item.kind) {
     case 'module':
-      return (
+      return moduleArtSrc(item.art) ? (
+        <ModuleArt art={item.art} className="cmdk-art" />
+      ) : (
         <span className={cx('cmdk-tile', 'cmdk-tile--module', item.year && `cmdk-tile--y${item.year}`)} aria-hidden="true">
           <ModuleIcon moduleId={item.moduleId} />
         </span>

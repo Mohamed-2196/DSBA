@@ -124,6 +124,7 @@ def test_editing_a_role_needs_the_version_you_loaded(client_for: ClientFor, boss
     assert entry.data["before"]["boxes"] == [
         "calendar.manage",
         "forum.moderate",
+        "guides.edit",
         "library.manage",
         "newsletter.manage",
         "requests.manage",
@@ -530,7 +531,7 @@ def test_deleting_a_held_role_is_recorded_with_what_it_gave(
         "name": "Content manager",
         "badge": "Content",
         "position": 4,
-        "boxes": ["calendar.manage", "career.edit", "content.edit"],
+        "boxes": ["calendar.manage", "career.edit", "content.edit", "guides.edit"],
         "holders": 1,
         "actorName": "Head Admin",
     }

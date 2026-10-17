@@ -159,6 +159,7 @@ const FALLBACK_MODULE: ModuleSummary = {
   year: 2,
   description: 'Probability distributions, their moments and how to transform them.',
   icon: null,
+  art: null,
   chapterCount: 0,
   lessonCount: 0,
   libraryCount: 0,

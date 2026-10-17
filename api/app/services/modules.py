@@ -132,7 +132,7 @@ def _summary(m: Module, library_count: int | None) -> dict[str, Any]:
         "year": m.year,
         "description": m.description,
         "icon": m.icon,
-        "art_url": m.art_url,
+        "art": m.art,
         "chapter_count": len(chapters),
         "lesson_count": sum(len(visible_lessons(c)) for c in chapters),
         "library_count": library_count,

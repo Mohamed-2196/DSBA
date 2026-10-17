@@ -133,6 +133,8 @@ FEATURE_FREE: dict[str, str] = {
     "/features": "which features are on",
     "/bug-reports": "reporting a bug: anywhere in the hub, whatever is switched on",
     "/admin/bug-reports": "triaging bug reports: admins only",
+    "/site": "the hub's own words and links (footer, About, the sidebar's links), and admins editing them",
+    "/guides": "Start here, Results day and the electives guide, and editing them: gated by its box",
 }
 # Routes whose feature depends on the request: they check it in code, and the tests below prove it.
 DECIDED_BY_REQUEST: dict[tuple[str, str], str] = {

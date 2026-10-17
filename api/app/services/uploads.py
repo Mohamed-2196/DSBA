@@ -32,6 +32,7 @@ from app.models import (
     ForumReply,
     ForumThread,
     IssueStatus,
+    Module,
     NewsletterIssue,
     PostStatus,
     Upload,
@@ -410,9 +411,9 @@ def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Stor
 def media_redirect_url(
     db: Session, upload_id: uuid.UUID, viewer: User | None = None, storage: Storage | None = None
 ) -> str:
-    """A short-lived inline link to a picture: a forum image, a newsletter picture or a bug screenshot. 404 for
-    anything else (library files never go out this way) and for a picture the viewer may not see (can_view_image);
-    feature_off while the picture's feature is off for the viewer."""
+    """A short-lived inline link to a picture: a forum image, a newsletter picture, a module's art or a bug
+    screenshot. 404 for anything else (library files never go out this way) and for a picture the viewer may not see
+    (can_view_image); feature_off while the picture's feature is off for the viewer."""
     up = db.get(Upload, upload_id)
     servable = (UploadStatus.uploaded, UploadStatus.attached)
     if up is None or up.purpose not in IMAGE_PURPOSES or up.status not in servable:
@@ -429,12 +430,15 @@ def media_redirect_url(
 
 def can_view_image(db: Session, up: Upload, viewer: User | None) -> bool:
     """Whether `viewer` may see the picture: its uploader always, and then by purpose (a bug screenshot: admins; a
-    newsletter picture: people who manage the newsletter, and everyone once a published issue shows it; a forum
-    image: see _can_view_forum_image)."""
+    newsletter picture: people who manage the newsletter, and everyone once a published issue shows it; a module's
+    art: people who edit modules, and everyone while a module students see shows it; a forum image: see
+    _can_view_forum_image)."""
     if viewer is not None and up.user_id == viewer.id:
         return True
     if up.purpose == UploadPurpose.module_art:
-        return True
+        return access.can(viewer, Box.content_edit) or (
+            up.status == UploadStatus.attached and on_visible_module(db, up.id)
+        )
     if up.purpose == UploadPurpose.bug_screenshot:
         return access.is_admin(viewer)
     if up.purpose == UploadPurpose.newsletter_image:
@@ -442,6 +446,12 @@ def can_view_image(db: Session, up: Upload, viewer: User | None) -> bool:
             up.status == UploadStatus.attached and in_published_issue(db, up.id)
         )
     return _can_view_forum_image(db, up, viewer)
+
+
+def on_visible_module(db: Session, upload_id: uuid.UUID) -> bool:
+    """Whether a module students see shows the picture as its art."""
+    found = db.scalar(select(Module.id).where(Module.art == media_path(upload_id), Module.hidden.is_(False)).limit(1))
+    return found is not None
 
 
 def in_published_issue(db: Session, upload_id: uuid.UUID) -> bool:

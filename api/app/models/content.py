@@ -43,11 +43,13 @@ class Module(Base):
     short_name: Mapped[str] = mapped_column(String(60))
     year: Mapped[int] = mapped_column(SmallInteger)
     description: Mapped[str] = mapped_column(Text, default="")
-    icon: Mapped[str | None] = mapped_column(String(40))  # a Phosphor icon name
+    icon: Mapped[str | None] = mapped_column(String(40))  # a Phosphor icon name, shown while there is no art
+    # Its logo or illustration: a picture of the web app ('modules/module-ec1002.png') or an uploaded image
+    # ('/api/v1/media/<id>', purpose module_art).
+    art: Mapped[str | None] = mapped_column(String(500))
     position: Mapped[int] = mapped_column(Integer, default=0)
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # left out of students' views
     version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
-    art_url: Mapped[str | None] = mapped_column(String(500))
     updated_at: Mapped[datetime | None] = mapped_column(onupdate=func.now())
 
     chapters: Mapped[list[Chapter]] = relationship(

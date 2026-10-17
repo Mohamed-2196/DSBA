@@ -185,7 +185,7 @@
 .nl-drafts__desc { margin-top: 4px; color: var(--ink-2); font-size: var(--fs-14); }
 .nl-drafts__list > li + li { border-top: 1px solid var(--line); }
 .nl-drafts__row { display: flex; align-items: center; gap: var(--sp-16); padding: var(--sp-12) var(--sp-24); }
-.nl-drafts__no { flex: 0 0 auto; width: 44px; font-family: var(--font-serif); font-size: var(--fs-31); font-weight: 600; line-height: 1; color: var(--ink-2); }
+.nl-drafts__no { flex: 0 0 auto; min-width: 44px; font-family: var(--font-serif); font-size: var(--fs-31); font-weight: 600; line-height: 1; color: var(--ink-2); }
 .nl-drafts__text { display: grid; gap: 4px; flex: 1 1 auto; min-width: 0; }
 .nl-drafts__name { overflow: hidden; color: var(--ink); font-family: var(--font-serif); font-size: var(--fs-20); font-weight: 600; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
 .nl-drafts__name:hover { text-decoration: underline; text-decoration-thickness: 1px; }
@@ -200,7 +200,7 @@
 }
 
 /* ── Dialog forms (new issue) ─────────────────────────────────────────── */
-.nl-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-16); }
+.nl-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--sp-16); }
 .nl-form__wide { grid-column: 1 / -1; }
 .nl-form__error { color: var(--alert-strong); font-size: var(--fs-14); font-weight: var(--fw-medium); }
 @media (max-width: 699px) { .nl-form { grid-template-columns: minmax(0, 1fr); } }

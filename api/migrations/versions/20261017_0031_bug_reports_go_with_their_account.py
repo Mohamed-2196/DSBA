@@ -5,7 +5,7 @@ Deleting an account deletes the bug reports it sent (their screenshots are delet
 browser are their personal data. `bug_reports.user_id` is then NULL only for a guest's report.
 
 Revision ID: 0031
-Revises: 0026
+Revises: 0028
 Create Date: 2026-10-17 12:00:00
 """
 
@@ -16,7 +16,7 @@ from collections.abc import Sequence
 from alembic import op
 
 revision: str = "0031"
-down_revision: str | None = "0026"
+down_revision: str | None = "0028"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

@@ -1,7 +1,7 @@
 import type { IssueCover as CoverData, IssueSection } from '../../../api/types';
 import { cx } from '../../../ui';
 import { COVER_H, COVER_W, MARGIN, coverOf, fitLabel, fitLine, numeralBox, type CoverModel } from '../lib/covers';
-import { safeImageSrc } from '../lib/links';
+import { pictureSrc } from '../../../api/pictures';
 import './IssueCover.css';
 
 const RIGHT = COVER_W - MARGIN;
@@ -151,7 +151,7 @@ export interface CoverIssue {
 export function IssueCover({ issue, decorative = false, className }: { issue: CoverIssue | null | undefined; decorative?: boolean; className?: string }) {
   if (!issue) return null;
   const cover = coverOf(issue);
-  const art = safeImageSrc(cover.art);
+  const art = pictureSrc(cover.art);
   const label = `Cover of The DSBA Newsletter, issue ${cover.number}: ${cover.title}${cover.date ? `, ${cover.date}` : ''}`;
   return (
     <div className={cx('nl-cover', `nl-cover--${cover.tone}`, art ? 'nl-cover--art' : 'nl-cover--type', className)} data-hub="issue-cover">

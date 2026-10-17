@@ -59,6 +59,17 @@ describe('runSearch', () => {
     expect(ids(runSearch({ ...base, query: 'noora' }))).toContain('action:noora');
   });
 
+  it('opens the sites Site settings name, by their labels', () => {
+    const portals = [
+      { id: 'myclass', label: 'BIBF MyClass', href: 'https://myclass.bibf.com/' },
+      { id: 'uol', label: 'UoL student portal', href: 'https://my.london.ac.uk/' },
+    ] as const;
+    const found = runSearch({ ...base, query: 'myclass', portals }).groups.flatMap((g) => g.items);
+    expect(found.find((i) => i.id === 'action:myclass')).toMatchObject({ title: 'Open BIBF MyClass', href: 'https://myclass.bibf.com/' });
+    expect(ids(runSearch({ ...base, query: 'university of london', portals }))).toContain('action:uol');
+    expect(ids(runSearch({ ...base, query: 'myclass' }))).not.toContain('action:myclass');
+  });
+
   it('leaves out search hits of switched-off features', () => {
     const r = runSearch({ ...base, query: 'mgf', isOn: (f) => f !== 'forum', results: results({ threads: [thread], library: [file] }) });
     expect(r.groups.find((g) => g.id === 'threads')).toBeUndefined();

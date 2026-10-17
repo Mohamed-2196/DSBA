@@ -1,20 +1,24 @@
-// A guide's checklist (data/guides.ts: Start here, Results day): Home's cards show it short, the guide's page in full.
-// Ticks stay in this browser, like Career Navigator's checklist.
+// A guide's checklist (Start here, Results day): Home's cards show it short, the guide's page in full. Ticks stay in
+// this browser, like Career Navigator's checklist. A step's links go to another site, one of Site settings' saved
+// links, a page of the hub, the next matching calendar date, or the app's install button.
 import { ArrowRight, ArrowSquareOut, CheckCircle, DownloadSimple } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
-import type { GuideLink, GuideStep } from '../../data/guides';
+import type { DateLink as DateLinkData, GuideStep } from '../../api/types';
 import { addDaysToKey, formatDay, todayKey } from '../../lib/dates';
 import { useInstall } from '../../lib/pwa';
 import { Badge, Button, Skeleton, cx } from '../../ui';
-import { safeHref } from '../../ui/safeHref';
+import { safeInternalPath } from '../../ui/safeHref';
 import { useCalendarEvents } from '../calendar/public';
+import { httpsHref, useSite } from '../site/public';
 import { nextDated } from './startHere';
 import type { GuideTicks } from './useGuideTicks';
 import './StartHere.css';
 
+type GuideLink = GuideStep['links'][number];
+
 /** The next calendar date a step points at (`{ kind: 'date' }`): its day, and whether reps have confirmed it. */
-function DateLink({ link }: { link: Extract<GuideLink, { kind: 'date' }> }) {
+function DateLink({ link }: { link: DateLinkData }) {
   const today = todayKey();
   const events = useCalendarEvents({ from: today, to: addDaysToKey(today, 400), type: link.type });
   if (events.isPending) return <Skeleton width={180} height={16} />;
@@ -65,22 +69,26 @@ function InstallLink() {
   return <span className="start-step__note">On iPhone, tap Share, then Add to Home Screen. On Android, open the browser menu, then Install app.</span>;
 }
 
+function OutLink({ href, label }: { href: string | null; label: string }) {
+  return href ? (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="start-link">
+      {label}
+      <ArrowSquareOut weight="bold" aria-hidden="true" />
+      <span className="visually-hidden"> (opens in a new tab)</span>
+    </a>
+  ) : null;
+}
+
 function StepLink({ link }: { link: GuideLink }) {
   const { featureOn } = useAuth();
+  const site = useSite().data;
   switch (link.kind) {
-    case 'web': {
-      const safe = safeHref(link.href);
-      const href = safe?.kind === 'external' && safe.href.startsWith('https:') ? safe.href : null;
-      return href ? (
-        <a href={href} target="_blank" rel="noopener noreferrer" className="start-link">
-          {link.label}
-          <ArrowSquareOut weight="bold" aria-hidden="true" />
-          <span className="visually-hidden"> (opens in a new tab)</span>
-        </a>
-      ) : null;
-    }
+    case 'web':
+      return <OutLink href={httpsHref(link.href)} label={link.label} />;
+    case 'site':
+      return <OutLink href={httpsHref(site?.links[link.link].url)} label={link.label} />;
     case 'page':
-      return link.feature && !featureOn(link.feature) ? null : (
+      return (link.feature && !featureOn(link.feature)) || !safeInternalPath(link.to) ? null : (
         <Link to={link.to} className="start-link">
           {link.label}
           <ArrowRight weight="bold" aria-hidden="true" />

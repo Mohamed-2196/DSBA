@@ -10,6 +10,7 @@ const ST2133: ModuleSummary = {
   year: 2,
   description: '',
   icon: null,
+  art: null,
   chapterCount: 8,
   lessonCount: 40,
   libraryCount: 5,

@@ -1,0 +1,221 @@
+{
+  "startHere": {
+    "title": "Start here",
+    "intro": "Your first weeks on DSBA, one step at a time. Ticks stay in this browser.",
+    "termStart": {
+      "month": 9,
+      "day": 14
+    },
+    "weeks": 6,
+    "steps": [
+      {
+        "id": "portal",
+        "title": "Get your University of London login",
+        "hint": "The UoL student portal is where you register, enter exams and see results.",
+        "links": [
+          {
+            "kind": "site",
+            "link": "uolPortal",
+            "label": "Open the UoL portal"
+          }
+        ]
+      },
+      {
+        "id": "register",
+        "title": "Register with the University before the deadline",
+        "hint": "Do it early. Ask a rep if the portal turns you away.",
+        "links": [
+          {
+            "kind": "date",
+            "title": "UoL application deadline",
+            "type": "deadline",
+            "label": "Deadline"
+          }
+        ]
+      },
+      {
+        "id": "modules",
+        "title": "Find each module’s study guide and VLE page",
+        "hint": "Every module page here links its study guide, VLE folder and past papers.",
+        "links": [
+          {
+            "kind": "page",
+            "to": "/modules?year=1",
+            "label": "Your modules",
+            "feature": null
+          }
+        ]
+      },
+      {
+        "id": "myclass",
+        "title": "Sign in to MyClass",
+        "hint": "BIBF’s own site for your classes. Use your BIBF login.",
+        "links": [
+          {
+            "kind": "site",
+            "link": "myclass",
+            "label": "Open MyClass"
+          }
+        ]
+      },
+      {
+        "id": "whatsapp",
+        "title": "Join your year’s WhatsApp group",
+        "hint": "Ask one of your student reps in class to add you.",
+        "links": []
+      },
+      {
+        "id": "exams",
+        "title": "Learn how exams work",
+        "hint": "Papers come in zones A and B, examiners’ reports say what markers wanted, and your marks decide your degree class.",
+        "links": [
+          {
+            "kind": "page",
+            "to": "/library?type=examiners-report&year=1",
+            "label": "Examiners’ reports",
+            "feature": "library"
+          },
+          {
+            "kind": "page",
+            "to": "/grades",
+            "label": "How your degree is classified",
+            "feature": "grades"
+          }
+        ]
+      },
+      {
+        "id": "install",
+        "title": "Put the hub on your home screen",
+        "hint": "It opens full screen, like any other app.",
+        "links": [
+          {
+            "kind": "install"
+          }
+        ]
+      }
+    ],
+    "done": "All done. Welcome to DSBA.",
+    "placesTitle": "MyClass, the VLE and the portal",
+    "placesIntro": "Three sites with similar jobs, told apart.",
+    "places": [
+      {
+        "name": "MyClass",
+        "whose": "BIBF",
+        "what": "Your classes and what your lecturers post.",
+        "link": "myclass"
+      },
+      {
+        "name": "The VLE",
+        "whose": "University of London",
+        "what": "Study guides, readings and each module’s page.",
+        "link": null
+      },
+      {
+        "name": "The student portal",
+        "whose": "University of London",
+        "what": "Registration, exam entry and results.",
+        "link": "uolPortal"
+      }
+    ]
+  },
+  "resultsDay": {
+    "title": "Results day",
+    "intro": "What your marks mean and what to do next. Ticks stay in this browser.",
+    "eventTitle": "UoL results released",
+    "weeks": 2,
+    "steps": [
+      {
+        "id": "read",
+        "title": "Read your results on the UoL portal",
+        "hint": "Each course has a mark out of 100: 70 and above is first class, 60 to 69 upper second, 50 to 59 lower second, 40 to 49 third, and under 40 a fail.",
+        "links": [
+          {
+            "kind": "site",
+            "link": "uolPortal",
+            "label": "Open the UoL portal"
+          },
+          {
+            "kind": "date",
+            "title": "UoL results released",
+            "type": "event",
+            "label": "Next results day"
+          }
+        ]
+      },
+      {
+        "id": "under40",
+        "title": "Under 40 is a fail, not the end",
+        "hint": "You get up to three attempts at each course, and the most recent mark counts. The degree needs passes in at least 330 of its 360 credits, including every core course (regulations 5.11, 8.5 and 8.6).",
+        "links": [
+          {
+            "kind": "page",
+            "to": "/grades",
+            "label": "Try it in the grades calculator",
+            "feature": "grades"
+          },
+          {
+            "kind": "site",
+            "link": "regulations",
+            "label": "The regulations"
+          }
+        ]
+      },
+      {
+        "id": "resit",
+        "title": "Enter for your resit before the exam entry deadline",
+        "hint": "You enter a resit on the UoL portal, like any exam. A session where you take a new course must also include any failed course that is compulsory or a prerequisite for it (regulation 5.13).",
+        "links": [
+          {
+            "kind": "date",
+            "title": "exam entry",
+            "type": "deadline",
+            "label": "Exam entry deadline"
+          },
+          {
+            "kind": "site",
+            "link": "uolPortal",
+            "label": "Open the UoL portal"
+          }
+        ]
+      },
+      {
+        "id": "recheck",
+        "title": "Think a mark is wrong? Ask for a recheck",
+        "hint": "The University can check that every answer was marked and the marks were added up and recorded correctly. It doesn’t re-mark for academic judgement. There’s a fee and a deadline a few weeks after results day: its results page gives both.",
+        "links": [
+          {
+            "kind": "site",
+            "link": "results",
+            "label": "UoL exam entry and results"
+          }
+        ]
+      },
+      {
+        "id": "talk",
+        "title": "Talk it through with someone at BIBF",
+        "hint": "Your student reps and BIBF’s programme team can help you plan resits and next year’s modules. Bring your marks.",
+        "links": []
+      },
+      {
+        "id": "plan",
+        "title": "Plan the year ahead",
+        "hint": "Put your marks in the grades calculator to see your class so far and what each course still to come needs.",
+        "links": [
+          {
+            "kind": "page",
+            "to": "/grades",
+            "label": "Open the grades calculator",
+            "feature": "grades"
+          }
+        ]
+      }
+    ],
+    "sourcesIntro": "A guide written by students. The University’s own pages decide."
+  },
+  "electives": {
+    "title": "Choosing your Year 3 electives",
+    "intro": "What each one covers, the skills it adds and the roles it leads to, side by side.",
+    "pick": 2,
+    "disclaimer": "A guide written by students, not advice from BIBF or the University. Check the programme regulations before you choose."
+  }
+}
