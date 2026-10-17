@@ -46,6 +46,7 @@ from app.models import (
     UserSession,
     UserStatus,
 )
+from app.schemas.auth import MAX_HOME_BLOCKS
 from app.services.identifiers import anon_identifier
 from app.services.storage import Storage
 from tests.accounts.conftest import API, Deliver, Outbox, SignIn, start, wrong
@@ -346,7 +347,7 @@ def test_home_blocks(client_for: ClientFor, make_user: MakeUser, db: Session) ->
     assert "home_blocks" not in _fresh(db, User, user.id).preferences
     r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["weather"]}})
     assert r.status_code == 422
-    r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["todo"] * 13}})
+    r = c.patch(f"{API}/me", json={"preferences": {"homeBlocks": ["todo"] * (MAX_HOME_BLOCKS + 1)}})
     assert r.status_code == 422
     for gone in (["new"], ["files", "new", "forum", "noora"]):  # a block the hub no longer has: dropped on read
         user.preferences = {"home_blocks": gone}

@@ -29,6 +29,7 @@ make-covers        make the cover (the first page as a small picture) of the pub
                    before covers existed, then stop (--limit N files)
 dev-login ID       development only: print a session token for an account (created if needed, holding Student;
                    --role gives one more role)
+enable-features    development only: switch every feature on for everyone (each change goes to the activity log)
 
 Nothing here prints a one-time code, and only dev-login prints a token (it refuses to run in production). Nothing
 prints the Google API key."""
@@ -481,17 +482,33 @@ def cmd_dev_login(args: argparse.Namespace) -> int:
         db.flush()
         token = new_token()
         db.add(UserSession(user_id=user.id, token_hash=hash_token(token), expires_at=utcnow() + timedelta(days=7)))
+        db.commit()
     print(token)
     return 0
 
 
 def cmd_enable_features(_: argparse.Namespace) -> int:
-    from sqlalchemy import text
+    """Development only: every feature on for everyone, each change in the activity log."""
+    from app.core.access import FEATURES
+    from app.services import access
+    from app.services.audit import record
 
+    if get_settings().is_production:
+        print("enable-features is disabled in production: switch features in Manage, Access", file=sys.stderr)
+        return 1
+    turned_on: list[str] = []
     with get_sessionmaker()() as db:
-        db.execute(text("UPDATE feature_switches SET mode = 'everyone'"))
+        states = access.switches(db)
+        for feature in FEATURES:
+            state = states.get(feature)
+            if state is not None and state.mode == "everyone":
+                continue
+            access.store_switch(db, feature, "everyone", (), by=None)
+            change = {"feature": feature.value, "from": state.mode if state else "off", "to": "everyone"}
+            record(db, None, "feature.switch", "feature", feature.value, change)
+            turned_on.append(feature.value)
         db.commit()
-    print("All feature switches enabled for everyone.")
+    print(f"switched on for everyone: {', '.join(turned_on)}" if turned_on else "every feature was already on")
     return 0
 
 

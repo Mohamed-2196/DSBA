@@ -18,6 +18,8 @@ from sqlalchemy.orm import Session
 
 from app import cli
 from app.config import get_settings
+from app.core.access import FEATURES, Feature
+from app.core.security import hash_token
 from app.core.time import utcnow
 from app.models import (
     AuditEntry,
@@ -252,3 +254,36 @@ def test_the_sweep_reports_the_library_files_it_deleted(
     assert storage.head(key) is None
     db.refresh(item)
     assert item.storage_key is None  # the item stays, without its file
+
+
+def test_dev_login_saves_the_session_it_prints(
+    same_session: Session, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The printed token signs in: the command commits the session it creates."""
+    commits: list[int] = []
+    real_commit = same_session.commit
+
+    def counted_commit() -> None:
+        commits.append(1)
+        real_commit()
+
+    monkeypatch.setattr(same_session, "commit", counted_commit)
+    assert cli.main(["dev-login", "dev.check@example.com", "--name", "Dev Check", "--year", "2"]) == 0
+    token = capsys.readouterr().out.strip().splitlines()[-1]
+    assert commits
+    saved = same_session.scalar(select(UserSession).where(UserSession.token_hash == hash_token(token)))
+    assert saved is not None
+
+
+def test_enable_features_switches_everything_on_and_logs_it(same_session: Session) -> None:
+    access.store_switch(same_session, Feature.notes, "off", (), by=None)
+    assert cli.main(["enable-features"]) == 0
+    states = access.switches(same_session)
+    assert all(states[f].mode == "everyone" for f in FEATURES)
+    logged = same_session.scalars(select(AuditEntry).where(AuditEntry.action == "feature.switch")).all()
+    assert any(e.target_id == Feature.notes.value for e in logged)
+
+
+def test_enable_features_refuses_in_production(same_session: Session, set_option: SetOption) -> None:
+    set_option("env", "production")
+    assert cli.main(["enable-features"]) == 1
