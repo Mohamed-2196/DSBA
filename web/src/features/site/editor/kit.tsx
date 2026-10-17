@@ -36,7 +36,7 @@ export function DocFrame({ title, savedAt, savedBy, dirty, saving, pageTo, onPre
     <div className="dedit">
       <div className="dedit__head">
         <div className="dedit__intro">
-          <p className="dedit__note" role="status">
+          <p className="dedit__note" role="status" tabIndex={-1} data-doc-status>
             {savedAt ? `Saved ${timeAgo(savedAt)}${savedBy ? ` by ${savedBy}` : ''}. ` : 'Not changed in the hub yet: this is its starting content. '}
             {dirty ? 'You have changes that aren’t saved.' : 'No unsaved changes.'}
           </p>
@@ -116,11 +116,13 @@ export interface ListEditorProps<T extends { id: string }> {
   hasError?: (index: number) => boolean;
   /** items saved before; the others are marked new */
   savedIds?: ReadonlySet<string>;
+  /** why an item can't be removed (its remove button is off and says so), or null */
+  keepReason?: (item: T) => string | null;
   min?: number;
   max?: number;
 }
 
-export function ListEditor<T extends { id: string }>({ items, noun, titleOf, metaOf, onChange, make, children, hasError, savedIds, min = 0, max = 60 }: ListEditorProps<T>) {
+export function ListEditor<T extends { id: string }>({ items, noun, titleOf, metaOf, onChange, make, children, hasError, savedIds, keepReason, min = 0, max = 60 }: ListEditorProps<T>) {
   const [open, setOpen] = useState<string | null>(null);
   const [removing, setRemoving] = useState<{ id: string; title: string } | null>(null);
   const move = (from: number, by: -1 | 1) => {
@@ -139,6 +141,7 @@ export function ListEditor<T extends { id: string }>({ items, noun, titleOf, met
             const isOpen = open === item.id;
             const title = titleOf(item) || `New ${noun}`;
             const formId = `dedit-item-${item.id}`;
+            const kept = keepReason?.(item) ?? null;
             return (
               <li key={item.id} className={cx('dedit-item', isOpen && 'is-open', hasError?.(i) && 'has-error')} data-item-id={item.id}>
                 <div className="dedit-item__row">
@@ -157,7 +160,7 @@ export function ListEditor<T extends { id: string }>({ items, noun, titleOf, met
                   <span className="dedit-item__tools">
                     <IconButton size="sm" icon={ArrowUp} label={`Move ${title} up`} disabled={i === 0} onClick={() => move(i, -1)} />
                     <IconButton size="sm" icon={ArrowDown} label={`Move ${title} down`} disabled={i === items.length - 1} onClick={() => move(i, 1)} />
-                    <IconButton size="sm" icon={Trash} label={`Remove ${title}`} tooltip disabled={items.length <= min} onClick={() => setRemoving({ id: item.id, title })} />
+                    <IconButton size="sm" icon={Trash} label={kept ?? `Remove ${title}`} tooltip disabled={items.length <= min || kept !== null} onClick={() => setRemoving({ id: item.id, title })} />
                   </span>
                 </div>
                 {isOpen ? (

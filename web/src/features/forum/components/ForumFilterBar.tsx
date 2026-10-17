@@ -33,8 +33,11 @@ export interface ForumFilterBarProps {
  * the room), then sort and the chips, which scroll sideways.
  */
 export function ForumFilterBar({ filters, update, stats, chips, scope }: ForumFilterBarProps) {
-  const { categories } = useTaxonomy();
+  const { categories, getCategory } = useTaxonomy();
   const { cohort, tag, sort, status } = filters;
+  // A retired category is no longer a tab, unless it's the one picked (a thread's link to its category).
+  const picked = cohort === 'all' ? null : getCategory(cohort);
+  const shown = picked?.retired ? [...categories, picked] : categories;
   // The search box is local state mirrored into the URL, so typing never fights the router.
   const [query, setQuery] = useState(filters.q);
   useEffect(() => setQuery(filters.q), [filters.q]);
@@ -42,7 +45,7 @@ export function ForumFilterBar({ filters, update, stats, chips, scope }: ForumFi
   const waiting = shownCount(cohort === 'all' ? stats?.noReplies : stats?.noRepliesByCategory?.[cohort]);
   const tabs = [
     { id: 'all', label: 'All', count: shownCount(stats?.total) },
-    ...categories.map((c) => ({ id: c.id, label: c.label, count: shownCount(stats?.byCategory[c.id]) })),
+    ...shown.map((c) => ({ id: c.id, label: c.label, count: shownCount(stats?.byCategory[c.id]) })),
   ];
 
   const tabsRef = useRef<HTMLDivElement>(null);

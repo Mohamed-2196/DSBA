@@ -13,16 +13,17 @@ from typing import Any, Literal
 from sqlalchemy import ColumnElement, DateTime, Select, and_, case, exists, extract, false, func, literal, or_, select
 from sqlalchemy.orm import Session
 
+from app.core.errors import invalid
 from app.core.time import (
     BAHRAIN,  # "today" is a day in Bahrain: one definition (code quality review CQ-6)
     utcnow,
 )
-from app.models import ForumReply, ForumThread, Module, PostStatus, ReplyVote, ThreadVote, User
+from app.models import ForumCategory, ForumReply, ForumThread, Module, PostStatus, ReplyVote, ThreadVote, User
 from app.schemas.forum import Contributor, ForumStats, ThreadPage, ThreadSummary
 from app.services import access
 from app.services.accounts import public_user
 from app.services.forum.search import has_tag, search_condition
-from app.services.forum.taxonomy import CATEGORIES, FORUM_WIDE_CATEGORIES, thread_year
+from app.services.forum.taxonomy import categories, thread_year
 from app.services.forum.views import summaries
 from app.services.forum.visibility import THREAD_OPTS, listed
 
@@ -36,16 +37,20 @@ CONTRIBUTOR_WINDOW = timedelta(days=7)
 
 def year_expr() -> ColumnElement[Any]:
     """The thread's cohort: its category's year, else its module's (needs the outer join to modules)."""
-    whens = [(ForumThread.category == c.id, literal(c.year)) for c in CATEGORIES if c.year is not None]
-    return case(*whens, else_=Module.year)
+    category_year = select(ForumCategory.year).where(ForumCategory.id == ForumThread.category).scalar_subquery()
+    return func.coalesce(category_year, Module.year)
 
 
 def year_condition(year: int) -> ColumnElement[bool]:
-    """That cohort's threads (its category, or a module of that year) plus the forum-wide ones."""
+    """That cohort's threads (a category of that year, or a module of that year) plus the forum-wide ones (a
+    category for every year, without a module)."""
     return or_(
-        ForumThread.category == f"year-{year}",
+        ForumThread.category.in_(select(ForumCategory.id).where(ForumCategory.year == year)),
         Module.year == year,
-        and_(ForumThread.category.in_(FORUM_WIDE_CATEGORIES), ForumThread.module_id.is_(None)),
+        and_(
+            ForumThread.category.in_(select(ForumCategory.id).where(ForumCategory.year.is_(None))),
+            ForumThread.module_id.is_(None),
+        ),
     )
 
 
@@ -97,8 +102,11 @@ class ThreadFilters:
 
 
 def list_threads(db: Session, viewer: User | None, f: ThreadFilters, sort: Sort, limit: int, offset: int) -> ThreadPage:
+    """Errors: invalid_input (422) for a category the forum doesn't have."""
+    if f.category and db.get(ForumCategory, f.category) is None:
+        raise invalid("category", "There is no such category.")
     conds = [listed(viewer)]
-    search = search_condition(f.q) if f.q else None
+    search = search_condition(db, f.q) if f.q else None
     if search is not None:
         conds.append(search)
     if f.category:
@@ -169,8 +177,9 @@ def forum_stats(db: Session) -> ForumStats:
     """Counts over the threads a guest's list shows, replies since midnight in Bahrain, and the week's top helpers."""
     now = utcnow()
     shown = listed(None)
-    by_category = {c.id: 0 for c in CATEGORIES}
-    no_replies_by_category = {c.id: 0 for c in CATEGORIES}
+    ids = [c.id for c in categories(db)]
+    by_category = dict.fromkeys(ids, 0)
+    no_replies_by_category = dict.fromkeys(ids, 0)
     for category, n, unanswered in db.execute(
         select(ForumThread.category, func.count(), func.count().filter(ForumThread.reply_count == 0))
         .where(shown)
@@ -180,7 +189,7 @@ def forum_stats(db: Session) -> ForumStats:
         no_replies_by_category[category] = unanswered
     tagged = select(ForumThread.category, func.unnest(ForumThread.tags).label("tag")).where(shown).subquery()
     by_tag: dict[str, int] = {}
-    tags_by_category: dict[str, dict[str, int]] = {c.id: {} for c in CATEGORIES}
+    tags_by_category: dict[str, dict[str, int]] = {i: {} for i in ids}
     for category, tag_id, n in db.execute(
         select(tagged.c.category, tagged.c.tag, func.count()).group_by(tagged.c.category, tagged.c.tag)
     ):

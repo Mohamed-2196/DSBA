@@ -15,6 +15,7 @@ D11). Admin holds every box. Last checked 2026-10-17 (round 12).
 | Past questions tagged by chapter | a paper's viewer; flagged tags wait in Manage → Uploads | signed-in students tag; `library.manage` keeps or removes flagged ones | students |
 | The newsletter: issues, sections, cover and pictures with descriptions, polls, publishing, edits after publishing | Manage → Newsletter (every issue, New issue) and each issue's editor, `/newsletter/<slug>/edit` | `newsletter.manage` | `api/app/seed/data/newsletter.json` (two drafts) |
 | Programme dates: exams, deadlines, careers dates, term dates, with time, place, rules, source and "not confirmed" | the calendar, "Programme date" and each event's Edit | `calendar.manage` | `api/app/seed/data/calendar.json` |
+| The forum's categories (name, short name, its year or every year, the line under it, its picture, retired) and tags (name, retired), in order; where a thread goes when no year fits it; the guidelines (with their pictures) and the posting tips | Manage → Forum | `forum.moderate` | categories and tags: the `forum_categories` and `forum_tags` tables, filled by migration 0033 with the forum's first ones; the rest: `api/app/seed/data/forum.json`, until the first save |
 | Career Navigator: employers and their logos, tracks, roles, skills, electives, certificates, the featured competition, the checklist, further study, the page's labels and year lines | Manage → Career Navigator | `career.edit` | `api/app/seed/data/career.json`, loaded once |
 | The guides: Start here (steps, links, when Year 1's card shows, the sites told apart), Results day (steps, links, which calendar dates start the card and for how long), Choosing your electives (title, intro, how many to pick, the note) | Manage → Guides | `guides.edit` (Rep and Content manager hold it from the start) | `api/app/seed/data/guides.json`, until the first save |
 | Site settings: the links to MyClass, the UoL portal, the programme regulations and exam entry and results (label, address, a line on what each is for); About's words; contributors; students who shared notes (each module linking to its notes in the library); the footer's lines, copyright holder and launch year; the note under the grades calculator's class | Manage → Site settings | admins | `api/app/seed/data/site.json`, until the first save |
@@ -23,9 +24,13 @@ D11). Admin holds every box. Last checked 2026-10-17 (round 12).
 | Requests' answers | Manage → Requests | `requests.manage` | students |
 | Bug reports' status | Manage → Bugs | admins | students |
 
-Every save of the documents edited whole (Career Navigator, the guides, Site settings) and of a module is checked
-against the version the editor loaded (a save someone else made first is refused with a "Load it again" banner), and
-goes to the activity log with what changed, before and after. Pictures are uploaded (`module_art`,
+Every save of the documents edited whole (Career Navigator, the guides, Site settings, the forum's settings) and of a
+module is checked against the version the editor loaded (a save someone else made first is refused with a "Load it
+again" banner), and goes to the activity log with what changed, before and after.
+
+A forum category or tag keeps its id for good (threads are filed under it; a new one gets an id from its name when it
+is first saved). One that threads use can't be removed, only retired: it stops being offered, and its threads keep it
+and still show its name. The default category ("threads that fit no year go to") must be a category for every year. Pictures are uploaded (`module_art`,
 `newsletter_image`, `career_logo`) and shown only once something students see uses them.
 
 The Daily puzzles' content (themes, quiz questions, groups, word lists) is `api/app/services/daily/data/`; its editor
@@ -39,7 +44,6 @@ student's data; each is copy or a rule that ships with the app.
 | Content | Where it is | Why it's still code / what it would take |
 |---|---|---|
 | The grades calculator's rules: the 13 subjects and their weights, the class bands and the "8 marks with an average" rule | `web/src/features/grades/classify.ts`, `bands.ts`, `GradesPage.tsx` | They are the University's regulations as an algorithm, tested case by case; a change is a code change with tests. The regulations' link and the "isn't official" line are Site settings. |
-| Forum categories and tags, and the forum's guidelines and posting tips | `api/app/services/forum/taxonomy.py` (and its copy in `web/src/features/forum/lib/categories.ts`), `ForumSidebar.tsx`, `ComposerAside.tsx` | Threads are filed under the category ids. Editable categories need a table and a migration; the guidelines could join Site settings. |
 | The Sunday summary's subject line, headings and send time | `api/app/services/summary.py` | Built from the week's data; only its wording is fixed. |
 | Mini Noora's instructions, the programme facts she starts from, her scripted answers and suggestion chips | `api/app/services/noora/prompt.py`, `web/src/features/noora/` | The prompt is tuned with tests; scripted answers hold maths content. |
 | Home's default blocks for a new student, the onboarding tour's three steps | `web/src/features/home/blocks.ts`, `web/src/features/onboarding/Tour.tsx` | Each student customises Home themselves; a hub-wide default would be a small Site settings addition. |

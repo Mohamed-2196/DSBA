@@ -12,6 +12,7 @@ export type SectionId =
   | 'career'
   | 'content'
   | 'guides'
+  | 'forum'
   | 'videos'
   | 'gaps'
   | 'numbers'
@@ -37,6 +38,7 @@ const NEEDS: [SectionId, (can: Can, on: On) => boolean][] = [
   ['career', (can, on) => can('career.edit') && on('career')],
   ['content', (can) => can('content.edit')],
   ['guides', (can) => can('guides.edit')],
+  ['forum', (can, on) => can('forum.moderate') && on('forum')],
   ['gaps', (can, on) => (can('library.manage') && on('library')) || can('content.edit') || (can('calendar.manage') && on('calendar')) || (can('requests.manage') && on('requests'))],
   ['numbers', (can) => can('stats.view')],
   ['people', (can) => can('people.suspend')],
@@ -58,7 +60,7 @@ export interface SectionGroup {
 
 const GROUPS: readonly SectionGroup[] = [
   { id: 'waiting', label: 'Waiting', sections: ['reports', 'uploads', 'requests', 'videos', 'bugs'] },
-  { id: 'publish', label: 'Publish', sections: ['newsletter', 'calendar', 'summary', 'career', 'content', 'guides'] },
+  { id: 'publish', label: 'Publish', sections: ['newsletter', 'calendar', 'summary', 'career', 'content', 'guides', 'forum'] },
   { id: 'look-after', label: 'Look after', sections: ['gaps', 'numbers', 'people', 'activity', 'site'] },
 ];
 

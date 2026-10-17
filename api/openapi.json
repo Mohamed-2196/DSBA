@@ -7397,7 +7397,7 @@
           "forum"
         ],
         "summary": "Meta",
-        "description": "Categories and tags (the server validates threads against these).",
+        "description": "Every category and tag in their order (retired ones too: their threads keep them, but they aren't offered),\nwhere a thread goes when no year fits it, and the forum's guidelines and tips. Threads are checked against\nthese.",
         "operationId": "meta_api_v1_forum_meta_get",
         "responses": {
           "200": {
@@ -7406,6 +7406,198 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ForumMeta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forum/settings": {
+      "get": {
+        "tags": [
+          "forum"
+        ],
+        "summary": "Forum Settings",
+        "description": "Manage \u2192 Forum: the categories, tags, guidelines and tips with the version a save names (0 until the first\nsave), and how many threads use each category and tag.",
+        "operationId": "forum_settings_api_v1_forum_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForumSettingsEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "forum"
+        ],
+        "summary": "Save Forum Settings",
+        "description": "Save the categories, tags, guidelines and tips together, if nobody saved them since `version`. Audited with\nwhat changed, before and after.\n\nErrors: forum_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't\nfit, an id used twice, no category left, a default category that is retired or belongs to a year, a category or\ntag that threads use removed instead of retired).",
+        "operationId": "save_forum_settings_api_v1_forum_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForumSettingsSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForumSettingsEditable"
                 }
               }
             }
@@ -7581,7 +7773,7 @@
           "forum"
         ],
         "summary": "List Threads",
-        "description": "Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);\ndeleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its\ncategory, or a module of that year) plus forum-wide ones (study groups and general without a module).\n`hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.",
+        "description": "Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);\ndeleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its\ncategory, or a module of that year) plus forum-wide ones (a category for every year, without a module).\n`hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.",
         "operationId": "list_threads_api_v1_forum_threads_get",
         "parameters": [
           {
@@ -7610,14 +7802,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    "year-1",
-                    "year-2",
-                    "year-3",
-                    "study-groups",
-                    "general"
-                  ],
-                  "type": "string"
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32,
+                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                 },
                 {
                   "type": "null"
@@ -26678,58 +26866,6 @@
         ],
         "title": "CareerTrack"
       },
-      "CategoryOut": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "enum": [
-              "year-1",
-              "year-2",
-              "year-3",
-              "study-groups",
-              "general"
-            ],
-            "title": "Id"
-          },
-          "label": {
-            "type": "string",
-            "title": "Label"
-          },
-          "short": {
-            "type": "string",
-            "title": "Short"
-          },
-          "year": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "enum": [
-                  1,
-                  2,
-                  3
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Year"
-          },
-          "blurb": {
-            "type": "string",
-            "title": "Blurb"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "label",
-          "short",
-          "year",
-          "blurb"
-        ],
-        "title": "CategoryOut"
-      },
       "Cell": {
         "properties": {
           "row": {
@@ -27692,6 +27828,7 @@
               "career_changed",
               "site_changed",
               "guides_changed",
+              "forum_changed",
               "already_a_lesson",
               "already_suggested",
               "suggestion_closed",
@@ -29495,13 +29632,6 @@
           },
           "category": {
             "type": "string",
-            "enum": [
-              "year-1",
-              "year-2",
-              "year-3",
-              "study-groups",
-              "general"
-            ],
             "title": "Category"
           },
           "moduleId": {
@@ -29820,18 +29950,146 @@
         ],
         "title": "FollowResult"
       },
+      "ForumCategoryOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "short": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Short"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "blurb": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Blurb"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "search",
+                  "tag",
+                  "check",
+                  "shield",
+                  "heart",
+                  "chat",
+                  "people",
+                  "book",
+                  "calendar",
+                  "flag",
+                  "info",
+                  "briefcase"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "retired": {
+            "type": "boolean",
+            "title": "Retired",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "short",
+          "year",
+          "blurb"
+        ],
+        "title": "ForumCategoryOut",
+        "description": "Where a thread lives. A retired one is no longer offered; its threads keep it."
+      },
+      "ForumGuideline": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "icon": {
+            "type": "string",
+            "enum": [
+              "search",
+              "tag",
+              "check",
+              "shield",
+              "heart",
+              "chat",
+              "people",
+              "book",
+              "calendar",
+              "flag",
+              "info",
+              "briefcase"
+            ],
+            "title": "Icon"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "icon",
+          "text"
+        ],
+        "title": "ForumGuideline",
+        "description": "One of the forum's guidelines, in the sidebar."
+      },
       "ForumMeta": {
         "properties": {
           "categories": {
             "items": {
-              "$ref": "#/components/schemas/CategoryOut"
+              "$ref": "#/components/schemas/ForumCategoryOut"
             },
             "type": "array",
             "title": "Categories"
           },
           "tags": {
             "items": {
-              "$ref": "#/components/schemas/TagOut"
+              "$ref": "#/components/schemas/ForumTagOut"
             },
             "type": "array",
             "title": "Tags"
@@ -29839,15 +30097,170 @@
           "maxTags": {
             "type": "integer",
             "title": "Maxtags"
+          },
+          "defaultCategory": {
+            "type": "string",
+            "title": "Defaultcategory"
+          },
+          "guidelines": {
+            "items": {
+              "$ref": "#/components/schemas/ForumGuideline"
+            },
+            "type": "array",
+            "title": "Guidelines"
+          },
+          "tips": {
+            "items": {
+              "$ref": "#/components/schemas/ForumTip"
+            },
+            "type": "array",
+            "title": "Tips"
           }
         },
         "type": "object",
         "required": [
           "categories",
           "tags",
-          "maxTags"
+          "maxTags",
+          "defaultCategory",
+          "guidelines",
+          "tips"
         ],
-        "title": "ForumMeta"
+        "title": "ForumMeta",
+        "description": "Everything the forum's pages need to place and file threads: every category and tag (retired ones too, for\nthe threads that carry them), where a thread goes when no year fits, and the guidelines and tips."
+      },
+      "ForumSettings": {
+        "properties": {
+          "defaultCategory": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Defaultcategory"
+          },
+          "guidelines": {
+            "items": {
+              "$ref": "#/components/schemas/ForumGuideline"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Guidelines"
+          },
+          "tips": {
+            "items": {
+              "$ref": "#/components/schemas/ForumTip"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Tips"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/ForumCategoryOut"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Categories"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/ForumTagOut"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "defaultCategory",
+          "guidelines",
+          "tips",
+          "categories",
+          "tags"
+        ],
+        "title": "ForumSettings",
+        "description": "Manage \u2192 Forum, saved as a whole: the categories and tags in their order, and the forum's words."
+      },
+      "ForumSettingsEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ForumSettings"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "threadsByCategory": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Threadsbycategory"
+          },
+          "threadsByTag": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Threadsbytag"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy",
+          "threadsByCategory",
+          "threadsByTag"
+        ],
+        "title": "ForumSettingsEditable",
+        "description": "The settings with the version a save names (0 until the first save), and how many threads use each category\nand tag (one in use is retired rather than removed)."
+      },
+      "ForumSettingsSave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ForumSettings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "ForumSettingsSave",
+        "description": "PUT /forum/settings: everything, and the version it was edited from."
       },
       "ForumStats": {
         "properties": {
@@ -29912,6 +30325,58 @@
         ],
         "title": "ForumStats",
         "description": "Counts over the threads a guest's list shows (visible ones, and deleted ones that still have replies)."
+      },
+      "ForumTagOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "retired": {
+            "type": "boolean",
+            "title": "Retired",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "ForumTagOut"
+      },
+      "ForumTip": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "ForumTip",
+        "description": "A tip for a good thread, beside the composer. `code` in backticks shows as code."
       },
       "FoundAnswer": {
         "properties": {
@@ -39526,24 +39991,6 @@
         ],
         "title": "SwitchUpdate"
       },
-      "TagOut": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "label": {
-            "type": "string",
-            "title": "Label"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "label"
-        ],
-        "title": "TagOut"
-      },
       "TermStart": {
         "properties": {
           "month": {
@@ -39633,13 +40080,9 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "year-1",
-                  "year-2",
-                  "year-3",
-                  "study-groups",
-                  "general"
-                ]
+                "maxLength": 32,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
               },
               {
                 "type": "null"
@@ -39661,7 +40104,9 @@
           "tags": {
             "items": {
               "type": "string",
-              "pattern": "^[a-z0-9-]{1,32}$"
+              "maxLength": 32,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
             },
             "type": "array",
             "maxItems": 3,
@@ -39712,13 +40157,6 @@
           },
           "category": {
             "type": "string",
-            "enum": [
-              "year-1",
-              "year-2",
-              "year-3",
-              "study-groups",
-              "general"
-            ],
             "title": "Category"
           },
           "moduleId": {
@@ -40041,13 +40479,6 @@
           },
           "category": {
             "type": "string",
-            "enum": [
-              "year-1",
-              "year-2",
-              "year-3",
-              "study-groups",
-              "general"
-            ],
             "title": "Category"
           },
           "moduleId": {
@@ -40230,13 +40661,9 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "year-1",
-                  "year-2",
-                  "year-3",
-                  "study-groups",
-                  "general"
-                ]
+                "maxLength": 32,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
               },
               {
                 "type": "null"
@@ -40260,7 +40687,9 @@
               {
                 "items": {
                   "type": "string",
-                  "pattern": "^[a-z0-9-]{1,32}$"
+                  "maxLength": 32,
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                 },
                 "type": "array",
                 "maxItems": 3

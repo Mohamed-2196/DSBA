@@ -1,0 +1,16 @@
+{
+  "defaultCategory": "general",
+  "guidelines": [
+    { "id": "search-first", "icon": "search", "text": "Search before you post. Your question may already have an answer." },
+    { "id": "module-code", "icon": "tag", "text": "Put the module code in your title, like ST2133." },
+    { "id": "accept", "icon": "check", "text": "Accept the answer that helped, so the next person finds it." },
+    { "id": "exam-windows", "icon": "shield", "text": "Never share exam questions while an exam window is open." },
+    { "id": "be-kind", "icon": "heart", "text": "Be kind. Everyone here is revising too." }
+  ],
+  "tips": [
+    { "id": "one-question", "text": "Ask one clear question in the title." },
+    { "id": "what-you-tried", "text": "Say what you’ve tried so far and where you got stuck." },
+    { "id": "pick-module", "text": "Pick the module so the right cohort sees it." },
+    { "id": "formulas", "text": "Put formulas between $ signs, and code in backticks." }
+  ]
+}

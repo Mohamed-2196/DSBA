@@ -5,15 +5,13 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable
 from datetime import timedelta
-from typing import get_args
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
 from app.models import ForumReply, PostStatus, User
-from app.schemas.forum import Category
-from app.services.forum import search, taxonomy, text
+from app.services.forum import search, text
 from tests.community.helpers import API, new_reply, new_thread, reply_row, set_thread
 
 Client = Callable[..., TestClient]
@@ -31,16 +29,18 @@ def test_meta(client_for: Client) -> None:
         "short": "Year 2",
         "year": 2,
         "blurb": "Distribution theory, inference, programming and more",
+        "icon": None,
+        "retired": False,
     }
+    assert meta["categories"][3]["icon"] == "people"
     assert meta["categories"][3]["short"] == "Study group"
     assert meta["categories"][3]["year"] is None
     assert len(meta["tags"]) == 12
-    assert {"id": "formula-sheet", "label": "Formula sheets"} in meta["tags"]
-    assert {"id": "r", "label": "R"} in meta["tags"]
-
-
-def test_categories_match_the_contract() -> None:
-    assert [c.id for c in taxonomy.CATEGORIES] == list(get_args(Category))
+    assert {"id": "formula-sheet", "label": "Formula sheets", "retired": False} in meta["tags"]
+    assert {"id": "r", "label": "R", "retired": False} in meta["tags"]
+    assert meta["defaultCategory"] == "general"
+    assert [g["icon"] for g in meta["guidelines"]] == ["search", "tag", "check", "shield", "heart"]
+    assert meta["tips"][0]["text"] == "Ask one clear question in the title."
 
 
 def test_stats(

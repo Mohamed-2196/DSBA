@@ -22,6 +22,7 @@ from app.core.time import BAHRAIN, bahrain_today
 from app.models import (
     CalendarEvent,
     Chapter,
+    ForumCategory,
     ForumThread,
     IssueStatus,
     ItemStatus,
@@ -37,7 +38,6 @@ from app.services import access, paper_text
 from app.services import library as lib
 from app.services.calendar import TYPE_LABELS, cohort_label
 from app.services.exam_names import zone_label
-from app.services.forum.taxonomy import CATEGORY_BY_ID
 from app.services.forum.text import to_plain_text  # a post reads the same in search as in the forum (CQ-6)
 from app.services.newsletter import issue_text
 
@@ -113,11 +113,12 @@ def _threads(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int)
             ForumThread.slug,
             ForumThread.title,
             ForumThread.body,
-            ForumThread.category,
+            ForumCategory.label.label("category"),
             ForumThread.reply_count,
             ForumThread.last_activity_at,
             Module.unit_code,
         )
+        .join(ForumCategory, ForumCategory.id == ForumThread.category)
         .outerjoin(Module, Module.id == ForumThread.module_id)
         .where(ForumThread.status == PostStatus.visible, ForumThread.search_vector.bool_op("@@")(tsq))
         .order_by(rank.desc(), ForumThread.last_activity_at.desc())
@@ -126,8 +127,7 @@ def _threads(db: Session, tsq: ColumnElement[Any], terms: list[str], limit: int)
     hits = []
     for r in rows:
         replies = f"{r.reply_count} {'reply' if r.reply_count == 1 else 'replies'}"
-        category = CATEGORY_BY_ID.get(r.category)
-        where = r.unit_code or (category.label if category else None)
+        where = r.unit_code or r.category
         hits.append(
             SearchHit(
                 type="thread",

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowFatUp, ChatsCircle, CheckCircle, HandHeart, MagnifyingGlass, ShieldCheck, Tag, UsersThree } from '@phosphor-icons/react';
+import { ArrowFatUp } from '@phosphor-icons/react';
 import { useAuth } from '../../../auth';
 import { Count, ErrorBoundary, Skeleton, cx } from '../../../ui';
 import { useModules } from '../../../state/modules';
@@ -9,8 +9,10 @@ import { useTaxonomy } from '../lib/taxonomy';
 import type { ForumStats } from '../../../api/types';
 import type { CategoryId, ForumCategory } from '../types';
 import { AuthorAvatar } from './AuthorAvatar';
+import { FORUM_ICONS } from './forumIcons';
 
-function CategoryMark({ category }: { category: ForumCategory }) {
+/** A year's category shows its number; a category for every year, its picture. */
+export function CategoryMark({ category }: { category: Pick<ForumCategory, 'year' | 'icon'> }) {
   if (category.year) {
     return (
       <span className={cx('forum-cat__mark', `forum-cat__mark--y${category.year}`)} aria-hidden="true">
@@ -18,21 +20,13 @@ function CategoryMark({ category }: { category: ForumCategory }) {
       </span>
     );
   }
-  const Icon = category.id === 'study-groups' ? UsersThree : ChatsCircle;
+  const Icon = FORUM_ICONS[category.icon ?? 'chat'].icon;
   return (
     <span className="forum-cat__mark forum-cat__mark--plain" aria-hidden="true">
       <Icon weight="bold" />
     </span>
   );
 }
-
-const RULES = [
-  { icon: MagnifyingGlass, text: 'Search before you post. Your question may already have an answer.' },
-  { icon: Tag, text: 'Put the module code in your title, like ST2133.' },
-  { icon: CheckCircle, text: 'Accept the answer that helped, so the next person finds it.' },
-  { icon: ShieldCheck, text: 'Never share exam questions while an exam window is open.' },
-  { icon: HandHeart, text: 'Be kind. Everyone here is revising too.' },
-];
 
 export interface ForumSidebarProps {
   stats: ForumStats | undefined;
@@ -42,7 +36,7 @@ export interface ForumSidebarProps {
 
 /** The quiet margin next to the thread list. */
 export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProps) {
-  const { categories } = useTaxonomy();
+  const { categories, guidelines, ready } = useTaxonomy();
   const { getModulesForYear } = useModules();
   const people = stats?.topContributors ?? [];
   const { featureOn } = useAuth();
@@ -52,7 +46,8 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
         <h2 id="forum-side-cats" className="forum-side__title">
           Categories
         </h2>
-        <ul role="list" className="forum-cats">
+        <ul role="list" className="forum-cats" aria-busy={!ready || undefined}>
+          {ready ? null : <CategorySkeletons />}
           {categories.map((c) => {
             const active = cohort === c.id;
             const codes = c.year && c.year < 3 ? getModulesForYear(c.year).map((m) => m.unitCode || m.shortName) : [];
@@ -125,19 +120,41 @@ export function ForumSidebar({ stats, cohort, onPickCategory }: ForumSidebarProp
         </section>
       ) : null}
 
-      <section className="forum-side__block" aria-labelledby="forum-side-rules">
-        <h2 id="forum-side-rules" className="forum-side__title">
-          Guidelines
-        </h2>
-        <ul role="list" className="forum-rules">
-          {RULES.map(({ icon: Icon, text }) => (
-            <li key={text}>
-              <Icon aria-hidden="true" />
-              <span>{text}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {guidelines.length ? (
+        <section className="forum-side__block" aria-labelledby="forum-side-rules">
+          <h2 id="forum-side-rules" className="forum-side__title">
+            Guidelines
+          </h2>
+          <ul role="list" className="forum-rules">
+            {guidelines.map(({ id, icon, text }) => {
+              const Icon = FORUM_ICONS[icon].icon;
+              return (
+                <li key={id}>
+                  <Icon aria-hidden="true" />
+                  <span>{text}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
     </aside>
+  );
+}
+
+/** The category list's rows while the categories load. */
+function CategorySkeletons() {
+  return (
+    <>
+      {Array.from({ length: 5 }, (_, i) => (
+        <li key={i} className="forum-cat" aria-hidden="true">
+          <Skeleton width={28} height={28} radius={8} />
+          <span className="forum-cat__text">
+            <Skeleton width="60%" height="0.9em" />
+            <Skeleton width="80%" height="0.8em" />
+          </span>
+        </li>
+      ))}
+    </>
   );
 }

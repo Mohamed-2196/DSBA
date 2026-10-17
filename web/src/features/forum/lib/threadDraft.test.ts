@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { draftOwner, isDraft, restoreDraft } from './threadDraft';
 
-const opts = { knownModule: (id: string) => id === 'mathematics', fallbackCategory: 'year-2' as const, maxTags: 3 };
+const opts = { knownModule: (id: string) => id === 'mathematics', offeredCategory: (id: string) => /^year-[123]$/.test(id), fallbackCategory: 'year-2', maxTags: 3 };
 const draft = (over: Record<string, unknown> = {}) => ({ title: 'MGF of a sum', body: 'details', category: 'year-1', moduleId: 'mathematics', tags: ['exam-prep'], savedAt: 1, ...over });
 
 describe('the draft kept on this device', () => {

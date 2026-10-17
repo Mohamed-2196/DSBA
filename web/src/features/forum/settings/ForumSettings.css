@@ -1,0 +1,5 @@
+/* Manage → Forum: an item's line in the lists, and the preview of the sidebar and the composer's tips. */
+.forum-set__meta { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-8); }
+.forum-set__meta svg { flex: none; font-size: 16px; }
+.forum-set__preview .forum-cat { cursor: default; pointer-events: none; }
+.forum-set__tags { display: flex; flex-wrap: wrap; gap: var(--sp-8); margin: 0; }

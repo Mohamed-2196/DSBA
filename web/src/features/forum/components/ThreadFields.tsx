@@ -5,8 +5,11 @@ import { YEARS, moduleLabel } from '../../../lib/modules';
 import { useTaxonomy } from '../lib/taxonomy';
 import type { CategoryId } from '../types';
 
+/** The categories offered, and the thread's own when it was retired since (it may stay there). */
 export function CategorySelect({ value, onChange, error }: { value: CategoryId; onChange: (id: CategoryId) => void; error?: string | null }) {
   const { categories, getCategory } = useTaxonomy();
+  const current = getCategory(value);
+  const shown = current?.retired ? [...categories, current] : categories;
   return (
     <Select
       label="Post in"
@@ -16,7 +19,7 @@ export function CategorySelect({ value, onChange, error }: { value: CategoryId; 
         const c = getCategory(e.target.value);
         if (c) onChange(c.id);
       }}
-      options={categories.map((c) => ({ value: c.id, label: c.label }))}
+      options={shown.map((c) => ({ value: c.id, label: c.retired ? `${c.label} (retired)` : c.label }))}
       data-hub="composer-category"
     />
   );
@@ -40,8 +43,11 @@ export function ModuleSelect({ value, onChange, error }: { value: string; onChan
   );
 }
 
+/** The tags offered, and those the thread has that were retired since (they may stay, or go). */
 export function TagPicker({ value, onChange, error }: { value: string[]; onChange: (tags: string[]) => void; error?: string | null }) {
-  const { tags, maxTags, ready } = useTaxonomy();
+  const { tags: offered, getTag, maxTags, ready } = useTaxonomy();
+  const kept = value.map((id) => getTag(id)).filter((t) => t?.retired === true);
+  const tags = [...offered, ...kept.filter((t) => t !== null)];
   const full = value.length >= maxTags;
   return (
     <fieldset className="forum-composer__tags" aria-busy={!ready || undefined}>

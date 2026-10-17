@@ -13,7 +13,7 @@ import { MarkdownEditor } from '../forum/public';
 import { useReloadSite, useSaveSite, useSiteForEditing } from './api';
 import { AboutMain } from './AboutPage';
 import { docErrors, hasErrorUnder } from './editor/errors';
-import { newItemId } from './editor/doc';
+import { focusDocStatus, newItemId } from './editor/doc';
 import { DocFrame, ListEditor, type DocProblem } from './editor/kit';
 import { contributorLine, copyrightYears, type SiteLinkKey } from './lib/site';
 import './Site.css';
@@ -73,6 +73,7 @@ function Editor({ loaded, section, setSection }: { loaded: SiteEditable; section
         onSuccess: () => {
           setFields({});
           toast({ title: 'Saved. Everyone sees the changes now.', tone: 'success' });
+          focusDocStatus();
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'site_changed') return setProblem({ kind: 'changed', what: 'the site settings' });

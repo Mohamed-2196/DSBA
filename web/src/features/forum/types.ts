@@ -1,7 +1,6 @@
 // Shapes of the forum feature. API models (ThreadSummary, ThreadDetail, Reply, UserPublic, ...) come from
 // src/api/types; these are the forum's own view and filter types around them.
-import type { ReportCreate, ReportOut, Reply, ThreadSummary, paths } from '../../api/types';
-import type { CohortYear } from '../../state';
+import type { ForumCategoryOut, ForumGuideline as ApiGuideline, ForumTagOut, ForumTip as ApiTip, ReportCreate, ReportOut, Reply, ThreadSummary, paths } from '../../api/types';
 
 export type CategoryId = ThreadSummary['category'];
 export type ThreadSort = 'hot' | 'new' | 'top';
@@ -31,19 +30,13 @@ export interface ReplyNode extends Reply {
   children: Reply[];
 }
 
-/** A category for display: the API's, or the built-in fallback until /forum/meta has loaded. */
-export interface ForumCategory {
-  id: CategoryId;
-  label: string;
-  short: string;
-  year: CohortYear | null;
-  blurb: string;
-}
-
-export interface ForumTag {
-  id: string;
-  label: string;
-}
+/** Where a thread lives (GET /forum/meta). A retired one is no longer offered; its threads keep it. */
+export type ForumCategory = ForumCategoryOut;
+export type ForumTag = ForumTagOut;
+export type ForumGuideline = ApiGuideline;
+export type ForumTip = ApiTip;
+/** The pictures a guideline, or a category for every year, can have beside it. */
+export type ForumIcon = ApiGuideline['icon'];
 
 /** What a reported thing is now: a forum post's status, or a library item's. */
 export type ReportTargetStatus = NonNullable<ReportOut['targetStatus']>;

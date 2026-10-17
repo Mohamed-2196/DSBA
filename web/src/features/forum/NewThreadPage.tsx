@@ -4,13 +4,13 @@ import { CaretRight } from '@phosphor-icons/react';
 import { errorMessage } from '../../api/errors';
 import type { UserPublic } from '../../api/types';
 import { badgeOf, useAuth } from '../../auth';
-import { Page, PageHeader, Skeleton, Switch, TextField, cx } from '../../ui';
+import { Page, PageHeader, QueryError, Skeleton, Switch, TextField, cx } from '../../ui';
 import { useSingleFlight, useToast, useYear } from '../../state';
 import { useModules } from '../../state/modules';
-import { useAskedSenior, useCreateThread } from './api';
+import { useAskedSenior, useCreateThread, useForumMeta } from './api';
 import { composerPresets } from './lib/composerPresets';
 import { usePlacementRules } from './lib/placement';
-import { categoryForYear, useTaxonomy } from './lib/taxonomy';
+import { useTaxonomy } from './lib/taxonomy';
 import { restoreDraft, type ThreadForm } from './lib/threadDraft';
 import { BODY_MAX, TITLE_MAX, threadFieldErrors, titleProblem, type ThreadErrors } from './lib/threadForm';
 import { useAccountKey } from './lib/useAccountKey';
@@ -31,7 +31,7 @@ import './NewThreadPage.css';
 
 /**
  * Start a thread: /forum/new. Presets in the URL (all optional, they can be combined):
- *   ?category=year-1       where to post it (a category id: year-1, year-2, year-3, study-groups, general)
+ *   ?category=year-1       where to post it (a category's id, as GET /forum/meta lists them)
  *   ?module=mathematics    the module, by id (or by unit code: ?module=MT1186); a year category that disagrees with the
  *                          module's year follows the module
  *   ?title=...             the title
@@ -45,8 +45,19 @@ export default function NewThreadPage() {
   // A new preset on the same route starts a fresh composer, and so does another person (lib/useAccountKey.ts).
   const presetKey = ['category', 'module', 'title', 'senior'].map((k) => params.get(k) || '').join('|');
   const accountKey = useAccountKey();
-  // Whose draft to restore depends on who is signed in, so the composer waits for that (usually already known).
-  if (status === 'loading') return <ComposerPlaceholder />;
+  const meta = useForumMeta();
+  if (meta.isError) {
+    return (
+      <Page className="forum-page forum-new">
+        <Crumbs />
+        <PageHeader {...HEADER} />
+        <QueryError error={meta.error} title="The forum’s categories didn’t load" onRetry={() => void meta.refetch()} retrying={meta.isFetching} />
+      </Page>
+    );
+  }
+  // Whose draft to restore depends on who is signed in, and where it goes on the categories: the composer waits for
+  // both (usually already known).
+  if (status === 'loading' || meta.isPending) return <ComposerPlaceholder />;
   const posting = offer('forum.post');
   if (posting === 'suspended' || posting === 'no') {
     return (
@@ -95,20 +106,29 @@ function Composer() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { getModule, getModuleByUnitCode } = useModules();
-  const { getCategory, tags: knownTags, maxTags } = useTaxonomy();
+  const { getCategory, categoryForYear, defaultCategory: everyYear, tags: knownTags, maxTags } = useTaxonomy();
   const rules = usePlacementRules();
   const create = useCreateThread();
   const post = useSingleFlight(create);
   const viewer = me?.id ?? null;
   const ownYear = me?.year ?? year;
-  const defaultCategory = (): CategoryId => categoryForYear(ownYear) ?? 'general';
+  // The categories have loaded (NewThreadPage waits for them).
+  const fallback: CategoryId = everyYear ?? '';
+  const defaultCategory = (): CategoryId => categoryForYear(ownYear) ?? fallback;
+  /** A category new threads may go to: retired ones aren't offered. */
+  const offered = (id: string) => {
+    const c = getCategory(id);
+    return c && !c.retired ? c : null;
+  };
 
   // What the link asks for (?category, ?module, ?title): it wins over a stored draft.
-  const [presets] = useState<ThreadForm | null>(() => composerPresets(params, { getModule, getModuleByUnitCode, getCategory }, ownYear));
+  const [presets] = useState<ThreadForm | null>(() =>
+    composerPresets(params, { getModule, getModuleByUnitCode, getCategory: offered, categoryForYear, defaultCategory: fallback }, ownYear),
+  );
   const { form, setForm, restored, startOver, finish } = useThreadDraft({
     viewer,
     presets,
-    restore: (raw, who) => restoreDraft(raw, who, { knownModule: (id) => !!getModule(id), fallbackCategory: defaultCategory(), maxTags }),
+    restore: (raw, who) => restoreDraft(raw, who, { knownModule: (id) => !!getModule(id), offeredCategory: (id) => !!offered(id), fallbackCategory: defaultCategory(), maxTags }),
     empty: () => ({ title: '', body: '', moduleId: '', category: defaultCategory(), tags: [] }),
   });
   const [errors, setErrors] = useState<ThreadErrors>({});
@@ -147,7 +167,7 @@ function Composer() {
     const next: ThreadErrors = {};
     const problem = titleProblem(title);
     if (problem) next.title = problem;
-    if (!getCategory(form.category)) next.category = 'Choose where to post this thread.';
+    if (!offered(form.category)) next.category = 'Choose where to post this thread.';
     if (Object.values(next).some(Boolean)) {
       setErrors(next);
       if (next.title) titleRef.current?.focus();

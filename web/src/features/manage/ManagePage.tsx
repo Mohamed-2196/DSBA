@@ -1,13 +1,13 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
-import { BookOpenText, Bug, CalendarCheck, CalendarDots, ChartBar, ClockCounterClockwise, Compass, Flag, GearSix, HandWaving, ListChecks, ListMagnifyingGlass, Newspaper, Power, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
+import { BookOpenText, Bug, CalendarCheck, CalendarDots, ChartBar, ChatsCircle, ClockCounterClockwise, Compass, Flag, GearSix, HandWaving, ListChecks, ListMagnifyingGlass, Newspaper, Power, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
 import { useId, useState, type ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { normalizeYear, useQueryParam } from '../../state';
 import { Button, EmptyState, ErrorBoundary, Count, Page, PageHeader, Panel, QueryError, Select, Skeleton, cx, formatCount } from '../../ui';
 import { ActivityLog, PeopleList } from '../access/public';
 import { CareerEditor } from '../career/public';
-import { ReportsQueue } from '../forum/public';
+import { ForumSettingsEditor, ReportsQueue } from '../forum/public';
 import { ModulesEditor, SuggestionsQueue } from '../modules/public';
 import { FlaggedQuestions, UploadsQueue } from '../library/public';
 import { RequestsQueue } from '../requests/public';
@@ -33,6 +33,7 @@ const SECTIONS: Record<SectionId, { label: string; icon: Icon }> = {
   career: { label: 'Career Navigator', icon: Compass },
   content: { label: 'Modules', icon: BookOpenText },
   guides: { label: 'Guides', icon: ListChecks },
+  forum: { label: 'Forum', icon: ChatsCircle },
   videos: { label: 'Suggested videos', icon: YoutubeLogo },
   gaps: { label: 'Gaps', icon: ListMagnifyingGlass },
   numbers: { label: 'Numbers', icon: ChartBar },
@@ -112,6 +113,7 @@ const BODIES: Record<SectionId, () => ReactNode> = {
   career: () => <CareerEditor />,
   content: () => <ModulesEditor />,
   guides: () => <GuidesEditor />,
+  forum: () => <ForumSettingsEditor />,
   videos: () => <SuggestionsQueue />,
   gaps: () => <Gaps />,
   numbers: () => <Numbers />,
@@ -121,7 +123,7 @@ const BODIES: Record<SectionId, () => ReactNode> = {
 };
 
 /** The tabs that hold a draft. */
-const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['career', 'guides', 'site']);
+const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['career', 'guides', 'forum', 'site']);
 
 const HEADER = <PageHeader title="Manage" description="Your tools, and what’s waiting for you. Every action is logged." />;
 

@@ -26,9 +26,11 @@ from app.services.forum.rules import (
     module_or_422,
     thread_slug,
     valid_body,
+    valid_category,
     valid_tags,
     valid_title,
 )
+from app.services.forum.taxonomy import load as load_taxonomy
 from app.services.forum.taxonomy import place
 from app.services.forum.text import media_ids
 from app.services.forum.visibility import (
@@ -51,8 +53,10 @@ def create_thread(db: Session, user: User, data: ThreadCreate, ip: str | None) -
         access.require_feature(db, user, Feature.forum_anonymous)
     title = valid_title(data.title)
     body = valid_body(data.body)
-    category, module = place(data.category, module_or_422(db, data.module_id, visible=True), module_wins=True)
-    tags = valid_tags(data.tags)
+    taxonomy = load_taxonomy(db)
+    module = module_or_422(db, data.module_id, visible=True)
+    category, module = place(taxonomy, valid_category(taxonomy, data.category), module, module_wins=True)
+    tags = valid_tags(taxonomy, data.tags)
     limit_threads(db, user)
     now = utcnow()
     t = ForumThread(
@@ -111,10 +115,11 @@ def update_thread(db: Session, user: User, t: ForumThread, data: ThreadUpdate, i
         if body != t.body:
             t.body = body
             changed.append("body")
+    taxonomy = load_taxonomy(db)
     if "module_id" in given or ("category" in given and data.category is not None):
         module = module_or_422(db, data.module_id) if "module_id" in given else module_or_422(db, t.module_id)
-        category = data.category if "category" in given and data.category is not None else t.category
-        category, module = place(category, module, module_wins="module_id" in given)
+        asked = valid_category(taxonomy, data.category, current=t.category) if "category" in given else None
+        category, module = place(taxonomy, asked or t.category, module, module_wins="module_id" in given)
         module_id = module.id if module else None
         if category != t.category:
             t.category = category
@@ -123,7 +128,7 @@ def update_thread(db: Session, user: User, t: ForumThread, data: ThreadUpdate, i
             t.module_id = module_id
             changed.append("module_id")
     if "tags" in given and data.tags is not None:
-        tags = valid_tags(data.tags)
+        tags = valid_tags(taxonomy, data.tags, current=list(t.tags or []))
         if tags != list(t.tags or []):
             t.tags = tags
             changed.append("tags")

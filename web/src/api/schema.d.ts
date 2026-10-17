@@ -1298,10 +1298,42 @@ export interface paths {
         };
         /**
          * Meta
-         * @description Categories and tags (the server validates threads against these).
+         * @description Every category and tag in their order (retired ones too: their threads keep them, but they aren't offered),
+         *     where a thread goes when no year fits it, and the forum's guidelines and tips. Threads are checked against
+         *     these.
          */
         get: operations["meta_api_v1_forum_meta_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forum/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Forum Settings
+         * @description Manage → Forum: the categories, tags, guidelines and tips with the version a save names (0 until the first
+         *     save), and how many threads use each category and tag.
+         */
+        get: operations["forum_settings_api_v1_forum_settings_get"];
+        /**
+         * Save Forum Settings
+         * @description Save the categories, tags, guidelines and tips together, if nobody saved them since `version`. Audited with
+         *     what changed, before and after.
+         *
+         *     Errors: forum_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't
+         *     fit, an id used twice, no category left, a default category that is retired or belongs to a year, a category or
+         *     tag that threads use removed instead of retired).
+         */
+        put: operations["save_forum_settings_api_v1_forum_settings_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1340,7 +1372,7 @@ export interface paths {
          * List Threads
          * @description Pinned threads first (when not searching), then by `sort`. Hidden threads are left out (moderators see them);
          *     deleted ones stay listed, without their text, while they have replies. `year`: that cohort's threads (its
-         *     category, or a module of that year) plus forum-wide ones (study groups and general without a module).
+         *     category, or a module of that year) plus forum-wide ones (a category for every year, without a module).
          *     `hot` = (votes + 1.5 * replies) / (age in hours + 2)^1.5.
          */
         get: operations["list_threads_api_v1_forum_threads_get"];
@@ -4937,22 +4969,6 @@ export interface components {
              */
             hidden: boolean;
         };
-        /** CategoryOut */
-        CategoryOut: {
-            /**
-             * Id
-             * @enum {string}
-             */
-            id: "year-1" | "year-2" | "year-3" | "study-groups" | "general";
-            /** Label */
-            label: string;
-            /** Short */
-            short: string;
-            /** Year */
-            year: (1 | 2 | 3) | null;
-            /** Blurb */
-            blurb: string;
-        };
         /** Cell */
         Cell: {
             /** Row */
@@ -5317,7 +5333,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
             /** Message */
             message: string;
             /** Fields */
@@ -5969,11 +5985,8 @@ export interface components {
             title: string;
             /** Body */
             body: string;
-            /**
-             * Category
-             * @enum {string}
-             */
-            category: "year-1" | "year-2" | "year-3" | "study-groups" | "general";
+            /** Category */
+            category: string;
             /** Moduleid */
             moduleId: string | null;
             /** Tags */
@@ -6085,14 +6098,108 @@ export interface components {
              */
             following: "answers" | "replies" | "off";
         };
-        /** ForumMeta */
+        /**
+         * ForumCategoryOut
+         * @description Where a thread lives. A retired one is no longer offered; its threads keep it.
+         */
+        ForumCategoryOut: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Short */
+            short: string;
+            /** Year */
+            year: (1 | 2 | 3) | null;
+            /** Blurb */
+            blurb: string;
+            /** Icon */
+            icon?: ("search" | "tag" | "check" | "shield" | "heart" | "chat" | "people" | "book" | "calendar" | "flag" | "info" | "briefcase") | null;
+            /**
+             * Retired
+             * @default false
+             */
+            retired: boolean;
+        };
+        /**
+         * ForumGuideline
+         * @description One of the forum's guidelines, in the sidebar.
+         */
+        ForumGuideline: {
+            /** Id */
+            id: string;
+            /**
+             * Icon
+             * @enum {string}
+             */
+            icon: "search" | "tag" | "check" | "shield" | "heart" | "chat" | "people" | "book" | "calendar" | "flag" | "info" | "briefcase";
+            /** Text */
+            text: string;
+        };
+        /**
+         * ForumMeta
+         * @description Everything the forum's pages need to place and file threads: every category and tag (retired ones too, for
+         *     the threads that carry them), where a thread goes when no year fits, and the guidelines and tips.
+         */
         ForumMeta: {
             /** Categories */
-            categories: components["schemas"]["CategoryOut"][];
+            categories: components["schemas"]["ForumCategoryOut"][];
             /** Tags */
-            tags: components["schemas"]["TagOut"][];
+            tags: components["schemas"]["ForumTagOut"][];
             /** Maxtags */
             maxTags: number;
+            /** Defaultcategory */
+            defaultCategory: string;
+            /** Guidelines */
+            guidelines: components["schemas"]["ForumGuideline"][];
+            /** Tips */
+            tips: components["schemas"]["ForumTip"][];
+        };
+        /**
+         * ForumSettings
+         * @description Manage → Forum, saved as a whole: the categories and tags in their order, and the forum's words.
+         */
+        ForumSettings: {
+            /** Defaultcategory */
+            defaultCategory: string;
+            /** Guidelines */
+            guidelines: components["schemas"]["ForumGuideline"][];
+            /** Tips */
+            tips: components["schemas"]["ForumTip"][];
+            /** Categories */
+            categories: components["schemas"]["ForumCategoryOut"][];
+            /** Tags */
+            tags: components["schemas"]["ForumTagOut"][];
+        };
+        /**
+         * ForumSettingsEditable
+         * @description The settings with the version a save names (0 until the first save), and how many threads use each category
+         *     and tag (one in use is retired rather than removed).
+         */
+        ForumSettingsEditable: {
+            data: components["schemas"]["ForumSettings"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+            /** Threadsbycategory */
+            threadsByCategory: {
+                [key: string]: number;
+            };
+            /** Threadsbytag */
+            threadsByTag: {
+                [key: string]: number;
+            };
+        };
+        /**
+         * ForumSettingsSave
+         * @description PUT /forum/settings: everything, and the version it was edited from.
+         */
+        ForumSettingsSave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["ForumSettings"];
         };
         /**
          * ForumStats
@@ -6125,6 +6232,28 @@ export interface components {
                     [key: string]: number;
                 };
             };
+        };
+        /** ForumTagOut */
+        ForumTagOut: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /**
+             * Retired
+             * @default false
+             */
+            retired: boolean;
+        };
+        /**
+         * ForumTip
+         * @description A tip for a good thread, beside the composer. `code` in backticks shows as code.
+         */
+        ForumTip: {
+            /** Id */
+            id: string;
+            /** Text */
+            text: string;
         };
         /**
          * FoundAnswer
@@ -9332,13 +9461,6 @@ export interface components {
              */
             roleIds: string[];
         };
-        /** TagOut */
-        TagOut: {
-            /** Id */
-            id: string;
-            /** Label */
-            label: string;
-        };
         /** TermStart */
         TermStart: {
             /** Month */
@@ -9375,7 +9497,7 @@ export interface components {
              */
             body: string;
             /** Category */
-            category?: ("year-1" | "year-2" | "year-3" | "study-groups" | "general") | null;
+            category?: string | null;
             /** Moduleid */
             moduleId?: string | null;
             /** Tags */
@@ -9401,11 +9523,8 @@ export interface components {
             title: string;
             /** Excerpt */
             excerpt: string;
-            /**
-             * Category
-             * @enum {string}
-             */
-            category: "year-1" | "year-2" | "year-3" | "study-groups" | "general";
+            /** Category */
+            category: string;
             /** Moduleid */
             moduleId: string | null;
             /** Year */
@@ -9502,11 +9621,8 @@ export interface components {
             title: string;
             /** Excerpt */
             excerpt: string;
-            /**
-             * Category
-             * @enum {string}
-             */
-            category: "year-1" | "year-2" | "year-3" | "study-groups" | "general";
+            /** Category */
+            category: string;
             /** Moduleid */
             moduleId: string | null;
             /** Year */
@@ -9556,7 +9672,7 @@ export interface components {
             /** Body */
             body?: string | null;
             /** Category */
-            category?: ("year-1" | "year-2" | "year-3" | "study-groups" | "general") | null;
+            category?: string | null;
             /** Moduleid */
             moduleId?: string | null;
             /** Tags */
@@ -9770,7 +9886,6 @@ export type CareerRole = components['schemas']['CareerRole'];
 export type CareerSave = components['schemas']['CareerSave'];
 export type CareerSkill = components['schemas']['CareerSkill'];
 export type CareerTrack = components['schemas']['CareerTrack'];
-export type CategoryOut = components['schemas']['CategoryOut'];
 export type Cell = components['schemas']['Cell'];
 export type CertFile = components['schemas']['CertFile'];
 export type Chapter = components['schemas']['Chapter'];
@@ -9837,8 +9952,15 @@ export type FileLink = components['schemas']['FileLink'];
 export type FindMove = components['schemas']['FindMove'];
 export type FollowRequest = components['schemas']['FollowRequest'];
 export type FollowResult = components['schemas']['FollowResult'];
+export type ForumCategoryOut = components['schemas']['ForumCategoryOut'];
+export type ForumGuideline = components['schemas']['ForumGuideline'];
 export type ForumMeta = components['schemas']['ForumMeta'];
+export type ForumSettings = components['schemas']['ForumSettings'];
+export type ForumSettingsEditable = components['schemas']['ForumSettingsEditable'];
+export type ForumSettingsSave = components['schemas']['ForumSettingsSave'];
 export type ForumStats = components['schemas']['ForumStats'];
+export type ForumTagOut = components['schemas']['ForumTagOut'];
+export type ForumTip = components['schemas']['ForumTip'];
 export type FoundAnswer = components['schemas']['FoundAnswer'];
 export type FoundGroup = components['schemas']['FoundGroup'];
 export type FoundItem = components['schemas']['FoundItem'];
@@ -10017,7 +10139,6 @@ export type SuggestionOut = components['schemas']['SuggestionOut'];
 export type SuggestionPage = components['schemas']['SuggestionPage'];
 export type SummaryPreview = components['schemas']['SummaryPreview'];
 export type SwitchUpdate = components['schemas']['SwitchUpdate'];
-export type TagOut = components['schemas']['TagOut'];
 export type TermStart = components['schemas']['TermStart'];
 export type TextMatch = components['schemas']['TextMatch'];
 export type Theme = components['schemas']['Theme'];
@@ -16087,6 +16208,176 @@ export interface operations {
             };
         };
     };
+    forum_settings_api_v1_forum_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForumSettingsEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_forum_settings_api_v1_forum_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForumSettingsSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForumSettingsEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     stats_api_v1_forum_stats_get: {
         parameters: {
             query?: never;
@@ -16175,7 +16466,7 @@ export interface operations {
             query?: {
                 /** @description Full-text search: title, body, replies, module */
                 q?: string | null;
-                category?: ("year-1" | "year-2" | "year-3" | "study-groups" | "general") | null;
+                category?: string | null;
                 module_id?: string | null;
                 tag?: string | null;
                 year?: number | null;

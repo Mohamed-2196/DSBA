@@ -8,7 +8,7 @@ import type { Electives, GuidePlace, GuidesDoc, GuidesEditable, GuideStep, Resul
 import { FEATURE_KEYS } from '../../../auth';
 import { useToast } from '../../../state';
 import { Chip, Drawer, PageHeader, Panel, QueryError, Select, Skeleton, TextArea, TextField, cx } from '../../../ui';
-import { DocFrame, ListEditor, RowsEditor, docErrors, hasErrorUnder, newItemId, useSite, type DocProblem, type SiteLinkKey } from '../../site/public';
+import { DocFrame, ListEditor, RowsEditor, docErrors, focusDocStatus, hasErrorUnder, newItemId, useSite, type DocProblem, type SiteLinkKey } from '../../site/public';
 import { useGuidesForEditing, useReloadGuides, useSaveGuides } from '../api';
 import { ResultsDayBody } from '../ResultsDayPage';
 import { StartHereBody } from '../StartHerePage';
@@ -66,6 +66,7 @@ function Editor({ loaded, section, setSection }: { loaded: GuidesEditable; secti
         onSuccess: () => {
           setFields({});
           toast({ title: 'Saved. Students see the changes now.', tone: 'success' });
+          focusDocStatus();
         },
         onError: (e) => {
           if (isApiError(e) && e.code === 'guides_changed') return setProblem({ kind: 'changed', what: 'the guides' });

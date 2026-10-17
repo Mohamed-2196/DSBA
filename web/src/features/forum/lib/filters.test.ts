@@ -14,9 +14,12 @@ describe('readFilters', () => {
       module: 'mathematics',
     });
   });
-  it('falls back to the defaults for anything it does not know', () => {
-    expect(readFilters(url('cohort=year-9&sort=random&status=closed'))).toEqual(DEFAULT_FILTERS);
+  it('falls back to the defaults for anything that isn’t a filter', () => {
+    expect(readFilters(url('cohort=Year%209&sort=random&status=closed'))).toEqual(DEFAULT_FILTERS);
     expect(readFilters(url(''))).toEqual(DEFAULT_FILTERS);
+  });
+  it('takes any category id: the forum page drops one the API doesn’t have once it has loaded', () => {
+    expect(readFilters(url('cohort=coursework')).cohort).toBe('coursework');
   });
 });
 
