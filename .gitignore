@@ -31,3 +31,6 @@ api/var/
 *.tsbuildinfo
 .venv
 .claude/settings.local.json
+
+# The Playwright MCP browser's screenshots and logs (agents' scratch, never part of the repo)
+.playwright-mcp/
