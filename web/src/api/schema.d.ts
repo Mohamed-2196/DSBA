@@ -13,7 +13,8 @@ export interface paths {
         };
         /**
          * Health
-         * @description Liveness and dependencies: the database and the object store.
+         * @description Liveness and dependencies (the database and the object store), and the commit this API runs, so a deploy can
+         *     be checked against the push that made it.
          */
         get: operations["health_api_v1_health_get"];
         put?: never;
@@ -6185,6 +6186,8 @@ export interface components {
             storage: "ok" | "error";
             /** Version */
             version: string;
+            /** Commit */
+            commit: string | null;
         };
         /**
          * HintMove

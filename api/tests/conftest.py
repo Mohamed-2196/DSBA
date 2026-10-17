@@ -69,6 +69,8 @@ def settings_env(database_url: str) -> Iterator[None]:
         "DSBA_S3_CREATE_BUCKET": "false",  # made once for the run (bucket below), not by every client's start-up
         "DSBA_EMAIL_BACKEND": "console",
         "DSBA_SMS_BACKEND": "console",
+        "DSBA_COMMIT_SHA": "",  # the commit /health reports: unknown, whatever the shell running the tests says
+        "RAILWAY_GIT_COMMIT_SHA": "",
         "AWS_DEFAULT_REGION": "us-east-1",
     }
     old = {k: os.environ.get(k) for k in env}
