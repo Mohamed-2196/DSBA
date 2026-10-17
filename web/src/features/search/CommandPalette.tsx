@@ -12,10 +12,11 @@ import { Count, Kbd, Spinner, Modal, cx } from '../../ui';
 import { useStartsThreads } from '../forum/public';
 import { openBugReport } from '../bugs/public';
 import { askNoora, hideMiniNoora, showMiniNoora, useMiniNooraHidden } from '../noora/public';
+import { httpsHref, useSite } from '../site/public';
 import { useSearch } from './api';
 import { tokenize } from './match';
 import { Leading, Marked, Trailing } from './PaletteRow';
-import { runSearch, textOf, type GroupId, type Item } from './search';
+import { runSearch, textOf, type GroupId, type Item, type Portal } from './search';
 import { usePaletteShortcuts } from './useShortcuts';
 import './CommandPalette.css';
 
@@ -38,6 +39,16 @@ export function CommandPalette() {
   const nooraHidden = useMiniNooraHidden();
   const { featureOn, mayTry } = useAuth();
   const startsThreads = useStartsThreads();
+  const site = useSite().data;
+  const portals = useMemo(() => {
+    if (!site) return [];
+    const out: Portal[] = [];
+    for (const [id, link] of [['myclass', site.links.myclass], ['uol', site.links.uolPortal]] as const) {
+      const href = httpsHref(link.url);
+      if (href) out.push({ id, label: link.label, href });
+    }
+    return out;
+  }, [site]);
   const uploads = showsUpload(featureOn, mayTry);
   const { push } = useToast();
   const navigate = useNavigate();
@@ -93,8 +104,9 @@ export function CommandPalette() {
         getModulesForYear,
         isOn: featureOn,
         offers: { threads: startsThreads, upload: uploads },
+        portals,
       }),
-    [query, year, activeYear, theme, nooraHidden, expanded, recent, search.data, getModule, getModulesForYear, featureOn, startsThreads, uploads],
+    [query, year, activeYear, theme, nooraHidden, expanded, recent, search.data, getModule, getModulesForYear, featureOn, startsThreads, uploads, portals],
   );
   // Until the API has answered the words typed, "nothing found" would be premature.
   const searching = results.empty && waiting;

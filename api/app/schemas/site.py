@@ -40,7 +40,7 @@ class SiteLinks(ApiModel):
     results: SiteLink  # the University's exam entry and results page: Results day
 
 
-class Contributor(ApiModel):
+class SiteContributor(ApiModel):
     """Someone who built the hub or supplied its materials: in the footer and on About, in this order."""
 
     id: ItemId
@@ -72,7 +72,7 @@ class SiteDoc(ApiModel):
     about_intro: Sentence  # under About's title
     about: Markdown  # About's "What it is"; the hub's own numbers follow it
     links: SiteLinks
-    contributors: list[Contributor] = Field(max_length=30)
+    contributors: list[SiteContributor] = Field(max_length=30)
     note_credits: list[NoteCredit] = Field(max_length=60)
     grades_note: Sentence  # under every class the grades calculator works out
     disclaimer: Sentence  # in the footer and on About

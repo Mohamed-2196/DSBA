@@ -5142,21 +5142,17 @@ export interface components {
             /** Body */
             body: string;
         };
-        /**
-         * Contributor
-         * @description Someone who built the hub or supplied its materials: in the footer and on About, in this order.
-         */
-        "Contributor-Input": {
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Role */
-            role?: string | null;
-            /** Affiliation */
-            affiliation?: string | null;
-            /** Url */
-            url?: string | null;
+        /** Contributor */
+        Contributor: {
+            user: components["schemas"]["UserPublic"];
+            /** Replies */
+            replies: number;
+            /** Votes */
+            votes: number;
+            /** Accepted */
+            accepted: number;
+            /** Score */
+            score: number;
         };
         /** CoverLine */
         CoverLine: {
@@ -6113,7 +6109,7 @@ export interface components {
             /** Noreplies */
             noReplies: number;
             /** Topcontributors */
-            topContributors: components["schemas"]["app__schemas__forum__Contributor"][];
+            topContributors: components["schemas"]["Contributor"][];
             /** Bytag */
             byTag?: {
                 [key: string]: number;
@@ -8928,30 +8924,24 @@ export interface components {
             /** Metoocount */
             meTooCount: number;
         };
-        /** SiteDoc */
-        "SiteDoc-Input": {
-            /** Tagline */
-            tagline: string;
-            /** Aboutintro */
-            aboutIntro: string;
-            /** About */
-            about: string;
-            links: components["schemas"]["SiteLinks"];
-            /** Contributors */
-            contributors: components["schemas"]["Contributor-Input"][];
-            /** Notecredits */
-            noteCredits: components["schemas"]["NoteCredit"][];
-            /** Gradesnote */
-            gradesNote: string;
-            /** Disclaimer */
-            disclaimer: string;
-            /** Copyrightholder */
-            copyrightHolder: string;
-            /** Launchyear */
-            launchYear: number;
+        /**
+         * SiteContributor
+         * @description Someone who built the hub or supplied its materials: in the footer and on About, in this order.
+         */
+        SiteContributor: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Role */
+            role?: string | null;
+            /** Affiliation */
+            affiliation?: string | null;
+            /** Url */
+            url?: string | null;
         };
         /** SiteDoc */
-        "SiteDoc-Output": {
+        SiteDoc: {
             /** Tagline */
             tagline: string;
             /** Aboutintro */
@@ -8960,7 +8950,7 @@ export interface components {
             about: string;
             links: components["schemas"]["SiteLinks"];
             /** Contributors */
-            contributors: components["schemas"]["app__schemas__site__Contributor"][];
+            contributors: components["schemas"]["SiteContributor"][];
             /** Notecredits */
             noteCredits: components["schemas"]["NoteCredit"][];
             /** Gradesnote */
@@ -8977,7 +8967,7 @@ export interface components {
          * @description The document for admins, with the version a save must name (0 until the first save: the starting content).
          */
         SiteEditable: {
-            data: components["schemas"]["SiteDoc-Output"];
+            data: components["schemas"]["SiteDoc"];
             /** Version */
             version: number;
             /** Updatedat */
@@ -9010,7 +9000,7 @@ export interface components {
         SiteSave: {
             /** Version */
             version: number;
-            data: components["schemas"]["SiteDoc-Input"];
+            data: components["schemas"]["SiteDoc"];
         };
         /** Sitting */
         Sitting: {
@@ -9705,34 +9695,6 @@ export interface components {
             /** Answer */
             answer: string | null;
         };
-        /** Contributor */
-        app__schemas__forum__Contributor: {
-            user: components["schemas"]["UserPublic"];
-            /** Replies */
-            replies: number;
-            /** Votes */
-            votes: number;
-            /** Accepted */
-            accepted: number;
-            /** Score */
-            score: number;
-        };
-        /**
-         * Contributor
-         * @description Someone who built the hub or supplied its materials: in the footer and on About, in this order.
-         */
-        app__schemas__site__Contributor: {
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Role */
-            role?: string | null;
-            /** Affiliation */
-            affiliation?: string | null;
-            /** Url */
-            url?: string | null;
-        };
     };
     responses: never;
     parameters: never;
@@ -9823,7 +9785,7 @@ export type CloseOpps = components['schemas']['CloseOpps'];
 export type ColumnCreate = components['schemas']['ColumnCreate'];
 export type ColumnUpdate = components['schemas']['ColumnUpdate'];
 export type CommentCreate = components['schemas']['CommentCreate'];
-export type ContributorInput = components['schemas']['Contributor-Input'];
+export type Contributor = components['schemas']['Contributor'];
 export type CoverLine = components['schemas']['CoverLine'];
 export type CtaBlock = components['schemas']['CtaBlock'];
 export type CtaLabels = components['schemas']['CtaLabels'];
@@ -10025,8 +9987,8 @@ export type SessionState = components['schemas']['SessionState'];
 export type SignInResult = components['schemas']['SignInResult'];
 export type SignoffBlock = components['schemas']['SignoffBlock'];
 export type SimilarRequest = components['schemas']['SimilarRequest'];
-export type SiteDocInput = components['schemas']['SiteDoc-Input'];
-export type SiteDocOutput = components['schemas']['SiteDoc-Output'];
+export type SiteContributor = components['schemas']['SiteContributor'];
+export type SiteDoc = components['schemas']['SiteDoc'];
 export type SiteEditable = components['schemas']['SiteEditable'];
 export type SiteLink = components['schemas']['SiteLink'];
 export type SiteLinks = components['schemas']['SiteLinks'];
@@ -10072,8 +10034,6 @@ export type WatchedLesson = components['schemas']['WatchedLesson'];
 export type WebLink = components['schemas']['WebLink'];
 export type WordRow = components['schemas']['WordRow'];
 export type WordView = components['schemas']['WordView'];
-export type AppSchemasForumContributor = components['schemas']['app__schemas__forum__Contributor'];
-export type AppSchemasSiteContributor = components['schemas']['app__schemas__site__Contributor'];
 export type $defs = Record<string, never>;
 export interface operations {
     health_api_v1_health_get: {
@@ -27114,7 +27074,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SiteDoc-Output"];
+                    "application/json": components["schemas"]["SiteDoc"];
                 };
             };
             /** @description Bad Request */

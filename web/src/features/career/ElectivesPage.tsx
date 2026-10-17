@@ -1,22 +1,22 @@
 // /career/electives: the Year 3 electives side by side. What each covers comes from the module catalogue, the skills
 // and roles from Career Navigator's document (lib/electives.ts), what students say from the forum's Module choice
-// threads. The only words written here are in data/guides.ts (ELECTIVES).
+// threads. Its title, intro and disclaimer, and how many electives a student takes, are the electives guide (Manage →
+// Guides).
 import { ArrowLeft, ChatsCircle, Files, Info, Plus, Sparkle } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { CareerDoc } from '../../api/types';
 import { useAuth } from '../../auth';
-import { ELECTIVES } from '../../data/guides';
 import { PapersButton } from '../papers/public';
 import { useModules } from '../../state/modules';
 import { Badge, Button, EmptyState, ModuleArt, ModuleIcon, Page, PageHeader, Panel, QueryError, Skeleton, moduleArtSrc } from '../../ui';
 import { useStartsThreads } from '../forum/public';
+import { useGuides } from '../start/public';
 import { useCareer } from './api';
 import { askLink } from './lib/links';
 import { electives, type Elective } from './lib/electives';
 import './Electives.css';
 
-const TITLE = 'Choosing your Year 3 electives';
 const FORUM_TAG = 'module-choice';
 
 const numberWord = (n: number): string => ['no', 'one', 'two', 'three', 'four', 'five', 'six'][n] ?? String(n);
@@ -110,7 +110,7 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
   );
 }
 
-function ElectivesBody({ data }: { data: CareerDoc }) {
+function ElectivesBody({ data, pick }: { data: CareerDoc; pick: number | null }) {
   const { modules } = useModules();
   const list = useMemo(() => electives(data, modules), [data, modules]);
   if (!list.length) {
@@ -123,7 +123,7 @@ function ElectivesBody({ data }: { data: CareerDoc }) {
   return (
     <>
       <div className="electives__count">
-        <p>You take {numberWord(ELECTIVES.pick)} of these {numberWord(list.length)}.</p>
+        {pick ? <p>You take {numberWord(pick)} of these {numberWord(list.length)}.</p> : null}
         <PapersButton />
       </div>
       <div className="electives" data-hub="electives">
@@ -137,21 +137,24 @@ function ElectivesBody({ data }: { data: CareerDoc }) {
 
 export default function ElectivesPage() {
   const q = useCareer();
+  const guide = useGuides().data?.electives;
   return (
     <Page width="wide" className="electives-page">
       <PageHeader
-        title={TITLE}
-        description={ELECTIVES.intro}
+        title={guide?.title ?? 'Choosing your Year 3 electives'}
+        description={guide?.intro}
         actions={
           <Button variant="ghost" size="sm" to="/career" leadingIcon={ArrowLeft}>
             Career Navigator
           </Button>
         }
       />
-      <Panel tone="inset" padding="none" className="electives__note" role="note">
-        <Info weight="bold" aria-hidden="true" />
-        <p>{ELECTIVES.disclaimer}</p>
-      </Panel>
+      {guide ? (
+        <Panel tone="inset" padding="none" className="electives__note" role="note">
+          <Info weight="bold" aria-hidden="true" />
+          <p>{guide.disclaimer}</p>
+        </Panel>
+      ) : null}
       {q.isPending ? (
         <div className="electives" aria-busy="true">
           <span className="visually-hidden">Loading the electives</span>
@@ -162,7 +165,7 @@ export default function ElectivesPage() {
       ) : q.isError ? (
         <QueryError error={q.error} title="The electives didn’t load" onRetry={() => void q.refetch()} retrying={q.isFetching} />
       ) : q.data ? (
-        <ElectivesBody data={q.data} />
+        <ElectivesBody data={q.data} pick={guide?.pick ?? null} />
       ) : (
         <Panel padding="none">
           <EmptyState icon={Sparkle} title="Career Navigator is being set up" body="The electives will show here once it is." action={<Button to="/">Back to Home</Button>} />

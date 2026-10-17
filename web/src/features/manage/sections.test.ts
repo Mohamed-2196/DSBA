@@ -60,9 +60,14 @@ describe('sectionsFor', () => {
     expect(sectionsFor(holds('forum.moderate'), onlyOn('library'))).toEqual([]);
   });
 
-  it('gives bug reports to admins only', () => {
+  it('gives bug reports and Site settings to admins only', () => {
     expect(sectionsFor(holds('stats.view'))).not.toContain('bugs');
-    expect(sectionsFor(holds('stats.view'), undefined, true)).toEqual(['bugs', 'numbers']);
+    expect(sectionsFor(holds('stats.view'))).not.toContain('site');
+    expect(sectionsFor(holds('stats.view'), undefined, true)).toEqual(['bugs', 'numbers', 'site']);
+  });
+
+  it('gives the guides to their box, with no switch to wait for', () => {
+    expect(sectionsFor(holds('guides.edit'), onlyOn())).toEqual(['guides']);
   });
 });
 

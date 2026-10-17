@@ -21537,7 +21537,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SiteDoc-Output"
+                  "$ref": "#/components/schemas/SiteDoc"
                 }
               }
             }
@@ -27221,68 +27221,37 @@
         ],
         "title": "CommentCreate"
       },
-      "Contributor-Input": {
+      "Contributor": {
         "properties": {
-          "id": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-            "title": "Id"
+          "user": {
+            "$ref": "#/components/schemas/UserPublic"
           },
-          "name": {
-            "type": "string",
-            "maxLength": 80,
-            "minLength": 1,
-            "title": "Name"
+          "replies": {
+            "type": "integer",
+            "title": "Replies"
           },
-          "role": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 120,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Role"
+          "votes": {
+            "type": "integer",
+            "title": "Votes"
           },
-          "affiliation": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 120,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Affiliation"
+          "accepted": {
+            "type": "integer",
+            "title": "Accepted"
           },
-          "url": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 2000,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url"
+          "score": {
+            "type": "integer",
+            "title": "Score"
           }
         },
         "type": "object",
         "required": [
-          "id",
-          "name"
+          "user",
+          "replies",
+          "votes",
+          "accepted",
+          "score"
         ],
-        "title": "Contributor",
-        "description": "Someone who built the hub or supplied its materials: in the footer and on About, in this order."
+        "title": "Contributor"
       },
       "CoverLine": {
         "properties": {
@@ -29903,7 +29872,7 @@
           },
           "topContributors": {
             "items": {
-              "$ref": "#/components/schemas/app__schemas__forum__Contributor"
+              "$ref": "#/components/schemas/Contributor"
             },
             "type": "array",
             "title": "Topcontributors"
@@ -38410,86 +38379,70 @@
         ],
         "title": "SimilarRequest"
       },
-      "SiteDoc-Input": {
+      "SiteContributor": {
         "properties": {
-          "tagline": {
+          "id": {
             "type": "string",
-            "maxLength": 300,
+            "maxLength": 64,
             "minLength": 1,
-            "title": "Tagline"
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
           },
-          "aboutIntro": {
-            "type": "string",
-            "maxLength": 300,
-            "minLength": 1,
-            "title": "Aboutintro"
-          },
-          "about": {
-            "type": "string",
-            "maxLength": 4000,
-            "minLength": 1,
-            "title": "About"
-          },
-          "links": {
-            "$ref": "#/components/schemas/SiteLinks"
-          },
-          "contributors": {
-            "items": {
-              "$ref": "#/components/schemas/Contributor-Input"
-            },
-            "type": "array",
-            "maxItems": 30,
-            "title": "Contributors"
-          },
-          "noteCredits": {
-            "items": {
-              "$ref": "#/components/schemas/NoteCredit"
-            },
-            "type": "array",
-            "maxItems": 60,
-            "title": "Notecredits"
-          },
-          "gradesNote": {
-            "type": "string",
-            "maxLength": 300,
-            "minLength": 1,
-            "title": "Gradesnote"
-          },
-          "disclaimer": {
-            "type": "string",
-            "maxLength": 300,
-            "minLength": 1,
-            "title": "Disclaimer"
-          },
-          "copyrightHolder": {
+          "name": {
             "type": "string",
             "maxLength": 80,
             "minLength": 1,
-            "title": "Copyrightholder"
+            "title": "Name"
           },
-          "launchYear": {
-            "type": "integer",
-            "maximum": 2100.0,
-            "minimum": 2000.0,
-            "title": "Launchyear"
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "affiliation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affiliation"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
           }
         },
         "type": "object",
         "required": [
-          "tagline",
-          "aboutIntro",
-          "about",
-          "links",
-          "contributors",
-          "noteCredits",
-          "gradesNote",
-          "disclaimer",
-          "copyrightHolder",
-          "launchYear"
+          "id",
+          "name"
         ],
-        "title": "SiteDoc"
+        "title": "SiteContributor",
+        "description": "Someone who built the hub or supplied its materials: in the footer and on About, in this order."
       },
-      "SiteDoc-Output": {
+      "SiteDoc": {
         "properties": {
           "tagline": {
             "type": "string",
@@ -38514,7 +38467,7 @@
           },
           "contributors": {
             "items": {
-              "$ref": "#/components/schemas/app__schemas__site__Contributor"
+              "$ref": "#/components/schemas/SiteContributor"
             },
             "type": "array",
             "maxItems": 30,
@@ -38571,7 +38524,7 @@
       "SiteEditable": {
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/SiteDoc-Output"
+            "$ref": "#/components/schemas/SiteDoc"
           },
           "version": {
             "type": "integer",
@@ -38672,7 +38625,7 @@
             "title": "Version"
           },
           "data": {
-            "$ref": "#/components/schemas/SiteDoc-Input"
+            "$ref": "#/components/schemas/SiteDoc"
           }
         },
         "type": "object",
@@ -40677,101 +40630,6 @@
           "answer"
         ],
         "title": "WordView"
-      },
-      "app__schemas__forum__Contributor": {
-        "properties": {
-          "user": {
-            "$ref": "#/components/schemas/UserPublic"
-          },
-          "replies": {
-            "type": "integer",
-            "title": "Replies"
-          },
-          "votes": {
-            "type": "integer",
-            "title": "Votes"
-          },
-          "accepted": {
-            "type": "integer",
-            "title": "Accepted"
-          },
-          "score": {
-            "type": "integer",
-            "title": "Score"
-          }
-        },
-        "type": "object",
-        "required": [
-          "user",
-          "replies",
-          "votes",
-          "accepted",
-          "score"
-        ],
-        "title": "Contributor"
-      },
-      "app__schemas__site__Contributor": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "maxLength": 80,
-            "minLength": 1,
-            "title": "Name"
-          },
-          "role": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 120,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Role"
-          },
-          "affiliation": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 120,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Affiliation"
-          },
-          "url": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 2000,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name"
-        ],
-        "title": "Contributor",
-        "description": "Someone who built the hub or supplied its materials: in the footer and on About, in this order."
       }
     }
   }
