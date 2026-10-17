@@ -491,8 +491,9 @@ def test_ink_sheets_are_bounded(client_for: ClientFor, make_user: MakeUser) -> N
 # ── files ────────────────────────────────────────────────────────────────────────────────────
 
 
-def picture_doc(upload_id: str, file_id: str | None = None) -> dict[str, Any]:
-    content: list[dict[str, Any]] = [{"type": "image", "attrs": {"upload": upload_id, "alt": "Whiteboard"}}]
+def picture_doc(upload_id: str, file_id: str | None = None, **attrs: Any) -> dict[str, Any]:
+    picture = {"upload": upload_id, "alt": "Whiteboard"} | attrs
+    content: list[dict[str, Any]] = [{"type": "image", "attrs": picture}]
     if file_id:
         content.append({"type": "attachment", "attrs": {"upload": file_id, "name": "data.csv", "size": 12}})
     return {"type": "doc", "content": content}
@@ -533,6 +534,20 @@ def test_pictures_and_files_belong_to_the_note_that_shows_them(
     assert {u.status for u in db.scalars(select(Upload).where(Upload.id.in_([picture, data])))} == {
         UploadStatus.uploaded
     }
+
+
+def test_a_picture_keeps_its_place_crop_and_caption(client_for: ClientFor, make_user: MakeUser, storage: Any) -> None:
+    """A picture's size, place, turn and crop are kept as the editor sends them, and its caption and description are
+    searched with the note's text."""
+    c = client_for(make_user())
+    picture = upload(c, storage, purpose="note_file", name="board.png", content_type="image/png", body=PNG)
+    edited = {"caption": "Bayes, week 4", "width": 0.6, "x": 1, "ratio": 1.6, "rotate": 90}
+    crop = {"cropX": 0.1, "cropY": 0.2, "cropW": 0.5, "cropH": 0.6}
+    note = new_note(c, doc=picture_doc(picture, **edited, **crop))
+    assert note["text"] == "Bayes, week 4\nWhiteboard"
+    assert note["doc"]["content"][0]["attrs"] == {"upload": picture, "alt": "Whiteboard"} | edited | crop
+    found = c.get(f"{API}/notes", params={"q": "week 4"}).json()["items"]
+    assert [n["id"] for n in found] == [note["id"]]
 
 
 def test_someone_elses_upload_in_a_note_is_left_alone(
