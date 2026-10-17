@@ -15,6 +15,15 @@ from app.models.content import (
     VideoSuggestion,
 )
 from app.models.daily import DailyPlay, DailyProfile
+from app.models.daily_content import (
+    DailyGuessWord,
+    DailyItem,
+    DailyNearestWord,
+    DailySet,
+    DailySetItem,
+    DailyTheme,
+    DailyThemeWeek,
+)
 from app.models.forum import FollowLevel, ForumReply, ForumThread, PostStatus, ReplyVote, ThreadFollow, ThreadVote
 from app.models.library import (
     DriveFolder,
@@ -57,8 +66,15 @@ __all__ = [
     "Channel",
     "Chapter",
     "ContentDoc",
+    "DailyGuessWord",
+    "DailyItem",
+    "DailyNearestWord",
     "DailyPlay",
     "DailyProfile",
+    "DailySet",
+    "DailySetItem",
+    "DailyTheme",
+    "DailyThemeWeek",
     "DriveFolder",
     "EmailOutbox",
     "FeatureSwitch",

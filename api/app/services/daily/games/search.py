@@ -7,18 +7,20 @@ import datetime as dt
 import random
 import string
 from dataclasses import dataclass, field
-from functools import cache
+from typing import Any
 
 from sqlalchemy.orm import Session
 
-from app.config import get_settings
 from app.core.errors import conflict
 from app.schemas.daily import Cell, FindMove, HintMove, Move, SearchFound, SearchView
 from app.services.daily import content
-from app.services.daily.games.base import Game, Status, bad_move
+from app.services.daily.content import Entry, NotReadyError, Uses
+from app.services.daily.games.base import ContentGame, Status, bad_move
 
 SIZE = 10
 WORDS = 8
+MIN_LETTERS, MAX_LETTERS = 4, SIZE  # a word's length
+MAX_HIDDEN = 60  # letters in the day's eight words together, so they fit the grid with room to spare
 HINT_COST = 10
 MISS_FREE = 3  # misses that cost nothing
 MISS_COST = 2
@@ -59,11 +61,6 @@ class SearchState:
     gave_up: bool = False
 
 
-@cache
-def bank() -> dict[str, tuple[str, ...]]:
-    return {theme: tuple(w for w in words if len(w) <= SIZE) for theme, words in content.load("search.json").items()}
-
-
 def _place(r: random.Random, words: list[str]) -> tuple[list[list[str]], list[Placed]] | None:
     grid = [[""] * SIZE for _ in range(SIZE)]
     placed: list[Placed] = []
@@ -88,28 +85,18 @@ def _place(r: random.Random, words: list[str]) -> tuple[list[list[str]], list[Pl
     return grid, placed
 
 
-@cache
-def _make(day: dt.date, _key: str) -> Puzzle:
-    pool = bank()[content.theme_of(day).id]
-    r = content.rng("search", day, "grid")
-    words = content.pick_many(pool, WORDS, "search", day)
-    for _ in range(20):
-        made = _place(r, words)
-        if made is not None:
-            break
-    else:  # pragma: no cover - eight short words always fit a 10 by 10 grid in a few tries
-        raise RuntimeError("word search: no grid")
-    grid, placed = made
-    letters = string.ascii_uppercase
-    rows = tuple("".join(ch or r.choice(letters) for ch in row) for row in grid)
-    return Puzzle(rows, tuple(sorted(placed, key=lambda p: p.word)))
+def _fits(chosen: list[Entry], entry: Entry) -> bool:
+    """No word inside another (a find of one would read as the other), and room in the grid."""
+    word = entry.data["word"]
+    others = [c.data["word"] for c in chosen]
+    return all(word not in o and o not in word for o in others) and len(word) + sum(map(len, others)) <= MAX_HIDDEN
 
 
 def _cell(at: tuple[int, int]) -> Cell:
     return Cell(row=at[0], col=at[1])
 
 
-class SearchGame(Game[Puzzle, SearchState]):
+class SearchGame(ContentGame[Puzzle, SearchState]):
     id = "search"
     title = "Word search"
     tagline = "Find eight of the week's words hidden in the grid."
@@ -127,8 +114,30 @@ class SearchGame(Game[Puzzle, SearchState]):
     max_moves = 200
     min_seconds = 15
 
-    def puzzle(self, db: Session, day: dt.date, variant: str) -> Puzzle:
-        return _make(day, get_settings().secret_key.get_secret_value())
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date) -> list[Entry]:
+        return content.spread(pool, used, day, WORDS, self.id, _fits)
+
+    def build(self, db: Session, day: dt.date, chosen: list[Entry]) -> Puzzle:
+        r = content.rng(self.id, day, "grid")
+        words = [str(e.data["word"]) for e in chosen]
+        for _ in range(50):
+            made = _place(r, words)
+            if made is not None:
+                break
+        else:  # pragma: no cover - eight words of at most 60 letters fit a 10 by 10 grid in a few tries
+            raise NotReadyError("word search: no grid")
+        grid, placed = made
+        letters = string.ascii_uppercase
+        rows = tuple("".join(ch or r.choice(letters) for ch in row) for row in grid)
+        return Puzzle(rows, tuple(sorted(placed, key=lambda p: p.word)))
+
+    def dump(self, puzzle: Puzzle) -> dict[str, Any]:
+        placed = [{"word": p.word, "start": list(p.start), "end": list(p.end)} for p in puzzle.placed]
+        return {"grid": list(puzzle.grid), "placed": placed}
+
+    def load(self, db: Session, data: dict[str, Any]) -> Puzzle:
+        placed = (Placed(p["word"], (p["start"][0], p["start"][1]), (p["end"][0], p["end"][1])) for p in data["placed"])
+        return Puzzle(tuple(data["grid"]), tuple(placed))
 
     def start(self, puzzle: Puzzle) -> SearchState:
         return SearchState()

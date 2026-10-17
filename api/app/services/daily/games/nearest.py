@@ -1,17 +1,16 @@
 """Nearest neighbour: find the secret word by closeness. Every guess comes back with its rank: 1 is the secret word,
 2 the closest word to it, and so on through the vocabulary.
 
-Closeness comes from a curated vocabulary (data/nearest.json): each word has tags, and a few strongly related
-words. The ranks are worked out ahead of time by `python -m app.cli daily-neighbours` into
-data/nearest_ranks.json (a test checks it's up to date), so playing needs no AI and no maths."""
+Closeness comes from a curated vocabulary (daily_nearest_words, edited in Manage): each word has tags, and a few
+strongly related words. Each secret word's ranking of the vocabulary is worked out whenever the vocabulary changes
+(rankings()), and a day's puzzle keeps the ranking it was made with, so playing needs no AI and no maths."""
 
 from __future__ import annotations
 
 import datetime as dt
-import json
 import math
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
-from functools import cache
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -19,9 +18,9 @@ from sqlalchemy.orm import Session
 from app.core.errors import conflict
 from app.schemas.daily import GuessMove, HintMove, Move, NearestGuess, NearestView
 from app.services.daily import content
-from app.services.daily.games.base import Game, Status, bad_move, unknown_word
+from app.services.daily.content import Entry, NotReadyError, Uses
+from app.services.daily.games.base import ContentGame, Status, bad_move, unknown_word
 
-RANKS_FILE = "nearest_ranks.json"
 NEAR_BONUS = 0.5
 FREE_GUESSES = 10  # full points up to here
 GUESS_COST = 2
@@ -29,34 +28,30 @@ HINT_COST = 10
 FLOOR = 20
 CLOSE, WARM = 50, 200  # rank bands for colours and sharing
 
+Vocabulary = Mapping[str, tuple[Sequence[str], Sequence[str]]]  # word -> (tags, near words)
 
-def compute_ranks(data: dict[str, Any]) -> dict[str, Any]:
-    """For each target, every vocabulary word from closest to farthest (as indexes into the sorted vocabulary):
-    cosine similarity of their tag sets, plus a bonus for a listed near word; ties alphabetical."""
-    words: dict[str, Any] = data["words"]
-    vocabulary = sorted(words)
-    index = {w: i for i, w in enumerate(vocabulary)}
-    near: dict[str, set[str]] = {w: set() for w in vocabulary}
-    for w, entry in words.items():
-        for n in entry.get("near", []):
-            near[w].add(n)
-            near[n].add(w)
-    tags = {w: set(entry["tags"]) for w, entry in words.items()}
+
+def rankings(vocabulary: Vocabulary, targets: Iterable[str]) -> dict[str, list[str]]:
+    """For each target in the vocabulary, every word from closest to farthest, the target first: cosine similarity
+    of their tag sets, plus a bonus for a near word (listed on either of the two); ties alphabetical."""
+    words = sorted(vocabulary)
+    near: dict[str, set[str]] = {w: set() for w in words}
+    for w, (_, close) in vocabulary.items():
+        for n in close:
+            if n in near:
+                near[w].add(n)
+                near[n].add(w)
+    tags = {w: set(t) for w, (t, _) in vocabulary.items()}
 
     def closeness(a: str, b: str) -> float:
-        shared = len(tags[a] & tags[b]) / math.sqrt(len(tags[a]) * len(tags[b]))
+        shared = len(tags[a] & tags[b]) / math.sqrt(len(tags[a]) * len(tags[b])) if tags[a] and tags[b] else 0.0
         return shared + (NEAR_BONUS if b in near[a] else 0.0)
 
-    ranks: dict[str, list[int]] = {}
-    for target in sorted({t for ts in data["targets"].values() for t in ts}):
-        others = sorted((w for w in vocabulary if w != target), key=lambda w: (-closeness(target, w), w))
-        ranks[target] = [index[target]] + [index[w] for w in others]
-    return {"vocabulary": vocabulary, "ranks": ranks}
-
-
-def write_ranks() -> None:
-    out = compute_ranks(content.load("nearest.json"))
-    (content.DATA / RANKS_FILE).write_text(json.dumps(out, separators=(",", ":")) + "\n", encoding="utf-8")
+    out: dict[str, list[str]] = {}
+    for target in targets:
+        if target in tags:
+            out[target] = [target, *sorted((w for w in words if w != target), key=lambda w: (-closeness(target, w), w))]
+    return out
 
 
 @dataclass(frozen=True)
@@ -76,30 +71,16 @@ class NearestState:
         return min((g.rank for g in self.guesses), default=0)
 
 
-@cache
-def _ranks() -> dict[str, Any]:
-    loaded: dict[str, Any] = content.load(RANKS_FILE)
-    return loaded
-
-
-@cache
-def _targets() -> dict[str, tuple[str, ...]]:
-    return {theme: tuple(ts) for theme, ts in content.load("nearest.json")["targets"].items()}
-
-
-@cache
-def _puzzle(target: str) -> Puzzle:
-    data = _ranks()
-    vocabulary: list[str] = data["vocabulary"]
-    order = tuple(vocabulary[i] for i in data["ranks"][target])
-    return Puzzle(target, {w: r + 1 for r, w in enumerate(order)}, order)
+def _puzzle(ranking: Sequence[str]) -> Puzzle:
+    order = tuple(ranking)
+    return Puzzle(order[0], {w: r + 1 for r, w in enumerate(order)}, order)
 
 
 def _normal(word: str) -> str:
     return word.strip().lower()
 
 
-class NearestGame(Game[Puzzle, NearestState]):
+class NearestGame(ContentGame[Puzzle, NearestState]):
     id = "nearest"
     title = "Nearest neighbour"
     tagline = "Guess the secret word. Each guess shows how close you are."
@@ -116,8 +97,20 @@ class NearestGame(Game[Puzzle, NearestState]):
     moves = frozenset({"guess", "hint", "give-up"})
     max_moves = 300
 
-    def puzzle(self, db: Session, day: dt.date, variant: str) -> Puzzle:
-        return _puzzle(content.pick(_targets()[content.theme_of(day).id], self.id, day))
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date) -> list[Entry]:
+        return content.spread(pool, used, day, 1, self.id, lambda _, e: bool(e.ranking))
+
+    def build(self, db: Session, day: dt.date, chosen: list[Entry]) -> Puzzle:
+        ranking = chosen[0].ranking
+        if not ranking:  # pragma: no cover - choose() takes only words with a ranking
+            raise NotReadyError("nearest: no ranking")
+        return _puzzle(ranking)
+
+    def dump(self, puzzle: Puzzle) -> dict[str, Any]:
+        return {"ranking": list(puzzle.by_rank)}
+
+    def load(self, db: Session, data: dict[str, Any]) -> Puzzle:
+        return _puzzle(data["ranking"])
 
     def start(self, puzzle: Puzzle) -> NearestState:
         return NearestState()

@@ -1351,6 +1351,7 @@ bloat
 blobs
 block
 blocs
+blogs
 bloke
 blood
 bloom
@@ -1756,6 +1757,7 @@ byons
 byous
 byres
 bysen
+bytes
 byths
 byway
 caama
@@ -2735,6 +2737,7 @@ debby
 deben
 debit
 debts
+debug
 debus
 debut
 decad
@@ -3316,6 +3319,7 @@ elvan
 elver
 elves
 elvet
+email
 embar
 embay
 embed
@@ -3333,6 +3337,7 @@ emits
 emmas
 emmer
 emmet
+emoji
 emote
 empts
 empty
@@ -4057,6 +4062,7 @@ galps
 galts
 gamba
 gambs
+gamer
 games
 gamic
 gamin
@@ -5139,6 +5145,7 @@ inane
 inapt
 inarm
 inbes
+inbox
 inbys
 inchs
 incog
@@ -6500,6 +6507,7 @@ meloe
 melon
 melos
 melts
+memes
 memos
 mends
 mengs
@@ -7870,6 +7878,7 @@ pithy
 pitys
 piuri
 pivot
+pixel
 pixie
 pixys
 pizes
@@ -8524,6 +8533,7 @@ refts
 regal
 reges
 reget
+regex
 regia
 regin
 regle
@@ -10134,6 +10144,7 @@ start
 stary
 stash
 state
+stats
 stauk
 staun
 staup
@@ -10621,6 +10632,7 @@ tawpi
 tawse
 taxed
 taxer
+taxes
 taxis
 taxon
 taxor
@@ -11789,6 +11801,7 @@ vives
 vivid
 vixen
 vleis
+vlogs
 voars
 vocal
 vodka
@@ -12114,6 +12127,7 @@ wifie
 wigan
 wiggy
 wight
+wikis
 wilds
 wiles
 wilga

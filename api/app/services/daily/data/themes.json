@@ -1,7 +1,0 @@
-[
-  {"id": "stats", "title": "Statistics week", "blurb": "Averages, spread, samples and the odds of things."},
-  {"id": "ml", "title": "Machine learning week", "blurb": "Models, training, features and the words around AI."},
-  {"id": "finance", "title": "Finance week", "blurb": "Markets, money, accounts and the economy."},
-  {"id": "data", "title": "Data week", "blurb": "Databases, code, files and the tools of the trade."},
-  {"id": "business", "title": "Business week", "blurb": "Strategy, marketing, people and the firm."}
-]

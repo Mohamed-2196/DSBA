@@ -1,6 +1,5 @@
 [
   {
-    "id": "stats-averages",
     "theme": "stats",
     "label": "Measures of centre",
     "level": 1,
@@ -12,7 +11,6 @@
     ]
   },
   {
-    "id": "stats-charts",
     "theme": "stats",
     "label": "Kinds of chart",
     "level": 1,
@@ -25,7 +23,6 @@
     ]
   },
   {
-    "id": "stats-hypothesis",
     "theme": "stats",
     "label": "Hypothesis testing words",
     "level": 1,
@@ -38,7 +35,6 @@
     ]
   },
   {
-    "id": "stats-probability",
     "theme": "stats",
     "label": "Probability words",
     "level": 1,
@@ -51,7 +47,6 @@
     ]
   },
   {
-    "id": "stats-spread",
     "theme": "stats",
     "label": "Measures of spread",
     "level": 2,
@@ -63,7 +58,6 @@
     ]
   },
   {
-    "id": "stats-distributions",
     "theme": "stats",
     "label": "Probability distributions",
     "level": 2,
@@ -77,7 +71,6 @@
     ]
   },
   {
-    "id": "stats-greek",
     "theme": "stats",
     "label": "Greek letters in statistics",
     "level": 2,
@@ -90,7 +83,6 @@
     ]
   },
   {
-    "id": "stats-sampling",
     "theme": "stats",
     "label": "Sampling methods",
     "level": 2,
@@ -104,7 +96,6 @@
     ]
   },
   {
-    "id": "stats-props",
     "theme": "stats",
     "label": "Classic probability props",
     "level": 2,
@@ -118,7 +109,6 @@
     ]
   },
   {
-    "id": "stats-shape",
     "theme": "stats",
     "label": "Describing a distribution's shape",
     "level": 2,
@@ -130,7 +120,6 @@
     ]
   },
   {
-    "id": "stats-regression",
     "theme": "stats",
     "label": "Parts of a regression",
     "level": 2,
@@ -143,7 +132,6 @@
     ]
   },
   {
-    "id": "stats-tests",
     "theme": "stats",
     "label": "Named statistical tests",
     "level": 3,
@@ -155,7 +143,6 @@
     ]
   },
   {
-    "id": "stats-bias",
     "theme": "stats",
     "label": "___ bias",
     "level": 3,
@@ -169,7 +156,6 @@
     ]
   },
   {
-    "id": "stats-statisticians",
     "theme": "stats",
     "label": "Famous statisticians",
     "level": 3,
@@ -183,7 +169,6 @@
     ]
   },
   {
-    "id": "stats-bayes",
     "theme": "stats",
     "label": "Words in Bayes' theorem",
     "level": 3,
@@ -195,7 +180,6 @@
     ]
   },
   {
-    "id": "stats-quantiles",
     "theme": "stats",
     "label": "Ways to cut ordered data into equal parts",
     "level": 3,
@@ -208,7 +192,6 @@
     ]
   },
   {
-    "id": "stats-design",
     "theme": "stats",
     "label": "Experiment design words",
     "level": 3,
@@ -221,7 +204,6 @@
     ]
   },
   {
-    "id": "stats-bell",
     "theme": "stats",
     "label": "Bell ___",
     "level": 4,
@@ -234,7 +216,6 @@
     ]
   },
   {
-    "id": "stats-hidden-numbers",
     "theme": "stats",
     "label": "Hidden numbers",
     "level": 4,
@@ -247,7 +228,6 @@
     ]
   },
   {
-    "id": "stats-standard",
     "theme": "stats",
     "label": "Standard ___",
     "level": 4,
@@ -260,7 +240,6 @@
     ]
   },
   {
-    "id": "stats-central",
     "theme": "stats",
     "label": "Central ___",
     "level": 4,
@@ -273,7 +252,6 @@
     ]
   },
   {
-    "id": "ml-metrics",
     "theme": "ml",
     "label": "Classification metrics",
     "level": 1,
@@ -286,7 +264,6 @@
     ]
   },
   {
-    "id": "ml-neural",
     "theme": "ml",
     "label": "Parts of a neural network",
     "level": 1,
@@ -299,7 +276,6 @@
     ]
   },
   {
-    "id": "ml-training",
     "theme": "ml",
     "label": "Training loop words",
     "level": 1,
@@ -312,7 +288,6 @@
     ]
   },
   {
-    "id": "ml-splits",
     "theme": "ml",
     "label": "Data splits",
     "level": 1,
@@ -324,7 +299,6 @@
     ]
   },
   {
-    "id": "ml-learning",
     "theme": "ml",
     "label": "___ learning",
     "level": 2,
@@ -337,7 +311,6 @@
     ]
   },
   {
-    "id": "ml-clustering",
     "theme": "ml",
     "label": "Clustering methods",
     "level": 2,
@@ -350,7 +323,6 @@
     ]
   },
   {
-    "id": "ml-activations",
     "theme": "ml",
     "label": "Activation functions",
     "level": 2,
@@ -363,7 +335,6 @@
     ]
   },
   {
-    "id": "ml-overfitting",
     "theme": "ml",
     "label": "Ways to fight overfitting",
     "level": 2,
@@ -376,7 +347,6 @@
     ]
   },
   {
-    "id": "ml-language",
     "theme": "ml",
     "label": "Language model words",
     "level": 2,
@@ -389,7 +359,6 @@
     ]
   },
   {
-    "id": "ml-vision",
     "theme": "ml",
     "label": "Computer vision tasks",
     "level": 2,
@@ -402,7 +371,6 @@
     ]
   },
   {
-    "id": "ml-trees",
     "theme": "ml",
     "label": "Parts of a decision tree",
     "level": 2,
@@ -415,7 +383,6 @@
     ]
   },
   {
-    "id": "ml-optimisers",
     "theme": "ml",
     "label": "Optimisers",
     "level": 3,
@@ -429,7 +396,6 @@
     ]
   },
   {
-    "id": "ml-architectures",
     "theme": "ml",
     "label": "Neural network architectures",
     "level": 3,
@@ -443,7 +409,6 @@
     ]
   },
   {
-    "id": "ml-pioneers",
     "theme": "ml",
     "label": "AI pioneers",
     "level": 3,
@@ -457,7 +422,6 @@
     ]
   },
   {
-    "id": "ml-ensembles",
     "theme": "ml",
     "label": "Ensemble methods",
     "level": 3,
@@ -471,7 +435,6 @@
     ]
   },
   {
-    "id": "ml-reduction",
     "theme": "ml",
     "label": "Dimensionality reduction",
     "level": 3,
@@ -484,7 +447,6 @@
     ]
   },
   {
-    "id": "ml-network",
     "theme": "ml",
     "label": "___ network",
     "level": 4,
@@ -497,7 +459,6 @@
     ]
   },
   {
-    "id": "ml-film",
     "theme": "ml",
     "label": "AIs from films",
     "level": 4,
@@ -510,7 +471,6 @@
     ]
   },
   {
-    "id": "ml-deep",
     "theme": "ml",
     "label": "Deep ___",
     "level": 4,
@@ -524,7 +484,6 @@
     ]
   },
   {
-    "id": "ml-model",
     "theme": "ml",
     "label": "___ model",
     "level": 4,
@@ -537,7 +496,6 @@
     ]
   },
   {
-    "id": "finance-balance-sheet",
     "theme": "finance",
     "label": "On the balance sheet",
     "level": 1,
@@ -549,7 +507,6 @@
     ]
   },
   {
-    "id": "finance-currencies",
     "theme": "finance",
     "label": "Currencies",
     "level": 1,
@@ -563,7 +520,6 @@
     ]
   },
   {
-    "id": "finance-investments",
     "theme": "finance",
     "label": "Things you can invest in",
     "level": 1,
@@ -576,7 +532,6 @@
     ]
   },
   {
-    "id": "finance-macro",
     "theme": "finance",
     "label": "Macroeconomic indicators",
     "level": 1,
@@ -589,7 +544,6 @@
     ]
   },
   {
-    "id": "finance-banking",
     "theme": "finance",
     "label": "Banking products",
     "level": 1,
@@ -602,7 +556,6 @@
     ]
   },
   {
-    "id": "finance-income-statement",
     "theme": "finance",
     "label": "On the income statement",
     "level": 2,
@@ -615,7 +568,6 @@
     ]
   },
   {
-    "id": "finance-ratios",
     "theme": "finance",
     "label": "___ ratio",
     "level": 2,
@@ -628,7 +580,6 @@
     ]
   },
   {
-    "id": "finance-structures",
     "theme": "finance",
     "label": "Market structures",
     "level": 2,
@@ -640,7 +591,6 @@
     ]
   },
   {
-    "id": "finance-derivatives",
     "theme": "finance",
     "label": "Derivatives",
     "level": 2,
@@ -653,7 +603,6 @@
     ]
   },
   {
-    "id": "finance-tax",
     "theme": "finance",
     "label": "Kinds of tax",
     "level": 2,
@@ -667,7 +616,6 @@
     ]
   },
   {
-    "id": "finance-animals",
     "theme": "finance",
     "label": "Animals of the markets",
     "level": 3,
@@ -680,7 +628,6 @@
     ]
   },
   {
-    "id": "finance-economists",
     "theme": "finance",
     "label": "Economists",
     "level": 3,
@@ -694,7 +641,6 @@
     ]
   },
   {
-    "id": "finance-principles",
     "theme": "finance",
     "label": "Accounting concepts",
     "level": 3,
@@ -707,7 +653,6 @@
     ]
   },
   {
-    "id": "finance-supply-demand",
     "theme": "finance",
     "label": "Supply and demand words",
     "level": 3,
@@ -720,7 +665,6 @@
     ]
   },
   {
-    "id": "finance-bubbles",
     "theme": "finance",
     "label": "Famous bubbles and crashes",
     "level": 3,
@@ -732,7 +676,6 @@
     ]
   },
   {
-    "id": "finance-capital",
     "theme": "finance",
     "label": "___ capital",
     "level": 3,
@@ -745,7 +688,6 @@
     ]
   },
   {
-    "id": "finance-street",
     "theme": "finance",
     "label": "___ Street",
     "level": 4,
@@ -759,7 +701,6 @@
     ]
   },
   {
-    "id": "finance-hidden-currencies",
     "theme": "finance",
     "label": "Hidden currencies",
     "level": 4,
@@ -772,7 +713,6 @@
     ]
   },
   {
-    "id": "finance-bank",
     "theme": "finance",
     "label": "___ bank",
     "level": 4,
@@ -784,7 +724,6 @@
     ]
   },
   {
-    "id": "finance-market",
     "theme": "finance",
     "label": "___ market",
     "level": 4,
@@ -797,7 +736,6 @@
     ]
   },
   {
-    "id": "data-sql",
     "theme": "data",
     "label": "SQL keywords",
     "level": 1,
@@ -810,7 +748,6 @@
     ]
   },
   {
-    "id": "data-types",
     "theme": "data",
     "label": "Python data types",
     "level": 1,
@@ -824,7 +761,6 @@
     ]
   },
   {
-    "id": "data-languages",
     "theme": "data",
     "label": "Programming languages",
     "level": 1,
@@ -838,7 +774,6 @@
     ]
   },
   {
-    "id": "data-git",
     "theme": "data",
     "label": "Git commands",
     "level": 1,
@@ -852,7 +787,6 @@
     ]
   },
   {
-    "id": "data-units",
     "theme": "data",
     "label": "Units of data",
     "level": 1,
@@ -866,7 +800,6 @@
     ]
   },
   {
-    "id": "data-aggregates",
     "theme": "data",
     "label": "SQL aggregate functions",
     "level": 1,
@@ -879,7 +812,6 @@
     ]
   },
   {
-    "id": "data-joins",
     "theme": "data",
     "label": "Kinds of SQL join",
     "level": 2,
@@ -893,7 +825,6 @@
     ]
   },
   {
-    "id": "data-libraries",
     "theme": "data",
     "label": "Python libraries",
     "level": 2,
@@ -907,7 +838,6 @@
     ]
   },
   {
-    "id": "data-databases",
     "theme": "data",
     "label": "Database systems",
     "level": 2,
@@ -921,7 +851,6 @@
     ]
   },
   {
-    "id": "data-keys",
     "theme": "data",
     "label": "Kinds of database key",
     "level": 2,
@@ -934,7 +863,6 @@
     ]
   },
   {
-    "id": "data-structures",
     "theme": "data",
     "label": "Data structures",
     "level": 2,
@@ -947,7 +875,6 @@
     ]
   },
   {
-    "id": "data-formats",
     "theme": "data",
     "label": "File formats",
     "level": 2,
@@ -960,7 +887,6 @@
     ]
   },
   {
-    "id": "data-sorts",
     "theme": "data",
     "label": "___ sort",
     "level": 3,
@@ -974,7 +900,6 @@
     ]
   },
   {
-    "id": "data-errors",
     "theme": "data",
     "label": "Python ___Error",
     "level": 3,
@@ -988,7 +913,6 @@
     ]
   },
   {
-    "id": "data-design",
     "theme": "data",
     "label": "Database design words",
     "level": 3,
@@ -1001,7 +925,6 @@
     ]
   },
   {
-    "id": "data-big-data",
     "theme": "data",
     "label": "Big data and cloud tools",
     "level": 3,
@@ -1015,7 +938,6 @@
     ]
   },
   {
-    "id": "data-snakes",
     "theme": "data",
     "label": "Snakes",
     "level": 4,
@@ -1028,7 +950,6 @@
     ]
   },
   {
-    "id": "data-code",
     "theme": "data",
     "label": "___ code",
     "level": 4,
@@ -1041,7 +962,6 @@
     ]
   },
   {
-    "id": "data-base",
     "theme": "data",
     "label": "___base",
     "level": 4,
@@ -1054,7 +974,6 @@
     ]
   },
   {
-    "id": "business-four-ps",
     "theme": "business",
     "label": "The four Ps of marketing",
     "level": 1,
@@ -1066,7 +985,6 @@
     ]
   },
   {
-    "id": "business-swot",
     "theme": "business",
     "label": "SWOT, one word each",
     "level": 1,
@@ -1078,7 +996,6 @@
     ]
   },
   {
-    "id": "business-roles",
     "theme": "business",
     "label": "Office roles",
     "level": 1,
@@ -1091,7 +1008,6 @@
     ]
   },
   {
-    "id": "business-kinds",
     "theme": "business",
     "label": "Kinds of business",
     "level": 1,
@@ -1104,7 +1020,6 @@
     ]
   },
   {
-    "id": "business-channels",
     "theme": "business",
     "label": "Advertising channels",
     "level": 1,
@@ -1117,7 +1032,6 @@
     ]
   },
   {
-    "id": "business-pestle",
     "theme": "business",
     "label": "PESTLE factors",
     "level": 2,
@@ -1129,7 +1043,6 @@
     ]
   },
   {
-    "id": "business-leadership",
     "theme": "business",
     "label": "Leadership styles",
     "level": 2,
@@ -1141,7 +1054,6 @@
     ]
   },
   {
-    "id": "business-segments",
     "theme": "business",
     "label": "Ways to segment a market",
     "level": 2,
@@ -1153,7 +1065,6 @@
     ]
   },
   {
-    "id": "business-hr",
     "theme": "business",
     "label": "HR processes",
     "level": 2,
@@ -1166,7 +1077,6 @@
     ]
   },
   {
-    "id": "business-online",
     "theme": "business",
     "label": "Online business models",
     "level": 2,
@@ -1179,7 +1089,6 @@
     ]
   },
   {
-    "id": "business-funding",
     "theme": "business",
     "label": "Ways to fund a startup",
     "level": 2,
@@ -1192,7 +1101,6 @@
     ]
   },
   {
-    "id": "business-lifecycle",
     "theme": "business",
     "label": "Product life cycle stages",
     "level": 2,
@@ -1204,7 +1112,6 @@
     ]
   },
   {
-    "id": "business-supply-chain",
     "theme": "business",
     "label": "Supply chain words",
     "level": 2,
@@ -1218,7 +1125,6 @@
     ]
   },
   {
-    "id": "business-porter",
     "theme": "business",
     "label": "Porter's five forces",
     "level": 3,
@@ -1231,7 +1137,6 @@
     ]
   },
   {
-    "id": "business-boston",
     "theme": "business",
     "label": "Boston matrix",
     "level": 3,
@@ -1244,7 +1149,6 @@
     ]
   },
   {
-    "id": "business-motivation",
     "theme": "business",
     "label": "Motivation theorists",
     "level": 3,
@@ -1258,7 +1162,6 @@
     ]
   },
   {
-    "id": "business-acronyms",
     "theme": "business",
     "label": "Business acronyms",
     "level": 3,
@@ -1272,7 +1175,6 @@
     ]
   },
   {
-    "id": "business-tank",
     "theme": "business",
     "label": "___ tank",
     "level": 4,
@@ -1285,7 +1187,6 @@
     ]
   },
   {
-    "id": "business-brain",
     "theme": "business",
     "label": "Brain___",
     "level": 4,
@@ -1299,7 +1200,6 @@
     ]
   },
   {
-    "id": "business-glass",
     "theme": "business",
     "label": "Glass ___",
     "level": 4,
@@ -1312,7 +1212,6 @@
     ]
   },
   {
-    "id": "business-pitch",
     "theme": "business",
     "label": "Things you can pitch",
     "level": 4,

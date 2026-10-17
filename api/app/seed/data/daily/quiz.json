@@ -1,6 +1,5 @@
 [
   {
-    "id": "stats-001",
     "theme": "stats",
     "question": "Which measure of centre is most affected by outliers?",
     "options": [
@@ -10,10 +9,9 @@
       "Interquartile range"
     ],
     "answer": 0,
-    "explain": "The mean uses every value, so one extreme value pulls it towards itself."
+    "explanation": "The mean uses every value, so one extreme value pulls it towards itself."
   },
   {
-    "id": "stats-002",
     "theme": "stats",
     "question": "What is the median of 3, 7, 9, 12, 20?",
     "options": [
@@ -23,10 +21,9 @@
       "12"
     ],
     "answer": 2,
-    "explain": "With five ordered values the median is the third one, which is 9."
+    "explanation": "With five ordered values the median is the third one, which is 9."
   },
   {
-    "id": "stats-003",
     "theme": "stats",
     "question": "A fair coin is tossed twice. What is the probability of two heads?",
     "options": [
@@ -36,10 +33,9 @@
       "3/4"
     ],
     "answer": 1,
-    "explain": "The tosses are independent, so the probability is 1/2 times 1/2."
+    "explanation": "The tosses are independent, so the probability is 1/2 times 1/2."
   },
   {
-    "id": "stats-004",
     "theme": "stats",
     "question": "The standard deviation is the square root of which measure?",
     "options": [
@@ -49,10 +45,9 @@
       "Variance"
     ],
     "answer": 3,
-    "explain": "Taking the square root of the variance puts spread back into the data's units."
+    "explanation": "Taking the square root of the variance puts spread back into the data's units."
   },
   {
-    "id": "stats-005",
     "theme": "stats",
     "question": "Roughly what share of a normal distribution lies within one standard deviation of the mean?",
     "options": [
@@ -62,10 +57,9 @@
       "68%"
     ],
     "answer": 3,
-    "explain": "The empirical rule gives about 68%, 95% and 99.7% for one, two and three standard deviations."
+    "explanation": "The empirical rule gives about 68%, 95% and 99.7% for one, two and three standard deviations."
   },
   {
-    "id": "stats-006",
     "theme": "stats",
     "question": "A test gives p = 0.01 with a 5% significance level. What do you do?",
     "options": [
@@ -75,10 +69,9 @@
       "Double the sample size"
     ],
     "answer": 1,
-    "explain": "The p-value is below 0.05, so the result is significant at the 5% level."
+    "explanation": "The p-value is below 0.05, so the result is significant at the 5% level."
   },
   {
-    "id": "stats-007",
     "theme": "stats",
     "question": "What is a Type I error?",
     "options": [
@@ -88,10 +81,9 @@
       "Miscounting the sample"
     ],
     "answer": 2,
-    "explain": "A Type I error is a false positive: you reject the null when it is actually true."
+    "explanation": "A Type I error is a false positive: you reject the null when it is actually true."
   },
   {
-    "id": "stats-008",
     "theme": "stats",
     "question": "Which distribution often models the number of events in a fixed time interval?",
     "options": [
@@ -101,10 +93,9 @@
       "Exponential"
     ],
     "answer": 0,
-    "explain": "The Poisson distribution counts events that happen at a constant average rate."
+    "explanation": "The Poisson distribution counts events that happen at a constant average rate."
   },
   {
-    "id": "stats-009",
     "theme": "stats",
     "question": "What range can Pearson's correlation coefficient take?",
     "options": [
@@ -114,10 +105,9 @@
       "Any real number"
     ],
     "answer": 0,
-    "explain": "A value of -1 or 1 means a perfect linear relationship; 0 means no linear relationship."
+    "explanation": "A value of -1 or 1 means a perfect linear relationship; 0 means no linear relationship."
   },
   {
-    "id": "stats-010",
     "theme": "stats",
     "question": "In a positively skewed distribution, which tail is longer?",
     "options": [
@@ -127,10 +117,9 @@
       "Neither tail"
     ],
     "answer": 2,
-    "explain": "Positive skew means a long tail of high values on the right."
+    "explanation": "Positive skew means a long tail of high values on the right."
   },
   {
-    "id": "stats-011",
     "theme": "stats",
     "question": "You roll a fair six-sided die. What is the probability of getting more than 4?",
     "options": [
@@ -140,10 +129,9 @@
       "2/3"
     ],
     "answer": 1,
-    "explain": "Only 5 and 6 qualify, so the probability is 2 out of 6."
+    "explanation": "Only 5 and 6 qualify, so the probability is 2 out of 6."
   },
   {
-    "id": "stats-012",
     "theme": "stats",
     "question": "Which chart best shows the distribution of one continuous variable?",
     "options": [
@@ -153,10 +141,9 @@
       "Histogram"
     ],
     "answer": 3,
-    "explain": "A histogram groups continuous values into bins and shows how often each occurs."
+    "explanation": "A histogram groups continuous values into bins and shows how often each occurs."
   },
   {
-    "id": "stats-013",
     "theme": "stats",
     "question": "How is the interquartile range calculated?",
     "options": [
@@ -166,10 +153,9 @@
       "Q3 minus Q1"
     ],
     "answer": 3,
-    "explain": "The interquartile range covers the middle 50% of the data, from Q1 to Q3."
+    "explanation": "The interquartile range covers the middle 50% of the data, from Q1 to Q3."
   },
   {
-    "id": "stats-014",
     "theme": "stats",
     "question": "A and B are independent, with P(A) = 0.5 and P(B) = 0.4. What is P(A and B)?",
     "options": [
@@ -179,10 +165,9 @@
       "0.45"
     ],
     "answer": 1,
-    "explain": "For independent events, P(A and B) is P(A) times P(B)."
+    "explanation": "For independent events, P(A and B) is P(A) times P(B)."
   },
   {
-    "id": "stats-015",
     "theme": "stats",
     "question": "By the central limit theorem, the sample mean's distribution tends towards which shape?",
     "options": [
@@ -192,10 +177,9 @@
       "The population's shape"
     ],
     "answer": 2,
-    "explain": "For large samples the sample mean is approximately normal, whatever the population looks like."
+    "explanation": "For large samples the sample mean is approximately normal, whatever the population looks like."
   },
   {
-    "id": "stats-016",
     "theme": "stats",
     "question": "Which sampling method splits the population into groups and samples from every group?",
     "options": [
@@ -205,10 +189,9 @@
       "Snowball sampling"
     ],
     "answer": 0,
-    "explain": "Stratified sampling takes a sample from each stratum so every group is represented."
+    "explanation": "Stratified sampling takes a sample from each stratum so every group is represented."
   },
   {
-    "id": "stats-017",
     "theme": "stats",
     "question": "What happens to a 95% confidence interval as the sample size grows?",
     "options": [
@@ -218,10 +201,9 @@
       "It becomes 99%"
     ],
     "answer": 0,
-    "explain": "More data lowers the standard error, so the interval tightens."
+    "explanation": "More data lowers the standard error, so the interval tightens."
   },
   {
-    "id": "stats-018",
     "theme": "stats",
     "question": "What does Bayes' theorem let you do?",
     "options": [
@@ -231,10 +213,9 @@
       "Remove outliers"
     ],
     "answer": 2,
-    "explain": "Bayes' theorem turns a prior probability into a posterior once you see the data."
+    "explanation": "Bayes' theorem turns a prior probability into a posterior once you see the data."
   },
   {
-    "id": "stats-019",
     "theme": "stats",
     "question": "What is the variance of a constant?",
     "options": [
@@ -244,10 +225,9 @@
       "The constant squared"
     ],
     "answer": 1,
-    "explain": "A constant never varies, so its spread around its mean is zero."
+    "explanation": "A constant never varies, so its spread around its mean is zero."
   },
   {
-    "id": "stats-020",
     "theme": "stats",
     "question": "A regression line is y = 2 + 3x. What is the predicted y when x = 4?",
     "options": [
@@ -257,10 +237,9 @@
       "14"
     ],
     "answer": 3,
-    "explain": "Substitute x = 4: 2 + 3 times 4 gives 14."
+    "explanation": "Substitute x = 4: 2 + 3 times 4 gives 14."
   },
   {
-    "id": "stats-021",
     "theme": "stats",
     "question": "What is the mode of 2, 4, 4, 5, 7, 7, 7, 9?",
     "options": [
@@ -270,10 +249,9 @@
       "7"
     ],
     "answer": 3,
-    "explain": "The mode is the most frequent value, and 7 appears three times."
+    "explanation": "The mode is the most frequent value, and 7 appears three times."
   },
   {
-    "id": "stats-022",
     "theme": "stats",
     "question": "What does R squared measure in a regression?",
     "options": [
@@ -283,10 +261,9 @@
       "The number of predictors"
     ],
     "answer": 1,
-    "explain": "R squared is the proportion of the variance in y that the model accounts for."
+    "explanation": "R squared is the proportion of the variance in y that the model accounts for."
   },
   {
-    "id": "stats-023",
     "theme": "stats",
     "question": "What is the expected value of one roll of a fair six-sided die?",
     "options": [
@@ -296,10 +273,9 @@
       "6"
     ],
     "answer": 2,
-    "explain": "The average of 1 to 6 is 21 divided by 6, which is 3.5."
+    "explanation": "The average of 1 to 6 is 21 divided by 6, which is 3.5."
   },
   {
-    "id": "stats-024",
     "theme": "stats",
     "question": "A strong correlation alone does not prove what?",
     "options": [
@@ -309,10 +285,9 @@
       "A relationship"
     ],
     "answer": 0,
-    "explain": "Two variables can move together because of a third factor or by chance."
+    "explanation": "Two variables can move together because of a third factor or by chance."
   },
   {
-    "id": "stats-025",
     "theme": "stats",
     "question": "A value has a z-score of 2. What does that mean?",
     "options": [
@@ -322,10 +297,9 @@
       "It is 2 units above the median"
     ],
     "answer": 0,
-    "explain": "A z-score counts how many standard deviations a value sits from the mean."
+    "explanation": "A z-score counts how many standard deviations a value sits from the mean."
   },
   {
-    "id": "stats-026",
     "theme": "stats",
     "question": "What is the probability of drawing a heart from a standard 52-card deck?",
     "options": [
@@ -335,10 +309,9 @@
       "1/52"
     ],
     "answer": 2,
-    "explain": "There are 13 hearts in 52 cards, which is one quarter."
+    "explanation": "There are 13 hearts in 52 cards, which is one quarter."
   },
   {
-    "id": "ml-001",
     "theme": "ml",
     "question": "What is learning from labelled examples called?",
     "options": [
@@ -348,10 +321,9 @@
       "Transfer learning"
     ],
     "answer": 0,
-    "explain": "Supervised learning fits a model to inputs paired with known answers."
+    "explanation": "Supervised learning fits a model to inputs paired with known answers."
   },
   {
-    "id": "ml-002",
     "theme": "ml",
     "question": "K-means is an example of which kind of method?",
     "options": [
@@ -361,10 +333,9 @@
       "Dimensionality reduction"
     ],
     "answer": 2,
-    "explain": "K-means groups unlabelled points into k clusters around their centres."
+    "explanation": "K-means groups unlabelled points into k clusters around their centres."
   },
   {
-    "id": "ml-003",
     "theme": "ml",
     "question": "What does overfitting mean?",
     "options": [
@@ -374,10 +345,9 @@
       "The dataset is too large"
     ],
     "answer": 1,
-    "explain": "An overfitted model learns noise in the training set and fails to generalise."
+    "explanation": "An overfitted model learns noise in the training set and fails to generalise."
   },
   {
-    "id": "ml-004",
     "theme": "ml",
     "question": "In gradient descent, what does the learning rate control?",
     "options": [
@@ -387,10 +357,9 @@
       "The size of each update step"
     ],
     "answer": 3,
-    "explain": "The learning rate scales how far the weights move on each step."
+    "explanation": "The learning rate scales how far the weights move on each step."
   },
   {
-    "id": "ml-005",
     "theme": "ml",
     "question": "What is one epoch?",
     "options": [
@@ -400,10 +369,9 @@
       "One full pass through the training data"
     ],
     "answer": 3,
-    "explain": "An epoch ends once the model has seen every training example once."
+    "explanation": "An epoch ends once the model has seen every training example once."
   },
   {
-    "id": "ml-006",
     "theme": "ml",
     "question": "Which activation function outputs values between 0 and 1?",
     "options": [
@@ -413,10 +381,9 @@
       "Linear"
     ],
     "answer": 1,
-    "explain": "The sigmoid squashes any input into the range 0 to 1."
+    "explanation": "The sigmoid squashes any input into the range 0 to 1."
   },
   {
-    "id": "ml-007",
     "theme": "ml",
     "question": "How is precision calculated?",
     "options": [
@@ -426,10 +393,9 @@
       "TN / (TN + FP)"
     ],
     "answer": 2,
-    "explain": "Precision is the share of predicted positives that really are positive."
+    "explanation": "Precision is the share of predicted positives that really are positive."
   },
   {
-    "id": "ml-008",
     "theme": "ml",
     "question": "Recall is also known as what?",
     "options": [
@@ -439,10 +405,9 @@
       "Accuracy"
     ],
     "answer": 0,
-    "explain": "Recall and sensitivity both measure the share of real positives the model finds."
+    "explanation": "Recall and sensitivity both measure the share of real positives the model finds."
   },
   {
-    "id": "ml-009",
     "theme": "ml",
     "question": "Why keep a separate test set?",
     "options": [
@@ -452,10 +417,9 @@
       "To increase the accuracy"
     ],
     "answer": 0,
-    "explain": "A test set the model never trained on gives an honest view of how it generalises."
+    "explanation": "A test set the model never trained on gives an honest view of how it generalises."
   },
   {
-    "id": "ml-010",
     "theme": "ml",
     "question": "Which technique randomly switches off neurons during training?",
     "options": [
@@ -465,10 +429,9 @@
       "Padding"
     ],
     "answer": 2,
-    "explain": "Dropout stops the network relying on any single neuron, which reduces overfitting."
+    "explanation": "Dropout stops the network relying on any single neuron, which reduces overfitting."
   },
   {
-    "id": "ml-011",
     "theme": "ml",
     "question": "A random forest combines many of which model?",
     "options": [
@@ -478,10 +441,9 @@
       "K-means models"
     ],
     "answer": 1,
-    "explain": "A random forest averages or votes across many decision trees trained on random samples."
+    "explanation": "A random forest averages or votes across many decision trees trained on random samples."
   },
   {
-    "id": "ml-012",
     "theme": "ml",
     "question": "An agent that learns from rewards and penalties uses which approach?",
     "options": [
@@ -491,10 +453,9 @@
       "Reinforcement learning"
     ],
     "answer": 3,
-    "explain": "In reinforcement learning an agent acts, gets rewards, and learns a policy."
+    "explanation": "In reinforcement learning an agent acts, gets rewards, and learns a policy."
   },
   {
-    "id": "ml-013",
     "theme": "ml",
     "question": "What is principal component analysis (PCA) mainly used for?",
     "options": [
@@ -504,10 +465,9 @@
       "Reducing the number of features"
     ],
     "answer": 3,
-    "explain": "PCA projects data onto fewer directions that keep most of the variance."
+    "explanation": "PCA projects data onto fewer directions that keep most of the variance."
   },
   {
-    "id": "ml-014",
     "theme": "ml",
     "question": "In k-nearest neighbours, what is k?",
     "options": [
@@ -517,10 +477,9 @@
       "The number of features"
     ],
     "answer": 1,
-    "explain": "KNN predicts from the k training points closest to the new one."
+    "explanation": "KNN predicts from the k training points closest to the new one."
   },
   {
-    "id": "ml-015",
     "theme": "ml",
     "question": "What does the T in GPT stand for?",
     "options": [
@@ -530,10 +489,9 @@
       "Tensor"
     ],
     "answer": 2,
-    "explain": "GPT stands for generative pre-trained transformer."
+    "explanation": "GPT stands for generative pre-trained transformer."
   },
   {
-    "id": "ml-016",
     "theme": "ml",
     "question": "Which layer type is typical in image recognition networks?",
     "options": [
@@ -543,10 +501,9 @@
       "Softmax"
     ],
     "answer": 0,
-    "explain": "Convolutional layers slide filters over an image to detect local patterns."
+    "explanation": "Convolutional layers slide filters over an image to detect local patterns."
   },
   {
-    "id": "ml-017",
     "theme": "ml",
     "question": "What does underfitting usually mean?",
     "options": [
@@ -556,10 +513,9 @@
       "There is too much data"
     ],
     "answer": 0,
-    "explain": "An underfitted model performs poorly even on the training data."
+    "explanation": "An underfitted model performs poorly even on the training data."
   },
   {
-    "id": "ml-018",
     "theme": "ml",
     "question": "A confusion matrix evaluates which kind of model?",
     "options": [
@@ -569,10 +525,9 @@
       "Dimensionality reduction"
     ],
     "answer": 2,
-    "explain": "It counts true and false positives and negatives for each predicted class."
+    "explanation": "It counts true and false positives and negatives for each predicted class."
   },
   {
-    "id": "ml-019",
     "theme": "ml",
     "question": "Which loss function is common for regression?",
     "options": [
@@ -582,10 +537,9 @@
       "Log loss"
     ],
     "answer": 1,
-    "explain": "Mean squared error averages the squared gaps between predictions and true values."
+    "explanation": "Mean squared error averages the squared gaps between predictions and true values."
   },
   {
-    "id": "ml-020",
     "theme": "ml",
     "question": "In 5-fold cross-validation, how many parts is the data split into?",
     "options": [
@@ -595,10 +549,9 @@
       "5"
     ],
     "answer": 3,
-    "explain": "Each of the 5 folds takes one turn as the validation set."
+    "explanation": "Each of the 5 folds takes one turn as the validation set."
   },
   {
-    "id": "ml-021",
     "theme": "ml",
     "question": "What does the Turing test check?",
     "options": [
@@ -608,10 +561,9 @@
       "Whether a machine's replies pass as human"
     ],
     "answer": 3,
-    "explain": "Alan Turing proposed judging a machine by whether its conversation is indistinguishable from a person's."
+    "explanation": "Alan Turing proposed judging a machine by whether its conversation is indistinguishable from a person's."
   },
   {
-    "id": "ml-022",
     "theme": "ml",
     "question": "How does boosting build its models?",
     "options": [
@@ -621,10 +573,9 @@
       "By pruning one large tree"
     ],
     "answer": 1,
-    "explain": "Boosting trains weak learners in sequence, focusing on what earlier ones got wrong."
+    "explanation": "Boosting trains weak learners in sequence, focusing on what earlier ones got wrong."
   },
   {
-    "id": "ml-023",
     "theme": "ml",
     "question": "What is a hyperparameter?",
     "options": [
@@ -634,10 +585,9 @@
       "A target label"
     ],
     "answer": 2,
-    "explain": "Hyperparameters such as the learning rate are set by you, not learned from the data."
+    "explanation": "Hyperparameters such as the learning rate are set by you, not learned from the data."
   },
   {
-    "id": "ml-024",
     "theme": "ml",
     "question": "In a large language model, what is a token?",
     "options": [
@@ -647,10 +597,9 @@
       "A training label"
     ],
     "answer": 0,
-    "explain": "Text is split into tokens before the model reads or writes it."
+    "explanation": "Text is split into tokens before the model reads or writes it."
   },
   {
-    "id": "ml-025",
     "theme": "ml",
     "question": "Which way does gradient descent move the weights?",
     "options": [
@@ -660,10 +609,9 @@
       "Always towards zero"
     ],
     "answer": 0,
-    "explain": "The gradient points uphill, so stepping against it reduces the loss."
+    "explanation": "The gradient points uphill, so stepping against it reduces the loss."
   },
   {
-    "id": "ml-026",
     "theme": "ml",
     "question": "With heavily imbalanced classes, which metric is more useful than accuracy?",
     "options": [
@@ -673,10 +621,9 @@
       "Mean squared error"
     ],
     "answer": 2,
-    "explain": "F1 balances precision and recall, so it is not fooled by always predicting the majority class."
+    "explanation": "F1 balances precision and recall, so it is not fooled by always predicting the majority class."
   },
   {
-    "id": "finance-001",
     "theme": "finance",
     "question": "What does the accounting equation say assets equal?",
     "options": [
@@ -686,10 +633,9 @@
       "Cash plus profit"
     ],
     "answer": 0,
-    "explain": "Everything a firm owns is funded either by what it owes or by its owners."
+    "explanation": "Everything a firm owns is funded either by what it owes or by its owners."
   },
   {
-    "id": "finance-002",
     "theme": "finance",
     "question": "What is inflation?",
     "options": [
@@ -699,10 +645,9 @@
       "A rise in GDP"
     ],
     "answer": 2,
-    "explain": "Inflation means the same money buys less than before."
+    "explanation": "Inflation means the same money buys less than before."
   },
   {
-    "id": "finance-003",
     "theme": "finance",
     "question": "Which statement shows revenue and expenses over a period?",
     "options": [
@@ -712,10 +657,9 @@
       "Statement of changes in equity"
     ],
     "answer": 1,
-    "explain": "The income statement reports performance over a period, ending in profit or loss."
+    "explanation": "The income statement reports performance over a period, ending in profit or loss."
   },
   {
-    "id": "finance-004",
     "theme": "finance",
     "question": "When interest rates rise, what usually happens to existing bond prices?",
     "options": [
@@ -725,10 +669,9 @@
       "They fall"
     ],
     "answer": 3,
-    "explain": "New bonds pay more, so older bonds with lower coupons are worth less."
+    "explanation": "New bonds pay more, so older bonds with lower coupons are worth less."
   },
   {
-    "id": "finance-005",
     "theme": "finance",
     "question": "What is a dividend?",
     "options": [
@@ -738,10 +681,9 @@
       "A share of profit paid to shareholders"
     ],
     "answer": 3,
-    "explain": "Companies pay dividends to owners out of their profits."
+    "explanation": "Companies pay dividends to owners out of their profits."
   },
   {
-    "id": "finance-006",
     "theme": "finance",
     "question": "How is gross profit calculated?",
     "options": [
@@ -751,10 +693,9 @@
       "Cash in minus cash out"
     ],
     "answer": 1,
-    "explain": "Gross profit is what is left after the direct costs of making what was sold."
+    "explanation": "Gross profit is what is left after the direct costs of making what was sold."
   },
   {
-    "id": "finance-007",
     "theme": "finance",
     "question": "What is the currency of Bahrain?",
     "options": [
@@ -764,10 +705,9 @@
       "Kuwaiti dinar"
     ],
     "answer": 2,
-    "explain": "Bahrain uses the Bahraini dinar, pegged to the US dollar."
+    "explanation": "Bahrain uses the Bahraini dinar, pegged to the US dollar."
   },
   {
-    "id": "finance-008",
     "theme": "finance",
     "question": "A common rule of thumb defines a recession as what?",
     "options": [
@@ -777,10 +717,9 @@
       "A year of high inflation"
     ],
     "answer": 0,
-    "explain": "Two consecutive quarters of negative growth is the usual rule of thumb."
+    "explanation": "Two consecutive quarters of negative growth is the usual rule of thumb."
   },
   {
-    "id": "finance-009",
     "theme": "finance",
     "question": "What does depreciation do?",
     "options": [
@@ -790,10 +729,9 @@
       "Spreads loan repayments"
     ],
     "answer": 0,
-    "explain": "Depreciation matches the cost of a long-term asset to the periods that use it."
+    "explanation": "Depreciation matches the cost of a long-term asset to the periods that use it."
   },
   {
-    "id": "finance-010",
     "theme": "finance",
     "question": "In double-entry bookkeeping, every transaction has what?",
     "options": [
@@ -803,10 +741,9 @@
       "A tax and a fee"
     ],
     "answer": 2,
-    "explain": "Recording both sides keeps the books in balance."
+    "explanation": "Recording both sides keeps the books in balance."
   },
   {
-    "id": "finance-011",
     "theme": "finance",
     "question": "What kind of risk can diversification reduce?",
     "options": [
@@ -816,10 +753,9 @@
       "Inflation risk only"
     ],
     "answer": 1,
-    "explain": "Spreading money across many assets cancels out firm-specific shocks, not market-wide ones."
+    "explanation": "Spreading money across many assets cancels out firm-specific shocks, not market-wide ones."
   },
   {
-    "id": "finance-012",
     "theme": "finance",
     "question": "What is a market with a single seller called?",
     "options": [
@@ -829,10 +765,9 @@
       "Monopoly"
     ],
     "answer": 3,
-    "explain": "A monopoly has one seller; a monopsony has one buyer."
+    "explanation": "A monopoly has one seller; a monopsony has one buyer."
   },
   {
-    "id": "finance-013",
     "theme": "finance",
     "question": "Price elasticity of demand is -2. How is demand described?",
     "options": [
@@ -842,10 +777,9 @@
       "Elastic"
     ],
     "answer": 3,
-    "explain": "Its absolute value is above 1, so quantity reacts more than proportionally to price."
+    "explanation": "Its absolute value is above 1, so quantity reacts more than proportionally to price."
   },
   {
-    "id": "finance-014",
     "theme": "finance",
     "question": "You invest 100 at 10% compound interest a year. What do you have after 2 years?",
     "options": [
@@ -855,10 +789,9 @@
       "200"
     ],
     "answer": 1,
-    "explain": "100 grows to 110 after one year, then 110 grows to 121."
+    "explanation": "100 grows to 110 after one year, then 110 grows to 121."
   },
   {
-    "id": "finance-015",
     "theme": "finance",
     "question": "What does GDP measure?",
     "options": [
@@ -868,10 +801,9 @@
       "Exports minus imports"
     ],
     "answer": 2,
-    "explain": "Gross domestic product is the total value of final output in a period."
+    "explanation": "Gross domestic product is the total value of final output in a period."
   },
   {
-    "id": "finance-016",
     "theme": "finance",
     "question": "Which of these is a current liability?",
     "options": [
@@ -881,10 +813,9 @@
       "Machinery"
     ],
     "answer": 0,
-    "explain": "Current liabilities are debts due within twelve months."
+    "explanation": "Current liabilities are debts due within twelve months."
   },
   {
-    "id": "finance-017",
     "theme": "finance",
     "question": "Why does a central bank usually raise interest rates?",
     "options": [
@@ -894,10 +825,9 @@
       "To encourage borrowing"
     ],
     "answer": 0,
-    "explain": "Higher rates make borrowing dearer, which cools spending and prices."
+    "explanation": "Higher rates make borrowing dearer, which cools spending and prices."
   },
   {
-    "id": "finance-018",
     "theme": "finance",
     "question": "What does a positive net present value (NPV) mean?",
     "options": [
@@ -907,10 +837,9 @@
       "The IRR is zero"
     ],
     "answer": 2,
-    "explain": "Positive NPV means discounted inflows exceed the cost of the investment."
+    "explanation": "Positive NPV means discounted inflows exceed the cost of the investment."
   },
   {
-    "id": "finance-019",
     "theme": "finance",
     "question": "What does a call option give its holder?",
     "options": [
@@ -920,10 +849,9 @@
       "A share of dividends"
     ],
     "answer": 1,
-    "explain": "A call is a right, not an obligation, to buy; a put is the right to sell."
+    "explanation": "A call is a right, not an obligation, to buy; a put is the right to sell."
   },
   {
-    "id": "finance-020",
     "theme": "finance",
     "question": "How is the current ratio calculated?",
     "options": [
@@ -933,10 +861,9 @@
       "Current assets / current liabilities"
     ],
     "answer": 3,
-    "explain": "It shows whether short-term assets can cover short-term debts."
+    "explanation": "It shows whether short-term assets can cover short-term debts."
   },
   {
-    "id": "finance-021",
     "theme": "finance",
     "question": "What is a bear market?",
     "options": [
@@ -946,10 +873,9 @@
       "A long period of falling prices"
     ],
     "answer": 3,
-    "explain": "Bears swipe downwards; bulls toss their horns up."
+    "explanation": "Bears swipe downwards; bulls toss their horns up."
   },
   {
-    "id": "finance-022",
     "theme": "finance",
     "question": "What is opportunity cost?",
     "options": [
@@ -959,10 +885,9 @@
       "The tax on a purchase"
     ],
     "answer": 1,
-    "explain": "Choosing one thing means giving up the next best alternative."
+    "explanation": "Choosing one thing means giving up the next best alternative."
   },
   {
-    "id": "finance-023",
     "theme": "finance",
     "question": "Which concept records revenue when earned, not when cash arrives?",
     "options": [
@@ -972,10 +897,9 @@
       "Consistency"
     ],
     "answer": 2,
-    "explain": "The accruals concept matches income and costs to the period they belong to."
+    "explanation": "The accruals concept matches income and costs to the period they belong to."
   },
   {
-    "id": "finance-024",
     "theme": "finance",
     "question": "What does equity represent in a company?",
     "options": [
@@ -985,10 +909,9 @@
       "The cash in the bank"
     ],
     "answer": 0,
-    "explain": "Equity is assets minus liabilities: what belongs to the owners."
+    "explanation": "Equity is assets minus liabilities: what belongs to the owners."
   },
   {
-    "id": "finance-025",
     "theme": "finance",
     "question": "Which of these is usually a fixed cost?",
     "options": [
@@ -998,10 +921,9 @@
       "Packaging"
     ],
     "answer": 0,
-    "explain": "Rent stays the same in the short run however much you produce."
+    "explanation": "Rent stays the same in the short run however much you produce."
   },
   {
-    "id": "finance-026",
     "theme": "finance",
     "question": "Supply rises while demand stays the same. What usually happens to price?",
     "options": [
@@ -1011,10 +933,9 @@
       "It doubles"
     ],
     "answer": 2,
-    "explain": "More goods chasing the same demand pushes the equilibrium price down."
+    "explanation": "More goods chasing the same demand pushes the equilibrium price down."
   },
   {
-    "id": "data-001",
     "theme": "data",
     "question": "Which SQL clause filters rows before they are grouped?",
     "options": [
@@ -1024,10 +945,9 @@
       "LIMIT"
     ],
     "answer": 0,
-    "explain": "WHERE filters individual rows; HAVING filters groups afterwards."
+    "explanation": "WHERE filters individual rows; HAVING filters groups afterwards."
   },
   {
-    "id": "data-002",
     "theme": "data",
     "question": "Which SQL clause filters groups after GROUP BY?",
     "options": [
@@ -1037,10 +957,9 @@
       "FROM"
     ],
     "answer": 2,
-    "explain": "HAVING can test aggregates such as COUNT or SUM for each group."
+    "explanation": "HAVING can test aggregates such as COUNT or SUM for each group."
   },
   {
-    "id": "data-003",
     "theme": "data",
     "question": "In Python, what does len([1, 2, 3]) return?",
     "options": [
@@ -1050,10 +969,9 @@
       "[1, 2, 3]"
     ],
     "answer": 1,
-    "explain": "len returns the number of items in the list."
+    "explanation": "len returns the number of items in the list."
   },
   {
-    "id": "data-004",
     "theme": "data",
     "question": "Which of these Python types is immutable?",
     "options": [
@@ -1063,10 +981,9 @@
       "tuple"
     ],
     "answer": 3,
-    "explain": "You cannot change a tuple's items after creating it."
+    "explanation": "You cannot change a tuple's items after creating it."
   },
   {
-    "id": "data-005",
     "theme": "data",
     "question": "What must a primary key be?",
     "options": [
@@ -1076,10 +993,9 @@
       "Unique and not null"
     ],
     "answer": 3,
-    "explain": "A primary key identifies each row, so it can't repeat or be missing."
+    "explanation": "A primary key identifies each row, so it can't repeat or be missing."
   },
   {
-    "id": "data-006",
     "theme": "data",
     "question": "What index does the first item of a Python list have?",
     "options": [
@@ -1089,10 +1005,9 @@
       "Any number"
     ],
     "answer": 1,
-    "explain": "Python counts positions from zero."
+    "explanation": "Python counts positions from zero."
   },
   {
-    "id": "data-007",
     "theme": "data",
     "question": "What does an INNER JOIN return?",
     "options": [
@@ -1102,10 +1017,9 @@
       "Rows that match in neither table"
     ],
     "answer": 2,
-    "explain": "Rows without a match on the join condition are left out."
+    "explanation": "Rows without a match on the join condition are left out."
   },
   {
-    "id": "data-008",
     "theme": "data",
     "question": "Which pandas function reads a CSV file?",
     "options": [
@@ -1115,10 +1029,9 @@
       "pd.csv()"
     ],
     "answer": 0,
-    "explain": "read_csv loads a comma-separated file into a DataFrame."
+    "explanation": "read_csv loads a comma-separated file into a DataFrame."
   },
   {
-    "id": "data-009",
     "theme": "data",
     "question": "What does SELECT COUNT(*) FROM orders return?",
     "options": [
@@ -1128,10 +1041,9 @@
       "The first row"
     ],
     "answer": 0,
-    "explain": "COUNT(*) counts every row in the table."
+    "explanation": "COUNT(*) counts every row in the table."
   },
   {
-    "id": "data-010",
     "theme": "data",
     "question": "How many bits are in a byte?",
     "options": [
@@ -1141,10 +1053,9 @@
       "10"
     ],
     "answer": 2,
-    "explain": "A byte is eight bits."
+    "explanation": "A byte is eight bits."
   },
   {
-    "id": "data-011",
     "theme": "data",
     "question": "Which data structure is last in, first out?",
     "options": [
@@ -1154,10 +1065,9 @@
       "Linked list"
     ],
     "answer": 1,
-    "explain": "A stack is like a pile of plates: you take the top one first."
+    "explanation": "A stack is like a pile of plates: you take the top one first."
   },
   {
-    "id": "data-012",
     "theme": "data",
     "question": "What does == do in Python?",
     "options": [
@@ -1167,10 +1077,9 @@
       "Checks whether two values are equal"
     ],
     "answer": 3,
-    "explain": "A single = assigns; a double == compares."
+    "explanation": "A single = assigns; a double == compares."
   },
   {
-    "id": "data-013",
     "theme": "data",
     "question": "Which git command records staged changes in the history?",
     "options": [
@@ -1180,10 +1089,9 @@
       "git commit"
     ],
     "answer": 3,
-    "explain": "git commit saves a snapshot of the staged changes."
+    "explanation": "git commit saves a snapshot of the staged changes."
   },
   {
-    "id": "data-014",
     "theme": "data",
     "question": "What is a foreign key?",
     "options": [
@@ -1193,10 +1101,9 @@
       "A key used only once"
     ],
     "answer": 1,
-    "explain": "Foreign keys link rows in one table to rows in another."
+    "explanation": "Foreign keys link rows in one table to rows in another."
   },
   {
-    "id": "data-015",
     "theme": "data",
     "question": "Which file format stores data as key-value pairs inside curly braces?",
     "options": [
@@ -1206,10 +1113,9 @@
       "PNG"
     ],
     "answer": 2,
-    "explain": "JSON objects look like {\"name\": \"value\"}."
+    "explanation": "JSON objects look like {\"name\": \"value\"}."
   },
   {
-    "id": "data-016",
     "theme": "data",
     "question": "Binary search on a sorted list of n items takes about how many steps?",
     "options": [
@@ -1219,10 +1125,9 @@
       "n / 2"
     ],
     "answer": 0,
-    "explain": "Each step halves the remaining items."
+    "explanation": "Each step halves the remaining items."
   },
   {
-    "id": "data-017",
     "theme": "data",
     "question": "What is the main aim of database normalisation?",
     "options": [
@@ -1232,10 +1137,9 @@
       "Compress images"
     ],
     "answer": 0,
-    "explain": "Storing each fact once means updates can't leave copies out of step."
+    "explanation": "Storing each fact once means updates can't leave copies out of step."
   },
   {
-    "id": "data-018",
     "theme": "data",
     "question": "In Python, what is 7 // 2?",
     "options": [
@@ -1245,10 +1149,9 @@
       "1"
     ],
     "answer": 2,
-    "explain": "// is floor division, so it drops the remainder."
+    "explanation": "// is floor division, so it drops the remainder."
   },
   {
-    "id": "data-019",
     "theme": "data",
     "question": "In Python, what is 7 % 3?",
     "options": [
@@ -1258,10 +1161,9 @@
       "2.33"
     ],
     "answer": 1,
-    "explain": "% gives the remainder: 7 is 2 threes with 1 left over."
+    "explanation": "% gives the remainder: 7 is 2 threes with 1 left over."
   },
   {
-    "id": "data-020",
     "theme": "data",
     "question": "Which SQL keyword removes duplicate rows from a result?",
     "options": [
@@ -1271,10 +1173,9 @@
       "DISTINCT"
     ],
     "answer": 3,
-    "explain": "SELECT DISTINCT returns each different row once."
+    "explanation": "SELECT DISTINCT returns each different row once."
   },
   {
-    "id": "data-021",
     "theme": "data",
     "question": "What does ETL stand for?",
     "options": [
@@ -1284,10 +1185,9 @@
       "Extract, transform, load"
     ],
     "answer": 3,
-    "explain": "ETL pipelines pull data out, clean and reshape it, then load it somewhere new."
+    "explanation": "ETL pipelines pull data out, clean and reshape it, then load it somewhere new."
   },
   {
-    "id": "data-022",
     "theme": "data",
     "question": "Which keyword defines a named function in Python?",
     "options": [
@@ -1297,10 +1197,9 @@
       "define"
     ],
     "answer": 1,
-    "explain": "Python functions start with def, then the name and parameters."
+    "explanation": "Python functions start with def, then the name and parameters."
   },
   {
-    "id": "data-023",
     "theme": "data",
     "question": "What does NULL mean in SQL?",
     "options": [
@@ -1310,10 +1209,9 @@
       "False"
     ],
     "answer": 2,
-    "explain": "NULL is not a value at all, so you test it with IS NULL."
+    "explanation": "NULL is not a value at all, so you test it with IS NULL."
   },
   {
-    "id": "data-024",
     "theme": "data",
     "question": "How many times does a loop over range(5) run?",
     "options": [
@@ -1323,10 +1221,9 @@
       "0"
     ],
     "answer": 0,
-    "explain": "range(5) yields 0, 1, 2, 3 and 4."
+    "explanation": "range(5) yields 0, 1, 2, 3 and 4."
   },
   {
-    "id": "data-025",
     "theme": "data",
     "question": "Which pandas method shows the first five rows of a DataFrame?",
     "options": [
@@ -1336,10 +1233,9 @@
       "show()"
     ],
     "answer": 0,
-    "explain": "head() returns the first five rows unless you pass a different number."
+    "explanation": "head() returns the first five rows unless you pass a different number."
   },
   {
-    "id": "data-026",
     "theme": "data",
     "question": "On average, how long does looking up a key in a Python dict take?",
     "options": [
@@ -1349,10 +1245,9 @@
       "Quadratic time, O(n squared)"
     ],
     "answer": 2,
-    "explain": "Dicts are hash tables, so a lookup doesn't depend on the dict's size."
+    "explanation": "Dicts are hash tables, so a lookup doesn't depend on the dict's size."
   },
   {
-    "id": "business-001",
     "theme": "business",
     "question": "The four Ps of marketing are product, price, place and what?",
     "options": [
@@ -1362,10 +1257,9 @@
       "Planning"
     ],
     "answer": 0,
-    "explain": "The classic marketing mix is product, price, place and promotion."
+    "explanation": "The classic marketing mix is product, price, place and promotion."
   },
   {
-    "id": "business-002",
     "theme": "business",
     "question": "In a SWOT analysis, which two factors are internal?",
     "options": [
@@ -1375,10 +1269,9 @@
       "Weaknesses and opportunities"
     ],
     "answer": 2,
-    "explain": "Strengths and weaknesses come from inside the firm; opportunities and threats from outside."
+    "explanation": "Strengths and weaknesses come from inside the firm; opportunities and threats from outside."
   },
   {
-    "id": "business-003",
     "theme": "business",
     "question": "In the Boston matrix, high share in a low-growth market is called what?",
     "options": [
@@ -1388,10 +1281,9 @@
       "Dog"
     ],
     "answer": 1,
-    "explain": "Cash cows earn steady cash without needing much investment."
+    "explanation": "Cash cows earn steady cash without needing much investment."
   },
   {
-    "id": "business-004",
     "theme": "business",
     "question": "Which of these is one of Porter's five forces?",
     "options": [
@@ -1401,10 +1293,9 @@
       "Threat of new entrants"
     ],
     "answer": 3,
-    "explain": "The five forces are rivalry, new entrants, substitutes, and the power of buyers and suppliers."
+    "explanation": "The five forces are rivalry, new entrants, substitutes, and the power of buyers and suppliers."
   },
   {
-    "id": "business-005",
     "theme": "business",
     "question": "What is a USP?",
     "options": [
@@ -1414,10 +1305,9 @@
       "A unique selling point"
     ],
     "answer": 3,
-    "explain": "A USP is what makes a product stand out from its rivals."
+    "explanation": "A USP is what makes a product stand out from its rivals."
   },
   {
-    "id": "business-006",
     "theme": "business",
     "question": "What sits at the top of Maslow's hierarchy of needs?",
     "options": [
@@ -1427,10 +1317,9 @@
       "Physiological needs"
     ],
     "answer": 1,
-    "explain": "Maslow put reaching your full potential at the top of the pyramid."
+    "explanation": "Maslow put reaching your full potential at the top of the pyramid."
   },
   {
-    "id": "business-007",
     "theme": "business",
     "question": "What does B2B mean?",
     "options": [
@@ -1440,10 +1329,9 @@
       "Bank to bank"
     ],
     "answer": 2,
-    "explain": "B2B firms sell to other businesses rather than to consumers."
+    "explanation": "B2B firms sell to other businesses rather than to consumers."
   },
   {
-    "id": "business-008",
     "theme": "business",
     "question": "Which leadership style makes decisions alone with little input from staff?",
     "options": [
@@ -1453,10 +1341,9 @@
       "Servant"
     ],
     "answer": 0,
-    "explain": "Autocratic leaders keep decision-making to themselves."
+    "explanation": "Autocratic leaders keep decision-making to themselves."
   },
   {
-    "id": "business-009",
     "theme": "business",
     "question": "What is market segmentation?",
     "options": [
@@ -1466,10 +1353,9 @@
       "Cutting costs"
     ],
     "answer": 0,
-    "explain": "Segments let a firm target groups with similar needs."
+    "explanation": "Segments let a firm target groups with similar needs."
   },
   {
-    "id": "business-010",
     "theme": "business",
     "question": "In the Ansoff matrix, selling new products to existing markets is called what?",
     "options": [
@@ -1479,10 +1365,9 @@
       "Diversification"
     ],
     "answer": 2,
-    "explain": "Ansoff pairs new products with existing markets as product development."
+    "explanation": "Ansoff pairs new products with existing markets as product development."
   },
   {
-    "id": "business-011",
     "theme": "business",
     "question": "Which stage of the product life cycle comes after growth?",
     "options": [
@@ -1492,10 +1377,9 @@
       "Development"
     ],
     "answer": 1,
-    "explain": "Sales level off in maturity before eventually declining."
+    "explanation": "Sales level off in maturity before eventually declining."
   },
   {
-    "id": "business-012",
     "theme": "business",
     "question": "What does KPI stand for?",
     "options": [
@@ -1505,10 +1389,9 @@
       "Key performance indicator"
     ],
     "answer": 3,
-    "explain": "A KPI is a measure that tracks progress towards a goal."
+    "explanation": "A KPI is a measure that tracks progress towards a goal."
   },
   {
-    "id": "business-013",
     "theme": "business",
     "question": "Herzberg split workplace factors into motivators and what?",
     "options": [
@@ -1518,10 +1401,9 @@
       "Hygiene factors"
     ],
     "answer": 3,
-    "explain": "Hygiene factors, like pay and conditions, prevent dissatisfaction but don't motivate on their own."
+    "explanation": "Hygiene factors, like pay and conditions, prevent dissatisfaction but don't motivate on their own."
   },
   {
-    "id": "business-014",
     "theme": "business",
     "question": "What is a franchise?",
     "options": [
@@ -1531,10 +1413,9 @@
       "A merger of equals"
     ],
     "answer": 1,
-    "explain": "Franchisees pay to use an established brand and business model."
+    "explanation": "Franchisees pay to use an established brand and business model."
   },
   {
-    "id": "business-015",
     "theme": "business",
     "question": "What are economies of scale?",
     "options": [
@@ -1544,10 +1425,9 @@
       "Higher taxes on large firms"
     ],
     "answer": 2,
-    "explain": "Big firms can spread fixed costs and buy in bulk."
+    "explanation": "Big firms can spread fixed costs and buy in bulk."
   },
   {
-    "id": "business-016",
     "theme": "business",
     "question": "What is market share?",
     "options": [
@@ -1557,10 +1437,9 @@
       "The firm's profit margin"
     ],
     "answer": 0,
-    "explain": "Market share compares a firm's sales with the whole market's."
+    "explanation": "Market share compares a firm's sales with the whole market's."
   },
   {
-    "id": "business-017",
     "theme": "business",
     "question": "In PESTLE, which factor covers a new employment law?",
     "options": [
@@ -1570,10 +1449,9 @@
       "Environmental"
     ],
     "answer": 0,
-    "explain": "The legal factor covers laws and regulations that affect the business."
+    "explanation": "The legal factor covers laws and regulations that affect the business."
   },
   {
-    "id": "business-018",
     "theme": "business",
     "question": "What is penetration pricing?",
     "options": [
@@ -1583,10 +1461,9 @@
       "Charging what customers will pay"
     ],
     "answer": 2,
-    "explain": "Penetration pricing trades early profit for quick market share."
+    "explanation": "Penetration pricing trades early profit for quick market share."
   },
   {
-    "id": "business-019",
     "theme": "business",
     "question": "What is price skimming?",
     "options": [
@@ -1596,10 +1473,9 @@
       "Selling below cost"
     ],
     "answer": 1,
-    "explain": "Skimming charges early adopters more before the price drops."
+    "explanation": "Skimming charges early adopters more before the price drops."
   },
   {
-    "id": "business-020",
     "theme": "business",
     "question": "What does an entrepreneur do?",
     "options": [
@@ -1609,10 +1485,9 @@
       "Starts a business and takes on the risk"
     ],
     "answer": 3,
-    "explain": "Entrepreneurs spot an opportunity and risk their own time and money on it."
+    "explanation": "Entrepreneurs spot an opportunity and risk their own time and money on it."
   },
   {
-    "id": "business-021",
     "theme": "business",
     "question": "Who counts as a stakeholder?",
     "options": [
@@ -1622,10 +1497,9 @@
       "Anyone affected by the business"
     ],
     "answer": 3,
-    "explain": "Staff, customers, suppliers, owners and the community are all stakeholders."
+    "explanation": "Staff, customers, suppliers, owners and the community are all stakeholders."
   },
   {
-    "id": "business-022",
     "theme": "business",
     "question": "What does CRM stand for?",
     "options": [
@@ -1635,10 +1509,9 @@
       "Corporate revenue margin"
     ],
     "answer": 1,
-    "explain": "CRM covers how a firm tracks and manages its dealings with customers."
+    "explanation": "CRM covers how a firm tracks and manages its dealings with customers."
   },
   {
-    "id": "business-023",
     "theme": "business",
     "question": "In McGregor's theory, what do Theory X managers assume about workers?",
     "options": [
@@ -1648,10 +1521,9 @@
       "They work best alone"
     ],
     "answer": 2,
-    "explain": "Theory Y is the opposite view: workers are self-motivated."
+    "explanation": "Theory Y is the opposite view: workers are self-motivated."
   },
   {
-    "id": "business-024",
     "theme": "business",
     "question": "Net Promoter Score asks customers how likely they are to do what?",
     "options": [
@@ -1661,10 +1533,9 @@
       "Leave a review"
     ],
     "answer": 0,
-    "explain": "NPS asks how likely a customer is to recommend the firm to a friend."
+    "explanation": "NPS asks how likely a customer is to recommend the firm to a friend."
   },
   {
-    "id": "business-025",
     "theme": "business",
     "question": "What does SMART stand for in SMART objectives?",
     "options": [
@@ -1674,10 +1545,9 @@
       "Small, many, active, rapid, total"
     ],
     "answer": 0,
-    "explain": "SMART objectives are specific, measurable, achievable, relevant and time-bound."
+    "explanation": "SMART objectives are specific, measurable, achievable, relevant and time-bound."
   },
   {
-    "id": "business-026",
     "theme": "business",
     "question": "Which of these is primary market research?",
     "options": [
@@ -1687,6 +1557,6 @@
       "A rival's annual report"
     ],
     "answer": 2,
-    "explain": "Primary research collects new data first-hand; the rest is secondary."
+    "explanation": "Primary research collects new data first-hand; the rest is secondary."
   }
 ]

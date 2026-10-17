@@ -122,7 +122,7 @@ def _play_out(
         share = f"DSBA Daily, {day.day} {day:%b %Y}{variant_label}\n{game.share(puzzle, replay.state, played)}"
     return PlayOut(
         info=game.info(),
-        theme=content.theme_of(day),
+        theme=content.theme_of(db, day),
         play=Play(
             day=day,
             game=game.id,
@@ -252,7 +252,7 @@ def today_of(db: Session, user: User | None) -> DailyToday:
     return DailyToday(
         day=today,
         first_day=content.FIRST_DAY,
-        theme=content.theme_of(today),
+        theme=content.theme_of(db, today),
         games=games,
         done=sum(g.status in FINISHED for g in games),
         points=sum(g.points for g in games),
@@ -283,11 +283,11 @@ def calendar_of(db: Session, user: User | None, month: str) -> DailyCalendar:
         )
         for day, n, p in db.execute(q):
             done[day], points[day] = n, p
-    days = []
-    d = start
-    while d <= end:
-        days.append(CalendarDay(day=d, theme=content.theme_of(d).id, done=done.get(d, 0), points=points.get(d, 0)))
-        d += dt.timedelta(days=1)
+    span = [start + dt.timedelta(days=n) for n in range((end - start).days + 1)]
+    days = [
+        CalendarDay(day=d, theme=theme, done=done.get(d, 0), points=points.get(d, 0))
+        for d, theme in zip(span, content.theme_ids(db, span), strict=True)
+    ]
     return DailyCalendar(month=month, total=len(GAMES), days=days)
 
 

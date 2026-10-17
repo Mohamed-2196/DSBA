@@ -1,18 +1,20 @@
-"""What a daily game is. A game makes the day's puzzle (deterministic from the date), replays moves onto a state,
-says how the play stands, scores it, and shows it to the player without giving the answer away until it's over.
-Adding a game is one module in this package, listed in `games/__init__.py`, plus its view and moves in
-schemas/daily.py and its screen in the web app."""
+"""What a daily game is. A game makes the day's puzzle (the same for everyone), replays moves onto a state, says how
+the play stands, scores it, and shows it to the player without giving the answer away until it's over. Adding a game
+is one module in this package, listed in `games/__init__.py`, plus its view and moves in schemas/daily.py and its
+screen in the web app. A game whose puzzles come from the content editors' items is a ContentGame."""
 
 from __future__ import annotations
 
 import datetime as dt
 from abc import ABC, abstractmethod
-from typing import ClassVar, Generic, Literal, TypeVar
+from typing import Any, ClassVar, Generic, Literal, TypeVar
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError, invalid
 from app.schemas.daily import GameId, GameInfo, GameView, Move
+from app.services.daily import content
+from app.services.daily.content import Entry, Uses
 
 P = TypeVar("P")  # the day's puzzle, including its answer: it never leaves the server unfinished
 S = TypeVar("S")  # a play's state, rebuilt from its moves
@@ -74,6 +76,29 @@ class Game(ABC, Generic[P, S]):
     @abstractmethod
     def share(self, puzzle: P, state: S, status: Status) -> str:
         """A result grid without spoilers (the first line names the game; the hub adds the date)."""
+
+
+class ContentGame(Game[P, S]):
+    """A game whose puzzles are made from the items of the day's theme (app/services/daily/content.py): the day's
+    puzzle is made once, stored as `dump()` gives it, and read back with `load()` ever after."""
+
+    def puzzle(self, db: Session, day: dt.date, variant: str) -> P:
+        return self.load(db, content.day_puzzle(db, self, day))
+
+    @abstractmethod
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date) -> list[Entry]:
+        """The day's items from the theme's (content.spread()). Raises content.NotReadyError when they can't make it."""
+
+    @abstractmethod
+    def build(self, db: Session, day: dt.date, chosen: list[Entry]) -> P:
+        """The puzzle from the chosen items: the same items on the same day make the same puzzle."""
+
+    @abstractmethod
+    def dump(self, puzzle: P) -> dict[str, Any]:
+        """The puzzle as stored (JSON)."""
+
+    @abstractmethod
+    def load(self, db: Session, data: dict[str, Any]) -> P: ...
 
 
 def bad_move(message: str = "That move doesn't fit this game.") -> ApiError:

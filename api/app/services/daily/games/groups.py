@@ -1,18 +1,19 @@
-"""Groups: sixteen words from the week's theme that make four groups of four. Pick four you think belong together;
-four wrong tries end the play."""
+"""Groups: sixteen words from the week's theme that make four groups of four, one group at each level (1 plainest
+to 4 trickiest). Pick four you think belong together; four wrong tries end the play."""
 
 from __future__ import annotations
 
 import datetime as dt
 from dataclasses import dataclass, field
-from functools import cache
+from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import conflict
 from app.schemas.daily import FoundGroup, GroupMove, GroupsView, Move
 from app.services.daily import content
-from app.services.daily.games.base import Game, Status, bad_move
+from app.services.daily.content import Entry, Uses
+from app.services.daily.games.base import ContentGame, Status, bad_move
 
 GROUPS = 4
 SIZE = 4
@@ -49,19 +50,11 @@ class GroupsState:
     gave_up: bool = False
 
 
-@cache
-def bank() -> dict[str, tuple[Group, ...]]:
-    out: dict[str, list[Group]] = {}
-    for g in content.load("groups.json"):
-        out.setdefault(g["theme"], []).append(Group(g["id"], g["label"], g["level"], tuple(g["words"])))
-    return {theme: tuple(groups) for theme, groups in out.items()}
+def _group(data: dict[str, Any]) -> Group:
+    return Group(str(data["id"]), str(data["label"]), int(data["level"]), tuple(data["words"]))
 
 
-def _no_shared_words(chosen: list[Group], group: Group) -> bool:
-    return all(not set(group.words) & set(c.words) for c in chosen)
-
-
-class GroupsGame(Game[Puzzle, GroupsState]):
+class GroupsGame(ContentGame[Puzzle, GroupsState]):
     id = "groups"
     title = "Groups"
     tagline = "Sort sixteen words into four groups of four."
@@ -76,18 +69,38 @@ class GroupsGame(Game[Puzzle, GroupsState]):
     max_moves = GROUPS + TRIES + 1
     min_seconds = 8
 
-    def puzzle(self, db: Session, day: dt.date, variant: str) -> Puzzle:
-        pool = bank()[content.theme_of(day).id]
-        chosen = content.pick_many(pool, GROUPS, self.id, day, _no_shared_words)
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date) -> list[Entry]:
+        """One group a level, sharing no word with another."""
+        taken: set[str] = set()
+
+        def fits(_: list[Entry], e: Entry) -> bool:
+            return not taken & set(e.data["words"])
+
+        chosen: list[Entry] = []
+        for level in range(1, GROUPS + 1):
+            at_level = [e for e in pool if e.data["level"] == level]
+            group = content.spread(at_level, used, day, 1, f"{self.id}-{level}", fits)
+            taken.update(group[0].data["words"])
+            chosen += group
+        return chosen
+
+    def build(self, db: Session, day: dt.date, chosen: list[Entry]) -> Puzzle:
         r = content.rng(self.id, day, "words")
         groups: list[Group] = []
-        for g in sorted(chosen, key=lambda g: (g.level, g.id)):
-            words = list(g.words)
+        for e in chosen:  # by level
+            words = list(e.data["words"])
             r.shuffle(words)
-            groups.append(Group(g.id, g.label, g.level, tuple(words[:SIZE])))
+            groups.append(Group(str(e.id), e.data["label"], e.data["level"], tuple(words[:SIZE])))
         order = [w for g in groups for w in g.words]
         r.shuffle(order)
         return Puzzle(tuple(groups), tuple(order))
+
+    def dump(self, puzzle: Puzzle) -> dict[str, Any]:
+        groups = [{"id": g.id, "label": g.label, "level": g.level, "words": list(g.words)} for g in puzzle.groups]
+        return {"groups": groups, "order": list(puzzle.order)}
+
+    def load(self, db: Session, data: dict[str, Any]) -> Puzzle:
+        return Puzzle(tuple(_group(g) for g in data["groups"]), tuple(data["order"]))
 
     def start(self, puzzle: Puzzle) -> GroupsState:
         return GroupsState()
