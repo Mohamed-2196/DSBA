@@ -1,6 +1,6 @@
 """a student's repeating event can lose one of its days
 
-Revision ID: 0032
+Revision ID: 0030
 Revises: 0026
 Create Date: 2026-10-17 21:30:00
 
@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0032"
+revision: str = "0030"
 down_revision: str | None = "0026"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
