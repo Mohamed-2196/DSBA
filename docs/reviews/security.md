@@ -54,12 +54,12 @@ copy makes:
 | SEC-38 | minor | boards (`services/board/common.py:33`) | open | No total on the text a student's boards hold: about 880 MB of rows per free account |
 | SEC-39 | minor | boards, uploads (`services/board/files.py:124`) | open | Detaching a board file gives its slot back to the 20-uploads-an-hour limit |
 | SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | open | Bug reports and their screenshots are left out of the export and outlive the account |
-| SEC-41 | minor | Daily (`services/daily/plays.py:165`) | open | Every Daily answer is available before the scored play, so anyone can top the leaderboard |
+| SEC-41 | minor | Daily (`services/daily/plays.py:165`) | **partly fixed** (content half, round12/daily-cms) | Every Daily answer is available before the scored play, so anyone can top the leaderboard |
 | SEC-42 | minor | content (`schemas/modules.py:121`, `services/module_editor.py:217`) | open | Module art skips the picture rules: any address, and an upload that was never checked |
 | SEC-43 | minor | deployment (`.github/workflows/railway.yml:22`) | open (partly verified) | The public Railway dev deployment runs outside production mode |
 | SEC-44 | nit | bugs (`services/bugs.py:85`) | open | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
 | SEC-45 | nit | Daily, boards | open | Crafted input turns Daily and board requests into 500s |
-| SEC-46 | nit | Daily (`services/daily/content.py:61`) | open | Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones |
+| SEC-46 | nit | Daily (`services/daily/content.py:61`) | **fixed** (round12/daily-cms) | Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones |
 | SEC-47 | nit | uploads (`routers/uploads.py:47`) | open (unverified) | The board and notebook quotas are checked before the upload lock |
 | SEC-48 | nit | web (`web/package.json:31`) | open (not reachable) | `npm audit`: pdf.js 5.7.284 has a high advisory |
 | SEC-33 | minor | content, deployment | **still open** (half fixed) | The reader's environment is empty, but it can read the worker's secrets from /proc |
@@ -225,6 +225,13 @@ copy makes:
   involved; the harm is a public ranking that rewards looking answers up.
 - **Proof:** `test_sec41_a_guest_gives_up_and_a_signed_in_player_scores_full_points_in_one_move` and
   `test_sec41_the_public_repository_answers_todays_quiz`.
+- **Content half fixed (round12/daily-cms).** The puzzles live in the database: Manage, or a content file kept out of
+  the repository (`python -m app.cli daily-content import FILE`). The repository's Daily data is the themes and a
+  public word list (`app/seed/data/daily`); the answer, group, question and vocabulary files are gone, and quiz
+  options are shuffled with the day's seed. The banks stay readable in the repository's history, so the content
+  that goes live should be new or reworded in Manage. Proof turned check:
+  `test_sec41_the_repository_holds_no_answers_and_the_quiz_shuffles_its_options`. The gameplay half (a guest's
+  give-up, the clock, one-move wins) is round12/daily's.
 - **Fix:**
   - A play that isn't kept gets no answer for today: a guest's give-up or loss returns `answer: null` ("Sign in to
     see the answer, or come back tomorrow"). Past days can still show it.
@@ -337,6 +344,10 @@ copy makes:
   change, won again for 90, still scored.
 - **Fix:** seed Daily from a stable `DSBA_DAILY_SEED` of its own, or store each day's puzzle ids in a `daily_sets`
   table the first time the day is made; never price a play that already has `finished_at`.
+- **Fixed (round12/daily-cms).** Every game's puzzle for a day, Sudoku's three included, is stored in `daily_sets` the
+  first time it is made, and plays replay against the stored puzzle. New days take Daily's own random seed
+  (`daily_seed`, made once per install), not `DSBA_SECRET_KEY`. `plays._keep` prices a play once, when it first
+  finishes. Proof turned check: `test_sec46_rotating_the_secret_key_leaves_kept_puzzles_and_finished_plays_as_they_are`.
 
 ### SEC-47. The board and notebook quotas are checked before the upload lock (nit, unverified)
 
