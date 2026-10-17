@@ -44,15 +44,21 @@ Each builder reviews its area against Mohamed's requests (`docs/feedback/2026-10
 Antigravity), fixes what's wrong, and reports findings marked FIXED or OPEN. Branches `round12/<name>` in
 `../dsba-<name>`; the lead merges and re-chains migrations (0027 onwards).
 
-| Branch | Covers |
+| Branch | State (2026-10-17, stopped at the usage limit; resume each by reading its worktree and `git log`) |
 | --- | --- |
-| `round12/daily` | the Daily hub and every game: look, feel, fun and zero bugs on desktop and phone (Mohamed's top complaint) |
-| `round12/daily-cms` | Daily puzzle content in the database and editable in Manage (0027) |
-| `round12/notebook` | deep QA of the notebook: pen, pictures (move, resize, crop), PDF annotation, iPad |
-| `round12/cms` | a complete CMS: inventory in `docs/backend/CMS.md`, guides and site settings editable (0028) |
-| `round12/polish` | Noora never covering content, the /noora layout, real video thumbnails, clean file titles, the board and personal calendar end to end |
-| `round12/speed` | the API tests back under 3 minutes, CI, a Railway check that the latest commit is live |
-| `round12/rev-sec` | security review of round 11 (SEC-36 onwards) |
+| `round12/speed` | **merged**: one app per test run, xdist, CI fail-fast, deploys report their commit |
+| `round12/rev-sec` | **merged**: SEC-36 to SEC-48 with proof tests; SEC-43 accepted (dev site stays open, made-up accounts only) |
+| `round12/cms` | **merged** (0028): module pictures as data, guides and site settings in Manage, About without Drive |
+| `round12/daily` | stopped mid-redesign of the hub page; SEC-41 flow and SEC-45 fixes committed (`../dsba-daily`) |
+| `round12/daily-cms` | stopped near the end: content in the database, Manage editor, tests passing (`../dsba-dailycms`, 0027) |
+| `round12/notebook` | stopped before the iPad pen/touch QA; SEC-36 and SEC-48 committed; the body-limit middleware must count real bytes (`../dsba-notebook`) |
+| `round12/polish` | stopped after merging feature/backend and renumbering its migration (`../dsba-polish`) |
+| `round12/secfix` | stopped; SEC-40/44/47/33/11/19 in progress (`../dsba-secfix`) |
+
+Next: resume the five stopped branches, merge each (re-chain migrations after 0028), then a CMS round for grade rules,
+forum categories and guidelines, Noora's prompt and Home defaults; then the full e2e run. Mohamed's calls: guests keep
+playing today's Daily (leaderboard says it's for fun); the Railway dev site needs a storage bucket set up before the
+library and uploads work there.
 
 ## Operating notes
 
