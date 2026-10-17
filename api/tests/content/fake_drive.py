@@ -15,6 +15,7 @@ import secrets
 import time
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
+from functools import cache
 from typing import Any
 from urllib.parse import parse_qs
 
@@ -108,6 +109,12 @@ class BrokenStream(httpx.SyncByteStream):
         raise httpx.ReadError("connection reset by peer")
 
 
+@cache
+def service_account_key() -> rsa.RSAPrivateKey:
+    """The service account's key, one for every fake drive: making a 2048-bit key takes a while."""
+    return rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+
 class FakeDrive:
     def __init__(self) -> None:
         self.nodes: dict[str, Node] = {}
@@ -115,7 +122,7 @@ class FakeDrive:
         self.queued: list[tuple[Match, Reply]] = []
         self.page_size = 2  # small pages: listings take several
         self.tokens: set[str] = set()
-        self.private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        self.private_key = service_account_key()
         self.grants: list[dict[str, Any]] = []
         self.content_hosts: dict[str, bytes] = {}  # redirect targets on googleusercontent.com: path -> bytes
         self.streams: dict[str, CountingStream] = {}  # file id -> its last download's stream
