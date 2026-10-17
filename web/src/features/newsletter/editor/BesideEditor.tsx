@@ -5,7 +5,7 @@ import { Plus, TextAa, UploadSimple } from '@phosphor-icons/react';
 import { Button, SegmentedControl, Switch, cx } from '../../../ui';
 import { UPLOAD_RULES, checkUpload, progressText, uploadErrorMessage, uploadFile, type UploadProgress } from '../../../api/uploads';
 import { LIMITS, blankStat, controlId, fieldPath, moveByKey, removeByKey, updateByKey, type Beside, type FieldErrors, type SectionDraft } from '../lib/draft';
-import { safeImageSrc } from '../lib/links';
+import { pictureSrc } from '../../../api/pictures';
 import { ItemTools, MARKUP_HINT, TextBox, TextInput } from './fields';
 import { pictureChoices, type AppPicture } from './pictures';
 
@@ -96,7 +96,7 @@ export function PicturePicker({ name, label, choices, value, onChoose, none, id,
           </label>
         ) : null}
         {choices.map((p, i) => {
-          const src = safeImageSrc(p.src);
+          const src = pictureSrc(p.src);
           return (
             <label key={p.src} className="nl-ed-picture">
               <input

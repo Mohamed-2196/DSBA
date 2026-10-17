@@ -5,6 +5,8 @@
   students left off, notes and study-board cards) points at its id, so moving one only changes its `position`.
 - Removing a lesson with notes or cards, a chapter that still has lessons, or a module that anything refers to is
   refused (409 content_in_use): hiding it is the way to take it out of students' views.
+- A module's art is a picture of the web app or an uploaded image (purpose module_art). An upload a module shows is
+  attached; one no module shows any more goes back to uploaded, and the daily sweep deletes it.
 - Every write is audited with what changed, before and after. Services leave the commit to the handler."""
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ from collections.abc import Iterable
 from typing import Any, NamedTuple
 from urllib.parse import parse_qs, urlsplit
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError, conflict, invalid, not_found
@@ -57,7 +59,7 @@ RECORDING_HOST = "vc.bibf.com"  # class recordings (BigBlueButton): the app embe
 VIDEO_RULE = "Paste a YouTube video or playlist link, or a class recording link from vc.bibf.com."
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{6,20}")
 _PLAYLIST_ID = re.compile(r"[A-Za-z0-9_-]{10,64}")
-EDITED = ("unit_code", "name", "short_name", "year", "description", "icon", "art_url", "hidden", "chapters")
+EDITED = ("unit_code", "name", "short_name", "year", "description", "icon", "art", "hidden", "chapters")
 
 # ── videos ───────────────────────────────────────────────────────────────────────────────────
 
@@ -140,7 +142,7 @@ def _summary(m: Module) -> dict[str, Any]:
         "short_name": m.short_name,
         "year": m.year,
         "icon": m.icon,
-        "art_url": m.art_url,
+        "art": m.art,
         "hidden": m.hidden,
         "position": m.position,
         "version": m.version,
@@ -201,8 +203,41 @@ def _check_unit_code(db: Session, code: str | None, *, other_than: str | None = 
         raise invalid("unitCode", "Another module has this unit code.")
 
 
+def _art_upload(art: str | None) -> uuid.UUID | None:
+    """The upload a module's art is ('/api/v1/media/<id>'), or None for a picture of the web app."""
+    found = MEDIA_PATH.fullmatch(art or "")
+    return uuid.UUID(found.group(1)) if found else None
+
+
+def _check_art(db: Session, art: str | None) -> None:
+    """Uploaded art is a module_art upload that arrived (422 on `art` otherwise)."""
+    upload_id = _art_upload(art)
+    if upload_id is None:
+        return
+    up = db.get(Upload, upload_id)
+    if up is None or up.purpose != UploadPurpose.module_art or up.status == UploadStatus.pending:
+        raise invalid("art", "This picture isn't uploaded yet, or was removed. Upload it again.")
+
+
+def sync_art(db: Session) -> None:
+    """Every module_art upload a module shows is attached; the others go back to uploaded, and the daily sweep
+    deletes them."""
+    shown = {u for u in map(_art_upload, db.scalars(select(Module.art).where(Module.art.is_not(None)))) if u}
+    released = update(Upload).where(Upload.purpose == UploadPurpose.module_art, Upload.status == UploadStatus.attached)
+    if shown:
+        released = released.where(Upload.id.not_in(shown))
+    db.execute(released.values(status=UploadStatus.uploaded))
+    if shown:
+        db.execute(
+            update(Upload)
+            .where(Upload.id.in_(shown), Upload.purpose == UploadPurpose.module_art)
+            .values(status=UploadStatus.attached)
+        )
+
+
 def _fields(db: Session, body: ModuleFields, *, module_id: str | None = None) -> dict[str, Any]:
     _check_unit_code(db, body.unit_code, other_than=module_id)
+    _check_art(db, body.art)
     return {
         "unit_code": body.unit_code,
         "name": body.name,
@@ -210,22 +245,8 @@ def _fields(db: Session, body: ModuleFields, *, module_id: str | None = None) ->
         "year": body.year,
         "description": body.description,
         "icon": body.icon,
-        "art_url": body.art_url,
+        "art": body.art,
     }
-
-
-def _attach_art(db: Session, art_url: str | None) -> None:
-    if not art_url:
-        return
-    m = MEDIA_PATH.fullmatch(art_url.strip())
-    if m:
-        try:
-            upload_id = uuid.UUID(m.group(1))
-            up = db.get(Upload, upload_id)
-            if up and up.purpose == UploadPurpose.module_art:
-                up.status = UploadStatus.attached
-        except ValueError:
-            pass
 
 
 def _chapters_snapshot(m: Module) -> list[dict[str, Any]]:
@@ -269,9 +290,9 @@ def create_module(db: Session, user: User, body: ModuleCreate, ip: str | None) -
         raise conflict("slug_taken", "Another module has this address. Choose another one.")
     last = db.scalar(select(func.max(Module.position)))
     m = Module(id=body.id, position=(last if last is not None else -1) + 1, **_fields(db, body))
-    _attach_art(db, body.art_url)
     db.add(m)
     db.flush()
+    sync_art(db)
     record(db, user, "module.create", "module", m.id, m.name, ip, after=_snapshot(m))
     return m
 
@@ -364,11 +385,12 @@ def save_module(db: Session, user: User, module_id: str, body: ModuleSave, ip: s
         for name, value in {**fields, "hidden": body.hidden}.items():
             setattr(m, name, value)
         _place_chapters(m, body)
-    _attach_art(db, body.art_url)
     db.flush()
     after = _snapshot(m)
     if after == before:
         return m
+    if after["art"] != before["art"]:
+        sync_art(db)
     m.version += 1
     db.flush()
     record(db, user, "module.update", "module", m.id, m.name, ip, **_audit_change(before, after))
@@ -461,3 +483,4 @@ def delete_module(db: Session, user: User, module_id: str, version: int, ip: str
     record(db, user, "module.delete", "module", m.id, m.name, ip, before=_snapshot(m))
     db.delete(m)
     db.flush()
+    sync_art(db)

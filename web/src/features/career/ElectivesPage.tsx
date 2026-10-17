@@ -29,8 +29,8 @@ function ElectiveCard({ e, depthLabel }: { e: Elective; depthLabel: CareerDoc['d
   return (
     <Panel as="article" padding="none" radius="feature" className="elective" aria-labelledby={headingId} data-hub="elective" data-module-id={m.id}>
       <header className="elective__head">
-        {moduleArtSrc(m.id, m.artUrl) ? (
-          <ModuleArt moduleId={m.id} artUrl={m.artUrl} className="elective__art" />
+        {moduleArtSrc(m.art) ? (
+          <ModuleArt art={m.art} className="elective__art" />
         ) : (
           <span className="elective__plate" aria-hidden="true">
             <ModuleIcon moduleId={m.id} weight="duotone" />

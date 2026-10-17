@@ -46,7 +46,7 @@ interface Base {
 }
 
 export type Item =
-  | (Base & { kind: 'module'; moduleId: string; year: number | null; code: string | null; to: string })
+  | (Base & { kind: 'module'; moduleId: string; year: number | null; code: string | null; art: string | null; to: string })
   | (Base & { kind: 'lesson'; to: string; chapter: boolean })
   | (Base & { kind: 'file'; to: string; meta: string | null })
   | (Base & { kind: 'thread'; to: string; meta: string | null })
@@ -216,7 +216,7 @@ function toItem(hit: SearchHit, group: GroupId, getModule: (id: string) => Modul
   switch (hit.type) {
     case 'module': {
       const m = getModule(hit.id);
-      return { ...base, kind: 'module', moduleId: hit.id, year: m?.year ?? null, code: m?.unitCode ?? null, subtitle: m ? `Year ${m.year} module${m.lessonCount ? `, ${m.lessonCount} lessons` : ''}` : plainMeta(hit.meta), to };
+      return { ...base, kind: 'module', moduleId: hit.id, year: m?.year ?? null, code: m?.unitCode ?? null, art: m?.art ?? null, subtitle: m ? `Year ${m.year} module${m.lessonCount ? `, ${m.lessonCount} lessons` : ''}` : plainMeta(hit.meta), to };
     }
     case 'lesson': {
       // meta: 'EC1002 · Chapter' or 'EC1002 · Video'; a video's snippet is its chapter.
@@ -277,6 +277,7 @@ const moduleItem = (m: ModuleSummary): Item => ({
   moduleId: m.id,
   year: m.year,
   code: m.unitCode,
+  art: m.art,
   title: m.name,
   subtitle: `Year ${m.year} module${m.lessonCount ? `, ${m.lessonCount} lessons` : ''}`,
   to: `/modules/${m.id}`,

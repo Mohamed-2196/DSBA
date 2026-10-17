@@ -8,7 +8,8 @@
 import type { IssueCover, IssueDetail, IssueSection, IssueUpdate } from '../../../api/types';
 import { addDaysToKey, isDayKey } from '../../../lib/dates';
 import type { Aside, Block, SectionIcon, SectionKind } from '../types';
-import { isIssuePicture, linkProblem, markupProblem } from './links';
+import { isPicture } from '../../../api/pictures';
+import { linkProblem, markupProblem } from './links';
 import { slugify } from './text';
 
 /** What the API accepts (api/app/schemas/newsletter.py and services/newsletter.py). */
@@ -406,7 +407,7 @@ function checkBeside(errors: FieldErrors, s: SectionDraft): void {
   if (s.beside === 'figure') {
     const f = s.figure;
     if (!f.src.trim()) put('figure.src', 'Choose a picture.');
-    else if (!isIssuePicture(f.src) || f.width < 1 || f.height < 1) put('figure.src', 'Choose one of the pictures.');
+    else if (!isPicture(f.src) || f.width < 1 || f.height < 1) put('figure.src', 'Choose one of the pictures.');
     if (!f.alt.trim()) put('figure.alt', 'Describe the picture for people who can’t see it.');
     else if (length(f.alt.trim()) > LIMITS.alt) put('figure.alt', `Keep the description to ${LIMITS.alt} characters (it has ${length(f.alt.trim())}).`);
     put('figure.caption', textProblem(f.caption, LIMITS.short, { required: false, empty: '' }));
@@ -479,7 +480,7 @@ export function validate(d: IssueDraft): FieldErrors {
   else if (long) put('editors', `Keep each name to ${LIMITS.editor} characters: “${long.slice(0, 24)}…” is longer.`);
 
   // The cover
-  if (d.cover.art && !isIssuePicture(d.cover.art)) put('cover.art', 'Choose one of the pictures.');
+  if (d.cover.art && !isPicture(d.cover.art)) put('cover.art', 'Choose one of the pictures.');
   if (d.cover.art && !d.cover.artAlt.trim()) put('cover.artAlt', 'Describe the illustration for people who can’t see it.');
   else if (length(d.cover.artAlt.trim()) > LIMITS.artAlt) put('cover.artAlt', `Keep the description to ${LIMITS.artAlt} characters (it has ${length(d.cover.artAlt.trim())}).`);
   if (d.cover.lines.length > LIMITS.coverLines) put('cover.lines', `A cover has ${LIMITS.coverLines} lines at most: remove ${d.cover.lines.length - LIMITS.coverLines}.`);
@@ -768,12 +769,12 @@ export function previewOf(d: IssueDraft): { cover: IssueCover; sections: IssueSe
       ...p,
       id,
       title: p.title || 'Untitled section',
-      figure: p.figure && isIssuePicture(p.figure.src) && p.figure.width > 0 && p.figure.height > 0 ? p.figure : null,
+      figure: p.figure && isPicture(p.figure.src) && p.figure.width > 0 && p.figure.height > 0 ? p.figure : null,
       blocks: p.blocks.filter(hasWords),
       after: p.after.filter(hasWords),
     };
   });
-  return { cover: { ...coverPayload(d), art: d.cover.art && isIssuePicture(d.cover.art) ? d.cover.art : null }, sections };
+  return { cover: { ...coverPayload(d), art: d.cover.art && isPicture(d.cover.art) ? d.cover.art : null }, sections };
 }
 
 function hasWords(b: Block): boolean {

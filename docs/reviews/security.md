@@ -55,7 +55,7 @@ copy makes:
 | SEC-39 | minor | boards, uploads (`services/board/files.py:124`) | open | Detaching a board file gives its slot back to the 20-uploads-an-hour limit |
 | SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | open | Bug reports and their screenshots are left out of the export and outlive the account |
 | SEC-41 | minor | Daily (`services/daily/plays.py:165`) | open | Every Daily answer is available before the scored play, so anyone can top the leaderboard |
-| SEC-42 | minor | content (`schemas/modules.py:121`, `services/module_editor.py:217`) | open | Module art skips the picture rules: any address, and an upload that was never checked |
+| SEC-42 | minor | content (`schemas/modules.py:121`, `services/module_editor.py:217`) | **fixed** (round12/cms) | Module art skips the picture rules: any address, and an upload that was never checked |
 | SEC-43 | minor | deployment (`.github/workflows/railway.yml:22`) | open (partly verified) | The public Railway dev deployment runs outside production mode |
 | SEC-44 | nit | bugs (`services/bugs.py:85`) | open | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
 | SEC-45 | nit | Daily, boards | open | Crafted input turns Daily and board requests into 500s |
@@ -267,6 +267,18 @@ copy makes:
   - Add a migration that puts `'module_art'` in `ck_uploads_uploadpurpose`, a test that every `UploadPurpose` value
     can be stored, and tests for module art.
   - Serve module art only while a visible module uses it, like newsletter pictures.
+- **Fixed** in `round12/cms` (migration 0028):
+  - The column is `modules.art`, typed `PictureSrc`: an uploaded image or a file of the web app, 422 on `art`
+    otherwise.
+  - Uploaded art must be a `module_art` upload that passed the checks (uploaded or attached), 422 otherwise. A
+    module's previous art goes back to uploaded when it changes, and when the module is removed, so the sweep
+    deletes it (`module_editor.sync_art`).
+  - `/media` serves module art to everyone only while a module students see uses it; editors and the uploader see
+    it always (`uploads.on_visible_module`).
+  - 0028 adds `'module_art'` to `ck_uploads_uploadpurpose`. The new drift test
+    `test_the_migrations_allow_what_the_models_allow` compares every CHECK list with the model's enum or values,
+    and found one more: `ck_requests_wanted_kind` lacked `'exam-solutions'` (also fixed in 0028).
+  - Regression tests: `tests/content/test_sec_review_r12.py` (SEC-42) and `tests/content/test_module_art.py`.
 
 ### SEC-43. The public Railway dev deployment runs outside production mode (minor; partly verified)
 

@@ -1,6 +1,7 @@
 import type { IssueFigure } from '../../../api/types';
 import { Avatar, Button, cx } from '../../../ui';
-import { safeHref, safeImageSrc } from '../lib/links';
+import { pictureSrc } from '../../../api/pictures';
+import { safeHref } from '../lib/links';
 import { plainText } from '../lib/text';
 import type { Aside as AsideData, Block as BlockData } from '../types';
 import { Poll, type PollIssue } from './Poll';
@@ -12,7 +13,7 @@ import { RichText } from './RichText';
  * line under it. Only pictures of the app or uploaded images are shown (lib/links.ts).
  */
 export function Figure({ figure, className }: { figure: IssueFigure | null | undefined; className?: string }) {
-  const src = safeImageSrc(figure?.src);
+  const src = pictureSrc(figure?.src);
   if (!figure || !src) return null;
   const { width, height, alt, caption } = figure;
   return (

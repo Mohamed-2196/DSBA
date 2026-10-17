@@ -1275,8 +1275,9 @@ export interface paths {
          * Media
          * @description A picture: 302 to a short-lived link (cache headers allow browsers to reuse it for a few minutes). Its
          *     uploader always sees it. A forum image: everyone while its post is visible, moderators always. A newsletter
-         *     picture: everyone once a published issue shows it, people who manage the newsletter always. A bug screenshot:
-         *     admins. 404 otherwise; feature_off while the forum or the newsletter is off for the viewer.
+         *     picture: everyone once a published issue shows it, people who manage the newsletter always. A module's art:
+         *     everyone while a module students see shows it, people who edit modules always. A bug screenshot: admins. 404
+         *     otherwise; feature_off while the forum or the newsletter is off for the viewer.
          */
         get: operations["media_api_v1_media__upload_id__get"];
         put?: never;
@@ -3403,6 +3404,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/site": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Site
+         * @description The hub's own words and links: the footer, About, the sidebar's links to BIBF and the University.
+         */
+        get: operations["site_api_v1_site_get"];
+        /**
+         * Save Site
+         * @description Save the site settings, if nobody saved them since `version`. Audited with what changed, before and after.
+         *
+         *     Errors: site_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't
+         *     fit, a link that isn't https://, a module that doesn't exist, an id used twice).
+         */
+        put: operations["save_site_api_v1_site_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/site/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Site For Editing
+         * @description The site settings with the version a save names (0 until the first save).
+         */
+        get: operations["site_for_editing_api_v1_site_edit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/guides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Guides
+         * @description Start here, Results day and Choosing your electives.
+         */
+        get: operations["guides_api_v1_guides_get"];
+        /**
+         * Save Guides
+         * @description Save every guide, if nobody saved them since `version`. Audited with what changed, before and after.
+         *
+         *     Errors: guides_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't
+         *     fit, a link that isn't https:// or a page of the Hub, a step id used twice).
+         */
+        put: operations["save_guides_api_v1_guides_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/guides/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Guides For Editing
+         * @description The guides with the version a save names (0 until the first save).
+         */
+        get: operations["guides_for_editing_api_v1_guides_edit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4176,7 +4271,7 @@ export interface components {
              * Key
              * @enum {string}
              */
-            key: "forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read";
+            key: "forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "guides.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read";
             /** Area */
             area: string;
             /** Label */
@@ -5047,17 +5142,21 @@ export interface components {
             /** Body */
             body: string;
         };
-        /** Contributor */
-        Contributor: {
-            user: components["schemas"]["UserPublic"];
-            /** Replies */
-            replies: number;
-            /** Votes */
-            votes: number;
-            /** Accepted */
-            accepted: number;
-            /** Score */
-            score: number;
+        /**
+         * Contributor
+         * @description Someone who built the hub or supplied its materials: in the footer and on About, in this order.
+         */
+        "Contributor-Input": {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Role */
+            role?: string | null;
+            /** Affiliation */
+            affiliation?: string | null;
+            /** Url */
+            url?: string | null;
         };
         /** CoverLine */
         CoverLine: {
@@ -5151,6 +5250,26 @@ export interface components {
             nextAt: string;
         };
         /**
+         * DateLink
+         * @description The next calendar date of this type whose title contains `title`: 'Deadline Sunday 1 November'.
+         */
+        DateLink: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "date";
+            /** Title */
+            title: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "deadline" | "event";
+            /** Label */
+            label: string;
+        };
+        /**
          * DateWindow
          * @description The dates a deadlines section lists (either end may be open).
          */
@@ -5181,13 +5300,27 @@ export interface components {
             /** Items */
             items: components["schemas"]["RequestOut"][];
         };
+        /**
+         * Electives
+         * @description /career/electives: the Year 3 electives side by side, built from the modules and Career Navigator.
+         */
+        Electives: {
+            /** Title */
+            title: string;
+            /** Intro */
+            intro: string;
+            /** Pick */
+            pick: number;
+            /** Disclaimer */
+            disclaimer: string;
+        };
         /** ErrorDetail */
         ErrorDetail: {
             /**
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
             /** Message */
             message: string;
             /** Fields */
@@ -5980,7 +6113,7 @@ export interface components {
             /** Noreplies */
             noReplies: number;
             /** Topcontributors */
-            topContributors: components["schemas"]["Contributor"][];
+            topContributors: components["schemas"]["app__schemas__forum__Contributor"][];
             /** Bytag */
             byTag?: {
                 [key: string]: number;
@@ -6166,6 +6299,61 @@ export interface components {
             /** Word */
             word: string;
         };
+        /**
+         * GuidePlace
+         * @description One of the sites Start here tells apart.
+         */
+        GuidePlace: {
+            /** Name */
+            name: string;
+            /** Whose */
+            whose: string;
+            /** What */
+            what: string;
+            /** Link */
+            link?: ("myclass" | "uolPortal" | "regulations" | "results") | null;
+        };
+        /** GuideStep */
+        GuideStep: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Hint */
+            hint: string;
+            /**
+             * Links
+             * @default []
+             */
+            links: (components["schemas"]["WebLink"] | components["schemas"]["SavedLink"] | components["schemas"]["PageLink"] | components["schemas"]["DateLink"] | components["schemas"]["InstallLink"])[];
+        };
+        /** GuidesDoc */
+        GuidesDoc: {
+            startHere: components["schemas"]["StartHere"];
+            resultsDay: components["schemas"]["ResultsDay"];
+            electives: components["schemas"]["Electives"];
+        };
+        /**
+         * GuidesEditable
+         * @description The guides for their editors, with the version a save must name (0 until the first save).
+         */
+        GuidesEditable: {
+            data: components["schemas"]["GuidesDoc"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+        };
+        /**
+         * GuidesSave
+         * @description PUT /guides: every guide, and the version they were edited from.
+         */
+        GuidesSave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["GuidesDoc"];
+        };
         /** Health */
         Health: {
             /**
@@ -6218,6 +6406,17 @@ export interface components {
             strokes: components["schemas"]["Stroke"][];
             /** Version */
             version: number;
+        };
+        /**
+         * InstallLink
+         * @description "Install the app", or how to add it to an iPhone's home screen.
+         */
+        InstallLink: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "install";
         };
         /**
          * IssueCover
@@ -6754,7 +6953,7 @@ export interface components {
             /** Roles */
             roles: components["schemas"]["RoleSummary"][];
             /** Boxes */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "guides.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
             features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions" | "daily")[];
             /**
@@ -6817,8 +7016,8 @@ export interface components {
             description: string;
             /** Icon */
             icon?: ("BookOpenText" | "Brain" | "Briefcase" | "ChartBar" | "ChartLineUp" | "ChartScatter" | "Coins" | "Database" | "Function" | "ListChecks" | "Megaphone" | "PresentationChart" | "Scales" | "Sigma" | "Storefront" | "TerminalWindow" | "WaveSine") | null;
-            /** Arturl */
-            artUrl?: string | null;
+            /** Art */
+            art?: string | null;
             /** Id */
             id: string;
         };
@@ -6841,8 +7040,8 @@ export interface components {
             description: string;
             /** Icon */
             icon: string | null;
-            /** Arturl */
-            artUrl?: string | null;
+            /** Art */
+            art: string | null;
             /** Chaptercount */
             chapterCount: number;
             /** Lessoncount */
@@ -6871,8 +7070,8 @@ export interface components {
             year: 1 | 2 | 3;
             /** Icon */
             icon: string | null;
-            /** Arturl */
-            artUrl?: string | null;
+            /** Art */
+            art: string | null;
             /** Hidden */
             hidden: boolean;
             /** Position */
@@ -6907,8 +7106,8 @@ export interface components {
             year: 1 | 2 | 3;
             /** Icon */
             icon: string | null;
-            /** Arturl */
-            artUrl?: string | null;
+            /** Art */
+            art: string | null;
             /** Hidden */
             hidden: boolean;
             /** Position */
@@ -6960,8 +7159,8 @@ export interface components {
             description: string;
             /** Icon */
             icon?: ("BookOpenText" | "Brain" | "Briefcase" | "ChartBar" | "ChartLineUp" | "ChartScatter" | "Coins" | "Database" | "Function" | "ListChecks" | "Megaphone" | "PresentationChart" | "Scales" | "Sigma" | "Storefront" | "TerminalWindow" | "WaveSine") | null;
-            /** Arturl */
-            artUrl?: string | null;
+            /** Art */
+            art?: string | null;
             /** Version */
             version: number;
             /**
@@ -7008,8 +7207,8 @@ export interface components {
             description: string;
             /** Icon */
             icon: string | null;
-            /** Arturl */
-            artUrl?: string | null;
+            /** Art */
+            art: string | null;
             /** Chaptercount */
             chapterCount: number;
             /** Lessoncount */
@@ -7319,6 +7518,19 @@ export interface components {
             /** Pdfuploadid */
             pdfUploadId?: string | null;
         };
+        /**
+         * NoteCredit
+         * @description A student who shared their notes, and the modules the notes are for. About credits them by name, each module
+         *     linking to its notes in the library.
+         */
+        NoteCredit: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Modules */
+            modules: string[];
+        };
         /** NotePage */
         NotePage: {
             /** Items */
@@ -7558,6 +7770,20 @@ export interface components {
             challengeId: string;
             /** Code */
             code: string;
+        };
+        /** PageLink */
+        PageLink: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "page";
+            /** To */
+            to: string;
+            /** Label */
+            label: string;
+            /** Feature */
+            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "board" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "video_suggestions" | "daily") | null;
         };
         /** PaperQuestion */
         PaperQuestion: {
@@ -8389,6 +8615,25 @@ export interface components {
             /** Offset */
             offset: number;
         };
+        /**
+         * ResultsDay
+         * @description What results mean and what to do next: Home's card for `weeks` weeks from each results date on the calendar
+         *     (an event whose title contains `event_title`), and /results-day.
+         */
+        ResultsDay: {
+            /** Title */
+            title: string;
+            /** Intro */
+            intro: string;
+            /** Eventtitle */
+            eventTitle: string;
+            /** Weeks */
+            weeks: number;
+            /** Steps */
+            steps: components["schemas"]["GuideStep"][];
+            /** Sourcesintro */
+            sourcesIntro: string;
+        };
         /** ResumeUpdate */
         ResumeUpdate: {
             /** Lessonid */
@@ -8421,7 +8666,7 @@ export interface components {
              * Boxes
              * @default []
              */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "guides.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
         };
         /** RoleOut */
         RoleOut: {
@@ -8445,7 +8690,7 @@ export interface components {
             /** Version */
             version: number;
             /** Boxes */
-            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
+            boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "guides.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Holders */
             holders: number;
         };
@@ -8475,9 +8720,27 @@ export interface components {
             /** Badge */
             badge?: string | null;
             /** Boxes */
-            boxes?: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[] | null;
+            boxes?: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "guides.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[] | null;
             /** Position */
             position?: number | null;
+        };
+        /**
+         * SavedLink
+         * @description One of the hub's saved links: it follows Site settings when the address changes.
+         */
+        SavedLink: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "site";
+            /**
+             * Link
+             * @enum {string}
+             */
+            link: "myclass" | "uolPortal" | "regulations" | "results";
+            /** Label */
+            label: string;
         };
         /**
          * ScanGap
@@ -8665,6 +8928,90 @@ export interface components {
             /** Metoocount */
             meTooCount: number;
         };
+        /** SiteDoc */
+        "SiteDoc-Input": {
+            /** Tagline */
+            tagline: string;
+            /** Aboutintro */
+            aboutIntro: string;
+            /** About */
+            about: string;
+            links: components["schemas"]["SiteLinks"];
+            /** Contributors */
+            contributors: components["schemas"]["Contributor-Input"][];
+            /** Notecredits */
+            noteCredits: components["schemas"]["NoteCredit"][];
+            /** Gradesnote */
+            gradesNote: string;
+            /** Disclaimer */
+            disclaimer: string;
+            /** Copyrightholder */
+            copyrightHolder: string;
+            /** Launchyear */
+            launchYear: number;
+        };
+        /** SiteDoc */
+        "SiteDoc-Output": {
+            /** Tagline */
+            tagline: string;
+            /** Aboutintro */
+            aboutIntro: string;
+            /** About */
+            about: string;
+            links: components["schemas"]["SiteLinks"];
+            /** Contributors */
+            contributors: components["schemas"]["app__schemas__site__Contributor"][];
+            /** Notecredits */
+            noteCredits: components["schemas"]["NoteCredit"][];
+            /** Gradesnote */
+            gradesNote: string;
+            /** Disclaimer */
+            disclaimer: string;
+            /** Copyrightholder */
+            copyrightHolder: string;
+            /** Launchyear */
+            launchYear: number;
+        };
+        /**
+         * SiteEditable
+         * @description The document for admins, with the version a save must name (0 until the first save: the starting content).
+         */
+        SiteEditable: {
+            data: components["schemas"]["SiteDoc-Output"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+        };
+        /**
+         * SiteLink
+         * @description A link to another site, as the hub names it.
+         */
+        SiteLink: {
+            /** Label */
+            label: string;
+            /** Note */
+            note: string;
+            /** Url */
+            url: string;
+        };
+        /** SiteLinks */
+        SiteLinks: {
+            myclass: components["schemas"]["SiteLink"];
+            uolPortal: components["schemas"]["SiteLink"];
+            regulations: components["schemas"]["SiteLink"];
+            results: components["schemas"]["SiteLink"];
+        };
+        /**
+         * SiteSave
+         * @description PUT /site: the whole document, and the version it was edited from.
+         */
+        SiteSave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["SiteDoc-Input"];
+        };
         /** Sitting */
         Sitting: {
             /** Examyear */
@@ -8721,6 +9068,32 @@ export interface components {
         StarResult: {
             /** Starred */
             starred: boolean;
+        };
+        /**
+         * StartHere
+         * @description Year 1's first weeks: Home's card for Year 1 from the first day of term for `weeks` weeks, and /start-here.
+         */
+        StartHere: {
+            /** Title */
+            title: string;
+            /** Intro */
+            intro: string;
+            termStart: components["schemas"]["TermStart"];
+            /** Weeks */
+            weeks: number;
+            /** Steps */
+            steps: components["schemas"]["GuideStep"][];
+            /** Done */
+            done: string;
+            /** Placestitle */
+            placesTitle: string;
+            /** Placesintro */
+            placesIntro: string;
+            /**
+             * Places
+             * @default []
+             */
+            places: components["schemas"]["GuidePlace"][];
         };
         /** StatItem */
         StatItem: {
@@ -8972,6 +9345,13 @@ export interface components {
             id: string;
             /** Label */
             label: string;
+        };
+        /** TermStart */
+        TermStart: {
+            /** Month */
+            month: number;
+            /** Day */
+            day: number;
         };
         /**
          * TextMatch
@@ -9290,6 +9670,18 @@ export interface components {
              */
             at: string;
         };
+        /** WebLink */
+        WebLink: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "web";
+            /** Href */
+            href: string;
+            /** Label */
+            label: string;
+        };
         /** WordRow */
         WordRow: {
             /** Word */
@@ -9312,6 +9704,34 @@ export interface components {
             rows: components["schemas"]["WordRow"][];
             /** Answer */
             answer: string | null;
+        };
+        /** Contributor */
+        app__schemas__forum__Contributor: {
+            user: components["schemas"]["UserPublic"];
+            /** Replies */
+            replies: number;
+            /** Votes */
+            votes: number;
+            /** Accepted */
+            accepted: number;
+            /** Score */
+            score: number;
+        };
+        /**
+         * Contributor
+         * @description Someone who built the hub or supplied its materials: in the footer and on About, in this order.
+         */
+        app__schemas__site__Contributor: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Role */
+            role?: string | null;
+            /** Affiliation */
+            affiliation?: string | null;
+            /** Url */
+            url?: string | null;
         };
     };
     responses: never;
@@ -9403,7 +9823,7 @@ export type CloseOpps = components['schemas']['CloseOpps'];
 export type ColumnCreate = components['schemas']['ColumnCreate'];
 export type ColumnUpdate = components['schemas']['ColumnUpdate'];
 export type CommentCreate = components['schemas']['CommentCreate'];
-export type Contributor = components['schemas']['Contributor'];
+export type ContributorInput = components['schemas']['Contributor-Input'];
 export type CoverLine = components['schemas']['CoverLine'];
 export type CtaBlock = components['schemas']['CtaBlock'];
 export type CtaLabels = components['schemas']['CtaLabels'];
@@ -9412,8 +9832,10 @@ export type DailyMe = components['schemas']['DailyMe'];
 export type DailyMeIn = components['schemas']['DailyMeIn'];
 export type DailyStats = components['schemas']['DailyStats'];
 export type DailyToday = components['schemas']['DailyToday'];
+export type DateLink = components['schemas']['DateLink'];
 export type DateWindow = components['schemas']['DateWindow'];
 export type DoneRequests = components['schemas']['DoneRequests'];
+export type Electives = components['schemas']['Electives'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
 export type ErrorResponse = components['schemas']['ErrorResponse'];
 export type EventGap = components['schemas']['EventGap'];
@@ -9465,10 +9887,16 @@ export type GiveUpMove = components['schemas']['GiveUpMove'];
 export type GroupMove = components['schemas']['GroupMove'];
 export type GroupsView = components['schemas']['GroupsView'];
 export type GuessMove = components['schemas']['GuessMove'];
+export type GuidePlace = components['schemas']['GuidePlace'];
+export type GuideStep = components['schemas']['GuideStep'];
+export type GuidesDoc = components['schemas']['GuidesDoc'];
+export type GuidesEditable = components['schemas']['GuidesEditable'];
+export type GuidesSave = components['schemas']['GuidesSave'];
 export type Health = components['schemas']['Health'];
 export type HintMove = components['schemas']['HintMove'];
 export type InkSave = components['schemas']['InkSave'];
 export type InkSheet = components['schemas']['InkSheet'];
+export type InstallLink = components['schemas']['InstallLink'];
 export type IssueCover = components['schemas']['IssueCover'];
 export type IssueCreate = components['schemas']['IssueCreate'];
 export type IssueDetail = components['schemas']['IssueDetail'];
@@ -9520,6 +9948,7 @@ export type NooraTurn = components['schemas']['NooraTurn'];
 export type NooraUsageOut = components['schemas']['NooraUsageOut'];
 export type Note = components['schemas']['Note'];
 export type NoteCreate = components['schemas']['NoteCreate'];
+export type NoteCredit = components['schemas']['NoteCredit'];
 export type NotePage = components['schemas']['NotePage'];
 export type NotePdf = components['schemas']['NotePdf'];
 export type NoteSummary = components['schemas']['NoteSummary'];
@@ -9535,6 +9964,7 @@ export type OfferTypeLabels = components['schemas']['OfferTypeLabels'];
 export type OtpChallengeOut = components['schemas']['OtpChallengeOut'];
 export type OtpStartRequest = components['schemas']['OtpStartRequest'];
 export type OtpVerifyRequest = components['schemas']['OtpVerifyRequest'];
+export type PageLink = components['schemas']['PageLink'];
 export type PaperQuestion = components['schemas']['PaperQuestion'];
 export type PaperQuestionCreate = components['schemas']['PaperQuestionCreate'];
 export type PaperRef = components['schemas']['PaperRef'];
@@ -9574,6 +10004,7 @@ export type RequestEvent = components['schemas']['RequestEvent'];
 export type RequestGap = components['schemas']['RequestGap'];
 export type RequestOut = components['schemas']['RequestOut'];
 export type RequestPage = components['schemas']['RequestPage'];
+export type ResultsDay = components['schemas']['ResultsDay'];
 export type ResumeUpdate = components['schemas']['ResumeUpdate'];
 export type ReviewDecision = components['schemas']['ReviewDecision'];
 export type RoleCatalogue = components['schemas']['RoleCatalogue'];
@@ -9581,6 +10012,7 @@ export type RoleCreate = components['schemas']['RoleCreate'];
 export type RoleOut = components['schemas']['RoleOut'];
 export type RoleSummary = components['schemas']['RoleSummary'];
 export type RoleUpdate = components['schemas']['RoleUpdate'];
+export type SavedLink = components['schemas']['SavedLink'];
 export type ScanGap = components['schemas']['ScanGap'];
 export type SearchFound = components['schemas']['SearchFound'];
 export type SearchHit = components['schemas']['SearchHit'];
@@ -9593,11 +10025,18 @@ export type SessionState = components['schemas']['SessionState'];
 export type SignInResult = components['schemas']['SignInResult'];
 export type SignoffBlock = components['schemas']['SignoffBlock'];
 export type SimilarRequest = components['schemas']['SimilarRequest'];
+export type SiteDocInput = components['schemas']['SiteDoc-Input'];
+export type SiteDocOutput = components['schemas']['SiteDoc-Output'];
+export type SiteEditable = components['schemas']['SiteEditable'];
+export type SiteLink = components['schemas']['SiteLink'];
+export type SiteLinks = components['schemas']['SiteLinks'];
+export type SiteSave = components['schemas']['SiteSave'];
 export type Sitting = components['schemas']['Sitting'];
 export type SittingGap = components['schemas']['SittingGap'];
 export type SittingZone = components['schemas']['SittingZone'];
 export type SkillTaught = components['schemas']['SkillTaught'];
 export type StarResult = components['schemas']['StarResult'];
+export type StartHere = components['schemas']['StartHere'];
 export type StatItem = components['schemas']['StatItem'];
 export type StatsAside = components['schemas']['StatsAside'];
 export type StepUpResult = components['schemas']['StepUpResult'];
@@ -9614,6 +10053,7 @@ export type SuggestionPage = components['schemas']['SuggestionPage'];
 export type SummaryPreview = components['schemas']['SummaryPreview'];
 export type SwitchUpdate = components['schemas']['SwitchUpdate'];
 export type TagOut = components['schemas']['TagOut'];
+export type TermStart = components['schemas']['TermStart'];
 export type TextMatch = components['schemas']['TextMatch'];
 export type Theme = components['schemas']['Theme'];
 export type ThreadCreate = components['schemas']['ThreadCreate'];
@@ -9629,8 +10069,11 @@ export type UserRolesUpdate = components['schemas']['UserRolesUpdate'];
 export type Video = components['schemas']['Video'];
 export type VoteResult = components['schemas']['VoteResult'];
 export type WatchedLesson = components['schemas']['WatchedLesson'];
+export type WebLink = components['schemas']['WebLink'];
 export type WordRow = components['schemas']['WordRow'];
 export type WordView = components['schemas']['WordView'];
+export type AppSchemasForumContributor = components['schemas']['app__schemas__forum__Contributor'];
+export type AppSchemasSiteContributor = components['schemas']['app__schemas__site__Contributor'];
 export type $defs = Record<string, never>;
 export interface operations {
     health_api_v1_health_get: {
@@ -26589,6 +27032,512 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlayOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    site_api_v1_site_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteDoc-Output"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_site_api_v1_site_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SiteSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    site_for_editing_api_v1_site_edit_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    guides_api_v1_guides_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuidesDoc"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_guides_api_v1_guides_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuidesSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuidesEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    guides_for_editing_api_v1_guides_edit_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuidesEditable"];
                 };
             };
             /** @description Bad Request */

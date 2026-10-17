@@ -1,8 +1,6 @@
-// Which links and pictures an issue may carry. Issues are written by student reps, so every URL that reaches href,
-// to or src goes through these checks (security review, findings 12 and 18, and SEC-3). The rules mirror the API's
-// (api/app/core/links.py), so the editor can say what's wrong before saving; the API checks again either way.
-import { API_ORIGIN } from '../../../api/client';
-import { isMediaPath } from '../../../ui/safeHref';
+// Which links an issue may carry (its pictures: api/pictures.ts). Issues are written by student reps, so every URL that
+// reaches href or to goes through these checks (security review, findings 12 and 18, and SEC-3). The rules mirror the
+// API's (api/app/core/links.py), so the editor can say what's wrong before saving; the API checks again either way.
 
 // The renderer's rule (ui/safeHref): an app path, or an http(s)/mailto URL; anything else is shown as plain text.
 export { safeHref,  } from '../../../ui/safeHref';
@@ -50,30 +48,6 @@ export function markupProblem(text: string): string | null {
     if (problem) return href ? `The link “${href}” won’t work. ${problem}` : `A link has no address. ${problem}`;
   }
   return null;
-}
-
-// A picture file of the app's public/ folder ('brand/newsletter-cover.jpg'): folders, then an image file name.
-const APP_PICTURE = /^\/?(?:[a-z0-9][a-z0-9_-]*\/)*[a-z0-9][a-z0-9_.-]*\.(?:jpe?g|png|webp|gif|avif|svg)$/i;
-
-/** An uploaded image's path ('/api/v1/media/<id>'), as a plain test (isMediaPath() narrows its argument). */
-const isMedia = (s: string): boolean => isMediaPath(s);
-
-/** True for a picture the API accepts: a file of the app, or an uploaded image ('/api/v1/media/<id>'). */
-export function isIssuePicture(raw: string | null | undefined): boolean {
-  if (!raw) return false;
-  const s = raw.trim();
-  return isMedia(s) || (APP_PICTURE.test(s) && !s.includes('..'));
-}
-
-/**
- * Where to load a picture from: a file under the app's public/ folder (served under the app's base path) or an
- * uploaded image (/api/v1/media/<id>). Other hosts are refused (they would log every reader's address): null.
- */
-export function safeImageSrc(raw: string | null | undefined): string | null {
-  if (!raw || !isIssuePicture(raw)) return null;
-  const s = raw.trim();
-  if (isMedia(s)) return `${API_ORIGIN}${s}`;
-  return `${import.meta.env.BASE_URL}${s.replace(/^\//, '')}`;
 }
 
 export const whatsappUrl = (text: string, url: string): string => `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
