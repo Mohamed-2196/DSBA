@@ -5,6 +5,7 @@ import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClie
 import { api, call } from '../../../api/client';
 import { nextOffset } from '../../../api/paging';
 import type {
+  BundleIn,
   DailyContentOverview,
   GuessAdd,
   ImportIn,
@@ -178,6 +179,17 @@ export function useDeleteVocabulary() {
   return useItemWrite(({ word, version }: { word: string; version: number }) =>
     call(api.DELETE('/api/v1/content/daily/vocabulary/{word}', { params: { path: { word }, query: { version } } })),
   );
+}
+
+/** An admin's content file: a dry run changes nothing, so it refreshes nothing. */
+export function useImportBundle() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: BundleIn) => call(api.POST('/api/v1/content/daily/bundle', { body })),
+    onSuccess: (report) => {
+      if (report.applied) changed(qc);
+    },
+  });
 }
 
 export function useDailyPreview(day: string) {

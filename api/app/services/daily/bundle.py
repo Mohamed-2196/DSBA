@@ -1,7 +1,8 @@
 """Daily's content as one JSON file, to move it between installs and to keep the answers out of the public
-repository: `python -m app.cli daily-content export FILE` writes what the database holds, and `daily-content import
-FILE` adds what a file holds and the database lacks (a theme, a vocabulary word or an item that is there already stays
-as it is). Everything imported goes through the editor's rules.
+repository: `python -m app.cli daily-content export FILE` writes what the database holds; `daily-content import FILE`,
+or an admin's upload in Manage → Daily puzzles, adds what a file holds and the database lacks. A theme, a vocabulary
+word or an item that is there already stays as it is, so loading the same file twice changes nothing. Everything
+imported goes through the editor's rules.
 
     {
       "themes": [{"id", "title", "blurb", "inRotation"}],   in the rotation's order
@@ -11,36 +12,79 @@ as it is). Everything imported goes through the editor's rules.
     }
 
 The import sets the rotation from the file only while the database has none (a new install); a theme joins it once it
-has what every game needs."""
+has what every game needs. Services leave the commit to the caller."""
 
 from __future__ import annotations
 
+import json
+from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
-from app.core.errors import ApiError
+from app.core.errors import ApiError, invalid
 from app.core.time import bahrain_today
-from app.models import DailyGuessWord, DailyItem, DailyNearestWord, DailyTheme
+from app.models import DailyGuessWord, DailyItem, DailyNearestWord, DailyTheme, User
+from app.schemas.daily_content import BundleCounts, BundleGameCounts, BundleIn, BundleReport, ContentGame
 from app.seed.loader import daily_guess_words
 from app.services import audit
 from app.services.daily import editor
 
+MAX_CHARACTERS = 5_000_000  # a file the command reads; an upload is capped lower by its schema (BundleIn)
+NOT_A_FILE = "This isn't a Daily content file. Export one with python -m app.cli daily-content export."
+
+
+class BundleFile(BaseModel):
+    """The file's shape. Each entry's fields are checked as it is imported, and reported when they don't fit."""
+
+    themes: list[dict[str, Any]] = Field(default_factory=list, max_length=200)
+    guesses: list[str] = Field(default_factory=list, max_length=50_000)
+    vocabulary: list[dict[str, Any]] = Field(default_factory=list, max_length=20_000)
+    items: list[dict[str, Any]] = Field(default_factory=list, max_length=20_000)
+
+
+def read(text: str) -> BundleFile:
+    """The file's content, or 422 on `content` when it isn't a content file."""
+    if len(text) > MAX_CHARACTERS:
+        raise invalid("content", "This file is too big for a Daily content file.")
+    try:
+        raw = json.loads(text)
+    except ValueError:
+        raise invalid("content", f"{NOT_A_FILE} This one isn't JSON.") from None
+    if not isinstance(raw, dict) or not {"themes", "guesses", "vocabulary", "items"} & raw.keys():
+        raise invalid("content", NOT_A_FILE)
+    try:
+        return BundleFile.model_validate(raw)
+    except ValidationError as e:
+        where = ".".join(str(p) for p in e.errors()[0]["loc"])
+        raise invalid("content", f"{NOT_A_FILE} Its “{where}” doesn't fit.") from None
+
 
 @dataclass
 class ImportResult:
-    themes: int = 0
-    guesses: int = 0
-    vocabulary: int = 0
-    items: int = 0
-    kept: int = 0  # items the database had already
+    themes: Counter[str] = field(default_factory=Counter)  # "added" / "kept"
+    guesses: Counter[str] = field(default_factory=Counter)
+    vocabulary: Counter[str] = field(default_factory=Counter)
+    items: dict[str, Counter[str]] = field(default_factory=dict)  # game -> "added" / "kept"
     rotation: list[str] = field(default_factory=list)  # the themes the import put in the rotation
     problems: list[str] = field(default_factory=list)  # what wasn't imported, and why
+
+    def item(self, game: str, what: str) -> None:
+        self.items.setdefault(game, Counter())[what] += 1
+
+    @property
+    def changed(self) -> bool:
+        added = (self.themes, self.guesses, self.vocabulary, *self.items.values())
+        return bool(self.rotation) or any(c["added"] for c in added)
+
+
+def _strings(value: Any) -> list[str]:
+    return [str(v) for v in value] if isinstance(value, list) else []
 
 
 def _item_fields(item: DailyItem) -> dict[str, Any]:
@@ -70,6 +114,7 @@ def _themes(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> No
             out.problems.append(f"theme “{theme_id}”: not a theme id")
             continue
         if db.get(DailyTheme, theme_id) is not None:
+            out.themes["kept"] += 1
             continue
         try:
             title, blurb = editor.theme_text(str(t.get("title", "")), str(t.get("blurb", "")))
@@ -78,7 +123,7 @@ def _themes(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> No
             continue
         db.add(DailyTheme(id=theme_id, title=title, blurb=blurb, position=position, in_rotation=False))
         position += 1
-        out.themes += 1
+        out.themes["added"] += 1
     db.flush()
 
 
@@ -88,7 +133,9 @@ def _guesses(db: Session, words: Sequence[str], out: ImportResult) -> None:
         return
     before = db.scalar(select(func.count()).select_from(DailyGuessWord)) or 0
     db.execute(pg_insert(DailyGuessWord).values([{"word": w} for w in good]).on_conflict_do_nothing())
-    out.guesses += (db.scalar(select(func.count()).select_from(DailyGuessWord)) or 0) - before
+    added = (db.scalar(select(func.count()).select_from(DailyGuessWord)) or 0) - before
+    out.guesses["added"] += added
+    out.guesses["kept"] += len(good) - added
 
 
 def _vocabulary(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> None:
@@ -100,11 +147,11 @@ def _vocabulary(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -
             out.problems.append(f"vocabulary “{word}”: not a word, a to z")
             continue
         if db.get(DailyNearestWord, word) is not None:
+            out.vocabulary["kept"] += 1
             continue
-        row = DailyNearestWord(word=word, tags=[], near=[])
+        row = DailyNearestWord(word=word, tags=_strings(w.get("tags")), near=[])
         db.add(row)
-        added.append((row, [str(n) for n in w.get("near", [])]))
-        row.tags = [str(t) for t in w.get("tags", [])]
+        added.append((row, _strings(w.get("near"))))
     db.flush()
     for row, near in added:
         try:
@@ -113,7 +160,7 @@ def _vocabulary(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -
             out.problems.append(f"vocabulary “{row.word}”: {e.message}")
             db.delete(row)
             continue
-        out.vocabulary += 1
+        out.vocabulary["added"] += 1
     db.flush()
 
 
@@ -128,7 +175,7 @@ def _items(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> Non
             out.problems.append(f"item {n}: it doesn't fit its game's fields")
             continue
         if editor.existing(db, data.game, theme, editor.key_of(data)) is not None:
-            out.kept += 1
+            out.item(data.game, "kept")
             continue
         try:
             checked = editor.check_item(db, theme, data)
@@ -137,7 +184,7 @@ def _items(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> Non
             continue
         db.add(DailyItem(game=data.game, theme_id=theme, data=checked.data, key=checked.key, retired=retired))
         db.flush()
-        out.items += 1
+        out.item(data.game, "added")
 
 
 def _rotation(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> None:
@@ -164,29 +211,57 @@ def _rotation(db: Session, raw: Sequence[dict[str, Any]], out: ImportResult) -> 
     db.flush()
 
 
-def load(db: Session, bundle: dict[str, Any]) -> ImportResult:
-    """Adds the file's content that the database lacks. The caller commits."""
+def load(db: Session, bundle: BundleFile, actor: User | None = None, ip: str | None = None) -> ImportResult:
+    """Adds the file's content that the database lacks, and audits it (counts only, never the content) when it
+    changed anything. `actor`: the admin who uploaded it; none for the command line."""
     out = ImportResult()
-    _themes(db, bundle.get("themes", []), out)
-    answers = [str(i.get("word", "")) for i in bundle.get("items", []) if i.get("game") == "word"]
-    _guesses(db, [*bundle.get("guesses", []), *answers], out)
-    _vocabulary(db, bundle.get("vocabulary", []), out)
-    _items(db, bundle.get("items", []), out)
+    _themes(db, bundle.themes, out)
+    answers = [str(i.get("word", "")) for i in bundle.items if i.get("game") == "word"]
+    _guesses(db, [*bundle.guesses, *answers], out)
+    _vocabulary(db, bundle.vocabulary, out)
+    _items(db, bundle.items, out)
     editor.rank_secret_words(db)
-    _rotation(db, bundle.get("themes", []), out)
-    audit.record(
-        db,
-        None,
-        "daily.content.import",
-        "daily_theme",
-        None,
-        {
-            "title": "Daily puzzles' content",
-            "via": "cli",
-            "themes": out.themes,
-            "guesses": out.guesses,
-            "vocabulary": out.vocabulary,
-            "items": out.items,
-        },
-    )
+    _rotation(db, bundle.themes, out)
+    if out.changed:
+        counts = {
+            "themes": out.themes["added"],
+            "guesses": out.guesses["added"],
+            "vocabulary": out.vocabulary["added"],
+            "items": sum(c["added"] for c in out.items.values()),
+        }
+        data: dict[str, Any] = {"title": "Daily puzzles' content", **counts, "rotation": out.rotation}
+        if actor is None:
+            data["via"] = "cli"
+        audit.record(db, actor, "daily.content.import", "daily_theme", None, data, ip=ip)
     return out
+
+
+def _counts(c: Counter[str]) -> BundleCounts:
+    return BundleCounts(added=c["added"], kept=c["kept"])
+
+
+def report(result: ImportResult, applied: bool) -> BundleReport:
+    return BundleReport(
+        applied=applied,
+        themes=_counts(result.themes),
+        guesses=_counts(result.guesses),
+        vocabulary=_counts(result.vocabulary),
+        items=[
+            BundleGameCounts(game=cast(ContentGame, game), added=c["added"], kept=c["kept"])
+            for game, c in sorted(result.items.items())
+        ],
+        rotation=result.rotation,
+        problems=result.problems,
+    )
+
+
+def import_file(db: Session, user: User, body: BundleIn, ip: str | None) -> BundleReport:
+    """An admin's upload: checked and counted, and (unless `body.dryRun`) loaded, the same way as the command line."""
+    content = read(body.content)
+    if not body.dry_run:
+        return report(load(db, content, user, ip), applied=True)
+    trial = db.begin_nested()
+    try:
+        return report(load(db, content, user, ip), applied=False)
+    finally:
+        trial.rollback()

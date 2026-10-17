@@ -11,11 +11,13 @@ from typing import Annotated
 from fastapi import Path, Query, Request, Response, status
 
 from app.core.access import Box, Feature
-from app.core.security import DB, client_ip, needs_feature, requires
+from app.core.security import DB, client_ip, needs_feature, requires, requires_admin
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.common import Page
 from app.schemas.daily_content import (
+    BundleIn,
+    BundleReport,
     ContentGame,
     DailyContentOverview,
     DayPreview,
@@ -37,10 +39,12 @@ from app.schemas.daily_content import (
     VocabularySave,
     WeekSave,
 )
+from app.services.daily import bundle
 from app.services.daily import editor as svc
 
 router = router_for("daily-content", needs_feature(Feature.daily))
 Editor = Annotated[User, requires(Box.content_edit)]
+Admin = Annotated[User, requires_admin()]
 Version = Annotated[int, Query(ge=1)]
 ThemeId = Annotated[str, Path(max_length=32)]
 Word = Annotated[str, Path(max_length=40)]
@@ -167,6 +171,17 @@ def import_items(body: ImportIn, request: Request, user: Editor, db: DB) -> Impo
     `dryRun` checks each row and saves nothing; otherwise the rows that pass are added together. Errors:
     invalid_input (422: no rows, more than 500, a header that lacks a column)."""
     out = svc.import_items(db, user, body, client_ip(request))
+    db.commit()
+    return out
+
+
+@router.post("/content/daily/bundle", response_model=BundleReport)
+def import_bundle(body: BundleIn, request: Request, user: Admin, db: DB) -> BundleReport:
+    """Admins: a Daily content file, as `python -m app.cli daily-content import` takes it. It adds what the database
+    lacks and leaves what is there, so the same file twice changes nothing; `dryRun` says what it would add and leave,
+    and changes nothing. Audited with counts. Errors: forbidden (403: not an admin), invalid_input (422 on `content`:
+    not a content file, or over 1 MB)."""
+    out = bundle.import_file(db, user, body, client_ip(request))
     db.commit()
     return out
 

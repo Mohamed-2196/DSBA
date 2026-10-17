@@ -22984,6 +22984,108 @@
         }
       }
     },
+    "/api/v1/content/daily/bundle": {
+      "post": {
+        "tags": [
+          "daily-content"
+        ],
+        "summary": "Import Bundle",
+        "description": "Admins: a Daily content file, as `python -m app.cli daily-content import` takes it. It adds what the database\nlacks and leaves what is there, so the same file twice changes nothing; `dryRun` says what it would add and leave,\nand changes nothing. Audited with counts. Errors: forbidden (403: not an admin), invalid_input (422 on `content`:\nnot a content file, or over 1 MB).",
+        "operationId": "import_bundle_api_v1_content_daily_bundle_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BundleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BundleReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/content/daily/guesses": {
       "get": {
         "tags": [
@@ -27014,6 +27116,123 @@
           "status"
         ],
         "title": "BugReportUpdate"
+      },
+      "BundleCounts": {
+        "properties": {
+          "added": {
+            "type": "integer",
+            "title": "Added"
+          },
+          "kept": {
+            "type": "integer",
+            "title": "Kept"
+          }
+        },
+        "type": "object",
+        "required": [
+          "added",
+          "kept"
+        ],
+        "title": "BundleCounts"
+      },
+      "BundleGameCounts": {
+        "properties": {
+          "added": {
+            "type": "integer",
+            "title": "Added"
+          },
+          "kept": {
+            "type": "integer",
+            "title": "Kept"
+          },
+          "game": {
+            "type": "string",
+            "enum": [
+              "word",
+              "groups",
+              "search",
+              "quiz",
+              "nearest"
+            ],
+            "title": "Game"
+          }
+        },
+        "type": "object",
+        "required": [
+          "added",
+          "kept",
+          "game"
+        ],
+        "title": "BundleGameCounts"
+      },
+      "BundleIn": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 1000000,
+            "title": "Content"
+          },
+          "dryRun": {
+            "type": "boolean",
+            "title": "Dryrun",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "BundleIn",
+        "description": "A Daily content file, as `python -m app.cli daily-content export` writes it: its text. `dryRun` says what it\nwould add and leave, and changes nothing."
+      },
+      "BundleReport": {
+        "properties": {
+          "applied": {
+            "type": "boolean",
+            "title": "Applied"
+          },
+          "themes": {
+            "$ref": "#/components/schemas/BundleCounts"
+          },
+          "guesses": {
+            "$ref": "#/components/schemas/BundleCounts"
+          },
+          "vocabulary": {
+            "$ref": "#/components/schemas/BundleCounts"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BundleGameCounts"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "rotation": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rotation"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Problems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "applied",
+          "themes",
+          "guesses",
+          "vocabulary",
+          "items",
+          "rotation",
+          "problems"
+        ],
+        "title": "BundleReport"
       },
       "CalendarDay": {
         "properties": {

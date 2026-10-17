@@ -298,3 +298,33 @@ class DayPreview(ApiModel):
     day: dt.date
     theme: Theme
     games: list[PreviewGame]
+
+
+# --- a content file (admins) ---------------------------------------------------------------------------------------
+
+
+class BundleIn(ApiModel):
+    """A Daily content file, as `python -m app.cli daily-content export` writes it: its text. `dryRun` says what it
+    would add and leave, and changes nothing."""
+
+    content: str = Field(max_length=1_000_000)
+    dry_run: bool = False
+
+
+class BundleCounts(ApiModel):
+    added: int
+    kept: int  # in the database already: left as it is
+
+
+class BundleGameCounts(BundleCounts):
+    game: ContentGame
+
+
+class BundleReport(ApiModel):
+    applied: bool  # false on a dry run
+    themes: BundleCounts
+    guesses: BundleCounts
+    vocabulary: BundleCounts
+    items: list[BundleGameCounts]
+    rotation: list[str]  # the themes it puts in the rotation (an install with none yet)
+    problems: list[str]  # what it can't take, and why

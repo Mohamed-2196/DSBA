@@ -451,6 +451,7 @@ def _seconds(value: str) -> float:
 def cmd_daily_content(args: argparse.Namespace) -> int:
     from pathlib import Path
 
+    from app.core.errors import ApiError
     from app.services.daily import bundle
 
     path = Path(args.file)
@@ -462,15 +463,20 @@ def cmd_daily_content(args: argparse.Namespace) -> int:
             print("It holds every answer: keep it out of the repository.")
             return 0
         try:
-            raw = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError) as e:
+            content = bundle.read(path.read_text(encoding="utf-8"))
+        except OSError as e:
             print(f"can't read {path}: {e}", file=sys.stderr)
             return 1
-        result = bundle.load(db, raw)
+        except ApiError as e:
+            print(f"{path}: {e.message}", file=sys.stderr)
+            return 1
+        result = bundle.load(db, content)
         db.commit()
+    items = sum(c["added"] for c in result.items.values())
+    kept = sum(c["kept"] for c in result.items.values())
     print(
-        f"added {result.themes} themes, {result.guesses} guess words, {result.vocabulary} vocabulary words and "
-        f"{result.items} items ({result.kept} were there already)"
+        f"added {result.themes['added']} themes, {result.guesses['added']} guess words, "
+        f"{result.vocabulary['added']} vocabulary words and {items} items ({kept} were there already)"
     )
     if result.rotation:
         print(f"the rotation: {', '.join(result.rotation)}")

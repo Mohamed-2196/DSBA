@@ -217,3 +217,25 @@
 .dcms-items.is-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); }
 .dcms__views { justify-self: start; max-width: 100%; }
 .dcms-options__add { justify-self: start; }
+
+/* the head of the section, and an admin's content file */
+.dcms__head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--sp-12); }
+.dcms__head .dcms__lede { flex: 1 1 32ch; }
+.dcms-file { display: grid; gap: var(--sp-8); min-width: 0; }
+.dcms-file__label { font-weight: var(--fw-semibold); font-size: var(--fs-14); }
+.dcms-file__input { max-width: 100%; min-height: 44px; font: inherit; color: var(--ink); }
+.dcms-file__input::file-selector-button {
+  min-height: 40px;
+  margin-inline-end: var(--sp-12);
+  padding: 0 var(--sp-16);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+.dcms-file .dcms__note { display: flex; gap: var(--sp-6); align-items: flex-start; }
+.dcms-file .dcms__note svg { flex: none; margin-top: 3px; }
+.dcms-report__summary { margin: 0; padding-inline-start: var(--sp-20); display: grid; gap: var(--sp-2); font-size: var(--fs-14); }

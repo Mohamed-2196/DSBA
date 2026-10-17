@@ -3628,6 +3628,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/content/daily/bundle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Bundle
+         * @description Admins: a Daily content file, as `python -m app.cli daily-content import` takes it. It adds what the database
+         *     lacks and leaves what is there, so the same file twice changes nothing; `dryRun` says what it would add and leave,
+         *     and changes nothing. Audited with counts. Errors: forbidden (403: not an admin), invalid_input (422 on `content`:
+         *     not a content file, or over 1 MB).
+         */
+        post: operations["import_bundle_api_v1_content_daily_bundle_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/content/daily/guesses": {
         parameters: {
             query?: never;
@@ -4704,6 +4727,53 @@ export interface components {
              * @enum {string}
              */
             status: "open" | "fixed" | "wont_fix";
+        };
+        /** BundleCounts */
+        BundleCounts: {
+            /** Added */
+            added: number;
+            /** Kept */
+            kept: number;
+        };
+        /** BundleGameCounts */
+        BundleGameCounts: {
+            /** Added */
+            added: number;
+            /** Kept */
+            kept: number;
+            /**
+             * Game
+             * @enum {string}
+             */
+            game: "word" | "groups" | "search" | "quiz" | "nearest";
+        };
+        /**
+         * BundleIn
+         * @description A Daily content file, as `python -m app.cli daily-content export` writes it: its text. `dryRun` says what it
+         *     would add and leave, and changes nothing.
+         */
+        BundleIn: {
+            /** Content */
+            content: string;
+            /**
+             * Dryrun
+             * @default false
+             */
+            dryRun: boolean;
+        };
+        /** BundleReport */
+        BundleReport: {
+            /** Applied */
+            applied: boolean;
+            themes: components["schemas"]["BundleCounts"];
+            guesses: components["schemas"]["BundleCounts"];
+            vocabulary: components["schemas"]["BundleCounts"];
+            /** Items */
+            items: components["schemas"]["BundleGameCounts"][];
+            /** Rotation */
+            rotation: string[];
+            /** Problems */
+            problems: string[];
         };
         /** CalendarDay */
         CalendarDay: {
@@ -10570,6 +10640,10 @@ export type BugReportCreated = components['schemas']['BugReportCreated'];
 export type BugReportOut = components['schemas']['BugReportOut'];
 export type BugReportPage = components['schemas']['BugReportPage'];
 export type BugReportUpdate = components['schemas']['BugReportUpdate'];
+export type BundleCounts = components['schemas']['BundleCounts'];
+export type BundleGameCounts = components['schemas']['BundleGameCounts'];
+export type BundleIn = components['schemas']['BundleIn'];
+export type BundleReport = components['schemas']['BundleReport'];
 export type CalendarDay = components['schemas']['CalendarDay'];
 export type CalendarEventCreate = components['schemas']['CalendarEventCreate'];
 export type CalendarEventOut = components['schemas']['CalendarEventOut'];
@@ -28994,6 +29068,93 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportReport"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    import_bundle_api_v1_content_daily_bundle_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BundleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BundleReport"];
                 };
             };
             /** @description Bad Request */
