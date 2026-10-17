@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { keepOrder, shuffled, tryLevels, wordFit } from './groups';
+import { breakable, keepOrder, shuffled, tryLevels } from './groups';
 
 describe('keepOrder', () => {
   it('keeps the player’s order and drops the words that left the board', () => {
@@ -22,11 +22,13 @@ describe('shuffled', () => {
   });
 });
 
-describe('wordFit', () => {
-  it('shrinks long words', () => {
-    expect(wordFit('MEAN')).toBe('md');
-    expect(wordFit('MIDRANGE')).toBe('sm');
-    expect(wordFit('PROBABILITY')).toBe('xs');
+describe('breakable', () => {
+  it('lets only long words break, and never near an end', () => {
+    expect(breakable('SCHEMA')).toBe('SCHEMA');
+    const soft = breakable('CARDINALITY');
+    expect(soft.replace(/\u00AD/g, '')).toBe('CARDINALITY');
+    expect(soft.startsWith('CAR\u00AD')).toBe(true);
+    expect(soft.endsWith('L\u00ADITY')).toBe(true); // the last line keeps at least three letters
   });
 });
 

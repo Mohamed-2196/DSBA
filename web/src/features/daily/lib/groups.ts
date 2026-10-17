@@ -25,11 +25,13 @@ export function shuffled<T>(items: readonly T[], random: () => number = Math.ran
   return out;
 }
 
-/** The type size for a word on a tile: long words get smaller type so they fit on a phone. */
-export function wordFit(word: string): 'md' | 'sm' | 'xs' {
-  if (word.length >= 10) return 'xs';
-  if (word.length >= 8) return 'sm';
-  return 'md';
+/**
+ * A long word with soft hyphens where it may break across two lines on a narrow tile (never within three letters of
+ * either end): the browser breaks it only when it doesn't fit, and shows the hyphen.
+ */
+export function breakable(word: string): string {
+  if (word.length < 9) return word;
+  return [...word].map((ch, i) => (i >= 3 && i <= word.length - 3 ? `\u00AD${ch}` : ch)).join('');
 }
 
 /** Each try's words as the levels of their groups (1-4), lowest first: the result grid. Needs every group. */

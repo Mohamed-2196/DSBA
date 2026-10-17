@@ -42,16 +42,16 @@ export default function DailyPage() {
         <>
           <Head today={today.data} />
           <Tabs idBase="daily" tabs={TABS} value={tab} onChange={(id) => setTab(id, { replace: true })} label="Daily" className="dh-tabs" />
-          <TabPanel idBase="daily" id="today" value={tab} className="dh-panel">
+          <TabPanel idBase="daily" id="today" value={tab}>
             <TodayView today={today.data} />
           </TabPanel>
-          <TabPanel idBase="daily" id="past" value={tab} className="dh-panel">
+          <TabPanel idBase="daily" id="past" value={tab}>
             <ArchiveView today={today.data} />
           </TabPanel>
-          <TabPanel idBase="daily" id="board" value={tab} className="dh-panel">
+          <TabPanel idBase="daily" id="board" value={tab}>
             <LeaderboardView />
           </TabPanel>
-          <TabPanel idBase="daily" id="you" value={tab} className="dh-panel">
+          <TabPanel idBase="daily" id="you" value={tab}>
             <StatsView />
           </TabPanel>
         </>

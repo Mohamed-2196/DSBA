@@ -15,7 +15,7 @@
 
 /* Four rows of tiles at their full height while there's room; shorter on a short screen. */
 .dgr-board-wrap {
-  flex: 0 1 380px;
+  flex: 0 1 412px;
   min-height: 0;
   width: 100%;
   display: grid;
@@ -25,7 +25,9 @@
 
 .dgr-board {
   --gap: 8px;
-  --row: min(calc((100cqh - (var(--rows, 4) - 1) * var(--gap)) / var(--rows, 4)), 86px);
+  --row: min(calc((100cqh - (var(--rows, 4) - 1) * var(--gap)) / var(--rows, 4)), 96px);
+  /* A tile's width, for sizing each word to fit it. */
+  --tile: calc((min(100cqw, 640px) - 3 * var(--gap)) / 4);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-auto-rows: var(--row);
@@ -44,18 +46,17 @@
   color: var(--ink);
   box-shadow: var(--dy-press);
   font: inherit;
-  font-size: clamp(var(--fs-13), 3.6cqw, var(--fs-18));
+  /* As big as fits the tile on one line (about 0.76em a letter), between 11px and 18px. A word too long even at
+     the smallest size breaks at a soft hyphen (lib/groups.ts breakable). */
+  font-size: clamp(11px, calc((var(--tile) - 12px) / (var(--chars, 6) * .76)), var(--fs-18));
   font-weight: var(--fw-heavy);
-  letter-spacing: .01em;
-  line-height: 1.1;
+  line-height: 1.12;
   text-transform: uppercase;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform 90ms var(--ease);
 }
-.dgr-word--sm { font-size: clamp(var(--fs-12), 2.9cqw, var(--fs-16)); }
-.dgr-word--xs { font-size: clamp(10.5px, 2.45cqw, var(--fs-14)); letter-spacing: 0; }
 .dgr-word:hover:not(:disabled):not(.is-picked) { background: color-mix(in srgb, var(--dy-key) 80%, var(--ink) 6%); }
 .dgr-word:active:not(:disabled) { transform: scale(.97); }
 .dgr-word.is-picked { background: var(--dy-pick); color: var(--dy-on-pick); box-shadow: none; }

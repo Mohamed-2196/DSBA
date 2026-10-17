@@ -65,7 +65,6 @@
 .dh-fact__freeze svg { font-size: 14px; }
 
 .dh-tabs { margin-bottom: var(--sp-20); }
-.dh-panel:focus-visible { outline: none; }
 
 @media (max-width: 699px) {
   .dh-head { gap: var(--sp-16); margin-bottom: var(--sp-16); }

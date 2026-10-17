@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ArrowsClockwise } from '@phosphor-icons/react';
 import { Button, cx } from '../../../../ui';
-import { MAX_MISTAKES, keepOrder, shuffled, wordFit } from '../../lib/groups';
+import { MAX_MISTAKES, breakable, keepOrder, shuffled } from '../../lib/groups';
 import type { FoundGroup } from '../../types';
 import type { GameProps } from '../registry';
 import './GroupsGame.css';
@@ -82,13 +82,14 @@ export function GroupsGame({ out, busy, play, flash }: GameProps) {
               <button
                 key={word}
                 type="button"
-                className={cx('dgr-word', `dgr-word--${wordFit(word)}`, on && 'is-picked', on && sending && 'is-sending', on && wrong && 'is-wrong')}
-                style={{ '--n': pickedNow.indexOf(word) } as CSSProperties}
+                className={cx('dgr-word', on && 'is-picked', on && sending && 'is-sending', on && wrong && 'is-wrong')}
+                style={{ '--n': pickedNow.indexOf(word), '--chars': Math.max(word.length, 4) } as CSSProperties}
                 aria-pressed={on}
+                aria-label={word}
                 disabled={over}
                 onClick={() => toggle(word)}
               >
-                {word}
+                {breakable(word)}
               </button>
             );
           })}

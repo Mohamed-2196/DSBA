@@ -35,7 +35,6 @@ export type BoardPeriod = Leaderboard['period'];
 export type SudokuDifficulty = SudokuView['difficulty'];
 export type WordMark = WordRow['marks'][number];
 export type Move = NonNullable<MoveIn['move']>;
-export type GameView = Play['view'];
 
 export const GAME_IDS: readonly GameId[] = ['word', 'groups', 'search', 'quiz', 'nearest', 'sudoku'];
 export const DIFFICULTIES: readonly SudokuDifficulty[] = ['easy', 'medium', 'hard'];
