@@ -35,6 +35,8 @@
 .shell-tabbar__item.is-active .shell-tabbar__mark { background: var(--cobalt); }
 .shell-tabbar__icon { position: relative; font-size: 24px; line-height: 0; margin-top: 6px; }
 .shell-tabbar__item.is-active .shell-tabbar__icon { color: var(--cobalt); }
+.shell-tabbar__face { display: block; margin-block: -1px; box-shadow: 0 0 0 1.5px var(--line); }
+.shell-tabbar__item.is-active .shell-tabbar__face { box-shadow: 0 0 0 2px var(--cobalt); }
 .shell-tabbar__newdot { position: absolute; top: -1px; right: -4px; width: 8px; height: 8px; border-radius: 999px; background: var(--highlight); box-shadow: 0 0 0 2px var(--surface); }
 
 .shell-more { display: grid; gap: var(--sp-16); }
