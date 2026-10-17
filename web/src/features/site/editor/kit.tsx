@@ -207,7 +207,23 @@ export function ListEditor<T extends { id: string }>({ items, noun, titleOf, met
 
 /** A short list whose rows are edited in place (a step's links, Start here's places): move and remove buttons on
  *  each row, and a button to add one. */
-export function RowsEditor<T>({ items, noun, onChange, make, children, max = 10 }: { items: readonly T[]; noun: string; onChange: (next: T[]) => void; make: () => T; children: (item: T, index: number, set: (next: T) => void) => ReactNode; max?: number }) {
+export function RowsEditor<T>({
+  items,
+  noun,
+  onChange,
+  make,
+  children,
+  min = 0,
+  max = 10,
+}: {
+  items: readonly T[];
+  noun: string;
+  onChange: (next: T[]) => void;
+  make: () => T;
+  children: (item: T, index: number, set: (next: T) => void) => ReactNode;
+  min?: number;
+  max?: number;
+}) {
   const move = (from: number, by: -1 | 1) => {
     const next = items.slice();
     const [item] = next.splice(from, 1);
@@ -225,7 +241,7 @@ export function RowsEditor<T>({ items, noun, onChange, make, children, max = 10 
               <span className="dedit-row__tools">
                 <IconButton size="sm" icon={ArrowUp} label={`Move ${noun} ${i + 1} up`} disabled={i === 0} onClick={() => move(i, -1)} />
                 <IconButton size="sm" icon={ArrowDown} label={`Move ${noun} ${i + 1} down`} disabled={i === items.length - 1} onClick={() => move(i, 1)} />
-                <IconButton size="sm" icon={Trash} label={`Remove ${noun} ${i + 1}`} onClick={() => onChange(items.filter((_, j) => j !== i))} />
+                <IconButton size="sm" icon={Trash} label={`Remove ${noun} ${i + 1}`} disabled={items.length <= min} onClick={() => onChange(items.filter((_, j) => j !== i))} />
               </span>
             </li>
           ))}

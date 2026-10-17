@@ -3116,6 +3116,77 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mini-noora/script": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Noora Script
+         * @description What she says when she answers from her script, the questions she offers on each page, and the cards of her
+         *     full page.
+         */
+        get: operations["noora_script_api_v1_mini_noora_script_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mini-noora/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Noora Settings
+         * @description Her prompt and script with the version a save names (0 until the first save), and the rules that always follow
+         *     her instructions.
+         */
+        get: operations["noora_settings_api_v1_mini_noora_settings_get"];
+        /**
+         * Save Noora Settings
+         * @description Save her prompt and script, if nobody saved them since `version`. Audited with what changed, before and after.
+         *
+         *     Errors: noora_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't
+         *     fit, <hub_data> or <student_note> in her instructions or facts, a placeholder other than {module} and {module2},
+         *     a page listed twice or without the questions for every other page, an id used twice).
+         */
+        put: operations["save_noora_settings_api_v1_mini_noora_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mini-noora/settings/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Noora Prompt
+         * @description The prompt her AI would read with these instructions and facts: for a Year 2 student on Home today, from the
+         *     hub's own modules and calendar. Nothing is saved.
+         */
+        post: operations["preview_noora_prompt_api_v1_mini_noora_settings_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/summary/preview": {
         parameters: {
             query?: never;
@@ -5333,7 +5404,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
+            code: "invalid_input" | "bad_request" | "unauthenticated" | "forbidden" | "not_found" | "method_not_allowed" | "csrf_failed" | "rate_limited" | "retry" | "internal" | "error" | "invalid_identifier" | "sms_unavailable" | "delivery_failed" | "invalid_code" | "code_expired" | "too_many_attempts" | "invalid_display_name" | "identifier_taken" | "identifier_unchanged" | "last_identifier" | "step_up_required" | "cannot_change_self" | "storage_unavailable" | "progress_off" | "thread_locked" | "post_unavailable" | "already_used" | "already_reported" | "report_closed" | "own_request" | "request_closed" | "already_asked" | "nothing_found" | "slug_taken" | "not_published" | "already_voted" | "poll_closed" | "poll_has_votes" | "unsupported_type" | "too_large" | "not_uploaded" | "mismatch" | "no_preview" | "file_gone" | "too_many_pending" | "not_a_paper" | "already_tagged" | "feature_off" | "last_admin" | "role_locked" | "role_changed" | "role_in_use" | "module_changed" | "content_in_use" | "career_changed" | "site_changed" | "guides_changed" | "forum_changed" | "noora_changed" | "already_a_lesson" | "already_suggested" | "suggestion_closed" | "note_changed" | "ink_changed" | "too_many_notes" | "too_many_notebooks" | "notes_full" | "board_full" | "boards_full" | "storage_full" | "limit_reached" | "already_on_board" | "calendar_full" | "noora_unavailable" | "noora_budget_reached" | "noora_busy" | "noora_daily_limit" | "unknown_word" | "already_tried" | "game_over" | "not_out_yet";
             /** Message */
             message: string;
             /** Fields */
@@ -7402,6 +7473,22 @@ export interface components {
             answer: string | null;
         };
         /**
+         * NooraChip
+         * @description A question she offers. Left out while the feature it needs is off for the student, or when it names a module
+         *     the student has none of.
+         */
+        NooraChip: {
+            /** Text */
+            text: string;
+            /** Needs */
+            needs?: ("calendar" | "library") | null;
+        };
+        /** NooraDoc */
+        NooraDoc: {
+            prompt: components["schemas"]["NooraPrompt"];
+            script: components["schemas"]["NooraScript"];
+        };
+        /**
          * NooraDoneEvent
          * @description The answer is complete.
          */
@@ -7413,6 +7500,21 @@ export interface components {
             type: "done";
             /** Questionsleft */
             questionsLeft: number;
+        };
+        /**
+         * NooraEditable
+         * @description The document for admins, with the version a save must name (0 until the first save: the starting content),
+         *     and the rules that always follow her instructions, which no edit removes.
+         */
+        NooraEditable: {
+            data: components["schemas"]["NooraDoc"];
+            /** Version */
+            version: number;
+            /** Updatedat */
+            updatedAt: string | null;
+            updatedBy: components["schemas"]["UserPublic"] | null;
+            /** Fixedrules */
+            fixedRules: string;
         };
         /**
          * NooraErrorEvent
@@ -7434,6 +7536,13 @@ export interface components {
             /** Message */
             message: string;
         };
+        /** NooraFact */
+        NooraFact: {
+            /** Id */
+            id: string;
+            /** Text */
+            text: string;
+        };
         /** NooraLimitsIn */
         NooraLimitsIn: {
             /** Dailyquestions */
@@ -7454,6 +7563,16 @@ export interface components {
             /** Body */
             body: string;
         };
+        /** NooraPageChips */
+        NooraPageChips: {
+            /**
+             * Page
+             * @enum {string}
+             */
+            page: "home" | "modules" | "module" | "library" | "calendar" | "forum" | "notes" | "grades" | "other";
+            /** Chips */
+            chips: components["schemas"]["NooraChip"][];
+        };
         /**
          * NooraPaper
          * @description A past paper's question the student is asking about. The server reads the page's words and the examiners'
@@ -7469,6 +7588,37 @@ export interface components {
             page: number;
             /** Question */
             question: string;
+        };
+        /**
+         * NooraPrompt
+         * @description What her AI reads first: who she is and how she answers, then the facts about the programme.
+         */
+        NooraPrompt: {
+            /** Instructions */
+            instructions: string;
+            /** Facts */
+            facts: components["schemas"]["NooraFact"][];
+        };
+        /**
+         * NooraPromptAssembled
+         * @description What her AI reads before a question: the part that is the same for every question (her instructions, the
+         *     facts, the fixed rules, the hub's pages and its modules) and, as an example, the part about one student's screen
+         *     (Year 2, on Home, today).
+         */
+        NooraPromptAssembled: {
+            /** Stable */
+            stable: string;
+            /** Screen */
+            screen: string;
+            /** Tokens */
+            tokens: number;
+        };
+        /**
+         * NooraPromptPreview
+         * @description POST /mini-noora/settings/preview: the prompt as her AI would read it, from a draft.
+         */
+        NooraPromptPreview: {
+            prompt: components["schemas"]["NooraPrompt"];
         };
         /**
          * NooraQuestion
@@ -7492,6 +7642,68 @@ export interface components {
             paper?: components["schemas"]["NooraPaper"] | null;
             /** History */
             history?: components["schemas"]["NooraTurn"][];
+        };
+        /**
+         * NooraSave
+         * @description PUT /mini-noora/settings: the whole document, and the version it was edited from.
+         */
+        NooraSave: {
+            /** Version */
+            version: number;
+            data: components["schemas"]["NooraDoc"];
+        };
+        /**
+         * NooraScript
+         * @description What she says from her script, and what she offers to answer.
+         */
+        NooraScript: {
+            /** Greeting */
+            greeting: string;
+            /** Greetingchips */
+            greetingChips: string[];
+            /** Who */
+            who: string;
+            /** Thanks */
+            thanks: string;
+            /** Refusal */
+            refusal: string;
+            /** Notfound */
+            notFound: string;
+            /** Tryinstead */
+            tryInstead: string[];
+            /** Nophotos */
+            noPhotos: string;
+            /** Photoask */
+            photoAsk: string;
+            /** Fileguess */
+            fileGuess: string;
+            /** Fileunknown */
+            fileUnknown: string;
+            /** Welcome */
+            welcome: string;
+            /** Pagechips */
+            pageChips: components["schemas"]["NooraPageChips"][];
+            /** Starters */
+            starters: components["schemas"]["NooraStarter"][];
+        };
+        /**
+         * NooraStarter
+         * @description A card of her full page: it fills the question box with `template`, its [part in square brackets] selected.
+         */
+        NooraStarter: {
+            /** Id */
+            id: string;
+            /**
+             * Icon
+             * @enum {string}
+             */
+            icon: "lightbulb" | "teacher" | "checklist" | "notepad" | "exam" | "briefcase" | "pencil";
+            /** Title */
+            title: string;
+            /** Example */
+            example: string;
+            /** Template */
+            template: string;
         };
         /**
          * NooraStatus
@@ -10022,12 +10234,23 @@ export type MoveIn = components['schemas']['MoveIn'];
 export type MySenior = components['schemas']['MySenior'];
 export type NearestGuess = components['schemas']['NearestGuess'];
 export type NearestView = components['schemas']['NearestView'];
+export type NooraChip = components['schemas']['NooraChip'];
+export type NooraDoc = components['schemas']['NooraDoc'];
 export type NooraDoneEvent = components['schemas']['NooraDoneEvent'];
+export type NooraEditable = components['schemas']['NooraEditable'];
 export type NooraErrorEvent = components['schemas']['NooraErrorEvent'];
+export type NooraFact = components['schemas']['NooraFact'];
 export type NooraLimitsIn = components['schemas']['NooraLimitsIn'];
 export type NooraNote = components['schemas']['NooraNote'];
+export type NooraPageChips = components['schemas']['NooraPageChips'];
 export type NooraPaper = components['schemas']['NooraPaper'];
+export type NooraPrompt = components['schemas']['NooraPrompt'];
+export type NooraPromptAssembled = components['schemas']['NooraPromptAssembled'];
+export type NooraPromptPreview = components['schemas']['NooraPromptPreview'];
 export type NooraQuestion = components['schemas']['NooraQuestion'];
+export type NooraSave = components['schemas']['NooraSave'];
+export type NooraScript = components['schemas']['NooraScript'];
+export type NooraStarter = components['schemas']['NooraStarter'];
 export type NooraStatus = components['schemas']['NooraStatus'];
 export type NooraTextEvent = components['schemas']['NooraTextEvent'];
 export type NooraTotals = components['schemas']['NooraTotals'];
@@ -25894,6 +26117,346 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NooraUsageOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    noora_script_api_v1_mini_noora_script_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NooraScript"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    noora_settings_api_v1_mini_noora_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NooraEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    save_noora_settings_api_v1_mini_noora_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NooraSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NooraEditable"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preview_noora_prompt_api_v1_mini_noora_settings_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NooraPromptPreview"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NooraPromptAssembled"];
                 };
             };
             /** @description Bad Request */

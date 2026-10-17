@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { matchPath, useLocation } from 'react-router-dom';
 import { ArrowCounterClockwise, ArrowsOutSimple, ClockCounterClockwise, DotsThree, EyeSlash, NotePencil, TrayArrowDown, X } from '@phosphor-icons/react';
+import type { NooraScript } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useOpenNote } from '../notes/public';
 import { useYear } from '../../state';
@@ -30,6 +31,8 @@ const WAVE = 2400; // ms she waves when the chat opens
 const NOTE_MAX = 20_000; // characters of a note her AI reads (the API's limit)
 
 export interface ChatPanelProps {
+  /** what she says in her own words, and the questions she offers */
+  script: NooraScript;
   /** shown or not; the conversation is kept while it is closed */
   open: boolean;
   /** a sheet on a phone (else a card beside her) */
@@ -48,7 +51,7 @@ export interface ChatPanelProps {
   onMood: (mood: ChatMood | null) => void;
 }
 
-export default function ChatPanel({ open, sheet, calm, panelRef, onClose, onFollow, onHide, onMood }: ChatPanelProps) {
+export default function ChatPanel({ script, open, sheet, calm, panelRef, onClose, onFollow, onHide, onMood }: ChatPanelProps) {
   const { year } = useYear();
   const { pathname, search } = useLocation();
   const { modules } = useModules();
@@ -79,7 +82,7 @@ export default function ChatPanel({ open, sheet, calm, panelRef, onClose, onFoll
   };
   const { on: aiOn, status, ai } = useNooraAi(context);
 
-  const chat = useConversation({ year, calm, ai });
+  const chat = useConversation({ year, calm, ai, script });
   const { greeting, messages, pending, busy, paused, send, stop, regenerate, chatId, chats, switchTo, remove, removeAll } = chat;
   const draft = useDraft(send);
 
@@ -107,7 +110,7 @@ export default function ChatPanel({ open, sheet, calm, panelRef, onClose, onFoll
   const input = useRef<HTMLTextAreaElement>(null);
 
   // Questions for the page the student is on.
-  const pageChips = useMemo(() => pageSuggestions({ pathname, year, modules, isOn: featureOn }), [pathname, year, modules, featureOn]);
+  const pageChips = useMemo(() => pageSuggestions({ pathname, year, modules, isOn: featureOn, pages: script.pageChips }), [pathname, year, modules, featureOn, script.pageChips]);
 
   // Opening: she waves, and the keyboard goes to the text box. On a sheet it goes to the panel instead, so the
   // on-screen keyboard only comes up when the student taps the box.

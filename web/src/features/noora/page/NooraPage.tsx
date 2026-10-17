@@ -9,7 +9,8 @@ import { ArrowLeft, BookOpenText, DotsThree, Exam, Keyboard, NotePencil, PencilS
 import { useAuth } from '../../../auth';
 import { useDocumentTitle, useLocalStorage, useMediaQuery, useYear } from '../../../state';
 import { useModules } from '../../../state/modules';
-import { Button, ConfirmDialog, Drawer, IconButton, Kbd, Menu, Modal, TextField, Tooltip, cx, modKeyLabel } from '../../../ui';
+import type { NooraScript } from '../../../api/types';
+import { Button, ConfirmDialog, Drawer, IconButton, Kbd, Menu, Modal, QueryError, TextField, Tooltip, cx, modKeyLabel } from '../../../ui';
 import { useNote } from '../../notes/public';
 import { carriesFiles, faceFor, highestId, spokenFor } from '../chat';
 import { Composer, Seen } from '../Composer';
@@ -22,6 +23,7 @@ import type { SavedChat } from '../saved';
 import { lastQuestionAt } from '../useChat';
 import { useConversation } from '../useConversation';
 import { useDraft } from '../useDraft';
+import { useNooraScript } from '../script';
 import { pauseOf, pausedLine, questionsLeftLine, useNooraAi, type AskContext } from '../useNooraAi';
 import { AddContext } from './AddContext';
 import { NOTHING_ADDED, type Added } from './added';
@@ -60,6 +62,23 @@ function canGoBack(): boolean {
 }
 
 export default function NooraPage() {
+  const script = useNooraScript();
+  if (script.data) return <NooraScreen script={script.data} />;
+  return (
+    <div className="np np--loading" aria-busy={!script.isError || undefined}>
+      {script.isError ? (
+        <QueryError error={script.error} title="Noora didn’t load" onRetry={() => void script.refetch()} retrying={script.isFetching} />
+      ) : (
+        <div className="ncard-note" role="status">
+          <Face bust="thinking" size={48} />
+          <p>Opening Noora…</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NooraScreen({ script }: { script: NooraScript }) {
   const { year } = useYear();
   const { modules } = useModules();
   const { me, status: auth, requireAuth } = useAuth();
@@ -84,7 +103,7 @@ export default function NooraPage() {
     };
   };
   const { on: aiOn, status, ai } = useNooraAi(context);
-  const chat = useConversation({ year, calm, ai });
+  const chat = useConversation({ year, calm, ai, script });
   const { greeting, messages, pending, busy, paused, send, stop, regenerate, chatId, chats, switchTo, remove, rename, removeAll } = chat;
   const draft = useDraft(send);
   const usingAi = ai !== null && !paused;
@@ -218,7 +237,7 @@ export default function NooraPage() {
   // ── What the header and the welcome say ─────────────────────────────────────────────────────────
   const left = questionsLeftLine(status.data);
   const pausedText = why ? pausedLine(why, status.data) : null;
-  const cards = useMemo(() => starters(modules, year), [modules, year]);
+  const cards = useMemo(() => starters(script.starters, modules, year), [script.starters, modules, year]);
   const shortcut = modKeyLabel() === '⌘' ? '⌘' : 'Ctrl';
 
   const model = guest ? (
@@ -368,6 +387,7 @@ export default function NooraPage() {
           empty={
             <Welcome
               name={firstNameOf(me?.displayName)}
+              lead={script.welcome}
               starters={cards}
               onStart={start}
               paused={pausedText}

@@ -11,7 +11,9 @@
 //                                       title, page, question }; she reads that page and the sitting's report
 //   useNooraAiReady()                   whether her AI answers can take such a question now
 //   questionNumber(raw)                 "Q 2 (b)" as the API takes it ("2(b)"), or null; PAPER_PAGE_MAX
+//   <NooraEditor />                     Manage → Mini Noora (admins): her instructions, programme facts and script
 export { MiniNoora } from './MiniNoora';
 export { askNoora, openNoora } from './open';
 export { hideMiniNoora, showMiniNoora, useMiniNooraHidden } from './visibility';
 export { askAboutPaper, PAGE_MAX as PAPER_PAGE_MAX, questionNumber, useNooraAiReady, type PaperAsk } from './paper';
+export { NooraEditor } from './settings/NooraEditor';

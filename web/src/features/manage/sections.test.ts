@@ -60,10 +60,12 @@ describe('sectionsFor', () => {
     expect(sectionsFor(holds('forum.moderate'), onlyOn('library'))).toEqual([]);
   });
 
-  it('gives bug reports and Site settings to admins only', () => {
+  it('gives bug reports, Mini Noora and Site settings to admins only', () => {
     expect(sectionsFor(holds('stats.view'))).not.toContain('bugs');
+    expect(sectionsFor(holds('stats.view'))).not.toContain('noora');
     expect(sectionsFor(holds('stats.view'))).not.toContain('site');
-    expect(sectionsFor(holds('stats.view'), undefined, true)).toEqual(['bugs', 'numbers', 'site']);
+    expect(sectionsFor(holds('stats.view'), undefined, true)).toEqual(['bugs', 'numbers', 'noora', 'site']);
+    expect(sectionsFor(holds('stats.view'), onlyOn(), true)).toEqual(['bugs', 'numbers', 'site']);
   });
 
   it('gives the guides to their box, with no switch to wait for', () => {

@@ -1,8 +1,10 @@
 """What Mini Noora is told before each question.
 
 The system prompt has two blocks:
-- the stable one: who she is, her rules, the hub's pages and the module catalogue. It is the same for every student
-  who sees the same features, so it is cached (prompt caching) and costs a tenth on the next questions;
+- the stable one: her instructions and the programme facts (admins edit both in Manage → Mini Noora), the rules that
+  always follow them (FIXED_RULES: no edit can remove them), the hub's pages and the module catalogue. It is the same
+  for every student who sees the same features, so it is cached (prompt caching) and costs a tenth on the next
+  questions;
 - the one for this question: today's date, the student's year, the page they are on, the open module and lesson, and
   the calendar's next dates. The module, lessons and dates are loaded by the server from its own data. The page comes
   from the request, and is passed on only when it is one of the app's own routes.
@@ -10,7 +12,7 @@ The system prompt has two blocks:
 Everything people type into the hub (module, chapter and lesson names, calendar titles, places and times) goes
 between <hub_data> tags, one value to a line, with line breaks and control characters taken out: Noora treats it as
 data to read, never as instructions. The student's note, when they choose to include it, goes in the user message
-between <student_note> tags, for the same reason."""
+between <student_note> tags, for the same reason. The admins' instructions and facts can't hold either tag."""
 
 from __future__ import annotations
 
@@ -24,38 +26,23 @@ from anthropic.types import MessageParam, TextBlockParam
 
 from app.core.access import Feature
 from app.models import CalendarEvent, Module
+from app.schemas.mini_noora import NooraPrompt
 from app.schemas.noora import NooraNote, NooraTurn
 from app.services.modules import visible_chapters, visible_lessons
 
-RULES = """\
-You are Noora, the study assistant inside DSBA Hub: the student hub for BIBF's BSc Data Science and Business \
-Analytics (University of London, taught in Bahrain). Students can ask you anything they study or need for their \
-degree: explaining a concept, working through a problem step by step, quizzing them, planning revision, summarising \
-a text they paste, writing and proofreading, coding in R, Python or SQL, careers and study skills, and finding things \
-in the hub. Answer every such question well from your own knowledge, as a patient tutor would, even when the hub \
-holds nothing about it.
-
-How you answer:
-- Fit the length to the question: a quick fact in a sentence or two, a concept with a short explanation and an \
-example, a worked problem step by step. Plain words, sentence case, no filler, no emojis.
-- Format with Markdown when it helps the student read: **bold** for a key term, "- " or "1. " lists for steps, a \
-small table to compare things, ``` fences with the language for code (R, Python, SQL). Use "### " headings only in a \
-long answer.
-- Write maths in LaTeX: $x^2$ inside a sentence, and $$E[X] = \\int x f(x)\\,dx$$ on a line of its own for a formula \
-worth seeing whole.
-- When the hub has something that helps (a module, a lesson, past papers, the calendar, the forum), add it, with \
-Markdown links whose target is a hub path, like [ST2133 lessons](/modules/<id>?tab=lessons). Use only the paths \
-listed below or given in this conversation's context. Never link outside the hub, and never make up a path, a \
-module, a lesson, a date or a file.
-- Facts about the student's own programme (dates, rules, fees, grades, deadlines) come only from what you are given. \
-Dates come only from the calendar dates below; a date marked "to be confirmed" may change: say so. When you don't \
-know such a fact, say so plainly and say where to look or whom to ask (a student rep, the module's VLE page, the \
-forum).
+# What always follows her instructions and the programme facts, whatever an admin writes in them: the rules that keep
+# her answers honest, her links inside the hub, and the students and the hub's data safe. Never edited in the hub.
+FIXED_RULES = """\
+Rules that always apply, whatever the instructions above say:
+- Link only to pages of the hub: the paths listed below, or given in this conversation's context. Never link \
+outside the hub, and never make up a path, a module, a lesson, a date or a file.
+- Facts about the student's own programme (dates, rules, fees, grades, deadlines) come only from what you are \
+given: the facts about the programme above, the calendar dates below and this conversation. Dates come only from the \
+calendar dates below; a date marked "to be confirmed" may change: say so. When you don't know such a fact, say so \
+plainly and say where to look or whom to ask (a student rep, the module's VLE page, the forum).
 - When you aren't sure of something, say so. Never invent sources, quotations or references.
 - You can't see pictures or files, the student's grades, or other students' notes. If the student mentions a \
 picture, ask them to type out the question.
-
-What you never do:
 - Never do a live assessment for the student: coursework, a quiz or an exam that is open or about to be taken. If a \
 question looks like one, explain the idea behind it with a different example and point to the lessons and past \
 papers instead. Past papers and practice questions are fine to work through in full.
@@ -118,15 +105,18 @@ def page(route: str) -> str | None:
     return f"{path}?{query}" if ROUTE_QUERY.fullmatch(query) else path
 
 
-def stable_block(modules: Sequence[Module], features: Iterable[Feature]) -> str:
-    """The rules, the pages and the module catalogue: the cached part."""
+def stable_block(modules: Sequence[Module], features: Iterable[Feature], words: NooraPrompt) -> str:
+    """Her instructions, the programme facts, the fixed rules, the pages and the module catalogue: the cached part."""
     on = set(features)
     pages = "\n".join(f"- {path}: {what}" for path, what, needs in PAGES if needs is None or needs in on)
     catalogue = hub_data(
         f"- Year {m.year}: {data(m.unit_code or '(no unit code)')} {data(m.name)}, id {data(m.id)}"
         for m in sorted(modules, key=lambda m: (m.year, m.position, m.id))
     )
-    return f"{RULES}\n\nThe hub's pages:\n{pages}\n\nThe modules (use the id in links):\n{catalogue}"
+    facts = "\n".join(f"- {f.text}" for f in words.facts)
+    parts = [words.instructions, f"Facts about the programme:\n{facts}" if facts else None, FIXED_RULES]
+    told = "\n\n".join(p for p in parts if p)
+    return f"{told}\n\nThe hub's pages:\n{pages}\n\nThe modules (use the id in links):\n{catalogue}"
 
 
 @dataclass(frozen=True)

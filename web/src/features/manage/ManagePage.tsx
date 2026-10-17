@@ -1,6 +1,6 @@
 // /manage: every tool a person's boxes give them, each with what's waiting. Reps, newsletter and content managers,
 // and admins (who hold every box) all work from here. A tool whose feature is switched off doesn't show.
-import { BookOpenText, Bug, CalendarCheck, CalendarDots, ChartBar, ChatsCircle, ClockCounterClockwise, Compass, Flag, GearSix, HandWaving, ListChecks, ListMagnifyingGlass, Newspaper, Power, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
+import { BookOpenText, Bug, CalendarCheck, CalendarDots, ChartBar, ChatCircleDots, ChatsCircle, ClockCounterClockwise, Compass, Flag, GearSix, HandWaving, ListChecks, ListMagnifyingGlass, Newspaper, Power, Tray, UsersThree, YoutubeLogo, type Icon } from '@phosphor-icons/react';
 import { useId, useState, type ReactNode } from 'react';
 import { Gate, MANAGER_BOXES, useAuth } from '../../auth';
 import { normalizeYear, useQueryParam } from '../../state';
@@ -12,6 +12,7 @@ import { ModulesEditor, SuggestionsQueue } from '../modules/public';
 import { FlaggedQuestions, UploadsQueue } from '../library/public';
 import { RequestsQueue } from '../requests/public';
 import { IssuesManager } from '../newsletter/public';
+import { NooraEditor } from '../noora/public';
 import { SiteEditor } from '../site/public';
 import { GuidesEditor } from '../start/public';
 import { useAdminStats } from './api';
@@ -39,6 +40,7 @@ const SECTIONS: Record<SectionId, { label: string; icon: Icon }> = {
   numbers: { label: 'Numbers', icon: ChartBar },
   people: { label: 'People', icon: UsersThree },
   activity: { label: 'Activity', icon: ClockCounterClockwise },
+  noora: { label: 'Mini Noora', icon: ChatCircleDots },
   site: { label: 'Site settings', icon: GearSix },
 };
 
@@ -119,11 +121,12 @@ const BODIES: Record<SectionId, () => ReactNode> = {
   numbers: () => <Numbers />,
   people: () => <PeopleList />,
   activity: () => <ActivityLog />,
+  noora: () => <NooraEditor />,
   site: () => <SiteEditor />,
 };
 
 /** The tabs that hold a draft. */
-const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['career', 'guides', 'forum', 'site']);
+const KEEP_DRAFTS: ReadonlySet<SectionId> = new Set(['career', 'guides', 'forum', 'noora', 'site']);
 
 const HEADER = <PageHeader title="Manage" description="Your tools, and what’s waiting for you. Every action is logged." />;
 

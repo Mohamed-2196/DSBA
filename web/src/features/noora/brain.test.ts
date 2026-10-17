@@ -17,6 +17,8 @@ vi.mock('../modules/public', () => ({
 
 const { answer, buildKnowledge } = await import('./brain');
 const { DISTRIBUTIONS, LAPLACE_MGF_STEPS, MGF_DEFINITION } = await import('./formulas');
+const { seedScript } = await import('./seedScript');
+const SCRIPT = seedScript();
 
 const summary = (id: string, unitCode: string, name: string, year: number): ModuleSummary =>
   ({ id, unitCode, name, shortName: name, year, description: `${name}.`, chapterCount: 1, lessonCount: 3 }) as ModuleSummary;
@@ -38,7 +40,7 @@ const detail = {
 } as unknown as ModuleDetail;
 
 const knowledge = (events: CalendarEvent[] | null = [], isOn: (f: Feature) => boolean = () => true) =>
-  buildKnowledge([ST2133], new Map([[ST2133.id, detail]]), events, 'Sara', isOn);
+  buildKnowledge([ST2133], new Map([[ST2133.id, detail]]), events, 'Sara', isOn, SCRIPT);
 const ask = (text: string, attachments: { kind: 'image' | 'file'; name: string }[] = [], events?: CalendarEvent[] | null, now?: number) =>
   answer({ text, attachments, year: 2 }, knowledge(events), now);
 const askWithout = (off: Feature, text: string) => answer({ text, attachments: [], year: 2 }, knowledge(null, (f) => f !== off));

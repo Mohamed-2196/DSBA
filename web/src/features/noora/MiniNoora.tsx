@@ -19,6 +19,7 @@ import { avoid, clampPoint, fromAnchor, homePoint, perchOnSheet, placeChat, toAn
 import { Mascot, type MascotState } from './Mascot';
 import { askNoora, CHAT_ID, closeCard, isNooraShortcut, NOORA_PATH, onGoToPage, openCard, toggleCard, useCardOpen } from './open';
 import { choosePose, heading, lean, motionFor, type ChatMood, type Heading } from './poses';
+import { ScriptGate } from './ScriptGate';
 import { HEIGHT, figure, preloadSprites } from './sprites';
 import { useDrag } from './useDrag';
 import { useViewport } from './useViewport';
@@ -385,9 +386,20 @@ function Noora() {
                 </div>
               )}
             >
-              <Suspense fallback={<Loading />}>
-                <ChatPanel open={open} sheet={place.sheet} calm={calm} panelRef={card} onClose={close} onFollow={follow} onHide={hide} onMood={setMood} />
-              </Suspense>
+              <ScriptGate
+                fallback={<Loading />}
+                error={(retry, error, retrying) => (
+                  <div className="ncard-note">
+                    <QueryError error={error} title="Mini Noora didn’t load" onRetry={retry} retrying={retrying} size="sm" panel={false} />
+                  </div>
+                )}
+              >
+                {(script) => (
+                  <Suspense fallback={<Loading />}>
+                    <ChatPanel script={script} open={open} sheet={place.sheet} calm={calm} panelRef={card} onClose={close} onFollow={follow} onHide={hide} onMood={setMood} />
+                  </Suspense>
+                )}
+              </ScriptGate>
             </ModulesGate>
           </ErrorBoundary>
         </section>

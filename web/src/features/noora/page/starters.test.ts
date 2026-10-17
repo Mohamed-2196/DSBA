@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { ModuleSummary } from '../../../api/types';
+import { seedScript } from '../seedScript';
 import { fill, starters } from './starters';
+
+const CARDS = seedScript().starters;
 
 describe('fill', () => {
   it('drops the brackets and selects what was in them', () => {
@@ -23,14 +26,15 @@ describe('fill', () => {
 describe('starters', () => {
   const st = { id: 'st2133', year: 2, unitCode: 'ST2133', shortName: 'Stats', name: 'Advanced statistics' } as ModuleSummary;
 
-  it('offers every kind of help, each with something to fill in', () => {
-    const list = starters([], null);
+  it('starts with every kind of help, each with something to fill in', () => {
+    const list = starters(CARDS, [], null);
     expect(list.map((s) => s.id)).toEqual(['explain', 'solve', 'quiz', 'plan', 'summarise', 'career', 'write']);
     for (const s of list) expect(s.template).toMatch(/\[[^\]]+\]/);
   });
 
-  it('uses a module of the student’s year', () => {
-    expect(starters([st], 2).find((s) => s.id === 'plan')?.template).toContain('[ST2133]');
-    expect(starters([st], 1).find((s) => s.id === 'plan')?.template).toContain('[my next exam]');
+  it('uses a module of the student’s year for {module}', () => {
+    expect(starters(CARDS, [st], 2).find((s) => s.id === 'plan')?.template).toContain('[ST2133]');
+    expect(starters(CARDS, [st], 2).find((s) => s.id === 'plan')?.example).toBe('A plan for ST2133 around my exams');
+    expect(starters(CARDS, [st], 1).find((s) => s.id === 'plan')?.template).toContain('[my next exam]');
   });
 });

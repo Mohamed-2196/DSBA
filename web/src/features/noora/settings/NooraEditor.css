@@ -1,0 +1,37 @@
+/* Manage → Mini Noora: the fixed rules beside her instructions, a page without questions of its own, and the
+   preview. Long lines of the prompt wrap: nothing scrolls sideways. */
+.noora-set__fixed {
+  display: grid;
+  gap: var(--sp-8);
+  justify-items: start;
+  padding: var(--sp-12) var(--sp-16) var(--sp-16);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--surface-2);
+}
+.noora-set__fixed-title { display: flex; align-items: center; gap: var(--sp-8); margin: 0; font-size: var(--fs-14); }
+.noora-set__text {
+  justify-self: stretch;
+  max-height: 28rem;
+  margin: 0;
+  overflow: auto;
+  padding: var(--sp-12);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.noora-set__unset { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8) var(--sp-12); }
+.noora-set__hello { display: grid; gap: var(--sp-12); }
+.noora-set__greeting { margin: 0; max-width: 60ch; padding: var(--sp-12) var(--sp-16); border-radius: var(--r-panel); background: var(--surface-2); }
+.noora-set__pages { display: grid; gap: var(--sp-8); margin: 0; }
+.noora-set__pages > div { display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); gap: var(--sp-12); }
+.noora-set__pages dt { color: var(--ink-2); font-size: var(--fs-14); }
+.noora-set__pages dd { margin: 0; font-size: var(--fs-14); }
+@media (max-width: 600px) {
+  .noora-set__pages > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}

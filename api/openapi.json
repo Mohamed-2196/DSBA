@@ -19894,6 +19894,392 @@
         }
       }
     },
+    "/api/v1/mini-noora/script": {
+      "get": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Noora Script",
+        "description": "What she says when she answers from her script, the questions she offers on each page, and the cards of her\nfull page.",
+        "operationId": "noora_script_api_v1_mini_noora_script_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraScript"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mini-noora/settings": {
+      "get": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Noora Settings",
+        "description": "Her prompt and script with the version a save names (0 until the first save), and the rules that always follow\nher instructions.",
+        "operationId": "noora_settings_api_v1_mini_noora_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Save Noora Settings",
+        "description": "Save her prompt and script, if nobody saved them since `version`. Audited with what changed, before and after.\n\nErrors: noora_changed (409: someone saved them since: load them again), invalid_input (422: a field that doesn't\nfit, <hub_data> or <student_note> in her instructions or facts, a placeholder other than {module} and {module2},\na page listed twice or without the questions for every other page, an id used twice).",
+        "operationId": "save_noora_settings_api_v1_mini_noora_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NooraSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraEditable"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mini-noora/settings/preview": {
+      "post": {
+        "tags": [
+          "noora"
+        ],
+        "summary": "Preview Noora Prompt",
+        "description": "The prompt her AI would read with these instructions and facts: for a Year 2 student on Home today, from the\nhub's own modules and calendar. Nothing is saved.",
+        "operationId": "preview_noora_prompt_api_v1_mini_noora_settings_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NooraPromptPreview"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NooraPromptAssembled"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/summary/preview": {
       "get": {
         "tags": [
@@ -27829,6 +28215,7 @@
               "site_changed",
               "guides_changed",
               "forum_changed",
+              "noora_changed",
               "already_a_lesson",
               "already_suggested",
               "suggestion_closed",
@@ -34204,6 +34591,53 @@
         ],
         "title": "NearestView"
       },
+      "NooraChip": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "needs": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "calendar",
+                  "library"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "NooraChip",
+        "description": "A question she offers. Left out while the feature it needs is off for the student, or when it names a module\nthe student has none of."
+      },
+      "NooraDoc": {
+        "properties": {
+          "prompt": {
+            "$ref": "#/components/schemas/NooraPrompt"
+          },
+          "script": {
+            "$ref": "#/components/schemas/NooraScript"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prompt",
+          "script"
+        ],
+        "title": "NooraDoc"
+      },
       "NooraDoneEvent": {
         "properties": {
           "type": {
@@ -34223,6 +34657,53 @@
         ],
         "title": "NooraDoneEvent",
         "description": "The answer is complete."
+      },
+      "NooraEditable": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/NooraDoc"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updatedat"
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fixedRules": {
+            "type": "string",
+            "title": "Fixedrules"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "version",
+          "updatedAt",
+          "updatedBy",
+          "fixedRules"
+        ],
+        "title": "NooraEditable",
+        "description": "The document for admins, with the version a save must name (0 until the first save: the starting content),\nand the rules that always follow her instructions, which no edit removes."
       },
       "NooraErrorEvent": {
         "properties": {
@@ -34249,6 +34730,29 @@
         ],
         "title": "NooraErrorEvent",
         "description": "The answer stopped. `code` is noora_unavailable: what came so far may be shown, with a line that it was cut\noff."
+      },
+      "NooraFact": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "NooraFact"
       },
       "NooraLimitsIn": {
         "properties": {
@@ -34293,6 +34797,40 @@
         "title": "NooraNote",
         "description": "The note open in the editor. Sent only when the student ticks \"Include my note\" for this question."
       },
+      "NooraPageChips": {
+        "properties": {
+          "page": {
+            "type": "string",
+            "enum": [
+              "home",
+              "modules",
+              "module",
+              "library",
+              "calendar",
+              "forum",
+              "notes",
+              "grades",
+              "other"
+            ],
+            "title": "Page"
+          },
+          "chips": {
+            "items": {
+              "$ref": "#/components/schemas/NooraChip"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "minItems": 1,
+            "title": "Chips"
+          }
+        },
+        "type": "object",
+        "required": [
+          "page",
+          "chips"
+        ],
+        "title": "NooraPageChips"
+      },
       "NooraPaper": {
         "properties": {
           "itemId": {
@@ -34322,6 +34860,68 @@
         ],
         "title": "NooraPaper",
         "description": "A past paper's question the student is asking about. The server reads the page's words and the examiners'\nreport for the same sitting itself."
+      },
+      "NooraPrompt": {
+        "properties": {
+          "instructions": {
+            "type": "string",
+            "maxLength": 8000,
+            "minLength": 40,
+            "title": "Instructions"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/NooraFact"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Facts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "instructions",
+          "facts"
+        ],
+        "title": "NooraPrompt",
+        "description": "What her AI reads first: who she is and how she answers, then the facts about the programme."
+      },
+      "NooraPromptAssembled": {
+        "properties": {
+          "stable": {
+            "type": "string",
+            "title": "Stable"
+          },
+          "screen": {
+            "type": "string",
+            "title": "Screen"
+          },
+          "tokens": {
+            "type": "integer",
+            "title": "Tokens"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stable",
+          "screen",
+          "tokens"
+        ],
+        "title": "NooraPromptAssembled",
+        "description": "What her AI reads before a question: the part that is the same for every question (her instructions, the\nfacts, the fixed rules, the hub's pages and its modules) and, as an example, the part about one student's screen\n(Year 2, on Home, today)."
+      },
+      "NooraPromptPreview": {
+        "properties": {
+          "prompt": {
+            "$ref": "#/components/schemas/NooraPrompt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prompt"
+        ],
+        "title": "NooraPromptPreview",
+        "description": "POST /mini-noora/settings/preview: the prompt as her AI would read it, from a draft."
       },
       "NooraQuestion": {
         "properties": {
@@ -34412,6 +35012,200 @@
         ],
         "title": "NooraQuestion",
         "description": "A question, and what's on the student's screen. The server looks the module and lesson up itself."
+      },
+      "NooraSave": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NooraDoc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "data"
+        ],
+        "title": "NooraSave",
+        "description": "PUT /mini-noora/settings: the whole document, and the version it was edited from."
+      },
+      "NooraScript": {
+        "properties": {
+          "greeting": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Greeting"
+          },
+          "greetingChips": {
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Greetingchips"
+          },
+          "who": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Who"
+          },
+          "thanks": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Thanks"
+          },
+          "refusal": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Refusal"
+          },
+          "notFound": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Notfound"
+          },
+          "tryInstead": {
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Tryinstead"
+          },
+          "noPhotos": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Nophotos"
+          },
+          "photoAsk": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Photoask"
+          },
+          "fileGuess": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Fileguess"
+          },
+          "fileUnknown": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Fileunknown"
+          },
+          "welcome": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Welcome"
+          },
+          "pageChips": {
+            "items": {
+              "$ref": "#/components/schemas/NooraPageChips"
+            },
+            "type": "array",
+            "maxItems": 9,
+            "minItems": 1,
+            "title": "Pagechips"
+          },
+          "starters": {
+            "items": {
+              "$ref": "#/components/schemas/NooraStarter"
+            },
+            "type": "array",
+            "maxItems": 9,
+            "minItems": 1,
+            "title": "Starters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "greeting",
+          "greetingChips",
+          "who",
+          "thanks",
+          "refusal",
+          "notFound",
+          "tryInstead",
+          "noPhotos",
+          "photoAsk",
+          "fileGuess",
+          "fileUnknown",
+          "welcome",
+          "pageChips",
+          "starters"
+        ],
+        "title": "NooraScript",
+        "description": "What she says from her script, and what she offers to answer."
+      },
+      "NooraStarter": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id"
+          },
+          "icon": {
+            "type": "string",
+            "enum": [
+              "lightbulb",
+              "teacher",
+              "checklist",
+              "notepad",
+              "exam",
+              "briefcase",
+              "pencil"
+            ],
+            "title": "Icon"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "example": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Example"
+          },
+          "template": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Template"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "icon",
+          "title",
+          "example",
+          "template"
+        ],
+        "title": "NooraStarter",
+        "description": "A card of her full page: it fills the question box with `template`, its [part in square brackets] selected."
       },
       "NooraStatus": {
         "properties": {
