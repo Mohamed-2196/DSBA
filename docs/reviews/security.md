@@ -60,7 +60,7 @@ copy makes:
 | SEC-44 | nit | bugs (`services/bugs.py:85`) | open | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
 | SEC-45 | nit | Daily, boards | open | Crafted input turns Daily and board requests into 500s |
 | SEC-46 | nit | Daily (`services/daily/content.py:61`) | open | Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones |
-| SEC-47 | nit | uploads (`routers/uploads.py:47`) | open (unverified) | The board and notebook quotas are checked before the upload lock |
+| SEC-47 | nit | uploads (`routers/uploads.py:47`) | **fixed** | The board and notebook quotas are checked before the upload lock |
 | SEC-48 | nit | web (`web/package.json:31`) | open (not reachable) | `npm audit`: pdf.js 5.7.284 has a high advisory |
 | SEC-33 | minor | content, deployment | **still open** (half fixed) | The reader's environment is empty, but it can read the worker's secrets from /proc |
 | SEC-27 | minor | notes | **reopened** (see SEC-36) | A free account's notes are no longer capped at 10 MB |
@@ -346,6 +346,10 @@ copy makes:
   pass: up to 1 GB against the board's 200 MB. Not shown: the tests share one database connection.
 - **Fix:** take `ratelimit.lock(db, f"uploads:{user.id}")` first, or move both checks into `create_upload()` after
   `check_rate()`.
+- **Fixed:** `create_upload()` (`services/uploads.py`) checks the library's pending files, the boards' bytes and the
+  notebooks' bytes after `check_rate()`, under the person's upload lock; the router no longer checks them first.
+  `test_two_uploads_at_once_cannot_both_fit_in_the_room_left` (`tests/board/test_files.py`) races two requests on
+  connections of their own: one gets in, the other gets `storage_full` (with the old order both got in).
 
 ### SEC-48. `npm audit`: pdf.js 5.7.284 has a high advisory (nit, not reachable)
 

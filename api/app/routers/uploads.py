@@ -11,9 +11,7 @@ from app.core.security import DB, ActiveUser, OptionalUser
 from app.models import UploadPurpose
 from app.routers._base import router_for
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadOut
-from app.services import library, notes
 from app.services import uploads as svc
-from app.services.board import files as board_files
 
 router = router_for("uploads")
 
@@ -41,12 +39,6 @@ def create_upload(body: UploadCreate, user: ActiveUser, db: DB) -> PresignedUplo
     purpose = UploadPurpose(body.purpose)
     svc.require_features(db, user, purpose)
     svc.require_box(user, purpose)
-    if purpose == UploadPurpose.library:
-        library.check_pending_room(db, user)  # before the file travels: create_item checks again
-    elif purpose == UploadPurpose.board:
-        board_files.check_storage(db, user, body.size_bytes)
-    elif purpose == UploadPurpose.note_file:
-        notes.check_upload(db, user, body.size_bytes)  # the student's notebooks have room for it
     presigned = svc.create_upload(db, user, body)
     db.commit()
     return presigned
