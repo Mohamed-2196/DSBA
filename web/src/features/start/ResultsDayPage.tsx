@@ -1,30 +1,51 @@
-// /results-day: what results mean and what to do next (data/guides.ts). Open to everyone, all year.
+// /results-day: what results mean and what to do next (the Results day guide, edited in Manage → Guides). Open to
+// everyone, all year.
 import { ArrowSquareOut } from '@phosphor-icons/react';
+import type { ResultsDay } from '../../api/types';
 import { useAuth } from '../../auth';
-import { RESULTS_DAY, UOL_RULES } from '../../data/guides';
-import { Badge, Page, PageHeader, PageSection, Panel, SectionHeader } from '../../ui';
+import { Badge, Page, PageHeader, PageSection, Panel, QueryError, SectionHeader, Skeleton } from '../../ui';
 import { ProjectedClass } from '../grades/public';
+import { httpsHref, useSite } from '../site/public';
+import { useGuides } from './api';
 import { GuideSteps } from './GuideSteps';
 import { useResultsTicks } from './useGuideTicks';
 import './StartHere.css';
 
-const SOURCES = [UOL_RULES.regulations, UOL_RULES.results];
+/** The University's own pages: Site settings' regulations and results links. */
+function Sources() {
+  const site = useSite().data;
+  if (!site) return null;
+  const links = [site.links.regulations, site.links.results];
+  return (
+    <ul role="list" className="start-sources">
+      {links.map((l) => {
+        const href = httpsHref(l.url);
+        return href ? (
+          <li key={l.label}>
+            <a href={href} target="_blank" rel="noopener noreferrer" className="start-link">
+              {l.label}
+              <ArrowSquareOut weight="bold" aria-hidden="true" />
+              <span className="visually-hidden"> (opens in a new tab)</span>
+            </a>
+          </li>
+        ) : null;
+      })}
+    </ul>
+  );
+}
 
-export default function ResultsDayPage() {
+/** The guide's page, from the guide as it is (or as an editor's draft, in the editor's preview). */
+export function ResultsDayBody({ guide }: { guide: ResultsDay }) {
   const { featureOn } = useAuth();
-  const ticks = useResultsTicks();
+  const ticks = useResultsTicks(guide.steps);
   const n = ticks.done.size;
   return (
-    <Page className="start-page">
-      <PageHeader
-        title={RESULTS_DAY.title}
-        description={RESULTS_DAY.intro}
-        meta={<Badge tone={n === ticks.total ? 'signal' : 'neutral'} aria-live="polite">{`${n} of ${ticks.total} done`}</Badge>}
-      />
+    <>
+      <PageHeader title={guide.title} description={guide.intro} meta={<Badge tone={n === ticks.total ? 'signal' : 'neutral'} aria-live="polite">{`${n} of ${ticks.total} done`}</Badge>} />
       <PageSection aria-labelledby="results-steps-title">
         <SectionHeader id="results-steps-title" title="What to do next" />
         <Panel as="div" padding="none" radius="feature" className="start-page__panel">
-          <GuideSteps steps={RESULTS_DAY.steps} ticks={ticks} variant="page" />
+          <GuideSteps steps={guide.steps} ticks={ticks} variant="page" />
         </Panel>
       </PageSection>
       {featureOn('grades') ? (
@@ -36,19 +57,24 @@ export default function ResultsDayPage() {
         </PageSection>
       ) : null}
       <PageSection aria-labelledby="results-rules-title">
-        <SectionHeader id="results-rules-title" title="The official rules" description="A guide written by students. The University’s own pages decide." />
-        <ul role="list" className="start-sources">
-          {SOURCES.map((s) => (
-            <li key={s.href}>
-              <a href={s.href} target="_blank" rel="noopener noreferrer" className="start-link">
-                {s.label}
-                <ArrowSquareOut weight="bold" aria-hidden="true" />
-                <span className="visually-hidden"> (opens in a new tab)</span>
-              </a>
-            </li>
-          ))}
-        </ul>
+        <SectionHeader id="results-rules-title" title="The official rules" description={guide.sourcesIntro} />
+        <Sources />
       </PageSection>
+    </>
+  );
+}
+
+export default function ResultsDayPage() {
+  const guides = useGuides();
+  return (
+    <Page className="start-page">
+      {guides.data ? (
+        <ResultsDayBody guide={guides.data.resultsDay} />
+      ) : guides.isError ? (
+        <QueryError error={guides.error} title="Results day didn’t load" onRetry={() => void guides.refetch()} retrying={guides.isFetching} />
+      ) : (
+        <Skeleton lines={10} />
+      )}
     </Page>
   );
 }

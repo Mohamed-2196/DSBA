@@ -2,7 +2,6 @@
 // and calendar dates) comes ranked from the API; the palette adds its own actions, pages and recent searches.
 import type { ModuleSummary, SearchHit, SearchResults } from '../../api/types';
 import type { Feature } from '../../auth';
-import { MYCLASS_URL, UOL_PORTAL_URL } from '../../data/people';
 import { daysBetween, formatLong, isDayKey, parseDay, today } from '../../lib/dates';
 import { safeInternalPath } from '../../ui';
 import { EVENT_TYPES, TYPE_ORDER, type EventType } from '../calendar/public';
@@ -46,7 +45,7 @@ interface Base {
 }
 
 export type Item =
-  | (Base & { kind: 'module'; moduleId: string; year: number | null; code: string | null; to: string })
+  | (Base & { kind: 'module'; moduleId: string; year: number | null; code: string | null; art: string | null; to: string })
   | (Base & { kind: 'lesson'; to: string; chapter: boolean })
   | (Base & { kind: 'file'; to: string; meta: string | null })
   | (Base & { kind: 'thread'; to: string; meta: string | null })
@@ -126,8 +125,20 @@ export const PAGE_ENTRIES: Item[] = (
   }),
 );
 
-/** Actions depend on the current year, the theme and whether Mini Noora is hidden. */
-export function buildActions({ year, theme, nooraHidden = false }: { year: number | null; theme: 'light' | 'dark'; nooraHidden?: boolean }): Item[] {
+/** A site the palette opens (Site settings' links to BIBF's MyClass and the University's portal). */
+export interface Portal {
+  id: 'myclass' | 'uol';
+  label: string;
+  href: string;
+}
+
+const PORTAL_ACTIONS: Record<Portal['id'], { icon: IconName; keywords: string[] }> = {
+  myclass: { icon: 'GraduationCap', keywords: ['myclass', 'bibf'] },
+  uol: { icon: 'Bank', keywords: ['uol', 'university of london', 'portal'] },
+};
+
+/** Actions depend on the current year, the theme, whether Mini Noora is hidden, and the sites the hub links to. */
+export function buildActions({ year, theme, nooraHidden = false, portals = [] }: { year: number | null; theme: 'light' | 'dark'; nooraHidden?: boolean; portals?: readonly Portal[] }): Item[] {
   const switches = ([1, 2, 3] as const)
     .filter((y) => y !== year)
     .map(
@@ -171,8 +182,7 @@ export function buildActions({ year, theme, nooraHidden = false }: { year: numbe
       ? { id: 'action:noora', group: 'actions', kind: 'action', title: 'Show Mini Noora', icon: 'Eye', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot', 'bring back'], run: { type: 'noora', act: 'show' }, feature: 'noora' }
       : { id: 'action:noora', group: 'actions', kind: 'action', title: 'Hide Mini Noora', icon: 'EyeSlash', keywords: ['noora', 'mini noora', 'study helper', 'assistant', 'mascot'], run: { type: 'noora', act: 'hide' }, feature: 'noora' },
     { id: 'action:report', group: 'actions', kind: 'action', title: 'Report a bug', icon: 'Bug', keywords: ['bug', 'problem', 'broken', 'feedback', 'issue', 'report', 'not working'], run: { type: 'bug' } },
-    { id: 'action:myclass', group: 'actions', kind: 'action', title: 'Open BIBF MyClass', icon: 'GraduationCap', keywords: ['myclass', 'bibf'], href: MYCLASS_URL },
-    { id: 'action:uol', group: 'actions', kind: 'action', title: 'Open the UoL student portal', icon: 'Bank', keywords: ['uol', 'university of london', 'portal'], href: UOL_PORTAL_URL },
+    ...portals.map((p): Item => ({ id: `action:${p.id}`, group: 'actions', kind: 'action', title: `Open ${p.label}`, ...PORTAL_ACTIONS[p.id], href: p.href })),
   ];
 }
 
@@ -216,7 +226,7 @@ function toItem(hit: SearchHit, group: GroupId, getModule: (id: string) => Modul
   switch (hit.type) {
     case 'module': {
       const m = getModule(hit.id);
-      return { ...base, kind: 'module', moduleId: hit.id, year: m?.year ?? null, code: m?.unitCode ?? null, subtitle: m ? `Year ${m.year} module${m.lessonCount ? `, ${m.lessonCount} lessons` : ''}` : plainMeta(hit.meta), to };
+      return { ...base, kind: 'module', moduleId: hit.id, year: m?.year ?? null, code: m?.unitCode ?? null, art: m?.art ?? null, subtitle: m ? `Year ${m.year} module${m.lessonCount ? `, ${m.lessonCount} lessons` : ''}` : plainMeta(hit.meta), to };
     }
     case 'lesson': {
       // meta: 'EC1002 · Chapter' or 'EC1002 · Video'; a video's snippet is its chapter.
@@ -263,6 +273,8 @@ export interface SearchInput {
   isOn: (f: Feature) => boolean;
   /** Whether "Start a thread" and "Upload a file" belong in front of the person (useStartsThreads, showsUpload). */
   offers: Record<OfferId, boolean>;
+  /** The sites the palette opens, once Site settings have loaded. */
+  portals?: readonly Portal[];
   now?: Date;
 }
 
@@ -277,6 +289,7 @@ const moduleItem = (m: ModuleSummary): Item => ({
   moduleId: m.id,
   year: m.year,
   code: m.unitCode,
+  art: m.art,
   title: m.name,
   subtitle: `Year ${m.year} module${m.lessonCount ? `, ${m.lessonCount} lessons` : ''}`,
   to: `/modules/${m.id}`,
@@ -287,7 +300,7 @@ export function textOf(query: string): string {
   return query.replace(YEAR_RE, ' ').replace(/\s+/g, ' ').trim();
 }
 
-export function runSearch({ query, year, theme, nooraHidden = false, expanded, recent, results, getModule, getModulesForYear, isOn, offers, now = new Date() }: SearchInput): Results {
+export function runSearch({ query, year, theme, nooraHidden = false, expanded, recent, results, getModule, getModulesForYear, isOn, offers, portals = [], now = new Date() }: SearchInput): Results {
   const cohortMatch = YEAR_RE.exec(query);
   const cohort = cohortMatch ? Number(cohortMatch[1]) : null;
   const text = textOf(query);
@@ -297,7 +310,7 @@ export function runSearch({ query, year, theme, nooraHidden = false, expanded, r
     if (i.feature && !isOn(i.feature)) return false;
     return i.kind === 'page' || !i.offer || offers[i.offer];
   };
-  const actions = buildActions({ year, theme, nooraHidden }).filter(shown);
+  const actions = buildActions({ year, theme, nooraHidden, portals }).filter(shown);
   const pages = PAGE_ENTRIES.filter(shown);
   const off = (feature: Feature) => !isOn(feature);
 

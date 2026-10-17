@@ -34,6 +34,7 @@ from app.schemas.career import (
 from app.services import access
 from app.services.accounts import public_user
 from app.services.content import record
+from app.services.documents import audit_change
 from app.services.modules import unknown_modules
 from app.services.storage import Storage, get_storage
 from app.services.uploads import IMAGE_CONTENT_TYPES, file_type_for
@@ -117,36 +118,6 @@ def editable(db: Session) -> CareerEditable:
 
 
 # ── saving ───────────────────────────────────────────────────────────────────────────────────
-
-
-def _by_id(items: list[Any]) -> dict[str, Any]:
-    return {i["id"]: i for i in items}
-
-
-def _part_change(before: Any, after: Any) -> tuple[Any, Any]:
-    """What changed in one part of the document, before and after. A list of items with ids keeps only the items that
-    changed, came or went (and its order, when that changed); a map keeps only the keys that changed."""
-    items = [*before, *after] if isinstance(before, list) and isinstance(after, list) else None
-    if items is not None and all(isinstance(i, dict) and "id" in i for i in items):
-        old, new = _by_id(before), _by_id(after)
-        b = {"items": [i for k, i in old.items() if new.get(k) != i]}
-        a = {"items": [i for k, i in new.items() if old.get(k) != i]}
-        if [k for k in old if k in new] != [k for k in new if k in old]:
-            b["order"], a["order"] = list(old), list(new)
-        return b, a
-    if isinstance(before, dict) and isinstance(after, dict):
-        keys = [k for k in dict.fromkeys([*before, *after]) if before.get(k) != after.get(k)]
-        return {k: before[k] for k in keys if k in before}, {k: after[k] for k in keys if k in after}
-    return before, after
-
-
-def audit_change(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
-    """The parts a save changed, with what each held before and after."""
-    parts = [k for k in dict.fromkeys([*before, *after]) if before.get(k) != after.get(k)]
-    out: dict[str, Any] = {"parts": parts, "before": {}, "after": {}}
-    for part in parts:
-        out["before"][part], out["after"][part] = _part_change(before.get(part), after.get(part))
-    return out
 
 
 def _logos(db: Session, doc: CareerDoc) -> None:

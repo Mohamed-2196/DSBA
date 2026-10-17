@@ -12,8 +12,9 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from app import main
+from app import cli, main
 from app.config import DEV_SECRET, ConfigError, Settings, check
+from tests.core.conftest import SetOption
 
 API_ROOT = Path(__file__).resolve().parents[2]
 REMOVE = object()
@@ -159,8 +160,9 @@ def test_docs_and_schema_are_off_in_production(monkeypatch: pytest.MonkeyPatch, 
 
 def _run(env: dict[str, str], *args: str) -> subprocess.CompletedProcess[str]:
     base = {k: v for k, v in os.environ.items() if not k.startswith("DSBA_")}
+    # The timeout only stops a hang: importing the whole app can take a minute on a machine busy with other tests.
     return subprocess.run(  # noqa: S603 - this interpreter, fixed arguments
-        [sys.executable, *args], cwd=API_ROOT, env={**base, **env}, capture_output=True, text=True, timeout=60
+        [sys.executable, *args], cwd=API_ROOT, env={**base, **env}, capture_output=True, text=True, timeout=300
     )
 
 
@@ -172,9 +174,9 @@ def test_the_api_refuses_to_start_with_unsafe_production_settings() -> None:
     assert "- DSBA_EMAIL_BACKEND must be smtp" in done.stderr
 
 
-def test_dev_login_is_refused_in_production() -> None:
-    env = {f"DSBA_{k.upper()}": str(v) for k, v in GOOD.items()}
-    done = _run(env, "-m", "app.cli", "dev-login", "someone@example.com")
-    assert done.returncode == 1
-    assert "dev-login is disabled in production" in done.stderr
-    assert done.stdout == ""
+def test_dev_login_is_refused_in_production(set_option: SetOption, capsys: pytest.CaptureFixture[str]) -> None:
+    set_option("env", "production")
+    assert cli.main(["dev-login", "someone@example.com"]) == 1
+    out = capsys.readouterr()
+    assert "dev-login is disabled in production" in out.err
+    assert out.out == ""

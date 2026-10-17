@@ -15,6 +15,11 @@ a.about__name:hover { color: var(--cobalt); text-decoration: underline; }
 .about__note { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-14); }
 .about__note-name { font-weight: var(--fw-semibold); }
 .about__note-mods { margin-left: auto; color: var(--ink-2); text-align: right; }
+.about__note-link { color: inherit; }
+.about__note-link:hover { color: var(--cobalt); }
+@media (pointer: coarse) {
+  .about__note-link { display: inline-flex; align-items: center; min-height: 44px; }
+}
 
 .about__disclaimer { max-width: var(--measure); color: var(--ink-2); }
 

@@ -169,6 +169,7 @@
   transition: background-color var(--dur-fast) var(--ease);
 }
 .cmdk-item.is-active .cmdk-tile:not(.cmdk-tile--module):not(.cmdk-tile--lesson):not(.cmdk-tile--issue) { background: var(--surface); }
+.cmdk-art { --modart-size: 36px; }
 .cmdk-tile--module { background: color-mix(in srgb, var(--c) 15%, var(--surface)); color: var(--c-strong); }
 .cmdk-tile--y1 { --c: var(--y1); --c-strong: var(--y1-strong); }
 .cmdk-tile--y2 { --c: var(--y2); --c-strong: var(--y2-strong); }
