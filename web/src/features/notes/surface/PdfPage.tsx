@@ -1,12 +1,25 @@
-// One page of the PDF a note is written over, drawn by pdf.js into a canvas at the zoom on screen (sharp on
-// high-density screens) once it scrolls near the view. It draws again, a moment after the zoom changes.
+// One page of the PDF a note is written over, drawn by pdf.js into a canvas. The canvas is laid out in sheet units
+// like the rest of the page; its pixels follow the zoom on screen (sharp on high-density screens). It is drawn once it
+// scrolls near the view, and again a moment after the zoom changes.
 import { memo, useEffect, useRef, useState } from 'react';
 import type { LoadedPdf } from '../pdf';
 
 /** The most pixels one page's canvas may hold: tablets refuse bigger canvases. */
 const MAX_PIXELS = 6_000_000;
 
-export const PdfPage = memo(function PdfPage({ pdf, page, width, height, root }: { pdf: LoadedPdf; page: number; width: number; height: number; root: HTMLElement | null }) {
+interface PdfPageProps {
+  pdf: LoadedPdf;
+  /** 1-based */
+  page: number;
+  /** the sheet's size in units */
+  width: number;
+  height: number;
+  zoom: number;
+  /** the scrolling element, to draw only the pages near the view */
+  root: HTMLElement | null;
+}
+
+export const PdfPage = memo(function PdfPage({ pdf, page, width, height, zoom, root }: PdfPageProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [near, setNear] = useState(false);
   const [drawn, setDrawn] = useState(false);
@@ -28,7 +41,7 @@ export const PdfPage = memo(function PdfPage({ pdf, page, width, height, root }:
       void pdf.doc.getPage(page).then((p) => {
         if (cancelled) return;
         const base = p.getViewport({ scale: 1 });
-        let scale = (width / base.width) * Math.min(window.devicePixelRatio || 1, 3);
+        let scale = ((width * zoom) / base.width) * Math.min(window.devicePixelRatio || 1, 3);
         const pixels = base.width * base.height * scale * scale;
         if (pixels > MAX_PIXELS) scale *= Math.sqrt(MAX_PIXELS / pixels);
         const viewport = p.getViewport({ scale });
@@ -52,7 +65,7 @@ export const PdfPage = memo(function PdfPage({ pdf, page, width, height, root }:
       clearTimeout(timer);
       task?.cancel();
     };
-  }, [pdf, page, width, near]);
+  }, [pdf, page, width, zoom, near]);
 
   return <canvas ref={canvas} className={drawn ? 'nb-pdfpage is-drawn' : 'nb-pdfpage'} style={{ width, height }} aria-hidden="true" />;
 });

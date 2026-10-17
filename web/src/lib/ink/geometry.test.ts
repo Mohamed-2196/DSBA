@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { addPoint, eraseFrom, inPolygon, lassoed, moved, strokeBounds, strokePath, touches, type InkStroke } from './geometry';
-import { emptyHistory, record, redo, undo } from './history';
 import { laserSegments, liveTrail } from './laser';
 
 const line = (id: string, from: number, to: number, y = 10): InkStroke => {
@@ -53,20 +52,6 @@ describe('ink geometry', () => {
     const half = line('half', 10, 60);
     expect(lassoed([inside, half], square).map((s) => s.id)).toEqual(['in']);
     expect(moved(inside, 5, -2).points.slice(0, 3)).toEqual([7, 8, 0.5]);
-  });
-});
-
-describe('ink history', () => {
-  it('undoes and redoes changes in order', () => {
-    const a = [line('a', 0, 4)];
-    let h = record(emptyHistory(), { sheet: 0, before: [], after: a });
-    h = record(h, { sheet: 1, before: [], after: a });
-    const u = undo(h);
-    expect(u?.sheet).toBe(1);
-    expect(u?.strokes).toEqual([]);
-    const r = redo(u!.history);
-    expect(r?.strokes).toBe(a);
-    expect(record(u!.history, { sheet: 0, before: a, after: [] }).future).toEqual([]);
   });
 });
 

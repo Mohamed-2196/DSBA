@@ -19,15 +19,23 @@ test.afterAll(async ({ browser }) => {
 
 test('a student writes a note, finds it and deletes it', async ({ sara, run }) => {
   const title = `Moments [e2e ${run.tag}]`;
+  const body = 'The mean is E[X] = Σ x p(x).';
   await sara.goto('/notes');
   await sara.locator('[data-hub="note-new"]').click();
-  await sara.locator('[data-hub="note-title"]').fill(title);
-  await sara.locator('[data-hub="note-body"]').fill('The mean is `E[X] = Σ x p(x)`.');
-  await expect(sara.locator('[data-hub="note-status"]')).toHaveText('Saved');
   await expect(sara).toHaveURL(/\/notes\/[0-9a-f-]{36}$/);
+  await sara.locator('[data-hub="note-title"]').fill(title);
+  await sara.locator('[data-hub="note-text"]').click();
+  await sara.keyboard.type(body);
+  await expect(sara.locator('[data-hub="note-status"]')).toContainText('Saved in');
 
   await sara.reload();
-  await expect(sara.locator('[data-hub="note-body"]')).toHaveValue('The mean is `E[X] = Σ x p(x)`.');
+  await expect(sara.locator('[data-hub="note-text"]')).toContainText(body);
+  // out to the list and in again: the note opens with its text, and nothing is saved over it
+  await sara.locator('.nb-back').click();
+  await expect(sara).toHaveURL(/\/notes$/);
+  await sara.locator('[data-hub="note-row"]', { hasText: title }).click();
+  await expect(sara.locator('[data-hub="note-text"]')).toContainText(body);
+  await expect(sara.locator('[data-hub="note-status"]')).toContainText('Saved in');
 
   await sara.goto('/notes');
   await sara.getByRole('searchbox', { name: 'Search your notes' }).fill('Σ x p');
@@ -35,7 +43,8 @@ test('a student writes a note, finds it and deletes it', async ({ sara, run }) =
   await expect(sara.locator('[data-hub="note-row"]')).toContainText(title);
 
   await sara.locator('[data-hub="note-row"]').click();
-  await sara.locator('[data-hub="note-delete"]').click();
+  await sara.locator('[data-hub="note-more"]').click();
+  await sara.getByRole('menuitem', { name: 'Delete note' }).click();
   await sara.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
   await expect(sara).toHaveURL(/\/notes$/);
   const left = await api<{ items: { title: string }[] }>(sara, 'GET', `/api/v1/notes?q=${encodeURIComponent(run.tag)}`);

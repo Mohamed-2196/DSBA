@@ -1,14 +1,17 @@
 // The writing surface: a note's sheets (its PDF's pages, then paper with the typed text), the ink on each, and
 // everything the pen, the eraser, the lasso and the laser do on them.
 //
+// The column is laid out in sheet units and scaled for the zoom as a whole (layout.ts), so the text, the pictures and
+// the ink keep their places at every zoom. Ink lies above the text and the pictures: the pen writes over them.
+//
 // Input, the way notebook apps on tablets work:
 //   - A stylus always writes, even while typing (it picks the pen). Once one is seen, fingers scroll and zoom
 //     instead of drawing (palm rejection); without one, a finger draws with the ink tools and two fingers scroll.
-//   - Two fingers pinch to zoom; Ctrl or ⌘ with the wheel or trackpad zooms too.
+//   - Two fingers pinch to zoom and move the page; Ctrl or ⌘ with the wheel or trackpad zooms too.
 //   - The line being drawn, the lasso and the laser are drawn straight into an overlay (no React work while the pen
 //     moves); finished strokes go to the sheet's SVG (lib/ink).
 import { Copy, PaintBucket, Trash } from '@phosphor-icons/react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import type { Stroke } from '../../../api/types';
 import {
   InkSheet,
@@ -29,16 +32,23 @@ import {
 import { cx } from '../../../ui';
 import type { Paper } from '../draft';
 import type { LoadedPdf } from '../pdf';
-import { LINE, SHEET_WIDTH, clampZoom, layoutSheets, sheetAt, type Placed, type SheetSpec } from './layout';
+import { inkStep, type SheetChange, type Step } from '../timeline';
+import { LINE, SHEET_WIDTH, TEXT_SIDE, TEXT_TOP, TEXT_WIDTH, clampZoom, layoutSheets, sheetAt, type Placed, type SheetSpec } from './layout';
 import { PdfPage } from './PdfPage';
 import type { PenSettings, Tool } from './tools';
+
+/** A zoom, and where it is anchored: the point of the page (`unit`, in column units) that goes under `client` (a point
+ *  on screen). Without `unit`, the point under `client` stays where it is. */
+export interface ZoomAnchor {
+  client: { x: number; y: number };
+  unit?: { x: number; y: number };
+}
 
 export interface SurfaceProps {
   sheets: readonly SheetSpec[];
   paper: Paper;
   zoom: number;
-  /** a new zoom; `anchor` is the point on screen (client pixels) that stays where it is */
-  onZoom: (zoom: number, anchor?: { x: number; y: number }) => void;
+  onZoom: (zoom: number, anchor: ZoomAnchor) => void;
   tool: Tool;
   onTool: (tool: Tool) => void;
   pens: PenSettings;
@@ -49,16 +59,19 @@ export interface SurfaceProps {
   strokesOf: (sheet: number) => readonly Stroke[];
   /** bumps when any sheet's strokes change */
   revision: number;
-  /** a gesture changed a sheet: record it (undo) and save it */
-  onInk: (sheet: number, before: readonly InkStroke[], after: readonly InkStroke[]) => void;
+  /** a gesture changed the ink: record it (undo) and save it */
+  onInk: (step: Step) => void;
   pdf: LoadedPdf | null;
   /** the typed text, laid on the paper */
   text: ReactNode;
+  /** the paper was pressed below the typed text, on line `line` (0 the first line of text), while typing */
+  onPaperPress?: (line: number) => void;
   /** below the last sheet (Add a page) */
   footer?: ReactNode;
   readOnly: boolean;
-  scrollerRef: RefObject<HTMLDivElement>;
-  /** the typed text's height, in sheet units, as it changes */
+  /** the element the pages scroll in */
+  scroller: HTMLElement | null;
+  /** the typed text's height in units, as it changes */
   onTextHeight: (units: number) => void;
 }
 
@@ -76,6 +89,9 @@ interface Selection {
 
 const PRESSURE_DEFAULT = 0.5;
 const SVG_NS = 'http://www.w3.org/2000/svg';
+/** The selection's toolbar: its height, and its gap above the selection (pixels). */
+const BAR_HEIGHT = 48;
+const BAR_GAP = 10;
 
 function pressureOf(e: PointerEvent): number {
   if (e.pointerType === 'pen' && e.pressure > 0) return e.pressure;
@@ -97,12 +113,13 @@ export function Surface({
   onInk,
   pdf,
   text,
+  onPaperPress,
   footer,
   readOnly,
-  scrollerRef,
+  scroller,
   onTextHeight,
 }: SurfaceProps) {
-  const layout = useMemo(() => layoutSheets(sheets, zoom), [sheets, zoom]);
+  const layout = useMemo(() => layoutSheets(sheets), [sheets]);
   const stack = useRef<HTMLDivElement>(null);
   const liveGroup = useRef<SVGGElement>(null);
   const livePath = useRef<SVGPathElement>(null);
@@ -111,6 +128,7 @@ export function Surface({
   const eraserRing = useRef<SVGCircleElement>(null);
   const textBox = useRef<HTMLDivElement>(null);
   const gesture = useRef<Gesture | null>(null);
+  const dragOffset = useRef<{ dx: number; dy: number } | null>(null);
   const pinching = useRef(false);
   const trail = useRef<LaserPoint[]>([]);
   const frame = useRef(0);
@@ -118,9 +136,9 @@ export function Surface({
   const [selection, setSelection] = useState<Selection | null>(null);
   const [drag, setDrag] = useState<{ dx: number; dy: number } | null>(null);
 
-  const live = useRef({ zoom, layout, tool, pens, readOnly, fingerDraws, onInk, strokesOf, onTool, onStylus, selection });
+  const live = useRef({ zoom, layout, tool, pens, readOnly, fingerDraws, onInk, strokesOf, onTool, onStylus, onZoom, selection });
   useEffect(() => {
-    live.current = { zoom, layout, tool, pens, readOnly, fingerDraws, onInk, strokesOf, onTool, onStylus, selection };
+    live.current = { zoom, layout, tool, pens, readOnly, fingerDraws, onInk, strokesOf, onTool, onStylus, onZoom, selection };
   });
 
   // The lasso's selection lasts while the lasso is the tool and the sheet still has those strokes.
@@ -135,17 +153,17 @@ export function Surface({
     });
   }, [revision, strokesOf]);
 
-  // ── where a pointer is ──
+  // ── where a pointer is: the sheet under it, the point on that sheet, and the point in the column (units) ──
   const locate = useCallback((clientX: number, clientY: number, sheet?: Placed) => {
     const el = stack.current;
     if (!el) return null;
     const rect = el.getBoundingClientRect();
-    const px = clientX - rect.left;
-    const py = clientY - rect.top;
-    const { layout: l, zoom: z } = live.current;
-    const s = sheet ?? sheetAt(l, py);
+    const z = live.current.zoom;
+    const ux = (clientX - rect.left) / z;
+    const uy = (clientY - rect.top) / z;
+    const s = sheet ?? sheetAt(live.current.layout, uy);
     if (!s) return null;
-    return { sheet: s, x: px / z, y: (py - s.top) / z, px, py };
+    return { sheet: s, x: ux, y: uy - s.top, ux, uy };
   }, []);
 
   // ── the laser's trail ──
@@ -162,14 +180,15 @@ export function Surface({
       line.setAttribute('x2', String(s.x2));
       line.setAttribute('y2', String(s.y2));
       line.setAttribute('stroke-opacity', s.alpha.toFixed(3));
+      line.setAttribute('vector-effect', 'non-scaling-stroke');
       return line;
     });
     g.replaceChildren(...lines);
     frame.current = trail.current.length ? requestAnimationFrame(drawLaser) : 0;
   }, []);
   const laserAt = useCallback(
-    (px: number, py: number) => {
-      trail.current.push({ x: px, y: py, t: performance.now() });
+    (ux: number, uy: number) => {
+      trail.current.push({ x: ux, y: uy, t: performance.now() });
       if (!frame.current) frame.current = requestAnimationFrame(drawLaser);
     },
     [drawLaser],
@@ -181,8 +200,7 @@ export function Surface({
     const group = liveGroup.current;
     const path = livePath.current;
     if (!group || !path) return;
-    const z = live.current.zoom;
-    group.setAttribute('transform', `translate(0 ${g.sheet.top}) scale(${z})`);
+    group.setAttribute('transform', `translate(0 ${g.sheet.top})`);
     path.setAttribute('d', strokePath(g.stroke, false));
     path.setAttribute('fill', g.stroke.color);
     path.setAttribute('class', g.stroke.tool === 'highlighter' ? 'ink-highlighter' : '');
@@ -214,7 +232,10 @@ export function Surface({
     gesture.current = null;
     if (!g) return;
     if (g.kind === 'erase') setPreview(null);
-    if (g.kind === 'drag') setDrag(null);
+    if (g.kind === 'drag') {
+      dragOffset.current = null;
+      setDrag(null);
+    }
     clearOverlay();
   }, []);
 
@@ -247,15 +268,16 @@ export function Surface({
     } else if (active === 'eraser') {
       const g: Gesture = { kind: 'erase', pointerId: ev.pointerId, touched: new Map() };
       gesture.current = g;
-      eraserRing.current?.setAttribute('cx', String(at.px));
-      eraserRing.current?.setAttribute('cy', String(at.py));
-      eraserRing.current?.setAttribute('r', String((p.eraser.size / 2) * live.current.zoom));
+      eraserRing.current?.setAttribute('cx', String(at.ux));
+      eraserRing.current?.setAttribute('cy', String(at.uy));
+      eraserRing.current?.setAttribute('r', String(p.eraser.size / 2));
       eraseAt(g, at.sheet, at.x, at.y);
     } else if (active === 'lasso') {
       if (sel && sel.sheet === at.sheet.index) {
         const box = unionBounds(live.current.strokesOf(sel.sheet).filter((s) => sel.ids.has(s.id)));
         if (box && at.x >= box.x - 8 && at.x <= box.x + box.w + 8 && at.y >= box.y - 8 && at.y <= box.y + box.h + 8) {
           gesture.current = { kind: 'drag', pointerId: ev.pointerId, sheet: sel.sheet, ids: sel.ids, from: [at.x, at.y] };
+          dragOffset.current = { dx: 0, dy: 0 };
           setDrag({ dx: 0, dy: 0 });
           return;
         }
@@ -264,7 +286,7 @@ export function Surface({
       gesture.current = { kind: 'lasso', pointerId: ev.pointerId, sheet: at.sheet, poly: [[at.x, at.y]] };
     } else if (active === 'laser') {
       gesture.current = { kind: 'laser', pointerId: ev.pointerId };
-      laserAt(at.px, at.py);
+      laserAt(at.ux, at.uy);
     }
   };
 
@@ -275,7 +297,7 @@ export function Surface({
     if (!g) {
       if (live.current.tool === 'laser' && ev.pointerType !== 'touch') {
         const at = locate(ev.clientX, ev.clientY);
-        if (at) laserAt(at.px, at.py);
+        if (at) laserAt(at.ux, at.uy);
       }
       return;
     }
@@ -292,23 +314,26 @@ export function Surface({
       for (const c of all) {
         const at = locate(c.clientX, c.clientY);
         if (!at) continue;
-        eraserRing.current?.setAttribute('cx', String(at.px));
-        eraserRing.current?.setAttribute('cy', String(at.py));
+        eraserRing.current?.setAttribute('cx', String(at.ux));
+        eraserRing.current?.setAttribute('cy', String(at.uy));
         eraseAt(g, at.sheet, at.x, at.y);
       }
     } else if (g.kind === 'lasso') {
       const at = locate(ev.clientX, ev.clientY, g.sheet);
       if (!at) return;
       g.poly.push([at.x, at.y]);
-      const z = live.current.zoom;
-      lassoLine.current?.setAttribute('points', g.poly.map(([x, y]) => `${x * z},${y * z + g.sheet.top}`).join(' '));
+      lassoLine.current?.setAttribute('points', g.poly.map(([x, y]) => `${x},${y + g.sheet.top}`).join(' '));
     } else if (g.kind === 'drag') {
       const placed = live.current.layout.sheets.find((s) => s.index === g.sheet);
       const at = placed ? locate(ev.clientX, ev.clientY, placed) : null;
-      if (at) setDrag({ dx: at.x - g.from[0], dy: at.y - g.from[1] });
+      if (at) {
+        const d = { dx: at.x - g.from[0], dy: at.y - g.from[1] };
+        dragOffset.current = d;
+        setDrag(d);
+      }
     } else if (g.kind === 'laser') {
       const at = locate(ev.clientX, ev.clientY);
-      if (at) laserAt(at.px, at.py);
+      if (at) laserAt(at.ux, at.uy);
     }
   };
 
@@ -320,52 +345,64 @@ export function Surface({
     if (g.kind === 'draw') {
       if (g.stroke.points.length >= 3) {
         const before = of(g.sheet.index);
-        commit(g.sheet.index, before, [...before, { ...g.stroke, points: g.stroke.points.slice() }]);
+        commit(inkStep(g.sheet.index, before, [...before, { ...g.stroke, points: g.stroke.points.slice() }]));
       }
     } else if (g.kind === 'erase') {
-      for (const [n, entry] of g.touched) commit(n, entry.before, entry.now);
+      const changes: SheetChange[] = [...g.touched].map(([sheet, entry]) => ({ sheet, before: entry.before, after: entry.now }));
+      if (changes.length) commit({ kind: 'ink', changes });
       setPreview(null);
     } else if (g.kind === 'lasso') {
       const strokes = of(g.sheet.index);
       const picked = lassoed(strokes, g.poly);
       setSelection(picked.length ? { sheet: g.sheet.index, ids: new Set(picked.map((s) => s.id)) } : null);
     } else if (g.kind === 'drag') {
-      setDrag((d) => {
-        if (d && (Math.abs(d.dx) > 0.5 || Math.abs(d.dy) > 0.5)) {
-          const before = of(g.sheet);
-          commit(g.sheet, before, before.map((s) => (g.ids.has(s.id) ? moved(s, d.dx, d.dy) : s)));
-        }
-        return null;
-      });
+      const d = dragOffset.current;
+      dragOffset.current = null;
+      setDrag(null);
+      if (d && (Math.abs(d.dx) > 0.5 || Math.abs(d.dy) > 0.5)) {
+        const before = of(g.sheet);
+        commit(inkStep(g.sheet, before, before.map((s) => (g.ids.has(s.id) ? moved(s, d.dx, d.dy) : s))));
+      }
     }
     clearOverlay();
   };
 
-  // ── two fingers: scroll and pinch to zoom; Ctrl/⌘ + wheel zooms ──
+  // While typing, pressing the paper below the text puts the caret there, on that line (notebook apps type anywhere).
+  const onPaperDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (live.current.tool !== 'type' || readOnly || !onPaperPress || e.nativeEvent.pointerType === 'pen') return;
+    const box = textBox.current;
+    if (!box || box.contains(e.target as Node)) return;
+    const at = locate(e.clientX, e.clientY);
+    if (!at || at.sheet.kind !== 'paper') return;
+    const line = Math.floor((at.uy - layout.paperTop - TEXT_TOP) / LINE);
+    if (line < 0) return;
+    e.preventDefault();
+    onPaperPress(line);
+  };
+
+  // ── two fingers: move the page and pinch to zoom; Ctrl/⌘ + wheel zooms ──
   useEffect(() => {
-    const scroller = scrollerRef.current;
     if (!scroller) return undefined;
-    let start: { d: number; zoom: number; mx: number; my: number; left: number; top: number } | null = null;
+    let start: { d: number; zoom: number; unit: { x: number; y: number } } | null = null;
     const mid = (t: TouchList) => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 });
-    const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const dist = (t: TouchList) => Math.max(1, Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY));
     const onStart = (e: TouchEvent) => {
       if (e.touches.length !== 2) return;
       pinching.current = true;
       if (gesture.current && gesture.current.kind !== 'laser') cancel();
+      const el = stack.current;
+      if (!el) return;
       const m = mid(e.touches);
-      start = { d: dist(e.touches), zoom: live.current.zoom, mx: m.x, my: m.y, left: scroller.scrollLeft, top: scroller.scrollTop };
+      const rect = el.getBoundingClientRect();
+      const z = live.current.zoom;
+      start = { d: dist(e.touches), zoom: z, unit: { x: (m.x - rect.left) / z, y: (m.y - rect.top) / z } };
     };
     const onMove = (e: TouchEvent) => {
       if (!start || e.touches.length !== 2) return;
       e.preventDefault();
-      const m = mid(e.touches);
       const z = clampZoom((start.zoom * dist(e.touches)) / start.d);
-      // the point between the fingers stays between them, and moving them scrolls
-      if (Math.abs(z - live.current.zoom) > 0.005) onZoom(z, { x: start.mx, y: start.my });
-      else {
-        scroller.scrollLeft = start.left - (m.x - start.mx);
-        scroller.scrollTop = start.top - (m.y - start.my);
-      }
+      // the point of the page that was between the fingers stays between them, wherever they go
+      live.current.onZoom(z, { client: mid(e.touches), unit: start.unit });
     };
     const onEnd = (e: TouchEvent) => {
       if (e.touches.length < 2) {
@@ -376,7 +413,7 @@ export function Surface({
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
-      onZoom(clampZoom(live.current.zoom * Math.exp(-e.deltaY * 0.01)), { x: e.clientX, y: e.clientY });
+      live.current.onZoom(clampZoom(live.current.zoom * Math.exp(-e.deltaY * 0.01)), { client: { x: e.clientX, y: e.clientY } });
     };
     scroller.addEventListener('touchstart', onStart, { passive: true });
     scroller.addEventListener('touchmove', onMove, { passive: false });
@@ -390,7 +427,7 @@ export function Surface({
       scroller.removeEventListener('touchcancel', onEnd);
       scroller.removeEventListener('wheel', onWheel);
     };
-  }, [scrollerRef, onZoom, cancel]);
+  }, [scroller, cancel]);
 
   // ── the selection: delete, recolour, duplicate; Delete and Escape from the keyboard ──
   const selected = selection ? strokesOf(selection.sheet).filter((s) => selection.ids.has(s.id)) : [];
@@ -398,23 +435,20 @@ export function Surface({
   const removeSelection = useCallback(() => {
     if (!selection) return;
     const before = strokesOf(selection.sheet);
-    onInk(selection.sheet, before, before.filter((s) => !selection.ids.has(s.id)));
+    onInk(inkStep(selection.sheet, before, before.filter((s) => !selection.ids.has(s.id))));
     setSelection(null);
   }, [selection, strokesOf, onInk]);
   const recolour = () => {
     if (!selection) return;
     const before = strokesOf(selection.sheet);
-    onInk(
-      selection.sheet,
-      before,
-      before.map((s) => (selection.ids.has(s.id) ? { ...s, color: s.tool === 'highlighter' ? pens.highlighter.color : pens.pen.color } : s)),
-    );
+    const after = before.map((s) => (selection.ids.has(s.id) ? { ...s, color: s.tool === 'highlighter' ? pens.highlighter.color : pens.pen.color } : s));
+    onInk(inkStep(selection.sheet, before, after));
   };
   const duplicate = () => {
     if (!selection) return;
     const before = strokesOf(selection.sheet);
     const copies = before.filter((s) => selection.ids.has(s.id)).map((s) => ({ ...moved(s, 16, 16), id: strokeId() }));
-    onInk(selection.sheet, before, [...before, ...copies]);
+    onInk(inkStep(selection.sheet, before, [...before, ...copies]));
     setSelection({ sheet: selection.sheet, ids: new Set(copies.map((s) => s.id)) });
   };
   useEffect(() => {
@@ -435,12 +469,12 @@ export function Surface({
   useEffect(() => {
     const el = textBox.current;
     if (!el) return undefined;
-    const ro = new ResizeObserver(() => onTextHeight(el.offsetHeight / live.current.zoom));
+    const ro = new ResizeObserver(() => onTextHeight(el.offsetHeight));
     ro.observe(el);
     return () => ro.disconnect();
   }, [onTextHeight]);
 
-  // A change of zoom keeps the overlay's live parts where they were drawn: drop any half-made gesture.
+  // A change of zoom drops a half-made gesture: its points were taken at the old zoom.
   useLayoutEffect(() => {
     if (gesture.current && gesture.current.kind !== 'laser') cancel();
   }, [zoom, cancel]);
@@ -449,85 +483,96 @@ export function Surface({
   const paperSheets = layout.sheets.filter((s) => s.kind === 'paper');
   const pdfSheets = layout.sheets.filter((s) => s.kind === 'pdf');
   const selSheet = selection ? layout.sheets.find((s) => s.index === selection.sheet) : null;
+  const width = SHEET_WIDTH * zoom;
 
   const sheetInk = (s: Placed) => (
     <InkSheet
       strokes={preview?.get(s.index) ?? (strokesOf(s.index) as readonly InkStroke[])}
       width={SHEET_WIDTH}
       height={s.height}
-      scale={zoom}
       selected={selection?.sheet === s.index ? selection.ids : undefined}
       offset={selection?.sheet === s.index ? drag : null}
     />
   );
 
+  // The selection's toolbar, above it (below it when there is no room), in pixels: it keeps its size at any zoom.
+  let bar: { left: number; top: number } | null = null;
+  if (selection && box && selSheet && !drag) {
+    const top = (selSheet.top + box.y - 6) * zoom - BAR_HEIGHT - BAR_GAP;
+    bar = {
+      left: Math.max(0, Math.min(width - 300, (box.x - 6) * zoom)),
+      top: top >= 0 ? top : (selSheet.top + box.y + box.h + 6) * zoom + BAR_GAP,
+    };
+  }
+
   return (
-    <div
-      ref={stack}
-      className={cx('nb-stack', inking && 'is-inking', inking && fingerDraws && !readOnly && 'is-finger-ink', `is-tool-${tool}`)}
-      style={{ width: layout.width, height: layout.height, ['--z' as string]: zoom }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={() => cancel()}
-      onPointerLeave={(e) => {
-        if (!gesture.current && e.nativeEvent.pointerType === 'mouse') trail.current = liveTrail(trail.current, performance.now());
-      }}
-      data-hub="note-surface"
-    >
-      {pdfSheets.map((s) => (
-        <div key={s.index} className="nb-sheet nb-sheet--pdf" style={{ top: s.top, height: s.px }} data-sheet={s.index}>
-          {pdf && s.page ? <PdfPage pdf={pdf} page={s.page} width={layout.width} height={s.px} root={scrollerRef.current} /> : null}
-          {sheetInk(s)}
-        </div>
-      ))}
-      {paperSheets.length ? (
-        <div className={cx('nb-paper', `nb-paper--${paper}`)} style={{ top: layout.paperTop, height: layout.paperHeight, ['--line' as string]: `${LINE * zoom}px` }}>
-          {paperSheets.slice(1).map((s) => (
-            <span key={s.index} className="nb-paper__break" style={{ top: s.top - layout.paperTop }} aria-hidden="true" />
-          ))}
-          <div ref={textBox} className="nb-paper__text">
-            {text}
-          </div>
-          {paperSheets.map((s) => (
-            <div key={s.index} className="nb-sheet nb-sheet--paper" style={{ top: s.top - layout.paperTop, height: s.px }} data-sheet={s.index}>
-              {sheetInk(s)}
+    <>
+      <div className="nb-canvas" style={{ width, height: layout.height * zoom }}>
+        <div
+          ref={stack}
+          className={cx('nb-stack', inking && 'is-inking', inking && fingerDraws && !readOnly && 'is-finger-ink', `is-tool-${tool}`)}
+          style={{ width: SHEET_WIDTH, height: layout.height, transform: `scale(${zoom})`, ['--z' as string]: zoom }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={() => cancel()}
+          onPointerLeave={(e) => {
+            if (!gesture.current && e.nativeEvent.pointerType === 'mouse') trail.current = liveTrail(trail.current, performance.now());
+          }}
+          data-hub="note-surface"
+        >
+          {pdfSheets.map((s) => (
+            <div key={s.index} className="nb-sheet nb-sheet--pdf" style={{ top: s.top, height: s.height }} data-sheet={s.index}>
+              {pdf && s.page ? <PdfPage pdf={pdf} page={s.page} width={SHEET_WIDTH} height={s.height} zoom={zoom} root={scroller} /> : null}
+              <div className="nb-sheet__ink">{sheetInk(s)}</div>
             </div>
           ))}
+          {paperSheets.length ? (
+            <div
+              className={cx('nb-paper', `nb-paper--${paper}`)}
+              style={{ top: layout.paperTop, height: layout.paperHeight }}
+              onPointerDown={onPaperDown}
+              data-sheet={paperSheets[0].index}
+            >
+              {paperSheets.slice(1).map((s, i) => (
+                <span key={s.index} className="nb-paper__break" style={{ top: s.top - layout.paperTop }} aria-hidden="true">
+                  <span>{i + 2}</span>
+                </span>
+              ))}
+              <div ref={textBox} className="nb-paper__text" style={{ top: TEXT_TOP, left: TEXT_SIDE, width: TEXT_WIDTH }}>
+                {text}
+              </div>
+              {paperSheets.map((s) => (
+                <div key={s.index} className="nb-sheet__ink" style={{ top: s.top - layout.paperTop, height: s.height }} data-sheet={s.index}>
+                  {sheetInk(s)}
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <svg className="nb-overlay" width={SHEET_WIDTH} height={layout.height} viewBox={`0 0 ${SHEET_WIDTH} ${layout.height}`} aria-hidden="true">
+            <g ref={liveGroup}>
+              <path ref={livePath} />
+            </g>
+            <polyline ref={lassoLine} className="nb-overlay__lasso" vectorEffect="non-scaling-stroke" />
+            <circle ref={eraserRing} className="nb-overlay__eraser" r={0} vectorEffect="non-scaling-stroke" />
+            <g ref={laserGroup} className="nb-overlay__laser" />
+          </svg>
         </div>
-      ) : null}
-      <svg className="nb-overlay" width={layout.width} height={layout.height} aria-hidden="true">
-        <g ref={liveGroup}>
-          <path ref={livePath} />
-        </g>
-        <polyline ref={lassoLine} className="nb-overlay__lasso" />
-        <circle ref={eraserRing} className="nb-overlay__eraser" r={0} />
-        <g ref={laserGroup} className="nb-overlay__laser" />
-      </svg>
-      {selection && box && selSheet && !drag ? (
-        <div
-          className="nb-selbar"
-          role="toolbar"
-          aria-label="Selection"
-          style={{ left: Math.max(0, Math.min(layout.width - 220, box.x * zoom)), top: Math.max(0, selSheet.top + (box.y - 12) * zoom - 52) }}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <button type="button" onClick={duplicate}>
-            <Copy aria-hidden="true" /> Duplicate
-          </button>
-          <button type="button" onClick={recolour}>
-            <PaintBucket aria-hidden="true" /> Colour
-          </button>
-          <button type="button" onClick={removeSelection} className="is-danger">
-            <Trash aria-hidden="true" /> Delete
-          </button>
-        </div>
-      ) : null}
-      {footer ? (
-        <div className="nb-stack__footer" style={{ top: layout.height }}>
-          {footer}
-        </div>
-      ) : null}
-    </div>
+        {bar ? (
+          <div className="nb-selbar" role="toolbar" aria-label="Selected writing" style={{ left: bar.left, top: bar.top }} onPointerDown={(e) => e.stopPropagation()}>
+            <button type="button" onClick={duplicate}>
+              <Copy aria-hidden="true" /> Duplicate
+            </button>
+            <button type="button" onClick={recolour} title="Give it the colours the pen and the highlighter have now">
+              <PaintBucket aria-hidden="true" /> Recolour
+            </button>
+            <button type="button" onClick={removeSelection} className="is-danger">
+              <Trash aria-hidden="true" /> Delete
+            </button>
+          </div>
+        ) : null}
+      </div>
+      {footer ? <div className="nb-footer">{footer}</div> : null}
+    </>
   );
 }

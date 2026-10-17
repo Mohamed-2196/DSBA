@@ -2091,7 +2091,8 @@ export interface paths {
         };
         /**
          * Get Note
-         * @description The note with its typed text, its ink and the PDF it is written over.
+         * @description The note with its typed text, the PDF it is written over, and the sheets that have ink (each one is read with
+         *     GET /notes/{id}/ink/{sheet}).
          */
         get: operations["get_note_api_v1_notes__note_id__get"];
         /**
@@ -2116,12 +2117,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get Ink
+         * @description One sheet's ink (the note lists the sheets that have some): an empty sheet at version 0 when it has none.
+         */
+        get: operations["get_ink_api_v1_notes__note_id__ink__sheet__get"];
         /**
          * Save Ink
          * @description Save one sheet's ink: 0-999 are the PDF's pages (0 its first), 1000 and up the paper sheets (1000 the first).
          *     Send the `version` you loaded (0 for a sheet without ink): if it was saved since, 409 ink_changed. Errors:
-         *     notes_full (409), rate_limited (429).
+         *     invalid_input (422: more than SHEET_MAX_BYTES of ink on the sheet), too_large (413: a request far bigger than
+         *     that, refused unread), notes_full (409), rate_limited (429).
          */
         put: operations["save_ink_api_v1_notes__note_id__ink__sheet__put"];
         post?: never;
@@ -6427,6 +6433,16 @@ export interface components {
             cell?: number | null;
         };
         /**
+         * InkInfo
+         * @description A sheet that has ink, without the ink: read it with GET /notes/{id}/ink/{sheet}.
+         */
+        InkInfo: {
+            /** Sheet */
+            sheet: number;
+            /** Version */
+            version: number;
+        };
+        /**
          * InkSave
          * @description The whole sheet as it is now, and the version it was loaded at (0: the sheet had no ink yet).
          */
@@ -7519,7 +7535,7 @@ export interface components {
             sheets: number;
             pdf: components["schemas"]["NotePdf"] | null;
             /** Ink */
-            ink: components["schemas"]["InkSheet"][];
+            ink: components["schemas"]["InkInfo"][];
         };
         /**
          * NoteCreate
@@ -7582,12 +7598,15 @@ export interface components {
         };
         /**
          * NotePdf
-         * @description The PDF a note is written over: a library file (`libraryItemId`, read with /library/items/{id}/file) or the
-         *     student's own (`uploadId`, read with /notes/files/{id}). `available` is false once the file is gone.
+         * @description The PDF a note is written over: a library file (`libraryItemId`, read with /library/items/{id}/file, its page
+         *     at /library/{slug}) or the student's own (`uploadId`, read with /notes/files/{id}). `available` is false once the
+         *     file is gone.
          */
         NotePdf: {
             /** Libraryitemid */
             libraryItemId: string | null;
+            /** Slug */
+            slug: string | null;
             /** Uploadid */
             uploadId: string | null;
             /** Title */
@@ -9175,13 +9194,18 @@ export interface components {
         };
         /**
          * StorageUse
-         * @description What the student's notebooks hold (typed text, ink, pictures and files) against what they may hold.
+         * @description What the student's notebooks hold against what they may hold: the typed text and handwriting (kept in the
+         *     database), and the pictures, files and PDFs (kept in file storage).
          */
         StorageUse: {
-            /** Usedbytes */
-            usedBytes: number;
-            /** Limitbytes */
-            limitBytes: number;
+            /** Writingbytes */
+            writingBytes: number;
+            /** Writinglimitbytes */
+            writingLimitBytes: number;
+            /** Filesbytes */
+            filesBytes: number;
+            /** Fileslimitbytes */
+            filesLimitBytes: number;
         };
         /** Streak */
         Streak: {
@@ -9899,6 +9923,7 @@ export type GuidesEditable = components['schemas']['GuidesEditable'];
 export type GuidesSave = components['schemas']['GuidesSave'];
 export type Health = components['schemas']['Health'];
 export type HintMove = components['schemas']['HintMove'];
+export type InkInfo = components['schemas']['InkInfo'];
 export type InkSave = components['schemas']['InkSave'];
 export type InkSheet = components['schemas']['InkSheet'];
 export type InstallLink = components['schemas']['InstallLink'];
@@ -20491,6 +20516,92 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_ink_api_v1_notes__note_id__ink__sheet__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                note_id: string;
+                sheet: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InkSheet"];
+                };
             };
             /** @description Bad Request */
             400: {

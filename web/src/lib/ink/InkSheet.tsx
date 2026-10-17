@@ -1,5 +1,5 @@
-// One sheet's ink, drawn as SVG: crisp at any zoom, and the same paths print and export as vectors. The sheet's
-// units map to `scale` pixels each; strokes may run past the sheet's edge and still show.
+// One sheet's ink, drawn as SVG in the sheet's own units: crisp at any zoom (the page around it is scaled), and the
+// same paths print and export as vectors. Strokes may run past the sheet's edge and still show.
 import { memo } from 'react';
 import { strokePath, unionBounds, type InkStroke } from './geometry';
 import './ink.css';
@@ -16,17 +16,11 @@ function cachedPath(stroke: InkStroke): string {
   return d;
 }
 
-export const StrokePaths = memo(function StrokePaths({ strokes, faded }: { strokes: readonly InkStroke[]; faded?: ReadonlySet<string> }) {
+export const StrokePaths = memo(function StrokePaths({ strokes }: { strokes: readonly InkStroke[] }) {
   return (
     <>
       {strokes.map((s) => (
-        <path
-          key={s.id}
-          d={cachedPath(s)}
-          fill={s.color}
-          className={s.tool === 'highlighter' ? 'ink-highlighter' : undefined}
-          opacity={faded?.has(s.id) ? 0.25 : undefined}
-        />
+        <path key={s.id} d={cachedPath(s)} fill={s.color} className={s.tool === 'highlighter' ? 'ink-highlighter' : undefined} />
       ))}
     </>
   );
@@ -37,19 +31,13 @@ export interface InkSheetProps {
   /** the sheet's size in its own units */
   width: number;
   height: number;
-  /** pixels per unit */
-  scale: number;
-  /** the stroke being drawn right now */
-  live?: InkStroke | null;
-  /** strokes picked with the lasso, and how far they are being dragged */
+  /** strokes picked with the lasso, and how far they are being dragged (units) */
   selected?: ReadonlySet<string>;
   offset?: { dx: number; dy: number } | null;
-  /** strokes the eraser is about to take away */
-  erasing?: ReadonlySet<string>;
   className?: string;
 }
 
-export function InkSheet({ strokes, width, height, scale, live, selected, offset, erasing, className }: InkSheetProps) {
+export function InkSheet({ strokes, width, height, selected, offset, className }: InkSheetProps) {
   const hasSelection = !!selected?.size;
   const resting = hasSelection ? strokes.filter((s) => !selected.has(s.id)) : strokes;
   const picked = hasSelection ? strokes.filter((s) => selected.has(s.id)) : [];
@@ -58,13 +46,13 @@ export function InkSheet({ strokes, width, height, scale, live, selected, offset
   return (
     <svg
       className={className ? `ink-sheet ${className}` : 'ink-sheet'}
-      width={width * scale}
-      height={height * scale}
+      width={width}
+      height={height}
       viewBox={`0 0 ${width} ${height}`}
       aria-hidden="true"
       focusable="false"
     >
-      <StrokePaths strokes={resting} faded={erasing} />
+      <StrokePaths strokes={resting} />
       {picked.length ? (
         <g transform={shift}>
           <StrokePaths strokes={picked} />
@@ -81,7 +69,6 @@ export function InkSheet({ strokes, width, height, scale, live, selected, offset
           ) : null}
         </g>
       ) : null}
-      {live ? <path d={strokePath(live, false)} fill={live.color} className={live.tool === 'highlighter' ? 'ink-highlighter' : undefined} /> : null}
     </svg>
   );
 }
