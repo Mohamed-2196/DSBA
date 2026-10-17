@@ -53,22 +53,22 @@ copy makes:
 | SEC-37 | minor | deployment (`api/Dockerfile:37`, `routers/feeds.py:20`) | open | The private calendar feed's secret is written to the API's access log on every poll |
 | SEC-38 | minor | boards (`services/board/common.py:33`) | open | No total on the text a student's boards hold: about 880 MB of rows per free account |
 | SEC-39 | minor | boards, uploads (`services/board/files.py:124`) | open | Detaching a board file gives its slot back to the 20-uploads-an-hour limit |
-| SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | **fixed** | Bug reports and their screenshots are left out of the export and outlive the account |
+| SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | **fixed** (round12/secfix) | Bug reports and their screenshots are left out of the export and outlive the account |
 | SEC-41 | minor | Daily (`services/daily/plays.py:165`) | open | Every Daily answer is available before the scored play, so anyone can top the leaderboard |
 | SEC-42 | minor | content (`schemas/modules.py:121`, `services/module_editor.py:217`) | **fixed** (round12/cms) | Module art skips the picture rules: any address, and an upload that was never checked |
 | SEC-43 | minor | deployment (`.github/workflows/railway.yml:22`) | accepted (Mohamed, 2026-10-17) | The public Railway dev deployment runs outside production mode |
-| SEC-44 | nit | bugs (`services/bugs.py:85`) | **fixed** | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
+| SEC-44 | nit | bugs (`services/bugs.py:85`) | **fixed** (round12/secfix) | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
 | SEC-45 | nit | Daily, boards | open | Crafted input turns Daily and board requests into 500s |
 | SEC-46 | nit | Daily (`services/daily/content.py:61`) | open | Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones |
-| SEC-47 | nit | uploads (`routers/uploads.py:47`) | **fixed** | The board and notebook quotas are checked before the upload lock |
+| SEC-47 | nit | uploads (`routers/uploads.py:47`) | **fixed** (round12/secfix) | The board and notebook quotas are checked before the upload lock |
 | SEC-48 | nit | web (`web/package.json:31`) | open (not reachable) | `npm audit`: pdf.js 5.7.284 has a high advisory |
-| SEC-33 | minor | content, deployment | **fixed** | The reader's environment is empty, but it can read the worker's secrets from /proc |
+| SEC-33 | minor | content, deployment | **fixed** (round12/secfix) | The reader's environment is empty, but it can read the worker's secrets from /proc |
 | SEC-27 | minor | notes | **reopened** (see SEC-36) | A free account's notes are no longer capped at 10 MB |
 | SEC-30, SEC-31, SEC-32 | | | **fixed** | Bare domains, Noora's chats on shared computers, lesson progress when off |
 | SEC-35 | nit | community | **fixed** (the rest is a product call) | Seniors: 30-day-old Year 3 accounts, no staff words or links |
 | SEC-34 | nit | Noora | open (unverified) | Uploaded papers' words still go in the system prompt |
-| SEC-19 | nit | content | **fixed** | `?mine=1&status=removed` still lists a student's removed files |
-| SEC-11 | nit | accounts | **fixed** | "A d m i n" still passes the staff-name rule |
+| SEC-19 | nit | content | **fixed** (round12/secfix) | `?mine=1&status=removed` still lists a student's removed files |
+| SEC-11 | nit | accounts | **fixed** (round12/secfix) | "A d m i n" still passes the staff-name rule |
 | SEC-14 | minor | Mohamed | partly fixed | The site-wide upload budget still waits on Mohamed (SEC-39 makes it matter more) |
 
 ---
