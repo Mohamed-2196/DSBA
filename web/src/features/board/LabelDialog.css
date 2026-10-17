@@ -1,102 +1,44 @@
-.label-dialog {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-20);
-}
-
+/* The labels dialog: the student's labels, each renamed or recoloured in place, and a new one at the foot. */
+.label-dialog { display: flex; flex-direction: column; gap: var(--sp-20); }
 .label-dialog__list {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-8);
-  list-style: none;
+  gap: var(--sp-6);
   margin: 0;
   padding: 0;
+  list-style: none;
 }
-
 .label-dialog__item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--sp-8) var(--sp-12);
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-12);
   border: 1px solid var(--line);
   border-radius: var(--r-control);
-  background: var(--surface);
 }
-
-.label-dialog__item.is-editing {
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--sp-8);
-}
-
-.label-dialog__pill {
+.label-dialog__item.is-editing { display: block; padding: var(--sp-12); border-color: var(--cobalt); }
+.label-dialog__name {
   display: inline-flex;
+  flex: 1 1 auto;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-8);
+  min-width: 0;
+  overflow: hidden;
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
-.label-dialog__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.label-dialog__actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.label-dialog__color-dots,
-.label-dialog__color-row {
-  display: flex;
-  gap: var(--sp-8);
-}
-
-.label-dialog__color-dot {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: transform var(--dur-fast) var(--ease);
-}
-
-.label-dialog__color-dot:hover {
-  transform: scale(1.15);
-}
-
-.label-dialog__color-dot.is-selected {
-  border-color: var(--ink);
-  transform: scale(1.2);
-}
-
-.label-dialog__edit-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--sp-8);
-}
-
-.label-dialog__empty {
-  font-size: var(--fs-14);
-  color: var(--ink-2);
-  margin: 0;
-}
-
-.label-dialog__create-form {
+.label-dialog__dot { flex: none; width: 10px; height: 10px; border-radius: var(--r-pill); }
+.label-dialog__empty { margin: 0; color: var(--ink-2); font-size: var(--fs-14); }
+.label-dialog__new {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--sp-12);
-  padding: var(--sp-16);
-  border: 1px dashed var(--line-strong);
-  border-radius: var(--r-control);
-  background: var(--surface-2);
+  padding-top: var(--sp-16);
+  border-top: 1px solid var(--line);
 }
-
-.label-dialog__create-title {
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-  color: var(--ink);
-}
+.label-dialog__new .ui-field { align-self: stretch; }
+.label-dialog__edit { display: flex; flex-direction: column; gap: var(--sp-10); }
+.label-dialog__edit-actions { display: flex; justify-content: flex-end; gap: var(--sp-8); }
