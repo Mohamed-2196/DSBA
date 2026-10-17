@@ -211,7 +211,7 @@ def _keep(
     row.status = status
     row.mistakes, row.hints = game.counts(replay.state)
     row.updated_at = now
-    if status in FINISHED:
+    if status in FINISHED and row.finished_at is None:  # a play is priced once, when it first finishes
         row.finished_at = now
         seconds = int((now - row.started_at).total_seconds())
         row.too_fast = status == "won" and len(moves) > 1 and seconds < game.min_seconds

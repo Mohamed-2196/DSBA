@@ -44,12 +44,12 @@ def module_label(module: Module) -> str:
     return f"{module.unit_code} {module.short_name}" if module.unit_code else module.short_name
 
 
-def _from_theme(db: Session, day: dt.date, entry: Entry) -> Question:
+def _from_theme(db: Session, day: dt.date, entry: Entry, seed: bytes) -> Question:
     """A theme's question as the day asks it: its options in the day's order."""
     data = entry.data
     options = list(data["options"])
     right = options[data["answer"]]
-    content.rng("quiz", day, entry.id).shuffle(options)
+    content.rng(seed, "quiz", day, entry.id).shuffle(options)
     module = db.get(Module, data["moduleId"]) if data.get("moduleId") else None
     source = module_label(module) if module is not None else None
     return Question(data["question"], tuple(options), options.index(right), data["explanation"], source)
@@ -125,13 +125,13 @@ class QuizGame(ContentGame[tuple[Question, ...], QuizState]):
     max_moves = QUESTIONS + 1
     min_seconds = 5
 
-    def choose(self, pool: list[Entry], used: Uses, day: dt.date) -> list[Entry]:
-        return content.spread(pool, used, day, FROM_THEME, self.id)
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
+        return content.spread(pool, used, day, FROM_THEME, self.id, seed)
 
-    def build(self, db: Session, day: dt.date, chosen: list[Entry]) -> tuple[Question, ...]:
+    def build(self, db: Session, day: dt.date, chosen: list[Entry], seed: bytes) -> tuple[Question, ...]:
         modules = list(db.scalars(select(Module).where(Module.hidden.is_(False))))
-        about = module_question(modules, content.rng(self.id, day, "modules"))
-        return (*(_from_theme(db, day, e) for e in chosen), *([about] if about else []))
+        about = module_question(modules, content.rng(seed, self.id, day, "modules"))
+        return (*(_from_theme(db, day, e, seed) for e in chosen), *([about] if about else []))
 
     def dump(self, puzzle: tuple[Question, ...]) -> dict[str, Any]:
         return {"questions": [asdict(q) for q in puzzle]}

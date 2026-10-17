@@ -1,16 +1,16 @@
 """The puzzles' content and each day's choices. The content lives in the database, edited in Manage
-(app/services/daily/editor.py); app/seed/data/daily holds the starting content.
+(app/services/daily/editor.py) and loaded from a file kept out of the repository (bundle.py).
 
 - Themes take turns, a week each, from Sunday (the week in Bahrain): the themes in the rotation, in order. The
   schedule can name a theme for a week to come, and the rotation carries on after it. Once a week has started its
   theme is kept (daily_theme_weeks), so changing the rotation never changes a week that ran.
-- A game's puzzle for a day is made the first time anyone asks for it, from the items of the day's theme, and stored
-  with the items it took (daily_sets): plays are checked against the stored puzzle, so editing the content later never
-  changes a day that is out. Only today and past days are stored; the editor's preview makes days to come without
-  storing them.
+- A game's puzzle for a day is made the first time anyone asks for it, from the items of the day's theme (Sudoku
+  from the seed alone), and stored with the items it took (daily_sets): plays are checked against the stored puzzle,
+  so neither editing the content nor changing a key ever changes a day that is out. Only today and past days are
+  stored; the editor's preview makes days to come without storing them.
 - Each item runs as far as it can from its other days: items that never ran first, then those that ran longest ago.
-  Ties go by an order drawn from the date with a key derived from DSBA_SECRET_KEY, so the same content gives the same
-  day for everyone, and which item falls on which day can't be worked out from the content."""
+  Ties go by an order drawn from the date with Daily's own random seed (daily_seed, made once per install), so the
+  same content gives the same day for everyone, and which item falls on which day can't be worked out ahead."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ import hashlib
 import hmac
 import math
 import random
+import secrets
 import uuid
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -28,9 +29,8 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
-from app.config import get_settings
 from app.core.errors import ApiError
-from app.models import DailyItem, DailySet, DailySetItem, DailyTheme, DailyThemeWeek
+from app.models import DailyItem, DailySeed, DailySet, DailySetItem, DailyTheme, DailyThemeWeek
 from app.schemas.daily import Theme
 
 if TYPE_CHECKING:
@@ -47,19 +47,28 @@ def week_start(day: dt.date) -> dt.date:
     return day - dt.timedelta(days=(day.weekday() + 1) % 7)
 
 
-def _key() -> bytes:
-    return hmac.new(get_settings().secret_key.get_secret_value().encode(), b"dsba-daily", hashlib.sha256).digest()
+def daily_seed(db: Session) -> bytes:
+    """Daily's own random key, made the first time it's needed and kept (the caller commits)."""
+    stored = db.scalar(select(DailySeed.seed).where(DailySeed.id == 1))
+    if stored is None:
+        db.execute(pg_insert(DailySeed).values(id=1, seed=secrets.token_hex(32)).on_conflict_do_nothing())
+        stored = db.execute(select(DailySeed.seed).where(DailySeed.id == 1)).scalar_one()
+    return bytes.fromhex(stored)
 
 
-def rng(*parts: object) -> random.Random:
-    """A random generator for one choice (`rng("sudoku", day, "hard")`): the same parts give the same numbers."""
-    seed = hmac.new(_key(), "|".join(map(str, parts)).encode(), hashlib.sha256).digest()
-    return random.Random(int.from_bytes(seed[:16], "big"))  # noqa: S311 - repeatable puzzles, not secrets
+def _digest(seed: bytes, parts: tuple[object, ...]) -> bytes:
+    return hmac.new(seed, "|".join(map(str, parts)).encode(), hashlib.sha256).digest()
 
 
-def _order(*parts: object) -> bytes:
+def rng(seed: bytes, *parts: object) -> random.Random:
+    """A random generator for one choice (`rng(seed, "sudoku", day, "hard")`): the same parts give the same
+    numbers."""
+    return random.Random(int.from_bytes(_digest(seed, parts)[:16], "big"))  # noqa: S311 - repeatable, not secret
+
+
+def _order(seed: bytes, *parts: object) -> bytes:
     """A place in the day's own order of items, the same every time for the same parts."""
-    return hmac.new(_key(), "|".join(map(str, parts)).encode(), hashlib.sha256).digest()
+    return _digest(seed, parts)
 
 
 # ── themes and the schedule ──────────────────────────────────────────────────────────────────
@@ -124,7 +133,7 @@ def schedule(db: Session) -> Schedule:
     themes = {
         t.id: ThemeInfo(t.id, t.title, t.blurb, t.position, t.in_rotation) for t in db.scalars(select(DailyTheme))
     }
-    pinned = dict(db.execute(select(DailyThemeWeek.week_start, DailyThemeWeek.theme_id)).tuples())
+    pinned = dict(db.execute(select(DailyThemeWeek.week_start, DailyThemeWeek.theme_id)).tuples().all())
     return Schedule(themes, pinned)
 
 
@@ -207,6 +216,7 @@ def spread(
     day: dt.date,
     n: int,
     key: str,
+    seed: bytes,
     fits: Callable[[list[Entry], Entry], bool] | None = None,
 ) -> list[Entry]:
     """`n` items for `day`, each as far as it can be from the days it ran on (items that never ran first); ties in
@@ -218,7 +228,7 @@ def spread(
         return min(abs((day - d).days) for d in days) if days else math.inf
 
     chosen: list[Entry] = []
-    for entry in sorted(pool, key=lambda e: (-distance(e), _order(key, day, e.id))):
+    for entry in sorted(pool, key=lambda e: (-distance(e), _order(seed, key, day, e.id))):
         if fits is None or fits(chosen, entry):
             chosen.append(entry)
             if len(chosen) == n:
@@ -229,44 +239,80 @@ def spread(
 # ── a day's puzzle ───────────────────────────────────────────────────────────────────────────
 
 
-def make(db: Session, game: ContentGame[Any, Any], day: dt.date, theme: str, used: Uses) -> tuple[list[Entry], Any]:
+def make(
+    db: Session, game: ContentGame[Any, Any], day: dt.date, theme: str, used: Uses, seed: bytes
+) -> tuple[list[Entry], Any]:
     """The game's puzzle for `day` from the theme's items as they are now: (the items it took, the puzzle)."""
-    chosen = game.choose(entries(db, game.id, theme), used, day)
-    return chosen, game.build(db, day, chosen)
+    chosen = game.choose(entries(db, game.id, theme), used, day, seed)
+    return chosen, game.build(db, day, chosen, seed)
 
 
 def not_ready() -> ApiError:
     return ApiError(404, "not_out_yet", "This puzzle isn't ready today. Try another game.")
 
 
+def _stored(db: Session, day: dt.date, game: str, variant: str) -> dict[str, Any] | None:
+    q = select(DailySet.puzzle).where(DailySet.day == day, DailySet.game == game, DailySet.variant == variant)
+    found: dict[str, Any] | None = db.scalar(q)
+    return found
+
+
+def _store(
+    db: Session,
+    day: dt.date,
+    game: str,
+    variant: str,
+    theme: str | None,
+    puzzle: dict[str, Any],
+    chosen: Sequence[Entry],
+) -> dict[str, Any]:
+    """Keeps a day's puzzle with the items it took, unless another request kept one first: then that one is the
+    day's. The week's theme is kept with it."""
+    added = db.execute(
+        pg_insert(DailySet)
+        .values(day=day, game=game, variant=variant, theme_id=theme, puzzle=puzzle)
+        .on_conflict_do_nothing()
+        .returning(DailySet.day)
+    ).first()
+    if added is None:
+        kept = _stored(db, day, game, variant)
+        if kept is None:  # pragma: no cover - the row that stopped the insert is there
+            raise not_ready()
+        return kept
+    if chosen:
+        rows = [{"day": day, "game": game, "variant": variant, "item_id": e.id} for e in chosen]
+        db.execute(pg_insert(DailySetItem).values(rows))
+    if theme is not None:
+        week = pg_insert(DailyThemeWeek).values(week_start=week_start(day), theme_id=theme)
+        db.execute(week.on_conflict_do_nothing())
+    return puzzle
+
+
 def day_puzzle(db: Session, game: ContentGame[Any, Any], day: dt.date) -> dict[str, Any]:
     """The game's puzzle for `day` as stored: made and stored the first time it's asked for. The caller commits.
     Raises not_out_yet (404) when the day's theme can't make it."""
-    stored = db.scalar(select(DailySet.puzzle).where(DailySet.day == day, DailySet.game == game.id))
-    if stored is not None:
-        return stored
+    found = _stored(db, day, game.id, "")
+    if found is not None:
+        return found
+    seed = daily_seed(db)
     try:
         theme = schedule(db).theme(day)
-        chosen, puzzle = make(db, game, day, theme.id, uses(db, game.id))
+        chosen, puzzle = make(db, game, day, theme.id, uses(db, game.id), seed)
     except NoThemeError:
         raise not_set_up() from None
     except NotReadyError:
         raise not_ready() from None
-    data = game.dump(puzzle)
-    added = db.execute(
-        pg_insert(DailySet)
-        .values(day=day, game=game.id, theme_id=theme.id, puzzle=data)
-        .on_conflict_do_nothing()
-        .returning(DailySet.day)
-    ).first()
-    if added is None:  # another request stored it first: theirs is the day's
-        kept: dict[str, Any] = db.execute(
-            select(DailySet.puzzle).where(DailySet.day == day, DailySet.game == game.id)
-        ).scalar_one()
-        return kept
-    db.execute(pg_insert(DailySetItem).values([{"day": day, "game": game.id, "item_id": e.id} for e in chosen]))
-    db.execute(pg_insert(DailyThemeWeek).values(week_start=week_start(day), theme_id=theme.id).on_conflict_do_nothing())
-    return data
+    return _store(db, day, game.id, "", theme.id, game.dump(puzzle), chosen)
+
+
+def seeded_puzzle(
+    db: Session, game: str, variant: str, day: dt.date, make_one: Callable[[bytes], dict[str, Any]]
+) -> dict[str, Any]:
+    """A puzzle made from Daily's seed alone (Sudoku), as stored: made and stored the first time it's asked for."""
+    found = _stored(db, day, game, variant)
+    if found is not None:
+        return found
+    return _store(db, day, game, variant, None, make_one(daily_seed(db)), ())
 
 
 @dataclass(frozen=True)
@@ -280,10 +326,12 @@ def plan_day(db: Session, game: ContentGame[Any, Any], day: dt.date, today: dt.d
     """The game's puzzle for `day` without storing anything: as it went out when it's stored, otherwise as it would
     be made with the content as it is, after the days before it from today on."""
     plan = schedule(db)
-    stored = db.get(DailySet, (day, game.id))
+    stored = db.get(DailySet, (day, game.id, ""))
     if stored is not None:
-        return Planned(True, game.load(db, stored.puzzle), plan.themes[stored.theme_id])
+        theme = plan.themes[stored.theme_id] if stored.theme_id is not None else plan.theme(day)
+        return Planned(True, game.load(db, stored.puzzle), theme)
     theme = plan.theme(day)
+    seed = daily_seed(db)
     used = uses(db, game.id)
     out = set(db.scalars(select(DailySet.day).where(DailySet.game == game.id, DailySet.day >= today)))
     pools: dict[str, list[Entry]] = {}
@@ -294,13 +342,13 @@ def plan_day(db: Session, game: ContentGame[Any, Any], day: dt.date, today: dt.d
             if theme_id not in pools:
                 pools[theme_id] = entries(db, game.id, theme_id)
             try:
-                for e in game.choose(pools[theme_id], used, d):
+                for e in game.choose(pools[theme_id], used, d, seed):
                     used.setdefault(e.id, []).append(d)
             except NotReadyError:
                 pass  # that day has no puzzle for this game: it takes nothing
         d += dt.timedelta(days=1)
     try:
-        _, puzzle = make(db, game, day, theme.id, used)
+        _, puzzle = make(db, game, day, theme.id, used, seed)
     except NotReadyError:
         return Planned(False, None, theme)
     return Planned(False, puzzle, theme)

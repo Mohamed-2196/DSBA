@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import random
+import uuid
 
 import pytest
 
@@ -63,20 +64,62 @@ def test_streaks_count_days_in_a_row_and_a_freeze_covers_one_missed_day_a_week()
     assert streak_of(set(), today).frozen_days == []
 
 
+def _schedule(*themes: tuple[str, int, bool], pinned: dict[dt.date, str] | None = None) -> content.Schedule:
+    infos = {t: content.ThemeInfo(t, t.title(), "", position, rotating) for t, position, rotating in themes}
+    return content.Schedule(infos, dict(pinned or {}))
+
+
 def test_themes_take_turns_by_the_week_from_sunday() -> None:
+    plan = _schedule(("a", 0, True), ("b", 1, True), ("c", 2, True))
     sunday = D(2026, 10, 11)
     assert content.week_start(D(2026, 10, 17)) == sunday
-    assert content.theme_of(sunday) == content.theme_of(D(2026, 10, 17))
-    assert content.theme_of(sunday) != content.theme_of(D(2026, 10, 18))
-    themes = {content.theme_of(sunday + dt.timedelta(weeks=w)).id for w in range(len(content.themes()))}
-    assert len(themes) == len(content.themes())
+    assert plan.theme_id(sunday) == plan.theme_id(D(2026, 10, 17))
+    assert [plan.theme_id(content.EPOCH + w * content.WEEK) for w in range(6)] == ["a", "b", "c", "a", "b", "c"]
 
 
-def test_picks_dont_repeat_until_the_pool_is_used_up() -> None:
-    pool = [f"item-{i}" for i in range(14)]
-    days = [content.EPOCH + dt.timedelta(days=n) for n in range(400)]
-    stats_days = [d for d in days if content.theme_of(d) == content.theme_of(content.EPOCH)][:14]
-    picked = [content.pick(pool, "test", d) for d in stats_days]
-    assert sorted(picked) == sorted(pool)
-    many = content.pick_many(pool, 4, "test", stats_days[0])
-    assert len(set(many)) == 4
+def test_a_week_given_a_theme_runs_it_and_the_rotation_carries_on_after_it() -> None:
+    weeks = [content.EPOCH + w * content.WEEK for w in range(7)]
+    plan = _schedule(("a", 0, True), ("b", 1, True), ("c", 2, True), ("exams", 3, False), pinned={weeks[2]: "a"})
+    assert [plan.theme_id(w) for w in weeks] == ["a", "b", "a", "b", "c", "a", "b"]
+    # A theme out of the rotation runs on its week; the rotation goes on with the theme after its place.
+    plan = _schedule(("a", 0, True), ("b", 1, True), ("exams", 1, False), ("c", 2, True), pinned={weeks[1]: "exams"})
+    assert [plan.theme_id(w) for w in weeks[:4]] == ["a", "exams", "c", "a"]
+    with pytest.raises(content.NoThemeError):
+        _schedule(("a", 0, False)).theme_id(weeks[0])
+
+
+def _entries(n: int) -> list[content.Entry]:
+    return [content.Entry(uuid.UUID(int=i + 1), "a", {"n": i}) for i in range(n)]
+
+
+def test_items_that_never_ran_come_first_then_those_that_ran_longest_ago() -> None:
+    pool = _entries(6)
+    seed = b"test"
+    day = D(2026, 10, 20)
+    ran: content.Uses = {e.id: [day - dt.timedelta(days=10 + e.data["n"])] for e in pool[:4]}
+    two = content.spread(pool, ran, day, 2, "test", seed)
+    assert {e.data["n"] for e in two} == {4, 5}  # never ran
+    used = {**ran, pool[4].id: [day - dt.timedelta(days=1)], pool[5].id: [day - dt.timedelta(days=2)]}
+    assert [e.data["n"] for e in content.spread(pool, used, day, 2, "test", seed)] == [3, 2]  # longest ago first
+    # A day that is made late keeps away from the days after it too.
+    assert content.spread(pool, {pool[0].id: [day + dt.timedelta(days=1)]}, day, 6, "test", seed)[-1] == pool[0]
+
+
+def test_a_pool_runs_through_before_anything_repeats_and_ties_follow_the_seed() -> None:
+    pool = _entries(7)
+    used: content.Uses = {}
+    days = [D(2026, 10, 1) + dt.timedelta(days=n) for n in range(14)]
+    picked = []
+    for day in days:
+        (entry,) = content.spread(pool, used, day, 1, "test", b"seed")
+        used.setdefault(entry.id, []).append(day)
+        picked.append(entry.data["n"])
+    assert sorted(picked[:7]) == list(range(7))
+    assert sorted(picked[7:]) == list(range(7))
+    assert content.spread(pool, {}, days[0], 3, "test", b"seed") == content.spread(
+        pool, {}, days[0], 3, "test", b"seed"
+    )
+    orders = {tuple(e.data["n"] for e in content.spread(pool, {}, days[0], 7, "test", s)) for s in (b"x", b"y", b"z")}
+    assert len(orders) > 1
+    with pytest.raises(content.NotReadyError):
+        content.spread(pool, {}, days[0], 8, "test", b"seed")

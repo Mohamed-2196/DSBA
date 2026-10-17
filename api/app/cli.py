@@ -27,6 +27,9 @@ extract-texts      read the words of the published files that have none yet (the
                    read failed and empty files again too; --limit N files)
 make-covers        make the cover (the first page as a small picture) of the published PDF and Word files read
                    before covers existed, then stop (--limit N files)
+daily-content import FILE   add the Daily puzzles' content from a file kept out of the repository (themes, guess
+                   words, vocabulary, items; what the database has stays as it is). export FILE writes the database's
+                   content to one (it holds every answer: keep it private)
 dev-login ID       development only: print a session token for an account (created if needed, holding Student;
                    --role gives one more role)
 enable-features    development only: switch every feature on for everyone (each change goes to the activity log)
@@ -445,6 +448,37 @@ def _seconds(value: str) -> float:
     return n
 
 
+def cmd_daily_content(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    from app.services.daily import bundle
+
+    path = Path(args.file)
+    with get_sessionmaker()() as db:
+        if args.action == "export":
+            data = bundle.export(db)
+            path.write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+            print(f"wrote {len(data['items'])} items and {len(data['vocabulary'])} vocabulary words to {path}")
+            print("It holds every answer: keep it out of the repository.")
+            return 0
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as e:
+            print(f"can't read {path}: {e}", file=sys.stderr)
+            return 1
+        result = bundle.load(db, raw)
+        db.commit()
+    print(
+        f"added {result.themes} themes, {result.guesses} guess words, {result.vocabulary} vocabulary words and "
+        f"{result.items} items ({result.kept} were there already)"
+    )
+    if result.rotation:
+        print(f"the rotation: {', '.join(result.rotation)}")
+    for problem in result.problems:
+        print(f"not imported: {problem}", file=sys.stderr)
+    return 1 if result.problems else 0
+
+
 def cmd_dev_login(args: argparse.Namespace) -> int:
     from app.core.access import STUDENT
     from app.core.security import hash_token, new_token
@@ -511,7 +545,9 @@ def main(argv: list[str] | None = None) -> int:
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("openapi").set_defaults(fn=cmd_openapi)
     sp = sub.add_parser("seed")
-    sp.add_argument("--only", choices=["modules", "calendar", "newsletter", "career", "drive-folders"], default=None)
+    sp.add_argument(
+        "--only", choices=["modules", "calendar", "newsletter", "career", "drive-folders", "daily"], default=None
+    )
     sp.set_defaults(fn=cmd_seed)
     sr = sub.add_parser("set-role")
     sr.add_argument("identifier")
@@ -554,6 +590,10 @@ def main(argv: list[str] | None = None) -> int:
     mc = sub.add_parser("make-covers")
     mc.add_argument("--limit", metavar="N", type=_positive, default=None, help="at most N files this run")
     mc.set_defaults(fn=cmd_make_covers)
+    dc = sub.add_parser("daily-content")
+    dc.add_argument("action", choices=["import", "export"])
+    dc.add_argument("file", metavar="FILE")
+    dc.set_defaults(fn=cmd_daily_content)
     dl = sub.add_parser("dev-login")
     dl.add_argument("identifier")
     dl.add_argument("--role", default=None, metavar="ROLE", help="give this role too (a slug, such as rep or admin)")

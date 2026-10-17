@@ -1,6 +1,6 @@
 """Daily puzzles' content, edited in Manage: the weekly themes and their schedule, each game's puzzle items, the word
-game's guess list and Nearest neighbour's vocabulary. Each day's set is stored the first time it is asked for, with
-the items it took and the puzzle as it was made, so editing the content later never changes a day that is out."""
+game's guess list and Nearest neighbour's vocabulary. Each day's puzzles are stored the first time they are asked
+for, with the items they took, so neither editing the content nor changing a key ever changes a day that is out."""
 
 from __future__ import annotations
 
@@ -17,12 +17,14 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
     Integer,
+    SmallInteger,
     String,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, check_in, created_ts, uuid_pk
+from app.schemas.daily import GameId
 from app.schemas.daily_content import ContentGame
 
 CONTENT_GAMES = get_args(ContentGame)
@@ -106,15 +108,17 @@ class DailyItem(Base):
 
 
 class DailySet(Base):
-    """A game's puzzle for one day, made the first time anyone asked for it and never changed after: `puzzle` is what
-    plays are checked against, whatever happens to the content afterwards."""
+    """A game's puzzle for one day (and variant: Sudoku's difficulty), made the first time anyone asked for it and
+    never changed after: `puzzle` is what plays are checked against, whatever happens to the content or the keys
+    afterwards. `theme_id` is the theme it was made for (none for Sudoku)."""
 
     __tablename__ = "daily_sets"
-    __table_args__ = (check_in("game", CONTENT_GAMES),)
+    __table_args__ = (check_in("game", get_args(GameId)),)
 
     day: Mapped[dt.date] = mapped_column(Date, primary_key=True)
     game: Mapped[str] = mapped_column(String(16), primary_key=True)
-    theme_id: Mapped[str] = mapped_column(ForeignKey("daily_themes.id", ondelete="RESTRICT"), index=True)
+    variant: Mapped[str] = mapped_column(String(12), primary_key=True, default="", server_default="")
+    theme_id: Mapped[str | None] = mapped_column(ForeignKey("daily_themes.id", ondelete="RESTRICT"), index=True)
     puzzle: Mapped[dict[str, Any]] = mapped_column(default=dict)
     created_at: Mapped[datetime] = created_ts()
 
@@ -125,15 +129,32 @@ class DailySetItem(Base):
     __tablename__ = "daily_set_items"
     __table_args__ = (
         ForeignKeyConstraint(
-            ["day", "game"], ["daily_sets.day", "daily_sets.game"], name="fk_daily_set_items_set", ondelete="CASCADE"
+            ["day", "game", "variant"],
+            ["daily_sets.day", "daily_sets.game", "daily_sets.variant"],
+            name="fk_daily_set_items_set",
+            ondelete="CASCADE",
         ),
     )
 
     day: Mapped[dt.date] = mapped_column(Date, primary_key=True)
     game: Mapped[str] = mapped_column(String(16), primary_key=True)
+    variant: Mapped[str] = mapped_column(String(12), primary_key=True, default="", server_default="")
     item_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("daily_items.id", ondelete="RESTRICT"), primary_key=True, index=True
     )
+
+
+class DailySeed(Base):
+    """Daily's own random key, made once per install the first time a puzzle is made: it orders the choices and
+    makes the grids, so which puzzle falls on which day can't be worked out ahead. It isn't DSBA_SECRET_KEY, so
+    changing that key leaves Daily as it is."""
+
+    __tablename__ = "daily_seed"
+    __table_args__ = (CheckConstraint("id = 1", name="one"),)
+
+    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True, default=1)
+    seed: Mapped[str] = mapped_column(String(64))  # 32 random bytes, as hex
+    created_at: Mapped[datetime] = created_ts()
 
 
 class DailyGuessWord(Base):

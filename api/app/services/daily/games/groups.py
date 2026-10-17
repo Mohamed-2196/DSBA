@@ -69,7 +69,7 @@ class GroupsGame(ContentGame[Puzzle, GroupsState]):
     max_moves = GROUPS + TRIES + 1
     min_seconds = 8
 
-    def choose(self, pool: list[Entry], used: Uses, day: dt.date) -> list[Entry]:
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
         """One group a level, sharing no word with another."""
         taken: set[str] = set()
 
@@ -79,13 +79,13 @@ class GroupsGame(ContentGame[Puzzle, GroupsState]):
         chosen: list[Entry] = []
         for level in range(1, GROUPS + 1):
             at_level = [e for e in pool if e.data["level"] == level]
-            group = content.spread(at_level, used, day, 1, f"{self.id}-{level}", fits)
+            group = content.spread(at_level, used, day, 1, f"{self.id}-{level}", seed, fits)
             taken.update(group[0].data["words"])
             chosen += group
         return chosen
 
-    def build(self, db: Session, day: dt.date, chosen: list[Entry]) -> Puzzle:
-        r = content.rng(self.id, day, "words")
+    def build(self, db: Session, day: dt.date, chosen: list[Entry], seed: bytes) -> Puzzle:
+        r = content.rng(seed, self.id, day, "words")
         groups: list[Group] = []
         for e in chosen:  # by level
             words = list(e.data["words"])

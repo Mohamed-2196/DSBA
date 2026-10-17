@@ -97,10 +97,10 @@ class NearestGame(ContentGame[Puzzle, NearestState]):
     moves = frozenset({"guess", "hint", "give-up"})
     max_moves = 300
 
-    def choose(self, pool: list[Entry], used: Uses, day: dt.date) -> list[Entry]:
-        return content.spread(pool, used, day, 1, self.id, lambda _, e: bool(e.ranking))
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
+        return content.spread(pool, used, day, 1, self.id, seed, lambda _, e: bool(e.ranking))
 
-    def build(self, db: Session, day: dt.date, chosen: list[Entry]) -> Puzzle:
+    def build(self, db: Session, day: dt.date, chosen: list[Entry], seed: bytes) -> Puzzle:
         ranking = chosen[0].ranking
         if not ranking:  # pragma: no cover - choose() takes only words with a ranking
             raise NotReadyError("nearest: no ranking")

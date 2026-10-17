@@ -81,10 +81,10 @@ class WordGame(ContentGame[Puzzle, WordState]):
     moves = frozenset({"guess", "give-up"})
     max_moves = MAX_GUESSES + 1
 
-    def choose(self, pool: list[Entry], used: Uses, day: dt.date) -> list[Entry]:
-        return content.spread(pool, used, day, 1, self.id)
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
+        return content.spread(pool, used, day, 1, self.id, seed)
 
-    def build(self, db: Session, day: dt.date, chosen: list[Entry]) -> Puzzle:
+    def build(self, db: Session, day: dt.date, chosen: list[Entry], seed: bytes) -> Puzzle:
         return Puzzle(str(chosen[0].data["word"]), _guess_list(db))
 
     def dump(self, puzzle: Puzzle) -> dict[str, Any]:

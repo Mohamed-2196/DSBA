@@ -114,11 +114,11 @@ class SearchGame(ContentGame[Puzzle, SearchState]):
     max_moves = 200
     min_seconds = 15
 
-    def choose(self, pool: list[Entry], used: Uses, day: dt.date) -> list[Entry]:
-        return content.spread(pool, used, day, WORDS, self.id, _fits)
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
+        return content.spread(pool, used, day, WORDS, self.id, seed, _fits)
 
-    def build(self, db: Session, day: dt.date, chosen: list[Entry]) -> Puzzle:
-        r = content.rng(self.id, day, "grid")
+    def build(self, db: Session, day: dt.date, chosen: list[Entry], seed: bytes) -> Puzzle:
+        r = content.rng(seed, self.id, day, "grid")
         words = [str(e.data["word"]) for e in chosen]
         for _ in range(50):
             made = _place(r, words)

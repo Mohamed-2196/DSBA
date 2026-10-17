@@ -86,11 +86,11 @@ class ContentGame(Game[P, S]):
         return self.load(db, content.day_puzzle(db, self, day))
 
     @abstractmethod
-    def choose(self, pool: list[Entry], used: Uses, day: dt.date) -> list[Entry]:
+    def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
         """The day's items from the theme's (content.spread()). Raises content.NotReadyError when they can't make it."""
 
     @abstractmethod
-    def build(self, db: Session, day: dt.date, chosen: list[Entry]) -> P:
+    def build(self, db: Session, day: dt.date, chosen: list[Entry], seed: bytes) -> P:
         """The puzzle from the chosen items: the same items on the same day make the same puzzle."""
 
     @abstractmethod

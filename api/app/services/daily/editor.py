@@ -114,6 +114,7 @@ SCHEDULE_WEEKS = 16
 PREVIEW_DAYS = 400
 GUESS_PAGE = 120
 CLOSEST = 10
+READINESS = b"can the theme make it"  # any order does: the check asks whether a choice exists, not which
 
 
 def _title(game: str) -> str:
@@ -132,11 +133,37 @@ def _text(raw: str) -> str:
     return " ".join(raw.split())
 
 
+def unknown_theme() -> ApiError:
+    return invalid("theme", "Pick one of the themes.")
+
+
 def _theme(db: Session, theme_id: str) -> DailyTheme:
     theme = db.get(DailyTheme, theme_id)
     if theme is None:
-        raise invalid("theme", "Pick one of the themes.")
+        raise unknown_theme()
     return theme
+
+
+def key_of(data: ItemData) -> str:
+    """What must be unique about an item: its word, its group's name or its question, as stored."""
+    if isinstance(data, GroupData):
+        return _text(data.label).casefold()
+    if isinstance(data, QuizData):
+        return _text(data.question).casefold()
+    if isinstance(data, NearestData):
+        return data.word.strip().lower()
+    return data.word.strip().upper()
+
+
+def existing(db: Session, game: str, theme: str, key: str, item_id: uuid.UUID | None = None) -> DailyItem | None:
+    """The item that already has this key: in the game (an answer word, a question, a secret word), or in the
+    theme (a group's name, a word search word)."""
+    q = select(DailyItem).where(DailyItem.game == game, DailyItem.key == key)
+    if game in UNIQUE_IN_THEME:
+        q = q.where(DailyItem.theme_id == theme)
+    if item_id is not None:
+        q = q.where(DailyItem.id != item_id)
+    return db.scalars(q.limit(1)).first()
 
 
 def _check_word(db: Session, data: WordData) -> Checked:
@@ -237,12 +264,7 @@ _KEY_FIELD = {"groups": "data.label", "quiz": "data.question"}
 
 
 def _check_unique(db: Session, game: str, theme: str, checked: Checked, item_id: uuid.UUID | None) -> None:
-    q = select(DailyItem).where(DailyItem.game == game, DailyItem.key == checked.key)
-    if game in UNIQUE_IN_THEME:
-        q = q.where(DailyItem.theme_id == theme)
-    if item_id is not None:
-        q = q.where(DailyItem.id != item_id)
-    other = db.scalars(q.limit(1)).first()
+    other = existing(db, game, theme, checked.key, item_id)
     if other is None:
         return
     shown = checked.data.get("label") or checked.data.get("word") or checked.key
@@ -297,12 +319,18 @@ def _problem(game: str, pool: Sequence[Entry]) -> str:
     return "The word needs at least one answer word."
 
 
+def theme_problems(db: Session, theme: str, day: dt.date) -> list[str]:
+    """What the theme's items lack for its games to run (empty when it can run)."""
+    db.flush()
+    return _problems(_pools(db, theme).get(theme, {}), day)
+
+
 def _problems(pools: dict[str, list[Entry]], day: dt.date) -> list[str]:
     out = []
     for game_id, maker in MAKERS.items():
         pool = pools.get(game_id, [])
         try:
-            maker.choose(pool, {}, day)
+            maker.choose(pool, {}, day, READINESS)
         except NotReadyError:
             out.append(_problem(game_id, pool))
     return out
@@ -335,7 +363,7 @@ def _ensure_ready(db: Session, themes: Iterable[str]) -> None:
     today = bahrain_today()
     running = _running(db, today)
     for theme_id in sorted(set(themes) & running):
-        problems = _problems(_pools(db, theme_id).get(theme_id, {}), today)
+        problems = theme_problems(db, theme_id, today)
         if problems:
             title = _theme(db, theme_id).title
             raise conflict(
@@ -556,7 +584,7 @@ def _vocabulary_out(db: Session, words: Sequence[DailyNearestWord]) -> list[Voca
     secret: dict[str, str] = {}
     if names:
         q = select(DailyItem.key, DailyItem.theme_id).where(DailyItem.game == "nearest", DailyItem.key.in_(names))
-        secret = dict(db.execute(q).tuples())
+        secret = dict(db.execute(q).tuples().all())
     return [
         VocabularyOut(
             word=w.word,
@@ -588,7 +616,7 @@ def vocabulary(db: Session, q: str, limit: int, offset: int) -> Page[VocabularyO
     return Page(items=_vocabulary_out(db, rows), total=total, limit=limit, offset=offset)
 
 
-def _check_tags_near(db: Session, word: str, tags: Sequence[str], near: Sequence[str]) -> tuple[list[str], list[str]]:
+def check_tags_near(db: Session, word: str, tags: Sequence[str], near: Sequence[str]) -> tuple[list[str], list[str]]:
     clean_tags = list(dict.fromkeys(t.strip().lower() for t in tags if t.strip()))
     bad = next((t for t in clean_tags if not TAG.fullmatch(t)), None)
     if bad is not None:
@@ -614,7 +642,7 @@ def add_vocabulary(db: Session, user: User, body: VocabularyIn, ip: str | None) 
         raise invalid("word", "Words are 2 to 24 letters, a to z.")
     if db.get(DailyNearestWord, word) is not None:
         raise invalid("word", f"“{word}” is in the vocabulary already.")
-    tags, near = _check_tags_near(db, word, body.tags, body.near)
+    tags, near = check_tags_near(db, word, body.tags, body.near)
     row = DailyNearestWord(word=word, tags=tags, near=near)
     try:
         with db.begin_nested():
@@ -632,7 +660,7 @@ def save_vocabulary(db: Session, user: User, word: str, body: VocabularySave, ip
     if row is None:
         raise not_found("This word isn't in the vocabulary any more.")
     _version(row, body.version)
-    tags, near = _check_tags_near(db, word, body.tags, body.near)
+    tags, near = check_tags_near(db, word, body.tags, body.near)
     before = {"tags": list(row.tags), "near": list(row.near)}
     after = {"tags": tags, "near": near}
     if after == before:
@@ -800,7 +828,7 @@ def _theme_snapshot(theme: DailyTheme) -> dict[str, Any]:
     return {"title": theme.title, "blurb": theme.blurb, "inRotation": theme.in_rotation}
 
 
-def _theme_text(title: str, blurb: str) -> tuple[str, str]:
+def theme_text(title: str, blurb: str) -> tuple[str, str]:
     title, blurb = _text(title), _text(blurb)
     if not 2 <= len(title) <= 60:
         raise invalid("title", "Name the theme in 2 to 60 characters.")
@@ -814,7 +842,7 @@ def create_theme(db: Session, user: User, body: ThemeCreate, ip: str | None) -> 
     theme_id = body.id.strip().lower()
     if not THEME_ID.fullmatch(theme_id):
         raise invalid("id", "Use 2 to 32 lower-case letters, digits and hyphens, starting with a letter.")
-    title, blurb = _theme_text(body.title, body.blurb)
+    title, blurb = theme_text(body.title, body.blurb)
     taken = conflict("slug_taken", "Another theme has this id. Choose another one.")
     if db.get(DailyTheme, theme_id) is not None:
         raise taken
@@ -844,12 +872,12 @@ def save_theme(db: Session, user: User, theme_id: str, body: ThemeSave, ip: str 
     theme_not_ready); the rotation keeps at least one theme. Weeks that started keep their themes."""
     theme = _locked_theme(db, theme_id)
     _version(theme, body.version)
-    title, blurb = _theme_text(body.title, body.blurb)
+    title, blurb = theme_text(body.title, body.blurb)
     before = _theme_snapshot(theme)
     today = bahrain_today()
     if body.in_rotation != theme.in_rotation:
         if body.in_rotation:
-            problems = _problems(_pools(db, theme_id).get(theme_id, {}), today)
+            problems = theme_problems(db, theme_id, today)
             if problems:
                 raise conflict("theme_not_ready", f"{title} can't join the rotation yet. {problems[0]}")
         elif not db.scalar(
@@ -932,7 +960,7 @@ def set_week(db: Session, user: User, week: dt.date, body: WeekSave, ip: str | N
         db.execute(delete(DailyThemeWeek).where(DailyThemeWeek.week_start == week))
     else:
         theme = _theme(db, body.theme)
-        problems = _problems(_pools(db, theme.id).get(theme.id, {}), today)
+        problems = theme_problems(db, theme.id, today)
         if problems:
             raise conflict("theme_not_ready", f"{theme.title} can't run yet. {problems[0]}")
         if plan.pinned.get(week) == theme.id:
@@ -1110,8 +1138,8 @@ def import_items(db: Session, user: User, body: ImportIn, ip: str | None) -> Imp
     _lock_themes(db, theme.id)
     trial = db.begin_nested() if body.dry_run else None
     if body.game == "word" and body.add_guesses:
-        words = [d.word.strip().upper() for _, _, d, _ in parsed if isinstance(d, WordData)]
-        fresh = [w for w in dict.fromkeys(words) if ANSWER.fullmatch(w)]
+        answers = [d.word.strip().upper() for _, _, d, _ in parsed if isinstance(d, WordData)]
+        fresh = [w for w in dict.fromkeys(answers) if ANSWER.fullmatch(w)]
         if fresh:
             db.execute(pg_insert(DailyGuessWord).values([{"word": w} for w in fresh]).on_conflict_do_nothing())
     rows: list[ImportRow] = []
@@ -1127,14 +1155,14 @@ def import_items(db: Session, user: User, body: ImportIn, ip: str | None) -> Imp
                 problem = e.message
             else:
                 read = ITEM_DATA.validate_python({"game": data.game, **checked.data})
-                words = set(checked.data.get("words", []))
+                grouped: set[str] = set(checked.data.get("words", []))
                 if checked.key in keys:
                     problem = "It's in the list twice."
-                elif words & claimed:
-                    problem = f"“{min(words & claimed)}” is in another group of this list."
+                elif grouped & claimed:
+                    problem = f"“{min(grouped & claimed)}” is in another group of this list."
                 else:
                     keys.add(checked.key)
-                    claimed |= words
+                    claimed |= grouped
                     good.append(DailyItem(game=data.game, theme_id=theme.id, data=checked.data, key=checked.key))
         rows.append(ImportRow(line=line, text=shown, data=read, problem=problem))
     if trial is not None:
