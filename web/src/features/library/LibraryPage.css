@@ -113,7 +113,22 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
-.lib-card__ext { color: var(--ink-2); font-weight: var(--fw-regular); }
+/* The file's format, as a small tag before a phone row's meta ('PDF', 'DOCX'): titles never carry an extension. */
+.lib-card__fmt {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  color: var(--ink-2);
+  font-size: 10.5px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.lib-row__mobile-meta .lib-card__fmt { margin-right: 6px; vertical-align: 1px; }
 /* Where a search found its words inside the file. */
 .lib-card__match {
   display: -webkit-box;

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.services.exam_names import ExamMeta, exam_meta_from_name
+from app.services.exam_names import ExamMeta, exam_meta_from_name, tidy_title
 
 
 def paper(year: int, session: str, zone: str | None = None) -> ExamMeta:
@@ -118,3 +118,29 @@ def test_a_paper_pairs_with_its_report_by_year_session_and_zone() -> None:
     assert sitting("MT3095 Exam paper - October 2025 (final).pdf") == sitting("MT3095_Commentary_October_2025.pdf")
     assert sitting("EC2066 ZA Exam paper \u00e2 May 2026.pdf") == sitting("EC2066 ZA Commentary - May 2026 DRAFT.pdf")
     assert sitting("MT1186 Exam paper - October 2025.pdf") != sitting("MT1186 Exam paper - May 2025.pdf")
+
+
+TITLES: list[tuple[str, str]] = [
+    ("calculus-concepts-and-methods_compress.pdf", "Calculus concepts and methods"),
+    ("1. Function Characteristics - workbook (1).pdf", "1. Function Characteristics - workbook"),
+    ("EC2020_Commentary_May_2024.pdf", "EC2020 Commentary May 2024"),
+    ("IS2184_SG (1).pdf", "IS2184 SG"),
+    ("BMGC Notes (Chapter 1 Globalisation).docx.pdf", "BMGC Notes (Chapter 1 Globalisation)"),
+    ("MT1186_Sample_Paper.pdf 2018-19.pdf", "MT1186 Sample Paper 2018-19"),
+    ("EC2066 ZA Exam paper \u00e2 May 2026.pdf", "EC2066 ZA Exam paper \u2013 May 2026"),
+    ("EC2066 ZB Exam paper a\u0302 May 2026.pdf", "EC2066 ZB Exam paper \u2013 May 2026"),
+    ("2020-mock-examination-paper-ec1002.pdf", "2020 mock examination paper EC1002"),
+    ("ST2133 examiner commentaries(winter_2025) FINAL.pdf", "ST2133 examiner commentaries (winter 2025) FINAL"),
+    ("ST104a - Statistics 1 - 2008 Exam - Zone-A.pdf", "ST104A - Statistics 1 - 2008 Exam - Zone-A"),
+    ("Copy of Week 3 notes copy.pdf", "Week 3 notes"),
+    ("Ch3_ Random Variables.pdf", "Ch3 Random Variables"),
+    ("Model Answer - Test 2 - ST1215 - 2025.pdf", "Model Answer - Test 2 - ST1215 - 2025"),
+    ("allchapters.pdf", "Allchapters"),
+    (".pdf", ".pdf"),
+]
+
+
+@pytest.mark.parametrize(("name", "title"), TITLES)
+def test_a_files_title_reads_as_a_title(name: str, title: str) -> None:
+    assert tidy_title(name) == title
+    assert tidy_title(f"{title}.pdf") == title or title == ".pdf"  # a tidy title stays as it is

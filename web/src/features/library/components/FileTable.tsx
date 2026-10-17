@@ -5,7 +5,7 @@ import { useModules } from '../../../state/modules';
 import { Badge, IconButton, cx, timeAgo } from '../../../ui';
 import { downloadHref, itemPath, openLinkHref } from '../api';
 import { addedAt, isNew, linkPlace, matchLine, moduleTag, sizeLabel, statusInfo } from '../display';
-import { extensionOf, kindLabel } from '../kinds';
+import { formatOf, kindLabel } from '../kinds';
 import type { LibraryItem, LibrarySort } from '../types';
 import type { LinkState } from './FileCard';
 import { FileThumb } from './FileThumb';
@@ -78,7 +78,7 @@ export function FileTable({
         <tbody>
           {items.map((f) => {
             const m = getModule(f.moduleId);
-            const ext = f.source === 'file' ? extensionOf(f.fileName)?.toLowerCase() : null;
+            const fmt = formatOf(f);
             const status = statusInfo(f.status);
             return (
               <tr key={f.id} className="lib-row" data-hub="file-card">
@@ -87,10 +87,7 @@ export function FileTable({
                     <FileThumb item={f} size="list" />
                     <span className="lib-row__text">
                       <span className="lib-row__title">
-                        <span className="lib-row__name">
-                          {f.title}
-                          {ext ? <span className="lib-card__ext">.{ext}</span> : null}
-                        </span>
+                        <span className="lib-row__name">{f.title}</span>
                         {isNew(f) ? (
                           <Badge tone="highlight" size="sm">
                             New
@@ -105,6 +102,7 @@ export function FileTable({
                       <span className="lib-row__sub">
                         {m ? <span className="lib-row__code">{moduleTag(m)}</span> : null}
                         <span className="lib-row__mobile-meta">
+                          {fmt ? <span className="lib-card__fmt">{fmt.tag}</span> : null}
                           {kindLabel(f.kind)}, {timeAgo(addedAt(f))}
                         </span>
                         {m ? <span className="lib-row__module">{m.name}</span> : null}
