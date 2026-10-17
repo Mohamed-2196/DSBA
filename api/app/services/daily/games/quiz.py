@@ -50,6 +50,11 @@ def _shuffled(r: random.Random, right: str, wrong: list[str]) -> tuple[tuple[str
     return tuple(options), options.index(right)
 
 
+def _reordered(r: random.Random, q: Question) -> Question:
+    options, answer = _shuffled(r, q.options[q.answer], [o for i, o in enumerate(q.options) if i != q.answer])
+    return Question(q.prompt, options, answer, q.explain, q.source)
+
+
 def module_question(modules: list[Module], r: random.Random) -> Question | None:
     """A question about the programme's modules, or None when there aren't enough of them to ask one."""
     if len(modules) < 4:
@@ -119,7 +124,9 @@ class QuizGame(Game[tuple[Question, ...], QuizState]):
         modules = list(db.scalars(select(Module).where(Module.hidden.is_(False))))
         about = module_question(modules, content.rng(self.id, day, "modules"))
         picked = content.pick_many(bank()[content.theme_of(day).id], QUESTIONS - (about is not None), self.id, day)
-        return (*picked, *([about] if about else []))
+        # Each question's options in the day's own order, so the bank's order gives nothing away.
+        r = content.rng(self.id, day, "options")
+        return (*(_reordered(r, q) for q in picked), *([about] if about else []))
 
     def start(self, puzzle: tuple[Question, ...]) -> QuizState:
         return QuizState()
@@ -128,6 +135,8 @@ class QuizGame(Game[tuple[Question, ...], QuizState]):
         if not isinstance(move, AnswerMove):
             state.gave_up = True
             return "gave-up"
+        if len(state.answered) >= len(puzzle):
+            raise bad_move("There are no more questions.")
         q = puzzle[len(state.answered)]
         if move.choice >= len(q.options):
             raise bad_move("Pick one of the answers.")

@@ -20845,7 +20845,7 @@
           "daily"
         ],
         "summary": "Calendar",
-        "description": "The month's days with puzzles out, and how many games you finished on each.",
+        "description": "The month's days with puzzles out, and the games you finished on each. Errors: invalid_input on `month` (422)\nfor a month that isn't one, or in a year without puzzles.",
         "operationId": "calendar_api_v1_daily_calendar_get",
         "parameters": [
           {
@@ -21267,7 +21267,7 @@
           "daily"
         ],
         "summary": "Get Play",
-        "description": "A game on a day, and your play of it so far. Errors: not_out_yet (404), invalid_input on `variant` (422).",
+        "description": "A game on a day, and your play of it so far: signed in, the first look at today's starts its clock. Errors:\nnot_out_yet (404), invalid_input on `variant` (422).",
         "operationId": "get_play_api_v1_daily__day___game__get",
         "parameters": [
           {
@@ -35418,7 +35418,14 @@
             "title": "Choice"
           },
           "answer": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Answer"
           },
           "correct": {
@@ -35426,7 +35433,14 @@
             "title": "Correct"
           },
           "explain": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Explain"
           }
         },

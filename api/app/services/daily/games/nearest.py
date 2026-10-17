@@ -132,6 +132,7 @@ class NearestGame(Game[Puzzle, NearestState]):
     max_points = 100
     moves = frozenset({"guess", "hint", "give-up"})
     max_moves = 300
+    min_seconds = 4  # from opening the puzzle: a first-guess win any faster was looked up
 
     def puzzle(self, db: Session, day: dt.date, variant: str) -> Puzzle:
         return _puzzle(content.pick(_targets()[content.theme_of(day).id], self.id, day))

@@ -54,11 +54,11 @@ copy makes:
 | SEC-38 | minor | boards (`services/board/common.py:33`) | open | No total on the text a student's boards hold: about 880 MB of rows per free account |
 | SEC-39 | minor | boards, uploads (`services/board/files.py:124`) | open | Detaching a board file gives its slot back to the 20-uploads-an-hour limit |
 | SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | open | Bug reports and their screenshots are left out of the export and outlive the account |
-| SEC-41 | minor | Daily (`services/daily/plays.py:165`) | open | Every Daily answer is available before the scored play, so anyone can top the leaderboard |
+| SEC-41 | minor | Daily (`services/daily/plays.py:165`) | **fixed** (the play's flow); open (the answer banks) | Every Daily answer is available before the scored play, so anyone can top the leaderboard |
 | SEC-42 | minor | content (`schemas/modules.py:121`, `services/module_editor.py:217`) | open | Module art skips the picture rules: any address, and an upload that was never checked |
 | SEC-43 | minor | deployment (`.github/workflows/railway.yml:22`) | open (partly verified) | The public Railway dev deployment runs outside production mode |
 | SEC-44 | nit | bugs (`services/bugs.py:85`) | open | Guests' bug reports have no hub-wide cap, and each one notifies every admin |
-| SEC-45 | nit | Daily, boards | open | Crafted input turns Daily and board requests into 500s |
+| SEC-45 | nit | Daily, boards | **fixed** (Daily); open (boards) | Crafted input turns Daily and board requests into 500s |
 | SEC-46 | nit | Daily (`services/daily/content.py:61`) | open | Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones |
 | SEC-47 | nit | uploads (`routers/uploads.py:47`) | open (unverified) | The board and notebook quotas are checked before the upload lock |
 | SEC-48 | nit | web (`web/package.json:31`) | open (not reachable) | `npm audit`: pdf.js 5.7.284 has a high advisory |
@@ -233,6 +233,14 @@ copy makes:
   - Shuffle each quiz question's options with the day's keyed random generator.
   - Move the answer banks out of the public repository (into the bucket, loaded at start-up).
   - Or decide the board is just for fun, and say so on it.
+- **Status (round12/daily): the play's flow is fixed.** A guest's play of today's set shows no answer once it's over
+  (the word, the secret word, the groups and words not found, the Sudoku's solution), and a wrong quiz answer
+  doesn't say which option was right; past days still show theirs. Signed in, today's row is made when the puzzle
+  is first opened, so the clock starts there (Sudoku's at the first move, so that looking at a difficulty doesn't
+  choose it). "Too fast" applies to every win, and The Word and Nearest Neighbour count a win inside 4 seconds as
+  too fast. Each quiz question's options come in the day's own keyed order. Regression tests:
+  `api/tests/daily/test_sec_review_r12.py`. **Still open:** the answer banks in the public repository (the move of
+  the puzzles' content into the database, round12/daily-cms); its proof test now reads the right option by its text.
 
 ### SEC-42. Module art skips the picture rules: any address, and an upload that was never checked (minor)
 
@@ -323,6 +331,10 @@ copy makes:
 - **Fix:** `_replay` stops with 422 `game_over` at a move after the end or past `max_moves`; the quiz and the Sudoku
   hint refuse with `bad_move`; `calendar_of` refuses years outside 2026 to next year; `due_date` is limited to
   2000-2100 (422 on `dueDate`).
+- **Status (round12/daily): Daily is fixed.** A replayed history with a move after the end or past `max_moves` is
+  refused with 409 `game_over` (the code every other finished-play move gets); the quiz and the Sudoku hint refuse
+  with `bad_move` as a second line; `/daily/calendar` answers 422 on `month` for a year outside 2026 to next year.
+  Regression test: `test_sec45_crafted_guest_histories_and_months_are_refused`. **Still open:** the boards' reminder.
 
 ### SEC-46. Rotating `DSBA_SECRET_KEY` changes every puzzle under the kept plays and reopens scored ones (nit)
 

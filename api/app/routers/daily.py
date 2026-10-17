@@ -35,7 +35,8 @@ def today(db: DB, user: OptionalUser) -> DailyToday:
 
 @router.get("/daily/calendar", response_model=DailyCalendar)
 def calendar(db: DB, user: OptionalUser, month: Annotated[str, Query(pattern=r"^\d{4}-\d{2}$")]) -> DailyCalendar:
-    """The month's days with puzzles out, and how many games you finished on each."""
+    """The month's days with puzzles out, and the games you finished on each. Errors: invalid_input on `month` (422)
+    for a month that isn't one, or in a year without puzzles."""
     return svc.calendar_of(db, user, month)
 
 
@@ -63,8 +64,11 @@ def update_me(body: DailyMeIn, db: DB, user: ActiveUser) -> DailyMe:
 
 @router.get("/daily/{day}/{game}", response_model=PlayOut)
 def get_play(day: dt.date, game: GameId, db: DB, user: OptionalUser, variant: str = "") -> PlayOut:
-    """A game on a day, and your play of it so far. Errors: not_out_yet (404), invalid_input on `variant` (422)."""
-    return svc.get_play(db, user, day, game, variant)
+    """A game on a day, and your play of it so far: signed in, the first look at today's starts its clock. Errors:
+    not_out_yet (404), invalid_input on `variant` (422)."""
+    out = svc.get_play(db, user, day, game, variant)
+    db.commit()
+    return out
 
 
 @router.post("/daily/{day}/{game}/moves", response_model=PlayOut)

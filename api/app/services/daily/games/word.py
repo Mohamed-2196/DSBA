@@ -69,6 +69,7 @@ class WordGame(Game[str, WordState]):
     max_points = POINTS[0]
     moves = frozenset({"guess", "give-up"})
     max_moves = MAX_GUESSES + 1
+    min_seconds = 4  # from opening the puzzle: a first-guess win any faster was looked up
 
     def puzzle(self, db: Session, day: dt.date, variant: str) -> str:
         return content.pick(answers()[content.theme_of(day).id], self.id, day)

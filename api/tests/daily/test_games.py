@@ -15,6 +15,7 @@ from app.models import User
 from app.services.daily import content
 from app.services.daily.games import GAMES
 from app.services.daily.games.groups import SQUARES, GroupsGame
+from app.services.daily.games.nearest import NearestGame
 from app.services.daily.games.quiz import QuizGame
 from app.services.daily.games.search import SearchGame
 from tests.daily.conftest import API
@@ -25,7 +26,7 @@ MakeUser = Callable[..., User]
 
 @pytest.fixture(autouse=True)
 def no_speed_check(monkeypatch: pytest.MonkeyPatch) -> None:
-    for game in (GroupsGame, SearchGame, QuizGame):
+    for game in (GroupsGame, SearchGame, QuizGame, NearestGame):
         monkeypatch.setattr(game, "min_seconds", 0)
 
 
@@ -178,4 +179,5 @@ def test_the_calendar_lists_days_out_and_what_you_finished(
     assert (cal["days"][-1]["finished"], cal["total"]) == (["word"], len(GAMES))
     assert cal["days"][-1]["theme"] == content.theme_of(today()).model_dump(by_alias=True)
     assert c.get(f"{API}/daily/calendar", params={"month": "2026-13"}).status_code == 422
-    assert c.get(f"{API}/daily/calendar", params={"month": "2020-01"}).json()["days"] == []
+    assert c.get(f"{API}/daily/calendar", params={"month": "2020-01"}).status_code == 422
+    assert c.get(f"{API}/daily/calendar", params={"month": "2026-09"}).json()["days"] == []  # before the first day

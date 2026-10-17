@@ -145,9 +145,9 @@ class QuizQuestion(ApiModel):
 
 class QuizAnswered(ApiModel):
     choice: int
-    answer: int
+    answer: int | None  # the right option; None on a wrong answer in a guest's play of today's quiz
     correct: bool
-    explain: str
+    explain: str | None  # None with `answer`
 
 
 class QuizView(ApiModel):

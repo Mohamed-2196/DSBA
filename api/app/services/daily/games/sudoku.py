@@ -48,6 +48,8 @@ def _hint_cell(puzzle: Puzzle, state: SudokuState) -> int:
     """The empty cell with the fewest digits left to it: the most useful one to reveal."""
     grid = [puzzle.givens[i] or state.filled.get(i, 0) for i in range(81)]
     empty = [i for i in range(81) if grid[i] == 0]
+    if not empty:
+        raise bad_move("There's no empty cell left.")
     return min(empty, key=lambda i: (9 - len({grid[p] for p in PEERS[i]} - {0}), i))
 
 

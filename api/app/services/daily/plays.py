@@ -1,9 +1,11 @@
 """Plays: checking and keeping moves, the day's set as the hub shows it, the calendar, streaks, badges and the
 leaderboard.
 
-Signed in, a play lives in `daily_plays` with its moves; each new move is checked by replaying the play. A guest's
-play lives in their browser, which sends its moves with each new one; nothing is kept. A play counts (`scored`)
-when it's the person's first of that game on the puzzle's own day."""
+Signed in, a play lives in `daily_plays` with its moves; each new move is checked by replaying the play. Today's
+row is made when the person first opens the puzzle, so its clock starts then (Sudoku's at the first move: opening a
+difficulty to look at it doesn't choose it). A guest's play lives in their browser, which sends its moves with each
+new one; nothing is kept, so a guest's play of today's set never shows its answer, even once it's over. A play
+counts (`scored`) when it's the person's first of that game on the puzzle's own day."""
 
 from __future__ import annotations
 
@@ -34,6 +36,7 @@ from app.schemas.daily import (
     Play,
     PlayOut,
     PlayStatus,
+    QuizView,
 )
 from app.services import accounts, ratelimit
 from app.services.daily import content
@@ -77,12 +80,28 @@ class _Replay:
     result: str | None
 
 
+def _over() -> ApiError:
+    return conflict("game_over", "This puzzle is finished. Try another one.")
+
+
 def _replay(game: Game[Any, Any], puzzle: Any, moves: list[Move]) -> _Replay:
+    """The play after `moves`. A move after the end, or past the game's last move, is refused (a guest's history
+    is whatever their browser sends)."""
+    if len(moves) > game.max_moves:
+        raise _over()
     state = game.start(puzzle)
     result = None
     for move in moves:
+        if game.status(puzzle, state) in FINISHED:
+            raise _over()
         result = game.apply(puzzle, state, move)
     return _Replay(state, result)
+
+
+def _without_answers(view: QuizView) -> QuizView:
+    """The quiz as a guest sees today's: whether each answer was right, but not the right one."""
+    answered = [a if a.correct else a.model_copy(update={"answer": None, "explain": None}) for a in view.answered]
+    return view.model_copy(update={"answered": answered})
 
 
 def _row(db: Session, user: User, day: dt.date, game: GameId, variant: str) -> DailyPlay | None:
@@ -132,7 +151,9 @@ def _play_out(
     moves: int,
     row: DailyPlay | None,
     scored: bool,
+    secret: bool,
 ) -> PlayOut:
+    """The play as its player sees it. `secret`: a guest's play of today's set, which shows no answers."""
     played = game.status(puzzle, replay.state)
     status: PlayStatus = played if moves else "new"
     over = moves > 0 and played in FINISHED
@@ -141,6 +162,9 @@ def _play_out(
     points = row.points if row else (game.points(puzzle, replay.state, variant, seconds or 0) if over else 0)
     mistakes, hints = game.counts(replay.state)
     share = f"DSBA Daily #{number_of(day)}\n{game.share(puzzle, replay.state, played)}" if over else None
+    view = game.view(puzzle, replay.state, over and not secret)
+    if secret and isinstance(view, QuizView):
+        view = _without_answers(view)
     return PlayOut(
         info=game.info(),
         theme=content.theme_of(day),
@@ -158,21 +182,51 @@ def _play_out(
             too_fast=bool(row and row.too_fast),
             result=replay.result,
             share=share,
-            view=game.view(puzzle, replay.state, over),
+            view=view,
         ),
     )
 
 
+def _secret(user: User | None, day: dt.date) -> bool:
+    return user is None and day == bahrain_today()
+
+
 def get_play(db: Session, user: User | None, day: dt.date, game_id: GameId, variant: str) -> PlayOut:
-    """The play as it stands: signed in, as kept; a guest gets a fresh one (their browser replays its own)."""
+    """The play as it stands: signed in, as kept; a guest gets a fresh one (their browser replays its own). Signed
+    in, the first look at one of today's puzzles makes its row, which starts its clock."""
     check_day(day)
     game = game_of(game_id)
     variant = check_variant(game, variant)
     puzzle = game.puzzle(db, day, variant)
     row = _row(db, user, day, game_id, variant) if user else None
+    if user is not None and row is None and day == bahrain_today() and game.variants == ("",) and _may_play(user):
+        ratelimit.lock(db, f"daily:{user.id}")  # one at a time per person, like moves
+        row = _row(db, user, day, game_id, variant) or _open(db, user, game, day, variant)
     moves = MOVES.validate_python(row.moves) if row else []
     scored = _counts(db, user, day, game_id, row)
-    return _play_out(db, game, day, variant, puzzle, _replay(game, puzzle, moves), len(moves), row, scored)
+    replay = _replay(game, puzzle, moves)
+    return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, scored, _secret(user, day))
+
+
+def _may_play(user: User) -> bool:
+    """An account whose plays are kept: active, with a profile (a suspended one plays nothing it could keep)."""
+    return user.status == UserStatus.active and bool(user.display_name)
+
+
+def _open(db: Session, user: User, game: Game[Any, Any], day: dt.date, variant: str) -> DailyPlay:
+    """A new row for a play: not started, its clock running."""
+    row = DailyPlay(
+        user_id=user.id,
+        day=day,
+        game=game.id,
+        variant=variant,
+        status="new",
+        scored=_counts(db, user, day, game.id, None),
+        started_at=utcnow(),
+    )
+    db.add(row)
+    db.flush()
+    return row
 
 
 def make_move(db: Session, user: User | None, day: dt.date, game_id: GameId, body: MoveIn) -> PlayOut:
@@ -187,19 +241,20 @@ def make_move(db: Session, user: User | None, day: dt.date, game_id: GameId, bod
     row = _row(db, user, day, game_id, variant) if user else None
     moves = MOVES.validate_python(row.moves) if row else ([] if user else list(body.history))
     replay = _replay(game, puzzle, moves)
+    secret = _secret(user, day)
     if body.move is None:
-        return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, _counts(db, user, day, game_id, row))
+        scored = _counts(db, user, day, game_id, row)
+        return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, scored, secret)
     if body.move.kind not in game.moves:
         raise invalid("move", f"{game.title} doesn't take that move.")
-    if moves and game.status(puzzle, replay.state) in FINISHED:
-        raise conflict("game_over", "This puzzle is finished. Try another one.")
-    if len(moves) >= game.max_moves:
-        raise conflict("game_over", "This puzzle has had all the moves it takes.")
+    if (moves and game.status(puzzle, replay.state) in FINISHED) or len(moves) >= game.max_moves:
+        raise _over()
     replay.result = game.apply(puzzle, replay.state, body.move)
     moves.append(body.move)
     if user is not None:
         row = _keep(db, user, game, day, variant, puzzle, replay, moves, row)
-    return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, _counts(db, user, day, game_id, row))
+    scored = _counts(db, user, day, game_id, row)
+    return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, scored, secret)
 
 
 def _keep(
@@ -215,15 +270,7 @@ def _keep(
 ) -> DailyPlay:
     now = utcnow()
     if row is None:
-        row = DailyPlay(
-            user_id=user.id,
-            day=day,
-            game=game.id,
-            variant=variant,
-            scored=_counts(db, user, day, game.id, None),
-            started_at=now,
-        )
-        db.add(row)
+        row = _open(db, user, game, day, variant)
     status = game.status(puzzle, replay.state)
     row.moves = [m.model_dump(mode="json", by_alias=True) for m in moves]
     row.status = status
@@ -232,7 +279,7 @@ def _keep(
     if status in FINISHED:
         row.finished_at = now
         seconds = int((now - row.started_at).total_seconds())
-        row.too_fast = status == "won" and len(moves) > 1 and seconds < game.min_seconds
+        row.too_fast = status == "won" and seconds < game.min_seconds
         row.points = 0 if row.too_fast else game.points(puzzle, replay.state, variant, seconds)
     db.flush()
     return row
@@ -284,12 +331,14 @@ def today_of(db: Session, user: User | None) -> DailyToday:
 
 
 def calendar_of(db: Session, user: User | None, month: str) -> DailyCalendar:
+    today = bahrain_today()
     try:
         first = dt.date.fromisoformat(f"{month}-01")
     except ValueError:
         raise invalid("month", "Months look like 2026-10.") from None
+    if not content.FIRST_DAY.year <= first.year <= today.year + 1:
+        raise invalid("month", "There are no puzzles in that year.")
     after = (first + dt.timedelta(days=32)).replace(day=1)
-    today = bahrain_today()
     start, end = max(first, content.FIRST_DAY), min(after - dt.timedelta(days=1), today)
     finished: dict[dt.date, set[str]] = {}
     points: dict[dt.date, int] = {}

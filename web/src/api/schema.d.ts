@@ -3307,7 +3307,8 @@ export interface paths {
         };
         /**
          * Calendar
-         * @description The month's days with puzzles out, and how many games you finished on each.
+         * @description The month's days with puzzles out, and the games you finished on each. Errors: invalid_input on `month` (422)
+         *     for a month that isn't one, or in a year without puzzles.
          */
         get: operations["calendar_api_v1_daily_calendar_get"];
         put?: never;
@@ -3371,7 +3372,8 @@ export interface paths {
         };
         /**
          * Get Play
-         * @description A game on a day, and your play of it so far. Errors: not_out_yet (404), invalid_input on `variant` (422).
+         * @description A game on a day, and your play of it so far: signed in, the first look at today's starts its clock. Errors:
+         *     not_out_yet (404), invalid_input on `variant` (422).
          */
         get: operations["get_play_api_v1_daily__day___game__get"];
         put?: never;
@@ -8042,11 +8044,11 @@ export interface components {
             /** Choice */
             choice: number;
             /** Answer */
-            answer: number;
+            answer: number | null;
             /** Correct */
             correct: boolean;
             /** Explain */
-            explain: string;
+            explain: string | null;
         };
         /** QuizQuestion */
         QuizQuestion: {

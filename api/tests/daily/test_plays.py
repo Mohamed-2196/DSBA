@@ -16,6 +16,7 @@ from app.models import DailyPlay, User
 from app.services.daily.content import FIRST_DAY
 from app.services.daily.games import GAMES
 from app.services.daily.games.sudoku import SudokuGame
+from app.services.daily.games.word import WordGame
 from tests.daily.conftest import API
 
 ClientFor = Callable[..., TestClient]
@@ -170,8 +171,9 @@ def word_of(db: Session, day: str | None = None) -> str:
 
 
 def test_the_word_marks_guesses_and_shows_the_answer_only_at_the_end(
-    client_for: ClientFor, make_user: MakeUser, db: Session
+    client_for: ClientFor, make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setattr(WordGame, "min_seconds", 0)
     c = client_for(make_user())
     answer = word_of(db)
     first = c.get(f"{API}/daily/{today()}/word").json()["play"]
