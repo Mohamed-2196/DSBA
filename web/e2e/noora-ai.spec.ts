@@ -90,8 +90,9 @@ test('the open note goes only when the student ticks Include my note, for one qu
   const asked = await standIn(page);
   await page.goto('/notes/new');
   await page.locator('[data-hub="note-title"]').fill(`Moments for Noora [e2e ${run.tag}]`);
-  await page.locator('[data-hub="note-body"]').fill('M(t) = E[e^{tX}]');
-  await expect(page.locator('[data-hub="note-status"]')).toHaveText('Saved');
+  await page.locator('[data-hub="note-text"]').click();
+  await page.keyboard.type('M(t) = E[e^{tX}]');
+  await expect(page.locator('[data-hub="note-status"]')).toContainText('Saved in');
   const chat = await openNoora(page);
   const include = chat.locator('[data-hub="noora-include-note"]');
   await include.click(); // the chip is the label; its checkbox is visually hidden
@@ -106,7 +107,8 @@ test('the open note goes only when the student ticks Include my note, for one qu
   await expect.poll(() => asked.length).toBe(2);
   expect(asked[1]?.postDataJSON()).toMatchObject({ note: null });
   // The note is deleted again.
-  await page.locator('[data-hub="note-delete"]').click();
+  await page.locator('[data-hub="note-more"]').click();
+  await page.getByRole('menuitem', { name: 'Delete note' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
   await ctx.close();
 });

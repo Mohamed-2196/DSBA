@@ -118,10 +118,12 @@ export function useAnnotate() {
   });
 }
 
+export const deleteNote = (id: string): Promise<unknown> => call(api.DELETE('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } }));
+
 export function useDeleteNote() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => call(api.DELETE('/api/v1/notes/{note_id}', { params: { path: { note_id: id } } })),
+    mutationFn: deleteNote,
     onSuccess: (_, id) => {
       qc.removeQueries({ queryKey: noteKeys.one(id) });
       notesChanged(qc);
