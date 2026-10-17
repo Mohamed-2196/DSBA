@@ -461,6 +461,9 @@ def test_badges_cant_pass_for_staff(client_for: ClientFor, boss: User, db: Sessi
         "Moderator",
         "DSBA team",
         "\N{FULLWIDTH LATIN CAPITAL LETTER A}dmin",
+        "A d m i n",
+        "Student-Rep",
+        "D.S.B.A",
     ):
         r = c.post(f"{API}/admin/roles", json={"name": "Helpers", "badge": badge})
         assert (r.status_code, r.json()["error"]["fields"]) == (422, staff), badge

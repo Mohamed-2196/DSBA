@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import unicodedata
 import uuid
 from dataclasses import dataclass
@@ -297,14 +298,20 @@ CONFUSABLES = str.maketrans(
 )
 CONFUSABLE_PAIRS = (("rn", "m"), ("cl", "d"))  # two letters that read as one
 LOOKALIKE_SCRIPTS = ("LATIN", "CYRILLIC", "GREEK")
+# What may sit between the letters of a staff word without hiding it: "A d m i n", "Ad-min", "D.S.B.A", "Mod'erator"
+WORD_BREAKS = re.compile(r"[\s.'\-]+")
+STAFF_WORDS_SPELT_OUT = tuple(word.replace(" ", "") for word in STAFF_WORDS)
+
+
+def _pairs_read_as_one(text: str) -> str:
+    for pair, single in CONFUSABLE_PAIRS:
+        text = text.replace(pair, single)
+    return text
 
 
 def skeleton(text: str) -> str:
     """`text` reduced to what it looks like: casefolded, look-alike letters mapped to Latin ones."""
-    out = text.casefold().translate(CONFUSABLES)
-    for pair, single in CONFUSABLE_PAIRS:
-        out = out.replace(pair, single)
-    return out
+    return _pairs_read_as_one(text.casefold().translate(CONFUSABLES))
 
 
 def _mixes_scripts(name: str) -> bool:
@@ -371,9 +378,15 @@ def looks(text: str) -> str:
 
 
 def reads_as_staff(text: str) -> bool:
-    """Whether `text` reads as one of STAFF_WORDS once look-alike letters are mapped (names, and roles' badges)."""
+    """Whether `text` reads as one of STAFF_WORDS once look-alike letters are mapped (names, and roles' badges):
+    anywhere in it ("Head admin", "Badminton"), or spelt out from the start of a word across spaces, dots,
+    apostrophes and hyphens ("A d m i n", "Ad-min", "D.S.B.A Team", "Student R e p"). Words that only end and begin
+    one ("Ahmad Mina", "Habib Fakhro") don't count."""
     seen = looks(text)
-    return any(word in seen for word in STAFF_WORDS)
+    if any(word in seen for word in STAFF_WORDS):
+        return True
+    words = [word for word in WORD_BREAKS.split(seen) if word]
+    return any(_pairs_read_as_one("".join(words[i:])).startswith(STAFF_WORDS_SPELT_OUT) for i in range(len(words)))
 
 
 # ── signing in ──────────────────────────────────────────────────────────────────────────────

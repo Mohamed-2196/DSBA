@@ -68,7 +68,7 @@ copy makes:
 | SEC-35 | nit | community | **fixed** (the rest is a product call) | Seniors: 30-day-old Year 3 accounts, no staff words or links |
 | SEC-34 | nit | Noora | open (unverified) | Uploaded papers' words still go in the system prompt |
 | SEC-19 | nit | content | **fixed** | `?mine=1&status=removed` still lists a student's removed files |
-| SEC-11 | nit | accounts | open | "A d m i n" still passes the staff-name rule |
+| SEC-11 | nit | accounts | **fixed** | "A d m i n" still passes the staff-name rule |
 | SEC-14 | minor | Mohamed | partly fixed | The site-wide upload budget still waits on Mohamed (SEC-39 makes it matter more) |
 
 ---
@@ -387,9 +387,11 @@ copy makes:
 - **SEC-19 (fixed).** `_visible_statuses()` (`library.py`) lists removed files under `mine` only for the library's
   managers, as `can_see()` has it; anyone else asking for them gets an empty list.
   `test_your_files_never_list_a_removed_one_unless_you_manage_the_library` (`tests/content/test_library.py`) checks it.
-- **SEC-11 (open, nit).** `looks()` (`accounts.py:366`) still keeps spaces and hyphens. Proof:
-  `test_sec11_a_spaced_out_staff_word_is_still_a_display_name` ("A d m i n", "Ad-min", "D S B A Team" and
-  "Student R e p" are all accepted).
+- **SEC-11 (fixed).** `reads_as_staff()` (`accounts.py`) also reads a staff word spelt out from the start of a word
+  across spaces, dots, apostrophes and hyphens ("A d m i n", "Ad-min", "D S B A Team", "Student R e p", "StudentRep",
+  "Mod erator"), on top of the look-alike letters. Names that only end and begin one across a space ("Ahmad Mina",
+  "Habib Fakhro") still pass; initials before a surname that starts the rest ("A. D. Minhas") are refused, the
+  price of the rule. `tests/accounts/test_me.py` checks both lists.
 - **SEC-14 (partly fixed).** Unchanged; SEC-39 means a single account's hourly throughput has no ceiling either.
 - **SEC-1 to SEC-10, SEC-12, SEC-13, SEC-15 to SEC-18, SEC-20 to SEC-26, SEC-28, SEC-29 (fixed, still).** Round 11
   didn't change sessions, CSRF, OTP, headers or the settings checks. Noora's budget, locking and step-up are as they
