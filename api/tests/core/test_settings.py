@@ -160,8 +160,9 @@ def test_docs_and_schema_are_off_in_production(monkeypatch: pytest.MonkeyPatch, 
 
 def _run(env: dict[str, str], *args: str) -> subprocess.CompletedProcess[str]:
     base = {k: v for k, v in os.environ.items() if not k.startswith("DSBA_")}
+    # The timeout only stops a hang: importing the whole app can take a minute on a machine busy with other tests.
     return subprocess.run(  # noqa: S603 - this interpreter, fixed arguments
-        [sys.executable, *args], cwd=API_ROOT, env={**base, **env}, capture_output=True, text=True, timeout=60
+        [sys.executable, *args], cwd=API_ROOT, env={**base, **env}, capture_output=True, text=True, timeout=300
     )
 
 
