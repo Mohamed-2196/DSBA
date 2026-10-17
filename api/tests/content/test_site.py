@@ -95,6 +95,10 @@ def test_a_stale_site_save_is_refused(
     [
         (lambda d: d["links"]["myclass"].update(url="http://myclass.bibf.com"), "data.links.myclass.url"),
         (lambda d: d["links"]["results"].update(url="/calendar"), "data.links.results.url"),
+        (
+            lambda d: d["links"]["regulations"].update(url="https://drive.google.com/file/d/1abc/view"),
+            "data.links.regulations.url",
+        ),
         (lambda d: d["contributors"][0].update(url="javascript:alert(1)"), "data.contributors.0.url"),
         (lambda d: d["contributors"].append(dict(d["contributors"][0])), "data"),
         (lambda d: d["noteCredits"][0].update(modules=[]), "data.noteCredits.0.modules"),
@@ -177,6 +181,12 @@ def test_holders_of_guides_edit_save_them(
                 {"kind": "web", "href": "http://example.com", "label": "Example"}
             ),
             "data.resultsDay.steps.0.links.2.web.href",
+        ),
+        (
+            lambda g: g["startHere"]["steps"][0]["links"].append(
+                {"kind": "web", "href": "https://docs.google.com/document/d/1abc", "label": "Notes"}
+            ),
+            "data.startHere.steps.0.links.1.web.href",
         ),
         (
             lambda g: g["resultsDay"]["steps"][0]["links"].append({"kind": "site", "link": "vle", "label": "The VLE"}),

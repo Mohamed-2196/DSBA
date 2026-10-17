@@ -533,7 +533,7 @@ export function Editor({ detail }: { detail: IssueDetail }) {
           description={
             published
               ? "Published: what you save shows to readers straight away."
-              : "A draft: only student reps see it until it’s published."
+              : "A draft: only people who manage the newsletter see it until it’s published."
           }
           meta={
             <>

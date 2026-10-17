@@ -20,6 +20,7 @@ from sqlalchemy.sql.elements import ColumnElement
 
 from app.core.access import Box
 from app.core.errors import ApiError, conflict, forbidden, invalid, not_found, unauthenticated
+from app.core.links import GOOGLE_FILE_HOSTS
 from app.core.text import has_latin, insert_with_unique_slug, short_id, slugify
 from app.core.time import utcnow
 from app.models import (
@@ -118,7 +119,6 @@ FORMATS: dict[str, str] = {
     "webp": "WEBP",
     "gif": "GIF",
 }
-GOOGLE_FILE_HOSTS = frozenset({"drive.google.com", "docs.google.com"})  # never linked: the Drive import copies them
 Sort = Literal["new", "popular", "title", "relevance"]
 LINK_MAX = 2000
 

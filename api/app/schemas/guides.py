@@ -16,7 +16,7 @@ from pydantic_core import PydanticCustomError
 
 from app.schemas.access import FeatureKey
 from app.schemas.common import ApiModel, UserPublic
-from app.schemas.links import HttpsUrl, HubPath
+from app.schemas.links import HubPath, SiteUrl
 
 StepId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", min_length=1, max_length=40)]
 Label = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)]
@@ -29,7 +29,7 @@ SiteLinkKey = Literal["myclass", "uolPortal", "regulations", "results"]
 
 class WebLink(ApiModel):
     kind: Literal["web"]
-    href: HttpsUrl
+    href: SiteUrl
     label: Label
 
 

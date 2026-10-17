@@ -20,6 +20,12 @@ from urllib.parse import urlsplit
 LINK_RULE = "Links must start with https:// or point to a page of the Hub (like /calendar)."
 HTTPS_RULE = "Use an https:// link."
 HUB_PATH_RULE = "Use a page of the Hub, starting with / (like /library?type=notes)."
+DRIVE_RULE = (
+    "The Hub keeps its own copy of files instead of sending students to Google Drive. Link the file in the library "
+    "instead."
+)
+# Never linked: the Drive import copies their files into the library.
+GOOGLE_FILE_HOSTS = frozenset({"drive.google.com", "docs.google.com"})
 PICTURE_RULE = "Use a picture of the Hub (like brand/newsletter-cover.jpg) or an uploaded image (/api/v1/media/…)."
 
 _UNSAFE_IN_LINK = re.compile(r"[\x00-\x20\x7f\x85\u2028\u2029\\]")
@@ -41,6 +47,15 @@ def is_https(value: str) -> bool:
     except ValueError:
         return False
     return bool(parts.hostname) and parts.username is None and parts.password is None
+
+
+def is_google_file(value: str) -> bool:
+    """A Google Drive or Docs address."""
+    try:
+        host = urlsplit(value.strip()).hostname or ""
+    except ValueError:
+        return False
+    return host.lower() in GOOGLE_FILE_HOSTS
 
 
 def is_hub_path(value: str) -> bool:

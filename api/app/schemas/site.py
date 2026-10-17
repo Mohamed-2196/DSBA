@@ -14,7 +14,7 @@ from pydantic import Field, StringConstraints, model_validator
 from pydantic_core import PydanticCustomError
 
 from app.schemas.common import ApiModel, UserPublic
-from app.schemas.links import MARKUP, HttpsUrl
+from app.schemas.links import MARKUP, SiteUrl
 
 ItemId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", min_length=1, max_length=64)]
 ModuleId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", min_length=1, max_length=64)]
@@ -30,7 +30,7 @@ class SiteLink(ApiModel):
 
     label: Label  # 'BIBF MyClass'
     note: Line  # what it's for, under the label on About: 'Lecture slides, announcements and coursework'
-    url: HttpsUrl
+    url: SiteUrl
 
 
 class SiteLinks(ApiModel):
@@ -47,7 +47,7 @@ class SiteContributor(ApiModel):
     name: Name
     role: Line | None = None  # what they contributed; None until it's agreed
     affiliation: Line | None = None
-    url: HttpsUrl | None = None  # their own page
+    url: SiteUrl | None = None  # their own page
 
 
 class NoteCredit(ApiModel):
