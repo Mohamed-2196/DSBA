@@ -233,7 +233,9 @@ The `sweep` service runs `python -m app.cli sweep` when it starts and every 24 h
   the row;
 - sign-in codes older than two days (the longest rate-limit window is a day);
 - sessions that expired or were revoked more than 30 days ago;
-- the files of library items rejected or removed more than a week ago (the item stays, without its file).
+- the files of library items rejected or removed more than a week ago (the item stays, without its file);
+- the addresses kept on guests' bug reports after a day, and the screenshots of bug reports closed (fixed or won't
+  fix) more than 90 days ago (the report stays, without its screenshot).
 
 ## 9. Analytics (optional)
 

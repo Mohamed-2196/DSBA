@@ -53,7 +53,7 @@ copy makes:
 | SEC-37 | minor | deployment (`api/Dockerfile:37`, `routers/feeds.py:20`) | open | The private calendar feed's secret is written to the API's access log on every poll |
 | SEC-38 | minor | boards (`services/board/common.py:33`) | open | No total on the text a student's boards hold: about 880 MB of rows per free account |
 | SEC-39 | minor | boards, uploads (`services/board/files.py:124`) | open | Detaching a board file gives its slot back to the 20-uploads-an-hour limit |
-| SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | open | Bug reports and their screenshots are left out of the export and outlive the account |
+| SEC-40 | minor | accounts, bugs (`services/accounts.py:610`, `:946`) | **fixed** | Bug reports and their screenshots are left out of the export and outlive the account |
 | SEC-41 | minor | Daily (`services/daily/plays.py:165`) | open | Every Daily answer is available before the scored play, so anyone can top the leaderboard |
 | SEC-42 | minor | content (`schemas/modules.py:121`, `services/module_editor.py:217`) | open | Module art skips the picture rules: any address, and an upload that was never checked |
 | SEC-43 | minor | deployment (`.github/workflows/railway.yml:22`) | open (partly verified) | The public Railway dev deployment runs outside production mode |
@@ -203,6 +203,18 @@ copy makes:
   - On deletion, delete the person's bug screenshots (objects first, as for notes) and either delete their reports or
     keep them without the browser line, and say which in the deletion dialog.
   - Give screenshots an end: the sweep deletes those of reports closed more than 90 days ago.
+- **Fixed:**
+  - The export has `bugReports`: the words, page, version, browser, status, dates and the screenshot's file name
+    (`bugs.export()`); the download's description on Your account names bug reports.
+  - Deleting the account deletes the person's screenshots (objects first, with the other uploads) and their reports:
+    `bug_reports.user_id` is `ON DELETE CASCADE` (migration 0031), so a report without a reporter is a guest's.
+    Admins' notifications stop quoting the deleted reports (`bugs.unquote()`). The deletion dialog lists bug reports
+    among what is deleted.
+  - The sweep deletes the screenshots of reports closed more than 90 days ago (`bugs.sweep_screenshots()`); the
+    report stays.
+  - `tests/core/test_bug_reports.py` checks all three (`test_your_bug_reports_are_in_your_data_download`,
+    `test_deleting_the_account_deletes_its_reports_and_their_screenshots`,
+    `test_the_sweep_deletes_the_screenshots_of_reports_closed_90_days_ago`).
 
 ### SEC-41. Every Daily answer is available before the scored play, so anyone can top the leaderboard (minor)
 

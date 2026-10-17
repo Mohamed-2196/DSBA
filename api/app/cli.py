@@ -7,7 +7,8 @@ backup             pg_dump the database into the backup bucket, encrypted at res
                    DSBA_BACKUP_KEEP (docs/backend/DEPLOYMENT.md: where backups go, and how to restore one)
 sweep              delete what is no longer needed: uploads never attached to anything or whose board card is gone
                    (after a day), sign-in codes older than two days, sessions that expired or were revoked more
-                   than 30 days ago, and the files of library items rejected or removed more than a week ago
+                   than 30 days ago, the files of library items rejected or removed more than a week ago, and the
+                   screenshots of bug reports closed more than 90 days ago
 setup-bucket       create the bucket if needed and set its CORS and lifecycle rules (production: once)
 mail-worker        send the queued emails (notifications, account notices, Sunday summaries) with retries; runs
                    until stopped (--once: until nothing is due). Several can run side by side. On Sunday from
@@ -243,13 +244,15 @@ class SweepReport:
     sessions: int
     files: int = 0  # files of rejected or removed library items
     bug_report_ips: int = 0  # guests' addresses on bug reports, forgotten once the rate limit no longer counts them
+    bug_screenshots: int = 0  # screenshots of bug reports closed long ago
 
 
 def sweep() -> SweepReport:
     """Deletes uploads never attached to anything, or whose board card is gone (objects first, then rows), old
-    sign-in codes, sessions that ended long ago, the files of library items rejected or removed a week ago, and
-    the addresses kept on bug reports. Safe to run at any time and to run again."""
-    from app.services.bugs import clear_old_ips
+    sign-in codes, sessions that ended long ago, the files of library items rejected or removed a week ago, the
+    addresses kept on bug reports and the screenshots of reports closed long ago. Safe to run at any time and to
+    run again."""
+    from app.services.bugs import clear_old_ips, sweep_screenshots
     from app.services.library import sweep_files
     from app.services.otp import KEEP_CHALLENGES
 
@@ -271,17 +274,23 @@ def sweep() -> SweepReport:
         dead = delete(UserSession).where(or_(UserSession.expires_at < ended, UserSession.revoked_at < ended))
         sessions = cast(CursorResult[Any], db.execute(dead)).rowcount
         bug_report_ips = clear_old_ips(db)
+        bug_screenshots = sweep_screenshots(db, storage, now)
         db.commit()
     return SweepReport(
-        uploads=len(stale), challenges=challenges, sessions=sessions, files=files, bug_report_ips=bug_report_ips
+        uploads=len(stale),
+        challenges=challenges,
+        sessions=sessions,
+        files=files,
+        bug_report_ips=bug_report_ips,
+        bug_screenshots=bug_screenshots,
     )
 
 
 def cmd_sweep(_: argparse.Namespace) -> int:
     r = sweep()
     print(
-        f"swept {r.uploads} upload(s), {r.files} library file(s), {r.challenges} sign-in code(s) "
-        f"and {r.sessions} session(s)"
+        f"swept {r.uploads} upload(s), {r.files} library file(s), {r.bug_screenshots} bug screenshot(s), "
+        f"{r.challenges} sign-in code(s) and {r.sessions} session(s)"
     )
     return 0
 

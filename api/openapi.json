@@ -21619,6 +21619,13 @@
             "type": "array",
             "title": "Reports"
           },
+          "bugReports": {
+            "items": {
+              "$ref": "#/components/schemas/ExportBugReport"
+            },
+            "type": "array",
+            "title": "Bugreports"
+          },
           "requests": {
             "items": {
               "$ref": "#/components/schemas/ExportRequest"
@@ -21764,6 +21771,7 @@
           "notifications",
           "votes",
           "reports",
+          "bugReports",
           "requests",
           "meToos",
           "questionTags",
@@ -27527,6 +27535,87 @@
           "createdAt"
         ],
         "title": "ExportBoardPlan"
+      },
+      "ExportBugReport": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "fixed",
+              "wont_fix"
+            ],
+            "title": "Status"
+          },
+          "whatHappened": {
+            "type": "string",
+            "title": "Whathappened"
+          },
+          "expected": {
+            "type": "string",
+            "title": "Expected"
+          },
+          "pageUrl": {
+            "type": "string",
+            "title": "Pageurl"
+          },
+          "appVersion": {
+            "type": "string",
+            "title": "Appversion"
+          },
+          "browser": {
+            "type": "string",
+            "title": "Browser"
+          },
+          "screenshot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screenshot"
+          },
+          "resolvedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolvedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "createdAt",
+          "status",
+          "whatHappened",
+          "expected",
+          "pageUrl",
+          "appVersion",
+          "browser",
+          "screenshot",
+          "resolvedAt"
+        ],
+        "title": "ExportBugReport",
+        "description": "A bug report the person sent, in their data download (GET /me/export)."
       },
       "ExportCalendarSettings": {
         "properties": {

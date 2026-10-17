@@ -709,6 +709,7 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
         "notifications",
         "votes",
         "reports",
+        "bugReports",
         "requests",
         "meToos",
         "questionTags",

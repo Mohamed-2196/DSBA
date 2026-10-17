@@ -3439,6 +3439,8 @@ export interface components {
             votes: components["schemas"]["ExportVote"][];
             /** Reports */
             reports: components["schemas"]["ExportReport"][];
+            /** Bugreports */
+            bugReports: components["schemas"]["ExportBugReport"][];
             /** Requests */
             requests: components["schemas"]["ExportRequest"][];
             /** Metoos */
@@ -5348,6 +5350,41 @@ export interface components {
              * Format: date-time
              */
             createdAt: string;
+        };
+        /**
+         * ExportBugReport
+         * @description A bug report the person sent, in their data download (GET /me/export).
+         */
+        ExportBugReport: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "fixed" | "wont_fix";
+            /** Whathappened */
+            whatHappened: string;
+            /** Expected */
+            expected: string;
+            /** Pageurl */
+            pageUrl: string;
+            /** Appversion */
+            appVersion: string;
+            /** Browser */
+            browser: string;
+            /** Screenshot */
+            screenshot: string | null;
+            /** Resolvedat */
+            resolvedAt: string | null;
         };
         /**
          * ExportCalendarSettings
@@ -9425,6 +9462,7 @@ export type ExportBoardColumn = components['schemas']['ExportBoardColumn'];
 export type ExportBoardComment = components['schemas']['ExportBoardComment'];
 export type ExportBoardFile = components['schemas']['ExportBoardFile'];
 export type ExportBoardPlan = components['schemas']['ExportBoardPlan'];
+export type ExportBugReport = components['schemas']['ExportBugReport'];
 export type ExportCalendarSettings = components['schemas']['ExportCalendarSettings'];
 export type ExportDailyPlay = components['schemas']['ExportDailyPlay'];
 export type ExportEmail = components['schemas']['ExportEmail'];

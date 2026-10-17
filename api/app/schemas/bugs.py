@@ -38,7 +38,7 @@ class BugReportOut(ApiModel):
     page_url: str
     app_version: str
     browser: str
-    reporter: UserPublic | None  # None: a guest, or an account deleted since
+    reporter: UserPublic | None  # None: a guest
     screenshot_url: str | None  # '/api/v1/media/<upload id>'
     resolved_at: datetime | None
     resolved_by: UserPublic | None
@@ -50,3 +50,18 @@ class BugReportUpdate(ApiModel):
 
 class BugReportPage(Page[BugReportOut]):
     open_count: int  # every open report, whatever the filter
+
+
+class ExportBugReport(ApiModel):
+    """A bug report the person sent, in their data download (GET /me/export)."""
+
+    id: UUID
+    created_at: datetime
+    status: BugStatus
+    what_happened: str
+    expected: str
+    page_url: str
+    app_version: str
+    browser: str
+    screenshot: str | None  # the attached screenshot's file name
+    resolved_at: datetime | None

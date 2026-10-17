@@ -131,8 +131,8 @@ services:
         condition: service_completed_successfully
 
   sweep:
-    # Every 24 hours: uploads never attached to anything, old sign-in codes, sessions that ended long ago, and the
-    # files of library items rejected or removed a week ago.
+    # Every 24 hours: uploads never attached to anything, old sign-in codes, sessions that ended long ago, the files
+    # of library items rejected or removed a week ago, and the screenshots of bug reports closed 90 days ago.
     <<: *api
     command: >-
       sh -c "while true; do python -m app.cli sweep || echo 'sweep failed' >&2; sleep 86400; done"

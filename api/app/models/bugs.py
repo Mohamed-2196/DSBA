@@ -21,8 +21,8 @@ class BugStatus(enum.StrEnum):
 
 class BugReport(Base):
     """What happened, what the person expected, and where: the page, the app's version and the browser. A
-    signed-in reporter may attach a screenshot (an upload with `bug_report_id`). `ip` counts a guest's reports for
-    the rate limit; the daily sweep clears it once it no longer counts."""
+    signed-in reporter may attach a screenshot (an upload with `bug_report_id`); their reports go with their
+    account. `ip` counts a guest's reports for the rate limit; the daily sweep clears it once it no longer counts."""
 
     __tablename__ = "bug_reports"
     __table_args__ = (
@@ -32,7 +32,7 @@ class BugReport(Base):
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
-    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))  # None: a guest
     ip: Mapped[str | None] = mapped_column(INET)
     what_happened: Mapped[str] = mapped_column(Text)
     expected: Mapped[str] = mapped_column(Text, default="", server_default="")

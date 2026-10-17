@@ -3,7 +3,9 @@
 - A signed-in person may send 10 an hour, a guest 5 an hour from one network (client_ip(), an IPv6 /64), and guests
   30 an hour all together: past that, a guest is asked to sign in.
 - A signed-in reporter may attach a screenshot: their own bug_screenshot upload, checked and not yet used. It becomes
-  attached to the report, so the sweep keeps it; /media shows it to its uploader and to admins only.
+  attached to the report, so the sweep keeps it until KEEP_SCREENSHOTS after the report is closed; /media shows it
+  to its uploader and to admins only.
+- A reporter's reports are in their data download (export()), and go with their account, screenshots included.
 - Every active admin hears of new reports in the hub (never by email), one notification at a time: while it is
   unread, the next report counts it up ("3 new bug reports") instead of adding another. An admin isn't told of their
   own.
@@ -14,11 +16,11 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any, cast
 from urllib.parse import urlsplit
 
-from sqlalchemy import ColumnElement, CursorResult, and_, func, select, true, update
+from sqlalchemy import ColumnElement, CursorResult, Text, and_, func, select, true, update
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -38,17 +40,19 @@ from app.models import (
     User,
     UserStatus,
 )
-from app.schemas.bugs import BugReportCreate, BugReportOut, BugReportPage
+from app.schemas.bugs import BugReportCreate, BugReportOut, BugReportPage, ExportBugReport
 from app.schemas.bugs import BugStatus as StatusKey
 from app.services import access, audit, ratelimit
 from app.services.accounts import public_user
 from app.services.notify import notify_all
+from app.services.storage import Storage
 
 PER_HOUR_SIGNED_IN = 10
 PER_HOUR_GUEST = 5  # from one network
 PER_HOUR_ALL_GUESTS = 30
 WINDOW = timedelta(hours=1)
 KEEP_IP = timedelta(days=1)  # a guest's address counts for the limit only within WINDOW: the sweep clears it after
+KEEP_SCREENSHOTS = timedelta(days=90)  # after the report is closed (fixed or won't fix): then the sweep deletes them
 TOO_MANY = "You've sent a lot of reports. Try again in {}."
 GUESTS_FULL = "A lot of reports came in from people who aren't signed in. Sign in to send yours, or try again in {}."
 PAGE_RULE = "Give the address of a page of the hub, like /library."
@@ -291,3 +295,66 @@ def clear_old_ips(db: Session) -> int:
         .execution_options(synchronize_session=False)
     )
     return cast(CursorResult[Any], db.execute(old)).rowcount
+
+
+def sweep_screenshots(db: Session, storage: Storage, now: datetime | None = None) -> int:
+    """Deletes the screenshots of reports closed more than KEEP_SCREENSHOTS ago, each object before its row (the
+    sweep); the reports stay. -> how many."""
+    closed = select(BugReport.id).where(
+        BugReport.status != BugStatus.open, BugReport.resolved_at < (now or utcnow()) - KEEP_SCREENSHOTS
+    )
+    old = db.scalars(
+        select(Upload).where(Upload.purpose == UploadPurpose.bug_screenshot, Upload.bug_report_id.in_(closed))
+    ).all()
+    for up in old:
+        storage.delete(up.storage_key)
+        db.delete(up)
+    return len(old)
+
+
+# ── the person's own ────────────────────────────────────────────────────────────────────────
+
+
+def unquote(db: Session, user_id: uuid.UUID) -> None:
+    """Before an account goes (its reports go with it): admins' notifications stop quoting its reports' words."""
+    theirs = select(BugReport.id.cast(Text)).where(BugReport.user_id == user_id)
+    db.execute(
+        update(Notification)
+        .where(Notification.kind == "bug_report", Notification.data["bugReportId"].astext.in_(theirs))
+        .values(body=None)
+        .execution_options(synchronize_session=False)
+    )
+
+
+def export(db: Session, user_id: uuid.UUID) -> list[ExportBugReport]:
+    """The bug reports the person sent, oldest first, with their screenshot's file name (GET /me/export)."""
+    shots = dict(
+        db.execute(
+            select(Upload.bug_report_id, Upload.file_name).where(
+                Upload.user_id == user_id,
+                Upload.purpose == UploadPurpose.bug_screenshot,
+                Upload.bug_report_id.is_not(None),
+            )
+        )
+        .tuples()
+        .all()
+    )
+    return [
+        ExportBugReport.model_validate(
+            {
+                "id": r.id,
+                "created_at": r.created_at,
+                "status": r.status.value,
+                "what_happened": r.what_happened,
+                "expected": r.expected,
+                "page_url": r.page_url,
+                "app_version": r.app_version,
+                "browser": r.browser,
+                "screenshot": shots.get(r.id),
+                "resolved_at": r.resolved_at,
+            }
+        )
+        for r in db.scalars(
+            select(BugReport).where(BugReport.user_id == user_id).order_by(BugReport.created_at, BugReport.id)
+        )
+    ]
