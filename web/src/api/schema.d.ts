@@ -8044,11 +8044,11 @@ export interface components {
             /** Choice */
             choice: number;
             /** Answer */
-            answer: number | null;
+            answer: number;
             /** Correct */
             correct: boolean;
             /** Explain */
-            explain: string | null;
+            explain: string;
         };
         /** QuizQuestion */
         QuizQuestion: {

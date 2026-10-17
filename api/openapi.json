@@ -35418,14 +35418,7 @@
             "title": "Choice"
           },
           "answer": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
             "title": "Answer"
           },
           "correct": {
@@ -35433,14 +35426,7 @@
             "title": "Correct"
           },
           "explain": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Explain"
           }
         },

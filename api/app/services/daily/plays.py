@@ -4,8 +4,9 @@ leaderboard.
 Signed in, a play lives in `daily_plays` with its moves; each new move is checked by replaying the play. Today's
 row is made when the person first opens the puzzle, so its clock starts then (Sudoku's at the first move: opening a
 difficulty to look at it doesn't choose it). A guest's play lives in their browser, which sends its moves with each
-new one; nothing is kept, so a guest's play of today's set never shows its answer, even once it's over. A play
-counts (`scored`) when it's the person's first of that game on the puzzle's own day."""
+new one; nothing is kept. A guest's play gets the game's usual feedback, but a guest's play of today's set never
+shows the answers it didn't find, even once it's over. A play counts (`scored`) when it's the person's first of that
+game on the puzzle's own day."""
 
 from __future__ import annotations
 
@@ -36,7 +37,6 @@ from app.schemas.daily import (
     Play,
     PlayOut,
     PlayStatus,
-    QuizView,
 )
 from app.services import accounts, ratelimit
 from app.services.daily import content
@@ -98,12 +98,6 @@ def _replay(game: Game[Any, Any], puzzle: Any, moves: list[Move]) -> _Replay:
     return _Replay(state, result)
 
 
-def _without_answers(view: QuizView) -> QuizView:
-    """The quiz as a guest sees today's: whether each answer was right, but not the right one."""
-    answered = [a if a.correct else a.model_copy(update={"answer": None, "explain": None}) for a in view.answered]
-    return view.model_copy(update={"answered": answered})
-
-
 def _row(db: Session, user: User, day: dt.date, game: GameId, variant: str) -> DailyPlay | None:
     return db.scalar(
         select(DailyPlay).where(
@@ -153,7 +147,8 @@ def _play_out(
     scored: bool,
     secret: bool,
 ) -> PlayOut:
-    """The play as its player sees it. `secret`: a guest's play of today's set, which shows no answers."""
+    """The play as its player sees it. `secret`: a guest's play of today's set, which doesn't show the answers it
+    didn't find once it's over."""
     played = game.status(puzzle, replay.state)
     status: PlayStatus = played if moves else "new"
     over = moves > 0 and played in FINISHED
@@ -162,9 +157,6 @@ def _play_out(
     points = row.points if row else (game.points(puzzle, replay.state, variant, seconds or 0) if over else 0)
     mistakes, hints = game.counts(replay.state)
     share = f"DSBA Daily #{number_of(day)}\n{game.share(puzzle, replay.state, played)}" if over else None
-    view = game.view(puzzle, replay.state, over and not secret)
-    if secret and isinstance(view, QuizView):
-        view = _without_answers(view)
     return PlayOut(
         info=game.info(),
         theme=content.theme_of(day),
@@ -182,7 +174,7 @@ def _play_out(
             too_fast=bool(row and row.too_fast),
             result=replay.result,
             share=share,
-            view=view,
+            view=game.view(puzzle, replay.state, over and not secret),
         ),
     )
 

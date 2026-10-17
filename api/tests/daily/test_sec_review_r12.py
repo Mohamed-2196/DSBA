@@ -56,14 +56,11 @@ def test_sec41_a_guest_play_of_todays_set_shows_no_answer(client_for: ClientFor,
     assert search["found"] == []
     sudoku = move(guest, "sudoku", {"kind": "give-up"}, variant="easy").json()["play"]
     assert (sudoku["status"], sudoku["view"]["filled"]) == ("lost", [0] * 81)
-    # A wrong quiz answer says it's wrong, but not which one is right; a right one shows as right.
+    # The games' feedback is the game, for guests too (Mohamed, 2026-10-17): a wrong quiz answer shows the right one.
     questions = GAMES["quiz"].puzzle(db, bahrain_today(), "")
     wrong = (questions[0].answer + 1) % len(questions[0].options)
     answered = move(guest, "quiz", {"kind": "answer", "choice": wrong}).json()["play"]["view"]["answered"][0]
-    assert (answered["correct"], answered["answer"], answered["explain"]) == (False, None, None)
-    history = [{"kind": "answer", "choice": wrong}]
-    second = move(guest, "quiz", {"kind": "answer", "choice": questions[1].answer}, history=history).json()["play"]
-    assert second["view"]["answered"][1]["answer"] == questions[1].answer
+    assert (answered["correct"], answered["answer"]) == (False, questions[0].answer)
     # Past days are practice: they show their answers to anyone.
     past = move(guest, "word", {"kind": "give-up"}, day=yesterday()).json()["play"]["view"]
     assert past["answer"] == GAMES["word"].puzzle(db, bahrain_today() - dt.timedelta(days=1), "")
