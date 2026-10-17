@@ -22,6 +22,7 @@ import random
 import secrets
 import uuid
 from collections.abc import Callable, Sequence
+from contextlib import suppress
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -159,12 +160,14 @@ def theme_ids(db: Session, days: Sequence[dt.date]) -> list[str]:
 
 
 def keep_weeks(db: Session, plan: Schedule, through: dt.date) -> None:
-    """Fixes the theme of every week up to `through`'s, as it stands, so a change to the rotation leaves them be."""
+    """Fixes the theme of every week up to `through`'s, as it stands, so a change to the rotation leaves them be. A
+    week with no theme (no rotation yet) has nothing to keep."""
     week, last = EPOCH, week_start(through)
     rows = []
     while week <= last:
         if week not in plan.pinned:
-            rows.append({"week_start": week, "theme_id": plan.theme_id(week)})
+            with suppress(NoThemeError):
+                rows.append({"week_start": week, "theme_id": plan.theme_id(week)})
         week += WEEK
     if rows:
         db.execute(pg_insert(DailyThemeWeek).values(rows).on_conflict_do_nothing())

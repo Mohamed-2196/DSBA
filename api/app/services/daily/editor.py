@@ -946,6 +946,13 @@ def delete_theme(db: Session, user: User, theme_id: str, version: int, ip: str |
     return overview(db)
 
 
+def _theme_of_week(plan: Schedule, week: dt.date) -> str | None:
+    try:
+        return plan.theme_id(week)
+    except NoThemeError:
+        return None
+
+
 def set_week(db: Session, user: User, week: dt.date, body: WeekSave, ip: str | None) -> DailyContentOverview:
     """Names the theme for a week to come, or (theme null) gives the week back to the rotation. A week that started
     keeps its theme; a theme runs only once it has what every game needs (409 theme_not_ready)."""
@@ -957,7 +964,7 @@ def set_week(db: Session, user: User, week: dt.date, body: WeekSave, ip: str | N
     if week > today + dt.timedelta(days=PREVIEW_DAYS):
         raise invalid("weekStart", "Plan up to a year ahead.")
     plan = content.schedule(db)
-    before = plan.theme_id(week) if plan.rotation or plan.pinned else None
+    before = _theme_of_week(plan, week)
     if body.theme is None:
         if week not in plan.pinned:
             return overview(db)
@@ -974,7 +981,7 @@ def set_week(db: Session, user: User, week: dt.date, body: WeekSave, ip: str | N
             .values(week_start=week, theme_id=theme.id)
             .on_conflict_do_update(index_elements=["week_start"], set_={"theme_id": theme.id})
         )
-    after = content.schedule(db).theme_id(week)
+    after = _theme_of_week(content.schedule(db), week)
     record(
         db,
         user,
@@ -1027,8 +1034,13 @@ def _table(text: str) -> tuple[list[str], list[tuple[int, list[str]]]]:
     first = text.lstrip().split("\n", 1)[0]
     delimiter = "\t" if "\t" in first else (";" if ";" in first and "," not in first else ",")
     reader = csv.reader(io.StringIO(text.strip()), delimiter=delimiter)
-    header = next(reader, [])
-    rows = [(reader.line_num, cells) for cells in reader if any(c.strip() for c in cells)]
+    try:
+        header = next(reader, [])
+        rows = [(reader.line_num, cells) for cells in reader if any(c.strip() for c in cells)]
+    except csv.Error:
+        raise invalid(
+            "text", "These rows can't be read. Copy them from the spreadsheet again, or paste plain text."
+        ) from None
     return [_header(h) for h in header], rows
 
 

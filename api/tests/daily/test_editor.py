@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.time import bahrain_today
-from app.models import AuditEntry, DailyItem, User
+from app.models import AuditEntry, DailyItem, DailyTheme, User
 from app.services.daily import content
 from app.services.daily.games import GAMES
 from tests.daily.conftest import API, GUESSES, VOCABULARY
@@ -408,3 +408,26 @@ def test_a_preview_names_what_a_short_theme_lacks(c: TestClient, db: Session) ->
     body = c.get(f"{DAILY}/preview", params={"day": (bahrain_today() + dt.timedelta(days=1)).isoformat()}).json()
     search = next(g for g in body["games"] if g["game"] == "search")
     assert (search["puzzle"], search["problem"]) == (None, "Word search needs at least 8 words.")
+
+
+def test_a_new_install_puts_its_first_theme_in_the_rotation(c: TestClient, db: Session) -> None:
+    # A new install's themes wait out of the rotation, with nothing scheduled.
+    for theme in db.scalars(select(DailyTheme)):
+        theme.in_rotation = False
+    db.commit()
+    assert overview(c)["weeks"] == []
+    week = (content.week_start(bahrain_today()) + 2 * content.WEEK).isoformat()
+    assert c.put(f"{DAILY}/weeks/{week}", json={"theme": "beta"}).status_code == 200
+    alpha = next(t for t in overview(c)["themes"] if t["id"] == "alpha")
+    r = c.put(f"{DAILY}/themes/alpha", json={"title": alpha["title"], "blurb": "", "inRotation": True, "version": 1})
+    assert r.status_code == 200, r.text
+    weeks = r.json()["weeks"]
+    assert [w["theme"] for w in weeks[:4]] == ["alpha", "alpha", "beta", "alpha"]
+
+
+def test_rows_that_cant_be_read_are_refused_on_the_text(c: TestClient) -> None:
+    huge = "x" * 140_000  # more than a CSV field may hold
+    r = c.post(
+        f"{DAILY}/import", json={"game": "quiz", "theme": "alpha", "text": f'question,answer,wrong\n"{huge}",b,c'}
+    )
+    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["text"])
