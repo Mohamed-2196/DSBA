@@ -4277,8 +4277,7 @@ export interface components {
              * Format: date
              */
             day: string;
-            /** Theme */
-            theme: string;
+            theme: components["schemas"]["Theme"];
             /** Done */
             done: number;
             /** Points */
@@ -5131,6 +5130,8 @@ export interface components {
              * Format: date
              */
             day: string;
+            /** Number */
+            number: number;
             /**
              * Firstday
              * Format: date
@@ -6063,6 +6064,8 @@ export interface components {
              * @enum {string}
              */
             status: "new" | "playing" | "won" | "lost";
+            /** Variant */
+            variant: string;
             /** Points */
             points: number;
             /** Scored */
@@ -7787,6 +7790,8 @@ export interface components {
              * Format: date
              */
             day: string;
+            /** Number */
+            number: number;
             /**
              * Game
              * @enum {string}

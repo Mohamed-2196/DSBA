@@ -93,6 +93,29 @@ def _row(db: Session, user: User, day: dt.date, game: GameId, variant: str) -> D
     )
 
 
+def number_of(day: dt.date) -> int:
+    """The day's set number, as players count them: 1 on the first day."""
+    return (day - content.FIRST_DAY).days + 1
+
+
+def _scored_play(db: Session, user: User, day: dt.date, game: GameId) -> DailyPlay | None:
+    return db.scalar(
+        select(DailyPlay).where(
+            DailyPlay.user_id == user.id, DailyPlay.day == day, DailyPlay.game == game, DailyPlay.scored
+        )
+    )
+
+
+def _counts(db: Session, user: User | None, day: dt.date, game: GameId, row: DailyPlay | None) -> bool:
+    """Whether the play counts for points: kept (signed in), on its own day, and the person's first of that game
+    that day. A play not started yet says whether it would."""
+    if row is not None:
+        return row.scored
+    if user is None or day != bahrain_today():
+        return False
+    return _scored_play(db, user, day, game) is None
+
+
 def _seconds(row: DailyPlay | None) -> int | None:
     if row is None or row.finished_at is None:
         return None
@@ -108,6 +131,7 @@ def _play_out(
     replay: _Replay,
     moves: int,
     row: DailyPlay | None,
+    scored: bool,
 ) -> PlayOut:
     played = game.status(puzzle, replay.state)
     status: PlayStatus = played if moves else "new"
@@ -116,19 +140,17 @@ def _play_out(
     # Kept plays carry what they earned; a guest's shows what it would have earned.
     points = row.points if row else (game.points(puzzle, replay.state, variant, seconds or 0) if over else 0)
     mistakes, hints = game.counts(replay.state)
-    share = None
-    if over:
-        variant_label = f" ({variant})" if variant else ""
-        share = f"DSBA Daily, {day.day} {day:%b %Y}{variant_label}\n{game.share(puzzle, replay.state, played)}"
+    share = f"DSBA Daily #{number_of(day)}\n{game.share(puzzle, replay.state, played)}" if over else None
     return PlayOut(
         info=game.info(),
         theme=content.theme_of(day),
         play=Play(
             day=day,
+            number=number_of(day),
             game=game.id,
             variant=variant,
             status=status,
-            scored=bool(row and row.scored),
+            scored=scored,
             points=points,
             mistakes=mistakes,
             hints=hints,
@@ -149,7 +171,8 @@ def get_play(db: Session, user: User | None, day: dt.date, game_id: GameId, vari
     puzzle = game.puzzle(db, day, variant)
     row = _row(db, user, day, game_id, variant) if user else None
     moves = MOVES.validate_python(row.moves) if row else []
-    return _play_out(db, game, day, variant, puzzle, _replay(game, puzzle, moves), len(moves), row)
+    scored = _counts(db, user, day, game_id, row)
+    return _play_out(db, game, day, variant, puzzle, _replay(game, puzzle, moves), len(moves), row, scored)
 
 
 def make_move(db: Session, user: User | None, day: dt.date, game_id: GameId, body: MoveIn) -> PlayOut:
@@ -165,7 +188,7 @@ def make_move(db: Session, user: User | None, day: dt.date, game_id: GameId, bod
     moves = MOVES.validate_python(row.moves) if row else ([] if user else list(body.history))
     replay = _replay(game, puzzle, moves)
     if body.move is None:
-        return _play_out(db, game, day, variant, puzzle, replay, len(moves), row)
+        return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, _counts(db, user, day, game_id, row))
     if body.move.kind not in game.moves:
         raise invalid("move", f"{game.title} doesn't take that move.")
     if moves and game.status(puzzle, replay.state) in FINISHED:
@@ -176,7 +199,7 @@ def make_move(db: Session, user: User | None, day: dt.date, game_id: GameId, bod
     moves.append(body.move)
     if user is not None:
         row = _keep(db, user, game, day, variant, puzzle, replay, moves, row)
-    return _play_out(db, game, day, variant, puzzle, replay, len(moves), row)
+    return _play_out(db, game, day, variant, puzzle, replay, len(moves), row, _counts(db, user, day, game_id, row))
 
 
 def _keep(
@@ -192,17 +215,12 @@ def _keep(
 ) -> DailyPlay:
     now = utcnow()
     if row is None:
-        scored_already = db.scalar(
-            select(DailyPlay.id).where(
-                DailyPlay.user_id == user.id, DailyPlay.day == day, DailyPlay.game == game.id, DailyPlay.scored
-            )
-        )
         row = DailyPlay(
             user_id=user.id,
             day=day,
             game=game.id,
             variant=variant,
-            scored=day == bahrain_today() and scored_already is None,
+            scored=_counts(db, user, day, game.id, None),
             started_at=now,
         )
         db.add(row)
@@ -241,16 +259,20 @@ def today_of(db: Session, user: User | None) -> DailyToday:
     for game in GAMES.values():
         mine = [r for r in rows if r.game == game.id]
         status = max((cast_status(r.status) for r in mine), key=_RANK.__getitem__, default="new")
+        # The play to open: the scored one, else the furthest (Sudoku's difficulties are plays of their own).
+        lead = next((r for r in mine if r.scored), None) or max(mine, key=lambda r: _RANK[r.status], default=None)
         games.append(
             GameDay(
                 info=game.info(),
                 status=status,
+                variant=lead.variant if lead else "",
                 points=sum(r.points for r in mine if r.scored),
                 scored=any(r.scored for r in mine),
             )
         )
     return DailyToday(
         day=today,
+        number=number_of(today),
         first_day=content.FIRST_DAY,
         theme=content.theme_of(today),
         games=games,
@@ -286,7 +308,7 @@ def calendar_of(db: Session, user: User | None, month: str) -> DailyCalendar:
     days = []
     d = start
     while d <= end:
-        days.append(CalendarDay(day=d, theme=content.theme_of(d).id, done=done.get(d, 0), points=points.get(d, 0)))
+        days.append(CalendarDay(day=d, theme=content.theme_of(d), done=done.get(d, 0), points=points.get(d, 0)))
         d += dt.timedelta(days=1)
     return DailyCalendar(month=month, total=len(GAMES), days=days)
 

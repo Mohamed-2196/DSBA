@@ -24140,8 +24140,7 @@
             "title": "Day"
           },
           "theme": {
-            "type": "string",
-            "title": "Theme"
+            "$ref": "#/components/schemas/Theme"
           },
           "done": {
             "type": "integer",
@@ -26868,6 +26867,10 @@
             "format": "date",
             "title": "Day"
           },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
           "firstDay": {
             "type": "string",
             "format": "date",
@@ -26910,6 +26913,7 @@
         "type": "object",
         "required": [
           "day",
+          "number",
           "firstDay",
           "theme",
           "games",
@@ -29443,6 +29447,10 @@
             ],
             "title": "Status"
           },
+          "variant": {
+            "type": "string",
+            "title": "Variant"
+          },
           "points": {
             "type": "integer",
             "title": "Points"
@@ -29456,6 +29464,7 @@
         "required": [
           "info",
           "status",
+          "variant",
           "points",
           "scored"
         ],
@@ -34729,6 +34738,10 @@
             "format": "date",
             "title": "Day"
           },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
           "game": {
             "type": "string",
             "enum": [
@@ -34846,6 +34859,7 @@
         "type": "object",
         "required": [
           "day",
+          "number",
           "game",
           "variant",
           "status",

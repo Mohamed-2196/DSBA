@@ -111,7 +111,7 @@ def _cell(at: tuple[int, int]) -> Cell:
 
 class SearchGame(Game[Puzzle, SearchState]):
     id = "search"
-    title = "Word search"
+    title = "Data Mine"
     tagline = "Find eight of the week's words hidden in the grid."
     how_to = (
         "Words run in any direction: across, down, diagonally, and backwards.",
@@ -193,5 +193,5 @@ class SearchGame(Game[Puzzle, SearchState]):
     def share(self, puzzle: Puzzle, state: SearchState, status: Status) -> str:
         n = len(state.found)
         hints = len(state.hints)
-        head = f"Word search: {n}/{len(puzzle.placed)} words, {hints} hint{'s' if hints != 1 else ''}"
+        head = f"{self.title} {n}/{len(puzzle.placed)} words, {hints} hint{'s' if hints != 1 else ''}"
         return f"{head}\n{'🟩' * n}{'⬜' * (len(puzzle.placed) - n)}"

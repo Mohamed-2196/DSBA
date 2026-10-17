@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.core.time import bahrain_today
 from app.models import DailyPlay, User
+from app.services.daily.content import FIRST_DAY
 from app.services.daily.games import GAMES
 from app.services.daily.games.sudoku import SudokuGame
 from tests.daily.conftest import API
@@ -184,7 +185,7 @@ def test_the_word_marks_guesses_and_shows_the_answer_only_at_the_end(
     assert (r.status_code, r.json()["error"]["code"]) == (422, "unknown_word")
     play = move(c, "word", {"kind": "guess", "word": answer}).json()["play"]
     assert (play["status"], play["points"], play["view"]["answer"]) == ("won", 90, answer)
-    assert play["share"].splitlines()[1] == "The word 2/6"
+    assert play["share"].splitlines()[:2] == [f"DSBA Daily #{(bahrain_today() - FIRST_DAY).days + 1}", "The Word 2/6"]
     assert answer not in play["share"]
 
 
@@ -199,3 +200,25 @@ def test_six_wrong_guesses_lose_and_give_up_ends_the_word(
     other = client_for(make_user())
     play = move(other, "word", {"kind": "give-up"}).json()["play"]
     assert (play["status"], play["view"]["answer"]) == ("lost", answer)
+
+
+def test_a_fresh_play_says_whether_it_will_count(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+    user = make_user()
+    c = client_for(user)
+    fresh = c.get(f"{API}/daily/{today()}/sudoku", params={"variant": "medium"}).json()["play"]
+    assert (fresh["status"], fresh["scored"], fresh["number"]) == ("new", True, (bahrain_today() - FIRST_DAY).days + 1)
+    # The first difficulty started counts; the others are practice from then on, before and after their first move.
+    move(c, "sudoku", {"kind": "hint"}, variant="medium")
+    assert c.get(f"{API}/daily/{today()}/sudoku", params={"variant": "hard"}).json()["play"]["scored"] is False
+    assert move(c, "sudoku", {"kind": "hint"}, variant="hard").json()["play"]["scored"] is False
+    assert c.get(f"{API}/daily/{today()}/sudoku", params={"variant": "medium"}).json()["play"]["scored"] is True
+    # The hub opens the scored difficulty.
+    card = next(g for g in c.get(f"{API}/daily").json()["games"] if g["info"]["id"] == "sudoku")
+    assert (card["variant"], card["status"], card["scored"]) == ("medium", "playing", True)
+    # A past day is practice, and a guest's play never counts.
+    yesterday = (bahrain_today() - dt.timedelta(days=1)).isoformat()
+    assert c.get(f"{API}/daily/{yesterday}/word").json()["play"]["scored"] is False
+    assert client_for().get(f"{API}/daily/{today()}/word").json()["play"]["scored"] is False
+    hub = client_for().get(f"{API}/daily").json()
+    assert hub["number"] == (bahrain_today() - FIRST_DAY).days + 1
+    assert {g["variant"] for g in hub["games"]} == {""}
