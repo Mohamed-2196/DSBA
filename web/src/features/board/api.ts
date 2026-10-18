@@ -20,7 +20,7 @@ import type {
   PaperScore,
 } from '../../api/types';
 import { useToast } from '../../state';
-import { appendCard, patchCard, placeAfter, placeCard } from './board';
+import { appendCard, patchCard, placeAfter, placeCard, TODAY_DAYS } from './board';
 import { scoresById, withScore } from './scores';
 
 export const BOARDS_KEY = ['boards'] as const;
@@ -73,7 +73,10 @@ export function useBoard(boardId: string | null | undefined) {
   });
 }
 
-export function useAgenda({ days, enabled = true }: { days: number; enabled?: boolean }) {
+/** The dated cards overdue or due in the next TODAY_DAYS days, across the active boards: the boards' Today and
+ *  Home's To-do. */
+export function useTodayAgenda({ enabled = true }: { enabled?: boolean } = {}) {
+  const days = TODAY_DAYS;
   return useQuery({
     queryKey: [...AGENDA_KEY, days],
     queryFn: () => call(api.GET('/api/v1/board-agenda', { params: { query: { days } } })),

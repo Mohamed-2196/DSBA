@@ -42,13 +42,13 @@ import {
   type MenuItem,
 } from '../../ui';
 import {
-  useAgenda,
   useBoard,
   useBoards,
   useDeleteBoard,
   useDeleteCard,
   useDeletePlan,
   useMoveCard,
+  useTodayAgenda,
   usePaperScores,
   usePlaceBoard,
   usePlaceColumn,
@@ -72,7 +72,6 @@ import {
   placeCard,
   planPace,
   limitsNear,
-  TODAY_DAYS,
   withExistingLabels,
   type CardFilter,
 } from './board';
@@ -135,7 +134,7 @@ function BoardApp() {
   const today = todayKey();
 
   const boardsQuery = useBoards();
-  const agenda = useAgenda({ days: TODAY_DAYS });
+  const agenda = useTodayAgenda();
   const boards = useMemo(() => boardsQuery.data?.boards ?? [], [boardsQuery.data]);
   const active = boards.filter((b) => !b.archived);
   const archived = boards.filter((b) => b.archived);

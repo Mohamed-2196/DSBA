@@ -5,7 +5,7 @@ import { useState } from 'react';
 import type { AgendaCard, BoardSummary } from '../../api/types';
 import { formatDay, todayKey } from '../../lib/dates';
 import { EmptyState, QueryError, Skeleton, cx } from '../../ui';
-import { useAgenda } from './api';
+import { useTodayAgenda } from './api';
 import { TODAY_DAYS, agendaSections, colorVar, doneColumn, dueLabel, timeText, type AgendaSection } from './board';
 import { PriorityBadge } from './CardItem';
 
@@ -27,7 +27,7 @@ export interface TodayViewProps {
 
 export function TodayView({ boards, readOnly, onOpen, onDone }: TodayViewProps) {
   const today = todayKey();
-  const agenda = useAgenda({ days: TODAY_DAYS });
+  const agenda = useTodayAgenda();
   // Ticked here, a card stays (struck through) until the agenda is read again: without it, or with it again when the
   // move failed. An answer equal to the last keeps the same data, so the ticks go by when it came.
   const [ticked, setTicked] = useState<{ at: number; ids: ReadonlySet<string> }>({ at: -1, ids: new Set() });

@@ -1,12 +1,12 @@
 // Home's "To-do": the cards overdue or due in the next TODAY_DAYS days across the student's active boards, as the
-// boards' Today view lists them. Cards without a date stay on the boards.
-import { Kanban } from '@phosphor-icons/react';
+// boards' Today view lists them. Cards without a date stay on the boards, and Home shows the block only while there
+// are some (useTodayAgenda).
 import { Link } from 'react-router-dom';
 import type { AgendaCard } from '../../api/types';
-import { Badge, Button, EmptyState, Panel, QueryError, Skeleton, safeInternalPath } from '../../ui';
+import { Badge, Panel, QueryError, Skeleton, safeInternalPath } from '../../ui';
 import { formatDay, todayKey } from '../../lib/dates';
-import { useAgenda } from './api';
-import { TODAY_DAYS, colorVar, dueLabel, isOverdue } from './board';
+import { useTodayAgenda } from './api';
+import { colorVar, dueLabel, isOverdue } from './board';
 import './BoardTodo.css';
 
 function TodoRow({ card, today }: { card: AgendaCard; today: string }) {
@@ -42,7 +42,7 @@ function TodoRow({ card, today }: { card: AgendaCard; today: string }) {
 
 /** The first `n` cards overdue or due soon across active boards, and "N more" for the rest in Today. */
 export function BoardTodo({ n = 5 }: { n?: number }) {
-  const agenda = useAgenda({ days: TODAY_DAYS });
+  const agenda = useTodayAgenda();
   const today = todayKey();
 
   if (agenda.isPending) {
@@ -69,23 +69,7 @@ export function BoardTodo({ n = 5 }: { n?: number }) {
     );
   }
   const cards = agenda.data.cards;
-  if (!cards.length) {
-    return (
-      <Panel padding="none" className="board-todo board-todo--empty" data-hub="home-todo">
-        <EmptyState
-          size="sm"
-          icon={Kanban}
-          title={`Nothing due in the next ${TODAY_DAYS} days`}
-          body="Cards with a due date show here, from all your boards."
-          action={
-            <Button size="sm" to="/board">
-              Open my boards
-            </Button>
-          }
-        />
-      </Panel>
-    );
-  }
+  if (!cards.length) return null;
   const more = cards.length - n;
   return (
     <Panel padding="none" className="board-todo" data-hub="home-todo">
