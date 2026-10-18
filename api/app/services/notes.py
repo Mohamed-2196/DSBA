@@ -43,6 +43,7 @@ from app.models import (
 from app.schemas.notes import (
     EXCERPT_LENGTH,
     MAX_SHEETS,
+    PAPER_SHEETS_FROM,
     SHEET_MAX_BYTES,
     InkInfo,
     InkSave,
@@ -73,7 +74,6 @@ SAVES_PER_MINUTE = 240
 PERSON_SAVES_PER_MINUTE = 400
 SAVE_WINDOW = timedelta(minutes=1)
 SEARCH_MAX = 100
-PAPER_SHEETS_FROM = 1000  # sheets 0-999 are a PDF's pages, 1000 and up its paper (schemas/notes.py MAX_SHEETS)
 MAX_SHEET_INDEX = PAPER_SHEETS_FROM + MAX_SHEETS
 OWN_NOTEBOOK = "My notebook"
 LIVE_UPLOADS = (UploadStatus.uploaded, UploadStatus.attached)
@@ -492,8 +492,9 @@ def create_note(db: Session, user: User, body: NoteCreate) -> Note:
     else:
         nb = own_notebook(db, user)
     _check_lesson(db, nb, body)
-    checked = note_doc.check(body.doc)
     pdf = _pdf_upload(db, user, body.pdf_upload_id) if body.pdf_upload_id is not None else None
+    sheets = body.sheets if pdf is not None else max(1, body.sheets)
+    checked = note_doc.check(body.doc, sheets=sheets)
     _creating(db, user)
     check_writing(db, user, _json_bytes(body.doc))
     now = utcnow()
@@ -504,7 +505,7 @@ def create_note(db: Session, user: User, body: NoteCreate) -> Note:
         doc=body.doc,
         text=checked.text,
         paper=body.paper,
-        sheets=body.sheets if pdf is not None else max(1, body.sheets),
+        sheets=sheets,
         lesson_id=body.lesson_id,
         pdf_upload_id=pdf.id if pdf is not None else None,
         saves_since=now,
@@ -582,17 +583,20 @@ def update_note(db: Session, user: User, note_id: uuid.UUID, body: NoteUpdate) -
         if before is None or before.module_id != nb.module_id:
             body = body.model_copy(update={"lesson_id": None})
     _check_lesson(db, nb, body, note)
+    sheets = body.sheets if _on_pdf(note) else max(1, body.sheets)
     fields = {
         "title": body.title,
         "doc": body.doc,
         "paper": body.paper,
-        "sheets": body.sheets if _on_pdf(note) else max(1, body.sheets),
+        "sheets": sheets,
         "lesson_id": body.lesson_id,
         "notebook_id": nb.id,
     }
     if all(getattr(note, k) == v for k, v in fields.items()):
         return note
-    checked = note_doc.check(body.doc) if body.doc != note.doc else None
+    # the text is checked again when it changed, or when the paper did (a free picture is on one of its sheets)
+    changed = body.doc != note.doc or sheets != note.sheets
+    checked = note_doc.check(body.doc, sheets=sheets) if changed else None
     _count_save(db, user, note)
     if checked is not None:
         check_writing(db, user, _json_bytes(body.doc) - _json_bytes(note.doc))

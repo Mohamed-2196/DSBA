@@ -20,6 +20,8 @@ MAX_SHEETS = 300  # paper sheets in one note (a PDF's pages come on top)
 # whole line), a PDF page keeps its own shape.
 SHEET_WIDTH = 800
 SHEET_HEIGHT = 1120
+# Sheets 0-999 are a PDF's pages (0 its first); paper sheets count from PAPER_SHEETS_FROM (the first).
+PAPER_SHEETS_FROM = 1000
 # One sheet's ink, as JSON: a dense handwritten page is 50 to 100 KB. Every read of a sheet stays small.
 SHEET_MAX_BYTES = 512_000
 # A request to save one sheet is refused unread above this (core/limits.py): the numbers it sends may be longer than
@@ -120,8 +122,9 @@ class InkInfo(ApiModel):
 
 
 class NoteFields(ApiModel):
-    """What a student writes: a title, the typed text (a ProseMirror document: services/note_doc.py lists what it
-    may hold), the paper, how many paper sheets, and the lesson it is about (in the notebook's module)."""
+    """What a student writes: a title, the typed text and its pictures, in the text or free on the pages (a ProseMirror
+    document: services/note_doc.py lists what it may hold), the paper, how many paper sheets, and the lesson it is about
+    (in the notebook's module)."""
 
     title: Title = ""
     doc: dict[str, Any] = Field(default_factory=lambda: {"type": "doc", "content": []})

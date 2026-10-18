@@ -15,7 +15,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models import LibraryItem, Module, Note, Notebook, NoteInk, Upload, UploadStatus, User, UserStatus
-from app.schemas.notes import INK_BODY_MAX, MAX_POINTS, MAX_STROKES, SHEET_MAX_BYTES
+from app.schemas.notes import INK_BODY_MAX, MAX_POINTS, MAX_STROKES, PAPER_SHEETS_FROM, SHEET_MAX_BYTES
+from app.services import note_doc
 from app.services import notes as svc
 from tests.core.helpers import PDF, PNG, share_pdf, upload
 from tests.lessons import lesson_id
@@ -337,7 +338,7 @@ def test_one_sheet_holds_at_most_sheet_max_bytes(client_for: ClientFor, make_use
     """A sheet's ink is capped by the API itself, and a request far over the cap is refused unread."""
     c = client_for(make_user())
     note = new_note(c)
-    sheet = svc.PAPER_SHEETS_FROM
+    sheet = PAPER_SHEETS_FROM
 
     def body(strokes: int, numbers: int) -> bytes:
         drawn = [
@@ -363,7 +364,7 @@ def test_an_ink_save_is_capped_however_it_is_sent(client_for: ClientFor, make_us
     is refused, and a body just under the ceiling goes through."""
     c = client_for(make_user())
     note = new_note(c)
-    url = f"{API}/notes/{note['id']}/ink/{svc.PAPER_SHEETS_FROM}"
+    url = f"{API}/notes/{note['id']}/ink/{PAPER_SHEETS_FROM}"
     sheet = json.dumps({"strokes": [stroke("a")], "version": 0}).encode()
     padded = sheet + b" " * (INK_BODY_MAX - len(sheet))  # JSON with spaces after it: exactly the ceiling
     assert len(padded) == INK_BODY_MAX
@@ -393,7 +394,7 @@ def test_a_note_is_read_without_its_ink_and_each_sheet_on_its_own(
     points = [12345.67] * 12_000
     big = [{"id": f"s{i}", "tool": "pen", "color": "#1f2933", "width": 2.5, "points": points} for i in range(3)]
     for k in range(2):
-        r = ink(c, note, svc.PAPER_SHEETS_FROM + k, big, 0)
+        r = ink(c, note, PAPER_SHEETS_FROM + k, big, 0)
         assert r.status_code == 200, r.text[:200]
     in_postgres = db.scalar(select(func.sum(NoteInk.size_bytes)).where(NoteInk.note_id == note["id"]))
     assert in_postgres is not None
@@ -548,6 +549,86 @@ def test_a_picture_keeps_its_place_crop_and_caption(client_for: ClientFor, make_
     assert note["doc"]["content"][0]["attrs"] == {"upload": picture, "alt": "Whiteboard"} | edited | crop
     found = c.get(f"{API}/notes", params={"q": "week 4"}).json()["items"]
     assert [n["id"] for n in found] == [note["id"]]
+
+
+def free_picture(upload_id: str, **changes: Any) -> dict[str, Any]:
+    """A picture free on the first page of paper, as the editor keeps it in the document's own attributes."""
+    picture: dict[str, Any] = {
+        "id": "f1",
+        "upload": upload_id,
+        "sheet": PAPER_SHEETS_FROM,
+        "x": 420,
+        "y": 64,
+        "w": 320,
+        "h": 240,
+        "angle": 12.5,
+        "ratio": 4 / 3,
+        "cropX": 0,
+        "cropY": 0,
+        "cropW": 1,
+        "cropH": 1,
+        "alt": "Normal curve",
+        "caption": "Beside the definition",
+    }
+    return picture | changes
+
+
+def test_free_pictures_keep_their_places_on_the_pages(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, db: Session
+) -> None:
+    """A free picture is kept where the editor put it, its words are searched, its file belongs to the note, and it
+    can't be left off its page or on a page the note doesn't have."""
+    c = client_for(make_user())
+    upload_id = upload(c, storage, purpose="note_file", name="curve.png", content_type="image/png", body=PNG)
+    body = doc("The density")
+    body["attrs"] = {"pictures": [free_picture(upload_id)]}
+    note = new_note(c, doc=body, sheets=2)
+    assert note["doc"]["attrs"] == body["attrs"]
+    assert note["text"] == "The density\nBeside the definition\nNormal curve"
+    assert db.get(Upload, upload_id).note_id is not None  # type: ignore[union-attr]
+    assert [n["id"] for n in c.get(f"{API}/notes", params={"q": "normal curve"}).json()["items"]] == [note["id"]]
+
+    to_page_two = {"pictures": [free_picture(upload_id, sheet=PAPER_SHEETS_FROM + 1, y=800, angle=0)]}
+    moved = save(c, note, doc=body | {"attrs": to_page_two})
+    assert moved.status_code == 200, moved.text
+    assert c.get(f"{API}/notes/{note['id']}").json()["doc"]["attrs"] == to_page_two
+
+    note = moved.json()
+    off = {"pictures": [free_picture(upload_id, x=700)]}  # its middle past the page's right edge
+    r = save(c, note, doc=body | {"attrs": off})
+    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["doc"])
+    r = save(c, note, sheets=1)  # the page it is on can't go while it is there
+    assert (r.status_code, list(r.json()["error"]["fields"])) == (422, ["doc"])
+
+    gone = save(c, note, doc=doc("The density"), sheets=1)  # deleted with its page: its file is let go of
+    assert gone.status_code == 200, gone.text
+    db.expire_all()
+    assert db.get(Upload, upload_id).note_id is None  # type: ignore[union-attr]
+
+
+def test_free_pictures_on_a_pdf_of_your_own(client_for: ClientFor, make_user: MakeUser, storage: Any) -> None:
+    c = client_for(make_user())
+    pdf = upload(c, storage, purpose="note_file", name="slides.pdf", content_type="application/pdf", body=PDF)
+    picture = upload(c, storage, purpose="note_file", name="graph.png", content_type="image/png", body=PNG)
+    body = {"type": "doc", "attrs": {"pictures": [free_picture(picture, sheet=3, y=2000)]}, "content": []}
+    note = new_note(c, doc=body, sheets=0, pdfUploadId=pdf)
+    assert note["sheets"] == 0
+    assert note["doc"]["attrs"]["pictures"][0]["sheet"] == 3
+
+
+def test_a_note_holds_a_limited_number_of_pictures(
+    client_for: ClientFor, make_user: MakeUser, storage: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(note_doc, "MAX_PICTURES", 2)
+    c = client_for(make_user())
+    picture = upload(c, storage, purpose="note_file", name="a.png", content_type="image/png", body=PNG)
+    body = picture_doc(picture)
+    body["attrs"] = {"pictures": [free_picture(picture)]}
+    note = new_note(c, doc=body)
+    body["attrs"] = {"pictures": [free_picture(picture), free_picture(picture, id="f2")]}
+    r = save(c, note, doc=body)
+    assert r.status_code == 422
+    assert r.json()["error"]["message"] == "A note holds up to 2 pictures. Put the others in another note."
 
 
 def test_someone_elses_upload_in_a_note_is_left_alone(
