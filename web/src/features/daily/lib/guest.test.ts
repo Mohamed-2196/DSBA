@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { DailyToday, GameDay, GameId } from '../types';
-import { withGuestPlays } from './guest';
+import type { DailyToday, GameDay, GameId, PlayOut } from '../types';
+import { settledGuestPlay, withGuestPlays } from './guest';
 import type { GuestPlay } from './storage';
 
 const game = (id: GameId, variants: string[] = ['']) =>
@@ -38,5 +38,32 @@ describe('withGuestPlays', () => {
   it('leaves the set as it is on another day, or with no plays', () => {
     expect(withGuestPlays(today, '2026-10-17', { 'word:default': play('won') })).toBe(today);
     expect(withGuestPlays(today, '2026-10-18', {}).games).toEqual(today.games);
+  });
+});
+
+describe('settledGuestPlay', () => {
+  const out = (status: PlayOut['play']['status'], revision: number, restarted = false) =>
+    ({ play: { status, revision, restarted } }) as PlayOut;
+  const kept = (revision: number, restarted = false): GuestPlay => ({
+    revision,
+    moves: [{ kind: 'give-up' }],
+    restarted,
+    status: 'playing',
+  });
+
+  it('forgets the moves of a play a fix started again, and says why', () => {
+    const { out: shown, keep } = settledGuestPlay(kept(0), out('new', 1, true));
+    expect(shown.play.restarted).toBe(true);
+    expect(keep).toEqual({ revision: 1, moves: [], restarted: true, status: 'new' });
+  });
+
+  it('keeps saying why until the next move', () => {
+    expect(settledGuestPlay({ ...kept(1, true), moves: [] }, out('new', 1)).out.play.restarted).toBe(true);
+    expect(settledGuestPlay(kept(1, true), out('playing', 1)).out.play.restarted).toBe(false);
+  });
+
+  it('leaves a play that finished on the version a fix replaced as it is', () => {
+    const finished = out('won', 0);
+    expect(settledGuestPlay(kept(0), finished)).toEqual({ out: finished, keep: null });
   });
 });
