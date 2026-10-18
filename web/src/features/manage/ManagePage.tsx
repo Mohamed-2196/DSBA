@@ -367,7 +367,8 @@ function ManageScreen() {
             if (!active && !(KEEP_DRAFTS.has(id) && visited.has(id))) return null;
             return (
               <section key={id} className="manage-panel" aria-label={SECTIONS[id].label} hidden={!active}>
-                <h2 className="manage-panel__title">{SECTIONS[id].label}</h2>
+                {/* The list and the picker already name the section on screen. */}
+                <h2 className="visually-hidden">{SECTIONS[id].label}</h2>
                 <ErrorBoundary name={`Manage:${id}`}>
                   {/* The editors load on first use (each feature's public.ts exports them lazily). */}
                   <Suspense fallback={LOADING}>{BODIES[id]()}</Suspense>

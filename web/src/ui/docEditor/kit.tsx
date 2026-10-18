@@ -1,14 +1,16 @@
 // What the documents edited whole in Manage share (Site settings, the guides, the forum's settings, Mini Noora, the
 // grades calculator's rules and the others): the frame with its save bar, the banner for a save someone else made
 // first, and ordered lists of items that open into forms. Each document's own fields are its editor's.
-import { ArrowDown, ArrowSquareOut, ArrowUp, CaretDown, Eye, Plus, Trash } from '@phosphor-icons/react';
+import { ArrowDown, ArrowSquareOut, ArrowUp, CaretDown, DotsThree, Eye, Plus, Trash } from '@phosphor-icons/react';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { BREAKPOINTS, useMediaQuery } from '../../state/useMediaQuery';
 import { useUnsavedChanges } from '../../state/unsaved';
 import { Badge } from '../Badge';
 import { Button } from '../Button';
 import { ConfirmDialog } from '../ConfirmDialog';
 import { IconButton } from '../IconButton';
 import { cx } from '../internal';
+import { Menu, type MenuItem } from '../Menu';
 import { Panel } from '../Panel';
 import { timeAgo } from '../utils';
 import './kit.css';
@@ -33,7 +35,7 @@ export interface DocFrameProps {
   onReload: () => Promise<unknown>;
   /** the sections: chips that pick one (none for a document of one part) */
   nav?: ReactNode;
-  /** the section's title and what it holds */
+  /** the section's title (a heading only without chips: a chip names it) and what it holds */
   section: { title: string; about: string };
   children: ReactNode;
 }
@@ -55,6 +57,12 @@ export function DocFrame({
   children,
 }: DocFrameProps) {
   useUnsavedChanges(dirty, title);
+  // On a phone the page and the preview wait in a menu, so the first field comes sooner.
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
+  const more: MenuItem[] = [
+    ...(pageTo ? [{ id: 'page', label: 'Open the page', icon: ArrowSquareOut, href: pageTo }] : []),
+    ...(onPreview ? [{ id: 'preview', label: 'Preview', icon: Eye, onSelect: onPreview }] : []),
+  ];
   // Manage keeps each visited editor mounted (hidden), so every id here is the frame's own.
   const headingId = useId();
   const status = useRef<HTMLParagraphElement>(null);
@@ -94,12 +102,12 @@ export function DocFrame({
           </p>
         </div>
         <div className="dedit__actions">
-          {pageTo ? (
+          {pageTo && !phone ? (
             <Button variant="ghost" to={pageTo} target="_blank" rel="noopener" trailingIcon={ArrowSquareOut}>
               Open the page<span className="visually-hidden"> (opens in a new tab)</span>
             </Button>
           ) : null}
-          {onPreview ? (
+          {onPreview && !phone ? (
             <Button variant="secondary" leadingIcon={Eye} onClick={onPreview}>
               Preview
             </Button>
@@ -110,6 +118,14 @@ export function DocFrame({
           <Button variant="primary" onClick={onSave} loading={saving} disabled={!dirty} data-hub="doc-save">
             Save
           </Button>
+          {phone && more.length ? (
+            <Menu
+              label={`More for ${title}`}
+              align="end"
+              items={more}
+              trigger={<IconButton label="More" icon={DotsThree} variant="secondary" />}
+            />
+          ) : null}
         </div>
       </div>
 
@@ -133,20 +149,30 @@ export function DocFrame({
       ) : null}
 
       {nav ? (
-        <nav className="dedit__nav" aria-label={`Parts of ${title}`}>
-          {nav}
-        </nav>
-      ) : null}
-
-      <Panel as="section" padding="md" className="dedit__panel" aria-labelledby={headingId}>
-        <div className="dedit__section-head">
-          <h4 id={headingId} className="dedit__section">
-            {section.title}
-          </h4>
+        <div className="dedit__parts">
+          <nav className="dedit__nav" aria-label={`Parts of ${title}`}>
+            {nav}
+          </nav>
           <p className="dedit__note">{section.about}</p>
         </div>
-        {children}
-      </Panel>
+      ) : null}
+
+      {nav ? (
+        // The chip names the part: no heading repeats it.
+        <Panel as="section" padding="md" className="dedit__panel" aria-label={section.title}>
+          {children}
+        </Panel>
+      ) : (
+        <Panel as="section" padding="md" className="dedit__panel" aria-labelledby={headingId}>
+          <div className="dedit__section-head">
+            <h4 id={headingId} className="dedit__section">
+              {section.title}
+            </h4>
+            <p className="dedit__note">{section.about}</p>
+          </div>
+          {children}
+        </Panel>
+      )}
 
       <div className={cx('dedit__savebar', dirty && 'is-active')}>
         <span className="dedit__note">

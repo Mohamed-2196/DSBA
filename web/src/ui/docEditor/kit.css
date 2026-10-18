@@ -54,6 +54,10 @@
   flex: 1 1 24ch;
   max-width: 75ch;
 }
+.dedit__parts {
+  display: grid;
+  gap: var(--sp-8);
+}
 .dedit__nav {
   display: flex;
   flex-wrap: wrap;

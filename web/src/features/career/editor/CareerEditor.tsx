@@ -1,12 +1,12 @@
 // Manage → Career Navigator (holders of career.edit): every part of the page, edited as one draft and saved together.
 // A save someone else made first (career_changed) offers to load theirs. Hidden items stay here and leave the page.
 // Every save goes to the activity log with what changed, before and after.
-import { ArrowSquareOut, Eye } from '@phosphor-icons/react';
+import { ArrowSquareOut, DotsThree, Eye } from '@phosphor-icons/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { errorMessage, isApiError } from '../../../api/errors';
 import type { CareerDoc, CareerEditable } from '../../../api/types';
-import { useToast, useUnsavedChanges } from '../../../state';
-import { Button, Chip, Drawer, EmptyState, Panel, QueryError, Skeleton, timeAgo } from '../../../ui';
+import { BREAKPOINTS, useMediaQuery, useToast, useUnsavedChanges } from '../../../state';
+import { Button, Chip, Drawer, EmptyState, IconButton, Menu, Panel, QueryError, Skeleton, timeAgo } from '../../../ui';
 import { docErrors } from '../../../ui/docEditor';
 import { CareerBody } from '../CareerPage';
 import { useCareerForEditing, useReloadCareer, useSaveCareer } from './api';
@@ -141,6 +141,8 @@ function Editor({ first }: { first: Loaded }) {
   const { push: toast } = useToast();
   const dirty = useMemo(() => JSON.stringify(doc) !== JSON.stringify(saved), [doc, saved]);
   useUnsavedChanges(dirty, 'Career Navigator');
+  // On a phone the page and the preview wait in a menu, so the first field comes sooner.
+  const phone = useMediaQuery(BREAKPOINTS.mobile);
 
   // A new version starts a new draft.
   const start = (next: CareerEditable) => {
@@ -212,12 +214,16 @@ function Editor({ first }: { first: Loaded }) {
             </p>
           </div>
           <div className="cedit__actions">
-            <Button variant="ghost" to="/career" target="_blank" rel="noopener" trailingIcon={ArrowSquareOut}>
-              Open the page<span className="visually-hidden"> (opens in a new tab)</span>
-            </Button>
-            <Button variant="secondary" leadingIcon={Eye} onClick={() => setPreviewing(true)}>
-              Preview
-            </Button>
+            {phone ? null : (
+              <>
+                <Button variant="ghost" to="/career" target="_blank" rel="noopener" trailingIcon={ArrowSquareOut}>
+                  Open the page<span className="visually-hidden"> (opens in a new tab)</span>
+                </Button>
+                <Button variant="secondary" leadingIcon={Eye} onClick={() => setPreviewing(true)}>
+                  Preview
+                </Button>
+              </>
+            )}
             <Button
               variant="secondary"
               disabled={!dirty || save.isPending}
@@ -232,6 +238,17 @@ function Editor({ first }: { first: Loaded }) {
             <Button onClick={submit} loading={save.isPending} disabled={!dirty}>
               Save
             </Button>
+            {phone ? (
+              <Menu
+                label="More for Career Navigator"
+                align="end"
+                items={[
+                  { id: 'page', label: 'Open the page', icon: ArrowSquareOut, href: '/career' },
+                  { id: 'preview', label: 'Preview', icon: Eye, onSelect: () => setPreviewing(true) },
+                ]}
+                trigger={<IconButton label="More" icon={DotsThree} variant="secondary" />}
+              />
+            ) : null}
           </div>
         </div>
 
@@ -254,31 +271,29 @@ function Editor({ first }: { first: Loaded }) {
           </div>
         ) : null}
 
-        <nav className="cedit__nav" aria-label="Parts of Career Navigator">
-          {SECTIONS.map((s) => {
-            const n = countOf(doc, s);
-            const hasError = Object.keys(fields).some((k) => errorPlace({ [k]: '' })?.section === s);
-            return (
-              <Chip
-                key={s}
-                selected={s === section}
-                onChange={() => setSection(s)}
-                count={n}
-                className={hasError ? 'cedit__nav-error' : undefined}
-              >
-                {LABELS[s]}
-              </Chip>
-            );
-          })}
-        </nav>
+        <div className="cedit__parts">
+          <nav className="cedit__nav" aria-label="Parts of Career Navigator">
+            {SECTIONS.map((s) => {
+              const n = countOf(doc, s);
+              const hasError = Object.keys(fields).some((k) => errorPlace({ [k]: '' })?.section === s);
+              return (
+                <Chip
+                  key={s}
+                  selected={s === section}
+                  onChange={() => setSection(s)}
+                  count={n}
+                  className={hasError ? 'cedit__nav-error' : undefined}
+                >
+                  {LABELS[s]}
+                </Chip>
+              );
+            })}
+          </nav>
+          <p className="cedit__note">{ABOUT[section]}</p>
+        </div>
 
-        <Panel as="section" padding="md" className="cedit__panel" aria-labelledby="cedit-section-title">
-          <div className="cedit__section-head">
-            <h4 id="cedit-section-title" className="cedit__section">
-              {LABELS[section]}
-            </h4>
-            <p className="cedit__note">{ABOUT[section]}</p>
-          </div>
+        {/* The chip names the part: no heading repeats it. */}
+        <Panel as="section" padding="md" className="cedit__panel" aria-label={LABELS[section]}>
           {BODIES[section]()}
         </Panel>
 
